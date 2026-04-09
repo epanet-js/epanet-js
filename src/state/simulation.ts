@@ -3,6 +3,7 @@ import type { ResultsReader } from "src/simulation/results-reader";
 import type { SimulationIds } from "src/simulation/epanet/simulation-metadata";
 
 export const simulationResultsAtom = atom<ResultsReader | null>(null);
+export const simulationStepAtom = atom<number | null>(null);
 
 export type SimulationIdle = { status: "idle" };
 export type SimulationFinished = {
@@ -12,7 +13,6 @@ export type SimulationFinished = {
   settingsVersion: string;
   metadata?: ArrayBuffer;
   simulationIds?: SimulationIds;
-  currentTimestepIndex?: number;
 };
 export type SimulationRunning = {
   status: "running";

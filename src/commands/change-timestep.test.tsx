@@ -1,9 +1,17 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CommandContainer } from "./__helpers__/command-container";
-import { simulationAtom, SimulationState } from "src/state/simulation";
+import {
+  SimulationState,
+  simulationAtom,
+  simulationResultsAtom,
+  simulationStepAtom,
+} from "src/state/simulation";
 import { Store } from "src/state";
-import { setInitialState } from "src/__helpers__/state";
+import {
+  createMockResultsReader,
+  setInitialState,
+} from "src/__helpers__/state";
 import { useChangeTimestep } from "./change-timestep";
 import {
   PROLOG_SIZE,
@@ -14,10 +22,9 @@ vi.mock("src/infra/storage/opfs-storage", () => ({
   OPFSStorage: vi.fn(),
 }));
 
-const mockGetResultsForTimestep = vi.fn().mockResolvedValue({
-  getNodeResult: vi.fn(),
-  getLinkResult: vi.fn(),
-});
+const initialResultsReader = createMockResultsReader();
+const nextResultsReader = createMockResultsReader();
+const mockGetResultsForTimestep = vi.fn().mockResolvedValue(nextResultsReader);
 
 vi.mock("src/simulation/epanet/eps-results-reader", () => ({
   EPSResultsReader: vi.fn().mockImplementation(() => ({
@@ -32,9 +39,11 @@ describe("useChangeTimestep", () => {
   });
 
   describe("changeTimestep", () => {
-    it("does nothing when simulation status is idle", async () => {
+    it("resets simulation state when the current step is unknown", async () => {
       const store = setInitialState({
         simulation: { status: "idle" },
+        simulationStep: null,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: 1 });
 
@@ -42,57 +51,50 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(store.get(simulationAtom).status).toBe("idle");
+        expect(store.get(simulationStepAtom)).toBeNull();
+        expect(store.get(simulationResultsAtom)).toBeNull();
       });
     });
 
-    it("does nothing when simulation status is running", async () => {
+    it("clamps a negative timestep index to 0", async () => {
       const store = setInitialState({
-        simulation: { status: "running" },
-      });
-      renderComponent({ store, targetTimestep: 1 });
-
-      await userEvent.click(screen.getByRole("button", { name: "go" }));
-
-      await waitFor(() => {
-        expect(store.get(simulationAtom).status).toBe("running");
-      });
-    });
-
-    it("does nothing when timestep index is negative", async () => {
-      const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: -1 });
 
       await userEvent.click(screen.getByRole("button", { name: "go" }));
 
       await waitFor(() => {
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(2);
+        expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
+        expect(store.get(simulationStepAtom)).toBe(0);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
-    it("does nothing when timestep index exceeds available timesteps", async () => {
+    it("clamps a timestep index beyond the last to the last", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: 5 });
 
       await userEvent.click(screen.getByRole("button", { name: "go" }));
 
       await waitFor(() => {
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(2);
+        expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
+        expect(store.get(simulationStepAtom)).toBe(4);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
-    it("updates timestep index when valid", async () => {
+    it("updates step when valid", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: 3 });
 
@@ -100,16 +102,16 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(3);
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(3);
+        expect(store.get(simulationStepAtom)).toBe(3);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
     it("allows changing to timestep 0", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: 0 });
 
@@ -117,16 +119,16 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(0);
+        expect(store.get(simulationStepAtom)).toBe(0);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
     it("allows changing to last timestep", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store, targetTimestep: 4 });
 
@@ -134,18 +136,18 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(4);
+        expect(store.get(simulationStepAtom)).toBe(4);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
 
   describe("goToPreviousTimestep", () => {
-    it("decrements the current timestep index", async () => {
+    it("decrements the current step", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store });
 
@@ -153,34 +155,35 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(1);
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(1);
+        expect(store.get(simulationStepAtom)).toBe(1);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
-    it("does nothing when already at first timestep", async () => {
+    it("clamps to 0 when already at the first step", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 0 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 0,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store });
 
       await userEvent.click(screen.getByRole("button", { name: "previous" }));
 
       await waitFor(() => {
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(0);
+        expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
+        expect(store.get(simulationStepAtom)).toBe(0);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
 
   describe("goToNextTimestep", () => {
-    it("increments the current timestep index", async () => {
+    it("increments the current step", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 2 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 2,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store });
 
@@ -188,26 +191,25 @@ describe("useChangeTimestep", () => {
 
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(3);
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(3);
+        expect(store.get(simulationStepAtom)).toBe(3);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
-    it("does nothing when already at last timestep", async () => {
+    it("clamps to the last step when already at the last step", async () => {
       const store = setInitialState({
-        simulation: aSuccessSimulation({ timestepCount: 5, currentIndex: 4 }),
+        simulation: aSuccessSimulation({ timestepCount: 5 }),
+        simulationStep: 4,
+        simulationResults: initialResultsReader,
       });
       renderComponent({ store });
 
       await userEvent.click(screen.getByRole("button", { name: "next" }));
 
       await waitFor(() => {
-        const simulation = store.get(simulationAtom) as SimulationState & {
-          currentTimestepIndex: number;
-        };
-        expect(simulation.currentTimestepIndex).toBe(4);
+        expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
+        expect(store.get(simulationStepAtom)).toBe(4);
+        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
@@ -257,10 +259,8 @@ describe("useChangeTimestep", () => {
 
   const aSuccessSimulation = ({
     timestepCount,
-    currentIndex,
   }: {
     timestepCount: number;
-    currentIndex: number;
   }): SimulationState => {
     return {
       status: "success",
@@ -274,7 +274,6 @@ describe("useChangeTimestep", () => {
         nodeIdToIndex: new Map(),
         linkIdToIndex: new Map(),
       },
-      currentTimestepIndex: currentIndex,
     };
   };
 

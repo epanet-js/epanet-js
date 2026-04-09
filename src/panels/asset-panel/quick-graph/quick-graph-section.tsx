@@ -7,7 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { simulationAtom } from "src/state/simulation";
+import { simulationAtom, simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
@@ -127,6 +127,7 @@ const QuickGraphSection = ({
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
+  const simulationStep = useAtomValue(simulationStepAtom);
   const worktree = useAtomValue(worktreeAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(
@@ -169,10 +170,7 @@ const QuickGraphSection = ({
     () => (mainData ? Array.from(mainData.values) : null),
     [mainData],
   );
-  const timeStepIndex =
-    simulation.status === "success" || simulation.status === "warning"
-      ? (simulation.currentTimestepIndex ?? 0)
-      : 0;
+  const timeStepIndex = simulationStep ?? 0;
 
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =

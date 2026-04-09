@@ -8,7 +8,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "src/icons";
-import { simulationAtom } from "src/state/simulation";
+import { simulationAtom, simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { triggerStylesFor } from "./form/selector";
@@ -19,6 +19,7 @@ import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata
 
 export const TimestepSelector = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationStep = useAtomValue(simulationStepAtom);
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
@@ -26,19 +27,18 @@ export const TimestepSelector = () => {
   const isSmOrLarger = useBreakpoint("sm");
 
   if (!isSmOrLarger) return null;
+  if (simulationStep === null) return null;
   if (simulation.status === "idle" || simulation.status === "running")
     return null;
 
   const { timestepCount, reportingTimeStep } = getSimulationMetadataValues(
     simulation.metadata,
   );
-  const currentTimestepIndex = simulation.currentTimestepIndex ?? 0;
-
   if (timestepCount <= 1) return null;
 
   return (
     <TimestepSelectorUI
-      currentTimestepIndex={currentTimestepIndex}
+      currentTimestepIndex={simulationStep}
       timestepCount={timestepCount}
       reportTimestep={reportingTimeStep}
       onChangeTimestep={changeTimestep}

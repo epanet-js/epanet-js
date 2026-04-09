@@ -13,6 +13,7 @@ import {
   initialSimulationState,
   simulationAtom,
   simulationResultsAtom,
+  simulationStepAtom,
 } from "src/state/simulation";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Store } from "src/state";
@@ -42,7 +43,6 @@ export const setInitialState = ({
   store = createStore(),
   hydraulicModel = HydraulicModelBuilder.with().build(),
   momentLog = new MomentLog(),
-  simulation = initialSimulationState,
   selection = { type: "none" },
   fileInfo = null,
   layerConfigs = new Map(),
@@ -50,13 +50,14 @@ export const setInitialState = ({
   linkSymbology = nullSymbologySpec.link,
   locale = "en",
   mode = Mode.NONE,
+  simulation = initialSimulationState,
+  simulationStep = null,
   simulationResults = null,
   simulationSettings,
 }: {
   store?: Store;
   hydraulicModel?: HydraulicModel;
   momentLog?: MomentLog;
-  simulation?: SimulationState;
   selection?: Sel;
   fileInfo?: FileInfo | null;
   layerConfigs?: LayerConfigMap;
@@ -64,6 +65,8 @@ export const setInitialState = ({
   linkSymbology?: LinkSymbology;
   locale?: Locale;
   mode?: Mode;
+  simulation?: SimulationState;
+  simulationStep?: number | null;
   simulationResults?: ResultsReader | null;
   simulationSettings?: SimulationSettings;
 } = {}): Store => {
@@ -74,6 +77,7 @@ export const setInitialState = ({
   });
   store.set(momentLogAtom, momentLog);
   store.set(simulationAtom, simulation);
+  store.set(simulationStepAtom, simulationStep);
   store.set(fileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
   store.set(nodeSymbologyAtom, nodeSymbology);

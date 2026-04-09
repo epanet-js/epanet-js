@@ -30,6 +30,7 @@ import {
   type SimulationState,
   initialSimulationState,
   simulationAtom,
+  simulationStepAtom,
 } from "src/state/simulation";
 import { customerPointsAtom } from "src/state/hydraulic-model";
 import { offlineAtom } from "src/state/offline";
@@ -106,6 +107,7 @@ export type MapState = {
   ephemeralState: EphemeralEditingState;
   symbology: SymbologySpec;
   simulation: SimulationState;
+  simulationStep: number | null;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
   isOffline: boolean;
@@ -128,6 +130,7 @@ export const nullMapState: MapState = {
   ephemeralState: { type: "none" },
   symbology: nullSymbologySpec,
   simulation: initialSimulationState,
+  simulationStep: null,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
   isOffline: false,
@@ -156,6 +159,7 @@ export const mapStateAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
+  const simulationStep = get(simulationStepAtom);
   const customerPoints = get(customerPointsAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
@@ -174,6 +178,7 @@ export const mapStateAtom = atom<MapState>((get) => {
     ephemeralState,
     symbology,
     simulation,
+    simulationStep,
     selectedAssetIds,
     movedAssetIds,
     isOffline,
@@ -191,6 +196,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const symbology = get(symbologyAtom);
   const simulation = get(simulationDerivedAtom);
+  const simulationStep = get(simulationStepAtom);
   const customerPoints = get(customerPointsDerivedAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
@@ -209,6 +215,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     ephemeralState,
     symbology,
     simulation,
+    simulationStep,
     selectedAssetIds,
     movedAssetIds,
     isOffline,

@@ -126,7 +126,9 @@ const detectChanges = (
     hasEphemeralStateReset:
       prev.ephemeralState.type !== "none" &&
       state.ephemeralState.type === "none",
-    hasNewSimulation: state.simulation !== prev.simulation,
+    hasNewSimulation:
+      state.simulation !== prev.simulation ||
+      state.simulationStep !== prev.simulationStep,
     hasNewSymbologyRules:
       state.symbology.node.colorRule !== prev.symbology.node.colorRule ||
       state.symbology.node.labelRule !== prev.symbology.node.labelRule ||

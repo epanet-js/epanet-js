@@ -16,10 +16,11 @@ import {
   type SimulationState,
   simulationAtom,
   initialSimulationState,
+  simulationResultsAtom,
+  simulationStepAtom,
 } from "src/state/simulation";
 import { Store } from "src/state";
 import { baseModelAtom } from "src/state/hydraulic-model";
-import { simulationResultsAtom } from "src/state/simulation";
 import { trackMoment } from "./shared";
 import {
   HydraulicModel,
@@ -63,6 +64,8 @@ import {
   syncSnapshotMomentLog,
   updateModelCache,
 } from "./transaction-helpers";
+import { ResultsReader } from "src/simulation";
+import { captureError } from "src/infra/error-tracking";
 
 export class Persistence implements IPersistenceWithSnapshots {
   private store: Store;
@@ -126,6 +129,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
       this.store.set(simulationResultsAtom, null);
+      this.store.set(simulationStepAtom, null);
       this.store.set(nodeSymbologyAtom, nullSymbologySpec.node);
       this.store.set(linkSymbologyAtom, nullSymbologySpec.link);
       this.store.set(savedSymbologiesAtom, new Map());
@@ -196,6 +200,7 @@ export class Persistence implements IPersistenceWithSnapshots {
       this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);
       this.store.set(simulationResultsAtom, null);
+      this.store.set(simulationStepAtom, null);
       this.store.set(modeAtom, { mode: Mode.NONE });
       this.store.set(ephemeralStateAtom, { type: "none" });
       this.store.set(selectionAtom, { type: "none" });
@@ -334,12 +339,7 @@ export class Persistence implements IPersistenceWithSnapshots {
     const snapshot = worktree.snapshots.get(snapshotId);
     if (!snapshot) return;
 
-    const currentSimulation = this.store.get(simulationAtom);
-    const preserveTimestepIndex =
-      currentSimulation.status === "success" ||
-      currentSimulation.status === "warning"
-        ? currentSimulation.currentTimestepIndex
-        : undefined;
+    const preserveTimestepIndex = this.store.get(simulationStepAtom);
 
     const { model: stagingModel, labelManager: snapshotLabelManager } =
       this.getOrBuildModel(worktree, snapshotId);
@@ -348,20 +348,28 @@ export class Persistence implements IPersistenceWithSnapshots {
       worktree.mainId,
     );
 
-    const simulation = getSimulationForState(worktree, initialSimulationState);
+    const snapshotSimulation = getSimulationForState(
+      worktree,
+      initialSimulationState,
+    );
     const resultsSourceId = snapshot.simulationSourceId;
-    const { resultsReader, actualTimestepIndex } =
-      await this.loadSimulationResults(
-        simulation,
-        resultsSourceId,
-        preserveTimestepIndex,
-      );
 
-    const finalSimulation =
-      actualTimestepIndex !== undefined &&
-      (simulation.status === "success" || simulation.status === "warning")
-        ? { ...simulation, currentTimestepIndex: actualTimestepIndex }
-        : simulation;
+    let simulation = snapshotSimulation;
+    let resultsReader: ResultsReader | null = null;
+    let actualTimestepIndex: number | null = null;
+    try {
+      ({ resultsReader, actualTimestepIndex } =
+        await this.loadSimulationResults(
+          snapshotSimulation,
+          resultsSourceId,
+          preserveTimestepIndex,
+        ));
+    } catch (error) {
+      captureError(error as Error);
+      simulation = initialSimulationState;
+      resultsReader = null;
+      actualTimestepIndex = null;
+    }
 
     const currentFactories = this.store.get(modelFactoriesAtom);
     this.store.set(stagingModelAtom, stagingModel);
@@ -377,7 +385,8 @@ export class Persistence implements IPersistenceWithSnapshots {
     );
     this.switchMomentLog(snapshot.momentLog);
     this.setModelVersion(snapshot.version);
-    this.store.set(simulationAtom, finalSimulation);
+    this.store.set(simulationAtom, simulation);
+    this.store.set(simulationStepAtom, actualTimestepIndex);
     this.store.set(simulationResultsAtom, resultsReader);
     this.store.set(simulationSettingsAtom, snapshot.simulationSettings);
 
@@ -393,14 +402,10 @@ export class Persistence implements IPersistenceWithSnapshots {
   private async loadSimulationResults(
     simulation: SimulationState,
     snapshotId: string,
-    preserveTimestepIndex?: number,
+    preserveTimestepIndex: number | null,
   ): Promise<{
-    resultsReader: Awaited<
-      ReturnType<
-        import("src/simulation").EPSResultsReader["getResultsForTimestep"]
-      >
-    > | null;
-    actualTimestepIndex?: number;
+    resultsReader: ResultsReader | null;
+    actualTimestepIndex: number | null;
   }> {
     if (
       (simulation.status === "success" || simulation.status === "warning") &&
@@ -419,20 +424,20 @@ export class Persistence implements IPersistenceWithSnapshots {
       await epsReader.initialize(simulation.metadata, simulation.simulationIds);
 
       let timestepIndex: number;
-      if (preserveTimestepIndex !== undefined) {
+      if (preserveTimestepIndex !== null) {
         timestepIndex = Math.min(
           preserveTimestepIndex,
           Math.max(0, epsReader.timestepCount - 1),
         );
       } else {
-        timestepIndex = simulation.currentTimestepIndex ?? 0;
+        timestepIndex = 0;
       }
 
       const resultsReader =
         await epsReader.getResultsForTimestep(timestepIndex);
       return { resultsReader, actualTimestepIndex: timestepIndex };
     }
-    return { resultsReader: null };
+    return { resultsReader: null, actualTimestepIndex: null };
   }
 
   private getOrBuildModel(

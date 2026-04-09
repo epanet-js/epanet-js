@@ -1,14 +1,17 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
-import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import {
+  simulationAtom,
+  simulationResultsAtom,
+  simulationStepAtom,
+} from "src/state/simulation";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
-import { usePersistenceWithSnapshots } from "src/lib/persistence";
+import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -17,50 +20,44 @@ type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
 
 export const useChangeTimestep = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const [simulationStep, setSimulationStep] = useAtom(simulationStepAtom);
   const setSimulationState = useSetAtom(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
-  const userTracking = useUserTracking();
-  const getEpsResultsReader = useGetEpsResultsReader();
-  const persistence = usePersistenceWithSnapshots();
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const setSimulationResults = useSetAtom(
     isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
   );
+  const timestepCount =
+    "metadata" in simulation
+      ? getSimulationMetadata(simulation.metadata).reportingStepsCount
+      : 0;
+
+  const userTracking = useUserTracking();
+  const getEpsResultsReader = useGetEpsResultsReader();
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
-      if (simulation.status !== "success" && simulation.status !== "warning") {
-        return;
-      }
-
-      const { metadata } = simulation;
-      if (!metadata) {
-        return;
-      }
-
-      const timestepCount = getSimulationMetadata(metadata).reportingStepsCount;
-      if (timestepIndex < 0 || timestepIndex >= timestepCount) {
-        return;
-      }
-
       try {
+        if (simulationStep === null)
+          throw new Error("Unknown simulation steps");
+        if (timestepCount === 0) throw new Error("No simulation steps");
+
+        const newTimeStep = Math.max(
+          0,
+          Math.min(timestepIndex, timestepCount - 1),
+        );
+
         const epsReader = await getEpsResultsReader();
-        if (!epsReader) return;
+        if (!epsReader) throw new Error("Unknown simulation results");
 
         const resultsReader =
-          await epsReader.getResultsForTimestep(timestepIndex);
+          await epsReader.getResultsForTimestep(newTimeStep);
 
+        setSimulationStep(newTimeStep);
         setSimulationResults(resultsReader);
-
-        const updatedSimulation = {
-          ...simulation,
-          currentTimestepIndex: timestepIndex,
-        };
-        setSimulationState(updatedSimulation);
-        persistence.syncSnapshotSimulation(updatedSimulation);
 
         userTracking.capture({
           name: "simulation.timestep.changed",
@@ -69,39 +66,36 @@ export const useChangeTimestep = () => {
         });
       } catch (error) {
         captureError(error as Error);
+        setSimulationStep(null);
         setSimulationState({ status: "idle" });
+        setSimulationResults(null);
       }
     },
     [
-      simulation,
-      setSimulationResults,
-      setSimulationState,
-      userTracking,
+      simulationStep,
+      timestepCount,
       getEpsResultsReader,
-      persistence,
+      setSimulationStep,
+      setSimulationResults,
+      userTracking,
+      setSimulationState,
     ],
   );
 
   const goToPreviousTimestep = useCallback(
     async (source: ChangeTimestepSource = "shortcut") => {
-      const currentIndex =
-        "currentTimestepIndex" in simulation
-          ? (simulation.currentTimestepIndex ?? 0)
-          : 0;
+      const currentIndex = simulationStep ?? 0;
       await changeTimestep(currentIndex - 1, source);
     },
-    [simulation, changeTimestep],
+    [simulationStep, changeTimestep],
   );
 
   const goToNextTimestep = useCallback(
     async (source: ChangeTimestepSource = "shortcut") => {
-      const currentIndex =
-        "currentTimestepIndex" in simulation
-          ? (simulation.currentTimestepIndex ?? 0)
-          : 0;
+      const currentIndex = simulationStep ?? 0;
       await changeTimestep(currentIndex + 1, source);
     },
-    [simulation, changeTimestep],
+    [simulationStep, changeTimestep],
   );
 
   return { changeTimestep, goToPreviousTimestep, goToNextTimestep };
