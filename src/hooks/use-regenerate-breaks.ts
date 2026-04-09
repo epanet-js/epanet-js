@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo, useState } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   applyMode,
@@ -12,9 +11,11 @@ import {
   getSortedSimulationDataForBreaks,
   isSimulationProperty,
 } from "src/map/symbology/symbology-data-source";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { useSymbologyState } from "src/state/map-symbology";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
@@ -33,9 +34,10 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   const simulationResults = useAtomValue(
     isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
   );
-  const simulation = useAtomValue(simulationAtom);
+  const simulation = useAtomValue(
+    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
   const { nodeSymbology, linkSymbology } = useSymbologyState();
-  const getEpsResultsReader = useGetEpsResultsReader();
   const isSymbologyFromAllDataOn = useFeatureFlag(
     "FLAG_SYMBOLOGY_FROM_ALL_DATA",
   );
@@ -66,9 +68,8 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   );
 
   const isEpsSimulation =
-    (simulation.status === "success" || simulation.status === "warning") &&
-    !!simulation.metadata &&
-    getSimulationMetadata(simulation.metadata).reportingStepsCount > 1;
+    "epsResultsReader" in simulation &&
+    (simulation.epsResultsReader?.timestepCount ?? 0) > 1;
 
   const canRegenerateFromAllData =
     isSymbologyFromAllDataOn &&
@@ -80,15 +81,18 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
     async (currentRule: RangeColorRule): Promise<RegenerateResult | null> => {
       if (!isSimulationProperty(currentRule.property)) return null;
 
-      userTracking.capture({
-        name: "colorRange.breaks.regeneratedFromAllData",
-        property: currentRule.property,
-      });
-
       setIsWorking(true);
       try {
-        const epsReader = await getEpsResultsReader();
+        const epsReader =
+          "epsResultsReader" in simulation
+            ? simulation.epsResultsReader
+            : undefined;
         if (!epsReader) return null;
+
+        userTracking.capture({
+          name: "colorRange.breaks.regeneratedFromAllData",
+          property: currentRule.property,
+        });
 
         const fullSorted = await getSortedSimulationDataForBreaks(
           currentRule.property,
@@ -102,7 +106,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         setIsWorking(false);
       }
     },
-    [userTracking, getEpsResultsReader],
+    [simulation, userTracking],
   );
 
   return {

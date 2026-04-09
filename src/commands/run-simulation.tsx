@@ -113,12 +113,12 @@ export const useRunSimulation = () => {
 
         isCompleted = true;
 
-        let simulationIds;
+        let epsReader: EPSResultsReader | undefined = undefined;
+
         if (status === "success" || status === "warning") {
           const storage = new OPFSStorage(appId, scenarioKey);
-          const epsReader = new EPSResultsReader(storage);
+          epsReader = new EPSResultsReader(storage);
           await epsReader.initialize(metadata);
-          simulationIds = epsReader.simulationIds;
           const resultsReader = await epsReader.getResultsForTimestep(0);
           setSimulationResults(resultsReader);
           setSimulationStep(0);
@@ -136,18 +136,18 @@ export const useRunSimulation = () => {
           }
         }
 
-        const simulationResult = {
+        const simulationState = {
           status,
           report,
           modelVersion: hydraulicModel.version,
           settingsVersion: simulationSettings.version,
-          metadata,
-          simulationIds,
+          epsResultsReader: epsReader,
         };
-        setSimulationState(simulationResult);
-        persistence.syncSnapshotSimulation(simulationResult, {
+        setSimulationState(simulationState);
+        persistence.syncSnapshotSimulation(simulationState, {
           updateSourceId: true,
         });
+
         const end = performance.now();
         const duration = end - start;
 

@@ -15,7 +15,6 @@ import { triggerStylesFor } from "./form/selector";
 import { useEffect, useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useChangeTimestep } from "src/commands/change-timestep";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 
 export const TimestepSelector = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
@@ -28,12 +27,10 @@ export const TimestepSelector = () => {
 
   if (!isSmOrLarger) return null;
   if (simulationStep === null) return null;
-  if (simulation.status === "idle" || simulation.status === "running")
+  if (!("epsResultsReader" in simulation) || !simulation.epsResultsReader)
     return null;
 
-  const { timestepCount, reportingTimeStep } = getSimulationMetadataValues(
-    simulation.metadata,
-  );
+  const { timestepCount, reportingTimeStep } = simulation.epsResultsReader;
   if (timestepCount <= 1) return null;
 
   return (
@@ -206,14 +203,6 @@ const TimestepDropdown = ({
     </Popover.Root>
   );
 };
-
-function getSimulationMetadataValues(metadata: ArrayBuffer | undefined) {
-  const simMetadata = getSimulationMetadata(metadata);
-  return {
-    timestepCount: simMetadata.reportingStepsCount,
-    reportingTimeStep: simMetadata.reportingTimeStep,
-  };
-}
 
 function formatTimestepTime(timestepIndex: number, intervalSeconds = 3600) {
   const totalSeconds = timestepIndex * intervalSeconds;

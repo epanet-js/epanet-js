@@ -7,7 +7,6 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -150,10 +149,10 @@ const SymbologyEditor = ({
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const hasCompletedSimulation =
-    simulation.status === "success" || simulation.status === "warning";
+    "epsResultsReader" in simulation && !!simulation.epsResultsReader;
   const hasWaterAge =
     hasCompletedSimulation &&
-    getSimulationMetadata(simulation.metadata).qualityType === "age";
+    simulation.epsResultsReader?.qualityType === "age";
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
@@ -169,18 +168,18 @@ const SymbologyEditor = ({
         value: type,
         label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
         disabled:
-          (simulation.status === "idle" && isSimProp) ||
+          (!hasCompletedSimulation && isSimProp) ||
           (type === "waterAge" && !hasWaterAge),
       };
     });
   }, [
+    isWaterAgeOn,
     properties,
     units,
-    simulation.status,
-    hasWaterAge,
-    isWaterAgeOn,
     translate,
     translateUnit,
+    hasCompletedSimulation,
+    hasWaterAge,
   ]);
 
   const userTracking = useUserTracking();

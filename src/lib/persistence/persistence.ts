@@ -352,7 +352,6 @@ export class Persistence implements IPersistenceWithSnapshots {
       worktree,
       initialSimulationState,
     );
-    const resultsSourceId = snapshot.simulationSourceId;
 
     let simulation = snapshotSimulation;
     let resultsReader: ResultsReader | null = null;
@@ -361,7 +360,6 @@ export class Persistence implements IPersistenceWithSnapshots {
       ({ resultsReader, actualTimestepIndex } =
         await this.loadSimulationResults(
           snapshotSimulation,
-          resultsSourceId,
           preserveTimestepIndex,
         ));
     } catch (error) {
@@ -401,27 +399,13 @@ export class Persistence implements IPersistenceWithSnapshots {
 
   private async loadSimulationResults(
     simulation: SimulationState,
-    snapshotId: string,
     preserveTimestepIndex: number | null,
   ): Promise<{
     resultsReader: ResultsReader | null;
     actualTimestepIndex: number | null;
   }> {
-    if (
-      (simulation.status === "success" || simulation.status === "warning") &&
-      simulation.metadata
-    ) {
-      const [{ OPFSStorage }, { EPSResultsReader }, { getAppId }] =
-        await Promise.all([
-          import("src/infra/storage"),
-          import("src/simulation"),
-          import("src/infra/app-instance"),
-        ]);
-
-      const appId = getAppId();
-      const storage = new OPFSStorage(appId, snapshotId);
-      const epsReader = new EPSResultsReader(storage);
-      await epsReader.initialize(simulation.metadata, simulation.simulationIds);
+    if ("epsResultsReader" in simulation && !!simulation.epsResultsReader) {
+      const epsReader = simulation.epsResultsReader;
 
       let timestepIndex: number;
       if (preserveTimestepIndex !== null) {

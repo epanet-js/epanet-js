@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
@@ -10,8 +10,6 @@ import {
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useGetEpsResultsReader } from "src/hooks/use-eps-results-reader";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -21,37 +19,34 @@ type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
 export const useChangeTimestep = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [simulationStep, setSimulationStep] = useAtom(simulationStepAtom);
-  const setSimulationState = useSetAtom(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
-  const simulation = useAtomValue(
+  const [simulation, setSimulationState] = useAtom(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
   const setSimulationResults = useSetAtom(
     isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
   );
-  const timestepCount =
-    "metadata" in simulation
-      ? getSimulationMetadata(simulation.metadata).reportingStepsCount
-      : 0;
 
   const userTracking = useUserTracking();
-  const getEpsResultsReader = useGetEpsResultsReader();
 
   const changeTimestep = useCallback(
     async (timestepIndex: number, source: ChangeTimestepSource) => {
       try {
         if (simulationStep === null)
           throw new Error("Unknown simulation steps");
+
+        const epsReader =
+          "epsResultsReader" in simulation
+            ? simulation.epsResultsReader
+            : undefined;
+        if (!epsReader) throw new Error("Unknown simulation results");
+
+        const timestepCount = epsReader.timestepCount;
         if (timestepCount === 0) throw new Error("No simulation steps");
 
         const newTimeStep = Math.max(
           0,
           Math.min(timestepIndex, timestepCount - 1),
         );
-
-        const epsReader = await getEpsResultsReader();
-        if (!epsReader) throw new Error("Unknown simulation results");
 
         const resultsReader =
           await epsReader.getResultsForTimestep(newTimeStep);
@@ -73,8 +68,7 @@ export const useChangeTimestep = () => {
     },
     [
       simulationStep,
-      timestepCount,
-      getEpsResultsReader,
+      simulation,
       setSimulationStep,
       setSimulationResults,
       userTracking,

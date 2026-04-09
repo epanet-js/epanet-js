@@ -13,10 +13,7 @@ import {
   setInitialState,
 } from "src/__helpers__/state";
 import { useChangeTimestep } from "./change-timestep";
-import {
-  PROLOG_SIZE,
-  EPILOG_SIZE,
-} from "src/simulation/epanet/simulation-metadata";
+import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 
 vi.mock("src/infra/storage/opfs-storage", () => ({
   OPFSStorage: vi.fn(),
@@ -27,10 +24,13 @@ const nextResultsReader = createMockResultsReader();
 const mockGetResultsForTimestep = vi.fn().mockResolvedValue(nextResultsReader);
 
 vi.mock("src/simulation/epanet/eps-results-reader", () => ({
-  EPSResultsReader: vi.fn().mockImplementation(() => ({
-    initialize: vi.fn(),
-    getResultsForTimestep: mockGetResultsForTimestep,
-  })),
+  EPSResultsReader: vi
+    .fn()
+    .mockImplementation((_storage, timestepCount = 0) => ({
+      initialize: vi.fn(),
+      getResultsForTimestep: mockGetResultsForTimestep,
+      timestepCount,
+    })),
 }));
 
 describe("useChangeTimestep", () => {
@@ -267,20 +267,10 @@ describe("useChangeTimestep", () => {
       report: "REPORT",
       modelVersion: "1",
       settingsVersion: "",
-      metadata: createMetadataBuffer(timestepCount),
-      simulationIds: {
-        nodeIds: [],
-        linkIds: [],
-        nodeIdToIndex: new Map(),
-        linkIdToIndex: new Map(),
-      },
+      epsResultsReader: new (EPSResultsReader as unknown as new (
+        storage: unknown,
+        timestepCount: number,
+      ) => EPSResultsReader)(undefined, timestepCount),
     };
-  };
-
-  const createMetadataBuffer = (timestepCount: number): ArrayBuffer => {
-    const buffer = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
-    const epilogView = new DataView(buffer, PROLOG_SIZE, EPILOG_SIZE);
-    epilogView.setInt32(0, timestepCount, true);
-    return buffer;
   };
 });

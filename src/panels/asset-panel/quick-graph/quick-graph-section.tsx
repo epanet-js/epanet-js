@@ -11,7 +11,6 @@ import { simulationAtom, simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
-import { getSimulationMetadata } from "src/simulation/epanet/simulation-metadata";
 import {
   assetPanelFooterAtom,
   quickGraphPropertyAtom,
@@ -80,11 +79,11 @@ export const useShowQuickGraph = () => {
   const hadValidSimulationRef = useRef(false);
 
   const hasCompletedSimulation =
-    simulation.status === "success" || simulation.status === "warning";
+    "epsResultsReader" in simulation && !!simulation.epsResultsReader;
 
   if (hasCompletedSimulation) {
-    const metadata = getSimulationMetadata(simulation.metadata);
-    hadValidSimulationRef.current = metadata.reportingStepsCount > 1;
+    hadValidSimulationRef.current =
+      simulation.epsResultsReader!.timestepCount > 1;
   }
 
   if (hasCompletedSimulation) {
@@ -174,10 +173,10 @@ const QuickGraphSection = ({
 
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =
-      simulation.status === "success" || simulation.status === "warning";
+      "epsResultsReader" in simulation && !!simulation.epsResultsReader;
     const hasWaterAge =
       hasCompletedSimulation &&
-      getSimulationMetadata(simulation.metadata).qualityType === "age";
+      simulation.epsResultsReader?.qualityType === "age";
 
     const baseOptions = QUICK_GRAPH_PROPERTIES[assetType];
     const options = hasWaterAge

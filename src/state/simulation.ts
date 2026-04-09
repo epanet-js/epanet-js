@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { ResultsReader } from "src/simulation/results-reader";
-import type { SimulationIds } from "src/simulation/epanet/simulation-metadata";
+import type { EPSResultsReader } from "src/simulation";
 
 export const simulationResultsAtom = atom<ResultsReader | null>(null);
 export const simulationStepAtom = atom<number | null>(null);
@@ -11,8 +11,7 @@ export type SimulationFinished = {
   report: string;
   modelVersion: string;
   settingsVersion: string;
-  metadata?: ArrayBuffer;
-  simulationIds?: SimulationIds;
+  epsResultsReader?: EPSResultsReader;
 };
 export type SimulationRunning = {
   status: "running";
