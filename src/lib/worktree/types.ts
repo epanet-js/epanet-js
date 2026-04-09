@@ -2,8 +2,6 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import { HydraulicModel } from "src/hydraulic-model";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 
 export type Snapshot = {
   id: string;
@@ -23,16 +21,6 @@ export type Branch = {
   name: string;
   parentId: string | null;
   status: "open" | "locked";
-};
-
-export type BranchState = {
-  version: string;
-  hydraulicModel: HydraulicModel;
-  labelManager: LabelManager;
-  momentLog: MomentLog;
-  simulation: SimulationState | null;
-  simulationSourceId: string;
-  simulationSettings: SimulationSettings;
 };
 
 export interface Worktree {

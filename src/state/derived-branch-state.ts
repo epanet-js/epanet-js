@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { BranchState } from "src/lib/worktree/types";
+import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { USelection } from "src/selection/selection";
 import { branchStateAtom } from "src/state/branch-state";

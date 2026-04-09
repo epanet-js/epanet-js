@@ -2,9 +2,9 @@ export type {
   Worktree,
   Snapshot,
   Branch,
-  BranchState,
   ScenarioOperationResult,
 } from "./types";
+export type { BranchState } from "src/state/branch-state";
 export { createScenario } from "./create-scenario";
 export {
   switchToSnapshot,
