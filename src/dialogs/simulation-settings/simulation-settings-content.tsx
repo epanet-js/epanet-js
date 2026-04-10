@@ -14,6 +14,7 @@ import { Selector, SelectorOption } from "src/components/form/selector";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { assetsAtom, patternsAtom } from "src/state/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   simulationSettingsDerivedAtom,
   assetsDerivedAtom,
@@ -560,6 +561,7 @@ export const WaterQualitySection = () => {
   const assets = useAtomValue(
     isStateRefactorOn ? assetsDerivedAtom : assetsAtom,
   );
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
   const isNone = values.qualitySimulationType === "NONE";
   const isChemical = values.qualitySimulationType === "CHEMICAL";
@@ -663,17 +665,10 @@ export const WaterQualitySection = () => {
           value={traceNodeInput}
           onChange={(label) => {
             setTraceNodeInput(label);
-            if (!label) {
-              void setFieldValue("qualityTraceNodeId", null);
-              return;
-            }
-            for (const asset of assets.values()) {
-              if (asset.isNode && asset.label === label) {
-                void setFieldValue("qualityTraceNodeId", asset.id);
-                return;
-              }
-            }
-            void setFieldValue("qualityTraceNodeId", null);
+            const nodeId = label
+              ? (labelManager.getIdByLabel(label, "junction") ?? null)
+              : null;
+            void setFieldValue("qualityTraceNodeId", nodeId);
           }}
           disabled={!isTrace || hasScenarios || !isWaterTraceOn}
           errorMessage={
