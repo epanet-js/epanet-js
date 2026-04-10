@@ -18,6 +18,7 @@ import { momentLogAtom } from "src/state/model-changes";
 import {
   momentLogDerivedAtom,
   simulationDerivedAtom,
+  simulationResultsDerivedAtom,
   customerPointsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -30,6 +31,7 @@ import {
   type SimulationState,
   initialSimulationState,
   simulationAtom,
+  simulationResultsAtom,
   simulationStepAtom,
 } from "src/state/simulation";
 import { customerPointsAtom } from "src/state/hydraulic-model";
@@ -39,6 +41,7 @@ import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
 import type { CustomerPoints } from "src/hydraulic-model/customer-points";
 import type { PreviewProperty } from "src/state/map-symbology";
+import type { ResultsReader } from "src/simulation/results-reader";
 
 export type MomentPointer = {
   pointer: number;
@@ -108,6 +111,7 @@ export type MapState = {
   symbology: SymbologySpec;
   simulation: SimulationState;
   simulationStep: number | null;
+  resultsReader: ResultsReader | null;
   selectedAssetIds: Set<AssetId>;
   movedAssetIds: Set<AssetId>;
   isOffline: boolean;
@@ -131,6 +135,7 @@ export const nullMapState: MapState = {
   symbology: nullSymbologySpec,
   simulation: initialSimulationState,
   simulationStep: null,
+  resultsReader: null,
   selectedAssetIds: new Set(),
   movedAssetIds: new Set(),
   isOffline: false,
@@ -160,6 +165,7 @@ export const mapStateAtom = atom<MapState>((get) => {
   const symbology = get(symbologyAtom);
   const simulation = get(simulationAtom);
   const simulationStep = get(simulationStepAtom);
+  const resultsReader = get(simulationResultsAtom);
   const customerPoints = get(customerPointsAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
@@ -179,6 +185,7 @@ export const mapStateAtom = atom<MapState>((get) => {
     symbology,
     simulation,
     simulationStep,
+    resultsReader,
     selectedAssetIds,
     movedAssetIds,
     isOffline,
@@ -196,6 +203,8 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const ephemeralState = get(ephemeralStateAtom);
   const symbology = get(symbologyAtom);
   const simulation = get(simulationDerivedAtom);
+  const simulationStep = get(simulationStepAtom);
+  const resultsReader = get(simulationResultsDerivedAtom);
   const customerPoints = get(customerPointsDerivedAtom);
   const currentZoom = get(currentZoomAtom);
   const selectedAssetIds = new Set(USelection.toIds(selection));
@@ -214,7 +223,8 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     ephemeralState,
     symbology,
     simulation,
-    simulationStep: null,
+    simulationStep,
+    resultsReader,
     selectedAssetIds,
     movedAssetIds,
     isOffline,
