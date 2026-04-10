@@ -60,6 +60,14 @@ export const baseModelDerivedAtom = atom((get): HydraulicModel => {
   );
 });
 
+export const baseSimulationDerivedAtom = atom((get): SimulationState => {
+  const worktree = get(worktreeAtom);
+  const branchStates = get(branchStateAtom);
+  return (
+    branchStates.get(worktree.mainId)?.simulation ?? initialSimulationState
+  );
+});
+
 export const momentLogDerivedAtom = atom(
   (get): MomentLog => {
     return getActiveBranchState(get)?.momentLog ?? new MomentLog();

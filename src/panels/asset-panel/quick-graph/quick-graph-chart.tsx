@@ -7,8 +7,8 @@ import { colors } from "src/lib/constants";
 
 interface QuickGraphChartProps {
   values: number[];
-  mainValues: number[] | null;
-  mainLabel: string | null;
+  baseValues: number[] | null;
+  baseLabel: string | null;
   intervalsCount: number;
   intervalSeconds: number;
   decimals: number;
@@ -25,8 +25,8 @@ export const QuickGraphChart = memo(function QuickGraphChart(
 
 function QuickGraphChartECharts({
   values,
-  mainValues,
-  mainLabel,
+  baseValues,
+  baseLabel,
   intervalsCount,
   intervalSeconds,
   currentIntervalIndex,
@@ -36,12 +36,12 @@ function QuickGraphChartECharts({
 }: QuickGraphChartProps) {
   const translate = useTranslate();
 
-  const showLegend = mainValues && mainValues.length > 0;
+  const showLegend = baseValues && baseValues.length > 0;
 
   const allValues = useMemo(() => {
-    if (!mainValues || mainValues.length === 0) return values;
-    return [...values, ...mainValues];
-  }, [values, mainValues]);
+    if (!baseValues || baseValues.length === 0) return values;
+    return [...values, ...baseValues];
+  }, [values, baseValues]);
 
   const xAxis: EChartsOption["xAxis"] = useMemo(
     () => buildXAxis(intervalsCount, intervalSeconds),
@@ -80,14 +80,14 @@ function QuickGraphChartECharts({
       },
     };
 
-    if (!mainValues || mainValues.length === 0) {
+    if (!baseValues || baseValues.length === 0) {
       return [scenarioSeries];
     }
 
-    const mainSeries = {
+    const baseSeries = {
       type: "line" as const,
-      name: mainLabel ?? undefined,
-      data: mainValues,
+      name: baseLabel ?? undefined,
+      data: baseValues,
       lineStyle: {
         color: colors.gray400,
         width: 1.5,
@@ -100,10 +100,10 @@ function QuickGraphChartECharts({
       z: 0,
     };
 
-    return [mainSeries, scenarioSeries];
-  }, [values, mainValues, mainLabel, scenarioName]);
+    return [baseSeries, scenarioSeries];
+  }, [values, baseValues, baseLabel, scenarioName]);
 
-  const scenarioSeriesIndex = mainValues && mainValues.length > 0 ? 1 : 0;
+  const scenarioSeriesIndex = baseValues && baseValues.length > 0 ? 1 : 0;
 
   const legend: EChartsOption["legend"] = useMemo(() => {
     if (!showLegend) return undefined;
@@ -120,7 +120,7 @@ function QuickGraphChartECharts({
     };
   }, [showLegend]);
 
-  const isComparingScenarios = mainValues !== null;
+  const isComparingScenarios = baseValues !== null;
   const option: EChartsOption = useMemo(
     () => ({
       animation: false,

@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  baseSimulationDerivedAtom,
+} from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { captureError } from "src/infra/error-tracking";
@@ -20,7 +23,7 @@ interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
 
 interface UseTimeSeriesResult {
   data: TimeSeries | null;
-  mainData: TimeSeries | null;
+  baseData: TimeSeries | null;
   isLoading: boolean;
 }
 
@@ -35,23 +38,24 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   );
   const worktree = useAtomValue(worktreeAtom);
   const branchStates = useAtomValue(branchStateAtom);
+  const baseSimulationDerived = useAtomValue(baseSimulationDerivedAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
-  const [mainData, setMainData] = useState<TimeSeries | null>(null);
+  const [baseData, setBaseData] = useState<TimeSeries | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
     return simulation.status === "success" || simulation.status === "warning";
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const mainBranchState = branchStates.get(worktree.mainId);
-  const mainSimulation =
-    mainBranchState?.simulation ??
-    worktree.snapshots.get(worktree.mainId)?.simulation ??
-    null;
-  const mainStatus = mainSimulation?.status;
-  const mainEpsResultsReader =
-    mainSimulation && "epsResultsReader" in mainSimulation
-      ? mainSimulation.epsResultsReader
+  const baseSimulation = isStateRefactorOn
+    ? baseSimulationDerived
+    : (branchStates.get(worktree.mainId)?.simulation ??
+      worktree.snapshots.get(worktree.mainId)?.simulation ??
+      null);
+  const baseStatus = baseSimulation?.status;
+  const baseEpsResultsReader =
+    baseSimulation && "epsResultsReader" in baseSimulation
+      ? baseSimulation.epsResultsReader
       : null;
 
   const status = simulation.status;
@@ -61,7 +65,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   useEffect(() => {
     if (status === "failure") {
       setData(null);
-      setMainData(null);
+      setBaseData(null);
       setIsLoading(false);
       return;
     }
@@ -95,10 +99,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
         }
         setData(result);
 
-        if (isInScenario && mainEpsResultsReader) {
+        if (isInScenario && baseEpsResultsReader) {
           try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const mainResult = await mainEpsResultsReader.getTimeSeries(
+            const baseResult = await baseEpsResultsReader.getTimeSeries(
               assetId,
               assetType as any,
               property as any,
@@ -107,12 +111,12 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
             if (abortControllerRef.current?.signal.aborted) {
               return;
             }
-            setMainData(mainResult);
+            setBaseData(baseResult);
           } catch {
-            setMainData(null);
+            setBaseData(null);
           }
         } else {
-          setMainData(null);
+          setBaseData(null);
         }
       } catch (err) {
         if (abortControllerRef.current?.signal.aborted) {
@@ -121,7 +125,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
         const error = err as Error;
         captureError(error);
         setData(null);
-        setMainData(null);
+        setBaseData(null);
       } finally {
         setIsLoading(false);
       }
@@ -138,10 +142,10 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
     property,
     status,
     isInScenario,
-    mainStatus,
+    baseStatus,
     epsResultsReader,
-    mainEpsResultsReader,
+    baseEpsResultsReader,
   ]);
 
-  return { data, mainData, isLoading };
+  return { data, baseData, isLoading };
 }

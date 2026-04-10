@@ -101,7 +101,7 @@ interface QuickGraphSectionProps {
   assetType: QuickGraphAssetType;
   assetId: AssetId;
   data: TimeSeries | null;
-  mainData: TimeSeries | null;
+  baseData: TimeSeries | null;
   isLoading: boolean;
 }
 
@@ -116,7 +116,7 @@ const QuickGraphSection = ({
   assetType,
   assetId,
   data,
-  mainData,
+  baseData,
   isLoading,
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
@@ -139,7 +139,7 @@ const QuickGraphSection = ({
     worktree.branches.get(worktree.activeSnapshotId) ??
     worktree.snapshots.get(worktree.activeSnapshotId);
   const scenarioName = isInScenario ? (activeBranch?.name ?? null) : null;
-  const mainLabel = isInScenario ? translate("scenarios.main") : null;
+  const baseLabel = isInScenario ? translate("scenarios.main") : null;
 
   const selectedProperty = propertyByType[assetType];
   const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
@@ -165,9 +165,9 @@ const QuickGraphSection = ({
   ]);
 
   const values = useMemo(() => (data ? Array.from(data.values) : []), [data]);
-  const mainValues = useMemo(
-    () => (mainData ? Array.from(mainData.values) : null),
-    [mainData],
+  const baseValues = useMemo(
+    () => (baseData ? Array.from(baseData.values) : null),
+    [baseData],
   );
   const timeStepIndex = simulationStep ?? 0;
 
@@ -282,8 +282,8 @@ const QuickGraphSection = ({
           <div className="absolute inset-0">
             <QuickGraphChart
               values={values}
-              mainValues={mainValues}
-              mainLabel={mainLabel}
+              baseValues={baseValues}
+              baseLabel={baseLabel}
               intervalSeconds={data.intervalSeconds}
               intervalsCount={data.intervalsCount}
               currentIntervalIndex={timeStepIndex}
@@ -312,7 +312,7 @@ export function useQuickGraph<T extends QuickGraphAssetType>(
   const [propertyByType] = useAtom(quickGraphPropertyAtom);
   const selectedProperty = propertyByType[assetType];
 
-  const { data, mainData, isLoading } = useTimeSeries({
+  const { data, baseData, isLoading } = useTimeSeries({
     assetId,
     assetType,
     property: selectedProperty,
@@ -323,7 +323,7 @@ export function useQuickGraph<T extends QuickGraphAssetType>(
       assetId={assetId}
       assetType={assetType}
       data={data}
-      mainData={mainData}
+      baseData={baseData}
       isLoading={isLoading}
     />
   ) : undefined;
