@@ -64,7 +64,6 @@ export const SimulationProgressDialog = ({
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const { currentTime, totalDuration, phase } = modal;
   const isQualityOn = isWaterAgeOn || isWaterTraceOn;
-  const dialogSize = isQualityOn ? "sm" : "xs";
 
   const label =
     phase === "finalizing"
@@ -76,12 +75,7 @@ export const SimulationProgressDialog = ({
           : translate("runningHydraulicAnalysis");
 
   return (
-    <BaseDialog
-      size={dialogSize}
-      isOpen={true}
-      onClose={() => {}}
-      preventClose={true}
-    >
+    <BaseDialog size="sm" isOpen={true} onClose={() => {}} preventClose={true}>
       <div className="p-6">
         <ProgressBar
           label={label}
