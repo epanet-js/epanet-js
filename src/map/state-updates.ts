@@ -171,6 +171,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   );
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
   const previousMapStateRef = useRef<MapState>(nullMapState);
+  const previousResultsReaderRef = useRef<ResultsReader | null>(null);
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
@@ -184,7 +185,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const doUpdates = useCallback(() => {
     if (!map) return;
 
-    if (mapState === previousMapStateRef.current) return;
+    const hasNewResults = resultsReader !== previousResultsReaderRef.current;
+    previousResultsReaderRef.current = resultsReader;
+
+    if (mapState === previousMapStateRef.current && !hasNewResults) return;
 
     const previousMapState = previousMapStateRef.current;
     previousMapStateRef.current = mapState;
@@ -216,6 +220,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewStyles ||
       hasNewSymbologyRules ||
       (hasNewSimulation && mapState.simulation.status !== "running") ||
+      hasNewResults ||
       (hasNewSelection && hasLargeSelection);
 
     if (shouldShowLoader) {
@@ -253,7 +258,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewImport ||
           hasNewStyles ||
           hasNewSymbologyRules ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
+          (hasNewSimulation && mapState.simulation.status !== "running") ||
+          hasNewResults
         ) {
           await rebuildSources(
             map,
@@ -302,7 +308,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewStyles ||
           hasNewSymbologyRules ||
           hasNewSelection ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
+          (hasNewSimulation && mapState.simulation.status !== "running") ||
+          hasNewResults
         ) {
           await updateIconsSource(
             map,
@@ -406,7 +413,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewSelection ||
           hasNewStyles ||
           hasNewEditions ||
-          (hasNewSimulation && mapState.simulation.status !== "running")
+          (hasNewSimulation && mapState.simulation.status !== "running") ||
+          hasNewResults
         ) {
           await updateSelection(
             map,

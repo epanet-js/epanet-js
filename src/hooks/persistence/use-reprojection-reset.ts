@@ -9,7 +9,6 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
   simulationDerivedAtom,
-  simulationResultsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -33,7 +32,6 @@ type ReprojectionResetInput = {
 const resetAppState = (set: Setter) => {
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(simulationDerivedAtom, initialSimulationState);
-  set(simulationResultsDerivedAtom, null);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, { type: "none" });

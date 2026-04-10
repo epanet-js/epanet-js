@@ -15,7 +15,6 @@ import {
   simulationResultsAtom,
   simulationStepAtom,
 } from "src/state/simulation";
-import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
@@ -38,9 +37,7 @@ export const useRunSimulation = () => {
   );
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
-  const setSimulationResults = useSetAtom(
-    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
-  );
+  const setSimulationResults = useSetAtom(simulationResultsAtom);
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
 
@@ -119,11 +116,15 @@ export const useRunSimulation = () => {
           const storage = new OPFSStorage(appId, scenarioKey);
           epsReader = new EPSResultsReader(storage);
           await epsReader.initialize(metadata);
-          const resultsReader = await epsReader.getResultsForTimestep(0);
-          setSimulationResults(resultsReader);
+          if (!isStateRefactorOn) {
+            const resultsReader = await epsReader.getResultsForTimestep(0);
+            setSimulationResults(resultsReader);
+          }
           setSimulationStep(0);
         } else {
-          setSimulationResults(null);
+          if (!isStateRefactorOn) {
+            setSimulationResults(null);
+          }
           setSimulationStep(null);
         }
 

@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import type { Getter, Setter } from "jotai";
+import { unwrap } from "jotai/utils";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -12,6 +13,7 @@ import { worktreeAtom } from "src/state/scenarios";
 import {
   type SimulationState,
   initialSimulationState,
+  simulationStepAtom,
 } from "src/state/simulation";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
@@ -74,18 +76,30 @@ export const simulationDerivedAtom = atom(
   (get, set, value: SimulationState) => {
     updateActiveBranchState(get, set, {
       simulation: value,
-      simulationSourceId: get(worktreeAtom).activeSnapshotId,
     });
   },
 );
 
-export const simulationResultsDerivedAtom = atom(
-  (get): ResultsReader | null => {
-    return getActiveBranchState(get)?.simulationResults ?? null;
+const simulationResultsAsyncDerivedAtom = atom(
+  async (get): Promise<ResultsReader | null> => {
+    const simulationStep = get(simulationStepAtom);
+    const simulationState = get(simulationDerivedAtom);
+    if (
+      "epsResultsReader" in simulationState &&
+      simulationState.epsResultsReader &&
+      simulationStep !== null
+    ) {
+      return await simulationState.epsResultsReader.getResultsForTimestep(
+        simulationStep,
+      );
+    }
+    return null;
   },
-  (get, set, value: ResultsReader | null) => {
-    updateActiveBranchState(get, set, { simulationResults: value });
-  },
+);
+
+export const simulationResultsDerivedAtom = unwrap(
+  simulationResultsAsyncDerivedAtom,
+  (prev) => prev ?? null,
 );
 
 export const simulationSettingsDerivedAtom = atom(
