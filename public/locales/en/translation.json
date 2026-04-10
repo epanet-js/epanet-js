@@ -688,6 +688,7 @@
     "qualityMassUnitDesc": "Mass units used to express concentration. Choices are mg/L or ug/L. Units for Age and Trace analyses are fixed at hours and percent, respectively.",
     "qualityTraceNode": "Trace node",
     "qualityTraceNodeDesc": "ID label of the node whose flow is being traced. Applies only to flow tracing analyses.",
+    "traceNodeRequired": "A valid node label is required",
     "tolerance": "Tolerance",
     "toleranceDesc": "Smallest change in quality that will cause a new parcel of water to be created in a pipe. A typical setting might be 0.01 for chemicals measured in mg/L as well as water age and source tracing.",
     "diffusivity": "Diffusivity",

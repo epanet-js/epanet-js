@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo } from "react";
+import { forwardRef, useCallback, useMemo, useState } from "react";
 import { useFormikContext } from "formik";
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
@@ -565,10 +565,14 @@ export const WaterQualitySection = () => {
   const isChemical = values.qualitySimulationType === "CHEMICAL";
   const isTrace = values.qualitySimulationType === "TRACE";
 
-  const traceNodeLabel =
+  const { fieldErrors: qualityErrors } = useQualitySettingsValidation();
+
+  const resolvedTraceNodeLabel =
     values.qualityTraceNodeId !== null
       ? (assets.get(values.qualityTraceNodeId)?.label ?? "")
       : "";
+
+  const [traceNodeInput, setTraceNodeInput] = useState(resolvedTraceNodeLabel);
 
   const qualityTypeOptions: {
     label: string;
@@ -656,8 +660,9 @@ export const WaterQualitySection = () => {
         <TextSetting
           label={translate("simulationSettings.qualityTraceNode")}
           description={translate("simulationSettings.qualityTraceNodeDesc")}
-          value={traceNodeLabel}
+          value={traceNodeInput}
           onChange={(label) => {
+            setTraceNodeInput(label);
             if (!label) {
               void setFieldValue("qualityTraceNodeId", null);
               return;
@@ -671,6 +676,11 @@ export const WaterQualitySection = () => {
             void setFieldValue("qualityTraceNodeId", null);
           }}
           disabled={!isTrace || hasScenarios || !isWaterTraceOn}
+          errorMessage={
+            qualityErrors.qualityTraceNodeId
+              ? translate("simulationSettings.traceNodeRequired")
+              : null
+          }
         />
 
         <ValueSetting
@@ -1058,32 +1068,45 @@ const TextSetting = ({
   description,
   value,
   disabled = false,
+  errorMessage,
   onChange,
 }: {
   label: string;
   description: string;
   value: string;
   disabled?: boolean;
+  errorMessage?: string | null;
   onChange: (value: string) => void;
 }) => (
   <SettingsRow label={label} description={description}>
-    <div
-      className={clsx(
-        "w-56",
-        disabled &&
-          "[&>input]:border-gray-300 [&>input]:bg-gray-100 [&>input]:dark:bg-gray-800",
+    <div className="flex items-center gap-2">
+      <div
+        className={clsx(
+          "w-56",
+          disabled &&
+            "[&>input]:border-gray-300 [&>input]:bg-gray-100 [&>input]:dark:bg-gray-800",
+        )}
+      >
+        <EditableTextField
+          label={label}
+          value={value}
+          onChangeValue={(v) => {
+            onChange(v);
+            return false;
+          }}
+          disabled={disabled}
+          styleOptions={{
+            textSize: "xs",
+            border: "sm",
+            variant: errorMessage ? "warning" : "default",
+          }}
+        />
+      </div>
+      {errorMessage && (
+        <span className="text-xs font-semibold text-orange-800">
+          {errorMessage}
+        </span>
       )}
-    >
-      <EditableTextField
-        label={label}
-        value={value}
-        onChangeValue={(v) => {
-          onChange(v);
-          return false;
-        }}
-        disabled={disabled}
-        styleOptions={{ textSize: "xs", border: "sm" }}
-      />
     </div>
   </SettingsRow>
 );
@@ -1109,6 +1132,24 @@ export const useTimeSettingsValidation = () => {
     patternTimestep: getFieldError(isEPS, values.patternTimestep),
     qualityTimestep: getFieldError(isEPS, values.qualityTimestep),
     ruleTimestep: getFieldError(isEPS, values.ruleTimestep),
+  };
+
+  const hasValidationError = Object.values(fieldErrors).some(
+    (error) => error !== null,
+  );
+
+  return { hasValidationError, fieldErrors };
+};
+
+export const useQualitySettingsValidation = () => {
+  const { values } = useFormikContext<FormValues>();
+
+  const traceNodeError =
+    values.qualitySimulationType === "TRACE" &&
+    values.qualityTraceNodeId === null;
+
+  const fieldErrors = {
+    qualityTraceNodeId: traceNodeError ? ("required" as const) : null,
   };
 
   const hasValidationError = Object.values(fieldErrors).some(
