@@ -167,17 +167,25 @@ const SymbologyEditor = ({
       if (p === "waterTrace" && !isWaterTraceOn) return false;
       return true;
     });
-    return (["none", ...visibleProperties] as SelectOption[]).map((type) => {
-      const unit = type !== "none" ? units[type] : null;
-      const isSimProp = simulationProperties.includes(type);
-      return {
-        value: type,
-        label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
-        disabled:
-          (!hasCompletedSimulation && isSimProp) ||
-          (type === "waterAge" && !hasWaterAge) ||
-          (type === "waterTrace" && !hasWaterTrace),
-      };
+    const options = (["none", ...visibleProperties] as SelectOption[]).map(
+      (type) => {
+        const unit = type !== "none" ? units[type] : null;
+        const isSimProp = simulationProperties.includes(type);
+        return {
+          value: type,
+          label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+          disabled:
+            (!hasCompletedSimulation && isSimProp) ||
+            (type === "waterAge" && !hasWaterAge) ||
+            (type === "waterTrace" && !hasWaterTrace),
+        };
+      },
+    );
+    // Sort enabled options before disabled ones, keeping "none" always first
+    return options.sort((a, b) => {
+      if (a.value === "none") return -1;
+      if (b.value === "none") return 1;
+      return Number(a.disabled) - Number(b.disabled);
     });
   }, [
     isWaterAgeOn,
