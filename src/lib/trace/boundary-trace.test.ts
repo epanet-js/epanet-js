@@ -296,6 +296,7 @@ describe("boundaryTrace", () => {
           unitHeadloss: 0,
           status: "closed",
           waterAge: null,
+          waterTrace: null,
         };
       return {
         type: "pipe",
@@ -305,6 +306,7 @@ describe("boundaryTrace", () => {
         unitHeadloss: 0,
         status: "open",
         waterAge: null,
+        waterTrace: null,
       };
     };
 
@@ -349,6 +351,7 @@ describe("boundaryTrace", () => {
           status: "active",
           statusWarning: null,
           waterAge: null,
+          waterTrace: null,
         };
       return null;
     };

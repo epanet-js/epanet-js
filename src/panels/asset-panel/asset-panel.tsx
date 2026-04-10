@@ -578,6 +578,14 @@ const JunctionEditor = ({
             readOnly={true}
           />
         )}
+        {junctionSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={junctionSimulation.waterTrace}
+            unit={units.waterTrace}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -837,6 +845,14 @@ const PipeEditor = ({
             readOnly={true}
           />
         )}
+        {pipeSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={pipeSimulation.waterTrace}
+            unit={units.waterTrace}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -963,6 +979,14 @@ const ReservoirEditor = ({
             name="waterAge"
             value={reservoirSimulation.waterAge}
             unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
+        {reservoirSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={reservoirSimulation.waterTrace}
+            unit={units.waterTrace}
             readOnly={true}
           />
         )}
@@ -1159,6 +1183,14 @@ const TankEditor = ({
             name="waterAge"
             value={tankSimulation.waterAge}
             unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
+        {tankSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={tankSimulation.waterTrace}
+            unit={units.waterTrace}
             readOnly={true}
           />
         )}
@@ -1853,6 +1885,14 @@ const ValveEditor = ({
             readOnly={true}
           />
         )}
+        {valveSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={valveSimulation.waterTrace}
+            unit={units.waterTrace}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -2074,6 +2114,14 @@ const PumpEditor = ({
             name="waterAge"
             value={pumpSimulation.waterAge}
             unit={units.waterAge}
+            readOnly={true}
+          />
+        )}
+        {pumpSimulation?.waterTrace != null && (
+          <QuantityRow
+            name="waterTrace"
+            value={pumpSimulation.waterTrace}
+            unit={units.waterTrace}
             readOnly={true}
           />
         )}

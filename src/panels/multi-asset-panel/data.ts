@@ -316,6 +316,17 @@ const appendJunctionStats = (
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
+  const waterTrace = junctionSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const calculateCustomerPointsDemand = (
@@ -354,6 +365,7 @@ const buildJunctionSections = (
       "head",
       "actualDemand",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };
@@ -462,6 +474,17 @@ const appendPipeStats = (
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
+  const waterTrace = pipeSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildPipeSections = (
@@ -489,6 +512,7 @@ const buildPipeSections = (
       "headloss",
       "pipeStatus",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };
@@ -577,6 +601,17 @@ const appendPumpStats = (
   const waterAge = pumpSim?.waterAge ?? null;
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
+  }
+  const waterTrace = pumpSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
   }
 
   // Energy results
@@ -703,6 +738,7 @@ const buildPumpSections = (
       "pumpHead",
       "pumpStatus",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };
@@ -772,6 +808,17 @@ const appendValveStats = (
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
+  const waterTrace = valveSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildValveSections = (
@@ -795,6 +842,7 @@ const buildValveSections = (
       "headloss",
       "valveStatus",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };
@@ -847,6 +895,17 @@ const appendReservoirStats = (
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
+  const waterTrace = reservoirSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildReservoirSections = (
@@ -868,6 +927,7 @@ const buildReservoirSections = (
       "actualHead",
       "netFlow",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };
@@ -1031,6 +1091,17 @@ const appendTankStats = (
   if (waterAge !== null) {
     updateQuantityStats(statsMap, "waterAge", waterAge, units, formatting, id);
   }
+  const waterTrace = tankSim?.waterTrace ?? null;
+  if (waterTrace !== null) {
+    updateQuantityStats(
+      statsMap,
+      "waterTrace",
+      waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildTankSections = (
@@ -1071,6 +1142,7 @@ const buildTankSections = (
       "level",
       "volume",
       "waterAge",
+      "waterTrace",
     ]),
   };
 };

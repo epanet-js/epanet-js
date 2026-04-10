@@ -43,6 +43,7 @@ export const useImportInp = () => {
   const transactImportDeprecated = rep.useTransactImportDeprecated();
   const userTracking = useUserTracking();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { initializeProject } = useProjectInitialization();
   const { addRecent } = useRecentFiles();
@@ -184,6 +185,7 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           waterAge: isWaterAgeOn,
+          waterTrace: isWaterTraceOn,
           populateAssetIndex: isStateRefactorOn,
         };
 
@@ -248,6 +250,7 @@ export const useImportInp = () => {
       completeImport,
       isStateRefactorOn,
       isWaterAgeOn,
+      isWaterTraceOn,
       setDialogState,
       userTracking,
       validateAndPrepare,

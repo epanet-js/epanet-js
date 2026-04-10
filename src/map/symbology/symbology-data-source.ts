@@ -11,6 +11,7 @@ export const simulationProperties = [
   "actualDemand",
   "head",
   "waterAge",
+  "waterTrace",
 ] as const;
 
 export type SimulationProperty = (typeof simulationProperties)[number];
@@ -48,6 +49,9 @@ export const getSortedSimulationValues = (
       break;
     case "waterAge":
       values = resultsReader.getAllWaterAges();
+      break;
+    case "waterTrace":
+      values = resultsReader.getAllWaterTraces();
       break;
   }
   if (absValues) {

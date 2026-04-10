@@ -174,21 +174,31 @@ const QuickGraphSection = ({
   const propertyOptions = useMemo(() => {
     const hasCompletedSimulation =
       "epsResultsReader" in simulation && !!simulation.epsResultsReader;
-    const hasWaterAge =
-      hasCompletedSimulation &&
-      simulation.epsResultsReader?.qualityType === "age";
+    const qualityType = hasCompletedSimulation
+      ? simulation.epsResultsReader?.qualityType
+      : null;
 
     const baseOptions = QUICK_GRAPH_PROPERTIES[assetType];
-    const options = hasWaterAge
-      ? [
-          ...baseOptions,
-          {
-            value: "waterAge" as const,
-            labelKey: "waterAge",
-            quantityKey: "waterAge" as QuantityProperty,
-          },
-        ]
-      : baseOptions;
+    const options =
+      qualityType === "age"
+        ? [
+            ...baseOptions,
+            {
+              value: "waterAge" as const,
+              labelKey: "waterAge",
+              quantityKey: "waterAge" as QuantityProperty,
+            },
+          ]
+        : qualityType === "trace"
+          ? [
+              ...baseOptions,
+              {
+                value: "waterTrace" as const,
+                labelKey: "waterTrace",
+                quantityKey: "waterTrace" as QuantityProperty,
+              },
+            ]
+          : baseOptions;
 
     return options.map((opt) => {
       const label = translate(opt.labelKey);

@@ -148,19 +148,25 @@ const SymbologyEditor = ({
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const hasCompletedSimulation =
     "epsResultsReader" in simulation && !!simulation.epsResultsReader;
   const hasWaterAge =
     hasCompletedSimulation &&
     simulation.epsResultsReader?.qualityType === "age";
+  const hasWaterTrace =
+    hasCompletedSimulation &&
+    simulation.epsResultsReader?.qualityType === "trace";
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
 
   const colorByOptions = useMemo(() => {
-    const visibleProperties = isWaterAgeOn
-      ? properties
-      : properties.filter((p) => p !== "waterAge");
+    const visibleProperties = properties.filter((p) => {
+      if (p === "waterAge" && !isWaterAgeOn) return false;
+      if (p === "waterTrace" && !isWaterTraceOn) return false;
+      return true;
+    });
     return (["none", ...visibleProperties] as SelectOption[]).map((type) => {
       const unit = type !== "none" ? units[type] : null;
       const isSimProp = simulationProperties.includes(type);
@@ -169,17 +175,20 @@ const SymbologyEditor = ({
         label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
         disabled:
           (!hasCompletedSimulation && isSimProp) ||
-          (type === "waterAge" && !hasWaterAge),
+          (type === "waterAge" && !hasWaterAge) ||
+          (type === "waterTrace" && !hasWaterTrace),
       };
     });
   }, [
     isWaterAgeOn,
+    isWaterTraceOn,
     properties,
     units,
     translate,
     translateUnit,
     hasCompletedSimulation,
     hasWaterAge,
+    hasWaterTrace,
   ]);
 
   const userTracking = useUserTracking();

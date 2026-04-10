@@ -1233,6 +1233,38 @@ describe("EPSResultsReader", () => {
       expect(reader.qualityType).toBe("age");
     });
 
+    it("qualityType returns 'trace' when trace analysis is enabled", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const simulationSettings = SimulationSettingsBuilder.with()
+        .qualitySimulationType("TRACE")
+        .qualityTraceNodeId(IDS.R1)
+        .timing({ duration: 7200, hydraulicTimestep: 3600 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings,
+      });
+
+      const testAppId = "test-quality-type-trace";
+      await runSimulation(inp, testAppId, undefined, { runQuality: true });
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      expect(reader.qualityType).toBe("trace");
+
+      const results = await reader.getResultsForTimestep(0);
+      const junction = results.getJunction(IDS.J1);
+      expect(junction?.waterTrace).not.toBeNull();
+      expect(junction?.waterAge).toBeNull();
+    });
+
     it("qualityType returns 'none' when quality analysis is not run", async () => {
       const IDS = { R1: 1, J1: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()

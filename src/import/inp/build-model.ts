@@ -136,7 +136,9 @@ export const buildModel = (
 
   const qualityType = inpData.options.qualitySimulationType;
   const isSupportedQualityType =
-    qualityType === "NONE" || (options?.waterAge && qualityType === "AGE");
+    qualityType === "NONE" ||
+    (options?.waterAge && qualityType === "AGE") ||
+    (options?.waterTrace && qualityType === "TRACE");
 
   if (!isSupportedQualityType && qualityType) {
     issues.addWaterQualityType(qualityType);

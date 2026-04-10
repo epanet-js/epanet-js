@@ -7,6 +7,7 @@ export const supportedNodeProperties = [
   "actualDemand",
   "head",
   "waterAge",
+  "waterTrace",
 ] as const;
 export const supportedLinkProperties = [
   "flow",
@@ -15,6 +16,7 @@ export const supportedLinkProperties = [
   "diameter",
   "roughness",
   "waterAge",
+  "waterTrace",
 ] as const;
 export const supportedProperties = [
   ...supportedNodeProperties,

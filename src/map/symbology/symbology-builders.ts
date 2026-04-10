@@ -8,6 +8,7 @@ import {
 import { nullLabelRule } from "./labeling";
 import type { RangeEndpoints } from "./range-color-rule";
 import type { Unit } from "src/quantity";
+import { defaultPropertyColorConfigs } from "src/state/map-symbology";
 
 const VELOCITY_FALLBACK_ENDPOINTS: Record<string, RangeEndpoints> = {
   "m/s": [0, 4],
@@ -28,6 +29,8 @@ const getFallbackEndpoints = (
   return result;
 };
 
+const defaults = defaultPropertyColorConfigs;
+
 type SymbologyBuilderFn<T> = (units: UnitsSpec, sortedData: number[]) => T;
 
 type SymbologyBuilders = {
@@ -41,6 +44,7 @@ type SymbologyBuilders = {
   elevation: SymbologyBuilderFn<NodeSymbology>;
   head: SymbologyBuilderFn<NodeSymbology>;
   waterAge: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
+  waterTrace: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
 };
 
 export const symbologyBuilders: SymbologyBuilders = {
@@ -48,9 +52,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "diameter",
       unit: units.diameter,
-      rampName: "SunsetDark",
-      mode: "prettyBreaks",
-      numIntervals: 7,
+      ...defaults.diameter,
       sortedData,
     });
     return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
@@ -60,8 +62,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "roughness",
       unit: units.roughness,
-      rampName: "Emrld",
-      mode: "ckmeans",
+      ...defaults.roughness,
       sortedData,
     });
     return { ...nullSymbologySpec.link, colorRule, labelRule: nullLabelRule };
@@ -71,8 +72,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "elevation",
       unit: units.elevation,
-      rampName: "Fall",
-      mode: "prettyBreaks",
+      ...defaults.elevation,
       fallbackEndpoints: [0, 100],
       sortedData,
     });
@@ -83,8 +83,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "flow",
       unit: units.flow,
-      rampName: "Teal",
-      mode: "equalQuantiles",
+      ...defaults.flow,
       absValues: true,
       sortedData,
     });
@@ -95,8 +94,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "velocity",
       unit: units.velocity,
-      rampName: "RedOr",
-      mode: "prettyBreaks",
+      ...defaults.velocity,
       sortedData,
       fallbackEndpoints: getFallbackEndpoints(
         units.velocity,
@@ -110,8 +108,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "unitHeadloss",
       unit: units.unitHeadloss,
-      rampName: "Emrld",
-      mode: "prettyBreaks",
+      ...defaults.unitHeadloss,
       sortedData,
       fallbackEndpoints: getFallbackEndpoints(
         units.unitHeadloss,
@@ -125,8 +122,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "pressure",
       unit: units.pressure,
-      rampName: "Temps",
-      mode: "prettyBreaks",
+      ...defaults.pressure,
       fallbackEndpoints: [0, 100],
       sortedData,
     });
@@ -137,8 +133,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "actualDemand",
       unit: units.actualDemand,
-      rampName: "Emrld",
-      mode: "prettyBreaks",
+      ...defaults.actualDemand,
       fallbackEndpoints: [0, 100],
       sortedData,
     });
@@ -149,8 +144,7 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "head",
       unit: units.head,
-      rampName: "Purp",
-      mode: "prettyBreaks",
+      ...defaults.head,
       fallbackEndpoints: [0, 100],
       sortedData,
     });
@@ -161,10 +155,24 @@ export const symbologyBuilders: SymbologyBuilders = {
     const colorRule = initializeColorRule({
       property: "waterAge",
       unit: units.waterAge,
-      rampName: "Sunset",
-      mode: "prettyBreaks",
+      ...defaults.waterAge,
       fallbackEndpoints: [0, 48],
       sortedData,
+    });
+    return {
+      colorRule,
+      labelRule: nullLabelRule,
+      defaults: nullSymbologySpec.node.defaults,
+    };
+  },
+
+  waterTrace: (units): NodeSymbology & LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "waterTrace",
+      unit: units.waterTrace,
+      ...defaults.waterTrace,
+      fallbackEndpoints: [0, 100],
+      sortedData: [0, 100],
     });
     return {
       colorRule,

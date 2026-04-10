@@ -27,6 +27,7 @@ const SimulationSummaryDialogNew = ({
   const translate = useTranslate();
   const showReport = useShowReport();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
 
   const isSuccess = modal.status === "success";
   const config = {
@@ -64,7 +65,7 @@ const SimulationSummaryDialogNew = ({
       isOpen={true}
       onClose={onClose}
       title={config.title}
-      size={isWaterAgeOn ? "sm" : "xs"}
+      size={isWaterAgeOn || isWaterTraceOn ? "sm" : "xs"}
       footer={
         <SimpleDialogActions
           autoFocusSubmit={true}

@@ -6,6 +6,7 @@ export type PipeSimulation = {
   unitHeadloss: number;
   status: "open" | "closed";
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type ValveSimulation = {
@@ -16,6 +17,7 @@ export type ValveSimulation = {
   status: "active" | "open" | "closed";
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type PumpSimulation = {
@@ -25,6 +27,7 @@ export type PumpSimulation = {
   status: "on" | "off";
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type JunctionSimulation = {
@@ -33,6 +36,7 @@ export type JunctionSimulation = {
   head: number;
   demand: number;
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type TankSimulation = {
@@ -43,6 +47,7 @@ export type TankSimulation = {
   level: number;
   volume: number;
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type ReservoirSimulation = {
@@ -51,6 +56,7 @@ export type ReservoirSimulation = {
   head: number;
   netFlow: number;
   waterAge: number | null;
+  waterTrace: number | null;
 };
 
 export type PumpEnergySummary = {
@@ -79,4 +85,5 @@ export interface ResultsReader {
   getAllVelocities: () => number[];
   getAllUnitHeadlosses: () => number[];
   getAllWaterAges: () => number[];
+  getAllWaterTraces: () => number[];
 }

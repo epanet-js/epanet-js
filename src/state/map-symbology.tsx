@@ -81,8 +81,14 @@ export const defaultPropertyColorConfigs: PropertyColorConfigMap = {
     numIntervals: 5,
   },
   waterAge: {
-    rampName: "Temps",
+    rampName: "Sunset",
     mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  waterTrace: {
+    rampName: "Sunset",
+    mode: "equalIntervals",
     reversedRamp: false,
     numIntervals: 5,
   },

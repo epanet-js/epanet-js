@@ -39,6 +39,7 @@ export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   waterAge?: boolean;
+  waterTrace?: boolean;
   populateAssetIndex?: boolean;
 };
 

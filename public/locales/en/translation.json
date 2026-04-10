@@ -170,6 +170,7 @@
   "initialLevel": "Initial level",
   "initialWaterAge": "Initial water age",
   "waterAge": "Water age",
+  "waterTrace": "Water trace",
   "minLevel": "Min level",
   "maxLevel": "Max level",
   "minVolume": "Min volume",

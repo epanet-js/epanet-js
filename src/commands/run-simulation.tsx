@@ -40,6 +40,7 @@ export const useRunSimulation = () => {
   const setSimulationResults = useSetAtom(simulationResultsAtom);
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -99,7 +100,10 @@ export const useRunSimulation = () => {
         const appId = getAppId();
         const scenarioKey = worktree.activeSnapshotId;
         const runQuality =
-          isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE";
+          (isWaterAgeOn &&
+            simulationSettings.qualitySimulationType === "AGE") ||
+          (isWaterTraceOn &&
+            simulationSettings.qualitySimulationType === "TRACE");
         const { report, status, metadata } = await runSimulationWorker(
           inp,
           appId,
@@ -134,6 +138,13 @@ export const useRunSimulation = () => {
           if (!newSimulationHasWaterAge) {
             set(clearQuickGraphPropertyAtom, "waterAge");
             set(clearSymbologyForPropertyAtom, "waterAge");
+          }
+          const newSimulationHasWaterTrace =
+            isWaterTraceOn &&
+            simulationSettings.qualitySimulationType === "TRACE";
+          if (!newSimulationHasWaterTrace) {
+            set(clearQuickGraphPropertyAtom, "waterTrace");
+            set(clearSymbologyForPropertyAtom, "waterTrace");
           }
         }
 
@@ -170,6 +181,7 @@ export const useRunSimulation = () => {
       [
         isStateRefactorOn,
         isWaterAgeOn,
+        isWaterTraceOn,
         setSimulationState,
         setDialogState,
         persistence,

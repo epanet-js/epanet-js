@@ -45,6 +45,7 @@ export type QuantityProperty =
   | "averageKwPerFlowUnit"
   | "initialWaterAge"
   | "waterAge"
+  | "waterTrace"
   | "mixingFraction";
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
@@ -118,6 +119,7 @@ const metricSpec: AssetQuantitiesSpec = {
     averageKwPerFlowUnit: "kW/m^3",
     initialWaterAge: "h",
     waterAge: "h",
+    waterTrace: "%",
     mixingFraction: null,
   },
   decimals: {},
@@ -174,6 +176,7 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     averageKwPerFlowUnit: "kW/Mgal",
     initialWaterAge: "h",
     waterAge: "h",
+    waterTrace: "%",
     mixingFraction: null,
   },
   decimals: {

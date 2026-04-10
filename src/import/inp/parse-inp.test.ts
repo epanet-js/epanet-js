@@ -1146,6 +1146,47 @@ describe("quality section", () => {
     expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
   });
 
+  it("accepts TRACE quality type when waterTrace option is on", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tTRACE J1
+
+      [END]
+    `;
+
+    const { issues, simulationSettings } = parseInp(inp, {
+      waterTrace: true,
+    });
+
+    expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+    expect(issues?.waterQualityType).toBeUndefined();
+  });
+
+  it("reports TRACE quality type issue when waterTrace is off", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tTRACE J1
+
+      [END]
+    `;
+
+    const { issues } = parseInp(inp, { waterTrace: false });
+
+    expect(issues?.waterQualityType).toBe("TRACE");
+  });
+
   it("does not report QUALITY as unsupported when waterAge is on", () => {
     const inp = `
       [JUNCTIONS]

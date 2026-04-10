@@ -61,13 +61,15 @@ export const SimulationProgressDialog = ({
 }) => {
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const { currentTime, totalDuration, phase } = modal;
-  const dialogSize = isWaterAgeOn ? "sm" : "xs";
+  const isQualityOn = isWaterAgeOn || isWaterTraceOn;
+  const dialogSize = isQualityOn ? "sm" : "xs";
 
   const label =
     phase === "finalizing"
       ? translate("savingResults")
-      : !isWaterAgeOn
+      : !isQualityOn
         ? translate("runningSimulation")
         : phase === "quality"
           ? translate("runningQualityAnalysis")

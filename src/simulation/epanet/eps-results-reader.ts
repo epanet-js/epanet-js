@@ -48,29 +48,43 @@ export type JunctionProperty =
   | "head"
   | "pressure"
   | "quality"
-  | "waterAge";
+  | "waterAge"
+  | "waterTrace";
 export type TankProperty =
   | "netFlow"
   | "head"
   | "pressure"
   | "level"
   | "volume"
-  | "waterAge";
-export type ReservoirProperty = "netFlow" | "head" | "pressure" | "waterAge";
+  | "waterAge"
+  | "waterTrace";
+export type ReservoirProperty =
+  | "netFlow"
+  | "head"
+  | "pressure"
+  | "waterAge"
+  | "waterTrace";
 export type PipeProperty =
   | "flow"
   | "velocity"
   | "headloss"
   | "status"
-  | "waterAge";
-export type PumpProperty = "flow" | "headloss" | "status" | "waterAge";
+  | "waterAge"
+  | "waterTrace";
+export type PumpProperty =
+  | "flow"
+  | "headloss"
+  | "status"
+  | "waterAge"
+  | "waterTrace";
 export type ValveProperty =
   | "flow"
   | "velocity"
   | "headloss"
   | "status"
   | "setting"
-  | "waterAge";
+  | "waterAge"
+  | "waterTrace";
 
 type NodeProperty = "demand" | "head" | "pressure" | "quality";
 type LinkProperty =
@@ -215,7 +229,7 @@ export class EPSResultsReader {
 
     switch (assetType) {
       case "junction":
-        if (property === "waterAge")
+        if (property === "waterAge" || property === "waterTrace")
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -224,7 +238,7 @@ export class EPSResultsReader {
       case "reservoir":
         if (property === "netFlow")
           return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (property === "waterAge")
+        if (property === "waterAge" || property === "waterTrace")
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -236,7 +250,7 @@ export class EPSResultsReader {
         if (property === "level") return this._getTankLevelTimeSeries(assetId);
         if (property === "netFlow")
           return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (property === "waterAge")
+        if (property === "waterAge" || property === "waterTrace")
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -244,7 +258,7 @@ export class EPSResultsReader {
         );
       case "pipe":
       case "valve":
-        if (property === "waterAge")
+        if (property === "waterAge" || property === "waterTrace")
           return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
         return this._getLinkPropertyTimeSeries(
           assetId,
@@ -253,7 +267,7 @@ export class EPSResultsReader {
       case "pump":
         if (property === "status")
           return this._getPumpStatusTimeSeries(assetId);
-        if (property === "waterAge")
+        if (property === "waterAge" || property === "waterTrace")
           return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
         return this._getLinkPropertyTimeSeries(
           assetId,
@@ -774,7 +788,7 @@ class TimestepResultsReader implements ResultsReader {
     const linkData = this.getLinkData(linkIndex);
     const statusValue = linkData.status;
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "valve",
       flow: linkData.flow,
@@ -782,7 +796,8 @@ class TimestepResultsReader implements ResultsReader {
       headloss: linkData.headloss,
       status: this.mapValveStatus(statusValue),
       statusWarning: this.mapValveStatusWarning(statusValue),
-      waterAge: isAge ? linkData.avgQuality : null,
+      waterAge: qualityType === "age" ? linkData.avgQuality : null,
+      waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
     };
   }
 
@@ -796,14 +811,15 @@ class TimestepResultsReader implements ResultsReader {
       this.getPumpStatusFromStorage(linkIndex) ?? linkData.status;
     const isOn = statusValue >= 3;
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "pump",
       flow: linkData.flow,
       headloss: linkData.headloss,
       status: isOn ? "on" : "off",
       statusWarning: this.mapPumpStatusWarning(statusValue),
-      waterAge: isAge ? linkData.avgQuality : null,
+      waterAge: qualityType === "age" ? linkData.avgQuality : null,
+      waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
     };
   }
 
@@ -822,13 +838,14 @@ class TimestepResultsReader implements ResultsReader {
 
     const nodeData = this.getNodeData(nodeIndex);
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "junction",
       pressure: nodeData.pressure,
       head: nodeData.head,
       demand: nodeData.demand,
-      waterAge: isAge ? nodeData.quality : null,
+      waterAge: qualityType === "age" ? nodeData.quality : null,
+      waterTrace: qualityType === "trace" ? nodeData.quality : null,
     };
   }
 
@@ -842,7 +859,7 @@ class TimestepResultsReader implements ResultsReader {
     const unitHeadloss = linkData.headloss;
     const headloss = unitHeadloss * (length / 1000);
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "pipe",
       flow: linkData.flow,
@@ -850,7 +867,8 @@ class TimestepResultsReader implements ResultsReader {
       headloss,
       unitHeadloss,
       status: this.mapPipeStatus(linkData.status),
-      waterAge: isAge ? linkData.avgQuality : null,
+      waterAge: qualityType === "age" ? linkData.avgQuality : null,
+      waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
     };
   }
 
@@ -874,7 +892,7 @@ class TimestepResultsReader implements ResultsReader {
       this.simulationMetadata.pressureUnits,
     );
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "tank",
       pressure: nodeData.pressure,
@@ -882,7 +900,8 @@ class TimestepResultsReader implements ResultsReader {
       netFlow: nodeData.demand,
       level,
       volume,
-      waterAge: isAge ? nodeData.quality : null,
+      waterAge: qualityType === "age" ? nodeData.quality : null,
+      waterTrace: qualityType === "trace" ? nodeData.quality : null,
     };
   }
 
@@ -892,13 +911,14 @@ class TimestepResultsReader implements ResultsReader {
 
     const nodeData = this.getNodeData(nodeIndex);
 
-    const isAge = this.simulationMetadata.qualityType === "age";
+    const qualityType = this.simulationMetadata.qualityType;
     return {
       type: "reservoir",
       pressure: nodeData.pressure,
       head: nodeData.head,
       netFlow: nodeData.demand,
-      waterAge: isAge ? nodeData.quality : null,
+      waterAge: qualityType === "age" ? nodeData.quality : null,
+      waterTrace: qualityType === "trace" ? nodeData.quality : null,
     };
   }
 
@@ -1040,6 +1060,16 @@ class TimestepResultsReader implements ResultsReader {
     return values;
   }
 
+  getAllWaterTraces(): number[] {
+    const { nodeCount } = this.simulationMetadata;
+    const values: number[] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const nodeData = this.getNodeData(i);
+      values.push(nodeData.quality);
+    }
+    return values;
+  }
+
   getAllFlows(): number[] {
     const { linkCount } = this.simulationMetadata;
     const values: number[] = [];
@@ -1138,6 +1168,9 @@ class NullResultsReader implements ResultsReader {
     return [];
   }
   getAllWaterAges(): number[] {
+    return [];
+  }
+  getAllWaterTraces(): number[] {
     return [];
   }
   getPumpEnergy(_pumpId: number): PumpEnergySummary | null {
