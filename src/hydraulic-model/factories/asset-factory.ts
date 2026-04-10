@@ -1,6 +1,7 @@
 import { AssetId, Junction, Pump } from "../asset-types";
 import { JunctionQuantity } from "../asset-types/junction";
 import { Pipe, PipeQuantity, PipeStatus } from "../asset-types/pipe";
+import { ChemicalSourceType } from "../asset-types/node";
 import { LinkConnections, nullConnections } from "../asset-types/link";
 import { Position } from "geojson";
 import { Reservoir, ReservoirQuantity } from "../asset-types/reservoir";
@@ -13,6 +14,10 @@ export type JunctionBuildData = {
   elevation?: number;
   emitterCoefficient?: number;
   initialWaterAge?: number;
+  initialChemicalConcentration?: number;
+  chemicalSourceType?: ChemicalSourceType;
+  chemicalSourceStrength?: number;
+  chemicalSourcePatternId?: string;
   isActive?: boolean;
 };
 
@@ -26,6 +31,8 @@ export type PipeBuildData = {
   roughness?: number;
   minorLoss?: number;
   length?: number;
+  bulkReactionCoeff?: number;
+  wallReactionCoeff?: number;
   isActive?: boolean;
 };
 
@@ -70,6 +77,10 @@ export type ReservoirBuildData = {
   elevation?: number;
   headPatternId?: PatternId;
   initialWaterAge?: number;
+  initialChemicalConcentration?: number;
+  chemicalSourceType?: ChemicalSourceType;
+  chemicalSourceStrength?: number;
+  chemicalSourcePatternId?: string;
   isActive?: boolean;
 };
 
@@ -87,6 +98,11 @@ export type TankBuildData = {
   mixingModel?: TankMixingModel;
   mixingFraction?: number;
   initialWaterAge?: number;
+  initialChemicalConcentration?: number;
+  bulkReactionCoeff?: number;
+  chemicalSourceType?: ChemicalSourceType;
+  chemicalSourceStrength?: number;
+  chemicalSourcePatternId?: string;
   isActive?: boolean;
   volumeCurveId?: CurveId;
 };
@@ -136,6 +152,8 @@ export class AssetFactory {
     diameter,
     minorLoss,
     roughness,
+    bulkReactionCoeff,
+    wallReactionCoeff,
     isActive = true,
   }: PipeBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -148,6 +166,8 @@ export class AssetFactory {
       diameter: this.getPipeValue("diameter", diameter),
       minorLoss: this.getPipeValue("minorLoss", minorLoss),
       roughness: this.getPipeValue("roughness", roughness),
+      bulkReactionCoeff,
+      wallReactionCoeff,
       isActive,
     });
   }
@@ -235,6 +255,10 @@ export class AssetFactory {
     elevation,
     emitterCoefficient,
     initialWaterAge,
+    initialChemicalConcentration,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
     isActive = true,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -244,6 +268,10 @@ export class AssetFactory {
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
       initialWaterAge: initialWaterAge ?? 0,
+      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
       isActive,
     });
   }
@@ -257,6 +285,10 @@ export class AssetFactory {
     relativeHead,
     headPatternId,
     initialWaterAge,
+    initialChemicalConcentration,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
     isActive = true,
   }: ReservoirBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -279,6 +311,10 @@ export class AssetFactory {
       headPatternId,
       elevation: elevationValue,
       initialWaterAge: initialWaterAge ?? 0,
+      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
       isActive,
     });
   }
@@ -297,6 +333,11 @@ export class AssetFactory {
     mixingModel,
     mixingFraction,
     initialWaterAge,
+    initialChemicalConcentration,
+    bulkReactionCoeff,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
     isActive = true,
     volumeCurveId,
   }: TankBuildData = {}) {
@@ -315,6 +356,11 @@ export class AssetFactory {
       mixingModel: mixingModel ?? "mixed",
       mixingFraction: mixingFraction ?? 1.0,
       initialWaterAge: initialWaterAge ?? 0,
+      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      bulkReactionCoeff,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
       isActive,
     });
   }

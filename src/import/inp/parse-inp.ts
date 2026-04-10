@@ -40,6 +40,7 @@ export type ParseInpOptions = {
   inactiveAssets?: boolean;
   waterAge?: boolean;
   waterTrace?: boolean;
+  waterChemical?: boolean;
   populateAssetIndex?: boolean;
 };
 

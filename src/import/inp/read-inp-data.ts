@@ -47,7 +47,7 @@ const buildSectionParserDefinitions = (
   { names: ["CURVES", "CURVE"], parser: parseCurve },
   {
     names: ["QUALITY"],
-    parser: options?.waterAge ? parseQuality : ignore,
+    parser: options?.waterAge || options?.waterChemical ? parseQuality : ignore,
   },
   { names: ["OPTIONS"], parser: parseOption },
   { names: ["BACKDROP"], parser: ignore },
@@ -63,7 +63,11 @@ const buildSectionParserDefinitions = (
   { names: ["VERTICES", "VERTEX"], parser: parseVertex },
   { names: ["TANKS", "TANK"], parser: parseTank },
   { names: ["STATUS"], parser: parseStatus },
-  { names: ["MIXING"], parser: options?.waterAge ? parseMixing : unsupported },
+  {
+    names: ["MIXING"],
+    parser:
+      options?.waterAge || options?.waterChemical ? parseMixing : unsupported,
+  },
   { names: ["LABELS"], parser: unsupported },
   { names: ["PIPES", "PIPE"], parser: parsePipe },
   { names: ["CONTROLS"], parser: parseControl },

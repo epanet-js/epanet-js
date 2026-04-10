@@ -14,6 +14,7 @@ export type TankProperties = {
   overflow: boolean;
   mixingModel: TankMixingModel;
   mixingFraction: number;
+  bulkReactionCoeff?: number;
   volumeCurveId?: CurveId;
 } & NodeProperties;
 
@@ -45,6 +46,10 @@ export class Tank extends Node<TankProperties> {
 
   get initialWaterAge() {
     return this.properties.initialWaterAge;
+  }
+
+  get bulkReactionCoeff() {
+    return this.properties.bulkReactionCoeff;
   }
 
   get minLevel() {

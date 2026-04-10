@@ -164,6 +164,11 @@ export type InpData = {
     tolerance?: number;
     diffusivity?: number;
   };
+  sources: ItemData<{
+    type: "CONCEN" | "MASS" | "FLOWPACED" | "SETPOINT";
+    strength: number;
+    patternId?: string;
+  }>;
   reactions: {
     bulkOrder?: number;
     wallOrder?: number;
@@ -172,6 +177,9 @@ export type InpData = {
     globalWall?: number;
     limitingPotential?: number;
     roughnessCorrelation?: number;
+    pipeBulk: ItemData<number>;
+    pipeWall: ItemData<number>;
+    tankBulk: ItemData<number>;
   };
   energy: {
     globalEfficiency?: number;
@@ -266,9 +274,14 @@ export const nullInpData = (): InpData => {
     curves: new ItemData(),
     quality: new ItemData(),
     mixing: new ItemData(),
+    sources: new ItemData(),
     sourcePatterns: new Set(),
     options: { units: "GPM", headlossFormula: "H-W", demandMultiplier: 1 },
-    reactions: {},
+    reactions: {
+      pipeBulk: new ItemData(),
+      pipeWall: new ItemData(),
+      tankBulk: new ItemData(),
+    },
     energy: { pumpEnergy: new ItemData() },
     times: {},
     report: {},

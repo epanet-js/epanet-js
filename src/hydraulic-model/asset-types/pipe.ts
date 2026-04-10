@@ -9,6 +9,8 @@ export type PipeProperties = {
   roughness: number;
   minorLoss: number;
   initialStatus: PipeStatus;
+  bulkReactionCoeff?: number;
+  wallReactionCoeff?: number;
 } & LinkProperties;
 
 export const pipeQuantities = [
@@ -58,6 +60,14 @@ export class Pipe extends Link<PipeProperties> {
 
   get minorLoss() {
     return this.properties.minorLoss;
+  }
+
+  get bulkReactionCoeff() {
+    return this.properties.bulkReactionCoeff;
+  }
+
+  get wallReactionCoeff() {
+    return this.properties.wallReactionCoeff;
   }
 
   copy() {

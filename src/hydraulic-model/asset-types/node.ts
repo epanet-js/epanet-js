@@ -2,10 +2,16 @@ import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 import { NodeType } from "./types";
 
+export type ChemicalSourceType = "CONCEN" | "MASS" | "FLOWPACED" | "SETPOINT";
+
 export type NodeProperties = {
   elevation: number;
   type: NodeType;
   initialWaterAge: number;
+  initialChemicalConcentration: number;
+  chemicalSourceType?: ChemicalSourceType;
+  chemicalSourceStrength?: number;
+  chemicalSourcePatternId?: string;
 } & AssetProperties;
 
 export class Node<T> extends BaseAsset<T & NodeProperties> {
@@ -39,5 +45,21 @@ export class Node<T> extends BaseAsset<T & NodeProperties> {
 
   setElevation(elevation: number) {
     this.properties.elevation = elevation;
+  }
+
+  get initialChemicalConcentration() {
+    return this.properties.initialChemicalConcentration;
+  }
+
+  get chemicalSourceType() {
+    return this.properties.chemicalSourceType;
+  }
+
+  get chemicalSourceStrength() {
+    return this.properties.chemicalSourceStrength;
+  }
+
+  get chemicalSourcePatternId() {
+    return this.properties.chemicalSourcePatternId;
   }
 }

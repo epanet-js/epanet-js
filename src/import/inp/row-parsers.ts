@@ -83,12 +83,33 @@ export const parseSource: RowParser = ({
   trimmedRow,
   inpData,
   issues,
+  options,
 }) => {
-  issues.addUsedSection(sectionName);
-  const [, , , patternId] = readValues(trimmedRow);
+  const [nodeId, type, strength, patternId] = readValues(trimmedRow);
   if (patternId) {
     inpData.sourcePatterns.add(patternId);
   }
+
+  if (!options?.waterChemical) {
+    issues.addUsedSection(sectionName);
+    return;
+  }
+
+  const upperType = type?.toUpperCase();
+  const validTypes = ["CONCEN", "MASS", "FLOWPACED", "SETPOINT"] as const;
+  if (
+    !nodeId ||
+    !upperType ||
+    !validTypes.includes(upperType as (typeof validTypes)[number])
+  ) {
+    return;
+  }
+
+  inpData.sources.set(nodeId, {
+    type: upperType as (typeof validTypes)[number],
+    strength: parseFloat(strength) || 0,
+    patternId: patternId || undefined,
+  });
 };
 
 const defaultEnergySettings: Record<string, number | string> = {
@@ -191,6 +212,7 @@ export const parseReaction: RowParser = ({
   trimmedRow,
   inpData,
   issues,
+  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultReactionSettings);
 
@@ -227,6 +249,30 @@ export const parseReaction: RowParser = ({
   }
 
   if (!setting) {
+    // Per-pipe BULK/WALL and per-tank TANK rows: "BULK pipeId value", "WALL pipeId value", "TANK tankId value"
+    const upperRow = trimmedRow.toUpperCase();
+    if (
+      upperRow.startsWith("BULK ") ||
+      upperRow.startsWith("WALL ") ||
+      upperRow.startsWith("TANK ")
+    ) {
+      if (!options?.waterChemical) {
+        issues.addUsedSection(sectionName);
+        return;
+      }
+      const [keyword, id, valueStr] = readValues(trimmedRow);
+      const value = parseFloat(valueStr);
+      if (!id || isNaN(value)) return;
+      const upperKeyword = keyword.toUpperCase();
+      if (upperKeyword === "BULK") {
+        inpData.reactions.pipeBulk.set(id, value);
+      } else if (upperKeyword === "WALL") {
+        inpData.reactions.pipeWall.set(id, value);
+      } else if (upperKeyword === "TANK") {
+        inpData.reactions.tankBulk.set(id, value);
+      }
+      return;
+    }
     issues.addUsedSection(sectionName);
   }
 };

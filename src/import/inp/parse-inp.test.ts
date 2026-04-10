@@ -656,23 +656,6 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
-    it("ignores [REACTIONS] section with default values", () => {
-      const inp = `
-      [REACTIONS]
-      Order Bulk            1
-      Order Tank            1
-      Order Wall            1
-      Global Bulk           0
-      Global Wall           0
-      Limiting Potential    0
-      Roughness Correlation 0
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
-    });
-
     it("parses [REACTIONS] section with non-default values", () => {
       const inp = `
       [REACTIONS]
@@ -682,6 +665,42 @@ describe("Parse inp with", () => {
       const { simulationSettings } = parseInp(inp);
 
       expect(simulationSettings.reactionGlobalBulk).toBe(0.5);
+    });
+
+    it("parses per-pipe BULK and WALL coefficients when waterChemical is on", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1    100
+      J2    200
+
+      [TANKS]
+      T1    50    10    0    20    15    0
+
+      [PIPES]
+      P1    J1    J2    1000    100    100    0    Open
+
+      [COORDINATES]
+      J1    0    0
+      J2    1    1
+      T1    1    1
+
+      [REACTIONS]
+      Bulk  P1  -0.5
+      Wall  P1  -1.0
+      Tank  T1  -0.3
+
+      [END]
+    `;
+
+      const { hydraulicModel } = parseInp(inp, {
+        waterChemical: true,
+      });
+      const p1 = getByLabel(hydraulicModel.assets, "P1") as Pipe;
+      const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
+
+      expect(t1.bulkReactionCoeff).toBe(-0.3);
+      expect(p1.bulkReactionCoeff).toBe(-0.5);
+      expect(p1.wallReactionCoeff).toBe(-1.0);
     });
 
     it("reports [REACTIONS] section with pipe-specific reactions", () => {
@@ -1207,6 +1226,130 @@ describe("quality section", () => {
     const { issues } = parseInp(inp, { waterAge: true });
 
     expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
+  });
+
+  it("parses initial chemical concentration for tanks and reservoirs", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [TANKS]
+      T1    50    10    0    20    15    0
+
+      [RESERVOIRS]
+      R1    100
+
+      [COORDINATES]
+      J1    0    0
+      T1    1    1
+      R1    2    2
+
+      [OPTIONS]
+      Quality\tChlorine mg/L
+
+      [QUALITY]
+      T1    0.5
+      R1    1.0
+
+      [END]
+    `;
+
+    const { hydraulicModel, simulationSettings, issues } = parseInp(inp, {
+      waterChemical: true,
+    });
+    const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
+
+    expect(t1.initialChemicalConcentration).toBe(0.5);
+    expect(t1.initialWaterAge).toBe(0);
+    expect(r1.initialChemicalConcentration).toBe(1.0);
+    expect(r1.initialWaterAge).toBe(0);
+    expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+    expect(issues?.waterQualityType).toBeUndefined();
+  });
+
+  it("ignores QUALITY section values when waterChemical is off", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [OPTIONS]
+      Quality\tChlorine mg/L
+
+      [QUALITY]
+      J1    1.5
+
+      [END]
+    `;
+
+    const { hydraulicModel, issues } = parseInp(inp, { waterChemical: false });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+    expect(j1.initialChemicalConcentration).toBe(0);
+    expect(issues?.waterQualityType).toBe("CHEMICAL");
+  });
+});
+
+describe("chemical sources", () => {
+  it("parses SOURCES section when waterChemical is on", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+      J2    200
+
+      [COORDINATES]
+      J1    0    0
+      J2    1    1
+
+      [OPTIONS]
+      Quality\tChlorine mg/L
+
+      [SOURCES]
+      J1    CONCEN    1.2    Pat1
+      J2    MASS      12
+
+      [PATTERNS]
+      Pat1    1.0    1.5
+
+      [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { waterChemical: true });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+    expect(j1.chemicalSourceType).toBe("CONCEN");
+    expect(j1.chemicalSourceStrength).toBe(1.2);
+    expect(j1.chemicalSourcePatternId).toBeDefined();
+    expect(j2.chemicalSourceType).toBe("MASS");
+    expect(j2.chemicalSourceStrength).toBe(12);
+    expect(j2.chemicalSourcePatternId).toBeUndefined();
+  });
+
+  it("reports SOURCES as unsupported when waterChemical is off", () => {
+    const inp = `
+      [JUNCTIONS]
+      J1    100
+
+      [COORDINATES]
+      J1    0    0
+
+      [SOURCES]
+      J1    CONCEN    1.2
+
+      [END]
+    `;
+
+    const { issues, hydraulicModel } = parseInp(inp, {
+      waterChemical: false,
+    });
+    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+
+    expect(issues?.unsupportedSections?.has("[SOURCES]")).toBe(true);
+    expect(j1.chemicalSourceType).toBeUndefined();
   });
 });
 
