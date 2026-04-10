@@ -50,7 +50,8 @@ export type JunctionProperty =
   | "pressure"
   | "quality"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 export type TankProperty =
   | "netFlow"
   | "head"
@@ -58,26 +59,30 @@ export type TankProperty =
   | "level"
   | "volume"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 export type ReservoirProperty =
   | "netFlow"
   | "head"
   | "pressure"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 export type PipeProperty =
   | "flow"
   | "velocity"
   | "headloss"
   | "status"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 export type PumpProperty =
   | "flow"
   | "headloss"
   | "status"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 export type ValveProperty =
   | "flow"
   | "velocity"
@@ -85,7 +90,8 @@ export type ValveProperty =
   | "status"
   | "setting"
   | "waterAge"
-  | "waterTrace";
+  | "waterTrace"
+  | "chemicalConcentration";
 
 type NodeProperty = "demand" | "head" | "pressure" | "quality";
 type LinkProperty =
@@ -230,7 +236,11 @@ export class EPSResultsReader {
 
     switch (assetType) {
       case "junction":
-        if (property === "waterAge" || property === "waterTrace")
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -239,7 +249,11 @@ export class EPSResultsReader {
       case "reservoir":
         if (property === "netFlow")
           return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (property === "waterAge" || property === "waterTrace")
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -251,7 +265,11 @@ export class EPSResultsReader {
         if (property === "level") return this._getTankLevelTimeSeries(assetId);
         if (property === "netFlow")
           return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (property === "waterAge" || property === "waterTrace")
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
           return this._getNodePropertyTimeSeries(assetId, "quality");
         return this._getNodePropertyTimeSeries(
           assetId,
@@ -259,7 +277,11 @@ export class EPSResultsReader {
         );
       case "pipe":
       case "valve":
-        if (property === "waterAge" || property === "waterTrace")
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
           return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
         return this._getLinkPropertyTimeSeries(
           assetId,
@@ -268,7 +290,11 @@ export class EPSResultsReader {
       case "pump":
         if (property === "status")
           return this._getPumpStatusTimeSeries(assetId);
-        if (property === "waterAge" || property === "waterTrace")
+        if (
+          property === "waterAge" ||
+          property === "waterTrace" ||
+          property === "chemicalConcentration"
+        )
           return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
         return this._getLinkPropertyTimeSeries(
           assetId,
@@ -799,6 +825,8 @@ class TimestepResultsReader implements ResultsReader {
       statusWarning: this.mapValveStatusWarning(statusValue),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? linkData.avgQuality : null,
     };
   }
 
@@ -821,6 +849,8 @@ class TimestepResultsReader implements ResultsReader {
       statusWarning: this.mapPumpStatusWarning(statusValue),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? linkData.avgQuality : null,
     };
   }
 
@@ -847,6 +877,8 @@ class TimestepResultsReader implements ResultsReader {
       demand: nodeData.demand,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? nodeData.quality : null,
     };
   }
 
@@ -870,6 +902,8 @@ class TimestepResultsReader implements ResultsReader {
       status: this.mapPipeStatus(linkData.status),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,
       waterTrace: qualityType === "trace" ? linkData.avgQuality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? linkData.avgQuality : null,
     };
   }
 
@@ -903,6 +937,8 @@ class TimestepResultsReader implements ResultsReader {
       volume,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? nodeData.quality : null,
     };
   }
 
@@ -920,6 +956,8 @@ class TimestepResultsReader implements ResultsReader {
       netFlow: nodeData.demand,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
+      chemicalConcentration:
+        qualityType === "chemical" ? nodeData.quality : null,
     };
   }
 
@@ -1030,6 +1068,7 @@ class TimestepResultsReader implements ResultsReader {
       pressure: NODE_PROPERTY_INDEX.pressure,
       waterAge: NODE_PROPERTY_INDEX.quality,
       waterTrace: NODE_PROPERTY_INDEX.quality,
+      chemicalConcentration: NODE_PROPERTY_INDEX.quality,
     };
 
     const linkPropertyIndex: Partial<Record<SimulationProperty, number>> = {

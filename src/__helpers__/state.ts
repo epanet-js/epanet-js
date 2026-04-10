@@ -240,6 +240,7 @@ export type SimulationData = {
       status: "open" | "closed";
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
   junctions?: Record<
@@ -250,6 +251,7 @@ export type SimulationData = {
       demand: number;
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
   pumps?: Record<
@@ -261,6 +263,7 @@ export type SimulationData = {
       statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
   valves?: Record<
@@ -273,6 +276,7 @@ export type SimulationData = {
       statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
   tanks?: Record<
@@ -285,6 +289,7 @@ export type SimulationData = {
       volume: number;
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
   reservoirs?: Record<
@@ -295,6 +300,7 @@ export type SimulationData = {
       netFlow: number;
       waterAge: number | null;
       waterTrace: number | null;
+      chemicalConcentration: number | null;
     }>
   >;
 };
@@ -314,6 +320,7 @@ export const createMockResultsReader = (
       status: sim.status ?? "open",
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getJunction: (id) => {
@@ -326,6 +333,7 @@ export const createMockResultsReader = (
       demand: sim.demand ?? 0,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getPump: (id) => {
@@ -339,6 +347,7 @@ export const createMockResultsReader = (
       statusWarning: sim.statusWarning ?? null,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getValve: (id) => {
@@ -353,6 +362,7 @@ export const createMockResultsReader = (
       statusWarning: sim.statusWarning ?? null,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getTank: (id) => {
@@ -367,6 +377,7 @@ export const createMockResultsReader = (
       volume: sim.volume ?? 0,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getReservoir: (id) => {
@@ -379,6 +390,7 @@ export const createMockResultsReader = (
       netFlow: sim.netFlow ?? 0,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
+      chemicalConcentration: sim.chemicalConcentration ?? null,
     };
   },
   getAllValues: (property) => {

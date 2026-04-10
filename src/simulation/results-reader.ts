@@ -7,6 +7,7 @@ export type PipeSimulation = {
   status: "open" | "closed";
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type ValveSimulation = {
@@ -18,6 +19,7 @@ export type ValveSimulation = {
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-pressure" | null;
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type PumpSimulation = {
@@ -28,6 +30,7 @@ export type PumpSimulation = {
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type JunctionSimulation = {
@@ -37,6 +40,7 @@ export type JunctionSimulation = {
   demand: number;
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type TankSimulation = {
@@ -48,6 +52,7 @@ export type TankSimulation = {
   volume: number;
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type ReservoirSimulation = {
@@ -57,6 +62,7 @@ export type ReservoirSimulation = {
   netFlow: number;
   waterAge: number | null;
   waterTrace: number | null;
+  chemicalConcentration: number | null;
 };
 
 export type PumpEnergySummary = {
@@ -78,6 +84,7 @@ export const simulationProperties = [
   "head",
   "waterAge",
   "waterTrace",
+  "chemicalConcentration",
 ] as const;
 
 export type SimulationProperty = (typeof simulationProperties)[number];
