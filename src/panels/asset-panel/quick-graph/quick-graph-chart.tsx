@@ -101,7 +101,7 @@ function QuickGraphChartECharts({
     };
 
     return [baseSeries, scenarioSeries];
-  }, [values, baseValues, baseLabel, scenarioName]);
+  }, [scenarioName, values, baseValues, baseLabel]);
 
   const scenarioSeriesIndex = baseValues && baseValues.length > 0 ? 1 : 0;
 
@@ -163,7 +163,7 @@ function QuickGraphChartECharts({
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useEffect(function resizeChart() {
     const container = containerRef.current;
     if (!container) return;
 
@@ -176,23 +176,36 @@ function QuickGraphChartECharts({
     return () => resizeObserver.disconnect();
   }, []);
 
-  useEffect(() => {
-    const chart = chartRef.current?.getEchartsInstance();
-    if (!chart) return;
-    const seriesUpdate: any[] = [];
-    for (let i = 0; i < scenarioSeriesIndex; i++) seriesUpdate.push({});
-    seriesUpdate.push({
-      markLine: {
-        symbol: "none",
-        label: { show: false },
-        data: [{ xAxis: currentIntervalIndex }],
-      },
-    });
-    chart.setOption({ series: seriesUpdate });
-  }, [currentIntervalIndex, scenarioSeriesIndex, option]);
+  const applyMarkLine = useCallback(
+    (chart: EChartsInstance) => {
+      const seriesUpdate: any[] = [];
+      for (let i = 0; i < scenarioSeriesIndex; i++) seriesUpdate.push({});
+      seriesUpdate.push({
+        markLine: {
+          silent: true,
+          symbol: "none",
+          label: { show: false },
+          data: [{ xAxis: currentIntervalIndex }],
+        },
+      });
+      chart.setOption({ series: seriesUpdate });
+    },
+    [currentIntervalIndex, scenarioSeriesIndex],
+  );
+
+  useEffect(
+    function updateMarkLinePosition() {
+      const chart = chartRef.current?.getEchartsInstance();
+      if (!chart) return;
+      applyMarkLine(chart);
+    },
+    [applyMarkLine],
+  );
 
   const onChartReady = useCallback(
     (chart: EChartsInstance) => {
+      applyMarkLine(chart);
+
       const zr = chart.getZr();
 
       zr.on("click", (params: any) => {
@@ -212,7 +225,7 @@ function QuickGraphChartECharts({
         zr.setCursorStyle(isInGrid ? "pointer" : "default");
       });
     },
-    [onIntevalClick, values.length],
+    [onIntevalClick, values.length, applyMarkLine],
   );
 
   if (intervalsCount === 0 || values.length === 0) {
