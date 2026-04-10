@@ -181,7 +181,11 @@ function QuickGraphChartECharts({
     const seriesUpdate: any[] = [];
     for (let i = 0; i < scenarioSeriesIndex; i++) seriesUpdate.push({});
     seriesUpdate.push({
-      markLine: { data: [{ xAxis: currentIntervalIndex }] },
+      markLine: {
+        symbol: "none",
+        label: { show: false },
+        data: [{ xAxis: currentIntervalIndex }],
+      },
     });
     chart.setOption({ series: seriesUpdate });
   }, [currentIntervalIndex, scenarioSeriesIndex, option]);
