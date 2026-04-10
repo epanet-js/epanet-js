@@ -41,6 +41,7 @@ export const useRunSimulation = () => {
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -73,7 +74,10 @@ export const useRunSimulation = () => {
           usedPatterns: true,
           usedCurves: true,
           includeQuality:
-            isWaterAgeOn && simulationSettings.qualitySimulationType === "AGE",
+            (isWaterAgeOn &&
+              simulationSettings.qualitySimulationType === "AGE") ||
+            (isWaterChemicalOn &&
+              simulationSettings.qualitySimulationType === "CHEMICAL"),
           simulationSettings,
           units: projectSettings.units,
           headlossFormula: projectSettings.headlossFormula,
@@ -103,7 +107,9 @@ export const useRunSimulation = () => {
           (isWaterAgeOn &&
             simulationSettings.qualitySimulationType === "AGE") ||
           (isWaterTraceOn &&
-            simulationSettings.qualitySimulationType === "TRACE");
+            simulationSettings.qualitySimulationType === "TRACE") ||
+          (isWaterChemicalOn &&
+            simulationSettings.qualitySimulationType === "CHEMICAL");
         const { report, status, metadata } = await runSimulationWorker(
           inp,
           appId,
@@ -182,6 +188,7 @@ export const useRunSimulation = () => {
         isStateRefactorOn,
         isWaterAgeOn,
         isWaterTraceOn,
+        isWaterChemicalOn,
         setSimulationState,
         setDialogState,
         persistence,

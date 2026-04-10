@@ -250,20 +250,19 @@ export const parseReaction: RowParser = ({
 
   if (!setting) {
     // Per-pipe BULK/WALL and per-tank TANK rows: "BULK pipeId value", "WALL pipeId value", "TANK tankId value"
-    const upperRow = trimmedRow.toUpperCase();
+    const [keyword, id, valueStr] = readValues(trimmedRow);
+    const upperKeyword = keyword?.toUpperCase();
     if (
-      upperRow.startsWith("BULK ") ||
-      upperRow.startsWith("WALL ") ||
-      upperRow.startsWith("TANK ")
+      upperKeyword === "BULK" ||
+      upperKeyword === "WALL" ||
+      upperKeyword === "TANK"
     ) {
       if (!options?.waterChemical) {
         issues.addUsedSection(sectionName);
         return;
       }
-      const [keyword, id, valueStr] = readValues(trimmedRow);
       const value = parseFloat(valueStr);
       if (!id || isNaN(value)) return;
-      const upperKeyword = keyword.toUpperCase();
       if (upperKeyword === "BULK") {
         inpData.reactions.pipeBulk.set(id, value);
       } else if (upperKeyword === "WALL") {

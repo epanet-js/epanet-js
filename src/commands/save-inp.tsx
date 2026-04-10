@@ -46,6 +46,7 @@ export const useSaveInp = ({
   const map = useContext(MapContext);
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -85,7 +86,7 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
-            includeQuality: isWaterAgeOn,
+            includeQuality: isWaterAgeOn || isWaterChemicalOn,
             projection: projectSettings.projection,
             simulationSettings,
             units: projectSettings.units,
@@ -144,6 +145,7 @@ export const useSaveInp = ({
         translate,
         map,
         isWaterAgeOn,
+        isWaterChemicalOn,
         isStateRefactorOn,
       ],
     ),

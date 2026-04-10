@@ -2016,6 +2016,82 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(inp).not.toContain(`${IDS.J1}\t0`);
       expect(inp).toContain(`${IDS.J2}\t7`);
     });
+
+    it("writes initialChemicalConcentration to QUALITY section for CHEMICAL type", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const chemicalSettings = {
+        ...defaultSimulationSettings,
+        qualitySimulationType: "CHEMICAL" as const,
+        qualityChemicalName: "Chlorine",
+        qualityMassUnit: "mg/L" as const,
+      };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          initialChemicalConcentration: 1.2,
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          initialChemicalConcentration: 0.8,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: chemicalSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[QUALITY]");
+      expect(inp).toContain(`${IDS.J1}\t1.2`);
+      expect(inp).toContain(`${IDS.J2}\t0.8`);
+    });
+
+    it("writes initialWaterAge (not chemical) when quality type is AGE", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          initialWaterAge: 5,
+          initialChemicalConcentration: 1.2,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain(`${IDS.J1}\t5`);
+      expect(inp).not.toContain(`${IDS.J1}\t1.2`);
+    });
+
+    it("writes chemical concentration for tanks and reservoirs", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const chemicalSettings = {
+        ...defaultSimulationSettings,
+        qualitySimulationType: "CHEMICAL" as const,
+        qualityChemicalName: "Chlorine",
+        qualityMassUnit: "mg/L" as const,
+      };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { initialChemicalConcentration: 0.5 })
+        .aReservoir(IDS.R1, {
+          head: 100,
+          initialChemicalConcentration: 1.0,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: chemicalSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain(`${IDS.T1}\t0.5`);
+      expect(inp).toContain(`${IDS.R1}\t1`);
+    });
   });
 
   describe("mixing section", () => {
@@ -2103,6 +2179,148 @@ THEN LINK {{1}} STATUS IS OPEN`,
       });
 
       expect(inp).not.toContain("[MIXING]");
+    });
+  });
+
+  describe("sources section", () => {
+    it("includes SOURCES section for nodes with chemical source", () => {
+      const IDS = { J1: 1, J2: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          chemicalSourceType: "CONCEN",
+          chemicalSourceStrength: 1.2,
+        })
+        .aJunction(IDS.J2, {
+          elevation: 20,
+          chemicalSourceType: "MASS",
+          chemicalSourceStrength: 12,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[SOURCES]");
+      expect(inp).toContain(`${IDS.J1}\tCONCEN\t1.2`);
+      expect(inp).toContain(`${IDS.J2}\tMASS\t12`);
+    });
+
+    it("omits SOURCES section when no nodes have sources", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).not.toContain("[SOURCES]");
+    });
+
+    it("omits SOURCES section when includeQuality is false", () => {
+      const IDS = { J1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          chemicalSourceType: "CONCEN",
+          chemicalSourceStrength: 1.2,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      expect(inp).not.toContain("[SOURCES]");
+    });
+  });
+
+  describe("per-pipe and per-tank reactions export", () => {
+    it("includes per-pipe BULK and WALL in REACTIONS section", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          bulkReactionCoeff: -0.5,
+          wallReactionCoeff: -1.0,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[REACTIONS]");
+      expect(inp).toContain(`Bulk\t${IDS.P1}\t-0.5`);
+      expect(inp).toContain(`Wall\t${IDS.P1}\t-1`);
+    });
+
+    it("includes per-tank TANK reaction in REACTIONS section", () => {
+      const IDS = { T1: 1, R1: 2 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aTank(IDS.T1, { bulkReactionCoeff: -0.3 })
+        .aReservoir(IDS.R1)
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).toContain("[REACTIONS]");
+      expect(inp).toContain(`Tank\t${IDS.T1}\t-0.3`);
+    });
+
+    it("omits per-pipe reactions when coefficients are undefined", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+      });
+
+      expect(inp).not.toContain(`Bulk\t${IDS.P1}`);
+      expect(inp).not.toContain(`Wall\t${IDS.P1}`);
+    });
+
+    it("omits per-pipe reactions when includeQuality is false", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aPipe(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          bulkReactionCoeff: -0.5,
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      expect(inp).not.toContain(`Bulk\t${IDS.P1}`);
     });
   });
 });
