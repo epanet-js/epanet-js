@@ -381,17 +381,23 @@ export const createMockResultsReader = (
       waterTrace: sim.waterTrace ?? null,
     };
   },
-  getAllPressures: () =>
-    Object.values(data.junctions ?? {}).map((j) => j.pressure ?? 0),
-  getAllHeads: () =>
-    Object.values(data.junctions ?? {}).map((j) => j.head ?? 0),
-  getAllDemands: () =>
-    Object.values(data.junctions ?? {}).map((j) => j.demand ?? 0),
-  getAllFlows: () => Object.values(data.pipes ?? {}).map((p) => p.flow ?? 0),
-  getAllVelocities: () =>
-    Object.values(data.pipes ?? {}).map((p) => p.velocity ?? 0),
-  getAllUnitHeadlosses: () => [],
-  getAllWaterAges: () => [],
-  getAllWaterTraces: () => [],
+  getAllValues: (property) => {
+    const junctions = Object.values(data.junctions ?? {});
+    const pipes = Object.values(data.pipes ?? {});
+    switch (property) {
+      case "pressure":
+        return junctions.map((j) => j.pressure ?? 0);
+      case "head":
+        return junctions.map((j) => j.head ?? 0);
+      case "actualDemand":
+        return junctions.map((j) => j.demand ?? 0);
+      case "flow":
+        return pipes.map((p) => p.flow ?? 0);
+      case "velocity":
+        return pipes.map((p) => p.velocity ?? 0);
+      default:
+        return [];
+    }
+  },
   getPumpEnergy: () => null,
 });

@@ -69,6 +69,25 @@ export type PumpEnergySummary = {
   demandCharge: number;
 };
 
+export const simulationProperties = [
+  "flow",
+  "velocity",
+  "unitHeadloss",
+  "pressure",
+  "actualDemand",
+  "head",
+  "waterAge",
+  "waterTrace",
+] as const;
+
+export type SimulationProperty = (typeof simulationProperties)[number];
+
+export const isSimulationProperty = (
+  property: string,
+): property is SimulationProperty => {
+  return simulationProperties.includes(property as SimulationProperty);
+};
+
 export interface ResultsReader {
   getValve: (valveId: number) => ValveSimulation | null;
   getPump: (pumpId: number) => PumpSimulation | null;
@@ -78,12 +97,5 @@ export interface ResultsReader {
   getReservoir: (reservoirId: number) => ReservoirSimulation | null;
   getPumpEnergy: (pumpId: number) => PumpEnergySummary | null;
 
-  getAllPressures: () => number[];
-  getAllHeads: () => number[];
-  getAllDemands: () => number[];
-  getAllFlows: () => number[];
-  getAllVelocities: () => number[];
-  getAllUnitHeadlosses: () => number[];
-  getAllWaterAges: () => number[];
-  getAllWaterTraces: () => number[];
+  getAllValues: (property: SimulationProperty) => number[];
 }

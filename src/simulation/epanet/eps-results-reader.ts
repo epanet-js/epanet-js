@@ -7,6 +7,7 @@ import {
   TankSimulation,
   ReservoirSimulation,
   PumpEnergySummary,
+  type SimulationProperty,
 } from "../results-reader";
 import { IKeyBufferStore } from "src/infra/storage";
 import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
@@ -1020,84 +1021,45 @@ class TimestepResultsReader implements ResultsReader {
     return -1;
   }
 
-  getAllPressures(): number[] {
-    const { nodeCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeData = this.getNodeData(i);
-      values.push(nodeData.pressure);
-    }
-    return values;
-  }
+  getAllValues(property: SimulationProperty): number[] {
+    const { nodeCount, linkCount } = this.simulationMetadata;
 
-  getAllHeads(): number[] {
-    const { nodeCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeData = this.getNodeData(i);
-      values.push(nodeData.head);
-    }
-    return values;
-  }
+    const nodePropertyIndex: Partial<Record<SimulationProperty, number>> = {
+      actualDemand: NODE_PROPERTY_INDEX.demand,
+      head: NODE_PROPERTY_INDEX.head,
+      pressure: NODE_PROPERTY_INDEX.pressure,
+      waterAge: NODE_PROPERTY_INDEX.quality,
+      waterTrace: NODE_PROPERTY_INDEX.quality,
+    };
 
-  getAllDemands(): number[] {
-    const { nodeCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeData = this.getNodeData(i);
-      values.push(nodeData.demand);
-    }
-    return values;
-  }
+    const linkPropertyIndex: Partial<Record<SimulationProperty, number>> = {
+      flow: LINK_PROPERTY_INDEX.flow,
+      velocity: LINK_PROPERTY_INDEX.velocity,
+      unitHeadloss: LINK_PROPERTY_INDEX.headloss,
+    };
 
-  getAllWaterAges(): number[] {
-    const { nodeCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeData = this.getNodeData(i);
-      values.push(nodeData.quality);
+    const nodeIndex = nodePropertyIndex[property];
+    if (nodeIndex !== undefined) {
+      const offset = nodeCount * nodeIndex * FLOAT_SIZE;
+      const values: number[] = new Array(nodeCount);
+      for (let i = 0; i < nodeCount; i++) {
+        values[i] = this.view.getFloat32(offset + i * FLOAT_SIZE, true);
+      }
+      return values;
     }
-    return values;
-  }
 
-  getAllWaterTraces(): number[] {
-    const { nodeCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const nodeData = this.getNodeData(i);
-      values.push(nodeData.quality);
+    const linkIndex = linkPropertyIndex[property];
+    if (linkIndex !== undefined) {
+      const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
+      const offset = nodeDataSize + linkCount * linkIndex * FLOAT_SIZE;
+      const values: number[] = new Array(linkCount);
+      for (let i = 0; i < linkCount; i++) {
+        values[i] = this.view.getFloat32(offset + i * FLOAT_SIZE, true);
+      }
+      return values;
     }
-    return values;
-  }
 
-  getAllFlows(): number[] {
-    const { linkCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < linkCount; i++) {
-      const linkData = this.getLinkData(i);
-      values.push(linkData.flow);
-    }
-    return values;
-  }
-
-  getAllVelocities(): number[] {
-    const { linkCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < linkCount; i++) {
-      const linkData = this.getLinkData(i);
-      values.push(linkData.velocity);
-    }
-    return values;
-  }
-
-  getAllUnitHeadlosses(): number[] {
-    const { linkCount } = this.simulationMetadata;
-    const values: number[] = [];
-    for (let i = 0; i < linkCount; i++) {
-      const linkData = this.getLinkData(i);
-      values.push(linkData.headloss);
-    }
-    return values;
+    return [];
   }
 
   getPumpEnergy(pumpId: number): PumpEnergySummary | null {
@@ -1149,28 +1111,7 @@ class NullResultsReader implements ResultsReader {
   getReservoir(_reservoirId: number): ReservoirSimulation | null {
     return null;
   }
-  getAllPressures(): number[] {
-    return [];
-  }
-  getAllHeads(): number[] {
-    return [];
-  }
-  getAllDemands(): number[] {
-    return [];
-  }
-  getAllFlows(): number[] {
-    return [];
-  }
-  getAllVelocities(): number[] {
-    return [];
-  }
-  getAllUnitHeadlosses(): number[] {
-    return [];
-  }
-  getAllWaterAges(): number[] {
-    return [];
-  }
-  getAllWaterTraces(): number[] {
+  getAllValues(): number[] {
     return [];
   }
   getPumpEnergy(_pumpId: number): PumpEnergySummary | null {

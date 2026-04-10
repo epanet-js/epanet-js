@@ -550,6 +550,121 @@ describe("EPSResultsReader", () => {
     });
   });
 
+  describe("getAllValues", () => {
+    it("returns node property values consistent with per-asset getters", async () => {
+      const IDS = { R1: 1, J1: 2, J2: 3, P1: 4, P2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 5 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-getallvalues-nodes";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+
+      // 3 nodes: R1, J1, J2
+      const pressures = resultsReader.getAllValues("pressure");
+      expect(pressures).toHaveLength(3);
+
+      const heads = resultsReader.getAllValues("head");
+      expect(heads).toHaveLength(3);
+
+      const demands = resultsReader.getAllValues("actualDemand");
+      expect(demands).toHaveLength(3);
+
+      // Values should match per-asset getters
+      const j1 = resultsReader.getJunction(IDS.J1)!;
+      const j2 = resultsReader.getJunction(IDS.J2)!;
+      expect(pressures).toContain(j1.pressure);
+      expect(pressures).toContain(j2.pressure);
+      expect(heads).toContain(j1.head);
+      expect(heads).toContain(j2.head);
+    });
+
+    it("returns link property values consistent with per-asset getters", async () => {
+      const IDS = { R1: 1, J1: 2, J2: 3, P1: 4, P2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .aJunction(IDS.J1, { elevation: 10 })
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aJunction(IDS.J2, { elevation: 20 })
+        .aJunctionDemand(IDS.J2, [{ baseDemand: 5 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-getallvalues-links";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const resultsReader = await reader.getResultsForTimestep(0);
+
+      // 2 links: P1, P2
+      const flows = resultsReader.getAllValues("flow");
+      expect(flows).toHaveLength(2);
+
+      const velocities = resultsReader.getAllValues("velocity");
+      expect(velocities).toHaveLength(2);
+
+      const headlosses = resultsReader.getAllValues("unitHeadloss");
+      expect(headlosses).toHaveLength(2);
+
+      // Values should match per-asset getters
+      const p1 = resultsReader.getPipe(IDS.P1)!;
+      const p2 = resultsReader.getPipe(IDS.P2)!;
+      expect(flows).toContain(p1.flow);
+      expect(flows).toContain(p2.flow);
+      expect(velocities).toContain(p1.velocity);
+      expect(velocities).toContain(p2.velocity);
+    });
+
+    it("returns empty array from null results reader", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1)
+        .aJunction(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-getallvalues-null";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      // Out-of-range timestep returns NullResultsReader
+      const resultsReader = await reader.getResultsForTimestep(999);
+      expect(resultsReader.getAllValues("pressure")).toEqual([]);
+      expect(resultsReader.getAllValues("flow")).toEqual([]);
+    });
+  });
+
   describe("getTimeSeries", () => {
     describe("junction", () => {
       it("reads junction pressure time series across multiple timesteps", async () => {

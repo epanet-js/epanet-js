@@ -1,59 +1,24 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
-import { type ResultsReader } from "src/simulation/results-reader";
+import {
+  type ResultsReader,
+  type SimulationProperty,
+  isSimulationProperty,
+} from "src/simulation/results-reader";
 
-export const simulationProperties = [
-  "flow",
-  "velocity",
-  "unitHeadloss",
-  "pressure",
-  "actualDemand",
-  "head",
-  "waterAge",
-  "waterTrace",
-] as const;
-
-export type SimulationProperty = (typeof simulationProperties)[number];
-
-export const isSimulationProperty = (
-  property: string,
-): property is SimulationProperty => {
-  return simulationProperties.includes(property as SimulationProperty);
-};
+export {
+  simulationProperties,
+  isSimulationProperty,
+  type SimulationProperty,
+} from "src/simulation/results-reader";
 
 export const getSortedSimulationValues = (
   resultsReader: ResultsReader,
   property: SimulationProperty,
   { absValues = false }: { absValues?: boolean } = {},
 ): number[] => {
-  let values: number[];
-  switch (property) {
-    case "pressure":
-      values = resultsReader.getAllPressures();
-      break;
-    case "head":
-      values = resultsReader.getAllHeads();
-      break;
-    case "actualDemand":
-      values = resultsReader.getAllDemands();
-      break;
-    case "flow":
-      values = resultsReader.getAllFlows();
-      break;
-    case "velocity":
-      values = resultsReader.getAllVelocities();
-      break;
-    case "unitHeadloss":
-      values = resultsReader.getAllUnitHeadlosses();
-      break;
-    case "waterAge":
-      values = resultsReader.getAllWaterAges();
-      break;
-    case "waterTrace":
-      values = resultsReader.getAllWaterTraces();
-      break;
-  }
+  let values = resultsReader.getAllValues(property);
   if (absValues) {
     values = values.map(Math.abs);
   }
