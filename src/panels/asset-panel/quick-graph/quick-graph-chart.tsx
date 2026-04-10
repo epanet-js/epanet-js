@@ -137,6 +137,7 @@ function QuickGraphChartECharts({
       series,
       tooltip: {
         trigger: "axis",
+        appendToBody: true,
         backgroundColor: "white",
         borderColor: colors.gray300,
         textStyle: {
