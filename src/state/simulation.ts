@@ -6,16 +6,24 @@ export const simulationResultsAtom = atom<ResultsReader | null>(null);
 export const simulationStepAtom = atom<number | null>(null);
 
 export type SimulationIdle = { status: "idle" };
-export type SimulationFinished = {
-  status: "success" | "failure" | "warning";
+
+type ExecutionResult = {
   report: string;
   modelVersion: string;
   settingsVersion: string;
   epsResultsReader?: EPSResultsReader;
 };
-export type SimulationRunning = {
-  status: "running";
-};
+type PreviousExecutionResult = ExecutionResult;
+
+export type SimulationFinished = {
+  status: "success" | "failure" | "warning";
+} & ExecutionResult;
+
+export type SimulationRunning =
+  | { status: "running" }
+  | ({
+      status: "running";
+    } & PreviousExecutionResult);
 
 export type SimulationState =
   | SimulationIdle
