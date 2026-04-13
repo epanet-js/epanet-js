@@ -62,7 +62,16 @@
     "checkMapboxDocs": "See Mapbox documentation on",
     "chooseType": "Choose type",
     "color": "Color",
+    "error": {
+      "invalid-format": "Invalid file format",
+      "invalid-projection": "Unknown coordinate system",
+      "no-features": "No features found",
+      "projection-conversion-failed": "Coordinate conversion failed",
+      "unsupported-crs": "Unsupported coordinate system"
+    },
     "gisFile": "GIS file",
+    "gisImportError": "GIS import errors",
+    "gisImportSummary": "{{1}} of {{2}} files could not be imported",
     "labels": "Labels",
     "lineWidth": "Line width",
     "opacity": "Opacity",

@@ -140,6 +140,12 @@ export type ElevationTileErrorsDialogState = {
   errors: { fileName: string; error: string }[];
 };
 
+export type GisImportErrorsDialogState = {
+  type: "gisImportErrors";
+  totalCount: number;
+  errors: { fileName: string; error: string }[];
+};
+
 export type FirstScenarioDialogState = {
   type: "firstScenario";
   onConfirm: () => void;
@@ -188,6 +194,7 @@ export type DialogState =
   | RenameScenarioDialogState
   | FeaturePaywallDialogState
   | ElevationTileErrorsDialogState
+  | GisImportErrorsDialogState
   | FirstScenarioDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState

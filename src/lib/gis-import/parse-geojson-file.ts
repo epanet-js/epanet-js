@@ -2,16 +2,26 @@ import { FeatureCollection } from "geojson";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import type { Proj4Projection } from "src/lib/projections";
 
-export type GisParseError =
+export type GisParseErrorCode =
   | "invalid-format"
   | "invalid-projection"
   | "unsupported-crs"
   | "projection-conversion-failed"
   | "no-features";
 
-export type GisParseResult =
-  | { ok: true; featureCollection: FeatureCollection; name: string }
-  | { ok: false; error: GisParseError };
+export class GisParseError extends Error {
+  constructor(
+    public readonly fileName: string,
+    public readonly code: GisParseErrorCode,
+  ) {
+    super(code);
+  }
+}
+
+export type GisParseResult = {
+  featureCollection: FeatureCollection;
+  name: string;
+};
 
 export async function parseGeoJsonFile(
   file: File,
@@ -21,14 +31,14 @@ export async function parseGeoJsonFile(
   try {
     content = await file.text();
   } catch {
-    return { ok: false, error: "invalid-format" };
+    throw new GisParseError(file.name, "invalid-format");
   }
 
   let result;
   try {
     result = parseGeoJson(content, projections ?? undefined);
   } catch {
-    return { ok: false, error: "invalid-format" };
+    throw new GisParseError(file.name, "invalid-format");
   }
 
   if (result.error) {
@@ -36,16 +46,16 @@ export async function parseGeoJsonFile(
       result.error.code === "unsupported-crs" ||
       result.error.code === "projection-conversion-failed"
     ) {
-      return { ok: false, error: result.error.code };
+      throw new GisParseError(file.name, result.error.code);
     }
     if (result.error.code === "invalid-projection") {
-      return { ok: false, error: "invalid-projection" };
+      throw new GisParseError(file.name, "invalid-projection");
     }
-    return { ok: false, error: "invalid-format" };
+    throw new GisParseError(file.name, "invalid-format");
   }
 
   if (!result.features.length) {
-    return { ok: false, error: "no-features" };
+    throw new GisParseError(file.name, "no-features");
   }
 
   const featureCollection: FeatureCollection = {
@@ -55,5 +65,5 @@ export async function parseGeoJsonFile(
 
   const name = file.name.replace(/\.(geojson|json)$/i, "");
 
-  return { ok: true, featureCollection, name };
+  return { featureCollection, name };
 }

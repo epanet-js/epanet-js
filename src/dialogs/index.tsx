@@ -335,6 +335,20 @@ const ElevationTileErrorsDialog = dynamic<{
   },
 );
 
+const GisImportErrorsDialog = dynamic<{
+  totalCount: number;
+  errors: { fileName: string; error: string }[];
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/gis-import-errors").then(
+      (r) => r.GisImportErrorsDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ActivatingTrialDialog = dynamic(
   () =>
     import("src/dialogs/activating-trial").then((r) => r.ActivatingTrialDialog),
@@ -476,6 +490,16 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "elevationTileErrors") {
     return (
       <ElevationTileErrorsDialog
+        totalCount={dialog.totalCount}
+        errors={dialog.errors}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (dialog.type === "gisImportErrors") {
+    return (
+      <GisImportErrorsDialog
         totalCount={dialog.totalCount}
         errors={dialog.errors}
         onClose={onClose}

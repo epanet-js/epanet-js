@@ -52,7 +52,10 @@ import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useProjections } from "src/hooks/use-projections";
-import { parseGeoJsonFile } from "src/lib/gis-import/parse-geojson-file";
+import {
+  parseGeoJsonFile,
+  GisParseError,
+} from "src/lib/gis-import/parse-geojson-file";
 import { gisDataAtom } from "src/state/gis-data";
 import { ColorPopover } from "src/components/color-popover";
 import { NumericField } from "src/components/form/numeric-field";
@@ -467,47 +470,61 @@ export function AddLayer() {
   const setGisData = useSetAtom(gisDataAtom);
   const { projections } = useProjections();
   const gisFileInputRef = useRef<HTMLInputElement>(null);
-  const [gisError, setGisError] = useState<string | null>(null);
   const [gisLoading, setGisLoading] = useState(false);
 
   const handleGisButtonClick = () => {
     userTracking.capture({ name: "layerType.choosen", type: "GEOJSON" });
-    setGisError(null);
     gisFileInputRef.current?.click();
   };
 
   const handleGisFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
 
     setGisLoading(true);
-    setGisError(null);
 
     const items = [...layerConfigs.values()];
-    const result = await parseGeoJsonFile(file, projections);
+    const settled = await Promise.allSettled(
+      files.map((file) => parseGeoJsonFile(file, projections)),
+    );
+
     setGisLoading(false);
 
-    // Reset so the same file can be re-selected after an error
+    // Reset so the same file(s) can be re-selected
     e.target.value = "";
 
-    if (!result.ok) {
-      setGisError(result.error);
-      setMode("custom-gis");
-      return;
+    const failures = settled.flatMap((r) =>
+      r.status === "rejected" && r.reason instanceof GisParseError
+        ? [{ fileName: r.reason.fileName, error: r.reason.code }]
+        : [],
+    );
+    if (failures.length) {
+      setDialogState({
+        type: "gisImportErrors",
+        totalCount: settled.length,
+        errors: failures,
+      });
     }
 
-    if (!result.name) {
-      setGisError("invalid-format");
-      setMode("custom-gis");
-      return;
-    }
+    const successes = settled.flatMap((r) =>
+      r.status === "fulfilled" ? [r.value] : [],
+    );
+    if (!successes.length) return;
+
+    const mergedFeatures = successes.flatMap(
+      (r) => r.featureCollection.features,
+    );
+    const name = successes[0].name;
 
     const layerId = newFeatureId();
     setGisData((prev) => {
       const next = new Map(prev);
-      next.set(layerId, result.featureCollection);
+      next.set(layerId, {
+        type: "FeatureCollection",
+        features: mergedFeatures,
+      });
       return next;
     });
 
@@ -517,7 +534,7 @@ export function AddLayer() {
           type: "GEOJSON",
           id: layerId,
           at: getNextAt(items),
-          name: result.name,
+          name,
           opacity: 1,
           visibility: true,
           labelVisibility: true,
@@ -675,11 +692,6 @@ export function AddLayer() {
                   {gisLoading && (
                     <E.TextWell size="xs">{translate("loading")}</E.TextWell>
                   )}
-                  {gisError && (
-                    <E.TextWell variant="destructive" size="xs">
-                      {translate(`customLayers.error.${gisError}`)}
-                    </E.TextWell>
-                  )}
                 </div>
               ))
               .exhaustive()}
@@ -690,6 +702,7 @@ export function AddLayer() {
         ref={gisFileInputRef}
         type="file"
         accept=".geojson,.json"
+        multiple
         className="hidden"
         onChange={(e) => void handleGisFileChange(e)}
       />
