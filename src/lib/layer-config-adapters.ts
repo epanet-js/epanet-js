@@ -19,6 +19,7 @@ export async function addMapboxStyle(
   layer: ILayerConfig,
   translate: (key: string) => string,
 ): Promise<mapboxgl.Style> {
+  if (layer.type !== "MAPBOX") return base;
   const nextToken = layer.token;
   mapboxgl.accessToken = nextToken;
 
@@ -86,6 +87,7 @@ export async function addTileJSONStyle(
   id: number,
   translate: (key: string) => string,
 ) {
+  if (layer.type !== "TILEJSON") return style;
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 
@@ -125,6 +127,7 @@ export function addXYZStyle(
   layer: ILayerConfig,
   id: number,
 ) {
+  if (layer.type !== "XYZ") return style;
   const sourceId = `placemarkInternalSource${id}`;
   const layerId = `placemarkInternalLayer${id}`;
 

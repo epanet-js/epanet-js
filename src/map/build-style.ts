@@ -59,6 +59,11 @@ export async function buildBaseStyle({
         style = await addTileJSONStyle(style, layer, id, translate);
         break;
       }
+      case "GEOJSON": {
+        // GIS data lives outside buildBaseStyle — sources are added after
+        // style.load via addGisLayersToMap in state-updates.ts.
+        break;
+      }
     }
   }
 

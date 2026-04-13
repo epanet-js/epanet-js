@@ -10,7 +10,7 @@ const defaults = {
 } as const;
 
 export type LayerConfigTemplate = Pick<
-  ILayerConfig,
+  Extract<ILayerConfig, { type: "MAPBOX" }>,
   "name" | "url" | "type" | "token" | "opacity" | "sourceMaxZoom" | "isBasemap"
 > & {
   thumbnailClass: string;

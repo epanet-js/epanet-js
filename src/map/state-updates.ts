@@ -35,6 +35,13 @@ import {
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
 import { buildBaseStyle, makeLayers } from "./build-style";
+import { gisDataAtom } from "src/state/gis-data";
+import {
+  gisLayerFill,
+  gisLayerLine,
+  gisLayerCircle,
+  gisLayerLabel,
+} from "./layers/gis-layer";
 import { LayerId } from "./layers";
 import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -164,6 +171,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
   );
   const { units, formatting } = useAtomValue(projectSettingsAtom);
+  const gisData = useAtomValue(gisDataAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
@@ -234,6 +242,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.symbology.node.defaults,
             mapState.symbology.link.defaults,
           );
+          addGisLayersToMap(map, mapState.stylesConfig, gisData);
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
@@ -486,6 +495,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     formatting,
     setMapLoading,
     translate,
+    gisData,
     translateUnit,
     hydraulicModel,
     isGridOn,
@@ -749,6 +759,57 @@ const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
   },
   { name: "MAP_STATE:UPDATE_JUNCTIONS_SELECTION", maxDurationMs: 100 },
 );
+
+function addGisLayersToMap(
+  map: MapEngine,
+  stylesConfig: StylesConfig,
+  gisData: Map<string, import("geojson").FeatureCollection>,
+) {
+  const orderedLayers = [...stylesConfig.layerConfigs.values()].reverse();
+  for (const layerConfig of orderedLayers) {
+    if (layerConfig.type !== "GEOJSON") continue;
+    const layerId = layerConfig.id;
+    const data = gisData.get(layerId);
+    if (!data) continue;
+
+    const sourceId = `gis-${layerId}`;
+    map.map.addSource(sourceId, { type: "geojson", data });
+
+    map.addLayer(
+      gisLayerFill(
+        sourceId,
+        layerConfig.color,
+        layerConfig.opacity,
+        layerConfig.visibility,
+      ),
+    );
+    map.addLayer(
+      gisLayerLine(
+        sourceId,
+        layerConfig.color,
+        layerConfig.lineWidth,
+        layerConfig.opacity,
+        layerConfig.visibility,
+      ),
+    );
+    map.addLayer(
+      gisLayerCircle(
+        sourceId,
+        layerConfig.color,
+        layerConfig.opacity,
+        layerConfig.visibility,
+      ),
+    );
+    map.addLayer(
+      gisLayerLabel(
+        sourceId,
+        layerConfig.color,
+        layerConfig.opacity,
+        layerConfig.labelVisibility,
+      ),
+    );
+  }
+}
 
 const addEditingLayersToMap = withDebugInstrumentation(
   (

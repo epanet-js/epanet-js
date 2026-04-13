@@ -37,7 +37,7 @@ import {
 } from "@dnd-kit/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useQuery } from "@tanstack/react-query";
-import { ReactNode, Suspense, useCallback, useState } from "react";
+import { ReactNode, Suspense, useCallback, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { getTileJSON, get, getMapboxLayerURL } from "src/lib/utils";
 import clamp from "lodash/clamp";
@@ -51,6 +51,13 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjections } from "src/hooks/use-projections";
+import { parseGeoJsonFile } from "src/lib/gis-import/parse-geojson-file";
+import { gisDataAtom } from "src/state/gis-data";
+import { ColorPopover } from "src/components/color-popover";
+import { NumericField } from "src/components/form/numeric-field";
+import { Checkbox } from "src/components/form/Checkbox";
+import { InlineField } from "src/components/form/fields";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -66,7 +73,8 @@ type Mode =
   | "basemap"
   | "custom-xyz"
   | "custom-mapbox"
-  | "custom-tilejson";
+  | "custom-tilejson"
+  | "custom-gis";
 
 const layerModeAtom = atom<Mode>("custom");
 
@@ -289,7 +297,8 @@ function TileJSONLayer({
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
-          if (!shouldSkipValidation) await get(values.url, zTileJSON);
+          if (!shouldSkipValidation && values.type === "TILEJSON")
+            await get(values.url, zTileJSON);
         } catch (e) {
           if (e instanceof ZodError) {
             return {
@@ -451,6 +460,79 @@ export function AddLayer() {
   const { canAddCustomLayers } = usePermissions();
 
   const isCustomLayersPaywallOn = useFeatureFlag("FLAG_CUSTOM_LAYERS_PAYWALL");
+  const isGisLayersOn = useFeatureFlag("FLAG_GIS_LAYERS");
+
+  const { applyChanges } = useLayerConfigState();
+  const layerConfigs = useAtomValue(layerConfigAtom);
+  const setGisData = useSetAtom(gisDataAtom);
+  const { projections } = useProjections();
+  const gisFileInputRef = useRef<HTMLInputElement>(null);
+  const [gisError, setGisError] = useState<string | null>(null);
+  const [gisLoading, setGisLoading] = useState(false);
+
+  const handleGisButtonClick = () => {
+    userTracking.capture({ name: "layerType.choosen", type: "GEOJSON" });
+    setGisError(null);
+    gisFileInputRef.current?.click();
+  };
+
+  const handleGisFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setGisLoading(true);
+    setGisError(null);
+
+    const items = [...layerConfigs.values()];
+    const result = await parseGeoJsonFile(file, projections);
+    setGisLoading(false);
+
+    // Reset so the same file can be re-selected after an error
+    e.target.value = "";
+
+    if (!result.ok) {
+      setGisError(result.error);
+      setMode("custom-gis");
+      return;
+    }
+
+    if (!result.name) {
+      setGisError("invalid-format");
+      setMode("custom-gis");
+      return;
+    }
+
+    const layerId = newFeatureId();
+    setGisData((prev) => {
+      const next = new Map(prev);
+      next.set(layerId, result.featureCollection);
+      return next;
+    });
+
+    applyChanges({
+      putLayerConfigs: [
+        {
+          type: "GEOJSON",
+          id: layerId,
+          at: getNextAt(items),
+          name: result.name,
+          opacity: 1,
+          visibility: true,
+          labelVisibility: true,
+          tms: false,
+          isBasemap: false,
+          sourceMaxZoom: {},
+          color: "#3b82f6",
+          lineWidth: 1.5,
+        },
+      ],
+    });
+
+    setOpen(false);
+    setMode("custom");
+  };
 
   const handleUpgrade = () => {
     setOpen(false);
@@ -548,6 +630,17 @@ export function AddLayer() {
                     >
                       TileJSON
                     </LayerTypeButton>
+                    {isGisLayersOn && (
+                      <LayerTypeButton
+                        type="GEOJSON"
+                        mode="custom-gis"
+                        needsUpgrade={!canAddCustomLayers}
+                        onModeChange={handleGisButtonClick}
+                        onUpgrade={handleUpgrade}
+                      >
+                        GIS
+                      </LayerTypeButton>
+                    )}
                   </div>
                 </div>
               ))
@@ -576,10 +669,30 @@ export function AddLayer() {
                   <TileJSONLayer onDone={() => setOpen(false)} />
                 </div>
               ))
+              .with("custom-gis", () => (
+                <div className="p-3 space-y-3">
+                  <LayerFormHeader>GIS</LayerFormHeader>
+                  {gisLoading && (
+                    <E.TextWell size="xs">{translate("loading")}</E.TextWell>
+                  )}
+                  {gisError && (
+                    <E.TextWell variant="destructive" size="xs">
+                      {translate(`customLayers.error.${gisError}`)}
+                    </E.TextWell>
+                  )}
+                </div>
+              ))
               .exhaustive()}
           </Suspense>
         </E.StyledPopoverContent>
       </P.Portal>
+      <input
+        ref={gisFileInputRef}
+        type="file"
+        accept=".geojson,.json"
+        className="hidden"
+        onChange={(e) => void handleGisFileChange(e)}
+      />
     </P.Root>
   );
 }
@@ -620,7 +733,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
                   labelVisibility: oldMapboxLayer
                     ? oldMapboxLayer.labelVisibility
                     : true,
-                },
+                } as ILayerConfig,
               ],
             });
             onDone && onDone();
@@ -920,8 +1033,9 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
+  const url = layerConfig.type === "TILEJSON" ? layerConfig.url : "";
   const { isError } = useQuery({
-    queryKey: [layerConfig.url],
+    queryKey: [url],
     queryFn: async () =>
       layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
     retry: false,
@@ -977,6 +1091,173 @@ const LayerConfigItem = ({
   );
 };
 
+const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const translate = useTranslate();
+  const { applyChanges } = useLayerConfigState();
+  const setGisData = useSetAtom(gisDataAtom);
+  const [isEditing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(layerConfig.name);
+  const [editColor, setEditColor] = useState(
+    layerConfig.type === "GEOJSON" ? layerConfig.color : "#3b82f6",
+  );
+  const [editLineWidth, setEditLineWidth] = useState(
+    layerConfig.type === "GEOJSON" ? layerConfig.lineWidth : 1.5,
+  );
+  const [editOpacity, setEditOpacity] = useState(
+    Math.round(layerConfig.opacity * 100),
+  );
+  const [editLabelVisibility, setEditLabelVisibility] = useState(
+    layerConfig.labelVisibility,
+  );
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setEditName(layerConfig.name);
+      setEditColor(
+        layerConfig.type === "GEOJSON" ? layerConfig.color : "#3b82f6",
+      );
+      setEditLineWidth(
+        layerConfig.type === "GEOJSON" ? layerConfig.lineWidth : 1.5,
+      );
+      setEditOpacity(Math.round(layerConfig.opacity * 100));
+      setEditLabelVisibility(layerConfig.labelVisibility);
+    }
+    setEditing(open);
+  };
+
+  const handleSave = () => {
+    if (!editName.trim()) return;
+    applyChanges({
+      putLayerConfigs: [
+        {
+          ...layerConfig,
+          name: editName.trim(),
+          opacity: clamp(editOpacity / 100, 0, 1),
+          labelVisibility: editLabelVisibility,
+          ...(layerConfig.type === "GEOJSON" && {
+            color: editColor,
+            lineWidth: editLineWidth,
+          }),
+        } as ILayerConfig,
+      ],
+    });
+    setEditing(false);
+  };
+
+  const handleDelete = () => {
+    setGisData((prev) => {
+      const next = new Map(prev);
+      next.delete(layerConfig.id);
+      return next;
+    });
+    applyChanges({ deleteLayerConfigs: [layerConfig.id] });
+  };
+
+  const settingsPopover = (
+    <P.Root open={isEditing} onOpenChange={handleOpenChange}>
+      <P.Trigger asChild>
+        <Button variant="quiet/mode" className="h-8" aria-label="Edit">
+          <SettingsIcon />
+        </Button>
+      </P.Trigger>
+      <E.StyledPopoverContent>
+        <E.StyledPopoverArrow />
+        <div className="space-y-2 min-w-[200px]">
+          <div className="font-bold text-sm pb-1">GIS</div>
+          <InlineField
+            name={translate("name")}
+            layout="fixed-label"
+            labelSize="md"
+          >
+            <input
+              type="text"
+              className={E.inputClass({ _size: "sm" })}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              autoComplete="off"
+            />
+          </InlineField>
+          <InlineField
+            name={translate("customLayers.color")}
+            layout="fixed-label"
+            labelSize="md"
+          >
+            <div className="h-7 border rounded-sm overflow-hidden">
+              <ColorPopover color={editColor} onChange={setEditColor} />
+            </div>
+          </InlineField>
+          <InlineField
+            name={`${translate("customLayers.lineWidth")} (px)`}
+            layout="fixed-label"
+            labelSize="md"
+          >
+            <NumericField
+              label={translate("customLayers.lineWidth")}
+              displayValue={String(editLineWidth)}
+              positiveOnly={true}
+              isNullable={false}
+              styleOptions={{ padding: "sm" }}
+              onChangeValue={(v) => setEditLineWidth(v)}
+            />
+          </InlineField>
+          <InlineField
+            name={`${translate("customLayers.opacity")} (%)`}
+            layout="fixed-label"
+            labelSize="md"
+          >
+            <NumericField
+              label={translate("customLayers.opacity")}
+              displayValue={String(editOpacity)}
+              positiveOnly={true}
+              isNullable={false}
+              styleOptions={{ padding: "sm" }}
+              onChangeValue={(v) =>
+                setEditOpacity(clamp(Math.round(v), 0, 100))
+              }
+            />
+          </InlineField>
+          <InlineField
+            name={translate("customLayers.labels")}
+            layout="fixed-label"
+            labelSize="md"
+          >
+            <Checkbox
+              checked={editLabelVisibility}
+              onChange={(e) => setEditLabelVisibility(e.target.checked)}
+            />
+          </InlineField>
+          <E.Button
+            size="sm"
+            className="w-full justify-center mt-1"
+            disabled={!editName.trim()}
+            onClick={handleSave}
+          >
+            {translate("customLayers.updateLayer")}
+          </E.Button>
+        </div>
+      </E.StyledPopoverContent>
+    </P.Root>
+  );
+
+  return (
+    <LayerConfigItem typeLabel="GIS">
+      <span className="block select-none truncate flex-auto text-sm">
+        {layerConfig.name}
+      </span>
+      {settingsPopover}
+      <VisibilityToggle layerConfig={layerConfig} />
+      <Button
+        variant="quiet/mode"
+        className="h-8 text-red-500"
+        aria-label={translate("delete")}
+        onClick={handleDelete}
+      >
+        <DeleteIcon />
+      </Button>
+    </LayerConfigItem>
+  );
+};
+
 function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
@@ -1010,6 +1291,7 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       {layerConfig.type === "TILEJSON" && (
         <TileJSONItem layerConfig={layerConfig} />
       )}
+      {layerConfig.type === "GEOJSON" && <GISItem layerConfig={layerConfig} />}
     </div>
   );
 }
@@ -1034,6 +1316,10 @@ export function LayersEditor() {
     if (active.id !== over?.id) {
       const oldIndex = items.findIndex((item) => item.id === active.id);
       const newIndex = items.findIndex((item) => item.id === over?.id);
+
+      const isActiveGIS = items[oldIndex]?.type === "GEOJSON";
+      const isOverGIS = items[newIndex]?.type === "GEOJSON";
+      if (isActiveGIS !== isOverGIS) return;
       const ordered = arrayMove(items, oldIndex, newIndex);
       const idx = ordered.findIndex((item) => item.id === active.id);
       const layerConfig = ordered[idx];

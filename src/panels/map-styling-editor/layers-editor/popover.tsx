@@ -287,6 +287,7 @@ function TileJSONLayer({
       fullWidthSubmit
       onSubmit={async (values) => {
         try {
+          if (values.type !== "TILEJSON") return;
           await get(values.url, zTileJSON);
         } catch (e) {
           if (e instanceof ZodError) {
@@ -611,7 +612,7 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
                   labelVisibility: oldMapboxLayer
                     ? oldMapboxLayer.labelVisibility
                     : true,
-                },
+                } as ILayerConfig,
               ],
             });
             onDone && onDone();
@@ -922,8 +923,9 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
 const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const [isEditing, setEditing] = useState<boolean>(false);
+  const url = layerConfig.type === "TILEJSON" ? layerConfig.url : "";
   const { isError } = useQuery({
-    queryKey: [layerConfig.url],
+    queryKey: [url],
     queryFn: async () =>
       layerConfig.type === "TILEJSON" && getTileJSON(layerConfig.url),
     retry: false,

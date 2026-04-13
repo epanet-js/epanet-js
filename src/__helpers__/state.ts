@@ -111,7 +111,7 @@ export const aLayerConfig = (
     visibility: true,
     labelVisibility: true,
   };
-  return { ...defaults, ...data };
+  return { ...defaults, ...data } as ILayerConfig;
 };
 
 export const aFileInfo = (data: Partial<FileInfo> | null) => {

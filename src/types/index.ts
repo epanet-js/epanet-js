@@ -78,6 +78,11 @@ export const zLayerConfig = z.discriminatedUnion("type", [
     token: z.string(),
     url,
   }),
+  zLayerConfigCommon.extend({
+    type: z.literal("GEOJSON"),
+    color: z.string().default("#3b82f6"),
+    lineWidth: z.number().default(1.5),
+  }),
 ]);
 
 export type ILayerConfig = z.infer<typeof zLayerConfig>;
