@@ -31,9 +31,11 @@ export function ReadOnlyMultiValueRow({
   const translateUnit = useTranslateUnit();
 
   const label =
-    propertyStats.type === "quantity" && propertyStats.unit
-      ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
-      : translate(propertyStats.property);
+    propertyStats.type === "quantity" && propertyStats.labelParams
+      ? translate(propertyStats.property, ...propertyStats.labelParams)
+      : propertyStats.type === "quantity" && propertyStats.unit
+        ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
+        : translate(propertyStats.property);
 
   const hasMultipleValues = propertyStats.values.size > 1;
   const isBooleanField = propertyStats.type === "boolean";

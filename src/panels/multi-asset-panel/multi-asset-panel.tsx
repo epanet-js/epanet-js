@@ -17,9 +17,11 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
+  simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { computeMultiAssetData } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
@@ -68,6 +70,10 @@ export function MultiAssetPanel({
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
@@ -76,7 +82,12 @@ export function MultiAssetPanel({
       formatting,
       hydraulicModel,
       simulationResults,
-      { waterAge: isWaterAgeOn },
+      {
+        waterAge: isWaterAgeOn,
+        waterChemical: isWaterChemicalOn,
+        chemicalName: simulationSettings.qualityChemicalName ?? "",
+        chemicalUnit: simulationSettings.qualityMassUnit ?? "",
+      },
     );
   }, [
     selectedFeatures,
@@ -85,6 +96,9 @@ export function MultiAssetPanel({
     hydraulicModel,
     simulationResults,
     isWaterAgeOn,
+    isWaterChemicalOn,
+    simulationSettings.qualityChemicalName,
+    simulationSettings.qualityMassUnit,
   ]);
 
   const assetIdsByType = useMemo(() => {
@@ -103,16 +117,59 @@ export function MultiAssetPanel({
     return map;
   }, [selectedFeatures]);
 
+  const junctionEditableProperties = useMemo(() => {
+    const {
+      initialChemicalConcentration,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePattern,
+      ...rest
+    } = BATCH_EDITABLE_PROPERTIES.junction!;
+    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.junction! : rest;
+  }, [isWaterChemicalOn]);
+
+  const pipeEditableProperties = useMemo(() => {
+    const { bulkReactionCoeff, wallReactionCoeff, ...rest } =
+      BATCH_EDITABLE_PROPERTIES.pipe!;
+    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.pipe! : rest;
+  }, [isWaterChemicalOn]);
+
+  const reservoirEditableProperties = useMemo(() => {
+    const {
+      initialChemicalConcentration,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePattern,
+      ...rest
+    } = BATCH_EDITABLE_PROPERTIES.reservoir!;
+    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.reservoir! : rest;
+  }, [isWaterChemicalOn]);
+
   const tankEditableProperties = useMemo(() => {
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
       const tank = hydraulicModel.assets.get(id) as Tank;
       return !!tank.volumeCurveId;
     });
-    if (!hasCurveTanks) return BATCH_EDITABLE_PROPERTIES.tank!;
-    const { minLevel, maxLevel, diameter, minVolume, ...rest } =
-      BATCH_EDITABLE_PROPERTIES.tank!;
-    return rest;
-  }, [assetIdsByType.tank, hydraulicModel]);
+    const base = hasCurveTanks
+      ? (() => {
+          const { minLevel, maxLevel, diameter, minVolume, ...rest } =
+            BATCH_EDITABLE_PROPERTIES.tank!;
+          return rest;
+        })()
+      : BATCH_EDITABLE_PROPERTIES.tank!;
+    if (!isWaterChemicalOn) {
+      const {
+        initialChemicalConcentration,
+        bulkReactionCoeff,
+        chemicalSourceType,
+        chemicalSourceStrength,
+        chemicalSourcePattern,
+        ...rest
+      } = base;
+      return rest;
+    }
+    return base;
+  }, [assetIdsByType.tank, hydraulicModel, isWaterChemicalOn]);
 
   const showSelectOnly =
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
@@ -174,7 +231,7 @@ export function MultiAssetPanel({
         });
       } else if (library === "patterns") {
         showPatternsLibrary({
-          source: "pump",
+          source: filterByType === "qualitySourceStrength" ? "quality" : "pump",
           initialSection: filterByType as PatternType | undefined,
         });
       }
@@ -206,7 +263,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.junction!}
+            editableProperties={junctionEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("junction", p, v)
@@ -235,7 +292,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.pipe!}
+            editableProperties={pipeEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}
@@ -322,7 +379,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.reservoir!}
+            editableProperties={reservoirEditableProperties}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("reservoir", p, v)
             }

@@ -48,6 +48,7 @@ export function AssetTypeSections({
     "modelAttributes",
     "energy",
     "demands",
+    "quality",
     "energyResults",
     "simulationResults",
   ];
@@ -76,6 +77,7 @@ export function AssetTypeSections({
               const config =
                 sectionKey === "modelAttributes" ||
                 sectionKey === "activeTopology" ||
+                sectionKey === "quality" ||
                 sectionKey === "energy"
                   ? editableProperties[stat.property]
                   : undefined;

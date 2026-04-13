@@ -3,7 +3,14 @@ import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 import { NodeType } from "./types";
 import { PatternId } from "../patterns";
 
-export type ChemicalSourceType = "CONCEN" | "MASS" | "FLOWPACED" | "SETPOINT";
+export const chemicalSourceTypes = [
+  "CONCEN",
+  "MASS",
+  "FLOWPACED",
+  "SETPOINT",
+] as const;
+
+export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
 
 export type NodeProperties = {
   elevation: number;

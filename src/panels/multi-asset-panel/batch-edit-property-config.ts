@@ -6,6 +6,7 @@ import {
   valveStatuses,
   valveKinds,
 } from "src/hydraulic-model/asset-types/valve";
+import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { CurveType } from "src/hydraulic-model/curves";
 import type { PatternType } from "src/hydraulic-model/patterns";
@@ -62,6 +63,31 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       modelProperty: "initialWaterAge",
       positiveOnly: true,
     },
+    initialChemicalConcentration: {
+      fieldType: "quantity",
+      modelProperty: "initialChemicalConcentration",
+      positiveOnly: true,
+    },
+    chemicalSourceType: {
+      fieldType: "category",
+      modelProperty: "chemicalSourceType",
+      statsPrefix: "source.",
+      values: chemicalSourceTypes,
+    },
+    chemicalSourceStrength: {
+      fieldType: "quantity",
+      modelProperty: "chemicalSourceStrength",
+      positiveOnly: true,
+      isNullable: true,
+    },
+    chemicalSourcePattern: {
+      fieldType: "librarySelect",
+      modelProperty: "chemicalSourcePatternId",
+      library: "patterns",
+      filterByType: "qualitySourceStrength",
+      nullLabelKey: "none",
+      libraryLabelKey: "openPatternsLibrary",
+    },
   },
   pipe: {
     isEnabled: { fieldType: "boolean", modelProperty: "isActive" },
@@ -92,6 +118,16 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       fieldType: "quantity",
       modelProperty: "minorLoss",
       positiveOnly: true,
+    },
+    bulkReactionCoeff: {
+      fieldType: "quantity",
+      modelProperty: "bulkReactionCoeff",
+      isNullable: true,
+    },
+    wallReactionCoeff: {
+      fieldType: "quantity",
+      modelProperty: "wallReactionCoeff",
+      isNullable: true,
     },
   },
   pump: {
@@ -160,6 +196,31 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       modelProperty: "initialWaterAge",
       positiveOnly: true,
     },
+    initialChemicalConcentration: {
+      fieldType: "quantity",
+      modelProperty: "initialChemicalConcentration",
+      positiveOnly: true,
+    },
+    chemicalSourceType: {
+      fieldType: "category",
+      modelProperty: "chemicalSourceType",
+      statsPrefix: "source.",
+      values: chemicalSourceTypes,
+    },
+    chemicalSourceStrength: {
+      fieldType: "quantity",
+      modelProperty: "chemicalSourceStrength",
+      positiveOnly: true,
+      isNullable: true,
+    },
+    chemicalSourcePattern: {
+      fieldType: "librarySelect",
+      modelProperty: "chemicalSourcePatternId",
+      library: "patterns",
+      filterByType: "qualitySourceStrength",
+      nullLabelKey: "none",
+      libraryLabelKey: "openPatternsLibrary",
+    },
   },
   tank: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
@@ -205,6 +266,36 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       fieldType: "quantity",
       modelProperty: "mixingFraction",
       positiveOnly: true,
+    },
+    initialChemicalConcentration: {
+      fieldType: "quantity",
+      modelProperty: "initialChemicalConcentration",
+      positiveOnly: true,
+    },
+    bulkReactionCoeff: {
+      fieldType: "quantity",
+      modelProperty: "bulkReactionCoeff",
+      isNullable: true,
+    },
+    chemicalSourceType: {
+      fieldType: "category",
+      modelProperty: "chemicalSourceType",
+      statsPrefix: "source.",
+      values: chemicalSourceTypes,
+    },
+    chemicalSourceStrength: {
+      fieldType: "quantity",
+      modelProperty: "chemicalSourceStrength",
+      positiveOnly: true,
+      isNullable: true,
+    },
+    chemicalSourcePattern: {
+      fieldType: "librarySelect",
+      modelProperty: "chemicalSourcePatternId",
+      library: "patterns",
+      filterByType: "qualitySourceStrength",
+      nullLabelKey: "none",
+      libraryLabelKey: "openPatternsLibrary",
     },
   },
 };

@@ -18,7 +18,10 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
-import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
+import {
+  chemicalSourceTypes,
+  type ChemicalSourceType,
+} from "src/hydraulic-model/asset-types/node";
 import {
   tankDiameterFor,
   tankDiameterFromArea,
@@ -2724,13 +2727,6 @@ const PumpEfficiencyCurveField = ({
     </BlockComparisonField>
   );
 };
-
-const chemicalSourceTypes = [
-  "CONCEN",
-  "MASS",
-  "FLOWPACED",
-  "SETPOINT",
-] as const;
 
 const ChemicalSourceEditor = ({
   node,

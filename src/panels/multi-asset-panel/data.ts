@@ -35,6 +35,7 @@ import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
 export type QuantityStats = {
   type: "quantity";
   property: string;
+  labelParams?: string[];
   sum: number;
   max: number;
   min: number;
@@ -66,6 +67,7 @@ export type BooleanStats = {
 type Section =
   | "activeTopology"
   | "modelAttributes"
+  | "quality"
   | "energy"
   | "simulationResults"
   | "demands"
@@ -100,7 +102,12 @@ export const computeMultiAssetData = (
   formatting: FormattingSpec,
   hydraulicModel: HydraulicModel,
   simulationResults?: ResultsReader | null,
-  options?: { waterAge?: boolean },
+  options?: {
+    waterAge?: boolean;
+    waterChemical?: boolean;
+    chemicalName?: string;
+    chemicalUnit?: string;
+  },
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -134,6 +141,8 @@ export const computeMultiAssetData = (
           hydraulicModel.demands,
           hydraulicModel.patterns,
           simulationResults,
+          options?.chemicalName,
+          options?.chemicalUnit,
         );
         break;
       case "pipe":
@@ -180,6 +189,8 @@ export const computeMultiAssetData = (
           formatting,
           hydraulicModel.patterns,
           simulationResults,
+          options?.chemicalName,
+          options?.chemicalUnit,
         );
         break;
       case "tank":
@@ -190,7 +201,10 @@ export const computeMultiAssetData = (
           units,
           formatting,
           hydraulicModel.curves,
+          hydraulicModel.patterns,
           simulationResults,
+          options?.chemicalName,
+          options?.chemicalUnit,
         );
         break;
     }
@@ -199,7 +213,7 @@ export const computeMultiAssetData = (
   return {
     data: {
       junction: buildJunctionSections(statsMaps.junction, options),
-      pipe: buildPipeSections(statsMaps.pipe),
+      pipe: buildPipeSections(statsMaps.pipe, options),
       pump: buildPumpSections(statsMaps.pump),
       valve: buildValveSections(statsMaps.valve),
       reservoir: buildReservoirSections(statsMaps.reservoir, options),
@@ -219,6 +233,8 @@ const appendJunctionStats = (
   demands: Demands,
   patterns: Patterns,
   simulationResults?: ResultsReader | null,
+  chemicalName?: string,
+  chemicalUnit?: string,
 ) => {
   const id = junction.id;
   updateBooleanStats(statsMap, "isEnabled", junction.isActive, id);
@@ -246,6 +262,44 @@ const appendJunctionStats = (
     formatting,
     id,
   );
+  updateQuantityStats(
+    statsMap,
+    "initialChemicalConcentration",
+    junction.initialChemicalConcentration,
+    units,
+    formatting,
+    id,
+    { labelParams: [chemicalName ?? "", chemicalUnit ?? ""] },
+  );
+  if (junction.chemicalSourceType) {
+    updateCategoryStats(
+      statsMap,
+      "chemicalSourceType",
+      "source." + junction.chemicalSourceType,
+      id,
+    );
+  }
+  if (junction.chemicalSourceStrength !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalSourceStrength",
+      junction.chemicalSourceStrength,
+      units,
+      formatting,
+      id,
+    );
+  }
+  if (junction.chemicalSourcePatternId !== undefined) {
+    const pattern = patterns.get(junction.chemicalSourcePatternId);
+    updateLinkStats(
+      statsMap,
+      "chemicalSourcePattern",
+      pattern?.label ?? "",
+      id,
+    );
+  } else {
+    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
+  }
 
   const averageDemand = calculateAverageDemand(
     getJunctionDemands(demands, junction.id),
@@ -327,6 +381,17 @@ const appendJunctionStats = (
       id,
     );
   }
+  const chemicalConcentration = junctionSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const calculateCustomerPointsDemand = (
@@ -344,14 +409,40 @@ const calculateCustomerPointsDemand = (
 
 const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean },
+  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
+  if (!options?.waterAge) statsMap.delete("initialWaterAge");
+  if (!options?.waterChemical) {
+    statsMap.delete("initialChemicalConcentration");
+    statsMap.delete("chemicalSourceType");
+    statsMap.delete("chemicalSourceStrength");
+    statsMap.delete("chemicalSourcePattern");
+  } else {
+    const patternStats = statsMap.get("chemicalSourcePattern") as
+      | LiteralCategoryStats
+      | undefined;
+    if (
+      patternStats &&
+      patternStats.values.size === 1 &&
+      patternStats.values.has("")
+    ) {
+      statsMap.delete("chemicalSourcePattern");
+    }
+  }
+
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "emitterCoefficient",
-      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
+      ...(!options?.waterChemical ? (["initialWaterAge"] as const) : []),
+    ]),
+    quality: getStatsForProperties(statsMap, [
+      "initialWaterAge",
+      "initialChemicalConcentration",
+      "chemicalSourceType",
+      "chemicalSourceStrength",
+      "chemicalSourcePattern",
     ]),
     energy: [],
     demands: getStatsForProperties(statsMap, [
@@ -366,6 +457,7 @@ const buildJunctionSections = (
       "actualDemand",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -413,6 +505,26 @@ const appendPipeStats = (
     formatting,
     id,
   );
+  if (pipe.bulkReactionCoeff !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "bulkReactionCoeff",
+      pipe.bulkReactionCoeff,
+      units,
+      formatting,
+      id,
+    );
+  }
+  if (pipe.wallReactionCoeff !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "wallReactionCoeff",
+      pipe.wallReactionCoeff,
+      units,
+      formatting,
+      id,
+    );
+  }
 
   const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
   if (customerPoints.size > 0) {
@@ -485,11 +597,28 @@ const appendPipeStats = (
       id,
     );
   }
+  const chemicalConcentration = pipeSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildPipeSections = (
   statsMap: Map<string, AssetPropertyStats>,
+  options?: { waterChemical?: boolean },
 ): AssetPropertySections => {
+  if (!options?.waterChemical) {
+    statsMap.delete("bulkReactionCoeff");
+    statsMap.delete("wallReactionCoeff");
+  }
+
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
@@ -498,6 +627,10 @@ const buildPipeSections = (
       "length",
       "roughness",
       "minorLoss",
+    ]),
+    quality: getStatsForProperties(statsMap, [
+      "bulkReactionCoeff",
+      "wallReactionCoeff",
     ]),
     energy: [],
     demands: getStatsForProperties(statsMap, [
@@ -513,6 +646,7 @@ const buildPipeSections = (
       "pipeStatus",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -608,6 +742,17 @@ const appendPumpStats = (
       statsMap,
       "waterTrace",
       waterTrace,
+      units,
+      formatting,
+      id,
+    );
+  }
+  const chemicalConcentration = pumpSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
       units,
       formatting,
       id,
@@ -719,6 +864,7 @@ const buildPumpSections = (
       "pumpName",
       "initialStatus",
     ]),
+    quality: [],
     energy: getStatsForProperties(statsMap, [
       "efficiencyCurve",
       "energyPrice",
@@ -739,6 +885,7 @@ const buildPumpSections = (
       "pumpStatus",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -819,6 +966,17 @@ const appendValveStats = (
       id,
     );
   }
+  const chemicalConcentration = valveSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildValveSections = (
@@ -833,6 +991,7 @@ const buildValveSections = (
       "diameter",
       "minorLoss",
     ]),
+    quality: [],
     energy: [],
     demands: [],
     energyResults: [],
@@ -843,6 +1002,7 @@ const buildValveSections = (
       "valveStatus",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -854,6 +1014,8 @@ const appendReservoirStats = (
   formatting: FormattingSpec,
   patterns: Patterns,
   simulationResults?: ResultsReader | null,
+  chemicalName?: string,
+  chemicalUnit?: string,
 ) => {
   const id = reservoir.id;
   updateBooleanStats(statsMap, "isEnabled", reservoir.isActive, id);
@@ -874,6 +1036,44 @@ const appendReservoirStats = (
     formatting,
     id,
   );
+  updateQuantityStats(
+    statsMap,
+    "initialChemicalConcentration",
+    reservoir.initialChemicalConcentration,
+    units,
+    formatting,
+    id,
+    { labelParams: [chemicalName ?? "", chemicalUnit ?? ""] },
+  );
+  if (reservoir.chemicalSourceType) {
+    updateCategoryStats(
+      statsMap,
+      "chemicalSourceType",
+      "source." + reservoir.chemicalSourceType,
+      id,
+    );
+  }
+  if (reservoir.chemicalSourceStrength !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalSourceStrength",
+      reservoir.chemicalSourceStrength,
+      units,
+      formatting,
+      id,
+    );
+  }
+  if (reservoir.chemicalSourcePatternId !== undefined) {
+    const pattern = patterns.get(reservoir.chemicalSourcePatternId);
+    updateLinkStats(
+      statsMap,
+      "chemicalSourcePattern",
+      pattern?.label ?? "",
+      id,
+    );
+  } else {
+    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
+  }
 
   const averageHead = calculateAverageHead(reservoir, patterns);
   updateQuantityStats(statsMap, "head", averageHead, units, formatting, id);
@@ -906,18 +1106,55 @@ const appendReservoirStats = (
       id,
     );
   }
+  const chemicalConcentration = reservoirSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean },
+  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
+  if (!options?.waterAge) statsMap.delete("initialWaterAge");
+  if (!options?.waterChemical) {
+    statsMap.delete("initialChemicalConcentration");
+    statsMap.delete("chemicalSourceType");
+    statsMap.delete("chemicalSourceStrength");
+    statsMap.delete("chemicalSourcePattern");
+  } else {
+    const patternStats = statsMap.get("chemicalSourcePattern") as
+      | LiteralCategoryStats
+      | undefined;
+    if (
+      patternStats &&
+      patternStats.values.size === 1 &&
+      patternStats.values.has("")
+    ) {
+      statsMap.delete("chemicalSourcePattern");
+    }
+  }
+
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "head",
-      ...(options?.waterAge ? (["initialWaterAge"] as const) : []),
+      ...(!options?.waterChemical ? (["initialWaterAge"] as const) : []),
+    ]),
+    quality: getStatsForProperties(statsMap, [
+      "initialWaterAge",
+      "initialChemicalConcentration",
+      "chemicalSourceType",
+      "chemicalSourceStrength",
+      "chemicalSourcePattern",
     ]),
     energy: [],
     demands: [],
@@ -928,6 +1165,7 @@ const buildReservoirSections = (
       "netFlow",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -938,7 +1176,10 @@ const appendTankStats = (
   units: UnitsSpec,
   formatting: FormattingSpec,
   curves: Curves,
+  patterns: Patterns,
   simulationResults?: ResultsReader | null,
+  chemicalName?: string,
+  chemicalUnit?: string,
 ) => {
   const id = tank.id;
   updateBooleanStats(statsMap, "isEnabled", tank.isActive, id);
@@ -1052,6 +1293,54 @@ const appendTankStats = (
     formatting,
     id,
   );
+  updateQuantityStats(
+    statsMap,
+    "initialChemicalConcentration",
+    tank.initialChemicalConcentration,
+    units,
+    formatting,
+    id,
+    { labelParams: [chemicalName ?? "", chemicalUnit ?? ""] },
+  );
+  if (tank.bulkReactionCoeff !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "bulkReactionCoeff",
+      tank.bulkReactionCoeff,
+      units,
+      formatting,
+      id,
+    );
+  }
+  if (tank.chemicalSourceType) {
+    updateCategoryStats(
+      statsMap,
+      "chemicalSourceType",
+      "source." + tank.chemicalSourceType,
+      id,
+    );
+  }
+  if (tank.chemicalSourceStrength !== undefined) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalSourceStrength",
+      tank.chemicalSourceStrength,
+      units,
+      formatting,
+      id,
+    );
+  }
+  if (tank.chemicalSourcePatternId !== undefined) {
+    const pattern = patterns.get(tank.chemicalSourcePatternId);
+    updateLinkStats(
+      statsMap,
+      "chemicalSourcePattern",
+      pattern?.label ?? "",
+      id,
+    );
+  } else {
+    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
+  }
 
   const mixingLabel = "tank." + tank.mixingModel;
   updateCategoryStats(statsMap, "mixingModel", mixingLabel, id);
@@ -1102,12 +1391,47 @@ const appendTankStats = (
       id,
     );
   }
+  const chemicalConcentration = tankSim?.chemicalConcentration ?? null;
+  if (chemicalConcentration !== null) {
+    updateQuantityStats(
+      statsMap,
+      "chemicalConcentration",
+      chemicalConcentration,
+      units,
+      formatting,
+      id,
+    );
+  }
 };
 
 const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean },
+  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
+  if (!options?.waterAge) {
+    statsMap.delete("initialWaterAge");
+    statsMap.delete("mixingModel");
+    statsMap.delete("mixingFraction");
+  }
+  if (!options?.waterChemical) {
+    statsMap.delete("initialChemicalConcentration");
+    statsMap.delete("bulkReactionCoeff");
+    statsMap.delete("chemicalSourceType");
+    statsMap.delete("chemicalSourceStrength");
+    statsMap.delete("chemicalSourcePattern");
+  } else {
+    const patternStats = statsMap.get("chemicalSourcePattern") as
+      | LiteralCategoryStats
+      | undefined;
+    if (
+      patternStats &&
+      patternStats.values.size === 1 &&
+      patternStats.values.has("")
+    ) {
+      statsMap.delete("chemicalSourcePattern");
+    }
+  }
+
   // Remove volumeCurve row if no tanks actually have curves
   const curveStats = statsMap.get("volumeCurve") as
     | LiteralCategoryStats
@@ -1128,9 +1452,19 @@ const buildTankSections = (
       "diameter",
       "minVolume",
       "canOverflow",
-      ...(options?.waterAge
+      ...(!options?.waterChemical
         ? (["initialWaterAge", "mixingModel", "mixingFraction"] as const)
         : []),
+    ]),
+    quality: getStatsForProperties(statsMap, [
+      "initialWaterAge",
+      "mixingModel",
+      "mixingFraction",
+      "initialChemicalConcentration",
+      "bulkReactionCoeff",
+      "chemicalSourceType",
+      "chemicalSourceStrength",
+      "chemicalSourcePattern",
     ]),
     energy: [],
     demands: [],
@@ -1143,6 +1477,7 @@ const buildTankSections = (
       "volume",
       "waterAge",
       "waterTrace",
+      "chemicalConcentration",
     ]),
   };
 };
@@ -1154,7 +1489,7 @@ const updateQuantityStats = (
   units: UnitsSpec,
   formatting: FormattingSpec,
   assetId: AssetId,
-  overrides?: { unit?: Unit; decimals?: number },
+  overrides?: { unit?: Unit; decimals?: number; labelParams?: string[] },
 ) => {
   if (value === null) return;
 
@@ -1171,6 +1506,7 @@ const updateQuantityStats = (
     statsMap.set(property, {
       type: "quantity",
       property,
+      labelParams: overrides?.labelParams,
       sum: 0,
       min: Infinity,
       max: -Infinity,
