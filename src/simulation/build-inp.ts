@@ -773,7 +773,7 @@ const appendSource = (
   const strength = typedNode.chemicalSourceStrength ?? 0;
   const patternId = typedNode.chemicalSourcePatternId;
   const row = patternId
-    ? `${idMap.nodeId(node)}\t${sourceType}\t${strength}\t${patternId}`
+    ? `${idMap.nodeId(node)}\t${sourceType}\t${strength}\t${idMap.patternId(patternId)}`
     : `${idMap.nodeId(node)}\t${sourceType}\t${strength}`;
   sections.sources.push(row);
 };

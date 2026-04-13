@@ -17,7 +17,7 @@ export type JunctionBuildData = {
   initialChemicalConcentration?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
-  chemicalSourcePatternId?: string;
+  chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
 };
 
@@ -80,7 +80,7 @@ export type ReservoirBuildData = {
   initialChemicalConcentration?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
-  chemicalSourcePatternId?: string;
+  chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
 };
 
@@ -102,7 +102,7 @@ export type TankBuildData = {
   bulkReactionCoeff?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
-  chemicalSourcePatternId?: string;
+  chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
   volumeCurveId?: CurveId;
 };

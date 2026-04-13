@@ -174,6 +174,7 @@ export const buildModel = (
       inpData,
       issues,
       nodeIds,
+      patternContext,
       skipWgs84Validation,
       populateAssetIndex,
       options,
@@ -471,6 +472,21 @@ const addJunction = (
     ? inpData.sources.get(junctionData.id)
     : undefined;
 
+  let chemicalSourcePatternId: PatternId | undefined;
+  if (sourceData?.patternId) {
+    const patternId = patternContext.labelManager.getIdByLabel(
+      sourceData.patternId,
+      "pattern",
+    );
+    if (patternId !== undefined) {
+      chemicalSourcePatternId = markPatternUsed(
+        patternContext,
+        patternId,
+        "qualitySourceStrength",
+      );
+    }
+  }
+
   const junction = assetFactory.createJunction({
     label: junctionData.id,
     coordinates,
@@ -480,7 +496,7 @@ const addJunction = (
     initialChemicalConcentration,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,
-    chemicalSourcePatternId: sourceData?.patternId,
+    chemicalSourcePatternId,
     isActive: junctionData.isActive,
   });
   hydraulicModel.assets.set(junction.id, junction);
@@ -549,6 +565,21 @@ const addReservoir = (
     ? inpData.sources.get(reservoirData.id)
     : undefined;
 
+  let chemicalSourcePatternId: PatternId | undefined;
+  if (sourceData?.patternId) {
+    const patternId = patternContext.labelManager.getIdByLabel(
+      sourceData.patternId,
+      "pattern",
+    );
+    if (patternId !== undefined) {
+      chemicalSourcePatternId = markPatternUsed(
+        patternContext,
+        patternId,
+        "qualitySourceStrength",
+      );
+    }
+  }
+
   const reservoir = assetFactory.createReservoir({
     label: reservoirData.id,
     coordinates,
@@ -559,7 +590,7 @@ const addReservoir = (
     initialChemicalConcentration,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,
-    chemicalSourcePatternId: sourceData?.patternId,
+    chemicalSourcePatternId,
     isActive: reservoirData.isActive,
   });
   hydraulicModel.assets.set(reservoir.id, reservoir);
@@ -576,6 +607,7 @@ const addTank = (
     inpData,
     issues,
     nodeIds,
+    patternContext,
     skipWgs84Validation,
     populateAssetIndex,
     options,
@@ -583,6 +615,7 @@ const addTank = (
     inpData: InpData;
     issues: IssuesAccumulator;
     nodeIds: ItemData<AssetId>;
+    patternContext: PatternsContext;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
     options?: ParseInpOptions;
@@ -623,6 +656,21 @@ const addTank = (
     ? inpData.sources.get(tankData.id)
     : undefined;
 
+  let chemicalSourcePatternId: PatternId | undefined;
+  if (sourceData?.patternId) {
+    const patternId = patternContext.labelManager.getIdByLabel(
+      sourceData.patternId,
+      "pattern",
+    );
+    if (patternId !== undefined) {
+      chemicalSourcePatternId = markPatternUsed(
+        patternContext,
+        patternId,
+        "qualitySourceStrength",
+      );
+    }
+  }
+
   const bulkReactionCoeff = options?.waterChemical
     ? inpData.reactions.tankBulk.get(tankData.id)
     : undefined;
@@ -648,7 +696,7 @@ const addTank = (
     bulkReactionCoeff,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,
-    chemicalSourcePatternId: sourceData?.patternId,
+    chemicalSourcePatternId,
     isActive: tankData.isActive,
   });
   hydraulicModel.assets.set(tank.id, tank);

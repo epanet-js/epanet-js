@@ -1,6 +1,7 @@
 import { Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties } from "./base-asset";
 import { NodeType } from "./types";
+import { PatternId } from "../patterns";
 
 export type ChemicalSourceType = "CONCEN" | "MASS" | "FLOWPACED" | "SETPOINT";
 
@@ -11,7 +12,7 @@ export type NodeProperties = {
   initialChemicalConcentration: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
-  chemicalSourcePatternId?: string;
+  chemicalSourcePatternId?: PatternId;
 } & AssetProperties;
 
 export class Node<T> extends BaseAsset<T & NodeProperties> {

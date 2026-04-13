@@ -22,6 +22,7 @@ import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import type { PumpDefinitionMode } from "./pump-definition-details";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
+import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
 import { PanelActions } from "./actions";
 import {
   InlineField,
@@ -204,6 +205,7 @@ export const QuantityRow = <P extends string>({
   placeholder = "",
   comparison,
   onChange,
+  displayName,
 }: {
   name: P;
   value: number | null;
@@ -214,6 +216,7 @@ export const QuantityRow = <P extends string>({
   placeholder?: string;
   comparison?: PropertyComparison;
   onChange?: (name: P, newValue: number, oldValue: number | null) => void;
+  displayName?: string;
 }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -227,9 +230,10 @@ export const QuantityRow = <P extends string>({
         : translate("notAvailable")
       : formatValue(value, name as QuantityProperty);
 
+  const translatedName = displayName ?? translate(name);
   const label = unit
-    ? `${translate(name)} (${translateUnit(unit)})`
-    : `${translate(name)}`;
+    ? `${translatedName} (${translateUnit(unit)})`
+    : `${translatedName}`;
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
@@ -285,6 +289,8 @@ type SelectRowValue =
   | PumpStatus
   | TankDefinitionMode
   | TankMixingModel
+  | ChemicalSourceType
+  | "none"
   | number;
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {

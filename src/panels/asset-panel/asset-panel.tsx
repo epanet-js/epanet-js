@@ -18,6 +18,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
+import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
 import {
   tankDiameterFor,
   tankDiameterFromArea,
@@ -282,6 +283,7 @@ export function AssetPanel({
           junction={asset as Junction}
           units={units}
           onPropertyChange={handlePropertyChange}
+          onBatchPropertyChange={handleBatchPropertyChange}
           onDemandsChange={handleDemandsChange}
           onLabelChange={handleLabelChange}
           hydraulicModel={hydraulicModel}
@@ -346,6 +348,7 @@ export function AssetPanel({
           reservoir={asset as Reservoir}
           units={units}
           onPropertyChange={handlePropertyChange}
+          onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
           readonly={readonly}
         />
@@ -369,6 +372,7 @@ const JunctionEditor = ({
   junction,
   units,
   onPropertyChange,
+  onBatchPropertyChange,
   onDemandsChange,
   onLabelChange,
   hydraulicModel,
@@ -377,6 +381,7 @@ const JunctionEditor = ({
   junction: Junction;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
+  onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onDemandsChange: (newDemands: Demand[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   hydraulicModel: HydraulicModel;
@@ -384,6 +389,14 @@ const JunctionEditor = ({
 }) => {
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
     getComparison,
@@ -493,11 +506,15 @@ const JunctionEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-        {isWaterAgeOn && (
+        {isWaterAgeOn && !isWaterChemicalOn && (
           <QuantityRow
             name="initialWaterAge"
             value={junction.initialWaterAge}
             unit={units.initialWaterAge}
+            comparison={getComparison(
+              "initialWaterAge",
+              junction.initialWaterAge,
+            )}
             onChange={onPropertyChange}
             positiveOnly={true}
             readOnly={readonly}
@@ -548,6 +565,49 @@ const JunctionEditor = ({
           </>
         )}
       </SectionWrapper>
+      {isWaterChemicalOn && (
+        <SectionWrapper title={translate("quality")} section="quality">
+          {isWaterAgeOn && (
+            <QuantityRow
+              name="initialWaterAge"
+              value={junction.initialWaterAge}
+              unit={units.initialWaterAge}
+              comparison={getComparison(
+                "initialWaterAge",
+                junction.initialWaterAge,
+              )}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+          )}
+          <QuantityRow
+            name="initialChemicalConcentration"
+            displayName={translate(
+              "initialChemicalConcentration",
+              chemicalName,
+              chemicalUnit,
+            )}
+            value={junction.initialChemicalConcentration}
+            unit={null}
+            comparison={getComparison(
+              "initialChemicalConcentration",
+              junction.initialChemicalConcentration,
+            )}
+            onChange={onPropertyChange}
+            positiveOnly={true}
+            readOnly={readonly}
+          />
+          <ChemicalSourceEditor
+            node={junction}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            onBatchPropertyChange={onBatchPropertyChange}
+            chemicalUnit={chemicalUnit}
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -586,6 +646,15 @@ const JunctionEditor = ({
             readOnly={true}
           />
         )}
+        {junctionSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={junctionSimulation.chemicalConcentration}
+            unit={null}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -621,6 +690,14 @@ const PipeEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
     getComparison,
@@ -808,6 +885,34 @@ const PipeEditor = ({
           />
         </SectionWrapper>
       )}
+      {isWaterChemicalOn && (
+        <SectionWrapper title={translate("quality")} section="quality">
+          <QuantityRow
+            name="bulkReactionCoeff"
+            value={pipe.bulkReactionCoeff ?? null}
+            unit={null}
+            placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
+            comparison={getComparison(
+              "bulkReactionCoeff",
+              pipe.bulkReactionCoeff,
+            )}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+          <QuantityRow
+            name="wallReactionCoeff"
+            value={pipe.wallReactionCoeff ?? null}
+            unit={null}
+            placeholder={localizeDecimal(simulationSettings.reactionGlobalWall)}
+            comparison={getComparison(
+              "wallReactionCoeff",
+              pipe.wallReactionCoeff,
+            )}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -853,6 +958,15 @@ const PipeEditor = ({
             readOnly={true}
           />
         )}
+        {pipeSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={pipeSimulation.chemicalConcentration}
+            unit={null}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -863,6 +977,7 @@ const ReservoirEditor = ({
   reservoir,
   units,
   onPropertyChange,
+  onBatchPropertyChange,
   onLabelChange,
   readonly = false,
 }: {
@@ -870,11 +985,20 @@ const ReservoirEditor = ({
   reservoir: Reservoir;
   units: UnitsSpec;
   onPropertyChange: OnPropertyChange;
+  onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
     useAssetComparison(reservoir);
@@ -941,17 +1065,64 @@ const ReservoirEditor = ({
           units={units}
           readOnly={readonly}
         />
-        {isWaterAgeOn && (
+        {isWaterAgeOn && !isWaterChemicalOn && (
           <QuantityRow
             name="initialWaterAge"
             value={reservoir.initialWaterAge}
             unit={units.initialWaterAge}
+            comparison={getComparison(
+              "initialWaterAge",
+              reservoir.initialWaterAge,
+            )}
             onChange={onPropertyChange}
             positiveOnly={true}
             readOnly={readonly}
           />
         )}
       </SectionWrapper>
+      {isWaterChemicalOn && (
+        <SectionWrapper title={translate("quality")} section="quality">
+          {isWaterAgeOn && (
+            <QuantityRow
+              name="initialWaterAge"
+              value={reservoir.initialWaterAge}
+              unit={units.initialWaterAge}
+              comparison={getComparison(
+                "initialWaterAge",
+                reservoir.initialWaterAge,
+              )}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+          )}
+          <QuantityRow
+            name="initialChemicalConcentration"
+            displayName={translate(
+              "initialChemicalConcentration",
+              chemicalName,
+              chemicalUnit,
+            )}
+            value={reservoir.initialChemicalConcentration}
+            unit={null}
+            comparison={getComparison(
+              "initialChemicalConcentration",
+              reservoir.initialChemicalConcentration,
+            )}
+            onChange={onPropertyChange}
+            positiveOnly={true}
+            readOnly={readonly}
+          />
+          <ChemicalSourceEditor
+            node={reservoir}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            onBatchPropertyChange={onBatchPropertyChange}
+            chemicalUnit={chemicalUnit}
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -990,6 +1161,15 @@ const ReservoirEditor = ({
             readOnly={true}
           />
         )}
+        {reservoirSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={reservoirSimulation.chemicalConcentration}
+            unit={null}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -1014,6 +1194,14 @@ const TankEditor = ({
 }) => {
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
   const simulation = useSimulation();
@@ -1112,12 +1300,16 @@ const TankEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-        {isWaterAgeOn && (
+        {isWaterAgeOn && !isWaterChemicalOn && (
           <>
             <QuantityRow
               name="initialWaterAge"
               value={tank.initialWaterAge}
               unit={units.initialWaterAge}
+              comparison={getComparison(
+                "initialWaterAge",
+                tank.initialWaterAge,
+              )}
               onChange={onPropertyChange}
               positiveOnly={true}
               readOnly={readonly}
@@ -1144,6 +1336,80 @@ const TankEditor = ({
           </>
         )}
       </SectionWrapper>
+      {isWaterChemicalOn && (
+        <SectionWrapper title={translate("quality")} section="quality">
+          {isWaterAgeOn && (
+            <QuantityRow
+              name="initialWaterAge"
+              value={tank.initialWaterAge}
+              unit={units.initialWaterAge}
+              comparison={getComparison(
+                "initialWaterAge",
+                tank.initialWaterAge,
+              )}
+              onChange={onPropertyChange}
+              positiveOnly={true}
+              readOnly={readonly}
+            />
+          )}
+          <QuantityRow
+            name="initialChemicalConcentration"
+            displayName={translate(
+              "initialChemicalConcentration",
+              chemicalName,
+              chemicalUnit,
+            )}
+            value={tank.initialChemicalConcentration}
+            unit={null}
+            comparison={getComparison(
+              "initialChemicalConcentration",
+              tank.initialChemicalConcentration,
+            )}
+            onChange={onPropertyChange}
+            positiveOnly={true}
+            readOnly={readonly}
+          />
+          <QuantityRow
+            name="bulkReactionCoeff"
+            value={tank.bulkReactionCoeff ?? null}
+            unit={null}
+            placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
+            comparison={getComparison(
+              "bulkReactionCoeff",
+              tank.bulkReactionCoeff,
+            )}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+          <ChemicalSourceEditor
+            node={tank}
+            patterns={hydraulicModel.patterns}
+            onPropertyChange={onPropertyChange}
+            onBatchPropertyChange={onBatchPropertyChange}
+            chemicalUnit={chemicalUnit}
+            readOnly={readonly}
+          />
+          <SelectRow
+            name="mixingModel"
+            selected={tank.mixingModel}
+            options={mixingModelOptions}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+          {tank.mixingModel === "2comp" && (
+            <NestedSection>
+              <QuantityRow
+                name="mixingFraction"
+                value={tank.mixingFraction}
+                unit={null}
+                onChange={onPropertyChange}
+                positiveOnly={true}
+                readOnly={readonly}
+              />
+            </NestedSection>
+          )}
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -1191,6 +1457,15 @@ const TankEditor = ({
             name="waterTrace"
             value={tankSimulation.waterTrace}
             unit={units.waterTrace}
+            readOnly={true}
+          />
+        )}
+        {tankSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={tankSimulation.chemicalConcentration}
+            unit={null}
             readOnly={true}
           />
         )}
@@ -1685,6 +1960,13 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -1893,6 +2175,15 @@ const ValveEditor = ({
             readOnly={true}
           />
         )}
+        {valveSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={valveSimulation.chemicalConcentration}
+            unit={null}
+            readOnly={true}
+          />
+        )}
       </SectionWrapper>
     </AssetEditorContent>
   );
@@ -1932,6 +2223,9 @@ const PumpEditor = ({
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
   const translate = useTranslate();
+  const chemicalName =
+    simulationSettings.qualityChemicalName || translate("chemical");
+  const chemicalUnit = simulationSettings.qualityMassUnit || "";
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
     getComparison,
@@ -2122,6 +2416,15 @@ const PumpEditor = ({
             name="waterTrace"
             value={pumpSimulation.waterTrace}
             unit={units.waterTrace}
+            readOnly={true}
+          />
+        )}
+        {pumpSimulation?.chemicalConcentration != null && (
+          <QuantityRow
+            name="chemicalConcentration"
+            displayName={`${chemicalName} (${chemicalUnit})`}
+            value={pumpSimulation.chemicalConcentration}
+            unit={null}
             readOnly={true}
           />
         )}
@@ -2418,6 +2721,185 @@ const PumpEfficiencyCurveField = ({
         onChange={handleOnChange}
         readOnly={readOnly}
       />
+    </BlockComparisonField>
+  );
+};
+
+const chemicalSourceTypes = [
+  "CONCEN",
+  "MASS",
+  "FLOWPACED",
+  "SETPOINT",
+] as const;
+
+const ChemicalSourceEditor = ({
+  node,
+  patterns,
+  onPropertyChange,
+  onBatchPropertyChange,
+  chemicalUnit,
+  readOnly = false,
+}: {
+  node: NodeAsset;
+  patterns: Patterns;
+  onPropertyChange: OnPropertyChange;
+  onBatchPropertyChange: (changes: PropertyChange[]) => void;
+  chemicalUnit: string;
+  readOnly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const showPatternsLibrary = useShowPatternsLibrary();
+  const { getComparison, getPatternComparison } = useAssetComparison(node);
+  const typedNode = node as Junction | Tank | Reservoir;
+
+  const strengthUnit =
+    typedNode.chemicalSourceType === "MASS"
+      ? `${chemicalUnit}/min`
+      : chemicalUnit;
+
+  const translatedSourceTypeOptions = useMemo(
+    () => [
+      { label: translate("none"), value: "none" as const },
+      ...chemicalSourceTypes.map((t) => ({
+        label: translate(`source.${t}`),
+        value: t,
+      })),
+    ],
+    [translate],
+  );
+
+  const typeComparison = getComparison(
+    "chemicalSourceType",
+    node.chemicalSourceType,
+  );
+  const strengthComparison = getComparison(
+    "chemicalSourceStrength",
+    node.chemicalSourceStrength,
+  );
+  const patternComparison = getPatternComparison(
+    "chemicalSourcePatternId",
+    node.chemicalSourcePatternId,
+    patterns,
+  );
+
+  const hasChanged =
+    typeComparison.hasChanged ||
+    strengthComparison.hasChanged ||
+    patternComparison.hasChanged;
+
+  const baseDisplayValue = useMemo(() => {
+    if (!hasChanged) return [] as string[];
+    const lines: string[] = [];
+
+    if (typeComparison.hasChanged) {
+      const baseType = typeComparison.baseValue as
+        | ChemicalSourceType
+        | undefined;
+      const baseLabel = baseType
+        ? translate(`source.${baseType}`)
+        : `(${translate("none").toLocaleLowerCase()})`;
+      lines.push(`${translate("chemicalSourceType")}: ${baseLabel}`);
+      if (!baseType) return lines;
+    }
+
+    const baseStrength = strengthComparison.baseValue;
+    lines.push(
+      `${translate("chemicalSourceStrength")}: ${baseStrength ?? `(${translate("none").toLocaleLowerCase()})`}`,
+    );
+
+    const basePattern = patternComparison.baseValue;
+    const patternName = translate("chemicalSourcePattern");
+    if (basePattern) {
+      lines.push(`${patternName}: ${basePattern.label}`);
+      if (basePattern.id === node.chemicalSourcePatternId) {
+        lines.push(translate("multipliersDiffer"));
+      }
+    } else {
+      lines.push(`${patternName}: (${translate("none").toLocaleLowerCase()})`);
+    }
+
+    return lines;
+  }, [
+    hasChanged,
+    typeComparison,
+    strengthComparison,
+    patternComparison,
+    node.chemicalSourcePatternId,
+    translate,
+  ]);
+
+  const handlePatternChange = useCallback(
+    (_: string, newValue: PatternId | null, oldValue: PatternId | null) => {
+      onPropertyChange(
+        "chemicalSourcePatternId",
+        newValue === null ? undefined : newValue,
+        oldValue || undefined,
+      );
+    },
+    [onPropertyChange],
+  );
+
+  return (
+    <BlockComparisonField
+      hasChanged={hasChanged}
+      baseDisplayValue={
+        <div className="whitespace-pre-line">{baseDisplayValue.join("\n")}</div>
+      }
+    >
+      <SelectRow
+        name="chemicalSourceType"
+        selected={typedNode.chemicalSourceType ?? null}
+        options={translatedSourceTypeOptions}
+        nullable={true}
+        placeholder={translate("none")}
+        listClassName="first:italic"
+        onChange={(_name, value) => {
+          if (value === "none") {
+            onBatchPropertyChange([
+              { property: "chemicalSourceType", value: undefined },
+              { property: "chemicalSourceStrength", value: undefined },
+              { property: "chemicalSourcePatternId", value: undefined },
+            ]);
+          } else {
+            onPropertyChange(
+              "chemicalSourceType",
+              value as ChemicalSourceType,
+              typedNode.chemicalSourceType,
+            );
+          }
+        }}
+        readOnly={readOnly}
+      />
+      {typedNode.chemicalSourceType && (
+        <NestedSection>
+          <QuantityRow
+            name="chemicalSourceStrength"
+            displayName={`${translate("chemicalSourceStrength")} (${strengthUnit})`}
+            value={typedNode.chemicalSourceStrength ?? 0}
+            unit={null}
+            onChange={onPropertyChange}
+            readOnly={readOnly}
+          />
+          <LibrarySelectRow
+            name="chemicalSourcePattern"
+            collection={patterns}
+            filterByType="qualitySourceStrength"
+            libraryLabel={translate("openPatternsLibrary")}
+            onOpenLibrary={() =>
+              showPatternsLibrary({
+                source: "quality",
+                initialPatternId: node.chemicalSourcePatternId,
+                initialSection: "qualitySourceStrength",
+              })
+            }
+            selected={node.chemicalSourcePatternId ?? null}
+            emptyOptionLabel={translate("none")}
+            placeholder={translate("none")}
+            onChange={handlePatternChange}
+            readOnly={readOnly}
+          />
+        </NestedSection>
+      )}
     </BlockComparisonField>
   );
 };

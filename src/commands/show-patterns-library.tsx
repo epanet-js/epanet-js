@@ -13,7 +13,7 @@ export const useShowPatternsLibrary = () => {
       initialPatternId,
       initialSection,
     }: {
-      source: "toolbar" | "shortcut" | "reservoir" | "pump";
+      source: "toolbar" | "shortcut" | "reservoir" | "pump" | "quality";
       initialPatternId?: number;
       initialSection?:
         | "demand"
