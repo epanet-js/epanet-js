@@ -463,7 +463,7 @@ export function AddLayer() {
   const { canAddCustomLayers } = usePermissions();
 
   const isCustomLayersPaywallOn = useFeatureFlag("FLAG_CUSTOM_LAYERS_PAYWALL");
-  const isGisLayersOn = useFeatureFlag("FLAG_GIS_LAYERS");
+  const isGisLayersOn = useFeatureFlag("FLAG_CUSTOM_GIS_LAYERS");
 
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
