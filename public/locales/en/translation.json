@@ -619,6 +619,7 @@
   "range": "Range",
   "ramp": "Ramp",
   "labels": "Labels",
+  "labelBy": "Label by",
   "nodeSymbology": "Node symbology",
   "linkSymbology": "Link symbology",
   "ckmeans": "Ckmeans",

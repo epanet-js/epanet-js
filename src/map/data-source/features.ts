@@ -2,7 +2,7 @@ import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { Unit, convertTo } from "src/quantity";
 import { Feature } from "src/types";
-import { AssetId, Valve } from "src/hydraulic-model/asset-types";
+import { Asset, AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -18,6 +18,8 @@ import {
   type JunctionSimulation,
 } from "src/simulation/results-reader";
 import { isSimulationProperty } from "src/map/symbology/symbology-data-source";
+import { assetLabelRule } from "src/map/symbology/labeling";
+import { LabelRule } from "src/map/symbology/symbology-types";
 
 export const buildFeatureId = (assetId: AssetId) => assetId;
 
@@ -43,6 +45,21 @@ export const buildOptimizedAssetsSource = (
       properties: pick(asset.feature.properties, keepProperties),
       geometry: asset.feature.geometry,
     };
+
+    const isLink =
+      asset.type === "pipe" || asset.type === "pump" || asset.type === "valve";
+    const labelRule = isLink
+      ? symbology.link.labelRule
+      : symbology.node.labelRule;
+    appendLabel(
+      asset,
+      feature,
+      labelRule,
+      units,
+      formatting,
+      translateUnit,
+      simulationResults,
+    );
 
     switch (asset.type) {
       case "pipe":
@@ -213,15 +230,6 @@ const appendPipeSymbologyProps = (
   }
   const numericValue = value !== null ? value : 0;
 
-  if (!!linkSymbology.labelRule) {
-    const labelProperty = linkSymbology.labelRule;
-    const unit = units[labelProperty as QuantityProperty];
-    const localizedNumber = localizeDecimal(numericValue, {
-      decimals: getDecimals(formatting, labelProperty as QuantityProperty),
-    });
-    const unitText = unit ? translateUnit(unit) : "";
-    feature.properties!.label = `${localizedNumber} ${unitText}`;
-  }
   feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
   appendPipeArrowProps(pipe, feature, units, simulationResults);
 };
@@ -257,21 +265,53 @@ const appendJunctionSymbologyProps = (
   }
   const numericValue = value !== null ? value : 0;
 
-  if (!!nodeSymbology.labelRule) {
-    const labelProperty = nodeSymbology.labelRule;
-    const unit = units[labelProperty as QuantityProperty];
-    const localizedNumber = localizeDecimal(numericValue, {
-      decimals: getDecimals(formatting, labelProperty as QuantityProperty),
-    });
-    const unitText = unit ? translateUnit(unit) : "";
-    feature.properties!.label = `${localizedNumber} ${unitText}`;
-  }
-
   const fillColor = colorFor(nodeSymbology.colorRule, numericValue);
   const strokeColor = strokeColorFor(fillColor);
 
   feature.properties!.color = fillColor;
   feature.properties!.strokeColor = strokeColor;
+};
+
+const appendLabel = (
+  asset: Asset,
+  feature: Feature,
+  labelRule: LabelRule | null,
+  units: UnitsSpec,
+  formatting: FormattingSpec,
+  translateUnit: (unit: Unit) => string,
+  simulationResults?: ResultsReader | null,
+) => {
+  if (!labelRule) return;
+
+  if (labelRule === assetLabelRule) {
+    feature.properties!.label = asset.label;
+    return;
+  }
+
+  const property = labelRule;
+  let value: number | null = null;
+
+  if (isSimulationProperty(property)) {
+    if (asset.type === "pipe") {
+      const sim = simulationResults?.getPipe(asset.id);
+      value = sim ? (sim[property as keyof PipeSimulation] as number) : null;
+    } else if (asset.type === "junction") {
+      const simProperty = getJunctionSimProperty(property);
+      const sim = simulationResults?.getJunction(asset.id);
+      value = sim ? (sim[simProperty] as number) : null;
+    }
+  } else {
+    value =
+      (asset as unknown as Record<string, number | null>)[property] ?? null;
+  }
+
+  const numericValue = value !== null ? value : 0;
+  const unit = units[property as QuantityProperty];
+  const localizedNumber = localizeDecimal(numericValue, {
+    decimals: getDecimals(formatting, property as QuantityProperty),
+  });
+  const unitText = unit ? translateUnit(unit) : "";
+  feature.properties!.label = `${localizedNumber} ${unitText}`;
 };
 
 function pick(
