@@ -163,6 +163,7 @@ export const useSymbologyState = () => {
       setNodesActive({
         ...nullSymbologySpec.node,
         defaults: nodeSymbology.defaults,
+        labelRule: nodeSymbology.labelRule,
       });
       return;
     }
@@ -174,7 +175,11 @@ export const useSymbologyState = () => {
       newNodeSymbology = initializeFn();
       updateNodeSymbology(newNodeSymbology);
     }
-    setNodesActive({ ...newNodeSymbology, defaults: nodeSymbology.defaults });
+    setNodesActive({
+      ...newNodeSymbology,
+      defaults: nodeSymbology.defaults,
+      labelRule: nodeSymbology.labelRule,
+    });
   };
 
   const switchLinkSymbologyTo = (
@@ -185,6 +190,7 @@ export const useSymbologyState = () => {
       setLinksActive({
         ...nullSymbologySpec.link,
         defaults: linkSymbology.defaults,
+        labelRule: linkSymbology.labelRule,
       });
       return;
     }
@@ -196,7 +202,11 @@ export const useSymbologyState = () => {
       newLinkSymbology = initializeFn();
       updateLinkSymbology(newLinkSymbology);
     }
-    setLinksActive({ ...newLinkSymbology, defaults: linkSymbology.defaults });
+    setLinksActive({
+      ...newLinkSymbology,
+      defaults: linkSymbology.defaults,
+      labelRule: linkSymbology.labelRule,
+    });
   };
 
   const updateNodeSymbology = (newNodeSymbology: NodeSymbology) => {
