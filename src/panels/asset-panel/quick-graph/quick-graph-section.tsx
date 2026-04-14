@@ -8,7 +8,11 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationAtom, simulationStepAtom } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
+import {
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import {
@@ -123,8 +127,12 @@ const QuickGraphSection = ({
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
+  );
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
   const simulationStep = useAtomValue(simulationStepAtom);
   const worktree = useAtomValue(worktreeAtom);
@@ -200,7 +208,7 @@ const QuickGraphSection = ({
             ]
           : baseOptions;
 
-    return options.map((opt) => {
+    const mapped = options.map((opt) => {
       const label = translate(opt.labelKey);
       let quantityKey = opt.quantityKey;
       if (assetType === "valve" && opt.value === "setting") {
@@ -215,7 +223,29 @@ const QuickGraphSection = ({
         label: unit ? `${label} (${unit})` : label,
       };
     });
-  }, [assetType, assetId, hydraulicModel, translate, units, simulation]);
+
+    if (qualityType === "chemical" && isWaterChemicalOn) {
+      const name =
+        simulationSettings.qualityChemicalName || translate("chemical");
+      const massUnit = simulationSettings.qualityMassUnit || "";
+      mapped.push({
+        value: "chemicalConcentration" as const,
+        label: `${name} (${massUnit})`,
+      });
+    }
+
+    return mapped;
+  }, [
+    assetType,
+    assetId,
+    hydraulicModel,
+    translate,
+    units,
+    simulation,
+    isWaterChemicalOn,
+    simulationSettings.qualityChemicalName,
+    simulationSettings.qualityMassUnit,
+  ]);
 
   const handlePropertyChange = useCallback(
     (value: QuickGraphPropertyByAssetType[typeof assetType]) => {

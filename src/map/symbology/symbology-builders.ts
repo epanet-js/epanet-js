@@ -45,6 +45,7 @@ type SymbologyBuilders = {
   head: SymbologyBuilderFn<NodeSymbology>;
   waterAge: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
   waterTrace: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
+  chemicalConcentration: SymbologyBuilderFn<NodeSymbology & LinkSymbology>;
 };
 
 export const symbologyBuilders: SymbologyBuilders = {
@@ -173,6 +174,23 @@ export const symbologyBuilders: SymbologyBuilders = {
       ...defaults.waterTrace,
       fallbackEndpoints: [0, 100],
       sortedData: [0, 100],
+    });
+    return {
+      colorRule,
+      labelRule: nullLabelRule,
+      defaults: nullSymbologySpec.node.defaults,
+    };
+  },
+
+  chemicalConcentration: (
+    _units,
+    sortedData,
+  ): NodeSymbology & LinkSymbology => {
+    const colorRule = initializeColorRule({
+      property: "chemicalConcentration",
+      unit: null,
+      ...defaults.chemicalConcentration,
+      sortedData,
     });
     return {
       colorRule,

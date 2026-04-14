@@ -6,7 +6,11 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
+import {
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -137,6 +141,9 @@ const SymbologyEditor = ({
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
 
   const {
     linkSymbology,
@@ -149,6 +156,7 @@ const SymbologyEditor = ({
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
+  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const hasCompletedSimulation =
     "epsResultsReader" in simulation && !!simulation.epsResultsReader;
   const hasWaterAge =
@@ -157,6 +165,9 @@ const SymbologyEditor = ({
   const hasWaterTrace =
     hasCompletedSimulation &&
     simulation.epsResultsReader?.qualityType === "trace";
+  const hasChemical =
+    hasCompletedSimulation &&
+    simulation.epsResultsReader?.qualityType === "chemical";
   const { units } = useAtomValue(projectSettingsAtom);
 
   const { changeColorBy } = useChangeColorBy(geometryType);
@@ -165,19 +176,29 @@ const SymbologyEditor = ({
     const visibleProperties = properties.filter((p) => {
       if (p === "waterAge" && !isWaterAgeOn) return false;
       if (p === "waterTrace" && !isWaterTraceOn) return false;
+      if (p === "chemicalConcentration" && !isWaterChemicalOn) return false;
       return true;
     });
+    const chemicalName =
+      simulationSettings.qualityChemicalName || translate("chemical");
+    const chemicalUnit = simulationSettings.qualityMassUnit || "";
     const options = (["none", ...visibleProperties] as SelectOption[]).map(
       (type) => {
-        const unit = type !== "none" ? units[type] : null;
+        const unit =
+          type !== "none" ? (units[type as keyof typeof units] ?? null) : null;
         const isSimProp = simulationProperties.includes(type);
+        const label =
+          type === "chemicalConcentration"
+            ? `${chemicalName} (${chemicalUnit})`
+            : `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
         return {
           value: type,
-          label: `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`,
+          label,
           disabled:
             (!hasCompletedSimulation && isSimProp) ||
             (type === "waterAge" && !hasWaterAge) ||
-            (type === "waterTrace" && !hasWaterTrace),
+            (type === "waterTrace" && !hasWaterTrace) ||
+            (type === "chemicalConcentration" && !hasChemical),
         };
       },
     );
@@ -190,6 +211,7 @@ const SymbologyEditor = ({
   }, [
     isWaterAgeOn,
     isWaterTraceOn,
+    isWaterChemicalOn,
     properties,
     units,
     translate,
@@ -197,6 +219,9 @@ const SymbologyEditor = ({
     hasCompletedSimulation,
     hasWaterAge,
     hasWaterTrace,
+    hasChemical,
+    simulationSettings.qualityChemicalName,
+    simulationSettings.qualityMassUnit,
   ]);
 
   const userTracking = useUserTracking();

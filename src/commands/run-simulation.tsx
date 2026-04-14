@@ -152,6 +152,13 @@ export const useRunSimulation = () => {
             set(clearQuickGraphPropertyAtom, "waterTrace");
             set(clearSymbologyForPropertyAtom, "waterTrace");
           }
+          const newSimulationHasChemical =
+            isWaterChemicalOn &&
+            simulationSettings.qualitySimulationType === "CHEMICAL";
+          if (!newSimulationHasChemical) {
+            set(clearQuickGraphPropertyAtom, "chemicalConcentration");
+            set(clearSymbologyForPropertyAtom, "chemicalConcentration");
+          }
         }
 
         const simulationState = {
