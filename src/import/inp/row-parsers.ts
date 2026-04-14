@@ -775,18 +775,18 @@ export const parseOption: RowParser = ({
       typeof value === "string" ? value.toUpperCase() : String(value);
 
     if (upperValue.startsWith("NONE")) {
-      inpData.options.qualitySimulationType = "NONE";
+      inpData.options.qualitySimulationType = "none";
     } else if (upperValue.startsWith("AGE")) {
-      inpData.options.qualitySimulationType = "AGE";
+      inpData.options.qualitySimulationType = "age";
     } else if (upperValue.startsWith("TRACE")) {
-      inpData.options.qualitySimulationType = "TRACE";
+      inpData.options.qualitySimulationType = "trace";
       const rawValue = trimmedRow
         .split(commentIdentifier)[0]
         .replace(/^\s*QUALITY\s+TRACE\s+/i, "")
         .trim();
       if (rawValue) inpData.options.qualityTraceNode = rawValue;
     } else {
-      inpData.options.qualitySimulationType = "CHEMICAL";
+      inpData.options.qualitySimulationType = "chemical";
       const rawValue = trimmedRow
         .split(commentIdentifier)[0]
         .replace(/^\s*QUALITY\s+/i, "")

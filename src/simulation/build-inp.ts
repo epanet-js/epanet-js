@@ -86,16 +86,16 @@ const buildQualityValue = (
   idMap: EpanetIds,
 ): string => {
   const type = settings.qualitySimulationType;
-  if (type === "NONE") return "NONE";
-  if (type === "AGE") return "AGE";
-  if (type === "TRACE") {
+  if (type === "none") return "NONE";
+  if (type === "age") return "AGE";
+  if (type === "trace") {
     const nodeId = settings.qualityTraceNodeId;
     if (nodeId === null) return "TRACE";
     const node = hydraulicModel.assets.get(nodeId);
     if (!node || !node.isNode) return "TRACE";
     return `TRACE ${idMap.nodeId(node as NodeAsset)}`;
   }
-  // CHEMICAL
+  // chemical
   const name = settings.qualityChemicalName;
   return name ? `${name} ${settings.qualityMassUnit}` : "CHEMICAL";
 };
@@ -737,7 +737,7 @@ const appendInitialQuality = (
 ) => {
   const typedNode = node as Junction | Tank | Reservoir;
   const value =
-    simulationSettings.qualitySimulationType === "CHEMICAL"
+    simulationSettings.qualitySimulationType === "chemical"
       ? typedNode.initialChemicalConcentration
       : typedNode.initialWaterAge;
   if (value !== undefined && value !== 0) {

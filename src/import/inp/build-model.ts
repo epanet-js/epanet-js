@@ -136,10 +136,10 @@ export const buildModel = (
 
   const qualityType = inpData.options.qualitySimulationType;
   const isSupportedQualityType =
-    qualityType === "NONE" ||
-    (options?.waterAge && qualityType === "AGE") ||
-    (options?.waterTrace && qualityType === "TRACE") ||
-    (options?.waterChemical && qualityType === "CHEMICAL");
+    qualityType === "none" ||
+    (options?.waterAge && qualityType === "age") ||
+    (options?.waterTrace && qualityType === "trace") ||
+    (options?.waterChemical && qualityType === "chemical");
 
   if (!isSupportedQualityType && qualityType) {
     issues.addWaterQualityType(qualityType);
@@ -458,13 +458,13 @@ const addJunction = (
   const emitterCoefficient = inpData.emitters.get(junctionData.id);
 
   const initialWaterAge =
-    inpData.options.qualitySimulationType === "AGE"
+    inpData.options.qualitySimulationType === "age"
       ? inpData.quality.get(junctionData.id)
       : undefined;
 
   const initialChemicalConcentration =
     options?.waterChemical &&
-    inpData.options.qualitySimulationType === "CHEMICAL"
+    inpData.options.qualitySimulationType === "chemical"
       ? inpData.quality.get(junctionData.id)
       : undefined;
 
@@ -551,13 +551,13 @@ const addReservoir = (
   }
 
   const initialWaterAge =
-    inpData.options.qualitySimulationType === "AGE"
+    inpData.options.qualitySimulationType === "age"
       ? inpData.quality.get(reservoirData.id)
       : undefined;
 
   const initialChemicalConcentration =
     options?.waterChemical &&
-    inpData.options.qualitySimulationType === "CHEMICAL"
+    inpData.options.qualitySimulationType === "chemical"
       ? inpData.quality.get(reservoirData.id)
       : undefined;
 
@@ -642,13 +642,13 @@ const addTank = (
   }
 
   const initialWaterAge =
-    inpData.options.qualitySimulationType === "AGE"
+    inpData.options.qualitySimulationType === "age"
       ? inpData.quality.get(tankData.id)
       : undefined;
 
   const initialChemicalConcentration =
     options?.waterChemical &&
-    inpData.options.qualitySimulationType === "CHEMICAL"
+    inpData.options.qualitySimulationType === "chemical"
       ? inpData.quality.get(tankData.id)
       : undefined;
 

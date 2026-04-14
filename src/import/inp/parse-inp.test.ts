@@ -863,7 +863,7 @@ describe("water quality options", () => {
 
     const { simulationSettings } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("NONE");
+    expect(simulationSettings.qualitySimulationType).toEqual("none");
   });
 
   it("parses QUALITY AGE", () => {
@@ -874,7 +874,7 @@ describe("water quality options", () => {
 
     const { simulationSettings } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("AGE");
+    expect(simulationSettings.qualitySimulationType).toEqual("age");
   });
 
   it("parses QUALITY TRACE with node ID", () => {
@@ -889,7 +889,7 @@ describe("water quality options", () => {
 
     const { simulationSettings, hydraulicModel } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+    expect(simulationSettings.qualitySimulationType).toEqual("trace");
     expect(simulationSettings.qualityTraceNodeId).toBeGreaterThan(0);
     const asset = hydraulicModel.assets.get(
       simulationSettings.qualityTraceNodeId!,
@@ -905,7 +905,7 @@ describe("water quality options", () => {
 
     const { simulationSettings } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+    expect(simulationSettings.qualitySimulationType).toEqual("trace");
     expect(simulationSettings.qualityTraceNodeId).toBeNull();
   });
 
@@ -917,7 +917,7 @@ describe("water quality options", () => {
 
     const { simulationSettings } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+    expect(simulationSettings.qualitySimulationType).toEqual("chemical");
     expect(simulationSettings.qualityChemicalName).toEqual("Chlorine");
     expect(simulationSettings.qualityMassUnit).toEqual("mg/L");
   });
@@ -930,7 +930,7 @@ describe("water quality options", () => {
 
     const { simulationSettings } = parseInp(inp);
 
-    expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+    expect(simulationSettings.qualitySimulationType).toEqual("chemical");
     expect(simulationSettings.qualityChemicalName).toEqual("Fluoride");
     expect(simulationSettings.qualityMassUnit).toEqual("ug/L");
   });
@@ -1161,7 +1161,7 @@ describe("quality section", () => {
 
     const { issues } = parseInp(inp, { waterAge: false });
 
-    expect(issues?.waterQualityType).toBe("AGE");
+    expect(issues?.waterQualityType).toBe("age");
     expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
   });
 
@@ -1183,7 +1183,7 @@ describe("quality section", () => {
       waterTrace: true,
     });
 
-    expect(simulationSettings.qualitySimulationType).toEqual("TRACE");
+    expect(simulationSettings.qualitySimulationType).toEqual("trace");
     expect(issues?.waterQualityType).toBeUndefined();
   });
 
@@ -1203,7 +1203,7 @@ describe("quality section", () => {
 
     const { issues } = parseInp(inp, { waterTrace: false });
 
-    expect(issues?.waterQualityType).toBe("TRACE");
+    expect(issues?.waterQualityType).toBe("trace");
   });
 
   it("does not report QUALITY as unsupported when waterAge is on", () => {
@@ -1264,7 +1264,7 @@ describe("quality section", () => {
     expect(t1.initialWaterAge).toBe(0);
     expect(r1.initialChemicalConcentration).toBe(1.0);
     expect(r1.initialWaterAge).toBe(0);
-    expect(simulationSettings.qualitySimulationType).toEqual("CHEMICAL");
+    expect(simulationSettings.qualitySimulationType).toEqual("chemical");
     expect(issues?.waterQualityType).toBeUndefined();
   });
 
@@ -1289,7 +1289,7 @@ describe("quality section", () => {
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(j1.initialChemicalConcentration).toBe(0);
-    expect(issues?.waterQualityType).toBe("CHEMICAL");
+    expect(issues?.waterQualityType).toBe("chemical");
   });
 });
 

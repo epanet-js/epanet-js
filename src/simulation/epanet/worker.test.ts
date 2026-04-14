@@ -144,7 +144,7 @@ describe("EPS simulation", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
-      .qualitySimulationType("AGE")
+      .qualitySimulationType("age")
       .timing({ duration: 7200, hydraulicTimestep: 3600 })
       .build();
     const inp = buildInp(hydraulicModel, {

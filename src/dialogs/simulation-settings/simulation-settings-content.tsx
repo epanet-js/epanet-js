@@ -563,9 +563,9 @@ export const WaterQualitySection = () => {
   );
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { values, setFieldValue } = useFormikContext<FormValues>();
-  const isNone = values.qualitySimulationType === "NONE";
-  const isChemical = values.qualitySimulationType === "CHEMICAL";
-  const isTrace = values.qualitySimulationType === "TRACE";
+  const isNone = values.qualitySimulationType === "none";
+  const isChemical = values.qualitySimulationType === "chemical";
+  const isTrace = values.qualitySimulationType === "trace";
 
   const { fieldErrors: qualityErrors } = useQualitySettingsValidation();
 
@@ -583,21 +583,21 @@ export const WaterQualitySection = () => {
   }[] = [
     {
       label: translate("simulationSettings.qualityNone"),
-      value: "NONE",
+      value: "none",
     },
     {
       label: translate("simulationSettings.qualityChemical"),
-      value: "CHEMICAL",
+      value: "chemical",
       disabled: !isWaterChemicalOn,
     },
     {
       label: translate("simulationSettings.qualityAge"),
-      value: "AGE",
+      value: "age",
       disabled: !isWaterAgeOn,
     },
     {
       label: translate("simulationSettings.qualityTrace"),
-      value: "TRACE",
+      value: "trace",
       disabled: !isWaterTraceOn,
     },
   ];
@@ -1140,7 +1140,7 @@ export const useQualitySettingsValidation = () => {
   const { values } = useFormikContext<FormValues>();
 
   const traceNodeError =
-    values.qualitySimulationType === "TRACE" &&
+    values.qualitySimulationType === "trace" &&
     values.qualityTraceNodeId === null;
 
   const fieldErrors = {

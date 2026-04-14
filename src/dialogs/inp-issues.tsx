@@ -201,9 +201,9 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const userTracking = useUserTracking();
 
   const waterQualityLabel =
-    issues.waterQualityType === "AGE"
+    issues.waterQualityType === "age"
       ? translate("waterQualityAge")
-      : issues.waterQualityType === "TRACE"
+      : issues.waterQualityType === "trace"
         ? translate("waterQualityTrace")
         : translate("waterQualityChemical");
 

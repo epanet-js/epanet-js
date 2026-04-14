@@ -274,9 +274,9 @@ const buildCompleteEvent = (
   const processedIssues = issueKeys.flatMap((key) => {
     if (key === "waterQualityType" && issues?.waterQualityType) {
       const typeMap = {
-        AGE: "hasWaterAge",
-        CHEMICAL: "hasWaterChemical",
-        TRACE: "hasWaterTrace",
+        age: "hasWaterAge",
+        chemical: "hasWaterChemical",
+        trace: "hasWaterTrace",
       } as const;
       return [typeMap[issues.waterQualityType]];
     }

@@ -3,7 +3,7 @@ import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";
-export type QualitySimulationType = "NONE" | "CHEMICAL" | "AGE" | "TRACE";
+export type QualitySimulationType = "none" | "chemical" | "age" | "trace";
 export type QualityMassUnit = "mg/L" | "ug/L";
 export type StatusReport = "YES" | "NO" | "FULL";
 
@@ -80,7 +80,7 @@ export const defaultHydraulicsValues = {
 };
 
 export const defaultWaterQualityValues = {
-  qualitySimulationType: "NONE" as QualitySimulationType,
+  qualitySimulationType: "none" as QualitySimulationType,
   qualityChemicalName: "",
   qualityMassUnit: "mg/L" as QualityMassUnit,
   qualityTraceNodeId: null,

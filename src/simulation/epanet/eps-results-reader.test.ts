@@ -1329,7 +1329,7 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .qualitySimulationType("AGE")
+        .qualitySimulationType("age")
         .timing({ duration: 7200, hydraulicTimestep: 3600 })
         .build();
       const inp = buildInp(hydraulicModel, {
@@ -1356,7 +1356,7 @@ describe("EPSResultsReader", () => {
         .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
         .build();
       const simulationSettings = SimulationSettingsBuilder.with()
-        .qualitySimulationType("TRACE")
+        .qualitySimulationType("trace")
         .qualityTraceNodeId(IDS.R1)
         .timing({ duration: 7200, hydraulicTimestep: 3600 })
         .build();

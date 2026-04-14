@@ -157,7 +157,7 @@ export type InpData = {
     dampLimit?: number;
     viscosity?: number;
     specificGravity?: number;
-    qualitySimulationType?: "NONE" | "CHEMICAL" | "AGE" | "TRACE";
+    qualitySimulationType?: "none" | "chemical" | "age" | "trace";
     qualityChemicalName?: string;
     qualityMassUnit?: "mg/L" | "ug/L";
     qualityTraceNode?: string;

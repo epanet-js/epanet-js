@@ -1,4 +1,4 @@
-export type WaterQualityType = "AGE" | "CHEMICAL" | "TRACE";
+export type WaterQualityType = "age" | "chemical" | "trace";
 
 export type ParserIssues = {
   unsupportedSections?: Set<string>;
