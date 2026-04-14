@@ -39,6 +39,8 @@ export type Unit =
   | "kW/m^3"
   | "kW/Mgal"
   | "h"
+  | "mg/L"
+  | "ug/L"
   | null;
 
 export type Quantity = {

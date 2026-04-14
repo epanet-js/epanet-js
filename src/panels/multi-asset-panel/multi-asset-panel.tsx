@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from "react";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { pluralize, formatCapitalize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
@@ -47,6 +48,7 @@ export function MultiAssetPanel({
 }) {
   const { formatting, units } = useAtomValue(projectSettingsAtom);
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const simulationState = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
@@ -101,7 +103,7 @@ export function MultiAssetPanel({
     const name = formatCapitalize(
       simulationSettings.qualityChemicalName || translate("chemical"),
     );
-    const unit = simulationSettings.qualityMassUnit ?? "";
+    const unit = translateUnit(simulationSettings.qualityMassUnit ?? null);
     return {
       chemicalConcentration: translate("chemicalConcentration", name, unit),
       initialChemicalConcentration: translate(
@@ -112,6 +114,7 @@ export function MultiAssetPanel({
     };
   }, [
     translate,
+    translateUnit,
     simulationSettings.qualityChemicalName,
     simulationSettings.qualityMassUnit,
   ]);

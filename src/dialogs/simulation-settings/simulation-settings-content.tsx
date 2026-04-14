@@ -4,6 +4,7 @@ import { useAtomValue } from "jotai";
 import clsx from "clsx";
 
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   TimeField,
@@ -553,6 +554,7 @@ export const HydraulicsSection = () => {
 
 export const WaterQualitySection = () => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
@@ -607,8 +609,8 @@ export const WaterQualitySection = () => {
   )?.disabled;
 
   const massUnitOptions: { label: string; value: QualityMassUnit }[] = [
-    { label: "mg/L", value: "mg/L" },
-    { label: "ug/L", value: "ug/L" },
+    { label: translateUnit("mg/L"), value: "mg/L" },
+    { label: translateUnit("ug/L"), value: "ug/L" },
   ];
 
   return (

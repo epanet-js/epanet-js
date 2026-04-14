@@ -183,7 +183,9 @@ const SymbologyEditor = ({
     const chemicalName = formatCapitalize(
       simulationSettings.qualityChemicalName || translate("chemical"),
     );
-    const chemicalUnit = simulationSettings.qualityMassUnit || "";
+    const chemicalUnit = translateUnit(
+      simulationSettings.qualityMassUnit ?? null,
+    );
     const options = (["none", ...visibleProperties] as SelectOption[]).map(
       (type) => {
         const unit =

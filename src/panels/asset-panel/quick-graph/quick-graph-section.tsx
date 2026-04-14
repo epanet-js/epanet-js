@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
@@ -125,6 +126,7 @@ const QuickGraphSection = ({
   isLoading,
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
@@ -229,7 +231,9 @@ const QuickGraphSection = ({
       const name = formatCapitalize(
         simulationSettings.qualityChemicalName || translate("chemical"),
       );
-      const massUnit = simulationSettings.qualityMassUnit || "";
+      const massUnit = translateUnit(
+        simulationSettings.qualityMassUnit ?? null,
+      );
       mapped.push({
         value: "chemicalConcentration" as const,
         label: `${name} (${massUnit})`,
@@ -242,6 +246,7 @@ const QuickGraphSection = ({
     assetId,
     hydraulicModel,
     translate,
+    translateUnit,
     units,
     simulation,
     isWaterChemicalOn,

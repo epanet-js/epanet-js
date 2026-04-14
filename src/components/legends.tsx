@@ -21,6 +21,7 @@ export const Legends = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const simulationSettings = useAtomValue(
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
@@ -34,7 +35,7 @@ export const Legends = () => {
           formatCapitalize(
             simulationSettings.qualityChemicalName || translate("chemical"),
           ),
-          simulationSettings.qualityMassUnit ?? "",
+          translateUnit(simulationSettings.qualityMassUnit ?? null),
         )
       : undefined;
 
