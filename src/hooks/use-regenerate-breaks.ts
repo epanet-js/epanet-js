@@ -38,9 +38,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
   const { nodeSymbology, linkSymbology } = useSymbologyState();
-  const isSymbologyFromAllDataOn = useFeatureFlag(
-    "FLAG_SYMBOLOGY_FROM_ALL_DATA",
-  );
+
   const [isWorking, setIsWorking] = useState(false);
 
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -72,10 +70,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
     (simulation.epsResultsReader?.timestepCount ?? 0) > 1;
 
   const canRegenerateFromAllData =
-    isSymbologyFromAllDataOn &&
-    isEpsSimulation &&
-    !!colorRule &&
-    isSimulationProperty(colorRule.property);
+    isEpsSimulation && !!colorRule && isSimulationProperty(colorRule.property);
 
   const regenerateFromAllData = useCallback(
     async (currentRule: RangeColorRule): Promise<RegenerateResult | null> => {
