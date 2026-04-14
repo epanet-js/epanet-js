@@ -155,6 +155,7 @@ const detectChanges = (
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const isCustomGisLayersOn = useFeatureFlag("FLAG_CUSTOM_GIS_LAYERS");
   const momentLog = useAtomValue(
     isStateRefactorOn ? momentLogDerivedAtom : momentLogAtom,
   );
@@ -242,7 +243,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.symbology.node.defaults,
             mapState.symbology.link.defaults,
           );
-          addGisLayersToMap(map, mapState.stylesConfig, gisData);
+          if (isCustomGisLayersOn) {
+            addGisLayersToMap(map, mapState.stylesConfig, gisData);
+          }
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
@@ -500,6 +503,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel,
     isGridOn,
     isGridPreview,
+    isCustomGisLayersOn,
   ]);
 
   doUpdates();
