@@ -29,6 +29,7 @@ import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
+import { formatCapitalize } from "src/lib/utils";
 
 const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
@@ -225,8 +226,9 @@ const QuickGraphSection = ({
     });
 
     if (qualityType === "chemical" && isWaterChemicalOn) {
-      const name =
-        simulationSettings.qualityChemicalName || translate("chemical");
+      const name = formatCapitalize(
+        simulationSettings.qualityChemicalName || translate("chemical"),
+      );
       const massUnit = simulationSettings.qualityMassUnit || "";
       mapped.push({
         value: "chemicalConcentration" as const,

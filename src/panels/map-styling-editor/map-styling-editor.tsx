@@ -46,6 +46,7 @@ import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
+import { formatCapitalize } from "src/lib/utils";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -179,8 +180,9 @@ const SymbologyEditor = ({
       if (p === "chemicalConcentration" && !isWaterChemicalOn) return false;
       return true;
     });
-    const chemicalName =
-      simulationSettings.qualityChemicalName || translate("chemical");
+    const chemicalName = formatCapitalize(
+      simulationSettings.qualityChemicalName || translate("chemical"),
+    );
     const chemicalUnit = simulationSettings.qualityMassUnit || "";
     const options = (["none", ...visibleProperties] as SelectOption[]).map(
       (type) => {
