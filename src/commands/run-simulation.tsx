@@ -28,6 +28,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import type { QualitySimulationType } from "src/simulation/simulation-settings";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -186,6 +187,8 @@ export const useRunSimulation = () => {
           type: "simulationSummary",
           status,
           duration,
+          qualityType: (epsReader?.qualityType.toUpperCase() ??
+            "NONE") as QualitySimulationType,
           onContinue: options?.onContinue,
           onIgnore: options?.onIgnore,
           ignoreLabel: options?.ignoreLabel,

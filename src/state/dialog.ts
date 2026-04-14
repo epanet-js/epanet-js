@@ -1,5 +1,6 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
+import type { QualitySimulationType } from "src/simulation/simulation-settings";
 import { CurveId } from "src/hydraulic-model/curves";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "src/lib/projections";
@@ -17,6 +18,7 @@ export type SimulationSummaryState = {
   type: "simulationSummary";
   status: "success" | "failure" | "warning";
   duration?: number;
+  qualityType: QualitySimulationType;
   onContinue?: () => void;
   onIgnore?: () => void;
   ignoreLabel?: string;

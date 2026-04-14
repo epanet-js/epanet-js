@@ -43,7 +43,11 @@ import {
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
 import { simulationAtom } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
@@ -125,6 +129,9 @@ export const CommandShortcuts = () => {
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
+  const simulationSettings = useAtomValue(
+    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
+  );
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const cycleSelectionMode = useCycleSelectionMode();
@@ -158,6 +165,7 @@ export const CommandShortcuts = () => {
       userTracking.capture({
         name: "simulation.executed",
         source: "shortcut",
+        qualityType: simulationSettings.qualitySimulationType,
       });
       void runSimulation();
     },

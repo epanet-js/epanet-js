@@ -9,6 +9,7 @@ import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
 import type { PaywallFeature } from "src/state/dialog";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
+import type { QualitySimulationType } from "src/simulation/simulation-settings";
 
 type Metadata = {
   [key: string]: boolean | string | number | string[];
@@ -237,6 +238,7 @@ type ExampleModelClicked = {
 type SimulationExecuted = {
   name: "simulation.executed";
   source: "shortcut" | "toolbar";
+  qualityType: QualitySimulationType;
 };
 
 type SimulationTimestepChanged = {
@@ -396,6 +398,7 @@ type SimulationSummarySeen = {
   name: "simulationSummary.seen";
   status: SimulationState["status"];
   duration?: number;
+  qualityType: QualitySimulationType;
 };
 
 type ShortcutsOpened = {
