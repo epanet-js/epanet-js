@@ -433,6 +433,22 @@ describe("label manager", () => {
       expect(results.map((r) => r.label)).toEqual(["P1", "AP1"]);
     });
 
+    it("prioritizes exact matches over other prefix matches", () => {
+      const manager = new LabelManager();
+      manager.register("J12", "junction", anId());
+      manager.register("J112", "junction", anId());
+      manager.register("J1113", "junction", anId());
+      manager.register("J1", "junction", anId());
+
+      const results = manager.search("J1");
+      expect(results.map((r) => r.label)).toEqual([
+        "J1",
+        "J12",
+        "J112",
+        "J1113",
+      ]);
+    });
+
     it("honors the limit", () => {
       const manager = new LabelManager();
       for (let i = 1; i <= 10; i++) {

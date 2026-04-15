@@ -78,29 +78,34 @@ export class LabelManager {
     const normalizedQuery = this.normalizeLabel(query);
     if (normalizedQuery.length === 0) return [];
 
-    const prefixMatches: Array<{
-      label: string;
-      type: LabelType;
-      id: number;
-    }> = [];
-    const substringMatches: Array<{
-      label: string;
-      type: LabelType;
-      id: number;
-    }> = [];
+    type Match = { label: string; type: LabelType; id: number };
+    const exactMatches: Match[] = [];
+    const prefixMatches: Match[] = [];
+    const substringMatches: Match[] = [];
+
+    const total = () =>
+      exactMatches.length + prefixMatches.length + substringMatches.length;
 
     for (const [label, entries] of this.labelToEntries) {
       const matchIndex = label.indexOf(normalizedQuery);
       if (matchIndex === -1) continue;
-      const bucket = matchIndex === 0 ? prefixMatches : substringMatches;
+      const bucket =
+        label === normalizedQuery
+          ? exactMatches
+          : matchIndex === 0
+            ? prefixMatches
+            : substringMatches;
       for (const entry of entries) {
         bucket.push({ label, type: entry.type, id: entry.id });
-        if (prefixMatches.length + substringMatches.length >= limit) break;
+        if (total() >= limit) break;
       }
-      if (prefixMatches.length + substringMatches.length >= limit) break;
+      if (total() >= limit) break;
     }
 
-    return [...prefixMatches, ...substringMatches].slice(0, limit);
+    return [...exactMatches, ...prefixMatches, ...substringMatches].slice(
+      0,
+      limit,
+    );
   }
 
   getIdByLabel(label: string, type: LabelType): number | undefined {
