@@ -532,6 +532,13 @@ export function AddLayer() {
       return next;
     });
 
+    userTracking.capture({
+      name: "customLayer.added",
+      type: "GEOJSON",
+      filesCount: settled.length,
+      processedCount: successes.length,
+      issues: [...new Set(failures.map((f) => f.error))],
+    });
     applyChanges({
       putLayerConfigs: [
         {

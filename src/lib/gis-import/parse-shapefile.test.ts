@@ -1,6 +1,6 @@
 import { FeatureCollection } from "geojson";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GisParseError } from "./parse-geojson-file";
+import { GisParseError } from "./types";
 import { parseShapefile } from "./parse-shapefile";
 
 vi.mock("shpjs");
@@ -86,14 +86,14 @@ describe("parseShapefile", () => {
     expect(result.featureCollection.features).toHaveLength(1);
   });
 
-  it("throws unsupported-crs when no .prj and coords are out of WGS84 range", async () => {
+  it("throws missing-projection when no .prj and coords are out of WGS84 range", async () => {
     const { default: shp } = await import("shpjs");
     vi.mocked(shp).mockResolvedValue(outOfRangeFeatureCollection());
 
     const files = [makeFile("roads.shp")];
     await expect(parseShapefile(files)).rejects.toSatisfy(
       (e: unknown) =>
-        e instanceof GisParseError && e.code === "unsupported-crs",
+        e instanceof GisParseError && e.code === "missing-projection",
     );
   });
 

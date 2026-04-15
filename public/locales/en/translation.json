@@ -65,6 +65,7 @@
     "error": {
       "invalid-format": "Invalid file format",
       "invalid-projection": "Unknown coordinate system",
+      "missing-projection": "Missing projection file (.prj)",
       "no-features": "No features found",
       "projection-conversion-failed": "Coordinate conversion failed",
       "unsupported-crs": "Unsupported coordinate system"

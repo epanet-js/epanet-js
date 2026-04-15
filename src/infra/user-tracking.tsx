@@ -1057,6 +1057,13 @@ export type UserEvent =
   | { name: "layerLabelVisibility.changed"; visible: boolean; type: string }
   | { name: "layer.removed"; type: string }
   | { name: "layerVisibility.changed"; visible: boolean; type: string }
+  | {
+      name: "customLayer.added";
+      type: "GEOJSON";
+      filesCount: number;
+      processedCount: number;
+      issues: string[];
+    }
   | { name: "customLayer.added"; type: string }
   | { name: "addCustomLayer.clicked" }
   | { name: "layerType.choosen"; type: string }

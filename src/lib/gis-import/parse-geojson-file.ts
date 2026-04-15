@@ -1,27 +1,13 @@
 import { FeatureCollection } from "geojson";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import type { Proj4Projection } from "src/lib/projections";
+import { GisParseError, type GisParseResult } from "./types";
 
-export type GisParseErrorCode =
-  | "invalid-format"
-  | "invalid-projection"
-  | "unsupported-crs"
-  | "projection-conversion-failed"
-  | "no-features";
-
-export class GisParseError extends Error {
-  constructor(
-    public readonly fileName: string,
-    public readonly code: GisParseErrorCode,
-  ) {
-    super(code);
-  }
-}
-
-export type GisParseResult = {
-  featureCollection: FeatureCollection;
-  name: string;
-};
+export {
+  GisParseError,
+  type GisParseErrorCode,
+  type GisParseResult,
+} from "./types";
 
 export async function parseGeoJsonFile(
   file: File,

@@ -1,7 +1,7 @@
 import { FeatureCollection } from "geojson";
 import shp from "shpjs";
 import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
-import { GisParseError, type GisParseResult } from "./parse-geojson-file";
+import { GisParseError, type GisParseResult } from "./types";
 
 function findByExtension(files: File[], ext: string): File | undefined {
   return files.find((f) => f.name.toLowerCase().endsWith(ext));
@@ -44,9 +44,9 @@ export async function parseShapefile(files: File[]): Promise<GisParseResult> {
   // When no .prj is provided, shpjs does not reproject. Reject if coordinates
   // are clearly not WGS84. (Note: features with null geometry will cause this
   // check to return false, so an all-null-geometry file without .prj will get
-  // unsupported-crs rather than no-features — acceptable edge case.)
+  // missing-projection rather than no-features — acceptable edge case.)
   if (!prjFile && !isLikelyLatLng(featureCollection)) {
-    throw new GisParseError(shpFile.name, "unsupported-crs");
+    throw new GisParseError(shpFile.name, "missing-projection");
   }
 
   const name = shpFile.name.replace(/\.shp$/i, "");
