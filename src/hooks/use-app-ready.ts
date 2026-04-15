@@ -1,9 +1,6 @@
 import { useAuth } from "src/hooks/use-auth";
 import { useLocale } from "src/hooks/use-locale";
-import {
-  useFeatureFlag,
-  useFeatureFlagsReady,
-} from "src/hooks/use-feature-flags";
+import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
 import { useEffect, useRef, useState } from "react";
 
 type LoadingStep = {
@@ -21,13 +18,7 @@ export const useAppReady = (): AppReadyState => {
   const { isLoaded: authLoaded } = useAuth();
   const { isI18nReady } = useLocale();
   const featureFlagsReady = useFeatureFlagsReady();
-  const isI18nCoordinatesOn = useFeatureFlag("FLAG_I18N_COORDINATES");
   const [progress, setProgress] = useState(0);
-  const hasI18nBeenReady = useRef(false);
-
-  if (isI18nReady) {
-    hasI18nBeenReady.current = true;
-  }
 
   const steps: LoadingStep[] = [
     {
@@ -40,7 +31,7 @@ export const useAppReady = (): AppReadyState => {
     },
     {
       id: "i18n",
-      isComplete: isI18nCoordinatesOn ? hasI18nBeenReady.current : isI18nReady,
+      isComplete: isI18nReady,
     },
   ];
 

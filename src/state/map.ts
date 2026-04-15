@@ -7,7 +7,8 @@ import {
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "src/types";
-import { DEFAULT_ZOOM } from "src/map/map-engine";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "src/map/map-engine";
+import type { InitialViewport } from "src/map/map-engine";
 import { basemaps } from "src/map/basemaps";
 import { showGridAtom } from "src/state/map-projection";
 import { memoryMetaAtom } from "src/state/map-symbology";
@@ -56,6 +57,11 @@ export const mapSyncMomentAtom = atom<MomentPointer>({
 export const mapLoadingAtom = atom<boolean>(false);
 
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
+
+export const mapViewportAtom = atom<InitialViewport>({
+  center: DEFAULT_CENTER,
+  zoom: DEFAULT_ZOOM,
+});
 
 const defaultLayerConfigs: ILayerConfig[] = [
   {

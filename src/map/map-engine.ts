@@ -18,6 +18,12 @@ import {
 } from "./custom-map-control";
 
 export const DEFAULT_ZOOM = 15.5;
+export const DEFAULT_CENTER: [number, number] = [-4.3800042, 55.914314];
+
+export type InitialViewport = {
+  center: [number, number];
+  zoom: number;
+};
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
@@ -49,14 +55,17 @@ export class MapEngine {
     element,
     handlers,
     onControlClick,
+    initialViewport,
   }: {
     element: HTMLDivElement;
     handlers: React.MutableRefObject<MapHandlers>;
     onControlClick: (event: CustomMapControlClick) => void;
+    initialViewport?: InitialViewport;
   }) {
     const defaultStart = {
-      center: [-4.3800042, 55.914314] as mapboxgl.LngLatLike,
-      zoom: DEFAULT_ZOOM,
+      center: (initialViewport?.center ??
+        DEFAULT_CENTER) as mapboxgl.LngLatLike,
+      zoom: initialViewport?.zoom ?? DEFAULT_ZOOM,
     };
 
     const map = new mapboxgl.Map({
