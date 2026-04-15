@@ -124,7 +124,6 @@ export class MapEngine {
   setStyle(style: Style): Promise<void> {
     return new Promise((resolve) => {
       this.map.once("style.load", () => {
-        void this.addIcons();
         resolve();
       });
 
@@ -248,6 +247,24 @@ export class MapEngine {
 
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
+  }
+
+  suspendOverlayStyleReactions() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (this.overlay as any)._handleStyleChange as
+      | (() => void)
+      | undefined;
+    if (handler) this.map.off("styledata", handler);
+  }
+
+  resumeOverlayStyleReactions() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (this.overlay as any)._handleStyleChange as
+      | (() => void)
+      | undefined;
+    if (handler) {
+      this.map.on("styledata", handler);
+    }
   }
 
   isStyleLoaded(): boolean {
