@@ -6,11 +6,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationAtom } from "src/state/simulation";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
-import {
-  simulationDerivedAtom,
-  simulationSettingsDerivedAtom,
-} from "src/state/derived-branch-state";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -46,7 +42,6 @@ import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
-import { formatCapitalize } from "src/lib/utils";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -143,10 +138,6 @@ const SymbologyEditor = ({
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
-
   const {
     linkSymbology,
     nodeSymbology,
@@ -182,18 +173,12 @@ const SymbologyEditor = ({
       if (p === "chemicalConcentration" && !isWaterChemicalOn) return false;
       return true;
     });
-    const chemicalName = formatCapitalize(
-      simulationSettings.qualityChemicalName || translate("chemical"),
-    );
     const options = (["none", ...visibleProperties] as SelectOption[]).map(
       (type) => {
         const unit =
           type !== "none" ? (units[type as keyof typeof units] ?? null) : null;
         const isSimProp = simulationProperties.includes(type);
-        const label =
-          type === "chemicalConcentration"
-            ? `${chemicalName} ${!!unit ? `(${translateUnit(unit)})` : ""}`
-            : `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
+        const label = `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
         return {
           value: type,
           label,
@@ -223,7 +208,6 @@ const SymbologyEditor = ({
     hasWaterAge,
     hasWaterTrace,
     hasChemical,
-    simulationSettings.qualityChemicalName,
   ]);
 
   const labelByOptions = useMemo(() => {

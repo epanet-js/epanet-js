@@ -1,19 +1,15 @@
 import { useCallback, useMemo, useRef } from "react";
-import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationAtom, simulationStepAtom } from "src/state/simulation";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
-import {
-  simulationDerivedAtom,
-  simulationSettingsDerivedAtom,
-} from "src/state/derived-branch-state";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import {
@@ -30,7 +26,6 @@ import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
-import { formatCapitalize } from "src/lib/utils";
 
 const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
@@ -134,9 +129,6 @@ const QuickGraphSection = ({
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
   const simulationStep = useAtomValue(simulationStepAtom);
   const worktree = useAtomValue(worktreeAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
@@ -209,9 +201,18 @@ const QuickGraphSection = ({
                 quantityKey: "waterTrace" as QuantityProperty,
               },
             ]
-          : baseOptions;
+          : qualityType === "chemical" && isWaterChemicalOn
+            ? [
+                ...baseOptions,
+                {
+                  value: "chemicalConcentration" as const,
+                  labelKey: "chemicalConcentration",
+                  quantityKey: "chemicalConcentration" as QuantityProperty,
+                },
+              ]
+            : baseOptions;
 
-    const mapped = options.map((opt) => {
+    return options.map((opt) => {
       const label = translate(opt.labelKey);
       let quantityKey = opt.quantityKey;
       if (assetType === "valve" && opt.value === "setting") {
@@ -223,21 +224,9 @@ const QuickGraphSection = ({
       const unit = units[quantityKey];
       return {
         value: opt.value,
-        label: unit ? `${label} (${unit})` : label,
+        label: unit ? `${label} (${translateUnit(unit)})` : label,
       };
     });
-
-    if (qualityType === "chemical" && isWaterChemicalOn) {
-      const name = formatCapitalize(
-        simulationSettings.qualityChemicalName || translate("chemical"),
-      );
-      mapped.push({
-        value: "chemicalConcentration" as const,
-        label: `${name} (${translateUnit(units.chemicalConcentration)})`,
-      });
-    }
-
-    return mapped;
   }, [
     assetType,
     assetId,
@@ -247,7 +236,6 @@ const QuickGraphSection = ({
     units,
     simulation,
     isWaterChemicalOn,
-    simulationSettings.qualityChemicalName,
   ]);
 
   const handlePropertyChange = useCallback(

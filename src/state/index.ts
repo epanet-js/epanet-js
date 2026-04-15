@@ -148,6 +148,10 @@ export {
 // Simulation settings
 export { simulationSettingsAtom } from "src/state/simulation-settings";
 
+// Translation overrides
+export type { TranslationOverride } from "src/state/translation-overrides";
+export { translationOverridesAtom } from "src/state/translation-overrides";
+
 // Store
 export type { Store } from "src/state/store";
 

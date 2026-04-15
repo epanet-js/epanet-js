@@ -21,22 +21,19 @@ import { AssetId } from "src/hydraulic-model";
 type ReadOnlyMultiValueRowProps = {
   propertyStats: AssetPropertyStats;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
-  labelOverride?: string;
 };
 
 export function ReadOnlyMultiValueRow({
   propertyStats,
   onSelectAssets,
-  labelOverride,
 }: ReadOnlyMultiValueRowProps) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
   const label =
-    labelOverride ??
-    (propertyStats.type === "quantity" && propertyStats.unit
+    propertyStats.type === "quantity" && propertyStats.unit
       ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
-      : translate(propertyStats.property));
+      : translate(propertyStats.property);
 
   const hasMultipleValues = propertyStats.values.size > 1;
   const isBooleanField = propertyStats.type === "boolean";

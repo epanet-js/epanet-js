@@ -182,13 +182,10 @@ export const symbologyBuilders: SymbologyBuilders = {
     };
   },
 
-  chemicalConcentration: (
-    _units,
-    sortedData,
-  ): NodeSymbology & LinkSymbology => {
+  chemicalConcentration: (units, sortedData): NodeSymbology & LinkSymbology => {
     const colorRule = initializeColorRule({
       property: "chemicalConcentration",
-      unit: null,
+      unit: units.chemicalConcentration,
       ...defaults.chemicalConcentration,
       sortedData,
     });

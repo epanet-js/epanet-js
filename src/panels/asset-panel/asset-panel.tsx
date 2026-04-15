@@ -113,7 +113,7 @@ import {
   getCurveBounds,
 } from "src/hydraulic-model/curves";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
-import { formatCapitalize } from "src/lib/utils";
+import { Unit } from "src/quantity";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -394,15 +394,6 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
     getComparison,
@@ -589,13 +580,8 @@ const JunctionEditor = ({
           )}
           <QuantityRow
             name="initialChemicalConcentration"
-            displayName={translate(
-              "initialChemicalConcentration",
-              chemicalName,
-              chemicalUnit,
-            )}
             value={junction.initialChemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             comparison={getComparison(
               "initialChemicalConcentration",
               junction.initialChemicalConcentration,
@@ -609,7 +595,7 @@ const JunctionEditor = ({
             patterns={hydraulicModel.patterns}
             onPropertyChange={onPropertyChange}
             onBatchPropertyChange={onBatchPropertyChange}
-            chemicalUnit={chemicalUnit}
+            unit={units.chemicalConcentration}
             readOnly={readonly}
           />
         </SectionWrapper>
@@ -655,9 +641,8 @@ const JunctionEditor = ({
         {junctionSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={junctionSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -701,11 +686,6 @@ const PipeEditor = ({
   const simulationSettings = useAtomValue(
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
     getComparison,
@@ -969,9 +949,8 @@ const PipeEditor = ({
         {pipeSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={pipeSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -1000,15 +979,6 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
     useAssetComparison(reservoir);
@@ -1108,13 +1078,8 @@ const ReservoirEditor = ({
           )}
           <QuantityRow
             name="initialChemicalConcentration"
-            displayName={translate(
-              "initialChemicalConcentration",
-              chemicalName,
-              chemicalUnit,
-            )}
             value={reservoir.initialChemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             comparison={getComparison(
               "initialChemicalConcentration",
               reservoir.initialChemicalConcentration,
@@ -1128,7 +1093,7 @@ const ReservoirEditor = ({
             patterns={hydraulicModel.patterns}
             onPropertyChange={onPropertyChange}
             onBatchPropertyChange={onBatchPropertyChange}
-            chemicalUnit={chemicalUnit}
+            unit={units.chemicalConcentration}
             readOnly={readonly}
           />
         </SectionWrapper>
@@ -1174,9 +1139,8 @@ const ReservoirEditor = ({
         {reservoirSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={reservoirSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -1209,11 +1173,6 @@ const TankEditor = ({
   const simulationSettings = useAtomValue(
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
   const simulation = useSimulation();
@@ -1366,13 +1325,8 @@ const TankEditor = ({
           )}
           <QuantityRow
             name="initialChemicalConcentration"
-            displayName={translate(
-              "initialChemicalConcentration",
-              chemicalName,
-              chemicalUnit,
-            )}
             value={tank.initialChemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             comparison={getComparison(
               "initialChemicalConcentration",
               tank.initialChemicalConcentration,
@@ -1398,7 +1352,7 @@ const TankEditor = ({
             patterns={hydraulicModel.patterns}
             onPropertyChange={onPropertyChange}
             onBatchPropertyChange={onBatchPropertyChange}
-            chemicalUnit={chemicalUnit}
+            unit={units.chemicalConcentration}
             readOnly={readonly}
           />
           <SelectRow
@@ -1475,9 +1429,8 @@ const TankEditor = ({
         {tankSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={tankSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -1972,15 +1925,6 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2192,9 +2136,8 @@ const ValveEditor = ({
         {valveSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={valveSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -2237,11 +2180,6 @@ const PumpEditor = ({
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
   const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-  const chemicalName = formatCapitalize(
-    simulationSettings.qualityChemicalName || translate("chemical"),
-  );
-  const chemicalUnit = translateUnit(units.chemicalConcentration);
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
     getComparison,
@@ -2438,9 +2376,8 @@ const PumpEditor = ({
         {pumpSimulation?.chemicalConcentration != null && (
           <QuantityRow
             name="chemicalConcentration"
-            displayName={`${chemicalName} (${chemicalUnit})`}
             value={pumpSimulation.chemicalConcentration}
-            unit={null}
+            unit={units.chemicalConcentration}
             readOnly={true}
           />
         )}
@@ -2746,25 +2683,26 @@ const ChemicalSourceEditor = ({
   patterns,
   onPropertyChange,
   onBatchPropertyChange,
-  chemicalUnit,
+  unit,
   readOnly = false,
 }: {
   node: NodeAsset;
   patterns: Patterns;
   onPropertyChange: OnPropertyChange;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
-  chemicalUnit: string;
+  unit: Unit;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const showPatternsLibrary = useShowPatternsLibrary();
   const { getComparison, getPatternComparison } = useAssetComparison(node);
   const typedNode = node as Junction | Tank | Reservoir;
 
   const strengthUnit =
     typedNode.chemicalSourceType === "MASS"
-      ? `${chemicalUnit}/min`
-      : chemicalUnit;
+      ? `${translateUnit(unit)}/min`
+      : translateUnit(unit);
 
   const translatedSourceTypeOptions = useMemo(
     () => [

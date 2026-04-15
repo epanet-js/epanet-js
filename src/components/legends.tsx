@@ -10,36 +10,10 @@ import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import clsx from "clsx";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
-import { formatCapitalize } from "src/lib/utils";
-import { projectSettingsAtom } from "src/state/project-settings";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const linkSymbology = useAtomValue(linkSymbologyAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const translate = useTranslate();
-  const translateUnit = useTranslateUnit();
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
-  const { units } = useAtomValue(projectSettingsAtom);
-
-  const chemicalTitleOverride =
-    isWaterChemicalOn &&
-    (nodeSymbology.colorRule?.property === "chemicalConcentration" ||
-      linkSymbology.colorRule?.property === "chemicalConcentration")
-      ? translate(
-          "chemicalConcentration",
-          formatCapitalize(
-            simulationSettings.qualityChemicalName || translate("chemical"),
-          ),
-          translateUnit(units.chemicalConcentration),
-        )
-      : undefined;
 
   const isSmOrLarger = useBreakpoint("sm");
   if (!isSmOrLarger) return null;
@@ -47,46 +21,24 @@ export const Legends = () => {
   return (
     <div className="space-y-1 absolute top-10 left-3 w-48">
       {!!nodeSymbology.colorRule && (
-        <Legend
-          symbology={nodeSymbology.colorRule}
-          titleOverride={
-            nodeSymbology.colorRule.property === "chemicalConcentration"
-              ? chemicalTitleOverride
-              : undefined
-          }
-        />
+        <Legend symbology={nodeSymbology.colorRule} />
       )}
       {!!linkSymbology.colorRule && (
-        <Legend
-          symbology={linkSymbology.colorRule}
-          titleOverride={
-            linkSymbology.colorRule.property === "chemicalConcentration"
-              ? chemicalTitleOverride
-              : undefined
-          }
-        />
+        <Legend symbology={linkSymbology.colorRule} />
       )}
     </div>
   );
 };
 
-const Legend = ({
-  symbology,
-  titleOverride,
-}: {
-  symbology: RangeColorRule;
-  titleOverride?: string;
-}) => {
+const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
   const { property, unit } = symbology;
 
-  const title =
-    titleOverride ??
-    (unit
-      ? `${translate(property)} (${translateUnit(unit)})`
-      : translate(property));
+  const title = unit
+    ? `${translate(property)} (${translateUnit(unit)})`
+    : translate(property);
 
   const isSmOrLarger = useBreakpoint("sm");
 
