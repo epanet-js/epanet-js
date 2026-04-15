@@ -56,6 +56,8 @@ import {
   parseGeoJsonFile,
   GisParseError,
 } from "src/lib/gis-import/parse-geojson-file";
+import { groupShapefileBundles } from "src/lib/gis-import/group-shapefile-bundles";
+import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { gisDataAtom } from "src/state/gis-data";
 import { ColorPopover } from "src/components/color-popover";
 import { NumericField } from "src/components/form/numeric-field";
@@ -486,9 +488,11 @@ export function AddLayer() {
     setGisLoading(true);
 
     const items = [...layerConfigs.values()];
-    const settled = await Promise.allSettled(
-      files.map((file) => parseGeoJsonFile(file, projections)),
-    );
+    const { shapefileBundles, geojsonFiles } = groupShapefileBundles(files);
+    const settled = await Promise.allSettled([
+      ...geojsonFiles.map((file) => parseGeoJsonFile(file, projections)),
+      ...shapefileBundles.map((bundle) => parseShapefile(bundle.files)),
+    ]);
 
     setGisLoading(false);
 
@@ -701,7 +705,7 @@ export function AddLayer() {
       <input
         ref={gisFileInputRef}
         type="file"
-        accept=".geojson,.json"
+        accept=".geojson,.json,.shp,.dbf,.prj,.shx,.cpg"
         multiple
         className="hidden"
         onChange={(e) => void handleGisFileChange(e)}
