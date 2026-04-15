@@ -124,12 +124,24 @@ export const clearSymbologyForPropertyAtom = atom(
   null,
   (_get, set, property: SupportedProperty) => {
     set(nodeSymbologyAtom, (prev) => {
-      if (prev.colorRule?.property !== property) return prev;
-      return { ...nullSymbologySpec.node, defaults: prev.defaults };
+      if (prev.colorRule?.property !== property && prev.labelRule !== property)
+        return prev;
+      return {
+        ...prev,
+        colorRule:
+          prev.colorRule?.property === property ? null : prev.colorRule,
+        labelRule: prev.labelRule === property ? null : prev.labelRule,
+      };
     });
     set(linkSymbologyAtom, (prev) => {
-      if (prev.colorRule?.property !== property) return prev;
-      return { ...nullSymbologySpec.link, defaults: prev.defaults };
+      if (prev.colorRule?.property !== property && prev.labelRule !== property)
+        return prev;
+      return {
+        ...prev,
+        colorRule:
+          prev.colorRule?.property === property ? null : prev.colorRule,
+        labelRule: prev.labelRule === property ? null : prev.labelRule,
+      };
     });
     set(savedSymbologiesAtom, (prev) => {
       if (!prev.has(property)) return prev;

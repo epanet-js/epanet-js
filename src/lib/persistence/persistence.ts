@@ -124,7 +124,13 @@ export class Persistence implements IPersistenceWithSnapshots {
         ...nullData,
         folderMap: new Map(),
       });
-      this.store.set(projectSettingsAtom, projectSettings);
+      this.store.set(projectSettingsAtom, {
+        ...projectSettings,
+        units: {
+          ...projectSettings.units,
+          chemicalConcentration: simulationSettings.qualityMassUnit,
+        },
+      });
       this.store.set(momentLogAtom, momentLog);
       this.store.set(mapSyncMomentAtom, { pointer: -1, version: 0 });
       this.store.set(simulationAtom, initialSimulationState);

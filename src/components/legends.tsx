@@ -14,6 +14,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { formatCapitalize } from "src/lib/utils";
+import { projectSettingsAtom } from "src/state/project-settings";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
@@ -25,6 +26,7 @@ export const Legends = () => {
   const simulationSettings = useAtomValue(
     isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
   );
+  const { units } = useAtomValue(projectSettingsAtom);
 
   const chemicalTitleOverride =
     isWaterChemicalOn &&
@@ -35,7 +37,7 @@ export const Legends = () => {
           formatCapitalize(
             simulationSettings.qualityChemicalName || translate("chemical"),
           ),
-          translateUnit(simulationSettings.qualityMassUnit ?? null),
+          translateUnit(units.chemicalConcentration),
         )
       : undefined;
 

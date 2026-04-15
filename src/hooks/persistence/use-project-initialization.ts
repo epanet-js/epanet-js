@@ -81,7 +81,13 @@ const loadModel = (
   set(stagingModelAtom, hydraulicModel);
   set(baseModelAtom, hydraulicModel);
   set(modelFactoriesAtom, factories);
-  set(projectSettingsAtom, projectSettings);
+  set(projectSettingsAtom, {
+    ...projectSettings,
+    units: {
+      ...projectSettings.units,
+      chemicalConcentration: simulationSettings.qualityMassUnit,
+    },
+  });
   set(momentLogAtom, momentLog);
   set(simulationSettingsAtom, simulationSettings);
   if (autoElevations !== undefined) {

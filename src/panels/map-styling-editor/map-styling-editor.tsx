@@ -185,9 +185,6 @@ const SymbologyEditor = ({
     const chemicalName = formatCapitalize(
       simulationSettings.qualityChemicalName || translate("chemical"),
     );
-    const chemicalUnit = translateUnit(
-      simulationSettings.qualityMassUnit ?? null,
-    );
     const options = (["none", ...visibleProperties] as SelectOption[]).map(
       (type) => {
         const unit =
@@ -195,7 +192,7 @@ const SymbologyEditor = ({
         const isSimProp = simulationProperties.includes(type);
         const label =
           type === "chemicalConcentration"
-            ? `${chemicalName} (${chemicalUnit})`
+            ? `${chemicalName} ${!!unit ? `(${translateUnit(unit)})` : ""}`
             : `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
         return {
           value: type,
@@ -227,7 +224,6 @@ const SymbologyEditor = ({
     hasWaterTrace,
     hasChemical,
     simulationSettings.qualityChemicalName,
-    simulationSettings.qualityMassUnit,
   ]);
 
   const labelByOptions = useMemo(() => {
