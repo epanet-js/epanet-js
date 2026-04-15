@@ -72,6 +72,15 @@ const QUICK_GRAPH_PROPERTIES: {
   ],
 };
 
+const QUALITY_OPTIONS: {
+  value: string;
+  quantityKey: QuantityProperty;
+}[] = [
+  { value: "waterAge", quantityKey: "waterAge" },
+  { value: "waterTrace", quantityKey: "waterTrace" },
+  { value: "chemicalConcentration", quantityKey: "chemicalConcentration" },
+];
+
 export const useShowQuickGraph = () => {
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const simulation = useAtomValue(
@@ -145,9 +154,14 @@ const QuickGraphSection = ({
   const baseLabel = isInScenario ? translate("scenarios.main") : null;
 
   const selectedProperty = propertyByType[assetType];
-  const selectedOption = QUICK_GRAPH_PROPERTIES[assetType].find(
-    (opt) => opt.value === selectedProperty,
-  );
+  const selectedOption =
+    QUICK_GRAPH_PROPERTIES[assetType].find(
+      (opt) => opt.value === selectedProperty,
+    ) ??
+    QUALITY_OPTIONS.find(
+      (opt: { value: string; quantityKey: QuantityProperty }) =>
+        opt.value === selectedProperty,
+    );
   const decimals = useMemo(() => {
     if (!selectedOption) return 0;
     let quantityKey = selectedOption.quantityKey;
