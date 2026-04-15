@@ -205,6 +205,7 @@ vi.mock("../../map-engine", () => {
   return {
     MapEngine: MapTestEngine,
     DEFAULT_ZOOM: 15.5,
+    DEFAULT_CENTER: [-4.3800042, 55.914314],
   };
 });
 
