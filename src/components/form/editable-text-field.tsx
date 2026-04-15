@@ -32,6 +32,7 @@ export const EditableTextField = ({
   onReset,
   hasError = false,
   allowEmpty = false,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -46,6 +47,7 @@ export const EditableTextField = ({
   onReset?: () => void;
   hasError?: boolean;
   allowEmpty?: boolean;
+  placeholder?: string;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -157,6 +159,7 @@ export const EditableTextField = ({
       onBlur={handleBlur}
       ref={inputRef}
       value={inputValue}
+      placeholder={placeholder}
       onFocus={handleFocus}
       tabIndex={tabIndex}
       className={styledInput({

@@ -714,6 +714,7 @@
     "qualityTypeNotSupported": "Not supported.",
     "qualityChemicalName": "Chemical name",
     "qualityChemicalNameDesc": "Enter the actual name of the chemical being modeled (e.g., Chlorine).",
+    "qualityDefaultChemical": "Chemical",
     "qualityMassUnit": "Mass unit",
     "qualityMassUnitDesc": "Mass units used to express concentration. Choices are mg/L or ug/L. Units for Age and Trace analyses are fixed at hours and percent, respectively.",
     "qualityTraceNode": "Trace node",

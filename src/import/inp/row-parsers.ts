@@ -792,7 +792,8 @@ export const parseOption: RowParser = ({
         .replace(/^\s*QUALITY\s+/i, "")
         .trim();
       const parts = rawValue.split(/\s+/);
-      if (parts[0]) inpData.options.qualityChemicalName = parts[0];
+      if (parts[0] && parts[0].toLowerCase() !== "chemical")
+        inpData.options.qualityChemicalName = parts[0];
       if (parts[1]) {
         const unit = parts[1].toLowerCase();
         inpData.options.qualityMassUnit = unit === "ug/l" ? "ug/L" : "mg/L";

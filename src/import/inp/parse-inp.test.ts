@@ -922,6 +922,31 @@ describe("water quality options", () => {
     expect(simulationSettings.qualityMassUnit).toEqual("mg/L");
   });
 
+  it("parses QUALITY CHEMICAL keyword as empty chemical name", () => {
+    const inp = `
+      [OPTIONS]
+      Quality\tCHEMICAL mg/L
+      `;
+
+    const { simulationSettings } = parseInp(inp);
+
+    expect(simulationSettings.qualitySimulationType).toEqual("chemical");
+    expect(simulationSettings.qualityChemicalName).toEqual("");
+    expect(simulationSettings.qualityMassUnit).toEqual("mg/L");
+  });
+
+  it("parses QUALITY chemical keyword case-insensitively as empty chemical name", () => {
+    const inp = `
+      [OPTIONS]
+      Quality\tchemical mg/L
+      `;
+
+    const { simulationSettings } = parseInp(inp);
+
+    expect(simulationSettings.qualitySimulationType).toEqual("chemical");
+    expect(simulationSettings.qualityChemicalName).toEqual("");
+  });
+
   it("parses QUALITY CHEMICAL with ug/L unit", () => {
     const inp = `
       [OPTIONS]
