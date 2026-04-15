@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useState } from "react";
 import { VirtualizedSearchableSelector } from "src/components/form/virtualized-searchable-selector";
 import { SearchIcon } from "src/icons";
@@ -8,8 +9,10 @@ import { Asset, AssetId } from "src/hydraulic-model";
 import { LabelType } from "src/hydraulic-model/label-manager";
 import { USelection } from "src/selection";
 import { useSelection } from "src/selection/use-selection";
+import { customerPointsAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
+import { BBox } from "src/types";
 
 type SearchOption = {
   id: string;
@@ -43,6 +46,7 @@ const typeLabel = (type: Asset["type"]): string => {
 export const AssetSearch = () => {
   const translate = useTranslate();
   const { labelManager } = useAtomValue(modelFactoriesAtom);
+  const customerPoints = useAtomValue(customerPointsAtom);
   const selection = useAtomValue(selectionAtom);
   const { selectAsset, selectCustomerPoint } = useSelection(selection);
   const zoomTo = useZoomTo();
@@ -85,8 +89,12 @@ export const AssetSearch = () => {
       selectAsset(option.data.rawId);
       zoomTo(USelection.single(option.data.rawId), 18);
     } else {
+      const customerPoint = customerPoints.get(option.data.rawId);
       selectCustomerPoint(option.data.rawId);
-      zoomTo(USelection.singleCustomerPoint(option.data.rawId), 18);
+      if (customerPoint) {
+        const [lng, lat] = customerPoint.coordinates;
+        zoomTo(Maybe.of([lng, lat, lng, lat] as BBox), 18);
+      }
     }
     setResetKey((k) => k + 1);
   };

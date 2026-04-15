@@ -4,6 +4,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
+import { Maybe } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { stubFeatureOff } from "src/__helpers__/feature-flags";
@@ -87,9 +88,20 @@ describe("AssetSearch", () => {
 
   it("selects a customer point and zooms to it on click", async () => {
     const user = userEvent.setup();
-    const { store } = setupWithLabels([
-      { label: "CP7", type: "customerPoint", id: 42 },
-    ]);
+    const labelManager = new LabelManager();
+    labelManager.register("CP7", "customerPoint", 42);
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+      .aCustomerPoint(42, { label: "CP7", coordinates: [10, 20] })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+    store.set(
+      modelFactoriesAtom,
+      initializeModelFactories({
+        idGenerator: new ConsecutiveIdsGenerator(),
+        labelManager,
+        defaults: presets.LPS.defaults,
+      }),
+    );
 
     renderComponent(store);
 
@@ -101,10 +113,7 @@ describe("AssetSearch", () => {
       type: "singleCustomerPoint",
       id: 42,
     });
-    expect(zoomToMock).toHaveBeenCalledWith(
-      { type: "singleCustomerPoint", id: 42 },
-      18,
-    );
+    expect(zoomToMock).toHaveBeenCalledWith(Maybe.of([10, 20, 10, 20]), 18);
   });
 
   it("clears the input after a selection is committed", async () => {
