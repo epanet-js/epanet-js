@@ -400,4 +400,55 @@ describe("label manager", () => {
       expect(manager.generateFor("pipe", anId())).toEqual("P10");
     });
   });
+
+  describe("search", () => {
+    it("returns empty for empty query", () => {
+      const manager = new LabelManager();
+      manager.register("P1", "pipe", anId());
+      expect(manager.search("")).toEqual([]);
+    });
+
+    it("matches case-insensitively across types", () => {
+      const manager = new LabelManager();
+      const p1 = anId();
+      const p12 = anId();
+      const j3 = anId();
+      const cp7 = anId();
+      manager.register("P1", "pipe", p1);
+      manager.register("P12", "pipe", p12);
+      manager.register("J3", "junction", j3);
+      manager.register("CP7", "customerPoint", cp7);
+
+      const results = manager.search("p1");
+      const labels = results.map((r) => r.label).sort();
+      expect(labels).toEqual(["P1", "P12"]);
+    });
+
+    it("includes substring matches after prefix matches", () => {
+      const manager = new LabelManager();
+      manager.register("AP1", "pipe", anId());
+      manager.register("P1", "pipe", anId());
+
+      const results = manager.search("P1");
+      expect(results.map((r) => r.label)).toEqual(["P1", "AP1"]);
+    });
+
+    it("honors the limit", () => {
+      const manager = new LabelManager();
+      for (let i = 1; i <= 10; i++) {
+        manager.register(`P${i}`, "pipe", anId());
+      }
+      expect(manager.search("P", 3)).toHaveLength(3);
+    });
+
+    it("returns entries with id and type", () => {
+      const manager = new LabelManager();
+      const id = anId();
+      manager.register("J5", "junction", id);
+
+      expect(manager.search("J5")).toEqual([
+        { label: "J5", type: "junction", id },
+      ]);
+    });
+  });
 });

@@ -1,4 +1,7 @@
 {
+  "assetSearch": {
+    "placeholder": "Search assets..."
+  },
   "dropZone": {
     "defaultText": "Drop files here or click to browse",
     "activeText": "Drop your file here",

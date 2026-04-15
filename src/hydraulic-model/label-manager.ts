@@ -71,6 +71,38 @@ export class LabelManager {
     });
   }
 
+  search(
+    query: string,
+    limit = 200,
+  ): Array<{ label: string; type: LabelType; id: number }> {
+    const normalizedQuery = this.normalizeLabel(query);
+    if (normalizedQuery.length === 0) return [];
+
+    const prefixMatches: Array<{
+      label: string;
+      type: LabelType;
+      id: number;
+    }> = [];
+    const substringMatches: Array<{
+      label: string;
+      type: LabelType;
+      id: number;
+    }> = [];
+
+    for (const [label, entries] of this.labelToEntries) {
+      const matchIndex = label.indexOf(normalizedQuery);
+      if (matchIndex === -1) continue;
+      const bucket = matchIndex === 0 ? prefixMatches : substringMatches;
+      for (const entry of entries) {
+        bucket.push({ label, type: entry.type, id: entry.id });
+        if (prefixMatches.length + substringMatches.length >= limit) break;
+      }
+      if (prefixMatches.length + substringMatches.length >= limit) break;
+    }
+
+    return [...prefixMatches, ...substringMatches].slice(0, limit);
+  }
+
   getIdByLabel(label: string, type: LabelType): number | undefined {
     const normalizedLabel = this.normalizeLabel(label);
     const entries = this.labelToEntries.get(normalizedLabel) || [];

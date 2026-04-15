@@ -44,6 +44,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
+import { AssetSearch } from "./asset-search";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -71,6 +72,7 @@ export const Toolbar = ({
   const { undo, redo } = useHistoryControl();
 
   const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
+  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
   const simulation = useAtomValue(
     isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
   );
@@ -202,7 +204,8 @@ export const Toolbar = ({
         <Divider />
         <OperationalDataDropdown />
       </div>
-      <div className="flex flex-row items-center justify-end">
+      <div className="flex flex-row items-center justify-end gap-2">
+        {isSmOrLarger && isAssetSearchOn && <AssetSearch />}
         {isSmOrLarger && <LayoutActions />}
       </div>
     </div>

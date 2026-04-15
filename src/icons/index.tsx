@@ -67,6 +67,7 @@ import {
   RouteOff,
   Save,
   SaveAll,
+  Search,
   Settings,
   SquareDashed,
   SquareStack,
@@ -153,6 +154,7 @@ export const ActivateTopologyIcon = icon(Route);
 export const DeactivateTopologyIcon = icon(RouteOff);
 export const GlobeIcon = icon(Globe);
 export const SettingsIcon = icon(Settings);
+export const SearchIcon = icon(Search);
 export const UpgradeIcon = icon(Rocket);
 export const CircleIcon = icon(Circle);
 export const MenuIcon = icon(Menu);

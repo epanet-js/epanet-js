@@ -1,0 +1,114 @@
+import { useAtomValue } from "jotai";
+import { useCallback, useState } from "react";
+import { VirtualizedSearchableSelector } from "src/components/form/virtualized-searchable-selector";
+import { SearchIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
+import { useZoomTo } from "src/hooks/use-zoom-to";
+import { Asset, AssetId } from "src/hydraulic-model";
+import { LabelType } from "src/hydraulic-model/label-manager";
+import { USelection } from "src/selection";
+import { useSelection } from "src/selection/use-selection";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { selectionAtom } from "src/state/selection";
+
+type SearchOption = {
+  id: string;
+  label: string;
+  data:
+    | { kind: "asset"; rawId: AssetId; type: Asset["type"] }
+    | { kind: "customerPoint"; rawId: number };
+};
+
+const searchableAssetTypes: ReadonlySet<LabelType> = new Set<LabelType>([
+  "pipe",
+  "junction",
+  "reservoir",
+  "tank",
+  "pump",
+  "valve",
+]);
+
+const typeLabel = (type: Asset["type"]): string => {
+  const prefixes: Record<Asset["type"], string> = {
+    pipe: "Pipe",
+    junction: "Junction",
+    reservoir: "Reservoir",
+    tank: "Tank",
+    pump: "Pump",
+    valve: "Valve",
+  };
+  return prefixes[type];
+};
+
+export const AssetSearch = () => {
+  const translate = useTranslate();
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
+  const selection = useAtomValue(selectionAtom);
+  const { selectAsset, selectCustomerPoint } = useSelection(selection);
+  const zoomTo = useZoomTo();
+  const [resetKey, setResetKey] = useState(0);
+
+  const onSearch = useCallback(
+    (query: string): Promise<SearchOption[]> => {
+      const options = labelManager
+        .search(query, 200)
+        .filter(
+          (entry) =>
+            entry.type === "customerPoint" ||
+            searchableAssetTypes.has(entry.type),
+        )
+        .map((entry): SearchOption => {
+          if (entry.type === "customerPoint") {
+            return {
+              id: `c:${entry.id}`,
+              label: entry.label,
+              data: { kind: "customerPoint", rawId: entry.id },
+            };
+          }
+          return {
+            id: `a:${entry.id}`,
+            label: entry.label,
+            data: {
+              kind: "asset",
+              rawId: entry.id,
+              type: entry.type as Asset["type"],
+            },
+          };
+        });
+      return Promise.resolve(options);
+    },
+    [labelManager],
+  );
+
+  const onChange = (option: SearchOption) => {
+    if (option.data.kind === "asset") {
+      selectAsset(option.data.rawId);
+      zoomTo(USelection.single(option.data.rawId), 18);
+    } else {
+      selectCustomerPoint(option.data.rawId);
+      zoomTo(USelection.singleCustomerPoint(option.data.rawId), 18);
+    }
+    setResetKey((k) => k + 1);
+  };
+
+  return (
+    <VirtualizedSearchableSelector<SearchOption>
+      key={resetKey}
+      onChange={onChange}
+      onSearch={onSearch}
+      placeholder={translate("assetSearch.placeholder")}
+      leadingIcon={<SearchIcon size="sm" />}
+      renderOption={(option) => (
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate">{option.label}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+            {option.data.kind === "asset"
+              ? typeLabel(option.data.type)
+              : "Customer Point"}
+          </span>
+        </span>
+      )}
+      wrapperClassName="w-56"
+    />
+  );
+};
