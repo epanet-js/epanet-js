@@ -1062,6 +1062,7 @@ export type UserEvent =
       type: "GEOJSON";
       filesCount: number;
       processedCount: number;
+      featureCount: number;
       issues: string[];
     }
   | { name: "customLayer.added"; type: string }

@@ -537,6 +537,7 @@ export function AddLayer() {
       type: "GEOJSON",
       filesCount: settled.length,
       processedCount: successes.length,
+      featureCount: mergedFeatures.length,
       issues: [...new Set(failures.map((f) => f.error))],
     });
     applyChanges({
