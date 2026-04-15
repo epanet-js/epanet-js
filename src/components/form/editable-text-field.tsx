@@ -31,6 +31,7 @@ export const EditableTextField = ({
   onDirty,
   onReset,
   hasError = false,
+  allowEmpty = false,
 }: {
   label: string;
   value: string;
@@ -44,6 +45,7 @@ export const EditableTextField = ({
   onDirty?: () => void;
   onReset?: () => void;
   hasError?: boolean;
+  allowEmpty?: boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(value);
@@ -95,7 +97,7 @@ export const EditableTextField = ({
       return;
     }
     const trimmedValue = inputValue.trim();
-    if (trimmedValue && trimmedValue !== value) {
+    if ((allowEmpty || trimmedValue) && trimmedValue !== value) {
       const hasValidationError = onChangeValue?.(trimmedValue);
       if (hasValidationError) {
         return;
