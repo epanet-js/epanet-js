@@ -8,7 +8,7 @@ const postcss = require("postcss");
 
 module.exports = {
   jit: "enable",
-  content: ["./{components,src,pages}/**/*.{js,ts,jsx,tsx}"],
+  content: ["./{app,components,src,pages}/**/*.{js,ts,jsx,tsx}"],
   darkMode: "class",
   theme: {
     data: {
