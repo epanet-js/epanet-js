@@ -193,6 +193,17 @@ export const MapCanvas = memo(function MapCanvas({
     };
   }, [mapRef, mapDivRef, setMap, onControlClick, readViewport]);
 
+  // Resize the map whenever its container changes size (e.g. sidebar collapse)
+  useEffect(() => {
+    const el = mapDivRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.safeResize();
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
   const handlerContext: HandlerContext = {

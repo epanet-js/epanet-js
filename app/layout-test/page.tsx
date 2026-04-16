@@ -8,11 +8,16 @@ import {
   memo,
   startTransition,
 } from "react";
+import { useAtomValue } from "jotai";
 import { LayoutTestProviders } from "./providers";
 import FeatureEditor from "src/panels/feature-editor";
 import { MapStylingEditor } from "src/panels/map-styling-editor";
 import { AssetsTable } from "src/components/bottom-sidebar/assets-table";
 import { NetworkReview } from "src/panels/network-review";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import { useQuickGraph } from "src/panels/asset-panel/quick-graph";
+import type { QuickGraphAssetType } from "src/state/quick-graph";
+import type { Asset } from "src/hydraulic-model/asset-types";
 import { MenuBarPlay } from "src/components/menu-bar";
 import { Toolbar } from "src/toolbar/toolbar";
 import { Footer } from "src/components/footer/footer";
@@ -26,7 +31,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
-  pointerWithin,
+  closestCenter,
   useSensor,
   useSensors,
   useDroppable,
@@ -34,6 +39,13 @@ import {
   Active,
   Over,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,7 +55,13 @@ type DropEdge = "top" | "bottom" | "left" | "right";
 
 type LayoutNode =
   | { type: "panel"; panelId: string }
-  | { type: "split"; direction: "row" | "col"; children: LayoutNode[] };
+  | {
+      type: "split";
+      id: string;
+      direction: "row" | "col";
+      children: LayoutNode[];
+      sizes: number[];
+    };
 
 interface Panel {
   id: string;
@@ -53,6 +71,57 @@ interface Panel {
 }
 
 type PanelLayout = Record<string, Zone>;
+
+// ─── Alpha Panel (Quick Graph) ───────────────────────────────────────────────
+
+const QUICK_GRAPH_TYPES = new Set<string>([
+  "junction",
+  "pipe",
+  "pump",
+  "valve",
+  "tank",
+  "reservoir",
+]);
+
+function AlphaGraphContent({
+  assetId,
+  assetType,
+}: {
+  assetId: number;
+  assetType: QuickGraphAssetType;
+}) {
+  const { footer } = useQuickGraph(assetId, assetType);
+  if (!footer) {
+    return (
+      <div className="h-full flex items-center justify-center text-xs text-gray-400">
+        Run a simulation to view the time series graph
+      </div>
+    );
+  }
+  return <div className="h-full flex flex-col overflow-hidden">{footer}</div>;
+}
+
+function AlphaPanel() {
+  const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const asset =
+    selectedFeatures.length === 1 ? (selectedFeatures[0] as Asset) : null;
+  const validAsset = asset && QUICK_GRAPH_TYPES.has(asset.type) ? asset : null;
+
+  if (!validAsset) {
+    return (
+      <div className="h-full flex items-center justify-center text-xs text-gray-400">
+        Select an asset to view the time series graph
+      </div>
+    );
+  }
+
+  return (
+    <AlphaGraphContent
+      assetId={validAsset.id}
+      assetType={validAsset.type as QuickGraphAssetType}
+    />
+  );
+}
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +149,7 @@ const PANELS: Panel[] = [
     title: "Alpha",
     description:
       "Overview of network topology and active node connections across the current simulation run.",
+    component: AlphaPanel,
   },
   {
     id: "network-review",
@@ -137,6 +207,10 @@ const INITIAL_LAYOUT: PanelLayout = {
   hotel: "center",
 };
 
+// Zone droppable ids — everything else is a panel-level droppable
+// Zone droppable ids — used to distinguish zone drops from panel-id drops
+const ZONE_IDS = new Set(["left", "right", "center", "bottom"]);
+
 const ZONE_LABELS: Record<Zone, string> = {
   left: "Left",
   center: "Center",
@@ -146,24 +220,54 @@ const ZONE_LABELS: Record<Zone, string> = {
 
 // ─── Layout Tree Helpers ──────────────────────────────────────────────────────
 
+let _splitSeq = 0;
+const nextSplitId = () => `sp${++_splitSeq}`;
+
+function equalSizes(n: number): number[] {
+  return Array.from({ length: n }, () => 100 / n);
+}
+
+function makeSplit(
+  direction: "row" | "col",
+  children: LayoutNode[],
+): LayoutNode {
+  return {
+    type: "split",
+    id: nextSplitId(),
+    direction,
+    children,
+    sizes: equalSizes(children.length),
+  };
+}
+
 function buildInitialTree(panelIds: string[]): LayoutNode | null {
   if (panelIds.length === 0) return null;
   if (panelIds.length === 1) return { type: "panel", panelId: panelIds[0] };
-  return {
-    type: "split",
-    direction: "row",
-    children: panelIds.map((id) => ({ type: "panel", panelId: id })),
-  };
+  return makeSplit(
+    "row",
+    panelIds.map((id) => ({ type: "panel", panelId: id })),
+  );
 }
 
 function removeFromTree(node: LayoutNode, panelId: string): LayoutNode | null {
   if (node.type === "panel") return node.panelId === panelId ? null : node;
-  const next = node.children
-    .map((c) => removeFromTree(c, panelId))
-    .filter((c): c is LayoutNode => c !== null);
-  if (next.length === 0) return null;
-  if (next.length === 1) return next[0];
-  return { ...node, children: next };
+  const nextChildren: LayoutNode[] = [];
+  const nextSizes: number[] = [];
+  for (let i = 0; i < node.children.length; i++) {
+    const result = removeFromTree(node.children[i], panelId);
+    if (result !== null) {
+      nextChildren.push(result);
+      nextSizes.push(node.sizes[i]);
+    }
+  }
+  if (nextChildren.length === 0) return null;
+  if (nextChildren.length === 1) return nextChildren[0];
+  const total = nextSizes.reduce((a, b) => a + b, 0);
+  return {
+    ...node,
+    children: nextChildren,
+    sizes: nextSizes.map((s) => (s / total) * 100),
+  };
 }
 
 function addToTree(
@@ -173,19 +277,14 @@ function addToTree(
 ): LayoutNode {
   const leaf: LayoutNode = { type: "panel", panelId };
   if (!root) return leaf;
-  const direction = edge === "top" || edge === "bottom" ? "col" : "row";
+  const direction: "row" | "col" =
+    edge === "top" || edge === "bottom" ? "col" : "row";
   const prepend = edge === "top" || edge === "left";
   if (root.type === "split" && root.direction === direction) {
-    return {
-      ...root,
-      children: prepend ? [leaf, ...root.children] : [...root.children, leaf],
-    };
+    const next = prepend ? [leaf, ...root.children] : [...root.children, leaf];
+    return { ...root, children: next, sizes: equalSizes(next.length) };
   }
-  return {
-    type: "split",
-    direction,
-    children: prepend ? [leaf, root] : [root, leaf],
-  };
+  return makeSplit(direction, prepend ? [leaf, root] : [root, leaf]);
 }
 
 function insertNextTo(
@@ -200,17 +299,12 @@ function insertNextTo(
     const direction: "row" | "col" =
       edge === "top" || edge === "bottom" ? "col" : "row";
     const prepend = edge === "top" || edge === "left";
-    return {
-      type: "split",
-      direction,
-      children: prepend ? [newLeaf, root] : [root, newLeaf],
-    };
+    return makeSplit(direction, prepend ? [newLeaf, root] : [root, newLeaf]);
   }
   const newChildren = root.children.map((child) =>
     insertNextTo(child, targetId, newId, edge),
   );
   if (newChildren.every((c, i) => c === root.children[i])) return root;
-  // Flatten any newly-created split whose direction matches the parent
   const flat: LayoutNode[] = [];
   for (const child of newChildren) {
     if (child.type === "split" && child.direction === root.direction) {
@@ -219,7 +313,32 @@ function insertNextTo(
       flat.push(child);
     }
   }
-  return { ...root, children: flat };
+  return { ...root, children: flat, sizes: equalSizes(flat.length) };
+}
+
+function updateSplitSizes(
+  root: LayoutNode,
+  splitId: string,
+  index: number,
+  delta: number,
+  totalPx: number,
+): LayoutNode {
+  if (root.type === "panel") return root;
+  if (root.id === splitId) {
+    const sizes = [...root.sizes];
+    const deltaPct = (delta / totalPx) * 100;
+    const minPct = 5;
+    const sum = sizes[index] + sizes[index + 1];
+    const a = Math.max(minPct, Math.min(sum - minPct, sizes[index] + deltaPct));
+    sizes[index] = a;
+    sizes[index + 1] = sum - a;
+    return { ...root, sizes };
+  }
+  const next = root.children.map((c) =>
+    updateSplitSizes(c, splitId, index, delta, totalPx),
+  );
+  if (next.every((c, i) => c === root.children[i])) return root;
+  return { ...root, children: next };
 }
 
 // ─── Drop Edge Detection ──────────────────────────────────────────────────────
@@ -362,13 +481,17 @@ function LayoutNodeView({
   setMap,
   onClose,
   pendingEdge,
+  setCenterTree,
 }: {
   node: LayoutNode;
   activeId: string | null;
   setMap: (map: MapEngine | null) => void;
   onClose: (panelId: string) => void;
   pendingEdge: DropEdge | null;
+  setCenterTree: React.Dispatch<React.SetStateAction<LayoutNode | null>>;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (node.type === "panel") {
     const panel = PANELS.find((p) => p.id === node.panelId);
     if (!panel) return null;
@@ -382,23 +505,55 @@ function LayoutNodeView({
       />
     );
   }
-  return (
-    <div
-      className={[
-        "flex min-w-0 min-h-0 gap-1 flex-1 h-full w-full",
-        node.direction === "row" ? "flex-row" : "flex-col",
-      ].join(" ")}
-    >
-      {node.children.map((child, i) => (
+
+  const isRow = node.direction === "row";
+  const items: React.ReactNode[] = [];
+  node.children.forEach((child, i) => {
+    const key = child.type === "panel" ? child.panelId : child.id;
+    items.push(
+      <div
+        key={key}
+        className="flex flex-col min-w-0 min-h-0 overflow-hidden"
+        style={{ flex: node.sizes[i] }}
+      >
         <LayoutNodeView
-          key={i}
           node={child}
           activeId={activeId}
           setMap={setMap}
           onClose={onClose}
           pendingEdge={pendingEdge}
+          setCenterTree={setCenterTree}
         />
-      ))}
+      </div>,
+    );
+    if (i < node.children.length - 1) {
+      const splitId = node.id;
+      items.push(
+        <ResizeHandle
+          key={`r${i}`}
+          direction={isRow ? "vertical" : "horizontal"}
+          onResize={(delta) => {
+            const el = containerRef.current;
+            if (!el) return;
+            const totalPx = isRow ? el.clientWidth : el.clientHeight;
+            setCenterTree((prev) =>
+              prev ? updateSplitSizes(prev, splitId, i, delta, totalPx) : prev,
+            );
+          }}
+        />,
+      );
+    }
+  });
+
+  return (
+    <div
+      ref={containerRef}
+      className={[
+        "flex min-w-0 min-h-0 flex-1 h-full w-full",
+        isRow ? "flex-row" : "flex-col",
+      ].join(" ")}
+    >
+      {items}
     </div>
   );
 }
@@ -413,6 +568,7 @@ function CenterDropZone({
   pendingTargetId,
   setMap,
   onClose,
+  setCenterTree,
 }: {
   tree: LayoutNode | null;
   activeId: string | null;
@@ -421,6 +577,7 @@ function CenterDropZone({
   pendingTargetId: string | null;
   setMap: (map: MapEngine | null) => void;
   onClose: (panelId: string) => void;
+  setCenterTree: React.Dispatch<React.SetStateAction<LayoutNode | null>>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: "center" });
   const isSource = activePanelZone === "center";
@@ -473,6 +630,7 @@ function CenterDropZone({
             setMap={setMap}
             onClose={onClose}
             pendingEdge={pendingEdge}
+            setCenterTree={setCenterTree}
           />
         )}
       </div>
@@ -493,9 +651,14 @@ function ActivityBarTab({
   side: "left" | "right";
   onClick: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: panel.id,
-  });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: panel.id });
 
   return (
     <button
@@ -503,7 +666,11 @@ function ActivityBarTab({
       {...listeners}
       {...attributes}
       onClick={onClick}
-      style={{ height: 44 }}
+      style={{
+        height: 44,
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
       className={[
         "flex items-center justify-center w-full shrink-0 cursor-grab select-none focus:outline-none",
         "transition-colors duration-100",
@@ -637,17 +804,22 @@ const TabbedDropZone = memo(function TabbedDropZone({
             ].join(" ")}
             style={{ width: 44 }}
           >
-            {panels.map((p) => (
-              <ActivityBarTab
-                key={p.id}
-                panel={p}
-                isActive={p.id === effectiveId && !collapsed}
-                side={barSide as "left" | "right"}
-                onClick={() =>
-                  onTabClick(p.id, p.id === effectiveId && !collapsed)
-                }
-              />
-            ))}
+            <SortableContext
+              items={panels.map((p) => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {panels.map((p) => (
+                <ActivityBarTab
+                  key={p.id}
+                  panel={p}
+                  isActive={p.id === effectiveId && !collapsed}
+                  side={barSide as "left" | "right"}
+                  onClick={() =>
+                    onTabClick(p.id, p.id === effectiveId && !collapsed)
+                  }
+                />
+              ))}
+            </SortableContext>
           </div>
           {barSide === "left" && !collapsed && content}
         </>
@@ -747,13 +919,30 @@ export default function LayoutTestPage() {
   const [map, setMap] = useState<MapEngine | null>(null);
   const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
 
+  // Explicit ordering for sidebar activity bars — panels are filtered by
+  // current layout so entries for other zones are harmlessly ignored
+  const [leftOrder, setLeftOrder] = useState<string[]>(() =>
+    PANELS.filter((p) => INITIAL_LAYOUT[p.id] === "left").map((p) => p.id),
+  );
+  const [rightOrder, setRightOrder] = useState<string[]>(() =>
+    PANELS.filter((p) => INITIAL_LAYOUT[p.id] === "right").map((p) => p.id),
+  );
+
   const leftPanels = useMemo(
-    () => PANELS.filter((p) => layout[p.id] === "left"),
-    [layout],
+    () =>
+      leftOrder
+        .filter((id) => layout[id] === "left")
+        .map((id) => PANELS.find((p) => p.id === id)!)
+        .filter(Boolean),
+    [layout, leftOrder],
   );
   const rightPanels = useMemo(
-    () => PANELS.filter((p) => layout[p.id] === "right"),
-    [layout],
+    () =>
+      rightOrder
+        .filter((id) => layout[id] === "right")
+        .map((id) => PANELS.find((p) => p.id === id)!)
+        .filter(Boolean),
+    [layout, rightOrder],
   );
   const bottomPanels = useMemo(
     () => PANELS.filter((p) => layout[p.id] === "bottom"),
@@ -798,13 +987,37 @@ export default function LayoutTestPage() {
 
       const panelId = active.id as string;
       const overId = String(over.id);
+      const sourceZone = layout[panelId] as Zone;
+
+      // ── Same-sidebar reorder ─────────────────────────────────────────────
+      // over.id is a panel id (not a zone droppable) when useSortable is active
+      const overZone = layout[overId] as Zone | undefined;
+      if (
+        overZone !== undefined &&
+        overZone === sourceZone &&
+        (sourceZone === "left" || sourceZone === "right")
+      ) {
+        const setter = sourceZone === "left" ? setLeftOrder : setRightOrder;
+        setter((prev) => {
+          const oldIndex = prev.indexOf(panelId);
+          const newIndex = prev.indexOf(overId);
+          return arrayMove(prev, oldIndex, newIndex);
+        });
+        return;
+      }
+
+      // ── Cross-zone move ──────────────────────────────────────────────────
       const isCenterPanel = overId.startsWith("center-panel:");
       const targetPanelId = isCenterPanel
         ? overId.slice("center-panel:".length)
         : null;
+      // closestCenter can return a panel id instead of a zone id — resolve it
       const targetZone: Zone =
-        isCenterPanel || overId === "center" ? "center" : (overId as Zone);
-      const sourceZone = layout[panelId] as Zone;
+        isCenterPanel || overId === "center"
+          ? "center"
+          : ZONE_IDS.has(overId)
+            ? (overId as Zone)
+            : ((layout[overId] ?? sourceZone) as Zone);
 
       startTransition(() => {
         if (targetZone === "center") {
@@ -826,6 +1039,16 @@ export default function LayoutTestPage() {
             );
           }
           setActiveTabByZone((prev) => ({ ...prev, [targetZone]: panelId }));
+          // Ensure the panel appears in the order array when entering a sidebar
+          if (targetZone === "left") {
+            setLeftOrder((prev) =>
+              prev.includes(panelId) ? prev : [...prev, panelId],
+            );
+          } else if (targetZone === "right") {
+            setRightOrder((prev) =>
+              prev.includes(panelId) ? prev : [...prev, panelId],
+            );
+          }
         }
 
         setLayout((prev) => ({ ...prev, [panelId]: targetZone }));
@@ -871,7 +1094,7 @@ export default function LayoutTestPage() {
       <MapContext.Provider value={map}>
         <DndContext
           sensors={sensors}
-          collisionDetection={pointerWithin}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
@@ -917,6 +1140,7 @@ export default function LayoutTestPage() {
                     pendingTargetId={pendingTargetId}
                     setMap={setMap}
                     onClose={handleCloseCenter}
+                    setCenterTree={setCenterTree}
                   />
                 </div>
                 <ResizeHandle
