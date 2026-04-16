@@ -9,7 +9,6 @@ import { replaceLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export function useRedrawLinkHandlers(
@@ -17,10 +16,7 @@ export function useRedrawLinkHandlers(
 ): Handlers {
   const selection = useAtomValue(selectionAtom);
   const setMode = useSetAtom(modeAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const transactDeprecated = handlerContext.rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;

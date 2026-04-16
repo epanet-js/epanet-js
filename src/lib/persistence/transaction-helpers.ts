@@ -12,7 +12,6 @@ import { type Data, dataAtom } from "src/state/data";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
-import { modelCacheAtom } from "src/state/model-cache";
 import { type MomentPointer } from "src/state/map";
 import { branchStateAtom } from "src/state/branch-state";
 import type { MomentLog } from "./moment-log";
@@ -139,46 +138,6 @@ export function computeSyncMoment(
     };
   }
   return current;
-}
-
-export function syncSnapshotMomentLog(
-  get: Getter,
-  set: Setter,
-  momentLog: MomentLog,
-  version: string,
-): void {
-  const worktree = get(worktreeAtom);
-  if (get(branchStateAtom).has(worktree.activeSnapshotId)) return;
-
-  const snapshot = worktree.snapshots.get(worktree.activeSnapshotId);
-  if (!snapshot) return;
-
-  const updatedSnapshots = new Map(worktree.snapshots);
-  updatedSnapshots.set(worktree.activeSnapshotId, {
-    ...snapshot,
-    momentLog,
-    version,
-  });
-
-  set(worktreeAtom, { ...worktree, snapshots: updatedSnapshots });
-}
-
-export function updateModelCache(get: Getter, set: Setter): void {
-  const worktree = get(worktreeAtom);
-  if (get(branchStateAtom).has(worktree.activeSnapshotId)) return;
-
-  const updatedModel = get(stagingModelAtom);
-  const factories = get(modelFactoriesAtom);
-  const cache = new Map(get(modelCacheAtom));
-  cache.set(worktree.activeSnapshotId, {
-    model: updatedModel,
-    labelManager: factories.labelManager,
-  });
-  set(modelCacheAtom, cache);
-
-  if (worktree.activeSnapshotId === worktree.mainId) {
-    set(baseModelAtom, updatedModel);
-  }
 }
 
 export function syncBranchState(

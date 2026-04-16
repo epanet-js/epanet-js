@@ -1,19 +1,14 @@
 import { fileInfoAtom } from "src/state/file-system";
-import { hasUnsavedChangesAtom } from "src/state/model-changes";
 import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { truncate } from "src/lib/utils";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 
 export function FileInfo() {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const fileInfo = useAtomValue(fileInfoAtom);
-  const hasUnsavedChanges = useAtomValue(
-    isStateRefactorOn ? hasUnsavedChangesDerivedAtom : hasUnsavedChangesAtom,
-  );
+  const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
 
   if (!fileInfo) return <div></div>;
 

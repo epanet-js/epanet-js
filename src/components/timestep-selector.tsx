@@ -8,20 +8,16 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "src/icons";
-import { simulationAtom, simulationStepAtom } from "src/state/simulation";
+import { simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { triggerStylesFor } from "./form/selector";
 import { useEffect, useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useChangeTimestep } from "src/commands/change-timestep";
 
 export const TimestepSelector = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const simulationStep = useAtomValue(simulationStepAtom);
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
   const { changeTimestep } = useChangeTimestep();
   const isSmOrLarger = useBreakpoint("sm");
 

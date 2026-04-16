@@ -6,16 +6,13 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { autoElevationsAtom } from "src/state/drawing";
-import { stagingModelAtom } from "src/state/hydraulic-model";
-import { SimulationState, simulationAtom } from "src/state/simulation";
+import { SimulationState } from "src/state/simulation";
 
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import * as Popover from "@radix-ui/react-popover";
 import { Button, StyledPopoverArrow, StyledPopoverContent } from "../elements";
 import { HydraulicModel } from "src/hydraulic-model";
@@ -31,12 +28,9 @@ import {
 } from "src/icons";
 
 export const Footer = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translateUnit = useTranslateUnit();
   const isLgOrLarger = useBreakpoint("lg");
   const isSmOrLarger = useBreakpoint("sm");
@@ -226,17 +220,10 @@ const buildSimulationStatusStyles = (
 };
 
 export const SimulationStatusText = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
 
   const { Icon, colorClass, text } = buildSimulationStatusStyles(
     simulation,

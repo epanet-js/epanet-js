@@ -3,21 +3,16 @@ import {
   ephemeralStateAtom,
   EphemeralConnectCustomerPoints,
 } from "src/state/drawing";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { Position } from "src/types";
 import { useMemo } from "react";
 
 export const useConnectCustomerPointsState = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   const customerPoints = useMemo(() => {
     if (selection.type === "singleCustomerPoint") {

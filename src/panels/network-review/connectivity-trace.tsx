@@ -9,9 +9,7 @@ import {
   SubNetwork,
 } from "src/lib/network-review/connectivity-trace";
 import { USelection, useSelection } from "src/selection";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import {
   CheckType,
@@ -231,11 +229,8 @@ const deferToAllowRender = () =>
   new Promise((resolve) => setTimeout(resolve, 0));
 
 const useCheckConnectivityTrace = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [subnetworks, setSubnetworks] = useState<SubNetwork[]>([]);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

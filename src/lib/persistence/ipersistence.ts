@@ -1,11 +1,6 @@
 import type { ISymbology } from "src/types";
 import { Promisable } from "type-fest";
 import { z } from "zod";
-import { HydraulicModel, ModelMoment } from "src/hydraulic-model";
-import { ModelFactories } from "src/hydraulic-model/factories";
-import { ProjectSettings } from "src/lib/project-settings";
-import type { Projection } from "src/lib/projections/projection";
-import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { SimulationState } from "src/state/simulation";
 
 export type PersistenceMetadataMemory = {
@@ -42,29 +37,11 @@ export type MetaPair = [
   (updates: MetaUpdatesInput) => Promisable<void>,
 ];
 
-export interface IPersistence {
-  useHistoryControlDeprecated(): (direction: "undo" | "redo") => void;
-
-  useTransactDeprecated(): (moment: ModelMoment) => void;
-  useTransactImportDeprecated(): (
-    hydraulicModel: HydraulicModel,
-    factories: ModelFactories,
-    projectSettings: ProjectSettings,
-    name: string,
-    simulationSettings: SimulationSettings,
-    options?: { autoElevations?: boolean },
-  ) => void;
-
-  useTransactReprojectionDeprecated(): (
-    newProjection: Projection,
-    currentProjection: Projection,
-  ) => Promise<void>;
-}
+export interface IPersistence {}
 
 export interface IPersistenceWithSnapshots extends IPersistence {
   syncSnapshotSimulation(
     simulation: SimulationState,
     options?: { updateSourceId?: boolean },
   ): void;
-  deleteSnapshotFromCache(snapshotId: string): void;
 }

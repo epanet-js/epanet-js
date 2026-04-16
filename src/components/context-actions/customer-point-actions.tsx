@@ -6,9 +6,7 @@ import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { useAtomValue } from "jotai";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -85,11 +83,8 @@ export function useCustomerPointActions(
 }
 
 export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   const customerPoint =
     selection.type === "singleCustomerPoint"

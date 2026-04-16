@@ -4,7 +4,6 @@ import { AllocationRule } from "src/hydraulic-model/customer-points";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
@@ -18,10 +17,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
-import { usePersistence } from "src/lib/persistence";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
@@ -35,20 +31,13 @@ export const AllocationStep: React.FC<{
       units: { diameter: Unit; length: Unit };
     };
 }> = ({ onBack, onFinish, renderActions = true, wizardState }) => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const factories = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const rep = usePersistence();
-  const transactImportDeprecated = rep.useTransactImportDeprecated();
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { initializeProject } = useProjectInitialization();
   const {
     parsedDataSummary,
@@ -97,22 +86,12 @@ export const AllocationStep: React.FC<{
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      if (isStateRefactorOn) {
-        void initializeProject({
-          hydraulicModel: updatedHydraulicModel,
-          factories,
-          projectSettings,
-          simulationSettings,
-        });
-      } else {
-        transactImportDeprecated(
-          updatedHydraulicModel,
-          factories,
-          projectSettings,
-          "customerpoints",
-          simulationSettings,
-        );
-      }
+      void initializeProject({
+        hydraulicModel: updatedHydraulicModel,
+        factories,
+        projectSettings,
+        simulationSettings,
+      });
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -144,9 +123,7 @@ export const AllocationStep: React.FC<{
     keepDemands,
     onFinish,
     setProcessing,
-    isStateRefactorOn,
     initializeProject,
-    transactImportDeprecated,
     userTracking,
     setError,
     translate,

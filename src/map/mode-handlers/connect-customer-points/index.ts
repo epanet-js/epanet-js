@@ -6,12 +6,10 @@ import { getMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
 import { connectCustomers } from "src/hydraulic-model/model-operations";
-import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import throttle from "lodash/throttle";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export function useConnectCustomerPointsHandlers({
@@ -20,11 +18,7 @@ export function useConnectCustomerPointsHandlers({
 }: HandlerContext): Handlers {
   const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
   const {

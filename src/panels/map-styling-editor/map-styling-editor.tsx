@@ -5,7 +5,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
-import { simulationAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Selector, SelectorLikeButton } from "src/components/form/selector";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -132,12 +131,9 @@ const SymbologyEditor = ({
   geometryType: "node" | "link";
   properties: readonly SupportedProperty[];
 }) => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
   const {
     linkSymbology,
     nodeSymbology,

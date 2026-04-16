@@ -1,24 +1,18 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
-import { usePersistence } from "src/lib/persistence";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export const connectCustomersShortcut = "shift+c";
 export const disconnectCustomersShortcut = "shift+d";
 
 export const useConnectCustomerPoints = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
   const setMode = useSetAtom(modeAtom);
 
@@ -49,15 +43,9 @@ export const useConnectCustomerPoints = () => {
 };
 
 export const useDisconnectCustomerPoints = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const selection = useAtomValue(selectionAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   const disconnectCustomerPoints = useCallback(

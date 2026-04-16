@@ -1,8 +1,6 @@
 import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
-import { baseModelAtom } from "src/state/hydraulic-model";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { PropertyComparison } from "./use-asset-comparison";
 import type { CustomerPointId } from "src/hydraulic-model/customer-points";
 import {
@@ -13,11 +11,8 @@ import {
 export function useCustomerPointComparison(
   customerPointId: CustomerPointId | undefined,
 ) {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const worktree = useAtomValue(worktreeAtom);
-  const baseModel = useAtomValue(
-    isStateRefactorOn ? baseModelDerivedAtom : baseModelAtom,
-  );
+  const baseModel = useAtomValue(baseModelDerivedAtom);
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
 
   const isNew =

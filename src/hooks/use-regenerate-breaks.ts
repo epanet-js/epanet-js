@@ -1,6 +1,5 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useMemo, useState } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   applyMode,
@@ -11,14 +10,12 @@ import {
   getSortedSimulationDataForBreaks,
   isSimulationProperty,
 } from "src/map/symbology/symbology-data-source";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   simulationDerivedAtom,
   stagingModelDerivedAtom,
+  simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { useSymbologyState } from "src/state/map-symbology";
-import { simulationAtom, simulationResultsAtom } from "src/state/simulation";
-import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 
 export type RegenerateResult = {
   colorRule: RangeColorRule;
@@ -26,17 +23,10 @@ export type RegenerateResult = {
 };
 
 export const useRegenerateBreaks = (geometryType: "node" | "link") => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const simulationResults = useAtomValue(
-    isStateRefactorOn ? simulationResultsDerivedAtom : simulationResultsAtom,
-  );
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulationResults = useAtomValue(simulationResultsDerivedAtom);
+  const simulation = useAtomValue(simulationDerivedAtom);
   const { nodeSymbology, linkSymbology } = useSymbologyState();
 
   const [isWorking, setIsWorking] = useState(false);

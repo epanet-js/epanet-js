@@ -15,7 +15,6 @@ import { memoryMetaAtom } from "src/state/map-symbology";
 import type { SymbologySpec } from "src/map/symbology";
 import { nullSymbologySpec } from "src/map/symbology";
 import { symbologyAtom } from "src/state/map-symbology";
-import { momentLogAtom } from "src/state/model-changes";
 import {
   momentLogDerivedAtom,
   simulationDerivedAtom,
@@ -31,11 +30,8 @@ import {
 import {
   type SimulationState,
   initialSimulationState,
-  simulationAtom,
-  simulationResultsAtom,
   simulationStepAtom,
 } from "src/state/simulation";
-import { customerPointsAtom } from "src/state/hydraulic-model";
 import { offlineAtom } from "src/state/offline";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
 import { USelection } from "src/selection";
@@ -159,45 +155,6 @@ export const stylesConfigAtom = atom<StylesConfig>((get) => {
     symbology: symbology || SYMBOLIZATION_NONE,
     previewProperty: label,
     layerConfigs,
-  };
-});
-
-export const mapStateAtom = atom<MapState>((get) => {
-  const momentLog = get(momentLogAtom);
-  const mapSyncMoment = get(mapSyncMomentAtom);
-  const stylesConfig = get(stylesConfigAtom);
-  const selection = get(selectionAtom);
-  const ephemeralState = get(ephemeralStateAtom);
-  const symbology = get(symbologyAtom);
-  const simulation = get(simulationAtom);
-  const simulationStep = get(simulationStepAtom);
-  const resultsReader = get(simulationResultsAtom);
-  const customerPoints = get(customerPointsAtom);
-  const currentZoom = get(currentZoomAtom);
-  const selectedAssetIds = new Set(USelection.toIds(selection));
-
-  const movedAssetIds = get(movedAssetIdsAtom);
-  const isOffline = get(offlineAtom);
-  const mapOverlayFeatures = get(mapOverlayFeaturesAtom);
-
-  return {
-    momentLogId: momentLog.id,
-    momentLogPointer: momentLog.getPointer(),
-    syncMomentPointer: mapSyncMoment.pointer,
-    syncMomentVersion: mapSyncMoment.version,
-    stylesConfig,
-    selection,
-    ephemeralState,
-    symbology,
-    simulation,
-    simulationStep,
-    resultsReader,
-    selectedAssetIds,
-    movedAssetIds,
-    isOffline,
-    customerPoints,
-    currentZoom,
-    mapOverlayFeatures,
   };
 });
 

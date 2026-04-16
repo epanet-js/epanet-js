@@ -6,10 +6,11 @@ import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelAtom } from "src/state/hydraulic-model";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { simulationAtom, simulationStepAtom } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  stagingModelDerivedAtom,
+  simulationDerivedAtom,
+} from "src/state/derived-branch-state";
+import { simulationStepAtom } from "src/state/simulation";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import {
@@ -82,10 +83,7 @@ const QUALITY_OPTIONS: {
 ];
 
 export const useShowQuickGraph = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
   const hadValidSimulationRef = useRef(false);
 
   const hasCompletedSimulation =
@@ -133,17 +131,12 @@ const QuickGraphSection = ({
   const translateUnit = useTranslateUnit();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
   const simulationStep = useAtomValue(simulationStepAtom);
   const worktree = useAtomValue(worktreeAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { changeTimestep } = useChangeTimestep();
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;

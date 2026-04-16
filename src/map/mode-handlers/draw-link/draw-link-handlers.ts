@@ -26,7 +26,6 @@ import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export type SnappingCandidate =
@@ -127,7 +126,6 @@ function checkLoopedLinkConditions(
 }
 
 export function useDrawLinkHandlers({
-  rep,
   hydraulicModel,
   units,
   map,
@@ -146,10 +144,7 @@ export function useDrawLinkHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
   const { selectAsset } = useSelection(selection);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);

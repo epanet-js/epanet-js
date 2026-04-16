@@ -16,16 +16,12 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
-import { usePersistence } from "src/lib/persistence";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
@@ -53,17 +49,10 @@ export const ImportCustomerPointsWizard: React.FC<
     error: projectionsError,
   } = useProjections();
 
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const factories = useAtomValue(modelFactoriesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const rep = usePersistence();
-  const transactImportDeprecated = rep.useTransactImportDeprecated();
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { initializeProject } = useProjectInitialization();
 
   const handleClose = useCallback(() => {
@@ -133,22 +122,12 @@ export const ImportCustomerPointsWizard: React.FC<
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      if (isStateRefactorOn) {
-        void initializeProject({
-          hydraulicModel: updatedHydraulicModel,
-          factories,
-          projectSettings,
-          simulationSettings,
-        });
-      } else {
-        transactImportDeprecated(
-          updatedHydraulicModel,
-          factories,
-          projectSettings,
-          "customerpoints",
-          simulationSettings,
-        );
-      }
+      void initializeProject({
+        hydraulicModel: updatedHydraulicModel,
+        factories,
+        projectSettings,
+        simulationSettings,
+      });
 
       userTracking.capture({
         name: "importCustomerPoints.completed",
@@ -176,9 +155,7 @@ export const ImportCustomerPointsWizard: React.FC<
     factories,
     projectSettings,
     simulationSettings,
-    isStateRefactorOn,
     initializeProject,
-    transactImportDeprecated,
     userTracking,
     translate,
     handleClose,

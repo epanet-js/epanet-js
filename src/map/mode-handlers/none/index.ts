@@ -25,7 +25,6 @@ import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 const stateUpdateTime = 16;
@@ -46,7 +45,6 @@ const isMovementSignificant = (
 
 export function useNoneHandlers({
   selection,
-  rep,
   map,
   hydraulicModel,
   units,
@@ -80,10 +78,7 @@ export function useNoneHandlers({
   } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const {
     setStartPoint: setCustomerPointStartPoint,

@@ -4,19 +4,14 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { DeleteIcon, ZoomToIcon } from "src/icons";
-import { selectedFeaturesAtom } from "src/state/selection";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useNodeActions(readonly = false): Action[] {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
-  const selectedWrappedFeatures = useAtomValue(
-    isStateRefactorOn ? selectedFeaturesDerivedAtom : selectedFeaturesAtom,
-  );
+  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });

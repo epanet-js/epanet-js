@@ -4,14 +4,11 @@ import clsx from "clsx";
 import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { ephemeralStateAtom } from "src/state/drawing";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
-import { simulationAtom } from "src/state/simulation";
 import { hideHintsAtom } from "src/state/user-settings";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
@@ -89,15 +86,10 @@ function Hint({
 }
 
 export function Hints() {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const translate = useTranslate();
   const mode = useAtomValue(modeAtom);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulation = useAtomValue(simulationDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const dialogState = useAtomValue(dialogAtom);
   const symbology = useAtomValue(symbologyAtom);

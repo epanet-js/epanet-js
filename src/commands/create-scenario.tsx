@@ -3,15 +3,12 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { scenariosListAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/dialog";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { isDemoNetworkAtom } from "src/state/file-system";
-import { simulationAtom } from "src/state/simulation";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
@@ -21,19 +18,14 @@ import { userSettingsAtom } from "src/state/user-settings";
 export const createScenarioShortcut = "alt+y";
 
 export const useCreateScenario = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { createNewScenario } = useScenarioOperations();
   const scenariosList = useAtomValue(scenariosListAtom);
   const setDialog = useSetAtom(dialogAtom);
   const { canUseScenarios } = usePermissions();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const runSimulation = useRunSimulation();
   const userSettings = useAtomValue(userSettingsAtom);
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);

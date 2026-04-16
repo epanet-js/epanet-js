@@ -5,7 +5,6 @@ import { Unit } from "src/quantity";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
-import { assetsAtom, stagingModelAtom } from "src/state/hydraulic-model";
 import {
   assetsDerivedAtom,
   stagingModelDerivedAtom,
@@ -16,13 +15,11 @@ import {
   type StylesConfig,
   type MapState,
   nullMapState,
-  mapStateAtom,
   mapStateDerivedAtom,
   mapSyncMomentAtom,
   mapLoadingAtom,
 } from "src/state/map";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
-import { momentLogAtom } from "src/state/model-changes";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
 import {
@@ -154,23 +151,14 @@ const detectChanges = (
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isCustomGisLayersOn = useFeatureFlag("FLAG_CUSTOM_GIS_LAYERS");
-  const momentLog = useAtomValue(
-    isStateRefactorOn ? momentLogDerivedAtom : momentLogAtom,
-  );
+  const momentLog = useAtomValue(momentLogDerivedAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
-  const mapState = useAtomValue(
-    isStateRefactorOn ? mapStateDerivedAtom : mapStateAtom,
-  );
+  const mapState = useAtomValue(mapStateDerivedAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
 
-  const assets = useAtomValue(
-    isStateRefactorOn ? assetsDerivedAtom : assetsAtom,
-  );
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const assets = useAtomValue(assetsDerivedAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const gisData = useAtomValue(gisDataAtom);
   const isGridOn = useAtomValue(showGridAtom);

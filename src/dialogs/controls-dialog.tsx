@@ -9,7 +9,6 @@ import {
   useDialogState,
 } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
@@ -18,10 +17,8 @@ import {
   IdResolver,
   parseControlsFromText,
 } from "src/hydraulic-model/controls";
-import { usePersistence } from "src/lib/persistence";
 import { changeControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 type Tab = "simple" | "ruleBased";
@@ -37,14 +34,8 @@ export const ControlsDialog = () => {
   const [activeTab, setActiveTab] = useState<Tab>("simple");
   const isSnapshotLocked = useIsSnapshotLocked();
 
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
   const { controls, assets } = hydraulicModel;

@@ -18,9 +18,7 @@ import {
   OrphanAsset,
 } from "src/lib/network-review/orphan-assets";
 import { useSelection } from "src/selection";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectionAtom } from "src/state/selection";
 import {
   CheckType,
@@ -33,16 +31,13 @@ import {
 } from "./common";
 
 export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
   const { orphanAssets, checkOrphanAssets, isLoading, isReady } =
     useCheckOrphanAssets();
   const selection = useAtomValue(selectionAtom);
   const { selectAsset, isSelected, clearSelection } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [selectedOrphanAssetId, setSelectedOrphanAssetId] = useState<
     number | null
   >(null);
@@ -223,11 +218,8 @@ const deferToAllowRender = () =>
   new Promise((resolve) => setTimeout(resolve, 0));
 
 const useCheckOrphanAssets = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const [orphanAssets, setOrphanAssets] = useState<OrphanAsset[]>([]);
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 

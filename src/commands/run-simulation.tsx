@@ -8,14 +8,8 @@ import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
-import {
-  simulationAtom,
-  simulationResultsAtom,
-  simulationStepAtom,
-} from "src/state/simulation";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationStepAtom } from "src/state/simulation";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
@@ -31,13 +25,9 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const setSimulationState = useSetAtom(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const persistence = usePersistenceWithSnapshots();
-  const setSimulationResults = useSetAtom(simulationResultsAtom);
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
@@ -54,20 +44,12 @@ export const useRunSimulation = () => {
           ignoreLabel?: string;
         },
       ) => {
-        const hydraulicModel = get(
-          isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-        );
-        const simulationSettings = get(
-          isStateRefactorOn
-            ? simulationSettingsDerivedAtom
-            : simulationSettingsAtom,
-        );
+        const hydraulicModel = get(stagingModelDerivedAtom);
+        const simulationSettings = get(simulationSettingsDerivedAtom);
         const worktree = get(worktreeAtom);
         const projectSettings = get(projectSettingsAtom);
 
-        const currentSimulation = get(
-          isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-        );
+        const currentSimulation = get(simulationDerivedAtom);
         setSimulationState({ ...currentSimulation, status: "running" });
         const inp = buildInp(hydraulicModel, {
           customerDemands: true,
@@ -126,15 +108,8 @@ export const useRunSimulation = () => {
           const storage = new OPFSStorage(appId, scenarioKey);
           epsReader = new EPSResultsReader(storage);
           await epsReader.initialize(metadata);
-          if (!isStateRefactorOn) {
-            const resultsReader = await epsReader.getResultsForTimestep(0);
-            setSimulationResults(resultsReader);
-          }
           setSimulationStep(0);
         } else {
-          if (!isStateRefactorOn) {
-            setSimulationResults(null);
-          }
           setSimulationStep(null);
         }
 
@@ -193,14 +168,12 @@ export const useRunSimulation = () => {
         });
       },
       [
-        isStateRefactorOn,
         isWaterAgeOn,
         isWaterTraceOn,
         isWaterChemicalOn,
         setSimulationState,
         setDialogState,
         persistence,
-        setSimulationResults,
         setSimulationStep,
       ],
     ),

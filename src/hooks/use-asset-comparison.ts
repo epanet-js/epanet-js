@@ -2,9 +2,7 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
-import { baseModelAtom } from "src/state/hydraulic-model";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { Asset, Patterns, Pump } from "src/hydraulic-model";
 import type { Pattern, PatternId } from "src/hydraulic-model/patterns";
 import {
@@ -30,11 +28,8 @@ export type PumpCurveComparison = PropertyComparison<
 > & { curve?: Pick<ICurve, "id" | "label"> };
 
 export function useAssetComparison(asset: Asset | undefined) {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const worktree = useAtomValue(worktreeAtom);
-  const baseModel = useAtomValue(
-    isStateRefactorOn ? baseModelDerivedAtom : baseModelAtom,
-  );
+  const baseModel = useAtomValue(baseModelDerivedAtom);
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
 
   const baseAsset = useMemo(() => {

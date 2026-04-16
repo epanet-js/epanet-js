@@ -7,7 +7,6 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Maybe } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
@@ -25,7 +24,6 @@ import { AssetSearch } from "./asset-search";
 
 describe("AssetSearch", () => {
   beforeEach(() => {
-    stubFeatureOff("FLAG_STATE_REFACTOR");
     zoomToMock.mockReset();
   });
 

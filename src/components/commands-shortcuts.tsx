@@ -42,13 +42,10 @@ import {
   useToggleSatellite,
 } from "src/commands/toggle-satellite";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/simulation";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import {
   showSimulationSettingsShortcut,
@@ -108,7 +105,6 @@ import {
 const IGNORE_ROLES = new Set(["menuitem"]);
 
 export const CommandShortcuts = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const showReport = useShowReport();
   const runSimulation = useRunSimulation();
   const showShortcuts = useShowShortcuts();
@@ -126,12 +122,8 @@ export const CommandShortcuts = () => {
   const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const cycleSelectionMode = useCycleSelectionMode();

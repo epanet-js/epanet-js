@@ -13,14 +13,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
 export function useDrawNodeHandlers({
   hydraulicModel,
-  rep,
   nodeType,
   map,
   units,
@@ -30,10 +28,7 @@ export function useDrawNodeHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const selection = useAtomValue(selectionAtom);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);

@@ -1,4 +1,3 @@
-import { momentLogAtom } from "src/state/model-changes";
 import { momentLogDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -11,22 +10,12 @@ import {
   DDSubTriggerItem,
 } from "src/components/elements";
 import React, { useMemo } from "react";
-import { usePersistence } from "src/lib/persistence";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { ArrowRightIcon, ChevronRightIcon } from "src/icons";
 
 function UndoList() {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const rep = usePersistence();
-  const historyControlDeprecated = rep.useHistoryControlDeprecated();
-  const { historyControl: historyControlNew } = useUndoableTransactions();
-  const historyControl = isStateRefactorOn
-    ? historyControlNew
-    : historyControlDeprecated;
-  const momentLog = useAtomValue(
-    isStateRefactorOn ? momentLogDerivedAtom : momentLogAtom,
-  );
+  const { historyControl } = useUndoableTransactions();
+  const momentLog = useAtomValue(momentLogDerivedAtom);
 
   const MomentsList = useMemo(() => {
     const List = [];

@@ -17,12 +17,10 @@ import {
 import Modes from "./modes";
 import { useAtomValue } from "jotai";
 import { splitsAtom } from "src/state/layout";
-import { simulationAtom } from "src/state/simulation";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   saveAsShortcut,
@@ -71,14 +69,9 @@ export const Toolbar = ({
 
   const { undo, redo } = useHistoryControl();
 
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
-  const simulationSettings = useAtomValue(
-    isStateRefactorOn ? simulationSettingsDerivedAtom : simulationSettingsAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
 

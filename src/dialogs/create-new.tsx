@@ -27,10 +27,8 @@ import {
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { usePersistence } from "src/lib/persistence";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
 import { Selector } from "../components/form/selector";
 
@@ -70,9 +68,6 @@ type SubmitProps = {
 
 export const CreateNew = () => {
   const translate = useTranslate();
-  const rep = usePersistence();
-  const transactImportDeprecated = rep.useTransactImportDeprecated();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const { initializeProject } = useProjectInitialization();
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
@@ -134,24 +129,13 @@ export const CreateNew = () => {
       });
       setGridPreview(false);
       setGridHidden(false);
-      if (isStateRefactorOn) {
-        void initializeProject({
-          hydraulicModel,
-          factories,
-          projectSettings,
-          simulationSettings: defaultSimulationSettings,
-          autoElevations: projection.id !== "xy-grid",
-        });
-      } else {
-        transactImportDeprecated(
-          hydraulicModel,
-          factories,
-          projectSettings,
-          "Untitled",
-          defaultSimulationSettings,
-          { autoElevations: projection.id !== "xy-grid" },
-        );
-      }
+      void initializeProject({
+        hydraulicModel,
+        factories,
+        projectSettings,
+        simulationSettings: defaultSimulationSettings,
+        autoElevations: projection.id !== "xy-grid",
+      });
       if (map) {
         centerMapForNewProject(map, projection, location);
       }
@@ -168,12 +152,10 @@ export const CreateNew = () => {
     [
       closeDialog,
       initializeProject,
-      isStateRefactorOn,
       map,
       setFileInfo,
       setGridPreview,
       setGridHidden,
-      transactImportDeprecated,
       userTracking,
     ],
   );

@@ -95,7 +95,7 @@ export {
 } from "src/state/mode";
 
 // Model changes
-export { momentLogAtom, hasUnsavedChangesAtom } from "src/state/model-changes";
+export { momentLogAtom } from "src/state/model-changes";
 
 // Model factories
 export type { ModelFactories } from "src/state/model-factories";

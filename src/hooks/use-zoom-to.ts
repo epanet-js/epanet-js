@@ -7,14 +7,11 @@ import { useCallback, useContext } from "react";
 import { USelection } from "src/selection";
 import type { Sel } from "src/selection/types";
 import { dataAtom } from "src/state/data";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { BBox, FeatureCollection, IWrappedFeature } from "src/types";
 
 export function useZoomTo() {
   const map = useContext(MapContext);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
 
   return useAtomCallback(
     useCallback(
@@ -25,9 +22,7 @@ export function useZoomTo() {
         maxZoom?: number,
       ) => {
         const data = get(dataAtom);
-        const hydraulicModel = get(
-          isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-        );
+        const hydraulicModel = get(stagingModelDerivedAtom);
         let extent: Maybe<BBox>;
         if (Maybe.isMaybe(selection)) {
           extent = selection;
@@ -49,13 +44,11 @@ export function useZoomTo() {
           map?.map.fitBounds(extent as LngLatBoundsLike, {
             padding: map?.map.getCanvas().getBoundingClientRect().width / 10,
             animate: false,
-            // Avoid extreme zooms when we're locating a point.
-            // Otherwise, zoom to the thing.
             maxZoom: maxZoom ?? (isBBoxEmpty(extent) ? 18 : Infinity),
           });
         });
       },
-      [map, isStateRefactorOn],
+      [map],
     ),
   );
 }

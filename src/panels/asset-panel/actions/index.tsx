@@ -1,16 +1,11 @@
 import { useAtomValue } from "jotai";
-import { selectedFeaturesAtom } from "src/state/selection";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { LinkActions } from "./link-actions";
 import { NodeActions } from "./node-actions";
 
 export function PanelActions() {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const selectedWrappedFeatures = useAtomValue(
-    isStateRefactorOn ? selectedFeaturesDerivedAtom : selectedFeaturesAtom,
-  );
+  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
 
   if (selectedWrappedFeatures.length !== 1) return null;

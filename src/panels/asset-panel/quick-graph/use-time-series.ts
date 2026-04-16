@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { simulationAtom } from "src/state/simulation";
 import {
   simulationDerivedAtom,
   baseSimulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { captureError } from "src/infra/error-tracking";
 import type {
@@ -13,7 +11,6 @@ import type {
   QuickGraphPropertyByAssetType,
 } from "src/state/quick-graph";
 import { worktreeAtom } from "src/state/scenarios";
-import { branchStateAtom } from "src/state/branch-state";
 
 interface UseTimeSeriesOptions<T extends QuickGraphAssetType> {
   assetId: number;
@@ -32,12 +29,8 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   assetType,
   property,
 }: UseTimeSeriesOptions<T>): UseTimeSeriesResult {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const simulation = useAtomValue(
-    isStateRefactorOn ? simulationDerivedAtom : simulationAtom,
-  );
+  const simulation = useAtomValue(simulationDerivedAtom);
   const worktree = useAtomValue(worktreeAtom);
-  const branchStates = useAtomValue(branchStateAtom);
   const baseSimulationDerived = useAtomValue(baseSimulationDerivedAtom);
   const [data, setData] = useState<TimeSeries | null>(null);
   const [baseData, setBaseData] = useState<TimeSeries | null>(null);
@@ -47,11 +40,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const baseSimulation = isStateRefactorOn
-    ? baseSimulationDerived
-    : (branchStates.get(worktree.mainId)?.simulation ??
-      worktree.snapshots.get(worktree.mainId)?.simulation ??
-      null);
+  const baseSimulation = baseSimulationDerived;
   const baseStatus = baseSimulation?.status;
   const baseEpsResultsReader =
     baseSimulation && "epsResultsReader" in baseSimulation

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
@@ -20,8 +19,6 @@ import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import {
   getCustomerPointDemands,
@@ -40,14 +37,8 @@ export function CustomerPointPanel() {
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { transact } = useModelTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
   const customerPoint =

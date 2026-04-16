@@ -1,20 +1,17 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Map as MapboxMap, LngLatBoundsLike } from "mapbox-gl";
-import { assetsAtom } from "src/state/hydraulic-model";
 import { assetsDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getExtent, isBBoxEmpty } from "src/lib/geometry";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function useFitToExtent() {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const userTracking = useUserTracking();
 
   return useAtomCallback(
     useCallback(
       (get, _set, map: MapboxMap) => {
-        const assets = get(isStateRefactorOn ? assetsDerivedAtom : assetsAtom);
+        const assets = get(assetsDerivedAtom);
 
         if (assets.size === 0) return;
 
@@ -31,7 +28,7 @@ export function useFitToExtent() {
           maxZoom: isBBoxEmpty(extent) ? 18 : Infinity,
         });
       },
-      [userTracking, isStateRefactorOn],
+      [userTracking],
     ),
   );
 }

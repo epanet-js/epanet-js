@@ -3,27 +3,18 @@ import { useCallback } from "react";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { usePersistence } from "src/lib/persistence";
 import { USelection } from "src/selection";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
 export const changeActiveTopologyShortcut = "a";
 
 export const useChangeSelectedAssetsActiveTopologyStatus = () => {
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
-  const hydraulicModel = useAtomValue(
-    isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-  );
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const userTracking = useUserTracking();
-  const rep = usePersistence();
-  const transactDeprecated = rep.useTransactDeprecated();
-  const { transact: transactNew } = useModelTransaction();
-  const transact = isStateRefactorOn ? transactNew : transactDeprecated;
+  const { transact } = useModelTransaction();
 
   const selectedIds = USelection.toIds(selection);
 

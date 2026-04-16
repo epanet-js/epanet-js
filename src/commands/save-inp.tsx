@@ -6,10 +6,7 @@ import {
   baseModelDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { isDemoNetworkAtom } from "src/state/file-system";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { baseModelAtom } from "src/state/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
@@ -44,7 +41,6 @@ export const useSaveInp = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isStateRefactorOn = useFeatureFlag("FLAG_STATE_REFACTOR");
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
 
@@ -68,16 +64,10 @@ export const useSaveInp = ({
           const worktree = get(worktreeAtom);
           const hasScenarios = worktree.scenarios.length > 0;
           const hydraulicModel = hasScenarios
-            ? get(isStateRefactorOn ? baseModelDerivedAtom : baseModelAtom)
-            : get(
-                isStateRefactorOn ? stagingModelDerivedAtom : stagingModelAtom,
-              );
+            ? get(baseModelDerivedAtom)
+            : get(stagingModelDerivedAtom);
           const projectSettings = get(projectSettingsAtom);
-          const simulationSettings = get(
-            isStateRefactorOn
-              ? simulationSettingsDerivedAtom
-              : simulationSettingsAtom,
-          );
+          const simulationSettings = get(simulationSettingsDerivedAtom);
           const buildOptions = {
             geolocation: true,
             madeBy: true,
@@ -146,7 +136,6 @@ export const useSaveInp = ({
         map,
         isWaterAgeOn,
         isWaterChemicalOn,
-        isStateRefactorOn,
       ],
     ),
   );
