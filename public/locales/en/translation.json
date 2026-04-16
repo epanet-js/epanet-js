@@ -188,6 +188,7 @@
   "initialLevel": "Initial level",
   "quality": "Quality",
   "initialWaterAge": "Initial water age",
+  "initialQuality": "Initial quality",
   "chemical": "chemical",
   "initialChemicalConcentration": "Initial chemical",
   "initialCustomChemicalConcentration": "Initial {{1}}",
