@@ -72,7 +72,7 @@ export const TimestepSelectorUI = ({
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
 
   return (
-    <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
+    <div className="flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
       {isAnimateSimulationOn && <PlayButton />}
       <Button
         variant="quiet/mode"

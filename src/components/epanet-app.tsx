@@ -35,6 +35,7 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
 import { Legends } from "./legends";
 import { TimestepSelector } from "./timestep-selector";
+import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
@@ -55,6 +56,7 @@ import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { initStorage } from "src/infra/storage";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -214,6 +216,7 @@ function DraggableMap({
   layout: ResolvedLayout;
   persistentTransform: Transform;
 }) {
+  const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setNodeRef, transform } = useDraggable({
     id: "map",
@@ -247,7 +250,21 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />
-      <TimestepSelector />
+      {isAnimateSimulationOn ? (
+        <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+          <TimestepSelector />
+          <MapLoading />
+        </div>
+      ) : (
+        <>
+          <div className="absolute top-3 right-3">
+            <MapLoading />
+          </div>
+          <div className="absolute top-3 right-3">
+            <TimestepSelector />
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ export const MapLoading = () => {
   const opacityClass = mapLoading ? "opacity-100" : "opacity-0";
   const isHidden = !mapLoading;
   return (
-    <div className="absolute right-3 top-3 mx-auto mb-2">
+    <div>
       <div
         key={ref.current}
         aria-hidden={isHidden}
