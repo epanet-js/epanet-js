@@ -47,8 +47,8 @@ export const ScenariosPaywallConnector = ({
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const runSimulation = useRunSimulation();
 
-  const proceedWithCreation = useCallback(async () => {
-    const { scenarioId, scenarioName } = await createNewScenario();
+  const proceedWithCreation = useCallback(() => {
+    const { scenarioId, scenarioName } = createNewScenario();
     userTracking.capture({
       name: "scenario.created",
       scenarioId,

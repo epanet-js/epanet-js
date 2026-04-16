@@ -45,8 +45,8 @@ export const useCreateScenario = () => {
         return null;
       }
 
-      const proceedWithCreation = async () => {
-        const { scenarioId, scenarioName } = await createNewScenario();
+      const proceedWithCreation = () => {
+        const { scenarioId, scenarioName } = createNewScenario();
 
         userTracking.capture({
           name: "scenario.created",
