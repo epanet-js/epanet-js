@@ -54,10 +54,12 @@ import {
   MousePointerClick,
   PanelLeft,
   PanelRight,
+  Pause,
   Pencil,
   PencilLine,
   Pin,
   PinOff,
+  Play,
   Plus,
   RectangleHorizontal,
   Redo2,
@@ -173,6 +175,8 @@ export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
 export const PanelLeftIcon = icon(PanelLeft);
 export const PanelRightIcon = icon(PanelRight);
+export const PauseIcon = icon(Pause);
+export const PlayIcon = icon(Play);
 export const MultipleValuesIcon = icon(SquareStack);
 export const JunctionIcon = icon(Circle);
 export const ReservoirIcon = icon(Triangle);

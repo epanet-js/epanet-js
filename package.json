@@ -153,6 +153,7 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",
     "jotai": "^2.19.1",
+    "jotai-effect": "^2.2.3",
     "jotai-optics": "^0.4.0",
     "js-quantities": "^1.8.0",
     "jsonwebtoken": "^9.0.2",

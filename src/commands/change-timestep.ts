@@ -4,6 +4,7 @@ import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { setTimestepAtom } from "src/state/simulation-step";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useTogglePlayback } from "src/commands/toggle-playback";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
@@ -16,6 +17,7 @@ export type ChangeTimestepSource =
 
 export const useChangeTimestep = () => {
   const userTracking = useUserTracking();
+  const { stopPlayback } = useTogglePlayback();
 
   const changeTimestep = useAtomCallback(
     (_get, set, timestepIndex: number, source: ChangeTimestepSource) => {
@@ -36,12 +38,14 @@ export const useChangeTimestep = () => {
 
   const goToPreviousTimestep = useAtomCallback(
     (get, _set, source: ChangeTimestepSource = "shortcut") => {
+      stopPlayback(source);
       changeTimestep((get(simulationStepAtom) ?? 0) - 1, source);
     },
   );
 
   const goToNextTimestep = useAtomCallback(
     (get, _set, source: ChangeTimestepSource = "shortcut") => {
+      stopPlayback(source);
       changeTimestep((get(simulationStepAtom) ?? 0) + 1, source);
     },
   );

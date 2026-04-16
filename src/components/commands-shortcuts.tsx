@@ -92,6 +92,10 @@ import {
   useChangeTimestep,
 } from "src/commands/change-timestep";
 import {
+  togglePlaybackShortcut,
+  useTogglePlayback,
+} from "src/commands/toggle-playback";
+import {
   toggleSnapshotShortcut,
   goToMainShortcut,
   useToggleSnapshot,
@@ -101,6 +105,7 @@ import {
   createScenarioShortcut,
   useCreateScenario,
 } from "src/commands/create-scenario";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const IGNORE_ROLES = new Set(["menuitem"]);
 
@@ -132,6 +137,8 @@ export const CommandShortcuts = () => {
     useChangeSelectedAssetsActiveTopologyStatus();
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
+  const { togglePlayback } = useTogglePlayback();
+  const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
   const isSnapshotLocked = useIsSnapshotLocked();
   const createScenario = useCreateScenario();
   const toggleSnapshot = useToggleSnapshot();
@@ -439,7 +446,7 @@ export const CommandShortcuts = () => {
     previousTimestepShortcut,
     (e) => {
       e.preventDefault();
-      void goToPreviousTimestep("shortcut");
+      goToPreviousTimestep("shortcut");
     },
     [goToPreviousTimestep],
     "Previous timestep",
@@ -449,10 +456,21 @@ export const CommandShortcuts = () => {
     nextTimestepShortcut,
     (e) => {
       e.preventDefault();
-      void goToNextTimestep("shortcut");
+      goToNextTimestep("shortcut");
     },
     [goToNextTimestep],
     "Next timestep",
+  );
+
+  useHotkeys(
+    togglePlaybackShortcut,
+    (e) => {
+      e.preventDefault();
+      togglePlayback("shortcut");
+    },
+    [togglePlayback],
+    "Play/pause simulation",
+    !isAnimateSimulationOn,
   );
 
   useHotkeys(

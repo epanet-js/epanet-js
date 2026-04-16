@@ -247,6 +247,17 @@ type SimulationTimestepChanged = {
   source: "shortcut" | "buttons" | "dropdown" | "quick-graph";
 };
 
+type SimulationPlaybackToggled = {
+  name: "simulation.playback.toggled";
+  action: "play" | "pause";
+  source: "shortcut" | "buttons" | "dropdown" | "quick-graph" | "auto";
+};
+
+type SimulationPlaybackSpeedChanged = {
+  name: "simulation.playback.speedChanged";
+  speedMs: number;
+};
+
 type ReportOpened = {
   name: "report.opened";
   source: "shortcut" | "resultDialog" | "toolbar";
@@ -894,6 +905,8 @@ export type UserEvent =
   | ExampleModelClicked
   | SimulationExecuted
   | SimulationTimestepChanged
+  | SimulationPlaybackToggled
+  | SimulationPlaybackSpeedChanged
   | ReportOpened
   | OpenInpStarted
   | RecentFileOpened

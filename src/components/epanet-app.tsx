@@ -40,6 +40,7 @@ import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
 import { CommandShortcuts } from "./commands-shortcuts";
+import { SimulationPlaybackController } from "./simulation-playback-controller";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/hooks/use-auth";
 import { dialogFromUrl } from "src/state/dialog";
@@ -191,6 +192,7 @@ export function EpanetApp() {
         <Dialogs />
         <Suspense fallback={null}>
           <CommandShortcuts />
+          <SimulationPlaybackController />
         </Suspense>
         <Notifications />
         <Footer />
