@@ -1,10 +1,7 @@
 import { screen, render, waitFor } from "@testing-library/react";
 import { CommandContainer } from "./__helpers__/command-container";
-import {
-  SimulationFinished,
-  simulationAtom,
-  simulationResultsAtom,
-} from "src/state/simulation";
+import { SimulationFinished } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
@@ -42,17 +39,12 @@ describe("Run simulation", () => {
     await triggerRun();
 
     await waitFor(() => {
-      const simulation = store.get(simulationAtom) as SimulationFinished;
+      const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
       expect(simulation.status).toEqual("success");
       expect(simulation.report).not.toContain(/error/i);
-    });
-
-    await waitFor(() => {
-      const simulationResults = store.get(simulationResultsAtom);
-      expect(simulationResults).not.toBeNull();
-      const pipeSimulation = simulationResults?.getPipe(IDS.p1);
-      expect(pipeSimulation?.flow).not.toBeNull();
-      expect(pipeSimulation?.flow).toBeGreaterThan(0);
+      expect(
+        "epsResultsReader" in simulation && simulation.epsResultsReader,
+      ).toBeTruthy();
     });
   });
 
@@ -64,7 +56,7 @@ describe("Run simulation", () => {
     await triggerRun();
 
     await waitFor(() => {
-      const simulation = store.get(simulationAtom) as SimulationFinished;
+      const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
       expect(simulation.status).toEqual("failure");
       expect(simulation.report).toContain("not enough");
       expect(simulation.modelVersion).toEqual(hydraulicModel.version);

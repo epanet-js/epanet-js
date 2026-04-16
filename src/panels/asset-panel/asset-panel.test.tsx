@@ -2,7 +2,16 @@ import { render, screen, waitFor, act } from "@testing-library/react";
 import { dataAtom, nullData } from "src/state/data";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { simulationResultsAtom } from "src/state/simulation";
+import {
+  SimulationState,
+  simulationResultsAtom,
+  initialSimulationState,
+  simulationStepAtom,
+} from "src/state/simulation";
+import { branchStateAtom } from "src/state/branch-state";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { MomentLog } from "src/lib/persistence/moment-log";
 import { Store } from "src/state";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { HydraulicModel, Pipe, Pump } from "src/hydraulic-model";
@@ -10,6 +19,15 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createMockResultsReader, SimulationData } from "src/__helpers__/state";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
+import {
+  stagingModelDerivedAtom,
+  momentLogDerivedAtom,
+} from "src/state/derived-branch-state";
+import { mapSyncMomentAtom } from "src/state/map";
+import {
+  applyMoment,
+  computeSyncMoment,
+} from "src/lib/persistence/transaction-helpers";
 import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
@@ -62,7 +80,7 @@ describe("AssetPanel", () => {
       expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
-    it("can show simulation results", () => {
+    it("can show simulation results", async () => {
       const IDS = { P1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with().aPipe(IDS.P1).build();
       const store = setInitialState({
@@ -83,7 +101,9 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      await waitFor(() => {
+        expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      });
       expectTextPropertyDisplayed("velocity (m/s)", "10.123");
       expectTextPropertyDisplayed("headloss (m)", "0.234");
       expectTextPropertyDisplayed("unit headloss (m/km)", "0.123");
@@ -342,7 +362,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/closed/i));
 
-      const updatedHydraulicModel = store.get(stagingModelAtom);
+      const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).initialStatus,
       ).toEqual("closed");
@@ -385,7 +405,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/psv: pressure sustaining valve/i));
 
-      const updatedHydraulicModel = store.get(stagingModelAtom);
+      const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.V1) as Valve).kind,
       ).toEqual("psv");
@@ -404,7 +424,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("setting (l/s)", "10");
     });
 
-    it("can show simulation results", () => {
+    it("can show simulation results", async () => {
       const IDS = { v1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aValve(IDS.v1)
@@ -427,7 +447,9 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      await waitFor(() => {
+        expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      });
       expectTextPropertyDisplayed("velocity (m/s)", "10.123");
       expectTextPropertyDisplayed("headloss (m)", "98");
       expectTextPropertyDisplayed("status", "Open - Cannot deliver pressure");
@@ -672,7 +694,7 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("power (kW)", "100");
     });
 
-    it("can show simulation results", () => {
+    it("can show simulation results", async () => {
       const IDS = { PU1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPump(IDS.PU1)
@@ -693,7 +715,9 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      await waitFor(() => {
+        expectTextPropertyDisplayed("flow (l/s)", "20.123");
+      });
       expectTextPropertyDisplayed("pump head (m)", "10.123");
       expectTextPropertyDisplayed("status", "On");
     });
@@ -719,7 +743,7 @@ describe("AssetPanel", () => {
 
       await user.click(screen.getByText(/^off$/i));
 
-      const updatedHydraulicModel = store.get(stagingModelAtom);
+      const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(
         (getLink(updatedHydraulicModel.assets, IDS.PU1) as Pump).initialStatus,
       ).toEqual("off");
@@ -761,7 +785,7 @@ describe("AssetPanel", () => {
       expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
-    it("can show simulation results", () => {
+    it("can show simulation results", async () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
@@ -781,7 +805,9 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("pressure (m)", "20");
+      await waitFor(() => {
+        expectTextPropertyDisplayed("pressure (m)", "20");
+      });
       expectTextPropertyDisplayed("head (m)", "10");
       expectTextPropertyDisplayed("actual demand (l/s)", "20");
     });
@@ -1091,7 +1117,7 @@ describe("AssetPanel", () => {
       });
     });
 
-    it("can show simulation results", () => {
+    it("can show simulation results", async () => {
       const IDS = { T1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with().aTank(IDS.T1).build();
       const store = setInitialState({
@@ -1111,7 +1137,9 @@ describe("AssetPanel", () => {
 
       renderComponent(store);
 
-      expectTextPropertyDisplayed("pressure (m)", "15.123");
+      await waitFor(() => {
+        expectTextPropertyDisplayed("pressure (m)", "15.123");
+      });
       expectTextPropertyDisplayed("head (m)", "125.568");
       expectTextPropertyDisplayed("level (m)", "25.988");
       expectTextPropertyDisplayed("volume (m³)", "1,500.432");
@@ -1321,7 +1349,7 @@ describe("AssetPanel", () => {
 
     await user.click(screen.getByText(/closed/i));
 
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).initialStatus,
     ).toEqual("closed");
@@ -1360,7 +1388,7 @@ describe("AssetPanel", () => {
     await user.type(field, "20.5");
     await user.keyboard("{Enter}");
 
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
     ).toEqual(20.5);
@@ -1404,7 +1432,7 @@ describe("AssetPanel", () => {
     });
   });
 
-  it("cannot change simulation results", () => {
+  it("cannot change simulation results", async () => {
     const IDS = { PIPE1: 1 };
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(IDS.PIPE1)
@@ -1419,7 +1447,9 @@ describe("AssetPanel", () => {
 
     renderComponent(store);
 
-    expectTextPropertyDisplayed("flow (l/s)", "10");
+    await waitFor(() => {
+      expectTextPropertyDisplayed("flow (l/s)", "10");
+    });
     expect(
       screen.queryByRole("textbox", {
         name: /value for: flow/i,
@@ -1450,7 +1480,7 @@ describe("AssetPanel", () => {
     await user.type(field, "1000.4");
     await user.keyboard("{Enter}");
 
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(
       (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).length,
     ).toEqual(1000.4);
@@ -1635,7 +1665,7 @@ describe("AssetPanel", () => {
       ).toHaveClass(/orange/i);
       await user.keyboard("{Enter}");
 
-      const updatedHydraulicModel = store.get(stagingModelAtom);
+      const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(
         (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
       ).toEqual(10);
@@ -1741,9 +1771,41 @@ describe("AssetPanel", () => {
       ...nullData,
       selection: { type: "single", id: selectedAssetId, parts: [] },
     });
+
+    let simulation: SimulationState = initialSimulationState;
+
     if (simulationData) {
-      store.set(simulationResultsAtom, createMockResultsReader(simulationData));
+      const resultsReader = createMockResultsReader(simulationData);
+      store.set(simulationResultsAtom, resultsReader);
+      store.set(simulationStepAtom, 0);
+      simulation = {
+        status: "success",
+        report: "",
+        modelVersion: hydraulicModel.version,
+        settingsVersion: "",
+        epsResultsReader: {
+          timestepCount: 1,
+          getResultsForTimestep: () => Promise.resolve(resultsReader),
+        },
+      } as unknown as SimulationState;
     }
+
+    store.set(
+      branchStateAtom,
+      new Map([
+        [
+          "main",
+          {
+            version: hydraulicModel.version,
+            hydraulicModel,
+            labelManager: new LabelManager(),
+            momentLog: new MomentLog(),
+            simulation,
+            simulationSettings: defaultSimulationSettings,
+          },
+        ],
+      ]),
+    );
     return store;
   };
 
@@ -1761,7 +1823,31 @@ describe("AssetPanel", () => {
       </QueryClientProvider>,
     );
 
-    const historyControl = persistence.useHistoryControlDeprecated();
+    const historyControl = (direction: "undo" | "redo") => {
+      const isUndo = direction === "undo";
+      const momentLog = store.get(momentLogDerivedAtom).copy();
+      const currentMapSyncMoment = store.get(mapSyncMomentAtom);
+      const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
+      if (!action) return;
+
+      applyMoment(
+        store.get,
+        store.set,
+        action.stateId,
+        action.moment,
+        stagingModelDerivedAtom,
+      );
+
+      isUndo ? momentLog.undo() : momentLog.redo();
+
+      const newMapSyncMoment = computeSyncMoment(
+        currentMapSyncMoment,
+        momentLog,
+      );
+
+      store.set(momentLogDerivedAtom, momentLog);
+      store.set(mapSyncMomentAtom, newMapSyncMoment);
+    };
     return historyControl;
   };
 

@@ -38,38 +38,45 @@ import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { LabelRule } from "src/map/symbology/symbology-types";
 import { Locale } from "src/infra/i18n/locale";
 import { localeAtom } from "src/state/locale";
+import { branchStateAtom } from "src/state/branch-state";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
-export const setInitialState = ({
-  store = createStore(),
-  hydraulicModel = HydraulicModelBuilder.with().build(),
-  momentLog = new MomentLog(),
-  selection = { type: "none" },
-  fileInfo = null,
-  layerConfigs = new Map(),
-  nodeSymbology = nullSymbologySpec.node,
-  linkSymbology = nullSymbologySpec.link,
-  locale = "en",
-  mode = Mode.NONE,
-  simulation = initialSimulationState,
-  simulationStep = null,
-  simulationResults = null,
-  simulationSettings,
-}: {
-  store?: Store;
-  hydraulicModel?: HydraulicModel;
-  momentLog?: MomentLog;
-  selection?: Sel;
-  fileInfo?: FileInfo | null;
-  layerConfigs?: LayerConfigMap;
-  nodeSymbology?: NodeSymbology;
-  linkSymbology?: LinkSymbology;
-  locale?: Locale;
-  mode?: Mode;
-  simulation?: SimulationState;
-  simulationStep?: number | null;
-  simulationResults?: ResultsReader | null;
-  simulationSettings?: SimulationSettings;
-} = {}): Store => {
+export const setInitialState = (
+  args: {
+    store?: Store;
+    hydraulicModel?: HydraulicModel;
+    momentLog?: MomentLog;
+    selection?: Sel;
+    fileInfo?: FileInfo | null;
+    layerConfigs?: LayerConfigMap;
+    nodeSymbology?: NodeSymbology;
+    linkSymbology?: LinkSymbology;
+    locale?: Locale;
+    mode?: Mode;
+    simulation?: SimulationState;
+    simulationStep?: number | null;
+    simulationResults?: ResultsReader | null;
+    simulationSettings?: SimulationSettings;
+  } = {},
+): Store => {
+  const {
+    store = createStore(),
+    hydraulicModel = HydraulicModelBuilder.with().build(),
+    momentLog = new MomentLog(),
+    selection = { type: "none" },
+    fileInfo = null,
+    layerConfigs = new Map(),
+    nodeSymbology = nullSymbologySpec.node,
+    linkSymbology = nullSymbologySpec.link,
+    locale = "en",
+    mode = Mode.NONE,
+    simulation = initialSimulationState,
+    simulationStep = null,
+    simulationResults = null,
+    simulationSettings,
+  } = args;
+  const simulationStepWasExplicit = "simulationStep" in args;
   store.set(stagingModelAtom, hydraulicModel);
   store.set(dataAtom, {
     ...nullData,
@@ -86,10 +93,44 @@ export const setInitialState = ({
   store.set(modeAtom, { mode });
   if (simulationResults) {
     store.set(simulationResultsAtom, simulationResults);
+    if (!simulationStepWasExplicit) {
+      store.set(simulationStepAtom, 0);
+    }
   }
   if (simulationSettings) {
     store.set(simulationSettingsAtom, simulationSettings);
   }
+
+  const branchSimulation: SimulationState =
+    simulationResults && !("epsResultsReader" in simulation)
+      ? ({
+          status: "success",
+          report: "",
+          modelVersion: hydraulicModel.version,
+          settingsVersion: "",
+          epsResultsReader: {
+            timestepCount: 1,
+            getResultsForTimestep: () => Promise.resolve(simulationResults),
+          },
+        } as unknown as SimulationState)
+      : simulation;
+
+  store.set(
+    branchStateAtom,
+    new Map([
+      [
+        "main",
+        {
+          version: hydraulicModel.version,
+          hydraulicModel,
+          labelManager: new LabelManager(),
+          momentLog,
+          simulation: branchSimulation,
+          simulationSettings: simulationSettings ?? defaultSimulationSettings,
+        },
+      ],
+    ]),
+  );
 
   return store;
 };

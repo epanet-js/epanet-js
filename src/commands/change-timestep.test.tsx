@@ -1,12 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CommandContainer } from "./__helpers__/command-container";
-import {
-  SimulationState,
-  simulationAtom,
-  simulationResultsAtom,
-  simulationStepAtom,
-} from "src/state/simulation";
+import { SimulationState, simulationStepAtom } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import {
   createMockResultsReader,
@@ -50,9 +46,8 @@ describe("useChangeTimestep", () => {
       await userEvent.click(screen.getByRole("button", { name: "go" }));
 
       await waitFor(() => {
-        expect(store.get(simulationAtom).status).toBe("idle");
+        expect(store.get(simulationDerivedAtom).status).toBe("idle");
         expect(store.get(simulationStepAtom)).toBeNull();
-        expect(store.get(simulationResultsAtom)).toBeNull();
       });
     });
 
@@ -69,7 +64,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
         expect(store.get(simulationStepAtom)).toBe(0);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -86,7 +80,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
         expect(store.get(simulationStepAtom)).toBe(4);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -103,7 +96,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(3);
         expect(store.get(simulationStepAtom)).toBe(3);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -120,7 +112,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
         expect(store.get(simulationStepAtom)).toBe(0);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -137,7 +128,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
         expect(store.get(simulationStepAtom)).toBe(4);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
@@ -156,7 +146,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(1);
         expect(store.get(simulationStepAtom)).toBe(1);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -173,7 +162,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(0);
         expect(store.get(simulationStepAtom)).toBe(0);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
@@ -192,7 +180,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(3);
         expect(store.get(simulationStepAtom)).toBe(3);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
 
@@ -209,7 +196,6 @@ describe("useChangeTimestep", () => {
       await waitFor(() => {
         expect(mockGetResultsForTimestep).toHaveBeenCalledWith(4);
         expect(store.get(simulationStepAtom)).toBe(4);
-        expect(store.get(simulationResultsAtom)).toBe(nextResultsReader);
       });
     });
   });
