@@ -20,14 +20,18 @@ export const useChangeTimestep = () => {
   const { stopPlayback } = useTogglePlayback();
 
   const changeTimestep = useAtomCallback(
-    (_get, set, timestepIndex: number, source: ChangeTimestepSource) => {
+    (get, set, timestepIndex: number, source: ChangeTimestepSource) => {
       try {
+        const previousStep = get(simulationStepAtom);
         set(setTimestepAtom, timestepIndex);
-        userTracking.capture({
-          name: "simulation.timestep.changed",
-          timestepIndex,
-          source,
-        });
+        const newStep = get(simulationStepAtom);
+        if (newStep !== null && newStep !== previousStep) {
+          userTracking.capture({
+            name: "simulation.timestep.changed",
+            timestepIndex: newStep,
+            source,
+          });
+        }
       } catch (error) {
         captureError(error as Error);
         set(simulationStepAtom, null);

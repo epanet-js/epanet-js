@@ -84,6 +84,22 @@ export const TimestepSelectorUI = ({
 
   return (
     <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
+      {isAnimateSimulationOn && (
+        <>
+          <Button
+            onClick={() => togglePlayback("buttons")}
+            variant="quiet"
+            size="xs"
+            aria-label={isPlaying ? "Pause playback" : "Play simulation"}
+          >
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          </Button>
+          <PlaybackSpeedDropdown
+            playbackSpeed={playbackSpeed}
+            onSpeedChange={changePlaybackSpeed}
+          />
+        </>
+      )}
       <button
         onClick={() => goToPreviousTimestep("buttons")}
         disabled={!canGoPrevious}
@@ -115,22 +131,6 @@ export const TimestepSelectorUI = ({
         onOpen={() => stopPlayback("dropdown")}
         onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
       />
-      {isAnimateSimulationOn && (
-        <>
-          <Button
-            onClick={() => togglePlayback("buttons")}
-            variant="quiet"
-            size="xs"
-            aria-label={isPlaying ? "Pause playback" : "Play simulation"}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </Button>
-          <PlaybackSpeedDropdown
-            playbackSpeed={playbackSpeed}
-            onSpeedChange={changePlaybackSpeed}
-          />
-        </>
-      )}
     </div>
   );
 };
