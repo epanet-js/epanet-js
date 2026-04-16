@@ -125,15 +125,9 @@ export function EpanetApp() {
   );
 
   useHydrateAtoms([
-    [dialogAtom, dialogFromUrl() ? dialogFromUrl() : { type: "welcome" }],
-    [
-      splitsAtom,
-      {
-        ...defaultSplits,
-        rightOpen: isMdOrLarger,
-      },
-    ],
-  ]);
+    [dialogAtom, dialogFromUrl() ?? { type: "welcome" }],
+    [splitsAtom, { ...defaultSplits, rightOpen: isMdOrLarger }],
+  ] as const);
 
   if (!isReady) {
     return <AppLoader progress={progress} />;
