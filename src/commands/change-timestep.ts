@@ -1,43 +1,26 @@
-import { useAtom } from "jotai";
-import { useCallback } from "react";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { useAtomCallback } from "jotai/utils";
 import { simulationStepAtom } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { setTimestepAtom } from "src/state/simulation-step";
 import { captureError } from "src/infra/error-tracking";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const previousTimestepShortcut = "shift+left";
 export const nextTimestepShortcut = "shift+right";
 
-type ChangeTimestepSource = "shortcut" | "buttons" | "dropdown" | "quick-graph";
+export type ChangeTimestepSource =
+  | "shortcut"
+  | "buttons"
+  | "dropdown"
+  | "quick-graph";
 
 export const useChangeTimestep = () => {
-  const [simulationStep, setSimulationStep] = useAtom(simulationStepAtom);
-  const [simulation, setSimulationState] = useAtom(simulationDerivedAtom);
-
   const userTracking = useUserTracking();
 
-  const changeTimestep = useCallback(
-    (timestepIndex: number, source: ChangeTimestepSource) => {
+  const changeTimestep = useAtomCallback(
+    (_get, set, timestepIndex: number, source: ChangeTimestepSource) => {
       try {
-        if (simulationStep === null)
-          throw new Error("Unknown simulation steps");
-
-        const epsReader =
-          "epsResultsReader" in simulation
-            ? simulation.epsResultsReader
-            : undefined;
-        if (!epsReader) throw new Error("Unknown simulation results");
-
-        const timestepCount = epsReader.timestepCount;
-        if (timestepCount === 0) throw new Error("No simulation steps");
-
-        const newTimeStep = Math.max(
-          0,
-          Math.min(timestepIndex, timestepCount - 1),
-        );
-
-        setSimulationStep(newTimeStep);
-
+        set(setTimestepAtom, timestepIndex);
         userTracking.capture({
           name: "simulation.timestep.changed",
           timestepIndex,
@@ -45,33 +28,22 @@ export const useChangeTimestep = () => {
         });
       } catch (error) {
         captureError(error as Error);
-        setSimulationStep(null);
-        setSimulationState({ status: "idle" });
+        set(simulationStepAtom, null);
+        set(simulationDerivedAtom, { status: "idle" });
       }
     },
-    [
-      simulationStep,
-      simulation,
-      setSimulationStep,
-      userTracking,
-      setSimulationState,
-    ],
   );
 
-  const goToPreviousTimestep = useCallback(
-    (source: ChangeTimestepSource = "shortcut") => {
-      const currentIndex = simulationStep ?? 0;
-      changeTimestep(currentIndex - 1, source);
+  const goToPreviousTimestep = useAtomCallback(
+    (get, _set, source: ChangeTimestepSource = "shortcut") => {
+      changeTimestep((get(simulationStepAtom) ?? 0) - 1, source);
     },
-    [simulationStep, changeTimestep],
   );
 
-  const goToNextTimestep = useCallback(
-    (source: ChangeTimestepSource = "shortcut") => {
-      const currentIndex = simulationStep ?? 0;
-      changeTimestep(currentIndex + 1, source);
+  const goToNextTimestep = useAtomCallback(
+    (get, _set, source: ChangeTimestepSource = "shortcut") => {
+      changeTimestep((get(simulationStepAtom) ?? 0) + 1, source);
     },
-    [simulationStep, changeTimestep],
   );
 
   return { changeTimestep, goToPreviousTimestep, goToNextTimestep };
