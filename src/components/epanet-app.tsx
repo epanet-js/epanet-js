@@ -19,7 +19,9 @@ import { BottomPanel, LeftSidePanel, SidePanel } from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom } from "jotai";
+import type { WritableAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import type { DialogState } from "src/state/dialog";
 import { defaultSplits, splitsAtom } from "src/state/layout";
 import clsx from "clsx";
 import {
@@ -125,7 +127,10 @@ export function EpanetApp() {
   );
 
   useHydrateAtoms([
-    [dialogAtom, dialogFromUrl() ?? { type: "welcome" }],
+    [
+      dialogAtom as WritableAtom<DialogState, [DialogState], void>,
+      (dialogFromUrl() ?? { type: "welcome" }) as DialogState,
+    ],
     [splitsAtom, { ...defaultSplits, rightOpen: isMdOrLarger }],
   ] as const);
 
