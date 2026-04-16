@@ -97,14 +97,16 @@ export function MultiAssetPanel({
 
   const junctionEditableProperties = useMemo(() => {
     const {
-      initialChemicalConcentration,
+      initialQuality,
       chemicalSourceType,
       chemicalSourceStrength,
       chemicalSourcePattern,
       ...rest
     } = BATCH_EDITABLE_PROPERTIES.junction!;
-    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.junction! : rest;
-  }, [isWaterChemicalOn]);
+    if (isWaterChemicalOn) return BATCH_EDITABLE_PROPERTIES.junction!;
+    if (isWaterAgeOn) return { initialQuality, ...rest };
+    return rest;
+  }, [isWaterAgeOn, isWaterChemicalOn]);
 
   const pipeEditableProperties = useMemo(() => {
     const { bulkReactionCoeff, wallReactionCoeff, ...rest } =
@@ -114,14 +116,16 @@ export function MultiAssetPanel({
 
   const reservoirEditableProperties = useMemo(() => {
     const {
-      initialChemicalConcentration,
+      initialQuality,
       chemicalSourceType,
       chemicalSourceStrength,
       chemicalSourcePattern,
       ...rest
     } = BATCH_EDITABLE_PROPERTIES.reservoir!;
-    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.reservoir! : rest;
-  }, [isWaterChemicalOn]);
+    if (isWaterChemicalOn) return BATCH_EDITABLE_PROPERTIES.reservoir!;
+    if (isWaterAgeOn) return { initialQuality, ...rest };
+    return rest;
+  }, [isWaterAgeOn, isWaterChemicalOn]);
 
   const tankEditableProperties = useMemo(() => {
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
@@ -137,17 +141,23 @@ export function MultiAssetPanel({
       : BATCH_EDITABLE_PROPERTIES.tank!;
     if (!isWaterChemicalOn) {
       const {
-        initialChemicalConcentration,
+        initialQuality,
         bulkReactionCoeff,
         chemicalSourceType,
         chemicalSourceStrength,
         chemicalSourcePattern,
         ...rest
       } = base;
+      if (isWaterAgeOn) return { initialQuality, ...rest };
       return rest;
     }
     return base;
-  }, [assetIdsByType.tank, hydraulicModel, isWaterChemicalOn]);
+  }, [
+    assetIdsByType.tank,
+    hydraulicModel.assets,
+    isWaterAgeOn,
+    isWaterChemicalOn,
+  ]);
 
   const showSelectOnly =
     Object.values(assetCounts).filter((c) => c > 0).length > 1;

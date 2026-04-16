@@ -536,12 +536,7 @@ export const buildInp = withDebugInstrumentation(
           transformCoord,
         );
         if (opts.includeQuality) {
-          appendInitialQuality(
-            sections,
-            idMap,
-            asset as Reservoir,
-            opts.simulationSettings,
-          );
+          appendInitialQuality(sections, idMap, asset as Reservoir);
           appendSource(sections, idMap, asset as Reservoir);
         }
       }
@@ -557,12 +552,7 @@ export const buildInp = withDebugInstrumentation(
           transformCoord,
         );
         if (opts.includeQuality) {
-          appendInitialQuality(
-            sections,
-            idMap,
-            asset as Tank,
-            opts.simulationSettings,
-          );
+          appendInitialQuality(sections, idMap, asset as Tank);
           appendMixing(sections, idMap, asset as Tank);
           appendSource(sections, idMap, asset as Tank);
           appendTankReaction(sections, idMap, asset as Tank);
@@ -584,12 +574,7 @@ export const buildInp = withDebugInstrumentation(
           transformCoord,
         );
         if (opts.includeQuality) {
-          appendInitialQuality(
-            sections,
-            idMap,
-            asset as Junction,
-            opts.simulationSettings,
-          );
+          appendInitialQuality(sections, idMap, asset as Junction);
           appendSource(sections, idMap, asset as Junction);
         }
       }
@@ -733,13 +718,9 @@ const appendInitialQuality = (
   sections: InpSections,
   idMap: EpanetIds,
   node: NodeAsset,
-  simulationSettings: SimulationSettings,
 ) => {
   const typedNode = node as Junction | Tank | Reservoir;
-  const value =
-    simulationSettings.qualitySimulationType === "chemical"
-      ? typedNode.initialChemicalConcentration
-      : typedNode.initialWaterAge;
+  const value = typedNode.initialQuality;
   if (value !== undefined && value !== 0) {
     sections.quality.push(`${idMap.nodeId(node)}\t${value}`);
   }

@@ -10,7 +10,7 @@ export type ReservoirProperties = {
 export const reservoirQuantities = [
   "elevation",
   "head",
-  "initialWaterAge",
+  "initialQuality",
 ] as const;
 export type ReservoirQuantity = (typeof reservoirQuantities)[number];
 
@@ -27,10 +27,6 @@ export class Reservoir extends Node<ReservoirProperties> {
 
   get headPatternId() {
     return this.properties.headPatternId;
-  }
-
-  get initialWaterAge() {
-    return this.properties.initialWaterAge;
   }
 }
 

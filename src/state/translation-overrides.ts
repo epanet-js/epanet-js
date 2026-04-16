@@ -25,10 +25,6 @@ const simulationTranslationOverridesAtom = atom(
         key: "customChemicalConcentration",
         variables: [chemicalName],
       },
-      initialChemicalConcentration: {
-        key: "initialCustomChemicalConcentration",
-        variables: [chemicalName],
-      },
     };
   },
 );

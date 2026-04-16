@@ -245,16 +245,8 @@ const appendJunctionStats = (
   );
   updateQuantityStats(
     statsMap,
-    "initialWaterAge",
-    junction.initialWaterAge,
-    units,
-    formatting,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "initialChemicalConcentration",
-    junction.initialChemicalConcentration,
+    "initialQuality",
+    junction.initialQuality,
     units,
     formatting,
     id,
@@ -399,9 +391,9 @@ const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
   options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterAge) statsMap.delete("initialWaterAge");
+  if (!options?.waterAge && !options?.waterChemical)
+    statsMap.delete("initialQuality");
   if (!options?.waterChemical) {
-    statsMap.delete("initialChemicalConcentration");
     statsMap.delete("chemicalSourceType");
     statsMap.delete("chemicalSourceStrength");
     statsMap.delete("chemicalSourcePattern");
@@ -423,11 +415,10 @@ const buildJunctionSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "emitterCoefficient",
-      ...(!options?.waterChemical ? (["initialWaterAge"] as const) : []),
+      ...(!options?.waterChemical ? (["initialQuality"] as const) : []),
     ]),
     quality: getStatsForProperties(statsMap, [
-      "initialWaterAge",
-      "initialChemicalConcentration",
+      "initialQuality",
       "chemicalSourceType",
       "chemicalSourceStrength",
       "chemicalSourcePattern",
@@ -1016,16 +1007,8 @@ const appendReservoirStats = (
 
   updateQuantityStats(
     statsMap,
-    "initialWaterAge",
-    reservoir.initialWaterAge,
-    units,
-    formatting,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "initialChemicalConcentration",
-    reservoir.initialChemicalConcentration,
+    "initialQuality",
+    reservoir.initialQuality,
     units,
     formatting,
     id,
@@ -1108,9 +1091,9 @@ const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
   options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterAge) statsMap.delete("initialWaterAge");
+  if (!options?.waterAge && !options?.waterChemical)
+    statsMap.delete("initialQuality");
   if (!options?.waterChemical) {
-    statsMap.delete("initialChemicalConcentration");
     statsMap.delete("chemicalSourceType");
     statsMap.delete("chemicalSourceStrength");
     statsMap.delete("chemicalSourcePattern");
@@ -1132,11 +1115,10 @@ const buildReservoirSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "head",
-      ...(!options?.waterChemical ? (["initialWaterAge"] as const) : []),
+      ...(!options?.waterChemical ? (["initialQuality"] as const) : []),
     ]),
     quality: getStatsForProperties(statsMap, [
-      "initialWaterAge",
-      "initialChemicalConcentration",
+      "initialQuality",
       "chemicalSourceType",
       "chemicalSourceStrength",
       "chemicalSourcePattern",
@@ -1270,16 +1252,8 @@ const appendTankStats = (
 
   updateQuantityStats(
     statsMap,
-    "initialWaterAge",
-    tank.initialWaterAge,
-    units,
-    formatting,
-    id,
-  );
-  updateQuantityStats(
-    statsMap,
-    "initialChemicalConcentration",
-    tank.initialChemicalConcentration,
+    "initialQuality",
+    tank.initialQuality,
     units,
     formatting,
     id,
@@ -1390,13 +1364,13 @@ const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
   options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
+  if (!options?.waterAge && !options?.waterChemical)
+    statsMap.delete("initialQuality");
   if (!options?.waterAge) {
-    statsMap.delete("initialWaterAge");
     statsMap.delete("mixingModel");
     statsMap.delete("mixingFraction");
   }
   if (!options?.waterChemical) {
-    statsMap.delete("initialChemicalConcentration");
     statsMap.delete("bulkReactionCoeff");
     statsMap.delete("chemicalSourceType");
     statsMap.delete("chemicalSourceStrength");
@@ -1435,14 +1409,13 @@ const buildTankSections = (
       "minVolume",
       "canOverflow",
       ...(!options?.waterChemical
-        ? (["initialWaterAge", "mixingModel", "mixingFraction"] as const)
+        ? (["initialQuality", "mixingModel", "mixingFraction"] as const)
         : []),
     ]),
     quality: getStatsForProperties(statsMap, [
-      "initialWaterAge",
+      "initialQuality",
       "mixingModel",
       "mixingFraction",
-      "initialChemicalConcentration",
       "bulkReactionCoeff",
       "chemicalSourceType",
       "chemicalSourceStrength",

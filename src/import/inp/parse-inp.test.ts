@@ -1055,11 +1055,11 @@ describe("quality section", () => {
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
-    expect(j1.initialWaterAge).toBe(5.0);
-    expect(j2.initialWaterAge).toBe(12.5);
+    expect(j1.initialQuality).toBe(5.0);
+    expect(j2.initialQuality).toBe(12.5);
   });
 
-  it("ignores QUALITY section values when quality type is not AGE", () => {
+  it("reads QUALITY section values regardless of quality type", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1079,10 +1079,10 @@ describe("quality section", () => {
     const { hydraulicModel } = parseInp(inp, { waterAge: true });
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
-    expect(j1.initialWaterAge).toBe(0);
+    expect(j1.initialQuality).toBe(1.5);
   });
 
-  it("ignores QUALITY section when waterAge option is off", () => {
+  it("reads QUALITY section even when waterAge option is off", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1102,7 +1102,7 @@ describe("quality section", () => {
     const { hydraulicModel } = parseInp(inp, { waterAge: false });
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
-    expect(j1.initialWaterAge).toBe(0);
+    expect(j1.initialQuality).toBe(5.0);
   });
 
   it("skips zero values in QUALITY section", () => {
@@ -1129,8 +1129,8 @@ describe("quality section", () => {
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
-    expect(j1.initialWaterAge).toBe(0);
-    expect(j2.initialWaterAge).toBe(10);
+    expect(j1.initialQuality).toBe(0);
+    expect(j2.initialQuality).toBe(10);
   });
 
   it("parses initial water age for tanks and reservoirs", () => {
@@ -1163,8 +1163,8 @@ describe("quality section", () => {
     const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
     const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
 
-    expect(t1.initialWaterAge).toBe(8.0);
-    expect(r1.initialWaterAge).toBe(3.0);
+    expect(t1.initialQuality).toBe(8.0);
+    expect(r1.initialQuality).toBe(3.0);
   });
 
   it("reports water quality type issue when waterAge is off", () => {
@@ -1285,15 +1285,13 @@ describe("quality section", () => {
     const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
     const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
 
-    expect(t1.initialChemicalConcentration).toBe(0.5);
-    expect(t1.initialWaterAge).toBe(0);
-    expect(r1.initialChemicalConcentration).toBe(1.0);
-    expect(r1.initialWaterAge).toBe(0);
+    expect(t1.initialQuality).toBe(0.5);
+    expect(r1.initialQuality).toBe(1.0);
     expect(simulationSettings.qualitySimulationType).toEqual("chemical");
     expect(issues?.waterQualityType).toBeUndefined();
   });
 
-  it("ignores QUALITY section values when waterChemical is off", () => {
+  it("reads QUALITY section values even when waterChemical is off", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1313,7 +1311,7 @@ describe("quality section", () => {
     const { hydraulicModel, issues } = parseInp(inp, { waterChemical: false });
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
-    expect(j1.initialChemicalConcentration).toBe(0);
+    expect(j1.initialQuality).toBe(1.5);
     expect(issues?.waterQualityType).toBe("chemical");
   });
 });

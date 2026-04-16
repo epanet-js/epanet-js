@@ -13,8 +13,7 @@ export type JunctionBuildData = {
   coordinates?: Position;
   elevation?: number;
   emitterCoefficient?: number;
-  initialWaterAge?: number;
-  initialChemicalConcentration?: number;
+  initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;
@@ -76,8 +75,7 @@ export type ReservoirBuildData = {
   relativeHead?: number;
   elevation?: number;
   headPatternId?: PatternId;
-  initialWaterAge?: number;
-  initialChemicalConcentration?: number;
+  initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;
@@ -97,8 +95,7 @@ export type TankBuildData = {
   overflow?: boolean;
   mixingModel?: TankMixingModel;
   mixingFraction?: number;
-  initialWaterAge?: number;
-  initialChemicalConcentration?: number;
+  initialQuality?: number;
   bulkReactionCoeff?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
@@ -254,8 +251,7 @@ export class AssetFactory {
     coordinates = [0, 0],
     elevation,
     emitterCoefficient,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     chemicalSourceType,
     chemicalSourceStrength,
     chemicalSourcePatternId,
@@ -267,8 +263,7 @@ export class AssetFactory {
       label: this.resolveLabel("junction", internalId, label),
       elevation: this.getJunctionValue("elevation", elevation),
       emitterCoefficient: emitterCoefficient ?? 0,
-      initialWaterAge: initialWaterAge ?? 0,
-      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      initialQuality: initialQuality ?? 0,
       chemicalSourceType,
       chemicalSourceStrength,
       chemicalSourcePatternId,
@@ -284,8 +279,7 @@ export class AssetFactory {
     head,
     relativeHead,
     headPatternId,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     chemicalSourceType,
     chemicalSourceStrength,
     chemicalSourcePatternId,
@@ -310,8 +304,7 @@ export class AssetFactory {
       head: headValue,
       headPatternId,
       elevation: elevationValue,
-      initialWaterAge: initialWaterAge ?? 0,
-      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      initialQuality: initialQuality ?? 0,
       chemicalSourceType,
       chemicalSourceStrength,
       chemicalSourcePatternId,
@@ -332,8 +325,7 @@ export class AssetFactory {
     overflow,
     mixingModel,
     mixingFraction,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     bulkReactionCoeff,
     chemicalSourceType,
     chemicalSourceStrength,
@@ -355,8 +347,7 @@ export class AssetFactory {
       overflow: overflow ?? false,
       mixingModel: mixingModel ?? "mixed",
       mixingFraction: mixingFraction ?? 1.0,
-      initialWaterAge: initialWaterAge ?? 0,
-      initialChemicalConcentration: initialChemicalConcentration ?? 0,
+      initialQuality: initialQuality ?? 0,
       bulkReactionCoeff,
       chemicalSourceType,
       chemicalSourceStrength,

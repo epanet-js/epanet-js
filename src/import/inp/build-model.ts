@@ -457,16 +457,7 @@ const addJunction = (
 
   const emitterCoefficient = inpData.emitters.get(junctionData.id);
 
-  const initialWaterAge =
-    inpData.options.qualitySimulationType === "age"
-      ? inpData.quality.get(junctionData.id)
-      : undefined;
-
-  const initialChemicalConcentration =
-    options?.waterChemical &&
-    inpData.options.qualitySimulationType === "chemical"
-      ? inpData.quality.get(junctionData.id)
-      : undefined;
+  const initialQuality = inpData.quality.get(junctionData.id);
 
   const sourceData = options?.waterChemical
     ? inpData.sources.get(junctionData.id)
@@ -492,8 +483,7 @@ const addJunction = (
     coordinates,
     elevation: junctionData.elevation,
     emitterCoefficient,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,
     chemicalSourcePatternId,
@@ -550,16 +540,7 @@ const addReservoir = (
     }
   }
 
-  const initialWaterAge =
-    inpData.options.qualitySimulationType === "age"
-      ? inpData.quality.get(reservoirData.id)
-      : undefined;
-
-  const initialChemicalConcentration =
-    options?.waterChemical &&
-    inpData.options.qualitySimulationType === "chemical"
-      ? inpData.quality.get(reservoirData.id)
-      : undefined;
+  const initialQuality = inpData.quality.get(reservoirData.id);
 
   const sourceData = options?.waterChemical
     ? inpData.sources.get(reservoirData.id)
@@ -586,8 +567,7 @@ const addReservoir = (
     head: reservoirData.baseHead,
     elevation: reservoirData.elevation,
     headPatternId,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,
     chemicalSourcePatternId,
@@ -641,16 +621,7 @@ const addTank = (
     }
   }
 
-  const initialWaterAge =
-    inpData.options.qualitySimulationType === "age"
-      ? inpData.quality.get(tankData.id)
-      : undefined;
-
-  const initialChemicalConcentration =
-    options?.waterChemical &&
-    inpData.options.qualitySimulationType === "chemical"
-      ? inpData.quality.get(tankData.id)
-      : undefined;
+  const initialQuality = inpData.quality.get(tankData.id);
 
   const sourceData = options?.waterChemical
     ? inpData.sources.get(tankData.id)
@@ -691,8 +662,7 @@ const addTank = (
     mixingModel,
     mixingFraction: mixingData?.fraction,
     volumeCurveId,
-    initialWaterAge,
-    initialChemicalConcentration,
+    initialQuality,
     bulkReactionCoeff,
     chemicalSourceType: sourceData?.type,
     chemicalSourceStrength: sourceData?.strength,

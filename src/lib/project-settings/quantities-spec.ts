@@ -43,7 +43,6 @@ export type QuantityProperty =
   | "tankArea"
   | "efficiency"
   | "averageKwPerFlowUnit"
-  | "initialWaterAge"
   | "waterAge"
   | "waterTrace"
   | "chemicalConcentration"
@@ -118,7 +117,6 @@ const metricSpec: AssetQuantitiesSpec = {
     ...allLevelUnits("m"),
     ...allFlowUnits("l/s"),
     averageKwPerFlowUnit: "kW/m^3",
-    initialWaterAge: "h",
     waterAge: "h",
     waterTrace: "%",
     chemicalConcentration: "mg/L",
@@ -176,7 +174,6 @@ const usCustomarySpec: AssetQuantitiesSpec = {
     ...allLevelUnits("ft"),
     ...allFlowUnits("gal/min"),
     averageKwPerFlowUnit: "kW/Mgal",
-    initialWaterAge: "h",
     waterAge: "h",
     waterTrace: "%",
     chemicalConcentration: "mg/L",

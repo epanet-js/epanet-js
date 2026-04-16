@@ -45,10 +45,7 @@ const buildSectionParserDefinitions = (
 ): SectionParserDefinition[] => [
   { names: ["TITLE"], parser: ignore },
   { names: ["CURVES", "CURVE"], parser: parseCurve },
-  {
-    names: ["QUALITY"],
-    parser: options?.waterAge || options?.waterChemical ? parseQuality : ignore,
-  },
+  { names: ["QUALITY"], parser: parseQuality },
   { names: ["OPTIONS"], parser: parseOption },
   { names: ["BACKDROP"], parser: ignore },
   { names: ["JUNCTIONS", "JUNCTION"], parser: parseJunction },

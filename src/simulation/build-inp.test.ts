@@ -1936,8 +1936,8 @@ THEN LINK {{1}} STATUS IS OPEN`,
     it("includes QUALITY section with initial water age when includeQuality is true", () => {
       const IDS = { J1: 1, J2: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 5 })
-        .aJunction(IDS.J2, { elevation: 20, initialWaterAge: 12 })
+        .aJunction(IDS.J1, { elevation: 10, initialQuality: 5 })
+        .aJunction(IDS.J2, { elevation: 20, initialQuality: 12 })
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -1954,7 +1954,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
     it("omits QUALITY section when includeQuality is false", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 5 })
+        .aJunction(IDS.J1, { elevation: 10, initialQuality: 5 })
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -1984,8 +1984,8 @@ THEN LINK {{1}} STATUS IS OPEN`,
     it("includes initial water age for tanks and reservoirs", () => {
       const IDS = { T1: 1, R1: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(IDS.T1, { initialWaterAge: 8 })
-        .aReservoir(IDS.R1, { head: 100, initialWaterAge: 3 })
+        .aTank(IDS.T1, { initialQuality: 8 })
+        .aReservoir(IDS.R1, { head: 100, initialQuality: 3 })
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -2002,8 +2002,8 @@ THEN LINK {{1}} STATUS IS OPEN`,
     it("skips nodes with zero initial water age", () => {
       const IDS = { J1: 1, J2: 2 };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, initialWaterAge: 0 })
-        .aJunction(IDS.J2, { elevation: 20, initialWaterAge: 7 })
+        .aJunction(IDS.J1, { elevation: 10, initialQuality: 0 })
+        .aJunction(IDS.J2, { elevation: 20, initialQuality: 7 })
         .build();
 
       const inp = buildInp(hydraulicModel, {
@@ -2017,7 +2017,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(inp).toContain(`${IDS.J2}\t7`);
     });
 
-    it("writes initialChemicalConcentration to QUALITY section for CHEMICAL type", () => {
+    it("writes initialQuality to QUALITY section for CHEMICAL type", () => {
       const IDS = { J1: 1, J2: 2 };
       const chemicalSettings = {
         ...defaultSimulationSettings,
@@ -2028,11 +2028,11 @@ THEN LINK {{1}} STATUS IS OPEN`,
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          initialChemicalConcentration: 1.2,
+          initialQuality: 1.2,
         })
         .aJunction(IDS.J2, {
           elevation: 20,
-          initialChemicalConcentration: 0.8,
+          initialQuality: 0.8,
         })
         .build();
 
@@ -2047,13 +2047,12 @@ THEN LINK {{1}} STATUS IS OPEN`,
       expect(inp).toContain(`${IDS.J2}\t0.8`);
     });
 
-    it("writes initialWaterAge (not chemical) when quality type is AGE", () => {
+    it("writes initialQuality when quality type is AGE", () => {
       const IDS = { J1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          initialWaterAge: 5,
-          initialChemicalConcentration: 1.2,
+          initialQuality: 5,
         })
         .build();
 
@@ -2064,7 +2063,6 @@ THEN LINK {{1}} STATUS IS OPEN`,
       });
 
       expect(inp).toContain(`${IDS.J1}\t5`);
-      expect(inp).not.toContain(`${IDS.J1}\t1.2`);
     });
 
     it("writes chemical concentration for tanks and reservoirs", () => {
@@ -2076,10 +2074,10 @@ THEN LINK {{1}} STATUS IS OPEN`,
         qualityMassUnit: "mg/L" as const,
       };
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aTank(IDS.T1, { initialChemicalConcentration: 0.5 })
+        .aTank(IDS.T1, { initialQuality: 0.5 })
         .aReservoir(IDS.R1, {
           head: 100,
-          initialChemicalConcentration: 1.0,
+          initialQuality: 1.0,
         })
         .build();
 

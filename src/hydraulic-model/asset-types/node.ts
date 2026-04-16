@@ -15,8 +15,7 @@ export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
 export type NodeProperties = {
   elevation: number;
   type: NodeType;
-  initialWaterAge: number;
-  initialChemicalConcentration: number;
+  initialQuality: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;
@@ -55,8 +54,8 @@ export class Node<T> extends BaseAsset<T & NodeProperties> {
     this.properties.elevation = elevation;
   }
 
-  get initialChemicalConcentration() {
-    return this.properties.initialChemicalConcentration;
+  get initialQuality() {
+    return this.properties.initialQuality;
   }
 
   get chemicalSourceType() {

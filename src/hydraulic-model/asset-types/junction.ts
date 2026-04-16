@@ -8,7 +8,7 @@ export type JunctionProperties = {
 export const junctionQuantities = [
   "elevation",
   "emitterCoefficient",
-  "initialWaterAge",
+  "initialQuality",
   "pressure",
 ] as const;
 export type JunctionQuantity = (typeof junctionQuantities)[number];
@@ -16,10 +16,6 @@ export type JunctionQuantity = (typeof junctionQuantities)[number];
 export class Junction extends Node<JunctionProperties> {
   get emitterCoefficient() {
     return this.properties.emitterCoefficient;
-  }
-
-  get initialWaterAge() {
-    return this.properties.initialWaterAge;
   }
 
   copy() {

@@ -58,14 +58,9 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       modelProperty: "emitterCoefficient",
       positiveOnly: true,
     },
-    initialWaterAge: {
+    initialQuality: {
       fieldType: "quantity",
-      modelProperty: "initialWaterAge",
-      positiveOnly: true,
-    },
-    initialChemicalConcentration: {
-      fieldType: "quantity",
-      modelProperty: "initialChemicalConcentration",
+      modelProperty: "initialQuality",
       positiveOnly: true,
     },
     chemicalSourceType: {
@@ -191,14 +186,9 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
   },
   reservoir: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
-    initialWaterAge: {
+    initialQuality: {
       fieldType: "quantity",
-      modelProperty: "initialWaterAge",
-      positiveOnly: true,
-    },
-    initialChemicalConcentration: {
-      fieldType: "quantity",
-      modelProperty: "initialChemicalConcentration",
+      modelProperty: "initialQuality",
       positiveOnly: true,
     },
     chemicalSourceType: {
@@ -251,9 +241,9 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
       positiveOnly: true,
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
-    initialWaterAge: {
+    initialQuality: {
       fieldType: "quantity",
-      modelProperty: "initialWaterAge",
+      modelProperty: "initialQuality",
       positiveOnly: true,
     },
     mixingModel: {
@@ -265,11 +255,6 @@ export const BATCH_EDITABLE_PROPERTIES: Partial<
     mixingFraction: {
       fieldType: "quantity",
       modelProperty: "mixingFraction",
-      positiveOnly: true,
-    },
-    initialChemicalConcentration: {
-      fieldType: "quantity",
-      modelProperty: "initialChemicalConcentration",
       positiveOnly: true,
     },
     bulkReactionCoeff: {

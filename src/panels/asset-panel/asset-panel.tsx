@@ -385,6 +385,7 @@ const JunctionEditor = ({
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
     getComparison,
@@ -496,12 +497,12 @@ const JunctionEditor = ({
         />
         {isWaterAgeOn && !isWaterChemicalOn && (
           <QuantityRow
-            name="initialWaterAge"
-            value={junction.initialWaterAge}
-            unit={units.initialWaterAge}
+            name="initialQuality"
+            value={junction.initialQuality}
+            unit={units.waterAge}
             comparison={getComparison(
-              "initialWaterAge",
-              junction.initialWaterAge,
+              "initialQuality",
+              junction.initialQuality,
             )}
             onChange={onPropertyChange}
             positiveOnly={true}
@@ -555,27 +556,19 @@ const JunctionEditor = ({
       </SectionWrapper>
       {isWaterChemicalOn && (
         <SectionWrapper title={translate("quality")} section="quality">
-          {isWaterAgeOn && (
-            <QuantityRow
-              name="initialWaterAge"
-              value={junction.initialWaterAge}
-              unit={units.initialWaterAge}
-              comparison={getComparison(
-                "initialWaterAge",
-                junction.initialWaterAge,
-              )}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-          )}
           <QuantityRow
-            name="initialChemicalConcentration"
-            value={junction.initialChemicalConcentration}
-            unit={units.chemicalConcentration}
+            name="initialQuality"
+            value={junction.initialQuality}
+            unit={
+              simulationSettings.qualitySimulationType === "age"
+                ? units.waterAge
+                : simulationSettings.qualitySimulationType === "chemical"
+                  ? units.chemicalConcentration
+                  : null
+            }
             comparison={getComparison(
-              "initialChemicalConcentration",
-              junction.initialChemicalConcentration,
+              "initialQuality",
+              junction.initialQuality,
             )}
             onChange={onPropertyChange}
             positiveOnly={true}
@@ -967,6 +960,7 @@ const ReservoirEditor = ({
   const translate = useTranslate();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
     useAssetComparison(reservoir);
@@ -1035,12 +1029,12 @@ const ReservoirEditor = ({
         />
         {isWaterAgeOn && !isWaterChemicalOn && (
           <QuantityRow
-            name="initialWaterAge"
-            value={reservoir.initialWaterAge}
-            unit={units.initialWaterAge}
+            name="initialQuality"
+            value={reservoir.initialQuality}
+            unit={units.waterAge}
             comparison={getComparison(
-              "initialWaterAge",
-              reservoir.initialWaterAge,
+              "initialQuality",
+              reservoir.initialQuality,
             )}
             onChange={onPropertyChange}
             positiveOnly={true}
@@ -1050,27 +1044,19 @@ const ReservoirEditor = ({
       </SectionWrapper>
       {isWaterChemicalOn && (
         <SectionWrapper title={translate("quality")} section="quality">
-          {isWaterAgeOn && (
-            <QuantityRow
-              name="initialWaterAge"
-              value={reservoir.initialWaterAge}
-              unit={units.initialWaterAge}
-              comparison={getComparison(
-                "initialWaterAge",
-                reservoir.initialWaterAge,
-              )}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-          )}
           <QuantityRow
-            name="initialChemicalConcentration"
-            value={reservoir.initialChemicalConcentration}
-            unit={units.chemicalConcentration}
+            name="initialQuality"
+            value={reservoir.initialQuality}
+            unit={
+              simulationSettings.qualitySimulationType === "age"
+                ? units.waterAge
+                : simulationSettings.qualitySimulationType === "chemical"
+                  ? units.chemicalConcentration
+                  : null
+            }
             comparison={getComparison(
-              "initialChemicalConcentration",
-              reservoir.initialChemicalConcentration,
+              "initialQuality",
+              reservoir.initialQuality,
             )}
             onChange={onPropertyChange}
             positiveOnly={true}
@@ -1259,13 +1245,10 @@ const TankEditor = ({
         {isWaterAgeOn && !isWaterChemicalOn && (
           <>
             <QuantityRow
-              name="initialWaterAge"
-              value={tank.initialWaterAge}
-              unit={units.initialWaterAge}
-              comparison={getComparison(
-                "initialWaterAge",
-                tank.initialWaterAge,
-              )}
+              name="initialQuality"
+              value={tank.initialQuality}
+              unit={units.waterAge}
+              comparison={getComparison("initialQuality", tank.initialQuality)}
               onChange={onPropertyChange}
               positiveOnly={true}
               readOnly={readonly}
@@ -1294,28 +1277,17 @@ const TankEditor = ({
       </SectionWrapper>
       {isWaterChemicalOn && (
         <SectionWrapper title={translate("quality")} section="quality">
-          {isWaterAgeOn && (
-            <QuantityRow
-              name="initialWaterAge"
-              value={tank.initialWaterAge}
-              unit={units.initialWaterAge}
-              comparison={getComparison(
-                "initialWaterAge",
-                tank.initialWaterAge,
-              )}
-              onChange={onPropertyChange}
-              positiveOnly={true}
-              readOnly={readonly}
-            />
-          )}
           <QuantityRow
-            name="initialChemicalConcentration"
-            value={tank.initialChemicalConcentration}
-            unit={units.chemicalConcentration}
-            comparison={getComparison(
-              "initialChemicalConcentration",
-              tank.initialChemicalConcentration,
-            )}
+            name="initialQuality"
+            value={tank.initialQuality}
+            unit={
+              simulationSettings.qualitySimulationType === "age"
+                ? units.waterAge
+                : simulationSettings.qualitySimulationType === "chemical"
+                  ? units.chemicalConcentration
+                  : null
+            }
+            comparison={getComparison("initialQuality", tank.initialQuality)}
             onChange={onPropertyChange}
             positiveOnly={true}
             readOnly={readonly}
