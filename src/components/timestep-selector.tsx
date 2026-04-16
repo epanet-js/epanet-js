@@ -15,7 +15,7 @@ import { Button, DDContent, StyledRadioItem } from "src/components/elements";
 import { simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { triggerStylesFor } from "./form/selector";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import {
   useChangeTimestep,
@@ -24,15 +24,7 @@ import {
 import { simulationPlaybackAtom } from "src/state/simulation-playback";
 import { useTogglePlayback } from "src/commands/toggle-playback";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-
-type PlaybackSpeed = 2000 | 1000 | 500 | 250;
-
-const SPEED_OPTIONS: { label: string; value: PlaybackSpeed }[] = [
-  { label: "0.5×", value: 2000 },
-  { label: "1×", value: 1000 },
-  { label: "2×", value: 500 },
-  { label: "4×", value: 250 },
-];
+import { useTranslate } from "src/hooks/use-translate";
 
 export const TimestepSelector = () => {
   const simulationStep = useAtomValue(simulationStepAtom);
@@ -71,59 +63,35 @@ export const TimestepSelectorUI = ({
   reportTimestep,
   onChangeTimestep,
 }: TimestepSelectorUIProps) => {
+  const translate = useTranslate();
   const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
   const canGoPrevious = currentTimestepIndex > 0;
   const canGoNext = currentTimestepIndex < timestepCount - 1;
 
-  const playback = useAtomValue(simulationPlaybackAtom);
-  const { togglePlayback, stopPlayback, changePlaybackSpeed } =
-    useTogglePlayback();
+  const { stopPlayback } = useTogglePlayback();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
-  const isPlaying = playback.isPlaying;
-  const playbackSpeed = playback.playbackSpeedMs as PlaybackSpeed;
 
   return (
     <div className="absolute top-3 right-3 flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-sm">
-      {isAnimateSimulationOn && (
-        <>
-          <Button
-            onClick={() => togglePlayback("buttons")}
-            variant="quiet"
-            size="xs"
-            aria-label={isPlaying ? "Pause playback" : "Play simulation"}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </Button>
-          <PlaybackSpeedDropdown
-            playbackSpeed={playbackSpeed}
-            onSpeedChange={changePlaybackSpeed}
-          />
-        </>
-      )}
-      <button
+      {isAnimateSimulationOn && <PlayButton />}
+      <Button
+        variant="quiet/mode"
+        className="h-8"
+        aria-label={translate("previousTimestep")}
         onClick={() => goToPreviousTimestep("buttons")}
         disabled={!canGoPrevious}
-        className={clsx(
-          "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-l-sm",
-          "active:bg-gray-300 dark:active:bg-gray-600",
-          "disabled:opacity-40 disabled:active:bg-gray-200 disabled:cursor-not-allowed",
-        )}
-        aria-label="Previous timestep"
       >
         <ChevronLeftIcon />
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="quiet/mode"
+        className="h-8"
+        aria-label={translate("nextTimestep")}
         onClick={() => goToNextTimestep("buttons")}
         disabled={!canGoNext}
-        className={clsx(
-          "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-r-sm",
-          "active:bg-gray-300 dark:active:bg-gray-600",
-          "disabled:opacity-40 disabled:active:bg-gray-200 disabled:cursor-not-allowed",
-        )}
-        aria-label="Next timestep"
       >
         <ChevronRightIcon />
-      </button>
+      </Button>
       <TimestepDropdown
         currentTimestepIndex={currentTimestepIndex}
         timestepCount={timestepCount}
@@ -132,6 +100,131 @@ export const TimestepSelectorUI = ({
         onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
       />
     </div>
+  );
+};
+
+type PlaybackSpeed = 2000 | 1000 | 500 | 250;
+
+const SPEED_OPTIONS: { label: string; value: PlaybackSpeed }[] = [
+  { label: "x1", value: 1000 },
+  { label: "x2", value: 500 },
+  { label: "x4", value: 250 },
+];
+
+const LONG_PRESS_DURATION_MS = 500;
+
+const PlayButton = () => {
+  const translate = useTranslate();
+  const { playbackSpeedMs, isPlaying } = useAtomValue(simulationPlaybackAtom);
+  const { togglePlayback, changePlaybackSpeed } = useTogglePlayback();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const wasLongPressRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
+
+  const openDropdown = useCallback(() => {
+    if (!isPlaying) setIsOpen(true);
+  }, [isPlaying]);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      if (e.button === 2) return;
+      wasLongPressRef.current = false;
+      longPressTimerRef.current = window.setTimeout(() => {
+        wasLongPressRef.current = true;
+        openDropdown();
+      }, LONG_PRESS_DURATION_MS);
+    },
+    [openDropdown],
+  );
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (!wasLongPressRef.current && !isOpen) {
+      togglePlayback("buttons");
+    }
+  }, [isOpen, togglePlayback]);
+
+  const handlePointerLeave = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      openDropdown();
+    },
+    [openDropdown],
+  );
+
+  const currentSpeed =
+    SPEED_OPTIONS.find((o) => o.value === playbackSpeedMs) ?? SPEED_OPTIONS[0];
+
+  return (
+    <DD.Root open={isOpen} onOpenChange={setIsOpen}>
+      <DD.Trigger asChild>
+        <Button
+          variant="quiet/mode"
+          className="relative h-8"
+          aria-label={
+            isPlaying ? translate("pausePlayback") : translate("playSimulation")
+          }
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          onContextMenu={handleContextMenu}
+        >
+          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          {!isPlaying && (
+            <span
+              className="absolute bottom-0.5 right-1 flex items-end gap-px"
+              aria-hidden="true"
+            >
+              {currentSpeed.value !== 1000 && (
+                <span className="text-[9px] leading-none text-gray-500 font-medium">
+                  {currentSpeed.label}
+                </span>
+              )}
+              <span className="border-l-[6px] border-l-transparent border-b-[6px] border-b-gray-400" />
+            </span>
+          )}
+        </Button>
+      </DD.Trigger>
+      <DD.Portal>
+        <DDContent align="start" sideOffset={4}>
+          <DD.RadioGroup
+            value={String(currentSpeed.value)}
+            onValueChange={(v) => {
+              changePlaybackSpeed(Number(v) as PlaybackSpeed);
+              setIsOpen(false);
+              togglePlayback("buttons");
+            }}
+          >
+            {SPEED_OPTIONS.map(({ label, value }) => (
+              <StyledRadioItem key={value} value={String(value)}>
+                {label}
+                <DD.ItemIndicator>
+                  <CheckIcon className="text-purple-700" />
+                </DD.ItemIndicator>
+              </StyledRadioItem>
+            ))}
+          </DD.RadioGroup>
+        </DDContent>
+      </DD.Portal>
+    </DD.Root>
   );
 };
 
@@ -247,49 +340,6 @@ const TimestepDropdown = ({
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
-  );
-};
-
-type PlaybackSpeedDropdownProps = {
-  playbackSpeed: PlaybackSpeed;
-  onSpeedChange: (speed: PlaybackSpeed) => void;
-};
-
-const PlaybackSpeedDropdown = ({
-  playbackSpeed,
-  onSpeedChange,
-}: PlaybackSpeedDropdownProps) => {
-  return (
-    <DD.Root>
-      <DD.Trigger asChild>
-        <button
-          className={clsx(
-            "size-[1.875rem] p-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-sm",
-            "active:bg-gray-300 dark:active:bg-gray-600",
-          )}
-          aria-label="Playback speed"
-        >
-          <ChevronDownIcon />
-        </button>
-      </DD.Trigger>
-      <DD.Portal>
-        <DDContent align="end" sideOffset={4}>
-          <DD.RadioGroup
-            value={String(playbackSpeed)}
-            onValueChange={(v) => onSpeedChange(Number(v) as PlaybackSpeed)}
-          >
-            {SPEED_OPTIONS.map(({ label, value }) => (
-              <StyledRadioItem key={value} value={String(value)}>
-                <DD.ItemIndicator>
-                  <CheckIcon className="text-purple-700" />
-                </DD.ItemIndicator>
-                {label}
-              </StyledRadioItem>
-            ))}
-          </DD.RadioGroup>
-        </DDContent>
-      </DD.Portal>
-    </DD.Root>
   );
 };
 
