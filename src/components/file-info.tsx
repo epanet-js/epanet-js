@@ -1,11 +1,9 @@
-import { fileInfoAtom, fileInfoMachineAtom } from "src/state/file-system";
+import { fileInfoAtom } from "src/state/file-system";
 import { hasUnsavedChangesAtom } from "src/state/model-changes";
 import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { truncate } from "src/lib/utils";
-import * as Popover from "@radix-ui/react-popover";
-import { StyledPopoverArrow, StyledPopoverContent } from "./elements";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 
@@ -16,33 +14,24 @@ export function FileInfo() {
   const hasUnsavedChanges = useAtomValue(
     isStateRefactorOn ? hasUnsavedChangesDerivedAtom : hasUnsavedChangesAtom,
   );
-  const [state] = useAtom(fileInfoMachineAtom);
 
   if (!fileInfo) return <div></div>;
 
   return (
-    <Popover.Root open={state.matches("visible")}>
-      <div className="pl-3 flex-initial hidden sm:flex items-center gap-x-1">
-        <Popover.Anchor>
-          <FileIcon />
-        </Popover.Anchor>
-        <div
-          className="text-xs font-mono whitespace-nowrap truncate"
-          title={fileInfo.name}
-        >
-          {truncate(fileInfo.name, 50)}{" "}
-        </div>
-        {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
-        {fileInfo.isDemoNetwork && (
-          <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
-            {translate("demoShort")}
-          </span>
-        )}
+    <div className="pl-3 flex-initial hidden sm:flex items-center gap-x-1">
+      <FileIcon />
+      <div
+        className="text-xs font-mono whitespace-nowrap truncate"
+        title={fileInfo.name}
+      >
+        {truncate(fileInfo.name, 50)}{" "}
       </div>
-      <StyledPopoverContent size="xs">
-        <StyledPopoverArrow />
-        <div className="text-xs">Saved</div>
-      </StyledPopoverContent>
-    </Popover.Root>
+      {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
+      {fileInfo.isDemoNetwork && (
+        <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
+          {translate("demoShort")}
+        </span>
+      )}
+    </div>
   );
 }

@@ -1,8 +1,6 @@
 import { atom } from "jotai";
 import type { FileSystemHandle } from "browser-fs-access";
 import type { ExportOptions } from "src/types/export";
-import { atomWithMachine } from "jotai-xstate";
-import { createMachine } from "xstate";
 import { defaultRecentFilesDb, RecentFilesStore } from "src/lib/recent-files";
 
 export type FileInfo = {
@@ -15,28 +13,6 @@ export type FileInfo = {
 };
 
 export const fileInfoAtom = atom<FileInfo | null>(null);
-
-const fileInfoMachine = createMachine({
-  predictableActionArguments: true,
-  id: "fileInfo",
-  initial: "idle",
-  states: {
-    idle: {
-      on: {
-        show: "visible",
-      },
-    },
-    visible: {
-      after: {
-        2000: {
-          target: "idle",
-        },
-      },
-    },
-  },
-});
-
-export const fileInfoMachineAtom = atomWithMachine(() => fileInfoMachine);
 
 export const isDemoNetworkAtom = atom(
   (get) => get(fileInfoAtom)?.isDemoNetwork ?? false,
