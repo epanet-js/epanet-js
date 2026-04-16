@@ -111,3 +111,7 @@ export const mapStylingPanelSectionsExpandedAtom =
       projection: true,
     },
   );
+
+export const bottomSidebarOpenAtom = atom<boolean>(false);
+export const bottomSidebarMaximizedAtom = atom<boolean>(false);
+export const bottomSidebarActiveTabAtom = atom<string>("assets");

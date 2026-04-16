@@ -1,6 +1,24 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  memo,
+  startTransition,
+} from "react";
+import { LayoutTestProviders } from "./providers";
+import FeatureEditor from "src/panels/feature-editor";
+import { MapStylingEditor } from "src/panels/map-styling-editor";
+import { AssetsTable } from "src/components/bottom-sidebar/assets-table";
+import { NetworkReview } from "src/panels/network-review";
+import { MenuBarPlay } from "src/components/menu-bar";
+import { Toolbar } from "src/toolbar/toolbar";
+import { Footer } from "src/components/footer/footer";
+import { MapCanvas } from "src/map/map-canvas";
+import { MapContext } from "src/map";
+import type { MapEngine } from "src/map";
 import {
   DndContext,
   DragEndEvent,
@@ -8,6 +26,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   useDroppable,
@@ -30,6 +49,7 @@ interface Panel {
   id: string;
   title: string;
   description: string;
+  component?: React.ComponentType;
 }
 
 type PanelLayout = Record<string, Zone>;
@@ -38,22 +58,35 @@ type PanelLayout = Record<string, Zone>;
 
 const PANELS: Panel[] = [
   {
+    id: "map",
+    title: "Map",
+    description:
+      "Interactive network map showing nodes, pipes, and simulation results.",
+  },
+  {
+    id: "feature-editor",
+    title: "Feature",
+    description: "Properties editor for the selected network asset.",
+    component: FeatureEditor,
+  },
+  {
+    id: "map-styling",
+    title: "Styling",
+    description: "Map symbology, color rules, and layer visibility.",
+    component: MapStylingEditor,
+  },
+  {
     id: "alpha",
     title: "Alpha",
     description:
       "Overview of network topology and active node connections across the current simulation run.",
   },
   {
-    id: "bravo",
-    title: "Bravo",
+    id: "network-review",
+    title: "Network",
     description:
-      "Pressure readings at monitored junctions. Alerts trigger when values fall outside thresholds.",
-  },
-  {
-    id: "charlie",
-    title: "Charlie",
-    description:
-      "Flow rate summary per pipe segment. Highlighted in red when velocity exceeds design limits.",
+      "Network topology checks: orphan assets, crossing pipes, proximity anomalies.",
+    component: NetworkReview,
   },
   {
     id: "delta",
@@ -68,6 +101,13 @@ const PANELS: Panel[] = [
       "Reservoir and tank levels throughout the simulation. Tracks fill and drain cycles per interval.",
   },
   {
+    id: "assets",
+    title: "Assets",
+    description:
+      "All network assets with filtering, sorting, and simulation results.",
+    component: AssetsTable,
+  },
+  {
     id: "foxtrot",
     title: "Foxtrot",
     description:
@@ -79,20 +119,19 @@ const PANELS: Panel[] = [
     description:
       "Pump operating schedules and energy consumption. Efficiency curves shown per pump asset.",
   },
-  {
-    id: "hotel",
-    title: "Hotel",
-    description:
-      "Scenario comparison view. Diff between baseline and active scenario across all result parameters.",
-  },
 ];
 
 const INITIAL_LAYOUT: PanelLayout = {
+  map: "center",
   alpha: "center",
   bravo: "center",
+  "network-review": "left",
   charlie: "left",
   delta: "left",
+  "feature-editor": "right",
+  "map-styling": "right",
   echo: "right",
+  assets: "bottom",
   foxtrot: "bottom",
   golf: "bottom",
   hotel: "center",
@@ -147,6 +186,40 @@ function addToTree(
     direction,
     children: prepend ? [leaf, root] : [root, leaf],
   };
+}
+
+function insertNextTo(
+  root: LayoutNode,
+  targetId: string,
+  newId: string,
+  edge: DropEdge,
+): LayoutNode {
+  if (root.type === "panel") {
+    if (root.panelId !== targetId) return root;
+    const newLeaf: LayoutNode = { type: "panel", panelId: newId };
+    const direction: "row" | "col" =
+      edge === "top" || edge === "bottom" ? "col" : "row";
+    const prepend = edge === "top" || edge === "left";
+    return {
+      type: "split",
+      direction,
+      children: prepend ? [newLeaf, root] : [root, newLeaf],
+    };
+  }
+  const newChildren = root.children.map((child) =>
+    insertNextTo(child, targetId, newId, edge),
+  );
+  if (newChildren.every((c, i) => c === root.children[i])) return root;
+  // Flatten any newly-created split whose direction matches the parent
+  const flat: LayoutNode[] = [];
+  for (const child of newChildren) {
+    if (child.type === "split" && child.direction === root.direction) {
+      flat.push(...child.children);
+    } else {
+      flat.push(child);
+    }
+  }
+  return { ...root, children: flat };
 }
 
 // ─── Drop Edge Detection ──────────────────────────────────────────────────────
@@ -207,33 +280,75 @@ function DraggableTab({
 // ─── Center Panel Card ────────────────────────────────────────────────────────
 // A panel slot in the center split layout. Tab header is the only drag handle.
 
+const centerDropRect: Record<DropEdge, string> = {
+  top: "inset-x-0 top-0 h-1/3 border-b-2",
+  bottom: "inset-x-0 bottom-0 h-1/3 border-t-2",
+  left: "inset-y-0 left-0 w-1/4 border-r-2",
+  right: "inset-y-0 right-0 w-1/4 border-l-2",
+};
+
 function CenterPanelCard({
   panel,
   activeId,
+  setMap,
+  onClose,
+  pendingEdge,
 }: {
   panel: Panel;
   activeId: string | null;
+  setMap: (map: MapEngine | null) => void;
+  onClose: (panelId: string) => void;
+  pendingEdge: DropEdge | null;
 }) {
   const isDragging = activeId === panel.id;
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: "center-panel:" + panel.id,
+  });
 
   return (
     <div
+      ref={setDropRef}
       className={[
-        "flex flex-col flex-1 min-w-0 min-h-0 rounded border border-gray-200 overflow-hidden bg-white",
+        "relative flex flex-col flex-1 min-w-0 min-h-0 rounded border border-gray-200 overflow-hidden bg-white",
         isDragging ? "opacity-30" : "",
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      {/* Tab header — the drag handle */}
-      <div className="flex flex-row border-b border-gray-200 shrink-0 bg-gray-50">
+      {isOver && pendingEdge && (
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div
+            className={`absolute rounded bg-blue-200/60 border-2 border-blue-500 ${centerDropRect[pendingEdge]}`}
+          />
+        </div>
+      )}
+      {/* Tab header — drag handle + close button */}
+      <div className="flex flex-row items-center border-b border-gray-200 shrink-0 bg-gray-50">
         <DraggableTab panel={panel} isActive={activeId === panel.id} />
+        <button
+          onClick={() => onClose(panel.id)}
+          className="ml-auto mr-1.5 flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 text-xs leading-none focus:outline-none"
+          aria-label={`Close ${panel.title}`}
+        >
+          ×
+        </button>
       </div>
       {/* Content */}
-      <div className="flex-1 min-h-0 p-3 overflow-auto">
-        <div className="text-xs text-gray-400 leading-snug">
-          {panel.description}
-        </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {panel.id === "map" ? (
+          <MapCanvas setMap={setMap} />
+        ) : panel.component ? (
+          (() => {
+            const Component = panel.component;
+            return <Component />;
+          })()
+        ) : (
+          <div className="p-3 h-full overflow-auto">
+            <div className="text-xs text-gray-400 leading-snug">
+              {panel.description}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -244,14 +359,28 @@ function CenterPanelCard({
 function LayoutNodeView({
   node,
   activeId,
+  setMap,
+  onClose,
+  pendingEdge,
 }: {
   node: LayoutNode;
   activeId: string | null;
+  setMap: (map: MapEngine | null) => void;
+  onClose: (panelId: string) => void;
+  pendingEdge: DropEdge | null;
 }) {
   if (node.type === "panel") {
     const panel = PANELS.find((p) => p.id === node.panelId);
     if (!panel) return null;
-    return <CenterPanelCard panel={panel} activeId={activeId} />;
+    return (
+      <CenterPanelCard
+        panel={panel}
+        activeId={activeId}
+        setMap={setMap}
+        onClose={onClose}
+        pendingEdge={pendingEdge}
+      />
+    );
   }
   return (
     <div
@@ -261,7 +390,14 @@ function LayoutNodeView({
       ].join(" ")}
     >
       {node.children.map((child, i) => (
-        <LayoutNodeView key={i} node={child} activeId={activeId} />
+        <LayoutNodeView
+          key={i}
+          node={child}
+          activeId={activeId}
+          setMap={setMap}
+          onClose={onClose}
+          pendingEdge={pendingEdge}
+        />
       ))}
     </div>
   );
@@ -274,18 +410,26 @@ function CenterDropZone({
   activeId,
   activePanelZone,
   pendingEdge,
+  pendingTargetId,
+  setMap,
+  onClose,
 }: {
   tree: LayoutNode | null;
   activeId: string | null;
   activePanelZone: Zone | null;
   pendingEdge: DropEdge | null;
+  pendingTargetId: string | null;
+  setMap: (map: MapEngine | null) => void;
+  onClose: (panelId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: "center" });
   const isSource = activePanelZone === "center";
   const showHint = activeId !== null && !isSource;
   const isEmpty = tree === null;
+  // Only show container-level indicator when not hovering over a specific panel
+  const showContainerIndicator =
+    isOver && pendingEdge && pendingTargetId === null;
 
-  // Solid rectangle showing exactly where the panel will land
   const dropRect: Record<DropEdge, string> = {
     top: "inset-x-0 top-0 h-1/3 border-b-2",
     bottom: "inset-x-0 bottom-0 h-1/3 border-t-2",
@@ -295,7 +439,7 @@ function CenterDropZone({
 
   return (
     <div ref={setNodeRef} className="relative h-full w-full">
-      {isOver && pendingEdge && (
+      {showContainerIndicator && (
         <div className="absolute inset-0 pointer-events-none z-10">
           {isEmpty ? (
             <div className="absolute inset-1 rounded bg-blue-200/60 border-2 border-blue-500" />
@@ -323,7 +467,13 @@ function CenterDropZone({
             {showHint ? "Drop here → Center" : "Center"}
           </span>
         ) : (
-          <LayoutNodeView node={tree} activeId={activeId} />
+          <LayoutNodeView
+            node={tree}
+            activeId={activeId}
+            setMap={setMap}
+            onClose={onClose}
+            pendingEdge={pendingEdge}
+          />
         )}
       </div>
     </div>
@@ -375,7 +525,7 @@ function ActivityBarTab({
 
 // ─── Tabbed Drop Zone ─────────────────────────────────────────────────────────
 
-function TabbedDropZone({
+const TabbedDropZone = memo(function TabbedDropZone({
   zone,
   panels,
   activeId,
@@ -383,14 +533,16 @@ function TabbedDropZone({
   activeTabId,
   onTabClick,
   barSide = "top",
+  collapsed = false,
 }: {
   zone: TabbedZone;
   panels: Panel[];
   activeId: string | null;
   activePanelZone: Zone | null;
   activeTabId: string | null;
-  onTabClick: (panelId: string) => void;
+  onTabClick: (panelId: string, wasActive: boolean) => void;
   barSide?: "top" | "left" | "right";
+  collapsed?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: zone });
   const isSource = activePanelZone === zone;
@@ -400,16 +552,25 @@ function TabbedDropZone({
     panels.find((p) => p.id === activeTabId)?.id ?? panels[0]?.id ?? null;
   const activePanel = panels.find((p) => p.id === effectiveId) ?? null;
 
-  const content = activePanel && (
-    <div className="flex-1 min-h-0 p-3 overflow-auto">
-      <div className="text-sm font-medium text-gray-700 mb-1">
-        {activePanel.title}
-      </div>
-      <div className="text-xs text-gray-400 leading-snug">
-        {activePanel.description}
-      </div>
-    </div>
-  );
+  const content =
+    activePanel &&
+    (() => {
+      const Component = activePanel.component;
+      return Component ? (
+        <div className="flex-1 min-h-0 overflow-auto">
+          <Component />
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 p-3 overflow-auto">
+          <div className="text-sm font-medium text-gray-700 mb-1">
+            {activePanel.title}
+          </div>
+          <div className="text-xs text-gray-400 leading-snug">
+            {activePanel.description}
+          </div>
+        </div>
+      );
+    })();
 
   return (
     <div
@@ -441,26 +602,32 @@ function TabbedDropZone({
                 key={p.id}
                 panel={p}
                 isActive={p.id === effectiveId}
-                onClick={() => onTabClick(p.id)}
+                onClick={() => onTabClick(p.id, p.id === effectiveId)}
               />
             ))}
           </div>
-          <div className="flex-1 min-h-0 p-3 overflow-auto">
-            {activePanel && (
-              <>
-                <div className="text-sm font-medium text-gray-700 mb-1">
-                  {activePanel.title}
-                </div>
-                <div className="text-xs text-gray-400 leading-snug">
-                  {activePanel.description}
-                </div>
-              </>
-            )}
+          <div className="flex-1 min-h-0 overflow-auto">
+            {activePanel &&
+              (() => {
+                const Component = activePanel.component;
+                return Component ? (
+                  <Component />
+                ) : (
+                  <div className="p-3">
+                    <div className="text-sm font-medium text-gray-700 mb-1">
+                      {activePanel.title}
+                    </div>
+                    <div className="text-xs text-gray-400 leading-snug">
+                      {activePanel.description}
+                    </div>
+                  </div>
+                );
+              })()}
           </div>
         </>
       ) : (
         <>
-          {barSide === "right" && content}
+          {barSide === "right" && !collapsed && content}
           <div
             className={[
               "shrink-0 flex flex-col bg-gray-100",
@@ -474,18 +641,20 @@ function TabbedDropZone({
               <ActivityBarTab
                 key={p.id}
                 panel={p}
-                isActive={p.id === effectiveId}
+                isActive={p.id === effectiveId && !collapsed}
                 side={barSide as "left" | "right"}
-                onClick={() => onTabClick(p.id)}
+                onClick={() =>
+                  onTabClick(p.id, p.id === effectiveId && !collapsed)
+                }
               />
             ))}
           </div>
-          {barSide === "left" && content}
+          {barSide === "left" && !collapsed && content}
         </>
       )}
     </div>
   );
-}
+});
 
 // ─── Drag Overlay ─────────────────────────────────────────────────────────────
 
@@ -566,13 +735,30 @@ export default function LayoutTestPage() {
   const [activeTabByZone, setActiveTabByZone] = useState<
     Record<TabbedZone, string | null>
   >({
-    left: "charlie",
-    right: "echo",
-    bottom: "foxtrot",
+    left: "network-review",
+    right: "feature-editor",
+    bottom: "assets",
   });
-  const [leftWidth, setLeftWidth] = useState(224);
-  const [rightWidth, setRightWidth] = useState(224);
+  const [leftWidth, setLeftWidth] = useState(320);
+  const [rightWidth, setRightWidth] = useState(320);
   const [bottomHeight, setBottomHeight] = useState(160);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [map, setMap] = useState<MapEngine | null>(null);
+  const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
+
+  const leftPanels = useMemo(
+    () => PANELS.filter((p) => layout[p.id] === "left"),
+    [layout],
+  );
+  const rightPanels = useMemo(
+    () => PANELS.filter((p) => layout[p.id] === "right"),
+    [layout],
+  );
+  const bottomPanels = useMemo(
+    () => PANELS.filter((p) => layout[p.id] === "bottom"),
+    [layout],
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -588,11 +774,18 @@ export default function LayoutTestPage() {
   }, []);
 
   const handleDragMove = useCallback((e: DragMoveEvent) => {
-    if (e.over?.id !== "center") {
+    const overId = e.over ? String(e.over.id) : null;
+    const isCenterPanel = overId?.startsWith("center-panel:") ?? false;
+    const isCenter = overId === "center";
+    if (!isCenterPanel && !isCenter) {
       setPendingEdge(null);
+      setPendingTargetId(null);
       return;
     }
-    setPendingEdge(computeDropEdge(e.active, e.over));
+    setPendingEdge(computeDropEdge(e.active, e.over!));
+    setPendingTargetId(
+      isCenterPanel ? overId!.slice("center-panel:".length) : null,
+    );
   }, []);
 
   const handleDragEnd = useCallback(
@@ -600,133 +793,182 @@ export default function LayoutTestPage() {
       const { active, over } = e;
       setActiveId(null);
       setPendingEdge(null);
+      setPendingTargetId(null);
       if (!over) return;
 
       const panelId = active.id as string;
-      const targetZone = over.id as Zone;
+      const overId = String(over.id);
+      const isCenterPanel = overId.startsWith("center-panel:");
+      const targetPanelId = isCenterPanel
+        ? overId.slice("center-panel:".length)
+        : null;
+      const targetZone: Zone =
+        isCenterPanel || overId === "center" ? "center" : (overId as Zone);
       const sourceZone = layout[panelId] as Zone;
 
-      if (targetZone === "center") {
-        const edge = computeDropEdge(active, over);
-        setCenterTree((prev) => {
-          const pruned =
-            sourceZone === "center" && prev
-              ? removeFromTree(prev, panelId)
-              : prev;
-          return addToTree(pruned, panelId, edge);
-        });
-      } else {
-        if (sourceZone === "center") {
-          setCenterTree((prev) =>
-            prev ? removeFromTree(prev, panelId) : null,
-          );
+      startTransition(() => {
+        if (targetZone === "center") {
+          const edge = computeDropEdge(active, over);
+          setCenterTree((prev) => {
+            const pruned =
+              sourceZone === "center" && prev
+                ? removeFromTree(prev, panelId)
+                : prev;
+            if (targetPanelId && pruned) {
+              return insertNextTo(pruned, targetPanelId, panelId, edge);
+            }
+            return addToTree(pruned, panelId, edge);
+          });
+        } else {
+          if (sourceZone === "center") {
+            setCenterTree((prev) =>
+              prev ? removeFromTree(prev, panelId) : null,
+            );
+          }
+          setActiveTabByZone((prev) => ({ ...prev, [targetZone]: panelId }));
         }
-        setActiveTabByZone((prev) => ({ ...prev, [targetZone]: panelId }));
-      }
 
-      setLayout((prev) => ({ ...prev, [panelId]: targetZone }));
+        setLayout((prev) => ({ ...prev, [panelId]: targetZone }));
+      });
     },
     [layout],
   );
 
-  const handleTabClick = useCallback((zone: TabbedZone, panelId: string) => {
-    setActiveTabByZone((prev) => ({ ...prev, [zone]: panelId }));
+  const handleLeftTabClick = useCallback(
+    (panelId: string, wasActive: boolean) => {
+      setActiveTabByZone((prev) => ({ ...prev, left: panelId }));
+      setLeftCollapsed((prev) => (prev ? false : wasActive));
+    },
+    [],
+  );
+
+  const handleRightTabClick = useCallback(
+    (panelId: string, wasActive: boolean) => {
+      setActiveTabByZone((prev) => ({ ...prev, right: panelId }));
+      setRightCollapsed((prev) => (prev ? false : wasActive));
+    },
+    [],
+  );
+
+  const handleBottomTabClick = useCallback(
+    (panelId: string, _wasActive: boolean) => {
+      setActiveTabByZone((prev) => ({ ...prev, bottom: panelId }));
+    },
+    [],
+  );
+
+  const handleCloseCenter = useCallback((panelId: string) => {
+    setCenterTree((prev) => (prev ? removeFromTree(prev, panelId) : null));
+    setLayout((prev) => {
+      const next = { ...prev };
+      delete next[panelId];
+      return next;
+    });
   }, []);
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragMove={handleDragMove}
-      onDragEnd={handleDragEnd}
-    >
-      <div
-        className="w-screen flex flex-col bg-gray-50 overflow-hidden font-sans"
-        style={{ height: "100dvh" }}
-      >
-        <div className="shrink-0 px-4 py-2 bg-white border-b border-gray-200 flex items-center gap-3">
-          <span className="text-sm font-semibold text-gray-700">
-            Layout Test
-          </span>
-          <span className="text-xs text-gray-400">
-            Drag tabs to move panels between zones
-          </span>
-        </div>
-
-        <div className="flex flex-1 min-h-0">
+    <LayoutTestProviders>
+      <MapContext.Provider value={map}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+        >
           <div
-            className="shrink-0 bg-white overflow-hidden"
-            style={{ width: leftWidth }}
+            className="w-screen flex flex-col bg-gray-50 overflow-hidden font-sans"
+            style={{ height: "100dvh" }}
           >
-            <TabbedDropZone
-              zone="left"
-              barSide="left"
-              panels={PANELS.filter((p) => layout[p.id] === "left")}
-              activeId={activeId}
-              activePanelZone={activePanelZone}
-              activeTabId={activeTabByZone.left}
-              onTabClick={(id) => handleTabClick("left", id)}
-            />
-          </div>
-
-          <ResizeHandle
-            direction="vertical"
-            onResize={(d) => setLeftWidth((w) => clamp(w + d, 120, 520))}
-          />
-
-          <div className="flex flex-col flex-1 min-w-0 min-h-0">
-            <div className="flex-1 min-h-0 bg-white">
-              <CenterDropZone
-                tree={centerTree}
-                activeId={activeId}
-                activePanelZone={activePanelZone}
-                pendingEdge={pendingEdge}
-              />
+            <div className="shrink-0 h-24 border-b border-gray-200 bg-white">
+              <MenuBarPlay />
+              <Toolbar />
             </div>
-            <ResizeHandle
-              direction="horizontal"
-              onResize={(d) => setBottomHeight((h) => clamp(h - d, 80, 420))}
-            />
-            <div
-              className="shrink-0 bg-white overflow-hidden"
-              style={{ height: bottomHeight }}
-            >
-              <TabbedDropZone
-                zone="bottom"
-                panels={PANELS.filter((p) => layout[p.id] === "bottom")}
-                activeId={activeId}
-                activePanelZone={activePanelZone}
-                activeTabId={activeTabByZone.bottom}
-                onTabClick={(id) => handleTabClick("bottom", id)}
+
+            <div className="flex flex-1 min-h-0 pb-10">
+              <div
+                className="shrink-0 bg-white overflow-hidden"
+                style={{ width: leftCollapsed ? 44 : leftWidth }}
+              >
+                <TabbedDropZone
+                  zone="left"
+                  barSide="left"
+                  panels={leftPanels}
+                  activeId={activeId}
+                  activePanelZone={activePanelZone}
+                  activeTabId={activeTabByZone.left}
+                  onTabClick={handleLeftTabClick}
+                  collapsed={leftCollapsed}
+                />
+              </div>
+
+              <ResizeHandle
+                direction="vertical"
+                onResize={(d) => setLeftWidth((w) => clamp(w + d, 120, 520))}
               />
+
+              <div className="flex flex-col flex-1 min-w-0 min-h-0">
+                <div className="flex-1 min-h-0 bg-white">
+                  <CenterDropZone
+                    tree={centerTree}
+                    activeId={activeId}
+                    activePanelZone={activePanelZone}
+                    pendingEdge={pendingEdge}
+                    pendingTargetId={pendingTargetId}
+                    setMap={setMap}
+                    onClose={handleCloseCenter}
+                  />
+                </div>
+                <ResizeHandle
+                  direction="horizontal"
+                  onResize={(d) =>
+                    setBottomHeight((h) => clamp(h - d, 80, 420))
+                  }
+                />
+                <div
+                  className="shrink-0 bg-white overflow-hidden"
+                  style={{ height: bottomHeight }}
+                >
+                  <TabbedDropZone
+                    zone="bottom"
+                    panels={bottomPanels}
+                    activeId={activeId}
+                    activePanelZone={activePanelZone}
+                    activeTabId={activeTabByZone.bottom}
+                    onTabClick={handleBottomTabClick}
+                  />
+                </div>
+              </div>
+
+              <ResizeHandle
+                direction="vertical"
+                onResize={(d) => setRightWidth((w) => clamp(w - d, 120, 520))}
+              />
+
+              <div
+                className="shrink-0 bg-white overflow-hidden"
+                style={{ width: rightCollapsed ? 44 : rightWidth }}
+              >
+                <TabbedDropZone
+                  zone="right"
+                  barSide="right"
+                  panels={rightPanels}
+                  activeId={activeId}
+                  activePanelZone={activePanelZone}
+                  activeTabId={activeTabByZone.right}
+                  onTabClick={handleRightTabClick}
+                  collapsed={rightCollapsed}
+                />
+              </div>
             </div>
           </div>
 
-          <ResizeHandle
-            direction="vertical"
-            onResize={(d) => setRightWidth((w) => clamp(w - d, 120, 520))}
-          />
-
-          <div
-            className="shrink-0 bg-white overflow-hidden"
-            style={{ width: rightWidth }}
-          >
-            <TabbedDropZone
-              zone="right"
-              barSide="right"
-              panels={PANELS.filter((p) => layout[p.id] === "right")}
-              activeId={activeId}
-              activePanelZone={activePanelZone}
-              activeTabId={activeTabByZone.right}
-              onTabClick={(id) => handleTabClick("right", id)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activePanel ? <DragOverlayTab panel={activePanel} /> : null}
-      </DragOverlay>
-    </DndContext>
+          <DragOverlay dropAnimation={null}>
+            {activePanel ? <DragOverlayTab panel={activePanel} /> : null}
+          </DragOverlay>
+          <Footer />
+        </DndContext>
+      </MapContext.Provider>
+    </LayoutTestProviders>
   );
 }
