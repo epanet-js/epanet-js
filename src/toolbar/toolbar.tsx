@@ -21,7 +21,6 @@ import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   saveAsShortcut,
   saveShortcut,
@@ -42,7 +41,6 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { CreateNewDropdown } from "./create-new-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
-import { AssetSearch } from "./asset-search";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -69,7 +67,6 @@ export const Toolbar = ({
 
   const { undo, redo } = useHistoryControl();
 
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const isMdOrLarger = useBreakpoint("md");
@@ -198,7 +195,6 @@ export const Toolbar = ({
         <OperationalDataDropdown />
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
-        {isSmOrLarger && isAssetSearchOn && <AssetSearch />}
         {isSmOrLarger && <LayoutActions />}
       </div>
     </div>

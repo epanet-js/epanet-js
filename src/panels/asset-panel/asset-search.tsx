@@ -116,7 +116,7 @@ export const AssetSearch = () => {
           </span>
         </span>
       )}
-      wrapperClassName="w-56"
+      wrapperClassName="w-full"
     />
   );
 };
