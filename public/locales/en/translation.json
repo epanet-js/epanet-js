@@ -405,6 +405,7 @@
   "loading": "Loading...",
   "ok": "OK",
   "toggleSatellite": "Toggle satellite basemap",
+  "toggleBottomSidebar": "Toggle bottom sidebar",
   "toggleSidePanel": "Toggle side panel",
   "createScenario": "Create new scenario",
   "cycleScenario": "Cycle through scenarios",

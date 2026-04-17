@@ -17,10 +17,20 @@ import { AssetsTable } from "src/components/bottom-sidebar/assets-table";
 import { NetworkReview } from "src/panels/network-review";
 import {
   selectedFeaturesDerivedAtom,
+  simulationDerivedAtom,
   simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
+import { selectionAtom } from "src/state/selection";
+import { useSelection } from "src/selection/use-selection";
+import { useZoomTo } from "src/hooks/use-zoom-to";
+import { AssetId } from "src/hydraulic-model";
+import { processReportWithSlots } from "src/simulation/report";
+import type { ReportRow } from "src/simulation/report";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { dialogAtom } from "src/state/dialog";
+import { bottomSidebarOpenAtom } from "src/state/layout";
 import { Formik, Form } from "formik";
 import { SimulationSettingsSidebar } from "src/dialogs/simulation-settings/simulation-settings-sidebar";
 import {
@@ -73,6 +83,54 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { SettingsIcon } from "src/icons";
+
+// ─── Operational Data Panel sub-components ───────────────────────────────────
+import { PatternSidebar } from "src/dialogs/patterns/pattern-sidebar";
+import { PatternDetail } from "src/dialogs/patterns/pattern-detail";
+import { CurveSidebar } from "src/dialogs/curves/curve-sidebar";
+import { CurveDetail } from "src/dialogs/curves/curve-detail";
+import { PumpLibrarySidebar } from "src/dialogs/pump-library/pump-library-sidebar";
+import { VerticalResizer } from "src/dialogs/vertical-resizer";
+import {
+  PatternMultipliers,
+  Patterns,
+  Pattern,
+  PatternId,
+  PatternType,
+  getNextPatternId,
+  deepClonePatterns,
+  differentPatternsCount,
+} from "src/hydraulic-model";
+import {
+  Curves,
+  ICurve,
+  CurveId,
+  CurvePoint,
+  CurveType,
+  buildDefaultCurve,
+  stripTrailingEmptyPoints,
+  deepCloneCurves,
+  differentCurvesCount,
+} from "src/hydraulic-model/curves";
+import {
+  formatSimpleControl,
+  formatRuleBasedControl,
+  IdResolver,
+  parseControlsFromText,
+} from "src/hydraulic-model/controls";
+import { changePatterns } from "src/hydraulic-model/model-operations";
+import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
+import { changeControls } from "src/hydraulic-model/model-operations";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import { getCurveTypeConfig } from "src/dialogs/curves/curve-type-config";
+import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
+import { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
+import { Pump } from "src/hydraulic-model/asset-types/pump";
+import { notify } from "src/components/notifications";
+import { useUserTracking } from "src/infra/user-tracking";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useTranslate } from "src/hooks/use-translate";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -240,6 +298,820 @@ function SimulationSettingsPanel() {
   );
 }
 
+// ─── Patterns Panel ──────────────────────────────────────────────────────────
+
+function PatternsPanel() {
+  const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const userTracking = useUserTracking();
+  const isSnapshotLocked = useIsSnapshotLocked();
+  const { transact } = useModelTransaction();
+  const { timing, energyGlobalPatternId } = useAtomValue(
+    simulationSettingsAtom,
+  );
+
+  const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
+    null,
+  );
+  const [editedPatterns, setEditedPatterns] = useState<Patterns>(() =>
+    deepClonePatterns(hydraulicModel.patterns),
+  );
+  const [sidebarWidth, setSidebarWidth] = useState(224);
+  const nextPatternIdRef = useRef<PatternId>(
+    getNextPatternId(editedPatterns, editedPatterns.size),
+  );
+  nextPatternIdRef.current = getNextPatternId(
+    editedPatterns,
+    nextPatternIdRef.current,
+  );
+
+  const patternTimestepSeconds = timing.patternTimestep;
+  const totalDurationSeconds = timing.duration;
+  const minPatternSteps =
+    totalDurationSeconds > 0
+      ? Math.ceil(totalDurationSeconds / patternTimestepSeconds)
+      : 1;
+
+  const getPatternMultipliers = useCallback(
+    (patternId: PatternId): PatternMultipliers =>
+      editedPatterns.get(patternId)?.multipliers ?? [],
+    [editedPatterns],
+  );
+
+  const handlePatternChange = useCallback(
+    (
+      patternId: PatternId,
+      updates: Partial<Pick<Pattern, "label" | "multipliers" | "type">>,
+    ) => {
+      setEditedPatterns((prev) => {
+        const existing = prev.get(patternId);
+        if (!existing) return prev;
+        const next = new Map(prev);
+        next.set(patternId, { ...existing, ...updates });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleAddPattern = useCallback(
+    (
+      label: string,
+      multipliers: PatternMultipliers,
+      source: "new" | "clone",
+      type: PatternType = "demand",
+    ): PatternId => {
+      const id = nextPatternIdRef.current;
+      setEditedPatterns((prev) => {
+        const patterns = new Map(prev);
+        patterns.set(id, { id, label, multipliers, type });
+        return patterns;
+      });
+      userTracking.capture({ name: "pattern.added", source });
+      return id;
+    },
+    [userTracking],
+  );
+
+  const handleDeletePattern = useCallback(
+    (patternId: PatternId, patternType?: PatternType) => {
+      if (
+        patternType &&
+        isPanelPatternInUse(
+          hydraulicModel,
+          patternId,
+          patternType,
+          energyGlobalPatternId,
+        )
+      ) {
+        notify({
+          variant: "error",
+          title: translate("patterns.deletePatternInUse"),
+        });
+        return;
+      }
+      setEditedPatterns((prev) => {
+        const next = new Map(prev);
+        next.delete(patternId);
+        return next;
+      });
+      if (selectedPatternId === patternId) setSelectedPatternId(null);
+    },
+    [hydraulicModel, selectedPatternId, translate, energyGlobalPatternId],
+  );
+
+  const unsavedChanges = useMemo(
+    () => differentPatternsCount(hydraulicModel.patterns, editedPatterns),
+    [hydraulicModel.patterns, editedPatterns],
+  );
+
+  const handleSave = useCallback(() => {
+    const moment = changePatterns(hydraulicModel, editedPatterns);
+    transact(moment);
+    userTracking.capture({ name: "patterns.updated", count: unsavedChanges });
+  }, [hydraulicModel, editedPatterns, transact, userTracking, unsavedChanges]);
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-shrink-0 flex">
+          <PatternSidebar
+            width={sidebarWidth}
+            patterns={editedPatterns}
+            selectedPatternId={selectedPatternId}
+            minPatternSteps={minPatternSteps}
+            onSelectPattern={setSelectedPatternId}
+            onAddPattern={handleAddPattern}
+            onChangePattern={handlePatternChange}
+            onDeletePattern={handleDeletePattern}
+            readOnly={isSnapshotLocked}
+          />
+          <VerticalResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
+        <div className="flex-1 flex flex-col min-h-0 w-full ml-1">
+          {selectedPatternId ? (
+            <PatternDetail
+              pattern={getPatternMultipliers(selectedPatternId)}
+              patternType={editedPatterns.get(selectedPatternId)?.type}
+              patternTimestepSeconds={patternTimestepSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+              onChange={(multipliers) =>
+                handlePatternChange(selectedPatternId, { multipliers })
+              }
+              readOnly={isSnapshotLocked}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+              {editedPatterns.size > 0
+                ? translate("patterns.noSelection")
+                : translate("patterns.emptyTitle")}
+            </div>
+          )}
+        </div>
+      </div>
+      {!isSnapshotLocked && (
+        <div className="shrink-0 flex justify-end px-3 py-2 border-t border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!unsavedChanges}
+            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {translate("dialog.save")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const isPanelPatternInUse = (
+  hydraulicModel: HydraulicModel,
+  patternId: PatternId,
+  patternType: PatternType,
+  energyGlobalPatternId?: PatternId | null,
+): boolean => {
+  switch (patternType) {
+    case "demand":
+      for (const demands of hydraulicModel.demands.customerPoints.values()) {
+        if (
+          demands.length > 0 &&
+          demands.some((d) => d.patternId === patternId)
+        )
+          return true;
+      }
+      for (const demands of hydraulicModel.demands.junctions.values()) {
+        for (const demand of demands) {
+          if (demand.patternId === patternId) return true;
+        }
+      }
+      break;
+    case "reservoirHead":
+      for (const asset of hydraulicModel.assets.values()) {
+        if (asset instanceof Reservoir && asset.headPatternId === patternId)
+          return true;
+      }
+      break;
+    case "pumpSpeed":
+      for (const asset of hydraulicModel.assets.values()) {
+        if (asset instanceof Pump && asset.speedPatternId === patternId)
+          return true;
+      }
+      break;
+    case "energyPrice":
+      if (energyGlobalPatternId === patternId) return true;
+      break;
+    case "qualitySourceStrength":
+      break;
+  }
+  return false;
+};
+
+// ─── Curves Panel ─────────────────────────────────────────────────────────────
+
+const createCurveLabelManager = (curves: Curves): LabelManager => {
+  const lm = new LabelManager();
+  for (const curve of curves.values())
+    lm.register(curve.label, "curve", curve.id);
+  return lm;
+};
+
+function CurvesPanel() {
+  const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const userTracking = useUserTracking();
+  const isSnapshotLocked = useIsSnapshotLocked();
+  const { transact } = useModelTransaction();
+
+  const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(null);
+  const [editedCurves, setEditedCurves] = useState<Curves>(() =>
+    deepCloneCurves(hydraulicModel.curves),
+  );
+  const [sidebarWidth, setSidebarWidth] = useState(224);
+  const labelManagerRef = useRef<LabelManager>(
+    createCurveLabelManager(editedCurves),
+  );
+
+  const CURVE_LIBRARY_TYPES = new Set<CurveType>([
+    "volume",
+    "valve",
+    "headloss",
+  ]);
+
+  const handleCurveChange = useCallback(
+    (
+      curveId: CurveId,
+      updates: Partial<Pick<ICurve, "label" | "points" | "type">>,
+    ) => {
+      setEditedCurves((prev) => {
+        const existing = prev.get(curveId);
+        if (!existing) return prev;
+        const next = new Map(prev);
+        if (
+          "label" in updates &&
+          updates.label &&
+          updates.label !== existing.label
+        ) {
+          labelManagerRef.current.remove(existing.label, "curve", curveId);
+          labelManagerRef.current.register(updates.label, "curve", curveId);
+        }
+        next.set(curveId, { ...existing, ...updates });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleAddCurve = useCallback(
+    (
+      label: string,
+      points: CurvePoint[],
+      source: "new" | "clone",
+      type: CurveType,
+    ): CurveId => {
+      const newCurve = buildDefaultCurve(
+        editedCurves,
+        labelManagerRef.current,
+        label,
+        type,
+      );
+      newCurve.points = points;
+      setEditedCurves((prev) => {
+        const next = new Map(prev);
+        next.set(newCurve.id, newCurve);
+        return next;
+      });
+      labelManagerRef.current.register(newCurve.label, "curve", newCurve.id);
+      userTracking.capture({ name: "curve.added", source });
+      return newCurve.id;
+    },
+    [editedCurves, userTracking],
+  );
+
+  const handleDeleteCurve = useCallback(
+    (curveId: CurveId) => {
+      const curve = editedCurves.get(curveId);
+      if (!curve) return;
+      setEditedCurves((prev) => {
+        const next = new Map(prev);
+        next.delete(curveId);
+        return next;
+      });
+      labelManagerRef.current.remove(curve.label, "curve", curveId);
+      if (selectedCurveId === curveId) setSelectedCurveId(null);
+    },
+    [editedCurves, selectedCurveId],
+  );
+
+  const cleanedCurves = useMemo(() => {
+    const cleaned: Curves = new Map();
+    for (const [id, curve] of editedCurves) {
+      cleaned.set(id, {
+        ...curve,
+        points: stripTrailingEmptyPoints(curve.points),
+      });
+    }
+    return cleaned;
+  }, [editedCurves]);
+
+  const unsavedChanges = useMemo(
+    () => differentCurvesCount(hydraulicModel.curves, cleanedCurves),
+    [hydraulicModel.curves, cleanedCurves],
+  );
+
+  const invalidCurveIds = useMemo(() => {
+    const ids = new Set<CurveId>();
+    for (const [id, curve] of cleanedCurves) {
+      if (getCurveTypeConfig(curve.type).getErrors(curve.points).length > 0)
+        ids.add(id);
+    }
+    return ids;
+  }, [cleanedCurves]);
+
+  const handleSave = useCallback(() => {
+    const moment = changeCurves(hydraulicModel, { curves: cleanedCurves });
+    transact(moment);
+    userTracking.capture({
+      name: "curves.updated",
+      count: cleanedCurves.size,
+      withWarnings: invalidCurveIds.size > 0,
+    });
+  }, [
+    hydraulicModel,
+    cleanedCurves,
+    transact,
+    userTracking,
+    invalidCurveIds.size,
+  ]);
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-shrink-0 flex">
+          <CurveSidebar
+            width={sidebarWidth}
+            curves={editedCurves}
+            selectedCurveId={selectedCurveId}
+            labelManager={labelManagerRef.current}
+            invalidCurveIds={invalidCurveIds}
+            onSelectCurve={setSelectedCurveId}
+            onAddCurve={handleAddCurve}
+            onChangeCurve={handleCurveChange}
+            onDeleteCurve={handleDeleteCurve}
+            readOnly={isSnapshotLocked}
+          />
+          <VerticalResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
+        <div className="flex-1 flex flex-col min-h-0 w-full">
+          {selectedCurveId ? (
+            (() => {
+              const curveType = editedCurves.get(selectedCurveId)?.type;
+              return (
+                <CurveDetail
+                  points={editedCurves.get(selectedCurveId)?.points ?? []}
+                  onChange={(points) =>
+                    handleCurveChange(selectedCurveId, { points })
+                  }
+                  readOnly={
+                    isSnapshotLocked ||
+                    !curveType ||
+                    !CURVE_LIBRARY_TYPES.has(curveType)
+                  }
+                  curveType={curveType}
+                  units={projectSettings.units}
+                />
+              );
+            })()
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+              {editedCurves.size > 0
+                ? translate("curves.noSelection")
+                : translate("curves.emptyTitle")}
+            </div>
+          )}
+        </div>
+      </div>
+      {!isSnapshotLocked && (
+        <div className="shrink-0 flex justify-end px-3 py-2 border-t border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!unsavedChanges}
+            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {translate("dialog.save")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Pump Library Panel ───────────────────────────────────────────────────────
+
+function PumpLibraryPanel() {
+  const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const userTracking = useUserTracking();
+  const isSnapshotLocked = useIsSnapshotLocked();
+  const { transact } = useModelTransaction();
+
+  const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(null);
+  const [editedCurves, setEditedCurves] = useState<Curves>(() =>
+    deepCloneCurves(hydraulicModel.curves),
+  );
+  const [sidebarWidth, setSidebarWidth] = useState(224);
+  const labelManagerRef = useRef<LabelManager>(
+    createCurveLabelManager(editedCurves),
+  );
+
+  const handleCurveChange = useCallback(
+    (
+      curveId: CurveId,
+      updates: Partial<Pick<ICurve, "label" | "points" | "type">>,
+    ) => {
+      setEditedCurves((prev) => {
+        const existing = prev.get(curveId);
+        if (!existing) return prev;
+        const next = new Map(prev);
+        if (
+          "label" in updates &&
+          updates.label &&
+          updates.label !== existing.label
+        ) {
+          labelManagerRef.current.remove(existing.label, "curve", curveId);
+          labelManagerRef.current.register(updates.label, "curve", curveId);
+        }
+        next.set(curveId, { ...existing, ...updates });
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleAddCurve = useCallback(
+    (
+      label: string,
+      points: CurvePoint[],
+      source: "new" | "clone",
+      type: CurveType,
+    ): CurveId => {
+      const newCurve = buildDefaultCurve(
+        editedCurves,
+        labelManagerRef.current,
+        label,
+        type,
+      );
+      newCurve.points = points;
+      setEditedCurves((prev) => {
+        const next = new Map(prev);
+        next.set(newCurve.id, newCurve);
+        return next;
+      });
+      labelManagerRef.current.register(newCurve.label, "curve", newCurve.id);
+      userTracking.capture({ name: "curve.added", source });
+      return newCurve.id;
+    },
+    [editedCurves, userTracking],
+  );
+
+  const handleDeleteCurve = useCallback(
+    (curveId: CurveId) => {
+      const curve = editedCurves.get(curveId);
+      if (!curve) return;
+      if (curve.type === "pump") {
+        for (const asset of hydraulicModel.assets.values()) {
+          if (asset.type === "pump" && (asset as Pump).curveId === curveId) {
+            notify({
+              variant: "error",
+              title: translate("curves.deleteCurveInUse"),
+            });
+            return;
+          }
+        }
+      }
+      setEditedCurves((prev) => {
+        const next = new Map(prev);
+        next.delete(curveId);
+        return next;
+      });
+      labelManagerRef.current.remove(curve.label, "curve", curveId);
+      if (selectedCurveId === curveId) setSelectedCurveId(null);
+    },
+    [hydraulicModel, editedCurves, selectedCurveId, translate],
+  );
+
+  const cleanedCurves = useMemo(() => {
+    const cleaned: Curves = new Map();
+    for (const [id, curve] of editedCurves) {
+      cleaned.set(id, {
+        ...curve,
+        points: stripTrailingEmptyPoints(curve.points),
+      });
+    }
+    return cleaned;
+  }, [editedCurves]);
+
+  const unsavedChanges = useMemo(
+    () => differentCurvesCount(hydraulicModel.curves, cleanedCurves),
+    [hydraulicModel.curves, cleanedCurves],
+  );
+
+  const invalidCurveIds = useMemo(() => {
+    const ids = new Set<CurveId>();
+    for (const [id, curve] of cleanedCurves) {
+      if (getCurveTypeConfig(curve.type).getErrors(curve.points).length > 0)
+        ids.add(id);
+    }
+    return ids;
+  }, [cleanedCurves]);
+
+  const handleSave = useCallback(() => {
+    const moment = changeCurves(hydraulicModel, { curves: cleanedCurves });
+    transact(moment);
+    userTracking.capture({
+      name: "curves.updated",
+      count: cleanedCurves.size,
+      withWarnings: invalidCurveIds.size > 0,
+    });
+  }, [
+    hydraulicModel,
+    cleanedCurves,
+    transact,
+    userTracking,
+    invalidCurveIds.size,
+  ]);
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-shrink-0 flex">
+          <PumpLibrarySidebar
+            width={sidebarWidth}
+            curves={editedCurves}
+            selectedCurveId={selectedCurveId}
+            labelManager={labelManagerRef.current}
+            invalidCurveIds={invalidCurveIds}
+            onSelectCurve={setSelectedCurveId}
+            onAddCurve={handleAddCurve}
+            onChangeCurve={handleCurveChange}
+            onDeleteCurve={handleDeleteCurve}
+            readOnly={isSnapshotLocked}
+          />
+          <VerticalResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
+        <div className="flex-1 flex flex-col min-h-0 w-full">
+          {selectedCurveId ? (
+            (() => {
+              const curveType = editedCurves.get(selectedCurveId)?.type;
+              return (
+                <CurveDetail
+                  points={editedCurves.get(selectedCurveId)?.points ?? []}
+                  onChange={(points) =>
+                    handleCurveChange(selectedCurveId, { points })
+                  }
+                  readOnly={
+                    isSnapshotLocked ||
+                    (curveType !== "pump" && curveType !== "efficiency")
+                  }
+                  curveType={curveType}
+                  units={projectSettings.units}
+                />
+              );
+            })()
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+              {editedCurves.size > 0
+                ? translate("curves.noSelection")
+                : translate("curves.emptyTitle")}
+            </div>
+          )}
+        </div>
+      </div>
+      {!isSnapshotLocked && (
+        <div className="shrink-0 flex justify-end px-3 py-2 border-t border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!unsavedChanges}
+            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {translate("dialog.save")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Controls Panel ───────────────────────────────────────────────────────────
+
+function ControlsPanel() {
+  const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const userTracking = useUserTracking();
+  const { transact } = useModelTransaction();
+
+  const { controls, assets } = hydraulicModel;
+
+  const idResolver: IdResolver = useCallback(
+    (assetId) => assets.get(assetId)?.label ?? String(assetId),
+    [assets],
+  );
+
+  const [simpleText, setSimpleText] = useState(() =>
+    controls.simple.map((c) => formatSimpleControl(c, idResolver)).join("\n"),
+  );
+  const [rulesText, setRulesText] = useState(() =>
+    controls.rules
+      .map((r) => formatRuleBasedControl(r, idResolver))
+      .join("\n\n"),
+  );
+  const [activeTab, setActiveTab] = useState<"simple" | "ruleBased">("simple");
+
+  const handleSave = useCallback(() => {
+    const newControls = parseControlsFromText(simpleText, rulesText, assets);
+    userTracking.capture({
+      name: "controls.changed",
+      simpleControlsCount: newControls.simple.length,
+      rulesCount: newControls.rules.length,
+    });
+    const moment = changeControls(hydraulicModel, newControls);
+    transact(moment);
+  }, [simpleText, rulesText, assets, hydraulicModel, transact, userTracking]);
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 gap-4 p-4">
+        <div
+          role="tablist"
+          className="flex h-8 border-b border-gray-200 -mx-4 px-4"
+        >
+          {(["simple", "ruleBased"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab}
+              onClick={() => setActiveTab(tab)}
+              className={[
+                "text-sm py-1 px-3 focus:outline-none border-t border-l border-b last:border-r border-gray-200",
+                activeTab === tab
+                  ? "text-black border-b-white -mb-px"
+                  : "text-gray-500 border-b-transparent hover:text-black bg-gray-100",
+              ].join(" ")}
+            >
+              {translate(
+                tab === "simple" ? "controls.simpleTab" : "controls.rulesTab",
+              )}
+            </button>
+          ))}
+        </div>
+        {activeTab === "simple" ? (
+          <textarea
+            value={simpleText}
+            onChange={(e) => setSimpleText(e.target.value)}
+            placeholder={translate("controls.simpleEmpty")}
+            className="flex-1 p-3 font-mono text-sm bg-white border border-gray-300 rounded-sm resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-500"
+          />
+        ) : (
+          <textarea
+            value={rulesText}
+            onChange={(e) => setRulesText(e.target.value)}
+            placeholder={translate("controls.rulesEmpty")}
+            className="flex-1 p-3 font-mono text-sm bg-white border border-gray-300 rounded-sm resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-purple-500"
+          />
+        )}
+      </div>
+      <div className="shrink-0 flex justify-end px-3 py-2 border-t border-gray-200 bg-gray-50">
+        <button
+          type="button"
+          onClick={handleSave}
+          className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          {translate("dialog.save")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Simulation Report Panel ─────────────────────────────────────────────────
+
+function SimulationReportPanel() {
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const selection = useAtomValue(selectionAtom);
+  const { selectAsset } = useSelection(selection);
+  const zoomTo = useZoomTo();
+
+  const hasResult =
+    simulation.status === "success" ||
+    simulation.status === "failure" ||
+    simulation.status === "warning";
+
+  const processedReport = useMemo(() => {
+    if (!hasResult) return [];
+    const { processedReport } = processReportWithSlots(
+      simulation.report,
+      hydraulicModel.assets,
+    );
+    return processedReport;
+  }, [hasResult, simulation, hydraulicModel.assets]);
+
+  const handleAssetClick = useCallback(
+    (assetId: AssetId) => {
+      const asset = hydraulicModel.assets.get(assetId);
+      if (asset) {
+        selectAsset(assetId);
+        zoomTo([asset]);
+      }
+    },
+    [selectAsset, hydraulicModel.assets, zoomTo],
+  );
+
+  const renderRow = useCallback(
+    (row: ReportRow, index: number) => {
+      const trimmed = row.text.slice(2);
+      const text = trimmed.startsWith("  Error") ? trimmed.slice(2) : trimmed;
+
+      if (row.assetSlots.length === 0) {
+        return <pre key={index}>{text}</pre>;
+      }
+
+      const parts: React.ReactNode[] = [];
+      let slotIndex = 0;
+      for (const part of text.split(/(\{\{\d+\}\})/)) {
+        const match = part.match(/^\{\{(\d+)\}\}$/);
+        if (match) {
+          const assetId = row.assetSlots[parseInt(match[1], 10)];
+          const asset = hydraulicModel.assets.get(assetId);
+          parts.push(
+            asset ? (
+              <span
+                key={`${index}-${slotIndex}`}
+                className="text-purple-600 underline cursor-pointer hover:text-purple-700 hover:bg-purple-50 px-1 rounded"
+                onClick={() => handleAssetClick(assetId)}
+              >
+                {asset.label}
+              </span>
+            ) : (
+              part
+            ),
+          );
+          slotIndex++;
+        } else {
+          parts.push(part);
+        }
+      }
+      return <pre key={index}>{parts}</pre>;
+    },
+    [hydraulicModel.assets, handleAssetClick],
+  );
+
+  if (!hasResult) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-400 select-none">
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="opacity-40"
+        >
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10 9 9 9 8 9" />
+        </svg>
+        <p className="text-xs">Run a simulation to view the report</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-auto p-3 text-sm bg-gray-50 text-gray-700 font-mono leading-loose">
+      {processedReport.map(renderRow)}
+    </div>
+  );
+}
+
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const PANELS: Panel[] = [
@@ -263,7 +1135,7 @@ const PANELS: Panel[] = [
   },
   {
     id: "alpha",
-    title: "Alpha",
+    title: "Graph",
     description:
       "Overview of network topology and active node connections across the current simulation run.",
     component: AlphaPanel,
@@ -276,18 +1148,6 @@ const PANELS: Panel[] = [
     component: NetworkReview,
   },
   {
-    id: "delta",
-    title: "Delta",
-    description:
-      "Demand patterns assigned to nodes. Editable multipliers adjust baseline consumption over time.",
-  },
-  {
-    id: "echo",
-    title: "Echo",
-    description:
-      "Reservoir and tank levels throughout the simulation. Tracks fill and drain cycles per interval.",
-  },
-  {
     id: "assets",
     title: "Assets",
     description:
@@ -295,16 +1155,10 @@ const PANELS: Panel[] = [
     component: AssetsTable,
   },
   {
-    id: "foxtrot",
-    title: "Foxtrot",
-    description:
-      "Water quality results including chlorine residual decay along the distribution network.",
-  },
-  {
-    id: "golf",
-    title: "Golf",
-    description:
-      "Pump operating schedules and energy consumption. Efficiency curves shown per pump asset.",
+    id: "simulation-report",
+    title: "Report",
+    description: "Simulation report with warnings and errors.",
+    component: SimulationReportPanel,
   },
   {
     id: "simulation-settings",
@@ -312,22 +1166,48 @@ const PANELS: Panel[] = [
     description: "Simulation settings.",
     component: SimulationSettingsPanel,
   },
+  {
+    id: "patterns",
+    title: "Patterns",
+    description:
+      "Demand, head, pump speed, and quality source patterns used across the network.",
+    component: PatternsPanel,
+  },
+  {
+    id: "curves",
+    title: "Curves",
+    description:
+      "Volume, valve, and headloss curves referenced by tanks, valves, and pipes.",
+    component: CurvesPanel,
+  },
+  {
+    id: "pump-library",
+    title: "Pumps",
+    description:
+      "Pump characteristic and efficiency curves used by pump assets.",
+    component: PumpLibraryPanel,
+  },
+  {
+    id: "controls",
+    title: "Controls",
+    description:
+      "Simple and rule-based controls that govern asset state during simulation.",
+    component: ControlsPanel,
+  },
 ];
 
 const INITIAL_LAYOUT: PanelLayout = {
   map: "center",
   alpha: "center",
-  bravo: "center",
   "network-review": "left",
-  charlie: "left",
-  delta: "left",
+  patterns: "left",
+  curves: "left",
+  "pump-library": "left",
+  controls: "bottom",
   "feature-editor": "right",
   "map-styling": "right",
-  echo: "right",
   assets: "bottom",
-  foxtrot: "bottom",
-  golf: "bottom",
-  hotel: "center",
+  "simulation-report": "bottom",
 };
 
 // Zone droppable ids — everything else is a panel-level droppable
@@ -961,6 +1841,8 @@ const TabbedDropZone = memo(function TabbedDropZone({
   barSide = "top",
   collapsed = false,
   activityBarFooter,
+  isMaximized,
+  onMaximize,
 }: {
   zone: TabbedZone;
   panels: Panel[];
@@ -971,6 +1853,8 @@ const TabbedDropZone = memo(function TabbedDropZone({
   barSide?: "top" | "left" | "right";
   collapsed?: boolean;
   activityBarFooter?: React.ReactNode;
+  isMaximized?: boolean;
+  onMaximize?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: zone });
   const isSource = activePanelZone === zone;
@@ -1024,7 +1908,7 @@ const TabbedDropZone = memo(function TabbedDropZone({
         </div>
       ) : barSide === "top" ? (
         <>
-          <div className="flex flex-row border-b border-gray-200 shrink-0 overflow-x-auto bg-gray-50">
+          <div className="flex flex-row border-b border-gray-200 shrink-0 overflow-x-auto bg-gray-50 items-center">
             {panels.map((p) => (
               <DraggableTab
                 key={p.id}
@@ -1033,6 +1917,37 @@ const TabbedDropZone = memo(function TabbedDropZone({
                 onClick={() => onTabClick(p.id, p.id === effectiveId)}
               />
             ))}
+            {onMaximize && (
+              <button
+                onClick={onMaximize}
+                title={isMaximized ? "Restore" : "Maximize"}
+                className="ml-auto mr-1 shrink-0 w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 focus:outline-none"
+              >
+                {isMaximized ? (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M2 4.5h3.5V1M10 7.5H6.5V11M2 4.5L5.5 1M10 7.5L6.5 11" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M1 7h4v4M11 5H7V1M1 11l4-4M11 1l-4 4" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
           <div className="flex-1 min-h-0 overflow-auto">
             {activePanel &&
@@ -1176,6 +2091,27 @@ function DialogInterceptor({
   return null;
 }
 
+function BottomBarInterceptor({
+  onSetVisible,
+}: {
+  onSetVisible: (open: boolean) => void;
+}) {
+  const [bottomOpen, setBottomOpen] = useAtom(bottomSidebarOpenAtom);
+  const onSetVisibleRef = useRef(onSetVisible);
+  onSetVisibleRef.current = onSetVisible;
+
+  // Initialize atom to true so toolbar icon starts in "open" state
+  useEffect(() => {
+    setBottomOpen(true);
+  }, [setBottomOpen]);
+
+  useEffect(() => {
+    onSetVisibleRef.current(bottomOpen);
+  }, [bottomOpen]);
+
+  return null;
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 const INITIAL_CENTER_IDS = PANELS.filter(
@@ -1202,6 +2138,12 @@ export default function LayoutTestPage() {
   const [bottomHeight, setBottomHeight] = useState(160);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [bottomMaximized, setBottomMaximized] = useState(false);
+  const [bottomVisible, setBottomVisible] = useState(true);
+
+  const handleToggleBottomMaximize = useCallback(() => {
+    setBottomMaximized((v) => !v);
+  }, []);
   const [map, setMap] = useState<MapEngine | null>(null);
 
   // Explicit ordering for sidebar activity bars — panels are filtered by
@@ -1419,6 +2361,7 @@ export default function LayoutTestPage() {
   return (
     <LayoutTestProviders>
       <DialogInterceptor onToggleSettings={handleToggleSettings} />
+      <BottomBarInterceptor onSetVisible={setBottomVisible} />
       <MapContext.Provider value={map}>
         <DndContext
           sensors={sensors}
@@ -1472,48 +2415,72 @@ export default function LayoutTestPage() {
 
               <ResizeHandle
                 direction="vertical"
-                onResize={(d) => setLeftWidth((w) => clamp(w + d, 120, 520))}
+                onResize={(d) =>
+                  setLeftWidth((w) =>
+                    clamp(w + d, 120, Math.floor(window.innerWidth * 0.5)),
+                  )
+                }
               />
 
               <div className="flex flex-col flex-1 min-w-0 min-h-0">
-                <div className="flex-1 min-h-0 bg-white">
-                  <CenterDropZone
-                    tree={centerTree}
-                    activeId={activeId}
-                    activePanelZone={activePanelZone}
-                    pendingEdge={pendingEdge}
-                    pendingTargetId={pendingTargetId}
-                    setMap={setMap}
-                    onClose={handleCloseCenter}
-                    setCenterTree={setCenterTree}
-                    availablePanels={availablePanels}
-                    onAddToRow={handleAddToCenterRow}
-                  />
-                </div>
-                <ResizeHandle
-                  direction="horizontal"
-                  onResize={(d) =>
-                    setBottomHeight((h) => clamp(h - d, 80, 420))
-                  }
-                />
-                <div
-                  className="shrink-0 bg-white overflow-hidden"
-                  style={{ height: bottomHeight }}
-                >
-                  <TabbedDropZone
-                    zone="bottom"
-                    panels={bottomPanels}
-                    activeId={activeId}
-                    activePanelZone={activePanelZone}
-                    activeTabId={activeTabByZone.bottom}
-                    onTabClick={handleBottomTabClick}
-                  />
-                </div>
+                {!(bottomMaximized && bottomVisible) && (
+                  <>
+                    <div className="flex-1 min-h-0 bg-white">
+                      <CenterDropZone
+                        tree={centerTree}
+                        activeId={activeId}
+                        activePanelZone={activePanelZone}
+                        pendingEdge={pendingEdge}
+                        pendingTargetId={pendingTargetId}
+                        setMap={setMap}
+                        onClose={handleCloseCenter}
+                        setCenterTree={setCenterTree}
+                        availablePanels={availablePanels}
+                        onAddToRow={handleAddToCenterRow}
+                      />
+                    </div>
+                    {bottomVisible && (
+                      <ResizeHandle
+                        direction="horizontal"
+                        onResize={(d) =>
+                          setBottomHeight((h) => clamp(h - d, 80, 420))
+                        }
+                      />
+                    )}
+                  </>
+                )}
+                {bottomVisible && (
+                  <div
+                    className={
+                      bottomMaximized
+                        ? "flex-1 min-h-0 bg-white overflow-hidden"
+                        : "shrink-0 bg-white overflow-hidden"
+                    }
+                    style={
+                      bottomMaximized ? undefined : { height: bottomHeight }
+                    }
+                  >
+                    <TabbedDropZone
+                      zone="bottom"
+                      panels={bottomPanels}
+                      activeId={activeId}
+                      activePanelZone={activePanelZone}
+                      activeTabId={activeTabByZone.bottom}
+                      onTabClick={handleBottomTabClick}
+                      isMaximized={bottomMaximized}
+                      onMaximize={handleToggleBottomMaximize}
+                    />
+                  </div>
+                )}
               </div>
 
               <ResizeHandle
                 direction="vertical"
-                onResize={(d) => setRightWidth((w) => clamp(w - d, 120, 520))}
+                onResize={(d) =>
+                  setRightWidth((w) =>
+                    clamp(w - d, 120, Math.floor(window.innerWidth * 0.5)),
+                  )
+                }
               />
 
               <div
