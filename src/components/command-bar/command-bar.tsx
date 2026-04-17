@@ -259,30 +259,37 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                 : translate("assetSearch.emptyHint")}
             </div>
           ) : (
-            results.map((option, index) => (
-              <div
-                key={option.id}
-                role="option"
-                aria-selected={index === activeIndex}
-                data-index={index}
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => commit(option)}
-                className={clsx(
-                  "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded cursor-pointer text-gray-900 dark:text-gray-100",
-                  index === activeIndex
-                    ? "bg-purple-300/40"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700",
-                )}
-              >
-                <span className="truncate">{option.label}</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
-                  {option.data.kind === "asset"
-                    ? typeLabel(option.data.type)
-                    : "Customer Point"}
-                </span>
-              </div>
-            ))
+            <>
+              {query.trim().length === 0 && (
+                <div className="px-3 pt-1.5 pb-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                  {translate("assetSearch.recents")}
+                </div>
+              )}
+              {results.map((option, index) => (
+                <div
+                  key={option.id}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  data-index={index}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => commit(option)}
+                  className={clsx(
+                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded cursor-pointer text-gray-900 dark:text-gray-100",
+                    index === activeIndex
+                      ? "bg-purple-300/40"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                  )}
+                >
+                  <span className="truncate">{option.label}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                    {option.data.kind === "asset"
+                      ? typeLabel(option.data.type)
+                      : "Customer Point"}
+                  </span>
+                </div>
+              ))}
+            </>
           )}
         </div>
       </div>

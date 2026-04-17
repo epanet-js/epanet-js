@@ -1,7 +1,8 @@
 {
   "assetSearch": {
     "placeholder": "Search assets...",
-    "emptyHint": "Start typing to search for assets"
+    "emptyHint": "Start typing to search for assets",
+    "recents": "Recents"
   },
   "dropZone": {
     "defaultText": "Drop files here or click to browse",
