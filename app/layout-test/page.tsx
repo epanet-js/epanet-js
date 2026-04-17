@@ -72,6 +72,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { SettingsIcon } from "src/icons";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -463,6 +464,12 @@ function updateSplitSizes(
   return { ...root, children: next };
 }
 
+function flattenTree(node: LayoutNode | null): string[] {
+  if (!node) return [];
+  if (node.type === "panel") return [node.panelId];
+  return node.children.flatMap(flattenTree);
+}
+
 // ─── Drop Edge Detection ──────────────────────────────────────────────────────
 
 function computeDropEdge(active: Active, over: Over): DropEdge {
@@ -542,6 +549,7 @@ function CenterPanelCard({
   const isDragging = activeId === panel.id;
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: "center-panel:" + panel.id,
+    disabled: isDragging,
   });
 
   return (
@@ -952,6 +960,7 @@ const TabbedDropZone = memo(function TabbedDropZone({
   onTabClick,
   barSide = "top",
   collapsed = false,
+  activityBarFooter,
 }: {
   zone: TabbedZone;
   panels: Panel[];
@@ -961,6 +970,7 @@ const TabbedDropZone = memo(function TabbedDropZone({
   onTabClick: (panelId: string, wasActive: boolean) => void;
   barSide?: "top" | "left" | "right";
   collapsed?: boolean;
+  activityBarFooter?: React.ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: zone });
   const isSource = activePanelZone === zone;
@@ -1071,6 +1081,9 @@ const TabbedDropZone = memo(function TabbedDropZone({
                 />
               ))}
             </SortableContext>
+            {activityBarFooter && (
+              <div className="mt-auto shrink-0">{activityBarFooter}</div>
+            )}
           </div>
           {barSide === "left" && !collapsed && content}
         </>
@@ -1148,17 +1161,17 @@ function ResizeHandle({
 // and therefore uses a different store.
 
 function DialogInterceptor({
-  onAddToCenter,
+  onToggleSettings,
 }: {
-  onAddToCenter: (panelId: string) => void;
+  onToggleSettings: () => void;
 }) {
   const [dialog, setDialog] = useAtom(dialogAtom);
 
   useEffect(() => {
     if (dialog?.type !== "simulationSettings") return;
     setDialog(null);
-    onAddToCenter("simulation-settings");
-  }, [dialog, setDialog, onAddToCenter]);
+    onToggleSettings();
+  }, [dialog, setDialog, onToggleSettings]);
 
   return null;
 }
@@ -1378,16 +1391,34 @@ export default function LayoutTestPage() {
     [],
   );
 
-  const handleAddToCenter = useCallback(
-    (panelId: string) => {
-      handleAddToCenterRow(null, panelId);
-    },
-    [handleAddToCenterRow],
+  const settingsOpen = useMemo(
+    () => flattenTree(centerTree).includes("simulation-settings"),
+    [centerTree],
   );
+
+  const handleToggleSettings = useCallback(() => {
+    startTransition(() => {
+      if (flattenTree(centerTree).includes("simulation-settings")) {
+        setCenterTree((prev) =>
+          prev ? removeFromTree(prev, "simulation-settings") : null,
+        );
+        setLayout((prev) => {
+          const next = { ...prev };
+          delete next["simulation-settings"];
+          return next;
+        });
+      } else {
+        setLayout((prev) => ({ ...prev, "simulation-settings": "center" }));
+        setCenterTree((prev) =>
+          addToTree(prev, "simulation-settings", "right"),
+        );
+      }
+    });
+  }, [centerTree]);
 
   return (
     <LayoutTestProviders>
-      <DialogInterceptor onAddToCenter={handleAddToCenter} />
+      <DialogInterceptor onToggleSettings={handleToggleSettings} />
       <MapContext.Provider value={map}>
         <DndContext
           sensors={sensors}
@@ -1419,6 +1450,23 @@ export default function LayoutTestPage() {
                   activeTabId={activeTabByZone.left}
                   onTabClick={handleLeftTabClick}
                   collapsed={leftCollapsed}
+                  activityBarFooter={
+                    <button
+                      onClick={handleToggleSettings}
+                      title="Simulation Settings"
+                      className={[
+                        "w-full flex items-center justify-center shrink-0 focus:outline-none transition-colors duration-100 border-l-4",
+                        settingsOpen
+                          ? "border-blue-500 text-blue-600 bg-white"
+                          : "border-transparent text-gray-400 hover:text-gray-700 hover:bg-gray-200",
+                      ].join(" ")}
+                      style={{ height: 44 }}
+                    >
+                      <span className="text-xs font-semibold">
+                        <SettingsIcon />
+                      </span>
+                    </button>
+                  }
                 />
               </div>
 
