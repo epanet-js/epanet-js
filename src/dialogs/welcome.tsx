@@ -35,6 +35,7 @@ import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
 import { Message } from "../components/message";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
+import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.svg";
 import iteratingLogoUrl from "src/assets/images/logos/iterating-logo-muted-padded.svg";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import Image from "next/image";
@@ -194,28 +195,67 @@ export const WelcomeDialog = () => {
 const FoundingPartners = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isFoundingAffinityEnabled = useFeatureFlag("FLAG_AFFINITY_LOGO");
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center shrink-0">
       <h3 className="text-gray-600 font-bold">
         {translate("foundersPartnerTitle")}
       </h3>
-      <a
-        href="https://optimatics.com/"
-        target="_blank"
-        onClick={() => {
-          userTracking.capture({
-            name: "foundersPartner.visited",
-            link: "optimatics",
-          });
-        }}
-      >
-        <img
-          src={optimaticsLogoUrl.src}
-          className="block m-auto h-16"
-          height="64"
-        />
-      </a>
+      {isFoundingAffinityEnabled ? (
+        <div className="flex gap-2 justify-center">
+          <a
+            href="https://optimatics.com/"
+            target="_blank"
+            onClick={() => {
+              userTracking.capture({
+                name: "foundersPartner.visited",
+                link: "optimatics",
+              });
+            }}
+          >
+            <img
+              src={optimaticsLogoUrl.src}
+              className="block m-auto h-16"
+              height="64"
+            />
+          </a>
+          <a
+            href="https://affinitywater.com/"
+            target="_blank"
+            className="pt-4"
+            onClick={() => {
+              userTracking.capture({
+                name: "foundersPartner.visited",
+                link: "affinityWater",
+              });
+            }}
+          >
+            <img
+              src={affinityWaterLogoUrl.src}
+              className="block m-auto h-4"
+              height="16"
+            />
+          </a>
+        </div>
+      ) : (
+        <a
+          href="https://optimatics.com/"
+          target="_blank"
+          onClick={() => {
+            userTracking.capture({
+              name: "foundersPartner.visited",
+              link: "optimatics",
+            });
+          }}
+        >
+          <img
+            src={optimaticsLogoUrl.src}
+            className="block m-auto h-16"
+            height="64"
+          />
+        </a>
+      )}
       <p className="text-gray-600">
         {translate("foundersPartnerDescription")}{" "}
         <a
