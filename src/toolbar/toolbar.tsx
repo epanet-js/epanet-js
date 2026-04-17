@@ -13,10 +13,13 @@ import {
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
   PanelRightIcon,
+  SearchIcon,
 } from "src/icons";
 import Modes from "./modes";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
+import { commandBarOpenAtom } from "src/state/command-bar";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
@@ -195,6 +198,7 @@ export const Toolbar = ({
         <OperationalDataDropdown />
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
+        <CommandBarButton />
         {isSmOrLarger && <LayoutActions />}
       </div>
     </div>
@@ -203,6 +207,25 @@ export const Toolbar = ({
 
 const Divider = () => {
   return <div className="border-r-2 border-gray-100 h-8 mx-1"></div>;
+};
+
+const CommandBarButton = () => {
+  const translate = useTranslate();
+  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
+  const setOpen = useSetAtom(commandBarOpenAtom);
+
+  if (!isAssetSearchOn) return null;
+
+  return (
+    <MenuAction
+      label={translate("assetSearch.placeholder")}
+      role="button"
+      onClick={() => setOpen(true)}
+      readOnlyHotkey="ctrl+k"
+    >
+      <SearchIcon />
+    </MenuAction>
+  );
 };
 
 const LayoutActions = () => {

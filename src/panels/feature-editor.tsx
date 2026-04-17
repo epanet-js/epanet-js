@@ -9,46 +9,35 @@ import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";
 import { Asset } from "src/hydraulic-model";
 import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { AssetSearch } from "./asset-panel/asset-search";
 
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const isSnapshotLocked = useIsSnapshotLocked();
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
 
   if (selection.type === "singleCustomerPoint") {
     return <CustomerPointPanel />;
   }
 
-  const content =
-    selectedFeatures.length > 1 ? (
+  if (selectedFeatures.length > 1) {
+    return (
       <MultiAssetPanel
         selectedFeatures={selectedFeatures}
         readonly={isSnapshotLocked}
       />
-    ) : selectedFeatures.length === 1 ? (
+    );
+  }
+
+  if (selectedFeatures.length === 1) {
+    return (
       <AssetPanel
         units={units}
         asset={selectedFeatures[0] as Asset}
         readonly={isSnapshotLocked}
       />
-    ) : (
-      <NothingSelected />
     );
-
-  if (!isAssetSearchOn) {
-    return content;
   }
 
-  return (
-    <div className="flex flex-col flex-auto overflow-hidden">
-      <div className="flex-none px-3 py-2 border-b border-gray-200 dark:border-gray-900">
-        <AssetSearch />
-      </div>
-      {content}
-    </div>
-  );
+  return <NothingSelected />;
 }
