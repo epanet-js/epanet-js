@@ -7,14 +7,40 @@ import {
   useMemo,
   memo,
   startTransition,
+  useEffect,
 } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useAtom, useSetAtom } from "jotai";
 import { LayoutTestProviders } from "./providers";
 import FeatureEditor from "src/panels/feature-editor";
 import { MapStylingEditor } from "src/panels/map-styling-editor";
 import { AssetsTable } from "src/components/bottom-sidebar/assets-table";
 import { NetworkReview } from "src/panels/network-review";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedFeaturesDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { dialogAtom } from "src/state/dialog";
+import { Formik, Form } from "formik";
+import { SimulationSettingsSidebar } from "src/dialogs/simulation-settings/simulation-settings-sidebar";
+import {
+  SimulationSettingsContent,
+  SettingsSection,
+  GeneralSection,
+  TimesSection,
+  DemandsSection,
+  HydraulicsSection,
+  WaterQualitySection,
+  EnergySection,
+} from "src/dialogs/simulation-settings/simulation-settings-content";
+import { useScrollSpy } from "src/dialogs/simulation-settings/use-scroll-spy";
+import {
+  buildSectionIds,
+  buildInitialValues,
+  hasChanges,
+  buildUpdatedSettings,
+} from "src/dialogs/simulation-settings/simulation-settings-data";
+import type { FormValues } from "src/dialogs/simulation-settings/simulation-settings-data";
 import { useQuickGraph } from "src/panels/asset-panel/quick-graph";
 import type { QuickGraphAssetType } from "src/state/quick-graph";
 import type { Asset } from "src/hydraulic-model/asset-types";
@@ -123,6 +149,96 @@ function AlphaPanel() {
   );
 }
 
+// ─── Simulation Settings Panel ────────────────────────────────────────────────
+
+function SimulationSettingsPanel() {
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
+  const setSimulationSettings = useSetAtom(simulationSettingsDerivedAtom);
+  const [projectSettings, setProjectSettings] = useAtom(projectSettingsAtom);
+
+  const sectionIds = useMemo(buildSectionIds, []);
+  const { activeSection, scrollToSection, scrollContainerRef } =
+    useScrollSpy(sectionIds);
+
+  const initialValues = useMemo(
+    () => buildInitialValues(simulationSettings),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const handleSubmit = useCallback(
+    (values: FormValues) => {
+      if (hasChanges(values, simulationSettings)) {
+        setSimulationSettings(buildUpdatedSettings(values, simulationSettings));
+      }
+      if (
+        values.qualityMassUnit !== projectSettings.units.chemicalConcentration
+      ) {
+        setProjectSettings({
+          ...projectSettings,
+          units: {
+            ...projectSettings.units,
+            chemicalConcentration: values.qualityMassUnit,
+          },
+        });
+      }
+    },
+    [
+      simulationSettings,
+      setSimulationSettings,
+      projectSettings,
+      setProjectSettings,
+    ],
+  );
+
+  return (
+    <Formik onSubmit={handleSubmit} initialValues={initialValues}>
+      {({ submitForm, isSubmitting }) => (
+        <Form className="flex flex-col h-full min-h-0 overflow-hidden">
+          <div className="flex flex-1 min-h-0">
+            <SimulationSettingsSidebar
+              activeSection={activeSection}
+              onSelectSection={scrollToSection}
+            />
+            <div className="border-l border-gray-200 flex-1 flex flex-col min-h-0">
+              <SimulationSettingsContent ref={scrollContainerRef}>
+                <SettingsSection sectionId="general">
+                  <GeneralSection />
+                </SettingsSection>
+                <SettingsSection sectionId="times">
+                  <TimesSection />
+                </SettingsSection>
+                <SettingsSection sectionId="demands">
+                  <DemandsSection />
+                </SettingsSection>
+                <SettingsSection sectionId="hydraulics">
+                  <HydraulicsSection />
+                </SettingsSection>
+                <SettingsSection sectionId="waterQuality">
+                  <WaterQualitySection />
+                </SettingsSection>
+                <SettingsSection sectionId="energy">
+                  <EnergySection />
+                </SettingsSection>
+              </SimulationSettingsContent>
+            </div>
+          </div>
+          <div className="shrink-0 flex justify-end px-3 py-2 border-t border-gray-200 bg-gray-50">
+            <button
+              type="button"
+              onClick={submitForm}
+              disabled={isSubmitting}
+              className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              Save
+            </button>
+          </div>
+        </Form>
+      )}
+    </Formik>
+  );
+}
+
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const PANELS: Panel[] = [
@@ -188,6 +304,12 @@ const PANELS: Panel[] = [
     title: "Golf",
     description:
       "Pump operating schedules and energy consumption. Efficiency curves shown per pump asset.",
+  },
+  {
+    id: "simulation-settings",
+    title: "Settings",
+    description: "Simulation settings.",
+    component: SimulationSettingsPanel,
   },
 ];
 
@@ -410,13 +532,11 @@ function CenterPanelCard({
   panel,
   activeId,
   setMap,
-  onClose,
   pendingEdge,
 }: {
   panel: Panel;
   activeId: string | null;
   setMap: (map: MapEngine | null) => void;
-  onClose: (panelId: string) => void;
   pendingEdge: DropEdge | null;
 }) {
   const isDragging = activeId === panel.id;
@@ -428,7 +548,7 @@ function CenterPanelCard({
     <div
       ref={setDropRef}
       className={[
-        "relative flex flex-col flex-1 min-w-0 min-h-0 rounded border border-gray-200 overflow-hidden bg-white",
+        "relative flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden bg-white",
         isDragging ? "opacity-30" : "",
       ]
         .filter(Boolean)
@@ -441,18 +561,6 @@ function CenterPanelCard({
           />
         </div>
       )}
-      {/* Tab header — drag handle + close button */}
-      <div className="flex flex-row items-center border-b border-gray-200 shrink-0 bg-gray-50">
-        <DraggableTab panel={panel} isActive={activeId === panel.id} />
-        <button
-          onClick={() => onClose(panel.id)}
-          className="ml-auto mr-1.5 flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 text-xs leading-none focus:outline-none"
-          aria-label={`Close ${panel.title}`}
-        >
-          ×
-        </button>
-      </div>
-      {/* Content */}
       <div className="flex-1 min-h-0 overflow-hidden">
         {panel.id === "map" ? (
           <MapCanvas setMap={setMap} />
@@ -482,6 +590,8 @@ function LayoutNodeView({
   onClose,
   pendingEdge,
   setCenterTree,
+  availablePanels,
+  onAddToRow,
 }: {
   node: LayoutNode;
   activeId: string | null;
@@ -489,24 +599,98 @@ function LayoutNodeView({
   onClose: (panelId: string) => void;
   pendingEdge: DropEdge | null;
   setCenterTree: React.Dispatch<React.SetStateAction<LayoutNode | null>>;
+  availablePanels: Panel[];
+  onAddToRow: (targetPanelId: string | null, newPanelId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // ── Panel: compact tab header (drag handle + close + right-aligned "+") ──
   if (node.type === "panel") {
     const panel = PANELS.find((p) => p.id === node.panelId);
     if (!panel) return null;
     return (
-      <CenterPanelCard
-        panel={panel}
-        activeId={activeId}
-        setMap={setMap}
-        onClose={onClose}
-        pendingEdge={pendingEdge}
-      />
+      <div className="flex flex-col min-h-0 flex-1 h-full">
+        <div className="shrink-0 flex items-center border-b border-gray-200 bg-gray-50">
+          <DraggableTab panel={panel} isActive={false} />
+          <button
+            onClick={() => onClose(panel.id)}
+            className="w-3.5 h-3.5 -ml-1.5 mr-1 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 text-xs leading-none focus:outline-none"
+            aria-label={`Close ${panel.title}`}
+          >
+            ×
+          </button>
+          <div className="ml-auto px-1">
+            <AddPanelButton
+              availablePanels={availablePanels}
+              onAddPanel={(id) => onAddToRow(panel.id, id)}
+            />
+          </div>
+        </div>
+        <CenterPanelCard
+          panel={panel}
+          activeId={activeId}
+          setMap={setMap}
+          pendingEdge={pendingEdge}
+        />
+      </div>
     );
   }
 
-  const isRow = node.direction === "row";
+  // ── Row split: panels side-by-side, last child gets the "+" ─────────────
+  if (node.direction === "row") {
+    const items: React.ReactNode[] = [];
+
+    node.children.forEach((child, i) => {
+      const key = child.type === "panel" ? child.panelId : child.id;
+      items.push(
+        <div
+          key={key}
+          className="flex flex-col min-w-0 min-h-0 overflow-hidden"
+          style={{ flex: node.sizes[i] }}
+        >
+          <LayoutNodeView
+            node={child}
+            activeId={activeId}
+            setMap={setMap}
+            onClose={onClose}
+            pendingEdge={pendingEdge}
+            setCenterTree={setCenterTree}
+            availablePanels={availablePanels}
+            onAddToRow={onAddToRow}
+          />
+        </div>,
+      );
+      if (i < node.children.length - 1) {
+        const splitId = node.id;
+        items.push(
+          <ResizeHandle
+            key={`r${i}`}
+            direction="vertical"
+            onResize={(delta) => {
+              const el = containerRef.current;
+              if (!el) return;
+              setCenterTree((prev) =>
+                prev
+                  ? updateSplitSizes(prev, splitId, i, delta, el.clientWidth)
+                  : prev,
+              );
+            }}
+          />,
+        );
+      }
+    });
+
+    return (
+      <div
+        ref={containerRef}
+        className="flex flex-row min-w-0 min-h-0 flex-1 h-full w-full"
+      >
+        {items}
+      </div>
+    );
+  }
+
+  // ── Col split: stack children, each row handles its own "+" ─────────────
   const items: React.ReactNode[] = [];
   node.children.forEach((child, i) => {
     const key = child.type === "panel" ? child.panelId : child.id;
@@ -523,6 +707,8 @@ function LayoutNodeView({
           onClose={onClose}
           pendingEdge={pendingEdge}
           setCenterTree={setCenterTree}
+          availablePanels={availablePanels}
+          onAddToRow={onAddToRow}
         />
       </div>,
     );
@@ -531,13 +717,14 @@ function LayoutNodeView({
       items.push(
         <ResizeHandle
           key={`r${i}`}
-          direction={isRow ? "vertical" : "horizontal"}
+          direction="horizontal"
           onResize={(delta) => {
             const el = containerRef.current;
             if (!el) return;
-            const totalPx = isRow ? el.clientWidth : el.clientHeight;
             setCenterTree((prev) =>
-              prev ? updateSplitSizes(prev, splitId, i, delta, totalPx) : prev,
+              prev
+                ? updateSplitSizes(prev, splitId, i, delta, el.clientHeight)
+                : prev,
             );
           }}
         />,
@@ -548,12 +735,63 @@ function LayoutNodeView({
   return (
     <div
       ref={containerRef}
-      className={[
-        "flex min-w-0 min-h-0 flex-1 h-full w-full",
-        isRow ? "flex-row" : "flex-col",
-      ].join(" ")}
+      className="flex flex-col min-w-0 min-h-0 flex-1 h-full w-full"
     >
       {items}
+    </div>
+  );
+}
+
+// ─── Add Panel Button ─────────────────────────────────────────────────────────
+
+function AddPanelButton({
+  availablePanels,
+  onAddPanel,
+}: {
+  availablePanels: Panel[];
+  onAddPanel: (panelId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  if (availablePanels.length === 0) return null;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Add panel"
+        className="w-5 h-5 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 text-base leading-none focus:outline-none"
+      >
+        +
+      </button>
+      {open && (
+        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded shadow-lg py-1 min-w-[140px] z-30">
+          {availablePanels.map((panel) => (
+            <button
+              key={panel.id}
+              onClick={() => {
+                onAddPanel(panel.id);
+                setOpen(false);
+              }}
+              className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+            >
+              {panel.title}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -569,6 +807,8 @@ function CenterDropZone({
   setMap,
   onClose,
   setCenterTree,
+  availablePanels,
+  onAddToRow,
 }: {
   tree: LayoutNode | null;
   activeId: string | null;
@@ -578,38 +818,39 @@ function CenterDropZone({
   setMap: (map: MapEngine | null) => void;
   onClose: (panelId: string) => void;
   setCenterTree: React.Dispatch<React.SetStateAction<LayoutNode | null>>;
+  availablePanels: Panel[];
+  onAddToRow: (splitId: string | null, panelId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: "center" });
   const isSource = activePanelZone === "center";
   const showHint = activeId !== null && !isSource;
   const isEmpty = tree === null;
-  // Only show container-level indicator when not hovering over a specific panel
+
   const showContainerIndicator =
     isOver && pendingEdge && pendingTargetId === null;
-
   const dropRect: Record<DropEdge, string> = {
-    top: "inset-x-0 top-0 h-1/3 border-b-2",
-    bottom: "inset-x-0 bottom-0 h-1/3 border-t-2",
-    left: "inset-y-0 left-0 w-1/4 border-r-2",
-    right: "inset-y-0 right-0 w-1/4 border-l-2",
+    top: "inset-x-0 top-0 h-1/3",
+    bottom: "inset-x-0 bottom-0 h-1/3",
+    left: "inset-y-0 left-0 w-1/4",
+    right: "inset-y-0 right-0 w-1/4",
   };
 
   return (
-    <div ref={setNodeRef} className="relative h-full w-full">
+    <div ref={setNodeRef} className="relative h-full w-full flex flex-col">
       {showContainerIndicator && (
         <div className="absolute inset-0 pointer-events-none z-10">
           {isEmpty ? (
             <div className="absolute inset-1 rounded bg-blue-200/60 border-2 border-blue-500" />
           ) : (
             <div
-              className={`absolute rounded bg-blue-200/60 border-blue-500 ${dropRect[pendingEdge]}`}
+              className={`absolute rounded bg-blue-200/60 border-2 border-blue-500 ${dropRect[pendingEdge]}`}
             />
           )}
         </div>
       )}
       <div
         className={[
-          "flex h-full w-full p-1 gap-1 transition-colors duration-150",
+          "flex flex-1 min-h-0",
           isEmpty ? "items-center justify-center" : "",
           isOver && isEmpty ? "bg-blue-50" : "",
           showHint && isEmpty
@@ -620,9 +861,17 @@ function CenterDropZone({
           .join(" ")}
       >
         {isEmpty ? (
-          <span className="text-xs text-gray-400 select-none pointer-events-none">
-            {showHint ? "Drop here → Center" : "Center"}
-          </span>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs text-gray-400 select-none pointer-events-none">
+              {showHint ? "Drop here → Center" : "Center"}
+            </span>
+            {availablePanels.length > 0 && (
+              <AddPanelButton
+                availablePanels={availablePanels}
+                onAddPanel={(id) => onAddToRow(null, id)}
+              />
+            )}
+          </div>
         ) : (
           <LayoutNodeView
             node={tree}
@@ -631,6 +880,8 @@ function CenterDropZone({
             onClose={onClose}
             pendingEdge={pendingEdge}
             setCenterTree={setCenterTree}
+            availablePanels={availablePanels}
+            onAddToRow={onAddToRow}
           />
         )}
       </div>
@@ -891,6 +1142,27 @@ function ResizeHandle({
   );
 }
 
+// ─── Dialog Interceptor ──────────────────────────────────────────────────────
+// Must render INSIDE LayoutTestProviders so it shares the same Jotai store
+// as the Toolbar. The page component itself is the parent of LayoutTestProviders
+// and therefore uses a different store.
+
+function DialogInterceptor({
+  onAddToCenter,
+}: {
+  onAddToCenter: (panelId: string) => void;
+}) {
+  const [dialog, setDialog] = useAtom(dialogAtom);
+
+  useEffect(() => {
+    if (dialog?.type !== "simulationSettings") return;
+    setDialog(null);
+    onAddToCenter("simulation-settings");
+  }, [dialog, setDialog, onAddToCenter]);
+
+  return null;
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 const INITIAL_CENTER_IDS = PANELS.filter(
@@ -904,6 +1176,7 @@ export default function LayoutTestPage() {
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pendingEdge, setPendingEdge] = useState<DropEdge | null>(null);
+  const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
   const [activeTabByZone, setActiveTabByZone] = useState<
     Record<TabbedZone, string | null>
   >({
@@ -917,7 +1190,6 @@ export default function LayoutTestPage() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [map, setMap] = useState<MapEngine | null>(null);
-  const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
 
   // Explicit ordering for sidebar activity bars — panels are filtered by
   // current layout so entries for other zones are harmlessly ignored
@@ -990,7 +1262,6 @@ export default function LayoutTestPage() {
       const sourceZone = layout[panelId] as Zone;
 
       // ── Same-sidebar reorder ─────────────────────────────────────────────
-      // over.id is a panel id (not a zone droppable) when useSortable is active
       const overZone = layout[overId] as Zone | undefined;
       if (
         overZone !== undefined &&
@@ -1011,7 +1282,6 @@ export default function LayoutTestPage() {
       const targetPanelId = isCenterPanel
         ? overId.slice("center-panel:".length)
         : null;
-      // closestCenter can return a panel id instead of a zone id — resolve it
       const targetZone: Zone =
         isCenterPanel || overId === "center"
           ? "center"
@@ -1039,7 +1309,6 @@ export default function LayoutTestPage() {
             );
           }
           setActiveTabByZone((prev) => ({ ...prev, [targetZone]: panelId }));
-          // Ensure the panel appears in the order array when entering a sidebar
           if (targetZone === "left") {
             setLeftOrder((prev) =>
               prev.includes(panelId) ? prev : [...prev, panelId],
@@ -1089,8 +1358,36 @@ export default function LayoutTestPage() {
     });
   }, []);
 
+  const availablePanels = useMemo(
+    () => PANELS.filter((p) => !layout[p.id]),
+    [layout],
+  );
+
+  const handleAddToCenterRow = useCallback(
+    (targetPanelId: string | null, newPanelId: string) => {
+      startTransition(() => {
+        setLayout((prev) => ({ ...prev, [newPanelId]: "center" }));
+        setCenterTree((prev) => {
+          if (!prev) return { type: "panel", panelId: newPanelId };
+          if (targetPanelId === null)
+            return addToTree(prev, newPanelId, "right");
+          return insertNextTo(prev, targetPanelId, newPanelId, "right");
+        });
+      });
+    },
+    [],
+  );
+
+  const handleAddToCenter = useCallback(
+    (panelId: string) => {
+      handleAddToCenterRow(null, panelId);
+    },
+    [handleAddToCenterRow],
+  );
+
   return (
     <LayoutTestProviders>
+      <DialogInterceptor onAddToCenter={handleAddToCenter} />
       <MapContext.Provider value={map}>
         <DndContext
           sensors={sensors}
@@ -1141,6 +1438,8 @@ export default function LayoutTestPage() {
                     setMap={setMap}
                     onClose={handleCloseCenter}
                     setCenterTree={setCenterTree}
+                    availablePanels={availablePanels}
+                    onAddToRow={handleAddToCenterRow}
                   />
                 </div>
                 <ResizeHandle
