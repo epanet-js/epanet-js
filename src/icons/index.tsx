@@ -29,6 +29,8 @@ import {
   FilePlus,
   FileSpreadsheet,
   FileText,
+  Folder,
+  FolderOpen,
   GitBranch,
   GitBranchPlus,
   Goal,
@@ -150,6 +152,8 @@ export const FileIcon = icon(File);
 export const FileAddIcon = icon(FilePlus);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
+export const FolderIcon = icon(Folder);
+export const FolderOpenIcon = icon(FolderOpen);
 export const DeleteIcon = icon(Trash);
 export const ZoomToIcon = icon(Crosshair);
 export const ActivateTopologyIcon = icon(Route);

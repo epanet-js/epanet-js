@@ -9,6 +9,7 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
+  UploadIcon,
   PanelLeftIcon,
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
@@ -42,6 +43,7 @@ import {
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CreateNewDropdown } from "./create-new-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
 import {
@@ -67,6 +69,7 @@ export const Toolbar = ({
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const { undo, redo } = useHistoryControl();
 
@@ -104,6 +107,17 @@ export const Toolbar = ({
             >
               <SaveAllIcon />
             </MenuAction>
+            {isOurFileOn && (
+              <MenuAction
+                label={translate("exportINP")}
+                role="button"
+                onClick={() => {
+                  void saveInp({ source: "toolbar", isSaveAs: true });
+                }}
+              >
+                <UploadIcon />
+              </MenuAction>
+            )}
           </>
         }
         <MenuAction
