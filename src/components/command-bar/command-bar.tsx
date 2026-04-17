@@ -59,6 +59,9 @@ export const CommandBar = () => {
     "ctrl+k",
     (e) => {
       if (e.preventDefault) e.preventDefault();
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
       setOpen(true);
     },
     [setOpen],
@@ -196,6 +199,13 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
     }
   };
 
+  useEffect(function focusInputOnOpen() {
+    const id = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
   useEffect(
     function keepActiveItemVisible() {
       const list = listRef.current;
@@ -227,7 +237,6 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
           <input
             ref={inputRef}
             type="text"
-            autoFocus
             spellCheck={false}
             autoComplete="off"
             value={query}

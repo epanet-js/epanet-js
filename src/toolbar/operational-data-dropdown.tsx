@@ -42,7 +42,11 @@ export const OperationalDataDropdown = () => {
             </DD.Trigger>
           </Tooltip.Trigger>
           <DD.Portal>
-            <DDContent align="start" side="bottom">
+            <DDContent
+              align="start"
+              side="bottom"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
               <StyledItem
                 onSelect={() => showPatternsLibrary({ source: "toolbar" })}
               >
