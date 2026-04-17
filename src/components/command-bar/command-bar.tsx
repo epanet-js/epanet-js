@@ -253,7 +253,11 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
           className="max-h-[360px] overflow-y-auto p-1"
         >
           {results.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-gray-400">No results</div>
+            <div className="px-3 py-4 text-sm text-gray-400">
+              {query.trim().length > 0
+                ? "No results"
+                : translate("assetSearch.emptyHint")}
+            </div>
           ) : (
             results.map((option, index) => (
               <div
