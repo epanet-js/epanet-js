@@ -537,7 +537,7 @@ export const buildInp = withDebugInstrumentation(
         );
         if (opts.includeQuality) {
           appendInitialQuality(sections, idMap, asset as Reservoir);
-          appendSource(sections, idMap, asset as Reservoir);
+          appendSource(sections, idMap, asset as Reservoir, usedPatternIds);
         }
       }
 
@@ -554,7 +554,7 @@ export const buildInp = withDebugInstrumentation(
         if (opts.includeQuality) {
           appendInitialQuality(sections, idMap, asset as Tank);
           appendMixing(sections, idMap, asset as Tank);
-          appendSource(sections, idMap, asset as Tank);
+          appendSource(sections, idMap, asset as Tank, usedPatternIds);
           appendTankReaction(sections, idMap, asset as Tank);
         }
       }
@@ -575,7 +575,7 @@ export const buildInp = withDebugInstrumentation(
         );
         if (opts.includeQuality) {
           appendInitialQuality(sections, idMap, asset as Junction);
-          appendSource(sections, idMap, asset as Junction);
+          appendSource(sections, idMap, asset as Junction, usedPatternIds);
         }
       }
 
@@ -747,12 +747,14 @@ const appendSource = (
   sections: InpSections,
   idMap: EpanetIds,
   node: NodeAsset,
+  usedPatternIds: Set<number>,
 ) => {
   const typedNode = node as Junction | Tank | Reservoir;
   const sourceType = typedNode.chemicalSourceType;
   if (!sourceType) return;
   const strength = typedNode.chemicalSourceStrength ?? 0;
   const patternId = typedNode.chemicalSourcePatternId;
+  if (patternId) usedPatternIds.add(patternId);
   const row = patternId
     ? `${idMap.nodeId(node)}\t${sourceType}\t${strength}\t${idMap.patternId(patternId)}`
     : `${idMap.nodeId(node)}\t${sourceType}\t${strength}`;

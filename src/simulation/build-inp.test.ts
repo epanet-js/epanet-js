@@ -2239,6 +2239,31 @@ THEN LINK {{1}} STATUS IS OPEN`,
 
       expect(inp).not.toContain("[SOURCES]");
     });
+
+    it("includes source pattern in PATTERNS section when usedPatterns is true", () => {
+      const IDS = { J1: 1, PAT1: 100, PAT2: 200 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          elevation: 10,
+          chemicalSourceType: "CONCEN",
+          chemicalSourceStrength: 1.2,
+          chemicalSourcePatternId: IDS.PAT1,
+        })
+        .aPattern(IDS.PAT1, "sourcePattern", [0.5, 1.0, 1.5])
+        .aPattern(IDS.PAT2, "unused", [1, 1, 1])
+        .build();
+
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        includeQuality: true,
+        usedPatterns: true,
+      });
+
+      expect(inp).toContain(`${IDS.J1}\tCONCEN\t1.2\tsourcePattern`);
+      expect(inp).toContain(`sourcePattern\t0.5\t1\t1.5`);
+      expect(inp).not.toContain(`unused\t`);
+    });
   });
 
   describe("per-pipe and per-tank reactions export", () => {
