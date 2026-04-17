@@ -60,15 +60,12 @@ export const VirtualizedSearchableSelector = <
 
   const search = useCallback(
     async (query: string) => {
-      if (query.trim().length < 1) {
-        setSuggestions([]);
-        return;
-      }
       setIsSearching(true);
       try {
         const results = await onSearch(query);
         setSuggestions(results);
-        setOpen(true);
+        const hasQuery = query.trim().length > 0;
+        if (hasQuery || results.length > 0) setOpen(true);
       } catch {
         setSuggestions([]);
       } finally {
@@ -177,6 +174,9 @@ export const VirtualizedSearchableSelector = <
               value={searchTerm}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (searchTerm.trim().length === 0) void search("");
+              }}
               placeholder={placeholder}
               disabled={disabled}
               spellCheck={false}

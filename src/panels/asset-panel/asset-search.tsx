@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { Maybe } from "purify-ts/Maybe";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { VirtualizedSearchableSelector } from "src/components/form/virtualized-searchable-selector";
 import { SearchIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -12,6 +12,7 @@ import { useSelection } from "src/selection/use-selection";
 import { customerPointsAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
+import { fileInfoAtom } from "src/state/file-system";
 import { BBox } from "src/types";
 
 type SearchOption = {
@@ -43,17 +44,51 @@ const typeLabel = (type: Asset["type"]): string => {
   return prefixes[type];
 };
 
+const MAX_RECENTS = 10;
+const recentsByNetwork = new Map<string, SearchOption[]>();
+
 export const AssetSearch = () => {
   const translate = useTranslate();
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const customerPoints = useAtomValue(customerPointsAtom);
   const selection = useAtomValue(selectionAtom);
+  const fileInfo = useAtomValue(fileInfoAtom);
   const { selectAsset, selectCustomerPoint } = useSelection(selection);
   const zoomTo = useZoomTo();
   const [resetKey, setResetKey] = useState(0);
 
+  const networkKey = fileInfo?.name ?? "";
+  const recentsRef = useRef(recentsByNetwork);
+
+  const getRecents = useCallback((): SearchOption[] => {
+    const recents = recentsRef.current.get(networkKey) ?? [];
+    return recents.filter((option) => {
+      if (option.data.kind === "customerPoint") {
+        return customerPoints.has(option.data.rawId);
+      }
+      const assetData = option.data;
+      const results = labelManager.search(option.label, 1);
+      return results.some(
+        (r) => r.id === assetData.rawId && r.type === assetData.type,
+      );
+    });
+  }, [networkKey, labelManager, customerPoints]);
+
+  const addRecent = useCallback(
+    (option: SearchOption) => {
+      const recents = recentsRef.current.get(networkKey) ?? [];
+      const filtered = recents.filter((r) => r.id !== option.id);
+      const updated = [option, ...filtered].slice(0, MAX_RECENTS);
+      recentsRef.current.set(networkKey, updated);
+    },
+    [networkKey],
+  );
+
   const onSearch = useCallback(
     (query: string): Promise<SearchOption[]> => {
+      if (query.trim().length === 0) {
+        return Promise.resolve(getRecents());
+      }
       const options = labelManager
         .search(query, 200)
         .filter(
@@ -81,10 +116,11 @@ export const AssetSearch = () => {
         });
       return Promise.resolve(options);
     },
-    [labelManager],
+    [labelManager, getRecents],
   );
 
   const onChange = (option: SearchOption) => {
+    addRecent(option);
     if (option.data.kind === "asset") {
       selectAsset(option.data.rawId);
       zoomTo(USelection.single(option.data.rawId), 18);
