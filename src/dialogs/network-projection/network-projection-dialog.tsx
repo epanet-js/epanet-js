@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { BBox, FeatureCollection, Position } from "geojson";
+import type { BBox, Feature, FeatureCollection, Position } from "geojson";
 import {
   BaseDialog,
   SimpleDialogActions,
@@ -68,6 +68,10 @@ export const NetworkProjectionDialog = ({
   const [isProjecting, setIsProjecting] = useState(false);
   const [displayGeoJSON, setDisplayGeoJSON] =
     useState<FeatureCollection | null>(() => {
+      if (suggestedXyScale !== undefined) {
+        const centroid = computeCentroid(extractCoordinates(previewGeoJson));
+        return projectWithXyGrid(previewGeoJson, centroid, suggestedXyScale);
+      }
       if (initialProjection) {
         try {
           const projected = projectGeoJson(
@@ -473,6 +477,41 @@ const extractCoordinates = (geoJson: FeatureCollection): Position[] => {
     }
   }
   return coords;
+};
+
+const projectWithXyGrid = (
+  geoJson: FeatureCollection,
+  centroid: Position,
+  scale: number,
+): FeatureCollection => {
+  const transform = (coord: Position): Position =>
+    transformPoint(coord, centroid, scale);
+
+  return {
+    ...geoJson,
+    features: geoJson.features.map((feature: Feature) => {
+      if (!feature.geometry) return feature;
+      if (feature.geometry.type === "Point") {
+        return {
+          ...feature,
+          geometry: {
+            ...feature.geometry,
+            coordinates: transform(feature.geometry.coordinates),
+          },
+        };
+      }
+      if (feature.geometry.type === "LineString") {
+        return {
+          ...feature,
+          geometry: {
+            ...feature.geometry,
+            coordinates: feature.geometry.coordinates.map(transform),
+          },
+        };
+      }
+      return feature;
+    }),
+  };
 };
 
 const ProjectionEmptyState = () => {
