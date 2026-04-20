@@ -2,6 +2,7 @@ import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
+import { useOpenProject } from "src/commands/open-project";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -44,6 +45,7 @@ export const WelcomeDialog = () => {
   const translate = useTranslate();
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
+  const openProject = useOpenProject();
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -85,7 +87,11 @@ export const WelcomeDialog = () => {
               <Button
                 variant="quiet"
                 onClick={() => {
-                  void openInpFromFs({ source: "welcome" });
+                  if (isOurFileOn) {
+                    openProject({ source: "welcome" });
+                  } else {
+                    void openInpFromFs({ source: "welcome" });
+                  }
                 }}
                 style={{ width: "100%" }}
               >

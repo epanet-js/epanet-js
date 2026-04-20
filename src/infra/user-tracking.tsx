@@ -326,6 +326,17 @@ type ModelSaved = {
   isSaveAs?: boolean;
 };
 
+type ProjectSaved = {
+  name: "project.saved";
+  source: string;
+  isSaveAs?: boolean;
+};
+
+export type OpenProjectStarted = {
+  name: "openProject.started";
+  source: string;
+};
+
 type OperationUndone = {
   name: "operation.undone";
   source: "shortcut" | "toolbar";
@@ -917,6 +928,8 @@ export type UserEvent =
   | NewModelStarted
   | NewModelCompleted
   | ModelSaved
+  | ProjectSaved
+  | OpenProjectStarted
   | OperationUndone
   | OperationRedone
   | DrawingModeEnabled

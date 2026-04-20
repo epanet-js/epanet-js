@@ -271,6 +271,7 @@
   "mixedValues": "Mixed",
   "openProject": "Open INP",
   "opening": "Opening...",
+  "opened": "Opened",
   "export": "Export",
   "failedToOpenModel": "Failed to open model",
   "failedToOpenModelDetail": "Make sure to provide a valid INP file.",

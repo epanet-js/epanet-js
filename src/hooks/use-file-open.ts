@@ -6,6 +6,7 @@ export interface FileOpenOptions {
   multiple?: boolean;
   extensions: string[];
   description: string;
+  mimeTypes?: string[];
 }
 
 const getDefaultFsAccess = async () => {
@@ -31,6 +32,7 @@ export const useFileOpen = ({
           multiple: options.multiple || false,
           extensions: options.extensions,
           description: options.description,
+          mimeTypes: options.mimeTypes,
         });
 
         if (Array.isArray(result)) {

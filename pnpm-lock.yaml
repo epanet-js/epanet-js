@@ -155,6 +155,9 @@ importers:
       '@sentry/nextjs':
         specifier: ^8.34.0
         version: 8.34.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@1.26.0(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.53.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.26.0(@opentelemetry/api@1.9.0))(next@14.2.25(@babel/core@7.24.6)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(webpack@5.95.0)
+      '@sqlite.org/sqlite-wasm':
+        specifier: 3.51.2-build9
+        version: 3.51.2-build9
       '@stripe/stripe-js':
         specifier: ^6.1.0
         version: 6.1.0
@@ -2726,6 +2729,10 @@ packages:
 
   '@sinclair/typebox@0.24.51':
     resolution: {integrity: sha512-1P1OROm/rdubP5aFDSZQILU0vrLCJ4fvHt6EoqHEM+2D/G5MK3bIaymUKLit8Js9gbns5UyJnkP/TZROLw4tUA==}
+
+  '@sqlite.org/sqlite-wasm@3.51.2-build9':
+    resolution: {integrity: sha512-tj2Sa6X4gVZqS9SiT2xlEeChSUklSGq8Hz6zKNbHW6NRiGyrSXiFcspnrWru1wPBT76RX/VxweESKxawCxfDxg==}
+    engines: {node: '>=22'}
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
@@ -9834,6 +9841,8 @@ snapshots:
   '@sideway/pinpoint@2.0.0': {}
 
   '@sinclair/typebox@0.24.51': {}
+
+  '@sqlite.org/sqlite-wasm@3.51.2-build9': {}
 
   '@stablelib/base64@1.0.1': {}
 

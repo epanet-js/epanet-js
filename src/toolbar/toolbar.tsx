@@ -30,6 +30,7 @@ import {
   saveShortcut,
   useSaveInp,
 } from "src/commands/save-inp";
+import { useSaveProject } from "src/commands/save-project";
 import {
   runSimulationShortcut,
   useRunSimulation,
@@ -63,6 +64,7 @@ export const Toolbar = ({
 }) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
+  const saveProject = useSaveProject();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
   const showSimulationSettings = useShowSimulationSettings();
@@ -90,7 +92,11 @@ export const Toolbar = ({
               label={translate("save")}
               role="button"
               onClick={() => {
-                void saveInp({ source: "toolbar" });
+                if (isOurFileOn) {
+                  void saveProject({ source: "toolbar" });
+                } else {
+                  void saveInp({ source: "toolbar" });
+                }
               }}
               readOnlyHotkey={saveShortcut}
             >
@@ -100,7 +106,11 @@ export const Toolbar = ({
               label={translate("saveAs")}
               role="button"
               onClick={() => {
-                void saveInp({ source: "toolbar", isSaveAs: true });
+                if (isOurFileOn) {
+                  void saveProject({ source: "toolbar", isSaveAs: true });
+                } else {
+                  void saveInp({ source: "toolbar", isSaveAs: true });
+                }
               }}
               readOnlyHotkey={saveAsShortcut}
             >

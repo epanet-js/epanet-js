@@ -37,6 +37,8 @@ import {
   openInpFromFsShortcut,
   useOpenInpFromFs,
 } from "src/commands/open-inp-from-fs";
+import { useOpenProject } from "src/commands/open-project";
+import { useSaveProject } from "src/commands/save-project";
 import {
   toggleSatelliteShorcut,
   useToggleSatellite,
@@ -115,7 +117,10 @@ export const CommandShortcuts = () => {
   const showShortcuts = useShowShortcuts();
   const createNew = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
+  const openProject = useOpenProject();
   const saveInp = useSaveInp();
+  const saveProject = useSaveProject();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { undo, redo } = useHistoryControl();
   const userTracking = useUserTracking();
   const setDrawingMode = useDrawingMode();
@@ -177,9 +182,13 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      void openInpFromFs({ source: "shortcut" });
+      if (isOurFileOn) {
+        openProject({ source: "shortcut" });
+      } else {
+        void openInpFromFs({ source: "shortcut" });
+      }
     },
-    [openInpFromFsShortcut, openInpFromFs],
+    [openInpFromFsShortcut, openInpFromFs, openProject, isOurFileOn],
     "Open inp",
   );
 
@@ -199,9 +208,13 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      void saveInp({ source: "shortcut" });
+      if (isOurFileOn) {
+        void saveProject({ source: "shortcut" });
+      } else {
+        void saveInp({ source: "shortcut" });
+      }
     },
-    [saveShortcut, saveInp],
+    [saveShortcut, saveInp, saveProject, isOurFileOn],
     "Save",
   );
 
@@ -210,9 +223,13 @@ export const CommandShortcuts = () => {
     (e) => {
       if (e.preventDefault) e.preventDefault();
 
-      void saveInp({ source: "shortcut", isSaveAs: true });
+      if (isOurFileOn) {
+        void saveProject({ source: "shortcut", isSaveAs: true });
+      } else {
+        void saveInp({ source: "shortcut", isSaveAs: true });
+      }
     },
-    [saveAsShortcut, saveInp],
+    [saveAsShortcut, saveInp, saveProject, isOurFileOn],
     "Save",
   );
 

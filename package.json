@@ -75,6 +75,7 @@
     "@radix-ui/rect": "^1.0.1",
     "@react-aria/interactions": "^3.21.3",
     "@sentry/nextjs": "^8.34.0",
+    "@sqlite.org/sqlite-wasm": "3.51.2-build9",
     "@stripe/stripe-js": "^6.1.0",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",

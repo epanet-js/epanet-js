@@ -16,6 +16,7 @@ import {
 } from "src/icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
+import { useOpenProject } from "src/commands/open-project";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
@@ -37,6 +38,7 @@ import {
 export const CreateNewDropdown = () => {
   const createNewProject = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
+  const openProject = useOpenProject();
   const showWelcome = useShowWelcome();
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
@@ -92,11 +94,7 @@ export const CreateNewDropdown = () => {
               {isOurFileOn && (
                 <StyledItem
                   onSelect={() => {
-                    userTracking.capture({
-                      name: "openInp.started",
-                      source: "toolbar",
-                    });
-                    void openInpFromFs({ source: "toolbar" });
+                    openProject({ source: "toolbar" });
                   }}
                 >
                   <FolderOpenIcon />
