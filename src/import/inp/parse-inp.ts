@@ -20,9 +20,12 @@ import {
   defaultReportValues,
 } from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
+import { isUsUnitSystem } from "src/simulation/build-inp";
 import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
+import turfDistance from "@turf/distance";
+import { convertTo, type Unit } from "src/quantity";
 import {
   type Projection,
   WGS84,
@@ -42,6 +45,7 @@ export type ParseInpOptions = {
   waterTrace?: boolean;
   waterChemical?: boolean;
   populateAssetIndex?: boolean;
+  xyDetect?: boolean;
 };
 
 export type ParseInpResult = {
@@ -86,7 +90,11 @@ export const parseInp = (
         skipWgs84Validation: true,
       });
 
-    projectionStatus = detectProjectionStatus(hydraulicModel);
+    projectionStatus = detectProjectionStatusWithLengths(
+      hydraulicModel,
+      inpData,
+      safeOptions,
+    );
 
     return {
       isMadeByApp: header.isMadeByApp,
@@ -287,6 +295,50 @@ const detectProjectionStatus = (
         if (!isWgs84(coord)) return "unknown";
       }
     }
+  }
+  return "wgs84";
+};
+
+const lengthRatioLowerBound = 0.1;
+const lengthRatioUpperBound = 10;
+
+const detectProjectionStatusWithLengths = (
+  hydraulicModel: HydraulicModel,
+  inpData: InpData,
+  options: ParseInpOptions,
+): "wgs84" | "unknown" => {
+  const rangeStatus = detectProjectionStatus(hydraulicModel);
+  if (rangeStatus === "unknown") return "unknown";
+  if (!options.xyDetect) return "wgs84";
+
+  const declaredUnit: Unit = isUsUnitSystem(inpData.options.units) ? "ft" : "m";
+  const ratios: number[] = [];
+
+  for (const pipe of inpData.pipes) {
+    if (!Number.isFinite(pipe.length) || pipe.length <= 0) continue;
+
+    const start = inpData.coordinates.get(pipe.startNodeDirtyId);
+    const end = inpData.coordinates.get(pipe.endNodeDirtyId);
+    if (!start || !end) continue;
+    if (start[0] === end[0] && start[1] === end[1]) continue;
+
+    const geodesicMeters = turfDistance(start, end, { units: "meters" });
+    const declaredMeters = convertTo(
+      { value: pipe.length, unit: declaredUnit },
+      "m",
+    );
+    if (!Number.isFinite(declaredMeters) || declaredMeters <= 0) continue;
+
+    ratios.push(geodesicMeters / declaredMeters);
+  }
+
+  if (ratios.length === 0) return "wgs84";
+
+  const sorted = [...ratios].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  if (median < lengthRatioLowerBound || median > lengthRatioUpperBound) {
+    return "unknown";
   }
   return "wgs84";
 };

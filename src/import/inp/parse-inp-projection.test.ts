@@ -73,3 +73,93 @@ describe("projection round-trip through INP header", () => {
     expect(result.projectSettings.projection.type).toBe("wgs84");
   });
 });
+
+describe("xy-grid detection via pipe length sanity check", () => {
+  const buildInpWith = ({
+    units,
+    startCoord,
+    endCoord,
+    pipeLength,
+  }: {
+    units: "LPS" | "GPM";
+    startCoord: [number, number];
+    endCoord: [number, number];
+    pipeLength: number;
+  }) => `
+    [OPTIONS]
+    Units\t${units}
+    [JUNCTIONS]
+    J1\t0
+    J2\t0
+    [PIPES]
+    P1\tJ1\tJ2\t${pipeLength}\t100\t0
+    [COORDINATES]
+    J1\t${startCoord[0]}\t${startCoord[1]}
+    J2\t${endCoord[0]}\t${endCoord[1]}
+    `;
+
+  it("flags XY grid masquerading as WGS84 when flag is on", () => {
+    const inp = buildInpWith({
+      units: "LPS",
+      startCoord: [0, 0],
+      endCoord: [0.5, 0],
+      pipeLength: 100,
+    });
+
+    const result = parseInp(inp, { xyDetect: true });
+
+    expect(result.projectionStatus).toBe("unknown");
+  });
+
+  it("accepts real WGS84 when declared lengths match geodesic", () => {
+    const inp = buildInpWith({
+      units: "LPS",
+      startCoord: [2.3, 48.85],
+      endCoord: [2.31, 48.85],
+      pipeLength: 730,
+    });
+
+    const result = parseInp(inp, { xyDetect: true });
+
+    expect(result.projectionStatus).toBe("wgs84");
+  });
+
+  it("preserves WGS84 verdict when flag is off", () => {
+    const inp = buildInpWith({
+      units: "LPS",
+      startCoord: [0, 0],
+      endCoord: [0.5, 0],
+      pipeLength: 100,
+    });
+
+    const result = parseInp(inp, { xyDetect: false });
+
+    expect(result.projectionStatus).toBe("wgs84");
+  });
+
+  it("falls back to WGS84 when pipes have no usable length", () => {
+    const inp = buildInpWith({
+      units: "LPS",
+      startCoord: [0, 0],
+      endCoord: [0.5, 0],
+      pipeLength: 0,
+    });
+
+    const result = parseInp(inp, { xyDetect: true });
+
+    expect(result.projectionStatus).toBe("wgs84");
+  });
+
+  it("flags XY grid when US-unit lengths are in feet", () => {
+    const inp = buildInpWith({
+      units: "GPM",
+      startCoord: [0, 0],
+      endCoord: [0.01, 0],
+      pipeLength: 100,
+    });
+
+    const result = parseInp(inp, { xyDetect: true });
+
+    expect(result.projectionStatus).toBe("unknown");
+  });
+});

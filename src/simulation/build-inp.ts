@@ -221,6 +221,9 @@ const US_UNIT_SYSTEMS: EpanetUnitSystem[] = [
   "AFD",
 ];
 
+export const isUsUnitSystem = (unitSystem: EpanetUnitSystem): boolean =>
+  US_UNIT_SYSTEMS.includes(unitSystem);
+
 const isDefaultPressureForSystem = (
   unitSystem: EpanetUnitSystem,
   pressureUnit: string,

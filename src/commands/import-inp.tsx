@@ -40,6 +40,7 @@ export const useImportInp = () => {
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isXyDetectOn = useFeatureFlag("FLAG_XY_DETECT");
   const { initializeProject } = useProjectInitialization();
   const { addRecent } = useRecentFiles();
 
@@ -162,6 +163,7 @@ export const useImportInp = () => {
           waterTrace: isWaterTraceOn,
           waterChemical: isWaterChemicalOn,
           populateAssetIndex: true,
+          xyDetect: isXyDetectOn,
         };
 
         const result = parseInp(content, parseOptions);
@@ -226,6 +228,7 @@ export const useImportInp = () => {
       isWaterAgeOn,
       isWaterTraceOn,
       isWaterChemicalOn,
+      isXyDetectOn,
       setDialogState,
       userTracking,
       validateAndPrepare,
