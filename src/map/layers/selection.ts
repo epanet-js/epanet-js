@@ -188,8 +188,6 @@ export const selectedIconsLayer = ({
         ["match", ["get", "type"], "reservoir", 0.5, 0.4],
       ],
       "icon-allow-overlap": true,
-      "icon-rotation-alignment": "map",
-      "icon-rotate": ["get", "rotation"],
     },
     filter: [
       "all",
