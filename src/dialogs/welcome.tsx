@@ -221,7 +221,7 @@ const FoundingPartners = () => {
             />
           </a>
           <a
-            href="https://affinitywater.com/"
+            href="https://www.affinitywater.co.uk/"
             target="_blank"
             className="pt-4"
             onClick={() => {
