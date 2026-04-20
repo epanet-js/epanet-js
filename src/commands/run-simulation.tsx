@@ -120,7 +120,7 @@ export const useRunSimulation = () => {
           await epsReader.initialize(metadata);
           setSimulationStep(0);
         } else {
-          setSimulationStep(null);
+          setSimulationStep(0);
         }
 
         if (status === "success" || status === "warning") {

@@ -102,6 +102,7 @@ const simulationResultsAsyncDerivedAtom = atom(
     const simulationStep = get(simulationStepAtom);
     const simulationState = get(simulationDerivedAtom);
     if (
+      simulationState.status !== "failure" &&
       "epsResultsReader" in simulationState &&
       simulationState.epsResultsReader &&
       simulationStep !== null
