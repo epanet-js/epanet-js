@@ -30,6 +30,8 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";
@@ -72,6 +74,7 @@ export const CreateNew = () => {
   const setFileInfo = useSetAtom(fileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
@@ -100,7 +103,7 @@ export const CreateNew = () => {
   }, [map, setGridPreview, setGridHidden, closeDialog]);
 
   const handleSubmit = useCallback(
-    ({
+    async ({
       unitsSpec,
       headlossFormula,
       pressureUnit,
@@ -129,7 +132,10 @@ export const CreateNew = () => {
       });
       setGridPreview(false);
       setGridHidden(false);
-      void initializeProject({
+      if (isOurFileOn) {
+        await db.newProject();
+      }
+      await initializeProject({
         hydraulicModel,
         factories,
         projectSettings,
@@ -157,6 +163,7 @@ export const CreateNew = () => {
       setGridPreview,
       setGridHidden,
       userTracking,
+      isOurFileOn,
     ],
   );
 

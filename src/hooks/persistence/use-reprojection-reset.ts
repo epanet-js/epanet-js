@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import { mapSyncMomentAtom } from "src/state/map";
@@ -41,15 +43,19 @@ const clearSimulationStorage = async () => {
   await storage.clear();
 };
 
-const loadModel = (
+const loadModel = async (
   get: Getter,
   set: Setter,
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
+  isOurFileOn: boolean,
 ) => {
   const momentLog = new MomentLog();
 
   set(stagingModelDerivedAtom, hydraulicModel);
   set(projectSettingsAtom, projectSettings);
+  if (isOurFileOn) {
+    await db.saveProjectSettings(projectSettings);
+  }
   set(momentLogDerivedAtom, momentLog);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
@@ -67,14 +73,15 @@ const loadModel = (
 };
 
 export const useReprojectionReset = () => {
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const reprojectionReset = useAtomCallback(
     useCallback(
       async (get: Getter, set: Setter, input: ReprojectionResetInput) => {
         await clearSimulationStorage();
         resetAppState(set);
-        loadModel(get, set, input);
+        await loadModel(get, set, input, isOurFileOn);
       },
-      [],
+      [isOurFileOn],
     ),
   );
 

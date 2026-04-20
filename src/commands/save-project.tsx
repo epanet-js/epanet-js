@@ -3,13 +3,13 @@ import { useAtomCallback } from "jotai/utils";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 
 import { fileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
-import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
-import { getDbWorker } from "src/db";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
@@ -28,6 +28,7 @@ export const useSaveProject = ({
   const translate = useTranslate();
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   return useAtomCallback(
     useCallback(
@@ -38,20 +39,14 @@ export const useSaveProject = ({
       ) => {
         userTracking.capture({ name: "project.saved", source, isSaveAs });
 
+        if (!isOurFileOn) return false;
+
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
           const fileInfo = get(fileInfoAtom);
-          const projectSettings = get(projectSettingsAtom);
           const hydraulicModel = get(stagingModelDerivedAtom);
 
-          const worker = getDbWorker();
-          await worker.newDb();
-          await worker.saveProjectSettings(JSON.stringify(projectSettings));
-          const bytes = await worker.exportDb();
-
-          const blob = new Blob([bytes], {
-            type: "application/octet-stream",
-          });
+          const blob = await db.exportDb();
           const newHandle = await fileSave(
             blob,
             {
@@ -95,7 +90,7 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate],
+      [userTracking, getFsAccess, addRecent, translate, isOurFileOn],
     ),
   );
 };

@@ -9,8 +9,8 @@ import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 
-import { getDbWorker } from "src/db";
-import { projectSettingsSchema } from "src/lib/project-settings/project-settings-schema";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { initializeHydraulicModel } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
@@ -31,27 +31,25 @@ export const useOpenProject = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const openProject = useCallback(
     async ({ source }: { source: string }) => {
       userTracking.capture({ name: "openProject.started", source });
 
+      if (!isOurFileOn) return;
       if (!isReady) throw new Error("FS not ready");
 
       try {
-        const file = await openFile({
+        const dbFile = await openFile({
           multiple: false,
           extensions: [projectExtension],
           description: "EPANET project",
           mimeTypes: ["application/octet-stream"],
         });
-        if (!file) return;
+        if (!dbFile) return;
 
-        const arrayBuffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-
-        const worker = getDbWorker();
-        const result = await worker.openDb(bytes);
+        const result = await db.openProject(dbFile);
 
         if (result.status === "too-new") {
           notify({
@@ -65,20 +63,7 @@ export const useOpenProject = () => {
           return;
         }
 
-        const settingsJson = await worker.getProjectSettings();
-        if (!settingsJson) {
-          notify({
-            variant: "warning",
-            size: "md",
-            title: "Project file is invalid",
-            Icon: WarningIcon,
-          });
-          return;
-        }
-
-        const projectSettings = projectSettingsSchema.parse(
-          JSON.parse(settingsJson),
-        );
+        const { projectSettings } = await db.fetchProject();
 
         const idGenerator = new ConsecutiveIdsGenerator();
         const hydraulicModel = initializeHydraulicModel({ idGenerator });
@@ -97,8 +82,8 @@ export const useOpenProject = () => {
         });
 
         setFileInfo({
-          name: file.name,
-          handle: file.handle,
+          name: dbFile.name,
+          handle: dbFile.handle,
           modelVersion: hydraulicModel.version,
           isMadeByApp: true,
           isDemoNetwork: false,
@@ -130,6 +115,7 @@ export const useOpenProject = () => {
       setDialogState,
       translate,
       userTracking,
+      isOurFileOn,
     ],
   );
 

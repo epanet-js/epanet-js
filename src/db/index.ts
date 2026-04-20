@@ -1,18 +1,9 @@
-import * as Comlink from "comlink";
-import type { DbWorkerApi } from "./db-worker";
-
-let cached: Comlink.Remote<DbWorkerApi> | null = null;
-
-export const getDbWorker = (): Comlink.Remote<DbWorkerApi> => {
-  if (cached) return cached;
-  if (typeof window === "undefined" || typeof Worker === "undefined") {
-    throw new Error("Db worker requires a browser environment");
-  }
-  const worker = new Worker(new URL("./db-worker.ts", import.meta.url), {
-    type: "module",
-  });
-  cached = Comlink.wrap<DbWorkerApi>(worker);
-  return cached;
-};
-
+export { getDbWorker } from "./get-db-worker";
+export { openProject } from "./open-project";
+export type { OpenProjectResult } from "./open-project";
+export { newProject } from "./new-project";
+export { fetchProject } from "./fetch-project";
+export type { Project } from "./fetch-project";
+export { saveProjectSettings } from "./save-project-settings";
+export { exportDb } from "./export-db";
 export type { DbWorkerApi } from "./db-worker";

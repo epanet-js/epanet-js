@@ -10,6 +10,8 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
@@ -44,6 +46,7 @@ export const SimulationSettingsDialog = () => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const setSimulationSettings = useSetAtom(simulationSettingsDerivedAtom);
   const [projectSettings, setProjectSettings] = useAtom(projectSettingsAtom);
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const sectionIds = useMemo(buildSectionIds, []);
 
@@ -53,20 +56,24 @@ export const SimulationSettingsDialog = () => {
   const initialValues = buildInitialValues(simulationSettings);
 
   const handleSubmit = useCallback(
-    (values: FormValues) => {
+    async (values: FormValues) => {
       if (hasChanges(values, simulationSettings)) {
         setSimulationSettings(buildUpdatedSettings(values, simulationSettings));
       }
       if (
         values.qualityMassUnit !== projectSettings.units.chemicalConcentration
       ) {
-        setProjectSettings({
+        const newProjectSettings = {
           ...projectSettings,
           units: {
             ...projectSettings.units,
             chemicalConcentration: values.qualityMassUnit,
           },
-        });
+        };
+        setProjectSettings(newProjectSettings);
+        if (isOurFileOn) {
+          await db.saveProjectSettings(newProjectSettings);
+        }
       }
       closeDialog();
     },
@@ -76,6 +83,7 @@ export const SimulationSettingsDialog = () => {
       projectSettings,
       setProjectSettings,
       closeDialog,
+      isOurFileOn,
     ],
   );
 

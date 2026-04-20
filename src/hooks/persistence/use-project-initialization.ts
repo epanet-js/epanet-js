@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
+import * as db from "src/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelFactories } from "src/hydraulic-model/factories";
 import type { ProjectSettings } from "src/lib/project-settings";
@@ -66,7 +68,7 @@ const resetAppState = (set: Setter) => {
   set(autoElevationsAtom, true);
 };
 
-const loadModel = (
+const loadModel = async (
   set: Setter,
   {
     hydraulicModel,
@@ -75,19 +77,24 @@ const loadModel = (
     simulationSettings,
     autoElevations,
   }: InitializeProjectInput,
+  isOurFileOn: boolean,
 ) => {
   const momentLog = new MomentLog();
 
   set(stagingModelAtom, hydraulicModel);
   set(baseModelAtom, hydraulicModel);
   set(modelFactoriesAtom, factories);
-  set(projectSettingsAtom, {
+  const mergedProjectSettings = {
     ...projectSettings,
     units: {
       ...projectSettings.units,
       chemicalConcentration: simulationSettings.qualityMassUnit,
     },
-  });
+  };
+  set(projectSettingsAtom, mergedProjectSettings);
+  if (isOurFileOn) {
+    await db.saveProjectSettings(mergedProjectSettings);
+  }
   set(momentLogAtom, momentLog);
   set(simulationSettingsAtom, simulationSettings);
   if (autoElevations !== undefined) {
@@ -129,14 +136,15 @@ const clearSimulationStorage = async () => {
 };
 
 export const useProjectInitialization = () => {
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const initializeProject = useAtomCallback(
     useCallback(
       async (_get: Getter, set: Setter, input: InitializeProjectInput) => {
         await clearSimulationStorage();
         resetAppState(set);
-        loadModel(set, input);
+        await loadModel(set, input, isOurFileOn);
       },
-      [],
+      [isOurFileOn],
     ),
   );
 

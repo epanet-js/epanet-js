@@ -37,8 +37,46 @@ vi.mock("src/infra/storage", async (importOriginal) => {
   };
 });
 
+const dbState = vi.hoisted(() => ({ settings: null as string | null }));
+
+vi.mock("src/db/get-db-worker", () => ({
+  getDbWorker: () => ({
+    newDb: () => {
+      dbState.settings = null;
+      return Promise.resolve();
+    },
+    openDb: (bytes: Uint8Array) => {
+      try {
+        const text = new TextDecoder().decode(bytes);
+        const parsed = JSON.parse(text) as { settings?: string | null };
+        dbState.settings = parsed.settings ?? null;
+      } catch {
+        dbState.settings = null;
+      }
+      return Promise.resolve({
+        status: "ok" as const,
+        fileVersion: 1,
+        appVersion: 1,
+      });
+    },
+    getProjectSettings: () => Promise.resolve(dbState.settings),
+    saveProjectSettings: (json: string) => {
+      dbState.settings = json;
+      return Promise.resolve();
+    },
+    exportDb: () =>
+      Promise.resolve(
+        new TextEncoder().encode(
+          JSON.stringify({ settings: dbState.settings }),
+        ),
+      ),
+    closeDb: () => Promise.resolve(),
+  }),
+}));
+
 beforeEach(async () => {
   stubUserTracking();
+  dbState.settings = null;
   // Reset shared in-memory storage between tests
   const { InMemoryStorage } = await import("src/infra/storage");
   InMemoryStorage.resetAll();
