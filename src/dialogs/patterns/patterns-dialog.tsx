@@ -4,7 +4,7 @@ import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { PatternSidebar } from "./pattern-sidebar";
 import { PatternDetail } from "./pattern-detail";
-import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
 import {
   PatternMultipliers,
   Patterns,
@@ -40,7 +40,7 @@ export const PatternsDialog = ({
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const userTracking = useUserTracking();
-  const isSnapshotLocked = useIsSnapshotLocked();
+  const isBranchLocked = useIsBranchLocked();
   const [selectedPatternId, setSelectedPatternId] = useState<PatternId | null>(
     initialPatternId ?? null,
   );
@@ -200,7 +200,7 @@ export const PatternsDialog = ({
           ref={dialogActions}
           onSave={handleSave}
           onClose={handleClose}
-          readOnly={isSnapshotLocked}
+          readOnly={isBranchLocked}
           hasChanges={!!unsavedChanges}
         />
       }
@@ -217,7 +217,7 @@ export const PatternsDialog = ({
             onAddPattern={handleAddPattern}
             onChangePattern={handlePatternChange}
             onDeletePattern={handleDeletePattern}
-            readOnly={isSnapshotLocked}
+            readOnly={isBranchLocked}
           />
           <VerticalResizer
             width={sidebarWidth}
@@ -234,7 +234,7 @@ export const PatternsDialog = ({
               onChange={(multipliers) =>
                 handlePatternChange(selectedPatternId, { multipliers })
               }
-              readOnly={isSnapshotLocked}
+              readOnly={isBranchLocked}
             />
           ) : hasPatterns ? (
             <div className="flex-1 flex items-center justify-center p-2">
@@ -242,7 +242,7 @@ export const PatternsDialog = ({
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center p-2">
-              <EmptyState readOnly={isSnapshotLocked} />
+              <EmptyState readOnly={isBranchLocked} />
             </div>
           )}
         </div>

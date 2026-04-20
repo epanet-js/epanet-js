@@ -39,7 +39,7 @@ export function useTimeSeries<T extends QuickGraphAssetType>({
   });
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
+  const isInScenario = worktree.activeBranchId !== worktree.mainId;
   const baseSimulation = baseSimulationDerived;
   const baseStatus = baseSimulation?.status;
   const baseEpsResultsReader =

@@ -36,20 +36,18 @@ export const ScenarioSwitcher = () => {
 
   const {
     switchToMain,
-    switchToSnapshot,
+    switchToBranch,
     deleteScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
 
-  const activeSnapshotId = worktree.activeSnapshotId;
-  const isMainActive = activeSnapshotId === worktree.mainId;
+  const activeBranchId = worktree.activeBranchId;
+  const isMainActive = activeBranchId === worktree.mainId;
 
   const activeDisplayName = isMainActive
     ? translate("scenarios.main")
-    : ((
-        worktree.branches.get(activeSnapshotId) ??
-        worktree.snapshots.get(activeSnapshotId)
-      )?.name ?? translate("scenarios.main"));
+    : (worktree.branches.get(activeBranchId)?.name ??
+      translate("scenarios.main"));
 
   const handleSelectMain = () => {
     if (isMainActive) return;
@@ -64,17 +62,16 @@ export const ScenarioSwitcher = () => {
   };
 
   const handleSelectScenario = (scenarioId: string) => {
-    if (activeSnapshotId === scenarioId) return;
+    if (activeBranchId === scenarioId) return;
 
-    const scenario =
-      worktree.branches.get(scenarioId) ?? worktree.snapshots.get(scenarioId);
+    const scenario = worktree.branches.get(scenarioId);
     userTracking.capture({
       name: "scenario.switched",
       scenarioId,
       scenarioName: scenario?.name,
     });
 
-    switchToSnapshot(scenarioId);
+    switchToBranch(scenarioId);
   };
 
   const handleCreateScenario = () => {
@@ -174,10 +171,10 @@ export const ScenarioSwitcher = () => {
                   className="group/scenario"
                 >
                   <div
-                    className={`flex items-center w-full gap-2 ${activeSnapshotId === scenario.id ? "text-purple-600" : ""}`}
+                    className={`flex items-center w-full gap-2 ${activeBranchId === scenario.id ? "text-purple-600" : ""}`}
                   >
                     <span
-                      className={`font-mono text-sm pl-1 ${activeSnapshotId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
+                      className={`font-mono text-sm pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
                     >
                       {index === scenariosList.length - 1 ? "└──" : "├──"}
                     </span>

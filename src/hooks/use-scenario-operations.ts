@@ -5,15 +5,14 @@ import { useInitializeBranch } from "src/hooks/persistence/use-initialize-branch
 import { useSwitchBranch } from "src/hooks/persistence/use-switch-branch";
 import { useDeleteBranch } from "src/hooks/persistence/use-delete-branch";
 import { worktreeAtom } from "src/state/scenarios";
-import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   createScenario,
-  switchToSnapshot as switchToSnapshotFn,
+  switchToBranch as switchToBranchFn,
   deleteScenario,
   renameScenario,
 } from "src/lib/worktree";
-import type { Worktree, Branch } from "src/lib/worktree";
+import type { Worktree } from "src/lib/worktree";
 
 const DRAWING_MODES: Mode[] = [
   Mode.DRAW_JUNCTION,
@@ -34,16 +33,16 @@ export const useScenarioOperations = () => {
   const setMode = useSetAtom(modeAtom);
 
   const performSwitch = useCallback(
-    (worktree: Worktree, snapshotId: string) => {
-      const result = switchToSnapshotFn(worktree, snapshotId);
+    (worktree: Worktree, branchId: string) => {
+      const result = switchToBranchFn(worktree, branchId);
 
-      if (result.snapshot) {
-        switchBranch(result.snapshot.id);
+      if (result.branch) {
+        switchBranch(result.branch.id);
       }
 
       setWorktree(result.worktree);
 
-      const targetStatus = result.worktree.branches.get(snapshotId)?.status;
+      const targetStatus = result.worktree.branches.get(branchId)?.status;
       if (targetStatus === "locked") {
         setMode((modeState) => {
           if (DRAWING_MODES.includes(modeState.mode)) {
@@ -58,11 +57,11 @@ export const useScenarioOperations = () => {
     [switchBranch, setWorktree, setMode],
   );
 
-  const switchToSnapshot = useAtomCallback(
+  const switchToBranch = useAtomCallback(
     useCallback(
-      (get, _set, snapshotId: string) => {
+      (get, _set, branchId: string) => {
         const worktree = get(worktreeAtom);
-        void performSwitch(worktree, snapshotId);
+        void performSwitch(worktree, branchId);
       },
       [performSwitch],
     ),
@@ -82,29 +81,17 @@ export const useScenarioOperations = () => {
     useCallback(
       (get, _set) => {
         const worktree = get(worktreeAtom);
-        const currentSettings = get(simulationSettingsDerivedAtom);
-        const created = createScenario(worktree, currentSettings, {
-          skipDeltas: true,
-        });
+        const created = createScenario(worktree);
 
-        const branch: Branch = {
-          id: created.scenario.id,
-          name: created.scenario.name,
-          parentId: worktree.mainId,
-          status: "open",
-        };
-        initializeBranch(branch);
-        switchBranch(created.scenario.id);
+        initializeBranch(created.branch);
+        switchBranch(created.branch.id);
 
-        const result = switchToSnapshotFn(
-          created.worktree,
-          created.scenario.id,
-        );
+        const result = switchToBranchFn(created.worktree, created.branch.id);
         setWorktree(result.worktree);
 
         return {
-          scenarioId: created.scenario.id,
-          scenarioName: created.scenario.name,
+          scenarioId: created.branch.id,
+          scenarioName: created.branch.name,
         };
       },
       [initializeBranch, switchBranch, setWorktree],
@@ -117,7 +104,7 @@ export const useScenarioOperations = () => {
         const worktree = get(worktreeAtom);
         const result = deleteScenario(worktree, scenarioId);
 
-        deleteBranch(scenarioId, result.snapshot?.id ?? null);
+        deleteBranch(scenarioId, result.branch?.id ?? null);
 
         setWorktree(result.worktree);
       },
@@ -136,7 +123,7 @@ export const useScenarioOperations = () => {
   );
 
   return {
-    switchToSnapshot,
+    switchToBranch,
     switchToMain,
     createNewScenario,
     deleteScenarioById,

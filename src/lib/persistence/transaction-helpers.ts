@@ -148,12 +148,12 @@ export function syncBranchState(
 ): void {
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);
-  const currentState = branchStates.get(worktree.activeSnapshotId);
+  const currentState = branchStates.get(worktree.activeBranchId);
   if (!currentState) return;
 
   const updatedModel = get(stagingModelAtom);
   const updatedStates = new Map(branchStates);
-  updatedStates.set(worktree.activeSnapshotId, {
+  updatedStates.set(worktree.activeBranchId, {
     ...currentState,
     hydraulicModel: updatedModel,
     momentLog,
@@ -161,7 +161,7 @@ export function syncBranchState(
   });
   set(branchStateAtom, updatedStates);
 
-  if (worktree.activeSnapshotId === worktree.mainId) {
+  if (worktree.activeBranchId === worktree.mainId) {
     set(baseModelAtom, updatedModel);
   }
 }

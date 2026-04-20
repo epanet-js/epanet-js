@@ -23,7 +23,7 @@ import {
 
 function getActiveBranchState(get: Getter): BranchState | undefined {
   const worktree = get(worktreeAtom);
-  return get(branchStateAtom).get(worktree.activeSnapshotId);
+  return get(branchStateAtom).get(worktree.activeBranchId);
 }
 
 function updateActiveBranchState(
@@ -33,10 +33,10 @@ function updateActiveBranchState(
 ): void {
   const worktree = get(worktreeAtom);
   const branchStates = get(branchStateAtom);
-  const currentState = branchStates.get(worktree.activeSnapshotId);
+  const currentState = branchStates.get(worktree.activeBranchId);
   if (!currentState) return;
   const updated = new Map(branchStates);
-  updated.set(worktree.activeSnapshotId, { ...currentState, ...update });
+  updated.set(worktree.activeBranchId, { ...currentState, ...update });
   set(branchStateAtom, updated);
 }
 

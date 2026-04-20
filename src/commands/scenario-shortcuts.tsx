@@ -3,12 +3,12 @@ import { useCallback } from "react";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
 import { worktreeAtom } from "src/state/scenarios";
 
-export const toggleSnapshotShortcut = "y";
+export const toggleBranchShortcut = "y";
 export const goToMainShortcut = "shift+y";
 
-export const useToggleSnapshot = () => {
+export const useToggleBranch = () => {
   const worktree = useAtomValue(worktreeAtom);
-  const { switchToSnapshot } = useScenarioOperations();
+  const { switchToBranch } = useScenarioOperations();
 
   return useCallback(() => {
     const hasScenarios = worktree.scenarios.length > 0;
@@ -16,15 +16,15 @@ export const useToggleSnapshot = () => {
       return;
     }
 
-    if (worktree.activeSnapshotId !== worktree.lastActiveSnapshotId) {
-      switchToSnapshot(worktree.lastActiveSnapshotId);
+    if (worktree.activeBranchId !== worktree.lastActiveBranchId) {
+      switchToBranch(worktree.lastActiveBranchId);
     } else {
       const firstScenarioId = worktree.scenarios[0];
       if (firstScenarioId) {
-        switchToSnapshot(firstScenarioId);
+        switchToBranch(firstScenarioId);
       }
     }
-  }, [worktree, switchToSnapshot]);
+  }, [worktree, switchToBranch]);
 };
 
 export const useGoToMain = () => {
@@ -32,7 +32,7 @@ export const useGoToMain = () => {
   const { switchToMain } = useScenarioOperations();
 
   return useCallback(() => {
-    if (worktree.activeSnapshotId !== worktree.mainId) {
+    if (worktree.activeBranchId !== worktree.mainId) {
       switchToMain();
     }
   }, [worktree, switchToMain]);

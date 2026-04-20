@@ -13,7 +13,7 @@ export function useCustomerPointComparison(
 ) {
   const worktree = useAtomValue(worktreeAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
+  const isInScenario = worktree.activeBranchId !== worktree.mainId;
 
   const isNew =
     isInScenario &&

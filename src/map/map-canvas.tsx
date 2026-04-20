@@ -56,7 +56,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
 import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
-import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -136,7 +136,7 @@ export const MapCanvas = memo(function MapCanvas({
   const selection = data.selection;
   const mode = useAtomValue(modeAtom);
   const cursor = useAtomValue(cursorStyleAtom);
-  const isSnapshotLocked = useIsSnapshotLocked();
+  const isBranchLocked = useIsBranchLocked();
   const [initError, setInitError] = useState<boolean>(false);
 
   // Refs
@@ -205,7 +205,7 @@ export const MapCanvas = memo(function MapCanvas({
     selection,
     map: mapRef.current!,
     rep,
-    readonly: isSnapshotLocked,
+    readonly: isBranchLocked,
   };
 
   const HANDLERS = useModeHandlers(handlerContext);

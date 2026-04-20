@@ -1,7 +1,6 @@
 import type { ISymbology } from "src/types";
 import { Promisable } from "type-fest";
 import { z } from "zod";
-import type { SimulationState } from "src/state/simulation";
 
 export type PersistenceMetadataMemory = {
   type: "memory";
@@ -38,10 +37,3 @@ export type MetaPair = [
 ];
 
 export interface IPersistence {}
-
-export interface IPersistenceWithSnapshots extends IPersistence {
-  syncSnapshotSimulation(
-    simulation: SimulationState,
-    options?: { updateSourceId?: boolean },
-  ): void;
-}

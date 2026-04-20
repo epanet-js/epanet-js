@@ -1,25 +1,25 @@
 import type { Worktree, ScenarioOperationResult } from "./types";
 
-export const switchToSnapshot = (
+export const switchToBranch = (
   worktree: Worktree,
-  targetSnapshotId: string,
+  targetBranchId: string,
 ): ScenarioOperationResult => {
-  if (worktree.activeSnapshotId === targetSnapshotId) {
-    return { worktree, snapshot: null };
+  if (worktree.activeBranchId === targetBranchId) {
+    return { worktree, branch: null };
   }
 
-  const targetSnapshot = worktree.snapshots.get(targetSnapshotId);
-  if (!targetSnapshot) {
-    throw new Error(`Snapshot ${targetSnapshotId} not found`);
+  const targetBranch = worktree.branches.get(targetBranchId);
+  if (!targetBranch) {
+    throw new Error(`Branch ${targetBranchId} not found`);
   }
 
   return {
     worktree: {
       ...worktree,
-      activeSnapshotId: targetSnapshotId,
-      lastActiveSnapshotId: worktree.activeSnapshotId,
+      activeBranchId: targetBranchId,
+      lastActiveBranchId: worktree.activeBranchId,
     },
-    snapshot: targetSnapshot,
+    branch: targetBranch,
   };
 };
 
@@ -27,9 +27,9 @@ export const switchToScenario = (
   worktree: Worktree,
   scenarioId: string,
 ): ScenarioOperationResult => {
-  return switchToSnapshot(worktree, scenarioId);
+  return switchToBranch(worktree, scenarioId);
 };
 
 export const switchToMain = (worktree: Worktree): ScenarioOperationResult => {
-  return switchToSnapshot(worktree, worktree.mainId);
+  return switchToBranch(worktree, worktree.mainId);
 };

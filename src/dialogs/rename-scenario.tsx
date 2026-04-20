@@ -36,7 +36,7 @@ export const RenameScenarioDialog = ({
       }
 
       const scenarios = worktree.scenarios
-        .map((id) => worktree.branches.get(id) ?? worktree.snapshots.get(id))
+        .map((id) => worktree.branches.get(id))
         .filter(Boolean);
       const isDuplicate = scenarios.some(
         (s) => s!.id !== scenarioId && s!.name === trimmed,
@@ -48,13 +48,7 @@ export const RenameScenarioDialog = ({
 
       return null;
     },
-    [
-      scenarioId,
-      worktree.scenarios,
-      worktree.branches,
-      worktree.snapshots,
-      translate,
-    ],
+    [scenarioId, worktree.scenarios, worktree.branches, translate],
   );
 
   return (

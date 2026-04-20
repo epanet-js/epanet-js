@@ -1,9 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import type { Store } from "src/state";
-import {
-  PersistenceContext,
-  PersistenceWithSnapshotsContext,
-} from "src/lib/persistence/context";
+import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 
 type Props = {
@@ -16,9 +13,7 @@ export function PersistenceProvider({ store, children }: Props) {
 
   return (
     <PersistenceContext.Provider value={persistence}>
-      <PersistenceWithSnapshotsContext.Provider value={persistence}>
-        {children}
-      </PersistenceWithSnapshotsContext.Provider>
+      {children}
     </PersistenceContext.Provider>
   );
 }

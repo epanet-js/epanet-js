@@ -15,7 +15,7 @@ import {
 } from "src/icons";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
-import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -68,8 +68,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
 }
 
 export function MultiAssetActions() {
-  const isSnapshotLocked = useIsSnapshotLocked();
-  const actions = useMultiAssetActions(isSnapshotLocked);
+  const isBranchLocked = useIsBranchLocked();
+  const actions = useMultiAssetActions(isBranchLocked);
 
   return (
     <div className="flex gap-1">

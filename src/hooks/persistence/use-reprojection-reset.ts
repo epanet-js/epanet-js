@@ -9,7 +9,6 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
   simulationDerivedAtom,
-  simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -47,7 +46,6 @@ const loadModel = (
   set: Setter,
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
 ) => {
-  const simulationSettings = get(simulationSettingsDerivedAtom);
   const momentLog = new MomentLog();
 
   set(stagingModelDerivedAtom, hydraulicModel);
@@ -57,14 +55,7 @@ const loadModel = (
     set(autoElevationsAtom, autoElevations);
   }
 
-  set(
-    worktreeAtom,
-    initializeWorktree({
-      momentLog,
-      version: hydraulicModel.version,
-      simulationSettings,
-    }),
-  );
+  set(worktreeAtom, initializeWorktree());
 
   const factories = get(modelFactoriesAtom);
   set(

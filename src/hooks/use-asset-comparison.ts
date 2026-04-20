@@ -30,7 +30,7 @@ export type PumpCurveComparison = PropertyComparison<
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
+  const isInScenario = worktree.activeBranchId !== worktree.mainId;
 
   const baseAsset = useMemo(() => {
     if (!isInScenario || !asset) {

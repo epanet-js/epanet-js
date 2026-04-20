@@ -5,11 +5,11 @@ export const renameScenario = (
   scenarioId: string,
   newName: string,
 ): Worktree => {
-  const snapshot = worktree.snapshots.get(scenarioId);
-  if (!snapshot) return worktree;
+  const branch = worktree.branches.get(scenarioId);
+  if (!branch) return worktree;
 
-  const updatedSnapshots = new Map(worktree.snapshots);
-  updatedSnapshots.set(scenarioId, { ...snapshot, name: newName });
+  const updatedBranches = new Map(worktree.branches);
+  updatedBranches.set(scenarioId, { ...branch, name: newName });
 
-  return { ...worktree, snapshots: updatedSnapshots };
+  return { ...worktree, branches: updatedBranches };
 };

@@ -116,7 +116,7 @@ export {
 } from "src/state/quick-graph";
 
 // Scenarios
-export type { Worktree, Snapshot } from "src/state/scenarios";
+export type { Worktree } from "src/state/scenarios";
 export {
   initialWorktree,
   worktreeAtom,

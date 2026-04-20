@@ -17,7 +17,7 @@ import {
   nextTimestepShortcut,
 } from "src/commands/change-timestep";
 import {
-  toggleSnapshotShortcut,
+  toggleBranchShortcut,
   goToMainShortcut,
 } from "src/commands/scenario-shortcuts";
 import { createScenarioShortcut } from "src/commands/create-scenario";
@@ -115,8 +115,8 @@ export function CheatsheetDialog() {
           description: "createScenario",
         },
         {
-          binding: toggleSnapshotShortcut,
-          description: "toggleSnapshot",
+          binding: toggleBranchShortcut,
+          description: "toggleBranch",
         },
         {
           binding: goToMainShortcut,

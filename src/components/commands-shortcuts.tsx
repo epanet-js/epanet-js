@@ -46,7 +46,7 @@ import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
 import {
   showSimulationSettingsShortcut,
   useShowSimulationSettings,
@@ -96,9 +96,9 @@ import {
   useTogglePlayback,
 } from "src/commands/toggle-playback";
 import {
-  toggleSnapshotShortcut,
+  toggleBranchShortcut,
   goToMainShortcut,
-  useToggleSnapshot,
+  useToggleBranch,
   useGoToMain,
 } from "src/commands/scenario-shortcuts";
 import {
@@ -139,9 +139,9 @@ export const CommandShortcuts = () => {
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const { togglePlayback } = useTogglePlayback();
   const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
-  const isSnapshotLocked = useIsSnapshotLocked();
+  const isBranchLocked = useIsBranchLocked();
   const createScenario = useCreateScenario();
-  const toggleSnapshot = useToggleSnapshot();
+  const toggleBranch = useToggleBranch();
   const goToMain = useGoToMain();
 
   useHotkeys(
@@ -220,7 +220,7 @@ export const CommandShortcuts = () => {
     undoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
 
       userTracking.capture({
         name: "operation.undone",
@@ -228,7 +228,7 @@ export const CommandShortcuts = () => {
       });
       void undo();
     },
-    [undoShortcut, undo, isSnapshotLocked],
+    [undoShortcut, undo, isBranchLocked],
     "Undo",
   );
 
@@ -236,7 +236,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -244,7 +244,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo, isSnapshotLocked],
+    [redoShortcut, redo, isBranchLocked],
     "Redo",
   );
 
@@ -252,7 +252,7 @@ export const CommandShortcuts = () => {
     redoShortcut,
     (e) => {
       if (e.preventDefault) e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
 
       userTracking.capture({
         name: "operation.redone",
@@ -260,7 +260,7 @@ export const CommandShortcuts = () => {
       });
       void redo();
     },
-    [redoShortcut, redo, isSnapshotLocked],
+    [redoShortcut, redo, isBranchLocked],
     "Redo",
   );
 
@@ -284,12 +284,12 @@ export const CommandShortcuts = () => {
     (e) => {
       if (IGNORE_ROLES.has((e.target as HTMLElement).getAttribute("role")!))
         return;
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
 
       e.preventDefault();
       void deleteSelection({ source: "shortcut" });
     },
-    [deleteSelection, isSnapshotLocked],
+    [deleteSelection, isBranchLocked],
     "DELETE",
   );
 
@@ -341,10 +341,10 @@ export const CommandShortcuts = () => {
     connectCustomersShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
       connectCustomerPoints({ source: "shortcut" });
     },
-    [connectCustomerPoints, isSnapshotLocked],
+    [connectCustomerPoints, isBranchLocked],
     "Connect/Reconnect customer points",
   );
 
@@ -352,10 +352,10 @@ export const CommandShortcuts = () => {
     disconnectCustomersShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
       disconnectCustomerPoints({ source: "shortcut" });
     },
-    [disconnectCustomerPoints, isSnapshotLocked],
+    [disconnectCustomerPoints, isBranchLocked],
     "Disconnect customer points",
   );
 
@@ -363,10 +363,10 @@ export const CommandShortcuts = () => {
     redrawModeShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
       setRedrawMode({ source: "shortcut" });
     },
-    [setRedrawMode, isSnapshotLocked],
+    [setRedrawMode, isBranchLocked],
     "Set redraw mode",
   );
 
@@ -374,10 +374,10 @@ export const CommandShortcuts = () => {
     reverseLinkShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
       reverseLinkAction({ source: "shortcut" });
     },
-    [reverseLinkAction, isSnapshotLocked],
+    [reverseLinkAction, isBranchLocked],
     "Reverse link",
   );
 
@@ -435,10 +435,10 @@ export const CommandShortcuts = () => {
     changeActiveTopologyShortcut,
     (e) => {
       e.preventDefault();
-      if (isSnapshotLocked) return;
+      if (isBranchLocked) return;
       changeSelectedAssetsActiveTopologyStatus({ source: "shortcut" });
     },
-    [changeSelectedAssetsActiveTopologyStatus, isSnapshotLocked],
+    [changeSelectedAssetsActiveTopologyStatus, isBranchLocked],
     "Activate/Deactivate assets",
   );
 
@@ -484,16 +484,16 @@ export const CommandShortcuts = () => {
   );
 
   useHotkeys(
-    toggleSnapshotShortcut,
+    toggleBranchShortcut,
     (e) => {
       e.preventDefault();
       userTracking.capture({
         name: "scenario.toggled",
         source: "shortcut",
       });
-      toggleSnapshot();
+      toggleBranch();
     },
-    [toggleSnapshot],
+    [toggleBranch],
     "Toggle snapshot",
   );
 
@@ -518,7 +518,7 @@ export const CommandShortcuts = () => {
       shortcut,
       (e) => {
         if (e.preventDefault) e.preventDefault();
-        if (isSnapshotLocked) return;
+        if (isBranchLocked) return;
 
         userTracking.capture({
           name: "drawingMode.enabled",
@@ -527,7 +527,7 @@ export const CommandShortcuts = () => {
         });
         void setDrawingMode(mode as Mode);
       },
-      [shortcut, mode, setDrawingMode, isSnapshotLocked],
+      [shortcut, mode, setDrawingMode, isBranchLocked],
       `Set ${mode} mode`,
     );
   }

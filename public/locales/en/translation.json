@@ -418,7 +418,7 @@
   "createScenario": "Create new scenario",
   "cycleScenario": "Cycle through scenarios",
   "toggleScenario": "Toggle between main and scenario",
-  "toggleSnapshot": "Switch to last version",
+  "toggleBranch": "Switch to last version",
   "goToMain": "Go to main",
   "welcomePage": "Welcome page",
   "welcomeToEpanetJs": "Welcome to epanet-js!",

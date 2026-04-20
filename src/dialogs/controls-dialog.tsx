@@ -10,7 +10,7 @@ import {
 } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { useIsSnapshotLocked } from "src/hooks/use-is-snapshot-locked";
+import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
 import {
   formatSimpleControl,
   formatRuleBasedControl,
@@ -32,7 +32,7 @@ export const ControlsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const [activeTab, setActiveTab] = useState<Tab>("simple");
-  const isSnapshotLocked = useIsSnapshotLocked();
+  const isBranchLocked = useIsBranchLocked();
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useModelTransaction();
@@ -87,7 +87,7 @@ export const ControlsDialog = () => {
           onClose={closeDialog}
           footer={
             <SimpleDialogActions
-              action={isSnapshotLocked ? undefined : translate("dialog.save")}
+              action={isBranchLocked ? undefined : translate("dialog.save")}
               onAction={submitForm}
               isSubmitting={isSubmitting}
               secondary={{
@@ -104,13 +104,13 @@ export const ControlsDialog = () => {
                 name="simpleText"
                 placeholder={translate("controls.simpleEmpty")}
                 hidden={activeTab !== "simple"}
-                readOnly={isSnapshotLocked}
+                readOnly={isBranchLocked}
               />
               <ControlsTextArea
                 name="rulesText"
                 placeholder={translate("controls.rulesEmpty")}
                 hidden={activeTab !== "ruleBased"}
-                readOnly={isSnapshotLocked}
+                readOnly={isBranchLocked}
               />
             </div>
           </Form>

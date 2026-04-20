@@ -139,10 +139,8 @@ const QuickGraphSection = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { changeTimestep } = useChangeTimestep();
 
-  const isInScenario = worktree.activeSnapshotId !== worktree.mainId;
-  const activeBranch =
-    worktree.branches.get(worktree.activeSnapshotId) ??
-    worktree.snapshots.get(worktree.activeSnapshotId);
+  const isInScenario = worktree.activeBranchId !== worktree.mainId;
+  const activeBranch = worktree.branches.get(worktree.activeBranchId);
   const scenarioName = isInScenario ? (activeBranch?.name ?? null) : null;
   const baseLabel = isInScenario ? translate("scenarios.main") : null;
 

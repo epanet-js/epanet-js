@@ -22,7 +22,6 @@ import {
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
-import { usePersistenceWithSnapshots } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { nanoid } from "src/lib/id";
 export const runSimulationShortcut = "shift+enter";
@@ -30,7 +29,6 @@ export const runSimulationShortcut = "shift+enter";
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const persistence = usePersistenceWithSnapshots();
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
@@ -87,7 +85,7 @@ export const useRunSimulation = () => {
         };
 
         const appId = getAppId();
-        const scenarioKey = worktree.activeSnapshotId;
+        const scenarioKey = worktree.activeBranchId;
         const runId = nanoid();
         const previousReader =
           "epsResultsReader" in currentSimulation
@@ -155,9 +153,6 @@ export const useRunSimulation = () => {
         };
         setSimulationState(simulationState);
         set(simulationSourceIdDerivedAtom, scenarioKey);
-        persistence.syncSnapshotSimulation(simulationState, {
-          updateSourceId: true,
-        });
 
         if (
           previousReader &&
@@ -199,7 +194,6 @@ export const useRunSimulation = () => {
         isWaterChemicalOn,
         setSimulationState,
         setDialogState,
-        persistence,
         setSimulationStep,
       ],
     ),
