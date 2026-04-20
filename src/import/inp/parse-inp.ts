@@ -58,6 +58,7 @@ export type ParseInpResult = {
   issues: ParserIssues | null;
   stats: InpStats;
   projectionStatus?: "wgs84" | "unknown";
+  suggestedXyScale?: number;
 };
 
 export const parseInp = (
@@ -90,11 +91,12 @@ export const parseInp = (
         skipWgs84Validation: true,
       });
 
-    projectionStatus = detectProjectionStatusWithLengths(
+    const detection = detectProjectionStatusWithLengths(
       hydraulicModel,
       inpData,
       safeOptions,
     );
+    projectionStatus = detection.status;
 
     return {
       isMadeByApp: header.isMadeByApp,
@@ -113,6 +115,7 @@ export const parseInp = (
       issues: issues.buildResult(),
       stats,
       projectionStatus,
+      suggestedXyScale: detection.suggestedXyScale,
     };
   }
 
@@ -302,17 +305,22 @@ const detectProjectionStatus = (
 const lengthRatioLowerBound = 0.1;
 const lengthRatioUpperBound = 10;
 
+type ProjectionDetection = {
+  status: "wgs84" | "unknown";
+  suggestedXyScale?: number;
+};
+
 const detectProjectionStatusWithLengths = (
   hydraulicModel: HydraulicModel,
   inpData: InpData,
   options: ParseInpOptions,
-): "wgs84" | "unknown" => {
+): ProjectionDetection => {
   const rangeStatus = detectProjectionStatus(hydraulicModel);
-  if (rangeStatus === "unknown") return "unknown";
-  if (!options.xyDetect) return "wgs84";
+  if (!options.xyDetect) return { status: rangeStatus };
 
   const declaredUnit: Unit = isUsUnitSystem(inpData.options.units) ? "ft" : "m";
-  const ratios: number[] = [];
+  const geodesicRatios: number[] = [];
+  const rawScales: number[] = [];
 
   for (const pipe of inpData.pipes) {
     if (!Number.isFinite(pipe.length) || pipe.length <= 0) continue;
@@ -322,25 +330,48 @@ const detectProjectionStatusWithLengths = (
     if (!start || !end) continue;
     if (start[0] === end[0] && start[1] === end[1]) continue;
 
-    const geodesicMeters = turfDistance(start, end, { units: "meters" });
     const declaredMeters = convertTo(
       { value: pipe.length, unit: declaredUnit },
       "m",
     );
     if (!Number.isFinite(declaredMeters) || declaredMeters <= 0) continue;
 
-    ratios.push(geodesicMeters / declaredMeters);
+    const dx = end[0] - start[0];
+    const dy = end[1] - start[1];
+    const rawEuclidean = Math.sqrt(dx * dx + dy * dy);
+    if (rawEuclidean > 0) {
+      rawScales.push(declaredMeters / rawEuclidean);
+    }
+
+    if (rangeStatus === "wgs84") {
+      const geodesicMeters = turfDistance(start, end, { units: "meters" });
+      geodesicRatios.push(geodesicMeters / declaredMeters);
+    }
   }
 
-  if (ratios.length === 0) return "wgs84";
+  const suggestedXyScale = rawScales.length > 0 ? median(rawScales) : undefined;
 
-  const sorted = [...ratios].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-
-  if (median < lengthRatioLowerBound || median > lengthRatioUpperBound) {
-    return "unknown";
+  if (rangeStatus === "unknown") {
+    return { status: "unknown", suggestedXyScale };
   }
-  return "wgs84";
+
+  if (geodesicRatios.length === 0) {
+    return { status: "wgs84" };
+  }
+
+  const medianRatio = median(geodesicRatios);
+  if (
+    medianRatio < lengthRatioLowerBound ||
+    medianRatio > lengthRatioUpperBound
+  ) {
+    return { status: "unknown", suggestedXyScale };
+  }
+  return { status: "wgs84" };
+};
+
+const median = (values: number[]): number => {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
 };
 
 const buildSimulationSettings = (

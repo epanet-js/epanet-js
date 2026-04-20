@@ -173,6 +173,7 @@ export const useImportInp = () => {
           issues,
           stats,
           projectionStatus,
+          suggestedXyScale,
         } = result;
         userTracking.capture(
           buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
@@ -207,6 +208,7 @@ export const useImportInp = () => {
             onImportWithProjection,
             filename: file.name,
             flowUnits: chooseUnitSystem(projectSettings.units),
+            suggestedXyScale,
           });
           return;
         }

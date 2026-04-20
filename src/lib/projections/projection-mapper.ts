@@ -29,8 +29,10 @@ export const createProjectionMapper = (
     case "xy-grid":
       return {
         projection,
-        toWgs84: (p) => transformPoint(p, projection.centroid),
-        toSource: (p) => inverseTransformPoint(p, projection.centroid),
+        toWgs84: (p) =>
+          transformPoint(p, projection.centroid, projection.scale),
+        toSource: (p) =>
+          inverseTransformPoint(p, projection.centroid, projection.scale),
         backdropUnits: "NONE",
       };
     case "proj4": {

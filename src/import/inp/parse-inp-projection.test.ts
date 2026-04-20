@@ -162,4 +162,18 @@ describe("xy-grid detection via pipe length sanity check", () => {
 
     expect(result.projectionStatus).toBe("unknown");
   });
+
+  it("suggests a scale factor equal to declared meters per raw coord unit", () => {
+    const inp = buildInpWith({
+      units: "LPS",
+      startCoord: [0, 0],
+      endCoord: [10, 0],
+      pipeLength: 630,
+    });
+
+    const result = parseInp(inp, { xyDetect: true });
+
+    expect(result.projectionStatus).toBe("unknown");
+    expect(result.suggestedXyScale).toBeCloseTo(63, 5);
+  });
 });

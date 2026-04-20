@@ -7,6 +7,7 @@ export type XYGridProjection = {
   id: string;
   name: string;
   centroid: Position;
+  scale?: number;
 };
 
 export type Proj4Projection = {

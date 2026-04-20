@@ -38,6 +38,7 @@ export const NetworkProjectionDialog = ({
   filename,
   flowUnits,
   initialProjection,
+  suggestedXyScale,
 }: {
   source: "import" | "map-panel";
   previewGeoJson: FeatureCollection;
@@ -45,6 +46,7 @@ export const NetworkProjectionDialog = ({
   filename: string;
   flowUnits: string;
   initialProjection?: Proj4Projection;
+  suggestedXyScale?: number;
 }) => {
   const { closeDialog } = useDialogState();
   const { projectionsArray: projections } = useProjections();
@@ -311,12 +313,21 @@ export const NetworkProjectionDialog = ({
       id: "xy-grid",
       name: "XY Grid",
       centroid,
+      ...(suggestedXyScale !== undefined && { scale: suggestedXyScale }),
     };
     const sourceExtent = getExtent(previewGeoJson, true).extract();
     const extent = sourceExtent
       ? ([
-          ...transformPoint([sourceExtent[0], sourceExtent[1]], centroid),
-          ...transformPoint([sourceExtent[2], sourceExtent[3]], centroid),
+          ...transformPoint(
+            [sourceExtent[0], sourceExtent[1]],
+            centroid,
+            suggestedXyScale,
+          ),
+          ...transformPoint(
+            [sourceExtent[2], sourceExtent[3]],
+            centroid,
+            suggestedXyScale,
+          ),
         ] as BBox)
       : undefined;
 
@@ -329,6 +340,7 @@ export const NetworkProjectionDialog = ({
     bounds,
     previewGeoJson,
     source,
+    suggestedXyScale,
   ]);
 
   const handleClose = useCallback(() => {

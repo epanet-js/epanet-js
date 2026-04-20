@@ -47,4 +47,23 @@ describe("xy-grid-transform", () => {
       expect(restored[1]).toBeCloseTo(original[1], 2);
     });
   });
+
+  describe("scale factor", () => {
+    it("maps raw coords to meters-per-unit when scale is provided", () => {
+      const centroid: [number, number] = [0, 0];
+      const scale = 63;
+      const result = transformPoint([10, 0], centroid, scale);
+      expect(result[0]).toBeCloseTo((10 * scale) / METERS_PER_DEGREE, 6);
+    });
+
+    it("round-trips through inverseTransformPoint", () => {
+      const centroid: [number, number] = [1_000, 500];
+      const scale = 63.2;
+      const original: [number, number] = [1_010, 510];
+      const wgs84 = transformPoint(original, centroid, scale);
+      const restored = inverseTransformPoint(wgs84, centroid, scale);
+      expect(restored[0]).toBeCloseTo(original[0], 2);
+      expect(restored[1]).toBeCloseTo(original[1], 2);
+    });
+  });
 });

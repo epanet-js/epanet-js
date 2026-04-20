@@ -40,6 +40,7 @@ export type NetworkProjectionDialogState = {
   filename: string;
   flowUnits: string;
   initialProjection?: Proj4Projection;
+  suggestedXyScale?: number;
 };
 
 export type MissingCoordinatesDialogState = {

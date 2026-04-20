@@ -49,10 +49,14 @@ const InpIssuesDialog = dynamic<{
 const NetworkProjectionDialog = dynamic<{
   source: "import" | "map-panel";
   previewGeoJson: import("geojson").FeatureCollection;
-  onImportWithProjection: (projection: Projection) => void;
+  onImportWithProjection: (
+    projection: Projection,
+    extent?: import("geojson").BBox,
+  ) => void;
   filename: string;
   flowUnits: string;
   initialProjection?: import("src/lib/projections").Proj4Projection;
+  suggestedXyScale?: number;
 }>(
   () =>
     import("src/dialogs/network-projection").then(
@@ -527,6 +531,7 @@ export const Dialogs = memo(function Dialogs() {
         filename={dialog.filename}
         flowUnits={dialog.flowUnits}
         initialProjection={dialog.initialProjection}
+        suggestedXyScale={dialog.suggestedXyScale}
       />
     );
   }
