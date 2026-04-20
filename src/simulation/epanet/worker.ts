@@ -38,6 +38,7 @@ export const runSimulation = async (
   onProgress?: ProgressCallback,
   flags: Record<string, boolean> = {},
   scenarioKey?: string,
+  runId?: string,
 ): Promise<EPSSimulationResult> => {
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
@@ -91,7 +92,7 @@ export const runSimulation = async (
 
     const { resultsBuffer, metadata } = extractResultsData(ws);
 
-    const storage = new OPFSStorage(appId, scenarioKey);
+    const storage = new OPFSStorage(appId, scenarioKey, runId);
     await storage.save(RESULTS_OUT_KEY, resultsBuffer);
     await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
     await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());

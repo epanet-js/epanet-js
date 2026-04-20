@@ -14,6 +14,8 @@ export interface IKeyBufferStore {
   getSize(key: string): Promise<number>;
 
   clear(): Promise<void>;
+
+  clearRun(): Promise<void>;
 }
 
 export interface IKeyValueStore {

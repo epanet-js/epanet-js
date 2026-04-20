@@ -11,6 +11,7 @@ export const runSimulation = withDebugInstrumentation(
     onProgress?: ProgressCallback,
     flags: Record<string, boolean> = {},
     scenarioKey?: string,
+    runId?: string,
   ): Promise<EPSSimulationResult> => {
     const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
     const result = await webWorker.runSimulation(
@@ -19,6 +20,7 @@ export const runSimulation = withDebugInstrumentation(
       proxiedCallback,
       flags,
       scenarioKey,
+      runId,
     );
     if (result.jsError) {
       captureError(new Error(`Simulation JS error: ${result.jsError}`));

@@ -7,7 +7,9 @@ import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
+  simulationSourceIdDerivedAtom,
 } from "src/state/derived-branch-state";
+import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationStepAtom } from "src/state/simulation";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
@@ -22,6 +24,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { usePersistenceWithSnapshots } from "src/lib/persistence";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { nanoid } from "src/lib/id";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -85,6 +88,12 @@ export const useRunSimulation = () => {
 
         const appId = getAppId();
         const scenarioKey = worktree.activeSnapshotId;
+        const runId = nanoid();
+        const previousReader =
+          "epsResultsReader" in currentSimulation
+            ? currentSimulation.epsResultsReader
+            : undefined;
+        const previousSourceId = get(simulationSourceIdDerivedAtom);
         const runQuality =
           (isWaterAgeOn &&
             simulationSettings.qualitySimulationType === "age") ||
@@ -98,6 +107,7 @@ export const useRunSimulation = () => {
           reportProgress,
           { runQuality },
           scenarioKey,
+          runId,
         );
 
         isCompleted = true;
@@ -105,7 +115,7 @@ export const useRunSimulation = () => {
         let epsReader: EPSResultsReader | undefined = undefined;
 
         if (status === "success" || status === "warning") {
-          const storage = new OPFSStorage(appId, scenarioKey);
+          const storage = new OPFSStorage(appId, scenarioKey, runId);
           epsReader = new EPSResultsReader(storage);
           await epsReader.initialize(metadata);
           setSimulationStep(0);
@@ -144,9 +154,25 @@ export const useRunSimulation = () => {
           epsResultsReader: epsReader,
         };
         setSimulationState(simulationState);
+        set(simulationSourceIdDerivedAtom, scenarioKey);
         persistence.syncSnapshotSimulation(simulationState, {
           updateSourceId: true,
         });
+
+        if (
+          previousReader &&
+          previousReader !== epsReader &&
+          previousSourceId === scenarioKey
+        ) {
+          const branchStates = get(branchStateAtom);
+          const stillDependedOn = Array.from(branchStates.entries()).some(
+            ([id, state]) =>
+              id !== scenarioKey && state.simulationSourceId === scenarioKey,
+          );
+          if (!stillDependedOn) {
+            void previousReader.dispose().catch(() => {});
+          }
+        }
 
         const end = performance.now();
         const duration = end - start;

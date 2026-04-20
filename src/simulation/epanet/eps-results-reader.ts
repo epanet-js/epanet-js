@@ -193,6 +193,14 @@ export class EPSResultsReader {
     return this.metadata.simulationMetadata.qualityType;
   }
 
+  async dispose(): Promise<void> {
+    try {
+      await this.storage.clearRun();
+    } catch {
+      // Dispose is best-effort cleanup; swallow errors.
+    }
+  }
+
   getTimeSeries(
     assetId: AssetId,
     assetType: "junction",

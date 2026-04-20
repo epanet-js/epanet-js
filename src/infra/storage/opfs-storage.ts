@@ -7,6 +7,7 @@ export class OPFSStorage implements IKeyBufferStore {
   constructor(
     private readonly appId: string,
     private readonly scenarioKey?: string,
+    private readonly runId?: string,
   ) {}
 
   async save(filename: string, data: ArrayBuffer): Promise<void> {
@@ -107,6 +108,21 @@ export class OPFSStorage implements IKeyBufferStore {
     await clearApp(this.appId);
   }
 
+  async clearRun(): Promise<void> {
+    if (!this.runId) return;
+    try {
+      const root = await getRootDir();
+      const appDir = await root.getDirectoryHandle(this.appId);
+      const parentDir = this.scenarioKey
+        ? await appDir.getDirectoryHandle(this.scenarioKey)
+        : appDir;
+      await parentDir.removeEntry(this.runId, { recursive: true });
+    } catch {
+      // Run directory may not exist (already cleaned by project init,
+      // cleanupStaleOPFS, or a prior dispose). Safe to ignore.
+    }
+  }
+
   private touchLastAccess(): void {
     localStorage.setItem(
       `${HEARTBEAT_KEY_PREFIX}${this.appId}`,
@@ -117,12 +133,12 @@ export class OPFSStorage implements IKeyBufferStore {
   private async getAppDir(): Promise<FileSystemDirectoryHandle> {
     const root = await getRootDir();
     const appDir = await root.getDirectoryHandle(this.appId, { create: true });
-    if (this.scenarioKey) {
-      return await appDir.getDirectoryHandle(this.scenarioKey, {
-        create: true,
-      });
-    }
-    return appDir;
+    if (!this.scenarioKey) return appDir;
+    const scenarioDir = await appDir.getDirectoryHandle(this.scenarioKey, {
+      create: true,
+    });
+    if (!this.runId) return scenarioDir;
+    return await scenarioDir.getDirectoryHandle(this.runId, { create: true });
   }
 }
 

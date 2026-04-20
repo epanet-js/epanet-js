@@ -1801,6 +1801,7 @@ describe("AssetPanel", () => {
             labelManager: new LabelManager(),
             momentLog: new MomentLog(),
             simulation,
+            simulationSourceId: "main",
             simulationSettings: defaultSimulationSettings,
           },
         ],

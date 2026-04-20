@@ -88,6 +88,15 @@ export const simulationDerivedAtom = atom(
   },
 );
 
+export const simulationSourceIdDerivedAtom = atom(
+  (get): string => {
+    return getActiveBranchState(get)?.simulationSourceId ?? "main";
+  },
+  (get, set, value: string) => {
+    updateActiveBranchState(get, set, { simulationSourceId: value });
+  },
+);
+
 const simulationResultsAsyncDerivedAtom = atom(
   async (get): Promise<ResultsReader | null> => {
     const simulationStep = get(simulationStepAtom);

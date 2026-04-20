@@ -11,6 +11,7 @@ export type BranchState = {
   labelManager: LabelManager;
   momentLog: MomentLog;
   simulation: SimulationState | null;
+  simulationSourceId: string;
   simulationSettings: SimulationSettings;
 };
 

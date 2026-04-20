@@ -60,6 +60,10 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
     return Promise.resolve();
   }
 
+  clearRun(): Promise<void> {
+    return Promise.resolve();
+  }
+
   // Test helpers
 
   getAppId(): string {

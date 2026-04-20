@@ -31,6 +31,7 @@ export const useInitializeBranch = () => {
         labelManager,
         momentLog: new MomentLog(),
         simulation: mainState.simulation,
+        simulationSourceId: mainState.simulationSourceId,
         simulationSettings: mainState.simulationSettings,
       });
 

@@ -27,6 +27,7 @@ vi.mock("src/simulation/epanet/eps-results-reader", () => ({
     .mockImplementation((_storage, timestepCount = 0) => ({
       initialize: vi.fn(),
       getResultsForTimestep: mockGetResultsForTimestep,
+      dispose: vi.fn().mockResolvedValue(undefined),
       timestepCount,
     })),
 }));

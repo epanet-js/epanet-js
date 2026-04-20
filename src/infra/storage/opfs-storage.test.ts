@@ -4,6 +4,7 @@ import { OPFSStorage, cleanupStaleOPFS } from "./opfs-storage";
 describe("OPFSStorage", () => {
   let mockAppDir: {
     getFileHandle: ReturnType<typeof vi.fn>;
+    getDirectoryHandle: ReturnType<typeof vi.fn>;
     removeEntry: ReturnType<typeof vi.fn>;
   };
   let mockSimulationDir: {
@@ -49,6 +50,7 @@ describe("OPFSStorage", () => {
 
     mockAppDir = {
       getFileHandle: vi.fn(),
+      getDirectoryHandle: vi.fn(),
       removeEntry: vi.fn(),
     };
     mockSimulationDir = {
@@ -186,6 +188,75 @@ describe("OPFSStorage", () => {
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(
         "last-simulation-access:test-app-id",
       );
+    });
+  });
+
+  describe("clearRun", () => {
+    it("removes only the run directory from the scenario dir", async () => {
+      const mockScenarioDir = {
+        getDirectoryHandle: vi.fn(),
+        removeEntry: vi.fn().mockResolvedValue(undefined),
+      };
+      mockAppDir.getDirectoryHandle = vi
+        .fn()
+        .mockResolvedValue(mockScenarioDir);
+
+      const storage = new OPFSStorage("test-app-id", "scenario-1", "run-abc");
+      await storage.clearRun();
+
+      expect(mockSimulationDir.getDirectoryHandle).toHaveBeenCalledWith(
+        "test-app-id",
+      );
+      expect(mockAppDir.getDirectoryHandle).toHaveBeenCalledWith("scenario-1");
+      expect(mockScenarioDir.removeEntry).toHaveBeenCalledWith("run-abc", {
+        recursive: true,
+      });
+    });
+
+    it("removes run directory from app dir when no scenarioKey", async () => {
+      mockAppDir.removeEntry = vi.fn().mockResolvedValue(undefined);
+
+      const storage = new OPFSStorage("test-app-id", undefined, "run-abc");
+      await storage.clearRun();
+
+      expect(mockAppDir.removeEntry).toHaveBeenCalledWith("run-abc", {
+        recursive: true,
+      });
+    });
+
+    it("does not throw when run directory does not exist", async () => {
+      const mockScenarioDir = {
+        getDirectoryHandle: vi.fn(),
+        removeEntry: vi.fn().mockRejectedValue(new Error("NotFoundError")),
+      };
+      mockAppDir.getDirectoryHandle = vi
+        .fn()
+        .mockResolvedValue(mockScenarioDir);
+
+      const storage = new OPFSStorage("test-app-id", "scenario-1", "run-abc");
+      await expect(storage.clearRun()).resolves.not.toThrow();
+    });
+
+    it("is a no-op when no runId is set", async () => {
+      const storage = new OPFSStorage("test-app-id", "scenario-1");
+      await storage.clearRun();
+
+      expect(mockSimulationDir.getDirectoryHandle).not.toHaveBeenCalled();
+    });
+
+    it("does not remove the heartbeat key", async () => {
+      const mockScenarioDir = {
+        getDirectoryHandle: vi.fn(),
+        removeEntry: vi.fn().mockResolvedValue(undefined),
+      };
+      mockAppDir.getDirectoryHandle = vi
+        .fn()
+        .mockResolvedValue(mockScenarioDir);
+
+      const storage = new OPFSStorage("test-app-id", "scenario-1", "run-abc");
+      await storage.clearRun();
+
+      expect(mockLocalStorage.removeItem).not.toHaveBeenCalled();
     });
   });
 
