@@ -62,13 +62,12 @@ describe("Map Styling Editor", () => {
     await user.click(screen.getByTitle("OrRd"));
     await user.keyboard("{Escape}");
 
-    await userEvent.click(
-      screen.getByRole("checkbox", { name: /node labels/i }),
-    );
+    await user.click(screen.getByRole("combobox", { name: /node label by/i }));
+    await user.click(screen.getByRole("option", { name: "Label" }));
 
     expect(
-      screen.getByRole("checkbox", { name: /node labels/i }),
-    ).toBeChecked();
+      screen.getByRole("combobox", { name: /node label by/i }),
+    ).toHaveTextContent("Label");
   });
 
   it("can change the styles for links", async () => {
@@ -110,13 +109,12 @@ describe("Map Styling Editor", () => {
     await user.click(screen.getByTitle("OrRd"));
     await user.keyboard("{Escape}");
 
-    await userEvent.click(
-      screen.getByRole("checkbox", { name: /link labels/i }),
-    );
+    await user.click(screen.getByRole("combobox", { name: /link label by/i }));
+    await user.click(screen.getByRole("option", { name: "Label" }));
 
     expect(
-      screen.getByRole("checkbox", { name: /link labels/i }),
-    ).toBeChecked();
+      screen.getByRole("combobox", { name: /link label by/i }),
+    ).toHaveTextContent("Label");
   });
 
   it("can reverse ramp colors", async () => {

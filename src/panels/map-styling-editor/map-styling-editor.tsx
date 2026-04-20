@@ -146,7 +146,6 @@ const SymbologyEditor = ({
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const isMapLabelsOn = useFeatureFlag("FLAG_MAP_LABELS");
   const hasCompletedSimulation =
     "epsResultsReader" in simulation && !!simulation.epsResultsReader;
   const hasWaterAge =
@@ -329,25 +328,6 @@ const SymbologyEditor = ({
               </div>
             </InlineField>
           )}
-          {!isMapLabelsOn && (
-            <InlineField
-              name={translate("labels")}
-              labelSize="sm"
-              layout="fixed-label"
-            >
-              <Checkbox
-                checked={!!symbology.labelRule}
-                aria-label={`${translate(geometryType)} ${translate("labels")}`}
-                onChange={() =>
-                  handleLabelRuleChange(
-                    !!symbology.labelRule
-                      ? null
-                      : symbology.colorRule!.property,
-                  )
-                }
-              />
-            </InlineField>
-          )}
         </>
       ) : (
         <InlineField
@@ -364,20 +344,18 @@ const SymbologyEditor = ({
           </div>
         </InlineField>
       )}
-      {isMapLabelsOn && (
-        <InlineField
-          name={translate("labelBy")}
-          labelSize="sm"
-          layout="fixed-label"
-        >
-          <Selector
-            ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
-            options={labelByOptions}
-            selected={(symbology.labelRule ?? "none") as LabelSelectOption}
-            onChange={handleLabelByChange}
-          />
-        </InlineField>
-      )}
+      <InlineField
+        name={translate("labelBy")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <Selector
+          ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
+          options={labelByOptions}
+          selected={(symbology.labelRule ?? "none") as LabelSelectOption}
+          onChange={handleLabelByChange}
+        />
+      </InlineField>
     </MapStylingSectionWrapper>
   );
 };
