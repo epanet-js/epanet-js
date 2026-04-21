@@ -7,13 +7,8 @@ export type ParserIssues = {
   invalidVertices?: Set<string>;
   nonDefaultOptions?: Map<string, string | number>;
   nonDefaultTimes?: Map<string, string | number>;
-  unbalancedDiff?: {
-    defaultSetting: string;
-    customSetting: string;
-  };
   hasInvalidPumpCurves?: number;
   hasUndefinedPumpCurve?: number;
-  waterQualityType?: WaterQualityType;
 };
 
 export class IssuesAccumulator {
@@ -65,10 +60,6 @@ export class IssuesAccumulator {
     this.issues.invalidVertices.add(linkId);
   }
 
-  hasUnbalancedDiff(customSetting: string, defaultSetting: string) {
-    this.issues.unbalancedDiff = { customSetting, defaultSetting };
-  }
-
   addInvalidPumpCurve() {
     this.issues.hasInvalidPumpCurves =
       (this.issues.hasInvalidPumpCurves || 0) + 1;
@@ -77,10 +68,6 @@ export class IssuesAccumulator {
   addUndefinedPumpCurve() {
     this.issues.hasUndefinedPumpCurve =
       (this.issues.hasUndefinedPumpCurve || 0) + 1;
-  }
-
-  addWaterQualityType(type: WaterQualityType) {
-    this.issues.waterQualityType = type;
   }
 
   buildResult(): ParserIssues | null {

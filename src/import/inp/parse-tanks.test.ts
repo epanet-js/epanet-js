@@ -146,7 +146,7 @@ describe("parse tanks", () => {
     T1\t10\t20
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.mixingModel).toEqual("fifo");
@@ -164,7 +164,7 @@ describe("parse tanks", () => {
     T1\t10\t20
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.mixingModel).toEqual("lifo");
@@ -182,29 +182,11 @@ describe("parse tanks", () => {
     T1\t10\t20
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.mixingModel).toEqual("2comp");
     expect(tank.mixingFraction).toEqual(0.3);
-  });
-
-  it("ignores MIXING section when waterAge option is off", () => {
-    const inp = `
-    [TANKS]
-    T1    100     15       5       25     120   0
-
-    [MIXING]
-    T1    LIFO
-
-    [COORDINATES]
-    T1\t10\t20
-    `;
-
-    const { hydraulicModel } = parseInp(inp, { waterAge: false });
-
-    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
-    expect(tank.mixingModel).toEqual("mixed");
   });
 
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {

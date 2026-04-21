@@ -10,11 +10,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 
 import { ChevronDownIcon, ChevronRightIcon, SubscribeIcon } from "src/icons";
 
-const roadmapUrls = {
-  waterQuality:
-    "https://roadmap.epanetjs.com/simulation-engine/p/standard-water-quality-analysis",
-} as const;
-
 export const MissingCoordinatesDialog = ({
   issues,
   onClose,
@@ -178,34 +173,10 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
   );
 };
 
-const RoadmapLink = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="hover:underline text-purple-700 dark:text-purple-300"
-  >
-    {children}
-  </a>
-);
-
 const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
   const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
-
-  const waterQualityLabel =
-    issues.waterQualityType === "age"
-      ? translate("waterQualityAge")
-      : issues.waterQualityType === "trace"
-        ? translate("waterQualityTrace")
-        : translate("waterQualityChemical");
 
   return (
     <div className="pb-4">
@@ -227,16 +198,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
       </Button>
       {isExpaned && (
         <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
-          {issues.waterQualityType && (
-            <div>
-              <p>{translate("waterQualitySimulation")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                <RoadmapLink href={roadmapUrls.waterQuality}>
-                  - {waterQualityLabel}
-                </RoadmapLink>
-              </div>
-            </div>
-          )}
           {issues.unsupportedSections && (
             <div>
               <p>{translate("useOfUnsupported")}:</p>
@@ -283,21 +244,6 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                     </span>
                   ),
                 )}
-              </div>
-            </div>
-          )}
-          {issues.unbalancedDiff && (
-            <div>
-              <p>{translate("ignoredValuesDetected", "[OPTIONS]")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                <span>
-                  -{" "}
-                  {translate(
-                    "valueIgnored",
-                    "UNBALANCED",
-                    issues.unbalancedDiff.defaultSetting,
-                  )}
-                </span>
               </div>
             </div>
           )}

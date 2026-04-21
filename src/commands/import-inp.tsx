@@ -18,7 +18,6 @@ import { MapContext, captureThumbnail } from "src/map";
 import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";
 import { InpStats } from "src/import/inp/inp-data";
 import { ProjectSettings } from "src/lib/project-settings";
-import { HydraulicModel } from "src/hydraulic-model";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
@@ -39,9 +38,6 @@ export const useImportInp = () => {
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const isXyDetectOn = useFeatureFlag("FLAG_XY_DETECT");
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { initializeProject } = useProjectInitialization();
@@ -174,9 +170,6 @@ export const useImportInp = () => {
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
-          waterAge: isWaterAgeOn,
-          waterTrace: isWaterTraceOn,
-          waterChemical: isWaterChemicalOn,
           populateAssetIndex: true,
           xyDetect: isXyDetectOn,
         };
@@ -191,7 +184,7 @@ export const useImportInp = () => {
           suggestedXyScale,
         } = result;
         userTracking.capture(
-          buildCompleteEvent(hydraulicModel, projectSettings, issues, stats),
+          buildCompleteEvent(projectSettings, issues, stats),
         );
 
         if (projectionStatus === "unknown") {
@@ -242,9 +235,6 @@ export const useImportInp = () => {
     },
     [
       completeImport,
-      isWaterAgeOn,
-      isWaterTraceOn,
-      isWaterChemicalOn,
       isXyDetectOn,
       setDialogState,
       userTracking,
@@ -256,7 +246,6 @@ export const useImportInp = () => {
 };
 
 const buildCompleteEvent = (
-  hydraulicModel: HydraulicModel,
   projectSettings: ProjectSettings,
   issues: ParserIssues | null,
   stats: InpStats,
@@ -264,14 +253,6 @@ const buildCompleteEvent = (
   const issueKeys = issues ? Object.keys(issues) : [];
 
   const processedIssues = issueKeys.flatMap((key) => {
-    if (key === "waterQualityType" && issues?.waterQualityType) {
-      const typeMap = {
-        age: "hasWaterAge",
-        chemical: "hasWaterChemical",
-        trace: "hasWaterTrace",
-      } as const;
-      return [typeMap[issues.waterQualityType]];
-    }
     if (key === "unsupportedSections" && issues?.unsupportedSections) {
       return [...issues.unsupportedSections].map(
         (sectionName) => `unsupportedSection-${sectionName}` as const,

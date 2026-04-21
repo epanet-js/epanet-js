@@ -40,9 +40,7 @@ type SectionParserDefinition = {
   parser: RowParser;
 };
 
-const buildSectionParserDefinitions = (
-  options?: ParseInpOptions,
-): SectionParserDefinition[] => [
+const buildSectionParserDefinitions = (): SectionParserDefinition[] => [
   { names: ["TITLE"], parser: ignore },
   { names: ["CURVES", "CURVE"], parser: parseCurve },
   { names: ["QUALITY"], parser: parseQuality },
@@ -60,11 +58,7 @@ const buildSectionParserDefinitions = (
   { names: ["VERTICES", "VERTEX"], parser: parseVertex },
   { names: ["TANKS", "TANK"], parser: parseTank },
   { names: ["STATUS"], parser: parseStatus },
-  {
-    names: ["MIXING"],
-    parser:
-      options?.waterAge || options?.waterChemical ? parseMixing : unsupported,
-  },
+  { names: ["MIXING"], parser: parseMixing },
   { names: ["LABELS"], parser: unsupported },
   { names: ["PIPES", "PIPE"], parser: parsePipe },
   { names: ["CONTROLS"], parser: parseControl },
@@ -103,8 +97,8 @@ const INACTIVE_ASSET_SECTIONS = new Set([
   "[EMITTERS]",
 ]);
 
-const buildSectionParsers = (options?: ParseInpOptions): SectionParsers => {
-  const definitions = buildSectionParserDefinitions(options);
+const buildSectionParsers = (): SectionParsers => {
+  const definitions = buildSectionParserDefinitions();
   const result: SectionParsers = {};
 
   definitions.forEach(({ names, parser }) => {
@@ -125,7 +119,7 @@ export const readInpData = (
   let section: string | null = null;
   let lastComment: string | null = null;
   const inpData = nullInpData();
-  const sectionParsers = buildSectionParsers(options);
+  const sectionParsers = buildSectionParsers();
   const counts = new Map<string, number>();
 
   function parseRow(trimmedRow: string) {

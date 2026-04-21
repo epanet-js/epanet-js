@@ -41,9 +41,6 @@ export const XY_GRID: SourceProjection = { id: "xy-grid", name: "XY Grid" };
 export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
-  waterAge?: boolean;
-  waterTrace?: boolean;
-  waterChemical?: boolean;
   populateAssetIndex?: boolean;
   xyDetect?: boolean;
 };

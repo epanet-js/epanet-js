@@ -233,14 +233,14 @@ describe("Parse inp with", () => {
 
   it("says when inp contains unsupported sections", () => {
     const inp = `
-    [MIXING]
+    [LEAKAGE]
     ANY
     [NEW]
     `;
 
     const { issues } = parseInp(inp);
 
-    expect(issues!.unsupportedSections!.values()).toContain("[MIXING]");
+    expect(issues!.unsupportedSections!.values()).toContain("[LEAKAGE]");
     expect(issues!.unsupportedSections!.values()).toContain("[NEW]");
   });
 
@@ -667,7 +667,7 @@ describe("Parse inp with", () => {
       expect(simulationSettings.reactionGlobalBulk).toBe(0.5);
     });
 
-    it("parses per-pipe BULK and WALL coefficients when waterChemical is on", () => {
+    it("parses per-pipe BULK and WALL coefficients", () => {
       const inp = `
       [JUNCTIONS]
       J1    100
@@ -692,26 +692,13 @@ describe("Parse inp with", () => {
       [END]
     `;
 
-      const { hydraulicModel } = parseInp(inp, {
-        waterChemical: true,
-      });
+      const { hydraulicModel } = parseInp(inp);
       const p1 = getByLabel(hydraulicModel.assets, "P1") as Pipe;
       const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
 
       expect(t1.bulkReactionCoeff).toBe(-0.3);
       expect(p1.bulkReactionCoeff).toBe(-0.5);
       expect(p1.wallReactionCoeff).toBe(-1.0);
-    });
-
-    it("reports [REACTIONS] section with pipe-specific reactions", () => {
-      const inp = `
-      [REACTIONS]
-      Bulk  P1  0.5
-      `;
-
-      const { issues } = parseInp(inp);
-
-      expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
     });
   });
 
@@ -1017,17 +1004,6 @@ describe("reaction options", () => {
 
     expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
   });
-
-  it("still reports pipe-specific reactions as unsupported", () => {
-    const inp = `
-      [REACTIONS]
-      Bulk  P1  0.5
-      `;
-
-    const { issues } = parseInp(inp);
-
-    expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBe(true);
-  });
 });
 
 describe("quality section", () => {
@@ -1051,7 +1027,7 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
@@ -1076,33 +1052,10 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
 
     expect(j1.initialQuality).toBe(1.5);
-  });
-
-  it("reads QUALITY section even when waterAge option is off", () => {
-    const inp = `
-      [JUNCTIONS]
-      J1    100
-
-      [COORDINATES]
-      J1    0    0
-
-      [OPTIONS]
-      Quality\tAGE
-
-      [QUALITY]
-      J1    5.0
-
-      [END]
-    `;
-
-    const { hydraulicModel } = parseInp(inp, { waterAge: false });
-    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
-
-    expect(j1.initialQuality).toBe(5.0);
   });
 
   it("skips zero values in QUALITY section", () => {
@@ -1125,7 +1078,7 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
@@ -1159,7 +1112,7 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterAge: true });
+    const { hydraulicModel } = parseInp(inp);
     const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
     const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
 
@@ -1167,30 +1120,7 @@ describe("quality section", () => {
     expect(r1.initialQuality).toBe(3.0);
   });
 
-  it("reports water quality type issue when waterAge is off", () => {
-    const inp = `
-      [JUNCTIONS]
-      J1    100
-
-      [COORDINATES]
-      J1    0    0
-
-      [OPTIONS]
-      Quality\tAGE
-
-      [QUALITY]
-      J1    5.0
-
-      [END]
-    `;
-
-    const { issues } = parseInp(inp, { waterAge: false });
-
-    expect(issues?.waterQualityType).toBe("age");
-    expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
-  });
-
-  it("accepts TRACE quality type when waterTrace option is on", () => {
+  it("parses TRACE quality type", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1204,34 +1134,12 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { issues, simulationSettings } = parseInp(inp, {
-      waterTrace: true,
-    });
+    const { simulationSettings } = parseInp(inp);
 
     expect(simulationSettings.qualitySimulationType).toEqual("trace");
-    expect(issues?.waterQualityType).toBeUndefined();
   });
 
-  it("reports TRACE quality type issue when waterTrace is off", () => {
-    const inp = `
-      [JUNCTIONS]
-      J1    100
-
-      [COORDINATES]
-      J1    0    0
-
-      [OPTIONS]
-      Quality\tTRACE J1
-
-      [END]
-    `;
-
-    const { issues } = parseInp(inp, { waterTrace: false });
-
-    expect(issues?.waterQualityType).toBe("trace");
-  });
-
-  it("does not report QUALITY as unsupported when waterAge is on", () => {
+  it("does not report QUALITY as unsupported", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1248,7 +1156,7 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { issues } = parseInp(inp, { waterAge: true });
+    const { issues } = parseInp(inp);
 
     expect(issues?.unsupportedSections?.has("[QUALITY]")).toBeFalsy();
   });
@@ -1279,45 +1187,18 @@ describe("quality section", () => {
       [END]
     `;
 
-    const { hydraulicModel, simulationSettings, issues } = parseInp(inp, {
-      waterChemical: true,
-    });
+    const { hydraulicModel, simulationSettings } = parseInp(inp);
     const t1 = getByLabel(hydraulicModel.assets, "T1") as Tank;
     const r1 = getByLabel(hydraulicModel.assets, "R1") as Reservoir;
 
     expect(t1.initialQuality).toBe(0.5);
     expect(r1.initialQuality).toBe(1.0);
     expect(simulationSettings.qualitySimulationType).toEqual("chemical");
-    expect(issues?.waterQualityType).toBeUndefined();
-  });
-
-  it("reads QUALITY section values even when waterChemical is off", () => {
-    const inp = `
-      [JUNCTIONS]
-      J1    100
-
-      [COORDINATES]
-      J1    0    0
-
-      [OPTIONS]
-      Quality\tChlorine mg/L
-
-      [QUALITY]
-      J1    1.5
-
-      [END]
-    `;
-
-    const { hydraulicModel, issues } = parseInp(inp, { waterChemical: false });
-    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
-
-    expect(j1.initialQuality).toBe(1.5);
-    expect(issues?.waterQualityType).toBe("chemical");
   });
 });
 
 describe("chemical sources", () => {
-  it("parses SOURCES section when waterChemical is on", () => {
+  it("parses SOURCES section", () => {
     const inp = `
       [JUNCTIONS]
       J1    100
@@ -1340,7 +1221,7 @@ describe("chemical sources", () => {
       [END]
     `;
 
-    const { hydraulicModel } = parseInp(inp, { waterChemical: true });
+    const { hydraulicModel } = parseInp(inp);
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
@@ -1350,29 +1231,6 @@ describe("chemical sources", () => {
     expect(j2.chemicalSourceType).toBe("MASS");
     expect(j2.chemicalSourceStrength).toBe(12);
     expect(j2.chemicalSourcePatternId).toBeUndefined();
-  });
-
-  it("reports SOURCES as unsupported when waterChemical is off", () => {
-    const inp = `
-      [JUNCTIONS]
-      J1    100
-
-      [COORDINATES]
-      J1    0    0
-
-      [SOURCES]
-      J1    CONCEN    1.2
-
-      [END]
-    `;
-
-    const { issues, hydraulicModel } = parseInp(inp, {
-      waterChemical: false,
-    });
-    const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
-
-    expect(issues?.unsupportedSections?.has("[SOURCES]")).toBe(true);
-    expect(j1.chemicalSourceType).toBeUndefined();
   });
 });
 

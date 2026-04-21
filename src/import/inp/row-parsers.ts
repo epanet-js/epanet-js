@@ -78,21 +78,10 @@ export const unsupported: RowParser = ({ sectionName, issues }) => {
   issues.addUsedSection(sectionName);
 };
 
-export const parseSource: RowParser = ({
-  sectionName,
-  trimmedRow,
-  inpData,
-  issues,
-  options,
-}) => {
+export const parseSource: RowParser = ({ trimmedRow, inpData }) => {
   const [nodeId, type, strength, patternId] = readValues(trimmedRow);
   if (patternId) {
     inpData.sourcePatterns.add(patternId);
-  }
-
-  if (!options?.waterChemical) {
-    issues.addUsedSection(sectionName);
-    return;
   }
 
   const upperType = type?.toUpperCase();
@@ -212,7 +201,6 @@ export const parseReaction: RowParser = ({
   trimmedRow,
   inpData,
   issues,
-  options,
 }) => {
   const setting = readSetting(trimmedRow, defaultReactionSettings);
 
@@ -257,10 +245,6 @@ export const parseReaction: RowParser = ({
       upperKeyword === "WALL" ||
       upperKeyword === "TANK"
     ) {
-      if (!options?.waterChemical) {
-        issues.addUsedSection(sectionName);
-        return;
-      }
       const value = parseFloat(valueStr);
       if (!id || isNaN(value)) return;
       if (upperKeyword === "BULK") {
