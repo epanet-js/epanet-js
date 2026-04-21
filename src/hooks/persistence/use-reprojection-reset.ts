@@ -55,6 +55,7 @@ const loadModel = async (
   set(projectSettingsAtom, projectSettings);
   if (isOurFileOn) {
     await db.saveProjectSettings(projectSettings);
+    await db.setAllAssets(hydraulicModel.assets);
   }
   set(momentLogDerivedAtom, momentLog);
   if (autoElevations !== undefined) {
