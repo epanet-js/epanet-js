@@ -472,6 +472,7 @@
   "alertExportInpDetail": "The INP format doesn't support all the features available in our app. To ensure no data is lost, we recommend saving your work as a Project first.",
   "saveAsProject": "Save as Project",
   "exportToInpAnyway": "Export to INP Anyway",
+  "newBadge": "new",
   "alertScenariosNotSaved": "Scenarios won't be saved",
   "alertScenariosNotSavedDetail": "Only the main model will be saved. Your scenarios will remain available in this session but will be lost when you close the app. Full scenario persistence is coming soon.",
   "alertNetworkRequired": "Network required",

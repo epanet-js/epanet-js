@@ -97,6 +97,11 @@ export const WelcomeDialog = () => {
               >
                 {isOurFileOn ? <FolderOpenIcon /> : <FileSpreadsheetIcon />}
                 {translate("openProject")}
+                {isOurFileOn && (
+                  <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-purple-100 text-purple-700 rounded-full">
+                    {translate("newBadge")}
+                  </span>
+                )}
               </Button>
               {isOurFileOn && (
                 <Button
