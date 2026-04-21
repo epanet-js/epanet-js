@@ -57,6 +57,7 @@ export type PipeRow = LinkRowShared & {
 };
 
 export type PumpRow = LinkRowShared & {
+  definition_type: string;
   power: number | null;
   speed: number | null;
   speed_pattern_id: string | null;

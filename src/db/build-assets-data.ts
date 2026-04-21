@@ -11,16 +11,16 @@ import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
 import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
 import type { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
-import type { PumpStatus } from "src/hydraulic-model/asset-types/pump";
+import type {
+  PumpStatus,
+  PumpDefintionType,
+} from "src/hydraulic-model/asset-types/pump";
 import type {
   ValveStatus,
   ValveKind,
 } from "src/hydraulic-model/asset-types/valve";
 import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
-import type {
-  AssetFactory,
-  PumpBuildData,
-} from "src/hydraulic-model/factories/asset-factory";
+import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
 import type {
   AssetRows,
   JunctionRow,
@@ -169,7 +169,9 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
     coordinates: JSON.parse(row.coords) as Position[],
     connections: [row.start_node_id, row.end_node_id],
     initialStatus: nullable(row.initial_status) as PumpStatus | undefined,
-    ...pumpDefinition(row),
+    definitionType: row.definition_type as PumpDefintionType,
+    power: nullable(row.power),
+    curveId: parseIdOrUndefined(row.curve_id),
     speed: nullable(row.speed),
     speedPatternId: parseIdOrUndefined(row.speed_pattern_id),
     efficiencyCurveId: parseIdOrUndefined(row.efficiency_curve_id),
@@ -202,17 +204,4 @@ const parseIdOrUndefined = (v: string | null): number | undefined => {
   if (v === null) return undefined;
   const parsed = Number(v);
   return Number.isFinite(parsed) ? parsed : undefined;
-};
-
-const pumpDefinition = (
-  row: PumpRow,
-): Pick<PumpBuildData, "definitionType" | "power" | "curveId"> => {
-  if (row.power !== null) {
-    return { definitionType: "power", power: row.power };
-  }
-  const curveId = parseIdOrUndefined(row.curve_id);
-  if (curveId !== undefined) {
-    return { definitionType: "curveId", curveId };
-  }
-  return { definitionType: "power", power: 0 };
 };

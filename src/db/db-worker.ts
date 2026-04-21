@@ -1,5 +1,14 @@
 import * as Comlink from "comlink";
 import { APP_VERSION, migrations } from "./migrations";
+import type {
+  AssetRows,
+  JunctionRow,
+  ReservoirRow,
+  TankRow,
+  PipeRow,
+  PumpRow,
+  ValveRow,
+} from "./rows";
 
 type OoDb = {
   pointer?: number;
@@ -86,6 +95,181 @@ const readAll = async (sql: string): Promise<unknown[]> => {
   }) as unknown[];
 };
 
+const insertAsset = (row: {
+  id: number;
+  type: string;
+  label: string | null;
+  is_active: number;
+}) => {
+  db!.exec(
+    "INSERT INTO assets (id, type, label, is_active) VALUES (?, ?, ?, ?)",
+    { bind: [row.id, row.type, row.label, row.is_active] },
+  );
+};
+
+const insertNodeProperties = (row: {
+  id: number;
+  coord_x: number;
+  coord_y: number;
+  elevation: number | null;
+  initial_quality: number | null;
+  chemical_source_type: string | null;
+  chemical_source_strength: number | null;
+  chemical_source_pattern_id: string | null;
+}) => {
+  db!.exec(
+    `INSERT INTO node_properties
+     (asset_id, coord_x, coord_y, elevation, initial_quality,
+      chemical_source_type, chemical_source_strength, chemical_source_pattern_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.coord_x,
+        row.coord_y,
+        row.elevation,
+        row.initial_quality,
+        row.chemical_source_type,
+        row.chemical_source_strength,
+        row.chemical_source_pattern_id,
+      ],
+    },
+  );
+};
+
+const insertLinkProperties = (row: {
+  id: number;
+  start_node_id: number;
+  end_node_id: number;
+  coords: string;
+  length: number | null;
+  initial_status: string | null;
+}) => {
+  db!.exec(
+    `INSERT INTO link_properties
+     (asset_id, start_node_id, end_node_id, coords, length, initial_status)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.start_node_id,
+        row.end_node_id,
+        row.coords,
+        row.length,
+        row.initial_status,
+      ],
+    },
+  );
+};
+
+const insertJunction = (row: JunctionRow) => {
+  insertAsset(row);
+  insertNodeProperties(row);
+  db!.exec(
+    "INSERT INTO junction_properties (asset_id, emitter_coefficient) VALUES (?, ?)",
+    { bind: [row.id, row.emitter_coefficient] },
+  );
+};
+
+const insertReservoir = (row: ReservoirRow) => {
+  insertAsset(row);
+  insertNodeProperties(row);
+  db!.exec(
+    "INSERT INTO reservoir_properties (asset_id, head, head_pattern_id) VALUES (?, ?, ?)",
+    { bind: [row.id, row.head, row.head_pattern_id] },
+  );
+};
+
+const insertTank = (row: TankRow) => {
+  insertAsset(row);
+  insertNodeProperties(row);
+  db!.exec(
+    `INSERT INTO tank_properties
+     (asset_id, initial_level, min_level, max_level, min_volume, diameter,
+      overflow, mixing_model, mixing_fraction, bulk_reaction_coeff, volume_curve_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.initial_level,
+        row.min_level,
+        row.max_level,
+        row.min_volume,
+        row.diameter,
+        row.overflow,
+        row.mixing_model,
+        row.mixing_fraction,
+        row.bulk_reaction_coeff,
+        row.volume_curve_id,
+      ],
+    },
+  );
+};
+
+const insertPipe = (row: PipeRow) => {
+  insertAsset(row);
+  insertLinkProperties(row);
+  db!.exec(
+    `INSERT INTO pipe_properties
+     (asset_id, diameter, roughness, minor_loss, bulk_reaction_coeff, wall_reaction_coeff)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.diameter,
+        row.roughness,
+        row.minor_loss,
+        row.bulk_reaction_coeff,
+        row.wall_reaction_coeff,
+      ],
+    },
+  );
+};
+
+const insertPump = (row: PumpRow) => {
+  insertAsset(row);
+  insertLinkProperties(row);
+  db!.exec(
+    `INSERT INTO pump_properties
+     (asset_id, definition_type, power, speed, speed_pattern_id,
+      efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.definition_type,
+        row.power,
+        row.speed,
+        row.speed_pattern_id,
+        row.efficiency_curve_id,
+        row.energy_price,
+        row.energy_price_pattern_id,
+        row.curve_id,
+      ],
+    },
+  );
+};
+
+const insertValve = (row: ValveRow) => {
+  insertAsset(row);
+  insertLinkProperties(row);
+  db!.exec(
+    `INSERT INTO valve_properties
+     (asset_id, diameter, minor_loss, valve_kind, setting, curve_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.diameter,
+        row.minor_loss,
+        row.valve_kind,
+        row.setting,
+        row.curve_id,
+      ],
+    },
+  );
+};
+
 const api = {
   async newDb() {
     await ready;
@@ -170,6 +354,37 @@ const api = {
 
   async getValves(): Promise<unknown[]> {
     return readAll("SELECT * FROM valves_view");
+  },
+
+  async setAllAssets(payload: AssetRows): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      for (const table of [
+        "junction_properties",
+        "reservoir_properties",
+        "tank_properties",
+        "pipe_properties",
+        "pump_properties",
+        "valve_properties",
+        "link_properties",
+        "node_properties",
+        "assets",
+      ]) {
+        db.exec(`DELETE FROM ${table}`);
+      }
+      for (const row of payload.junctions) insertJunction(row);
+      for (const row of payload.reservoirs) insertReservoir(row);
+      for (const row of payload.tanks) insertTank(row);
+      for (const row of payload.pipes) insertPipe(row);
+      for (const row of payload.pumps) insertPump(row);
+      for (const row of payload.valves) insertValve(row);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
   },
 
   async exportDb(): Promise<Uint8Array> {

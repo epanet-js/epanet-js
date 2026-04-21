@@ -69,6 +69,9 @@ export const useImportInp = () => {
         simulationSettings,
         autoElevations: options?.autoElevations,
       });
+      if (isOurFileOn) {
+        await db.setAllAssets(hydraulicModel.assets);
+      }
 
       const features: FeatureCollection = {
         type: "FeatureCollection",

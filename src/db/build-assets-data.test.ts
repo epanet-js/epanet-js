@@ -74,6 +74,7 @@ const makePump = (overrides: Partial<PumpRow>): PumpRow => ({
   coords: "[[0,0],[1,1]]",
   length: null,
   initial_status: null,
+  definition_type: "power",
   power: null,
   speed: null,
   speed_pattern_id: null,
@@ -161,7 +162,7 @@ describe("buildAssetsData", () => {
     expect(fresh.label).not.toBe("J1");
   });
 
-  it("infers pump definitionType from row columns", () => {
+  it("rebuilds pump from the stored definition_type column", () => {
     const rows = emptyRows();
     rows.junctions = [
       makeJunction({ id: 1, label: "J1" }),
@@ -173,15 +174,16 @@ describe("buildAssetsData", () => {
         label: "PU1",
         start_node_id: 1,
         end_node_id: 2,
-        power: 50,
+        definition_type: "curveId",
+        curve_id: "99",
       }),
     ];
 
     const { assets } = buildAssetsData(rows, makeFactories(10));
     const pump = assets.get(10) as Pump;
 
-    expect(pump.definitionType).toBe("power");
-    expect(pump.power).toBe(50);
+    expect(pump.definitionType).toBe("curveId");
+    expect(pump.curveId).toBe(99);
   });
 
   it("populates the asset index with nodes and links", () => {

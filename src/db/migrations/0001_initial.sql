@@ -66,6 +66,7 @@ CREATE TABLE pipe_properties (
 
 CREATE TABLE pump_properties (
   asset_id                INTEGER PRIMARY KEY REFERENCES assets(id),
+  definition_type         TEXT NOT NULL CHECK (definition_type IN ('power','curve','curveId')),
   power                   REAL,
   speed                   REAL,
   speed_pattern_id        TEXT,
@@ -136,6 +137,7 @@ WHERE a.type = 'pipe';
 CREATE VIEW pumps_view AS
 SELECT a.id, a.type, a.label, a.is_active,
        lp.start_node_id, lp.end_node_id, lp.coords, lp.length, lp.initial_status,
+       pmp.definition_type,
        pmp.power, pmp.speed, pmp.speed_pattern_id,
        pmp.efficiency_curve_id, pmp.energy_price, pmp.energy_price_pattern_id,
        pmp.curve_id
