@@ -128,6 +128,18 @@ const AlertInpOutputDialog = dynamic<{
   },
 );
 
+const AlertExportInpDialog = dynamic<{
+  onSaveProject: () => void;
+  onExportAnyway: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/alert-export-inp").then((r) => r.AlertExportInpDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const AlertScenariosNotSavedDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
@@ -542,6 +554,13 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "alertInpOutput" }, ({ onContinue }) => (
       <AlertInpOutputDialog onContinue={onContinue} onClose={onClose} />
+    ))
+    .with({ type: "alertExportInp" }, ({ onSaveProject, onExportAnyway }) => (
+      <AlertExportInpDialog
+        onSaveProject={onSaveProject}
+        onExportAnyway={onExportAnyway}
+        onClose={onClose}
+      />
     ))
     .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
       <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />

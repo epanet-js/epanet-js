@@ -43,6 +43,7 @@ export const useSaveInp = ({
   const map = useContext(MapContext);
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -153,7 +154,7 @@ export const useSaveInp = ({
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
       const proceedWithSave = () => {
-        if (fileInfo && !fileInfo.isMadeByApp) {
+        if (!isOurFileOn && fileInfo && !fileInfo.isMadeByApp) {
           setDialogState({
             type: "alertInpOutput",
             onContinue: () => saveInp({ source, isSaveAs }),
@@ -172,7 +173,7 @@ export const useSaveInp = ({
         return proceedWithSave();
       }
     },
-    [fileInfo, setDialogState, saveInp, hasScenarios],
+    [fileInfo, setDialogState, saveInp, hasScenarios, isOurFileOn],
   );
 
   return saveAlerting;
