@@ -5,8 +5,8 @@ export interface IdGenerator {
 
 export class ConsecutiveIdsGenerator implements IdGenerator {
   private last: number;
-  constructor() {
-    this.last = 0;
+  constructor(startFrom: number = 0) {
+    this.last = startFrom;
   }
 
   newId(): number {

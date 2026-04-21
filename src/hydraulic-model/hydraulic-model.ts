@@ -31,20 +31,26 @@ export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   controls = createEmptyControls(),
   idGenerator,
+  assets,
+  topology,
+  assetIndex,
 }: {
   demands?: Demands;
   controls?: Controls;
   idGenerator?: IdGenerator;
+  assets?: AssetsMap;
+  topology?: Topology;
+  assetIndex?: AssetIndex;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
-  const assets = new Map();
+  const resolvedAssets = assets ?? new Map();
   return {
     version: nanoid(),
-    assets,
+    assets: resolvedAssets,
     customerPoints: initializeCustomerPoints(),
     customerPointsLookup: new CustomerPointsLookup(),
-    topology: new Topology(),
-    assetIndex: new AssetIndex(assetIdGenerator, assets),
+    topology: topology ?? new Topology(),
+    assetIndex: assetIndex ?? new AssetIndex(assetIdGenerator, resolvedAssets),
     demands,
     curves: new Map(),
     patterns: new Map(),

@@ -11,10 +11,6 @@ import { useTranslate } from "src/hooks/use-translate";
 
 import * as db from "src/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { initializeHydraulicModel } from "src/hydraulic-model";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useSetAtom } from "jotai";
 import { fileInfoAtom } from "src/state/file-system";
@@ -63,15 +59,8 @@ export const useOpenProject = () => {
           return;
         }
 
-        const { projectSettings } = await db.fetchProject();
-
-        const idGenerator = new ConsecutiveIdsGenerator();
-        const hydraulicModel = initializeHydraulicModel({ idGenerator });
-        const factories = initializeModelFactories({
-          idGenerator,
-          labelManager: new LabelManager(),
-          defaults: projectSettings.defaults,
-        });
+        const { projectSettings, hydraulicModel, factories } =
+          await db.fetchProject();
 
         await initializeProject({
           hydraulicModel,

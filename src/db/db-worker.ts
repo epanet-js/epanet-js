@@ -77,6 +77,15 @@ const runMigrations = () => {
   }
 };
 
+const readAll = async (sql: string): Promise<unknown[]> => {
+  await ready;
+  if (!db) throw new Error("No database open");
+  return db.exec(sql, {
+    returnValue: "resultRows",
+    rowMode: "object",
+  }) as unknown[];
+};
+
 const api = {
   async newDb() {
     await ready;
@@ -137,6 +146,30 @@ const api = {
     db.exec("INSERT OR REPLACE INTO project (id, settings) VALUES (1, ?)", {
       bind: [json],
     });
+  },
+
+  async getJunctions(): Promise<unknown[]> {
+    return readAll("SELECT * FROM junctions_view");
+  },
+
+  async getReservoirs(): Promise<unknown[]> {
+    return readAll("SELECT * FROM reservoirs_view");
+  },
+
+  async getTanks(): Promise<unknown[]> {
+    return readAll("SELECT * FROM tanks_view");
+  },
+
+  async getPipes(): Promise<unknown[]> {
+    return readAll("SELECT * FROM pipes_view");
+  },
+
+  async getPumps(): Promise<unknown[]> {
+    return readAll("SELECT * FROM pumps_view");
+  },
+
+  async getValves(): Promise<unknown[]> {
+    return readAll("SELECT * FROM valves_view");
   },
 
   async exportDb(): Promise<Uint8Array> {
