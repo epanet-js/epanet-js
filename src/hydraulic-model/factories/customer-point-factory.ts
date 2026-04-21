@@ -1,6 +1,9 @@
 import { Position } from "geojson";
 import { IdGenerator } from "src/lib/id-generator";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import {
+  CustomerPoint,
+  CustomerPointId,
+} from "src/hydraulic-model/customer-points";
 import { roundCoordinates } from "src/lib/geometry";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 
@@ -19,6 +22,19 @@ export class CustomerPointFactory {
     return new CustomerPoint(id, roundCoordinates(coordinates), {
       label: resolvedLabel,
     });
+  }
+
+  load({
+    id,
+    coordinates,
+    label,
+  }: {
+    id: CustomerPointId;
+    coordinates: Position;
+    label: string;
+  }): CustomerPoint {
+    this.labelManager.register(label, "customerPoint", id);
+    return new CustomerPoint(id, roundCoordinates(coordinates), { label });
   }
 
   get totalGenerated(): number {

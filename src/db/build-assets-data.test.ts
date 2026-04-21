@@ -7,7 +7,7 @@ import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Junction } from "src/hydraulic-model/asset-types/junction";
 import { buildAssetsData } from "./build-assets-data";
 import {
-  findMaxAssetId,
+  findMaxId,
   type AssetRows,
   type JunctionRow,
   type PipeRow,
@@ -85,16 +85,16 @@ const makePump = (overrides: Partial<PumpRow>): PumpRow => ({
   ...overrides,
 });
 
-describe("findMaxAssetId", () => {
+describe("findMaxId", () => {
   it("returns 0 when no rows are provided", () => {
-    expect(findMaxAssetId(emptyRows())).toBe(0);
+    expect(findMaxId(emptyRows())).toBe(0);
   });
 
   it("scans all asset collections", () => {
     const rows = emptyRows();
     rows.junctions = [makeJunction({ id: 5 })];
     rows.pipes = [makePipe({ id: 42, start_node_id: 5, end_node_id: 5 })];
-    expect(findMaxAssetId(rows)).toBe(42);
+    expect(findMaxId(rows)).toBe(42);
   });
 });
 

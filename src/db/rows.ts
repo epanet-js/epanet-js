@@ -84,16 +84,43 @@ export type AssetRows = {
   valves: ValveRow[];
 };
 
-export const findMaxAssetId = (rows: AssetRows): number => {
+export type CustomerPointRow = {
+  id: number;
+  label: string;
+  coord_x: number;
+  coord_y: number;
+  pipe_id: number | null;
+  junction_id: number | null;
+  snap_x: number | null;
+  snap_y: number | null;
+};
+
+export type CustomerPointDemandRow = {
+  customer_point_id: number;
+  ordinal: number;
+  base_demand: number;
+  pattern_id: string | null;
+};
+
+export type CustomerPointsData = {
+  customerPoints: CustomerPointRow[];
+  demands: CustomerPointDemandRow[];
+};
+
+export const findMaxId = (
+  assetRows: AssetRows,
+  cpData?: CustomerPointsData,
+): number => {
   let max = 0;
   const scan = (arr: { id: number }[]) => {
     for (const r of arr) if (r.id > max) max = r.id;
   };
-  scan(rows.junctions);
-  scan(rows.reservoirs);
-  scan(rows.tanks);
-  scan(rows.pipes);
-  scan(rows.pumps);
-  scan(rows.valves);
+  scan(assetRows.junctions);
+  scan(assetRows.reservoirs);
+  scan(assetRows.tanks);
+  scan(assetRows.pipes);
+  scan(assetRows.pumps);
+  scan(assetRows.valves);
+  if (cpData) scan(cpData.customerPoints);
   return max;
 };
