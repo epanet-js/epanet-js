@@ -8,6 +8,9 @@ import type {
   PipeRow,
   PumpRow,
   ValveRow,
+  CustomerPointRow,
+  CustomerPointDemandRow,
+  CustomerPointsData,
 } from "./rows";
 import type { ApplyMomentPayload } from "./apply-moment";
 
@@ -267,6 +270,57 @@ const deleteAssetCascade = (id: number) => {
   db!.exec("DELETE FROM assets WHERE id = ?", { bind: [id] });
 };
 
+const insertCustomerPoint = (row: CustomerPointRow) => {
+  db!.exec(
+    `INSERT INTO customer_points
+     (id, label, coord_x, coord_y, pipe_id, junction_id, snap_x, snap_y)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    {
+      bind: [
+        row.id,
+        row.label,
+        row.coord_x,
+        row.coord_y,
+        row.pipe_id,
+        row.junction_id,
+        row.snap_x,
+        row.snap_y,
+      ],
+    },
+  );
+};
+
+const insertCustomerPointDemand = (row: CustomerPointDemandRow) => {
+  db!.exec(
+    `INSERT INTO customer_point_demands
+     (customer_point_id, ordinal, base_demand, pattern_id)
+     VALUES (?, ?, ?, ?)`,
+    {
+      bind: [
+        row.customer_point_id,
+        row.ordinal,
+        row.base_demand,
+        row.pattern_id,
+      ],
+    },
+  );
+};
+
+const deleteCustomerPointDemands = (id: number) => {
+  db!.exec("DELETE FROM customer_point_demands WHERE customer_point_id = ?", {
+    bind: [id],
+  });
+};
+
+const deleteCustomerPoint = (id: number) => {
+  db!.exec("DELETE FROM customer_points WHERE id = ?", { bind: [id] });
+};
+
+const deleteCustomerPointCascade = (id: number) => {
+  deleteCustomerPointDemands(id);
+  deleteCustomerPoint(id);
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -388,32 +442,45 @@ const api = {
     if (!db) throw new Error("No database open");
     db.exec("BEGIN IMMEDIATE");
     try {
-      for (const id of payload.deleteIds) {
+      for (const id of payload.assetDeleteIds) {
         deleteAssetCascade(id);
       }
-      for (const row of payload.upserts.junctions) {
+      for (const row of payload.assetUpserts.junctions) {
         deleteAssetCascade(row.id);
         insertJunction(row);
       }
-      for (const row of payload.upserts.reservoirs) {
+      for (const row of payload.assetUpserts.reservoirs) {
         deleteAssetCascade(row.id);
         insertReservoir(row);
       }
-      for (const row of payload.upserts.tanks) {
+      for (const row of payload.assetUpserts.tanks) {
         deleteAssetCascade(row.id);
         insertTank(row);
       }
-      for (const row of payload.upserts.pipes) {
+      for (const row of payload.assetUpserts.pipes) {
         deleteAssetCascade(row.id);
         insertPipe(row);
       }
-      for (const row of payload.upserts.pumps) {
+      for (const row of payload.assetUpserts.pumps) {
         deleteAssetCascade(row.id);
         insertPump(row);
       }
-      for (const row of payload.upserts.valves) {
+      for (const row of payload.assetUpserts.valves) {
         deleteAssetCascade(row.id);
         insertValve(row);
+      }
+      for (const id of payload.customerPointDeleteIds) {
+        deleteCustomerPointCascade(id);
+      }
+      for (const row of payload.customerPointUpserts) {
+        deleteCustomerPoint(row.id);
+        insertCustomerPoint(row);
+      }
+      for (const update of payload.customerPointDemandUpdates) {
+        deleteCustomerPointDemands(update.customerPointId);
+        for (const demandRow of update.demands) {
+          insertCustomerPointDemand(demandRow);
+        }
       }
       db.exec("COMMIT");
     } catch (e) {
@@ -446,6 +513,22 @@ const api = {
       for (const row of payload.pipes) insertPipe(row);
       for (const row of payload.pumps) insertPump(row);
       for (const row of payload.valves) insertValve(row);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  },
+
+  async setAllCustomerPoints(payload: CustomerPointsData): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      db.exec("DELETE FROM customer_point_demands");
+      db.exec("DELETE FROM customer_points");
+      for (const row of payload.customerPoints) insertCustomerPoint(row);
+      for (const row of payload.demands) insertCustomerPointDemand(row);
       db.exec("COMMIT");
     } catch (e) {
       db.exec("ROLLBACK");

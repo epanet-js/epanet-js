@@ -54,6 +54,10 @@ const loadModel = async (
   if (isOurFileOn) {
     await db.saveProjectSettings(projectSettings);
     await db.setAllAssets(hydraulicModel.assets);
+    await db.setAllCustomerPoints(
+      hydraulicModel.customerPoints,
+      hydraulicModel.demands.customerPoints,
+    );
   }
   set(momentLogDerivedAtom, momentLog);
   if (autoElevations !== undefined) {
