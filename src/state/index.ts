@@ -78,8 +78,8 @@ export {
   estimatedSourceRebuildDurationAtom,
   resultsFetchDurationsAtom,
   estimatedResultsFetchDurationAtom,
-  estimatedResultsUpdateDurationAtom,
 } from "src/state/performance";
+export { maximumPlaybackSpeedAtom } from "src/state/simulation-playback";
 
 // Map projection
 export {

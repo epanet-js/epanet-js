@@ -46,15 +46,6 @@ export const resultsFetchDurationsAtom = resultsFetch.durationsAtom;
 export const estimatedResultsFetchDurationAtom = resultsFetch.estimatedAtom;
 const appendResultsFetchDurationAtom = resultsFetch.appendAtom;
 
-// -- Estimated total results update duration (fetch + rebuild) --
-// null if either measurement is not yet available.
-export const estimatedResultsUpdateDurationAtom = atom<number | null>((get) => {
-  const fetch = get(estimatedResultsFetchDurationAtom);
-  const rebuild = get(estimatedSourceRebuildDurationAtom);
-  if (fetch === null || rebuild === null) return null;
-  return fetch + rebuild;
-});
-
 const resultsFetchStartedAtAtom = atom<number | null>(null);
 
 export const resultsFetchStartEffectAtom = atomEffect((get, set) => {

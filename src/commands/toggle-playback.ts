@@ -3,11 +3,11 @@ import {
   simulationPlaybackAtom,
   stopPlaybackAtom,
   changePlaybackSpeedAtom,
-  resolvePlaybackSpeedMs,
-  isSpeedTooFast,
+  maximumPlaybackSpeedAtom,
+  resolveSpeedByMode,
   type PlaybackSpeed,
+  autoPlaybackSpeedAtom,
 } from "src/state/simulation-playback";
-import { estimatedResultsUpdateDurationAtom } from "src/state/performance";
 import { useUserTracking } from "src/infra/user-tracking";
 import { ChangeTimestepSource } from "./change-timestep";
 
@@ -15,30 +15,18 @@ export const togglePlaybackShortcut = "shift+space";
 
 type ChangePlaybackSource = ChangeTimestepSource | "auto";
 
+type StartPlaybackSource = "buttons" | "shortcut";
+
 export const useTogglePlayback = () => {
   const userTracking = useUserTracking();
 
-  const togglePlayback = useAtomCallback<void, [ChangePlaybackSource]>(
+  const togglePlayback = useAtomCallback<void, ["shortcut" | "buttons"]>(
     (get, set, source) => {
-      const { playingAtSpeedMs, playbackSpeed } = get(simulationPlaybackAtom);
-      const wasPlaying = playingAtSpeedMs !== 0;
-      let resolvedMs: number | undefined;
-      if (wasPlaying) {
-        set(stopPlaybackAtom);
+      if (get(simulationPlaybackAtom).playingAtSpeedMs !== 0) {
+        stopPlayback(source);
       } else {
-        const estimated = get(estimatedResultsUpdateDurationAtom);
-        resolvedMs = resolvePlaybackSpeedMs(playbackSpeed, estimated);
-        set(simulationPlaybackAtom, (prev) => ({
-          ...prev,
-          playingAtSpeedMs: resolvedMs!,
-        }));
+        startPlayback(source);
       }
-      userTracking.capture({
-        name: "simulation.playback.toggled",
-        action: wasPlaying ? "pause" : "play",
-        source,
-        speedMs: resolvedMs,
-      });
     },
   );
 
@@ -47,25 +35,47 @@ export const useTogglePlayback = () => {
       if (get(simulationPlaybackAtom).playingAtSpeedMs === 0) return;
       set(stopPlaybackAtom);
       userTracking.capture({
-        name: "simulation.playback.toggled",
-        action: "pause",
+        name: "simulation.playback.stopped",
         source,
+      });
+    },
+  );
+
+  const startPlayback = useAtomCallback<void, [StartPlaybackSource]>(
+    (get, set, source) => {
+      if (get(simulationPlaybackAtom).playingAtSpeedMs !== 0) return;
+      const { playbackSpeed } = get(simulationPlaybackAtom);
+      const autoPlaybackSpeed = get(autoPlaybackSpeedAtom);
+      const maxMs = get(maximumPlaybackSpeedAtom);
+      const resolvedSpeedMs = resolveSpeedByMode(
+        autoPlaybackSpeed,
+        playbackSpeed,
+      );
+      const isTooFast = resolvedSpeedMs < maxMs;
+      set(simulationPlaybackAtom, (prev) => ({
+        ...prev,
+        playingAtSpeedMs: resolvedSpeedMs,
+      }));
+      userTracking.capture({
+        name: "simulation.playback.started",
+        source,
+        speed: playbackSpeed,
+        speedMs: resolvedSpeedMs,
+        isTooFast,
       });
     },
   );
 
   const changePlaybackSpeed = useAtomCallback<void, [PlaybackSpeed]>(
     (get, set, speed) => {
+      const autoMs = get(autoPlaybackSpeedAtom);
+      const maxMs = get(maximumPlaybackSpeedAtom);
+      const isTooFast = resolveSpeedByMode(autoMs, speed) < maxMs;
       set(changePlaybackSpeedAtom, speed);
-      const estimated = get(estimatedResultsUpdateDurationAtom);
-      const warning =
-        speed !== "auto" && estimated !== null
-          ? isSpeedTooFast(speed, estimated)
-          : false;
       userTracking.capture({
         name: "simulation.playback.speedChanged",
         speed,
-        warning,
+        isTooFast,
       });
     },
   );

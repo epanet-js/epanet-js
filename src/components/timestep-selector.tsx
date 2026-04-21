@@ -24,10 +24,11 @@ import {
 } from "src/commands/change-timestep";
 import {
   simulationPlaybackAtom,
-  isSpeedTooFast,
+  maximumPlaybackSpeedAtom,
+  resolveSpeedByMode,
   type PlaybackSpeed,
+  autoPlaybackSpeedAtom,
 } from "src/state/simulation-playback";
-import { estimatedResultsUpdateDurationAtom } from "src/state/performance";
 import { useTogglePlayback } from "src/commands/toggle-playback";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
@@ -109,10 +110,10 @@ export const TimestepSelectorUI = ({
   );
 };
 
-const SPEED_OPTIONS: { label: string; value: PlaybackSpeed }[] = [
-  { label: "auto", value: "auto" },
-  { label: "x2", value: "x2" },
-  { label: "x4", value: "x4" },
+const SPEED_OPTIONS: { translationKey: string; value: PlaybackSpeed }[] = [
+  { translationKey: "playbackSpeedAuto", value: "auto" },
+  { translationKey: "playbackSpeedX2", value: "x2" },
+  { translationKey: "playbackSpeedX4", value: "x4" },
 ];
 
 const LONG_PRESS_DURATION_MS = 500;
@@ -122,11 +123,17 @@ const PlayButton = () => {
   const { playbackSpeed, playingAtSpeedMs } = useAtomValue(
     simulationPlaybackAtom,
   );
-  const isPlaying = playingAtSpeedMs !== 0;
+  const maxPlaybackSpeedMs = useAtomValue(maximumPlaybackSpeedAtom);
+  const autoSpeedMs = useAtomValue(autoPlaybackSpeedAtom);
   const { togglePlayback, changePlaybackSpeed } = useTogglePlayback();
-  const estimatedUpdateDuration = useAtomValue(
-    estimatedResultsUpdateDurationAtom,
-  );
+  const isPlaying = playingAtSpeedMs !== 0;
+
+  const speedOptions = SPEED_OPTIONS.map((option) => ({
+    ...option,
+    warning:
+      option.value !== "auto" &&
+      resolveSpeedByMode(autoSpeedMs, option.value) < maxPlaybackSpeedMs,
+  }));
 
   const [isOpen, setIsOpen] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
@@ -205,7 +212,7 @@ const PlayButton = () => {
             >
               {currentSpeed.value !== "auto" && (
                 <span className="text-[9px] leading-none text-gray-500 font-medium">
-                  {currentSpeed.label}
+                  {translate(currentSpeed.translationKey)}
                 </span>
               )}
               <span className="border-l-[6px] border-l-transparent border-b-[6px] border-b-gray-400" />
@@ -218,19 +225,18 @@ const PlayButton = () => {
           <DD.RadioGroup
             value={currentSpeed.value}
             onValueChange={(v) => {
-              changePlaybackSpeed(v as PlaybackSpeed);
+              const speed = v as PlaybackSpeed;
+              changePlaybackSpeed(speed);
               setIsOpen(false);
               togglePlayback("buttons");
             }}
           >
-            {SPEED_OPTIONS.map(({ label, value }) => (
+            {speedOptions.map(({ translationKey, value, warning }) => (
               <StyledRadioItem key={value} value={value}>
-                {label}
-                {estimatedUpdateDuration !== null &&
-                  value !== "auto" &&
-                  isSpeedTooFast(value, estimatedUpdateDuration) && (
-                    <WarningIcon className="text-amber-500" />
-                  )}
+                {value === "auto"
+                  ? translate("playbackSpeedAuto", String(autoSpeedMs / 1000))
+                  : translate(translationKey)}
+                {warning && <WarningIcon className="text-amber-500" />}
                 <DD.ItemIndicator>
                   <CheckIcon className="text-purple-700" />
                 </DD.ItemIndicator>

@@ -248,17 +248,23 @@ type SimulationTimestepChanged = {
   source: "shortcut" | "buttons" | "dropdown" | "quick-graph";
 };
 
-type SimulationPlaybackToggled = {
-  name: "simulation.playback.toggled";
-  action: "play" | "pause";
+type SimulationPlaybackStopped = {
+  name: "simulation.playback.stopped";
   source: "shortcut" | "buttons" | "dropdown" | "quick-graph" | "auto";
-  speedMs?: number;
+};
+
+type SimulationPlaybackStarted = {
+  name: "simulation.playback.started";
+  source: "shortcut" | "buttons";
+  speed: PlaybackSpeed;
+  speedMs: number;
+  isTooFast: boolean;
 };
 
 type SimulationPlaybackSpeedChanged = {
   name: "simulation.playback.speedChanged";
   speed: PlaybackSpeed;
-  warning: boolean;
+  isTooFast: boolean;
 };
 
 type ReportOpened = {
@@ -919,7 +925,8 @@ export type UserEvent =
   | ExampleModelClicked
   | SimulationExecuted
   | SimulationTimestepChanged
-  | SimulationPlaybackToggled
+  | SimulationPlaybackStopped
+  | SimulationPlaybackStarted
   | SimulationPlaybackSpeedChanged
   | ReportOpened
   | OpenInpStarted

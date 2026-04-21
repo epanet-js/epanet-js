@@ -14,7 +14,6 @@ import {
   estimatedSourceRebuildDurationAtom,
   resultsFetchDurationsAtom,
   estimatedResultsFetchDurationAtom,
-  estimatedResultsUpdateDurationAtom,
 } from "src/state/performance";
 import { setTimestepAtom } from "src/state/simulation-step";
 import { simulationStepAtom } from "src/state/simulation";
@@ -84,8 +83,6 @@ const performanceLoggingEffectAtom = atomEffect((get) => {
   const fetchDurations = get(resultsFetchDurationsAtom);
   const estimatedRebuild = get.peek(estimatedSourceRebuildDurationAtom);
   const estimatedFetch = get.peek(estimatedResultsFetchDurationAtom);
-  const estimatedTotal = get.peek(estimatedResultsUpdateDurationAtom);
-
   const lastRebuild = rebuildDurations.at(-1);
   const lastFetch = fetchDurations.at(-1);
   if (
@@ -99,7 +96,6 @@ const performanceLoggingEffectAtom = atomEffect((get) => {
         "[Playback timing limitations]",
         `  Fetch:   ${lastFetch?.toFixed(0) ?? "-"}ms (P90: ${estimatedFetch?.toFixed(0) ?? "-"}ms, n=${fetchDurations.length})`,
         `  Rebuild: ${lastRebuild?.toFixed(0) ?? "-"}ms (P90: ${estimatedRebuild?.toFixed(0) ?? "-"}ms, n=${rebuildDurations.length})`,
-        `  Total P90: ${estimatedTotal?.toFixed(0) ?? "-"}ms`,
       ].join("\n"),
     );
   }
