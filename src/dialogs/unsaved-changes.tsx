@@ -1,6 +1,8 @@
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useSaveInp } from "src/commands/save-inp";
+import { useSaveProject } from "src/commands/save-project";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const UnsavedChangesDialog = ({
   onContinue,
@@ -11,9 +13,13 @@ export const UnsavedChangesDialog = ({
 }) => {
   const translate = useTranslate();
   const saveInp = useSaveInp();
+  const saveProject = useSaveProject();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const handleSaveAndContinue = async () => {
-    const isSaved = await saveInp({ source: "unsavedDialog" });
+    const isSaved = isOurFileOn
+      ? await saveProject({ source: "unsavedDialog" })
+      : await saveInp({ source: "unsavedDialog" });
     if (isSaved) {
       onClose();
       onContinue();

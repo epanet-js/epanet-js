@@ -64,6 +64,12 @@ export type AlertExportInpState = {
   onExportAnyway: () => void;
 };
 
+export type ProjectSavedInfoState = {
+  type: "projectSavedInfo";
+  onConfirm: () => void;
+  onCancel?: () => void;
+};
+
 export type UpgradeDialogState = {
   type: "upgrade";
 };
@@ -187,6 +193,7 @@ export type DialogState =
   | { type: "loading" }
   | AlertInpOutputState
   | AlertExportInpState
+  | ProjectSavedInfoState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
