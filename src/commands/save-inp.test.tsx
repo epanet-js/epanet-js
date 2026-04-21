@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { useSaveInp } from "./save-inp";
@@ -39,7 +39,7 @@ describe("save inp", () => {
     });
     expect(lastSave.handle).toEqual(null);
 
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual({
       modelVersion: hydraulicModel.version,
       name: "my-network.inp",
@@ -74,7 +74,7 @@ describe("save inp", () => {
     await waitForNotLoading();
 
     const lastSave = lastSaveCall();
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
         handle: newHandle,
@@ -100,7 +100,7 @@ describe("save inp", () => {
     await triggerSaveAs();
 
     const lastSave = lastSaveCall();
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
         handle: newHandle,

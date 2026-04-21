@@ -2,7 +2,7 @@ import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { dataAtom, nullData } from "src/state/data";
-import { FileInfo, fileInfoAtom } from "src/state/file-system";
+import { FileInfo, inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { layerConfigAtom } from "src/state/map";
 import { modeAtom } from "src/state/mode";
@@ -85,7 +85,7 @@ export const setInitialState = (
   store.set(momentLogAtom, momentLog);
   store.set(simulationAtom, simulation);
   store.set(simulationStepAtom, simulationStep);
-  store.set(fileInfoAtom, fileInfo);
+  store.set(inpFileInfoAtom, fileInfo);
   store.set(layerConfigAtom, layerConfigs);
   store.set(nodeSymbologyAtom, nodeSymbology);
   store.set(linkSymbologyAtom, linkSymbology);

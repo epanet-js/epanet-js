@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { dataAtom } from "src/state/data";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { momentLogAtom } from "src/state/model-changes";
 import { SimulationFinished, simulationAtom } from "src/state/simulation";
@@ -49,8 +49,8 @@ describe("openInpFromFs", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "1")).toBeTruthy();
 
-    expect(store.get(fileInfoAtom)!.handle).toEqual(newHandle);
-    expect(store.get(fileInfoAtom)!.isMadeByApp).toEqual(true);
+    expect(store.get(inpFileInfoAtom)!.handle).toEqual(newHandle);
+    expect(store.get(inpFileInfoAtom)!.isMadeByApp).toEqual(true);
   });
 
   it("captures a user tracking events", async () => {
@@ -100,8 +100,8 @@ describe("openInpFromFs", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
-    expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
-    expect(store.get(fileInfoAtom)!.isMadeByApp).toEqual(false);
+    expect(store.get(inpFileInfoAtom)!.handle).toEqual(undefined);
+    expect(store.get(inpFileInfoAtom)!.isMadeByApp).toEqual(false);
   });
 
   it("displays error when cannot process", async () => {
@@ -230,7 +230,7 @@ describe("openInpFromFs", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
-    expect(store.get(fileInfoAtom)!.handle).toEqual(undefined);
+    expect(store.get(inpFileInfoAtom)!.handle).toEqual(undefined);
   });
 
   it("can discard changes when opening a new project", async () => {

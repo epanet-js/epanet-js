@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
@@ -83,7 +83,7 @@ describe("create new project", () => {
     const momentLog = store.get(momentLogAtom);
     expect(momentLog.getDeltas().length).toEqual(0);
 
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toBeNull();
   });
 

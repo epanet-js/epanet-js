@@ -1,4 +1,4 @@
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
@@ -7,7 +7,7 @@ import { useTranslate } from "src/hooks/use-translate";
 
 export function FileInfo() {
   const translate = useTranslate();
-  const fileInfo = useAtomValue(fileInfoAtom);
+  const fileInfo = useAtomValue(inpFileInfoAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
 
   if (!fileInfo) return <div></div>;

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
@@ -28,7 +28,7 @@ describe("open inp from url", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
   });
 
@@ -50,7 +50,7 @@ describe("open inp from url", () => {
     const hydraulicModel = store.get(stagingModelAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo!.name).toEqual("network-001.inp");
   });
 
@@ -74,7 +74,7 @@ describe("open inp from url", () => {
 
     expect(screen.getByText(/welcome/i)).toBeInTheDocument();
 
-    const fileInfo = store.get(fileInfoAtom);
+    const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toBeNull();
 
     expect(mockCapture).toHaveBeenCalledWith({

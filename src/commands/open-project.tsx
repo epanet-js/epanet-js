@@ -13,7 +13,7 @@ import * as db from "src/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useSetAtom } from "jotai";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { projectExtension } from "./save-project";
 
@@ -23,7 +23,7 @@ export const useOpenProject = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { openFile, isReady } = useFileOpen();
   const { initializeProject } = useProjectInitialization();
-  const setFileInfo = useSetAtom(fileInfoAtom);
+  const setFileInfo = useSetAtom(inpFileInfoAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();

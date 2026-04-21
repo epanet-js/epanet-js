@@ -7,7 +7,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { USelection } from "src/selection/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { dataAtom } from "src/state/data";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import { nullHydraulicModel } from "src/state/hydraulic-model";
 import { worktreeAtom } from "src/state/scenarios";
 import {
@@ -150,7 +150,7 @@ export const selectedFeaturesDerivedAtom = atom((get) => {
 });
 
 export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {
-  const fileInfo = get(fileInfoAtom);
+  const fileInfo = get(inpFileInfoAtom);
   const momentLog = get(momentLogDerivedAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
 

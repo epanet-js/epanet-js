@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 
-import { fileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
+import { inpFileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
@@ -43,7 +43,7 @@ export const useSaveProject = ({
 
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
-          const fileInfo = get(fileInfoAtom);
+          const fileInfo = get(inpFileInfoAtom);
           const hydraulicModel = get(stagingModelDerivedAtom);
 
           const blob = await db.exportDb();
@@ -64,7 +64,7 @@ export const useSaveProject = ({
 
           if (newHandle) {
             const isDemo = get(isDemoNetworkAtom);
-            set(fileInfoAtom, {
+            set(inpFileInfoAtom, {
               name: newHandle.name,
               modelVersion: hydraulicModel.version,
               handle: newHandle,

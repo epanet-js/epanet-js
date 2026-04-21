@@ -1,6 +1,6 @@
 import { dialogAtom } from "src/state/dialog";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { fileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom } from "src/state/file-system";
 import {
   stagingModelDerivedAtom,
   baseModelDerivedAtom,
@@ -37,7 +37,7 @@ export const useSaveInp = ({
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
-  const fileInfo = useAtomValue(fileInfoAtom);
+  const fileInfo = useAtomValue(inpFileInfoAtom);
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
@@ -59,7 +59,7 @@ export const useSaveInp = ({
         const exportOptions: ExportOptions = { type: "inp", folderId: "" };
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
-          const fileInfo = get(fileInfoAtom);
+          const fileInfo = get(inpFileInfoAtom);
 
           const worktree = get(worktreeAtom);
           const hasScenarios = worktree.scenarios.length > 0;
@@ -99,7 +99,7 @@ export const useSaveInp = ({
           );
           if (newHandle) {
             const isDemo = get(isDemoNetworkAtom);
-            set(fileInfoAtom, {
+            set(inpFileInfoAtom, {
               name: newHandle.name,
               modelVersion: hydraulicModel.version,
               handle: newHandle,

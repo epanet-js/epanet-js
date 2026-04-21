@@ -12,10 +12,10 @@ export type FileInfo = {
   options: ExportOptions;
 };
 
-export const fileInfoAtom = atom<FileInfo | null>(null);
+export const inpFileInfoAtom = atom<FileInfo | null>(null);
 
 export const isDemoNetworkAtom = atom(
-  (get) => get(fileInfoAtom)?.isDemoNetwork ?? false,
+  (get) => get(inpFileInfoAtom)?.isDemoNetwork ?? false,
 );
 
 export const recentFilesStoreAtom = atom(

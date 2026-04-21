@@ -21,7 +21,7 @@ export {
 
 // File system
 export type { FileInfo } from "src/state/file-system";
-export { fileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
+export { inpFileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
 
 // Hydraulic model
 export {
