@@ -42,7 +42,7 @@ import {
 } from "src/state/performance";
 import { simulationPlaybackAtom } from "src/state/simulation-playback";
 
-type InitializeProjectInput = {
+export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   projectSettings: ProjectSettings;
@@ -50,7 +50,7 @@ type InitializeProjectInput = {
   autoElevations?: boolean;
 };
 
-const resetAppState = (set: Setter) => {
+export const resetAppState = (set: Setter) => {
   set(splitsAtom, defaultSplits);
   set(dataAtom, nullData);
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
@@ -68,23 +68,23 @@ const resetAppState = (set: Setter) => {
   set(simulationPlaybackAtom, (prev) => ({ ...prev, playingAtSpeedMs: 0 }));
 };
 
-const loadModel = async (
+export const loadModel = (
   set: Setter,
-  {
+  input: ProjectLoadInput,
+): ProjectSettings => {
+  const {
     hydraulicModel,
     factories,
     projectSettings,
     simulationSettings,
     autoElevations,
-  }: InitializeProjectInput,
-  isOurFileOn: boolean,
-) => {
+  } = input;
   const momentLog = new MomentLog();
 
   set(stagingModelAtom, hydraulicModel);
   set(baseModelAtom, hydraulicModel);
   set(modelFactoriesAtom, factories);
-  const mergedProjectSettings = {
+  const mergedProjectSettings: ProjectSettings = {
     ...projectSettings,
     units: {
       ...projectSettings.units,
@@ -92,9 +92,6 @@ const loadModel = async (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
-  if (isOurFileOn) {
-    await db.saveProjectSettings(mergedProjectSettings);
-  }
   set(momentLogAtom, momentLog);
   set(simulationSettingsAtom, simulationSettings);
   if (autoElevations !== undefined) {
@@ -121,25 +118,35 @@ const loadModel = async (
       ],
     ]),
   );
+
+  return mergedProjectSettings;
 };
 
-const clearSimulationStorage = async () => {
+export const clearSimulationStorage = async () => {
   const storage = new OPFSStorage(getAppId());
   await storage.clear();
 };
 
-export const useProjectInitialization = () => {
+export const useStartNewProject = () => {
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-  const initializeProject = useAtomCallback(
+
+  const startNewProject = useAtomCallback(
     useCallback(
-      async (_get: Getter, set: Setter, input: InitializeProjectInput) => {
+      async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
         await clearSimulationStorage();
         resetAppState(set);
-        await loadModel(set, input, isOurFileOn);
+        if (isOurFileOn) {
+          await db.newProject();
+        }
+        const mergedProjectSettings = loadModel(set, input);
+        if (isOurFileOn) {
+          await db.saveProjectSettings(mergedProjectSettings);
+          await db.setAllAssets(input.hydraulicModel.assets);
+        }
       },
       [isOurFileOn],
     ),
   );
 
-  return { initializeProject };
+  return { startNewProject };
 };

@@ -26,8 +26,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
-import * as db from "src/db";
+import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 
 export const inpExtension = ".inp";
 
@@ -39,8 +38,7 @@ export const useImportInp = () => {
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
   const isXyDetectOn = useFeatureFlag("FLAG_XY_DETECT");
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-  const { initializeProject } = useProjectInitialization();
+  const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
 
   const completeImport = useCallback(
@@ -59,19 +57,13 @@ export const useImportInp = () => {
         isMadeByApp,
       } = result;
 
-      if (isOurFileOn) {
-        await db.newProject();
-      }
-      await initializeProject({
+      await startNewProject({
         hydraulicModel,
         factories,
         projectSettings,
         simulationSettings,
         autoElevations: options?.autoElevations,
       });
-      if (isOurFileOn) {
-        await db.setAllAssets(hydraulicModel.assets);
-      }
 
       const features: FeatureCollection = {
         type: "FeatureCollection",
@@ -123,12 +115,11 @@ export const useImportInp = () => {
     },
     [
       addRecent,
-      initializeProject,
+      startNewProject,
       map,
       setDialogState,
       setInpFileInfo,
       setProjectFileInfo,
-      isOurFileOn,
     ],
   );
 
