@@ -43,7 +43,7 @@ import {
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
-import { CreateNewDropdown } from "./create-new-dropdown";
+import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
 import {
   toggleNetworkReviewShortcut,
@@ -84,7 +84,7 @@ export const Toolbar = ({
           border-t border-gray-200 dark:border-gray-900 px-2 h-12"
     >
       <div className="flex flex-row items-center justify-start">
-        <CreateNewDropdown />
+        <FileDropdown />
         {
           <>
             <MenuAction

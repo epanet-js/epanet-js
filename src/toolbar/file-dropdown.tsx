@@ -8,17 +8,21 @@ import {
   FileIcon,
   FileAddIcon,
   FileSpreadsheetIcon,
+  FolderIcon,
   FolderOpenIcon,
   GlobeIcon,
   EarlyAccessIcon,
   NewFromExampleIcon,
   OutdatedSimulationIcon,
   DownloadIcon,
+  SaveIcon,
+  SaveAllIcon,
 } from "src/icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
+import { useSaveProject } from "src/commands/save-project";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
@@ -37,13 +41,14 @@ import {
   StyledTooltipArrow,
 } from "src/components/elements";
 
-export const CreateNewDropdown = () => {
+export const FileDropdown = () => {
   const createNewProject = useNewProject();
   const openInpFromFs = useOpenInpFromFs();
   const openProject = useOpenProject();
   const showWelcome = useShowWelcome();
   const openModelBuilder = useOpenModelBuilder();
   const saveInp = useSaveInp();
+  const saveProject = useSaveProject();
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -55,7 +60,7 @@ export const CreateNewDropdown = () => {
           <Tooltip.Trigger asChild>
             <DD.Trigger asChild>
               <Button variant="quiet">
-                <FileAddIcon />
+                {isOurFileOn ? <FolderIcon /> : <FileAddIcon />}
                 <ChevronDownIcon size="sm" />
               </Button>
             </DD.Trigger>
@@ -102,6 +107,30 @@ export const CreateNewDropdown = () => {
                 >
                   <FolderOpenIcon />
                   {translate("openProject")}
+                </StyledItem>
+              )}
+
+              {isOurFileOn && <DDSeparator />}
+
+              {isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    void saveProject({ source: "toolbar" });
+                  }}
+                >
+                  <SaveIcon />
+                  {translate("save")}
+                </StyledItem>
+              )}
+
+              {isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    void saveProject({ source: "toolbar", isSaveAs: true });
+                  }}
+                >
+                  <SaveAllIcon />
+                  {translate("saveAs")}
                 </StyledItem>
               )}
 
