@@ -6,7 +6,8 @@ import { dataAtom } from "src/state/data";
 import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { momentLogAtom } from "src/state/model-changes";
-import { SimulationFinished, simulationAtom } from "src/state/simulation";
+import { SimulationFinished } from "src/state/simulation";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import userEvent from "@testing-library/user-event";
@@ -181,7 +182,7 @@ describe("openInpFromFs", () => {
     const updatedMomentLog = store.get(momentLogAtom);
     expect(updatedMomentLog.id).not.toEqual(previousMomentLog.id);
 
-    const simulation = store.get(simulationAtom);
+    const simulation = store.get(simulationDerivedAtom);
     expect(simulation.status).toEqual("idle");
 
     expect(selection.type).toEqual("none");

@@ -1,8 +1,6 @@
 import { atom } from "jotai";
-import type { ResultsReader } from "src/simulation/results-reader";
 import type { EPSResultsReader } from "src/simulation";
 
-export const simulationResultsAtom = atom<ResultsReader | null>(null);
 export const simulationStepAtom = atom<number | null>(null);
 
 export type SimulationIdle = { status: "idle" };
@@ -33,5 +31,3 @@ export type SimulationState =
 export const initialSimulationState: SimulationIdle = {
   status: "idle",
 };
-
-export const simulationAtom = atom<SimulationState>(initialSimulationState);

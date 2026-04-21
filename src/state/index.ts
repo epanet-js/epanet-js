@@ -149,10 +149,8 @@ export type {
   SimulationState,
 } from "src/state/simulation";
 export {
-  simulationResultsAtom,
   initialSimulationState,
   simulationStepAtom,
-  simulationAtom,
 } from "src/state/simulation";
 
 // Simulation settings

@@ -4,7 +4,6 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   SimulationState,
-  simulationResultsAtom,
   initialSimulationState,
   simulationStepAtom,
 } from "src/state/simulation";
@@ -1776,7 +1775,6 @@ describe("AssetPanel", () => {
 
     if (simulationData) {
       const resultsReader = createMockResultsReader(simulationData);
-      store.set(simulationResultsAtom, resultsReader);
       store.set(simulationStepAtom, 0);
       simulation = {
         status: "success",
