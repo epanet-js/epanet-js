@@ -13,7 +13,7 @@ import * as db from "src/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useSetAtom } from "jotai";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { projectExtension } from "./save-project";
 
@@ -23,7 +23,8 @@ export const useOpenProject = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { openFile, isReady } = useFileOpen();
   const { initializeProject } = useProjectInitialization();
-  const setFileInfo = useSetAtom(inpFileInfoAtom);
+  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
+  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -70,14 +71,12 @@ export const useOpenProject = () => {
           autoElevations: projectSettings.projection.type !== "xy-grid",
         });
 
-        setFileInfo({
+        setProjectFileInfo({
           name: dbFile.name,
           handle: dbFile.handle,
           modelVersion: hydraulicModel.version,
-          isMadeByApp: true,
-          isDemoNetwork: false,
-          options: { type: "inp", folderId: "" },
         });
+        setInpFileInfo(null);
 
         setDialogState(null);
         notify({
@@ -100,7 +99,8 @@ export const useOpenProject = () => {
       openFile,
       isReady,
       initializeProject,
-      setFileInfo,
+      setInpFileInfo,
+      setProjectFileInfo,
       setDialogState,
       translate,
       userTracking,

@@ -2,7 +2,11 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 
-import { inpFileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
+import {
+  inpFileInfoAtom,
+  projectFileInfoAtom,
+  isDemoNetworkAtom,
+} from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
@@ -43,34 +47,36 @@ export const useSaveProject = ({
 
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
-          const fileInfo = get(inpFileInfoAtom);
+          const projectInfo = get(projectFileInfoAtom);
+          const inpInfo = get(inpFileInfoAtom);
           const hydraulicModel = get(stagingModelDerivedAtom);
+
+          const suggestedName = projectInfo
+            ? projectInfo.name
+            : inpInfo
+              ? `${inpInfo.name.replace(/\.[^.]+$/, "")}${projectExtension}`
+              : `my-project${projectExtension}`;
 
           const blob = await db.exportDb();
           const newHandle = await fileSave(
             blob,
             {
-              fileName: fileInfo
-                ? fileInfo.name
-                : `my-project${projectExtension}`,
+              fileName: suggestedName,
               extensions: [projectExtension],
               description: "EPANET project",
               mimeTypes: ["application/octet-stream"],
             },
-            fileInfo && !isSaveAs
-              ? (fileInfo.handle as FileSystemFileHandle)
+            projectInfo && !isSaveAs
+              ? (projectInfo.handle as FileSystemFileHandle)
               : null,
           );
 
           if (newHandle) {
             const isDemo = get(isDemoNetworkAtom);
-            set(inpFileInfoAtom, {
+            set(projectFileInfoAtom, {
               name: newHandle.name,
               modelVersion: hydraulicModel.version,
               handle: newHandle,
-              options: { type: "inp", folderId: "" },
-              isMadeByApp: true,
-              isDemoNetwork: isDemo,
             });
             if (!isDemo) {
               void addRecent(newHandle.name, newHandle);

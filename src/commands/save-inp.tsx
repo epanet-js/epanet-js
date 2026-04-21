@@ -1,6 +1,6 @@
 import { dialogAtom } from "src/state/dialog";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import {
   stagingModelDerivedAtom,
   baseModelDerivedAtom,
@@ -60,6 +60,7 @@ export const useSaveInp = ({
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
           const fileInfo = get(inpFileInfoAtom);
+          const projectInfo = get(projectFileInfoAtom);
 
           const worktree = get(worktreeAtom);
           const hasScenarios = worktree.scenarios.length > 0;
@@ -85,10 +86,16 @@ export const useSaveInp = ({
           const inp = buildInp(hydraulicModel, buildOptions);
           const inpBlob = new Blob([inp], { type: "text/plain" });
 
+          const suggestedName = fileInfo
+            ? fileInfo.name
+            : projectInfo
+              ? `${projectInfo.name.replace(/\.[^.]+$/, "")}.inp`
+              : "my-network.inp";
+
           const newHandle = await fileSave(
             inpBlob,
             {
-              fileName: fileInfo ? fileInfo.name : "my-network.inp",
+              fileName: suggestedName,
               extensions: [".inp"],
               description: ".INP",
               mimeTypes: ["text/plain"],

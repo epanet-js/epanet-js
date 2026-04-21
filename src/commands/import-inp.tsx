@@ -1,7 +1,7 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
@@ -36,7 +36,8 @@ export const useImportInp = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
-  const setFileInfo = useSetAtom(inpFileInfoAtom);
+  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
+  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
   const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
   const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
@@ -84,7 +85,7 @@ export const useImportInp = () => {
           duration: 0,
         });
       });
-      setFileInfo({
+      setInpFileInfo({
         name: file.name,
         handle: isMadeByApp ? file.handle : undefined,
         modelVersion: hydraulicModel.version,
@@ -92,6 +93,7 @@ export const useImportInp = () => {
         isDemoNetwork: isDemo,
         options: { type: "inp", folderId: "" },
       });
+      setProjectFileInfo(null);
       if (!isDemo && file.handle) {
         const handle = file.handle;
         const name = file.name;
@@ -125,7 +127,8 @@ export const useImportInp = () => {
       initializeProject,
       map,
       setDialogState,
-      setFileInfo,
+      setInpFileInfo,
+      setProjectFileInfo,
       isOurFileOn,
     ],
   );

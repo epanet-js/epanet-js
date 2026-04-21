@@ -14,6 +14,18 @@ export type FileInfo = {
 
 export const inpFileInfoAtom = atom<FileInfo | null>(null);
 
+export type ProjectFileInfo = {
+  name: string;
+  modelVersion: string;
+  handle?: FileSystemHandle | FileSystemFileHandle;
+};
+
+export const projectFileInfoAtom = atom<ProjectFileInfo | null>(null);
+
+export const currentFileNameAtom = atom<string | null>(
+  (get) => get(projectFileInfoAtom)?.name ?? get(inpFileInfoAtom)?.name ?? null,
+);
+
 export const isDemoNetworkAtom = atom(
   (get) => get(inpFileInfoAtom)?.isDemoNetwork ?? false,
 );

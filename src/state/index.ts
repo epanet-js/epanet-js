@@ -20,8 +20,13 @@ export {
 } from "src/state/drawing";
 
 // File system
-export type { FileInfo } from "src/state/file-system";
-export { inpFileInfoAtom, isDemoNetworkAtom } from "src/state/file-system";
+export type { FileInfo, ProjectFileInfo } from "src/state/file-system";
+export {
+  inpFileInfoAtom,
+  projectFileInfoAtom,
+  currentFileNameAtom,
+  isDemoNetworkAtom,
+} from "src/state/file-system";
 
 // Hydraulic model
 export {

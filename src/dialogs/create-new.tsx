@@ -35,7 +35,7 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import {
   gridHiddenAtom,
   gridPreviewAtom,
@@ -71,7 +71,8 @@ type SubmitProps = {
 export const CreateNew = () => {
   const translate = useTranslate();
   const { initializeProject } = useProjectInitialization();
-  const setFileInfo = useSetAtom(inpFileInfoAtom);
+  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
+  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -152,14 +153,16 @@ export const CreateNew = () => {
         location: location?.name || "",
         projection: projection.id,
       });
-      setFileInfo(null);
+      setInpFileInfo(null);
+      setProjectFileInfo(null);
       closeDialog();
     },
     [
       closeDialog,
       initializeProject,
       map,
-      setFileInfo,
+      setInpFileInfo,
+      setProjectFileInfo,
       setGridPreview,
       setGridHidden,
       userTracking,

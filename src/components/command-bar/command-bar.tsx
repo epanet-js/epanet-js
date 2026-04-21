@@ -12,7 +12,7 @@ import { useSelection } from "src/selection/use-selection";
 import { customerPointsAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
-import { inpFileInfoAtom } from "src/state/file-system";
+import { currentFileNameAtom } from "src/state/file-system";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useHotkeys } from "src/keyboard/hotkeys";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -79,13 +79,13 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const customerPoints = useAtomValue(customerPointsAtom);
   const selection = useAtomValue(selectionAtom);
-  const fileInfo = useAtomValue(inpFileInfoAtom);
+  const currentFileName = useAtomValue(currentFileNameAtom);
   const { selectAsset, selectCustomerPoint } = useSelection(selection);
   const zoomTo = useZoomTo();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
-  const networkKey = fileInfo?.name ?? "";
+  const networkKey = currentFileName ?? "";
   const recentsRef = useRef(recentsByNetwork);
 
   const getRecents = useCallback((): SearchOption[] => {
