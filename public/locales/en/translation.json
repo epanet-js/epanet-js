@@ -67,6 +67,9 @@
     "addLayer": "Add layer",
     "checkMapboxDocs": "See Mapbox documentation on",
     "chooseType": "Choose type",
+    "localData": "Local data",
+    "vectorFile": "Vector file",
+    "webServices": "Web services",
     "color": "Color",
     "error": {
       "invalid-format": "Invalid file format",
@@ -77,7 +80,7 @@
       "unsupported-crs": "Unsupported coordinate system"
     },
     "gisFile": "GIS file",
-    "gisImportError": "GIS import errors",
+    "gisImportError": "Vector file import errors",
     "gisImportSummary": "{{1}} of {{2}} files could not be imported",
     "labels": "Labels",
     "lineWidth": "Line width",

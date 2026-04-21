@@ -622,53 +622,65 @@ export function AddLayer() {
                       {translate("customLayers.chooseType")}
                     </div>
                   </div>
-                  <div className="space-y-2 grid grid-cols-1">
-                    <LayerTypeButton
-                      type="BASEMAP"
-                      mode="basemap"
-                      needsUpgrade={false}
-                      onModeChange={handleModeChange}
-                      onUpgrade={handleUpgrade}
-                    >
-                      {translate("basemap")}
-                    </LayerTypeButton>
-                    <LayerTypeButton
-                      type="XYZ"
-                      mode="custom-xyz"
-                      needsUpgrade={!canAddCustomLayers}
-                      onModeChange={handleModeChange}
-                      onUpgrade={handleUpgrade}
-                    >
-                      XYZ
-                    </LayerTypeButton>
-                    <LayerTypeButton
-                      type="MAPBOX"
-                      mode="custom-mapbox"
-                      needsUpgrade={!canAddCustomLayers}
-                      onModeChange={handleModeChange}
-                      onUpgrade={handleUpgrade}
-                    >
-                      Mapbox
-                    </LayerTypeButton>
-                    <LayerTypeButton
-                      type="TILEJSON"
-                      mode="custom-tilejson"
-                      needsUpgrade={!canAddCustomLayers}
-                      onModeChange={handleModeChange}
-                      onUpgrade={handleUpgrade}
-                    >
-                      TileJSON
-                    </LayerTypeButton>
-                    {isGisLayersOn && (
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1">
+                      {translate("customLayers.webServices")}
+                    </div>
+                    <div className="space-y-2 grid grid-cols-1">
                       <LayerTypeButton
-                        type="GEOJSON"
-                        mode="custom-gis"
-                        needsUpgrade={!canAddCustomLayers}
-                        onModeChange={handleGisButtonClick}
+                        type="BASEMAP"
+                        mode="basemap"
+                        needsUpgrade={false}
+                        onModeChange={handleModeChange}
                         onUpgrade={handleUpgrade}
                       >
-                        GIS
+                        {translate("basemap")}
                       </LayerTypeButton>
+                      <LayerTypeButton
+                        type="XYZ"
+                        mode="custom-xyz"
+                        needsUpgrade={!canAddCustomLayers}
+                        onModeChange={handleModeChange}
+                        onUpgrade={handleUpgrade}
+                      >
+                        XYZ
+                      </LayerTypeButton>
+                      <LayerTypeButton
+                        type="MAPBOX"
+                        mode="custom-mapbox"
+                        needsUpgrade={!canAddCustomLayers}
+                        onModeChange={handleModeChange}
+                        onUpgrade={handleUpgrade}
+                      >
+                        Mapbox
+                      </LayerTypeButton>
+                      <LayerTypeButton
+                        type="TILEJSON"
+                        mode="custom-tilejson"
+                        needsUpgrade={!canAddCustomLayers}
+                        onModeChange={handleModeChange}
+                        onUpgrade={handleUpgrade}
+                      >
+                        TileJSON
+                      </LayerTypeButton>
+                    </div>
+                    {isGisLayersOn && (
+                      <>
+                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1 pt-3">
+                          {translate("customLayers.localData")}
+                        </div>
+                        <div className="space-y-2 grid grid-cols-1">
+                          <LayerTypeButton
+                            type="GEOJSON"
+                            mode="custom-gis"
+                            needsUpgrade={!canAddCustomLayers}
+                            onModeChange={handleGisButtonClick}
+                            onUpgrade={handleUpgrade}
+                          >
+                            {translate("customLayers.vectorFile")}
+                          </LayerTypeButton>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -700,7 +712,9 @@ export function AddLayer() {
               ))
               .with("custom-gis", () => (
                 <div className="p-3 space-y-3">
-                  <LayerFormHeader>GIS</LayerFormHeader>
+                  <LayerFormHeader>
+                    {translate("customLayers.vectorFile")}
+                  </LayerFormHeader>
                   {gisLoading && (
                     <E.TextWell size="xs">{translate("loading")}</E.TextWell>
                   )}
@@ -1122,51 +1136,22 @@ const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const setGisData = useSetAtom(gisDataAtom);
   const [isEditing, setEditing] = useState(false);
   const [editName, setEditName] = useState(layerConfig.name);
-  const [editColor, setEditColor] = useState(
-    layerConfig.type === "GEOJSON" ? layerConfig.color : "#3b82f6",
-  );
-  const [editLineWidth, setEditLineWidth] = useState(
-    layerConfig.type === "GEOJSON" ? layerConfig.lineWidth : 1.5,
-  );
-  const [editOpacity, setEditOpacity] = useState(
-    Math.round(layerConfig.opacity * 100),
-  );
-  const [editLabelVisibility, setEditLabelVisibility] = useState(
-    layerConfig.labelVisibility,
-  );
 
   const handleOpenChange = (open: boolean) => {
-    if (open) {
-      setEditName(layerConfig.name);
-      setEditColor(
-        layerConfig.type === "GEOJSON" ? layerConfig.color : "#3b82f6",
-      );
-      setEditLineWidth(
-        layerConfig.type === "GEOJSON" ? layerConfig.lineWidth : 1.5,
-      );
-      setEditOpacity(Math.round(layerConfig.opacity * 100));
-      setEditLabelVisibility(layerConfig.labelVisibility);
-    }
+    if (open) setEditName(layerConfig.name);
     setEditing(open);
   };
 
-  const handleSave = () => {
-    if (!editName.trim()) return;
-    applyChanges({
-      putLayerConfigs: [
-        {
-          ...layerConfig,
-          name: editName.trim(),
-          opacity: clamp(editOpacity / 100, 0, 1),
-          labelVisibility: editLabelVisibility,
-          ...(layerConfig.type === "GEOJSON" && {
-            color: editColor,
-            lineWidth: editLineWidth,
-          }),
-        } as ILayerConfig,
-      ],
-    });
-    setEditing(false);
+  const handleNameCommit = () => {
+    if (editName.trim()) {
+      applyChanges({
+        putLayerConfigs: [
+          { ...layerConfig, name: editName.trim() } as ILayerConfig,
+        ],
+      });
+    } else {
+      setEditName(layerConfig.name);
+    }
   };
 
   const handleDelete = () => {
@@ -1188,7 +1173,9 @@ const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       <E.StyledPopoverContent>
         <E.StyledPopoverArrow />
         <div className="space-y-2 min-w-[200px]">
-          <div className="font-bold text-sm pb-1">GIS</div>
+          <div className="font-bold text-sm pb-1">
+            {translate("customLayers.vectorFile")}
+          </div>
           <InlineField
             name={translate("name")}
             layout="fixed-label"
@@ -1199,32 +1186,55 @@ const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
               className={E.inputClass({ _size: "sm" })}
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleNameCommit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNameCommit();
+              }}
               autoComplete="off"
             />
           </InlineField>
-          <InlineField
-            name={translate("customLayers.color")}
-            layout="fixed-label"
-            labelSize="md"
-          >
-            <div className="h-7 border rounded-sm overflow-hidden">
-              <ColorPopover color={editColor} onChange={setEditColor} />
-            </div>
-          </InlineField>
-          <InlineField
-            name={`${translate("customLayers.lineWidth")} (px)`}
-            layout="fixed-label"
-            labelSize="md"
-          >
-            <NumericField
-              label={translate("customLayers.lineWidth")}
-              displayValue={String(editLineWidth)}
-              positiveOnly={true}
-              isNullable={false}
-              styleOptions={{ padding: "sm" }}
-              onChangeValue={(v) => setEditLineWidth(v)}
-            />
-          </InlineField>
+          {layerConfig.type === "GEOJSON" && (
+            <>
+              <InlineField
+                name={translate("customLayers.color")}
+                layout="fixed-label"
+                labelSize="md"
+              >
+                <div className="h-7 border rounded-sm overflow-hidden">
+                  <ColorPopover
+                    color={layerConfig.color}
+                    onChange={(color) =>
+                      applyChanges({
+                        putLayerConfigs: [
+                          { ...layerConfig, color } as ILayerConfig,
+                        ],
+                      })
+                    }
+                  />
+                </div>
+              </InlineField>
+              <InlineField
+                name={`${translate("customLayers.lineWidth")} (px)`}
+                layout="fixed-label"
+                labelSize="md"
+              >
+                <NumericField
+                  label={translate("customLayers.lineWidth")}
+                  displayValue={String(layerConfig.lineWidth)}
+                  positiveOnly={true}
+                  isNullable={false}
+                  styleOptions={{ padding: "sm" }}
+                  onChangeValue={(v) =>
+                    applyChanges({
+                      putLayerConfigs: [
+                        { ...layerConfig, lineWidth: v } as ILayerConfig,
+                      ],
+                    })
+                  }
+                />
+              </InlineField>
+            </>
+          )}
           <InlineField
             name={`${translate("customLayers.opacity")} (%)`}
             layout="fixed-label"
@@ -1232,12 +1242,19 @@ const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           >
             <NumericField
               label={translate("customLayers.opacity")}
-              displayValue={String(editOpacity)}
+              displayValue={String(Math.round(layerConfig.opacity * 100))}
               positiveOnly={true}
               isNullable={false}
               styleOptions={{ padding: "sm" }}
               onChangeValue={(v) =>
-                setEditOpacity(clamp(Math.round(v), 0, 100))
+                applyChanges({
+                  putLayerConfigs: [
+                    {
+                      ...layerConfig,
+                      opacity: clamp(Math.round(v) / 100, 0, 1),
+                    } as ILayerConfig,
+                  ],
+                })
               }
             />
           </InlineField>
@@ -1247,25 +1264,26 @@ const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
             labelSize="md"
           >
             <Checkbox
-              checked={editLabelVisibility}
-              onChange={(e) => setEditLabelVisibility(e.target.checked)}
+              checked={layerConfig.labelVisibility}
+              onChange={(e) =>
+                applyChanges({
+                  putLayerConfigs: [
+                    {
+                      ...layerConfig,
+                      labelVisibility: e.target.checked,
+                    } as ILayerConfig,
+                  ],
+                })
+              }
             />
           </InlineField>
-          <E.Button
-            size="sm"
-            className="w-full justify-center mt-1"
-            disabled={!editName.trim()}
-            onClick={handleSave}
-          >
-            {translate("customLayers.updateLayer")}
-          </E.Button>
         </div>
       </E.StyledPopoverContent>
     </P.Root>
   );
 
   return (
-    <LayerConfigItem typeLabel="GIS">
+    <LayerConfigItem typeLabel="Vector file">
       <span className="block select-none truncate flex-auto text-sm">
         {layerConfig.name}
       </span>

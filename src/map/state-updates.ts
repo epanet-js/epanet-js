@@ -232,6 +232,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.stylesConfig,
             translate,
           );
+          if (isCustomGisLayersOn) {
+            addGisLayersToMap(map, mapState.stylesConfig, gisData);
+          }
           addEditingLayersToMap(
             map,
             mapState.stylesConfig,
@@ -240,9 +243,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
           await map.addIcons();
           map.resumeOverlayStyleReactions();
-          if (isCustomGisLayersOn) {
-            addGisLayersToMap(map, mapState.stylesConfig, gisData);
-          }
           toggleAnalysisLayers(map, mapState.symbology);
         }
 
