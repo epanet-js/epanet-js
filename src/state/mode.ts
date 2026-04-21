@@ -60,3 +60,4 @@ export const modeAtom = atom<ModeWithOptions>({
 
 export const lastSelectionModeAtom = atom<Mode>(Mode.SELECT_POLYGONAL);
 export const lastTraceSelectModeAtom = atom<Mode>(Mode.BOUNDARY_TRACE_SELECT);
+export const lastDrawingModeAtom = atom<Mode>(Mode.DRAW_JUNCTION);
