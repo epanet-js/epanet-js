@@ -9,7 +9,6 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
-  UploadIcon,
   PanelLeftIcon,
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
@@ -116,17 +115,6 @@ export const Toolbar = ({
             >
               <SaveAllIcon />
             </MenuAction>
-            {isOurFileOn && (
-              <MenuAction
-                label={translate("exportINP")}
-                role="button"
-                onClick={() => {
-                  void saveInp({ source: "toolbar", isSaveAs: true });
-                }}
-              >
-                <UploadIcon />
-              </MenuAction>
-            )}
           </>
         }
         <MenuAction

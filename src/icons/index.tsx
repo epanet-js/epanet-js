@@ -21,6 +21,7 @@ import {
   CircleX,
   Copy,
   Crosshair,
+  Download,
   EllipsisVertical,
   Eye,
   EyeOff,
@@ -144,6 +145,7 @@ export const ChevronLeftIcon = icon(ChevronLeft);
 export const ChevronsLeftIcon = icon(ChevronsLeft);
 export const CloseIcon = icon(X);
 export const UploadIcon = icon(Upload);
+export const DownloadIcon = icon(Download);
 export const EarlyAccessIcon = icon(Star);
 export const LabelsIcon = icon(Type);
 export const CheckIcon = icon(Check);

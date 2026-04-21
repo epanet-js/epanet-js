@@ -13,10 +13,12 @@ import {
   EarlyAccessIcon,
   NewFromExampleIcon,
   OutdatedSimulationIcon,
+  DownloadIcon,
 } from "src/icons";
 import { useNewProject } from "src/commands/create-new-project";
 import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenProject } from "src/commands/open-project";
+import { useSaveInp } from "src/commands/save-inp";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
@@ -41,6 +43,7 @@ export const CreateNewDropdown = () => {
   const openProject = useOpenProject();
   const showWelcome = useShowWelcome();
   const openModelBuilder = useOpenModelBuilder();
+  const saveInp = useSaveInp();
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -126,6 +129,19 @@ export const CreateNewDropdown = () => {
                 {translate("importFromGIS")}
                 <EarlyAccessIcon size="sm" />
               </StyledItem>
+
+              {isOurFileOn && <DDSeparator />}
+
+              {isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    void saveInp({ source: "toolbar", isSaveAs: true });
+                  }}
+                >
+                  <DownloadIcon />
+                  {translate("exportINP")}
+                </StyledItem>
+              )}
 
               <RecentFilesMenu isOurFileOn={isOurFileOn} />
             </DDContent>
