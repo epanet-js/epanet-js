@@ -8,6 +8,7 @@ import { Presets } from "src/lib/project-settings/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
 import type { PaywallFeature } from "src/state/dialog";
+import type { PlaybackSpeed } from "src/state/simulation-playback";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
 
@@ -251,11 +252,13 @@ type SimulationPlaybackToggled = {
   name: "simulation.playback.toggled";
   action: "play" | "pause";
   source: "shortcut" | "buttons" | "dropdown" | "quick-graph" | "auto";
+  speedMs?: number;
 };
 
 type SimulationPlaybackSpeedChanged = {
   name: "simulation.playback.speedChanged";
-  speedMs: number;
+  speed: PlaybackSpeed;
+  warning: boolean;
 };
 
 type ReportOpened = {

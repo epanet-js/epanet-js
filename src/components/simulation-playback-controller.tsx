@@ -36,14 +36,14 @@ const stopPlaybackOnSimulationRunAtom = atomEffect((get, set) => {
 });
 
 const simulationPlaybackEffectAtom = atomEffect((get, set) => {
-  const { isPlaying } = get(simulationPlaybackAtom);
-  if (!isPlaying) return;
+  const { playingAtSpeedMs } = get(simulationPlaybackAtom);
+  if (playingAtSpeedMs === 0) return;
 
   const abortController = new AbortController();
   const { signal } = abortController;
 
   const getStep = () => get.peek(simulationStepAtom) ?? 0;
-  const getSpeed = () => get.peek(simulationPlaybackAtom).playbackSpeedMs;
+  const getSpeed = () => get.peek(simulationPlaybackAtom).playingAtSpeedMs;
   const getCount = () => getTimestepCount(get.peek);
 
   async function runLoop() {
@@ -96,7 +96,7 @@ const performanceLoggingEffectAtom = atomEffect((get) => {
     // eslint-disable-next-line no-console
     console.debug(
       [
-        "[Performance]",
+        "[Playback timing limitations]",
         `  Fetch:   ${lastFetch?.toFixed(0) ?? "-"}ms (P90: ${estimatedFetch?.toFixed(0) ?? "-"}ms, n=${fetchDurations.length})`,
         `  Rebuild: ${lastRebuild?.toFixed(0) ?? "-"}ms (P90: ${estimatedRebuild?.toFixed(0) ?? "-"}ms, n=${rebuildDurations.length})`,
         `  Total P90: ${estimatedTotal?.toFixed(0) ?? "-"}ms`,

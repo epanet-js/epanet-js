@@ -409,6 +409,8 @@
   "viewReport": "View report",
   "previousTimestep": "Previous timestep",
   "nextTimestep": "Next timestep",
+  "playSimulation": "Play simulation",
+  "pausePlayback": "Pause playback",
   "viewNetworkReview": "Review network",
   "ignore": "Ignore",
   "loading": "Loading...",
