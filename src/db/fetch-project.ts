@@ -9,14 +9,18 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { getDbWorker } from "./get-db-worker";
 import { buildAssetsData } from "./build-assets-data";
+import { buildCustomerPointsData } from "./build-customer-points-data";
 import {
-  findMaxAssetId,
+  findMaxId,
   type JunctionRow,
   type ReservoirRow,
   type TankRow,
   type PipeRow,
   type PumpRow,
   type ValveRow,
+  type CustomerPointRow,
+  type CustomerPointDemandRow,
+  type CustomerPointsData,
 } from "./rows";
 
 export type Project = {
@@ -27,23 +31,38 @@ export type Project = {
 
 export const fetchProject = async (): Promise<Project> => {
   const worker = getDbWorker();
-  const [settingsJson, junctions, reservoirs, tanks, pipes, pumps, valves] =
-    await Promise.all([
-      worker.getProjectSettings(),
-      worker.getJunctions() as Promise<JunctionRow[]>,
-      worker.getReservoirs() as Promise<ReservoirRow[]>,
-      worker.getTanks() as Promise<TankRow[]>,
-      worker.getPipes() as Promise<PipeRow[]>,
-      worker.getPumps() as Promise<PumpRow[]>,
-      worker.getValves() as Promise<ValveRow[]>,
-    ]);
+  const [
+    settingsJson,
+    junctions,
+    reservoirs,
+    tanks,
+    pipes,
+    pumps,
+    valves,
+    customerPointRows,
+    customerPointDemandRows,
+  ] = await Promise.all([
+    worker.getProjectSettings(),
+    worker.getJunctions() as Promise<JunctionRow[]>,
+    worker.getReservoirs() as Promise<ReservoirRow[]>,
+    worker.getTanks() as Promise<TankRow[]>,
+    worker.getPipes() as Promise<PipeRow[]>,
+    worker.getPumps() as Promise<PumpRow[]>,
+    worker.getValves() as Promise<ValveRow[]>,
+    worker.getCustomerPoints() as Promise<CustomerPointRow[]>,
+    worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
+  ]);
   if (!settingsJson) {
     throw new Error("Project settings missing");
   }
   const projectSettings = projectSettingsSchema.parse(JSON.parse(settingsJson));
-  const rows = { junctions, reservoirs, tanks, pipes, pumps, valves };
+  const assetRows = { junctions, reservoirs, tanks, pipes, pumps, valves };
+  const cpData: CustomerPointsData = {
+    customerPoints: customerPointRows,
+    demands: customerPointDemandRows,
+  };
 
-  const maxId = findMaxAssetId(rows);
+  const maxId = findMaxId(assetRows, cpData);
   const idGenerator = new ConsecutiveIdsGenerator(maxId);
   const factories = initializeModelFactories({
     idGenerator,
@@ -51,12 +70,21 @@ export const fetchProject = async (): Promise<Project> => {
     defaults: projectSettings.defaults,
   });
 
-  const { assets, assetIndex, topology } = buildAssetsData(rows, factories);
+  const { assets, assetIndex, topology } = buildAssetsData(
+    assetRows,
+    factories,
+  );
+  const { customerPoints, customerPointsLookup, customerDemands } =
+    buildCustomerPointsData(cpData, factories);
+
   const hydraulicModel = initializeHydraulicModel({
     idGenerator,
     assets,
     assetIndex,
     topology,
+    customerPoints,
+    customerPointsLookup,
+    demands: { junctions: new Map(), customerPoints: customerDemands },
   });
 
   return { projectSettings, hydraulicModel, factories };

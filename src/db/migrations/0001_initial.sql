@@ -154,3 +154,25 @@ FROM assets a
 JOIN link_properties lp    ON lp.asset_id = a.id
 JOIN valve_properties vp   ON vp.asset_id = a.id
 WHERE a.type = 'valve';
+
+CREATE TABLE customer_points (
+  id          INTEGER PRIMARY KEY,
+  label       TEXT NOT NULL,
+  coord_x     REAL NOT NULL,
+  coord_y     REAL NOT NULL,
+  pipe_id     INTEGER REFERENCES assets(id),
+  junction_id INTEGER REFERENCES assets(id),
+  snap_x      REAL,
+  snap_y      REAL
+);
+
+CREATE TABLE customer_point_demands (
+  customer_point_id INTEGER NOT NULL REFERENCES customer_points(id),
+  ordinal           INTEGER NOT NULL,
+  base_demand       REAL NOT NULL,
+  pattern_id        TEXT,
+  PRIMARY KEY (customer_point_id, ordinal)
+);
+
+CREATE INDEX idx_customer_points_pipe     ON customer_points(pipe_id);
+CREATE INDEX idx_customer_points_junction ON customer_points(junction_id);

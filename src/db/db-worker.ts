@@ -373,6 +373,16 @@ const api = {
     return readAll("SELECT * FROM valves_view");
   },
 
+  async getCustomerPoints(): Promise<unknown[]> {
+    return readAll("SELECT * FROM customer_points");
+  },
+
+  async getCustomerPointDemands(): Promise<unknown[]> {
+    return readAll(
+      "SELECT * FROM customer_point_demands ORDER BY customer_point_id, ordinal",
+    );
+  },
+
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
     await ready;
     if (!db) throw new Error("No database open");

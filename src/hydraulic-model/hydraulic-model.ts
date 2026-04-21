@@ -34,6 +34,8 @@ export const initializeHydraulicModel = ({
   assets,
   topology,
   assetIndex,
+  customerPoints,
+  customerPointsLookup,
 }: {
   demands?: Demands;
   controls?: Controls;
@@ -41,14 +43,16 @@ export const initializeHydraulicModel = ({
   assets?: AssetsMap;
   topology?: Topology;
   assetIndex?: AssetIndex;
+  customerPoints?: CustomerPoints;
+  customerPointsLookup?: CustomerPointsLookup;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const resolvedAssets = assets ?? new Map();
   return {
     version: nanoid(),
     assets: resolvedAssets,
-    customerPoints: initializeCustomerPoints(),
-    customerPointsLookup: new CustomerPointsLookup(),
+    customerPoints: customerPoints ?? initializeCustomerPoints(),
+    customerPointsLookup: customerPointsLookup ?? new CustomerPointsLookup(),
     topology: topology ?? new Topology(),
     assetIndex: assetIndex ?? new AssetIndex(assetIdGenerator, resolvedAssets),
     demands,
