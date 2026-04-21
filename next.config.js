@@ -24,6 +24,11 @@ const nextConfig = {
   },
   webpack(config) {
     config.resolve.fallback = { ...config.resolve.fallback, fs: false };
+    config.module.rules.push({
+      test: /\.sql$/,
+      resourceQuery: /raw/,
+      type: "asset/source",
+    });
     return config;
   },
   /* eslint-disable require-await */

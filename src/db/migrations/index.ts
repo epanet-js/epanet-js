@@ -1,9 +1,4 @@
-const m0001 = `
-CREATE TABLE project (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  settings TEXT NOT NULL
-);
-`;
+import m0001 from "./0001_initial.sql?raw";
 
 export const migrations: string[] = [m0001];
 
