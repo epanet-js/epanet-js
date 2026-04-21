@@ -19,8 +19,13 @@ import {
   LeftPanelId,
   stagingModelAtom,
   simulationResultsAtom,
+  simulationAtom,
   selectionAtom,
 } from "src/state/jotai";
+import { worktreeAtom } from "src/state/scenarios";
+import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
+import { OPFSStorage } from "src/infra/storage/opfs-storage";
+import { getAppId } from "src/infra/app-instance";
 import type { Junction } from "src/hydraulic-model/asset-types/junction";
 import type { Link } from "src/hydraulic-model/asset-types/link";
 import { MapContext } from "src/map";
@@ -31,6 +36,7 @@ import {
   Minimize2Icon,
   ChevronUpIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
 } from "src/icons";
 import clsx from "clsx";
 
@@ -595,6 +601,130 @@ const COLUMNS_BY_TYPE: Record<string, TableColumn[]> = {
 
 const DEFAULT_COLUMNS: TableColumn[] = [COL.label, COL.type];
 
+// ─── Detail view ─────────────────────────────────────────────────────────────
+
+type StaticPropDef = {
+  key: keyof AssetRow;
+  label: string;
+  unit?: string;
+  format: (v: unknown) => string;
+};
+
+const STATIC_PROPS_BY_TYPE: Record<string, StaticPropDef[]> = {
+  junction: [
+    { key: "elevation", label: "Elevation", unit: "m", format: fmtNum },
+    {
+      key: "emitterCoefficient",
+      label: "Emitter Coeff",
+      format: (v) => fmtNum(v, 4),
+    },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+  pipe: [
+    { key: "diameter", label: "Diameter", unit: "mm", format: fmtNum },
+    { key: "length", label: "Length", unit: "m", format: fmtNum },
+    { key: "roughness", label: "Roughness", format: (v) => fmtNum(v, 4) },
+    { key: "minorLoss", label: "Minor Loss", format: (v) => fmtNum(v, 4) },
+    { key: "initialStatus", label: "Initial Status", format: fmtStr },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+  tank: [
+    { key: "elevation", label: "Elevation", unit: "m", format: fmtNum },
+    { key: "diameter", label: "Diameter", unit: "mm", format: fmtNum },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+  reservoir: [
+    { key: "elevation", label: "Elevation", unit: "m", format: fmtNum },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+  valve: [
+    { key: "diameter", label: "Diameter", unit: "mm", format: fmtNum },
+    { key: "minorLoss", label: "Minor Loss", format: (v) => fmtNum(v, 4) },
+    { key: "initialStatus", label: "Initial Status", format: fmtStr },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+  pump: [
+    { key: "initialStatus", label: "Initial Status", format: fmtStr },
+    { key: "isActive", label: "Active", format: fmtBool },
+  ],
+};
+
+type TimeVaryingColDef = {
+  key: string;
+  label: string;
+  unit?: string;
+  format: (v: number) => string;
+};
+
+const TIME_VARYING_COLS_BY_TYPE: Record<string, TimeVaryingColDef[]> = {
+  junction: [
+    { key: "pressure", label: "Pressure", unit: "m", format: fmtNum },
+    { key: "head", label: "Head", unit: "m", format: fmtNum },
+    {
+      key: "demand",
+      label: "Demand",
+      unit: "L/s",
+      format: (v) => fmtNum(v, 3),
+    },
+  ],
+  pipe: [
+    { key: "flow", label: "Flow", unit: "L/s", format: (v) => fmtNum(v, 3) },
+    {
+      key: "velocity",
+      label: "Velocity",
+      unit: "m/s",
+      format: (v) => fmtNum(v, 3),
+    },
+    {
+      key: "headloss",
+      label: "Headloss",
+      unit: "m/km",
+      format: (v) => fmtNum(v, 3),
+    },
+  ],
+  tank: [
+    { key: "pressure", label: "Pressure", unit: "m", format: fmtNum },
+    { key: "head", label: "Head", unit: "m", format: fmtNum },
+    { key: "level", label: "Level", unit: "m", format: fmtNum },
+    { key: "volume", label: "Volume", unit: "m³", format: fmtNum },
+  ],
+  reservoir: [
+    { key: "pressure", label: "Pressure", unit: "m", format: fmtNum },
+    { key: "head", label: "Head", unit: "m", format: fmtNum },
+  ],
+  valve: [
+    { key: "flow", label: "Flow", unit: "L/s", format: (v) => fmtNum(v, 3) },
+    {
+      key: "velocity",
+      label: "Velocity",
+      unit: "m/s",
+      format: (v) => fmtNum(v, 3),
+    },
+    {
+      key: "headloss",
+      label: "Headloss",
+      unit: "m/km",
+      format: (v) => fmtNum(v, 3),
+    },
+  ],
+  pump: [
+    { key: "flow", label: "Flow", unit: "L/s", format: (v) => fmtNum(v, 3) },
+    {
+      key: "headloss",
+      label: "Headloss",
+      unit: "m",
+      format: (v) => fmtNum(v, 3),
+    },
+  ],
+};
+
+function formatTimestepLabel(index: number, intervalSeconds: number): string {
+  const totalSeconds = index * intervalSeconds;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function useFlyToAsset() {
@@ -776,12 +906,379 @@ function AssetConditionRow({
   );
 }
 
+type DetailTimeSeriesData = {
+  intervalSeconds: number;
+  columns: TimeVaryingColDef[];
+  rows: { timestep: number; values: (number | null)[] }[];
+};
+
+type TimeSeriesCondition = {
+  id: string;
+  colKey: string;
+  op: string;
+  value: string;
+};
+
+const NUMERIC_OPS = [
+  { value: "is", label: "is" },
+  { value: "is_not", label: "is not" },
+  { value: "gt", label: "greater than" },
+  { value: "lt", label: "less than" },
+] as const;
+
+function applyTimeSeriesConditions(
+  rows: { timestep: number; values: (number | null)[] }[],
+  conditions: TimeSeriesCondition[],
+  columns: TimeVaryingColDef[],
+): { timestep: number; values: (number | null)[] }[] {
+  if (conditions.length === 0) return rows;
+  return rows.filter((row) =>
+    conditions.every((cond) => {
+      if (!cond.value) return true;
+      const colIndex = columns.findIndex((c) => c.key === cond.colKey);
+      if (colIndex === -1) return true;
+      const val = row.values[colIndex];
+      if (val === null) return false;
+      const threshold = Number(cond.value);
+      switch (cond.op) {
+        case "is":
+          return val === threshold;
+        case "is_not":
+          return val !== threshold;
+        case "gt":
+          return val > threshold;
+        case "lt":
+          return val < threshold;
+        default:
+          return true;
+      }
+    }),
+  );
+}
+
+function TimeSeriesConditionRow({
+  condition,
+  columns,
+  onChangeCol,
+  onChangeOp,
+  onChangeValue,
+  onRemove,
+}: {
+  condition: TimeSeriesCondition;
+  columns: TimeVaryingColDef[];
+  onChangeCol: (key: string) => void;
+  onChangeOp: (op: string) => void;
+  onChangeValue: (value: string) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-1 border-t border-gray-100 dark:border-gray-700/50">
+      <select
+        value={condition.colKey}
+        onChange={(e) => onChangeCol(e.target.value)}
+        className={conditionControlCls}
+      >
+        {columns.map((col) => (
+          <option key={col.key} value={col.key}>
+            {col.label}
+            {col.unit ? ` (${col.unit})` : ""}
+          </option>
+        ))}
+      </select>
+      <select
+        value={condition.op}
+        onChange={(e) => onChangeOp(e.target.value)}
+        className={conditionControlCls}
+      >
+        {NUMERIC_OPS.map((op) => (
+          <option key={op.value} value={op.value}>
+            {op.label}
+          </option>
+        ))}
+      </select>
+      <input
+        type="number"
+        value={condition.value}
+        onChange={(e) => onChangeValue(e.target.value)}
+        placeholder="value…"
+        className={clsx(conditionControlCls, "min-w-[5rem] flex-1")}
+      />
+      <button
+        onClick={onRemove}
+        aria-label="Remove condition"
+        className="ml-auto flex-shrink-0 p-0.5 text-gray-400 hover:text-red-500"
+      >
+        <CloseIcon size="sm" />
+      </button>
+    </div>
+  );
+}
+
+function AssetDetailView({
+  asset,
+  onBack,
+}: {
+  asset: AssetRow;
+  onBack: () => void;
+}) {
+  const simulation = useAtomValue(simulationAtom);
+  const worktree = useAtomValue(worktreeAtom);
+  const [timeSeriesData, setTimeSeriesData] =
+    useState<DetailTimeSeriesData | null>(null);
+  const [conditions, setConditions] = useState<TimeSeriesCondition[]>([]);
+
+  const staticProps = STATIC_PROPS_BY_TYPE[asset.type] ?? [];
+  const timeVaryingCols = TIME_VARYING_COLS_BY_TYPE[asset.type] ?? [];
+  const hasSimulation =
+    simulation.status === "success" || simulation.status === "warning";
+
+  useEffect(() => {
+    if (!hasSimulation || timeVaryingCols.length === 0) return;
+    const { metadata, simulationIds } = simulation as {
+      metadata?: ArrayBuffer;
+      simulationIds?: unknown;
+    };
+    if (!metadata) return;
+
+    let cancelled = false;
+    (async () => {
+      const appId = getAppId();
+      const storage = new OPFSStorage(appId, worktree.activeSnapshotId);
+      const epsReader = new EPSResultsReader(storage);
+      await epsReader.initialize(
+        metadata,
+        simulationIds as Parameters<typeof epsReader.initialize>[1],
+      );
+
+      const seriesResults = await Promise.all(
+        timeVaryingCols.map((col) =>
+          epsReader.getTimeSeries(
+            asset.id,
+            asset.type as Parameters<typeof epsReader.getTimeSeries>[1],
+            col.key as never,
+          ),
+        ),
+      );
+
+      if (cancelled) return;
+
+      const count = epsReader.timestepCount;
+      const intervalSeconds = epsReader.reportingTimeStep;
+      const rows = Array.from({ length: count }, (_, i) => ({
+        timestep: i,
+        values: seriesResults.map((ts) => ts?.values[i] ?? null),
+      }));
+
+      setTimeSeriesData({ intervalSeconds, columns: timeVaryingCols, rows });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [asset.id, asset.type, hasSimulation, worktree.activeSnapshotId]);
+
+  const addCondition = () => {
+    const firstCol = timeVaryingCols[0];
+    if (!firstCol) return;
+    setConditions((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        colKey: firstCol.key,
+        op: "is",
+        value: "",
+      },
+    ]);
+  };
+
+  const filteredRows = timeSeriesData
+    ? applyTimeSeriesConditions(
+        timeSeriesData.rows,
+        conditions,
+        timeVaryingCols,
+      )
+    : null;
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex-none border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 px-3 h-9">
+          <button
+            onClick={onBack}
+            aria-label="Back"
+            className="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          >
+            <ChevronLeftIcon size="sm" />
+          </button>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+            {asset.label}
+          </span>
+          <span className="text-sm text-gray-400 dark:text-gray-500">
+            {ASSET_TYPE_LABEL[asset.type] ?? asset.type}
+          </span>
+        </div>
+      </div>
+
+      {/* Static properties */}
+      <div className="flex-none border-b border-gray-200 dark:border-gray-700 px-3 py-2">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {staticProps.map((prop) => {
+            const val = asset[prop.key];
+            const formatted = prop.format(val);
+            return (
+              <span
+                key={prop.key}
+                className="text-xs text-gray-600 dark:text-gray-400"
+              >
+                <span className="text-gray-400 dark:text-gray-500">
+                  {prop.label}:
+                </span>{" "}
+                {prop.unit && formatted !== "—"
+                  ? `${formatted} ${prop.unit}`
+                  : formatted}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Filter panel */}
+      {hasSimulation && timeVaryingCols.length > 0 && (
+        <div className="flex-none border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 px-3 h-9">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Filter
+            </span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">
+              ({filteredRows?.length ?? 0})
+            </span>
+            <button
+              onClick={addCondition}
+              className={clsx(
+                "text-sm px-2 py-0.5 rounded border",
+                "border-purple-300 dark:border-purple-600",
+                "text-purple-600 dark:text-purple-400",
+                "hover:bg-purple-50 dark:hover:bg-purple-900/20",
+              )}
+            >
+              + Add condition
+            </button>
+          </div>
+          {conditions.map((cond) => (
+            <TimeSeriesConditionRow
+              key={cond.id}
+              condition={cond}
+              columns={timeVaryingCols}
+              onChangeCol={(key) =>
+                setConditions((prev) =>
+                  prev.map((c) =>
+                    c.id === cond.id ? { ...c, colKey: key, value: "" } : c,
+                  ),
+                )
+              }
+              onChangeOp={(op) =>
+                setConditions((prev) =>
+                  prev.map((c) => (c.id === cond.id ? { ...c, op } : c)),
+                )
+              }
+              onChangeValue={(value) =>
+                setConditions((prev) =>
+                  prev.map((c) => (c.id === cond.id ? { ...c, value } : c)),
+                )
+              }
+              onRemove={() =>
+                setConditions((prev) => prev.filter((c) => c.id !== cond.id))
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Time series table */}
+      <div className="flex-auto overflow-auto">
+        {!hasSimulation ? (
+          <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
+            No simulation results
+          </div>
+        ) : timeVaryingCols.length === 0 ? (
+          <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
+            No time-varying data for this asset type
+          </div>
+        ) : !timeSeriesData ? (
+          <div className="p-4 text-sm text-gray-400 dark:text-gray-500">
+            Loading…
+          </div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr>
+                <th className="sticky top-0 z-10 h-8 bg-gray-50 dark:bg-gray-900 px-3 font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap border-b border-gray-200 dark:border-gray-700 text-left">
+                  Time
+                </th>
+                {timeSeriesData.columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className="sticky top-0 z-10 h-8 bg-gray-50 dark:bg-gray-900 px-3 font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap border-b border-gray-200 dark:border-gray-700 text-right"
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      {col.label}
+                      {col.unit && (
+                        <span className="font-normal text-gray-400 dark:text-gray-500">
+                          ({col.unit})
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(filteredRows ?? []).map((row) => (
+                <tr
+                  key={row.timestep}
+                  className="border-b border-gray-100 dark:border-gray-800"
+                >
+                  <td className="px-3 py-1.5 whitespace-nowrap tabular-nums text-gray-500 dark:text-gray-400">
+                    {formatTimestepLabel(
+                      row.timestep,
+                      timeSeriesData.intervalSeconds,
+                    )}
+                  </td>
+                  {row.values.map((val, i) => (
+                    <td
+                      key={timeSeriesData.columns[i].key}
+                      className={clsx(
+                        "px-3 py-1.5 whitespace-nowrap text-right tabular-nums",
+                        val === null
+                          ? "text-gray-300 dark:text-gray-600"
+                          : "text-gray-700 dark:text-gray-300",
+                      )}
+                    >
+                      {val === null
+                        ? "—"
+                        : timeSeriesData.columns[i].format(val)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AssetsTable() {
   const hydraulicModel = useAtomValue(stagingModelAtom);
   const simulationResults = useAtomValue(simulationResultsAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
   const flyToAsset = useFlyToAsset();
   const tbodyRef = useRef<HTMLTableSectionElement>(null);
+
+  // Detail view
+  const [detailAssetId, setDetailAssetId] = useState<number | null>(null);
 
   // Sort — default: type asc
   const [sortField, setSortField] = useState<SortField>("type");
@@ -978,6 +1475,20 @@ function AssetsTable() {
     );
   }
 
+  const detailAsset =
+    detailAssetId !== null
+      ? (assets.find((a) => a.id === detailAssetId) ?? null)
+      : null;
+
+  if (detailAsset) {
+    return (
+      <AssetDetailView
+        asset={detailAsset}
+        onBack={() => setDetailAssetId(null)}
+      />
+    );
+  }
+
   const selectedId = selection.type === "single" ? selection.id : null;
 
   const actionBtnCls = clsx(
@@ -1086,6 +1597,7 @@ function AssetsTable() {
                     setSelection({ type: "single", id: row.id, parts: [] });
                     flyToAsset(row.id);
                   }}
+                  onDoubleClick={() => setDetailAssetId(row.id)}
                   className={clsx(
                     "border-b border-gray-100 dark:border-gray-800 cursor-pointer",
                     isSelected
