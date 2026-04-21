@@ -51,10 +51,13 @@ import {
   LocateOff,
   MapIcon,
   MapPinned,
+  Maximize2,
+  Minimize2,
   MapPinXInside,
   Menu,
   MousePointer2,
   MousePointerClick,
+  PanelBottom,
   PanelLeft,
   PanelRight,
   Pause,
@@ -179,6 +182,7 @@ export const CustomerPointIcon = icon(House);
 export const ImportCustomerPointsIcon = icon(HousePlus);
 export const UnavailableIcon = icon(CircleSlash2);
 export const MultipleAssetsIcon = icon(SquareStack);
+export const PanelBottomIcon = icon(PanelBottom);
 export const PanelLeftIcon = icon(PanelLeft);
 export const PanelRightIcon = icon(PanelRight);
 export const PauseIcon = icon(Pause);
@@ -216,6 +220,8 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
+export const Maximize2Icon = icon(Maximize2);
+export const Minimize2Icon = icon(Minimize2);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
@@ -241,6 +247,7 @@ export { CustomTypeOffIcon as TypeOffIcon } from "./custom-icons/type-off-icon";
 export { CustomValveIcon as ValveIcon } from "./custom-icons/valve-icon";
 export { CustomPipesCrossingIcon as PipesCrossinIcon } from "./custom-icons/pipes-crossing-icon";
 export { CustomProximityCheckIcon as ProximityCheckIcon } from "./custom-icons/proximity-check-icon";
+export { CustomPanelBottomActive as PanelBottomActiveIcon } from "./custom-icons/panel-bottom-active";
 export { CustomPanelLeftActive as PanelLeftActiveIcon } from "./custom-icons/panel-left-active";
 export { CustomPanelRightActive as PanelRightActiveIcon } from "./custom-icons/panel-right-active";
 export { CustomPolygonalSelection as PolygonalSelectionIcon } from "./custom-icons/polygonal-selection";
