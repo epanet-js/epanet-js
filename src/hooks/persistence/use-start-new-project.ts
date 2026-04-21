@@ -142,6 +142,10 @@ export const useStartNewProject = () => {
         if (isOurFileOn) {
           await db.saveProjectSettings(mergedProjectSettings);
           await db.setAllAssets(input.hydraulicModel.assets);
+          await db.setAllCustomerPoints(
+            input.hydraulicModel.customerPoints,
+            input.hydraulicModel.demands.customerPoints,
+          );
         }
       },
       [isOurFileOn],

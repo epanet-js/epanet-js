@@ -28,9 +28,9 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload({ note: "noop" }, model);
 
-    expect(payload.deleteIds).toEqual([]);
-    expect(payload.upserts.junctions).toEqual([]);
-    expect(payload.upserts.pipes).toEqual([]);
+    expect(payload.assetDeleteIds).toEqual([]);
+    expect(payload.assetUpserts.junctions).toEqual([]);
+    expect(payload.assetUpserts.pipes).toEqual([]);
   });
 
   it("collects putAssets into upserts bucketed by type", () => {
@@ -59,10 +59,10 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.upserts.junctions).toHaveLength(1);
-    expect(payload.upserts.junctions[0].id).toBe(1);
-    expect(payload.upserts.pipes).toHaveLength(1);
-    expect(payload.upserts.pipes[0].id).toBe(2);
+    expect(payload.assetUpserts.junctions).toHaveLength(1);
+    expect(payload.assetUpserts.junctions[0].id).toBe(1);
+    expect(payload.assetUpserts.pipes).toHaveLength(1);
+    expect(payload.assetUpserts.pipes[0].id).toBe(2);
   });
 
   it("refetches patched assets from the post-apply model for full-row upsert", () => {
@@ -88,9 +88,9 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.upserts.junctions).toHaveLength(1);
-    expect(payload.upserts.junctions[0].id).toBe(1);
-    expect(payload.upserts.junctions[0].elevation).toBe(42);
+    expect(payload.assetUpserts.junctions).toHaveLength(1);
+    expect(payload.assetUpserts.junctions[0].id).toBe(1);
+    expect(payload.assetUpserts.junctions[0].elevation).toBe(42);
   });
 
   it("deduplicates an asset that appears in both putAssets and patchAssetsAttributes", () => {
@@ -115,7 +115,7 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.upserts.junctions).toHaveLength(1);
+    expect(payload.assetUpserts.junctions).toHaveLength(1);
   });
 
   it("forwards deleteAssets ids", () => {
@@ -128,7 +128,7 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.deleteIds).toEqual([3, 7, 11]);
+    expect(payload.assetDeleteIds).toEqual([3, 7, 11]);
   });
 
   it("skips assets that were deleted and are not in the post-apply model", () => {
@@ -151,6 +151,152 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.upserts.junctions).toEqual([]);
+    expect(payload.assetUpserts.junctions).toEqual([]);
+  });
+
+  it("serializes putCustomerPoints into customer point upserts", () => {
+    const { model, factories } = setupModel();
+    const disconnected = factories.customerPointFactory.create([1, 2], "CP1");
+    const connected = factories.customerPointFactory.create([3, 4], "CP2");
+    connected.connect({
+      pipeId: 10,
+      junctionId: 20,
+      snapPoint: [3.5, 4.5],
+    });
+
+    const moment: ModelMoment = {
+      note: "add cps",
+      putCustomerPoints: [disconnected, connected],
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointUpserts).toHaveLength(2);
+    expect(payload.customerPointUpserts[0]).toEqual({
+      id: disconnected.id,
+      label: "CP1",
+      coord_x: 1,
+      coord_y: 2,
+      pipe_id: null,
+      junction_id: null,
+      snap_x: null,
+      snap_y: null,
+    });
+    expect(payload.customerPointUpserts[1]).toEqual({
+      id: connected.id,
+      label: "CP2",
+      coord_x: 3,
+      coord_y: 4,
+      pipe_id: 10,
+      junction_id: 20,
+      snap_x: 3.5,
+      snap_y: 4.5,
+    });
+  });
+
+  it("forwards deleteCustomerPoints ids", () => {
+    const { model } = setupModel();
+
+    const moment: ModelMoment = {
+      note: "delete cps",
+      deleteCustomerPoints: [4, 8],
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointDeleteIds).toEqual([4, 8]);
+  });
+
+  it("skips customer point upserts for ids that were deleted in the same moment", () => {
+    const { model, factories } = setupModel();
+    const cp = factories.customerPointFactory.create([0, 0], "CP1");
+
+    const moment: ModelMoment = {
+      note: "upsert then delete same cp",
+      putCustomerPoints: [cp],
+      deleteCustomerPoints: [cp.id],
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointDeleteIds).toEqual([cp.id]);
+    expect(payload.customerPointUpserts).toEqual([]);
+  });
+
+  it("serializes customer point demand assignments with ordinals", () => {
+    const { model } = setupModel();
+
+    const moment: ModelMoment = {
+      note: "assign demands",
+      putDemands: {
+        assignments: [
+          {
+            customerPointId: 7,
+            demands: [
+              { baseDemand: 2, patternId: 99 },
+              { baseDemand: 5, patternId: undefined },
+            ],
+          },
+        ],
+      },
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointDemandUpdates).toHaveLength(1);
+    expect(payload.customerPointDemandUpdates[0]).toEqual({
+      customerPointId: 7,
+      demands: [
+        {
+          customer_point_id: 7,
+          ordinal: 0,
+          base_demand: 2,
+          pattern_id: "99",
+        },
+        {
+          customer_point_id: 7,
+          ordinal: 1,
+          base_demand: 5,
+          pattern_id: null,
+        },
+      ],
+    });
+  });
+
+  it("ignores junction demand assignments", () => {
+    const { model } = setupModel();
+
+    const moment: ModelMoment = {
+      note: "junction demands only",
+      putDemands: {
+        assignments: [
+          {
+            junctionId: 3,
+            demands: [{ baseDemand: 1, patternId: undefined }],
+          },
+        ],
+      },
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointDemandUpdates).toEqual([]);
+  });
+
+  it("skips demand assignments for customer points being deleted", () => {
+    const { model } = setupModel();
+
+    const moment: ModelMoment = {
+      note: "clear demands on deletion",
+      deleteCustomerPoints: [7],
+      putDemands: {
+        assignments: [{ customerPointId: 7, demands: [] }],
+      },
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.customerPointDeleteIds).toEqual([7]);
+    expect(payload.customerPointDemandUpdates).toEqual([]);
   });
 });

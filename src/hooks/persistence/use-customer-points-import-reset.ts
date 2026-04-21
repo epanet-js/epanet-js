@@ -47,6 +47,10 @@ const loadModel = async (
   set(stagingModelDerivedAtom, hydraulicModel);
   if (isOurFileOn) {
     await db.setAllAssets(hydraulicModel.assets);
+    await db.setAllCustomerPoints(
+      hydraulicModel.customerPoints,
+      hydraulicModel.demands.customerPoints,
+    );
   }
   set(momentLogDerivedAtom, momentLog);
 

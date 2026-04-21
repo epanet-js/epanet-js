@@ -5,5 +5,6 @@ export { fetchProject } from "./fetch-project";
 export type { Project } from "./fetch-project";
 export { saveProjectSettings } from "./save-project-settings";
 export { setAllAssets } from "./set-all-assets";
+export { setAllCustomerPoints } from "./set-all-customer-points";
 export { applyMomentToDb } from "./apply-moment";
 export { exportDb } from "./export-db";
