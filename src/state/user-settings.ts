@@ -2,10 +2,12 @@ import { atomWithStorage } from "jotai/utils";
 
 export type UserSettings = {
   showFirstScenarioDialog: boolean;
+  showProjectSavedInfo: boolean;
 };
 
 export const defaultUserSettings: UserSettings = {
   showFirstScenarioDialog: true,
+  showProjectSavedInfo: true,
 };
 
 export const userSettingsAtom = atomWithStorage<UserSettings>(

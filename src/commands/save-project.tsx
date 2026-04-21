@@ -8,6 +8,8 @@ import {
   isDemoNetworkAtom,
 } from "src/state/file-system";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { dialogAtom } from "src/state/dialog";
+import { userSettingsAtom } from "src/state/user-settings";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -34,17 +36,9 @@ export const useSaveProject = ({
   const userTracking = useUserTracking();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
-  return useAtomCallback(
+  const performSave = useAtomCallback(
     useCallback(
-      async (
-        get,
-        set,
-        { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
-      ) => {
-        userTracking.capture({ name: "project.saved", source, isSaveAs });
-
-        if (!isOurFileOn) return false;
-
+      async (get, set, { isSaveAs = false }: { isSaveAs?: boolean }) => {
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
           const projectInfo = get(projectFileInfoAtom);
@@ -96,7 +90,37 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, isOurFileOn],
+      [getFsAccess, addRecent, translate],
+    ),
+  );
+
+  return useAtomCallback(
+    useCallback(
+      async (
+        get,
+        set,
+        { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
+      ) => {
+        userTracking.capture({ name: "project.saved", source, isSaveAs });
+
+        if (!isOurFileOn) return false;
+
+        const projectInfo = get(projectFileInfoAtom);
+        if (!projectInfo && get(userSettingsAtom).showProjectSavedInfo) {
+          return new Promise<boolean>((resolve) => {
+            set(dialogAtom, {
+              type: "projectSavedInfo",
+              onConfirm: () => {
+                void performSave({ isSaveAs }).then(resolve);
+              },
+              onCancel: () => resolve(false),
+            });
+          });
+        }
+
+        return performSave({ isSaveAs });
+      },
+      [performSave, isOurFileOn, userTracking],
     ),
   );
 };
