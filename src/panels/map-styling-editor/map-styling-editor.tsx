@@ -143,9 +143,6 @@ const SymbologyEditor = ({
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const hasCompletedSimulation =
     "epsResultsReader" in simulation && !!simulation.epsResultsReader;
   const hasWaterAge =
@@ -162,29 +159,21 @@ const SymbologyEditor = ({
   const { changeColorBy } = useChangeColorBy(geometryType);
 
   const colorByOptions = useMemo(() => {
-    const visibleProperties = properties.filter((p) => {
-      if (p === "waterAge" && !isWaterAgeOn) return false;
-      if (p === "waterTrace" && !isWaterTraceOn) return false;
-      if (p === "chemicalConcentration" && !isWaterChemicalOn) return false;
-      return true;
+    const options = (["none", ...properties] as SelectOption[]).map((type) => {
+      const unit =
+        type !== "none" ? (units[type as keyof typeof units] ?? null) : null;
+      const isSimProp = simulationProperties.includes(type);
+      const label = `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
+      return {
+        value: type,
+        label,
+        disabled:
+          (!hasCompletedSimulation && isSimProp) ||
+          (type === "waterAge" && !hasWaterAge) ||
+          (type === "waterTrace" && !hasWaterTrace) ||
+          (type === "chemicalConcentration" && !hasChemical),
+      };
     });
-    const options = (["none", ...visibleProperties] as SelectOption[]).map(
-      (type) => {
-        const unit =
-          type !== "none" ? (units[type as keyof typeof units] ?? null) : null;
-        const isSimProp = simulationProperties.includes(type);
-        const label = `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
-        return {
-          value: type,
-          label,
-          disabled:
-            (!hasCompletedSimulation && isSimProp) ||
-            (type === "waterAge" && !hasWaterAge) ||
-            (type === "waterTrace" && !hasWaterTrace) ||
-            (type === "chemicalConcentration" && !hasChemical),
-        };
-      },
-    );
     // Sort enabled options before disabled ones, keeping "none" always first
     return options.sort((a, b) => {
       if (a.value === "none") return -1;
@@ -192,9 +181,6 @@ const SymbologyEditor = ({
       return Number(a.disabled) - Number(b.disabled);
     });
   }, [
-    isWaterAgeOn,
-    isWaterTraceOn,
-    isWaterChemicalOn,
     properties,
     units,
     translate,

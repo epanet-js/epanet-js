@@ -41,7 +41,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   changeProperty,
   changeProperties,
@@ -383,8 +382,6 @@ const JunctionEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
@@ -495,20 +492,6 @@ const JunctionEditor = ({
           positiveOnly={true}
           readOnly={readonly}
         />
-        {isWaterAgeOn && !isWaterChemicalOn && (
-          <QuantityRow
-            name="initialQuality"
-            value={junction.initialQuality}
-            unit={units.waterAge}
-            comparison={getComparison(
-              "initialQuality",
-              junction.initialQuality,
-            )}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-        )}
       </SectionWrapper>
       <SectionWrapper
         title={translate("demands")}
@@ -554,36 +537,32 @@ const JunctionEditor = ({
           </>
         )}
       </SectionWrapper>
-      {isWaterChemicalOn && (
-        <SectionWrapper title={translate("quality")} section="quality">
-          <QuantityRow
-            name="initialQuality"
-            value={junction.initialQuality}
-            unit={
-              simulationSettings.qualitySimulationType === "age"
-                ? units.waterAge
-                : simulationSettings.qualitySimulationType === "chemical"
-                  ? units.chemicalConcentration
-                  : null
-            }
-            comparison={getComparison(
-              "initialQuality",
-              junction.initialQuality,
-            )}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-          <ChemicalSourceEditor
-            node={junction}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            onBatchPropertyChange={onBatchPropertyChange}
-            unit={units.chemicalConcentration}
-            readOnly={readonly}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper title={translate("quality")} section="quality">
+        <QuantityRow
+          name="initialQuality"
+          value={junction.initialQuality}
+          unit={
+            simulationSettings.qualitySimulationType === "age"
+              ? units.waterAge
+              : simulationSettings.qualitySimulationType === "chemical"
+                ? units.chemicalConcentration
+                : null
+          }
+          comparison={getComparison("initialQuality", junction.initialQuality)}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          readOnly={readonly}
+        />
+        <ChemicalSourceEditor
+          node={junction}
+          patterns={hydraulicModel.patterns}
+          onPropertyChange={onPropertyChange}
+          onBatchPropertyChange={onBatchPropertyChange}
+          unit={units.chemicalConcentration}
+          readOnly={readonly}
+        />
+      </SectionWrapper>
+
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -665,7 +644,6 @@ const PipeEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
@@ -854,34 +832,32 @@ const PipeEditor = ({
           />
         </SectionWrapper>
       )}
-      {isWaterChemicalOn && (
-        <SectionWrapper title={translate("quality")} section="quality">
-          <QuantityRow
-            name="bulkReactionCoeff"
-            value={pipe.bulkReactionCoeff ?? null}
-            unit={null}
-            placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
-            comparison={getComparison(
-              "bulkReactionCoeff",
-              pipe.bulkReactionCoeff,
-            )}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-          <QuantityRow
-            name="wallReactionCoeff"
-            value={pipe.wallReactionCoeff ?? null}
-            unit={null}
-            placeholder={localizeDecimal(simulationSettings.reactionGlobalWall)}
-            comparison={getComparison(
-              "wallReactionCoeff",
-              pipe.wallReactionCoeff,
-            )}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper title={translate("quality")} section="quality">
+        <QuantityRow
+          name="bulkReactionCoeff"
+          value={pipe.bulkReactionCoeff ?? null}
+          unit={null}
+          placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
+          comparison={getComparison(
+            "bulkReactionCoeff",
+            pipe.bulkReactionCoeff,
+          )}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
+        <QuantityRow
+          name="wallReactionCoeff"
+          value={pipe.wallReactionCoeff ?? null}
+          unit={null}
+          placeholder={localizeDecimal(simulationSettings.reactionGlobalWall)}
+          comparison={getComparison(
+            "wallReactionCoeff",
+            pipe.wallReactionCoeff,
+          )}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
+      </SectionWrapper>
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -958,8 +934,6 @@ const ReservoirEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
@@ -1027,51 +1001,32 @@ const ReservoirEditor = ({
           units={units}
           readOnly={readonly}
         />
-        {isWaterAgeOn && !isWaterChemicalOn && (
-          <QuantityRow
-            name="initialQuality"
-            value={reservoir.initialQuality}
-            unit={units.waterAge}
-            comparison={getComparison(
-              "initialQuality",
-              reservoir.initialQuality,
-            )}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-        )}
       </SectionWrapper>
-      {isWaterChemicalOn && (
-        <SectionWrapper title={translate("quality")} section="quality">
-          <QuantityRow
-            name="initialQuality"
-            value={reservoir.initialQuality}
-            unit={
-              simulationSettings.qualitySimulationType === "age"
-                ? units.waterAge
-                : simulationSettings.qualitySimulationType === "chemical"
-                  ? units.chemicalConcentration
-                  : null
-            }
-            comparison={getComparison(
-              "initialQuality",
-              reservoir.initialQuality,
-            )}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-          <ChemicalSourceEditor
-            node={reservoir}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            onBatchPropertyChange={onBatchPropertyChange}
-            unit={units.chemicalConcentration}
-            readOnly={readonly}
-          />
-        </SectionWrapper>
-      )}
+      <SectionWrapper title={translate("quality")} section="quality">
+        <QuantityRow
+          name="initialQuality"
+          value={reservoir.initialQuality}
+          unit={
+            simulationSettings.qualitySimulationType === "age"
+              ? units.waterAge
+              : simulationSettings.qualitySimulationType === "chemical"
+                ? units.chemicalConcentration
+                : null
+          }
+          comparison={getComparison("initialQuality", reservoir.initialQuality)}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          readOnly={readonly}
+        />
+        <ChemicalSourceEditor
+          node={reservoir}
+          patterns={hydraulicModel.patterns}
+          onPropertyChange={onPropertyChange}
+          onBatchPropertyChange={onBatchPropertyChange}
+          unit={units.chemicalConcentration}
+          readOnly={readonly}
+        />
+      </SectionWrapper>
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -1141,8 +1096,6 @@ const TankEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
@@ -1242,97 +1195,63 @@ const TankEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
-        {isWaterAgeOn && !isWaterChemicalOn && (
-          <>
+      </SectionWrapper>
+      <SectionWrapper title={translate("quality")} section="quality">
+        <QuantityRow
+          name="initialQuality"
+          value={tank.initialQuality}
+          unit={
+            simulationSettings.qualitySimulationType === "age"
+              ? units.waterAge
+              : simulationSettings.qualitySimulationType === "chemical"
+                ? units.chemicalConcentration
+                : null
+          }
+          comparison={getComparison("initialQuality", tank.initialQuality)}
+          onChange={onPropertyChange}
+          positiveOnly={true}
+          readOnly={readonly}
+        />
+        <QuantityRow
+          name="bulkReactionCoeff"
+          value={tank.bulkReactionCoeff ?? null}
+          unit={null}
+          placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
+          comparison={getComparison(
+            "bulkReactionCoeff",
+            tank.bulkReactionCoeff,
+          )}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
+        <ChemicalSourceEditor
+          node={tank}
+          patterns={hydraulicModel.patterns}
+          onPropertyChange={onPropertyChange}
+          onBatchPropertyChange={onBatchPropertyChange}
+          unit={units.chemicalConcentration}
+          readOnly={readonly}
+        />
+        <SelectRow
+          name="mixingModel"
+          selected={tank.mixingModel}
+          options={mixingModelOptions}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
+        {tank.mixingModel === "2comp" && (
+          <NestedSection>
             <QuantityRow
-              name="initialQuality"
-              value={tank.initialQuality}
-              unit={units.waterAge}
-              comparison={getComparison("initialQuality", tank.initialQuality)}
+              name="mixingFraction"
+              value={tank.mixingFraction}
+              unit={null}
               onChange={onPropertyChange}
               positiveOnly={true}
               readOnly={readonly}
             />
-            <SelectRow
-              name="mixingModel"
-              selected={tank.mixingModel}
-              options={mixingModelOptions}
-              onChange={onPropertyChange}
-              readOnly={readonly}
-            />
-            {tank.mixingModel === "2comp" && (
-              <NestedSection>
-                <QuantityRow
-                  name="mixingFraction"
-                  value={tank.mixingFraction}
-                  unit={null}
-                  onChange={onPropertyChange}
-                  positiveOnly={true}
-                  readOnly={readonly}
-                />
-              </NestedSection>
-            )}
-          </>
+          </NestedSection>
         )}
       </SectionWrapper>
-      {isWaterChemicalOn && (
-        <SectionWrapper title={translate("quality")} section="quality">
-          <QuantityRow
-            name="initialQuality"
-            value={tank.initialQuality}
-            unit={
-              simulationSettings.qualitySimulationType === "age"
-                ? units.waterAge
-                : simulationSettings.qualitySimulationType === "chemical"
-                  ? units.chemicalConcentration
-                  : null
-            }
-            comparison={getComparison("initialQuality", tank.initialQuality)}
-            onChange={onPropertyChange}
-            positiveOnly={true}
-            readOnly={readonly}
-          />
-          <QuantityRow
-            name="bulkReactionCoeff"
-            value={tank.bulkReactionCoeff ?? null}
-            unit={null}
-            placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
-            comparison={getComparison(
-              "bulkReactionCoeff",
-              tank.bulkReactionCoeff,
-            )}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-          <ChemicalSourceEditor
-            node={tank}
-            patterns={hydraulicModel.patterns}
-            onPropertyChange={onPropertyChange}
-            onBatchPropertyChange={onBatchPropertyChange}
-            unit={units.chemicalConcentration}
-            readOnly={readonly}
-          />
-          <SelectRow
-            name="mixingModel"
-            selected={tank.mixingModel}
-            options={mixingModelOptions}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-          {tank.mixingModel === "2comp" && (
-            <NestedSection>
-              <QuantityRow
-                name="mixingFraction"
-                value={tank.mixingFraction}
-                unit={null}
-                onChange={onPropertyChange}
-                positiveOnly={true}
-                readOnly={readonly}
-              />
-            </NestedSection>
-          )}
-        </SectionWrapper>
-      )}
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"

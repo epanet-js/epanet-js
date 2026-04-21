@@ -1,5 +1,4 @@
 import { useMemo, useCallback } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
 import { IWrappedFeature } from "src/types";
@@ -54,8 +53,6 @@ export function MultiAssetPanel({
   const userTracking = useUserTracking();
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
@@ -64,20 +61,8 @@ export function MultiAssetPanel({
       formatting,
       hydraulicModel,
       simulationResults,
-      {
-        waterAge: isWaterAgeOn,
-        waterChemical: isWaterChemicalOn,
-      },
     );
-  }, [
-    selectedFeatures,
-    units,
-    formatting,
-    hydraulicModel,
-    simulationResults,
-    isWaterAgeOn,
-    isWaterChemicalOn,
-  ]);
+  }, [selectedFeatures, units, formatting, hydraulicModel, simulationResults]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -95,69 +80,18 @@ export function MultiAssetPanel({
     return map;
   }, [selectedFeatures]);
 
-  const junctionEditableProperties = useMemo(() => {
-    const {
-      initialQuality,
-      chemicalSourceType,
-      chemicalSourceStrength,
-      chemicalSourcePattern,
-      ...rest
-    } = BATCH_EDITABLE_PROPERTIES.junction!;
-    if (isWaterChemicalOn) return BATCH_EDITABLE_PROPERTIES.junction!;
-    if (isWaterAgeOn) return { initialQuality, ...rest };
-    return rest;
-  }, [isWaterAgeOn, isWaterChemicalOn]);
-
-  const pipeEditableProperties = useMemo(() => {
-    const { bulkReactionCoeff, wallReactionCoeff, ...rest } =
-      BATCH_EDITABLE_PROPERTIES.pipe!;
-    return isWaterChemicalOn ? BATCH_EDITABLE_PROPERTIES.pipe! : rest;
-  }, [isWaterChemicalOn]);
-
-  const reservoirEditableProperties = useMemo(() => {
-    const {
-      initialQuality,
-      chemicalSourceType,
-      chemicalSourceStrength,
-      chemicalSourcePattern,
-      ...rest
-    } = BATCH_EDITABLE_PROPERTIES.reservoir!;
-    if (isWaterChemicalOn) return BATCH_EDITABLE_PROPERTIES.reservoir!;
-    if (isWaterAgeOn) return { initialQuality, ...rest };
-    return rest;
-  }, [isWaterAgeOn, isWaterChemicalOn]);
-
   const tankEditableProperties = useMemo(() => {
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
       const tank = hydraulicModel.assets.get(id) as Tank;
       return !!tank.volumeCurveId;
     });
-    const base = hasCurveTanks
-      ? (() => {
-          const { minLevel, maxLevel, diameter, minVolume, ...rest } =
-            BATCH_EDITABLE_PROPERTIES.tank!;
-          return rest;
-        })()
-      : BATCH_EDITABLE_PROPERTIES.tank!;
-    if (!isWaterChemicalOn) {
-      const {
-        initialQuality,
-        bulkReactionCoeff,
-        chemicalSourceType,
-        chemicalSourceStrength,
-        chemicalSourcePattern,
-        ...rest
-      } = base;
-      if (isWaterAgeOn) return { initialQuality, ...rest };
+    if (hasCurveTanks) {
+      const { minLevel, maxLevel, diameter, minVolume, ...rest } =
+        BATCH_EDITABLE_PROPERTIES.tank;
       return rest;
     }
-    return base;
-  }, [
-    assetIdsByType.tank,
-    hydraulicModel.assets,
-    isWaterAgeOn,
-    isWaterChemicalOn,
-  ]);
+    return BATCH_EDITABLE_PROPERTIES.tank;
+  }, [assetIdsByType.tank, hydraulicModel.assets]);
 
   const showSelectOnly =
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
@@ -251,7 +185,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
-            editableProperties={junctionEditableProperties}
+            editableProperties={BATCH_EDITABLE_PROPERTIES.junction}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("junction", p, v)
@@ -280,7 +214,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
-            editableProperties={pipeEditableProperties}
+            editableProperties={BATCH_EDITABLE_PROPERTIES.pipe}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}
@@ -307,7 +241,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pump}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.pump!}
+            editableProperties={BATCH_EDITABLE_PROPERTIES.pump}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
             readonly={readonly}
@@ -338,7 +272,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.valve!}
+            editableProperties={BATCH_EDITABLE_PROPERTIES.valve}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("valve", p, v)
@@ -367,7 +301,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
-            editableProperties={reservoirEditableProperties}
+            editableProperties={BATCH_EDITABLE_PROPERTIES.reservoir}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("reservoir", p, v)
             }

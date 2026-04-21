@@ -11,7 +11,6 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { worktreeAtom } from "src/state/scenarios";
 import {
   assetPanelFooterAtom,
@@ -131,7 +130,6 @@ const QuickGraphSection = ({
   const translateUnit = useTranslateUnit();
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationStep = useAtomValue(simulationStepAtom);
   const worktree = useAtomValue(worktreeAtom);
@@ -206,7 +204,7 @@ const QuickGraphSection = ({
                 quantityKey: "waterTrace" as QuantityProperty,
               },
             ]
-          : qualityType === "chemical" && isWaterChemicalOn
+          : qualityType === "chemical"
             ? [
                 ...baseOptions,
                 {
@@ -240,7 +238,6 @@ const QuickGraphSection = ({
     translateUnit,
     units,
     simulation,
-    isWaterChemicalOn,
   ]);
 
   const handlePropertyChange = useCallback(

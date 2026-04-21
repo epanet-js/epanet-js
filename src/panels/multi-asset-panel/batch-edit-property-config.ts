@@ -48,8 +48,9 @@ export type BatchEditPropertyConfig =
 
 export type EditableProperties = Record<string, BatchEditPropertyConfig>;
 
-export const BATCH_EDITABLE_PROPERTIES: Partial<
-  Record<Asset["type"], Record<string, BatchEditPropertyConfig>>
+export const BATCH_EDITABLE_PROPERTIES: Record<
+  Asset["type"],
+  Record<string, BatchEditPropertyConfig>
 > = {
   junction: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },

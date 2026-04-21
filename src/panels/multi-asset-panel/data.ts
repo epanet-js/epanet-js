@@ -101,10 +101,6 @@ export const computeMultiAssetData = (
   formatting: FormattingSpec,
   hydraulicModel: HydraulicModel,
   simulationResults?: ResultsReader | null,
-  options?: {
-    waterAge?: boolean;
-    waterChemical?: boolean;
-  },
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -203,12 +199,12 @@ export const computeMultiAssetData = (
 
   return {
     data: {
-      junction: buildJunctionSections(statsMaps.junction, options),
-      pipe: buildPipeSections(statsMaps.pipe, options),
+      junction: buildJunctionSections(statsMaps.junction),
+      pipe: buildPipeSections(statsMaps.pipe),
       pump: buildPumpSections(statsMaps.pump),
       valve: buildValveSections(statsMaps.valve),
-      reservoir: buildReservoirSections(statsMaps.reservoir, options),
-      tank: buildTankSections(statsMaps.tank, options),
+      reservoir: buildReservoirSections(statsMaps.reservoir),
+      tank: buildTankSections(statsMaps.tank),
     },
     counts,
   };
@@ -389,25 +385,16 @@ const calculateCustomerPointsDemand = (
 
 const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterAge && !options?.waterChemical)
-    statsMap.delete("initialQuality");
-  if (!options?.waterChemical) {
-    statsMap.delete("chemicalSourceType");
-    statsMap.delete("chemicalSourceStrength");
+  const patternStats = statsMap.get("chemicalSourcePattern") as
+    | LiteralCategoryStats
+    | undefined;
+  if (
+    patternStats &&
+    patternStats.values.size === 1 &&
+    patternStats.values.has("")
+  ) {
     statsMap.delete("chemicalSourcePattern");
-  } else {
-    const patternStats = statsMap.get("chemicalSourcePattern") as
-      | LiteralCategoryStats
-      | undefined;
-    if (
-      patternStats &&
-      patternStats.values.size === 1 &&
-      patternStats.values.has("")
-    ) {
-      statsMap.delete("chemicalSourcePattern");
-    }
   }
 
   return {
@@ -415,7 +402,6 @@ const buildJunctionSections = (
     modelAttributes: getStatsForProperties(statsMap, [
       "elevation",
       "emitterCoefficient",
-      ...(!options?.waterChemical ? (["initialQuality"] as const) : []),
     ]),
     quality: getStatsForProperties(statsMap, [
       "initialQuality",
@@ -591,13 +577,7 @@ const appendPipeStats = (
 
 const buildPipeSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterChemical) {
-    statsMap.delete("bulkReactionCoeff");
-    statsMap.delete("wallReactionCoeff");
-  }
-
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
@@ -1089,34 +1069,21 @@ const appendReservoirStats = (
 
 const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterAge && !options?.waterChemical)
-    statsMap.delete("initialQuality");
-  if (!options?.waterChemical) {
-    statsMap.delete("chemicalSourceType");
-    statsMap.delete("chemicalSourceStrength");
+  const patternStats = statsMap.get("chemicalSourcePattern") as
+    | LiteralCategoryStats
+    | undefined;
+  if (
+    patternStats &&
+    patternStats.values.size === 1 &&
+    patternStats.values.has("")
+  ) {
     statsMap.delete("chemicalSourcePattern");
-  } else {
-    const patternStats = statsMap.get("chemicalSourcePattern") as
-      | LiteralCategoryStats
-      | undefined;
-    if (
-      patternStats &&
-      patternStats.values.size === 1 &&
-      patternStats.values.has("")
-    ) {
-      statsMap.delete("chemicalSourcePattern");
-    }
   }
 
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, [
-      "elevation",
-      "head",
-      ...(!options?.waterChemical ? (["initialQuality"] as const) : []),
-    ]),
+    modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
     quality: getStatsForProperties(statsMap, [
       "initialQuality",
       "chemicalSourceType",
@@ -1362,30 +1329,16 @@ const appendTankStats = (
 
 const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
-  options?: { waterAge?: boolean; waterChemical?: boolean },
 ): AssetPropertySections => {
-  if (!options?.waterAge && !options?.waterChemical)
-    statsMap.delete("initialQuality");
-  if (!options?.waterAge) {
-    statsMap.delete("mixingModel");
-    statsMap.delete("mixingFraction");
-  }
-  if (!options?.waterChemical) {
-    statsMap.delete("bulkReactionCoeff");
-    statsMap.delete("chemicalSourceType");
-    statsMap.delete("chemicalSourceStrength");
+  const patternStats = statsMap.get("chemicalSourcePattern") as
+    | LiteralCategoryStats
+    | undefined;
+  if (
+    patternStats &&
+    patternStats.values.size === 1 &&
+    patternStats.values.has("")
+  ) {
     statsMap.delete("chemicalSourcePattern");
-  } else {
-    const patternStats = statsMap.get("chemicalSourcePattern") as
-      | LiteralCategoryStats
-      | undefined;
-    if (
-      patternStats &&
-      patternStats.values.size === 1 &&
-      patternStats.values.has("")
-    ) {
-      statsMap.delete("chemicalSourcePattern");
-    }
   }
 
   // Remove volumeCurve row if no tanks actually have curves
@@ -1408,9 +1361,6 @@ const buildTankSections = (
       "diameter",
       "minVolume",
       "canOverflow",
-      ...(!options?.waterChemical
-        ? (["initialQuality", "mixingModel", "mixingFraction"] as const)
-        : []),
     ]),
     quality: getStatsForProperties(statsMap, [
       "initialQuality",

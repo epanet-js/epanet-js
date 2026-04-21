@@ -1,6 +1,5 @@
 import { useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { symbologyBuilders } from "src/map/symbology/symbology-builders";
 import {
@@ -32,8 +31,6 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const { switchNodeSymbologyTo, switchLinkSymbologyTo } = useSymbologyState();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const [isWorking, setIsWorking] = useState(false);
 
   const fetchSortedData = useCallback(
@@ -46,11 +43,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         "epsResultsReader" in simulation &&
         (simulation.epsResultsReader?.timestepCount ?? 0) > 1;
 
-      if (
-        (isWaterAgeOn || isWaterTraceOn) &&
-        isEpsSimulation &&
-        isSimulationProperty(property)
-      ) {
+      if (isEpsSimulation && isSimulationProperty(property)) {
         const epsReader = simulation.epsResultsReader!;
         if (epsReader) {
           const sorted = await getSortedSimulationDataForBreaks(
@@ -69,13 +62,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         { absValues },
       );
     },
-    [
-      isWaterAgeOn,
-      isWaterTraceOn,
-      hydraulicModel,
-      simulationResults,
-      simulation,
-    ],
+    [hydraulicModel, simulationResults, simulation],
   );
 
   const changeColorBy = useCallback(
