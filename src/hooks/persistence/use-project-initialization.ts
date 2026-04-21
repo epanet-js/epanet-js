@@ -13,7 +13,6 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { modelCacheAtom } from "src/state/model-cache";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
@@ -103,13 +102,6 @@ const loadModel = async (
   }
 
   set(worktreeAtom, initializeWorktree());
-
-  set(
-    modelCacheAtom,
-    new Map([
-      ["main", { model: hydraulicModel, labelManager: factories.labelManager }],
-    ]),
-  );
 
   set(
     branchStateAtom,

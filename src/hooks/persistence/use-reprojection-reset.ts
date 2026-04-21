@@ -18,8 +18,6 @@ import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
-import { modelCacheAtom } from "src/state/model-cache";
-import { modelFactoriesAtom } from "src/state/model-factories";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { worktreeAtom } from "src/state/scenarios";
@@ -63,14 +61,6 @@ const loadModel = async (
   }
 
   set(worktreeAtom, initializeWorktree());
-
-  const factories = get(modelFactoriesAtom);
-  set(
-    modelCacheAtom,
-    new Map([
-      ["main", { model: hydraulicModel, labelManager: factories.labelManager }],
-    ]),
-  );
 };
 
 export const useReprojectionReset = () => {
