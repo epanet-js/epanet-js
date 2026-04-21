@@ -10,35 +10,47 @@ import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { applyMomentToDb } from "src/db";
+import { captureError } from "src/infra/error-tracking";
 
 export const useUndoableTransactions = () => {
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const historyControl = useAtomCallback(
-    useCallback((get: Getter, set: Setter, direction: "undo" | "redo") => {
-      const isUndo = direction === "undo";
+    useCallback(
+      (get: Getter, set: Setter, direction: "undo" | "redo") => {
+        const isUndo = direction === "undo";
 
-      const momentLog = get(momentLogDerivedAtom).copy();
-      const currentMapSyncMoment = get(mapSyncMomentAtom);
-      const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-      if (!action) return;
+        const momentLog = get(momentLogDerivedAtom).copy();
+        const currentMapSyncMoment = get(mapSyncMomentAtom);
+        const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
+        if (!action) return;
 
-      applyMoment(
-        get,
-        set,
-        action.stateId,
-        action.moment,
-        stagingModelDerivedAtom,
-      );
+        applyMoment(
+          get,
+          set,
+          action.stateId,
+          action.moment,
+          stagingModelDerivedAtom,
+        );
 
-      isUndo ? momentLog.undo() : momentLog.redo();
+        if (isOurFileOn) {
+          const updatedModel = get(stagingModelDerivedAtom);
+          void applyMomentToDb(action.moment, updatedModel).catch(captureError);
+        }
 
-      const newMapSyncMoment = computeSyncMoment(
-        currentMapSyncMoment,
-        momentLog,
-      );
+        isUndo ? momentLog.undo() : momentLog.redo();
 
-      set(momentLogDerivedAtom, momentLog);
-      set(mapSyncMomentAtom, newMapSyncMoment);
-    }, []),
+        const newMapSyncMoment = computeSyncMoment(
+          currentMapSyncMoment,
+          momentLog,
+        );
+
+        set(momentLogDerivedAtom, momentLog);
+        set(mapSyncMomentAtom, newMapSyncMoment);
+      },
+      [isOurFileOn],
+    ),
   );
 
   return { historyControl };

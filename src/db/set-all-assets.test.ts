@@ -18,7 +18,7 @@ const makeFactories = () =>
 
 describe("assetsToRows", () => {
   it("returns empty collections for an empty map", () => {
-    const rows = assetsToRows(new Map());
+    const rows = assetsToRows(new Map<number, never>().values());
 
     expect(rows.junctions).toEqual([]);
     expect(rows.reservoirs).toEqual([]);
@@ -93,7 +93,7 @@ describe("assetsToRows", () => {
     });
     assets.set(valve.id, valve);
 
-    const rows = assetsToRows(assets);
+    const rows = assetsToRows(assets.values());
 
     expect(rows.junctions).toHaveLength(1);
     expect(rows.reservoirs).toHaveLength(1);
@@ -162,7 +162,7 @@ describe("assetsToRows", () => {
     });
     assets.set(curvePump.id, curvePump);
 
-    const rows = assetsToRows(assets);
+    const rows = assetsToRows(assets.values());
 
     expect(rows.pumps[0]).toMatchObject({
       id: 1,
@@ -189,7 +189,7 @@ describe("assetsToRows", () => {
     });
     const assets: AssetsMap = new Map([[junction.id, junction]]);
 
-    const rows = assetsToRows(assets);
+    const rows = assetsToRows(assets.values());
 
     expect(rows.junctions[0].is_active).toBe(0);
   });
@@ -240,7 +240,7 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
     );
 
     const { assets: rebuilt } = buildAssetsData(
-      assetsToRows(original),
+      assetsToRows(original.values()),
       makeFactories(),
     );
 
@@ -284,7 +284,7 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
 
     const rebuildFactories = makeFactories();
     const { assets: rebuilt, topology } = buildAssetsData(
-      assetsToRows(original),
+      assetsToRows(original.values()),
       rebuildFactories,
     );
 

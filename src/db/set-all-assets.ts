@@ -18,12 +18,12 @@ import type {
 } from "./rows";
 
 export const setAllAssets = async (assets: AssetsMap): Promise<void> => {
-  const payload = assetsToRows(assets);
+  const payload = assetsToRows(assets.values());
   const worker = getDbWorker();
   await worker.setAllAssets(payload);
 };
 
-export const assetsToRows = (assets: AssetsMap): AssetRows => {
+export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
   const rows: AssetRows = {
     junctions: [],
     reservoirs: [],
@@ -32,7 +32,7 @@ export const assetsToRows = (assets: AssetsMap): AssetRows => {
     pumps: [],
     valves: [],
   };
-  for (const asset of assets.values()) {
+  for (const asset of assets) {
     switch (asset.type) {
       case "junction":
         rows.junctions.push(toJunctionRow(asset as Junction));

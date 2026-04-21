@@ -13,36 +13,48 @@ import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { applyMomentToDb } from "src/db";
+import { captureError } from "src/infra/error-tracking";
 
 export const useModelTransaction = () => {
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const transact = useAtomCallback(
-    useCallback((get: Getter, set: Setter, moment: ModelMoment) => {
-      const momentLog = get(momentLogDerivedAtom).copy();
-      const mapSyncMoment = get(mapSyncMomentAtom);
-      const isTruncatingHistory = momentLog.nextRedo() !== null;
+    useCallback(
+      (get: Getter, set: Setter, moment: ModelMoment) => {
+        const momentLog = get(momentLogDerivedAtom).copy();
+        const mapSyncMoment = get(mapSyncMomentAtom);
+        const isTruncatingHistory = momentLog.nextRedo() !== null;
 
-      trackMoment(moment);
-      const newStateId = nanoid();
+        trackMoment(moment);
+        const newStateId = nanoid();
 
-      const reverseMoment = applyMoment(
-        get,
-        set,
-        newStateId,
-        moment,
-        stagingModelDerivedAtom,
-      );
+        const reverseMoment = applyMoment(
+          get,
+          set,
+          newStateId,
+          moment,
+          stagingModelDerivedAtom,
+        );
 
-      momentLog.append(moment, reverseMoment, newStateId);
+        if (isOurFileOn) {
+          const updatedModel = get(stagingModelDerivedAtom);
+          void applyMomentToDb(moment, updatedModel).catch(captureError);
+        }
 
-      const newMapSyncMoment = computeSyncMoment(
-        mapSyncMoment,
-        momentLog,
-        isTruncatingHistory,
-      );
+        momentLog.append(moment, reverseMoment, newStateId);
 
-      set(momentLogDerivedAtom, momentLog);
-      set(mapSyncMomentAtom, newMapSyncMoment);
-    }, []),
+        const newMapSyncMoment = computeSyncMoment(
+          mapSyncMoment,
+          momentLog,
+          isTruncatingHistory,
+        );
+
+        set(momentLogDerivedAtom, momentLog);
+        set(mapSyncMomentAtom, newMapSyncMoment);
+      },
+      [isOurFileOn],
+    ),
   );
 
   return { transact };

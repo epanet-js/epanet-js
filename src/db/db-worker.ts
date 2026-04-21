@@ -9,6 +9,7 @@ import type {
   PumpRow,
   ValveRow,
 } from "./rows";
+import type { ApplyMomentPayload } from "./apply-moment";
 
 type OoDb = {
   pointer?: number;
@@ -250,6 +251,22 @@ const insertPump = (row: PumpRow) => {
   );
 };
 
+const deleteAssetCascade = (id: number) => {
+  for (const table of [
+    "junction_properties",
+    "reservoir_properties",
+    "tank_properties",
+    "pipe_properties",
+    "pump_properties",
+    "valve_properties",
+    "link_properties",
+    "node_properties",
+  ]) {
+    db!.exec(`DELETE FROM ${table} WHERE asset_id = ?`, { bind: [id] });
+  }
+  db!.exec("DELETE FROM assets WHERE id = ?", { bind: [id] });
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -354,6 +371,45 @@ const api = {
 
   async getValves(): Promise<unknown[]> {
     return readAll("SELECT * FROM valves_view");
+  },
+
+  async applyMoment(payload: ApplyMomentPayload): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      for (const id of payload.deleteIds) {
+        deleteAssetCascade(id);
+      }
+      for (const row of payload.upserts.junctions) {
+        deleteAssetCascade(row.id);
+        insertJunction(row);
+      }
+      for (const row of payload.upserts.reservoirs) {
+        deleteAssetCascade(row.id);
+        insertReservoir(row);
+      }
+      for (const row of payload.upserts.tanks) {
+        deleteAssetCascade(row.id);
+        insertTank(row);
+      }
+      for (const row of payload.upserts.pipes) {
+        deleteAssetCascade(row.id);
+        insertPipe(row);
+      }
+      for (const row of payload.upserts.pumps) {
+        deleteAssetCascade(row.id);
+        insertPump(row);
+      }
+      for (const row of payload.upserts.valves) {
+        deleteAssetCascade(row.id);
+        insertValve(row);
+      }
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
   },
 
   async setAllAssets(payload: AssetRows): Promise<void> {
