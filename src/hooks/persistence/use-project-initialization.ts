@@ -42,6 +42,10 @@ import {
 } from "src/state/drawing";
 import { selectionAtom } from "src/state/selection";
 import { branchStateAtom } from "src/state/branch-state";
+import {
+  sourceRebuildDurationsAtom,
+  resultsFetchDurationsAtom,
+} from "src/state/performance";
 
 type InitializeProjectInput = {
   hydraulicModel: HydraulicModel;
@@ -66,6 +70,8 @@ const resetAppState = (set: Setter) => {
   set(selectionAtom, { type: "none" });
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);
+  set(sourceRebuildDurationsAtom, []);
+  set(resultsFetchDurationsAtom, []);
 };
 
 const loadModel = async (

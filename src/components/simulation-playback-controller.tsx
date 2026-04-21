@@ -1,17 +1,30 @@
 import { useAtomValue } from "jotai";
 import type { Getter } from "jotai";
 import { atomEffect } from "jotai-effect";
+import { isDebugAppStateOn } from "src/infra/debug-mode";
 import {
   simulationPlaybackAtom,
   stopPlaybackAtom,
 } from "src/state/simulation-playback";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  resultsFetchStartEffectAtom,
+  resultsFetchTimingEffectAtom,
+  sourceRebuildDurationsAtom,
+  estimatedSourceRebuildDurationAtom,
+  resultsFetchDurationsAtom,
+  estimatedResultsFetchDurationAtom,
+  estimatedResultsUpdateDurationAtom,
+} from "src/state/performance";
 import { setTimestepAtom } from "src/state/simulation-step";
 import { simulationStepAtom } from "src/state/simulation";
 
 export const SimulationPlaybackController = () => {
   useAtomValue(simulationPlaybackEffectAtom);
   useAtomValue(stopPlaybackOnSimulationRunAtom);
+  useAtomValue(resultsFetchStartEffectAtom);
+  useAtomValue(resultsFetchTimingEffectAtom);
+  useAtomValue(performanceLoggingEffectAtom);
   return null;
 };
 
@@ -63,6 +76,34 @@ function getTimestepCount(get: Getter): number {
       : undefined) ?? 0
   );
 }
+
+const performanceLoggingEffectAtom = atomEffect((get) => {
+  if (!isDebugAppStateOn) return;
+
+  const rebuildDurations = get(sourceRebuildDurationsAtom);
+  const fetchDurations = get(resultsFetchDurationsAtom);
+  const estimatedRebuild = get.peek(estimatedSourceRebuildDurationAtom);
+  const estimatedFetch = get.peek(estimatedResultsFetchDurationAtom);
+  const estimatedTotal = get.peek(estimatedResultsUpdateDurationAtom);
+
+  const lastRebuild = rebuildDurations.at(-1);
+  const lastFetch = fetchDurations.at(-1);
+  if (
+    lastFetch !== undefined &&
+    lastRebuild !== undefined &&
+    fetchDurations.length === rebuildDurations.length
+  ) {
+    // eslint-disable-next-line no-console
+    console.debug(
+      [
+        "[Performance]",
+        `  Fetch:   ${lastFetch?.toFixed(0) ?? "-"}ms (P90: ${estimatedFetch?.toFixed(0) ?? "-"}ms, n=${fetchDurations.length})`,
+        `  Rebuild: ${lastRebuild?.toFixed(0) ?? "-"}ms (P90: ${estimatedRebuild?.toFixed(0) ?? "-"}ms, n=${rebuildDurations.length})`,
+        `  Total P90: ${estimatedTotal?.toFixed(0) ?? "-"}ms`,
+      ].join("\n"),
+    );
+  }
+});
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));

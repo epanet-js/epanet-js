@@ -19,6 +19,7 @@ import {
   mapSyncMomentAtom,
   mapLoadingAtom,
 } from "src/state/map";
+import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
@@ -156,7 +157,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
   const setMapLoading = useSetAtom(mapLoadingAtom);
-
+  const appendSourceRebuildDuration = useSetAtom(
+    appendSourceRebuildDurationAtom,
+  );
   const assets = useAtomValue(assetsDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
@@ -218,6 +221,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
     setTimeout(async () => {
       try {
+        const resultsUpdateStartedAt =
+          hasNewResults || hasNewSymbologyRules ? performance.now() : null;
+
         if (hasNewStyles) {
           map.suspendOverlayStyleReactions();
           resetMapState(map);
@@ -312,6 +318,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.selection,
             mapState.resultsReader,
           );
+
+          if (resultsUpdateStartedAt !== null) {
+            const duration = performance.now() - resultsUpdateStartedAt;
+            appendSourceRebuildDuration(duration);
+          }
         }
 
         const movingCustomerPointId =
@@ -489,6 +500,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     units,
     formatting,
     setMapLoading,
+    appendSourceRebuildDuration,
     translate,
     gisData,
     translateUnit,

@@ -72,6 +72,15 @@ export {
   cursorStyleAtom,
 } from "src/state/map";
 
+// Simulation timing
+export {
+  sourceRebuildDurationsAtom,
+  estimatedSourceRebuildDurationAtom,
+  resultsFetchDurationsAtom,
+  estimatedResultsFetchDurationAtom,
+  estimatedResultsUpdateDurationAtom,
+} from "src/state/performance";
+
 // Map projection
 export {
   isUnprojectedAtom,
