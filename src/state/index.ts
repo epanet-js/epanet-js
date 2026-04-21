@@ -51,6 +51,7 @@ export {
   MAX_SPLIT,
   defaultSplits,
   splitsAtom,
+  showPanelBottomAtom,
   TabOption,
   tabAtom,
   multiAssetPanelCollapseAtom,
