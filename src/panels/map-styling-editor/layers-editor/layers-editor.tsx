@@ -15,7 +15,7 @@ import { TextWell } from "src/components/elements";
 import { ILayerConfig, zLayerConfig } from "src/types";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  restrictToFirstScrollableAncestor,
+  restrictToParentElement,
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import { ZodError, z } from "zod";
@@ -1130,7 +1130,7 @@ const LayerConfigItem = ({
   );
 };
 
-const GISItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const VectorFileItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const setGisData = useSetAtom(gisDataAtom);
@@ -1334,12 +1334,61 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       {layerConfig.type === "TILEJSON" && (
         <TileJSONItem layerConfig={layerConfig} />
       )}
-      {layerConfig.type === "GEOJSON" && <GISItem layerConfig={layerConfig} />}
+      {layerConfig.type === "GEOJSON" && (
+        <VectorFileItem layerConfig={layerConfig} />
+      )}
     </div>
   );
 }
 
 export { FORM_ERROR } from "src/core/components/Form";
+
+function SortableGroup({
+  items,
+  sensors,
+  applyChanges,
+  allItems,
+}: {
+  items: ILayerConfig[];
+  sensors: ReturnType<typeof useSensors>;
+  applyChanges: ReturnType<typeof useLayerConfigState>["applyChanges"];
+  allItems: ILayerConfig[];
+}) {
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (active.id === over?.id) return;
+
+    const oldIndex = allItems.findIndex((item) => item.id === active.id);
+    const newIndex = allItems.findIndex((item) => item.id === over?.id);
+    const ordered = arrayMove(allItems, oldIndex, newIndex);
+    const idx = ordered.findIndex((item) => item.id === active.id);
+    const layerConfig = ordered[idx];
+    let at = "a0";
+    try {
+      at = generateKeyBetween(
+        ordered[idx - 1]?.at || null,
+        ordered[idx + 1]?.at || null,
+      );
+    } catch (e) {}
+
+    applyChanges({ putLayerConfigs: [{ ...layerConfig, at }] });
+  }
+
+  return (
+    <DndContext
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+    >
+      <SortableContext items={items} strategy={verticalListSortingStrategy}>
+        {items.map((layerConfig) => (
+          <SortableLayerConfig layerConfig={layerConfig} key={layerConfig.id} />
+        ))}
+      </SortableContext>
+    </DndContext>
+  );
+}
 
 export function LayersEditor() {
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -1353,57 +1402,23 @@ export function LayersEditor() {
     }),
   );
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      const oldIndex = items.findIndex((item) => item.id === active.id);
-      const newIndex = items.findIndex((item) => item.id === over?.id);
-
-      const isActiveGIS = items[oldIndex]?.type === "GEOJSON";
-      const isOverGIS = items[newIndex]?.type === "GEOJSON";
-      if (isActiveGIS !== isOverGIS) return;
-      const ordered = arrayMove(items, oldIndex, newIndex);
-      const idx = ordered.findIndex((item) => item.id === active.id);
-      const layerConfig = ordered[idx];
-      let at = "a0";
-      try {
-        at = generateKeyBetween(
-          ordered[idx - 1]?.at || null,
-          ordered[idx + 1]?.at || null,
-        );
-      } catch (e) {}
-
-      applyChanges({
-        putLayerConfigs: [
-          {
-            ...layerConfig,
-            at,
-          },
-        ],
-      });
-    }
-  }
+  const gisItems = items.filter((item) => item.type === "GEOJSON");
+  const otherItems = items.filter((item) => item.type !== "GEOJSON");
 
   return (
     <div className="flex flex-col gap-y-1">
-      <DndContext
-        onDragEnd={handleDragEnd}
+      <SortableGroup
+        items={otherItems}
         sensors={sensors}
-        collisionDetection={closestCenter}
-        modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
-      >
-        <SortableContext items={items} strategy={verticalListSortingStrategy}>
-          {items.map((layerConfig) => {
-            return (
-              <SortableLayerConfig
-                layerConfig={layerConfig}
-                key={layerConfig.id}
-              />
-            );
-          })}
-        </SortableContext>
-      </DndContext>
+        applyChanges={applyChanges}
+        allItems={items}
+      />
+      <SortableGroup
+        items={gisItems}
+        sensors={sensors}
+        applyChanges={applyChanges}
+        allItems={items}
+      />
     </div>
   );
 }
