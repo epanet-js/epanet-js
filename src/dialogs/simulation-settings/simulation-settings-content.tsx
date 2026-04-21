@@ -5,7 +5,6 @@ import clsx from "clsx";
 
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   TimeField,
   formatSecondsToDisplay,
@@ -550,9 +549,6 @@ export const HydraulicsSection = () => {
 export const WaterQualitySection = () => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const hasScenarios = useAtomValue(hasScenariosAtom);
   const assets = useAtomValue(assetsDerivedAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
@@ -582,23 +578,16 @@ export const WaterQualitySection = () => {
     {
       label: translate("simulationSettings.qualityChemical"),
       value: "chemical",
-      disabled: !isWaterChemicalOn,
     },
     {
       label: translate("simulationSettings.qualityAge"),
       value: "age",
-      disabled: !isWaterAgeOn,
     },
     {
       label: translate("simulationSettings.qualityTrace"),
       value: "trace",
-      disabled: !isWaterTraceOn,
     },
   ];
-
-  const isSelectedQualityTypeSupported = !qualityTypeOptions.find(
-    (o) => o.value === values.qualitySimulationType,
-  )?.disabled;
 
   const massUnitOptions: { label: string; value: QualityMassUnit }[] = [
     { label: translateUnit("mg/L"), value: "mg/L" },
@@ -623,15 +612,7 @@ export const WaterQualitySection = () => {
           options={qualityTypeOptions}
           selected={values.qualitySimulationType}
           onChange={(v) => setFieldValue("qualitySimulationType", v)}
-          disabled={
-            hasScenarios ||
-            !(isWaterAgeOn || isWaterChemicalOn || isWaterTraceOn)
-          }
-          warning={
-            !isSelectedQualityTypeSupported
-              ? translate("simulationSettings.qualityTypeNotSupported")
-              : undefined
-          }
+          disabled={hasScenarios}
         />
 
         <TextSetting
@@ -641,7 +622,7 @@ export const WaterQualitySection = () => {
           onChange={(v) => {
             void setFieldValue("qualityChemicalName", v);
           }}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
           allowEmpty
           placeholder={translate("simulationSettings.qualityDefaultChemical")}
         />
@@ -652,7 +633,7 @@ export const WaterQualitySection = () => {
           options={massUnitOptions}
           selected={values.qualityMassUnit}
           onChange={(v) => setFieldValue("qualityMassUnit", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <TextSetting
@@ -666,7 +647,7 @@ export const WaterQualitySection = () => {
               : null;
             void setFieldValue("qualityTraceNodeId", nodeId);
           }}
-          disabled={!isTrace || hasScenarios || !isWaterTraceOn}
+          disabled={!isTrace || hasScenarios}
           errorMessage={
             qualityErrors.qualityTraceNodeId
               ? translate("simulationSettings.traceNodeRequired")
@@ -679,11 +660,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.toleranceDesc")}
           value={values.tolerance}
           onChange={(v) => setFieldValue("tolerance", v)}
-          disabled={
-            isNone ||
-            hasScenarios ||
-            !(isWaterAgeOn || isWaterChemicalOn || isWaterTraceOn)
-          }
+          disabled={isNone || hasScenarios}
         />
       </SubsectionGroup>
 
@@ -696,7 +673,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionBulkOrderDesc")}
           value={values.reactionBulkOrder}
           onChange={(v) => setFieldValue("reactionBulkOrder", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -704,7 +681,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionWallOrderDesc")}
           value={values.reactionWallOrder}
           onChange={(v) => setFieldValue("reactionWallOrder", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -712,7 +689,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionTankOrderDesc")}
           value={values.reactionTankOrder}
           onChange={(v) => setFieldValue("reactionTankOrder", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -720,7 +697,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionGlobalBulkDesc")}
           value={values.reactionGlobalBulk}
           onChange={(v) => setFieldValue("reactionGlobalBulk", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -728,7 +705,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.reactionGlobalWallDesc")}
           value={values.reactionGlobalWall}
           onChange={(v) => setFieldValue("reactionGlobalWall", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
       </SubsectionGroup>
 
@@ -743,7 +720,7 @@ export const WaterQualitySection = () => {
           )}
           value={values.reactionLimitingPotential}
           onChange={(v) => setFieldValue("reactionLimitingPotential", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -753,7 +730,7 @@ export const WaterQualitySection = () => {
           )}
           value={values.reactionRoughnessCorrelation}
           onChange={(v) => setFieldValue("reactionRoughnessCorrelation", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
 
         <ValueSetting
@@ -761,7 +738,7 @@ export const WaterQualitySection = () => {
           description={translate("simulationSettings.diffusivityDesc")}
           value={values.diffusivity}
           onChange={(v) => setFieldValue("diffusivity", v)}
-          disabled={!isChemical || hasScenarios || !isWaterChemicalOn}
+          disabled={!isChemical || hasScenarios}
         />
       </SubsectionGroup>
     </div>

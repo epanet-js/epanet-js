@@ -22,7 +22,6 @@ import {
 import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { nanoid } from "src/lib/id";
 export const runSimulationShortcut = "shift+enter";
 
@@ -30,10 +29,6 @@ export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setSimulationStep = useSetAtom(simulationStepAtom);
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
-
   const runSimulation = useAtomCallback(
     useCallback(
       async (
@@ -57,10 +52,8 @@ export const useRunSimulation = () => {
           usedPatterns: true,
           usedCurves: true,
           includeQuality:
-            (isWaterAgeOn &&
-              simulationSettings.qualitySimulationType === "age") ||
-            (isWaterChemicalOn &&
-              simulationSettings.qualitySimulationType === "chemical"),
+            simulationSettings.qualitySimulationType === "age" ||
+            simulationSettings.qualitySimulationType === "chemical",
           simulationSettings,
           units: projectSettings.units,
           headlossFormula: projectSettings.headlossFormula,
@@ -92,13 +85,7 @@ export const useRunSimulation = () => {
             ? currentSimulation.epsResultsReader
             : undefined;
         const previousSourceId = get(simulationSourceIdDerivedAtom);
-        const runQuality =
-          (isWaterAgeOn &&
-            simulationSettings.qualitySimulationType === "age") ||
-          (isWaterTraceOn &&
-            simulationSettings.qualitySimulationType === "trace") ||
-          (isWaterChemicalOn &&
-            simulationSettings.qualitySimulationType === "chemical");
+        const runQuality = simulationSettings.qualitySimulationType !== "none";
         const { report, status, metadata } = await runSimulationWorker(
           inp,
           appId,
@@ -122,23 +109,15 @@ export const useRunSimulation = () => {
         }
 
         if (status === "success" || status === "warning") {
-          const newSimulationHasWaterAge =
-            isWaterAgeOn && simulationSettings.qualitySimulationType === "age";
-          if (!newSimulationHasWaterAge) {
+          if (simulationSettings.qualitySimulationType !== "age") {
             set(clearQuickGraphPropertyAtom, "waterAge");
             set(clearSymbologyForPropertyAtom, "waterAge");
           }
-          const newSimulationHasWaterTrace =
-            isWaterTraceOn &&
-            simulationSettings.qualitySimulationType === "trace";
-          if (!newSimulationHasWaterTrace) {
+          if (simulationSettings.qualitySimulationType !== "trace") {
             set(clearQuickGraphPropertyAtom, "waterTrace");
             set(clearSymbologyForPropertyAtom, "waterTrace");
           }
-          const newSimulationHasChemical =
-            isWaterChemicalOn &&
-            simulationSettings.qualitySimulationType === "chemical";
-          if (!newSimulationHasChemical) {
+          if (simulationSettings.qualitySimulationType !== "chemical") {
             set(clearQuickGraphPropertyAtom, "chemicalConcentration");
             set(clearSymbologyForPropertyAtom, "chemicalConcentration");
           }
@@ -188,14 +167,7 @@ export const useRunSimulation = () => {
           ignoreLabel: options?.ignoreLabel,
         });
       },
-      [
-        isWaterAgeOn,
-        isWaterTraceOn,
-        isWaterChemicalOn,
-        setSimulationState,
-        setDialogState,
-        setSimulationStep,
-      ],
+      [setSimulationState, setDialogState, setSimulationStep],
     ),
   );
 

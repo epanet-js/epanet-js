@@ -41,8 +41,6 @@ export const useSaveInp = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterChemicalOn = useFeatureFlag("FLAG_WATER_CHEMICAL");
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const saveInp = useAtomCallback(
@@ -78,7 +76,7 @@ export const useSaveInp = ({
             customerPoints: true,
             inactiveAssets: true,
             reservoirElevations: true,
-            includeQuality: isWaterAgeOn || isWaterChemicalOn,
+            includeQuality: true,
             projection: projectSettings.projection,
             simulationSettings,
             units: projectSettings.units,
@@ -136,15 +134,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [
-        userTracking,
-        getFsAccess,
-        addRecent,
-        translate,
-        map,
-        isWaterAgeOn,
-        isWaterChemicalOn,
-      ],
+      [userTracking, getFsAccess, addRecent, translate, map],
     ),
   );
 

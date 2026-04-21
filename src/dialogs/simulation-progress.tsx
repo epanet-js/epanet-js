@@ -2,7 +2,6 @@ import * as Progress from "@radix-ui/react-progress";
 import { SimulationProgressDialogState } from "src/state/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { BaseDialog } from "../components/dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const formatTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
@@ -60,19 +59,14 @@ export const SimulationProgressDialog = ({
   modal: SimulationProgressDialogState;
 }) => {
   const translate = useTranslate();
-  const isWaterAgeOn = useFeatureFlag("FLAG_WATER_AGE");
-  const isWaterTraceOn = useFeatureFlag("FLAG_WATER_TRACE");
   const { currentTime, totalDuration, phase } = modal;
-  const isQualityOn = isWaterAgeOn || isWaterTraceOn;
 
   const label =
     phase === "finalizing"
       ? translate("savingResults")
-      : !isQualityOn
-        ? translate("runningSimulation")
-        : phase === "quality"
-          ? translate("runningQualityAnalysis")
-          : translate("runningHydraulicAnalysis");
+      : phase === "quality"
+        ? translate("runningQualityAnalysis")
+        : translate("runningHydraulicAnalysis");
 
   return (
     <BaseDialog size="sm" isOpen={true} onClose={() => {}} preventClose={true}>
