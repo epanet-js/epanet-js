@@ -2,16 +2,14 @@ import { useCallback } from "react";
 
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
-import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
+import { useOpenPersistedProject } from "src/hooks/persistence/use-open-persisted-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 
-import * as db from "src/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
@@ -22,7 +20,7 @@ export const openProjectShortcut = "ctrl+o";
 export const useOpenProject = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { openFile, isReady } = useFileOpen();
-  const { initializeProject } = useProjectInitialization();
+  const { openPersistedProject } = useOpenPersistedProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const setDialogState = useSetAtom(dialogAtom);
@@ -46,7 +44,7 @@ export const useOpenProject = () => {
         });
         if (!dbFile) return;
 
-        const result = await db.openProject(dbFile);
+        const result = await openPersistedProject({ file: dbFile });
 
         if (result.status === "too-new") {
           notify({
@@ -60,21 +58,10 @@ export const useOpenProject = () => {
           return;
         }
 
-        const { projectSettings, hydraulicModel, factories } =
-          await db.fetchProject();
-
-        await initializeProject({
-          hydraulicModel,
-          factories,
-          projectSettings,
-          simulationSettings: defaultSimulationSettings,
-          autoElevations: projectSettings.projection.type !== "xy-grid",
-        });
-
         setProjectFileInfo({
           name: dbFile.name,
           handle: dbFile.handle,
-          modelVersion: hydraulicModel.version,
+          modelVersion: result.modelVersion,
         });
         setInpFileInfo(null);
 
@@ -98,7 +85,7 @@ export const useOpenProject = () => {
     [
       openFile,
       isReady,
-      initializeProject,
+      openPersistedProject,
       setInpFileInfo,
       setProjectFileInfo,
       setDialogState,

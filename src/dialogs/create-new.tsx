@@ -29,9 +29,7 @@ import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
-import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
-import * as db from "src/db";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";
@@ -70,12 +68,11 @@ type SubmitProps = {
 
 export const CreateNew = () => {
   const translate = useTranslate();
-  const { initializeProject } = useProjectInitialization();
+  const { startNewProject } = useStartNewProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
@@ -133,10 +130,7 @@ export const CreateNew = () => {
       });
       setGridPreview(false);
       setGridHidden(false);
-      if (isOurFileOn) {
-        await db.newProject();
-      }
-      await initializeProject({
+      await startNewProject({
         hydraulicModel,
         factories,
         projectSettings,
@@ -159,14 +153,13 @@ export const CreateNew = () => {
     },
     [
       closeDialog,
-      initializeProject,
+      startNewProject,
       map,
       setInpFileInfo,
       setProjectFileInfo,
       setGridPreview,
       setGridHidden,
       userTracking,
-      isOurFileOn,
     ],
   );
 

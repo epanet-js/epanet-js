@@ -17,12 +17,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useProjections } from "src/hooks/use-projections";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { modelFactoriesAtom } from "src/state/model-factories";
-
-import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
-import { projectSettingsAtom } from "src/state/project-settings";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
-import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
+import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
 import { notify } from "src/components/notifications";
 import { SuccessIcon } from "src/icons";
 const stepNames = {
@@ -50,10 +46,7 @@ export const ImportCustomerPointsWizard: React.FC<
   } = useProjections();
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const factories = useAtomValue(modelFactoriesAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
-  const { initializeProject } = useProjectInitialization();
+  const { customerPointsImportReset } = useCustomerPointsImportReset();
 
   const handleClose = useCallback(() => {
     wizardState.reset();
@@ -122,11 +115,8 @@ export const ImportCustomerPointsWizard: React.FC<
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      void initializeProject({
+      void customerPointsImportReset({
         hydraulicModel: updatedHydraulicModel,
-        factories,
-        projectSettings,
-        simulationSettings,
       });
 
       userTracking.capture({
@@ -152,10 +142,7 @@ export const ImportCustomerPointsWizard: React.FC<
   }, [
     wizardState,
     hydraulicModel,
-    factories,
-    projectSettings,
-    simulationSettings,
-    initializeProject,
+    customerPointsImportReset,
     userTracking,
     translate,
     handleClose,

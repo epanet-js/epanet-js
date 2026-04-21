@@ -3,9 +3,7 @@ import { useAtomValue } from "jotai";
 import { AllocationRule } from "src/hydraulic-model/customer-points";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
@@ -17,8 +15,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
-import { useProjectInitialization } from "src/hooks/persistence/use-project-initialization";
-import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
+import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 export const AllocationStep: React.FC<{
@@ -32,13 +29,10 @@ export const AllocationStep: React.FC<{
     };
 }> = ({ onBack, onFinish, renderActions = true, wizardState }) => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
-  const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const factories = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
-  const { initializeProject } = useProjectInitialization();
+  const { customerPointsImportReset } = useCustomerPointsImportReset();
   const {
     parsedDataSummary,
     allocationRules,
@@ -86,11 +80,8 @@ export const AllocationStep: React.FC<{
 
       const importedCount = updatedHydraulicModel.customerPoints.size;
 
-      void initializeProject({
+      void customerPointsImportReset({
         hydraulicModel: updatedHydraulicModel,
-        factories,
-        projectSettings,
-        simulationSettings,
       });
 
       userTracking.capture({
@@ -115,15 +106,12 @@ export const AllocationStep: React.FC<{
     }
   }, [
     allocationResult,
-    projectSettings,
     hydraulicModel,
-    factories,
-    simulationSettings,
     parsedDataSummary?.customerPointDemands,
     keepDemands,
     onFinish,
     setProcessing,
-    initializeProject,
+    customerPointsImportReset,
     userTracking,
     setError,
     translate,
