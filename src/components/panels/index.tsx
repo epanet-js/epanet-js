@@ -29,7 +29,7 @@ import { getAppId } from "src/infra/app-instance";
 import type { Junction } from "src/hydraulic-model/asset-types/junction";
 import type { Link } from "src/hydraulic-model/asset-types/link";
 import { MapContext } from "src/map";
-import { useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   CloseIcon,
   Maximize2Icon,
@@ -37,6 +37,7 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
+  FileSpreadsheetIcon,
 } from "src/icons";
 import clsx from "clsx";
 
@@ -267,6 +268,28 @@ const ASSET_TYPE_LABEL: Record<string, string> = {
   valve: "Valve",
   pump: "Pump",
 };
+
+// Shared atom so the sidebar header can trigger the active table's CSV export.
+// Wrapped in an object to avoid Jotai treating the function as an updater.
+const exportCsvAtom = atom<{ fn: () => void } | null>(null);
+
+function buildCsvContent(headers: string[], rows: string[][]): string {
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  return [
+    headers.map(esc).join(","),
+    ...rows.map((r) => r.map(esc).join(",")),
+  ].join("\n");
+}
+
+function triggerCsvDownload(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ── Assets table: sort + filter ──────────────────────────────────────────────
 
@@ -1023,6 +1046,7 @@ function AssetDetailView({
 }) {
   const simulation = useAtomValue(simulationAtom);
   const worktree = useAtomValue(worktreeAtom);
+  const setExportCsv = useSetAtom(exportCsvAtom);
   const [timeSeriesData, setTimeSeriesData] =
     useState<DetailTimeSeriesData | null>(null);
   const [conditions, setConditions] = useState<TimeSeriesCondition[]>([]);
@@ -1076,6 +1100,31 @@ function AssetDetailView({
       cancelled = true;
     };
   }, [asset.id, asset.type, hasSimulation, worktree.activeSnapshotId]);
+
+  // Register CSV export for the detail view
+  useEffect(() => {
+    if (!timeSeriesData) return;
+    const { columns: cols, intervalSeconds, rows: allRows } = timeSeriesData;
+    const headers = [
+      "Time",
+      ...cols.map((c) => (c.unit ? `${c.label} (${c.unit})` : c.label)),
+    ];
+    const fn = () => {
+      const filtered = applyTimeSeriesConditions(allRows, conditions, cols);
+      const csvRows = filtered.map((row) => [
+        formatTimestepLabel(row.timestep, intervalSeconds),
+        ...row.values.map((val, i) =>
+          val === null ? "" : cols[i].format(val),
+        ),
+      ]);
+      triggerCsvDownload(
+        `${asset.label.replace(/[^a-z0-9]/gi, "_")}_timeseries.csv`,
+        buildCsvContent(headers, csvRows),
+      );
+    };
+    setExportCsv({ fn });
+    return () => setExportCsv(null);
+  }, [timeSeriesData, conditions, asset.label, setExportCsv]);
 
   const addCondition = () => {
     const firstCol = timeVaryingCols[0];
@@ -1276,6 +1325,7 @@ function AssetsTable() {
   const [selection, setSelection] = useAtom(selectionAtom);
   const flyToAsset = useFlyToAsset();
   const tbodyRef = useRef<HTMLTableSectionElement>(null);
+  const setExportCsv = useSetAtom(exportCsvAtom);
 
   // Detail view
   const [detailAssetId, setDetailAssetId] = useState<number | null>(null);
@@ -1422,6 +1472,26 @@ function AssetsTable() {
       ?.querySelector<HTMLTableRowElement>(`[data-id="${selection.id}"]`)
       ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selection]);
+
+  // Register CSV export for the list view (skipped when detail view is active)
+  useEffect(() => {
+    if (detailAssetId !== null) return;
+    const headers = columns.map((c) =>
+      c.unit ? `${c.label} (${c.unit})` : c.label,
+    );
+    const fn = () => {
+      const rows = displayedAssets.map((row) =>
+        columns.map((c) => {
+          const raw = row[c.key];
+          const formatted = c.format(raw);
+          return formatted === "—" ? "" : formatted;
+        }),
+      );
+      triggerCsvDownload("assets.csv", buildCsvContent(headers, rows));
+    };
+    setExportCsv({ fn });
+    return () => setExportCsv(null);
+  }, [detailAssetId, displayedAssets, columns, setExportCsv]);
 
   // Toggle sort on column header click
   const handleSort = (field: SortField) => {
@@ -1639,6 +1709,20 @@ function AssetsTable() {
   );
 }
 
+function ExportCsvButton() {
+  const exportCsv = useAtomValue(exportCsvAtom);
+  if (!exportCsv) return null;
+  return (
+    <button
+      aria-label="Export as CSV"
+      onClick={() => exportCsv.fn()}
+      className="p-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+    >
+      <FileSpreadsheetIcon />
+    </button>
+  );
+}
+
 type BottomTab = "assets" | "warnings" | "errors";
 
 export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
@@ -1705,6 +1789,7 @@ export const HorizontalBottomSidebar = memo(function HorizontalBottomSidebar() {
         </div>
         {open && (
           <div className="flex items-center gap-0.5 px-1">
+            <ExportCsvButton />
             <button
               aria-label={maximized ? "minimize-2" : "maximize-2"}
               onClick={() => setMaximized((v) => !v)}
