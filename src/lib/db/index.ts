@@ -8,6 +8,7 @@ export { setAllAssets } from "./set-all-assets";
 export { setAllCustomerPoints } from "./set-all-customer-points";
 export { setAllPatterns } from "./set-all-patterns";
 export { setAllCurves } from "./set-all-curves";
+export { setAllControls } from "./set-all-controls";
 export { setAllJunctionDemands } from "./set-all-junction-demands";
 export { applyMomentToDb } from "./apply-moment";
 export { exportDb } from "./export-db";

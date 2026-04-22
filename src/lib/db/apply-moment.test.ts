@@ -457,6 +457,63 @@ describe("buildMomentPayload", () => {
     expect(payload.curvesReplacement).toEqual([]);
   });
 
+  it("serializes putControls into a JSON blob", () => {
+    const { model } = setupModel();
+    const IDS = { A1: 1, A2: 2 } as const;
+
+    const putControls = {
+      simple: [
+        {
+          template: "LINK {{0}} OPEN IF NODE {{1}} BELOW 5",
+          assetReferences: [
+            { assetId: IDS.A1, isActionTarget: true },
+            { assetId: IDS.A2, isActionTarget: false },
+          ],
+        },
+      ],
+      rules: [
+        {
+          ruleId: "R1",
+          template: "RULE R1\nIF NODE {{0}} LEVEL > 5",
+          assetReferences: [{ assetId: IDS.A2, isActionTarget: false }],
+        },
+      ],
+    };
+
+    const payload = buildMomentPayload(
+      { note: "controls", putControls },
+      model,
+    );
+
+    expect(payload.controlsReplacement).not.toBeNull();
+    expect(JSON.parse(payload.controlsReplacement!)).toEqual(putControls);
+  });
+
+  it("sets controlsReplacement to null when moment has no putControls", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload({ note: "noop" }, model);
+
+    expect(payload.controlsReplacement).toBeNull();
+  });
+
+  it("serializes empty controls as an empty-arrays blob", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload(
+      {
+        note: "clear controls",
+        putControls: { simple: [], rules: [] },
+      },
+      model,
+    );
+
+    expect(JSON.parse(payload.controlsReplacement!)).toEqual({
+      simple: [],
+      rules: [],
+    });
+  });
+
   it("skips demand assignments for customer points being deleted", () => {
     const { model } = setupModel();
 

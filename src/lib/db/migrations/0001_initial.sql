@@ -200,3 +200,8 @@ CREATE TABLE curves (
   type   TEXT CHECK (type IS NULL OR type IN ('pump','efficiency','volume','valve','headloss')),
   points TEXT NOT NULL
 );
+
+CREATE TABLE controls (
+  id   INTEGER PRIMARY KEY CHECK (id = 1),
+  data TEXT NOT NULL
+);

@@ -12,6 +12,7 @@ import { buildAssetsData } from "./build-assets-data";
 import { buildCustomerPointsData } from "./build-customer-points-data";
 import { buildPatternsData } from "./build-patterns-data";
 import { buildCurvesData } from "./build-curves-data";
+import { buildControlsData } from "./build-controls-data";
 import { buildJunctionDemandsData } from "./build-junction-demands-data";
 import {
   findMaxId,
@@ -50,6 +51,7 @@ export const fetchProject = async (): Promise<Project> => {
     patternRows,
     junctionDemandRows,
     curveRows,
+    controlsData,
   ] = await Promise.all([
     worker.getProjectSettings(),
     worker.getJunctions() as Promise<JunctionRow[]>,
@@ -63,6 +65,7 @@ export const fetchProject = async (): Promise<Project> => {
     worker.getPatterns() as Promise<PatternRow[]>,
     worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
     worker.getCurves() as Promise<CurveRow[]>,
+    worker.getControls(),
   ]);
   if (!settingsJson) {
     throw new Error("Project settings missing");
@@ -90,6 +93,7 @@ export const fetchProject = async (): Promise<Project> => {
     buildCustomerPointsData(cpData, factories);
   const patterns = buildPatternsData(patternRows);
   const curves = buildCurvesData(curveRows);
+  const controls = buildControlsData(controlsData);
   const junctionDemands = buildJunctionDemandsData(junctionDemandRows);
 
   const hydraulicModel = initializeHydraulicModel({
@@ -101,6 +105,7 @@ export const fetchProject = async (): Promise<Project> => {
     customerPointsLookup,
     patterns,
     curves,
+    controls,
     demands: { junctions: junctionDemands, customerPoints: customerDemands },
   });
 
