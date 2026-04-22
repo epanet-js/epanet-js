@@ -121,7 +121,7 @@ const insertNodeProperties = (row: {
   initial_quality: number | null;
   chemical_source_type: string | null;
   chemical_source_strength: number | null;
-  chemical_source_pattern_id: string | null;
+  chemical_source_pattern_id: number | null;
 }) => {
   db!.exec(
     `INSERT INTO node_properties

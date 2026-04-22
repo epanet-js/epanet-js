@@ -4,7 +4,6 @@ import type {
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
 import type { JunctionDemandRow } from "./rows";
-import { parsePatternIdOrUndefined } from "./parse-pattern-id";
 
 export const buildJunctionDemandsData = (
   rows: JunctionDemandRow[],
@@ -14,7 +13,7 @@ export const buildJunctionDemandsData = (
     const list = junctions.get(row.junction_id) ?? [];
     list.push({
       baseDemand: row.base_demand,
-      patternId: parsePatternIdOrUndefined(row.pattern_id),
+      patternId: row.pattern_id ?? undefined,
     });
     junctions.set(row.junction_id, list);
   }

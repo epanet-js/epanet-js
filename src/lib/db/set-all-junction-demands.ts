@@ -14,7 +14,7 @@ export const toJunctionDemandRow = (
   junction_id: junctionId,
   ordinal,
   base_demand: demand.baseDemand,
-  pattern_id: demand.patternId === undefined ? null : String(demand.patternId),
+  pattern_id: demand.patternId ?? null,
 });
 
 export const junctionDemandsToRows = (

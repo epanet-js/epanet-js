@@ -251,7 +251,7 @@ describe("buildMomentPayload", () => {
           customer_point_id: 7,
           ordinal: 0,
           base_demand: 2,
-          pattern_id: "99",
+          pattern_id: 99,
         },
         {
           customer_point_id: 7,
@@ -292,7 +292,7 @@ describe("buildMomentPayload", () => {
           junction_id: IDS.J1,
           ordinal: 0,
           base_demand: 1,
-          pattern_id: "42",
+          pattern_id: 42,
         },
         {
           junction_id: IDS.J1,

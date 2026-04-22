@@ -38,7 +38,7 @@ export const toCustomerPointDemandRow = (
   customer_point_id: customerPointId,
   ordinal,
   base_demand: demand.baseDemand,
-  pattern_id: demand.patternId === undefined ? null : String(demand.patternId),
+  pattern_id: demand.patternId ?? null,
 });
 
 export const customerPointsToRows = (

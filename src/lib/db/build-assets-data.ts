@@ -97,7 +97,7 @@ const buildJunction = (
       | ChemicalSourceType
       | undefined,
     chemicalSourceStrength: nullable(row.chemical_source_strength),
-    chemicalSourcePatternId: parseIdOrUndefined(row.chemical_source_pattern_id),
+    chemicalSourcePatternId: nullable(row.chemical_source_pattern_id),
     isActive: toBool(row.is_active),
   });
 
@@ -111,13 +111,13 @@ const buildReservoir = (
     coordinates: [row.coord_x, row.coord_y],
     elevation: nullable(row.elevation),
     head: nullable(row.head),
-    headPatternId: parseIdOrUndefined(row.head_pattern_id),
+    headPatternId: nullable(row.head_pattern_id),
     initialQuality: nullable(row.initial_quality),
     chemicalSourceType: nullable(row.chemical_source_type) as
       | ChemicalSourceType
       | undefined,
     chemicalSourceStrength: nullable(row.chemical_source_strength),
-    chemicalSourcePatternId: parseIdOrUndefined(row.chemical_source_pattern_id),
+    chemicalSourcePatternId: nullable(row.chemical_source_pattern_id),
     isActive: toBool(row.is_active),
   });
 
@@ -141,7 +141,7 @@ const buildTank = (row: TankRow, assetFactory: AssetFactory): Tank =>
       | ChemicalSourceType
       | undefined,
     chemicalSourceStrength: nullable(row.chemical_source_strength),
-    chemicalSourcePatternId: parseIdOrUndefined(row.chemical_source_pattern_id),
+    chemicalSourcePatternId: nullable(row.chemical_source_pattern_id),
     isActive: toBool(row.is_active),
     volumeCurveId: parseIdOrUndefined(row.volume_curve_id),
   });
@@ -173,10 +173,10 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
     power: nullable(row.power),
     curveId: parseIdOrUndefined(row.curve_id),
     speed: nullable(row.speed),
-    speedPatternId: parseIdOrUndefined(row.speed_pattern_id),
+    speedPatternId: nullable(row.speed_pattern_id),
     efficiencyCurveId: parseIdOrUndefined(row.efficiency_curve_id),
     energyPrice: nullable(row.energy_price),
-    energyPricePatternId: parseIdOrUndefined(row.energy_price_pattern_id),
+    energyPricePatternId: nullable(row.energy_price_pattern_id),
     isActive: toBool(row.is_active),
   });
 
