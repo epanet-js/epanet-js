@@ -22,12 +22,12 @@ vi.mock("src/lib/worker", () => ({
 
 describe("EPS simulation", () => {
   beforeAll(() => {
-    vi.stubGlobal("fetch", async (url: string) => {
+    vi.stubGlobal("fetch", (url: string) => {
       const filePath = fileURLToPath(url);
       const nodeBuffer = readFileSync(filePath);
       const arrayBuffer = nodeBuffer.buffer.slice(
         nodeBuffer.byteOffset,
-        nodeBuffer.byteOffset + nodeBuffer.byteLength
+        nodeBuffer.byteOffset + nodeBuffer.byteLength,
       );
       return {
         ok: true,
