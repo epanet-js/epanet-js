@@ -5,7 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { CurveSidebar } from "./curve-sidebar";
 import { CurveDetail } from "./curve-detail";
 import { VerticalResizer } from "../vertical-resizer";
-import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import {
   Curves,
   ICurve,
@@ -48,7 +48,7 @@ export const CurveLibraryDialog = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const userTracking = useUserTracking();
-  const isBranchLocked = useIsBranchLocked();
+  const isEditionBlocked = useIsEditionBlocked();
   const [selectedCurveId, setSelectedCurveId] = useState<CurveId | null>(
     initialCurveId ?? null,
   );
@@ -226,7 +226,7 @@ export const CurveLibraryDialog = ({
           ref={dialogActions}
           onSave={handleSave}
           onClose={handleClose}
-          readOnly={isBranchLocked}
+          readOnly={isEditionBlocked}
           hasChanges={!!unsavedChanges}
           hasWarnings={invalidCurveIds.size > 0}
         />
@@ -245,7 +245,7 @@ export const CurveLibraryDialog = ({
             onAddCurve={handleAddCurve}
             onChangeCurve={handleCurveChange}
             onDeleteCurve={handleDeleteCurve}
-            readOnly={isBranchLocked}
+            readOnly={isEditionBlocked}
           />
           <VerticalResizer
             width={sidebarWidth}
@@ -264,7 +264,7 @@ export const CurveLibraryDialog = ({
                   onChange={(points) =>
                     handleCurveChange(selectedCurveId, { points })
                   }
-                  readOnly={isBranchLocked || isUncategorized}
+                  readOnly={isEditionBlocked || isUncategorized}
                   curveType={curveType}
                   units={projectSettings.units}
                 />
@@ -276,7 +276,7 @@ export const CurveLibraryDialog = ({
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center p-2">
-              <EmptyState readOnly={isBranchLocked} />
+              <EmptyState readOnly={isEditionBlocked} />
             </div>
           )}
         </div>

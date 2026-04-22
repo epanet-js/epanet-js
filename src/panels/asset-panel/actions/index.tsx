@@ -1,12 +1,12 @@
 import { useAtomValue } from "jotai";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
-import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { LinkActions } from "./link-actions";
 import { NodeActions } from "./node-actions";
 
 export function PanelActions() {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const isBranchLocked = useIsBranchLocked();
+  const isEditionBlocked = useIsEditionBlocked();
 
   if (selectedWrappedFeatures.length !== 1) return null;
 
@@ -17,8 +17,8 @@ export function PanelActions() {
     ["pipe", "pump", "valve"].includes(asset.feature.properties.type);
 
   return isLink ? (
-    <LinkActions readonly={isBranchLocked} />
+    <LinkActions readonly={isEditionBlocked} />
   ) : (
-    <NodeActions readonly={isBranchLocked} />
+    <NodeActions readonly={isEditionBlocked} />
   );
 }

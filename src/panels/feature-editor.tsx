@@ -8,13 +8,13 @@ import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";
 import { Asset } from "src/hydraulic-model";
-import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 
 export default function FeatureEditor() {
   const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const { units } = useAtomValue(projectSettingsAtom);
-  const isBranchLocked = useIsBranchLocked();
+  const isEditionBlocked = useIsEditionBlocked();
 
   if (selection.type === "singleCustomerPoint") {
     return <CustomerPointPanel />;
@@ -24,7 +24,7 @@ export default function FeatureEditor() {
     return (
       <MultiAssetPanel
         selectedFeatures={selectedFeatures}
-        readonly={isBranchLocked}
+        readonly={isEditionBlocked}
       />
     );
   }
@@ -34,7 +34,7 @@ export default function FeatureEditor() {
       <AssetPanel
         units={units}
         asset={selectedFeatures[0] as Asset}
-        readonly={isBranchLocked}
+        readonly={isEditionBlocked}
       />
     );
   }

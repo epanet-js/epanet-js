@@ -16,6 +16,10 @@ export const simulationPlaybackAtom = atom<SimulationPlaybackState>({
   playbackSpeed: "auto",
 });
 
+export const isPlayingAtom = atom<boolean>(
+  (get) => get(simulationPlaybackAtom).playingAtSpeedMs !== 0,
+);
+
 export const stopPlaybackAtom = atom(null, (_get, set) => {
   set(simulationPlaybackAtom, (prev) => ({ ...prev, playingAtSpeedMs: 0 }));
 });

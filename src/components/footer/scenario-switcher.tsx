@@ -1,6 +1,7 @@
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useAtomValue, useSetAtom } from "jotai";
+import { isPlayingAtom } from "src/state/simulation-playback";
 
 import {
   ChevronDownIcon,
@@ -40,6 +41,8 @@ export const ScenarioSwitcher = () => {
     deleteScenarioById,
     renameScenarioById,
   } = useScenarioOperations();
+
+  const isPlaying = useAtomValue(isPlayingAtom);
 
   const activeBranchId = worktree.activeBranchId;
   const isMainActive = activeBranchId === worktree.mainId;
@@ -139,8 +142,12 @@ export const ScenarioSwitcher = () => {
           }}
         >
           <Tooltip.Trigger asChild>
-            <DD.Trigger asChild>
-              <Button variant="quiet" className="w-full justify-between">
+            <DD.Trigger asChild disabled={isPlaying}>
+              <Button
+                variant="quiet"
+                className="w-full justify-between"
+                disabled={isPlaying}
+              >
                 <div className="flex items-center gap-1">
                   {isMainActive ? (
                     <MainModelIcon size="sm" />

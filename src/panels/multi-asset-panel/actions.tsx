@@ -15,7 +15,7 @@ import {
 } from "src/icons";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
-import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -68,8 +68,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
 }
 
 export function MultiAssetActions() {
-  const isBranchLocked = useIsBranchLocked();
-  const actions = useMultiAssetActions(isBranchLocked);
+  const isEditionBlocked = useIsEditionBlocked();
+  const actions = useMultiAssetActions(isEditionBlocked);
 
   return (
     <div className="flex gap-1">

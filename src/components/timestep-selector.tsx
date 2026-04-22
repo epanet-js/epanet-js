@@ -24,6 +24,7 @@ import {
 } from "src/commands/change-timestep";
 import {
   simulationPlaybackAtom,
+  isPlayingAtom,
   maximumPlaybackSpeedAtom,
   resolveSpeedByMode,
   type PlaybackSpeed,
@@ -120,13 +121,11 @@ const LONG_PRESS_DURATION_MS = 500;
 
 const PlayButton = () => {
   const translate = useTranslate();
-  const { playbackSpeed, playingAtSpeedMs } = useAtomValue(
-    simulationPlaybackAtom,
-  );
+  const { playbackSpeed } = useAtomValue(simulationPlaybackAtom);
+  const isPlaying = useAtomValue(isPlayingAtom);
   const maxPlaybackSpeedMs = useAtomValue(maximumPlaybackSpeedAtom);
   const autoSpeedMs = useAtomValue(autoPlaybackSpeedAtom);
   const { togglePlayback, changePlaybackSpeed } = useTogglePlayback();
-  const isPlaying = playingAtSpeedMs !== 0;
 
   const speedOptions = SPEED_OPTIONS.map((option) => ({
     ...option,

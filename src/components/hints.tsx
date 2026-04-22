@@ -14,7 +14,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/map-symbology";
-import { useIsBranchLocked } from "src/hooks/use-is-branch-locked";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { PropsWithChildren } from "react";
 
 export const tipLike = `
@@ -95,7 +95,7 @@ export function Hints() {
   const symbology = useAtomValue(symbologyAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const show = useBreakpoint("lg");
-  const isBranchLocked = useIsBranchLocked();
+  const isEditionBlocked = useIsEditionBlocked();
 
   if (!show || !!dialogState) {
     return null;
@@ -144,7 +144,7 @@ export function Hints() {
           }
         }
       }
-      if (selection.type === "single" && !isBranchLocked) {
+      if (selection.type === "single" && !isEditionBlocked) {
         const asset = hydraulicModel.assets.get(selection.id);
         if (asset && asset.isNode) {
           return (
@@ -156,7 +156,7 @@ export function Hints() {
           );
         }
       }
-      if (selection.type === "singleCustomerPoint" && !isBranchLocked) {
+      if (selection.type === "singleCustomerPoint" && !isEditionBlocked) {
         return (
           <Hint
             hintId={"DRAG_CUSTOMER_POINT"}
