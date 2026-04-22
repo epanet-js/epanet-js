@@ -48,6 +48,7 @@ import {
 import { Selector } from "src/components/form/selector";
 import { SelectorWithSearch } from "src/components/form/selector-with-search";
 import { useUserTracking } from "src/infra/user-tracking";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { zTileJSON } from "src/lib/tile-json";
@@ -1253,7 +1254,7 @@ const VectorFileItem = ({
               >
                 <NumericField
                   label={translate("customLayers.lineWidth")}
-                  displayValue={String(layerConfig.lineWidth)}
+                  displayValue={localizeDecimal(layerConfig.lineWidth)}
                   positiveOnly={true}
                   isNullable={false}
                   styleOptions={{ padding: "sm" }}
