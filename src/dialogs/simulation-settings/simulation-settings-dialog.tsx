@@ -10,7 +10,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import * as db from "src/db";
+import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";

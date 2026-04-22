@@ -14,7 +14,7 @@ import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
-import * as db from "src/db";
+import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveProjectShortcut = "ctrl+s";
