@@ -16,6 +16,7 @@ import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -61,6 +62,7 @@ const loadModel = async (
     await db.setAllPatterns(hydraulicModel.patterns);
     await db.setAllCurves(hydraulicModel.curves);
     await db.setAllControls(hydraulicModel.controls);
+    await db.setAllSimulationSettings(get(simulationSettingsAtom));
     await db.setAllJunctionDemands(hydraulicModel.demands.junctions);
   }
   set(momentLogDerivedAtom, momentLog);

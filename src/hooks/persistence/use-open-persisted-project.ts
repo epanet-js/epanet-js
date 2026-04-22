@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import {
   clearSimulationStorage,
   loadModel,
@@ -33,15 +32,19 @@ export const useOpenPersistedProject = () => {
             appVersion: result.appVersion,
           };
         }
-        const { projectSettings, hydraulicModel, factories } =
-          await db.fetchProject();
+        const {
+          projectSettings,
+          hydraulicModel,
+          factories,
+          simulationSettings,
+        } = await db.fetchProject();
         await clearSimulationStorage();
         resetAppState(set);
         loadModel(set, {
           hydraulicModel,
           factories,
           projectSettings,
-          simulationSettings: defaultSimulationSettings,
+          simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
         });
         return { status: "ok", modelVersion: hydraulicModel.version };

@@ -362,6 +362,15 @@ const upsertControls = (data: string) => {
   });
 };
 
+const upsertSimulationSettings = (data: string) => {
+  db!.exec(
+    `INSERT OR REPLACE INTO simulation_settings (id, data) VALUES (1, ?)`,
+    {
+      bind: [data],
+    },
+  );
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -490,6 +499,16 @@ const api = {
     await ready;
     if (!db) throw new Error("No database open");
     const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
+      returnValue: "resultRows",
+    }) as string[][];
+    if (rows.length === 0) return null;
+    return rows[0][0];
+  },
+
+  async getSimulationSettings(): Promise<string | null> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    const rows = db.exec("SELECT data FROM simulation_settings WHERE id = 1", {
       returnValue: "resultRows",
     }) as string[][];
     if (rows.length === 0) return null;
@@ -654,6 +673,12 @@ const api = {
     await ready;
     if (!db) throw new Error("No database open");
     upsertControls(data);
+  },
+
+  async setAllSimulationSettings(data: string): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    upsertSimulationSettings(data);
   },
 
   async setAllJunctionDemands(rows: JunctionDemandRow[]): Promise<void> {

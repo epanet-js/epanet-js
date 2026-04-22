@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useAtomValue, useSetAtom, useAtom } from "jotai";
+import { useAtomValue, useAtom } from "jotai";
 import { Form, Formik } from "formik";
 
 import {
@@ -12,6 +12,7 @@ import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSimulationSettingsTransaction } from "src/hooks/persistence/use-simulation-settings-transaction";
 
 import { SimulationSettingsSidebar } from "./simulation-settings-sidebar";
 import {
@@ -44,7 +45,8 @@ export const SimulationSettingsDialog = () => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
-  const setSimulationSettings = useSetAtom(simulationSettingsDerivedAtom);
+  const { transact: transactSimulationSettings } =
+    useSimulationSettingsTransaction();
   const [projectSettings, setProjectSettings] = useAtom(projectSettingsAtom);
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
@@ -58,7 +60,9 @@ export const SimulationSettingsDialog = () => {
   const handleSubmit = useCallback(
     async (values: FormValues) => {
       if (hasChanges(values, simulationSettings)) {
-        setSimulationSettings(buildUpdatedSettings(values, simulationSettings));
+        transactSimulationSettings(
+          buildUpdatedSettings(values, simulationSettings),
+        );
       }
       if (
         values.qualityMassUnit !== projectSettings.units.chemicalConcentration
@@ -79,7 +83,7 @@ export const SimulationSettingsDialog = () => {
     },
     [
       simulationSettings,
-      setSimulationSettings,
+      transactSimulationSettings,
       projectSettings,
       setProjectSettings,
       closeDialog,

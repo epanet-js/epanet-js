@@ -1,5 +1,6 @@
 import { projectSettingsSchema } from "src/lib/project-settings/project-settings-schema";
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
@@ -13,6 +14,7 @@ import { buildCustomerPointsData } from "./build-customer-points-data";
 import { buildPatternsData } from "./build-patterns-data";
 import { buildCurvesData } from "./build-curves-data";
 import { buildControlsData } from "./build-controls-data";
+import { buildSimulationSettingsData } from "./build-simulation-settings-data";
 import { buildJunctionDemandsData } from "./build-junction-demands-data";
 import {
   findMaxId,
@@ -34,6 +36,7 @@ export type Project = {
   projectSettings: ProjectSettings;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
+  simulationSettings: SimulationSettings;
 };
 
 export const fetchProject = async (): Promise<Project> => {
@@ -52,6 +55,7 @@ export const fetchProject = async (): Promise<Project> => {
     junctionDemandRows,
     curveRows,
     controlsData,
+    simulationSettingsData,
   ] = await Promise.all([
     worker.getProjectSettings(),
     worker.getJunctions() as Promise<JunctionRow[]>,
@@ -66,6 +70,7 @@ export const fetchProject = async (): Promise<Project> => {
     worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
     worker.getCurves() as Promise<CurveRow[]>,
     worker.getControls(),
+    worker.getSimulationSettings(),
   ]);
   if (!settingsJson) {
     throw new Error("Project settings missing");
@@ -94,6 +99,9 @@ export const fetchProject = async (): Promise<Project> => {
   const patterns = buildPatternsData(patternRows);
   const curves = buildCurvesData(curveRows);
   const controls = buildControlsData(controlsData);
+  const simulationSettings = buildSimulationSettingsData(
+    simulationSettingsData,
+  );
   const junctionDemands = buildJunctionDemandsData(junctionDemandRows);
 
   const hydraulicModel = initializeHydraulicModel({
@@ -109,5 +117,5 @@ export const fetchProject = async (): Promise<Project> => {
     demands: { junctions: junctionDemands, customerPoints: customerDemands },
   });
 
-  return { projectSettings, hydraulicModel, factories };
+  return { projectSettings, hydraulicModel, factories, simulationSettings };
 };
