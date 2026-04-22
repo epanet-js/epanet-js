@@ -18,7 +18,7 @@ CREATE TABLE node_properties (
   initial_quality             REAL,
   chemical_source_type        TEXT,
   chemical_source_strength    REAL,
-  chemical_source_pattern_id  TEXT
+  chemical_source_pattern_id  INTEGER
 );
 
 CREATE TABLE link_properties (
@@ -38,7 +38,7 @@ CREATE TABLE junction_properties (
 CREATE TABLE reservoir_properties (
   asset_id        INTEGER PRIMARY KEY REFERENCES assets(id),
   head            REAL,
-  head_pattern_id TEXT
+  head_pattern_id INTEGER
 );
 
 CREATE TABLE tank_properties (
@@ -69,10 +69,10 @@ CREATE TABLE pump_properties (
   definition_type         TEXT NOT NULL CHECK (definition_type IN ('power','curve','curveId')),
   power                   REAL,
   speed                   REAL,
-  speed_pattern_id        TEXT,
+  speed_pattern_id        INTEGER,
   efficiency_curve_id     TEXT,
   energy_price            REAL,
-  energy_price_pattern_id TEXT,
+  energy_price_pattern_id INTEGER,
   curve_id                TEXT
 );
 
@@ -170,7 +170,7 @@ CREATE TABLE customer_point_demands (
   customer_point_id INTEGER NOT NULL REFERENCES customer_points(id),
   ordinal           INTEGER NOT NULL,
   base_demand       REAL NOT NULL,
-  pattern_id        TEXT,
+  pattern_id        INTEGER,
   PRIMARY KEY (customer_point_id, ordinal)
 );
 
@@ -188,7 +188,7 @@ CREATE TABLE junction_demands (
   junction_id INTEGER NOT NULL REFERENCES assets(id),
   ordinal     INTEGER NOT NULL,
   base_demand REAL NOT NULL,
-  pattern_id  TEXT,
+  pattern_id  INTEGER,
   PRIMARY KEY (junction_id, ordinal)
 );
 

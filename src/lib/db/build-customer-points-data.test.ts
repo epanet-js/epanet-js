@@ -172,7 +172,7 @@ describe("buildCustomerPointsData", () => {
     ]);
   });
 
-  it("coerces numeric-string pattern_id to a number", () => {
+  it("passes numeric pattern_id through as patternId", () => {
     const IDS = { CP1: 1, PAT1: 99 } as const;
     const data: CustomerPointsData = {
       customerPoints: [makeCpRow({ id: IDS.CP1, label: "CP1" })],
@@ -181,7 +181,7 @@ describe("buildCustomerPointsData", () => {
           customer_point_id: IDS.CP1,
           ordinal: 0,
           base_demand: 2,
-          pattern_id: String(IDS.PAT1),
+          pattern_id: IDS.PAT1,
         }),
       ],
     };

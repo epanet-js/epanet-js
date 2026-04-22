@@ -9,7 +9,7 @@ describe("buildJunctionDemandsData", () => {
         junction_id: IDS.J1,
         ordinal: 0,
         base_demand: 1,
-        pattern_id: "9",
+        pattern_id: 9,
       },
       {
         junction_id: IDS.J1,

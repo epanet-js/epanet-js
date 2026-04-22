@@ -11,7 +11,7 @@ type NodeRowShared = {
   initial_quality: number | null;
   chemical_source_type: string | null;
   chemical_source_strength: number | null;
-  chemical_source_pattern_id: string | null;
+  chemical_source_pattern_id: number | null;
 };
 
 type LinkRowShared = {
@@ -32,7 +32,7 @@ export type JunctionRow = NodeRowShared & {
 
 export type ReservoirRow = NodeRowShared & {
   head: number | null;
-  head_pattern_id: string | null;
+  head_pattern_id: number | null;
 };
 
 export type TankRow = NodeRowShared & {
@@ -60,10 +60,10 @@ export type PumpRow = LinkRowShared & {
   definition_type: string;
   power: number | null;
   speed: number | null;
-  speed_pattern_id: string | null;
+  speed_pattern_id: number | null;
   efficiency_curve_id: string | null;
   energy_price: number | null;
-  energy_price_pattern_id: string | null;
+  energy_price_pattern_id: number | null;
   curve_id: string | null;
 };
 
@@ -99,7 +99,7 @@ export type CustomerPointDemandRow = {
   customer_point_id: number;
   ordinal: number;
   base_demand: number;
-  pattern_id: string | null;
+  pattern_id: number | null;
 };
 
 export type CustomerPointsData = {
@@ -118,7 +118,7 @@ export type JunctionDemandRow = {
   junction_id: number;
   ordinal: number;
   base_demand: number;
-  pattern_id: string | null;
+  pattern_id: number | null;
 };
 
 export const findMaxId = (
