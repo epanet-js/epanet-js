@@ -1413,9 +1413,14 @@ function SortableGroup({
       modifiers={[restrictToVerticalAxis, restrictToParentElement]}
     >
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
-        {items.map((layerConfig) => (
-          <SortableLayerConfig layerConfig={layerConfig} key={layerConfig.id} />
-        ))}
+        <div>
+          {items.map((layerConfig) => (
+            <SortableLayerConfig
+              layerConfig={layerConfig}
+              key={layerConfig.id}
+            />
+          ))}
+        </div>
       </SortableContext>
     </DndContext>
   );
@@ -1439,13 +1444,13 @@ export function LayersEditor() {
   return (
     <div className="flex flex-col gap-y-1">
       <SortableGroup
-        items={otherItems}
+        items={gisItems}
         sensors={sensors}
         applyChanges={applyChanges}
         allItems={items}
       />
       <SortableGroup
-        items={gisItems}
+        items={otherItems}
         sensors={sensors}
         applyChanges={applyChanges}
         allItems={items}
