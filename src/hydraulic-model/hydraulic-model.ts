@@ -37,6 +37,7 @@ export const initializeHydraulicModel = ({
   customerPoints,
   customerPointsLookup,
   patterns,
+  curves,
 }: {
   demands?: Demands;
   controls?: Controls;
@@ -47,6 +48,7 @@ export const initializeHydraulicModel = ({
   customerPoints?: CustomerPoints;
   customerPointsLookup?: CustomerPointsLookup;
   patterns?: Patterns;
+  curves?: Curves;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const resolvedAssets = assets ?? new Map();
@@ -58,7 +60,7 @@ export const initializeHydraulicModel = ({
     topology: topology ?? new Topology(),
     assetIndex: assetIndex ?? new AssetIndex(assetIdGenerator, resolvedAssets),
     demands,
-    curves: new Map(),
+    curves: curves ?? new Map(),
     patterns: patterns ?? new Map(),
     controls,
   };

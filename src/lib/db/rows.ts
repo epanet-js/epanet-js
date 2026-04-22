@@ -45,7 +45,7 @@ export type TankRow = NodeRowShared & {
   mixing_model: string | null;
   mixing_fraction: number | null;
   bulk_reaction_coeff: number | null;
-  volume_curve_id: string | null;
+  volume_curve_id: number | null;
 };
 
 export type PipeRow = LinkRowShared & {
@@ -61,10 +61,10 @@ export type PumpRow = LinkRowShared & {
   power: number | null;
   speed: number | null;
   speed_pattern_id: number | null;
-  efficiency_curve_id: string | null;
+  efficiency_curve_id: number | null;
   energy_price: number | null;
   energy_price_pattern_id: number | null;
-  curve_id: string | null;
+  curve_id: number | null;
 };
 
 export type ValveRow = LinkRowShared & {
@@ -72,7 +72,7 @@ export type ValveRow = LinkRowShared & {
   minor_loss: number | null;
   valve_kind: string | null;
   setting: number | null;
-  curve_id: string | null;
+  curve_id: number | null;
 };
 
 export type AssetRows = {
@@ -121,10 +121,18 @@ export type JunctionDemandRow = {
   pattern_id: number | null;
 };
 
+export type CurveRow = {
+  id: number;
+  label: string;
+  type: string | null;
+  points: string;
+};
+
 export const findMaxId = (
   assetRows: AssetRows,
   cpData?: CustomerPointsData,
   patternRows?: PatternRow[],
+  curveRows?: CurveRow[],
 ): number => {
   let max = 0;
   const scan = (arr: { id: number }[]) => {
@@ -138,5 +146,6 @@ export const findMaxId = (
   scan(assetRows.valves);
   if (cpData) scan(cpData.customerPoints);
   if (patternRows) scan(patternRows);
+  if (curveRows) scan(curveRows);
   return max;
 };

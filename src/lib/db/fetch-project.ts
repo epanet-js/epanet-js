@@ -11,6 +11,7 @@ import { getDbWorker } from "./get-db-worker";
 import { buildAssetsData } from "./build-assets-data";
 import { buildCustomerPointsData } from "./build-customer-points-data";
 import { buildPatternsData } from "./build-patterns-data";
+import { buildCurvesData } from "./build-curves-data";
 import { buildJunctionDemandsData } from "./build-junction-demands-data";
 import {
   findMaxId,
@@ -25,6 +26,7 @@ import {
   type CustomerPointsData,
   type PatternRow,
   type JunctionDemandRow,
+  type CurveRow,
 } from "./rows";
 
 export type Project = {
@@ -47,6 +49,7 @@ export const fetchProject = async (): Promise<Project> => {
     customerPointDemandRows,
     patternRows,
     junctionDemandRows,
+    curveRows,
   ] = await Promise.all([
     worker.getProjectSettings(),
     worker.getJunctions() as Promise<JunctionRow[]>,
@@ -59,6 +62,7 @@ export const fetchProject = async (): Promise<Project> => {
     worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
     worker.getPatterns() as Promise<PatternRow[]>,
     worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
+    worker.getCurves() as Promise<CurveRow[]>,
   ]);
   if (!settingsJson) {
     throw new Error("Project settings missing");
@@ -70,7 +74,7 @@ export const fetchProject = async (): Promise<Project> => {
     demands: customerPointDemandRows,
   };
 
-  const maxId = findMaxId(assetRows, cpData, patternRows);
+  const maxId = findMaxId(assetRows, cpData, patternRows, curveRows);
   const idGenerator = new ConsecutiveIdsGenerator(maxId);
   const factories = initializeModelFactories({
     idGenerator,
@@ -85,6 +89,7 @@ export const fetchProject = async (): Promise<Project> => {
   const { customerPoints, customerPointsLookup, customerDemands } =
     buildCustomerPointsData(cpData, factories);
   const patterns = buildPatternsData(patternRows);
+  const curves = buildCurvesData(curveRows);
   const junctionDemands = buildJunctionDemandsData(junctionDemandRows);
 
   const hydraulicModel = initializeHydraulicModel({
@@ -95,6 +100,7 @@ export const fetchProject = async (): Promise<Project> => {
     customerPoints,
     customerPointsLookup,
     patterns,
+    curves,
     demands: { junctions: junctionDemands, customerPoints: customerDemands },
   });
 

@@ -70,7 +70,7 @@ const toJunctionRow = (junction: Junction): JunctionRow => ({
   initial_quality: junction.initialQuality,
   chemical_source_type: junction.chemicalSourceType ?? null,
   chemical_source_strength: junction.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbPatternId(junction.chemicalSourcePatternId),
+  chemical_source_pattern_id: toDbId(junction.chemicalSourcePatternId),
   emitter_coefficient: junction.emitterCoefficient,
 });
 
@@ -85,9 +85,9 @@ const toReservoirRow = (reservoir: Reservoir): ReservoirRow => ({
   initial_quality: reservoir.initialQuality,
   chemical_source_type: reservoir.chemicalSourceType ?? null,
   chemical_source_strength: reservoir.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbPatternId(reservoir.chemicalSourcePatternId),
+  chemical_source_pattern_id: toDbId(reservoir.chemicalSourcePatternId),
   head: reservoir.head,
-  head_pattern_id: toDbPatternId(reservoir.headPatternId),
+  head_pattern_id: toDbId(reservoir.headPatternId),
 });
 
 const toTankRow = (tank: Tank): TankRow => ({
@@ -101,7 +101,7 @@ const toTankRow = (tank: Tank): TankRow => ({
   initial_quality: tank.initialQuality,
   chemical_source_type: tank.chemicalSourceType ?? null,
   chemical_source_strength: tank.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbPatternId(tank.chemicalSourcePatternId),
+  chemical_source_pattern_id: toDbId(tank.chemicalSourcePatternId),
   initial_level: tank.initialLevel,
   min_level: tank.minLevel,
   max_level: tank.maxLevel,
@@ -144,10 +144,10 @@ const toPumpRow = (pump: Pump): PumpRow => ({
   definition_type: pump.definitionType,
   power: pump.power,
   speed: pump.speed,
-  speed_pattern_id: toDbPatternId(pump.speedPatternId),
+  speed_pattern_id: toDbId(pump.speedPatternId),
   efficiency_curve_id: toDbId(pump.efficiencyCurveId),
   energy_price: pump.energyPrice ?? null,
-  energy_price_pattern_id: toDbPatternId(pump.energyPricePatternId),
+  energy_price_pattern_id: toDbId(pump.energyPricePatternId),
   curve_id: toDbId(pump.curveId),
 });
 
@@ -170,10 +170,7 @@ const toValveRow = (valve: Valve): ValveRow => ({
 
 const toDbBool = (v: boolean): number => (v ? 1 : 0);
 
-const toDbId = (v: number | undefined): string | null =>
-  v === undefined ? null : String(v);
-
-const toDbPatternId = (v: number | undefined): number | null => v ?? null;
+const toDbId = (v: number | undefined): number | null => v ?? null;
 
 const unreachable = (asset: Asset): never => {
   throw new Error(`Unknown asset type: ${asset.type as string}`);

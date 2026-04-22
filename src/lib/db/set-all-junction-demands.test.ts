@@ -5,7 +5,7 @@ import {
 } from "./set-all-junction-demands";
 
 describe("toJunctionDemandRow", () => {
-  it("stringifies the pattern id when present", () => {
+  it("passes the pattern id through when present", () => {
     const row = toJunctionDemandRow(5, { baseDemand: 3, patternId: 42 }, 0);
 
     expect(row).toEqual({

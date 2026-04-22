@@ -175,7 +175,7 @@ describe("buildAssetsData", () => {
         start_node_id: 1,
         end_node_id: 2,
         definition_type: "curveId",
-        curve_id: "99",
+        curve_id: 99,
       }),
     ];
 
