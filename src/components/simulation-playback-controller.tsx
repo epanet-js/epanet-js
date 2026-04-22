@@ -7,6 +7,7 @@ import {
   stopPlaybackAtom,
 } from "src/state/simulation-playback";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { dialogAtom } from "src/state/dialog";
 import {
   resultsFetchStartEffectAtom,
   resultsFetchTimingEffectAtom,
@@ -21,11 +22,17 @@ import { simulationStepAtom } from "src/state/simulation";
 export const SimulationPlaybackController = () => {
   useAtomValue(simulationPlaybackEffectAtom);
   useAtomValue(stopPlaybackOnSimulationRunAtom);
+  useAtomValue(stopPlaybackOnDialogOpenAtom);
   useAtomValue(resultsFetchStartEffectAtom);
   useAtomValue(resultsFetchTimingEffectAtom);
   useAtomValue(performanceLoggingEffectAtom);
   return null;
 };
+
+const stopPlaybackOnDialogOpenAtom = atomEffect((get, set) => {
+  const dialog = get(dialogAtom);
+  if (dialog !== null) set(stopPlaybackAtom);
+});
 
 const stopPlaybackOnSimulationRunAtom = atomEffect((get, set) => {
   const { status } = get(simulationDerivedAtom);
