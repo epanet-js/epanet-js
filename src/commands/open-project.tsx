@@ -1,4 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+import { FeatureCollection } from "geojson";
+import { LngLatBoundsLike } from "mapbox-gl";
 
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -13,6 +15,8 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
+import { MapContext } from "src/map";
+import { getExtent } from "src/lib/geometry";
 import { projectExtension } from "./save-project";
 
 export const openProjectShortcut = "ctrl+o";
@@ -24,6 +28,7 @@ export const useOpenProject = () => {
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const setDialogState = useSetAtom(dialogAtom);
+  const map = useContext(MapContext);
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -65,6 +70,19 @@ export const useOpenProject = () => {
         });
         setInpFileInfo(null);
 
+        const features: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [...result.hydraulicModel.assets.values()].map(
+            (a) => a.feature,
+          ),
+        };
+        getExtent(features).map((importedExtent) => {
+          map?.map.fitBounds(importedExtent as LngLatBoundsLike, {
+            padding: 100,
+            duration: 0,
+          });
+        });
+
         setDialogState(null);
         notify({
           variant: "success",
@@ -89,6 +107,7 @@ export const useOpenProject = () => {
       setInpFileInfo,
       setProjectFileInfo,
       setDialogState,
+      map,
       translate,
       userTracking,
       isOurFileOn,

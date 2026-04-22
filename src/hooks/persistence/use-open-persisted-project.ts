@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
+import type { HydraulicModel } from "src/hydraulic-model";
 import {
   clearSimulationStorage,
   loadModel,
@@ -13,7 +14,7 @@ type OpenPersistedProjectInput = {
 };
 
 export type OpenPersistedProjectResult =
-  | { status: "ok"; modelVersion: string }
+  | { status: "ok"; modelVersion: string; hydraulicModel: HydraulicModel }
   | { status: "too-new"; fileVersion: number; appVersion: number };
 
 export const useOpenPersistedProject = () => {
@@ -47,7 +48,11 @@ export const useOpenPersistedProject = () => {
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",
         });
-        return { status: "ok", modelVersion: hydraulicModel.version };
+        return {
+          status: "ok",
+          modelVersion: hydraulicModel.version,
+          hydraulicModel,
+        };
       },
       [],
     ),
