@@ -113,7 +113,7 @@ import { Unit } from "src/quantity";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
-  value: ChangeablePropertyValue<P>,
+  value: ChangeablePropertyValue<P> | null,
   oldValue: ChangeablePropertyValue<P> | null,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
@@ -139,7 +139,7 @@ export function AssetPanel({
       const moment = changeProperty(hydraulicModel, {
         assetIds: [asset.id],
         property,
-        value,
+        value: (value ?? undefined) as ChangeablePropertyValue<typeof property>,
       });
       transact(moment);
       userTracking.capture({
@@ -1486,8 +1486,8 @@ const TankDefinitionField = ({
     [curves, onBatchPropertyChange],
   );
 
-  const handleAreaChange = (_name: string, area: number) => {
-    const diameter = tankDiameterFromArea(area);
+  const handleAreaChange = (_name: string, area: number | null) => {
+    const diameter = tankDiameterFromArea(area ?? 0);
     if (diameter !== tank.diameter) {
       onPropertyChange("diameter", diameter, tank.diameter);
     }
@@ -2193,13 +2193,7 @@ const PumpEditor = ({
           value={pump.energyPrice ?? null}
           unit={null}
           comparison={getComparison("energyPrice", pump.energyPrice)}
-          onChange={(_, newValue, oldValue) =>
-            onPropertyChange(
-              "energyPrice",
-              newValue || undefined,
-              oldValue || undefined,
-            )
-          }
+          onChange={onPropertyChange}
           isNullable
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}

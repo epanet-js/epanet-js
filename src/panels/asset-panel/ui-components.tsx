@@ -215,7 +215,11 @@ export const QuantityRow = <P extends string>({
   readOnly?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
-  onChange?: (name: P, newValue: number, oldValue: number | null) => void;
+  onChange?: (
+    name: P,
+    newValue: number | null,
+    oldValue: number | null,
+  ) => void;
   displayName?: string;
 }) => {
   const translate = useTranslate();
@@ -240,9 +244,11 @@ export const QuantityRow = <P extends string>({
       ? formatValue(comparison.baseValue as number, name as QuantityProperty)
       : undefined;
 
-  const handleChange = (newValue: number) => {
+  const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();
-    onChange && onChange(name, newValue, value);
+    const resolvedValue =
+      isEmpty && isNullable && placeholder ? null : newValue;
+    onChange && onChange(name, resolvedValue, value);
   };
 
   return (
