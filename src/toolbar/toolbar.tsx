@@ -85,7 +85,7 @@ export const Toolbar = ({
     >
       <div className="flex flex-row items-center justify-start">
         <FileDropdown />
-        {
+        {isSmOrLarger && (
           <>
             <MenuAction
               label={translate("save")}
@@ -115,18 +115,18 @@ export const Toolbar = ({
             >
               <SaveAllIcon />
             </MenuAction>
+            <MenuAction
+              label={translate("importCustomerPoints.label")}
+              role="button"
+              onClick={() => {
+                void importCustomerPoints({ source: "toolbar" });
+              }}
+              disabled={customerAllocationDisabled}
+            >
+              <ImportCustomerPointsIcon />
+            </MenuAction>
           </>
-        }
-        <MenuAction
-          label={translate("importCustomerPoints.label")}
-          role="button"
-          onClick={() => {
-            void importCustomerPoints({ source: "toolbar" });
-          }}
-          disabled={customerAllocationDisabled}
-        >
-          <ImportCustomerPointsIcon />
-        </MenuAction>
+        )}
         <Divider />
         {isMdOrLarger && (
           <>
