@@ -46,11 +46,24 @@ export const resultsFetchDurationsAtom = resultsFetch.durationsAtom;
 export const estimatedResultsFetchDurationAtom = resultsFetch.estimatedAtom;
 const appendResultsFetchDurationAtom = resultsFetch.appendAtom;
 
+// Module-level timestamp of when the tab was last hidden. Set synchronously by a
+// DOM listener (not jotai), so it's always up-to-date before any atom effects run.
+export let lastHiddenAt: number | null = null;
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) lastHiddenAt = performance.now();
+  });
+}
+
 const resultsFetchStartedAtAtom = atom<number | null>(null);
 
 export const resultsFetchStartEffectAtom = atomEffect((get, set) => {
   get(simulationStepAtom);
   get(simulationDerivedAtom);
+  if (document.hidden) {
+    set(resultsFetchStartedAtAtom, null);
+    return;
+  }
   set(resultsFetchStartedAtAtom, performance.now());
 });
 
@@ -58,6 +71,10 @@ export const resultsFetchTimingEffectAtom = atomEffect((get, set) => {
   get(simulationResultsDerivedAtom);
   const startedAt = get.peek(resultsFetchStartedAtAtom);
   if (startedAt !== null) {
+    if (lastHiddenAt !== null && lastHiddenAt > startedAt) {
+      set(resultsFetchStartedAtAtom, null);
+      return;
+    }
     set(appendResultsFetchDurationAtom, performance.now() - startedAt);
     set(resultsFetchStartedAtAtom, null);
   }
