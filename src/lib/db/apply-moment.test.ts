@@ -263,16 +263,20 @@ describe("buildMomentPayload", () => {
     });
   });
 
-  it("ignores junction demand assignments", () => {
+  it("serializes junction demand assignments with ordinals", () => {
     const { model } = setupModel();
+    const IDS = { J1: 3 } as const;
 
     const moment: ModelMoment = {
-      note: "junction demands only",
+      note: "junction demands",
       putDemands: {
         assignments: [
           {
-            junctionId: 3,
-            demands: [{ baseDemand: 1, patternId: undefined }],
+            junctionId: IDS.J1,
+            demands: [
+              { baseDemand: 1, patternId: 42 },
+              { baseDemand: 2.5, patternId: undefined },
+            ],
           },
         ],
       },
@@ -280,7 +284,107 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
+    expect(payload.junctionDemandUpdates).toHaveLength(1);
+    expect(payload.junctionDemandUpdates[0]).toEqual({
+      junctionId: IDS.J1,
+      demands: [
+        {
+          junction_id: IDS.J1,
+          ordinal: 0,
+          base_demand: 1,
+          pattern_id: "42",
+        },
+        {
+          junction_id: IDS.J1,
+          ordinal: 1,
+          base_demand: 2.5,
+          pattern_id: null,
+        },
+      ],
+    });
     expect(payload.customerPointDemandUpdates).toEqual([]);
+  });
+
+  it("emits an empty-demands junction update to clear a junction's demands", () => {
+    const { model } = setupModel();
+    const IDS = { J1: 3 } as const;
+
+    const moment: ModelMoment = {
+      note: "clear demands",
+      putDemands: {
+        assignments: [{ junctionId: IDS.J1, demands: [] }],
+      },
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.junctionDemandUpdates).toEqual([
+      { junctionId: IDS.J1, demands: [] },
+    ]);
+  });
+
+  it("serializes putPatterns into a full-replacement payload", () => {
+    const { model } = setupModel();
+    const IDS = { P1: 1, P2: 2 } as const;
+
+    const moment: ModelMoment = {
+      note: "patterns",
+      putPatterns: new Map([
+        [
+          IDS.P1,
+          {
+            id: IDS.P1,
+            label: "DailyUrban",
+            type: "demand",
+            multipliers: [0.5, 1, 1.5],
+          },
+        ],
+        [
+          IDS.P2,
+          {
+            id: IDS.P2,
+            label: "NoType",
+            multipliers: [1],
+          },
+        ],
+      ]),
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.patternsReplacement).toEqual([
+      {
+        id: IDS.P1,
+        label: "DailyUrban",
+        type: "demand",
+        multipliers: JSON.stringify([0.5, 1, 1.5]),
+      },
+      {
+        id: IDS.P2,
+        label: "NoType",
+        type: null,
+        multipliers: JSON.stringify([1]),
+      },
+    ]);
+  });
+
+  it("sets patternsReplacement to null when moment has no putPatterns", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload({ note: "noop" }, model);
+
+    expect(payload.patternsReplacement).toBeNull();
+  });
+
+  it("treats an empty putPatterns map as a full-clear", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload(
+      { note: "clear patterns", putPatterns: new Map() },
+      model,
+    );
+
+    expect(payload.patternsReplacement).toEqual([]);
   });
 
   it("skips demand assignments for customer points being deleted", () => {

@@ -11,6 +11,8 @@ import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
+  JunctionDemandRow,
+  PatternRow,
 } from "./rows";
 import type { ApplyMomentPayload } from "./apply-moment";
 
@@ -321,6 +323,32 @@ const deleteCustomerPointCascade = (id: number) => {
   deleteCustomerPoint(id);
 };
 
+const insertJunctionDemand = (row: JunctionDemandRow) => {
+  db!.exec(
+    `INSERT INTO junction_demands
+     (junction_id, ordinal, base_demand, pattern_id)
+     VALUES (?, ?, ?, ?)`,
+    {
+      bind: [row.junction_id, row.ordinal, row.base_demand, row.pattern_id],
+    },
+  );
+};
+
+const deleteJunctionDemands = (id: number) => {
+  db!.exec("DELETE FROM junction_demands WHERE junction_id = ?", {
+    bind: [id],
+  });
+};
+
+const insertPattern = (row: PatternRow) => {
+  db!.exec(
+    `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?)`,
+    {
+      bind: [row.id, row.label, row.type, row.multipliers],
+    },
+  );
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -437,6 +465,16 @@ const api = {
     );
   },
 
+  async getPatterns(): Promise<unknown[]> {
+    return readAll("SELECT * FROM patterns ORDER BY id");
+  },
+
+  async getJunctionDemands(): Promise<unknown[]> {
+    return readAll(
+      "SELECT * FROM junction_demands ORDER BY junction_id, ordinal",
+    );
+  },
+
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
     await ready;
     if (!db) throw new Error("No database open");
@@ -480,6 +518,18 @@ const api = {
         deleteCustomerPointDemands(update.customerPointId);
         for (const demandRow of update.demands) {
           insertCustomerPointDemand(demandRow);
+        }
+      }
+      for (const update of payload.junctionDemandUpdates) {
+        deleteJunctionDemands(update.junctionId);
+        for (const demandRow of update.demands) {
+          insertJunctionDemand(demandRow);
+        }
+      }
+      if (payload.patternsReplacement !== null) {
+        db.exec("DELETE FROM patterns");
+        for (const row of payload.patternsReplacement) {
+          insertPattern(row);
         }
       }
       db.exec("COMMIT");
@@ -529,6 +579,34 @@ const api = {
       db.exec("DELETE FROM customer_points");
       for (const row of payload.customerPoints) insertCustomerPoint(row);
       for (const row of payload.demands) insertCustomerPointDemand(row);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  },
+
+  async setAllPatterns(rows: PatternRow[]): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      db.exec("DELETE FROM patterns");
+      for (const row of rows) insertPattern(row);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  },
+
+  async setAllJunctionDemands(rows: JunctionDemandRow[]): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      db.exec("DELETE FROM junction_demands");
+      for (const row of rows) insertJunctionDemand(row);
       db.exec("COMMIT");
     } catch (e) {
       db.exec("ROLLBACK");

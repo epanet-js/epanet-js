@@ -58,6 +58,8 @@ const loadModel = async (
       hydraulicModel.customerPoints,
       hydraulicModel.demands.customerPoints,
     );
+    await db.setAllPatterns(hydraulicModel.patterns);
+    await db.setAllJunctionDemands(hydraulicModel.demands.junctions);
   }
   set(momentLogDerivedAtom, momentLog);
   if (autoElevations !== undefined) {

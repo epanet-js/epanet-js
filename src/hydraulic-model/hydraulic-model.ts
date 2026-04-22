@@ -36,6 +36,7 @@ export const initializeHydraulicModel = ({
   assetIndex,
   customerPoints,
   customerPointsLookup,
+  patterns,
 }: {
   demands?: Demands;
   controls?: Controls;
@@ -45,6 +46,7 @@ export const initializeHydraulicModel = ({
   assetIndex?: AssetIndex;
   customerPoints?: CustomerPoints;
   customerPointsLookup?: CustomerPointsLookup;
+  patterns?: Patterns;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const resolvedAssets = assets ?? new Map();
@@ -57,7 +59,7 @@ export const initializeHydraulicModel = ({
     assetIndex: assetIndex ?? new AssetIndex(assetIdGenerator, resolvedAssets),
     demands,
     curves: new Map(),
-    patterns: new Map(),
+    patterns: patterns ?? new Map(),
     controls,
   };
 };

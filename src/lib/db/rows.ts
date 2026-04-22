@@ -107,9 +107,24 @@ export type CustomerPointsData = {
   demands: CustomerPointDemandRow[];
 };
 
+export type PatternRow = {
+  id: number;
+  label: string;
+  type: string | null;
+  multipliers: string;
+};
+
+export type JunctionDemandRow = {
+  junction_id: number;
+  ordinal: number;
+  base_demand: number;
+  pattern_id: string | null;
+};
+
 export const findMaxId = (
   assetRows: AssetRows,
   cpData?: CustomerPointsData,
+  patternRows?: PatternRow[],
 ): number => {
   let max = 0;
   const scan = (arr: { id: number }[]) => {
@@ -122,5 +137,6 @@ export const findMaxId = (
   scan(assetRows.pumps);
   scan(assetRows.valves);
   if (cpData) scan(cpData.customerPoints);
+  if (patternRows) scan(patternRows);
   return max;
 };

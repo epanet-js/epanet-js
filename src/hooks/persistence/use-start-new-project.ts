@@ -146,6 +146,10 @@ export const useStartNewProject = () => {
             input.hydraulicModel.customerPoints,
             input.hydraulicModel.demands.customerPoints,
           );
+          await db.setAllPatterns(input.hydraulicModel.patterns);
+          await db.setAllJunctionDemands(
+            input.hydraulicModel.demands.junctions,
+          );
         }
       },
       [isOurFileOn],
