@@ -7,6 +7,7 @@ import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup
 import { Demand } from "src/hydraulic-model/demands";
 import { ModelFactories } from "src/hydraulic-model/factories";
 import type { CustomerPointsData } from "./rows";
+import { parsePatternIdOrUndefined } from "./parse-pattern-id";
 
 export const buildCustomerPointsData = (
   rows: CustomerPointsData,
@@ -48,15 +49,9 @@ export const buildCustomerPointsData = (
     if (!list) continue;
     list.push({
       baseDemand: row.base_demand,
-      patternId: parseIdOrUndefined(row.pattern_id),
+      patternId: parsePatternIdOrUndefined(row.pattern_id),
     });
   }
 
   return { customerPoints, customerPointsLookup, customerDemands };
-};
-
-const parseIdOrUndefined = (v: string | null): number | undefined => {
-  if (v === null) return undefined;
-  const parsed = Number(v);
-  return Number.isFinite(parsed) ? parsed : undefined;
 };

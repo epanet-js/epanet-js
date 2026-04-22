@@ -9,15 +9,24 @@ import {
   toCustomerPointRow,
   toCustomerPointDemandRow,
 } from "./set-all-customer-points";
+import { toJunctionDemandRow } from "./set-all-junction-demands";
+import { patternsToRows } from "./set-all-patterns";
 import type {
   AssetRows,
   CustomerPointRow,
   CustomerPointDemandRow,
+  JunctionDemandRow,
+  PatternRow,
 } from "./rows";
 
 export type CustomerPointDemandUpdate = {
   customerPointId: CustomerPointId;
   demands: CustomerPointDemandRow[];
+};
+
+export type JunctionDemandUpdate = {
+  junctionId: AssetId;
+  demands: JunctionDemandRow[];
 };
 
 export type ApplyMomentPayload = {
@@ -26,6 +35,8 @@ export type ApplyMomentPayload = {
   customerPointDeleteIds: CustomerPointId[];
   customerPointUpserts: CustomerPointRow[];
   customerPointDemandUpdates: CustomerPointDemandUpdate[];
+  junctionDemandUpdates: JunctionDemandUpdate[];
+  patternsReplacement: PatternRow[] | null;
 };
 
 export const buildMomentPayload = (
@@ -56,16 +67,29 @@ export const buildMomentPayload = (
   }
 
   const customerPointDemandUpdates: CustomerPointDemandUpdate[] = [];
+  const junctionDemandUpdates: JunctionDemandUpdate[] = [];
   for (const assignment of moment.putDemands?.assignments ?? []) {
-    if (!("customerPointId" in assignment)) continue;
-    if (deletedCustomerPointIds.has(assignment.customerPointId)) continue;
-    customerPointDemandUpdates.push({
-      customerPointId: assignment.customerPointId,
-      demands: assignment.demands.map((demand, ordinal) =>
-        toCustomerPointDemandRow(assignment.customerPointId, demand, ordinal),
-      ),
-    });
+    if ("customerPointId" in assignment) {
+      if (deletedCustomerPointIds.has(assignment.customerPointId)) continue;
+      customerPointDemandUpdates.push({
+        customerPointId: assignment.customerPointId,
+        demands: assignment.demands.map((demand, ordinal) =>
+          toCustomerPointDemandRow(assignment.customerPointId, demand, ordinal),
+        ),
+      });
+    } else {
+      junctionDemandUpdates.push({
+        junctionId: assignment.junctionId,
+        demands: assignment.demands.map((demand, ordinal) =>
+          toJunctionDemandRow(assignment.junctionId, demand, ordinal),
+        ),
+      });
+    }
   }
+
+  const patternsReplacement = moment.putPatterns
+    ? patternsToRows(moment.putPatterns)
+    : null;
 
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
@@ -73,6 +97,8 @@ export const buildMomentPayload = (
     customerPointDeleteIds,
     customerPointUpserts,
     customerPointDemandUpdates,
+    junctionDemandUpdates,
+    patternsReplacement,
   };
 };
 
@@ -91,7 +117,9 @@ export const applyMomentToDb = async (
     payload.assetUpserts.valves.length === 0 &&
     payload.customerPointDeleteIds.length === 0 &&
     payload.customerPointUpserts.length === 0 &&
-    payload.customerPointDemandUpdates.length === 0
+    payload.customerPointDemandUpdates.length === 0 &&
+    payload.junctionDemandUpdates.length === 0 &&
+    payload.patternsReplacement === null
   ) {
     return;
   }

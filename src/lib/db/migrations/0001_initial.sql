@@ -176,3 +176,20 @@ CREATE TABLE customer_point_demands (
 
 CREATE INDEX idx_customer_points_pipe     ON customer_points(pipe_id);
 CREATE INDEX idx_customer_points_junction ON customer_points(junction_id);
+
+CREATE TABLE patterns (
+  id          INTEGER PRIMARY KEY,
+  label       TEXT NOT NULL,
+  type        TEXT,
+  multipliers TEXT NOT NULL
+);
+
+CREATE TABLE junction_demands (
+  junction_id INTEGER NOT NULL REFERENCES assets(id),
+  ordinal     INTEGER NOT NULL,
+  base_demand REAL NOT NULL,
+  pattern_id  TEXT,
+  PRIMARY KEY (junction_id, ordinal)
+);
+
+CREATE INDEX idx_junction_demands_junction ON junction_demands(junction_id);

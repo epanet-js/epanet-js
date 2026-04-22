@@ -10,6 +10,8 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { getDbWorker } from "./get-db-worker";
 import { buildAssetsData } from "./build-assets-data";
 import { buildCustomerPointsData } from "./build-customer-points-data";
+import { buildPatternsData } from "./build-patterns-data";
+import { buildJunctionDemandsData } from "./build-junction-demands-data";
 import {
   findMaxId,
   type JunctionRow,
@@ -21,6 +23,8 @@ import {
   type CustomerPointRow,
   type CustomerPointDemandRow,
   type CustomerPointsData,
+  type PatternRow,
+  type JunctionDemandRow,
 } from "./rows";
 
 export type Project = {
@@ -41,6 +45,8 @@ export const fetchProject = async (): Promise<Project> => {
     valves,
     customerPointRows,
     customerPointDemandRows,
+    patternRows,
+    junctionDemandRows,
   ] = await Promise.all([
     worker.getProjectSettings(),
     worker.getJunctions() as Promise<JunctionRow[]>,
@@ -51,6 +57,8 @@ export const fetchProject = async (): Promise<Project> => {
     worker.getValves() as Promise<ValveRow[]>,
     worker.getCustomerPoints() as Promise<CustomerPointRow[]>,
     worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
+    worker.getPatterns() as Promise<PatternRow[]>,
+    worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
   ]);
   if (!settingsJson) {
     throw new Error("Project settings missing");
@@ -62,7 +70,7 @@ export const fetchProject = async (): Promise<Project> => {
     demands: customerPointDemandRows,
   };
 
-  const maxId = findMaxId(assetRows, cpData);
+  const maxId = findMaxId(assetRows, cpData, patternRows);
   const idGenerator = new ConsecutiveIdsGenerator(maxId);
   const factories = initializeModelFactories({
     idGenerator,
@@ -76,6 +84,8 @@ export const fetchProject = async (): Promise<Project> => {
   );
   const { customerPoints, customerPointsLookup, customerDemands } =
     buildCustomerPointsData(cpData, factories);
+  const patterns = buildPatternsData(patternRows);
+  const junctionDemands = buildJunctionDemandsData(junctionDemandRows);
 
   const hydraulicModel = initializeHydraulicModel({
     idGenerator,
@@ -84,7 +94,8 @@ export const fetchProject = async (): Promise<Project> => {
     topology,
     customerPoints,
     customerPointsLookup,
-    demands: { junctions: new Map(), customerPoints: customerDemands },
+    patterns,
+    demands: { junctions: junctionDemands, customerPoints: customerDemands },
   });
 
   return { projectSettings, hydraulicModel, factories };
