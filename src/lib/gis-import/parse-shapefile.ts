@@ -50,5 +50,8 @@ export async function parseShapefile(files: File[]): Promise<GisParseResult> {
   }
 
   const name = shpFile.name.replace(/\.shp$/i, "");
-  return { featureCollection: featureCollection, name };
+  const properties = Object.keys(
+    featureCollection.features[0]?.properties ?? {},
+  );
+  return { featureCollection, name, properties };
 }

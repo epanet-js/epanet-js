@@ -82,6 +82,7 @@ export const zLayerConfig = z.discriminatedUnion("type", [
     type: z.literal("GEOJSON"),
     color: z.string().default("#3b82f6"),
     lineWidth: z.number().default(1.5),
+    labelProperty: z.string().optional(),
   }),
 ]);
 

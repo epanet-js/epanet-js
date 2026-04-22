@@ -20,4 +20,5 @@ export class GisParseError extends Error {
 export type GisParseResult = {
   featureCollection: FeatureCollection;
   name: string;
+  properties: string[];
 };
