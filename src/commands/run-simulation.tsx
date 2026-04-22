@@ -86,7 +86,7 @@ export const useRunSimulation = () => {
             : undefined;
         const previousSourceId = get(simulationSourceIdDerivedAtom);
         const runQuality = simulationSettings.qualitySimulationType !== "none";
-        const { report, status, metadata } = await runSimulationWorker(
+        const { report, status, metadata, jsError } = await runSimulationWorker(
           inp,
           appId,
           reportProgress,
@@ -94,6 +94,11 @@ export const useRunSimulation = () => {
           scenarioKey,
           runId,
         );
+
+        const dialogStatus =
+          status === "failure" && jsError === "Simulation stopped by user"
+            ? "stopped"
+            : status;
 
         isCompleted = true;
 
@@ -159,7 +164,7 @@ export const useRunSimulation = () => {
 
         setDialogState({
           type: "simulationSummary",
-          status,
+          status: dialogStatus,
           duration,
           qualityType: epsReader?.qualityType ?? "none",
           onContinue: options?.onContinue,

@@ -7,7 +7,7 @@ import { SimulationState } from "src/state/simulation";
 import { Presets } from "src/lib/project-settings/quantities-spec";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 import { User } from "src/auth-types";
-import type { PaywallFeature } from "src/state/dialog";
+import type { PaywallFeature, SimulationSummaryState } from "src/state/dialog";
 import type { PlaybackSpeed } from "src/state/simulation-playback";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
@@ -427,7 +427,7 @@ type InvalidFilesErrorSeen = {
 
 type SimulationSummarySeen = {
   name: "simulationSummary.seen";
-  status: SimulationState["status"];
+  status: SimulationSummaryState["status"];
   duration?: number;
   qualityType: QualitySimulationType;
 };

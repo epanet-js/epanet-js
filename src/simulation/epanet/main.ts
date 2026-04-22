@@ -4,6 +4,12 @@ import { EPSSimulationResult, ProgressCallback } from "./worker";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
 
+let cancelRequested = false;
+
+export const cancelSimulation = () => {
+  cancelRequested = true;
+};
+
 export const runSimulation = withDebugInstrumentation(
   async (
     inp: string,
@@ -13,7 +19,13 @@ export const runSimulation = withDebugInstrumentation(
     scenarioKey?: string,
     runId?: string,
   ): Promise<EPSSimulationResult> => {
-    const proxiedCallback = onProgress ? Comlink.proxy(onProgress) : undefined;
+    cancelRequested = false;
+    const proxiedCallback = Comlink.proxy(
+      (progress: Parameters<ProgressCallback>[0]) => {
+        onProgress?.(progress);
+        return cancelRequested ? false : undefined;
+      },
+    );
     const result = await webWorker.runSimulation(
       inp,
       appId,

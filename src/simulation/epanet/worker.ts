@@ -32,10 +32,14 @@ export type SimulationProgress = {
 
 export type ProgressCallback = (progress: SimulationProgress) => void;
 
+type WorkerProgressCallback = (
+  progress: SimulationProgress,
+) => boolean | void | Promise<boolean | void>;
+
 export const runSimulation = async (
   inp: string,
   appId: string,
-  onProgress?: ProgressCallback,
+  onProgress: WorkerProgressCallback,
   flags: Record<string, boolean> = {},
   scenarioKey?: string,
   runId?: string,
@@ -62,11 +66,12 @@ export const runSimulation = async (
       timestepCount++;
       const currentTime = model.runH();
       missingDataAccumulator.appendTimestepData(model);
-      onProgress?.({
+      const keepGoing = await onProgress({
         currentTime,
         totalDuration,
         phase: "hydraulic",
       });
+      if (keepGoing === false) throw new Error("Simulation stopped by user");
     } while (model.nextH() > 0);
 
     model.closeH();
@@ -77,12 +82,17 @@ export const runSimulation = async (
       model.initQ(InitHydOption.Save);
       do {
         const currentTime = model.runQ();
-        onProgress?.({ currentTime, totalDuration, phase: "quality" });
+        const keepGoing = await onProgress({
+          currentTime,
+          totalDuration,
+          phase: "quality",
+        });
+        if (keepGoing === false) throw new Error("Simulation stopped by user");
       } while (model.nextQ() > 0);
       model.closeQ();
     }
 
-    onProgress?.({
+    await onProgress({
       currentTime: totalDuration,
       totalDuration,
       phase: "finalizing",
