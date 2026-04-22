@@ -342,8 +342,8 @@ importers:
         specifier: 0.9.0-alpha.1
         version: 0.9.0-alpha.1
       epanet-js-v9:
-        specifier: npm:epanet-js@0.9.0-alpha.3
-        version: epanet-js@0.9.0-alpha.3
+        specifier: npm:epanet-js@0.9.0-alpha.4
+        version: epanet-js@0.9.0-alpha.4
       eslint-plugin-prettier:
         specifier: ^5.2.1
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.3)
@@ -4311,8 +4311,8 @@ packages:
   epanet-js@0.9.0-alpha.1:
     resolution: {integrity: sha512-1VUyMoYRTL1nvwk9C/49Aza9AjHw9UHVEwwdegsrydr5i4J80Y3OZPhM0u1lZVU8UxfEWC4B/kBRnwtun9PQUg==}
 
-  epanet-js@0.9.0-alpha.3:
-    resolution: {integrity: sha512-W1+XIN2ZQtNngLIVUXK8xbYysLljuTNb2RYzIWwxj1m+5Cc9eGP7B5EDg6QJTrw8C9JPr1AR7ftNbGSKQE70Bw==}
+  epanet-js@0.9.0-alpha.4:
+    resolution: {integrity: sha512-2brbBCTI/9hjQlAi9081P8Luo44VBNTaTnpvriimEfMnUtB4zaG9JvYhymUcc6kFWEiqQWx6t18ZqslKdYdoSg==}
 
   es-abstract@1.23.3:
     resolution: {integrity: sha512-e+HfNH61Bj1X9/jLc5v1owaLYuHdeHHSQlkhCBiTK8rBvKaULl/beGMxwrMXjpYrv4pz22BlY570vVePA2ho4A==}
@@ -11666,7 +11666,7 @@ snapshots:
     dependencies:
       '@model-create/epanet-engine': 0.9.0-alpha.1
 
-  epanet-js@0.9.0-alpha.3: {}
+  epanet-js@0.9.0-alpha.4: {}
 
   es-abstract@1.23.3:
     dependencies:
