@@ -19,7 +19,10 @@ import {
   mapSyncMomentAtom,
   mapLoadingAtom,
 } from "src/state/map";
-import { appendSourceRebuildDurationAtom } from "src/state/performance";
+import {
+  appendSourceRebuildDurationAtom,
+  lastHiddenAt,
+} from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
@@ -222,7 +225,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     setTimeout(async () => {
       try {
         const resultsUpdateStartedAt =
-          hasNewResults || hasNewSymbologyRules ? performance.now() : null;
+          (hasNewResults || hasNewSymbologyRules) && !document.hidden
+            ? performance.now()
+            : null;
 
         if (hasNewStyles) {
           map.suspendOverlayStyleReactions();
@@ -321,7 +326,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
           if (resultsUpdateStartedAt !== null) {
             const duration = performance.now() - resultsUpdateStartedAt;
-            appendSourceRebuildDuration(duration);
+            const hiddenDuring =
+              lastHiddenAt !== null && lastHiddenAt > resultsUpdateStartedAt;
+            if (!document.hidden && !hiddenDuring) {
+              appendSourceRebuildDuration(duration);
+            }
           }
         }
 
