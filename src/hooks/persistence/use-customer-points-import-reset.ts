@@ -14,6 +14,7 @@ import {
 import { selectionAtom } from "src/state/selection";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
+import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -38,6 +39,7 @@ const clearSimulationStorage = async () => {
 };
 
 const loadModel = async (
+  get: Getter,
   set: Setter,
   { hydraulicModel }: CustomerPointsImportResetInput,
   isOurFileOn: boolean,
@@ -54,6 +56,7 @@ const loadModel = async (
     await db.setAllPatterns(hydraulicModel.patterns);
     await db.setAllCurves(hydraulicModel.curves);
     await db.setAllControls(hydraulicModel.controls);
+    await db.setAllSimulationSettings(get(simulationSettingsAtom));
     await db.setAllJunctionDemands(hydraulicModel.demands.junctions);
   }
   set(momentLogDerivedAtom, momentLog);
@@ -66,13 +69,13 @@ export const useCustomerPointsImportReset = () => {
   const customerPointsImportReset = useAtomCallback(
     useCallback(
       async (
-        _get: Getter,
+        get: Getter,
         set: Setter,
         input: CustomerPointsImportResetInput,
       ) => {
         await clearSimulationStorage();
         resetAppState(set);
-        await loadModel(set, input, isOurFileOn);
+        await loadModel(get, set, input, isOurFileOn);
       },
       [isOurFileOn],
     ),

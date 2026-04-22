@@ -9,6 +9,7 @@ export { setAllCustomerPoints } from "./set-all-customer-points";
 export { setAllPatterns } from "./set-all-patterns";
 export { setAllCurves } from "./set-all-curves";
 export { setAllControls } from "./set-all-controls";
+export { setAllSimulationSettings } from "./set-all-simulation-settings";
 export { setAllJunctionDemands } from "./set-all-junction-demands";
 export { applyMomentToDb } from "./apply-moment";
 export { exportDb } from "./export-db";
