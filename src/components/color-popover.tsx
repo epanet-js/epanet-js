@@ -2,8 +2,7 @@ import { HexColorPicker, HexColorInput } from "react-colorful";
 import * as P from "@radix-ui/react-popover";
 import { FieldProps } from "formik";
 import * as E from "./elements";
-import debounce from "lodash/debounce";
-import { useMemo } from "react";
+import { useRef } from "react";
 
 export function ColorPopoverField({
   field,
@@ -31,11 +30,20 @@ export function ColorPopover({
   _size?: E.B3Size;
   ariaLabel?: string;
 }) {
-  const debouncedOnChange = useMemo(() => {
-    return debounce((color: string) => {
-      onChange && onChange(color);
-    }, 100);
-  }, [onChange]);
+  const latestColor = useRef(color as string);
+
+  const handlePickerChange = (newColor: string) => {
+    latestColor.current = newColor;
+  };
+
+  const handlePointerUp = () => {
+    onChange?.(latestColor.current);
+  };
+
+  const handleInputChange = (newColor: string) => {
+    latestColor.current = newColor;
+    onChange?.(newColor);
+  };
 
   return (
     <P.Root>
@@ -44,17 +52,19 @@ export function ColorPopover({
           className="h-full w-full rounded-sm"
           aria-label={ariaLabel}
           data-color={color}
-          style={{
-            backgroundColor: color,
-          }}
+          style={{ backgroundColor: color as string }}
         ></button>
       </P.Trigger>
       <E.PopoverContent2 size="no-width">
         <div className="space-y-2">
-          <div className="border border-white" style={{ borderRadius: 5 }}>
+          <div
+            className="border border-white"
+            style={{ borderRadius: 5 }}
+            onPointerUp={handlePointerUp}
+          >
             <HexColorPicker
               color={color}
-              onChange={debouncedOnChange}
+              onChange={handlePickerChange}
               onBlur={onBlur}
             />
           </div>
@@ -62,7 +72,7 @@ export function ColorPopover({
             className={E.inputClass({ _size })}
             prefixed
             color={color}
-            onChange={debouncedOnChange}
+            onChange={handleInputChange}
             aria-label="color input"
           />
           <P.Close asChild>
