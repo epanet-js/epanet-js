@@ -11,7 +11,7 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { applyMomentToDb } from "src/db";
+import { applyMomentToDb } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 
 export const useUndoableTransactions = () => {

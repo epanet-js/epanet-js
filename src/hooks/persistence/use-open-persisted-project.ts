@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
-import * as db from "src/db";
+import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import {
   clearSimulationStorage,
