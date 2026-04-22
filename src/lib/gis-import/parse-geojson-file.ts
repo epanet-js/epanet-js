@@ -51,5 +51,5 @@ export async function parseGeoJsonFile(
 
   const name = file.name.replace(/\.(geojson|json)$/i, "");
 
-  return { featureCollection, name };
+  return { featureCollection, name, properties: [...result.properties] };
 }

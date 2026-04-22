@@ -823,6 +823,7 @@ function addGisLayersToMap(
         layerConfig.color,
         layerConfig.opacity,
         layerConfig.labelVisibility,
+        layerConfig.labelProperty,
       ),
     );
   }

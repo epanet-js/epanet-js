@@ -9,3 +9,5 @@ import type { FeatureCollection } from "geojson";
  * so that style rebuilds don't re-pass large datasets through buildBaseStyle.
  */
 export const gisDataAtom = atom<Map<string, FeatureCollection>>(new Map());
+
+export const gisPropertiesAtom = atom<Map<string, string[]>>(new Map());

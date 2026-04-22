@@ -77,14 +77,15 @@ export function gisLayerLabel(
   color: string,
   opacity: number,
   visible: boolean,
+  labelProperty?: string,
 ): SymbolLayer {
   return {
     id: `${sourceId}-label`,
     type: "symbol",
     source: sourceId,
-    filter: ["has", "label"],
+    filter: labelProperty ? ["has", labelProperty] : ["==", 0, 1],
     layout: {
-      "text-field": ["get", "label"],
+      "text-field": labelProperty ? ["get", labelProperty] : "",
       "text-size": 11,
       "text-allow-overlap": false,
       visibility: visible ? "visible" : "none",

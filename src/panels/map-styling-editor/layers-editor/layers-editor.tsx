@@ -46,6 +46,7 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { Selector } from "src/components/form/selector";
+import { SelectorWithSearch } from "src/components/form/selector-with-search";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -58,10 +59,9 @@ import {
 } from "src/lib/gis-import/parse-geojson-file";
 import { groupShapefileBundles } from "src/lib/gis-import/group-shapefile-bundles";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
-import { gisDataAtom } from "src/state/gis-data";
+import { gisDataAtom, gisPropertiesAtom } from "src/state/gis-data";
 import { ColorPopover } from "src/components/color-popover";
 import { NumericField } from "src/components/form/numeric-field";
-import { Checkbox } from "src/components/form/Checkbox";
 import { InlineField } from "src/components/form/fields";
 import {
   ChevronLeftIcon,
@@ -470,6 +470,7 @@ export function AddLayer() {
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const setGisData = useSetAtom(gisDataAtom);
+  const setGisProperties = useSetAtom(gisPropertiesAtom);
   const { projections } = useProjections();
   const gisFileInputRef = useRef<HTMLInputElement>(null);
   const [gisLoading, setGisLoading] = useState(false);
@@ -529,6 +530,11 @@ export function AddLayer() {
         type: "FeatureCollection",
         features: mergedFeatures,
       });
+      return next;
+    });
+    setGisProperties((prev) => {
+      const next = new Map(prev);
+      next.set(layerId, [...new Set(successes.flatMap((r) => r.properties))]);
       return next;
     });
 
@@ -1130,10 +1136,17 @@ const LayerConfigItem = ({
   );
 };
 
-const VectorFileItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const VectorFileItem = ({
+  layerConfig,
+}: {
+  layerConfig: Extract<ILayerConfig, { type: "GEOJSON" }>;
+}) => {
   const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const setGisData = useSetAtom(gisDataAtom);
+  const setGisProperties = useSetAtom(gisPropertiesAtom);
+  const gisProperties = useAtomValue(gisPropertiesAtom);
+  const availableProperties = gisProperties.get(layerConfig.id) ?? [];
   const [isEditing, setEditing] = useState(false);
   const [editName, setEditName] = useState(layerConfig.name);
 
@@ -1141,6 +1154,21 @@ const VectorFileItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     if (open) setEditName(layerConfig.name);
     setEditing(open);
   };
+
+  const handleLabelPropertyChange = useCallback(
+    (property: string | null) => {
+      applyChanges({
+        putLayerConfigs: [
+          {
+            ...layerConfig,
+            labelProperty: property ?? undefined,
+            labelVisibility: property !== null,
+          } as ILayerConfig,
+        ],
+      });
+    },
+    [applyChanges, layerConfig],
+  );
 
   const handleNameCommit = () => {
     if (editName.trim()) {
@@ -1156,6 +1184,11 @@ const VectorFileItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
   const handleDelete = () => {
     setGisData((prev) => {
+      const next = new Map(prev);
+      next.delete(layerConfig.id);
+      return next;
+    });
+    setGisProperties((prev) => {
       const next = new Map(prev);
       next.delete(layerConfig.id);
       return next;
@@ -1258,25 +1291,23 @@ const VectorFileItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
               }
             />
           </InlineField>
-          <InlineField
-            name={translate("customLayers.labels")}
-            layout="fixed-label"
-            labelSize="md"
-          >
-            <Checkbox
-              checked={layerConfig.labelVisibility}
-              onChange={(e) =>
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...layerConfig,
-                      labelVisibility: e.target.checked,
-                    } as ILayerConfig,
-                  ],
-                })
-              }
-            />
-          </InlineField>
+          {availableProperties.length > 0 && (
+            <InlineField
+              name={translate("customLayers.labels")}
+              layout="fixed-label"
+              labelSize="md"
+            >
+              <SelectorWithSearch
+                placeholder={translate("none")}
+                options={availableProperties.map((p) => ({
+                  value: p,
+                  label: p,
+                }))}
+                selected={layerConfig.labelProperty ?? null}
+                onChange={handleLabelPropertyChange}
+              />
+            </InlineField>
+          )}
         </div>
       </E.StyledPopoverContent>
     </P.Root>
