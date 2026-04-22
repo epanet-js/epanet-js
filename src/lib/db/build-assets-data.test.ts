@@ -82,6 +82,7 @@ const makePump = (overrides: Partial<PumpRow>): PumpRow => ({
   energy_price: null,
   energy_price_pattern_id: null,
   curve_id: null,
+  curve_points: null,
   ...overrides,
 });
 

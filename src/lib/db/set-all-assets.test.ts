@@ -236,6 +236,11 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
         label: "PU3",
         connections: [1, 2],
         definitionType: "curve",
+        curve: [
+          { x: 0, y: 100 },
+          { x: 50, y: 80 },
+          { x: 100, y: 0 },
+        ],
       }),
     );
 
@@ -248,6 +253,78 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
     expect((rebuilt.get(4) as Pump).definitionType).toBe("curveId");
     expect((rebuilt.get(4) as Pump).curveId).toBe(7);
     expect((rebuilt.get(5) as Pump).definitionType).toBe("curve");
+    expect((rebuilt.get(5) as Pump).curve).toEqual([
+      { x: 0, y: 100 },
+      { x: 50, y: 80 },
+      { x: 100, y: 0 },
+    ]);
+  });
+
+  it("leaves curve_points null for non-inline pumps", () => {
+    const factories = makeFactories();
+    const { assetFactory } = factories;
+    const original: AssetsMap = new Map();
+    original.set(
+      1,
+      assetFactory.createJunction({ id: 1, label: "J1", coordinates: [0, 0] }),
+    );
+    original.set(
+      2,
+      assetFactory.createJunction({ id: 2, label: "J2", coordinates: [1, 0] }),
+    );
+    original.set(
+      3,
+      assetFactory.createPump({
+        id: 3,
+        label: "PU_POWER",
+        connections: [1, 2],
+        definitionType: "power",
+        power: 60,
+      }),
+    );
+    original.set(
+      4,
+      assetFactory.createPump({
+        id: 4,
+        label: "PU_BYID",
+        connections: [1, 2],
+        definitionType: "curveId",
+        curveId: 7,
+      }),
+    );
+
+    const rows = assetsToRows(original.values());
+
+    expect(rows.pumps[0].curve_points).toBeNull();
+    expect(rows.pumps[1].curve_points).toBeNull();
+  });
+
+  it("throws when inline curve points contain NaN or Infinity", () => {
+    const factories = makeFactories();
+    const { assetFactory } = factories;
+    const original: AssetsMap = new Map();
+    original.set(
+      1,
+      assetFactory.createJunction({ id: 1, label: "J1", coordinates: [0, 0] }),
+    );
+    original.set(
+      2,
+      assetFactory.createJunction({ id: 2, label: "J2", coordinates: [1, 0] }),
+    );
+    original.set(
+      3,
+      assetFactory.createPump({
+        id: 3,
+        label: "BadPump",
+        connections: [1, 2],
+        definitionType: "curve",
+        curve: [{ x: 0, y: NaN }],
+      }),
+    );
+
+    expect(() => assetsToRows(original.values())).toThrow(
+      /Pump 3 \(BadPump\): inline curve points must be an array of \{x,y\} with finite numbers/,
+    );
   });
 
   it("rehydrates to a model with the same assets and topology", () => {

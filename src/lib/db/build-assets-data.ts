@@ -20,7 +20,9 @@ import type {
   ValveKind,
 } from "src/hydraulic-model/asset-types/valve";
 import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
+import type { CurvePoint } from "src/hydraulic-model/curves";
 import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
+import { pointsSchema } from "./build-curves-data";
 import type {
   AssetRows,
   JunctionRow,
@@ -172,6 +174,7 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
     definitionType: row.definition_type as PumpDefintionType,
     power: nullable(row.power),
     curveId: nullable(row.curve_id),
+    curve: parsePumpCurvePoints(row),
     speed: nullable(row.speed),
     speedPatternId: nullable(row.speed_pattern_id),
     efficiencyCurveId: nullable(row.efficiency_curve_id),
@@ -199,3 +202,23 @@ const nullable = <T>(v: T | null | undefined): T | undefined =>
   v === null ? undefined : v;
 
 const toBool = (v: number): boolean => v === 1;
+
+const parsePumpCurvePoints = (row: PumpRow): CurvePoint[] | undefined => {
+  if (row.curve_points === null) return undefined;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(row.curve_points);
+  } catch (error) {
+    throw new Error(
+      `Pump ${row.id} (${row.label}): inline curve points is not valid JSON`,
+      { cause: error },
+    );
+  }
+  const result = pointsSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(
+      `Pump ${row.id} (${row.label}): inline curve points must be an array of {x,y} with finite numbers — ${result.error.message}`,
+    );
+  }
+  return result.data;
+};
