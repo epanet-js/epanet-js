@@ -73,7 +73,8 @@ CREATE TABLE pump_properties (
   efficiency_curve_id     INTEGER,
   energy_price            REAL,
   energy_price_pattern_id INTEGER,
-  curve_id                INTEGER
+  curve_id                INTEGER,
+  curve_points            TEXT
 );
 
 CREATE TABLE valve_properties (
@@ -140,7 +141,7 @@ SELECT a.id, a.type, a.label, a.is_active,
        pmp.definition_type,
        pmp.power, pmp.speed, pmp.speed_pattern_id,
        pmp.efficiency_curve_id, pmp.energy_price, pmp.energy_price_pattern_id,
-       pmp.curve_id
+       pmp.curve_id, pmp.curve_points
 FROM assets a
 JOIN link_properties lp     ON lp.asset_id = a.id
 JOIN pump_properties pmp    ON pmp.asset_id = a.id

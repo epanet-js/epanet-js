@@ -65,6 +65,7 @@ export type PumpRow = LinkRowShared & {
   energy_price: number | null;
   energy_price_pattern_id: number | null;
   curve_id: number | null;
+  curve_points: string | null;
 };
 
 export type ValveRow = LinkRowShared & {

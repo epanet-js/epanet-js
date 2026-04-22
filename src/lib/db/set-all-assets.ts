@@ -6,7 +6,9 @@ import type { Tank } from "src/hydraulic-model/asset-types/tank";
 import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
+import type { CurvePoint } from "src/hydraulic-model/curves";
 import { getDbWorker } from "./get-db-worker";
+import { pointsSchema } from "./build-curves-data";
 import type {
   AssetRows,
   JunctionRow,
@@ -149,7 +151,20 @@ const toPumpRow = (pump: Pump): PumpRow => ({
   energy_price: pump.energyPrice ?? null,
   energy_price_pattern_id: toDbId(pump.energyPricePatternId),
   curve_id: toDbId(pump.curveId),
+  curve_points: toDbCurvePoints(pump),
 });
+
+const toDbCurvePoints = (pump: Pump): string | null => {
+  const points: CurvePoint[] | undefined = pump.curve;
+  if (!points) return null;
+  const result = pointsSchema.safeParse(points);
+  if (!result.success) {
+    throw new Error(
+      `Pump ${pump.id} (${pump.label}): inline curve points must be an array of {x,y} with finite numbers — ${result.error.message}`,
+    );
+  }
+  return JSON.stringify(result.data);
+};
 
 const toValveRow = (valve: Valve): ValveRow => ({
   id: valve.id,

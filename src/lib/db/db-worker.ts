@@ -239,8 +239,9 @@ const insertPump = (row: PumpRow) => {
   db!.exec(
     `INSERT INTO pump_properties
      (asset_id, definition_type, power, speed, speed_pattern_id,
-      efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id,
+      curve_points)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     {
       bind: [
         row.id,
@@ -252,6 +253,7 @@ const insertPump = (row: PumpRow) => {
         row.energy_price,
         row.energy_price_pattern_id,
         row.curve_id,
+        row.curve_points,
       ],
     },
   );
