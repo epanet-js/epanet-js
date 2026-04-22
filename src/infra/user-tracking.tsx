@@ -469,7 +469,7 @@ type RepoVisited = {
 
 type FoundersPartnerLinkVisited = {
   name: "foundersPartner.visited";
-  link: "affinityWater" | "optimatics" | "foundersPartners";
+  link: "affinityWater" | "optimatics" | "foundersPartners" | "atkinsRealis";
 };
 
 type SignInStarted = {
