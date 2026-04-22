@@ -29,13 +29,15 @@ const nextConfig = {
       resourceQuery: /raw/,
       type: "asset/source",
     });
-    // epanet-js engines load WASM bundles through new URL() calls to the .wasm bundle or Base64 string
-    // Webpack 5 intercepts new URL() calls to create asset dependencies, but data URLs can't be
-    // treated as file-backed assets (asset/inline doesn't support the filename generator).
+
     config.module.rules.push({
-      test: /[\\/]epanet-js[\\/]dist[\\/]engines[\\/]/,
-      parser: { url: false },
+      test: /\.wasm$/,
+      type: "asset/resource",
+      generator: {
+        filename: "static/wasm/[name].[contenthash][ext]",
+      },
     });
+
     return config;
   },
   /* eslint-disable require-await */
