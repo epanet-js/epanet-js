@@ -12,6 +12,7 @@ import {
 import { toJunctionDemandRow } from "./set-all-junction-demands";
 import { patternsToRows } from "./set-all-patterns";
 import { curvesToRows } from "./set-all-curves";
+import { serializeControls } from "./set-all-controls";
 import type {
   AssetRows,
   CustomerPointRow,
@@ -40,6 +41,7 @@ export type ApplyMomentPayload = {
   junctionDemandUpdates: JunctionDemandUpdate[];
   patternsReplacement: PatternRow[] | null;
   curvesReplacement: CurveRow[] | null;
+  controlsReplacement: string | null;
 };
 
 export const buildMomentPayload = (
@@ -98,6 +100,10 @@ export const buildMomentPayload = (
     ? curvesToRows(moment.putCurves)
     : null;
 
+  const controlsReplacement = moment.putControls
+    ? serializeControls(moment.putControls)
+    : null;
+
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
@@ -107,6 +113,7 @@ export const buildMomentPayload = (
     junctionDemandUpdates,
     patternsReplacement,
     curvesReplacement,
+    controlsReplacement,
   };
 };
 
@@ -128,7 +135,8 @@ export const applyMomentToDb = async (
     payload.customerPointDemandUpdates.length === 0 &&
     payload.junctionDemandUpdates.length === 0 &&
     payload.patternsReplacement === null &&
-    payload.curvesReplacement === null
+    payload.curvesReplacement === null &&
+    payload.controlsReplacement === null
   ) {
     return;
   }

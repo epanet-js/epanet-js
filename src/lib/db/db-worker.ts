@@ -356,6 +356,12 @@ const insertCurve = (row: CurveRow) => {
   });
 };
 
+const upsertControls = (data: string) => {
+  db!.exec(`INSERT OR REPLACE INTO controls (id, data) VALUES (1, ?)`, {
+    bind: [data],
+  });
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -480,6 +486,16 @@ const api = {
     return readAll("SELECT * FROM curves ORDER BY id");
   },
 
+  async getControls(): Promise<string | null> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
+      returnValue: "resultRows",
+    }) as string[][];
+    if (rows.length === 0) return null;
+    return rows[0][0];
+  },
+
   async getJunctionDemands(): Promise<unknown[]> {
     return readAll(
       "SELECT * FROM junction_demands ORDER BY junction_id, ordinal",
@@ -548,6 +564,9 @@ const api = {
         for (const row of payload.curvesReplacement) {
           insertCurve(row);
         }
+      }
+      if (payload.controlsReplacement !== null) {
+        upsertControls(payload.controlsReplacement);
       }
       db.exec("COMMIT");
     } catch (e) {
@@ -629,6 +648,12 @@ const api = {
       db.exec("ROLLBACK");
       throw e;
     }
+  },
+
+  async setAllControls(data: string): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    upsertControls(data);
   },
 
   async setAllJunctionDemands(rows: JunctionDemandRow[]): Promise<void> {
