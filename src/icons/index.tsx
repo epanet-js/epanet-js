@@ -90,6 +90,7 @@ import {
   User,
   Waypoints,
   X,
+  CirclePause,
   Zap,
 } from "lucide-react";
 
@@ -133,6 +134,7 @@ export const InfoIcon = icon(Info);
 export const SuccessIcon = icon(CircleCheck);
 export const WarningIcon = icon(TriangleAlert);
 export const ErrorIcon = icon(CircleX);
+export const StopSimulationIcon = icon(CirclePause);
 export const UserIcon = icon(User);
 export const RefreshIcon = icon(RefreshCw);
 export const PencilIcon = icon(Pencil);

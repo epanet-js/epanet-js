@@ -16,7 +16,7 @@ export type UnsavedChangesDialogState = {
 
 export type SimulationSummaryState = {
   type: "simulationSummary";
-  status: "success" | "failure" | "warning";
+  status: "success" | "failure" | "warning" | "stopped";
   duration?: number;
   qualityType: QualitySimulationType;
   onContinue?: () => void;

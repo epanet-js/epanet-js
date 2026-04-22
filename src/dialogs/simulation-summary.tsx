@@ -4,7 +4,12 @@ import { BaseDialog, SimpleDialogActions } from "../components/dialog";
 import { Loading } from "../components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 
-import { ErrorIcon, SuccessIcon, WarningIcon } from "src/icons";
+import {
+  ErrorIcon,
+  StopSimulationIcon,
+  SuccessIcon,
+  WarningIcon,
+} from "src/icons";
 
 export const SimulationSummaryDialog = ({
   modal,
@@ -39,6 +44,10 @@ const SimulationSummaryDialogNew = ({
     failure: {
       title: translate("simulationFailure"),
       iconClass: "text-red-500",
+    },
+    stopped: {
+      title: translate("simulationStopped"),
+      iconClass: "text-blue-500",
     },
   }[modal.status];
 
@@ -83,6 +92,7 @@ const SimulationSummaryDialogNew = ({
             {modal.status === "success" && <SuccessIcon />}
             {modal.status === "warning" && <WarningIcon />}
             {modal.status === "failure" && <ErrorIcon />}
+            {modal.status === "stopped" && <StopSimulationIcon />}
           </div>
           {isSuccess
             ? translate(
@@ -92,7 +102,9 @@ const SimulationSummaryDialogNew = ({
             : translate(
                 modal.status === "warning"
                   ? "simulationWarningExplain"
-                  : "simulationFailureExplain",
+                  : modal.status === "stopped"
+                    ? "simulationStoppedExplain"
+                    : "simulationFailureExplain",
               )}
         </p>
       </div>
