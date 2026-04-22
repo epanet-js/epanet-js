@@ -143,7 +143,7 @@ const buildTank = (row: TankRow, assetFactory: AssetFactory): Tank =>
     chemicalSourceStrength: nullable(row.chemical_source_strength),
     chemicalSourcePatternId: nullable(row.chemical_source_pattern_id),
     isActive: toBool(row.is_active),
-    volumeCurveId: parseIdOrUndefined(row.volume_curve_id),
+    volumeCurveId: nullable(row.volume_curve_id),
   });
 
 const buildPipe = (row: PipeRow, assetFactory: AssetFactory): Pipe =>
@@ -171,10 +171,10 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
     initialStatus: nullable(row.initial_status) as PumpStatus | undefined,
     definitionType: row.definition_type as PumpDefintionType,
     power: nullable(row.power),
-    curveId: parseIdOrUndefined(row.curve_id),
+    curveId: nullable(row.curve_id),
     speed: nullable(row.speed),
     speedPatternId: nullable(row.speed_pattern_id),
-    efficiencyCurveId: parseIdOrUndefined(row.efficiency_curve_id),
+    efficiencyCurveId: nullable(row.efficiency_curve_id),
     energyPrice: nullable(row.energy_price),
     energyPricePatternId: nullable(row.energy_price_pattern_id),
     isActive: toBool(row.is_active),
@@ -192,16 +192,10 @@ const buildValve = (row: ValveRow, assetFactory: AssetFactory): Valve =>
     setting: nullable(row.setting),
     initialStatus: nullable(row.initial_status) as ValveStatus | undefined,
     isActive: toBool(row.is_active),
-    curveId: parseIdOrUndefined(row.curve_id),
+    curveId: nullable(row.curve_id),
   });
 
 const nullable = <T>(v: T | null | undefined): T | undefined =>
   v === null ? undefined : v;
 
 const toBool = (v: number): boolean => v === 1;
-
-const parseIdOrUndefined = (v: string | null): number | undefined => {
-  if (v === null) return undefined;
-  const parsed = Number(v);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};

@@ -13,6 +13,7 @@ import type {
   CustomerPointsData,
   JunctionDemandRow,
   PatternRow,
+  CurveRow,
 } from "./rows";
 import type { ApplyMomentPayload } from "./apply-moment";
 
@@ -349,6 +350,12 @@ const insertPattern = (row: PatternRow) => {
   );
 };
 
+const insertCurve = (row: CurveRow) => {
+  db!.exec(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`, {
+    bind: [row.id, row.label, row.type, row.points],
+  });
+};
+
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
@@ -469,6 +476,10 @@ const api = {
     return readAll("SELECT * FROM patterns ORDER BY id");
   },
 
+  async getCurves(): Promise<unknown[]> {
+    return readAll("SELECT * FROM curves ORDER BY id");
+  },
+
   async getJunctionDemands(): Promise<unknown[]> {
     return readAll(
       "SELECT * FROM junction_demands ORDER BY junction_id, ordinal",
@@ -532,6 +543,12 @@ const api = {
           insertPattern(row);
         }
       }
+      if (payload.curvesReplacement !== null) {
+        db.exec("DELETE FROM curves");
+        for (const row of payload.curvesReplacement) {
+          insertCurve(row);
+        }
+      }
       db.exec("COMMIT");
     } catch (e) {
       db.exec("ROLLBACK");
@@ -593,6 +610,20 @@ const api = {
     try {
       db.exec("DELETE FROM patterns");
       for (const row of rows) insertPattern(row);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  },
+
+  async setAllCurves(rows: CurveRow[]): Promise<void> {
+    await ready;
+    if (!db) throw new Error("No database open");
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      db.exec("DELETE FROM curves");
+      for (const row of rows) insertCurve(row);
       db.exec("COMMIT");
     } catch (e) {
       db.exec("ROLLBACK");

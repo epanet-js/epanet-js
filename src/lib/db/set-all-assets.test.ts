@@ -172,7 +172,7 @@ describe("assetsToRows", () => {
     expect(rows.pumps[1]).toMatchObject({
       id: 2,
       definition_type: "curveId",
-      curve_id: "99",
+      curve_id: 99,
     });
     expect(rows.pumps[2]).toMatchObject({
       id: 3,

@@ -11,12 +11,14 @@ import {
 } from "./set-all-customer-points";
 import { toJunctionDemandRow } from "./set-all-junction-demands";
 import { patternsToRows } from "./set-all-patterns";
+import { curvesToRows } from "./set-all-curves";
 import type {
   AssetRows,
   CustomerPointRow,
   CustomerPointDemandRow,
   JunctionDemandRow,
   PatternRow,
+  CurveRow,
 } from "./rows";
 
 export type CustomerPointDemandUpdate = {
@@ -37,6 +39,7 @@ export type ApplyMomentPayload = {
   customerPointDemandUpdates: CustomerPointDemandUpdate[];
   junctionDemandUpdates: JunctionDemandUpdate[];
   patternsReplacement: PatternRow[] | null;
+  curvesReplacement: CurveRow[] | null;
 };
 
 export const buildMomentPayload = (
@@ -91,6 +94,10 @@ export const buildMomentPayload = (
     ? patternsToRows(moment.putPatterns)
     : null;
 
+  const curvesReplacement = moment.putCurves
+    ? curvesToRows(moment.putCurves)
+    : null;
+
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
@@ -99,6 +106,7 @@ export const buildMomentPayload = (
     customerPointDemandUpdates,
     junctionDemandUpdates,
     patternsReplacement,
+    curvesReplacement,
   };
 };
 
@@ -119,7 +127,8 @@ export const applyMomentToDb = async (
     payload.customerPointUpserts.length === 0 &&
     payload.customerPointDemandUpdates.length === 0 &&
     payload.junctionDemandUpdates.length === 0 &&
-    payload.patternsReplacement === null
+    payload.patternsReplacement === null &&
+    payload.curvesReplacement === null
   ) {
     return;
   }

@@ -52,7 +52,7 @@ CREATE TABLE tank_properties (
   mixing_model        TEXT,
   mixing_fraction     REAL,
   bulk_reaction_coeff REAL,
-  volume_curve_id     TEXT
+  volume_curve_id     INTEGER
 );
 
 CREATE TABLE pipe_properties (
@@ -70,10 +70,10 @@ CREATE TABLE pump_properties (
   power                   REAL,
   speed                   REAL,
   speed_pattern_id        INTEGER,
-  efficiency_curve_id     TEXT,
+  efficiency_curve_id     INTEGER,
   energy_price            REAL,
   energy_price_pattern_id INTEGER,
-  curve_id                TEXT
+  curve_id                INTEGER
 );
 
 CREATE TABLE valve_properties (
@@ -82,7 +82,7 @@ CREATE TABLE valve_properties (
   minor_loss REAL,
   valve_kind TEXT,
   setting    REAL,
-  curve_id   TEXT
+  curve_id   INTEGER
 );
 
 CREATE INDEX idx_assets_type ON assets(type);
@@ -193,3 +193,10 @@ CREATE TABLE junction_demands (
 );
 
 CREATE INDEX idx_junction_demands_junction ON junction_demands(junction_id);
+
+CREATE TABLE curves (
+  id     INTEGER PRIMARY KEY,
+  label  TEXT NOT NULL,
+  type   TEXT CHECK (type IS NULL OR type IN ('pump','efficiency','volume','valve','headloss')),
+  points TEXT NOT NULL
+);

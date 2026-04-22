@@ -387,6 +387,76 @@ describe("buildMomentPayload", () => {
     expect(payload.patternsReplacement).toEqual([]);
   });
 
+  it("serializes putCurves into a full-replacement payload", () => {
+    const { model } = setupModel();
+    const IDS = { C1: 1, C2: 2 } as const;
+
+    const moment: ModelMoment = {
+      note: "curves",
+      putCurves: new Map([
+        [
+          IDS.C1,
+          {
+            id: IDS.C1,
+            label: "Head",
+            type: "pump",
+            points: [
+              { x: 0, y: 100 },
+              { x: 50, y: 0 },
+            ],
+          },
+        ],
+        [
+          IDS.C2,
+          {
+            id: IDS.C2,
+            label: "Loose",
+            points: [{ x: 1, y: 2 }],
+          },
+        ],
+      ]),
+    };
+
+    const payload = buildMomentPayload(moment, model);
+
+    expect(payload.curvesReplacement).toEqual([
+      {
+        id: IDS.C1,
+        label: "Head",
+        type: "pump",
+        points: JSON.stringify([
+          { x: 0, y: 100 },
+          { x: 50, y: 0 },
+        ]),
+      },
+      {
+        id: IDS.C2,
+        label: "Loose",
+        type: null,
+        points: JSON.stringify([{ x: 1, y: 2 }]),
+      },
+    ]);
+  });
+
+  it("sets curvesReplacement to null when moment has no putCurves", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload({ note: "noop" }, model);
+
+    expect(payload.curvesReplacement).toBeNull();
+  });
+
+  it("treats an empty putCurves map as a full-clear", () => {
+    const { model } = setupModel();
+
+    const payload = buildMomentPayload(
+      { note: "clear curves", putCurves: new Map() },
+      model,
+    );
+
+    expect(payload.curvesReplacement).toEqual([]);
+  });
+
   it("skips demand assignments for customer points being deleted", () => {
     const { model } = setupModel();
 
