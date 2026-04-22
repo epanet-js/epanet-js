@@ -11,6 +11,8 @@ import {
 } from "./worker";
 import { SimulationMetadata } from "./simulation-metadata";
 import { Mock } from "vitest";
+import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -19,6 +21,21 @@ vi.mock("src/lib/worker", () => ({
 }));
 
 describe("EPS simulation", () => {
+  beforeAll(() => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      const filePath = fileURLToPath(url);
+      const nodeBuffer = readFileSync(filePath);
+      const arrayBuffer = nodeBuffer.buffer.slice(
+        nodeBuffer.byteOffset,
+        nodeBuffer.byteOffset + nodeBuffer.byteLength
+      );
+      return {
+        ok: true,
+        arrayBuffer: () => Promise.resolve(arrayBuffer),
+      };
+    });
+  });
+
   beforeEach(() => {
     (lib.runSimulation as unknown as Mock).mockImplementation(
       workerRunSimulation,
