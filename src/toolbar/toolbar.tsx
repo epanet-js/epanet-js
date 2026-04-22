@@ -164,8 +164,12 @@ export const Toolbar = ({
             <Divider />
           </>
         )}
-        <Modes disabled={readonly} />
-        <Divider />
+        {isSmOrLarger && (
+          <>
+            <Modes disabled={readonly} />
+            <Divider />
+          </>
+        )}
         <MenuAction
           label={translate("simulate")}
           role="button"

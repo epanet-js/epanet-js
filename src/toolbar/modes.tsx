@@ -74,6 +74,7 @@ export default memo(function Modes({
   const setDrawingMode = useDrawingMode();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isMdOrLarger = useBreakpoint("md");
   const isLgOrLarger = useBreakpoint("lg");
 
   return (
@@ -97,7 +98,7 @@ export default memo(function Modes({
       </MenuAction>
       <SelectionTool />
       <TraceTool />
-      {isLgOrLarger ? (
+      {!isMdOrLarger ? null : isLgOrLarger ? (
         DRAWING_MODE_OPTIONS.map(({ mode, hotkey, Icon }) => {
           const modeInfo = MODE_INFO[mode];
 
