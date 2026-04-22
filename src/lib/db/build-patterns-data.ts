@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type {
   Pattern,
   PatternType,
@@ -5,19 +6,37 @@ import type {
 } from "src/hydraulic-model/patterns";
 import type { PatternRow } from "./rows";
 
+export const multipliersSchema = z.array(z.number().finite());
+
 export const buildPatternsData = (rows: PatternRow[]): Patterns => {
   const patterns: Patterns = new Map();
   for (const row of rows) {
-    const multipliers = JSON.parse(row.multipliers) as number[];
     const pattern: Pattern = {
       id: row.id,
       label: row.label,
-      multipliers,
+      multipliers: parseMultipliers(row),
     };
-    if (row.type !== null) {
-      pattern.type = row.type as PatternType;
-    }
+    if (row.type !== null) pattern.type = row.type as PatternType;
     patterns.set(row.id, pattern);
   }
   return patterns;
+};
+
+const parseMultipliers = (row: PatternRow): number[] => {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(row.multipliers);
+  } catch (error) {
+    throw new Error(
+      `Pattern ${row.id} (${row.label}): multipliers is not valid JSON`,
+      { cause: error },
+    );
+  }
+  const result = multipliersSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(
+      `Pattern ${row.id} (${row.label}): multipliers must be an array of finite numbers — ${result.error.message}`,
+    );
+  }
+  return result.data;
 };

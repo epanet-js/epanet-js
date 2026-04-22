@@ -27,6 +27,24 @@ describe("toPatternRow", () => {
 
     expect(row.type).toBeNull();
   });
+
+  it("throws when multipliers contain NaN or Infinity", () => {
+    expect(() =>
+      toPatternRow({
+        id: 7,
+        label: "BadNaN",
+        multipliers: [1, NaN, 3],
+      }),
+    ).toThrow(/multipliers must be an array of finite numbers/);
+
+    expect(() =>
+      toPatternRow({
+        id: 8,
+        label: "BadInf",
+        multipliers: [Infinity],
+      }),
+    ).toThrow(/multipliers must be an array of finite numbers/);
+  });
 });
 
 describe("patternsToRows", () => {

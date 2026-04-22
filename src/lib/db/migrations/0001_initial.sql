@@ -180,7 +180,7 @@ CREATE INDEX idx_customer_points_junction ON customer_points(junction_id);
 CREATE TABLE patterns (
   id          INTEGER PRIMARY KEY,
   label       TEXT NOT NULL,
-  type        TEXT,
+  type        TEXT CHECK (type IS NULL OR type IN ('demand','reservoirHead','pumpSpeed','qualitySourceStrength','energyPrice')),
   multipliers TEXT NOT NULL
 );
 

@@ -36,4 +36,36 @@ describe("buildPatternsData", () => {
   it("returns an empty map for no rows", () => {
     expect(buildPatternsData([]).size).toBe(0);
   });
+
+  it("throws when multipliers are not valid JSON", () => {
+    expect(() =>
+      buildPatternsData([
+        { id: 1, label: "Bad", type: null, multipliers: "not-json" },
+      ]),
+    ).toThrow(/multipliers is not valid JSON/);
+  });
+
+  it("throws when multipliers are not an array of finite numbers", () => {
+    expect(() =>
+      buildPatternsData([
+        {
+          id: 1,
+          label: "Bad",
+          type: null,
+          multipliers: JSON.stringify([1, "x"]),
+        },
+      ]),
+    ).toThrow(/multipliers must be an array of finite numbers/);
+
+    expect(() =>
+      buildPatternsData([
+        {
+          id: 1,
+          label: "Bad",
+          type: null,
+          multipliers: JSON.stringify({ not: "an array" }),
+        },
+      ]),
+    ).toThrow(/multipliers must be an array of finite numbers/);
+  });
 });
