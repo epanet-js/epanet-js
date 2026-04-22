@@ -50,6 +50,7 @@ export function gisLayerLine(
 export function gisLayerCircle(
   sourceId: string,
   color: string,
+  radius: number,
   opacity: number,
   visible: boolean,
 ): CircleLayer {
@@ -60,7 +61,7 @@ export function gisLayerCircle(
     filter: ["==", "$type", "Point"],
     paint: {
       "circle-color": color,
-      "circle-radius": 4,
+      "circle-radius": radius,
       "circle-opacity": opacity,
       "circle-stroke-color": strokeColorFor(color),
       "circle-stroke-width": 1,

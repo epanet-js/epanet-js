@@ -813,6 +813,7 @@ function addGisLayersToMap(
       gisLayerCircle(
         sourceId,
         layerConfig.color,
+        layerConfig.lineWidth,
         layerConfig.opacity,
         layerConfig.visibility,
       ),
