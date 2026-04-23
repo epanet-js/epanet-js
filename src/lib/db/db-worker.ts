@@ -143,212 +143,6 @@ const ASSET_TYPE_TABLES = [
   "valves",
 ] as const;
 
-const insertJunction = (row: JunctionRow) => {
-  getStmt(
-    `INSERT INTO junctions
-     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
-      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
-      emitter_coefficient)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.coord_x,
-      row.coord_y,
-      row.elevation,
-      row.initial_quality,
-      row.chemical_source_type,
-      row.chemical_source_strength,
-      row.chemical_source_pattern_id,
-      row.emitter_coefficient,
-    ])
-    .stepReset();
-};
-
-const insertReservoir = (row: ReservoirRow) => {
-  getStmt(
-    `INSERT INTO reservoirs
-     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
-      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
-      head, head_pattern_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.coord_x,
-      row.coord_y,
-      row.elevation,
-      row.initial_quality,
-      row.chemical_source_type,
-      row.chemical_source_strength,
-      row.chemical_source_pattern_id,
-      row.head,
-      row.head_pattern_id,
-    ])
-    .stepReset();
-};
-
-const insertTank = (row: TankRow) => {
-  getStmt(
-    `INSERT INTO tanks
-     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
-      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
-      initial_level, min_level, max_level, min_volume, diameter, overflow,
-      mixing_model, mixing_fraction, bulk_reaction_coeff, volume_curve_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.coord_x,
-      row.coord_y,
-      row.elevation,
-      row.initial_quality,
-      row.chemical_source_type,
-      row.chemical_source_strength,
-      row.chemical_source_pattern_id,
-      row.initial_level,
-      row.min_level,
-      row.max_level,
-      row.min_volume,
-      row.diameter,
-      row.overflow,
-      row.mixing_model,
-      row.mixing_fraction,
-      row.bulk_reaction_coeff,
-      row.volume_curve_id,
-    ])
-    .stepReset();
-};
-
-const insertPipe = (row: PipeRow) => {
-  getStmt(
-    `INSERT INTO pipes
-     (id, label, is_active, start_node_id, end_node_id, coords, length,
-      initial_status, diameter, roughness, minor_loss, bulk_reaction_coeff,
-      wall_reaction_coeff)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.start_node_id,
-      row.end_node_id,
-      row.coords,
-      row.length,
-      row.initial_status,
-      row.diameter,
-      row.roughness,
-      row.minor_loss,
-      row.bulk_reaction_coeff,
-      row.wall_reaction_coeff,
-    ])
-    .stepReset();
-};
-
-const insertPump = (row: PumpRow) => {
-  getStmt(
-    `INSERT INTO pumps
-     (id, label, is_active, start_node_id, end_node_id, coords, length,
-      initial_status, definition_type, power, speed, speed_pattern_id,
-      efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id,
-      curve_points)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.start_node_id,
-      row.end_node_id,
-      row.coords,
-      row.length,
-      row.initial_status,
-      row.definition_type,
-      row.power,
-      row.speed,
-      row.speed_pattern_id,
-      row.efficiency_curve_id,
-      row.energy_price,
-      row.energy_price_pattern_id,
-      row.curve_id,
-      row.curve_points,
-    ])
-    .stepReset();
-};
-
-const deleteAssetCascade = (id: number) => {
-  for (const table of ASSET_TYPE_TABLES) {
-    getStmt(`DELETE FROM ${table} WHERE id = ?`).bind([id]).stepReset();
-  }
-};
-
-const insertCustomerPoint = (row: CustomerPointRow) => {
-  getStmt(
-    `INSERT INTO customer_points
-     (id, label, coord_x, coord_y, pipe_id, junction_id, snap_x, snap_y)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.coord_x,
-      row.coord_y,
-      row.pipe_id,
-      row.junction_id,
-      row.snap_x,
-      row.snap_y,
-    ])
-    .stepReset();
-};
-
-const insertCustomerPointDemand = (row: CustomerPointDemandRow) => {
-  getStmt(
-    `INSERT INTO customer_point_demands
-     (customer_point_id, ordinal, base_demand, pattern_id)
-     VALUES (?, ?, ?, ?)`,
-  )
-    .bind([row.customer_point_id, row.ordinal, row.base_demand, row.pattern_id])
-    .stepReset();
-};
-
-const deleteCustomerPointDemands = (id: number) => {
-  getStmt("DELETE FROM customer_point_demands WHERE customer_point_id = ?")
-    .bind([id])
-    .stepReset();
-};
-
-const deleteCustomerPoint = (id: number) => {
-  getStmt("DELETE FROM customer_points WHERE id = ?").bind([id]).stepReset();
-};
-
-const deleteCustomerPointCascade = (id: number) => {
-  deleteCustomerPointDemands(id);
-  deleteCustomerPoint(id);
-};
-
-const insertJunctionDemand = (row: JunctionDemandRow) => {
-  getStmt(
-    `INSERT INTO junction_demands
-     (junction_id, ordinal, base_demand, pattern_id)
-     VALUES (?, ?, ?, ?)`,
-  )
-    .bind([row.junction_id, row.ordinal, row.base_demand, row.pattern_id])
-    .stepReset();
-};
-
-const deleteJunctionDemands = (id: number) => {
-  getStmt("DELETE FROM junction_demands WHERE junction_id = ?")
-    .bind([id])
-    .stepReset();
-};
-
 const insertPattern = (row: PatternRow) => {
   getStmt(
     `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?)`,
@@ -376,31 +170,6 @@ const upsertSimulationSettings = (data: string) => {
       bind: [data],
     },
   );
-};
-
-const insertValve = (row: ValveRow) => {
-  getStmt(
-    `INSERT INTO valves
-     (id, label, is_active, start_node_id, end_node_id, coords, length,
-      initial_status, diameter, minor_loss, valve_kind, setting, curve_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.label,
-      row.is_active,
-      row.start_node_id,
-      row.end_node_id,
-      row.coords,
-      row.length,
-      row.initial_status,
-      row.diameter,
-      row.minor_loss,
-      row.valve_kind,
-      row.setting,
-      row.curve_id,
-    ])
-    .stepReset();
 };
 
 /*
@@ -472,6 +241,362 @@ const bulkInsert = <T>(
     }
     getStmt(sql).bind(params).stepReset();
   }
+};
+
+const BULK_DELETE_CHUNK_SIZE = 10000;
+
+const bulkDelete = (
+  tables: readonly string[],
+  column: string,
+  ids: readonly number[],
+): void => {
+  if (ids.length === 0) return;
+  const fullChunks = Math.floor(ids.length / BULK_DELETE_CHUNK_SIZE);
+  const remainder = ids.length % BULK_DELETE_CHUNK_SIZE;
+  const fullPlaceholders = new Array<string>(BULK_DELETE_CHUNK_SIZE)
+    .fill("?")
+    .join(",");
+  const tailPlaceholders =
+    remainder > 0 ? new Array<string>(remainder).fill("?").join(",") : "";
+
+  for (const table of tables) {
+    if (fullChunks > 0) {
+      const sql = `DELETE FROM ${table} WHERE ${column} IN (${fullPlaceholders})`;
+      for (let c = 0; c < fullChunks; c++) {
+        const base = c * BULK_DELETE_CHUNK_SIZE;
+        const params = ids.slice(base, base + BULK_DELETE_CHUNK_SIZE);
+        getStmt(sql).bind(params).stepReset();
+      }
+    }
+    if (remainder > 0) {
+      const sql = `DELETE FROM ${table} WHERE ${column} IN (${tailPlaceholders})`;
+      const base = fullChunks * BULK_DELETE_CHUNK_SIZE;
+      const params = ids.slice(base, base + remainder);
+      getStmt(sql).bind(params).stepReset();
+    }
+  }
+};
+
+const bulkInsertJunctions = (rows: readonly JunctionRow[]) => {
+  bulkInsert(
+    "junctions",
+    [
+      "id",
+      "label",
+      "is_active",
+      "coord_x",
+      "coord_y",
+      "elevation",
+      "initial_quality",
+      "chemical_source_type",
+      "chemical_source_strength",
+      "chemical_source_pattern_id",
+      "emitter_coefficient",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.coord_x,
+        row.coord_y,
+        row.elevation,
+        row.initial_quality,
+        row.chemical_source_type,
+        row.chemical_source_strength,
+        row.chemical_source_pattern_id,
+        row.emitter_coefficient,
+      );
+    },
+    BULK_CHUNK_SIZES.junctions,
+  );
+};
+
+const bulkInsertReservoirs = (rows: readonly ReservoirRow[]) => {
+  bulkInsert(
+    "reservoirs",
+    [
+      "id",
+      "label",
+      "is_active",
+      "coord_x",
+      "coord_y",
+      "elevation",
+      "initial_quality",
+      "chemical_source_type",
+      "chemical_source_strength",
+      "chemical_source_pattern_id",
+      "head",
+      "head_pattern_id",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.coord_x,
+        row.coord_y,
+        row.elevation,
+        row.initial_quality,
+        row.chemical_source_type,
+        row.chemical_source_strength,
+        row.chemical_source_pattern_id,
+        row.head,
+        row.head_pattern_id,
+      );
+    },
+    BULK_CHUNK_SIZES.reservoirs,
+  );
+};
+
+const bulkInsertTanks = (rows: readonly TankRow[]) => {
+  bulkInsert(
+    "tanks",
+    [
+      "id",
+      "label",
+      "is_active",
+      "coord_x",
+      "coord_y",
+      "elevation",
+      "initial_quality",
+      "chemical_source_type",
+      "chemical_source_strength",
+      "chemical_source_pattern_id",
+      "initial_level",
+      "min_level",
+      "max_level",
+      "min_volume",
+      "diameter",
+      "overflow",
+      "mixing_model",
+      "mixing_fraction",
+      "bulk_reaction_coeff",
+      "volume_curve_id",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.coord_x,
+        row.coord_y,
+        row.elevation,
+        row.initial_quality,
+        row.chemical_source_type,
+        row.chemical_source_strength,
+        row.chemical_source_pattern_id,
+        row.initial_level,
+        row.min_level,
+        row.max_level,
+        row.min_volume,
+        row.diameter,
+        row.overflow,
+        row.mixing_model,
+        row.mixing_fraction,
+        row.bulk_reaction_coeff,
+        row.volume_curve_id,
+      );
+    },
+    BULK_CHUNK_SIZES.tanks,
+  );
+};
+
+const bulkInsertPipes = (rows: readonly PipeRow[]) => {
+  bulkInsert(
+    "pipes",
+    [
+      "id",
+      "label",
+      "is_active",
+      "start_node_id",
+      "end_node_id",
+      "coords",
+      "length",
+      "initial_status",
+      "diameter",
+      "roughness",
+      "minor_loss",
+      "bulk_reaction_coeff",
+      "wall_reaction_coeff",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.start_node_id,
+        row.end_node_id,
+        row.coords,
+        row.length,
+        row.initial_status,
+        row.diameter,
+        row.roughness,
+        row.minor_loss,
+        row.bulk_reaction_coeff,
+        row.wall_reaction_coeff,
+      );
+    },
+    BULK_CHUNK_SIZES.pipes,
+  );
+};
+
+const bulkInsertPumps = (rows: readonly PumpRow[]) => {
+  bulkInsert(
+    "pumps",
+    [
+      "id",
+      "label",
+      "is_active",
+      "start_node_id",
+      "end_node_id",
+      "coords",
+      "length",
+      "initial_status",
+      "definition_type",
+      "power",
+      "speed",
+      "speed_pattern_id",
+      "efficiency_curve_id",
+      "energy_price",
+      "energy_price_pattern_id",
+      "curve_id",
+      "curve_points",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.start_node_id,
+        row.end_node_id,
+        row.coords,
+        row.length,
+        row.initial_status,
+        row.definition_type,
+        row.power,
+        row.speed,
+        row.speed_pattern_id,
+        row.efficiency_curve_id,
+        row.energy_price,
+        row.energy_price_pattern_id,
+        row.curve_id,
+        row.curve_points,
+      );
+    },
+    BULK_CHUNK_SIZES.pumps,
+  );
+};
+
+const bulkInsertValves = (rows: readonly ValveRow[]) => {
+  bulkInsert(
+    "valves",
+    [
+      "id",
+      "label",
+      "is_active",
+      "start_node_id",
+      "end_node_id",
+      "coords",
+      "length",
+      "initial_status",
+      "diameter",
+      "minor_loss",
+      "valve_kind",
+      "setting",
+      "curve_id",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.is_active,
+        row.start_node_id,
+        row.end_node_id,
+        row.coords,
+        row.length,
+        row.initial_status,
+        row.diameter,
+        row.minor_loss,
+        row.valve_kind,
+        row.setting,
+        row.curve_id,
+      );
+    },
+    BULK_CHUNK_SIZES.valves,
+  );
+};
+
+const bulkInsertCustomerPoints = (rows: readonly CustomerPointRow[]) => {
+  bulkInsert(
+    "customer_points",
+    [
+      "id",
+      "label",
+      "coord_x",
+      "coord_y",
+      "pipe_id",
+      "junction_id",
+      "snap_x",
+      "snap_y",
+    ],
+    rows,
+    (row, params) => {
+      params.push(
+        row.id,
+        row.label,
+        row.coord_x,
+        row.coord_y,
+        row.pipe_id,
+        row.junction_id,
+        row.snap_x,
+        row.snap_y,
+      );
+    },
+    BULK_CHUNK_SIZES.customer_points,
+  );
+};
+
+const bulkInsertCustomerPointDemands = (
+  rows: readonly CustomerPointDemandRow[],
+) => {
+  bulkInsert(
+    "customer_point_demands",
+    ["customer_point_id", "ordinal", "base_demand", "pattern_id"],
+    rows,
+    (row, params) => {
+      params.push(
+        row.customer_point_id,
+        row.ordinal,
+        row.base_demand,
+        row.pattern_id,
+      );
+    },
+    BULK_CHUNK_SIZES.customer_point_demands,
+  );
+};
+
+const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
+  bulkInsert(
+    "junction_demands",
+    ["junction_id", "ordinal", "base_demand", "pattern_id"],
+    rows,
+    (row, params) => {
+      params.push(
+        row.junction_id,
+        row.ordinal,
+        row.base_demand,
+        row.pattern_id,
+      );
+    },
+    BULK_CHUNK_SIZES.junction_demands,
+  );
 };
 
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
@@ -659,52 +784,63 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          for (const id of payload.assetDeleteIds) {
-            deleteAssetCascade(id);
+          const touchedAssetIds: number[] = [...payload.assetDeleteIds];
+          for (const r of payload.assetUpserts.junctions)
+            touchedAssetIds.push(r.id);
+          for (const r of payload.assetUpserts.reservoirs)
+            touchedAssetIds.push(r.id);
+          for (const r of payload.assetUpserts.tanks)
+            touchedAssetIds.push(r.id);
+          for (const r of payload.assetUpserts.pipes)
+            touchedAssetIds.push(r.id);
+          for (const r of payload.assetUpserts.pumps)
+            touchedAssetIds.push(r.id);
+          for (const r of payload.assetUpserts.valves)
+            touchedAssetIds.push(r.id);
+
+          bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
+
+          bulkInsertJunctions(payload.assetUpserts.junctions);
+          bulkInsertReservoirs(payload.assetUpserts.reservoirs);
+          bulkInsertTanks(payload.assetUpserts.tanks);
+          bulkInsertPipes(payload.assetUpserts.pipes);
+          bulkInsertPumps(payload.assetUpserts.pumps);
+          bulkInsertValves(payload.assetUpserts.valves);
+
+          const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
+          for (const u of payload.customerPointDemandUpdates) {
+            cpDemandCpIds.push(u.customerPointId);
           }
-          for (const row of payload.assetUpserts.junctions) {
-            deleteAssetCascade(row.id);
-            insertJunction(row);
+          bulkDelete(
+            ["customer_point_demands"],
+            "customer_point_id",
+            cpDemandCpIds,
+          );
+
+          const cpIds: number[] = [...payload.customerPointDeleteIds];
+          for (const r of payload.customerPointUpserts) cpIds.push(r.id);
+          bulkDelete(["customer_points"], "id", cpIds);
+
+          bulkInsertCustomerPoints(payload.customerPointUpserts);
+
+          const cpDemandRows: CustomerPointDemandRow[] = [];
+          for (const u of payload.customerPointDemandUpdates) {
+            for (const row of u.demands) cpDemandRows.push(row);
           }
-          for (const row of payload.assetUpserts.reservoirs) {
-            deleteAssetCascade(row.id);
-            insertReservoir(row);
+          bulkInsertCustomerPointDemands(cpDemandRows);
+
+          const jDemandJunctionIds: number[] = [];
+          for (const u of payload.junctionDemandUpdates) {
+            jDemandJunctionIds.push(u.junctionId);
           }
-          for (const row of payload.assetUpserts.tanks) {
-            deleteAssetCascade(row.id);
-            insertTank(row);
+          bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
+
+          const jDemandRows: JunctionDemandRow[] = [];
+          for (const u of payload.junctionDemandUpdates) {
+            for (const row of u.demands) jDemandRows.push(row);
           }
-          for (const row of payload.assetUpserts.pipes) {
-            deleteAssetCascade(row.id);
-            insertPipe(row);
-          }
-          for (const row of payload.assetUpserts.pumps) {
-            deleteAssetCascade(row.id);
-            insertPump(row);
-          }
-          for (const row of payload.assetUpserts.valves) {
-            deleteAssetCascade(row.id);
-            insertValve(row);
-          }
-          for (const id of payload.customerPointDeleteIds) {
-            deleteCustomerPointCascade(id);
-          }
-          for (const row of payload.customerPointUpserts) {
-            deleteCustomerPoint(row.id);
-            insertCustomerPoint(row);
-          }
-          for (const update of payload.customerPointDemandUpdates) {
-            deleteCustomerPointDemands(update.customerPointId);
-            for (const demandRow of update.demands) {
-              insertCustomerPointDemand(demandRow);
-            }
-          }
-          for (const update of payload.junctionDemandUpdates) {
-            deleteJunctionDemands(update.junctionId);
-            for (const demandRow of update.demands) {
-              insertJunctionDemand(demandRow);
-            }
-          }
+          bulkInsertJunctionDemands(jDemandRows);
+
           if (payload.patternsReplacement !== null) {
             db.exec("DELETE FROM patterns");
             for (const row of payload.patternsReplacement) {
@@ -742,249 +878,12 @@ const api = {
             db.exec(`DELETE FROM ${table}`);
           }
 
-          bulkInsert(
-            "junctions",
-            [
-              "id",
-              "label",
-              "is_active",
-              "coord_x",
-              "coord_y",
-              "elevation",
-              "initial_quality",
-              "chemical_source_type",
-              "chemical_source_strength",
-              "chemical_source_pattern_id",
-              "emitter_coefficient",
-            ],
-            payload.junctions,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.coord_x,
-                row.coord_y,
-                row.elevation,
-                row.initial_quality,
-                row.chemical_source_type,
-                row.chemical_source_strength,
-                row.chemical_source_pattern_id,
-                row.emitter_coefficient,
-              );
-            },
-            BULK_CHUNK_SIZES.junctions,
-          );
-
-          bulkInsert(
-            "reservoirs",
-            [
-              "id",
-              "label",
-              "is_active",
-              "coord_x",
-              "coord_y",
-              "elevation",
-              "initial_quality",
-              "chemical_source_type",
-              "chemical_source_strength",
-              "chemical_source_pattern_id",
-              "head",
-              "head_pattern_id",
-            ],
-            payload.reservoirs,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.coord_x,
-                row.coord_y,
-                row.elevation,
-                row.initial_quality,
-                row.chemical_source_type,
-                row.chemical_source_strength,
-                row.chemical_source_pattern_id,
-                row.head,
-                row.head_pattern_id,
-              );
-            },
-            BULK_CHUNK_SIZES.reservoirs,
-          );
-
-          bulkInsert(
-            "tanks",
-            [
-              "id",
-              "label",
-              "is_active",
-              "coord_x",
-              "coord_y",
-              "elevation",
-              "initial_quality",
-              "chemical_source_type",
-              "chemical_source_strength",
-              "chemical_source_pattern_id",
-              "initial_level",
-              "min_level",
-              "max_level",
-              "min_volume",
-              "diameter",
-              "overflow",
-              "mixing_model",
-              "mixing_fraction",
-              "bulk_reaction_coeff",
-              "volume_curve_id",
-            ],
-            payload.tanks,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.coord_x,
-                row.coord_y,
-                row.elevation,
-                row.initial_quality,
-                row.chemical_source_type,
-                row.chemical_source_strength,
-                row.chemical_source_pattern_id,
-                row.initial_level,
-                row.min_level,
-                row.max_level,
-                row.min_volume,
-                row.diameter,
-                row.overflow,
-                row.mixing_model,
-                row.mixing_fraction,
-                row.bulk_reaction_coeff,
-                row.volume_curve_id,
-              );
-            },
-            BULK_CHUNK_SIZES.tanks,
-          );
-
-          bulkInsert(
-            "pipes",
-            [
-              "id",
-              "label",
-              "is_active",
-              "start_node_id",
-              "end_node_id",
-              "coords",
-              "length",
-              "initial_status",
-              "diameter",
-              "roughness",
-              "minor_loss",
-              "bulk_reaction_coeff",
-              "wall_reaction_coeff",
-            ],
-            payload.pipes,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.start_node_id,
-                row.end_node_id,
-                row.coords,
-                row.length,
-                row.initial_status,
-                row.diameter,
-                row.roughness,
-                row.minor_loss,
-                row.bulk_reaction_coeff,
-                row.wall_reaction_coeff,
-              );
-            },
-            BULK_CHUNK_SIZES.pipes,
-          );
-
-          bulkInsert(
-            "pumps",
-            [
-              "id",
-              "label",
-              "is_active",
-              "start_node_id",
-              "end_node_id",
-              "coords",
-              "length",
-              "initial_status",
-              "definition_type",
-              "power",
-              "speed",
-              "speed_pattern_id",
-              "efficiency_curve_id",
-              "energy_price",
-              "energy_price_pattern_id",
-              "curve_id",
-              "curve_points",
-            ],
-            payload.pumps,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.start_node_id,
-                row.end_node_id,
-                row.coords,
-                row.length,
-                row.initial_status,
-                row.definition_type,
-                row.power,
-                row.speed,
-                row.speed_pattern_id,
-                row.efficiency_curve_id,
-                row.energy_price,
-                row.energy_price_pattern_id,
-                row.curve_id,
-                row.curve_points,
-              );
-            },
-            BULK_CHUNK_SIZES.pumps,
-          );
-
-          bulkInsert(
-            "valves",
-            [
-              "id",
-              "label",
-              "is_active",
-              "start_node_id",
-              "end_node_id",
-              "coords",
-              "length",
-              "initial_status",
-              "diameter",
-              "minor_loss",
-              "valve_kind",
-              "setting",
-              "curve_id",
-            ],
-            payload.valves,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.is_active,
-                row.start_node_id,
-                row.end_node_id,
-                row.coords,
-                row.length,
-                row.initial_status,
-                row.diameter,
-                row.minor_loss,
-                row.valve_kind,
-                row.setting,
-                row.curve_id,
-              );
-            },
-            BULK_CHUNK_SIZES.valves,
-          );
+          bulkInsertJunctions(payload.junctions);
+          bulkInsertReservoirs(payload.reservoirs);
+          bulkInsertTanks(payload.tanks);
+          bulkInsertPipes(payload.pipes);
+          bulkInsertPumps(payload.pumps);
+          bulkInsertValves(payload.valves);
 
           db.exec("COMMIT");
         } catch (e) {
@@ -1014,48 +913,8 @@ const api = {
           db.exec("DELETE FROM customer_point_demands");
           db.exec("DELETE FROM customer_points");
 
-          bulkInsert(
-            "customer_points",
-            [
-              "id",
-              "label",
-              "coord_x",
-              "coord_y",
-              "pipe_id",
-              "junction_id",
-              "snap_x",
-              "snap_y",
-            ],
-            payload.customerPoints,
-            (row, params) => {
-              params.push(
-                row.id,
-                row.label,
-                row.coord_x,
-                row.coord_y,
-                row.pipe_id,
-                row.junction_id,
-                row.snap_x,
-                row.snap_y,
-              );
-            },
-            BULK_CHUNK_SIZES.customer_points,
-          );
-
-          bulkInsert(
-            "customer_point_demands",
-            ["customer_point_id", "ordinal", "base_demand", "pattern_id"],
-            payload.demands,
-            (row, params) => {
-              params.push(
-                row.customer_point_id,
-                row.ordinal,
-                row.base_demand,
-                row.pattern_id,
-              );
-            },
-            BULK_CHUNK_SIZES.customer_point_demands,
-          );
+          bulkInsertCustomerPoints(payload.customerPoints);
+          bulkInsertCustomerPointDemands(payload.demands);
 
           db.exec("COMMIT");
         } catch (e) {
@@ -1135,20 +994,7 @@ const api = {
         db.exec("BEGIN IMMEDIATE");
         try {
           db.exec("DELETE FROM junction_demands");
-          bulkInsert(
-            "junction_demands",
-            ["junction_id", "ordinal", "base_demand", "pattern_id"],
-            rows,
-            (row, params) => {
-              params.push(
-                row.junction_id,
-                row.ordinal,
-                row.base_demand,
-                row.pattern_id,
-              );
-            },
-            BULK_CHUNK_SIZES.junction_demands,
-          );
+          bulkInsertJunctionDemands(rows);
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
