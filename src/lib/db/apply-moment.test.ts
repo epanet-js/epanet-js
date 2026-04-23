@@ -24,9 +24,7 @@ const setupModel = (): {
 
 describe("buildMomentPayload", () => {
   it("returns empty payload for an empty moment", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload({ note: "noop" }, model);
+    const payload = buildMomentPayload({ note: "noop" });
 
     expect(payload.assetDeleteIds).toEqual([]);
     expect(payload.assetUpserts.junctions).toEqual([]);
@@ -34,7 +32,7 @@ describe("buildMomentPayload", () => {
   });
 
   it("collects putAssets into upserts bucketed by type", () => {
-    const { model, factories } = setupModel();
+    const { factories } = setupModel();
     const junction = factories.assetFactory.createJunction({
       id: 1,
       label: "J1",
@@ -49,15 +47,13 @@ describe("buildMomentPayload", () => {
         [1, 0],
       ],
     });
-    model.assets.set(junction.id, junction);
-    model.assets.set(pipe.id, pipe);
 
     const moment: ModelMoment = {
       note: "add",
       putAssets: [junction, pipe],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.assetUpserts.junctions).toHaveLength(1);
     expect(payload.assetUpserts.junctions[0].id).toBe(1);
@@ -66,8 +62,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("routes patches into assetPatches with only the changed columns", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "edit",
       patchAssetsAttributes: [
@@ -79,7 +73,7 @@ describe("buildMomentPayload", () => {
       ],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.assetUpserts.junctions).toEqual([]);
     expect(payload.assetPatches.junctions).toHaveLength(1);
@@ -90,8 +84,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("translates patch property names to snake_case columns and coerces bools", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "edit",
       patchAssetsAttributes: [
@@ -103,7 +95,7 @@ describe("buildMomentPayload", () => {
       ],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.assetPatches.pipes).toHaveLength(1);
     expect(payload.assetPatches.pipes[0]).toEqual({
@@ -114,21 +106,17 @@ describe("buildMomentPayload", () => {
   });
 
   it("forwards deleteAssets ids", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "del",
       deleteAssets: [3, 7, 11],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.assetDeleteIds).toEqual([3, 7, 11]);
   });
 
   it("forwards patches without consulting the post-apply model", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "patch on missing asset",
       patchAssetsAttributes: [
@@ -140,7 +128,7 @@ describe("buildMomentPayload", () => {
       ],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.assetUpserts.junctions).toEqual([]);
     expect(payload.assetPatches.junctions).toHaveLength(1);
@@ -151,7 +139,7 @@ describe("buildMomentPayload", () => {
   });
 
   it("serializes putCustomerPoints into customer point upserts", () => {
-    const { model, factories } = setupModel();
+    const { factories } = setupModel();
     const disconnected = factories.customerPointFactory.create([1, 2], "CP1");
     const connected = factories.customerPointFactory.create([3, 4], "CP2");
     connected.connect({
@@ -165,7 +153,7 @@ describe("buildMomentPayload", () => {
       putCustomerPoints: [disconnected, connected],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.customerPointUpserts).toHaveLength(2);
     expect(payload.customerPointUpserts[0]).toEqual({
@@ -191,20 +179,18 @@ describe("buildMomentPayload", () => {
   });
 
   it("forwards deleteCustomerPoints ids", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "delete cps",
       deleteCustomerPoints: [4, 8],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.customerPointDeleteIds).toEqual([4, 8]);
   });
 
   it("skips customer point upserts for ids that were deleted in the same moment", () => {
-    const { model, factories } = setupModel();
+    const { factories } = setupModel();
     const cp = factories.customerPointFactory.create([0, 0], "CP1");
 
     const moment: ModelMoment = {
@@ -213,15 +199,13 @@ describe("buildMomentPayload", () => {
       deleteCustomerPoints: [cp.id],
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.customerPointDeleteIds).toEqual([cp.id]);
     expect(payload.customerPointUpserts).toEqual([]);
   });
 
   it("serializes customer point demand assignments with ordinals", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "assign demands",
       putDemands: {
@@ -237,7 +221,7 @@ describe("buildMomentPayload", () => {
       },
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.customerPointDemandUpdates).toHaveLength(1);
     expect(payload.customerPointDemandUpdates[0]).toEqual({
@@ -260,7 +244,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("serializes junction demand assignments with ordinals", () => {
-    const { model } = setupModel();
     const IDS = { J1: 3 } as const;
 
     const moment: ModelMoment = {
@@ -278,7 +261,7 @@ describe("buildMomentPayload", () => {
       },
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.junctionDemandUpdates).toHaveLength(1);
     expect(payload.junctionDemandUpdates[0]).toEqual({
@@ -302,7 +285,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("emits an empty-demands junction update to clear a junction's demands", () => {
-    const { model } = setupModel();
     const IDS = { J1: 3 } as const;
 
     const moment: ModelMoment = {
@@ -312,7 +294,7 @@ describe("buildMomentPayload", () => {
       },
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.junctionDemandUpdates).toEqual([
       { junctionId: IDS.J1, demands: [] },
@@ -320,7 +302,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("serializes putPatterns into a full-replacement payload", () => {
-    const { model } = setupModel();
     const IDS = { P1: 1, P2: 2 } as const;
 
     const moment: ModelMoment = {
@@ -346,7 +327,7 @@ describe("buildMomentPayload", () => {
       ]),
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.patternsReplacement).toEqual([
       {
@@ -365,26 +346,21 @@ describe("buildMomentPayload", () => {
   });
 
   it("sets patternsReplacement to null when moment has no putPatterns", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload({ note: "noop" }, model);
+    const payload = buildMomentPayload({ note: "noop" });
 
     expect(payload.patternsReplacement).toBeNull();
   });
 
   it("treats an empty putPatterns map as a full-clear", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload(
-      { note: "clear patterns", putPatterns: new Map() },
-      model,
-    );
+    const payload = buildMomentPayload({
+      note: "clear patterns",
+      putPatterns: new Map(),
+    });
 
     expect(payload.patternsReplacement).toEqual([]);
   });
 
   it("serializes putCurves into a full-replacement payload", () => {
-    const { model } = setupModel();
     const IDS = { C1: 1, C2: 2 } as const;
 
     const moment: ModelMoment = {
@@ -413,7 +389,7 @@ describe("buildMomentPayload", () => {
       ]),
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.curvesReplacement).toEqual([
       {
@@ -435,26 +411,21 @@ describe("buildMomentPayload", () => {
   });
 
   it("sets curvesReplacement to null when moment has no putCurves", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload({ note: "noop" }, model);
+    const payload = buildMomentPayload({ note: "noop" });
 
     expect(payload.curvesReplacement).toBeNull();
   });
 
   it("treats an empty putCurves map as a full-clear", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload(
-      { note: "clear curves", putCurves: new Map() },
-      model,
-    );
+    const payload = buildMomentPayload({
+      note: "clear curves",
+      putCurves: new Map(),
+    });
 
     expect(payload.curvesReplacement).toEqual([]);
   });
 
   it("serializes putControls into a JSON blob", () => {
-    const { model } = setupModel();
     const IDS = { A1: 1, A2: 2 } as const;
 
     const putControls = {
@@ -476,33 +447,23 @@ describe("buildMomentPayload", () => {
       ],
     };
 
-    const payload = buildMomentPayload(
-      { note: "controls", putControls },
-      model,
-    );
+    const payload = buildMomentPayload({ note: "controls", putControls });
 
     expect(payload.controlsReplacement).not.toBeNull();
     expect(JSON.parse(payload.controlsReplacement!)).toEqual(putControls);
   });
 
   it("sets controlsReplacement to null when moment has no putControls", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload({ note: "noop" }, model);
+    const payload = buildMomentPayload({ note: "noop" });
 
     expect(payload.controlsReplacement).toBeNull();
   });
 
   it("serializes empty controls as an empty-arrays blob", () => {
-    const { model } = setupModel();
-
-    const payload = buildMomentPayload(
-      {
-        note: "clear controls",
-        putControls: { simple: [], rules: [] },
-      },
-      model,
-    );
+    const payload = buildMomentPayload({
+      note: "clear controls",
+      putControls: { simple: [], rules: [] },
+    });
 
     expect(JSON.parse(payload.controlsReplacement!)).toEqual({
       simple: [],
@@ -511,8 +472,6 @@ describe("buildMomentPayload", () => {
   });
 
   it("skips demand assignments for customer points being deleted", () => {
-    const { model } = setupModel();
-
     const moment: ModelMoment = {
       note: "clear demands on deletion",
       deleteCustomerPoints: [7],
@@ -521,7 +480,7 @@ describe("buildMomentPayload", () => {
       },
     };
 
-    const payload = buildMomentPayload(moment, model);
+    const payload = buildMomentPayload(moment);
 
     expect(payload.customerPointDeleteIds).toEqual([7]);
     expect(payload.customerPointDemandUpdates).toEqual([]);

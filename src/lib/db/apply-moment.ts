@@ -1,4 +1,3 @@
-import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { Asset } from "src/hydraulic-model/asset-types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
@@ -51,19 +50,12 @@ export type ApplyMomentPayload = {
   controlsReplacement: string | null;
 };
 
-export const buildMomentPayload = (
-  moment: ModelMoment,
-  postApplyModel: HydraulicModel,
-): ApplyMomentPayload => {
+export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
-    const seen = new Set<AssetId>();
-    for (const asset of moment.putAssets) {
-      if (seen.has(asset.id)) continue;
-      seen.add(asset.id);
-      const current = postApplyModel.assets.get(asset.id);
-      if (current) upsertAssets.push(current);
-    }
+    const byId = new Map<AssetId, Asset>();
+    for (const asset of moment.putAssets) byId.set(asset.id, asset);
+    upsertAssets.push(...byId.values());
   }
 
   const assetPatches = moment.patchAssetsAttributes
@@ -128,13 +120,10 @@ export const buildMomentPayload = (
   };
 };
 
-export const applyMomentToDb = async (
-  moment: ModelMoment,
-  postApplyModel: HydraulicModel,
-): Promise<void> => {
+export const applyMomentToDb = async (moment: ModelMoment): Promise<void> => {
   await timed("applyMomentToDb", async () => {
     const payload = await timed("applyMomentToDb.buildPayload", () =>
-      buildMomentPayload(moment, postApplyModel),
+      buildMomentPayload(moment),
     );
     if (
       payload.assetDeleteIds.length === 0 &&

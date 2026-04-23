@@ -35,8 +35,7 @@ export const useUndoableTransactions = () => {
         );
 
         if (isOurFileOn) {
-          const updatedModel = get(stagingModelDerivedAtom);
-          void applyMomentToDb(action.moment, updatedModel).catch(captureError);
+          void applyMomentToDb(action.moment).catch(captureError);
         }
 
         isUndo ? momentLog.undo() : momentLog.redo();

@@ -38,8 +38,7 @@ export const useModelTransaction = () => {
         );
 
         if (isOurFileOn) {
-          const updatedModel = get(stagingModelDerivedAtom);
-          void applyMomentToDb(moment, updatedModel).catch(captureError);
+          void applyMomentToDb(moment).catch(captureError);
         }
 
         momentLog.append(moment, reverseMoment, newStateId);
