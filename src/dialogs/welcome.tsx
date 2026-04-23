@@ -207,74 +207,14 @@ export const WelcomeDialog = () => {
 const FoundingPartners = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const isFoundingAffinityEnabled = useFeatureFlag("FLAG_AFFINITY_LOGO");
-  const isFoundingAtkinsEnabled = useFeatureFlag("FLAG_ATKINS_LOGO");
-
   return (
     <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center shrink-0">
       <h3 className="text-gray-600 font-bold">
         {translate("foundersPartnerTitle")}
       </h3>
-      {isFoundingAffinityEnabled || isFoundingAtkinsEnabled ? (
-        <div className="flex gap-4 justify-center">
-          <a
-            className={`${isFoundingAtkinsEnabled ? "flex-auto" : ""}`}
-            href="https://optimatics.com/"
-            target="_blank"
-            onClick={() => {
-              userTracking.capture({
-                name: "foundersPartner.visited",
-                link: "optimatics",
-              });
-            }}
-          >
-            <img
-              src={optimaticsLogoUrl.src}
-              className="block m-auto h-16"
-              height="64"
-            />
-          </a>
-          {isFoundingAffinityEnabled && (
-            <a
-              href="https://www.affinitywater.co.uk/"
-              target="_blank"
-              className={`pt-4 ${isFoundingAtkinsEnabled ? "flex-auto" : ""}`}
-              onClick={() => {
-                userTracking.capture({
-                  name: "foundersPartner.visited",
-                  link: "affinityWater",
-                });
-              }}
-            >
-              <img
-                src={affinityWaterLogoUrl.src}
-                className="block m-auto h-4"
-                height="16"
-              />
-            </a>
-          )}
-          {isFoundingAtkinsEnabled && (
-            <a
-              href="https://www.atkinsrealis.com/"
-              target="_blank"
-              className="pt-3 flex-auto"
-              onClick={() => {
-                userTracking.capture({
-                  name: "foundersPartner.visited",
-                  link: "atkinsRealis",
-                });
-              }}
-            >
-              <img
-                src={atkinsRealisLogoUrl.src}
-                className="block m-auto h-4"
-                height="16"
-              />
-            </a>
-          )}
-        </div>
-      ) : (
+      <div className="flex gap-4 justify-center">
         <a
+          className="flex-auto"
           href="https://optimatics.com/"
           target="_blank"
           onClick={() => {
@@ -290,7 +230,41 @@ const FoundingPartners = () => {
             height="64"
           />
         </a>
-      )}
+        <a
+          href="https://www.affinitywater.co.uk/"
+          target="_blank"
+          className="pt-4 flex-auto"
+          onClick={() => {
+            userTracking.capture({
+              name: "foundersPartner.visited",
+              link: "affinityWater",
+            });
+          }}
+        >
+          <img
+            src={affinityWaterLogoUrl.src}
+            className="block m-auto h-4"
+            height="16"
+          />
+        </a>
+        <a
+          href="https://www.atkinsrealis.com/"
+          target="_blank"
+          className="pt-3 flex-auto"
+          onClick={() => {
+            userTracking.capture({
+              name: "foundersPartner.visited",
+              link: "atkinsRealis",
+            });
+          }}
+        >
+          <img
+            src={atkinsRealisLogoUrl.src}
+            className="block m-auto h-4"
+            height="16"
+          />
+        </a>
+      </div>
       <p className="text-gray-600">
         {translate("foundersPartnerDescription")}{" "}
         <a
