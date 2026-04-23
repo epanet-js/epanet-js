@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import { isPlayingAtom } from "src/state/simulation-playback";
 import { layerConfigAtom } from "src/state/map";
 import * as E from "src/components/elements";
 import { Button } from "src/components/elements";
@@ -73,6 +74,7 @@ import {
   DeleteIcon,
   WarningIcon,
 } from "src/icons";
+import { TextField } from "src/components/form/text-field";
 
 type Mode =
   | "custom"
@@ -166,9 +168,11 @@ function LayerFormHeader({
 function MapboxLayer({
   layer,
   onDone,
+  readonly = false,
 }: {
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
+  readonly?: boolean;
 }) {
   const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
@@ -229,9 +233,11 @@ function MapboxLayer({
       schema={zLayerConfig}
       initialValues={initialValues}
       submitText={
-        isEditing
-          ? translate("customLayers.updateLayer")
-          : translate("customLayers.addLayer")
+        readonly
+          ? undefined
+          : isEditing
+            ? translate("customLayers.updateLayer")
+            : translate("customLayers.addLayer")
       }
       fullWidthSubmit
       onSubmit={handleSubmit}
@@ -255,6 +261,7 @@ function MapboxLayer({
         required
         autoComplete="off"
         placeholder="mapbox://"
+        readOnly={readonly}
       />
       <LabeledTextField
         name="token"
@@ -262,6 +269,7 @@ function MapboxLayer({
         label={translate("accessToken")}
         autoComplete="off"
         placeholder="pk.…"
+        readOnly={readonly}
       />
     </Form>
   );
@@ -270,9 +278,11 @@ function MapboxLayer({
 function TileJSONLayer({
   layer,
   onDone,
+  readonly = false,
 }: {
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
+  readonly?: boolean;
 }) {
   const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
@@ -296,9 +306,11 @@ function TileJSONLayer({
       schema={zLayerConfig}
       initialValues={initialValues}
       submitText={
-        isEditing
-          ? translate("customLayers.updateLayer")
-          : translate("customLayers.addLayer")
+        readonly
+          ? undefined
+          : isEditing
+            ? translate("customLayers.updateLayer")
+            : translate("customLayers.addLayer")
       }
       fullWidthSubmit
       onSubmit={async (values) => {
@@ -352,6 +364,7 @@ function TileJSONLayer({
         required
         autoComplete="off"
         placeholder=""
+        readOnly={readonly}
       />
       <LabeledTextField
         name="url"
@@ -359,6 +372,7 @@ function TileJSONLayer({
         label="URL"
         autoComplete="off"
         placeholder="https://…"
+        readOnly={readonly}
       />
     </Form>
   );
@@ -367,9 +381,11 @@ function TileJSONLayer({
 function XYZLayer({
   layer,
   onDone,
+  readonly = false,
 }: {
   layer?: z.infer<typeof zLayerConfig>;
   onDone?: () => void;
+  readonly?: boolean;
 }) {
   const translate = useTranslate();
   const setMode = useSetAtom(layerModeAtom);
@@ -392,9 +408,11 @@ function XYZLayer({
       schema={zLayerConfig}
       initialValues={initialValues}
       submitText={
-        isEditing
-          ? translate("customLayers.updateLayer")
-          : translate("customLayers.addLayer")
+        readonly
+          ? undefined
+          : isEditing
+            ? translate("customLayers.updateLayer")
+            : translate("customLayers.addLayer")
       }
       fullWidthSubmit
       onSubmit={(values) => {
@@ -440,6 +458,7 @@ function XYZLayer({
         autoComplete="off"
         required
         placeholder=""
+        readOnly={readonly}
       />
       <LabeledTextField
         name="url"
@@ -448,10 +467,11 @@ function XYZLayer({
         required
         type="url"
         placeholder="https://…"
+        readOnly={readonly}
       />
       <TextWell>{translate("customLayers.xyzURLContain")}</TextWell>
       <label className="flex items-center gap-x-2 text-sm py-2">
-        <E.FieldCheckbox name="tms" type="checkbox" /> TMS
+        <E.FieldCheckbox name="tms" type="checkbox" disabled={readonly} /> TMS
       </label>
     </Form>
   );
@@ -790,7 +810,13 @@ const BaseMapOptions = ({ onDone }: { onDone?: () => void }) => {
   );
 };
 
-const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const OpacitySetting = ({
+  layerConfig,
+  readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) => {
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
 
@@ -821,11 +847,14 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
   return (
     <div className="flex items-center gap-x-1">
-      <input
-        type="number"
-        min="0"
-        step="1"
-        className="text-xs
+      {readonly ? (
+        <div className="text-xs px-1 py-0.5 w-12 opacity-50">{value}</div>
+      ) : (
+        <input
+          type="number"
+          min="0"
+          step="1"
+          className="text-xs
           px-1 py-0.5
           border-gray-300
           rounded-sm
@@ -833,25 +862,33 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           dark:bg-transparent
         opacity-50 hover:opacity-100 focus:opacity-100
         w-12"
-        max="100"
-        value={value}
-        onChange={(e) => {
-          if (e.target.valueAsNumber > 100) return;
+          max="100"
+          disabled={readonly}
+          value={value}
+          onChange={(e) => {
+            if (e.target.valueAsNumber > 100) return;
 
-          setValue(e.target.valueAsNumber);
+            setValue(e.target.valueAsNumber);
 
-          const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
-          if (isNaN(opacity)) return;
+            const opacity = clamp(e.target.valueAsNumber / 100, 0, 1);
+            if (isNaN(opacity)) return;
 
-          debouncedSubmit(opacity);
-        }}
-      />
+            debouncedSubmit(opacity);
+          }}
+        />
+      )}
       <div className="text-gray-500 text-xs">%</div>
     </div>
   );
 };
 
-const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const VisibilityToggle = ({
+  layerConfig,
+  disabled,
+}: {
+  layerConfig: ILayerConfig;
+  disabled?: boolean;
+}) => {
   const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
@@ -860,6 +897,7 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     <Button
       variant="quiet/mode"
       className="h-8"
+      disabled={disabled}
       aria-label={translate("customLayers.toggleVisibility")}
       onClick={() => {
         const isVisible = !layerConfig.visibility;
@@ -883,7 +921,13 @@ const VisibilityToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 };
 
-const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const LabelsToggle = ({
+  layerConfig,
+  disabled,
+}: {
+  layerConfig: ILayerConfig;
+  disabled?: boolean;
+}) => {
   const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
   const userTracking = useUserTracking();
@@ -892,6 +936,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     <Button
       variant="quiet/mode"
       className="h-8"
+      disabled={disabled}
       aria-label={translate("customLayers.toggleLabelsVisibility")}
       onClick={() => {
         const isVisible = !layerConfig.labelVisibility;
@@ -916,7 +961,13 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 };
 
-const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const BaseMapItem = ({
+  layerConfig,
+  readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) => {
   const translate = useTranslate();
   const isRaster = layerConfig.name.includes("Satellite");
   const { applyChanges } = useLayerConfigState();
@@ -928,51 +979,55 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const namePopover = (
     <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
       <span className="select-none truncate text-sm w-auto">
-        <Selector
-          ariaLabel="basemaps"
-          options={Object.entries(basemaps).map(([, mapboxLayer]) => ({
-            value: mapboxLayer.name,
-            label: mapboxLayer.name,
-          }))}
-          selected={layerConfig.name}
-          onChange={(name) => {
-            const newMapboxLayer = Object.values(basemaps).find(
-              (l) => l.name === name,
-            );
-            if (!newMapboxLayer) return;
+        {readonly ? (
+          layerConfig.name
+        ) : (
+          <Selector
+            ariaLabel="basemaps"
+            options={Object.entries(basemaps).map(([, mapboxLayer]) => ({
+              value: mapboxLayer.name,
+              label: mapboxLayer.name,
+            }))}
+            selected={layerConfig.name}
+            onChange={(name) => {
+              const newMapboxLayer = Object.values(basemaps).find(
+                (l) => l.name === name,
+              );
+              if (!newMapboxLayer) return;
 
-            const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-              maybeDeleteOldMapboxLayer(items);
-            userTracking.capture({
-              name: "baseMap.changed",
-              newBasemap: name,
-              oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
-              source: "dropdown",
-            });
-            applyChanges({
-              deleteLayerConfigs,
-              putLayerConfigs: [
-                {
-                  ...newMapboxLayer,
-                  visibility: true,
-                  tms: false,
-                  opacity: newMapboxLayer.opacity,
-                  at: oldAt || nextAt,
-                  id: newFeatureId(),
-                  labelVisibility: layerConfig
-                    ? layerConfig.labelVisibility
-                    : true,
-                },
-              ],
-            });
-          }}
-          styleOptions={{
-            border: false,
-            paddingX: 0,
-            paddingY: 0,
-            textSize: "text-sm",
-          }}
-        />
+              const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
+                maybeDeleteOldMapboxLayer(items);
+              userTracking.capture({
+                name: "baseMap.changed",
+                newBasemap: name,
+                oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
+                source: "dropdown",
+              });
+              applyChanges({
+                deleteLayerConfigs,
+                putLayerConfigs: [
+                  {
+                    ...newMapboxLayer,
+                    visibility: true,
+                    tms: false,
+                    opacity: newMapboxLayer.opacity,
+                    at: oldAt || nextAt,
+                    id: newFeatureId(),
+                    labelVisibility: layerConfig
+                      ? layerConfig.labelVisibility
+                      : true,
+                  },
+                ],
+              });
+            }}
+            styleOptions={{
+              border: false,
+              paddingX: 0,
+              paddingY: 0,
+              textSize: "text-sm",
+            }}
+          />
+        )}
       </span>
     </div>
   );
@@ -982,14 +1037,22 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       <div className="block flex-auto">
         <div className="w-auto max-w-fit">{namePopover}</div>
       </div>
-      {isRaster && <OpacitySetting layerConfig={layerConfig} />}
-      <VisibilityToggle layerConfig={layerConfig} />
-      <LabelsToggle layerConfig={layerConfig} />
+      {isRaster && (
+        <OpacitySetting layerConfig={layerConfig} readonly={readonly} />
+      )}
+      <VisibilityToggle layerConfig={layerConfig} disabled={readonly} />
+      <LabelsToggle layerConfig={layerConfig} disabled={readonly} />
     </LayerConfigItem>
   );
 };
 
-const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const MapboxItem = ({
+  layerConfig,
+  readonly: readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) => {
   const [isEditing, setEditing] = useState<boolean>(false);
   const isRaster = layerConfig.name.includes("Satellite");
 
@@ -1002,7 +1065,11 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       </P.Trigger>
       <E.StyledPopoverContent>
         <E.StyledPopoverArrow />
-        <MapboxLayer layer={layerConfig} onDone={() => setEditing(false)} />
+        <MapboxLayer
+          layer={layerConfig}
+          onDone={() => setEditing(false)}
+          readonly={readonly}
+        />
       </E.StyledPopoverContent>
     </P.Root>
   );
@@ -1014,10 +1081,12 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           {layerConfig.name}
         </span>
         {editPopover}
-        {isRaster && <OpacitySetting layerConfig={layerConfig} />}
-        <VisibilityToggle layerConfig={layerConfig} />
-        <LabelsToggle layerConfig={layerConfig} />
-        <DeleteLayerButton layerConfig={layerConfig} />
+        {isRaster && (
+          <OpacitySetting layerConfig={layerConfig} readonly={readonly} />
+        )}
+        <VisibilityToggle layerConfig={layerConfig} disabled={readonly} />
+        <LabelsToggle layerConfig={layerConfig} disabled={readonly} />
+        {!readonly && <DeleteLayerButton layerConfig={layerConfig} />}
       </div>
       <div className="font-semibold text-xs text-gray-500">MAPBOX</div>
     </div>
@@ -1046,7 +1115,13 @@ const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   );
 };
 
-const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const XYZItem = ({
+  layerConfig,
+  readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) => {
   const [isEditing, setEditing] = useState<boolean>(false);
 
   const editPopover = (
@@ -1058,7 +1133,11 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       </P.Trigger>
       <E.StyledPopoverContent>
         <E.StyledPopoverArrow />
-        <XYZLayer layer={layerConfig} onDone={() => setEditing(false)} />
+        <XYZLayer
+          layer={layerConfig}
+          onDone={() => setEditing(false)}
+          readonly={readonly}
+        />
       </E.StyledPopoverContent>
     </P.Root>
   );
@@ -1070,14 +1149,20 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       </span>
 
       {editPopover}
-      <OpacitySetting layerConfig={layerConfig} />
-      <VisibilityToggle layerConfig={layerConfig} />
-      <DeleteLayerButton layerConfig={layerConfig} />
+      <OpacitySetting layerConfig={layerConfig} readonly={readonly} />
+      <VisibilityToggle layerConfig={layerConfig} disabled={readonly} />
+      {!readonly && <DeleteLayerButton layerConfig={layerConfig} />}
     </LayerConfigItem>
   );
 };
 
-const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+const TileJSONItem = ({
+  layerConfig,
+  readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) => {
   const [isEditing, setEditing] = useState<boolean>(false);
   const url = layerConfig.type === "TILEJSON" ? layerConfig.url : "";
   const { isError } = useQuery({
@@ -1096,7 +1181,11 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
       </P.Trigger>
       <E.StyledPopoverContent>
         <E.StyledPopoverArrow />
-        <TileJSONLayer layer={layerConfig} onDone={() => setEditing(false)} />
+        <TileJSONLayer
+          layer={layerConfig}
+          onDone={() => setEditing(false)}
+          readonly={readonly}
+        />
       </E.StyledPopoverContent>
     </P.Root>
   );
@@ -1115,9 +1204,9 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         </T.Root>
       ) : null}
       {editPopover}
-      <OpacitySetting layerConfig={layerConfig} />
-      <VisibilityToggle layerConfig={layerConfig} />
-      <DeleteLayerButton layerConfig={layerConfig} />
+      <OpacitySetting layerConfig={layerConfig} readonly={readonly} />
+      <VisibilityToggle layerConfig={layerConfig} disabled={readonly} />
+      {!readonly && <DeleteLayerButton layerConfig={layerConfig} />}
     </LayerConfigItem>
   );
 };
@@ -1139,8 +1228,10 @@ const LayerConfigItem = ({
 
 const VectorFileItem = ({
   layerConfig,
+  readonly,
 }: {
   layerConfig: Extract<ILayerConfig, { type: "GEOJSON" }>;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const { applyChanges } = useLayerConfigState();
@@ -1215,17 +1306,21 @@ const VectorFileItem = ({
             layout="fixed-label"
             labelSize="md"
           >
-            <input
-              type="text"
-              className={E.inputClass({ _size: "sm" })}
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onBlur={handleNameCommit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleNameCommit();
-              }}
-              autoComplete="off"
-            />
+            {readonly ? (
+              editName
+            ) : (
+              <input
+                type="text"
+                className={E.inputClass({ _size: "sm" })}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={handleNameCommit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleNameCommit();
+                }}
+                autoComplete="off"
+              />
+            )}
           </InlineField>
           {layerConfig.type === "GEOJSON" && (
             <>
@@ -1244,6 +1339,7 @@ const VectorFileItem = ({
                         ],
                       })
                     }
+                    readonly={readonly}
                   />
                 </div>
               </InlineField>
@@ -1252,20 +1348,26 @@ const VectorFileItem = ({
                 layout="fixed-label"
                 labelSize="md"
               >
-                <NumericField
-                  label={translate("customLayers.lineWidth")}
-                  displayValue={localizeDecimal(layerConfig.lineWidth)}
-                  positiveOnly={true}
-                  isNullable={false}
-                  styleOptions={{ padding: "sm" }}
-                  onChangeValue={(v) =>
-                    applyChanges({
-                      putLayerConfigs: [
-                        { ...layerConfig, lineWidth: v } as ILayerConfig,
-                      ],
-                    })
-                  }
-                />
+                {readonly ? (
+                  <TextField padding="sm">
+                    {localizeDecimal(layerConfig.lineWidth)}
+                  </TextField>
+                ) : (
+                  <NumericField
+                    label={translate("customLayers.lineWidth")}
+                    displayValue={localizeDecimal(layerConfig.lineWidth)}
+                    positiveOnly={true}
+                    isNullable={false}
+                    styleOptions={{ padding: "sm" }}
+                    onChangeValue={(v) =>
+                      applyChanges({
+                        putLayerConfigs: [
+                          { ...layerConfig, lineWidth: v } as ILayerConfig,
+                        ],
+                      })
+                    }
+                  />
+                )}
               </InlineField>
             </>
           )}
@@ -1274,23 +1376,29 @@ const VectorFileItem = ({
             layout="fixed-label"
             labelSize="md"
           >
-            <NumericField
-              label={translate("customLayers.opacity")}
-              displayValue={String(Math.round(layerConfig.opacity * 100))}
-              positiveOnly={true}
-              isNullable={false}
-              styleOptions={{ padding: "sm" }}
-              onChangeValue={(v) =>
-                applyChanges({
-                  putLayerConfigs: [
-                    {
-                      ...layerConfig,
-                      opacity: clamp(Math.round(v) / 100, 0, 1),
-                    } as ILayerConfig,
-                  ],
-                })
-              }
-            />
+            {readonly ? (
+              <TextField padding="sm">
+                {String(Math.round(layerConfig.opacity * 100))}
+              </TextField>
+            ) : (
+              <NumericField
+                label={translate("customLayers.opacity")}
+                displayValue={String(Math.round(layerConfig.opacity * 100))}
+                positiveOnly={true}
+                isNullable={false}
+                styleOptions={{ padding: "sm" }}
+                onChangeValue={(v) =>
+                  applyChanges({
+                    putLayerConfigs: [
+                      {
+                        ...layerConfig,
+                        opacity: clamp(Math.round(v) / 100, 0, 1),
+                      } as ILayerConfig,
+                    ],
+                  })
+                }
+              />
+            )}
           </InlineField>
           {availableProperties.length > 0 && (
             <InlineField
@@ -1298,15 +1406,21 @@ const VectorFileItem = ({
               layout="fixed-label"
               labelSize="md"
             >
-              <SelectorWithSearch
-                placeholder={translate("none")}
-                options={availableProperties.map((p) => ({
-                  value: p,
-                  label: p,
-                }))}
-                selected={layerConfig.labelProperty ?? null}
-                onChange={handleLabelPropertyChange}
-              />
+              {readonly ? (
+                <TextField padding="sm">
+                  {layerConfig.labelProperty ?? translate("none")}{" "}
+                </TextField>
+              ) : (
+                <SelectorWithSearch
+                  placeholder={translate("none")}
+                  options={availableProperties.map((p) => ({
+                    value: p,
+                    label: p,
+                  }))}
+                  selected={layerConfig.labelProperty ?? null}
+                  onChange={handleLabelPropertyChange}
+                />
+              )}
             </InlineField>
           )}
         </div>
@@ -1320,20 +1434,28 @@ const VectorFileItem = ({
         {layerConfig.name}
       </span>
       {settingsPopover}
-      <VisibilityToggle layerConfig={layerConfig} />
-      <Button
-        variant="quiet/mode"
-        className="h-8 text-red-500"
-        aria-label={translate("delete")}
-        onClick={handleDelete}
-      >
-        <DeleteIcon />
-      </Button>
+      <VisibilityToggle layerConfig={layerConfig} disabled={readonly} />
+      {!readonly && (
+        <Button
+          variant="quiet/mode"
+          className="h-8 text-red-500"
+          aria-label={translate("delete")}
+          onClick={handleDelete}
+        >
+          <DeleteIcon />
+        </Button>
+      )}
     </LayerConfigItem>
   );
 };
 
-function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
+function SortableLayerConfig({
+  layerConfig,
+  readonly: readonly,
+}: {
+  layerConfig: ILayerConfig;
+  readonly: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: layerConfig.id });
 
@@ -1349,25 +1471,33 @@ function SortableLayerConfig({ layerConfig }: { layerConfig: ILayerConfig }) {
       className="group flex gap-x-2 items-start -ml-1 -mr-1"
       key={layerConfig.id}
     >
-      <div
-        className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
-        {...attributes}
-        {...listeners}
-      >
-        <Draggable />
-      </div>
+      {readonly ? (
+        <div className="opacity-20 flex items-center h-8">
+          <Draggable />
+        </div>
+      ) : (
+        <div
+          className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
+          {...attributes}
+          {...listeners}
+        >
+          <Draggable />
+        </div>
+      )}
       {layerConfig.type === "MAPBOX" && layerConfig.isBasemap && (
-        <BaseMapItem layerConfig={layerConfig} />
+        <BaseMapItem layerConfig={layerConfig} readonly={readonly} />
       )}
       {layerConfig.type === "MAPBOX" && !layerConfig.isBasemap && (
-        <MapboxItem layerConfig={layerConfig} />
+        <MapboxItem layerConfig={layerConfig} readonly={readonly} />
       )}
-      {layerConfig.type === "XYZ" && <XYZItem layerConfig={layerConfig} />}
+      {layerConfig.type === "XYZ" && (
+        <XYZItem layerConfig={layerConfig} readonly={readonly} />
+      )}
       {layerConfig.type === "TILEJSON" && (
-        <TileJSONItem layerConfig={layerConfig} />
+        <TileJSONItem layerConfig={layerConfig} readonly={readonly} />
       )}
       {layerConfig.type === "GEOJSON" && (
-        <VectorFileItem layerConfig={layerConfig} />
+        <VectorFileItem layerConfig={layerConfig} readonly={readonly} />
       )}
     </div>
   );
@@ -1380,11 +1510,13 @@ function SortableGroup({
   sensors,
   applyChanges,
   allItems,
+  readonly,
 }: {
   items: ILayerConfig[];
   sensors: ReturnType<typeof useSensors>;
   applyChanges: ReturnType<typeof useLayerConfigState>["applyChanges"];
   allItems: ILayerConfig[];
+  readonly: boolean;
 }) {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -1419,6 +1551,7 @@ function SortableGroup({
             <SortableLayerConfig
               layerConfig={layerConfig}
               key={layerConfig.id}
+              readonly={readonly}
             />
           ))}
         </div>
@@ -1430,6 +1563,7 @@ function SortableGroup({
 export function LayersEditor() {
   const layerConfigs = useAtomValue(layerConfigAtom);
   const { applyChanges } = useLayerConfigState();
+  const isPlaying = useAtomValue(isPlayingAtom);
   const items = [...layerConfigs.values()];
 
   const sensors = useSensors(
@@ -1443,20 +1577,23 @@ export function LayersEditor() {
   const otherItems = items.filter((item) => item.type !== "GEOJSON");
 
   return (
-    <div className="flex flex-col gap-y-1">
+    <>
       <SortableGroup
         items={gisItems}
         sensors={sensors}
         applyChanges={applyChanges}
         allItems={items}
+        readonly={isPlaying}
       />
       <SortableGroup
         items={otherItems}
         sensors={sensors}
         applyChanges={applyChanges}
         allItems={items}
+        readonly={isPlaying}
       />
-    </div>
+      {!isPlaying && <AddLayer />}
+    </>
   );
 }
 

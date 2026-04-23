@@ -26,9 +26,11 @@ export function ColorPopover({
   onBlur,
   _size = "sm",
   ariaLabel = "",
+  readonly = false,
 }: React.ComponentProps<typeof HexColorPicker> & {
   _size?: E.B3Size;
   ariaLabel?: string;
+  readonly?: boolean;
 }) {
   const latestColor = useRef(color as string);
 
@@ -47,11 +49,12 @@ export function ColorPopover({
 
   return (
     <P.Root>
-      <P.Trigger asChild>
+      <P.Trigger asChild disabled={readonly}>
         <button
           className="h-full w-full rounded-sm"
           aria-label={ariaLabel}
           data-color={color}
+          disabled={readonly}
           style={{ backgroundColor: color as string }}
         ></button>
       </P.Trigger>

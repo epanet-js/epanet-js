@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { isPlayingAtom } from "src/state/simulation-playback";
 import * as Popover from "@radix-ui/react-popover";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -23,7 +24,7 @@ import {
   StyledPopoverContent,
 } from "src/components/elements";
 import { RangeMode } from "src/map/symbology/range-color-rule";
-import { AddLayer, LayersEditor } from "./layers-editor";
+import { LayersEditor } from "./layers-editor";
 import {
   CollapsibleSection,
   InlineField,
@@ -41,6 +42,7 @@ import { USelection } from "src/selection/selection";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
+import { TextField } from "src/components/form/text-field";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -82,6 +84,7 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
+  const isPlaying = useAtomValue(isPlayingAtom);
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -94,7 +97,7 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
-        <CustomerPointsSection />
+        <CustomerPointsSection readonly={isPlaying} />
         {!isGridOn && isDtmElevationsOn && <ElevationsEditor />}
         {!isGridOn && (
           <MapStylingSectionWrapper
@@ -102,7 +105,6 @@ export const MapStylingEditor = () => {
             section="layers"
           >
             <LayersEditor />
-            <AddLayer />
           </MapStylingSectionWrapper>
         )}
         <ProjectionSection />
@@ -132,6 +134,7 @@ const SymbologyEditor = ({
   properties: readonly SupportedProperty[];
 }) => {
   const translate = useTranslate();
+  const readonly = useAtomValue(isPlayingAtom);
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationDerivedAtom);
   const {
@@ -267,16 +270,27 @@ const SymbologyEditor = ({
         labelSize="sm"
         layout="fixed-label"
       >
-        <Selector
-          ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-          options={colorByOptions}
-          selected={
-            (symbology.colorRule
-              ? symbology.colorRule.property
-              : "none") as SelectOption
-          }
-          onChange={changeColorBy}
-        />
+        {readonly ? (
+          <TextField>
+            {symbology.colorRule
+              ? (colorByOptions.find(
+                  (option) => option.value === symbology.colorRule!.property,
+                )?.label ?? translate("none"))
+              : translate("none")}
+          </TextField>
+        ) : (
+          <Selector
+            ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
+            options={colorByOptions}
+            selected={
+              (symbology.colorRule
+                ? symbology.colorRule.property
+                : "none") as SelectOption
+            }
+            onChange={changeColorBy}
+            disabled={readonly}
+          />
+        )}
       </InlineField>
       {symbology.colorRule !== null ? (
         <>
@@ -291,6 +305,7 @@ const SymbologyEditor = ({
                   mode={symbology.colorRule.mode}
                   numIntervals={symbology.colorRule.breaks.length + 1}
                   geometryType={geometryType}
+                  readonly={readonly}
                 />
               </InlineField>
               <InlineField
@@ -298,7 +313,10 @@ const SymbologyEditor = ({
                 labelSize="sm"
                 layout="fixed-label"
               >
-                <ColorRampSelector geometryType={geometryType} />
+                <ColorRampSelector
+                  geometryType={geometryType}
+                  readonly={readonly}
+                />
               </InlineField>
             </>
           )}
@@ -326,6 +344,7 @@ const SymbologyEditor = ({
               color={defaultColor}
               onChange={handleDefaultColorChange}
               ariaLabel={`Default ${geometryType} color`}
+              readonly={readonly}
             />
           </div>
         </InlineField>
@@ -335,18 +354,28 @@ const SymbologyEditor = ({
         labelSize="sm"
         layout="fixed-label"
       >
-        <Selector
-          ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
-          options={labelByOptions}
-          selected={(symbology.labelRule ?? "none") as LabelSelectOption}
-          onChange={handleLabelByChange}
-        />
+        {readonly ? (
+          <TextField>
+            {symbology.labelRule
+              ? (labelByOptions.find(
+                  (option) => option.value === symbology.labelRule,
+                )?.label ?? translate("none"))
+              : translate("none")}
+          </TextField>
+        ) : (
+          <Selector
+            ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
+            options={labelByOptions}
+            selected={(symbology.labelRule ?? "none") as LabelSelectOption}
+            onChange={handleLabelByChange}
+          />
+        )}
       </InlineField>
     </MapStylingSectionWrapper>
   );
 };
 
-const CustomerPointsSection = () => {
+const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { customerPointsSymbology, updateCustomerPointsSymbology } =
@@ -384,6 +413,7 @@ const CustomerPointsSection = () => {
           checked={customerPointsSymbology.visible}
           aria-label={`${translate("customerPoints")} ${translate("visible")}`}
           onChange={handleVisibilityChange}
+          disabled={readonly}
         />
       </InlineField>
     </MapStylingSectionWrapper>
@@ -394,14 +424,20 @@ const RangeColorRuleEditorTrigger = ({
   geometryType,
   mode,
   numIntervals,
+  readonly,
 }: {
   geometryType: "node" | "link";
   mode: RangeMode;
   numIntervals: number;
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
 
-  return (
+  return readonly ? (
+    <TextField>
+      {translate(mode)}, {numIntervals}
+    </TextField>
+  ) : (
     <Popover.Root>
       <Popover.Trigger asChild>
         <SelectorLikeButton>

@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { isPlayingAtom } from "src/state/simulation-playback";
 import { useCallback, useContext, useRef, useState } from "react";
 
 import { LngLatBoundsLike } from "mapbox-gl";
@@ -78,8 +79,10 @@ import {
   tileResolution,
 } from "src/lib/elevations/geotiff";
 import type { LinearUnit } from "src/lib/elevations/geotiff/types";
+import { TextField } from "src/components/form/text-field";
 
 export const ElevationsEditor = () => {
+  const isPlaying = useAtomValue(isPlayingAtom);
   const translate = useTranslate();
   const overlay = useElevationCoverageOverlay();
   const { getProj4Def } = useProj4Definitions();
@@ -118,17 +121,17 @@ export const ElevationsEditor = () => {
       separator={false}
       variant="primary"
     >
-      <div className="flex flex-col gap-y-1">
-        <DndContext
-          onDragEnd={handleDragEnd}
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      <DndContext
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      >
+        <SortableContext
+          items={reversedSources}
+          strategy={verticalListSortingStrategy}
         >
-          <SortableContext
-            items={reversedSources}
-            strategy={verticalListSortingStrategy}
-          >
+          <div className="flex flex-col gap-y-1">
             {reversedSources.map((source) =>
               source.type === "geotiff" ? (
                 <GeoTiffElevationSourceRow
@@ -136,19 +139,21 @@ export const ElevationsEditor = () => {
                   source={source}
                   actions={actions}
                   overlay={overlay}
+                  readonly={isPlaying}
                 />
               ) : (
                 <TileServerElevationSourceRow
                   key={source.id}
                   source={source}
                   actions={actions}
+                  readonly={isPlaying}
                 />
               ),
             )}
-          </SortableContext>
-        </DndContext>
-      </div>
-      <AddElevationDataButton actions={actions} />
+          </div>
+        </SortableContext>
+      </DndContext>
+      {!isPlaying && <AddElevationDataButton actions={actions} />}
     </CollapsibleSection>
   );
 };
@@ -161,12 +166,14 @@ const ElevationSourceRowShell = ({
   name,
   description,
   disabled = false,
+  readonly = false,
   children,
 }: {
   id: string;
   name: string;
   description: string;
   disabled?: boolean;
+  readonly?: boolean;
   children: React.ReactNode;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -183,13 +190,19 @@ const ElevationSourceRowShell = ({
       style={style}
       className="flex gap-x-2 items-start -ml-1 -mr-1"
     >
-      <div
-        className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
-        {...attributes}
-        {...listeners}
-      >
-        <Draggable />
-      </div>
+      {readonly ? (
+        <div className="opacity-20 flex items-center h-8">
+          <Draggable />
+        </div>
+      ) : (
+        <div
+          className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
+          {...attributes}
+          {...listeners}
+        >
+          <Draggable />
+        </div>
+      )}
       <div className="flex-auto min-w-0">
         <div className="flex items-center min-w-0">
           <div
@@ -213,10 +226,12 @@ const GeoTiffElevationSourceRow = ({
   source,
   actions,
   overlay,
+  readonly,
 }: {
   source: GeoTiffElevationSource;
   actions: Actions;
   overlay: Overlay;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   const { units } = useAtomValue(projectSettingsAtom);
@@ -241,6 +256,7 @@ const GeoTiffElevationSourceRow = ({
       id={source.id}
       name={translate("elevations.userElevationData")}
       description={description}
+      readonly={readonly}
     >
       <Popover.Root onOpenChange={handlePopoverOpenChange}>
         <Popover.Trigger asChild>
@@ -265,19 +281,22 @@ const GeoTiffElevationSourceRow = ({
                 source={source}
                 actions={actions}
                 overlay={overlay}
+                readonly={readonly}
               />
             </IndentationContext.Provider>
           </StyledPopoverContent>
         </Popover.Portal>
       </Popover.Root>
-      <Button
-        variant="quiet/mode"
-        className="h-8 text-red-500"
-        aria-label={translate("delete")}
-        onClick={() => actions.deleteSource(source.id)}
-      >
-        <DeleteIcon />
-      </Button>
+      {!readonly && (
+        <Button
+          variant="quiet/mode"
+          className="h-8 text-red-500"
+          aria-label={translate("delete")}
+          onClick={() => actions.deleteSource(source.id)}
+        >
+          <DeleteIcon />
+        </Button>
+      )}
     </ElevationSourceRowShell>
   );
 };
@@ -286,10 +305,12 @@ const GeoTiffTilesPopover = ({
   source,
   actions,
   overlay,
+  readonly,
 }: {
   source: GeoTiffElevationSource;
   actions: Actions;
   overlay: Overlay;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -307,8 +328,16 @@ const GeoTiffTilesPopover = ({
       <div className="font-semibold text-sm">
         {translate("elevations.userElevationData")}
       </div>
-      <ElevationOffsetField source={source} actions={actions} />
-      <ElevationUnitField source={source} actions={actions} />
+      <ElevationOffsetField
+        source={source}
+        actions={actions}
+        readonly={readonly}
+      />
+      <ElevationUnitField
+        source={source}
+        actions={actions}
+        readonly={readonly}
+      />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
         <ul className="flex flex-col">
           {source.tiles.map((tile) => (
@@ -320,16 +349,18 @@ const GeoTiffTilesPopover = ({
               className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <span className="text-sm">{tile.file.name}</span>
-              <Button
-                variant="quiet/mode"
-                className="h-8 text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  actions.deleteTile(source.id, tile.id);
-                }}
-              >
-                <DeleteIcon />
-              </Button>
+              {!readonly && (
+                <Button
+                  variant="quiet/mode"
+                  className="h-8 text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    actions.deleteTile(source.id, tile.id);
+                  }}
+                >
+                  <DeleteIcon />
+                </Button>
+              )}
             </li>
           ))}
         </ul>
@@ -348,15 +379,17 @@ const GeoTiffTilesPopover = ({
           }
         }}
       />
-      <Button
-        variant="default"
-        size="sm"
-        className="w-full justify-center"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <AddIcon size="sm" />
-        {translate("elevations.addMoreTiles")}
-      </Button>
+      {!readonly && (
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full justify-center"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <AddIcon size="sm" />
+          {translate("elevations.addMoreTiles")}
+        </Button>
+      )}
     </div>
   );
 };
@@ -364,9 +397,11 @@ const GeoTiffTilesPopover = ({
 const TileServerElevationSourceRow = ({
   source,
   actions,
+  readonly,
 }: {
   source: TileServerElevationSource;
   actions: Actions;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   const isOffline = useAtomValue(offlineAtom);
@@ -378,9 +413,10 @@ const TileServerElevationSourceRow = ({
       name={translate("elevations.mapboxDefaultData")}
       description={translate("elevations.globalDtm").toUpperCase()}
       disabled={isDisabled}
+      readonly={readonly}
     >
       <Popover.Root>
-        <Popover.Trigger asChild disabled={isDisabled}>
+        <Popover.Trigger asChild>
           <Button variant="quiet/mode" className="h-8">
             <MultipleValuesIcon />
           </Button>
@@ -394,7 +430,11 @@ const TileServerElevationSourceRow = ({
           >
             <StyledPopoverArrow />
             <IndentationContext.Provider value={0}>
-              <TileServerPopover source={source} actions={actions} />
+              <TileServerPopover
+                source={source}
+                actions={actions}
+                readonly={readonly}
+              />
             </IndentationContext.Provider>
           </StyledPopoverContent>
         </Popover.Portal>
@@ -406,7 +446,7 @@ const TileServerElevationSourceRow = ({
             return Promise.resolve();
           },
           applicable: true,
-          disabled: isOffline,
+          disabled: isOffline || readonly,
           label: source.enabled
             ? translate("elevations.disableSource")
             : translate("elevations.enableSource"),
@@ -420,9 +460,11 @@ const TileServerElevationSourceRow = ({
 const TileServerPopover = ({
   source,
   actions,
+  readonly,
 }: {
   source: TileServerElevationSource;
   actions: Actions;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   return (
@@ -430,7 +472,11 @@ const TileServerPopover = ({
       <div className="font-semibold text-sm">
         {translate("elevations.mapboxDefaultData")}
       </div>
-      <ElevationOffsetField source={source} actions={actions} />
+      <ElevationOffsetField
+        source={source}
+        actions={actions}
+        readonly={readonly}
+      />
     </div>
   );
 };
@@ -438,9 +484,11 @@ const TileServerPopover = ({
 const ElevationOffsetField = ({
   source,
   actions,
+  readonly,
 }: {
   source: ElevationSource;
   actions: Actions;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   const { units } = useAtomValue(projectSettingsAtom);
@@ -455,13 +503,17 @@ const ElevationOffsetField = ({
 
   return (
     <InlineField name={label} layout="fluid-label" labelSize="lg">
-      <NumericField
-        label={label}
-        displayValue={localizeDecimal(displayValue)}
-        onChangeValue={(v) => actions.updateOffset(source.id, v)}
-        styleOptions={{ padding: "md", textSize: "sm" }}
-        tabIndex={0}
-      />
+      {readonly ? (
+        <TextField padding="md">{localizeDecimal(displayValue)}</TextField>
+      ) : (
+        <NumericField
+          label={label}
+          displayValue={localizeDecimal(displayValue)}
+          onChangeValue={(v) => actions.updateOffset(source.id, v)}
+          styleOptions={{ padding: "md", textSize: "sm" }}
+          tabIndex={0}
+        />
+      )}
     </InlineField>
   );
 };
@@ -474,9 +526,11 @@ const elevationUnitOptions: { label: string; value: LinearUnit }[] = [
 const ElevationUnitField = ({
   source,
   actions,
+  readonly,
 }: {
   source: GeoTiffElevationSource;
   actions: Actions;
+  readonly: boolean;
 }) => {
   const translate = useTranslate();
   const currentUnit = source.tiles[0]?.verticalUnit ?? "m";
@@ -487,13 +541,17 @@ const ElevationUnitField = ({
       layout="fluid-label"
       labelSize="lg"
     >
-      <Selector
-        options={elevationUnitOptions}
-        selected={currentUnit}
-        onChange={(value) => actions.updateVerticalUnit(source.id, value)}
-        ariaLabel={translate("elevations.verticalUnit")}
-        styleOptions={{ paddingX: 2, paddingY: 2, textSize: "text-sm" }}
-      />
+      {readonly ? (
+        <TextField padding="md">{currentUnit}</TextField>
+      ) : (
+        <Selector
+          options={elevationUnitOptions}
+          selected={currentUnit}
+          onChange={(value) => actions.updateVerticalUnit(source.id, value)}
+          ariaLabel={translate("elevations.verticalUnit")}
+          styleOptions={{ paddingX: 2, paddingY: 2, textSize: "text-sm" }}
+        />
+      )}
     </InlineField>
   );
 };

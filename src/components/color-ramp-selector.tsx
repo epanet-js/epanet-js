@@ -109,8 +109,10 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
 
 export const ColorRampSelector = ({
   geometryType,
+  readonly = false,
 }: {
   geometryType: "node" | "link";
+  readonly?: boolean;
 }) => {
   const translate = useTranslate();
   const {
@@ -121,6 +123,26 @@ export const ColorRampSelector = ({
     setRampName,
     reverseRampColors,
   } = useColorRule(geometryType);
+
+  const rampPreview = (
+    <span
+      className="w-full h-5 border rounded-md"
+      style={{
+        background: linearGradient({
+          colors: rampColors,
+          interpolate: "step",
+        }),
+      }}
+    />
+  );
+
+  if (readonly) {
+    return (
+      <div className="flex items-center w-full min-w-[90px] border rounded-sm border-gray-200 p-2 min-h-9">
+        {rampPreview}
+      </div>
+    );
+  }
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
@@ -140,15 +162,7 @@ export const ColorRampSelector = ({
         className={triggerStyles}
         title={`${rampName}${isReversed ? " reversed" : ""}`}
       >
-        <span
-          className="cursor-pointer w-full h-5 border rounded-md"
-          style={{
-            background: linearGradient({
-              colors: rampColors,
-              interpolate: "step",
-            }),
-          }}
-        ></span>
+        {rampPreview}
         <span className="px-1">
           <ChevronDownIcon />
         </span>

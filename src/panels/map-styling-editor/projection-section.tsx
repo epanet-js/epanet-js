@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { isPlayingAtom } from "src/state/simulation-playback";
 import type { FeatureCollection } from "geojson";
 import type { LngLatBoundsLike } from "mapbox-gl";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -31,6 +32,7 @@ export const ProjectionSection = () => {
   const map = useContext(MapContext);
   const { reprojectionReset } = useReprojectionReset();
   const hasScenarios = useAtomValue(hasScenariosAtom);
+  const isPlaying = useAtomValue(isPlayingAtom);
   const isXYGrid = projection.type === "xy-grid";
   const isReprojectWgs84On = useFeatureFlag("FLAG_REPROJECT_WGS84");
   const t = useTranslate();
@@ -101,6 +103,7 @@ export const ProjectionSection = () => {
 
   const [sections, setSections] = useAtom(mapStylingPanelSectionsExpandedAtom);
 
+  const isReadonly = hasScenarios || isPlaying;
   return (
     <CollapsibleSection
       title="Projection"
@@ -112,16 +115,17 @@ export const ProjectionSection = () => {
       variant="primary"
     >
       {isXYGrid ? (
-        <Button
-          variant="default"
-          size="sm"
-          className="w-full justify-center"
-          disabled={hasScenarios}
-          onClick={handleOpenProjectionDialog}
-        >
-          <MapPinnedIcon />
-          {t("networkProjection.setMapProjection")}
-        </Button>
+        !isReadonly && (
+          <Button
+            variant="default"
+            size="sm"
+            className="w-full justify-center"
+            onClick={handleOpenProjectionDialog}
+          >
+            <MapPinnedIcon />
+            {t("networkProjection.setMapProjection")}
+          </Button>
+        )
       ) : (
         <div className="flex items-start gap-2 -mr-1">
           <div className="flex flex-col min-w-0 flex-1 text-sm">
@@ -130,7 +134,7 @@ export const ProjectionSection = () => {
           </div>
           {(projection.type === "proj4" ||
             (projection.type === "wgs84" && isReprojectWgs84On)) &&
-            !hasScenarios && (
+            !isReadonly && (
               <Button
                 variant="quiet/mode"
                 className="h-8 flex-shrink-0"
