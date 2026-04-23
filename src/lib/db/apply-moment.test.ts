@@ -65,15 +65,8 @@ describe("buildMomentPayload", () => {
     expect(payload.assetUpserts.pipes[0].id).toBe(2);
   });
 
-  it("refetches patched assets from the post-apply model for full-row upsert", () => {
-    const { model, factories } = setupModel();
-    const junction = factories.assetFactory.createJunction({
-      id: 1,
-      label: "J1",
-      coordinates: [0, 0],
-      elevation: 42,
-    });
-    model.assets.set(junction.id, junction);
+  it("routes patches into assetPatches with only the changed columns", () => {
+    const { model } = setupModel();
 
     const moment: ModelMoment = {
       note: "edit",
@@ -88,34 +81,36 @@ describe("buildMomentPayload", () => {
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.assetUpserts.junctions).toHaveLength(1);
-    expect(payload.assetUpserts.junctions[0].id).toBe(1);
-    expect(payload.assetUpserts.junctions[0].elevation).toBe(42);
+    expect(payload.assetUpserts.junctions).toEqual([]);
+    expect(payload.assetPatches.junctions).toHaveLength(1);
+    expect(payload.assetPatches.junctions[0]).toEqual({
+      id: 1,
+      elevation: 100,
+    });
   });
 
-  it("deduplicates an asset that appears in both putAssets and patchAssetsAttributes", () => {
-    const { model, factories } = setupModel();
-    const junction = factories.assetFactory.createJunction({
-      id: 1,
-      label: "J1",
-    });
-    model.assets.set(junction.id, junction);
+  it("translates patch property names to snake_case columns and coerces bools", () => {
+    const { model } = setupModel();
 
     const moment: ModelMoment = {
-      note: "dup",
-      putAssets: [junction],
+      note: "edit",
       patchAssetsAttributes: [
         {
-          id: 1,
-          type: "junction",
-          properties: { elevation: 10 },
+          id: 2,
+          type: "pipe",
+          properties: { diameter: 150, isActive: false },
         },
       ],
     };
 
     const payload = buildMomentPayload(moment, model);
 
-    expect(payload.assetUpserts.junctions).toHaveLength(1);
+    expect(payload.assetPatches.pipes).toHaveLength(1);
+    expect(payload.assetPatches.pipes[0]).toEqual({
+      id: 2,
+      diameter: 150,
+      is_active: 0,
+    });
   });
 
   it("forwards deleteAssets ids", () => {
@@ -131,18 +126,14 @@ describe("buildMomentPayload", () => {
     expect(payload.assetDeleteIds).toEqual([3, 7, 11]);
   });
 
-  it("skips assets that were deleted and are not in the post-apply model", () => {
-    const { model, factories } = setupModel();
-    const junction = factories.assetFactory.createJunction({
-      id: 1,
-      label: "J1",
-    });
+  it("forwards patches without consulting the post-apply model", () => {
+    const { model } = setupModel();
 
     const moment: ModelMoment = {
-      note: "patch on deleted",
+      note: "patch on missing asset",
       patchAssetsAttributes: [
         {
-          id: junction.id,
+          id: 999,
           type: "junction",
           properties: { elevation: 99 },
         },
@@ -152,6 +143,11 @@ describe("buildMomentPayload", () => {
     const payload = buildMomentPayload(moment, model);
 
     expect(payload.assetUpserts.junctions).toEqual([]);
+    expect(payload.assetPatches.junctions).toHaveLength(1);
+    expect(payload.assetPatches.junctions[0]).toEqual({
+      id: 999,
+      elevation: 99,
+    });
   });
 
   it("serializes putCustomerPoints into customer point upserts", () => {

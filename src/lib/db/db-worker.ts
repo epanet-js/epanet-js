@@ -16,6 +16,7 @@ import type {
   PatternRow,
   CurveRow,
 } from "./rows";
+import type { AssetPatchRow } from "./asset-patches";
 import type { ApplyMomentPayload } from "./apply-moment";
 
 type Stmt = {
@@ -274,6 +275,102 @@ const bulkDelete = (
       const params = ids.slice(base, base + remainder);
       getStmt(sql).bind(params).stepReset();
     }
+  }
+};
+
+/*
+ * Bulk UPDATE via SQLite's `UPDATE … FROM (VALUES …)` (supported since 3.33).
+ * Patches are grouped by their column set so each group uses a single
+ * prepared-statement shape; rows within a group fill one VALUES row each.
+ * Total params per statement = rows × (1 + columnCount); chunk size is
+ * derived from the 30000-param target (matching BULK_CHUNK_SIZES headroom).
+ */
+const BULK_UPDATE_MAX_PARAMS = 30000;
+
+const bulkUpdate = (table: string, rows: readonly AssetPatchRow[]): void => {
+  if (rows.length === 0) return;
+
+  const groups = new Map<
+    string,
+    { columns: string[]; rows: AssetPatchRow[] }
+  >();
+  for (const row of rows) {
+    const cols: string[] = [];
+    for (const key in row) {
+      if (key !== "id") cols.push(key);
+    }
+    if (cols.length === 0) continue;
+    cols.sort();
+    const groupKey = cols.join(",");
+    let group = groups.get(groupKey);
+    if (!group) {
+      group = { columns: cols, rows: [] };
+      groups.set(groupKey, group);
+    }
+    group.rows.push(row);
+  }
+
+  for (const { columns, rows: groupRows } of groups.values()) {
+    applyBulkUpdateGroup(table, columns, groupRows);
+  }
+};
+
+const applyBulkUpdateGroup = (
+  table: string,
+  columns: readonly string[],
+  rows: readonly AssetPatchRow[],
+): void => {
+  const paramsPerRow = 1 + columns.length;
+  const chunkSize = Math.max(
+    1,
+    Math.floor(BULK_UPDATE_MAX_PARAMS / paramsPerRow),
+  );
+  const fullChunks = Math.floor(rows.length / chunkSize);
+  const remainder = rows.length % chunkSize;
+
+  if (fullChunks > 0) {
+    const sql = buildBulkUpdateSql(table, columns, chunkSize);
+    for (let c = 0; c < fullChunks; c++) {
+      const params: unknown[] = [];
+      const base = c * chunkSize;
+      for (let i = 0; i < chunkSize; i++) {
+        appendUpdateParams(rows[base + i], columns, params);
+      }
+      getStmt(sql).bind(params).stepReset();
+    }
+  }
+
+  if (remainder > 0) {
+    const sql = buildBulkUpdateSql(table, columns, remainder);
+    const params: unknown[] = [];
+    const base = fullChunks * chunkSize;
+    for (let i = 0; i < remainder; i++) {
+      appendUpdateParams(rows[base + i], columns, params);
+    }
+    getStmt(sql).bind(params).stepReset();
+  }
+};
+
+const buildBulkUpdateSql = (
+  table: string,
+  columns: readonly string[],
+  rowCount: number,
+): string => {
+  const rowPh = `(${new Array<string>(1 + columns.length).fill("?").join(",")})`;
+  const values = new Array<string>(rowCount).fill(rowPh).join(",");
+  const cteCols = ["id", ...columns].join(",");
+  const setClause = columns.map((c) => `${c} = _p.${c}`).join(",");
+  return `WITH _p(${cteCols}) AS (VALUES ${values}) UPDATE ${table} SET ${setClause} FROM _p WHERE ${table}.id = _p.id`;
+};
+
+const appendUpdateParams = (
+  row: AssetPatchRow,
+  columns: readonly string[],
+  params: unknown[],
+): void => {
+  params.push(row.id);
+  for (const col of columns) {
+    params.push(row[col]);
   }
 };
 
@@ -607,6 +704,12 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   upP: payload.assetUpserts.pipes.length,
   upPu: payload.assetUpserts.pumps.length,
   upV: payload.assetUpserts.valves.length,
+  patJ: payload.assetPatches.junctions.length,
+  patR: payload.assetPatches.reservoirs.length,
+  patT: payload.assetPatches.tanks.length,
+  patP: payload.assetPatches.pipes.length,
+  patPu: payload.assetPatches.pumps.length,
+  patV: payload.assetPatches.valves.length,
   delCp: payload.customerPointDeleteIds.length,
   upCp: payload.customerPointUpserts.length,
   cpDem: payload.customerPointDemandUpdates.length,
@@ -806,6 +909,13 @@ const api = {
           bulkInsertPipes(payload.assetUpserts.pipes);
           bulkInsertPumps(payload.assetUpserts.pumps);
           bulkInsertValves(payload.assetUpserts.valves);
+
+          bulkUpdate("junctions", payload.assetPatches.junctions);
+          bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
+          bulkUpdate("tanks", payload.assetPatches.tanks);
+          bulkUpdate("pipes", payload.assetPatches.pipes);
+          bulkUpdate("pumps", payload.assetPatches.pumps);
+          bulkUpdate("valves", payload.assetPatches.valves);
 
           const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
           for (const u of payload.customerPointDemandUpdates) {

@@ -14,6 +14,11 @@ import { toJunctionDemandRow } from "./set-all-junction-demands";
 import { patternsToRows } from "./set-all-patterns";
 import { curvesToRows } from "./set-all-curves";
 import { serializeControls } from "./set-all-controls";
+import {
+  assetPatchesToRows,
+  emptyAssetPatchRows,
+  type AssetPatchRows,
+} from "./asset-patches";
 import type {
   AssetRows,
   CustomerPointRow,
@@ -36,6 +41,7 @@ export type JunctionDemandUpdate = {
 export type ApplyMomentPayload = {
   assetDeleteIds: AssetId[];
   assetUpserts: AssetRows;
+  assetPatches: AssetPatchRows;
   customerPointDeleteIds: CustomerPointId[];
   customerPointUpserts: CustomerPointRow[];
   customerPointDemandUpdates: CustomerPointDemandUpdate[];
@@ -49,17 +55,20 @@ export const buildMomentPayload = (
   moment: ModelMoment,
   postApplyModel: HydraulicModel,
 ): ApplyMomentPayload => {
-  const upsertIds = new Set<AssetId>();
-  for (const asset of moment.putAssets ?? []) upsertIds.add(asset.id);
-  for (const patch of moment.patchAssetsAttributes ?? []) {
-    upsertIds.add(patch.id);
+  const upsertAssets: Asset[] = [];
+  if (moment.putAssets) {
+    const seen = new Set<AssetId>();
+    for (const asset of moment.putAssets) {
+      if (seen.has(asset.id)) continue;
+      seen.add(asset.id);
+      const current = postApplyModel.assets.get(asset.id);
+      if (current) upsertAssets.push(current);
+    }
   }
 
-  const upsertAssets: Asset[] = [];
-  for (const id of upsertIds) {
-    const asset = postApplyModel.assets.get(id);
-    if (asset) upsertAssets.push(asset);
-  }
+  const assetPatches = moment.patchAssetsAttributes
+    ? assetPatchesToRows(moment.patchAssetsAttributes)
+    : emptyAssetPatchRows();
 
   const customerPointDeleteIds = [...(moment.deleteCustomerPoints ?? [])];
   const deletedCustomerPointIds = new Set<CustomerPointId>(
@@ -108,6 +117,7 @@ export const buildMomentPayload = (
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
+    assetPatches,
     customerPointDeleteIds,
     customerPointUpserts,
     customerPointDemandUpdates,
@@ -134,6 +144,12 @@ export const applyMomentToDb = async (
       payload.assetUpserts.pipes.length === 0 &&
       payload.assetUpserts.pumps.length === 0 &&
       payload.assetUpserts.valves.length === 0 &&
+      payload.assetPatches.junctions.length === 0 &&
+      payload.assetPatches.reservoirs.length === 0 &&
+      payload.assetPatches.tanks.length === 0 &&
+      payload.assetPatches.pipes.length === 0 &&
+      payload.assetPatches.pumps.length === 0 &&
+      payload.assetPatches.valves.length === 0 &&
       payload.customerPointDeleteIds.length === 0 &&
       payload.customerPointUpserts.length === 0 &&
       payload.customerPointDemandUpdates.length === 0 &&
