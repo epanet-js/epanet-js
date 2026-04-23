@@ -86,10 +86,6 @@ CREATE TABLE valve_properties (
   curve_id   INTEGER
 );
 
-CREATE INDEX idx_assets_type ON assets(type);
-CREATE INDEX idx_link_properties_start ON link_properties(start_node_id);
-CREATE INDEX idx_link_properties_end   ON link_properties(end_node_id);
-
 CREATE VIEW junctions_view AS
 SELECT a.id, a.type, a.label, a.is_active,
        np.coord_x, np.coord_y, np.elevation,
@@ -175,9 +171,6 @@ CREATE TABLE customer_point_demands (
   PRIMARY KEY (customer_point_id, ordinal)
 );
 
-CREATE INDEX idx_customer_points_pipe     ON customer_points(pipe_id);
-CREATE INDEX idx_customer_points_junction ON customer_points(junction_id);
-
 CREATE TABLE patterns (
   id          INTEGER PRIMARY KEY,
   label       TEXT NOT NULL,
@@ -192,8 +185,6 @@ CREATE TABLE junction_demands (
   pattern_id  INTEGER,
   PRIMARY KEY (junction_id, ordinal)
 );
-
-CREATE INDEX idx_junction_demands_junction ON junction_demands(junction_id);
 
 CREATE TABLE curves (
   id     INTEGER PRIMARY KEY,
