@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
+import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { mapSyncMomentAtom } from "src/state/map";
@@ -38,7 +39,7 @@ const clearSimulationStorage = async () => {
   await storage.clear();
 };
 
-const loadModel = async (
+const loadModel = (
   get: Getter,
   set: Setter,
   { hydraulicModel }: CustomerPointsImportResetInput,
@@ -48,16 +49,12 @@ const loadModel = async (
 
   set(stagingModelDerivedAtom, hydraulicModel);
   if (isOurFileOn) {
-    await db.setAllAssets(hydraulicModel.assets);
-    await db.setAllCustomerPoints(
-      hydraulicModel.customerPoints,
-      hydraulicModel.demands.customerPoints,
-    );
-    await db.setAllPatterns(hydraulicModel.patterns);
-    await db.setAllCurves(hydraulicModel.curves);
-    await db.setAllControls(hydraulicModel.controls);
-    await db.setAllSimulationSettings(get(simulationSettingsAtom));
-    await db.setAllJunctionDemands(hydraulicModel.demands.junctions);
+    void db
+      .importProject({
+        hydraulicModel,
+        simulationSettings: get(simulationSettingsAtom),
+      })
+      .catch(captureError);
   }
   set(momentLogDerivedAtom, momentLog);
 
@@ -75,7 +72,7 @@ export const useCustomerPointsImportReset = () => {
       ) => {
         await clearSimulationStorage();
         resetAppState(set);
-        await loadModel(get, set, input, isOurFileOn);
+        loadModel(get, set, input, isOurFileOn);
       },
       [isOurFileOn],
     ),

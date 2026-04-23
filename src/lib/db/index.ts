@@ -12,4 +12,6 @@ export { setAllControls } from "./set-all-controls";
 export { setAllSimulationSettings } from "./set-all-simulation-settings";
 export { setAllJunctionDemands } from "./set-all-junction-demands";
 export { applyMomentToDb } from "./apply-moment";
+export { importProject } from "./import-project";
+export type { ImportProjectInput } from "./import-project";
 export { exportDb } from "./export-db";

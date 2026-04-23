@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
+import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelFactories } from "src/hydraulic-model/factories";
@@ -135,24 +136,16 @@ export const useStartNewProject = () => {
       async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
         await clearSimulationStorage();
         resetAppState(set);
-        if (isOurFileOn) {
-          await db.newProject();
-        }
         const mergedProjectSettings = loadModel(set, input);
         if (isOurFileOn) {
-          await db.saveProjectSettings(mergedProjectSettings);
-          await db.setAllAssets(input.hydraulicModel.assets);
-          await db.setAllCustomerPoints(
-            input.hydraulicModel.customerPoints,
-            input.hydraulicModel.demands.customerPoints,
-          );
-          await db.setAllPatterns(input.hydraulicModel.patterns);
-          await db.setAllCurves(input.hydraulicModel.curves);
-          await db.setAllControls(input.hydraulicModel.controls);
-          await db.setAllSimulationSettings(input.simulationSettings);
-          await db.setAllJunctionDemands(
-            input.hydraulicModel.demands.junctions,
-          );
+          void db
+            .importProject({
+              newDb: true,
+              projectSettings: mergedProjectSettings,
+              hydraulicModel: input.hydraulicModel,
+              simulationSettings: input.simulationSettings,
+            })
+            .catch(captureError);
         }
       },
       [isOurFileOn],
