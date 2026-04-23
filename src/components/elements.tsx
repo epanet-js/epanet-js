@@ -664,8 +664,8 @@ export const sharedPadding = (
   size: B3Size,
   side: B3Side = "default",
 ): ClassValue => ({
-  "p-0 text-xs rounded-sm": size === "xxs",
-  "py-0.5 px-1.5 text-xs rounded-sm": size === "xs",
+  "p-0 text-xs rounded": size === "xxs",
+  "py-0.5 px-1.5 text-xs rounded": size === "xs",
   "py-1 px-2 text-sm rounded": size === "sm",
   "py-1 px-3 text-md rounded": size === "md",
   "rounded-l-none": side === "right",

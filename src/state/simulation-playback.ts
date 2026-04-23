@@ -45,6 +45,20 @@ export function resolveSpeedByMode(
   return playbackSpeedMs;
 }
 
+export type PlaybackWarning = "slow" | "tooFast";
+
+export const currentSpeedWarningAtom = atom<PlaybackWarning | null>((get) => {
+  const { playbackSpeed } = get(simulationPlaybackAtom);
+  const autoSpeedMs = get(autoPlaybackSpeedAtom);
+  const maxPlaybackSpeedMs = get(maximumPlaybackSpeedAtom);
+  if (playbackSpeed === "auto") {
+    return autoSpeedMs > 1000 ? "slow" : null;
+  }
+  return resolveSpeedByMode(autoSpeedMs, playbackSpeed) < maxPlaybackSpeedMs
+    ? "tooFast"
+    : null;
+});
+
 export const changePlaybackSpeedAtom = atom(
   null,
   (_get, set, speed: PlaybackSpeed) => {

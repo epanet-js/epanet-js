@@ -28,7 +28,7 @@ export const MapLoading = () => {
             pointer-events-none`}
       >
         <RefreshIcon className="animate-spin" />
-        {translate("loading")}
+        {translate("updatingMap")}
       </div>
     </div>
   );
