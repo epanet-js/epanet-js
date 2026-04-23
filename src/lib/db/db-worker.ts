@@ -18,6 +18,14 @@ import type {
 } from "./rows";
 import type { ApplyMomentPayload } from "./apply-moment";
 
+type Stmt = {
+  bind: (values: unknown[]) => Stmt;
+  step: () => boolean;
+  reset: (alsoBindValues?: boolean) => Stmt;
+  stepReset: () => Stmt;
+  finalize: () => void;
+};
+
 type OoDb = {
   pointer?: number;
   exec: (
@@ -28,6 +36,7 @@ type OoDb = {
       rowMode?: "array" | "object";
     },
   ) => unknown;
+  prepare: (sql: string) => Stmt;
   close: () => void;
 };
 
@@ -53,14 +62,36 @@ type Sqlite3 = {
 
 let sqlite3: Sqlite3 | null = null;
 let db: OoDb | null = null;
+const stmtCache = new Map<string, Stmt>();
 
 const ready = (async () => {
   const mod = await import("@sqlite.org/sqlite-wasm");
   sqlite3 = (await mod.default()) as unknown as Sqlite3;
 })();
 
+const getStmt = (sql: string): Stmt => {
+  let stmt = stmtCache.get(sql);
+  if (!stmt) {
+    stmt = db!.prepare(sql);
+    stmtCache.set(sql, stmt);
+  }
+  return stmt;
+};
+
+const finalizeStmts = () => {
+  for (const stmt of stmtCache.values()) {
+    try {
+      stmt.finalize();
+    } catch {
+      // ignore
+    }
+  }
+  stmtCache.clear();
+};
+
 const closeExistingDb = () => {
   if (db) {
+    finalizeStmts();
     try {
       db.close();
     } catch {
@@ -109,10 +140,9 @@ const insertAsset = (row: {
   label: string | null;
   is_active: number;
 }) => {
-  db!.exec(
-    "INSERT INTO assets (id, type, label, is_active) VALUES (?, ?, ?, ?)",
-    { bind: [row.id, row.type, row.label, row.is_active] },
-  );
+  getStmt("INSERT INTO assets (id, type, label, is_active) VALUES (?, ?, ?, ?)")
+    .bind([row.id, row.type, row.label, row.is_active])
+    .stepReset();
 };
 
 const insertNodeProperties = (row: {
@@ -125,24 +155,23 @@ const insertNodeProperties = (row: {
   chemical_source_strength: number | null;
   chemical_source_pattern_id: number | null;
 }) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO node_properties
      (asset_id, coord_x, coord_y, elevation, initial_quality,
       chemical_source_type, chemical_source_strength, chemical_source_pattern_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.coord_x,
-        row.coord_y,
-        row.elevation,
-        row.initial_quality,
-        row.chemical_source_type,
-        row.chemical_source_strength,
-        row.chemical_source_pattern_id,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.coord_x,
+      row.coord_y,
+      row.elevation,
+      row.initial_quality,
+      row.chemical_source_type,
+      row.chemical_source_strength,
+      row.chemical_source_pattern_id,
+    ])
+    .stepReset();
 };
 
 const insertLinkProperties = (row: {
@@ -153,111 +182,109 @@ const insertLinkProperties = (row: {
   length: number | null;
   initial_status: string | null;
 }) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO link_properties
      (asset_id, start_node_id, end_node_id, coords, length, initial_status)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.start_node_id,
-        row.end_node_id,
-        row.coords,
-        row.length,
-        row.initial_status,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.start_node_id,
+      row.end_node_id,
+      row.coords,
+      row.length,
+      row.initial_status,
+    ])
+    .stepReset();
 };
 
 const insertJunction = (row: JunctionRow) => {
   insertAsset(row);
   insertNodeProperties(row);
-  db!.exec(
+  getStmt(
     "INSERT INTO junction_properties (asset_id, emitter_coefficient) VALUES (?, ?)",
-    { bind: [row.id, row.emitter_coefficient] },
-  );
+  )
+    .bind([row.id, row.emitter_coefficient])
+    .stepReset();
 };
 
 const insertReservoir = (row: ReservoirRow) => {
   insertAsset(row);
   insertNodeProperties(row);
-  db!.exec(
+  getStmt(
     "INSERT INTO reservoir_properties (asset_id, head, head_pattern_id) VALUES (?, ?, ?)",
-    { bind: [row.id, row.head, row.head_pattern_id] },
-  );
+  )
+    .bind([row.id, row.head, row.head_pattern_id])
+    .stepReset();
 };
 
 const insertTank = (row: TankRow) => {
   insertAsset(row);
   insertNodeProperties(row);
-  db!.exec(
+  getStmt(
     `INSERT INTO tank_properties
      (asset_id, initial_level, min_level, max_level, min_volume, diameter,
       overflow, mixing_model, mixing_fraction, bulk_reaction_coeff, volume_curve_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.initial_level,
-        row.min_level,
-        row.max_level,
-        row.min_volume,
-        row.diameter,
-        row.overflow,
-        row.mixing_model,
-        row.mixing_fraction,
-        row.bulk_reaction_coeff,
-        row.volume_curve_id,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.initial_level,
+      row.min_level,
+      row.max_level,
+      row.min_volume,
+      row.diameter,
+      row.overflow,
+      row.mixing_model,
+      row.mixing_fraction,
+      row.bulk_reaction_coeff,
+      row.volume_curve_id,
+    ])
+    .stepReset();
 };
 
 const insertPipe = (row: PipeRow) => {
   insertAsset(row);
   insertLinkProperties(row);
-  db!.exec(
+  getStmt(
     `INSERT INTO pipe_properties
      (asset_id, diameter, roughness, minor_loss, bulk_reaction_coeff, wall_reaction_coeff)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.diameter,
-        row.roughness,
-        row.minor_loss,
-        row.bulk_reaction_coeff,
-        row.wall_reaction_coeff,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.diameter,
+      row.roughness,
+      row.minor_loss,
+      row.bulk_reaction_coeff,
+      row.wall_reaction_coeff,
+    ])
+    .stepReset();
 };
 
 const insertPump = (row: PumpRow) => {
   insertAsset(row);
   insertLinkProperties(row);
-  db!.exec(
+  getStmt(
     `INSERT INTO pump_properties
      (asset_id, definition_type, power, speed, speed_pattern_id,
       efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id,
       curve_points)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.definition_type,
-        row.power,
-        row.speed,
-        row.speed_pattern_id,
-        row.efficiency_curve_id,
-        row.energy_price,
-        row.energy_price_pattern_id,
-        row.curve_id,
-        row.curve_points,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.definition_type,
+      row.power,
+      row.speed,
+      row.speed_pattern_id,
+      row.efficiency_curve_id,
+      row.energy_price,
+      row.energy_price_pattern_id,
+      row.curve_id,
+      row.curve_points,
+    ])
+    .stepReset();
 };
 
 const deleteAssetCascade = (id: number) => {
@@ -271,55 +298,48 @@ const deleteAssetCascade = (id: number) => {
     "link_properties",
     "node_properties",
   ]) {
-    db!.exec(`DELETE FROM ${table} WHERE asset_id = ?`, { bind: [id] });
+    getStmt(`DELETE FROM ${table} WHERE asset_id = ?`).bind([id]).stepReset();
   }
-  db!.exec("DELETE FROM assets WHERE id = ?", { bind: [id] });
+  getStmt("DELETE FROM assets WHERE id = ?").bind([id]).stepReset();
 };
 
 const insertCustomerPoint = (row: CustomerPointRow) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO customer_points
      (id, label, coord_x, coord_y, pipe_id, junction_id, snap_x, snap_y)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.label,
-        row.coord_x,
-        row.coord_y,
-        row.pipe_id,
-        row.junction_id,
-        row.snap_x,
-        row.snap_y,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.label,
+      row.coord_x,
+      row.coord_y,
+      row.pipe_id,
+      row.junction_id,
+      row.snap_x,
+      row.snap_y,
+    ])
+    .stepReset();
 };
 
 const insertCustomerPointDemand = (row: CustomerPointDemandRow) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO customer_point_demands
      (customer_point_id, ordinal, base_demand, pattern_id)
      VALUES (?, ?, ?, ?)`,
-    {
-      bind: [
-        row.customer_point_id,
-        row.ordinal,
-        row.base_demand,
-        row.pattern_id,
-      ],
-    },
-  );
+  )
+    .bind([row.customer_point_id, row.ordinal, row.base_demand, row.pattern_id])
+    .stepReset();
 };
 
 const deleteCustomerPointDemands = (id: number) => {
-  db!.exec("DELETE FROM customer_point_demands WHERE customer_point_id = ?", {
-    bind: [id],
-  });
+  getStmt("DELETE FROM customer_point_demands WHERE customer_point_id = ?")
+    .bind([id])
+    .stepReset();
 };
 
 const deleteCustomerPoint = (id: number) => {
-  db!.exec("DELETE FROM customer_points WHERE id = ?", { bind: [id] });
+  getStmt("DELETE FROM customer_points WHERE id = ?").bind([id]).stepReset();
 };
 
 const deleteCustomerPointCascade = (id: number) => {
@@ -328,35 +348,33 @@ const deleteCustomerPointCascade = (id: number) => {
 };
 
 const insertJunctionDemand = (row: JunctionDemandRow) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO junction_demands
      (junction_id, ordinal, base_demand, pattern_id)
      VALUES (?, ?, ?, ?)`,
-    {
-      bind: [row.junction_id, row.ordinal, row.base_demand, row.pattern_id],
-    },
-  );
+  )
+    .bind([row.junction_id, row.ordinal, row.base_demand, row.pattern_id])
+    .stepReset();
 };
 
 const deleteJunctionDemands = (id: number) => {
-  db!.exec("DELETE FROM junction_demands WHERE junction_id = ?", {
-    bind: [id],
-  });
+  getStmt("DELETE FROM junction_demands WHERE junction_id = ?")
+    .bind([id])
+    .stepReset();
 };
 
 const insertPattern = (row: PatternRow) => {
-  db!.exec(
+  getStmt(
     `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?)`,
-    {
-      bind: [row.id, row.label, row.type, row.multipliers],
-    },
-  );
+  )
+    .bind([row.id, row.label, row.type, row.multipliers])
+    .stepReset();
 };
 
 const insertCurve = (row: CurveRow) => {
-  db!.exec(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`, {
-    bind: [row.id, row.label, row.type, row.points],
-  });
+  getStmt(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`)
+    .bind([row.id, row.label, row.type, row.points])
+    .stepReset();
 };
 
 const upsertControls = (data: string) => {
@@ -377,21 +395,20 @@ const upsertSimulationSettings = (data: string) => {
 const insertValve = (row: ValveRow) => {
   insertAsset(row);
   insertLinkProperties(row);
-  db!.exec(
+  getStmt(
     `INSERT INTO valve_properties
      (asset_id, diameter, minor_loss, valve_kind, setting, curve_id)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    {
-      bind: [
-        row.id,
-        row.diameter,
-        row.minor_loss,
-        row.valve_kind,
-        row.setting,
-        row.curve_id,
-      ],
-    },
-  );
+  )
+    .bind([
+      row.id,
+      row.diameter,
+      row.minor_loss,
+      row.valve_kind,
+      row.setting,
+      row.curve_id,
+    ])
+    .stepReset();
 };
 
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
@@ -453,8 +470,7 @@ const api = {
 
         const fileVersion = readUserVersion();
         if (fileVersion > migrations.length) {
-          db.close();
-          db = null;
+          closeExistingDb();
           return { status: "too-new", fileVersion, appVersion: APP_VERSION };
         }
         if (fileVersion < migrations.length) {
