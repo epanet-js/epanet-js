@@ -1,5 +1,6 @@
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { simulationSettingsSchema } from "./build-simulation-settings-data";
 
 export const serializeSimulationSettings = (
@@ -17,7 +18,9 @@ export const serializeSimulationSettings = (
 export const setAllSimulationSettings = async (
   settings: SimulationSettings,
 ): Promise<void> => {
-  const data = serializeSimulationSettings(settings);
-  const worker = getDbWorker();
-  await worker.setAllSimulationSettings(data);
+  await timed("setAllSimulationSettings", async () => {
+    const data = serializeSimulationSettings(settings);
+    const worker = getDbWorker();
+    await worker.setAllSimulationSettings(data);
+  });
 };

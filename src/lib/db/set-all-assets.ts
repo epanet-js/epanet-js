@@ -8,6 +8,7 @@ import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { pointsSchema } from "./build-curves-data";
 import type {
   AssetRows,
@@ -20,9 +21,11 @@ import type {
 } from "./rows";
 
 export const setAllAssets = async (assets: AssetsMap): Promise<void> => {
-  const payload = assetsToRows(assets.values());
-  const worker = getDbWorker();
-  await worker.setAllAssets(payload);
+  await timed("setAllAssets", async () => {
+    const payload = assetsToRows(assets.values());
+    const worker = getDbWorker();
+    await worker.setAllAssets(payload);
+  });
 };
 
 export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {

@@ -8,6 +8,7 @@ import type {
   Demand,
 } from "src/hydraulic-model/demands";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
@@ -62,7 +63,9 @@ export const setAllCustomerPoints = async (
   customerPoints: CustomerPoints,
   customerDemands: CustomerAssignedDemands,
 ): Promise<void> => {
-  const payload = customerPointsToRows(customerPoints, customerDemands);
-  const worker = getDbWorker();
-  await worker.setAllCustomerPoints(payload);
+  await timed("setAllCustomerPoints", async () => {
+    const payload = customerPointsToRows(customerPoints, customerDemands);
+    const worker = getDbWorker();
+    await worker.setAllCustomerPoints(payload);
+  });
 };

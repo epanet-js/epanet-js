@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
 import { APP_VERSION, migrations } from "./migrations";
+import { setPerfLogging, timed } from "./perf-log";
 import type {
   AssetRows,
   JunctionRow,
@@ -393,13 +394,36 @@ const insertValve = (row: ValveRow) => {
   );
 };
 
+const countApplyMoment = (payload: ApplyMomentPayload) => ({
+  delAssets: payload.assetDeleteIds.length,
+  upJ: payload.assetUpserts.junctions.length,
+  upR: payload.assetUpserts.reservoirs.length,
+  upT: payload.assetUpserts.tanks.length,
+  upP: payload.assetUpserts.pipes.length,
+  upPu: payload.assetUpserts.pumps.length,
+  upV: payload.assetUpserts.valves.length,
+  delCp: payload.customerPointDeleteIds.length,
+  upCp: payload.customerPointUpserts.length,
+  cpDem: payload.customerPointDemandUpdates.length,
+  jDem: payload.junctionDemandUpdates.length,
+  pat: payload.patternsReplacement?.length ?? 0,
+  cur: payload.curvesReplacement?.length ?? 0,
+  ctrl: payload.controlsReplacement !== null ? 1 : 0,
+});
+
 const api = {
+  setPerfLogging(enabled: boolean) {
+    setPerfLogging(enabled, "db [worker]");
+  },
+
   async newDb() {
-    await ready;
-    closeExistingDb();
-    db = new sqlite3!.oo1.DB(":memory:", "c");
-    runMigrations();
-    db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+    return timed("newDb", async () => {
+      await ready;
+      closeExistingDb();
+      db = new sqlite3!.oo1.DB(":memory:", "c");
+      runMigrations();
+      db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+    });
   },
 
   async openDb(fileBytes: Uint8Array): Promise<{
@@ -407,306 +431,387 @@ const api = {
     fileVersion: number;
     appVersion: number;
   }> {
-    await ready;
-    closeExistingDb();
+    return timed(
+      "openDb",
+      async () => {
+        await ready;
+        closeExistingDb();
 
-    db = new sqlite3!.oo1.DB(":memory:", "c");
-    const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
-    const flags =
-      sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
-      sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
-    sqlite3!.capi.sqlite3_deserialize(
-      db.pointer!,
-      "main",
-      p,
-      fileBytes.length,
-      fileBytes.length,
-      flags,
+        db = new sqlite3!.oo1.DB(":memory:", "c");
+        const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
+        const flags =
+          sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
+          sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
+        sqlite3!.capi.sqlite3_deserialize(
+          db.pointer!,
+          "main",
+          p,
+          fileBytes.length,
+          fileBytes.length,
+          flags,
+        );
+
+        const fileVersion = readUserVersion();
+        if (fileVersion > migrations.length) {
+          db.close();
+          db = null;
+          return { status: "too-new", fileVersion, appVersion: APP_VERSION };
+        }
+        if (fileVersion < migrations.length) {
+          runMigrations();
+          return { status: "migrated", fileVersion, appVersion: APP_VERSION };
+        }
+        return { status: "ok", fileVersion, appVersion: APP_VERSION };
+      },
+      { bytes: fileBytes.length },
     );
-
-    const fileVersion = readUserVersion();
-    if (fileVersion > migrations.length) {
-      db.close();
-      db = null;
-      return { status: "too-new", fileVersion, appVersion: APP_VERSION };
-    }
-    if (fileVersion < migrations.length) {
-      runMigrations();
-      return { status: "migrated", fileVersion, appVersion: APP_VERSION };
-    }
-    return { status: "ok", fileVersion, appVersion: APP_VERSION };
   },
 
   async getProjectSettings(): Promise<string | null> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    const rows = db.exec("SELECT settings FROM project WHERE id = 1", {
-      returnValue: "resultRows",
-    }) as string[][];
-    if (rows.length === 0) return null;
-    return rows[0][0];
+    return timed("getProjectSettings", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT settings FROM project WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as string[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
   },
 
   async saveProjectSettings(json: string) {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("INSERT OR REPLACE INTO project (id, settings) VALUES (1, ?)", {
-      bind: [json],
+    return timed("saveProjectSettings", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      db.exec("INSERT OR REPLACE INTO project (id, settings) VALUES (1, ?)", {
+        bind: [json],
+      });
     });
   },
 
   async getJunctions(): Promise<unknown[]> {
-    return readAll("SELECT * FROM junctions_view");
+    return timed("getJunctions", () => readAll("SELECT * FROM junctions_view"));
   },
 
   async getReservoirs(): Promise<unknown[]> {
-    return readAll("SELECT * FROM reservoirs_view");
+    return timed("getReservoirs", () =>
+      readAll("SELECT * FROM reservoirs_view"),
+    );
   },
 
   async getTanks(): Promise<unknown[]> {
-    return readAll("SELECT * FROM tanks_view");
+    return timed("getTanks", () => readAll("SELECT * FROM tanks_view"));
   },
 
   async getPipes(): Promise<unknown[]> {
-    return readAll("SELECT * FROM pipes_view");
+    return timed("getPipes", () => readAll("SELECT * FROM pipes_view"));
   },
 
   async getPumps(): Promise<unknown[]> {
-    return readAll("SELECT * FROM pumps_view");
+    return timed("getPumps", () => readAll("SELECT * FROM pumps_view"));
   },
 
   async getValves(): Promise<unknown[]> {
-    return readAll("SELECT * FROM valves_view");
+    return timed("getValves", () => readAll("SELECT * FROM valves_view"));
   },
 
   async getCustomerPoints(): Promise<unknown[]> {
-    return readAll("SELECT * FROM customer_points");
+    return timed("getCustomerPoints", () =>
+      readAll("SELECT * FROM customer_points"),
+    );
   },
 
   async getCustomerPointDemands(): Promise<unknown[]> {
-    return readAll(
-      "SELECT * FROM customer_point_demands ORDER BY customer_point_id, ordinal",
+    return timed("getCustomerPointDemands", () =>
+      readAll(
+        "SELECT * FROM customer_point_demands ORDER BY customer_point_id, ordinal",
+      ),
     );
   },
 
   async getPatterns(): Promise<unknown[]> {
-    return readAll("SELECT * FROM patterns ORDER BY id");
+    return timed("getPatterns", () =>
+      readAll("SELECT * FROM patterns ORDER BY id"),
+    );
   },
 
   async getCurves(): Promise<unknown[]> {
-    return readAll("SELECT * FROM curves ORDER BY id");
+    return timed("getCurves", () =>
+      readAll("SELECT * FROM curves ORDER BY id"),
+    );
   },
 
   async getControls(): Promise<string | null> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
-      returnValue: "resultRows",
-    }) as string[][];
-    if (rows.length === 0) return null;
-    return rows[0][0];
+    return timed("getControls", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as string[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
   },
 
   async getSimulationSettings(): Promise<string | null> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    const rows = db.exec("SELECT data FROM simulation_settings WHERE id = 1", {
-      returnValue: "resultRows",
-    }) as string[][];
-    if (rows.length === 0) return null;
-    return rows[0][0];
+    return timed("getSimulationSettings", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec(
+        "SELECT data FROM simulation_settings WHERE id = 1",
+        {
+          returnValue: "resultRows",
+        },
+      ) as string[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
   },
 
   async getJunctionDemands(): Promise<unknown[]> {
-    return readAll(
-      "SELECT * FROM junction_demands ORDER BY junction_id, ordinal",
+    return timed("getJunctionDemands", () =>
+      readAll("SELECT * FROM junction_demands ORDER BY junction_id, ordinal"),
     );
   },
 
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      for (const id of payload.assetDeleteIds) {
-        deleteAssetCascade(id);
-      }
-      for (const row of payload.assetUpserts.junctions) {
-        deleteAssetCascade(row.id);
-        insertJunction(row);
-      }
-      for (const row of payload.assetUpserts.reservoirs) {
-        deleteAssetCascade(row.id);
-        insertReservoir(row);
-      }
-      for (const row of payload.assetUpserts.tanks) {
-        deleteAssetCascade(row.id);
-        insertTank(row);
-      }
-      for (const row of payload.assetUpserts.pipes) {
-        deleteAssetCascade(row.id);
-        insertPipe(row);
-      }
-      for (const row of payload.assetUpserts.pumps) {
-        deleteAssetCascade(row.id);
-        insertPump(row);
-      }
-      for (const row of payload.assetUpserts.valves) {
-        deleteAssetCascade(row.id);
-        insertValve(row);
-      }
-      for (const id of payload.customerPointDeleteIds) {
-        deleteCustomerPointCascade(id);
-      }
-      for (const row of payload.customerPointUpserts) {
-        deleteCustomerPoint(row.id);
-        insertCustomerPoint(row);
-      }
-      for (const update of payload.customerPointDemandUpdates) {
-        deleteCustomerPointDemands(update.customerPointId);
-        for (const demandRow of update.demands) {
-          insertCustomerPointDemand(demandRow);
+    return timed(
+      "applyMoment",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          for (const id of payload.assetDeleteIds) {
+            deleteAssetCascade(id);
+          }
+          for (const row of payload.assetUpserts.junctions) {
+            deleteAssetCascade(row.id);
+            insertJunction(row);
+          }
+          for (const row of payload.assetUpserts.reservoirs) {
+            deleteAssetCascade(row.id);
+            insertReservoir(row);
+          }
+          for (const row of payload.assetUpserts.tanks) {
+            deleteAssetCascade(row.id);
+            insertTank(row);
+          }
+          for (const row of payload.assetUpserts.pipes) {
+            deleteAssetCascade(row.id);
+            insertPipe(row);
+          }
+          for (const row of payload.assetUpserts.pumps) {
+            deleteAssetCascade(row.id);
+            insertPump(row);
+          }
+          for (const row of payload.assetUpserts.valves) {
+            deleteAssetCascade(row.id);
+            insertValve(row);
+          }
+          for (const id of payload.customerPointDeleteIds) {
+            deleteCustomerPointCascade(id);
+          }
+          for (const row of payload.customerPointUpserts) {
+            deleteCustomerPoint(row.id);
+            insertCustomerPoint(row);
+          }
+          for (const update of payload.customerPointDemandUpdates) {
+            deleteCustomerPointDemands(update.customerPointId);
+            for (const demandRow of update.demands) {
+              insertCustomerPointDemand(demandRow);
+            }
+          }
+          for (const update of payload.junctionDemandUpdates) {
+            deleteJunctionDemands(update.junctionId);
+            for (const demandRow of update.demands) {
+              insertJunctionDemand(demandRow);
+            }
+          }
+          if (payload.patternsReplacement !== null) {
+            db.exec("DELETE FROM patterns");
+            for (const row of payload.patternsReplacement) {
+              insertPattern(row);
+            }
+          }
+          if (payload.curvesReplacement !== null) {
+            db.exec("DELETE FROM curves");
+            for (const row of payload.curvesReplacement) {
+              insertCurve(row);
+            }
+          }
+          if (payload.controlsReplacement !== null) {
+            upsertControls(payload.controlsReplacement);
+          }
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
         }
-      }
-      for (const update of payload.junctionDemandUpdates) {
-        deleteJunctionDemands(update.junctionId);
-        for (const demandRow of update.demands) {
-          insertJunctionDemand(demandRow);
-        }
-      }
-      if (payload.patternsReplacement !== null) {
-        db.exec("DELETE FROM patterns");
-        for (const row of payload.patternsReplacement) {
-          insertPattern(row);
-        }
-      }
-      if (payload.curvesReplacement !== null) {
-        db.exec("DELETE FROM curves");
-        for (const row of payload.curvesReplacement) {
-          insertCurve(row);
-        }
-      }
-      if (payload.controlsReplacement !== null) {
-        upsertControls(payload.controlsReplacement);
-      }
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+      },
+      countApplyMoment(payload),
+    );
   },
 
   async setAllAssets(payload: AssetRows): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      for (const table of [
-        "junction_properties",
-        "reservoir_properties",
-        "tank_properties",
-        "pipe_properties",
-        "pump_properties",
-        "valve_properties",
-        "link_properties",
-        "node_properties",
-        "assets",
-      ]) {
-        db.exec(`DELETE FROM ${table}`);
-      }
-      for (const row of payload.junctions) insertJunction(row);
-      for (const row of payload.reservoirs) insertReservoir(row);
-      for (const row of payload.tanks) insertTank(row);
-      for (const row of payload.pipes) insertPipe(row);
-      for (const row of payload.pumps) insertPump(row);
-      for (const row of payload.valves) insertValve(row);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    return timed(
+      "setAllAssets",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          for (const table of [
+            "junction_properties",
+            "reservoir_properties",
+            "tank_properties",
+            "pipe_properties",
+            "pump_properties",
+            "valve_properties",
+            "link_properties",
+            "node_properties",
+            "assets",
+          ]) {
+            db.exec(`DELETE FROM ${table}`);
+          }
+          for (const row of payload.junctions) insertJunction(row);
+          for (const row of payload.reservoirs) insertReservoir(row);
+          for (const row of payload.tanks) insertTank(row);
+          for (const row of payload.pipes) insertPipe(row);
+          for (const row of payload.pumps) insertPump(row);
+          for (const row of payload.valves) insertValve(row);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      {
+        j: payload.junctions.length,
+        r: payload.reservoirs.length,
+        t: payload.tanks.length,
+        p: payload.pipes.length,
+        pu: payload.pumps.length,
+        v: payload.valves.length,
+      },
+    );
   },
 
   async setAllCustomerPoints(payload: CustomerPointsData): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      db.exec("DELETE FROM customer_point_demands");
-      db.exec("DELETE FROM customer_points");
-      for (const row of payload.customerPoints) insertCustomerPoint(row);
-      for (const row of payload.demands) insertCustomerPointDemand(row);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    return timed(
+      "setAllCustomerPoints",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          db.exec("DELETE FROM customer_point_demands");
+          db.exec("DELETE FROM customer_points");
+          for (const row of payload.customerPoints) insertCustomerPoint(row);
+          for (const row of payload.demands) insertCustomerPointDemand(row);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      {
+        cp: payload.customerPoints.length,
+        dem: payload.demands.length,
+      },
+    );
   },
 
   async setAllPatterns(rows: PatternRow[]): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      db.exec("DELETE FROM patterns");
-      for (const row of rows) insertPattern(row);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    return timed(
+      "setAllPatterns",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          db.exec("DELETE FROM patterns");
+          for (const row of rows) insertPattern(row);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      { rows: rows.length },
+    );
   },
 
   async setAllCurves(rows: CurveRow[]): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      db.exec("DELETE FROM curves");
-      for (const row of rows) insertCurve(row);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    return timed(
+      "setAllCurves",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          db.exec("DELETE FROM curves");
+          for (const row of rows) insertCurve(row);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      { rows: rows.length },
+    );
   },
 
   async setAllControls(data: string): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    upsertControls(data);
+    return timed("setAllControls", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      upsertControls(data);
+    });
   },
 
   async setAllSimulationSettings(data: string): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    upsertSimulationSettings(data);
+    return timed("setAllSimulationSettings", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      upsertSimulationSettings(data);
+    });
   },
 
   async setAllJunctionDemands(rows: JunctionDemandRow[]): Promise<void> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      db.exec("DELETE FROM junction_demands");
-      for (const row of rows) insertJunctionDemand(row);
-      db.exec("COMMIT");
-    } catch (e) {
-      db.exec("ROLLBACK");
-      throw e;
-    }
+    return timed(
+      "setAllJunctionDemands",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          db.exec("DELETE FROM junction_demands");
+          for (const row of rows) insertJunctionDemand(row);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      { rows: rows.length },
+    );
   },
 
   async exportDb(): Promise<Uint8Array> {
-    await ready;
-    if (!db) throw new Error("No database open");
-    db.exec(`PRAGMA application_id = ${APP_VERSION}`);
-    return sqlite3!.capi.sqlite3_js_db_export(db.pointer!);
+    return timed("exportDb", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+      return sqlite3!.capi.sqlite3_js_db_export(db.pointer!);
+    });
   },
 
   async closeDb() {
-    await ready;
-    closeExistingDb();
+    return timed("closeDb", async () => {
+      await ready;
+      closeExistingDb();
+    });
   },
 };
 

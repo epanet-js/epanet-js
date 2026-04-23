@@ -4,6 +4,7 @@ import type { Asset } from "src/hydraulic-model/asset-types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CustomerPointId } from "src/hydraulic-model/customer-points";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { assetsToRows } from "./set-all-assets";
 import {
   toCustomerPointRow,
@@ -121,26 +122,30 @@ export const applyMomentToDb = async (
   moment: ModelMoment,
   postApplyModel: HydraulicModel,
 ): Promise<void> => {
-  const payload = buildMomentPayload(moment, postApplyModel);
-  if (
-    payload.assetDeleteIds.length === 0 &&
-    payload.assetUpserts.junctions.length === 0 &&
-    payload.assetUpserts.reservoirs.length === 0 &&
-    payload.assetUpserts.tanks.length === 0 &&
-    payload.assetUpserts.pipes.length === 0 &&
-    payload.assetUpserts.pumps.length === 0 &&
-    payload.assetUpserts.valves.length === 0 &&
-    payload.customerPointDeleteIds.length === 0 &&
-    payload.customerPointUpserts.length === 0 &&
-    payload.customerPointDemandUpdates.length === 0 &&
-    payload.junctionDemandUpdates.length === 0 &&
-    payload.patternsReplacement === null &&
-    payload.curvesReplacement === null &&
-    payload.controlsReplacement === null
-  ) {
-    return;
-  }
+  await timed("applyMomentToDb", async () => {
+    const payload = await timed("applyMomentToDb.buildPayload", () =>
+      buildMomentPayload(moment, postApplyModel),
+    );
+    if (
+      payload.assetDeleteIds.length === 0 &&
+      payload.assetUpserts.junctions.length === 0 &&
+      payload.assetUpserts.reservoirs.length === 0 &&
+      payload.assetUpserts.tanks.length === 0 &&
+      payload.assetUpserts.pipes.length === 0 &&
+      payload.assetUpserts.pumps.length === 0 &&
+      payload.assetUpserts.valves.length === 0 &&
+      payload.customerPointDeleteIds.length === 0 &&
+      payload.customerPointUpserts.length === 0 &&
+      payload.customerPointDemandUpdates.length === 0 &&
+      payload.junctionDemandUpdates.length === 0 &&
+      payload.patternsReplacement === null &&
+      payload.curvesReplacement === null &&
+      payload.controlsReplacement === null
+    ) {
+      return;
+    }
 
-  const worker = getDbWorker();
-  await worker.applyMoment(payload);
+    const worker = getDbWorker();
+    await worker.applyMoment(payload);
+  });
 };

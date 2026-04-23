@@ -1,6 +1,9 @@
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 
 export const newProject = async (): Promise<void> => {
-  const worker = getDbWorker();
-  await worker.newDb();
+  await timed("newProject", async () => {
+    const worker = getDbWorker();
+    await worker.newDb();
+  });
 };

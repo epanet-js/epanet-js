@@ -1,5 +1,6 @@
 import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { multipliersSchema } from "./build-patterns-data";
 import type { PatternRow } from "./rows";
 
@@ -27,7 +28,9 @@ export const patternsToRows = (patterns: Patterns): PatternRow[] => {
 };
 
 export const setAllPatterns = async (patterns: Patterns): Promise<void> => {
-  const rows = patternsToRows(patterns);
-  const worker = getDbWorker();
-  await worker.setAllPatterns(rows);
+  await timed("setAllPatterns", async () => {
+    const rows = patternsToRows(patterns);
+    const worker = getDbWorker();
+    await worker.setAllPatterns(rows);
+  });
 };

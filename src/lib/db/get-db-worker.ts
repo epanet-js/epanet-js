@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
 import type { DbWorkerApi } from "./db-worker";
+import { isPerfLoggingEnabled } from "./perf-log";
 
 let cached: Comlink.Remote<DbWorkerApi> | null = null;
 
@@ -11,6 +12,10 @@ export const getDbWorker = (): Comlink.Remote<DbWorkerApi> => {
   const worker = new Worker(new URL("./db-worker.ts", import.meta.url), {
     type: "module",
   });
-  cached = Comlink.wrap<DbWorkerApi>(worker);
+  const remote = Comlink.wrap<DbWorkerApi>(worker);
+  if (isPerfLoggingEnabled()) {
+    void remote.setPerfLogging(true);
+  }
+  cached = remote;
   return cached;
 };

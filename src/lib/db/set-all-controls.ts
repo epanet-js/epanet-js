@@ -1,5 +1,6 @@
 import type { Controls } from "src/hydraulic-model/controls";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { controlsSchema } from "./build-controls-data";
 
 export const serializeControls = (controls: Controls): string => {
@@ -13,7 +14,9 @@ export const serializeControls = (controls: Controls): string => {
 };
 
 export const setAllControls = async (controls: Controls): Promise<void> => {
-  const data = serializeControls(controls);
-  const worker = getDbWorker();
-  await worker.setAllControls(data);
+  await timed("setAllControls", async () => {
+    const data = serializeControls(controls);
+    const worker = getDbWorker();
+    await worker.setAllControls(data);
+  });
 };

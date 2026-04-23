@@ -1,5 +1,6 @@
 import type { Curves, ICurve } from "src/hydraulic-model/curves";
 import { getDbWorker } from "./get-db-worker";
+import { timed } from "./perf-log";
 import { pointsSchema } from "./build-curves-data";
 import type { CurveRow } from "./rows";
 
@@ -27,7 +28,9 @@ export const curvesToRows = (curves: Curves): CurveRow[] => {
 };
 
 export const setAllCurves = async (curves: Curves): Promise<void> => {
-  const rows = curvesToRows(curves);
-  const worker = getDbWorker();
-  await worker.setAllCurves(rows);
+  await timed("setAllCurves", async () => {
+    const rows = curvesToRows(curves);
+    const worker = getDbWorker();
+    await worker.setAllCurves(rows);
+  });
 };
