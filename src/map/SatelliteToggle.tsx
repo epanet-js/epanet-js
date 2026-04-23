@@ -7,6 +7,7 @@ import { basemaps } from "src/map/basemaps";
 import { layerConfigAtom } from "src/state/map";
 import { showGridAtom } from "src/state/map-projection";
 import { offlineAtom } from "src/state/offline";
+import { isPlayingAtom } from "src/state/simulation-playback";
 
 export const SatelliteToggle = () => {
   const toggleSatellite = useToggleSatellite();
@@ -14,6 +15,7 @@ export const SatelliteToggle = () => {
   const userTracking = useUserTracking();
   const isOffline = useAtomValue(offlineAtom);
   const isGridOn = useAtomValue(showGridAtom);
+  const isPlaying = useAtomValue(isPlayingAtom);
 
   const buttonThumbnailClass = useMemo(() => {
     if (isOffline || layerConfigs.size !== 1) return null;
@@ -29,7 +31,7 @@ export const SatelliteToggle = () => {
     return null;
   }, [layerConfigs, isOffline]);
 
-  if (isGridOn || !buttonThumbnailClass) return null;
+  if (isGridOn || !buttonThumbnailClass || isPlaying) return null;
 
   return (
     <div
