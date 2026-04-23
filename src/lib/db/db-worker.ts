@@ -403,7 +403,22 @@ const insertValve = (row: ValveRow) => {
     .stepReset();
 };
 
-const BULK_CHUNK_SIZE = 2000;
+/*
+ * SQLite caps total bound parameters per statement at SQLITE_MAX_VARIABLE_NUMBER
+ * (32766 in modern builds). A bulk INSERT binds `chunkSize × columnCount`
+ * parameters, so the usable chunk size shrinks as a table's column count grows.
+ * These values target ~30000 params per statement (~92% of the cap, ~8%
+ * headroom) — pushing junctions and pipes (the abundant tables) as close to the
+ * ceiling as their column counts allow, and scaling down for wider tables.
+ */
+const BULK_CHUNK_SIZES = {
+  junctions: 2700, // 11 cols × 2700 = 29700 params
+  reservoirs: 2500, // 12 cols × 2500 = 30000 params
+  tanks: 1500, // 20 cols × 1500 = 30000 params
+  pipes: 2300, // 13 cols × 2300 = 29900 params
+  pumps: 1700, // 17 cols × 1700 = 28900 params
+  valves: 2300, // 13 cols × 2300 = 29900 params
+} as const satisfies Record<(typeof ASSET_TYPE_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
   table: string,
@@ -420,17 +435,18 @@ const bulkInsert = <T>(
   columns: readonly string[],
   rows: readonly T[],
   appendParams: (row: T, params: unknown[]) => void,
+  chunkSize: number,
 ): void => {
   if (rows.length === 0) return;
-  const fullChunks = Math.floor(rows.length / BULK_CHUNK_SIZE);
-  const remainder = rows.length % BULK_CHUNK_SIZE;
+  const fullChunks = Math.floor(rows.length / chunkSize);
+  const remainder = rows.length % chunkSize;
 
   if (fullChunks > 0) {
-    const sql = buildBulkInsertSql(table, columns, BULK_CHUNK_SIZE);
+    const sql = buildBulkInsertSql(table, columns, chunkSize);
     for (let c = 0; c < fullChunks; c++) {
       const params: unknown[] = [];
-      const base = c * BULK_CHUNK_SIZE;
-      for (let i = 0; i < BULK_CHUNK_SIZE; i++) {
+      const base = c * chunkSize;
+      for (let i = 0; i < chunkSize; i++) {
         appendParams(rows[base + i], params);
       }
       getStmt(sql).bind(params).stepReset();
@@ -440,7 +456,7 @@ const bulkInsert = <T>(
   if (remainder > 0) {
     const sql = buildBulkInsertSql(table, columns, remainder);
     const params: unknown[] = [];
-    const base = fullChunks * BULK_CHUNK_SIZE;
+    const base = fullChunks * chunkSize;
     for (let i = 0; i < remainder; i++) {
       appendParams(rows[base + i], params);
     }
@@ -747,6 +763,7 @@ const api = {
                 row.emitter_coefficient,
               );
             },
+            BULK_CHUNK_SIZES.junctions,
           );
 
           bulkInsert(
@@ -782,6 +799,7 @@ const api = {
                 row.head_pattern_id,
               );
             },
+            BULK_CHUNK_SIZES.reservoirs,
           );
 
           bulkInsert(
@@ -833,6 +851,7 @@ const api = {
                 row.volume_curve_id,
               );
             },
+            BULK_CHUNK_SIZES.tanks,
           );
 
           bulkInsert(
@@ -870,6 +889,7 @@ const api = {
                 row.wall_reaction_coeff,
               );
             },
+            BULK_CHUNK_SIZES.pipes,
           );
 
           bulkInsert(
@@ -915,6 +935,7 @@ const api = {
                 row.curve_points,
               );
             },
+            BULK_CHUNK_SIZES.pumps,
           );
 
           bulkInsert(
@@ -952,6 +973,7 @@ const api = {
                 row.curve_id,
               );
             },
+            BULK_CHUNK_SIZES.valves,
           );
 
           db.exec("COMMIT");
