@@ -411,6 +411,13 @@ const insertValve = (row: ValveRow) => {
  * headroom) — pushing junctions and pipes (the abundant tables) as close to the
  * ceiling as their column counts allow, and scaling down for wider tables.
  */
+const BULK_TABLES = [
+  ...ASSET_TYPE_TABLES,
+  "customer_points",
+  "customer_point_demands",
+  "junction_demands",
+] as const;
+
 const BULK_CHUNK_SIZES = {
   junctions: 2700, // 11 cols × 2700 = 29700 params
   reservoirs: 2500, // 12 cols × 2500 = 30000 params
@@ -418,7 +425,10 @@ const BULK_CHUNK_SIZES = {
   pipes: 2300, // 13 cols × 2300 = 29900 params
   pumps: 1700, // 17 cols × 1700 = 28900 params
   valves: 2300, // 13 cols × 2300 = 29900 params
-} as const satisfies Record<(typeof ASSET_TYPE_TABLES)[number], number>;
+  customer_points: 3700, //  8 cols × 3700 = 29600 params
+  customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
+  junction_demands: 7500, //  4 cols × 7500 = 30000 params
+} as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
   table: string,
@@ -1003,8 +1013,50 @@ const api = {
         try {
           db.exec("DELETE FROM customer_point_demands");
           db.exec("DELETE FROM customer_points");
-          for (const row of payload.customerPoints) insertCustomerPoint(row);
-          for (const row of payload.demands) insertCustomerPointDemand(row);
+
+          bulkInsert(
+            "customer_points",
+            [
+              "id",
+              "label",
+              "coord_x",
+              "coord_y",
+              "pipe_id",
+              "junction_id",
+              "snap_x",
+              "snap_y",
+            ],
+            payload.customerPoints,
+            (row, params) => {
+              params.push(
+                row.id,
+                row.label,
+                row.coord_x,
+                row.coord_y,
+                row.pipe_id,
+                row.junction_id,
+                row.snap_x,
+                row.snap_y,
+              );
+            },
+            BULK_CHUNK_SIZES.customer_points,
+          );
+
+          bulkInsert(
+            "customer_point_demands",
+            ["customer_point_id", "ordinal", "base_demand", "pattern_id"],
+            payload.demands,
+            (row, params) => {
+              params.push(
+                row.customer_point_id,
+                row.ordinal,
+                row.base_demand,
+                row.pattern_id,
+              );
+            },
+            BULK_CHUNK_SIZES.customer_point_demands,
+          );
+
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
@@ -1083,7 +1135,20 @@ const api = {
         db.exec("BEGIN IMMEDIATE");
         try {
           db.exec("DELETE FROM junction_demands");
-          for (const row of rows) insertJunctionDemand(row);
+          bulkInsert(
+            "junction_demands",
+            ["junction_id", "ordinal", "base_demand", "pattern_id"],
+            rows,
+            (row, params) => {
+              params.push(
+                row.junction_id,
+                row.ordinal,
+                row.base_demand,
+                row.pattern_id,
+              );
+            },
+            BULK_CHUNK_SIZES.junction_demands,
+          );
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
