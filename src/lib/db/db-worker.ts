@@ -134,35 +134,27 @@ const readAll = async (sql: string): Promise<unknown[]> => {
   }) as unknown[];
 };
 
-const insertAsset = (row: {
-  id: number;
-  type: string;
-  label: string | null;
-  is_active: number;
-}) => {
-  getStmt("INSERT INTO assets (id, type, label, is_active) VALUES (?, ?, ?, ?)")
-    .bind([row.id, row.type, row.label, row.is_active])
-    .stepReset();
-};
+const ASSET_TYPE_TABLES = [
+  "junctions",
+  "reservoirs",
+  "tanks",
+  "pipes",
+  "pumps",
+  "valves",
+] as const;
 
-const insertNodeProperties = (row: {
-  id: number;
-  coord_x: number;
-  coord_y: number;
-  elevation: number | null;
-  initial_quality: number | null;
-  chemical_source_type: string | null;
-  chemical_source_strength: number | null;
-  chemical_source_pattern_id: number | null;
-}) => {
+const insertJunction = (row: JunctionRow) => {
   getStmt(
-    `INSERT INTO node_properties
-     (asset_id, coord_x, coord_y, elevation, initial_quality,
-      chemical_source_type, chemical_source_strength, chemical_source_pattern_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO junctions
+     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
+      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
+      emitter_coefficient)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind([
       row.id,
+      row.label,
+      row.is_active,
       row.coord_x,
       row.coord_y,
       row.elevation,
@@ -170,65 +162,56 @@ const insertNodeProperties = (row: {
       row.chemical_source_type,
       row.chemical_source_strength,
       row.chemical_source_pattern_id,
+      row.emitter_coefficient,
     ])
-    .stepReset();
-};
-
-const insertLinkProperties = (row: {
-  id: number;
-  start_node_id: number;
-  end_node_id: number;
-  coords: string;
-  length: number | null;
-  initial_status: string | null;
-}) => {
-  getStmt(
-    `INSERT INTO link_properties
-     (asset_id, start_node_id, end_node_id, coords, length, initial_status)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  )
-    .bind([
-      row.id,
-      row.start_node_id,
-      row.end_node_id,
-      row.coords,
-      row.length,
-      row.initial_status,
-    ])
-    .stepReset();
-};
-
-const insertJunction = (row: JunctionRow) => {
-  insertAsset(row);
-  insertNodeProperties(row);
-  getStmt(
-    "INSERT INTO junction_properties (asset_id, emitter_coefficient) VALUES (?, ?)",
-  )
-    .bind([row.id, row.emitter_coefficient])
     .stepReset();
 };
 
 const insertReservoir = (row: ReservoirRow) => {
-  insertAsset(row);
-  insertNodeProperties(row);
   getStmt(
-    "INSERT INTO reservoir_properties (asset_id, head, head_pattern_id) VALUES (?, ?, ?)",
+    `INSERT INTO reservoirs
+     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
+      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
+      head, head_pattern_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-    .bind([row.id, row.head, row.head_pattern_id])
+    .bind([
+      row.id,
+      row.label,
+      row.is_active,
+      row.coord_x,
+      row.coord_y,
+      row.elevation,
+      row.initial_quality,
+      row.chemical_source_type,
+      row.chemical_source_strength,
+      row.chemical_source_pattern_id,
+      row.head,
+      row.head_pattern_id,
+    ])
     .stepReset();
 };
 
 const insertTank = (row: TankRow) => {
-  insertAsset(row);
-  insertNodeProperties(row);
   getStmt(
-    `INSERT INTO tank_properties
-     (asset_id, initial_level, min_level, max_level, min_volume, diameter,
-      overflow, mixing_model, mixing_fraction, bulk_reaction_coeff, volume_curve_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO tanks
+     (id, label, is_active, coord_x, coord_y, elevation, initial_quality,
+      chemical_source_type, chemical_source_strength, chemical_source_pattern_id,
+      initial_level, min_level, max_level, min_volume, diameter, overflow,
+      mixing_model, mixing_fraction, bulk_reaction_coeff, volume_curve_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind([
       row.id,
+      row.label,
+      row.is_active,
+      row.coord_x,
+      row.coord_y,
+      row.elevation,
+      row.initial_quality,
+      row.chemical_source_type,
+      row.chemical_source_strength,
+      row.chemical_source_pattern_id,
       row.initial_level,
       row.min_level,
       row.max_level,
@@ -244,15 +227,22 @@ const insertTank = (row: TankRow) => {
 };
 
 const insertPipe = (row: PipeRow) => {
-  insertAsset(row);
-  insertLinkProperties(row);
   getStmt(
-    `INSERT INTO pipe_properties
-     (asset_id, diameter, roughness, minor_loss, bulk_reaction_coeff, wall_reaction_coeff)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO pipes
+     (id, label, is_active, start_node_id, end_node_id, coords, length,
+      initial_status, diameter, roughness, minor_loss, bulk_reaction_coeff,
+      wall_reaction_coeff)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind([
       row.id,
+      row.label,
+      row.is_active,
+      row.start_node_id,
+      row.end_node_id,
+      row.coords,
+      row.length,
+      row.initial_status,
       row.diameter,
       row.roughness,
       row.minor_loss,
@@ -263,17 +253,23 @@ const insertPipe = (row: PipeRow) => {
 };
 
 const insertPump = (row: PumpRow) => {
-  insertAsset(row);
-  insertLinkProperties(row);
   getStmt(
-    `INSERT INTO pump_properties
-     (asset_id, definition_type, power, speed, speed_pattern_id,
+    `INSERT INTO pumps
+     (id, label, is_active, start_node_id, end_node_id, coords, length,
+      initial_status, definition_type, power, speed, speed_pattern_id,
       efficiency_curve_id, energy_price, energy_price_pattern_id, curve_id,
       curve_points)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind([
       row.id,
+      row.label,
+      row.is_active,
+      row.start_node_id,
+      row.end_node_id,
+      row.coords,
+      row.length,
+      row.initial_status,
       row.definition_type,
       row.power,
       row.speed,
@@ -288,19 +284,9 @@ const insertPump = (row: PumpRow) => {
 };
 
 const deleteAssetCascade = (id: number) => {
-  for (const table of [
-    "junction_properties",
-    "reservoir_properties",
-    "tank_properties",
-    "pipe_properties",
-    "pump_properties",
-    "valve_properties",
-    "link_properties",
-    "node_properties",
-  ]) {
-    getStmt(`DELETE FROM ${table} WHERE asset_id = ?`).bind([id]).stepReset();
+  for (const table of ASSET_TYPE_TABLES) {
+    getStmt(`DELETE FROM ${table} WHERE id = ?`).bind([id]).stepReset();
   }
-  getStmt("DELETE FROM assets WHERE id = ?").bind([id]).stepReset();
 };
 
 const insertCustomerPoint = (row: CustomerPointRow) => {
@@ -393,15 +379,21 @@ const upsertSimulationSettings = (data: string) => {
 };
 
 const insertValve = (row: ValveRow) => {
-  insertAsset(row);
-  insertLinkProperties(row);
   getStmt(
-    `INSERT INTO valve_properties
-     (asset_id, diameter, minor_loss, valve_kind, setting, curve_id)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO valves
+     (id, label, is_active, start_node_id, end_node_id, coords, length,
+      initial_status, diameter, minor_loss, valve_kind, setting, curve_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind([
       row.id,
+      row.label,
+      row.is_active,
+      row.start_node_id,
+      row.end_node_id,
+      row.coords,
+      row.length,
+      row.initial_status,
       row.diameter,
       row.minor_loss,
       row.valve_kind,
@@ -551,29 +543,27 @@ const api = {
   },
 
   async getJunctions(): Promise<unknown[]> {
-    return timed("getJunctions", () => readAll("SELECT * FROM junctions_view"));
+    return timed("getJunctions", () => readAll("SELECT * FROM junctions"));
   },
 
   async getReservoirs(): Promise<unknown[]> {
-    return timed("getReservoirs", () =>
-      readAll("SELECT * FROM reservoirs_view"),
-    );
+    return timed("getReservoirs", () => readAll("SELECT * FROM reservoirs"));
   },
 
   async getTanks(): Promise<unknown[]> {
-    return timed("getTanks", () => readAll("SELECT * FROM tanks_view"));
+    return timed("getTanks", () => readAll("SELECT * FROM tanks"));
   },
 
   async getPipes(): Promise<unknown[]> {
-    return timed("getPipes", () => readAll("SELECT * FROM pipes_view"));
+    return timed("getPipes", () => readAll("SELECT * FROM pipes"));
   },
 
   async getPumps(): Promise<unknown[]> {
-    return timed("getPumps", () => readAll("SELECT * FROM pumps_view"));
+    return timed("getPumps", () => readAll("SELECT * FROM pumps"));
   },
 
   async getValves(): Promise<unknown[]> {
-    return timed("getValves", () => readAll("SELECT * FROM valves_view"));
+    return timed("getValves", () => readAll("SELECT * FROM valves"));
   },
 
   async getCustomerPoints(): Promise<unknown[]> {
@@ -722,46 +712,16 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          for (const table of [
-            "junction_properties",
-            "reservoir_properties",
-            "tank_properties",
-            "pipe_properties",
-            "pump_properties",
-            "valve_properties",
-            "link_properties",
-            "node_properties",
-            "assets",
-          ]) {
+          for (const table of ASSET_TYPE_TABLES) {
             db.exec(`DELETE FROM ${table}`);
           }
 
-          const allAssets = [
-            ...payload.junctions,
-            ...payload.reservoirs,
-            ...payload.tanks,
-            ...payload.pipes,
-            ...payload.pumps,
-            ...payload.valves,
-          ];
           bulkInsert(
-            "assets",
-            ["id", "type", "label", "is_active"],
-            allAssets,
-            (row, params) => {
-              params.push(row.id, row.type, row.label, row.is_active);
-            },
-          );
-
-          const nodeRows = [
-            ...payload.junctions,
-            ...payload.reservoirs,
-            ...payload.tanks,
-          ];
-          bulkInsert(
-            "node_properties",
+            "junctions",
             [
-              "asset_id",
+              "id",
+              "label",
+              "is_active",
               "coord_x",
               "coord_y",
               "elevation",
@@ -769,11 +729,14 @@ const api = {
               "chemical_source_type",
               "chemical_source_strength",
               "chemical_source_pattern_id",
+              "emitter_coefficient",
             ],
-            nodeRows,
+            payload.junctions,
             (row, params) => {
               params.push(
                 row.id,
+                row.label,
+                row.is_active,
                 row.coord_x,
                 row.coord_y,
                 row.elevation,
@@ -781,60 +744,59 @@ const api = {
                 row.chemical_source_type,
                 row.chemical_source_strength,
                 row.chemical_source_pattern_id,
+                row.emitter_coefficient,
               );
             },
           );
 
-          const linkRows = [
-            ...payload.pipes,
-            ...payload.pumps,
-            ...payload.valves,
-          ];
           bulkInsert(
-            "link_properties",
+            "reservoirs",
             [
-              "asset_id",
-              "start_node_id",
-              "end_node_id",
-              "coords",
-              "length",
-              "initial_status",
+              "id",
+              "label",
+              "is_active",
+              "coord_x",
+              "coord_y",
+              "elevation",
+              "initial_quality",
+              "chemical_source_type",
+              "chemical_source_strength",
+              "chemical_source_pattern_id",
+              "head",
+              "head_pattern_id",
             ],
-            linkRows,
+            payload.reservoirs,
             (row, params) => {
               params.push(
                 row.id,
-                row.start_node_id,
-                row.end_node_id,
-                row.coords,
-                row.length,
-                row.initial_status,
+                row.label,
+                row.is_active,
+                row.coord_x,
+                row.coord_y,
+                row.elevation,
+                row.initial_quality,
+                row.chemical_source_type,
+                row.chemical_source_strength,
+                row.chemical_source_pattern_id,
+                row.head,
+                row.head_pattern_id,
               );
             },
           );
 
           bulkInsert(
-            "junction_properties",
-            ["asset_id", "emitter_coefficient"],
-            payload.junctions,
-            (row, params) => {
-              params.push(row.id, row.emitter_coefficient);
-            },
-          );
-
-          bulkInsert(
-            "reservoir_properties",
-            ["asset_id", "head", "head_pattern_id"],
-            payload.reservoirs,
-            (row, params) => {
-              params.push(row.id, row.head, row.head_pattern_id);
-            },
-          );
-
-          bulkInsert(
-            "tank_properties",
+            "tanks",
             [
-              "asset_id",
+              "id",
+              "label",
+              "is_active",
+              "coord_x",
+              "coord_y",
+              "elevation",
+              "initial_quality",
+              "chemical_source_type",
+              "chemical_source_strength",
+              "chemical_source_pattern_id",
               "initial_level",
               "min_level",
               "max_level",
@@ -850,6 +812,15 @@ const api = {
             (row, params) => {
               params.push(
                 row.id,
+                row.label,
+                row.is_active,
+                row.coord_x,
+                row.coord_y,
+                row.elevation,
+                row.initial_quality,
+                row.chemical_source_type,
+                row.chemical_source_strength,
+                row.chemical_source_pattern_id,
                 row.initial_level,
                 row.min_level,
                 row.max_level,
@@ -865,9 +836,16 @@ const api = {
           );
 
           bulkInsert(
-            "pipe_properties",
+            "pipes",
             [
-              "asset_id",
+              "id",
+              "label",
+              "is_active",
+              "start_node_id",
+              "end_node_id",
+              "coords",
+              "length",
+              "initial_status",
               "diameter",
               "roughness",
               "minor_loss",
@@ -878,6 +856,13 @@ const api = {
             (row, params) => {
               params.push(
                 row.id,
+                row.label,
+                row.is_active,
+                row.start_node_id,
+                row.end_node_id,
+                row.coords,
+                row.length,
+                row.initial_status,
                 row.diameter,
                 row.roughness,
                 row.minor_loss,
@@ -888,9 +873,16 @@ const api = {
           );
 
           bulkInsert(
-            "pump_properties",
+            "pumps",
             [
-              "asset_id",
+              "id",
+              "label",
+              "is_active",
+              "start_node_id",
+              "end_node_id",
+              "coords",
+              "length",
+              "initial_status",
               "definition_type",
               "power",
               "speed",
@@ -905,6 +897,13 @@ const api = {
             (row, params) => {
               params.push(
                 row.id,
+                row.label,
+                row.is_active,
+                row.start_node_id,
+                row.end_node_id,
+                row.coords,
+                row.length,
+                row.initial_status,
                 row.definition_type,
                 row.power,
                 row.speed,
@@ -919,9 +918,16 @@ const api = {
           );
 
           bulkInsert(
-            "valve_properties",
+            "valves",
             [
-              "asset_id",
+              "id",
+              "label",
+              "is_active",
+              "start_node_id",
+              "end_node_id",
+              "coords",
+              "length",
+              "initial_status",
               "diameter",
               "minor_loss",
               "valve_kind",
@@ -932,6 +938,13 @@ const api = {
             (row, params) => {
               params.push(
                 row.id,
+                row.label,
+                row.is_active,
+                row.start_node_id,
+                row.end_node_id,
+                row.coords,
+                row.length,
+                row.initial_status,
                 row.diameter,
                 row.minor_loss,
                 row.valve_kind,

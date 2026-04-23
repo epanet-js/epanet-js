@@ -3,162 +3,117 @@ CREATE TABLE project (
   settings TEXT NOT NULL
 );
 
-CREATE TABLE assets (
-  id        INTEGER PRIMARY KEY,
-  type      TEXT NOT NULL CHECK (type IN ('junction','reservoir','tank','pipe','pump','valve')),
-  label     TEXT,
-  is_active INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE TABLE node_properties (
-  asset_id                    INTEGER PRIMARY KEY REFERENCES assets(id),
+CREATE TABLE junctions (
+  id                          INTEGER PRIMARY KEY,
+  label                       TEXT,
+  is_active                   INTEGER NOT NULL DEFAULT 1,
   coord_x                     REAL NOT NULL,
   coord_y                     REAL NOT NULL,
   elevation                   REAL,
   initial_quality             REAL,
   chemical_source_type        TEXT,
   chemical_source_strength    REAL,
-  chemical_source_pattern_id  INTEGER
+  chemical_source_pattern_id  INTEGER,
+  emitter_coefficient         REAL
 );
 
-CREATE TABLE link_properties (
-  asset_id       INTEGER PRIMARY KEY REFERENCES assets(id),
-  start_node_id  INTEGER NOT NULL REFERENCES assets(id),
-  end_node_id    INTEGER NOT NULL REFERENCES assets(id),
-  coords         TEXT NOT NULL CHECK (json_array_length(coords) >= 2),
-  length         REAL,
-  initial_status TEXT
+CREATE TABLE reservoirs (
+  id                          INTEGER PRIMARY KEY,
+  label                       TEXT,
+  is_active                   INTEGER NOT NULL DEFAULT 1,
+  coord_x                     REAL NOT NULL,
+  coord_y                     REAL NOT NULL,
+  elevation                   REAL,
+  initial_quality             REAL,
+  chemical_source_type        TEXT,
+  chemical_source_strength    REAL,
+  chemical_source_pattern_id  INTEGER,
+  head                        REAL,
+  head_pattern_id             INTEGER
 );
 
-CREATE TABLE junction_properties (
-  asset_id            INTEGER PRIMARY KEY REFERENCES assets(id),
-  emitter_coefficient REAL
+CREATE TABLE tanks (
+  id                          INTEGER PRIMARY KEY,
+  label                       TEXT,
+  is_active                   INTEGER NOT NULL DEFAULT 1,
+  coord_x                     REAL NOT NULL,
+  coord_y                     REAL NOT NULL,
+  elevation                   REAL,
+  initial_quality             REAL,
+  chemical_source_type        TEXT,
+  chemical_source_strength    REAL,
+  chemical_source_pattern_id  INTEGER,
+  initial_level               REAL,
+  min_level                   REAL,
+  max_level                   REAL,
+  min_volume                  REAL,
+  diameter                    REAL,
+  overflow                    INTEGER,
+  mixing_model                TEXT,
+  mixing_fraction             REAL,
+  bulk_reaction_coeff         REAL,
+  volume_curve_id             INTEGER
 );
 
-CREATE TABLE reservoir_properties (
-  asset_id        INTEGER PRIMARY KEY REFERENCES assets(id),
-  head            REAL,
-  head_pattern_id INTEGER
+CREATE TABLE pipes (
+  id                   INTEGER PRIMARY KEY,
+  label                TEXT,
+  is_active            INTEGER NOT NULL DEFAULT 1,
+  start_node_id        INTEGER NOT NULL,
+  end_node_id          INTEGER NOT NULL,
+  coords               TEXT NOT NULL CHECK (json_array_length(coords) >= 2),
+  length               REAL,
+  initial_status       TEXT,
+  diameter             REAL,
+  roughness            REAL,
+  minor_loss           REAL,
+  bulk_reaction_coeff  REAL,
+  wall_reaction_coeff  REAL
 );
 
-CREATE TABLE tank_properties (
-  asset_id            INTEGER PRIMARY KEY REFERENCES assets(id),
-  initial_level       REAL,
-  min_level           REAL,
-  max_level           REAL,
-  min_volume          REAL,
-  diameter            REAL,
-  overflow            INTEGER,
-  mixing_model        TEXT,
-  mixing_fraction     REAL,
-  bulk_reaction_coeff REAL,
-  volume_curve_id     INTEGER
+CREATE TABLE pumps (
+  id                       INTEGER PRIMARY KEY,
+  label                    TEXT,
+  is_active                INTEGER NOT NULL DEFAULT 1,
+  start_node_id            INTEGER NOT NULL,
+  end_node_id              INTEGER NOT NULL,
+  coords                   TEXT NOT NULL CHECK (json_array_length(coords) >= 2),
+  length                   REAL,
+  initial_status           TEXT,
+  definition_type          TEXT NOT NULL CHECK (definition_type IN ('power','curve','curveId')),
+  power                    REAL,
+  speed                    REAL,
+  speed_pattern_id         INTEGER,
+  efficiency_curve_id      INTEGER,
+  energy_price             REAL,
+  energy_price_pattern_id  INTEGER,
+  curve_id                 INTEGER,
+  curve_points             TEXT
 );
 
-CREATE TABLE pipe_properties (
-  asset_id            INTEGER PRIMARY KEY REFERENCES assets(id),
-  diameter            REAL,
-  roughness           REAL,
-  minor_loss          REAL,
-  bulk_reaction_coeff REAL,
-  wall_reaction_coeff REAL
+CREATE TABLE valves (
+  id              INTEGER PRIMARY KEY,
+  label           TEXT,
+  is_active       INTEGER NOT NULL DEFAULT 1,
+  start_node_id   INTEGER NOT NULL,
+  end_node_id     INTEGER NOT NULL,
+  coords          TEXT NOT NULL CHECK (json_array_length(coords) >= 2),
+  length          REAL,
+  initial_status  TEXT,
+  diameter        REAL,
+  minor_loss      REAL,
+  valve_kind      TEXT,
+  setting         REAL,
+  curve_id        INTEGER
 );
-
-CREATE TABLE pump_properties (
-  asset_id                INTEGER PRIMARY KEY REFERENCES assets(id),
-  definition_type         TEXT NOT NULL CHECK (definition_type IN ('power','curve','curveId')),
-  power                   REAL,
-  speed                   REAL,
-  speed_pattern_id        INTEGER,
-  efficiency_curve_id     INTEGER,
-  energy_price            REAL,
-  energy_price_pattern_id INTEGER,
-  curve_id                INTEGER,
-  curve_points            TEXT
-);
-
-CREATE TABLE valve_properties (
-  asset_id   INTEGER PRIMARY KEY REFERENCES assets(id),
-  diameter   REAL,
-  minor_loss REAL,
-  valve_kind TEXT,
-  setting    REAL,
-  curve_id   INTEGER
-);
-
-CREATE VIEW junctions_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       np.coord_x, np.coord_y, np.elevation,
-       np.initial_quality,
-       np.chemical_source_type, np.chemical_source_strength, np.chemical_source_pattern_id,
-       jp.emitter_coefficient
-FROM assets a
-JOIN node_properties np      ON np.asset_id = a.id
-JOIN junction_properties jp  ON jp.asset_id = a.id
-WHERE a.type = 'junction';
-
-CREATE VIEW reservoirs_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       np.coord_x, np.coord_y, np.elevation,
-       np.initial_quality,
-       np.chemical_source_type, np.chemical_source_strength, np.chemical_source_pattern_id,
-       rp.head, rp.head_pattern_id
-FROM assets a
-JOIN node_properties np       ON np.asset_id = a.id
-JOIN reservoir_properties rp  ON rp.asset_id = a.id
-WHERE a.type = 'reservoir';
-
-CREATE VIEW tanks_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       np.coord_x, np.coord_y, np.elevation,
-       np.initial_quality,
-       np.chemical_source_type, np.chemical_source_strength, np.chemical_source_pattern_id,
-       tp.initial_level, tp.min_level, tp.max_level, tp.min_volume,
-       tp.diameter, tp.overflow, tp.mixing_model, tp.mixing_fraction,
-       tp.bulk_reaction_coeff, tp.volume_curve_id
-FROM assets a
-JOIN node_properties np    ON np.asset_id = a.id
-JOIN tank_properties tp    ON tp.asset_id = a.id
-WHERE a.type = 'tank';
-
-CREATE VIEW pipes_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       lp.start_node_id, lp.end_node_id, lp.coords, lp.length, lp.initial_status,
-       pp.diameter, pp.roughness, pp.minor_loss,
-       pp.bulk_reaction_coeff, pp.wall_reaction_coeff
-FROM assets a
-JOIN link_properties lp    ON lp.asset_id = a.id
-JOIN pipe_properties pp    ON pp.asset_id = a.id
-WHERE a.type = 'pipe';
-
-CREATE VIEW pumps_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       lp.start_node_id, lp.end_node_id, lp.coords, lp.length, lp.initial_status,
-       pmp.definition_type,
-       pmp.power, pmp.speed, pmp.speed_pattern_id,
-       pmp.efficiency_curve_id, pmp.energy_price, pmp.energy_price_pattern_id,
-       pmp.curve_id, pmp.curve_points
-FROM assets a
-JOIN link_properties lp     ON lp.asset_id = a.id
-JOIN pump_properties pmp    ON pmp.asset_id = a.id
-WHERE a.type = 'pump';
-
-CREATE VIEW valves_view AS
-SELECT a.id, a.type, a.label, a.is_active,
-       lp.start_node_id, lp.end_node_id, lp.coords, lp.length, lp.initial_status,
-       vp.diameter, vp.minor_loss, vp.valve_kind, vp.setting, vp.curve_id
-FROM assets a
-JOIN link_properties lp    ON lp.asset_id = a.id
-JOIN valve_properties vp   ON vp.asset_id = a.id
-WHERE a.type = 'valve';
 
 CREATE TABLE customer_points (
   id          INTEGER PRIMARY KEY,
   label       TEXT NOT NULL,
   coord_x     REAL NOT NULL,
   coord_y     REAL NOT NULL,
-  pipe_id     INTEGER REFERENCES assets(id),
-  junction_id INTEGER REFERENCES assets(id),
+  pipe_id     INTEGER,
+  junction_id INTEGER,
   snap_x      REAL,
   snap_y      REAL
 );
@@ -179,7 +134,7 @@ CREATE TABLE patterns (
 );
 
 CREATE TABLE junction_demands (
-  junction_id INTEGER NOT NULL REFERENCES assets(id),
+  junction_id INTEGER NOT NULL,
   ordinal     INTEGER NOT NULL,
   base_demand REAL NOT NULL,
   pattern_id  INTEGER,
