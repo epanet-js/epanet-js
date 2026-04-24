@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 
@@ -18,6 +18,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError } from "src/infra/error-tracking";
+import { MapContext, captureThumbnail } from "src/map";
 
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
@@ -37,6 +38,7 @@ export const useSaveProject = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const map = useContext(MapContext);
 
   const performSave = useAtomCallback(
     useCallback(
@@ -92,7 +94,10 @@ export const useSaveProject = ({
               handle: newHandle,
             });
             if (!isDemo) {
-              void addRecent(newHandle.name, newHandle);
+              const thumbnail = map
+                ? (captureThumbnail(map) ?? undefined)
+                : undefined;
+              void addRecent(newHandle.name, newHandle, thumbnail);
             }
           }
         };
@@ -109,7 +114,7 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [getFsAccess, addRecent, translate],
+      [getFsAccess, addRecent, translate, map],
     ),
   );
 

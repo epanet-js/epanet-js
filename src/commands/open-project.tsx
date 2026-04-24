@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { FeatureCollection } from "geojson";
 import { LngLatBoundsLike } from "mapbox-gl";
+import type { FileWithHandle } from "browser-fs-access";
 
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -24,34 +25,17 @@ import { projectExtension } from "./save-project";
 
 export const openProjectShortcut = "ctrl+o";
 
-export const useOpenProject = () => {
-  const checkUnsavedChanges = useUnsavedChangesCheck();
-  const { openFile, isReady } = useFileOpen();
+export const useOpenProjectFile = () => {
   const { openPersistedProject } = useOpenPersistedProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
-  const userTracking = useUserTracking();
   const translate = useTranslate();
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
-  const openProject = useCallback(
-    async ({ source }: { source: string }) => {
-      userTracking.capture({ name: "openProject.started", source });
-
-      if (!isOurFileOn) return;
-      if (!isReady) throw new Error("FS not ready");
-
+  return useCallback(
+    async (file: FileWithHandle) => {
       try {
-        const dbFile = await openFile({
-          multiple: false,
-          extensions: [projectExtension],
-          description: "EPANET project",
-          mimeTypes: ["application/octet-stream"],
-        });
-        if (!dbFile) return;
-
         setDialogState({ type: "openProjectProgress", phase: "opening" });
 
         const reportProgress = (phase: OpenPersistedProjectPhase) => {
@@ -59,7 +43,7 @@ export const useOpenProject = () => {
         };
 
         const result = await openPersistedProject({
-          file: dbFile,
+          file,
           onProgress: reportProgress,
         });
 
@@ -77,8 +61,8 @@ export const useOpenProject = () => {
         }
 
         setProjectFileInfo({
-          name: dbFile.name,
-          handle: dbFile.handle,
+          name: file.name,
+          handle: file.handle,
           modelVersion: result.modelVersion,
         });
         setInpFileInfo(null);
@@ -115,17 +99,41 @@ export const useOpenProject = () => {
       }
     },
     [
-      openFile,
-      isReady,
       openPersistedProject,
       setInpFileInfo,
       setProjectFileInfo,
       setDialogState,
       map,
       translate,
-      userTracking,
-      isOurFileOn,
     ],
+  );
+};
+
+export const useOpenProject = () => {
+  const checkUnsavedChanges = useUnsavedChangesCheck();
+  const { openFile, isReady } = useFileOpen();
+  const openProjectFile = useOpenProjectFile();
+  const userTracking = useUserTracking();
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+
+  const openProject = useCallback(
+    async ({ source }: { source: string }) => {
+      userTracking.capture({ name: "openProject.started", source });
+
+      if (!isOurFileOn) return;
+      if (!isReady) throw new Error("FS not ready");
+
+      const dbFile = await openFile({
+        multiple: false,
+        extensions: [projectExtension],
+        description: "EPANET project",
+        mimeTypes: ["application/octet-stream"],
+      });
+      if (!dbFile) return;
+
+      await openProjectFile(dbFile);
+    },
+    [openFile, isReady, openProjectFile, userTracking, isOurFileOn],
   );
 
   return useCallback(

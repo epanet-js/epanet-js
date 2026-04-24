@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import { useImportInp } from "src/commands/import-inp";
+import { projectExtension } from "src/commands/save-project";
+import { useOpenProjectFile } from "src/commands/open-project";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { notify } from "src/components/notifications";
@@ -12,6 +14,7 @@ import { useTranslate } from "src/hooks/use-translate";
 export const useOpenRecentFile = () => {
   const translate = useTranslate();
   const importInp = useImportInp();
+  const openProjectFile = useOpenProjectFile();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { removeRecent } = useRecentFiles();
   const userTracking = useUserTracking();
@@ -35,7 +38,12 @@ export const useOpenRecentFile = () => {
           const fileWithHandle: FileWithHandle = Object.assign(file, {
             handle: entry.handle,
           });
-          void importInp([fileWithHandle]);
+          const isProject = entry.name.toLowerCase().endsWith(projectExtension);
+          if (isProject) {
+            await openProjectFile(fileWithHandle);
+          } else {
+            void importInp([fileWithHandle]);
+          }
           userTracking.capture({
             name: "recentFile.opened",
             source,
@@ -51,6 +59,13 @@ export const useOpenRecentFile = () => {
         }
       });
     },
-    [checkUnsavedChanges, importInp, removeRecent, translate, userTracking],
+    [
+      checkUnsavedChanges,
+      importInp,
+      openProjectFile,
+      removeRecent,
+      translate,
+      userTracking,
+    ],
   );
 };
