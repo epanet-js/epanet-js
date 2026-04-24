@@ -41,7 +41,6 @@ export function CheatsheetDialog() {
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
 
   const BINDINGS: ShortcutSection[] = [
     {
@@ -65,9 +64,7 @@ export function CheatsheetDialog() {
           binding: toggleNetworkReviewShortcut,
           description: "networkReview.toggle",
         },
-        ...(isAssetSearchOn
-          ? [{ binding: SEARCH_KEYBINDING, description: "assetSearch.title" }]
-          : []),
+        { binding: SEARCH_KEYBINDING, description: "assetSearch.title" },
         { binding: "?", description: "keyboardShortcuts.title" },
       ],
     },

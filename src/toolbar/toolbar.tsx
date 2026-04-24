@@ -222,11 +222,8 @@ const Divider = () => {
 
 const CommandBarButton = () => {
   const translate = useTranslate();
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
   const setOpen = useSetAtom(commandBarOpenAtom);
   const userTracking = useUserTracking();
-
-  if (!isAssetSearchOn) return null;
 
   return (
     <MenuAction

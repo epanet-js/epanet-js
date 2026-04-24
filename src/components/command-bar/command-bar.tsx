@@ -15,7 +15,6 @@ import { selectionAtom } from "src/state/selection";
 import { currentFileNameAtom } from "src/state/file-system";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useHotkeys } from "src/keyboard/hotkeys";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { BBox } from "src/types";
 
@@ -53,7 +52,6 @@ const MAX_RESULTS = 200;
 const recentsByNetwork = new Map<string, SearchOption[]>();
 
 export const CommandBar = () => {
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
   const [isOpen, setOpen] = useAtom(commandBarOpenAtom);
   const userTracking = useUserTracking();
 
@@ -72,10 +70,9 @@ export const CommandBar = () => {
     },
     [setOpen, userTracking],
     "Open command bar",
-    !isAssetSearchOn,
   );
 
-  if (!isAssetSearchOn || !isOpen) return null;
+  if (!isOpen) return null;
 
   return <CommandBarModal onClose={() => setOpen(false)} />;
 };

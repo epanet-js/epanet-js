@@ -8,7 +8,6 @@ import Mousetrap from "mousetrap";
 import { Maybe } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
@@ -28,7 +27,6 @@ import { CommandBar } from "./command-bar";
 describe("CommandBar", () => {
   beforeEach(() => {
     zoomToMock.mockReset();
-    stubFeatureOn("FLAG_ASSET_SEARCH");
   });
 
   it("renders nothing when the atom is closed", () => {
@@ -60,18 +58,6 @@ describe("CommandBar", () => {
 
     await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
     expect(store.get(commandBarOpenAtom)).toBe(true);
-  });
-
-  it("does not render and ignores Ctrl+K when flag is off", () => {
-    stubFeatureOff("FLAG_ASSET_SEARCH");
-    const { store } = setupWithLabels([{ label: "P1", type: "pipe", id: 1 }]);
-    store.set(commandBarOpenAtom, true);
-
-    renderComponent(store);
-
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    Mousetrap.trigger("ctrl+k");
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("filters assets by label", async () => {

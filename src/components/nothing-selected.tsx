@@ -2,7 +2,6 @@ import { memo } from "react";
 import { Keycap } from "./elements";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import {
   MouseCursorDefaultIcon,
@@ -17,7 +16,6 @@ import { SEARCH_KEYBINDING } from "src/dialogs/cheatsheet";
 
 export const NothingSelected = memo(function NothingSelected() {
   const translate = useTranslate();
-  const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
@@ -25,11 +23,7 @@ export const NothingSelected = memo(function NothingSelected() {
         <PointerClickIcon size={96} />
       </div>
       <p className="text-sm font-semibold py-4 text-gray-600">
-        {translate(
-          isAssetSearchOn
-            ? "nothingSelectedTitleWithSearch"
-            : "nothingSelectedTitle",
-        )}
+        {translate("nothingSelectedTitle")}
       </p>
       <div
         className="grid gap-x-2 gap-y-4 items-start text-sm text-gray-600 max-w-64"
@@ -49,16 +43,12 @@ export const NothingSelected = memo(function NothingSelected() {
           <Keycap size="xs">{localizeKeybinding(selectionModeShortcut)}</Keycap>
         </div>
         <div>{translate("nothingSelectedAreaSelect")}</div>
-        {isAssetSearchOn && (
-          <>
-            <div className="flex items-center gap-1">
-              <SearchIcon />
-              <span>/</span>
-              <Keycap size="xs">{localizeKeybinding(SEARCH_KEYBINDING)}</Keycap>
-            </div>
-            <div>{translate("nothingSelectedSearch")}</div>
-          </>
-        )}
+        <div className="flex items-center gap-1">
+          <SearchIcon />
+          <span>/</span>
+          <Keycap size="xs">{localizeKeybinding(SEARCH_KEYBINDING)}</Keycap>
+        </div>
+        <div>{translate("nothingSelectedSearch")}</div>
       </div>
     </div>
   );
