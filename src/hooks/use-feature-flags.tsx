@@ -4,6 +4,7 @@ import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 import {
   getEnabledFlagsFromUrl,
+  getFlagOverrideFromUrl,
   useUrlFeatureFlag as useUrlFeatureFlagImpl,
 } from "./use-url-feature-flag";
 
@@ -81,6 +82,9 @@ export const FeatureFlagsProvider = isPosthogConfigured
 
 const useFeatureFlagWithPostHog = (name: string): boolean => {
   const posthog = usePostHog();
+
+  const urlOverride = getFlagOverrideFromUrl(name);
+  if (urlOverride !== undefined) return urlOverride;
 
   if (posthog?.isFeatureEnabled) {
     const posthogFlag = posthog.isFeatureEnabled(name);
