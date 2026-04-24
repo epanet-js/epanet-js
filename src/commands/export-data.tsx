@@ -59,11 +59,9 @@ export const useExportData = ({
 
         const doExport = async () => {
           const { fileSave } = await getFsAccess();
-          const data = buildDataForExport(
-            options.format,
-            hydraulicModel,
-            resultsReader,
-          );
+
+          const data = buildDataForExport(hydraulicModel, resultsReader);
+
           const fileName = "export";
           const exportedFile = Export.exportFile(
             options.format,
@@ -77,7 +75,6 @@ export const useExportData = ({
             extensions: exportedFile.extensions,
             fileName: exportedFile.fileName,
           };
-
           await fileSave(exportedFile.blob, saveOptions, null);
         };
 
@@ -97,29 +94,39 @@ export const useExportData = ({
 };
 
 const buildDataForExport = (
-  format: ExportFormat,
   hydraulicModel: HydraulicModel,
   resultsReader?: ResultsReader,
 ): ExportEntry[] => {
-  switch (format) {
-    case "geojson": {
-      const assets = Array.from(hydraulicModel.assets.values()).map((asset) => {
-        const simulationResults = resultsReader
-          ? getSimulationProps(asset, resultsReader)
-          : {};
+  const exportedAssets: Record<string, object[]> = {
+    junction: [],
+    tank: [],
+    reservoir: [],
+    pipe: [],
+    pump: [],
+    valve: [],
+  };
 
-        return {
-          ...asset.feature.properties,
-          id: asset.id,
-          geometry: { ...asset.feature.geometry },
-          ...simulationResults,
-        };
-      });
-      return [{ name: "network", data: assets }];
-    }
-    default:
-      return [];
-  }
+  Array.from(hydraulicModel.assets.values()).forEach((asset) => {
+    const simulationResults = resultsReader
+      ? getSimulationProps(asset, resultsReader)
+      : {};
+
+    exportedAssets[asset.type].push({
+      ...asset.feature.properties,
+      id: asset.id,
+      geometry: { ...asset.feature.geometry },
+      ...simulationResults,
+    });
+  });
+
+  return [
+    { name: "junction", data: exportedAssets.junction },
+    { name: "tank", data: exportedAssets.tank },
+    { name: "reservoir", data: exportedAssets.reservoir },
+    { name: "pipe", data: exportedAssets.pipe },
+    { name: "pump", data: exportedAssets.pump },
+    { name: "valve", data: exportedAssets.valve },
+  ];
 };
 
 const getSimulationProps = (
