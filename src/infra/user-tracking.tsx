@@ -1151,6 +1151,21 @@ export type UserEvent =
   | { name: "trial.activated"; feature: PaywallFeature }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }
+  | {
+      name: "commandBar.opened";
+      source: "shortcut" | "toolbar";
+    }
+  | {
+      name: "commandBar.closed";
+      outcome: "selected" | "dismissed";
+      query: string;
+      queryLength: number;
+      resultsCount: number;
+      selectedKind?: "asset" | "customerPoint";
+      selectedAssetType?: Asset["type"];
+      selectedFromRecents?: boolean;
+      selectedIndex?: number;
+    }
   | PatternChanged
   | PatternAdded
   | PatternDeleted

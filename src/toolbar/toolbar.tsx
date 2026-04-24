@@ -224,6 +224,7 @@ const CommandBarButton = () => {
   const translate = useTranslate();
   const isAssetSearchOn = useFeatureFlag("FLAG_ASSET_SEARCH");
   const setOpen = useSetAtom(commandBarOpenAtom);
+  const userTracking = useUserTracking();
 
   if (!isAssetSearchOn) return null;
 
@@ -231,7 +232,13 @@ const CommandBarButton = () => {
     <MenuAction
       label={translate("assetSearch.placeholder")}
       role="button"
-      onClick={() => setOpen(true)}
+      onClick={() => {
+        userTracking.capture({
+          name: "commandBar.opened",
+          source: "toolbar",
+        });
+        setOpen(true);
+      }}
       readOnlyHotkey="ctrl+k"
     >
       <SearchIcon />
