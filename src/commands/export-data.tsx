@@ -1,7 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { Export, ExportFormat } from "src/lib/export";
-import type { ExportedFile } from "src/lib/export/types";
+import type { ExportEntry } from "src/lib/export/types";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -12,13 +12,23 @@ import { simulationStepAtom } from "src/state/simulation";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { Asset } from "src/hydraulic-model/asset-types";
 import type { ResultsReader } from "src/simulation/results-reader";
+import type { fileSave as fileSaveType } from "browser-fs-access";
+
+const getDefaultFsAccess = async () => {
+  const { fileSave } = await import("browser-fs-access");
+  return { fileSave };
+};
+
+type FileAccess = { fileSave: typeof fileSaveType };
 
 export type DataExportOptions = {
   format: ExportFormat;
   includeSimulationResults: boolean;
 };
 
-export const useExportData = () => {
+export const useExportData = ({
+  getFsAccess = getDefaultFsAccess,
+}: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const translate = useTranslate();
 
   const exportNetwork = useAtomCallback(
@@ -48,14 +58,27 @@ export const useExportData = () => {
         const resultsReader = (await getResultsReader()) ?? undefined;
 
         const doExport = async () => {
+          const { fileSave } = await getFsAccess();
           const data = buildDataForExport(
             options.format,
             hydraulicModel,
             resultsReader,
           );
-          Export.exportFile(options.format, data);
+          const fileName = "export";
+          const exportedFile = Export.exportFile(
+            options.format,
+            fileName,
+            data,
+          );
 
-          return Promise.resolve();
+          const saveOptions = {
+            mimeTypes: exportedFile.mimeTypes,
+            description: exportedFile.description,
+            extensions: exportedFile.extensions,
+            fileName: exportedFile.fileName,
+          };
+
+          await fileSave(exportedFile.blob, saveOptions, null);
         };
 
         try {
@@ -66,7 +89,7 @@ export const useExportData = () => {
           });
         } catch {}
       },
-      [translate],
+      [translate, getFsAccess],
     ),
   );
 
@@ -77,7 +100,7 @@ const buildDataForExport = (
   format: ExportFormat,
   hydraulicModel: HydraulicModel,
   resultsReader?: ResultsReader,
-): ExportedFile[] => {
+): ExportEntry[] => {
   switch (format) {
     case "geojson": {
       const assets = Array.from(hydraulicModel.assets.values()).map((asset) => {

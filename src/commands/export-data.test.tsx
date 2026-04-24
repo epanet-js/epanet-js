@@ -11,10 +11,18 @@ import { Export } from "src/lib/export";
 import { Store } from "src/state";
 import { useExportData, DataExportOptions } from "./export-data";
 import { Junction, Pipe } from "src/hydraulic-model";
+import { stubFileSave, lastSaveCall } from "src/__helpers__/browser-fs-mock";
 
 describe("export-data", () => {
   beforeEach(() => {
-    vi.spyOn(Export, "exportFile").mockReturnValue(new Blob());
+    vi.spyOn(Export, "exportFile").mockReturnValue({
+      blob: new Blob(),
+      fileName: "export.geojson",
+      description: "GeoJSON",
+      extensions: [".geojson"],
+      mimeTypes: ["application/geo+json"],
+    });
+    stubFileSave({ fileName: "export.geojson" });
   });
 
   afterEach(() => {
@@ -38,7 +46,7 @@ describe("export-data", () => {
         includeSimulationResults: false,
       });
 
-      const [format, files] = vi.mocked(Export.exportFile).mock.calls[0];
+      const [format, , files] = vi.mocked(Export.exportFile).mock.calls[0];
       expect(format).toBe("geojson");
 
       const data = files[0].data as { id: number }[];
@@ -64,7 +72,7 @@ describe("export-data", () => {
         includeSimulationResults: false,
       });
 
-      const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+      const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
       const data = files[0].data as {
         id: number;
         geometry: { type: string };
@@ -93,7 +101,7 @@ describe("export-data", () => {
         includeSimulationResults: false,
       });
 
-      const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+      const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
       const features = files[0].data as Record<string, unknown>[];
 
       const junction = features.find((f) => f.id === IDS.J1);
@@ -117,6 +125,32 @@ describe("export-data", () => {
         roughness: (hydraulicModel.assets.get(IDS.P1) as Pipe)?.roughness,
         length: (hydraulicModel.assets.get(IDS.P1) as Pipe)?.length,
       });
+    });
+
+    it("saves the exported blob to disk with correct options", async () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aJunction(IDS.J2)
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+
+      const store = setInitialState({ hydraulicModel });
+      renderComponent({ store });
+
+      await triggerExport({
+        format: "geojson",
+        includeSimulationResults: false,
+      });
+
+      const { options, handle } = lastSaveCall();
+      expect(options).toEqual({
+        fileName: "export.geojson",
+        extensions: [".geojson"],
+        description: "GeoJSON",
+        mimeTypes: ["application/geo+json"],
+      });
+      expect(handle).toBeNull();
     });
 
     describe("with simulation results", () => {
@@ -148,7 +182,7 @@ describe("export-data", () => {
           includeSimulationResults: true,
         });
 
-        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
         const data = files[0].data as Record<string, unknown>[];
 
         const junction = data.find((f) => f.id === IDS.J1);
@@ -185,7 +219,7 @@ describe("export-data", () => {
           includeSimulationResults: false,
         });
 
-        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
         const data = files[0].data as Record<string, unknown>[];
 
         const junction = data.find((f) => f.id === IDS.J1);
@@ -211,7 +245,7 @@ describe("export-data", () => {
           includeSimulationResults: true,
         });
 
-        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
         const data = files[0].data as Record<string, unknown>[];
 
         const junction = data.find((f) => f.id === IDS.J1);

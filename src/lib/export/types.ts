@@ -1,6 +1,14 @@
 export type ExportFormat = "geojson" | "shapefile" | "csv" | "xlsx";
 
-export type ExportedFile = {
+export type ExportEntry = {
   name: string;
   data: object;
+};
+
+export type ExportedFile = {
+  fileName: string;
+  extensions: string[];
+  mimeTypes: string[];
+  description: string;
+  blob: Blob;
 };
