@@ -18,6 +18,7 @@ import type {
 } from "./rows";
 import type { AssetPatchRow } from "./asset-patches";
 import type { ApplyMomentPayload } from "./apply-moment";
+import type { OpenDbResult } from "./open-project";
 
 type Stmt = {
   bind: (values: unknown[]) => Stmt;
@@ -734,41 +735,59 @@ const api = {
     });
   },
 
-  async openDb(fileBytes: Uint8Array): Promise<{
-    status: "ok" | "migrated" | "too-new";
-    fileVersion: number;
-    appVersion: number;
-  }> {
+  async openDb(fileBytes: Uint8Array): Promise<OpenDbResult> {
     return timed(
       "openDb",
       async () => {
         await ready;
         closeExistingDb();
 
-        db = new sqlite3!.oo1.DB(":memory:", "c");
-        const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
-        const flags =
-          sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
-          sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
-        sqlite3!.capi.sqlite3_deserialize(
-          db.pointer!,
-          "main",
-          p,
-          fileBytes.length,
-          fileBytes.length,
-          flags,
-        );
+        try {
+          db = new sqlite3!.oo1.DB(":memory:", "c");
+          const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
+          const flags =
+            sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
+            sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
+          sqlite3!.capi.sqlite3_deserialize(
+            db.pointer!,
+            "main",
+            p,
+            fileBytes.length,
+            fileBytes.length,
+            flags,
+          );
 
-        const fileVersion = readUserVersion();
-        if (fileVersion > migrations.length) {
+          let fileVersion: number;
+          try {
+            fileVersion = readUserVersion();
+          } catch (e) {
+            closeExistingDb();
+            return { status: "corrupt", errorMessage: (e as Error).message };
+          }
+
+          if (fileVersion > migrations.length) {
+            closeExistingDb();
+            return { status: "too-new", fileVersion, appVersion: APP_VERSION };
+          }
+          if (fileVersion < migrations.length) {
+            try {
+              runMigrations();
+            } catch (e) {
+              closeExistingDb();
+              return {
+                status: "migration-failed",
+                errorMessage: (e as Error).message,
+                fileVersion,
+                appVersion: APP_VERSION,
+              };
+            }
+            return { status: "migrated", fileVersion, appVersion: APP_VERSION };
+          }
+          return { status: "ok", fileVersion, appVersion: APP_VERSION };
+        } catch (e) {
           closeExistingDb();
-          return { status: "too-new", fileVersion, appVersion: APP_VERSION };
+          return { status: "internal", errorMessage: (e as Error).message };
         }
-        if (fileVersion < migrations.length) {
-          runMigrations();
-          return { status: "migrated", fileVersion, appVersion: APP_VERSION };
-        }
-        return { status: "ok", fileVersion, appVersion: APP_VERSION };
       },
       { bytes: fileBytes.length },
     );

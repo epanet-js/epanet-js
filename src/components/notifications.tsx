@@ -8,6 +8,7 @@ type NotificationBannerProps = {
   variant: NotificationVariant;
   title?: string;
   description?: string;
+  details?: string;
   Icon?: React.ElementType;
   className?: string;
 };
@@ -16,6 +17,7 @@ export const NotificationBanner = ({
   variant,
   title,
   description,
+  details,
   Icon,
   className,
 }: NotificationBannerProps) => {
@@ -42,9 +44,19 @@ export const NotificationBanner = ({
           aria-hidden="true"
         />
       )}
-      <div className="flex flex-col flex-grow space-y-1">
+      <div className="flex flex-col flex-grow space-y-1 min-w-0">
         {title && <span className="text-sm font-semibold">{title}</span>}
         {description && <span className="text-sm">{description}</span>}
+        {details && (
+          <details className="text-xs">
+            <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+              Show details
+            </summary>
+            <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-gray-700 bg-white/60 rounded p-2 max-h-40 overflow-auto">
+              {details}
+            </pre>
+          </details>
+        )}
       </div>
     </div>
   );
@@ -102,6 +114,7 @@ export const notify = ({
   variant = "default",
   title,
   description,
+  details,
   Icon,
   id,
   duration = 5000,
@@ -112,6 +125,7 @@ export const notify = ({
   variant?: NotificationVariant;
   title: string;
   description?: string;
+  details?: string;
   Icon?: React.ElementType;
   id?: string;
   duration?: number;
@@ -139,6 +153,7 @@ export const notify = ({
           variant={variant}
           title={title}
           description={description}
+          details={details}
           Icon={Icon}
           className={clsx(
             "shadow-md border rounded-lg",

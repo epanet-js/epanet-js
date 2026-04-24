@@ -47,16 +47,63 @@ export const useOpenProjectFile = () => {
           onProgress: reportProgress,
         });
 
-        if (result.status === "too-new") {
+        if (result.status !== "ok") {
           setDialogState(null);
+          if (result.status === "too-new") {
+            notify({
+              variant: "warning",
+              size: "md",
+              title: "Project file is too new",
+              description:
+                "This file was created by a newer version of the app. Please update to open it.",
+              details: `File version ${result.fileVersion}, app version ${result.appVersion}.`,
+              Icon: WarningIcon,
+            });
+            return;
+          }
+          if (result.status === "corrupt") {
+            notify({
+              variant: "warning",
+              size: "md",
+              title: "Project file is invalid",
+              description:
+                "The file couldn't be read as a project. It may be corrupt or saved in a different format.",
+              details: result.errorMessage,
+              Icon: WarningIcon,
+            });
+            captureError(
+              new Error(`openProject corrupt: ${result.errorMessage}`),
+            );
+            return;
+          }
+          if (result.status === "migration-failed") {
+            notify({
+              variant: "warning",
+              size: "md",
+              title: "Couldn't open project",
+              description:
+                "The project file couldn't be upgraded to this version of the app.",
+              details: `File version ${result.fileVersion}, app version ${result.appVersion}.\n${result.errorMessage}`,
+              Icon: WarningIcon,
+            });
+            captureError(
+              new Error(
+                `openProject migration-failed (v${result.fileVersion}→${result.appVersion}): ${result.errorMessage}`,
+              ),
+            );
+            return;
+          }
           notify({
             variant: "warning",
             size: "md",
-            title: "Project file is too new",
-            description:
-              "This file was created by a newer version of the app. Please update to open it.",
+            title: "Couldn't open project",
+            description: "Something went wrong while opening the file.",
+            details: result.errorMessage,
             Icon: WarningIcon,
           });
+          captureError(
+            new Error(`openProject internal: ${result.errorMessage}`),
+          );
           return;
         }
 
@@ -93,7 +140,9 @@ export const useOpenProjectFile = () => {
         notify({
           variant: "warning",
           size: "md",
-          title: "Project file is invalid",
+          title: "Couldn't open project",
+          description: "Something went wrong while opening the file.",
+          details: (error as Error)?.message,
           Icon: WarningIcon,
         });
       }

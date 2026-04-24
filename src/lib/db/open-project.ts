@@ -1,11 +1,20 @@
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
 
-export type OpenProjectResult = {
-  status: "ok" | "migrated" | "too-new";
-  fileVersion: number;
-  appVersion: number;
-};
+export type OpenDbResult =
+  | { status: "ok"; fileVersion: number; appVersion: number }
+  | { status: "migrated"; fileVersion: number; appVersion: number }
+  | { status: "too-new"; fileVersion: number; appVersion: number }
+  | { status: "corrupt"; errorMessage: string }
+  | { status: "internal"; errorMessage: string }
+  | {
+      status: "migration-failed";
+      errorMessage: string;
+      fileVersion: number;
+      appVersion: number;
+    };
+
+export type OpenProjectResult = OpenDbResult;
 
 export const openProject = async (dbFile: File): Promise<OpenProjectResult> => {
   return timed(

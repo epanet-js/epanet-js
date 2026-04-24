@@ -19,7 +19,14 @@ type OpenPersistedProjectInput = {
 
 export type OpenPersistedProjectResult =
   | { status: "ok"; modelVersion: string; hydraulicModel: HydraulicModel }
-  | { status: "too-new"; fileVersion: number; appVersion: number };
+  | { status: "too-new"; fileVersion: number; appVersion: number }
+  | { status: "corrupt" | "internal"; errorMessage: string }
+  | {
+      status: "migration-failed";
+      errorMessage: string;
+      fileVersion: number;
+      appVersion: number;
+    };
 
 export const useOpenPersistedProject = () => {
   const openPersistedProject = useAtomCallback(
@@ -30,12 +37,8 @@ export const useOpenPersistedProject = () => {
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
         const result = await db.openProject(file);
-        if (result.status === "too-new") {
-          return {
-            status: "too-new",
-            fileVersion: result.fileVersion,
-            appVersion: result.appVersion,
-          };
+        if (result.status !== "ok" && result.status !== "migrated") {
+          return result;
         }
         const {
           projectSettings,
