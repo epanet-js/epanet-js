@@ -1,4 +1,6 @@
-import type { ExportFormat } from "./types";
+import type { ExportFormat, ExportedFile } from "./types";
 
-export const exportFile = (_format: ExportFormat, _data: object[]): Blob =>
-  new Blob([], { type: "text/plain" });
+export const exportFile = (
+  _format: ExportFormat,
+  _data: ExportedFile[],
+): Blob => new Blob([], { type: "text/plain" });
