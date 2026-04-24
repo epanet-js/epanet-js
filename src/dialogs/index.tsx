@@ -254,6 +254,18 @@ const SimulationProgressDialog = dynamic<{
   },
 );
 
+const OpenProjectProgressDialog = dynamic<{
+  modal: dialogState.OpenProjectProgressDialogState;
+}>(
+  () =>
+    import("src/dialogs/open-project-progress").then(
+      (r) => r.OpenProjectProgressDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ControlsDialog = dynamic(
   () => import("src/dialogs/controls-dialog").then((r) => r.ControlsDialog),
   {
@@ -475,6 +487,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationProgress") {
     return <SimulationProgressDialog modal={dialog} />;
+  }
+  if (dialog.type === "openProjectProgress") {
+    return <OpenProjectProgressDialog modal={dialog} />;
   }
   if (dialog.type === "controls") {
     return <ControlsDialog />;

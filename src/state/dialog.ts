@@ -105,6 +105,19 @@ export type SimulationProgressDialogState = {
   phase: "hydraulic" | "quality" | "finalizing";
 };
 
+export type OpenProjectPhase =
+  | "opening"
+  | "reading-assets"
+  | "reading-customer-points"
+  | "reading-settings"
+  | "building"
+  | "finalizing";
+
+export type OpenProjectProgressDialogState = {
+  type: "openProjectProgress";
+  phase: OpenProjectPhase;
+};
+
 export type PatternsLibraryDialog = {
   type: "patternsLibrary";
   initialPatternId?: number;
@@ -202,6 +215,7 @@ export type DialogState =
   | ModelBuilderIframeDialogState
   | EarlyAccessDialogState
   | SimulationProgressDialogState
+  | OpenProjectProgressDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
   | PatternsLibraryDialog

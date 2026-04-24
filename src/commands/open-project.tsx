@@ -4,7 +4,10 @@ import { LngLatBoundsLike } from "mapbox-gl";
 
 import { useFileOpen } from "src/hooks/use-file-open";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
-import { useOpenPersistedProject } from "src/hooks/persistence/use-open-persisted-project";
+import {
+  useOpenPersistedProject,
+  type OpenPersistedProjectPhase,
+} from "src/hooks/persistence/use-open-persisted-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
@@ -49,9 +52,19 @@ export const useOpenProject = () => {
         });
         if (!dbFile) return;
 
-        const result = await openPersistedProject({ file: dbFile });
+        setDialogState({ type: "openProjectProgress", phase: "opening" });
+
+        const reportProgress = (phase: OpenPersistedProjectPhase) => {
+          setDialogState({ type: "openProjectProgress", phase });
+        };
+
+        const result = await openPersistedProject({
+          file: dbFile,
+          onProgress: reportProgress,
+        });
 
         if (result.status === "too-new") {
+          setDialogState(null);
           notify({
             variant: "warning",
             size: "md",
@@ -91,6 +104,7 @@ export const useOpenProject = () => {
           size: "sm",
         });
       } catch (error) {
+        setDialogState(null);
         captureError(error as Error);
         notify({
           variant: "warning",

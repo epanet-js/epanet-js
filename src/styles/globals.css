@@ -597,6 +597,19 @@ body.dark .mapboxgl-ctrl-attrib-button {
   animation: progressIndeterminate 1.2s ease-in-out infinite;
 }
 
+@keyframes progressShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.progress-shimmer {
+  animation: progressShimmer 1.8s linear infinite;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .placemark-appear {
     animation-duration: 400ms;

@@ -3,14 +3,18 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
+import type { FetchProjectPhase } from "src/lib/db/fetch-project";
 import {
   clearSimulationStorage,
   loadModel,
   resetAppState,
 } from "./use-start-new-project";
 
+export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
+
 type OpenPersistedProjectInput = {
   file: File;
+  onProgress?: (phase: OpenPersistedProjectPhase) => void;
 };
 
 export type OpenPersistedProjectResult =
@@ -23,7 +27,7 @@ export const useOpenPersistedProject = () => {
       async (
         _get: Getter,
         set: Setter,
-        { file }: OpenPersistedProjectInput,
+        { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
         const result = await db.openProject(file);
         if (result.status === "too-new") {
@@ -38,7 +42,8 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           factories,
           simulationSettings,
-        } = await db.fetchProject();
+        } = await db.fetchProject({ onProgress });
+        onProgress?.("finalizing");
         await clearSimulationStorage();
         resetAppState(set);
         loadModel(set, {

@@ -40,35 +40,58 @@ export type Project = {
   simulationSettings: SimulationSettings;
 };
 
-export const fetchProject = async (): Promise<Project> => {
+export type FetchProjectPhase =
+  | "reading-assets"
+  | "reading-customer-points"
+  | "reading-settings"
+  | "building";
+
+export type FetchProjectOptions = {
+  onProgress?: (phase: FetchProjectPhase) => void;
+};
+
+export const fetchProject = async (
+  options: FetchProjectOptions = {},
+): Promise<Project> => {
+  const { onProgress } = options;
   return timed("fetchProject", async () => {
     const worker = getDbWorker();
+
+    onProgress?.("reading-assets");
+    const [junctions, reservoirs, tanks, pipes, pumps, valves] = await timed(
+      "fetchProject.readAssets",
+      () =>
+        Promise.all([
+          worker.getJunctions() as Promise<JunctionRow[]>,
+          worker.getReservoirs() as Promise<ReservoirRow[]>,
+          worker.getTanks() as Promise<TankRow[]>,
+          worker.getPipes() as Promise<PipeRow[]>,
+          worker.getPumps() as Promise<PumpRow[]>,
+          worker.getValves() as Promise<ValveRow[]>,
+        ]),
+    );
+
+    onProgress?.("reading-customer-points");
+    const [customerPointRows, customerPointDemandRows] = await timed(
+      "fetchProject.readCustomerPoints",
+      () =>
+        Promise.all([
+          worker.getCustomerPoints() as Promise<CustomerPointRow[]>,
+          worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
+        ]),
+    );
+
+    onProgress?.("reading-settings");
     const [
       settingsJson,
-      junctions,
-      reservoirs,
-      tanks,
-      pipes,
-      pumps,
-      valves,
-      customerPointRows,
-      customerPointDemandRows,
       patternRows,
       junctionDemandRows,
       curveRows,
       controlsData,
       simulationSettingsData,
-    ] = await timed("fetchProject.readAll", () =>
+    ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
-        worker.getJunctions() as Promise<JunctionRow[]>,
-        worker.getReservoirs() as Promise<ReservoirRow[]>,
-        worker.getTanks() as Promise<TankRow[]>,
-        worker.getPipes() as Promise<PipeRow[]>,
-        worker.getPumps() as Promise<PumpRow[]>,
-        worker.getValves() as Promise<ValveRow[]>,
-        worker.getCustomerPoints() as Promise<CustomerPointRow[]>,
-        worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
         worker.getPatterns() as Promise<PatternRow[]>,
         worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
         worker.getCurves() as Promise<CurveRow[]>,
@@ -79,6 +102,8 @@ export const fetchProject = async (): Promise<Project> => {
     if (!settingsJson) {
       throw new Error("Project settings missing");
     }
+    onProgress?.("building");
+    await new Promise((resolve) => setTimeout(resolve, 0));
     return timed(
       "fetchProject.build",
       () => {
