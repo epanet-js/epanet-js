@@ -55,6 +55,7 @@ export const FileDropdown = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const isExportOn = useFeatureFlag("FLAG_EXPORT");
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -183,6 +184,17 @@ export const FileDropdown = () => {
                 >
                   <DownloadIcon />
                   {translate("exportINP")}
+                </StyledItem>
+              )}
+
+              {isExportOn && (
+                <StyledItem
+                  onSelect={() => {
+                    setDialogState({ type: "exportData" });
+                  }}
+                >
+                  <DownloadIcon />
+                  {translate("exportData")}
                 </StyledItem>
               )}
 

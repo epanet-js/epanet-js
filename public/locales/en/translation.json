@@ -1253,6 +1253,14 @@
     "noResultsTitle": "No matching projections found here",
     "noResultsDescription": "Try searching for a different location or zooming out on the map to expand your search area."
   },
+  "exportData": "Export Data",
+  "exportFormat": "Export format",
+  "includeSimulationResults": "Include simulation results",
+  "exporting": "Exporting...",
+  "exported": "Exported successfully",
+  "exportFailed": "Export failed",
+  "exportGeojson": "GeoJSON",
+  "exportShapefile": "Shapefile (GIS)",
   "dialog": {
     "save": "Save",
     "cancel": "Cancel",

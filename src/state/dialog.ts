@@ -192,6 +192,10 @@ export type ActivatingTrialDialogState = {
   type: "activatingTrial";
 };
 
+export type ExportDataDialogState = {
+  type: "exportData";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -230,6 +234,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
+  | ExportDataDialogState
   | NetworkProjectionDialogState
   | null;
 
