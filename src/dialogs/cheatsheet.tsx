@@ -41,13 +41,17 @@ export function CheatsheetDialog() {
   const { closeDialog } = useDialogState();
   const translate = useTranslate();
   const isMac = useFeatureFlag("FLAG_MAC");
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const BINDINGS: ShortcutSection[] = [
     {
       group: "keyboardShortcuts.fileManagement",
       shortcuts: [
         { binding: "Alt+N", description: "newProject" },
-        { binding: "Command+O", description: "openProject" },
+        {
+          binding: "Command+O",
+          description: isOurFileOn ? "openProject" : "openINP",
+        },
         { binding: "Command+S", description: "save" },
         { binding: "Command+Shift+S", description: "saveAs" },
       ],
