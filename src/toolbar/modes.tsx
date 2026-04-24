@@ -1,14 +1,17 @@
 import { modeAtom, Mode, MODE_INFO } from "src/state/mode";
 import MenuAction from "src/components/menu-action";
 import { memo } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
 import { useTranslate } from "src/hooks/use-translate";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SelectionTool } from "./selection-tool";
 import { TraceTool } from "./trace-tool";
 import { DrawingToolDropdown } from "./drawing-tool-dropdown";
+import { profileViewAtom } from "src/state/profile-view";
+import { ephemeralStateAtom } from "src/state/drawing";
 
 import {
   JunctionIcon,
@@ -19,6 +22,7 @@ import {
   ValveIcon,
   PipeIcon,
   CustomerPointIcon,
+  ProfileViewIcon,
 } from "src/icons";
 
 export type DrawingModeOption = {
@@ -72,10 +76,27 @@ export default memo(function Modes({
 }) {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setDrawingMode = useDrawingMode();
+  const setMode = useSetAtom(modeAtom);
+  const setProfileView = useSetAtom(profileViewAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isMdOrLarger = useBreakpoint("md");
   const isLgOrLarger = useBreakpoint("lg");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+
+  const handleProfileViewClick = () => {
+    if (currentMode === Mode.PROFILE_VIEW) {
+      // Toggle off
+      setProfileView({ phase: "idle" });
+      setEphemeralState({ type: "none" });
+      void setDrawingMode(Mode.NONE);
+    } else {
+      setProfileView({ phase: "selectingStart" });
+      setEphemeralState({ type: "profileView" });
+      setMode({ mode: Mode.PROFILE_VIEW });
+    }
+  };
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
@@ -98,6 +119,18 @@ export default memo(function Modes({
       </MenuAction>
       <SelectionTool />
       <TraceTool />
+      {isProfileViewOn && (
+        <MenuAction
+          role="radio"
+          selected={currentMode === Mode.PROFILE_VIEW}
+          readOnlyHotkey={"9"}
+          label={translate("profileView.toolbar")}
+          onClick={handleProfileViewClick}
+          disabled={false}
+        >
+          <ProfileViewIcon />
+        </MenuAction>
+      )}
       {!isMdOrLarger ? null : isLgOrLarger ? (
         DRAWING_MODE_OPTIONS.map(({ mode, hotkey, Icon }) => {
           const modeInfo = MODE_INFO[mode];

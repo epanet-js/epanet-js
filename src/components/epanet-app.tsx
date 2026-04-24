@@ -18,7 +18,7 @@ import { Resizer, useWindowResizeSplits } from "src/components/resizer";
 import { BottomPanel, LeftSidePanel, SidePanel } from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import type { WritableAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import type { DialogState } from "src/state/dialog";
@@ -58,6 +58,9 @@ import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { ProfileViewPanel } from "src/panels/profile-view";
+import { ProfilePathSelectionBanner } from "./profile-path-selection-banner";
+import { profileViewAtom } from "src/state/profile-view";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -115,6 +118,7 @@ export function EpanetApp() {
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
@@ -180,6 +184,7 @@ export function EpanetApp() {
               persistentTransform={persistentTransform}
               setMap={setMap}
               layout={layout}
+              showProfileView={isProfileViewOn}
             />
           </DndContext>
           {layout === "HORIZONTAL" && (
@@ -213,12 +218,22 @@ function DraggableMap({
   setMap,
   layout,
   persistentTransform,
+  showProfileView,
 }: {
   setMap: (arg0: MapEngine | null) => void;
   layout: ResolvedLayout;
   persistentTransform: Transform;
+  showProfileView?: boolean;
 }) {
   const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
+  const profileView = useAtomValue(profileViewAtom);
+  const profileActive =
+    showProfileView && profileView.phase === "showingProfile";
+  const profileSelecting =
+    showProfileView &&
+    (profileView.phase === "selectingStart" ||
+      profileView.phase === "selectingEnd");
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setNodeRef, transform } = useDraggable({
     id: "map",
@@ -231,7 +246,7 @@ function DraggableMap({
       className={clsx(
         layout === "FLOATING"
           ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded border border-gray-500 shadow-lg"
-          : "relative flex-auto flex flex-col",
+          : "relative flex-auto flex flex-col min-h-0",
       )}
       ref={(elem) => {
         setNodeRef(elem);
@@ -248,9 +263,16 @@ function DraggableMap({
           : {}
       }
     >
-      <div className="flex-auto relative">
+      <div
+        className={clsx(
+          "relative min-h-0",
+          profileActive ? "flex-1" : "flex-auto",
+        )}
+      >
         <MapCanvas setMap={setMap} />
+        {profileSelecting && <ProfilePathSelectionBanner />}
       </div>
+      {profileActive && <ProfileViewPanel />}
       <Legends />
       {isAnimateSimulationOn ? (
         <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">

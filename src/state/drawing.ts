@@ -28,6 +28,10 @@ export type EphemeralConnectCustomerPoints = {
   strategy: "nearest-to-point" | "cursor";
 };
 
+export type EphemeralProfileView = {
+  type: "profileView";
+};
+
 export type EphemeralEditingState =
   | EphemeralDrawLink
   | EphemeralDrawNode
@@ -36,6 +40,7 @@ export type EphemeralEditingState =
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
   | EphemeralEditingStateAreaSelection
+  | EphemeralProfileView
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
@@ -64,6 +69,7 @@ const getMovedAssets = (
     case "customerPointsHighlight":
     case "connectCustomerPoints":
     case "areaSelect":
+    case "profileView":
     case "none":
       return noMoved;
   }

@@ -80,6 +80,9 @@ export function defineEmptySources(style: Style) {
   style.sources["ephemeral"] = emptyGeoJSONSource;
   style.sources["map-overlay"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
+  style.sources["profile-path"] = emptyGeoJSONSource;
+  style.sources["profile-hover"] = emptyGeoJSONSource;
+  style.sources["profile-hover-remove"] = emptyGeoJSONSource;
 }
 
 import type { PreviewProperty } from "src/state/map-symbology";
@@ -97,6 +100,13 @@ import {
   mapOverlayOutlineLayer,
   mapOverlayLabelLayer,
 } from "src/map/layers/map-overlay";
+import {
+  profilePathLineLayer,
+  profileHoverPathLineLayer,
+  profilePathNodeLayer,
+  profileHoverRemoveLineLayer,
+  profileHoverRemoveNodeLayer,
+} from "src/map/layers/profile-path";
 import {
   ephemeralDraftLineLayer,
   ephemeralIconHighlightLayers,
@@ -302,6 +312,11 @@ export function makeLayers({
       source: "selected-features",
       layerId: "selected-icons",
     }),
+    profilePathLineLayer(),
+    profileHoverRemoveLineLayer(),
+    profileHoverRemoveNodeLayer(),
+    profileHoverPathLineLayer(),
+    profilePathNodeLayer({ source: "map-overlay" }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     ...linkLabelsLayer({

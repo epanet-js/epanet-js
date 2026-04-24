@@ -45,6 +45,7 @@ export const drawingModeShorcuts: { [key in Mode]: string } = {
   [Mode.BOUNDARY_TRACE_SELECT]: "",
   [Mode.UPSTREAM_TRACE_SELECT]: "",
   [Mode.DOWNSTREAM_TRACE_SELECT]: "",
+  [Mode.PROFILE_VIEW]: "9",
 };
 
 export const useDrawingMode = () => {

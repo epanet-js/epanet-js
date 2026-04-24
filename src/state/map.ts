@@ -33,7 +33,7 @@ import {
   simulationStepAtom,
 } from "src/state/simulation";
 import { offlineAtom } from "src/state/offline";
-import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
+import { combinedMapOverlayFeaturesAtom } from "src/state/map-overlay";
 import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
 import type { CustomerPoints } from "src/hydraulic-model/customer-points";
@@ -174,7 +174,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
 
   const movedAssetIds = get(movedAssetIdsAtom);
   const isOffline = get(offlineAtom);
-  const mapOverlayFeatures = get(mapOverlayFeaturesAtom);
+  const mapOverlayFeatures = get(combinedMapOverlayFeaturesAtom);
 
   return {
     momentLogId: momentLog.id,

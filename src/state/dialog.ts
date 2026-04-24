@@ -179,6 +179,10 @@ export type ActivatingTrialDialogState = {
   type: "activatingTrial";
 };
 
+export type ProfileNoPathDialogState = {
+  type: "profileNoPath";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -217,6 +221,7 @@ export type DialogState =
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
   | NetworkProjectionDialogState
+  | ProfileNoPathDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

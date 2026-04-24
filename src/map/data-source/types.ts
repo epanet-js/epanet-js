@@ -5,7 +5,10 @@ export type DataSource =
   | "selected-features"
   | "ephemeral"
   | "map-overlay"
-  | "grid";
+  | "grid"
+  | "profile-hover"
+  | "profile-hover-remove"
+  | "profile-path";
 
 export const FeatureSources = {
   MAIN: "main-features" as const,

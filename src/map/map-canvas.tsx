@@ -57,6 +57,13 @@ import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
 import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import {
+  profileViewAtom,
+  profileHoverAtom,
+  profileModifierAtom,
+} from "src/state/profile-view";
+import { findPaths } from "src/hydraulic-model/path-finding";
+import { subtractFromPath } from "src/map/mode-handlers/profile-view";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -119,6 +126,185 @@ export const MapCanvas = memo(function MapCanvas({
 
   const { folderMap } = data;
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const profileView = useAtomValue(profileViewAtom);
+  const profileHoverId = useAtomValue(profileHoverAtom);
+  const profileModifier = useAtomValue(profileModifierAtom);
+
+  useEffect(() => {
+    const map = mapRef.current?.map;
+    if (!map) return;
+    const pathSource = map.getSource("profile-path") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
+    const addSource = map.getSource("profile-hover") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
+    const removeSource = map.getSource("profile-hover-remove") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
+    if (!pathSource || !addSource || !removeSource) return;
+
+    const empty: GeoJSON.FeatureCollection = {
+      type: "FeatureCollection",
+      features: [],
+    };
+
+    const buildLinkFeatures = (linkIds: number[]): GeoJSON.Feature[] =>
+      linkIds.flatMap((linkId) => {
+        const link = hydraulicModel.assets.get(linkId);
+        if (!link || !link.isLink) return [];
+        return [
+          {
+            type: "Feature" as const,
+            properties: {},
+            geometry: {
+              type: "LineString" as const,
+              coordinates: (link as any).coordinates,
+            },
+          },
+        ];
+      });
+
+    const buildNodeFeatures = (nodeIds: number[]): GeoJSON.Feature[] =>
+      nodeIds.flatMap((nodeId) => {
+        const node = hydraulicModel.assets.get(nodeId);
+        if (!node || node.isLink) return [];
+        return [
+          {
+            type: "Feature" as const,
+            properties: {},
+            geometry: {
+              type: "Point" as const,
+              coordinates: (node as any).coordinates,
+            },
+          },
+        ];
+      });
+
+    // showingProfile phase: persist current path in dedicated source
+    if (profileView.phase === "showingProfile") {
+      pathSource.setData({
+        type: "FeatureCollection",
+        features: buildLinkFeatures(profileView.path.linkIds),
+      });
+
+      if (profileHoverId !== null && profileModifier !== "none") {
+        if (profileModifier === "extend" && !profileHoverId.isLink) {
+          const hoveredNodeId = profileHoverId.id;
+          if (
+            hoveredNodeId === profileView.startNodeId ||
+            hoveredNodeId === profileView.endNodeId
+          ) {
+            addSource.setData(empty);
+            removeSource.setData(empty);
+            return;
+          }
+
+          const pathsToStart = findPaths(
+            hydraulicModel.topology,
+            hydraulicModel.assets,
+            hoveredNodeId,
+            profileView.startNodeId,
+          );
+          const pathsToEnd = findPaths(
+            hydraulicModel.topology,
+            hydraulicModel.assets,
+            profileView.endNodeId,
+            hoveredNodeId,
+          );
+          const bestToStart = pathsToStart[0];
+          const bestToEnd = pathsToEnd[0];
+
+          const previewPath =
+            !bestToStart && bestToEnd
+              ? bestToEnd
+              : bestToStart && !bestToEnd
+                ? bestToStart
+                : bestToStart && bestToEnd
+                  ? bestToStart.totalLength <= bestToEnd.totalLength
+                    ? bestToStart
+                    : bestToEnd
+                  : null;
+
+          addSource.setData(
+            previewPath
+              ? {
+                  type: "FeatureCollection",
+                  features: buildLinkFeatures(previewPath.linkIds),
+                }
+              : empty,
+          );
+          removeSource.setData(empty);
+          return;
+        }
+
+        if (profileModifier === "subtract") {
+          const result = subtractFromPath(
+            profileView.path,
+            profileHoverId.id,
+            profileHoverId.isLink,
+            hydraulicModel.assets,
+          );
+
+          if (result !== null) {
+            const resultLinkSet = new Set(result.linkIds);
+            const resultNodeSet = new Set(result.nodeIds);
+            const removedLinkIds = profileView.path.linkIds.filter(
+              (id) => !resultLinkSet.has(id),
+            );
+            const removedNodeIds = profileView.path.nodeIds.filter(
+              (id) => !resultNodeSet.has(id),
+            );
+
+            addSource.setData(empty);
+            removeSource.setData({
+              type: "FeatureCollection",
+              features: [
+                ...buildLinkFeatures(removedLinkIds),
+                ...buildNodeFeatures(removedNodeIds),
+              ],
+            });
+            return;
+          }
+        }
+      }
+
+      addSource.setData(empty);
+      removeSource.setData(empty);
+      return;
+    }
+
+    // selectingEnd phase: preview path from start to hovered node
+    pathSource.setData(empty);
+    if (
+      profileView.phase === "selectingEnd" &&
+      profileHoverId !== null &&
+      !profileHoverId.isLink &&
+      profileHoverId.id !== profileView.startNodeId
+    ) {
+      const paths = findPaths(
+        hydraulicModel.topology,
+        hydraulicModel.assets,
+        profileView.startNodeId,
+        profileHoverId.id,
+      );
+      const path = paths[0];
+      addSource.setData(
+        path
+          ? {
+              type: "FeatureCollection",
+              features: buildLinkFeatures(path.linkIds),
+            }
+          : empty,
+      );
+      removeSource.setData(empty);
+      return;
+    }
+
+    addSource.setData(empty);
+    removeSource.setData(empty);
+  }, [profileView, profileHoverId, profileModifier, hydraulicModel]);
+
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
