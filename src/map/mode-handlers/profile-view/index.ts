@@ -192,7 +192,7 @@ export function useProfileViewHandlers(
   const setProfileView = useSetAtom(profileViewAtom);
   const setProfileHover = useSetAtom(profileHoverAtom);
   const setProfileModifier = useSetAtom(profileModifierAtom);
-  const profileHoverRef = useRef<number | null>(null);
+  const profileHoverRef = useRef<{ id: AssetId; isLink: boolean } | null>(null);
   const setDialogState = useSetAtom(dialogAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -335,21 +335,32 @@ export function useProfileViewHandlers(
     }
   };
 
+  const setHoverIfChanged = (next: { id: AssetId; isLink: boolean } | null) => {
+    const cur = profileHoverRef.current;
+    if (
+      cur?.id === next?.id &&
+      cur?.isLink === next?.isLink &&
+      (cur === null) === (next === null)
+    )
+      return;
+    profileHoverRef.current = next;
+    setProfileHover(next);
+  };
+
   const move: Handlers["move"] = throttle((e) => {
     if (
       profileView.phase !== "selectingStart" &&
       profileView.phase !== "selectingEnd" &&
       profileView.phase !== "showingProfile"
     ) {
-      setProfileHover(null);
+      setHoverIfChanged(null);
       setCursor("");
       return;
     }
 
     const hoveredAsset = getClickedAsset(e);
     if (!hoveredAsset) {
-      profileHoverRef.current = null;
-      setProfileHover(null);
+      setHoverIfChanged(null);
       setCursor("");
       return;
     }
@@ -357,18 +368,17 @@ export function useProfileViewHandlers(
     const isAlt = isAltHeld();
 
     if (isAlt && profileView.phase === "showingProfile") {
-      // In subtract mode keep the raw asset (node or link)
-      profileHoverRef.current = hoveredAsset.id;
-      setProfileHover({ id: hoveredAsset.id, isLink: !hoveredAsset.isNode });
+      setHoverIfChanged({ id: hoveredAsset.id, isLink: !hoveredAsset.isNode });
     } else {
       const nodeId = resolveToNodeId(hoveredAsset, e.lngLat, hydraulicModel);
-      profileHoverRef.current = nodeId;
-      setProfileHover(nodeId !== null ? { id: nodeId, isLink: false } : null);
+      setHoverIfChanged(nodeId !== null ? { id: nodeId, isLink: false } : null);
     }
 
     if (profileView.phase === "showingProfile") {
       setCursor(getPointerCursor(true));
       setProfileModifier(identifyModifier());
+    } else {
+      setCursor("pointer");
     }
   }, 16);
 
@@ -389,7 +399,7 @@ export function useProfileViewHandlers(
     keyup: updateCursorAndModifier,
     exit: () => {
       profileHoverRef.current = null;
-      setProfileHover(null);
+      setProfileHover(null); // direct reset, bypass equality check on exit
       setProfileModifier("none");
       setCursor("");
       if (profileView.phase === "showingProfile") {

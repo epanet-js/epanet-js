@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import type { SetOptional } from "type-fest";
 import type { Sel } from "src/selection/types";
 import {
@@ -54,7 +55,7 @@ export const mapLoadingAtom = atom<boolean>(false);
 
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
-export const mapViewportAtom = atom<InitialViewport>({
+export const mapViewportAtom = atomWithStorage<InitialViewport>("mapViewport", {
   center: DEFAULT_CENTER,
   zoom: DEFAULT_ZOOM,
 });

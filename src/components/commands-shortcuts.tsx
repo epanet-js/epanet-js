@@ -23,7 +23,9 @@ import {
   drawingModeShorcuts,
   useDrawingMode,
 } from "src/commands/set-drawing-mode";
-import { MODE_INFO, Mode } from "src/state/mode";
+import { MODE_INFO, Mode, modeAtom } from "src/state/mode";
+import { profileViewAtom } from "src/state/profile-view";
+import { ephemeralStateAtom } from "src/state/drawing";
 import {
   showSortcutsShortcut,
   useShowShortcuts,
@@ -43,7 +45,7 @@ import {
   toggleSatelliteShorcut,
   useToggleSatellite,
 } from "src/commands/toggle-satellite";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
@@ -144,10 +146,15 @@ export const CommandShortcuts = () => {
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const { togglePlayback } = useTogglePlayback();
   const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const isEditionBlocked = useIsEditionBlocked();
   const createScenario = useCreateScenario();
   const toggleBranch = useToggleBranch();
   const goToMain = useGoToMain();
+  const { mode: currentMode } = useAtomValue(modeAtom);
+  const setMode = useSetAtom(modeAtom);
+  const setProfileView = useSetAtom(profileViewAtom);
+  const setProfileEphemeral = useSetAtom(ephemeralStateAtom);
 
   useHotkeys(
     showReportShorcut,
@@ -527,6 +534,25 @@ export const CommandShortcuts = () => {
     },
     [goToMain],
     "Go to main",
+  );
+
+  useHotkeys(
+    "9",
+    (e) => {
+      if (e.preventDefault) e.preventDefault();
+      if (currentMode === Mode.PROFILE_VIEW) {
+        setProfileView({ phase: "idle" });
+        setProfileEphemeral({ type: "none" });
+        void setDrawingMode(Mode.NONE);
+      } else {
+        setProfileView({ phase: "selectingStart" });
+        setProfileEphemeral({ type: "profileView" });
+        setMode({ mode: Mode.PROFILE_VIEW });
+      }
+    },
+    [currentMode, setProfileView, setProfileEphemeral, setDrawingMode, setMode],
+    "Profile view mode",
+    !isProfileViewOn,
   );
 
   for (const [mode, shortcut] of Object.entries(drawingModeShorcuts)) {
