@@ -2,7 +2,10 @@ import { screen, render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { CommandContainer } from "./__helpers__/command-container";
-import { setInitialState } from "src/__helpers__/state";
+import {
+  setInitialState,
+  createMockResultsReader,
+} from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Export } from "src/lib/export";
 import { Store } from "src/state";
@@ -113,6 +116,106 @@ describe("export-data", () => {
         diameter: (hydraulicModel.assets.get(IDS.P1) as Pipe)?.diameter,
         roughness: (hydraulicModel.assets.get(IDS.P1) as Pipe)?.roughness,
         length: (hydraulicModel.assets.get(IDS.P1) as Pipe)?.length,
+      });
+    });
+
+    describe("with simulation results", () => {
+      it("appends sim_ properties to each asset when simulation exists", async () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1)
+          .aJunction(IDS.J2)
+          .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+          .build();
+        const simulationResults = createMockResultsReader({
+          junctions: {
+            [IDS.J1]: { pressure: 42, head: 10, demand: 5 },
+            [IDS.J2]: { pressure: 30, head: 8, demand: 3 },
+          },
+          pipes: {
+            [IDS.P1]: { flow: 1.5, velocity: 0.8, headloss: 2.1 },
+          },
+        });
+
+        const store = setInitialState({ hydraulicModel, simulationResults });
+        renderComponent({
+          store,
+          options: { format: "geojson", includeSimulationResults: true },
+        });
+
+        await triggerExport({
+          format: "geojson",
+          includeSimulationResults: true,
+        });
+
+        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const data = files[0].data as Record<string, unknown>[];
+
+        const junction = data.find((f) => f.id === IDS.J1);
+        expect(junction).toMatchObject({
+          sim_pressure: 42,
+          sim_head: 10,
+          sim_demand: 5,
+        });
+
+        const pipe = data.find((f) => f.id === IDS.P1);
+        expect(pipe).toMatchObject({
+          sim_flow: 1.5,
+          sim_velocity: 0.8,
+          sim_headloss: 2.1,
+        });
+      });
+
+      it("does not add sim_ properties when includeSimulationResults is false", async () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1)
+          .aJunction(IDS.J2)
+          .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+          .build();
+        const simulationResults = createMockResultsReader({
+          junctions: { [IDS.J1]: { pressure: 42 } },
+        });
+
+        const store = setInitialState({ hydraulicModel, simulationResults });
+        renderComponent({ store });
+
+        await triggerExport({
+          format: "geojson",
+          includeSimulationResults: false,
+        });
+
+        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const data = files[0].data as Record<string, unknown>[];
+
+        const junction = data.find((f) => f.id === IDS.J1);
+        expect(junction).not.toHaveProperty("sim_pressure");
+      });
+
+      it("does not add sim_ properties when no simulation exists", async () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1)
+          .aJunction(IDS.J2)
+          .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+          .build();
+
+        const store = setInitialState({ hydraulicModel });
+        renderComponent({
+          store,
+          options: { format: "geojson", includeSimulationResults: true },
+        });
+
+        await triggerExport({
+          format: "geojson",
+          includeSimulationResults: true,
+        });
+
+        const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+        const data = files[0].data as Record<string, unknown>[];
+
+        const junction = data.find((f) => f.id === IDS.J1);
+        expect(junction).not.toHaveProperty("sim_pressure");
       });
     });
   });

@@ -8,8 +8,10 @@ import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import type { EPSResultsReader } from "src/simulation";
+import { simulationStepAtom } from "src/state/simulation";
 import type { HydraulicModel } from "src/hydraulic-model";
+import type { Asset } from "src/hydraulic-model/asset-types";
+import type { ResultsReader } from "src/simulation/results-reader";
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -22,26 +24,37 @@ export const useExportData = () => {
   const exportNetwork = useAtomCallback(
     useCallback(
       async (get, _set, options: DataExportOptions) => {
-        const getResultsReader = (): EPSResultsReader | undefined => {
-          if (!options.includeSimulationResults) return;
+        const getResultsReader = async (): Promise<ResultsReader | null> => {
+          if (!options.includeSimulationResults) return null;
 
           const simulation = get(simulationDerivedAtom);
-          if ("epsResultsReader" in simulation && simulation.epsResultsReader) {
-            return simulation.epsResultsReader;
+          const simulationStep = get(simulationStepAtom);
+
+          if (
+            "epsResultsReader" in simulation &&
+            simulation.epsResultsReader &&
+            simulationStep !== null
+          ) {
+            const epsResultsReader = simulation.epsResultsReader;
+            return await epsResultsReader?.getResultsForTimestep(
+              simulationStep,
+            );
           }
+
+          return null;
         };
 
         const hydraulicModel = get(stagingModelDerivedAtom);
-        const epsResultsReader = getResultsReader();
+        const resultsReader = (await getResultsReader()) ?? undefined;
 
-        const data = buildDataForExport(
-          options.format,
-          hydraulicModel,
-          epsResultsReader,
-        );
-
-        const doExport = (): Promise<void> => {
+        const doExport = async () => {
+          const data = buildDataForExport(
+            options.format,
+            hydraulicModel,
+            resultsReader,
+          );
           Export.exportFile(options.format, data);
+
           return Promise.resolve();
         };
 
@@ -63,20 +76,46 @@ export const useExportData = () => {
 const buildDataForExport = (
   format: ExportFormat,
   hydraulicModel: HydraulicModel,
-  _epsResultsReader?: EPSResultsReader,
+  resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   switch (format) {
     case "geojson": {
-      const assets = Array.from(hydraulicModel.assets.values()).map(
-        (asset) => ({
+      const assets = Array.from(hydraulicModel.assets.values()).map((asset) => {
+        const simulationResults = resultsReader
+          ? getSimulationProps(asset, resultsReader)
+          : {};
+
+        return {
           ...asset.feature.properties,
           id: asset.id,
           geometry: { ...asset.feature.geometry },
-        }),
-      );
+          ...simulationResults,
+        };
+      });
       return [{ name: "network", data: assets }];
     }
     default:
       return [];
   }
+};
+
+const getSimulationProps = (
+  asset: Asset,
+  resultsReader: ResultsReader,
+): Record<string, unknown> => {
+  const getSimulationResults = {
+    junction: () => resultsReader.getJunction(asset.id),
+    tank: () => resultsReader.getTank(asset.id),
+    reservoir: () => resultsReader.getReservoir(asset.id),
+    pipe: () => resultsReader.getPipe(asset.id),
+    pump: () => resultsReader.getPump(asset.id),
+    valve: () => resultsReader.getValve(asset.id),
+  };
+
+  const sim = getSimulationResults[asset.type]();
+  if (!sim) return {};
+
+  return Object.fromEntries(
+    Object.entries(sim).map(([key, value]) => [`sim_${key}`, value]),
+  );
 };
