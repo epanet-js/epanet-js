@@ -159,7 +159,7 @@ const SpeedButton = () => {
   const { playbackSpeed } = useAtomValue(simulationPlaybackAtom);
   const maxPlaybackSpeedMs = useAtomValue(maximumPlaybackSpeedAtom);
   const autoSpeedMs = useAtomValue(autoPlaybackSpeedAtom);
-  const { changePlaybackSpeed, stopPlayback } = useTogglePlayback();
+  const { changePlaybackSpeed } = useTogglePlayback();
   const [isOpen, setIsOpen] = useState(false);
 
   const speedOptions = SPEED_OPTIONS.map((option) => ({
@@ -174,13 +174,7 @@ const SpeedButton = () => {
     SPEED_OPTIONS.find((o) => o.value === playbackSpeed) ?? SPEED_OPTIONS[0];
 
   return (
-    <DD.Root
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (open) stopPlayback("dropdown");
-        setIsOpen(open);
-      }}
-    >
+    <DD.Root open={isOpen} onOpenChange={setIsOpen}>
       <DD.Trigger asChild>
         <Button
           variant="quiet/mode"

@@ -264,6 +264,7 @@ type SimulationPlaybackStarted = {
 type SimulationPlaybackSpeedChanged = {
   name: "simulation.playback.speedChanged";
   speed: PlaybackSpeed;
+  speedMs: number;
   isTooFast: boolean;
 };
 

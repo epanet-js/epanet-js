@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
 import type { FileWithHandle } from "browser-fs-access";
-import { stopPlaybackAtom } from "src/state/simulation-playback";
+import { useTogglePlayback } from "src/commands/toggle-playback";
 
 export interface FileOpenOptions {
   multiple?: boolean;
@@ -24,13 +23,13 @@ export const useFileOpen = ({
     queryKey: ["browser-fs-access"],
     queryFn: getFsAccess,
   });
-  const stopPlayback = useSetAtom(stopPlaybackAtom);
+  const { stopPlayback } = useTogglePlayback();
 
   const openFile = useCallback(
     async (options: FileOpenOptions): Promise<FileWithHandle | null> => {
       if (!fsAccess) throw new Error("FS not ready");
 
-      stopPlayback();
+      stopPlayback("auto");
       try {
         const result = await fsAccess.fileOpen({
           multiple: options.multiple || false,

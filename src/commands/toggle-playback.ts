@@ -1,27 +1,29 @@
 import { useAtomCallback } from "jotai/utils";
 import {
   simulationPlaybackAtom,
-  stopPlaybackAtom,
-  changePlaybackSpeedAtom,
   maximumPlaybackSpeedAtom,
   resolveSpeedByMode,
   type PlaybackSpeed,
   autoPlaybackSpeedAtom,
 } from "src/state/simulation-playback";
 import { useUserTracking } from "src/infra/user-tracking";
-import { ChangeTimestepSource } from "./change-timestep";
 
 export const togglePlaybackShortcut = "shift+space";
 
-type ChangePlaybackSource = ChangeTimestepSource | "auto";
-
 type StartPlaybackSource = "buttons" | "shortcut";
+
+export type StopPlaybackSource =
+  | "shortcut"
+  | "buttons"
+  | "dropdown"
+  | "quick-graph"
+  | "auto";
 
 export const useTogglePlayback = () => {
   const userTracking = useUserTracking();
 
   const togglePlayback = useAtomCallback<void, ["shortcut" | "buttons"]>(
-    (get, set, source) => {
+    (get, _set, source) => {
       if (get(simulationPlaybackAtom).playingAtSpeedMs !== 0) {
         stopPlayback(source);
       } else {
@@ -30,10 +32,10 @@ export const useTogglePlayback = () => {
     },
   );
 
-  const stopPlayback = useAtomCallback<void, [ChangePlaybackSource]>(
+  const stopPlayback = useAtomCallback<void, [StopPlaybackSource]>(
     (get, set, source) => {
       if (get(simulationPlaybackAtom).playingAtSpeedMs === 0) return;
-      set(stopPlaybackAtom);
+      set(simulationPlaybackAtom, (prev) => ({ ...prev, playingAtSpeedMs: 0 }));
       userTracking.capture({
         name: "simulation.playback.stopped",
         source,
@@ -70,12 +72,18 @@ export const useTogglePlayback = () => {
     (get, set, speed) => {
       const autoMs = get(autoPlaybackSpeedAtom);
       const maxMs = get(maximumPlaybackSpeedAtom);
-      const isTooFast = resolveSpeedByMode(autoMs, speed) < maxMs;
-      set(changePlaybackSpeedAtom, speed);
+      const speedMs = resolveSpeedByMode(autoMs, speed);
+      const isPlaying = get(simulationPlaybackAtom).playingAtSpeedMs !== 0;
+      set(simulationPlaybackAtom, (prev) => ({
+        ...prev,
+        playbackSpeed: speed,
+        ...(isPlaying && { playingAtSpeedMs: speedMs }),
+      }));
       userTracking.capture({
         name: "simulation.playback.speedChanged",
         speed,
-        isTooFast,
+        speedMs,
+        isTooFast: speedMs < maxMs,
       });
     },
   );

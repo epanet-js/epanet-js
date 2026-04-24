@@ -41,7 +41,10 @@ import {
   sourceRebuildDurationsAtom,
   resultsFetchDurationsAtom,
 } from "src/state/performance";
-import { simulationPlaybackAtom } from "src/state/simulation-playback";
+import {
+  initialPlaybackState,
+  simulationPlaybackAtom,
+} from "src/state/simulation-playback";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
@@ -66,7 +69,7 @@ export const resetAppState = (set: Setter) => {
   set(autoElevationsAtom, true);
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
-  set(simulationPlaybackAtom, (prev) => ({ ...prev, playingAtSpeedMs: 0 }));
+  set(simulationPlaybackAtom, initialPlaybackState);
 };
 
 export const loadModel = (

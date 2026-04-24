@@ -1,11 +1,8 @@
-import { useAtomValue } from "jotai";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import type { Getter } from "jotai";
 import { atomEffect } from "jotai-effect";
 import { isDebugAppStateOn } from "src/infra/debug-mode";
-import {
-  simulationPlaybackAtom,
-  stopPlaybackAtom,
-} from "src/state/simulation-playback";
+import { simulationPlaybackAtom } from "src/state/simulation-playback";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
 import {
@@ -18,8 +15,20 @@ import {
 } from "src/state/performance";
 import { setTimestepAtom } from "src/state/simulation-step";
 import { simulationStepAtom } from "src/state/simulation";
+import {
+  useTogglePlayback,
+  type StopPlaybackSource,
+} from "src/commands/toggle-playback";
+
+const stopPlaybackCommandAtom = atom<{
+  fn: ((source: StopPlaybackSource) => void) | null;
+}>({ fn: null });
 
 export const SimulationPlaybackController = () => {
+  const { stopPlayback } = useTogglePlayback();
+  const setStopPlaybackCommand = useSetAtom(stopPlaybackCommandAtom);
+  setStopPlaybackCommand({ fn: stopPlayback });
+
   useAtomValue(simulationPlaybackEffectAtom);
   useAtomValue(stopPlaybackOnSimulationRunAtom);
   useAtomValue(stopPlaybackOnDialogOpenAtom);
@@ -29,15 +38,15 @@ export const SimulationPlaybackController = () => {
   return null;
 };
 
-const stopPlaybackOnDialogOpenAtom = atomEffect((get, set) => {
+const stopPlaybackOnDialogOpenAtom = atomEffect((get) => {
   const dialog = get(dialogAtom);
-  if (dialog !== null) set(stopPlaybackAtom);
+  if (dialog !== null) get.peek(stopPlaybackCommandAtom).fn?.("auto");
 });
 
-const stopPlaybackOnSimulationRunAtom = atomEffect((get, set) => {
+const stopPlaybackOnSimulationRunAtom = atomEffect((get) => {
   const { status } = get(simulationDerivedAtom);
   if (status === "running" || status === "idle") {
-    set(stopPlaybackAtom);
+    get.peek(stopPlaybackCommandAtom).fn?.("auto");
   }
 });
 
@@ -66,7 +75,7 @@ const simulationPlaybackEffectAtom = atomEffect((get, set) => {
     }
 
     if (!signal.aborted && getStep() >= getCount() - 1) {
-      set(stopPlaybackAtom);
+      get.peek(stopPlaybackCommandAtom).fn?.("auto");
     }
   }
 

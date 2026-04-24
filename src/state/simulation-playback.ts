@@ -11,18 +11,17 @@ export type SimulationPlaybackState = {
   playbackSpeed: PlaybackSpeed;
 };
 
-export const simulationPlaybackAtom = atom<SimulationPlaybackState>({
-  playingAtSpeedMs: 0,
+export const initialPlaybackState: SimulationPlaybackState = {
   playbackSpeed: "auto",
-});
+  playingAtSpeedMs: 0,
+};
+
+export const simulationPlaybackAtom =
+  atom<SimulationPlaybackState>(initialPlaybackState);
 
 export const isPlayingAtom = atom<boolean>(
   (get) => get(simulationPlaybackAtom).playingAtSpeedMs !== 0,
 );
-
-export const stopPlaybackAtom = atom(null, (_get, set) => {
-  set(simulationPlaybackAtom, (prev) => ({ ...prev, playingAtSpeedMs: 0 }));
-});
 
 export const maximumPlaybackSpeedAtom = atom<number>((get) => {
   const fetch = get(estimatedResultsFetchDurationAtom);
@@ -58,13 +57,3 @@ export const currentSpeedWarningAtom = atom<PlaybackWarning | null>((get) => {
     ? "tooFast"
     : null;
 });
-
-export const changePlaybackSpeedAtom = atom(
-  null,
-  (_get, set, speed: PlaybackSpeed) => {
-    set(simulationPlaybackAtom, (prev) => ({
-      ...prev,
-      playbackSpeed: speed,
-    }));
-  },
-);
