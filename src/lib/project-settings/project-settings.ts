@@ -7,7 +7,10 @@ import {
 import { Projection, WGS84 } from "src/lib/projections";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 
+export const defaultProjectName = "";
+
 export type ProjectSettings = {
+  name: string;
   units: UnitsSpec;
   defaults: DefaultsSpec;
   headlossFormula: HeadlossFormula;
@@ -16,6 +19,7 @@ export type ProjectSettings = {
 };
 
 export const defaultProjectSettings: ProjectSettings = {
+  name: defaultProjectName,
   units: presets.LPS.units,
   defaults: presets.LPS.defaults,
   headlossFormula: "H-W",

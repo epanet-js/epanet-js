@@ -1,5 +1,5 @@
 export type { ProjectSettings } from "./project-settings";
-export { defaultProjectSettings } from "./project-settings";
+export { defaultProjectSettings, defaultProjectName } from "./project-settings";
 export type {
   UnitsSpec,
   DefaultsSpec,

@@ -10,12 +10,14 @@ import {
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { notifyPromiseState } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { captureError } from "src/infra/error-tracking";
 
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
@@ -66,6 +68,23 @@ export const useSaveProject = ({
           );
 
           if (newHandle) {
+            const projectName = newHandle.name.replace(/\.[^.]+$/, "");
+            const updatedSettings = {
+              ...get(projectSettingsAtom),
+              name: projectName,
+            };
+            set(projectSettingsAtom, updatedSettings);
+
+            try {
+              await db.saveProjectSettings(updatedSettings);
+              const updatedBlob = await db.exportDb();
+              const writable = await newHandle.createWritable();
+              await writable.write(updatedBlob);
+              await writable.close();
+            } catch (error) {
+              captureError(error as Error);
+            }
+
             const isDemo = get(isDemoNetworkAtom);
             set(projectFileInfoAtom, {
               name: newHandle.name,

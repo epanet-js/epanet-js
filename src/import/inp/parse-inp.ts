@@ -1,4 +1,4 @@
-import { ProjectSettings } from "src/lib/project-settings";
+import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
 import { IssuesAccumulator, ParserIssues } from "./issues";
 import { readInpData } from "./read-inp-data";
 import { buildModel, isWgs84 } from "./build-model";
@@ -102,6 +102,7 @@ export const parseInp = (
       idGenerator,
       projectSettings: {
         ...projectSettings,
+        name: defaultProjectName,
         projection,
       },
       simulationSettings: buildSimulationSettings(
@@ -127,6 +128,7 @@ export const parseInp = (
     idGenerator,
     projectSettings: {
       ...projectSettings,
+      name: defaultProjectName,
       projection,
     },
     simulationSettings: buildSimulationSettings(

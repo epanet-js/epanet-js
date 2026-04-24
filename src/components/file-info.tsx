@@ -1,15 +1,21 @@
 import { currentFileNameAtom, isDemoNetworkAtom } from "src/state/file-system";
 import { hasUnsavedChangesDerivedAtom } from "src/state/derived-branch-state";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { useAtomValue } from "jotai";
 import { truncate } from "src/lib/utils";
 import { UnsavedChangesIcon, FileIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function FileInfo() {
   const translate = useTranslate();
-  const name = useAtomValue(currentFileNameAtom);
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const fileName = useAtomValue(currentFileNameAtom);
+  const projectName = useAtomValue(projectSettingsAtom).name;
   const isDemo = useAtomValue(isDemoNetworkAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
+
+  const name = isOurFileOn ? projectName : fileName;
 
   if (!name) return <div></div>;
 

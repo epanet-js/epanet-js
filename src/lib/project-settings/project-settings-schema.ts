@@ -126,6 +126,7 @@ const projectionSchema = z.discriminatedUnion("type", [
 ]);
 
 export const projectSettingsSchema: z.ZodType<ProjectSettings> = z.object({
+  name: z.string(),
   units: unitsSpecSchema,
   defaults: defaultsSpecSchema,
   headlossFormula: headlossFormulaSchema,

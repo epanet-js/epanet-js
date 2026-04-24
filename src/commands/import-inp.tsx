@@ -57,10 +57,12 @@ export const useImportInp = () => {
         isMadeByApp,
       } = result;
 
+      const projectName = file.name.replace(/\.[^.]+$/, "");
+
       await startNewProject({
         hydraulicModel,
         factories,
-        projectSettings,
+        projectSettings: { ...projectSettings, name: projectName },
         simulationSettings,
         autoElevations: options?.autoElevations,
       });
