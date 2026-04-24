@@ -33,11 +33,10 @@ export const usePermissions = (): Permissions => {
   const { user } = useAuth();
   const effectivePlan = useEffectivePlan();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
-  const isOrgsOn = useFeatureFlag("FLAG_ORGS");
   const trialActive = isActivateTrialOn && isTrialActive(user);
   const org = useOrganization();
   const membership = "membership" in org ? org.membership : null;
-  const isOrgAdmin = isOrgsOn && membership?.role === "org:admin";
+  const isOrgAdmin = membership?.role === "org:admin";
   return useMemo(
     () => resolvePermissions(effectivePlan, trialActive, isOrgAdmin),
     [effectivePlan, trialActive, isOrgAdmin],
