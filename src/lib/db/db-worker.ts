@@ -19,6 +19,7 @@ import type {
 import type { AssetPatchRow } from "./asset-patches";
 import type { ApplyMomentPayload } from "./apply-moment";
 import type { OpenDbResult } from "./open-project";
+import { formatErrorDetails } from "src/lib/errors";
 
 type Stmt = {
   bind: (values: unknown[]) => Stmt;
@@ -762,7 +763,7 @@ const api = {
             fileVersion = readUserVersion();
           } catch (e) {
             closeExistingDb();
-            return { status: "corrupt", errorMessage: (e as Error).message };
+            return { status: "corrupt", errorDetails: formatErrorDetails(e) };
           }
 
           if (fileVersion > migrations.length) {
@@ -776,7 +777,7 @@ const api = {
               closeExistingDb();
               return {
                 status: "migration-failed",
-                errorMessage: (e as Error).message,
+                errorDetails: formatErrorDetails(e),
                 fileVersion,
                 appVersion: APP_VERSION,
               };
@@ -786,7 +787,7 @@ const api = {
           return { status: "ok", fileVersion, appVersion: APP_VERSION };
         } catch (e) {
           closeExistingDb();
-          return { status: "internal", errorMessage: (e as Error).message };
+          return { status: "internal", errorDetails: formatErrorDetails(e) };
         }
       },
       { bytes: fileBytes.length },

@@ -13,6 +13,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError } from "src/infra/error-tracking";
+import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -68,11 +69,11 @@ export const useOpenProjectFile = () => {
               title: "Project file is invalid",
               description:
                 "The file couldn't be read as a project. It may be corrupt or saved in a different format.",
-              details: result.errorMessage,
+              details: result.errorDetails,
               Icon: WarningIcon,
             });
             captureError(
-              new Error(`openProject corrupt: ${result.errorMessage}`),
+              new Error(`openProject corrupt: ${result.errorDetails}`),
             );
             return;
           }
@@ -83,12 +84,12 @@ export const useOpenProjectFile = () => {
               title: "Couldn't open project",
               description:
                 "The project file couldn't be upgraded to this version of the app.",
-              details: `File version ${result.fileVersion}, app version ${result.appVersion}.\n${result.errorMessage}`,
+              details: `File version ${result.fileVersion}, app version ${result.appVersion}.\n${result.errorDetails}`,
               Icon: WarningIcon,
             });
             captureError(
               new Error(
-                `openProject migration-failed (v${result.fileVersion}→${result.appVersion}): ${result.errorMessage}`,
+                `openProject migration-failed (v${result.fileVersion}→${result.appVersion}): ${result.errorDetails}`,
               ),
             );
             return;
@@ -98,11 +99,11 @@ export const useOpenProjectFile = () => {
             size: "md",
             title: "Couldn't open project",
             description: "Something went wrong while opening the file.",
-            details: result.errorMessage,
+            details: result.errorDetails,
             Icon: WarningIcon,
           });
           captureError(
-            new Error(`openProject internal: ${result.errorMessage}`),
+            new Error(`openProject internal: ${result.errorDetails}`),
           );
           return;
         }
@@ -142,7 +143,7 @@ export const useOpenProjectFile = () => {
           size: "md",
           title: "Couldn't open project",
           description: "Something went wrong while opening the file.",
-          details: (error as Error)?.message,
+          details: formatErrorDetails(error),
           Icon: WarningIcon,
         });
       }

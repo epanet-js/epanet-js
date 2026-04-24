@@ -30,3 +30,12 @@ export function parseOrError<T = JsonValue>(str: string) {
     return JSON.parse(str) as T;
   });
 }
+
+export const formatErrorDetails = (e: unknown): string => {
+  if (!(e instanceof Error)) return String(e);
+  const head = e.stack ?? `${e.name}: ${e.message}`;
+  if (e.cause !== undefined) {
+    return `${head}\nCaused by: ${formatErrorDetails(e.cause)}`;
+  }
+  return head;
+};

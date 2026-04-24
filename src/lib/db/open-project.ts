@@ -5,11 +5,11 @@ export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }
   | { status: "migrated"; fileVersion: number; appVersion: number }
   | { status: "too-new"; fileVersion: number; appVersion: number }
-  | { status: "corrupt"; errorMessage: string }
-  | { status: "internal"; errorMessage: string }
+  | { status: "corrupt"; errorDetails: string }
+  | { status: "internal"; errorDetails: string }
   | {
       status: "migration-failed";
-      errorMessage: string;
+      errorDetails: string;
       fileVersion: number;
       appVersion: number;
     };

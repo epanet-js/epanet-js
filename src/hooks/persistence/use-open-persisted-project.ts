@@ -20,10 +20,10 @@ type OpenPersistedProjectInput = {
 export type OpenPersistedProjectResult =
   | { status: "ok"; modelVersion: string; hydraulicModel: HydraulicModel }
   | { status: "too-new"; fileVersion: number; appVersion: number }
-  | { status: "corrupt" | "internal"; errorMessage: string }
+  | { status: "corrupt" | "internal"; errorDetails: string }
   | {
       status: "migration-failed";
-      errorMessage: string;
+      errorDetails: string;
       fileVersion: number;
       appVersion: number;
     };
