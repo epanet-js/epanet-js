@@ -6,6 +6,7 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
+import { worktreeAtom } from "src/state/scenarios";
 import {
   applyMoment,
   computeSyncMoment,
@@ -35,7 +36,10 @@ export const useUndoableTransactions = () => {
         );
 
         if (isOurFileOn) {
-          void applyMomentToDb(action.moment).catch(captureError);
+          const worktree = get(worktreeAtom);
+          if (worktree.activeBranchId === worktree.mainId) {
+            void applyMomentToDb(action.moment).catch(captureError);
+          }
         }
 
         isUndo ? momentLog.undo() : momentLog.redo();

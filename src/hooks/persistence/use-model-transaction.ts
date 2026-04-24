@@ -8,6 +8,7 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
+import { worktreeAtom } from "src/state/scenarios";
 import { trackMoment } from "src/lib/persistence/shared";
 import {
   applyMoment,
@@ -38,7 +39,10 @@ export const useModelTransaction = () => {
         );
 
         if (isOurFileOn) {
-          void applyMomentToDb(moment).catch(captureError);
+          const worktree = get(worktreeAtom);
+          if (worktree.activeBranchId === worktree.mainId) {
+            void applyMomentToDb(moment).catch(captureError);
+          }
         }
 
         momentLog.append(moment, reverseMoment, newStateId);
