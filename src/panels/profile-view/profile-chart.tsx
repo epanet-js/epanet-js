@@ -1,11 +1,15 @@
 "use client";
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
+import { useSetAtom } from "jotai";
 import { ProfilePoint } from "./use-profile-data";
 import { useTerrainElevations } from "./use-terrain-elevations";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { selectionAtom } from "src/state/selection";
+import { tabAtom, TabOption } from "src/state/layout";
+import { USelection } from "src/selection/selection";
 
 interface ProfileChartProps {
   points: ProfilePoint[];
@@ -15,6 +19,18 @@ export const ProfileChart = memo(function ProfileChart({
   points,
 }: ProfileChartProps) {
   const translate = useTranslate();
+  const setSelection = useSetAtom(selectionAtom);
+  const setTab = useSetAtom(tabAtom);
+
+  const onChartClick = useCallback(
+    (params: any) => {
+      const point = points[params?.dataIndex];
+      if (!point) return;
+      setSelection(USelection.single(point.nodeId));
+      setTab(TabOption.Asset);
+    },
+    [points, setSelection, setTab],
+  );
 
   const terrain = useTerrainElevations(points);
   const hasSimulation = points.some(
@@ -256,6 +272,7 @@ export const ProfileChart = memo(function ProfileChart({
       option={option}
       style={{ height: "100%", width: "100%" }}
       notMerge={true}
+      onEvents={{ click: onChartClick }}
     />
   );
 });
