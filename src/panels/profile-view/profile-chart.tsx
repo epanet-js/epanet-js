@@ -4,6 +4,7 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useSetAtom } from "jotai";
 import { ProfilePoint, useTerrainSamples } from "./use-profile-data";
+import { HglRange } from "./use-profile-hgl-range";
 import { useTerrainElevations } from "./use-terrain-elevations";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -13,10 +14,12 @@ import { USelection } from "src/selection/selection";
 
 interface ProfileChartProps {
   points: ProfilePoint[];
+  hglRanges: (HglRange | null)[] | null;
 }
 
 export const ProfileChart = memo(function ProfileChart({
   points,
+  hglRanges,
 }: ProfileChartProps) {
   const translate = useTranslate();
   const setSelection = useSetAtom(selectionAtom);
@@ -52,12 +55,41 @@ export const ProfileChart = memo(function ProfileChart({
     [terrain],
   );
 
+  // Group contiguous nodes that have valid min/max head into segments,
+  // each rendered as a single polygon by the custom band series.
+  const hglBandSegments = useMemo(() => {
+    if (!hglRanges || hglRanges.length !== points.length) return null;
+    const segments: Array<Array<{ x: number; min: number; max: number }>> = [];
+    let current: Array<{ x: number; min: number; max: number }> | null = null;
+    for (let i = 0; i < points.length; i++) {
+      const r = hglRanges[i];
+      if (r) {
+        if (!current) current = [];
+        current.push({
+          x: points[i].cumulativeLength,
+          min: r.minHead,
+          max: r.maxHead,
+        });
+      } else {
+        if (current && current.length >= 2) segments.push(current);
+        current = null;
+      }
+    }
+    if (current && current.length >= 2) segments.push(current);
+    return segments.length > 0 ? segments : null;
+  }, [points, hglRanges]);
+
   // Compute Y axis range for exactly 10 evenly spaced tick values
   const yAxisRange = useMemo(() => {
     const vals: number[] = [];
-    points.forEach((p) => {
+    points.forEach((p, i) => {
       vals.push(p.elevation);
       if (p.head !== null) vals.push(p.head);
+      const r = hglRanges?.[i];
+      if (r) {
+        vals.push(r.minHead);
+        vals.push(r.maxHead);
+      }
     });
     if (terrainData) {
       terrainData.forEach(([, v]) => {
@@ -72,7 +104,7 @@ export const ProfileChart = memo(function ProfileChart({
     const yMin = dataMin - padding;
     const yMax = dataMax + padding;
     return { min: yMin, max: yMax, interval: (yMax - yMin) / 9 };
-  }, [points, terrainData]);
+  }, [points, terrainData, hglRanges]);
 
   // Blue vertical drops: HGL down to node elevation
   const hglDropsData = useMemo(() => {
@@ -118,6 +150,42 @@ export const ProfileChart = memo(function ProfileChart({
         ]
       : [];
 
+    const hglBandSeries = hglBandSegments
+      ? [
+          {
+            type: "custom" as const,
+            name: "hglBand",
+            data: hglBandSegments,
+            silent: true,
+            showInLegend: false,
+            tooltip: { show: false },
+            z: 1,
+            /* eslint-disable @typescript-eslint/no-explicit-any,
+               @typescript-eslint/no-unsafe-assignment,
+               @typescript-eslint/no-unsafe-call,
+               @typescript-eslint/no-unsafe-member-access */
+            renderItem: (params: any, api: any) => {
+              const segment = hglBandSegments[params.dataIndex];
+              if (!segment || segment.length < 2) return null;
+              const polygon: number[][] = [];
+              for (let i = 0; i < segment.length; i++) {
+                polygon.push(api.coord([segment[i].x, segment[i].max]));
+              }
+              for (let i = segment.length - 1; i >= 0; i--) {
+                polygon.push(api.coord([segment[i].x, segment[i].min]));
+              }
+              return {
+                type: "polygon" as const,
+                shape: { points: polygon },
+                style: { fill: "#2563eb", opacity: 0.12 },
+                silent: true,
+              };
+            },
+            /* eslint-enable */
+          },
+        ]
+      : [];
+
     const elevDropsSeries = {
       type: "line" as const,
       name: "elevDrops",
@@ -133,6 +201,7 @@ export const ProfileChart = memo(function ProfileChart({
 
     const base = [
       ...terrainSeries,
+      ...hglBandSeries,
       elevDropsSeries,
       {
         type: "line" as const,
@@ -183,6 +252,7 @@ export const ProfileChart = memo(function ProfileChart({
     terrainData,
     hglDropsData,
     elevDropsData,
+    hglBandSegments,
   ]);
 
   const nodePositions = useMemo(
@@ -240,7 +310,9 @@ export const ProfileChart = memo(function ProfileChart({
               (p: any) =>
                 p.seriesName !== "terrain" &&
                 p.seriesName !== "elevDrops" &&
-                p.seriesName !== "hglDrops",
+                p.seriesName !== "hglDrops" &&
+                p.seriesName !== "hglBandBase" &&
+                p.seriesName !== "hglBand",
             )
             .map((p: any) => {
               const dot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
