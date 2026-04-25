@@ -595,6 +595,18 @@ export const ProfileChart = memo(function ProfileChart({
           return `<strong>${label}</strong><br/>${lines.join("<br/>")}`;
         },
       },
+      dataZoom: [
+        {
+          type: "inside",
+          xAxisIndex: [0, 1],
+          filterMode: "none",
+          zoomOnMouseWheel: true,
+          moveOnMouseMove: true,
+          moveOnMouseWheel: false,
+          preventDefaultMouseMove: true,
+          minValueSpan: 1,
+        },
+      ],
     }),
     [
       series,
