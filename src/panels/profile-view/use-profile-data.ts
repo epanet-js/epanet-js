@@ -7,6 +7,7 @@ import {
 } from "src/state/derived-branch-state";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
+import { computeTerrainSamples, TerrainSample } from "./terrain-samples";
 
 export type ProfilePoint = {
   nodeId: AssetId;
@@ -31,6 +32,16 @@ export function useProfileData(): ProfilePoint[] | null {
       results ?? null,
     );
   }, [profileView, model.assets, results]);
+}
+
+export function useTerrainSamples(): TerrainSample[] | null {
+  const profileView = useAtomValue(profileViewAtom);
+  const model = useAtomValue(stagingModelDerivedAtom);
+
+  return useMemo(() => {
+    if (profileView.phase !== "showingProfile") return null;
+    return computeTerrainSamples(profileView.path, model.assets);
+  }, [profileView, model.assets]);
 }
 
 function computeProfilePoints(

@@ -3,7 +3,7 @@ import { memo, useCallback, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useSetAtom } from "jotai";
-import { ProfilePoint } from "./use-profile-data";
+import { ProfilePoint, useTerrainSamples } from "./use-profile-data";
 import { useTerrainElevations } from "./use-terrain-elevations";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -32,7 +32,8 @@ export const ProfileChart = memo(function ProfileChart({
     [points, setSelection, setTab],
   );
 
-  const terrain = useTerrainElevations(points);
+  const terrainSamples = useTerrainSamples();
+  const terrain = useTerrainElevations(terrainSamples);
   const hasSimulation = points.some(
     (p) => p.head !== null || p.pressure !== null,
   );
@@ -47,10 +48,8 @@ export const ProfileChart = memo(function ProfileChart({
   );
   const terrainData = useMemo(
     () =>
-      terrain
-        ? points.map((p, i) => [p.cumulativeLength, terrain[i] ?? 0])
-        : null,
-    [terrain, points],
+      terrain ? terrain.map((t) => [t.cumulativeLength, t.elevation]) : null,
+    [terrain],
   );
 
   // Compute Y axis range for exactly 10 evenly spaced tick values
@@ -111,7 +110,7 @@ export const ProfileChart = memo(function ProfileChart({
             itemStyle: { opacity: 0 },
             areaStyle: { color: "#c8a96e", opacity: 0.22 },
             symbol: "none",
-            smooth: true,
+            smooth: false,
             silent: true,
             showInLegend: false,
             tooltip: { show: false },

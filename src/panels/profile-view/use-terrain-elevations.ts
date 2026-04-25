@@ -1,39 +1,50 @@
 import { useEffect, useState } from "react";
 import { fetchElevationForPoint } from "src/lib/elevations";
-import type { ProfilePoint } from "./use-profile-data";
+import type { TerrainSample } from "./terrain-samples";
+
+export type TerrainPoint = {
+  cumulativeLength: number;
+  elevation: number;
+};
 
 export function useTerrainElevations(
-  points: ProfilePoint[] | null,
-): number[] | null {
-  const [terrainElevations, setTerrainElevations] = useState<number[] | null>(
+  samples: TerrainSample[] | null,
+): TerrainPoint[] | null {
+  const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
     null,
   );
 
-  const coordinateKey = points
-    ? points.map((p) => p.coordinates.join(",")).join("|")
+  const sampleKey = samples
+    ? samples
+        .map((s) => `${s.cumulativeLength}:${s.coordinates.join(",")}`)
+        .join("|")
     : null;
 
   useEffect(() => {
-    if (!points || points.length === 0) {
-      setTerrainElevations(null);
+    if (!samples || samples.length === 0) {
+      setTerrainPoints(null);
       return;
     }
 
-    setTerrainElevations(null);
+    setTerrainPoints(null);
 
     let cancelled = false;
 
     void Promise.all(
-      points.map((p) =>
+      samples.map((s) =>
         fetchElevationForPoint(
-          { lng: p.coordinates[0], lat: p.coordinates[1] },
+          { lng: s.coordinates[0], lat: s.coordinates[1] },
           { unit: "m" },
         ).catch(() => null),
       ),
     ).then((results) => {
       if (!cancelled) {
-        const elevations = results.map((v) => v ?? 0);
-        setTerrainElevations(elevations);
+        setTerrainPoints(
+          results.map((elevation, i) => ({
+            cumulativeLength: samples[i].cumulativeLength,
+            elevation: elevation ?? 0,
+          })),
+        );
       }
     });
 
@@ -41,7 +52,7 @@ export function useTerrainElevations(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coordinateKey]);
+  }, [sampleKey]);
 
-  return terrainElevations;
+  return terrainPoints;
 }
