@@ -361,52 +361,6 @@ export const ProfileChart = memo(function ProfileChart({
       });
     }
 
-    const pumps = links.filter((l) => l.type === "pump");
-    if (pumps.length > 0) {
-      series.push({
-        type: "scatter" as const,
-        name: "stripPumpIcons",
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: pumps.map((p) => ({
-          value: [p.midLength, stripY],
-          linkId: p.linkId,
-          symbol:
-            stripIcons.pumpUrl(p) !== null
-              ? `image://${stripIcons.pumpUrl(p)}`
-              : "circle",
-        })),
-        symbolSize: 18,
-        itemStyle: { color: linkActiveColor },
-        showInLegend: false,
-        tooltip: { show: false },
-        z: 4,
-      });
-    }
-
-    const valves = links.filter((l) => l.type === "valve");
-    if (valves.length > 0) {
-      series.push({
-        type: "scatter" as const,
-        name: "stripValveIcons",
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: valves.map((v) => ({
-          value: [v.midLength, stripY],
-          linkId: v.linkId,
-          symbol:
-            stripIcons.valveUrl(v) !== null
-              ? `image://${stripIcons.valveUrl(v)}`
-              : "circle",
-        })),
-        symbolSize: 18,
-        itemStyle: { color: linkActiveColor },
-        showInLegend: false,
-        tooltip: { show: false },
-        z: 4,
-      });
-    }
-
     const junctions = points.filter((p) => p.nodeType === "junction");
     if (junctions.length > 0) {
       series.push({
@@ -424,6 +378,7 @@ export const ProfileChart = memo(function ProfileChart({
           color: nodeSymbology.defaults.color,
           borderColor: "#ffffff",
           borderWidth: 1,
+          opacity: 1,
         },
         showInLegend: false,
         tooltip: { show: false },
@@ -445,6 +400,7 @@ export const ProfileChart = memo(function ProfileChart({
           symbol: tankUrl ? `image://${tankUrl}` : "rect",
         })),
         symbolSize: 18,
+        itemStyle: { opacity: 1 },
         showInLegend: false,
         tooltip: { show: false },
         z: 5,
@@ -465,9 +421,58 @@ export const ProfileChart = memo(function ProfileChart({
           symbol: reservoirUrl ? `image://${reservoirUrl}` : "diamond",
         })),
         symbolSize: 18,
+        itemStyle: { opacity: 1 },
         showInLegend: false,
         tooltip: { show: false },
         z: 5,
+      });
+    }
+
+    const pumps = links.filter((l) => l.type === "pump");
+    if (pumps.length > 0) {
+      series.push({
+        type: "scatter" as const,
+        name: "stripPumpIcons",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: pumps.map((p) => ({
+          value: [p.midLength, stripY],
+          linkId: p.linkId,
+          symbol:
+            stripIcons.pumpUrl(p) !== null
+              ? `image://${stripIcons.pumpUrl(p)}`
+              : "circle",
+          symbolRotate: p.reversed ? 90 : -90,
+        })),
+        symbolSize: 18,
+        itemStyle: { opacity: 1 },
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 10,
+      });
+    }
+
+    const valves = links.filter((l) => l.type === "valve");
+    if (valves.length > 0) {
+      series.push({
+        type: "scatter" as const,
+        name: "stripValveIcons",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: valves.map((v) => ({
+          value: [v.midLength, stripY],
+          linkId: v.linkId,
+          symbol:
+            stripIcons.valveUrl(v) !== null
+              ? `image://${stripIcons.valveUrl(v)}`
+              : "circle",
+          symbolRotate: v.reversed ? 90 : -90,
+        })),
+        symbolSize: 18,
+        itemStyle: { opacity: 1 },
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 10,
       });
     }
 

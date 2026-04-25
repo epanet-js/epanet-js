@@ -30,6 +30,7 @@ export type ProfileLink = {
   endLength: number;
   midLength: number;
   label: string;
+  reversed: boolean;
 };
 
 export function useProfileData(): ProfilePoint[] | null {
@@ -150,6 +151,10 @@ function computeProfileLinks(
     const endLength = cumulativeLength + linkLength;
     const midLength = startLength + linkLength / 2;
     const isActive = (link as unknown as { isActive: boolean }).isActive;
+    const connections = (link as unknown as { connections: [AssetId, AssetId] })
+      .connections;
+    const fromNodeId = path.nodeIds[i];
+    const reversed = connections[0] !== fromNodeId;
 
     const linkType = link.type as "pipe" | "pump" | "valve";
 
@@ -167,6 +172,7 @@ function computeProfileLinks(
         endLength,
         midLength,
         label: link.label,
+        reversed,
       });
     } else if (linkType === "pump") {
       const initialStatus = (link as unknown as { initialStatus: string })
@@ -182,6 +188,7 @@ function computeProfileLinks(
         endLength,
         midLength,
         label: link.label,
+        reversed,
       });
     } else if (linkType === "valve") {
       const initialStatus = (link as unknown as { initialStatus: string })
@@ -199,6 +206,7 @@ function computeProfileLinks(
         endLength,
         midLength,
         label: link.label,
+        reversed,
       });
     }
 
