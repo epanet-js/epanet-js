@@ -3,31 +3,63 @@ import { memo, useCallback, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useSetAtom } from "jotai";
-import { ProfilePoint, useTerrainSamples } from "./use-profile-data";
+import {
+  ProfileLink,
+  ProfilePoint,
+  useTerrainSamples,
+} from "./use-profile-data";
 import { HglRange } from "./use-profile-hgl-range";
 import { useTerrainElevations } from "./use-terrain-elevations";
+import { useStripPlanIcons } from "./use-strip-plan-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
+import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
+import { useAtomValue } from "jotai";
+import { colors } from "src/lib/constants";
 import { USelection } from "src/selection/selection";
+
+const STRIP_GRID_TOP = 6;
+const STRIP_GRID_HEIGHT = 30;
+const STRIP_PROFILE_GAP = 14;
 
 interface ProfileChartProps {
   points: ProfilePoint[];
+  links: ProfileLink[] | null;
   hglRanges: (HglRange | null)[] | null;
 }
 
 export const ProfileChart = memo(function ProfileChart({
   points,
+  links,
   hglRanges,
 }: ProfileChartProps) {
   const translate = useTranslate();
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
+  const linkSymbology = useAtomValue(linkSymbologyAtom);
+  const nodeSymbology = useAtomValue(nodeSymbologyAtom);
+  const stripIcons = useStripPlanIcons();
 
   const onChartClick = useCallback(
     (params: any) => {
-      const point = points[params?.dataIndex];
+      const seriesName: string | undefined = params?.seriesName;
+      const data = params?.data;
+
+      if (typeof seriesName === "string" && seriesName.startsWith("strip")) {
+        const linkId: number | undefined = data?.linkId;
+        const nodeId: number | undefined = data?.nodeId;
+        const assetId = linkId ?? nodeId;
+        if (typeof assetId !== "number") return;
+        setSelection(USelection.single(assetId));
+        setTab(TabOption.Asset);
+        return;
+      }
+
+      const idx: number | undefined = params?.dataIndex;
+      if (typeof idx !== "number") return;
+      const point = points[idx];
       if (!point) return;
       setSelection(USelection.single(point.nodeId));
       setTab(TabOption.Asset);
@@ -262,40 +294,268 @@ export const ProfileChart = memo(function ProfileChart({
 
   const totalLength = nodePositions[nodePositions.length - 1] ?? 0;
 
+  const stripY = (yAxisRange.min + yAxisRange.max) / 2;
+
+  const stripSeries = useMemo<EChartsOption["series"]>(() => {
+    if (!links || links.length === 0) return [];
+
+    const pipes = links.filter((l) => l.type === "pipe");
+    const pumpValves = links.filter(
+      (l) => l.type === "pump" || l.type === "valve",
+    );
+
+    const buildSegmentData = (segments: ProfileLink[]) => {
+      const data: any[] = [];
+      for (const seg of segments) {
+        data.push({
+          value: [seg.startLength, stripY],
+          linkId: seg.linkId,
+        });
+        data.push({
+          value: [seg.endLength, stripY],
+          linkId: seg.linkId,
+        });
+        data.push(null);
+      }
+      return data;
+    };
+
+    const pipeColor = linkSymbology.defaults.color;
+    const linkActiveColor = colors.orange700;
+
+    const series: any[] = [];
+
+    if (pipes.length > 0) {
+      series.push({
+        type: "line" as const,
+        name: "stripPipes",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: buildSegmentData(pipes),
+        lineStyle: { color: pipeColor, width: 3 },
+        itemStyle: { color: pipeColor },
+        symbol: "circle",
+        symbolSize: 6,
+        connectNulls: false,
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 2,
+      });
+    }
+
+    if (pumpValves.length > 0) {
+      series.push({
+        type: "line" as const,
+        name: "stripPumpValves",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: buildSegmentData(pumpValves),
+        lineStyle: { color: linkActiveColor, width: 3 },
+        itemStyle: { color: linkActiveColor },
+        symbol: "circle",
+        symbolSize: 6,
+        connectNulls: false,
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 2,
+      });
+    }
+
+    const pumps = links.filter((l) => l.type === "pump");
+    if (pumps.length > 0) {
+      series.push({
+        type: "scatter" as const,
+        name: "stripPumpIcons",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: pumps.map((p) => ({
+          value: [p.midLength, stripY],
+          linkId: p.linkId,
+          symbol:
+            stripIcons.pumpUrl(p) !== null
+              ? `image://${stripIcons.pumpUrl(p)}`
+              : "circle",
+        })),
+        symbolSize: 18,
+        itemStyle: { color: linkActiveColor },
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 4,
+      });
+    }
+
+    const valves = links.filter((l) => l.type === "valve");
+    if (valves.length > 0) {
+      series.push({
+        type: "scatter" as const,
+        name: "stripValveIcons",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: valves.map((v) => ({
+          value: [v.midLength, stripY],
+          linkId: v.linkId,
+          symbol:
+            stripIcons.valveUrl(v) !== null
+              ? `image://${stripIcons.valveUrl(v)}`
+              : "circle",
+        })),
+        symbolSize: 18,
+        itemStyle: { color: linkActiveColor },
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 4,
+      });
+    }
+
+    const junctions = points.filter((p) => p.nodeType === "junction");
+    if (junctions.length > 0) {
+      series.push({
+        type: "scatter" as const,
+        name: "stripNodes",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: junctions.map((j) => ({
+          value: [j.cumulativeLength, stripY],
+          nodeId: j.nodeId,
+        })),
+        symbol: "circle",
+        symbolSize: 7,
+        itemStyle: {
+          color: nodeSymbology.defaults.color,
+          borderColor: "#ffffff",
+          borderWidth: 1,
+        },
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 5,
+      });
+    }
+
+    const tanks = points.filter((p) => p.nodeType === "tank");
+    if (tanks.length > 0) {
+      const tankUrl = stripIcons.iconUrl("tank");
+      series.push({
+        type: "scatter" as const,
+        name: "stripNodes",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: tanks.map((t) => ({
+          value: [t.cumulativeLength, stripY],
+          nodeId: t.nodeId,
+          symbol: tankUrl ? `image://${tankUrl}` : "rect",
+        })),
+        symbolSize: 18,
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 5,
+      });
+    }
+
+    const reservoirs = points.filter((p) => p.nodeType === "reservoir");
+    if (reservoirs.length > 0) {
+      const reservoirUrl = stripIcons.iconUrl("reservoir");
+      series.push({
+        type: "scatter" as const,
+        name: "stripNodes",
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: reservoirs.map((r) => ({
+          value: [r.cumulativeLength, stripY],
+          nodeId: r.nodeId,
+          symbol: reservoirUrl ? `image://${reservoirUrl}` : "diamond",
+        })),
+        symbolSize: 18,
+        showInLegend: false,
+        tooltip: { show: false },
+        z: 5,
+      });
+    }
+
+    return series;
+  }, [
+    links,
+    points,
+    stripY,
+    linkSymbology.defaults.color,
+    nodeSymbology.defaults.color,
+    stripIcons,
+  ]);
+
+  const profileGridTop =
+    STRIP_GRID_TOP +
+    STRIP_GRID_HEIGHT +
+    STRIP_PROFILE_GAP +
+    (hasSimulation ? 16 : 0);
+
   const option: EChartsOption = useMemo(
     () => ({
       animation: false,
-      grid: {
-        top: hasSimulation ? 24 : 8,
-        right: 12,
-        bottom: 12, // Increased bottom margin to accommodate rotated labels
-        left: 12,
-        containLabel: true,
-      },
-      xAxis: {
-        type: "value",
-        min: 0,
-        max: totalLength,
-        nameLocation: "middle",
-        splitLine: { show: true, lineStyle: { color: "#e5e7eb" } },
-        axisTick: { customValues: nodePositions } as any,
-        axisLabel: {
-          hideOverlap: true,
-          customValues: nodePositions,
-          formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
-        } as any,
-      },
-      yAxis: {
-        type: "value",
-        min: Math.round(yAxisRange.min),
-        max: Math.round(yAxisRange.max),
-        interval: Math.round(yAxisRange.interval),
-        axisLabel: {
-          fontSize: 12,
-          formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
+      grid: [
+        {
+          top: profileGridTop,
+          right: 12,
+          bottom: 12,
+          left: 12,
+          containLabel: true,
         },
-      },
-      series,
+        {
+          top: STRIP_GRID_TOP,
+          height: STRIP_GRID_HEIGHT,
+          right: 12,
+          left: 12,
+          containLabel: true,
+        },
+      ],
+      xAxis: [
+        {
+          type: "value",
+          min: 0,
+          max: totalLength,
+          nameLocation: "middle",
+          splitLine: { show: true, lineStyle: { color: "#e5e7eb" } },
+          axisTick: { customValues: nodePositions } as any,
+          axisLabel: {
+            hideOverlap: true,
+            customValues: nodePositions,
+            formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
+          } as any,
+        },
+        {
+          gridIndex: 1,
+          type: "value",
+          min: 0,
+          max: totalLength,
+          show: false,
+        },
+      ],
+      yAxis: [
+        {
+          type: "value",
+          min: Math.round(yAxisRange.min),
+          max: Math.round(yAxisRange.max),
+          interval: Math.round(yAxisRange.interval),
+          axisLabel: {
+            fontSize: 12,
+            formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
+          },
+        },
+        {
+          gridIndex: 1,
+          type: "value",
+          min: yAxisRange.min,
+          max: yAxisRange.max,
+          interval: yAxisRange.interval,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: {
+            fontSize: 12,
+            color: "transparent",
+            formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
+          },
+        },
+      ],
+      series: [...((series ?? []) as any[]), ...((stripSeries ?? []) as any[])],
       tooltip: {
         trigger: "axis",
         appendToBody: true,
@@ -312,7 +572,11 @@ export const ProfileChart = memo(function ProfileChart({
                 p.seriesName !== "elevDrops" &&
                 p.seriesName !== "hglDrops" &&
                 p.seriesName !== "hglBandBase" &&
-                p.seriesName !== "hglBand",
+                p.seriesName !== "hglBand" &&
+                !(
+                  typeof p.seriesName === "string" &&
+                  p.seriesName.startsWith("strip")
+                ),
             )
             .map((p: any) => {
               const dot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
@@ -329,12 +593,12 @@ export const ProfileChart = memo(function ProfileChart({
     }),
     [
       series,
+      stripSeries,
       points,
       nodePositions,
       totalLength,
-      translate,
-      hasSimulation,
       yAxisRange,
+      profileGridTop,
     ],
   );
 

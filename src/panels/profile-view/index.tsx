@@ -5,7 +5,7 @@ import { profileViewAtom } from "src/state/profile-view";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { useTranslate } from "src/hooks/use-translate";
-import { useProfileData } from "./use-profile-data";
+import { useProfileData, useProfileLinks } from "./use-profile-data";
 import { useProfileHglRange } from "./use-profile-hgl-range";
 import { ProfileChart } from "./profile-chart";
 
@@ -16,6 +16,7 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const translate = useTranslate();
   const points = useProfileData();
+  const links = useProfileLinks();
   const { ranges: hglRanges } = useProfileHglRange();
 
   if (profileView.phase !== "showingProfile") return null;
@@ -42,7 +43,7 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
       </div>
       <div className="flex-1 min-h-0 p-1">
         {points && points.length > 0 ? (
-          <ProfileChart points={points} hglRanges={hglRanges} />
+          <ProfileChart points={points} links={links} hglRanges={hglRanges} />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-400 text-xs">
             No data

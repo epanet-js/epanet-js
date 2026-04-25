@@ -78,7 +78,7 @@ const urlFor = (svg: string) => {
   return "data:image/svg+xml;charset=utf-8;base64," + btoa(svg);
 };
 
-const buildIconUrls = (): IconUrl[] => {
+export const buildIconUrls = (): IconUrl[] => {
   const pumpSvgBuilder = buildPumpSvg;
 
   return [

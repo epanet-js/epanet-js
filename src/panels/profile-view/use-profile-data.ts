@@ -11,12 +11,25 @@ import { computeTerrainSamples, TerrainSample } from "./terrain-samples";
 
 export type ProfilePoint = {
   nodeId: AssetId;
+  nodeType: "junction" | "tank" | "reservoir";
   cumulativeLength: number;
   elevation: number;
   head: number | null;
   pressure: number | null;
   label: string;
   coordinates: [number, number];
+};
+
+export type ProfileLink = {
+  linkId: AssetId;
+  type: "pipe" | "pump" | "valve";
+  valveKind?: string;
+  status: string;
+  isActive: boolean;
+  startLength: number;
+  endLength: number;
+  midLength: number;
+  label: string;
 };
 
 export function useProfileData(): ProfilePoint[] | null {
@@ -31,6 +44,17 @@ export function useProfileData(): ProfilePoint[] | null {
       model.assets,
       results ?? null,
     );
+  }, [profileView, model.assets, results]);
+}
+
+export function useProfileLinks(): ProfileLink[] | null {
+  const profileView = useAtomValue(profileViewAtom);
+  const model = useAtomValue(stagingModelDerivedAtom);
+  const results = useAtomValue(simulationResultsDerivedAtom);
+
+  return useMemo(() => {
+    if (profileView.phase !== "showingProfile") return null;
+    return computeProfileLinks(profileView.path, model.assets, results ?? null);
   }, [profileView, model.assets, results]);
 }
 
@@ -86,6 +110,7 @@ function computeProfilePoints(
 
     points.push({
       nodeId,
+      nodeType: node.type as "junction" | "tank" | "reservoir",
       cumulativeLength,
       elevation,
       head,
@@ -105,4 +130,80 @@ function computeProfilePoints(
   }
 
   return points;
+}
+
+function computeProfileLinks(
+  path: PathData,
+  assets: AssetsMap,
+  results: ResultsReader | null,
+): ProfileLink[] {
+  const links: ProfileLink[] = [];
+  let cumulativeLength = 0;
+
+  for (let i = 0; i < path.linkIds.length; i++) {
+    const linkId = path.linkIds[i];
+    const link = assets.get(linkId);
+    if (!link || !link.isLink) continue;
+
+    const linkLength = (link as unknown as { length: number }).length;
+    const startLength = cumulativeLength;
+    const endLength = cumulativeLength + linkLength;
+    const midLength = startLength + linkLength / 2;
+    const isActive = (link as unknown as { isActive: boolean }).isActive;
+
+    const linkType = link.type as "pipe" | "pump" | "valve";
+
+    if (linkType === "pipe") {
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      const simStatus = results?.getPipe(linkId)?.status ?? null;
+      const status = isActive ? (simStatus ?? initialStatus) : "disabled";
+      links.push({
+        linkId,
+        type: "pipe",
+        status,
+        isActive,
+        startLength,
+        endLength,
+        midLength,
+        label: link.label,
+      });
+    } else if (linkType === "pump") {
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      const simStatus = results?.getPump(linkId)?.status ?? null;
+      const status = !isActive ? "disabled" : (simStatus ?? initialStatus);
+      links.push({
+        linkId,
+        type: "pump",
+        status,
+        isActive,
+        startLength,
+        endLength,
+        midLength,
+        label: link.label,
+      });
+    } else if (linkType === "valve") {
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      const valveKind = (link as unknown as { kind: string }).kind;
+      const simStatus = results?.getValve(linkId)?.status ?? null;
+      const status = !isActive ? "disabled" : (simStatus ?? initialStatus);
+      links.push({
+        linkId,
+        type: "valve",
+        valveKind,
+        status,
+        isActive,
+        startLength,
+        endLength,
+        midLength,
+        label: link.label,
+      });
+    }
+
+    cumulativeLength = endLength;
+  }
+
+  return links;
 }
