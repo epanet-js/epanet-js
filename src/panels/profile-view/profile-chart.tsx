@@ -22,7 +22,7 @@ import { USelection } from "src/selection/selection";
 
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
-const STRIP_PROFILE_GAP = 14;
+const STRIP_PROFILE_GAP = 2;
 
 interface ProfileChartProps {
   points: ProfilePoint[];
@@ -490,7 +490,7 @@ export const ProfileChart = memo(function ProfileChart({
     STRIP_GRID_TOP +
     STRIP_GRID_HEIGHT +
     STRIP_PROFILE_GAP +
-    (hasSimulation ? 16 : 0);
+    (hasSimulation ? 4 : 0);
 
   const option: EChartsOption = useMemo(
     () => ({
@@ -592,6 +592,17 @@ export const ProfileChart = memo(function ProfileChart({
                   : "—";
               return `${dot}${p.seriesName ?? ""}: ${val}`;
             });
+          if (
+            point &&
+            point.pressure !== null &&
+            point.pressure !== undefined
+          ) {
+            const pressureVal = localizeDecimal(point.pressure, {
+              decimals: 2,
+            });
+            const spacer = `<span style="display:inline-block;width:8px;height:8px;margin-right:4px;"></span>`;
+            lines.push(`${spacer}${translate("pressure")}: ${pressureVal}`);
+          }
           return `<strong>${label}</strong><br/>${lines.join("<br/>")}`;
         },
       },
@@ -616,6 +627,7 @@ export const ProfileChart = memo(function ProfileChart({
       totalLength,
       yAxisRange,
       profileGridTop,
+      translate,
     ],
   );
 
