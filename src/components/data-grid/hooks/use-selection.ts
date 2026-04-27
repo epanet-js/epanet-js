@@ -33,13 +33,17 @@ export function useSelection({
 
   useEffect(
     function clampSelectionWhenDataSizeChanges() {
+      if (rowCount === 0 || colCount === 0) {
+        stopEditing();
+        setSelectionState((prev) => {
+          if (!prev.activeCell) return prev;
+          return { activeCell: null, anchor: null };
+        });
+        return;
+      }
+
       setSelectionState((prev) => {
         if (!prev.activeCell) return prev;
-
-        if (rowCount === 0 || colCount === 0) {
-          stopEditing();
-          return { activeCell: null, anchor: null };
-        }
 
         const clampedState: SelectionState = {
           activeCell: clampPosition(prev.activeCell, colCount, rowCount),
