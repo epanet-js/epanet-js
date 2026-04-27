@@ -486,7 +486,6 @@ export function AddLayer() {
   const { canAddCustomLayers } = usePermissions();
 
   const isCustomLayersPaywallOn = useFeatureFlag("FLAG_CUSTOM_LAYERS_PAYWALL");
-  const isGisLayersOn = useFeatureFlag("FLAG_CUSTOM_GIS_LAYERS");
 
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
@@ -691,24 +690,20 @@ export function AddLayer() {
                         TileJSON
                       </LayerTypeButton>
                     </div>
-                    {isGisLayersOn && (
-                      <>
-                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1 pt-3">
-                          {translate("customLayers.localData")}
-                        </div>
-                        <div className="space-y-2 grid grid-cols-1">
-                          <LayerTypeButton
-                            type="GEOJSON"
-                            mode="custom-gis"
-                            needsUpgrade={!canAddCustomLayers}
-                            onModeChange={handleGisButtonClick}
-                            onUpgrade={handleUpgrade}
-                          >
-                            {translate("customLayers.vectorFile")}
-                          </LayerTypeButton>
-                        </div>
-                      </>
-                    )}
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1 pt-3">
+                      {translate("customLayers.localData")}
+                    </div>
+                    <div className="space-y-2 grid grid-cols-1">
+                      <LayerTypeButton
+                        type="GEOJSON"
+                        mode="custom-gis"
+                        needsUpgrade={!canAddCustomLayers}
+                        onModeChange={handleGisButtonClick}
+                        onUpgrade={handleUpgrade}
+                      >
+                        {translate("customLayers.vectorFile")}
+                      </LayerTypeButton>
+                    </div>
                   </div>
                 </div>
               ))

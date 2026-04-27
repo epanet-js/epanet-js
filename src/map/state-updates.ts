@@ -10,7 +10,6 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type StylesConfig,
   type MapState,
@@ -155,7 +154,6 @@ const detectChanges = (
 };
 
 export const useMapStateUpdates = (map: MapEngine | null) => {
-  const isCustomGisLayersOn = useFeatureFlag("FLAG_CUSTOM_GIS_LAYERS");
   const momentLog = useAtomValue(momentLogDerivedAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
   const mapState = useAtomValue(mapStateDerivedAtom);
@@ -237,9 +235,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.stylesConfig,
             translate,
           );
-          if (isCustomGisLayersOn) {
-            addGisLayersToMap(map, mapState.stylesConfig, gisData);
-          }
+          addGisLayersToMap(map, mapState.stylesConfig, gisData);
           addEditingLayersToMap(
             map,
             mapState.stylesConfig,
@@ -516,7 +512,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel,
     isGridOn,
     isGridPreview,
-    isCustomGisLayersOn,
   ]);
 
   doUpdates();

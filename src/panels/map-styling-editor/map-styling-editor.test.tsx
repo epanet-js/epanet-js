@@ -283,7 +283,7 @@ describe("Map Styling Editor", () => {
       await userEvent.click(
         screen.getByRole("button", { name: /add custom/i }),
       );
-      expect(screen.getAllByText(/upgrade/i)).toHaveLength(3);
+      expect(screen.getAllByText(/upgrade/i)).toHaveLength(4);
     });
 
     it("can add custom XYZ layer when not in free", async () => {
