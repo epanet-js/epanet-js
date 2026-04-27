@@ -95,7 +95,7 @@ export const runSimulation = async (
       if (!stopped) throw e;
     }
 
-    if (flags.runQuality) {
+    if (flags.runQuality && !stopped) {
       model.openQ();
       model.initQ(InitHydOption.Save);
       do {
