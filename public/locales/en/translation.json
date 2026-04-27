@@ -1267,6 +1267,7 @@
     "elevation": "Elevation",
     "hgl": "HGL",
     "distance": "Distance",
-    "close": "Close profile"
+    "close": "Close profile",
+    "estimated": "Estimated"
   }
 }
