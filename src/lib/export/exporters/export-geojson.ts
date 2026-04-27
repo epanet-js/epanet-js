@@ -6,10 +6,12 @@ const toGeoJsonString = (entry: ExportEntry) => {
   return JSON.stringify(geojson);
 };
 
-export const exportGeoJson = (entry: ExportEntry): ExportedFile => ({
-  fileName: `${entry.name}.geojson`,
-  extensions: [".geojson"],
-  mimeTypes: ["application/geo+json"],
-  description: "GeoJSON",
-  blob: new Blob([toGeoJsonString(entry)], { type: "application/geo+json" }),
-});
+export const exportGeoJson = (entry: ExportEntry): ExportedFile[] => [
+  {
+    fileName: `${entry.name}.geojson`,
+    extensions: [".geojson"],
+    mimeTypes: ["application/geo+json"],
+    description: "GeoJSON",
+    blob: new Blob([toGeoJsonString(entry)], { type: "application/geo+json" }),
+  },
+];

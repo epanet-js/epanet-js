@@ -1,13 +1,15 @@
 import { FileExporters } from "./exporters";
 import type { ExportEntry, ExportedFile } from "./types";
 
-const nullExporter = (): ExportedFile => ({
-  fileName: "",
-  extensions: [],
-  mimeTypes: [],
-  description: "",
-  blob: new Blob([], { type: "text/plain" }),
-});
+const nullExporter = (): ExportedFile[] => [
+  {
+    fileName: "",
+    extensions: [],
+    mimeTypes: [],
+    description: "",
+    blob: new Blob([], { type: "text/plain" }),
+  },
+];
 
 export const exportFile = async (
   fileName: string,
@@ -20,9 +22,9 @@ export const exportFile = async (
     xlsx: nullExporter,
   };
 
-  const exportedFiles = await Promise.all(
-    entries.map((entry) => exporters[entry.format](entry)),
-  );
+  const exportedFiles = (
+    await Promise.all(entries.map((entry) => exporters[entry.format](entry)))
+  ).flat();
 
   if (exportedFiles.length === 1) {
     return exportedFiles[0];

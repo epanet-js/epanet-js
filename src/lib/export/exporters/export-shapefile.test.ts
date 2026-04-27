@@ -11,7 +11,7 @@ describe("export-shapefile", () => {
       data: [{ id: 1, geometry: { type: "Point", coordinates: [0, 0] } }],
     };
 
-    const exported = await exportShapefile(entry);
+    const [exported] = await exportShapefile(entry);
 
     const zip = await JSZip.loadAsync(exported.blob);
     const fileNames = Object.keys(zip.files);

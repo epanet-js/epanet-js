@@ -19,7 +19,7 @@ describe("export-geojson", () => {
       name: "name",
     };
 
-    const exported = exportGeoJson(entry);
+    const [exported] = exportGeoJson(entry);
 
     const geoJson = JSON.parse(await exported.blob.text());
     expect(geoJson).toMatchObject({
@@ -51,7 +51,7 @@ describe("export-geojson", () => {
       name: "name",
     };
 
-    const exported = exportGeoJson(entry);
+    const [exported] = exportGeoJson(entry);
 
     const geoJson = JSON.parse(await exported.blob.text());
     expect(geoJson).toMatchObject({

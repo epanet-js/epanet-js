@@ -48,25 +48,29 @@ describe("export-file", () => {
 
 function mockGeoJsonExporter(files: string[]) {
   files.forEach((file) => {
-    vi.spyOn(FileExporters, "exportGeoJson").mockReturnValueOnce({
-      fileName: file,
-      extensions: [".geojson"],
-      mimeTypes: ["application/geo+json"],
-      description: "GeoJSON",
-      blob: new Blob([], { type: "application/geo+json" }),
-    });
+    vi.spyOn(FileExporters, "exportGeoJson").mockReturnValueOnce([
+      {
+        fileName: file,
+        extensions: [".geojson"],
+        mimeTypes: ["application/geo+json"],
+        description: "GeoJSON",
+        blob: new Blob([], { type: "application/geo+json" }),
+      },
+    ]);
   });
 }
 
 function mockShapefileExporter(files: string[]) {
   files.forEach((file) => {
-    vi.spyOn(FileExporters, "exportShapefile").mockResolvedValue({
-      fileName: file,
-      extensions: [".zip"],
-      mimeTypes: ["application/zip"],
-      description: "ZIP Compressed Shapefiles",
-      blob: new Blob([], { type: "application/zip" }),
-    });
+    vi.spyOn(FileExporters, "exportShapefile").mockResolvedValue([
+      {
+        fileName: file,
+        extensions: [".zip"],
+        mimeTypes: ["application/zip"],
+        description: "ZIP Compressed Shapefiles",
+        blob: new Blob([], { type: "application/zip" }),
+      },
+    ]);
   });
 }
 
