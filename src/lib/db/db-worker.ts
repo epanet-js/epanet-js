@@ -1,15 +1,9 @@
 import * as Comlink from "comlink";
+import { eq, inArray } from "drizzle-orm";
 import { APP_VERSION, migrations } from "./migrations";
 import { setPerfLogging, timed } from "./perf-log";
 import type {
   AssetRows,
-  JunctionRow,
-  ReservoirRow,
-  TankRow,
-  PipeRow,
-  PumpRow,
-  ValveRow,
-  CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
   JunctionDemandRow,
@@ -20,6 +14,24 @@ import type { AssetPatchRow } from "./asset-patches";
 import type { ApplyMomentPayload } from "./apply-moment";
 import type { OpenDbResult } from "./open-project";
 import { formatErrorDetails } from "src/lib/errors";
+import { createDrizzleDb } from "./drizzle";
+import {
+  project,
+  junctions,
+  reservoirs,
+  tanks,
+  pipes,
+  pumps,
+  valves,
+  customer_points,
+  customer_point_demands,
+  patterns,
+  junction_demands,
+  curves,
+  controls,
+  simulation_settings,
+} from "./schema";
+import type { SQLiteTable, SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 type Stmt = {
   bind: (values: unknown[]) => Stmt;
@@ -81,6 +93,11 @@ const getStmt = (sql: string): Stmt => {
   return stmt;
 };
 
+const drizzleDb = createDrizzleDb(() => {
+  if (!db) throw new Error("No database open");
+  return db;
+}, getStmt);
+
 const finalizeStmts = () => {
   for (const stmt of stmtCache.values()) {
     try {
@@ -128,68 +145,43 @@ const runMigrations = () => {
   }
 };
 
-const readAll = async (sql: string): Promise<unknown[]> => {
-  await ready;
-  if (!db) throw new Error("No database open");
-  return db.exec(sql, {
-    returnValue: "resultRows",
-    rowMode: "object",
-  }) as unknown[];
-};
-
 const ASSET_TYPE_TABLES = [
-  "junctions",
-  "reservoirs",
-  "tanks",
-  "pipes",
-  "pumps",
-  "valves",
+  junctions,
+  reservoirs,
+  tanks,
+  pipes,
+  pumps,
+  valves,
 ] as const;
 
-const insertPattern = (row: PatternRow) => {
-  getStmt(
-    `INSERT INTO patterns (id, label, type, multipliers) VALUES (?, ?, ?, ?)`,
-  )
-    .bind([row.id, row.label, row.type, row.multipliers])
-    .stepReset();
+const insertPattern = async (row: PatternRow) => {
+  await drizzleDb.insert(patterns).values(row);
 };
 
-const insertCurve = (row: CurveRow) => {
-  getStmt(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`)
-    .bind([row.id, row.label, row.type, row.points])
-    .stepReset();
+const insertCurve = async (row: CurveRow) => {
+  await drizzleDb.insert(curves).values(row);
 };
 
-const upsertControls = (data: string) => {
-  db!.exec(`INSERT OR REPLACE INTO controls (id, data) VALUES (1, ?)`, {
-    bind: [data],
-  });
+const upsertControls = async (data: string) => {
+  await drizzleDb
+    .insert(controls)
+    .values({ id: 1, data })
+    .onConflictDoUpdate({ target: controls.id, set: { data } });
 };
 
-const upsertSimulationSettings = (data: string) => {
-  db!.exec(
-    `INSERT OR REPLACE INTO simulation_settings (id, data) VALUES (1, ?)`,
-    {
-      bind: [data],
-    },
-  );
+const upsertSimulationSettings = async (data: string) => {
+  await drizzleDb
+    .insert(simulation_settings)
+    .values({ id: 1, data })
+    .onConflictDoUpdate({ target: simulation_settings.id, set: { data } });
 };
 
 /*
  * SQLite caps total bound parameters per statement at SQLITE_MAX_VARIABLE_NUMBER
- * (32766 in modern builds). A bulk INSERT binds `chunkSize × columnCount`
- * parameters, so the usable chunk size shrinks as a table's column count grows.
- * These values target ~30000 params per statement (~92% of the cap, ~8%
- * headroom) — pushing junctions and pipes (the abundant tables) as close to the
- * ceiling as their column counts allow, and scaling down for wider tables.
+ * (32766). Drizzle does not auto-chunk; chunk sizes here target ~30000 params per
+ * statement (~92% of cap, ~8% headroom) — junctions/pipes pushed near the ceiling,
+ * scaled down for wider tables.
  */
-const BULK_TABLES = [
-  ...ASSET_TYPE_TABLES,
-  "customer_points",
-  "customer_point_demands",
-  "junction_demands",
-] as const;
-
 const BULK_CHUNK_SIZES = {
   junctions: 2700, // 11 cols × 2700 = 29700 params
   reservoirs: 2500, // 12 cols × 2500 = 30000 params
@@ -200,96 +192,47 @@ const BULK_CHUNK_SIZES = {
   customer_points: 3700, //  8 cols × 3700 = 29600 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
-} as const satisfies Record<(typeof BULK_TABLES)[number], number>;
+} as const;
 
-const buildBulkInsertSql = (
-  table: string,
-  columns: readonly string[],
-  rowCount: number,
-): string => {
-  const placeholder = `(${columns.map(() => "?").join(",")})`;
-  const values = new Array<string>(rowCount).fill(placeholder).join(",");
-  return `INSERT INTO ${table} (${columns.join(",")}) VALUES ${values}`;
-};
-
-const bulkInsert = <T>(
-  table: string,
-  columns: readonly string[],
-  rows: readonly T[],
-  appendParams: (row: T, params: unknown[]) => void,
+const insertChunked = async <T extends SQLiteTable>(
+  table: T,
+  rows: readonly Record<string, unknown>[],
   chunkSize: number,
-): void => {
+): Promise<void> => {
   if (rows.length === 0) return;
-  const fullChunks = Math.floor(rows.length / chunkSize);
-  const remainder = rows.length % chunkSize;
-
-  if (fullChunks > 0) {
-    const sql = buildBulkInsertSql(table, columns, chunkSize);
-    for (let c = 0; c < fullChunks; c++) {
-      const params: unknown[] = [];
-      const base = c * chunkSize;
-      for (let i = 0; i < chunkSize; i++) {
-        appendParams(rows[base + i], params);
-      }
-      getStmt(sql).bind(params).stepReset();
-    }
-  }
-
-  if (remainder > 0) {
-    const sql = buildBulkInsertSql(table, columns, remainder);
-    const params: unknown[] = [];
-    const base = fullChunks * chunkSize;
-    for (let i = 0; i < remainder; i++) {
-      appendParams(rows[base + i], params);
-    }
-    getStmt(sql).bind(params).stepReset();
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    await drizzleDb.insert(table).values(chunk as never);
   }
 };
 
 const BULK_DELETE_CHUNK_SIZE = 10000;
 
-const bulkDelete = (
-  tables: readonly string[],
-  column: string,
+const deleteByIdsChunked = async (
+  table: SQLiteTable,
+  column: SQLiteColumn,
   ids: readonly number[],
-): void => {
+): Promise<void> => {
   if (ids.length === 0) return;
-  const fullChunks = Math.floor(ids.length / BULK_DELETE_CHUNK_SIZE);
-  const remainder = ids.length % BULK_DELETE_CHUNK_SIZE;
-  const fullPlaceholders = new Array<string>(BULK_DELETE_CHUNK_SIZE)
-    .fill("?")
-    .join(",");
-  const tailPlaceholders =
-    remainder > 0 ? new Array<string>(remainder).fill("?").join(",") : "";
-
-  for (const table of tables) {
-    if (fullChunks > 0) {
-      const sql = `DELETE FROM ${table} WHERE ${column} IN (${fullPlaceholders})`;
-      for (let c = 0; c < fullChunks; c++) {
-        const base = c * BULK_DELETE_CHUNK_SIZE;
-        const params = ids.slice(base, base + BULK_DELETE_CHUNK_SIZE);
-        getStmt(sql).bind(params).stepReset();
-      }
-    }
-    if (remainder > 0) {
-      const sql = `DELETE FROM ${table} WHERE ${column} IN (${tailPlaceholders})`;
-      const base = fullChunks * BULK_DELETE_CHUNK_SIZE;
-      const params = ids.slice(base, base + remainder);
-      getStmt(sql).bind(params).stepReset();
-    }
+  for (let i = 0; i < ids.length; i += BULK_DELETE_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + BULK_DELETE_CHUNK_SIZE);
+    await drizzleDb.delete(table).where(inArray(column, chunk));
   }
 };
 
 /*
  * Bulk UPDATE via SQLite's `UPDATE … FROM (VALUES …)` (supported since 3.33).
- * Patches are grouped by their column set so each group uses a single
- * prepared-statement shape; rows within a group fill one VALUES row each.
- * Total params per statement = rows × (1 + columnCount); chunk size is
- * derived from the 30000-param target (matching BULK_CHUNK_SIZES headroom).
+ * Drizzle has no first-class equivalent, so this stays raw. Patches are grouped
+ * by their column set so each group uses a single prepared-statement shape;
+ * rows within a group fill one VALUES row each. Total params per statement =
+ * rows × (1 + columnCount); chunk size derived from the 30000-param target.
  */
 const BULK_UPDATE_MAX_PARAMS = 30000;
 
-const bulkUpdate = (table: string, rows: readonly AssetPatchRow[]): void => {
+const bulkUpdate = (
+  tableName: string,
+  rows: readonly AssetPatchRow[],
+): void => {
   if (rows.length === 0) return;
 
   const groups = new Map<
@@ -313,7 +256,7 @@ const bulkUpdate = (table: string, rows: readonly AssetPatchRow[]): void => {
   }
 
   for (const { columns, rows: groupRows } of groups.values()) {
-    applyBulkUpdateGroup(table, columns, groupRows);
+    applyBulkUpdateGroup(tableName, columns, groupRows);
   }
 };
 
@@ -374,328 +317,6 @@ const appendUpdateParams = (
   for (const col of columns) {
     params.push(row[col]);
   }
-};
-
-const bulkInsertJunctions = (rows: readonly JunctionRow[]) => {
-  bulkInsert(
-    "junctions",
-    [
-      "id",
-      "label",
-      "is_active",
-      "coord_x",
-      "coord_y",
-      "elevation",
-      "initial_quality",
-      "chemical_source_type",
-      "chemical_source_strength",
-      "chemical_source_pattern_id",
-      "emitter_coefficient",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.coord_x,
-        row.coord_y,
-        row.elevation,
-        row.initial_quality,
-        row.chemical_source_type,
-        row.chemical_source_strength,
-        row.chemical_source_pattern_id,
-        row.emitter_coefficient,
-      );
-    },
-    BULK_CHUNK_SIZES.junctions,
-  );
-};
-
-const bulkInsertReservoirs = (rows: readonly ReservoirRow[]) => {
-  bulkInsert(
-    "reservoirs",
-    [
-      "id",
-      "label",
-      "is_active",
-      "coord_x",
-      "coord_y",
-      "elevation",
-      "initial_quality",
-      "chemical_source_type",
-      "chemical_source_strength",
-      "chemical_source_pattern_id",
-      "head",
-      "head_pattern_id",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.coord_x,
-        row.coord_y,
-        row.elevation,
-        row.initial_quality,
-        row.chemical_source_type,
-        row.chemical_source_strength,
-        row.chemical_source_pattern_id,
-        row.head,
-        row.head_pattern_id,
-      );
-    },
-    BULK_CHUNK_SIZES.reservoirs,
-  );
-};
-
-const bulkInsertTanks = (rows: readonly TankRow[]) => {
-  bulkInsert(
-    "tanks",
-    [
-      "id",
-      "label",
-      "is_active",
-      "coord_x",
-      "coord_y",
-      "elevation",
-      "initial_quality",
-      "chemical_source_type",
-      "chemical_source_strength",
-      "chemical_source_pattern_id",
-      "initial_level",
-      "min_level",
-      "max_level",
-      "min_volume",
-      "diameter",
-      "overflow",
-      "mixing_model",
-      "mixing_fraction",
-      "bulk_reaction_coeff",
-      "volume_curve_id",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.coord_x,
-        row.coord_y,
-        row.elevation,
-        row.initial_quality,
-        row.chemical_source_type,
-        row.chemical_source_strength,
-        row.chemical_source_pattern_id,
-        row.initial_level,
-        row.min_level,
-        row.max_level,
-        row.min_volume,
-        row.diameter,
-        row.overflow,
-        row.mixing_model,
-        row.mixing_fraction,
-        row.bulk_reaction_coeff,
-        row.volume_curve_id,
-      );
-    },
-    BULK_CHUNK_SIZES.tanks,
-  );
-};
-
-const bulkInsertPipes = (rows: readonly PipeRow[]) => {
-  bulkInsert(
-    "pipes",
-    [
-      "id",
-      "label",
-      "is_active",
-      "start_node_id",
-      "end_node_id",
-      "coords",
-      "length",
-      "initial_status",
-      "diameter",
-      "roughness",
-      "minor_loss",
-      "bulk_reaction_coeff",
-      "wall_reaction_coeff",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.start_node_id,
-        row.end_node_id,
-        row.coords,
-        row.length,
-        row.initial_status,
-        row.diameter,
-        row.roughness,
-        row.minor_loss,
-        row.bulk_reaction_coeff,
-        row.wall_reaction_coeff,
-      );
-    },
-    BULK_CHUNK_SIZES.pipes,
-  );
-};
-
-const bulkInsertPumps = (rows: readonly PumpRow[]) => {
-  bulkInsert(
-    "pumps",
-    [
-      "id",
-      "label",
-      "is_active",
-      "start_node_id",
-      "end_node_id",
-      "coords",
-      "length",
-      "initial_status",
-      "definition_type",
-      "power",
-      "speed",
-      "speed_pattern_id",
-      "efficiency_curve_id",
-      "energy_price",
-      "energy_price_pattern_id",
-      "curve_id",
-      "curve_points",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.start_node_id,
-        row.end_node_id,
-        row.coords,
-        row.length,
-        row.initial_status,
-        row.definition_type,
-        row.power,
-        row.speed,
-        row.speed_pattern_id,
-        row.efficiency_curve_id,
-        row.energy_price,
-        row.energy_price_pattern_id,
-        row.curve_id,
-        row.curve_points,
-      );
-    },
-    BULK_CHUNK_SIZES.pumps,
-  );
-};
-
-const bulkInsertValves = (rows: readonly ValveRow[]) => {
-  bulkInsert(
-    "valves",
-    [
-      "id",
-      "label",
-      "is_active",
-      "start_node_id",
-      "end_node_id",
-      "coords",
-      "length",
-      "initial_status",
-      "diameter",
-      "minor_loss",
-      "valve_kind",
-      "setting",
-      "curve_id",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.is_active,
-        row.start_node_id,
-        row.end_node_id,
-        row.coords,
-        row.length,
-        row.initial_status,
-        row.diameter,
-        row.minor_loss,
-        row.valve_kind,
-        row.setting,
-        row.curve_id,
-      );
-    },
-    BULK_CHUNK_SIZES.valves,
-  );
-};
-
-const bulkInsertCustomerPoints = (rows: readonly CustomerPointRow[]) => {
-  bulkInsert(
-    "customer_points",
-    [
-      "id",
-      "label",
-      "coord_x",
-      "coord_y",
-      "pipe_id",
-      "junction_id",
-      "snap_x",
-      "snap_y",
-    ],
-    rows,
-    (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.coord_x,
-        row.coord_y,
-        row.pipe_id,
-        row.junction_id,
-        row.snap_x,
-        row.snap_y,
-      );
-    },
-    BULK_CHUNK_SIZES.customer_points,
-  );
-};
-
-const bulkInsertCustomerPointDemands = (
-  rows: readonly CustomerPointDemandRow[],
-) => {
-  bulkInsert(
-    "customer_point_demands",
-    ["customer_point_id", "ordinal", "base_demand", "pattern_id"],
-    rows,
-    (row, params) => {
-      params.push(
-        row.customer_point_id,
-        row.ordinal,
-        row.base_demand,
-        row.pattern_id,
-      );
-    },
-    BULK_CHUNK_SIZES.customer_point_demands,
-  );
-};
-
-const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
-  bulkInsert(
-    "junction_demands",
-    ["junction_id", "ordinal", "base_demand", "pattern_id"],
-    rows,
-    (row, params) => {
-      params.push(
-        row.junction_id,
-        row.ordinal,
-        row.base_demand,
-        row.pattern_id,
-      );
-    },
-    BULK_CHUNK_SIZES.junction_demands,
-  );
 };
 
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
@@ -797,106 +418,130 @@ const api = {
   async getProjectSettings(): Promise<string | null> {
     return timed("getProjectSettings", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT settings FROM project WHERE id = 1", {
-        returnValue: "resultRows",
-      }) as string[][];
-      if (rows.length === 0) return null;
-      return rows[0][0];
+      const rows = await drizzleDb
+        .select({ settings: project.settings })
+        .from(project)
+        .where(eq(project.id, 1));
+      return rows.length === 0 ? null : rows[0].settings;
     });
   },
 
   async saveProjectSettings(json: string) {
     return timed("saveProjectSettings", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      db.exec("INSERT OR REPLACE INTO project (id, settings) VALUES (1, ?)", {
-        bind: [json],
-      });
+      await drizzleDb
+        .insert(project)
+        .values({ id: 1, settings: json })
+        .onConflictDoUpdate({ target: project.id, set: { settings: json } });
     });
   },
 
   async getJunctions(): Promise<unknown[]> {
-    return timed("getJunctions", () => readAll("SELECT * FROM junctions"));
+    return timed("getJunctions", async () => {
+      await ready;
+      return drizzleDb.select().from(junctions);
+    });
   },
 
   async getReservoirs(): Promise<unknown[]> {
-    return timed("getReservoirs", () => readAll("SELECT * FROM reservoirs"));
+    return timed("getReservoirs", async () => {
+      await ready;
+      return drizzleDb.select().from(reservoirs);
+    });
   },
 
   async getTanks(): Promise<unknown[]> {
-    return timed("getTanks", () => readAll("SELECT * FROM tanks"));
+    return timed("getTanks", async () => {
+      await ready;
+      return drizzleDb.select().from(tanks);
+    });
   },
 
   async getPipes(): Promise<unknown[]> {
-    return timed("getPipes", () => readAll("SELECT * FROM pipes"));
+    return timed("getPipes", async () => {
+      await ready;
+      return drizzleDb.select().from(pipes);
+    });
   },
 
   async getPumps(): Promise<unknown[]> {
-    return timed("getPumps", () => readAll("SELECT * FROM pumps"));
+    return timed("getPumps", async () => {
+      await ready;
+      return drizzleDb.select().from(pumps);
+    });
   },
 
   async getValves(): Promise<unknown[]> {
-    return timed("getValves", () => readAll("SELECT * FROM valves"));
+    return timed("getValves", async () => {
+      await ready;
+      return drizzleDb.select().from(valves);
+    });
   },
 
   async getCustomerPoints(): Promise<unknown[]> {
-    return timed("getCustomerPoints", () =>
-      readAll("SELECT * FROM customer_points"),
-    );
+    return timed("getCustomerPoints", async () => {
+      await ready;
+      return drizzleDb.select().from(customer_points);
+    });
   },
 
   async getCustomerPointDemands(): Promise<unknown[]> {
-    return timed("getCustomerPointDemands", () =>
-      readAll(
-        "SELECT * FROM customer_point_demands ORDER BY customer_point_id, ordinal",
-      ),
-    );
+    return timed("getCustomerPointDemands", async () => {
+      await ready;
+      return drizzleDb
+        .select()
+        .from(customer_point_demands)
+        .orderBy(
+          customer_point_demands.customer_point_id,
+          customer_point_demands.ordinal,
+        );
+    });
   },
 
   async getPatterns(): Promise<unknown[]> {
-    return timed("getPatterns", () =>
-      readAll("SELECT * FROM patterns ORDER BY id"),
-    );
+    return timed("getPatterns", async () => {
+      await ready;
+      return drizzleDb.select().from(patterns).orderBy(patterns.id);
+    });
   },
 
   async getCurves(): Promise<unknown[]> {
-    return timed("getCurves", () =>
-      readAll("SELECT * FROM curves ORDER BY id"),
-    );
+    return timed("getCurves", async () => {
+      await ready;
+      return drizzleDb.select().from(curves).orderBy(curves.id);
+    });
   },
 
   async getControls(): Promise<string | null> {
     return timed("getControls", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
-        returnValue: "resultRows",
-      }) as string[][];
-      if (rows.length === 0) return null;
-      return rows[0][0];
+      const rows = await drizzleDb
+        .select({ data: controls.data })
+        .from(controls)
+        .where(eq(controls.id, 1));
+      return rows.length === 0 ? null : rows[0].data;
     });
   },
 
   async getSimulationSettings(): Promise<string | null> {
     return timed("getSimulationSettings", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      const rows = db.exec(
-        "SELECT data FROM simulation_settings WHERE id = 1",
-        {
-          returnValue: "resultRows",
-        },
-      ) as string[][];
-      if (rows.length === 0) return null;
-      return rows[0][0];
+      const rows = await drizzleDb
+        .select({ data: simulation_settings.data })
+        .from(simulation_settings)
+        .where(eq(simulation_settings.id, 1));
+      return rows.length === 0 ? null : rows[0].data;
     });
   },
 
   async getJunctionDemands(): Promise<unknown[]> {
-    return timed("getJunctionDemands", () =>
-      readAll("SELECT * FROM junction_demands ORDER BY junction_id, ordinal"),
-    );
+    return timed("getJunctionDemands", async () => {
+      await ready;
+      return drizzleDb
+        .select()
+        .from(junction_demands)
+        .orderBy(junction_demands.junction_id, junction_demands.ordinal);
+    });
   },
 
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
@@ -921,14 +566,40 @@ const api = {
           for (const r of payload.assetUpserts.valves)
             touchedAssetIds.push(r.id);
 
-          bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
+          for (const t of ASSET_TYPE_TABLES) {
+            await deleteByIdsChunked(t, t.id, touchedAssetIds);
+          }
 
-          bulkInsertJunctions(payload.assetUpserts.junctions);
-          bulkInsertReservoirs(payload.assetUpserts.reservoirs);
-          bulkInsertTanks(payload.assetUpserts.tanks);
-          bulkInsertPipes(payload.assetUpserts.pipes);
-          bulkInsertPumps(payload.assetUpserts.pumps);
-          bulkInsertValves(payload.assetUpserts.valves);
+          await insertChunked(
+            junctions,
+            payload.assetUpserts.junctions,
+            BULK_CHUNK_SIZES.junctions,
+          );
+          await insertChunked(
+            reservoirs,
+            payload.assetUpserts.reservoirs,
+            BULK_CHUNK_SIZES.reservoirs,
+          );
+          await insertChunked(
+            tanks,
+            payload.assetUpserts.tanks,
+            BULK_CHUNK_SIZES.tanks,
+          );
+          await insertChunked(
+            pipes,
+            payload.assetUpserts.pipes,
+            BULK_CHUNK_SIZES.pipes,
+          );
+          await insertChunked(
+            pumps,
+            payload.assetUpserts.pumps,
+            BULK_CHUNK_SIZES.pumps,
+          );
+          await insertChunked(
+            valves,
+            payload.assetUpserts.valves,
+            BULK_CHUNK_SIZES.valves,
+          );
 
           bulkUpdate("junctions", payload.assetPatches.junctions);
           bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
@@ -941,50 +612,66 @@ const api = {
           for (const u of payload.customerPointDemandUpdates) {
             cpDemandCpIds.push(u.customerPointId);
           }
-          bulkDelete(
-            ["customer_point_demands"],
-            "customer_point_id",
+          await deleteByIdsChunked(
+            customer_point_demands,
+            customer_point_demands.customer_point_id,
             cpDemandCpIds,
           );
 
           const cpIds: number[] = [...payload.customerPointDeleteIds];
           for (const r of payload.customerPointUpserts) cpIds.push(r.id);
-          bulkDelete(["customer_points"], "id", cpIds);
+          await deleteByIdsChunked(customer_points, customer_points.id, cpIds);
 
-          bulkInsertCustomerPoints(payload.customerPointUpserts);
+          await insertChunked(
+            customer_points,
+            payload.customerPointUpserts,
+            BULK_CHUNK_SIZES.customer_points,
+          );
 
           const cpDemandRows: CustomerPointDemandRow[] = [];
           for (const u of payload.customerPointDemandUpdates) {
             for (const row of u.demands) cpDemandRows.push(row);
           }
-          bulkInsertCustomerPointDemands(cpDemandRows);
+          await insertChunked(
+            customer_point_demands,
+            cpDemandRows,
+            BULK_CHUNK_SIZES.customer_point_demands,
+          );
 
           const jDemandJunctionIds: number[] = [];
           for (const u of payload.junctionDemandUpdates) {
             jDemandJunctionIds.push(u.junctionId);
           }
-          bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
+          await deleteByIdsChunked(
+            junction_demands,
+            junction_demands.junction_id,
+            jDemandJunctionIds,
+          );
 
           const jDemandRows: JunctionDemandRow[] = [];
           for (const u of payload.junctionDemandUpdates) {
             for (const row of u.demands) jDemandRows.push(row);
           }
-          bulkInsertJunctionDemands(jDemandRows);
+          await insertChunked(
+            junction_demands,
+            jDemandRows,
+            BULK_CHUNK_SIZES.junction_demands,
+          );
 
           if (payload.patternsReplacement !== null) {
-            db.exec("DELETE FROM patterns");
+            await drizzleDb.delete(patterns);
             for (const row of payload.patternsReplacement) {
-              insertPattern(row);
+              await insertPattern(row);
             }
           }
           if (payload.curvesReplacement !== null) {
-            db.exec("DELETE FROM curves");
+            await drizzleDb.delete(curves);
             for (const row of payload.curvesReplacement) {
-              insertCurve(row);
+              await insertCurve(row);
             }
           }
           if (payload.controlsReplacement !== null) {
-            upsertControls(payload.controlsReplacement);
+            await upsertControls(payload.controlsReplacement);
           }
           db.exec("COMMIT");
         } catch (e) {
@@ -1004,16 +691,24 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          for (const table of ASSET_TYPE_TABLES) {
-            db.exec(`DELETE FROM ${table}`);
+          for (const t of ASSET_TYPE_TABLES) {
+            await drizzleDb.delete(t);
           }
 
-          bulkInsertJunctions(payload.junctions);
-          bulkInsertReservoirs(payload.reservoirs);
-          bulkInsertTanks(payload.tanks);
-          bulkInsertPipes(payload.pipes);
-          bulkInsertPumps(payload.pumps);
-          bulkInsertValves(payload.valves);
+          await insertChunked(
+            junctions,
+            payload.junctions,
+            BULK_CHUNK_SIZES.junctions,
+          );
+          await insertChunked(
+            reservoirs,
+            payload.reservoirs,
+            BULK_CHUNK_SIZES.reservoirs,
+          );
+          await insertChunked(tanks, payload.tanks, BULK_CHUNK_SIZES.tanks);
+          await insertChunked(pipes, payload.pipes, BULK_CHUNK_SIZES.pipes);
+          await insertChunked(pumps, payload.pumps, BULK_CHUNK_SIZES.pumps);
+          await insertChunked(valves, payload.valves, BULK_CHUNK_SIZES.valves);
 
           db.exec("COMMIT");
         } catch (e) {
@@ -1040,11 +735,19 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          db.exec("DELETE FROM customer_point_demands");
-          db.exec("DELETE FROM customer_points");
+          await drizzleDb.delete(customer_point_demands);
+          await drizzleDb.delete(customer_points);
 
-          bulkInsertCustomerPoints(payload.customerPoints);
-          bulkInsertCustomerPointDemands(payload.demands);
+          await insertChunked(
+            customer_points,
+            payload.customerPoints,
+            BULK_CHUNK_SIZES.customer_points,
+          );
+          await insertChunked(
+            customer_point_demands,
+            payload.demands,
+            BULK_CHUNK_SIZES.customer_point_demands,
+          );
 
           db.exec("COMMIT");
         } catch (e) {
@@ -1067,8 +770,8 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          db.exec("DELETE FROM patterns");
-          for (const row of rows) insertPattern(row);
+          await drizzleDb.delete(patterns);
+          for (const row of rows) await insertPattern(row);
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
@@ -1087,8 +790,8 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          db.exec("DELETE FROM curves");
-          for (const row of rows) insertCurve(row);
+          await drizzleDb.delete(curves);
+          for (const row of rows) await insertCurve(row);
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
@@ -1102,16 +805,14 @@ const api = {
   async setAllControls(data: string): Promise<void> {
     return timed("setAllControls", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      upsertControls(data);
+      await upsertControls(data);
     });
   },
 
   async setAllSimulationSettings(data: string): Promise<void> {
     return timed("setAllSimulationSettings", async () => {
       await ready;
-      if (!db) throw new Error("No database open");
-      upsertSimulationSettings(data);
+      await upsertSimulationSettings(data);
     });
   },
 
@@ -1123,8 +824,12 @@ const api = {
         if (!db) throw new Error("No database open");
         db.exec("BEGIN IMMEDIATE");
         try {
-          db.exec("DELETE FROM junction_demands");
-          bulkInsertJunctionDemands(rows);
+          await drizzleDb.delete(junction_demands);
+          await insertChunked(
+            junction_demands,
+            rows,
+            BULK_CHUNK_SIZES.junction_demands,
+          );
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");

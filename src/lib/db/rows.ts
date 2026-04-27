@@ -1,80 +1,26 @@
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import type { InferSelectModel } from "drizzle-orm";
+import {
+  junctions,
+  reservoirs,
+  tanks,
+  pipes,
+  pumps,
+  valves,
+  customer_points,
+  customer_point_demands,
+  patterns,
+  junction_demands,
+  curves,
+} from "./schema";
 
-type NodeRowShared = {
-  id: AssetId;
+export type JunctionRow = InferSelectModel<typeof junctions> & { type: string };
+export type ReservoirRow = InferSelectModel<typeof reservoirs> & {
   type: string;
-  label: string | null;
-  is_active: number;
-  coord_x: number;
-  coord_y: number;
-  elevation: number | null;
-  initial_quality: number | null;
-  chemical_source_type: string | null;
-  chemical_source_strength: number | null;
-  chemical_source_pattern_id: number | null;
 };
-
-type LinkRowShared = {
-  id: AssetId;
-  type: string;
-  label: string | null;
-  is_active: number;
-  start_node_id: AssetId;
-  end_node_id: AssetId;
-  coords: string;
-  length: number | null;
-  initial_status: string | null;
-};
-
-export type JunctionRow = NodeRowShared & {
-  emitter_coefficient: number | null;
-};
-
-export type ReservoirRow = NodeRowShared & {
-  head: number | null;
-  head_pattern_id: number | null;
-};
-
-export type TankRow = NodeRowShared & {
-  initial_level: number | null;
-  min_level: number | null;
-  max_level: number | null;
-  min_volume: number | null;
-  diameter: number | null;
-  overflow: number | null;
-  mixing_model: string | null;
-  mixing_fraction: number | null;
-  bulk_reaction_coeff: number | null;
-  volume_curve_id: number | null;
-};
-
-export type PipeRow = LinkRowShared & {
-  diameter: number | null;
-  roughness: number | null;
-  minor_loss: number | null;
-  bulk_reaction_coeff: number | null;
-  wall_reaction_coeff: number | null;
-};
-
-export type PumpRow = LinkRowShared & {
-  definition_type: string;
-  power: number | null;
-  speed: number | null;
-  speed_pattern_id: number | null;
-  efficiency_curve_id: number | null;
-  energy_price: number | null;
-  energy_price_pattern_id: number | null;
-  curve_id: number | null;
-  curve_points: string | null;
-};
-
-export type ValveRow = LinkRowShared & {
-  diameter: number | null;
-  minor_loss: number | null;
-  valve_kind: string | null;
-  setting: number | null;
-  curve_id: number | null;
-};
+export type TankRow = InferSelectModel<typeof tanks> & { type: string };
+export type PipeRow = InferSelectModel<typeof pipes> & { type: string };
+export type PumpRow = InferSelectModel<typeof pumps> & { type: string };
+export type ValveRow = InferSelectModel<typeof valves> & { type: string };
 
 export type AssetRows = {
   junctions: JunctionRow[];
@@ -85,49 +31,19 @@ export type AssetRows = {
   valves: ValveRow[];
 };
 
-export type CustomerPointRow = {
-  id: number;
-  label: string;
-  coord_x: number;
-  coord_y: number;
-  pipe_id: number | null;
-  junction_id: number | null;
-  snap_x: number | null;
-  snap_y: number | null;
-};
-
-export type CustomerPointDemandRow = {
-  customer_point_id: number;
-  ordinal: number;
-  base_demand: number;
-  pattern_id: number | null;
-};
+export type CustomerPointRow = InferSelectModel<typeof customer_points>;
+export type CustomerPointDemandRow = InferSelectModel<
+  typeof customer_point_demands
+>;
 
 export type CustomerPointsData = {
   customerPoints: CustomerPointRow[];
   demands: CustomerPointDemandRow[];
 };
 
-export type PatternRow = {
-  id: number;
-  label: string;
-  type: string | null;
-  multipliers: string;
-};
-
-export type JunctionDemandRow = {
-  junction_id: number;
-  ordinal: number;
-  base_demand: number;
-  pattern_id: number | null;
-};
-
-export type CurveRow = {
-  id: number;
-  label: string;
-  type: string | null;
-  points: string;
-};
+export type PatternRow = InferSelectModel<typeof patterns>;
+export type JunctionDemandRow = InferSelectModel<typeof junction_demands>;
+export type CurveRow = InferSelectModel<typeof curves>;
 
 export const findMaxId = (
   assetRows: AssetRows,
