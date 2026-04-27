@@ -18,7 +18,7 @@ export const exportFile = async (
   const exporters = {
     geojson: FileExporters.exportGeoJson,
     shapefile: FileExporters.exportShapefile,
-    csv: nullExporter,
+    csv: FileExporters.exportCsv,
     xlsx: nullExporter,
   };
 
