@@ -31,6 +31,9 @@ export function FileInfo() {
   const showAsProject = isOurFileOn || !isInp;
   const TypeIcon = showAsProject ? FileBoxIcon : FileSpreadsheetIcon;
 
+  const isUnsavedProject = isOurFileOn && !projectFileInfo;
+  const showUnsavedIndicator = hasUnsavedChanges || isUnsavedProject;
+
   const name = isOurFileOn
     ? projectName
       ? `${projectName}${projectExtension}`
@@ -48,7 +51,7 @@ export function FileInfo() {
       >
         {truncate(name, 50)}{" "}
       </div>
-      {hasUnsavedChanges ? <UnsavedChangesIcon /> : ""}
+      {showUnsavedIndicator ? <UnsavedChangesIcon /> : ""}
       {isDemo && (
         <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
           {translate("demoShort")}
