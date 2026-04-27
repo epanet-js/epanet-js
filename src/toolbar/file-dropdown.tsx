@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   FileIcon,
   FileAddIcon,
+  FilePlusCornerIcon,
   FileSpreadsheetIcon,
   FolderIcon,
   FolderOpenIcon,
@@ -227,7 +228,7 @@ const NewProjectSubmenu = () => {
   return (
     <DD.Sub>
       <DDSubTriggerItem>
-        <FileIcon />
+        <FilePlusCornerIcon />
         {translate("newProject")}
         <ChevronRightIcon size="sm" className="ml-auto" />
       </DDSubTriggerItem>

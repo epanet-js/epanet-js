@@ -28,6 +28,7 @@ import {
   File,
   FileCode,
   FilePlus,
+  FilePlus2,
   FileSpreadsheet,
   FileText,
   Folder,
@@ -157,6 +158,7 @@ export const CheckIcon = icon(Check);
 export const KeyboardIcon = icon(Keyboard);
 export const FileIcon = icon(File);
 export const FileAddIcon = icon(FilePlus);
+export const FilePlusCornerIcon = icon(FilePlus2);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
 export const FolderIcon = icon(Folder);
