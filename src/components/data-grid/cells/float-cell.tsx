@@ -149,10 +149,7 @@ export function floatColumn(
     header: options.header,
     size: options.size,
     cellComponent: CellComponent,
-    copyValue: (v) => {
-      const num = v as number | null;
-      return num != null ? localizeDecimal(num) : "";
-    },
+    copyValue: (v) => (v as number | null)?.toString() ?? "",
     pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
     deleteValue: options.deleteValue ?? null,
   };
