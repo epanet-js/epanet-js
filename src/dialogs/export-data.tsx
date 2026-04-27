@@ -6,7 +6,6 @@ import { useExportData } from "src/commands/export-data";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { dialogAtom } from "src/state/dialog";
-import { formatTimestepTime } from "src/components/timestep-selector";
 import type { ExportFormat } from "src/lib/export/types";
 
 const exportFormats: { value: ExportFormat; labelKey: string }[] = [
@@ -31,6 +30,7 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
   const [format, setFormat] = useState<ExportFormat>("geojson");
   const [includeSimulationResults, setIncludeSimulationResults] =
     useState(false);
+  const [exportAllResultsAsCsv, setExportAllResultsAsCsv] = useState(false);
   const [selectedTimestep, setSelectedTimestep] = useState<number>(
     currentSimulationStep ?? 0,
   );
@@ -41,9 +41,11 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
       format,
       includeSimulationResults,
       simulationStep: includeSimulationResults ? selectedTimestep : undefined,
+      exportAllResultsAsCsv,
     });
   }, [
     exportData,
+    exportAllResultsAsCsv,
     format,
     includeSimulationResults,
     selectedTimestep,
@@ -55,7 +57,7 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseDialog
-      title={translate("exportNetwork")}
+      title={translate("exportData")}
       size="sm"
       isOpen={true}
       onClose={onClose}
@@ -106,20 +108,32 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
 
           {showTimestepSelector && (
             <div className="space-y-2 pl-6">
-              <label className="block text-sm font-medium text-gray-700">
-                {translate("timestep")}
-              </label>
               <select
-                value={selectedTimestep}
-                onChange={(e) => setSelectedTimestep(Number(e.target.value))}
+                value={exportAllResultsAsCsv ? "all" : "single"}
+                onChange={(e) =>
+                  setExportAllResultsAsCsv(e.target.value === "all")
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
               >
-                {Array.from({ length: timestepCount }, (_, i) => (
-                  <option key={i} value={i}>
-                    {formatTimestepTime(i, reportingTimeStep)}
-                  </option>
-                ))}
+                <option value="single">
+                  {translate("exportSingleTimestep")}
+                </option>
+                <option value="all">{translate("exportAllTimesteps")}</option>
               </select>
+
+              {!exportAllResultsAsCsv && (
+                <select
+                  value={selectedTimestep}
+                  onChange={(e) => setSelectedTimestep(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                >
+                  {Array.from({ length: timestepCount }, (_, i) => (
+                    <option key={i} value={i}>
+                      {formatTimestepTime(i, reportingTimeStep)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
         </div>
@@ -127,3 +141,10 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
     </BaseDialog>
   );
 };
+
+function formatTimestepTime(timestepIndex: number, intervalSeconds = 3600) {
+  const totalSeconds = timestepIndex * intervalSeconds;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
