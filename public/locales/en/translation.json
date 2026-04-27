@@ -1266,6 +1266,7 @@
   "exporting": "Exporting...",
   "exported": "Exported successfully",
   "exportFailed": "Export failed",
+  "exportCsv": "CSV",
   "exportGeojson": "GeoJSON",
   "exportShapefile": "Shapefile (GIS)",
   "dialog": {

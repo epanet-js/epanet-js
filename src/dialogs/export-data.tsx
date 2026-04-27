@@ -11,6 +11,7 @@ import type { ExportFormat } from "src/lib/export/types";
 const exportFormats: { value: ExportFormat; labelKey: string }[] = [
   { value: "geojson", labelKey: "exportGeojson" },
   { value: "shapefile", labelKey: "exportShapefile" },
+  { value: "csv", labelKey: "exportCsv" },
 ];
 
 export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
