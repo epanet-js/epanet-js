@@ -20,16 +20,16 @@ export const AlertExportInpDialog = ({
       onClose={onClose}
       footer={
         <SimpleDialogActions
-          action={translate("saveAsProject")}
+          action={translate("exportToInp")}
           onAction={() => {
             onClose();
-            onSaveProject();
+            onExportAnyway();
           }}
           secondary={{
-            action: translate("exportToInpAnyway"),
+            action: translate("saveAsProject"),
             onClick: () => {
               onClose();
-              onExportAnyway();
+              onSaveProject();
             },
           }}
         />

@@ -490,7 +490,7 @@
   "alertExportInp": "Exporting to INP may result in lost data",
   "alertExportInpDetail": "The INP format doesn't support all the features available in our app. To ensure no data is lost, we recommend saving your work as a Project first.",
   "saveAsProject": "Save as Project",
-  "exportToInpAnyway": "Export to INP Anyway",
+  "exportToInp": "Export to INP",
   "newBadge": "new",
   "projectSavedInfo": "Your work is now saved as a Project",
   "projectSavedInfoBody": "We've upgraded how saving works! Your file is now saved as a native Project, which preserves your exact workspace state and allows us to store more advanced details.",
