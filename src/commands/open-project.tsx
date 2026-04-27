@@ -23,6 +23,7 @@ import { dialogAtom } from "src/state/dialog";
 import { MapContext } from "src/map";
 import { getExtent } from "src/lib/geometry";
 import { projectExtension } from "./save-project";
+import { inpExtension, useImportInp } from "./import-inp";
 
 export const openProjectShortcut = "ctrl+o";
 
@@ -163,6 +164,7 @@ export const useOpenProject = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { openFile, isReady } = useFileOpen();
   const openProjectFile = useOpenProjectFile();
+  const importInp = useImportInp();
   const userTracking = useUserTracking();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
@@ -173,17 +175,22 @@ export const useOpenProject = () => {
       if (!isOurFileOn) return;
       if (!isReady) throw new Error("FS not ready");
 
-      const dbFile = await openFile({
+      const file = await openFile({
         multiple: false,
-        extensions: [projectExtension],
-        description: "EPANET project",
+        extensions: [projectExtension, inpExtension],
+        description: "Project or EPANET INP",
         mimeTypes: ["application/octet-stream"],
       });
-      if (!dbFile) return;
+      if (!file) return;
 
-      await openProjectFile(dbFile);
+      if (file.name.toLowerCase().endsWith(inpExtension)) {
+        void importInp([file]);
+        return;
+      }
+
+      await openProjectFile(file);
     },
-    [openFile, isReady, openProjectFile, userTracking, isOurFileOn],
+    [openFile, isReady, openProjectFile, importInp, userTracking, isOurFileOn],
   );
 
   return useCallback(
