@@ -25,6 +25,10 @@ export const profileHoverAtom = atom<{ id: AssetId; isLink: boolean } | null>(
   null,
 );
 
+export const profileChartHoverPositionAtom = atom<{
+  coordinates: [number, number];
+} | null>(null);
+
 export type ProfileModifier = "none" | "extend" | "subtract";
 export const profileModifierAtom = atom<ProfileModifier>("none");
 

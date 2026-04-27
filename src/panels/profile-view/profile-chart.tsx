@@ -19,14 +19,24 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
+import {
+  profileChartHoverPositionAtom,
+  profileViewAtom,
+} from "src/state/profile-view";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { colors } from "src/lib/constants";
 import { USelection } from "src/selection/selection";
+import {
+  buildPathSegments,
+  coordinatesAtLength,
+  PathSegment,
+} from "./path-position";
 
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 2;
-const SNAP_PIXEL_THRESHOLD = 20;
+const SNAP_PIXEL_THRESHOLD = 5;
 
 function findLinkAt(
   x: number,
@@ -91,6 +101,10 @@ type TooltipDeps = {
   pressureFactor: number | null;
   elevColor: string;
   translate: (key: string) => string;
+  pathSegments: PathSegment[];
+  setChartHoverPosition: (
+    value: { coordinates: [number, number] } | null,
+  ) => void;
 };
 
 function buildTooltipHtml(
@@ -170,6 +184,14 @@ export const ProfileChart = memo(function ProfileChart({
   const linkSymbology = useAtomValue(linkSymbologyAtom);
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const stripIcons = useStripPlanIcons();
+  const profileView = useAtomValue(profileViewAtom);
+  const model = useAtomValue(stagingModelDerivedAtom);
+  const setChartHoverPosition = useSetAtom(profileChartHoverPositionAtom);
+
+  const pathSegments = useMemo<PathSegment[]>(() => {
+    if (profileView.phase !== "showingProfile") return [];
+    return buildPathSegments(profileView.path, model.assets);
+  }, [profileView, model.assets]);
 
   const onChartClick = useCallback(
     (params: any) => {
@@ -438,6 +460,8 @@ export const ProfileChart = memo(function ProfileChart({
     pressureFactor,
     elevColor: nodeSymbology.defaults.color,
     translate,
+    pathSegments,
+    setChartHoverPosition,
   });
   tooltipDepsRef.current = {
     points,
@@ -446,6 +470,8 @@ export const ProfileChart = memo(function ProfileChart({
     pressureFactor,
     elevColor: nodeSymbology.defaults.color,
     translate,
+    pathSegments,
+    setChartHoverPosition,
   };
 
   const [tooltipState, setTooltipState] = useState<{
@@ -481,6 +507,7 @@ export const ProfileChart = memo(function ProfileChart({
           currTrigger: "leave",
         });
         setTooltipState(null);
+        tooltipDepsRef.current.setChartHoverPosition(null);
         return;
       }
 
@@ -511,6 +538,14 @@ export const ProfileChart = memo(function ProfileChart({
       });
       /* eslint-enable */
 
+      const markerCoordinates =
+        snappedIdx !== null
+          ? deps.points[snappedIdx].coordinates
+          : coordinatesAtLength(deps.pathSegments, cursorX);
+      deps.setChartHoverPosition(
+        markerCoordinates ? { coordinates: markerCoordinates } : null,
+      );
+
       const html = buildTooltipHtml(cursorX, snappedIdx, deps);
       if (!html) {
         setTooltipState(null);
@@ -530,6 +565,7 @@ export const ProfileChart = memo(function ProfileChart({
         /* eslint-enable */
       }
       setTooltipState(null);
+      tooltipDepsRef.current.setChartHoverPosition(null);
     };
 
     el.addEventListener("mousemove", handleMove);
@@ -537,6 +573,7 @@ export const ProfileChart = memo(function ProfileChart({
     return () => {
       el.removeEventListener("mousemove", handleMove);
       el.removeEventListener("mouseleave", handleLeave);
+      tooltipDepsRef.current.setChartHoverPosition(null);
     };
   }, []);
 
