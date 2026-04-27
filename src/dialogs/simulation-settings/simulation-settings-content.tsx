@@ -947,7 +947,6 @@ const ValueSetting = ({
         label={label}
         displayValue={String(value)}
         onChangeValue={onChange}
-        isNullable={false}
         disabled={disabled}
         styleOptions={{ textSize: "xs" }}
       />
