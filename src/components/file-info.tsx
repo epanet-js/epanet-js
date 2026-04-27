@@ -16,7 +16,6 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { projectExtension } from "src/commands/save-project";
-import { inpExtension } from "src/commands/import-inp";
 
 export function FileInfo() {
   const translate = useTranslate();
@@ -29,11 +28,12 @@ export function FileInfo() {
   const inpFileInfo = useAtomValue(inpFileInfoAtom);
 
   const isInp = !!inpFileInfo && !projectFileInfo;
-  const TypeIcon = isInp ? FileSpreadsheetIcon : FileBoxIcon;
+  const showAsProject = isOurFileOn || !isInp;
+  const TypeIcon = showAsProject ? FileBoxIcon : FileSpreadsheetIcon;
 
   const name = isOurFileOn
     ? projectName
-      ? `${projectName}${isInp ? inpExtension : projectExtension}`
+      ? `${projectName}${projectExtension}`
       : null
     : fileName;
 
