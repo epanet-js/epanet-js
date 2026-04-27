@@ -26,20 +26,7 @@ import { USelection } from "src/selection/selection";
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 2;
-
-function findNearestJunctionIdx(x: number, points: ProfilePoint[]): number {
-  if (points.length === 0) return -1;
-  let nearestIdx = 0;
-  let nearestDist = Math.abs(x - points[0].cumulativeLength);
-  for (let i = 1; i < points.length; i++) {
-    const d = Math.abs(x - points[i].cumulativeLength);
-    if (d < nearestDist) {
-      nearestDist = d;
-      nearestIdx = i;
-    }
-  }
-  return nearestIdx;
-}
+const SNAP_PIXEL_THRESHOLD = 20;
 
 function findLinkAt(
   x: number,
@@ -101,49 +88,38 @@ type TooltipDeps = {
   points: ProfilePoint[];
   links: ProfileLink[] | null;
   terrain: TerrainPoint[] | null;
-  snapThreshold: number;
   pressureFactor: number | null;
   elevColor: string;
   translate: (key: string) => string;
 };
 
-function buildTooltipHtml(cursorX: number, deps: TooltipDeps): string {
-  const {
-    points,
-    links,
-    terrain,
-    snapThreshold,
-    pressureFactor,
-    elevColor,
-    translate,
-  } = deps;
+function buildTooltipHtml(
+  cursorX: number,
+  snappedIdx: number | null,
+  deps: TooltipDeps,
+): string {
+  const { points, links, terrain, pressureFactor, elevColor, translate } = deps;
   const hglColor = "#2563eb";
   const dot = (color: string) =>
     `<span style="display:inline-block;width:8px;height:8px;background:${color};margin-right:4px;border-radius:50%;"></span>`;
   const spacer = `<span style="display:inline-block;width:8px;height:8px;margin-right:4px;"></span>`;
   const fmt = (v: number) => localizeDecimal(v, { decimals: 2 });
 
-  const nearestIdx = findNearestJunctionIdx(cursorX, points);
-  if (nearestIdx !== -1) {
-    const nearest = points[nearestIdx];
-    const distance = Math.abs(cursorX - nearest.cumulativeLength);
-    if (distance <= snapThreshold) {
-      const lines: string[] = [];
+  if (snappedIdx !== null) {
+    const nearest = points[snappedIdx];
+    const lines: string[] = [];
+    lines.push(
+      `${dot(elevColor)}${translate("profileView.elevation")}: ${fmt(nearest.elevation)}`,
+    );
+    if (nearest.head !== null) {
       lines.push(
-        `${dot(elevColor)}${translate("profileView.elevation")}: ${fmt(nearest.elevation)}`,
+        `${dot(hglColor)}${translate("profileView.hgl")}: ${fmt(nearest.head)}`,
       );
-      if (nearest.head !== null) {
-        lines.push(
-          `${dot(hglColor)}${translate("profileView.hgl")}: ${fmt(nearest.head)}`,
-        );
-      }
-      if (nearest.pressure !== null) {
-        lines.push(
-          `${spacer}${translate("pressure")}: ${fmt(nearest.pressure)}`,
-        );
-      }
-      return `<strong>${nearest.label}</strong><br/>${lines.join("<br/>")}`;
     }
+    if (nearest.pressure !== null) {
+      lines.push(`${spacer}${translate("pressure")}: ${fmt(nearest.pressure)}`);
+    }
+    return `<strong>${nearest.label}</strong><br/>${lines.join("<br/>")}`;
   }
 
   const link = findLinkAt(cursorX, links);
@@ -451,10 +427,6 @@ export const ProfileChart = memo(function ProfileChart({
 
   const totalLength = nodePositions[nodePositions.length - 1] ?? 0;
 
-  const snapThreshold = useMemo(
-    () => Math.max(totalLength * 0.01, 2),
-    [totalLength],
-  );
   const pressureFactor = useMemo(() => computePressureFactor(points), [points]);
 
   const chartRef = useRef<any>(null);
@@ -463,7 +435,6 @@ export const ProfileChart = memo(function ProfileChart({
     points,
     links,
     terrain,
-    snapThreshold,
     pressureFactor,
     elevColor: nodeSymbology.defaults.color,
     translate,
@@ -472,7 +443,6 @@ export const ProfileChart = memo(function ProfileChart({
     points,
     links,
     terrain,
-    snapThreshold,
     pressureFactor,
     elevColor: nodeSymbology.defaults.color,
     translate,
@@ -504,20 +474,63 @@ export const ProfileChart = memo(function ProfileChart({
       const result =
         chart.convertFromPixel({ gridIndex: 0 }, [px, py]) ??
         chart.convertFromPixel({ seriesIndex: 0 }, [px, py]);
-      /* eslint-enable */
       const cursorX = Array.isArray(result) ? (result[0] as number) : NaN;
       if (Number.isNaN(cursorX)) {
+        chart.dispatchAction({
+          type: "updateAxisPointer",
+          currTrigger: "leave",
+        });
         setTooltipState(null);
         return;
       }
-      const html = buildTooltipHtml(cursorX, tooltipDepsRef.current);
+
+      const deps = tooltipDepsRef.current;
+      let snappedIdx: number | null = null;
+      let snappedPixelX: number | null = null;
+      let bestDist = SNAP_PIXEL_THRESHOLD;
+      for (let i = 0; i < deps.points.length; i++) {
+        const pointPx = chart.convertToPixel(
+          { xAxisIndex: 0 },
+          deps.points[i].cumulativeLength,
+        );
+        if (typeof pointPx !== "number" || Number.isNaN(pointPx)) continue;
+        const d = Math.abs(pointPx - px);
+        if (d <= bestDist) {
+          bestDist = d;
+          snappedIdx = i;
+          snappedPixelX = pointPx;
+        }
+      }
+
+      const effectivePixelX = snappedPixelX ?? px;
+      chart.dispatchAction({
+        type: "updateAxisPointer",
+        currTrigger: "mousemove",
+        x: effectivePixelX,
+        y: py,
+      });
+      /* eslint-enable */
+
+      const html = buildTooltipHtml(cursorX, snappedIdx, deps);
       if (!html) {
         setTooltipState(null);
         return;
       }
       setTooltipState({ px, py, html });
     };
-    const handleLeave = () => setTooltipState(null);
+    const handleLeave = () => {
+      const chart = chartRef.current;
+      if (chart) {
+        /* eslint-disable @typescript-eslint/no-unsafe-call,
+           @typescript-eslint/no-unsafe-member-access */
+        chart.dispatchAction({
+          type: "updateAxisPointer",
+          currTrigger: "leave",
+        });
+        /* eslint-enable */
+      }
+      setTooltipState(null);
+    };
 
     el.addEventListener("mousemove", handleMove);
     el.addEventListener("mouseleave", handleLeave);
@@ -813,7 +826,7 @@ export const ProfileChart = memo(function ProfileChart({
       tooltip: { show: false },
       axisPointer: {
         link: [{ xAxisIndex: [0, 1] }],
-        triggerOn: "mousemove",
+        triggerOn: "none",
       } as any,
       dataZoom: [
         {
