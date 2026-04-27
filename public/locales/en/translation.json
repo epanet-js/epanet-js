@@ -389,6 +389,7 @@
   "newProject.fromExample": "From example",
   "newProject.fromGIS": "From GIS data",
   "newProject.fromEpanetInp": "From EPANET INP",
+  "exampleModels": "Example models",
   "create": "Create",
   "createNew": "Create new...",
   "file": "File",

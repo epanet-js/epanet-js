@@ -9,6 +9,7 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
+import { ExampleModelsDialog } from "./example-models";
 
 const SimulationSettingsDialog = dynamic(
   () =>
@@ -487,6 +488,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "welcome") {
     return <WelcomeDialog />;
+  }
+  if (dialog.type === "examples") {
+    return <ExampleModelsDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;
