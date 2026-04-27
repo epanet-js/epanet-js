@@ -15,17 +15,14 @@ export const exportFile = async (
 ): Promise<ExportedFile> => {
   const exporters = {
     geojson: FileExporters.exportGeoJson,
-    shapefile: nullExporter,
+    shapefile: FileExporters.exportShapefile,
     csv: nullExporter,
     xlsx: nullExporter,
   };
-  const exportedFiles: ExportedFile[] = [];
 
-  entries.forEach((entry) => {
-    const format = entry.format;
-    const file = exporters[format](entry);
-    exportedFiles.push(file);
-  });
+  const exportedFiles = await Promise.all(
+    entries.map((entry) => exporters[entry.format](entry)),
+  );
 
   if (exportedFiles.length === 1) {
     return exportedFiles[0];
