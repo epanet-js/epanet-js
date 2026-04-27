@@ -30,11 +30,11 @@ type ValidGeometries =
   | Polygon
   | MultiPolygon;
 
-function extractLayer(
+const extractLayer = (
   geoJson: FeatureCollection,
   geoJsonType: string,
   shpType: OGCGeometry,
-): ShapefileLayer | null {
+): ShapefileLayer | null => {
   const features = geoJson.features.filter(
     (f) => f.geometry?.type === geoJsonType,
   );
@@ -48,14 +48,16 @@ function extractLayer(
     shpType === "POLYLINE" || shpType === "POLYGON" ? [coords] : coords;
 
   return { properties, geometries, type: shpType };
-}
+};
 
-function writeLayer(layer: ShapefileLayer): Promise<{
+const writeLayer = (
+  layer: ShapefileLayer,
+): Promise<{
   shp: ArrayBuffer;
   shx: ArrayBuffer;
   dbf: { buffer: ArrayBuffer };
-}> {
-  return new Promise((resolve, reject) => {
+}> =>
+  new Promise((resolve, reject) => {
     shpwrite.write(
       layer.properties,
       layer.type,
@@ -73,45 +75,42 @@ function writeLayer(layer: ShapefileLayer): Promise<{
       },
     );
   });
-}
 
-function toFiles(
+const toFiles = (
   baseName: string,
   shp: ArrayBuffer,
   shx: ArrayBuffer,
   dbf: { buffer: ArrayBuffer },
-): ExportedFile[] {
-  return [
-    {
-      fileName: `${baseName}.shp`,
-      extensions: [".shp"],
-      mimeTypes: [MIME],
-      description: "Shapefile",
-      blob: new Blob([shp], { type: MIME }),
-    },
-    {
-      fileName: `${baseName}.shx`,
-      extensions: [".shx"],
-      mimeTypes: [MIME],
-      description: "Shapefile Index",
-      blob: new Blob([shx], { type: MIME }),
-    },
-    {
-      fileName: `${baseName}.dbf`,
-      extensions: [".dbf"],
-      mimeTypes: [MIME],
-      description: "dBASE Table",
-      blob: new Blob([dbf.buffer], { type: MIME }),
-    },
-    {
-      fileName: `${baseName}.prj`,
-      extensions: [".prj"],
-      mimeTypes: ["text/plain"],
-      description: "Projection",
-      blob: new Blob([defaultPrj], { type: "text/plain" }),
-    },
-  ];
-}
+) => [
+  {
+    fileName: `${baseName}.shp`,
+    extensions: [".shp"],
+    mimeTypes: [MIME],
+    description: "Shapefile",
+    blob: new Blob([shp], { type: MIME }),
+  },
+  {
+    fileName: `${baseName}.shx`,
+    extensions: [".shx"],
+    mimeTypes: [MIME],
+    description: "Shapefile Index",
+    blob: new Blob([shx], { type: MIME }),
+  },
+  {
+    fileName: `${baseName}.dbf`,
+    extensions: [".dbf"],
+    mimeTypes: [MIME],
+    description: "dBASE Table",
+    blob: new Blob([dbf.buffer], { type: MIME }),
+  },
+  {
+    fileName: `${baseName}.prj`,
+    extensions: [".prj"],
+    mimeTypes: ["text/plain"],
+    description: "Projection",
+    blob: new Blob([defaultPrj], { type: "text/plain" }),
+  },
+];
 
 export const exportShapefile = async (
   entry: ExportEntry,
