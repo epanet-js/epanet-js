@@ -15,7 +15,12 @@ import React, {
   useState,
 } from "react";
 import { Resizer, useWindowResizeSplits } from "src/components/resizer";
-import { BottomPanel, LeftSidePanel, SidePanel } from "src/panels";
+import {
+  BottomPanel,
+  LeftSidePanel,
+  RelocatedSidePanel,
+  SidePanel,
+} from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
 import { atom, useAtom } from "jotai";
@@ -115,6 +120,7 @@ export function EpanetApp() {
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
+  const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
@@ -164,24 +170,28 @@ export function EpanetApp() {
           )}
         >
           {layout === "HORIZONTAL" && <LeftSidePanel />}
-          <DndContext
-            sensors={sensor}
-            modifiers={[restrictToWindowEdges]}
-            onDragEnd={(end) => {
-              setPersistentTransform((transform) => {
-                return {
-                  x: transform.x + end.delta.x,
-                  y: transform.y + end.delta.y,
-                };
-              });
-            }}
-          >
-            <DraggableMap
-              persistentTransform={persistentTransform}
-              setMap={setMap}
-              layout={layout}
-            />
-          </DndContext>
+          <div className="flex-auto flex flex-col relative min-w-0">
+            <DndContext
+              sensors={sensor}
+              modifiers={[restrictToWindowEdges]}
+              onDragEnd={(end) => {
+                setPersistentTransform((transform) => {
+                  return {
+                    x: transform.x + end.delta.x,
+                    y: transform.y + end.delta.y,
+                  };
+                });
+              }}
+            >
+              <DraggableMap
+                persistentTransform={persistentTransform}
+                setMap={setMap}
+                layout={layout}
+              />
+            </DndContext>
+            {layout === "HORIZONTAL" && isBottomPanelOn && <BottomPanel />}
+            {layout === "VERTICAL" && <RelocatedSidePanel />}
+          </div>
           {layout === "HORIZONTAL" && (
             <>
               <SidePanel />
@@ -189,7 +199,6 @@ export function EpanetApp() {
               <Resizer side="right" isToggleAllowed={false} />
             </>
           )}
-          {layout === "VERTICAL" && <BottomPanel />}
         </div>
         <Drop />
         <Dialogs />

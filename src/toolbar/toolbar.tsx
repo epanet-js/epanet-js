@@ -9,6 +9,8 @@ import {
   SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
+  PanelBottomIcon,
+  PanelBottomActiveIcon,
   PanelLeftIcon,
   PanelLeftActiveIcon,
   PanelRightActiveIcon,
@@ -16,7 +18,7 @@ import {
   SearchIcon,
 } from "src/icons";
 import Modes from "./modes";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -245,13 +247,22 @@ const CommandBarButton = () => {
 
 const LayoutActions = () => {
   const translate = useTranslate();
-  const { leftOpen, rightOpen } = useAtomValue(splitsAtom);
+  const [splits, setSplits] = useAtom(splitsAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
+  const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
 
-  const leftPanelIcon = leftOpen ? <PanelLeftActiveIcon /> : <PanelLeftIcon />;
-
-  const rightPanelIcon = rightOpen ? (
+  const leftPanelIcon = splits.leftOpen ? (
+    <PanelLeftActiveIcon />
+  ) : (
+    <PanelLeftIcon />
+  );
+  const bottomPanelIcon = splits.bottomOpen ? (
+    <PanelBottomActiveIcon />
+  ) : (
+    <PanelBottomIcon />
+  );
+  const rightPanelIcon = splits.rightOpen ? (
     <PanelRightActiveIcon />
   ) : (
     <PanelRightIcon />
@@ -269,6 +280,17 @@ const LayoutActions = () => {
       >
         {leftPanelIcon}
       </MenuAction>
+      {isBottomPanelOn && (
+        <MenuAction
+          label="Toggle bottom panel"
+          role="button"
+          onClick={() =>
+            setSplits((s) => ({ ...s, bottomOpen: !s.bottomOpen }))
+          }
+        >
+          {bottomPanelIcon}
+        </MenuAction>
+      )}
       <MenuAction
         label={translate("toggleSidePanel")}
         role="button"

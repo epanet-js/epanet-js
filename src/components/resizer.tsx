@@ -137,25 +137,25 @@ function useResize(
   return { moveProps, showPanel, splits };
 }
 
+const MIN_BOTTOM_HEIGHT = 80;
+
 function useResizeBottom() {
   const [splits, setSplits] = useAtom(splitsAtom);
   const rawSplit = useRef<number | null>(null);
 
   const { moveProps } = useMove({
     onMoveStart() {
-      //rawSplit.current = splits.bottom;
+      rawSplit.current =
+        typeof splits.bottom === "number" ? splits.bottom : 300;
     },
     onMove(e) {
       if (rawSplit.current === null) return;
-      rawSplit.current -= Math.round(e.deltaY * 1);
-      if (rawSplit.current === null) return;
-      const raw = rawSplit.current;
-      setSplits((splits) => {
-        return {
-          ...splits,
-          bottom: raw,
-        };
-      });
+      rawSplit.current -= Math.round(e.deltaY);
+      const clamped = Math.max(
+        MIN_BOTTOM_HEIGHT,
+        Math.min(window.innerHeight - 200, rawSplit.current),
+      );
+      setSplits((splits) => ({ ...splits, bottom: clamped }));
     },
     onMoveEnd() {
       rawSplit.current = null;
@@ -274,45 +274,28 @@ function PanelToggle({
 }
 
 export const BottomResizer = memo(function BottomResizerInner() {
-  const { moveProps, splits } = useResizeBottom();
+  const { moveProps } = useResizeBottom();
 
   return (
     <button
       {...moveProps}
       type="button"
       role="separator"
-      aria-orientation="vertical"
+      aria-orientation="horizontal"
       aria-label="Resize panel"
       tabIndex={-1}
-      style={{
-        cursor: "row-resize",
-        bottom: splits.bottom,
-      }}
-      className="absolute left-0 right-0
+      style={{ cursor: "row-resize" }}
+      className="absolute top-0 left-0 right-0 h-3 -translate-y-1/2 z-20
         touch-none
-        flex items-center
-        justify-center
-        h-1
-        hover-none:w-3
-        bg-opacity-0
-        dark:bg-opacity-0
-        hover-none:bg-opacity-40
-        hover-none:dark:bg-opacity-40
-        hover-none:bg-white
-        hover-none:dark:bg-black
-        hover-hover:hover:bg-opacity-100
-        hover-hover:dark:hover:bg-opacity-100
-        bg-purple-700
-        dark:bg-purple-700
-        "
+        flex items-center justify-center
+        group"
     >
       <div
-        className="
-        hover-hover:hidden
-        h-16
-        w-1
-        rounded
-        bg-white"
+        className="w-full h-1
+          bg-purple-700 dark:bg-purple-700
+          opacity-0
+          group-hover:opacity-100
+          pointer-events-none"
       />
     </button>
   );

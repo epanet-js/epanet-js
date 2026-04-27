@@ -1,7 +1,7 @@
-import { memo } from "react";
+import React, { memo } from "react";
 import { dialogAtom } from "src/state/dialog";
 import {
-  showPanelBottomAtom,
+  bottomExpandedAtom,
   splitsAtom,
   TabOption,
   tabAtom,
@@ -14,6 +14,8 @@ import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
+import { BottomResizer } from "src/components/resizer";
+import { Maximize2Icon, Minimize2Icon } from "src/icons";
 
 function Tab({
   onClick,
@@ -110,18 +112,41 @@ export const SidePanel = memo(function SidePanelInner() {
   );
 });
 
+export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
+  return (
+    <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 relative flex-auto min-h-0">
+      <Panel />
+    </div>
+  );
+});
+
 export const BottomPanel = memo(function BottomPanelInner() {
   const splits = useAtomValue(splitsAtom);
-  const showPanel = useAtomValue(showPanelBottomAtom);
-  if (!showPanel) return null;
+  const [expanded, setExpanded] = useAtom(bottomExpandedAtom);
+
+  if (!splits.bottomOpen) return null;
+
   return (
     <div
-      style={{
-        height: splits.bottom,
-      }}
-      className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 relative"
+      style={expanded ? undefined : { height: splits.bottom }}
+      className={clsx(
+        "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900",
+        expanded ? "absolute inset-0 z-50" : "relative flex-shrink-0",
+      )}
     >
-      <Panel />
+      {!expanded && <BottomResizer />}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="absolute top-1 right-1 z-10 p-1 rounded
+          text-gray-500 hover:text-black dark:hover:text-white
+          hover:bg-gray-100 dark:hover:bg-gray-700"
+        aria-label={expanded ? "Collapse panel" : "Expand panel"}
+      >
+        {expanded ? <Minimize2Icon /> : <Maximize2Icon />}
+      </button>
+      <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-sm">
+        PLACEHOLDER
+      </div>
     </div>
   );
 });
