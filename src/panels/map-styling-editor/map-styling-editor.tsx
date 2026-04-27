@@ -39,7 +39,6 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "src/components/legends";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
@@ -83,7 +82,6 @@ const MapStylingSectionWrapper = ({
 export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
-  const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
   const isPlaying = useAtomValue(isPlayingAtom);
 
   return (
@@ -98,7 +96,7 @@ export const MapStylingEditor = () => {
           properties={supportedLinkProperties}
         />
         <CustomerPointsSection readonly={isPlaying} />
-        {!isGridOn && isDtmElevationsOn && <ElevationsEditor />}
+        {!isGridOn && <ElevationsEditor />}
         {!isGridOn && (
           <MapStylingSectionWrapper
             title={translate("layers")}

@@ -33,7 +33,6 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -257,7 +256,6 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.personal.yearly;
-  const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -290,15 +288,11 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
-              ...(isDtmElevationsOn
-                ? [
-                    {
-                      feature: translate("customElevations"),
-                      Icon: CheckIcon,
-                      iconColor: "text-green-500",
-                    },
-                  ]
-                : []),
+              {
+                feature: translate("customElevations"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
             ]}
           />
           <FeaturesList
@@ -396,7 +390,6 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
-  const isDtmElevationsOn = useFeatureFlag("FLAG_DTM_ELEVATIONS");
 
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
@@ -430,15 +423,11 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
                 Icon: CheckIcon,
                 iconColor: "text-green-500",
               },
-              ...(isDtmElevationsOn
-                ? [
-                    {
-                      feature: translate("customElevations"),
-                      Icon: CheckIcon,
-                      iconColor: "text-green-500",
-                    },
-                  ]
-                : []),
+              {
+                feature: translate("customElevations"),
+                Icon: CheckIcon,
+                iconColor: "text-green-500",
+              },
             ]}
           />
           <FeaturesList
