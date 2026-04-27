@@ -1,13 +1,35 @@
-import type { ExportFormat, ExportEntry, ExportedFile } from "./types";
+import { FileExporters } from "./exporters";
+import type { ExportEntry, ExportedFile } from "./types";
 
-export const exportFile = (
-  _format: ExportFormat,
-  fileName: string,
-  _data: ExportEntry[],
-): ExportedFile => ({
-  fileName: `${fileName}.txt`,
-  description: "File",
-  extensions: [".txt"],
-  mimeTypes: ["text/plain"],
-  blob: new Blob(["hello world"], { type: "text/plain" }),
+const nullExporter = (): ExportedFile => ({
+  fileName: "",
+  extensions: [],
+  mimeTypes: [],
+  description: "",
+  blob: new Blob([], { type: "text/plain" }),
 });
+
+export const exportFile = async (
+  fileName: string,
+  entries: ExportEntry[],
+): Promise<ExportedFile> => {
+  const exporters = {
+    geojson: FileExporters.exportGeoJson,
+    shapefile: nullExporter,
+    csv: nullExporter,
+    xlsx: nullExporter,
+  };
+  const exportedFiles: ExportedFile[] = [];
+
+  entries.forEach((entry) => {
+    const format = entry.format;
+    const file = exporters[format](entry);
+    exportedFiles.push(file);
+  });
+
+  if (exportedFiles.length === 1) {
+    return exportedFiles[0];
+  }
+
+  return await FileExporters.exportZip(fileName, exportedFiles);
+};

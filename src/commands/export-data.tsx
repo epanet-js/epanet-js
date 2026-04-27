@@ -60,14 +60,14 @@ export const useExportData = ({
         const doExport = async () => {
           const { fileSave } = await getFsAccess();
 
-          const data = buildDataForExport(hydraulicModel, resultsReader);
+          const data = buildDataForExport(
+            options.format,
+            hydraulicModel,
+            resultsReader,
+          );
 
           const fileName = "export";
-          const exportedFile = Export.exportFile(
-            options.format,
-            fileName,
-            data,
-          );
+          const exportedFile = await Export.exportFile(fileName, data);
 
           const saveOptions = {
             mimeTypes: exportedFile.mimeTypes,
@@ -94,6 +94,7 @@ export const useExportData = ({
 };
 
 const buildDataForExport = (
+  format: ExportFormat,
   hydraulicModel: HydraulicModel,
   resultsReader?: ResultsReader,
 ): ExportEntry[] => {
@@ -120,12 +121,12 @@ const buildDataForExport = (
   });
 
   return [
-    { name: "junction", data: exportedAssets.junction },
-    { name: "tank", data: exportedAssets.tank },
-    { name: "reservoir", data: exportedAssets.reservoir },
-    { name: "pipe", data: exportedAssets.pipe },
-    { name: "pump", data: exportedAssets.pump },
-    { name: "valve", data: exportedAssets.valve },
+    { format, name: "junction", data: exportedAssets.junction },
+    { format, name: "tank", data: exportedAssets.tank },
+    { format, name: "reservoir", data: exportedAssets.reservoir },
+    { format, name: "pipe", data: exportedAssets.pipe },
+    { format, name: "pump", data: exportedAssets.pump },
+    { format, name: "valve", data: exportedAssets.valve },
   ];
 };
 

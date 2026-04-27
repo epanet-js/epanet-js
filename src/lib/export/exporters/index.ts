@@ -1,2 +1,7 @@
-export { exportGeoJson } from "./export-geojson";
-export { exportZip } from "./export-zip";
+import { exportGeoJson } from "./export-geojson";
+import { exportZip } from "./export-zip";
+
+export const FileExporters = {
+  exportGeoJson,
+  exportZip,
+};
