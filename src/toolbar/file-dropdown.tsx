@@ -75,31 +75,37 @@ export const FileDropdown = () => {
               side="bottom"
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              <StyledItem
-                onSelect={() => {
-                  userTracking.capture({
-                    name: "newModel.started",
-                    source: "toolbar",
-                  });
-                  void createNewProject({ source: "toolbar" });
-                }}
-              >
-                <FileIcon />
-                {translate("startBlankProject")}
-              </StyledItem>
+              {isOurFileOn && <NewProjectSubmenu />}
 
-              <StyledItem
-                onSelect={() => {
-                  userTracking.capture({
-                    name: "examples.opened",
-                    source: "toolbar",
-                  });
-                  showWelcome({ source: "toolbar" });
-                }}
-              >
-                <NewFromExampleIcon />
-                {translate("startFromExample")}
-              </StyledItem>
+              {!isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    userTracking.capture({
+                      name: "newModel.started",
+                      source: "toolbar",
+                    });
+                    void createNewProject({ source: "toolbar" });
+                  }}
+                >
+                  <FileIcon />
+                  {translate("startBlankProject")}
+                </StyledItem>
+              )}
+
+              {!isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    userTracking.capture({
+                      name: "examples.opened",
+                      source: "toolbar",
+                    });
+                    showWelcome({ source: "toolbar" });
+                  }}
+                >
+                  <NewFromExampleIcon />
+                  {translate("startFromExample")}
+                </StyledItem>
+              )}
 
               {isOurFileOn && <DDSeparator />}
 
@@ -143,30 +149,32 @@ export const FileDropdown = () => {
 
               {isOurFileOn && <DDSeparator />}
 
-              <StyledItem
-                onSelect={() => {
-                  userTracking.capture({
-                    name: "openInp.started",
-                    source: "toolbar",
-                  });
-                  void openInpFromFs({ source: "toolbar" });
-                }}
-              >
-                <FileSpreadsheetIcon />
-                {isOurFileOn ? translate("importINP") : translate("openINP")}
-              </StyledItem>
+              {!isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    userTracking.capture({
+                      name: "openInp.started",
+                      source: "toolbar",
+                    });
+                    void openInpFromFs({ source: "toolbar" });
+                  }}
+                >
+                  <FileSpreadsheetIcon />
+                  {translate("openINP")}
+                </StyledItem>
+              )}
 
-              <StyledItem
-                onSelect={() => {
-                  openModelBuilder({ source: "toolbar" });
-                }}
-              >
-                <GlobeIcon />
-                {translate("importFromGIS")}
-                <EarlyAccessIcon size="sm" />
-              </StyledItem>
-
-              {isOurFileOn && <DDSeparator />}
+              {!isOurFileOn && (
+                <StyledItem
+                  onSelect={() => {
+                    openModelBuilder({ source: "toolbar" });
+                  }}
+                >
+                  <GlobeIcon />
+                  {translate("importFromGIS")}
+                  <EarlyAccessIcon size="sm" />
+                </StyledItem>
+              )}
 
               {isOurFileOn && (
                 <StyledItem
@@ -208,6 +216,77 @@ export const FileDropdown = () => {
         {isOurFileOn ? translate("file") : translate("createNew")}
       </TContent>
     </Tooltip.Root>
+  );
+};
+
+const NewProjectSubmenu = () => {
+  const createNewProject = useNewProject();
+  const showWelcome = useShowWelcome();
+  const openModelBuilder = useOpenModelBuilder();
+  const openInpFromFs = useOpenInpFromFs();
+  const userTracking = useUserTracking();
+  const translate = useTranslate();
+
+  return (
+    <DD.Sub>
+      <DDSubTriggerItem>
+        <FileIcon />
+        {translate("newProject")}
+        <ChevronRightIcon size="sm" className="ml-auto" />
+      </DDSubTriggerItem>
+      <DD.Portal>
+        <DDSubContent sideOffset={4} alignOffset={-4}>
+          <StyledItem
+            onSelect={() => {
+              userTracking.capture({
+                name: "newModel.started",
+                source: "toolbar",
+              });
+              void createNewProject({ source: "toolbar" });
+            }}
+          >
+            <FileIcon />
+            {translate("newProject.blank")}
+          </StyledItem>
+
+          <StyledItem
+            onSelect={() => {
+              userTracking.capture({
+                name: "examples.opened",
+                source: "toolbar",
+              });
+              showWelcome({ source: "toolbar" });
+            }}
+          >
+            <NewFromExampleIcon />
+            {translate("newProject.fromExample")}
+          </StyledItem>
+
+          <StyledItem
+            onSelect={() => {
+              openModelBuilder({ source: "toolbar" });
+            }}
+          >
+            <GlobeIcon />
+            {translate("newProject.fromGIS")}
+            <EarlyAccessIcon size="sm" />
+          </StyledItem>
+
+          <StyledItem
+            onSelect={() => {
+              userTracking.capture({
+                name: "openInp.started",
+                source: "toolbar",
+              });
+              void openInpFromFs({ source: "toolbar" });
+            }}
+          >
+            <FileSpreadsheetIcon />
+            {translate("newProject.fromEpanetInp")}
+          </StyledItem>
+        </DDSubContent>
+      </DD.Portal>
+    </DD.Sub>
   );
 };
 
