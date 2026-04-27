@@ -103,20 +103,18 @@ export const Toolbar = ({
             >
               <SaveIcon />
             </MenuAction>
-            <MenuAction
-              label={translate("saveAs")}
-              role="button"
-              onClick={() => {
-                if (isOurFileOn) {
-                  void saveProject({ source: "toolbar", isSaveAs: true });
-                } else {
+            {!isOurFileOn && (
+              <MenuAction
+                label={translate("saveAs")}
+                role="button"
+                onClick={() => {
                   void saveInp({ source: "toolbar", isSaveAs: true });
-                }
-              }}
-              readOnlyHotkey={saveAsShortcut}
-            >
-              <SaveAllIcon />
-            </MenuAction>
+                }}
+                readOnlyHotkey={saveAsShortcut}
+              >
+                <SaveAllIcon />
+              </MenuAction>
+            )}
             <MenuAction
               label={translate("importCustomerPoints.label")}
               role="button"
