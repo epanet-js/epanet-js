@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   FileIcon,
   FileAddIcon,
+  FileBoxIcon,
   FilePlusCornerIcon,
   FileSpreadsheetIcon,
   FolderIcon,
@@ -29,6 +30,7 @@ import { useSaveProject } from "src/commands/save-project";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
+import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -308,15 +310,20 @@ const RecentFilesMenu = ({ isOurFileOn }: { isOurFileOn: boolean }) => {
         </DDSubTriggerItem>
         <DD.Portal>
           <DDSubContent sideOffset={4} alignOffset={-4}>
-            {recentFiles.map((entry) => (
-              <StyledItem
-                key={entry.id}
-                onSelect={() => openRecentFile(entry, "toolbar")}
-              >
-                <FileSpreadsheetIcon />
-                {entry.name}
-              </StyledItem>
-            ))}
+            {recentFiles.map((entry) => {
+              const isProject = entry.name
+                .toLowerCase()
+                .endsWith(projectExtension);
+              return (
+                <StyledItem
+                  key={entry.id}
+                  onSelect={() => openRecentFile(entry, "toolbar")}
+                >
+                  {isProject ? <FileBoxIcon /> : <FileSpreadsheetIcon />}
+                  {entry.name}
+                </StyledItem>
+              );
+            })}
           </DDSubContent>
         </DD.Portal>
       </DD.Sub>

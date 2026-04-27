@@ -26,6 +26,7 @@ import {
   Eye,
   EyeOff,
   File,
+  FileBox,
   FileCode,
   FilePlus,
   FilePlus2,
@@ -161,6 +162,7 @@ export const FileAddIcon = icon(FilePlus);
 export const FilePlusCornerIcon = icon(FilePlus2);
 export const FileTextIcon = icon(FileText);
 export const FileSpreadsheetIcon = icon(FileSpreadsheet);
+export const FileBoxIcon = icon(FileBox);
 export const FolderIcon = icon(Folder);
 export const FolderOpenIcon = icon(FolderOpen);
 export const DeleteIcon = icon(Trash);
