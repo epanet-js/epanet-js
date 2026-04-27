@@ -87,13 +87,19 @@ export function gisLayerLabel(
     filter: labelProperty ? ["has", labelProperty] : ["==", 0, 1],
     layout: {
       "text-field": labelProperty ? ["get", labelProperty] : "",
+      "text-font": [
+        "Open Sans Bold",
+        "Arial Unicode MS Bold",
+        "Open Sans Regular",
+        "Arial Unicode MS Regular",
+      ],
       "text-size": 11,
       "text-allow-overlap": false,
       visibility: visible ? "visible" : "none",
     },
     paint: {
       "text-color": color,
-      "text-halo-color": strokeColorFor(color),
+      "text-halo-color": "#ffffff",
       "text-halo-width": 1.5,
       "text-opacity": opacity,
     },
