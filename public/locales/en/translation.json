@@ -1260,6 +1260,8 @@
   },
   "exportData": "Export Data",
   "exportFormat": "Export format",
+  "exportSingleTimestep": "Single time-step",
+  "exportAllTimesteps": "All time-steps (as CSV)",
   "includeSimulationResults": "Include simulation results",
   "exporting": "Exporting...",
   "exported": "Exported successfully",
