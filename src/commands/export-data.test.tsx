@@ -16,7 +16,7 @@ import { ExportEntry } from "src/lib/export/types";
 
 describe("export-data", () => {
   beforeEach(() => {
-    vi.spyOn(Export, "exportFile").mockReturnValue({
+    vi.spyOn(Export, "exportFile").mockResolvedValue({
       blob: new Blob(),
       fileName: "export.geojson",
       description: "GeoJSON",
@@ -46,8 +46,8 @@ describe("export-data", () => {
       includeSimulationResults: false,
     });
 
-    const [format, , files] = vi.mocked(Export.exportFile).mock.calls[0];
-    expect(format).toBe("geojson");
+    const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
+    expect(files[0].format).toBe("geojson");
     expectFilesToBePresent(files, [
       "junction",
       "tank",
@@ -100,7 +100,7 @@ describe("export-data", () => {
       includeSimulationResults: false,
     });
 
-    const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
+    const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
 
     const junctionsData = files[0].data as Record<string, unknown>[];
     const junction = junctionsData.find((f) => f.id === IDS.J1);
@@ -144,7 +144,7 @@ describe("export-data", () => {
         includeSimulationResults: true,
       });
 
-      const [, , files] = vi.mocked(Export.exportFile).mock.calls[0];
+      const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
 
       const junctionsData = files[0].data as Record<string, unknown>[];
       const junction = junctionsData.find((f) => f.id === IDS.J1);
