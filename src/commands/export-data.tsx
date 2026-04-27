@@ -24,6 +24,7 @@ type FileAccess = { fileSave: typeof fileSaveType };
 export type DataExportOptions = {
   format: ExportFormat;
   includeSimulationResults: boolean;
+  simulationStep?: number;
 };
 
 export const useExportData = ({
@@ -38,7 +39,8 @@ export const useExportData = ({
           if (!options.includeSimulationResults) return null;
 
           const simulation = get(simulationDerivedAtom);
-          const simulationStep = get(simulationStepAtom);
+          const simulationStep =
+            options.simulationStep ?? get(simulationStepAtom);
 
           if (
             "epsResultsReader" in simulation &&

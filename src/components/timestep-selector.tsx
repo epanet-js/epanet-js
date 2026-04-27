@@ -330,7 +330,10 @@ const TimestepDropdown = ({
   );
 };
 
-function formatTimestepTime(timestepIndex: number, intervalSeconds = 3600) {
+export function formatTimestepTime(
+  timestepIndex: number,
+  intervalSeconds = 3600,
+) {
   const totalSeconds = timestepIndex * intervalSeconds;
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
