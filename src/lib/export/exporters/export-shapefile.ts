@@ -1,5 +1,7 @@
 import shpwrite from "@mapbox/shp-write";
 import type { OGCGeometry } from "@mapbox/shp-write";
+// @ts-expect-error — no types for internal module
+import defaultPrj from "@mapbox/shp-write/src/prj";
 import type {
   FeatureCollection,
   LineString,
@@ -11,9 +13,6 @@ import type {
 } from "geojson";
 import { ExportedFile, ExportEntry } from "../types";
 import { generateGeoJson } from "./generate-geojson";
-
-const PRJ =
-  'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]';
 
 const MIME = "application/octet-stream";
 
@@ -109,7 +108,7 @@ function toFiles(
       extensions: [".prj"],
       mimeTypes: ["text/plain"],
       description: "Projection",
-      blob: new Blob([PRJ], { type: "text/plain" }),
+      blob: new Blob([defaultPrj], { type: "text/plain" }),
     },
   ];
 }
