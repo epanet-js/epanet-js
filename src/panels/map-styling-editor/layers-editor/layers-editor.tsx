@@ -1477,7 +1477,7 @@ function SortableLayerConfig({
         </div>
       ) : (
         <div
-          className="opacity-20 hover:opacity-100 cursor-ns-resize flex items-center h-8"
+          className="opacity-20 hover:opacity-100 cursor-grab active:cursor-grabbing flex items-center h-8"
           {...attributes}
           {...listeners}
         >
