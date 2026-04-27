@@ -25,6 +25,7 @@ import {
   ChevronsLeftIcon,
   CircleIcon,
   OutdatedSimulationIcon,
+  StopSimulationIcon,
 } from "src/icons";
 
 export const Footer = () => {
@@ -215,6 +216,12 @@ const buildSimulationStatusStyles = (
         Icon: WarningIcon,
         colorClass: "text-yellow-600",
         text: translate("simulationWarning"),
+      };
+    case "stopped":
+      return {
+        Icon: StopSimulationIcon,
+        colorClass: "text-blue-500",
+        text: translate("simulationStopped"),
       };
   }
 };

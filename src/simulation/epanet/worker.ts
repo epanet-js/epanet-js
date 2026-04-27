@@ -64,6 +64,7 @@ export const runSimulation = async (
   ws.writeFile("net.inp", inp);
 
   let timestepCount = 0;
+  let stopped = false;
   try {
     model.open("net.inp", "report.rpt", "results.out");
 
@@ -81,11 +82,18 @@ export const runSimulation = async (
         totalDuration,
         phase: "hydraulic",
       });
-      if (keepGoing === false) throw new Error("Simulation stopped by user");
+      if (keepGoing === false) {
+        stopped = true;
+        break;
+      }
     } while (model.nextH() > 0);
 
     model.closeH();
-    model.saveH();
+    try {
+      model.saveH();
+    } catch (e) {
+      if (!stopped) throw e;
+    }
 
     if (flags.runQuality) {
       model.openQ();
@@ -97,7 +105,10 @@ export const runSimulation = async (
           totalDuration,
           phase: "quality",
         });
-        if (keepGoing === false) throw new Error("Simulation stopped by user");
+        if (keepGoing === false) {
+          stopped = true;
+          break;
+        }
       } while (model.nextQ() > 0);
       model.closeQ();
     }
@@ -109,6 +120,15 @@ export const runSimulation = async (
     });
 
     model.close();
+    const report = ws.readFile("report.rpt");
+
+    if (stopped) {
+      return {
+        status: "stopped",
+        report: curateReport(report),
+        metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
+      };
+    }
 
     const { resultsBuffer, metadata } = extractResultsData(ws);
 
@@ -116,8 +136,6 @@ export const runSimulation = async (
     await storage.save(RESULTS_OUT_KEY, resultsBuffer);
     await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
     await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
-
-    const report = ws.readFile("report.rpt");
 
     return {
       status: report.includes("WARNING") ? "warning" : "success",

@@ -94,12 +94,7 @@ export const SimulationReportDialog = () => {
   );
 
   const processedReport = useMemo(() => {
-    if (
-      simulation.status !== "success" &&
-      simulation.status !== "failure" &&
-      simulation.status !== "warning"
-    )
-      return [];
+    if (!("report" in simulation) || !simulation.report) return [];
 
     const { processedReport, errorCollector } = processReportWithSlots(
       simulation.report,

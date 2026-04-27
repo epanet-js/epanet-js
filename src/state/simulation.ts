@@ -14,7 +14,7 @@ type ExecutionResult = {
 type PreviousExecutionResult = ExecutionResult;
 
 export type SimulationFinished = {
-  status: "success" | "failure" | "warning";
+  status: "success" | "failure" | "warning" | "stopped";
 } & ExecutionResult;
 
 export type SimulationRunning =
