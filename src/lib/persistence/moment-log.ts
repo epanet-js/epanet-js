@@ -6,36 +6,25 @@ export const initId = "0";
 
 type Action = { stateId: string; forward: ModelMoment; reverse: ModelMoment };
 
-type Snapshot = { stateId: string; moment: ModelMoment };
-
 const START_POINTER = -1;
 
 export class MomentLog {
   protected deltas: Action[];
   protected pointer: number;
   readonly id: string;
-  protected snapshot: Snapshot | null;
+  readonly initialStateId: string;
 
-  constructor(id: string = nanoid()) {
+  constructor(initialStateId: string = initId, id: string = nanoid()) {
     this.id = id;
+    this.initialStateId = initialStateId;
     this.deltas = [];
     this.pointer = START_POINTER;
-    this.snapshot = null;
-  }
-
-  setSnapshot(moment: ModelMoment, stateId: string) {
-    this.snapshot = { moment, stateId };
-  }
-
-  getSnapshot(): Snapshot | null {
-    return this.snapshot;
   }
 
   copy() {
-    const newInstance = new MomentLog(this.id);
+    const newInstance = new MomentLog(this.initialStateId, this.id);
     newInstance.deltas = this.deltas;
     newInstance.pointer = this.pointer;
-    newInstance.snapshot = this.snapshot;
     return newInstance;
   }
 
@@ -71,11 +60,7 @@ export class MomentLog {
 
     return {
       moment: action.reverse,
-      stateId: this.deltas[this.pointer - 1]
-        ? this.deltas[this.pointer - 1].stateId
-        : this.snapshot
-          ? this.snapshot.stateId
-          : initId,
+      stateId: this.deltas[this.pointer - 1]?.stateId ?? this.initialStateId,
     };
   }
 

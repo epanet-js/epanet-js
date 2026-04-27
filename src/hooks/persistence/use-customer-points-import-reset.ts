@@ -45,7 +45,7 @@ const loadModel = (
   { hydraulicModel }: CustomerPointsImportResetInput,
   isOurFileOn: boolean,
 ) => {
-  const momentLog = new MomentLog();
+  const momentLog = new MomentLog(hydraulicModel.version);
 
   set(stagingModelDerivedAtom, hydraulicModel);
   if (isOurFileOn) {

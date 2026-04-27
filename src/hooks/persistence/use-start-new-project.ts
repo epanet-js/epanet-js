@@ -83,7 +83,7 @@ export const loadModel = (
     simulationSettings,
     autoElevations,
   } = input;
-  const momentLog = new MomentLog();
+  const momentLog = new MomentLog(hydraulicModel.version);
 
   set(stagingModelAtom, hydraulicModel);
   set(baseModelAtom, hydraulicModel);

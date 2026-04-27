@@ -49,7 +49,7 @@ const loadModel = (
   { hydraulicModel, projectSettings, autoElevations }: ReprojectionResetInput,
   isOurFileOn: boolean,
 ) => {
-  const momentLog = new MomentLog();
+  const momentLog = new MomentLog(hydraulicModel.version);
 
   set(stagingModelDerivedAtom, hydraulicModel);
   set(projectSettingsAtom, projectSettings);

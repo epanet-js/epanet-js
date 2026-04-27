@@ -86,35 +86,30 @@ describe("MomentLog", () => {
     expect(momentLog.last()).toEqual(thirdAction.forward);
   });
 
-  it("can define a snapshot as initial state", () => {
-    const importMoment = anAction("IMPORT").forward;
-    const momentLog = new MomentLog();
-    momentLog.setSnapshot(importMoment, "s-0");
-
-    const snapshot = momentLog.getSnapshot();
-    expect(snapshot!.moment).toEqual(importMoment);
-    expect(snapshot!.stateId).toEqual("s-0");
+  it("undoes the first delta back to the initial state id", () => {
+    const momentLog = new MomentLog("s-0");
+    expect(momentLog.initialStateId).toEqual("s-0");
 
     expect(momentLog.nextUndo()).toBeNull();
 
     const firstAction = anAction("FIRST");
     momentLog.append(firstAction.forward, firstAction.reverse);
 
+    expect(momentLog.nextUndo()).toEqual({
+      moment: firstAction.reverse,
+      stateId: "s-0",
+    });
+
     momentLog.undo();
 
     expect(momentLog.nextUndo()).toBeNull();
 
     const copy = momentLog.copy();
-
-    const snapshotCopy = copy.getSnapshot();
-    expect(snapshotCopy!.moment).toEqual(importMoment);
-    expect(snapshotCopy!.stateId).toEqual("s-0");
+    expect(copy.initialStateId).toEqual("s-0");
   });
 
-  it("can obtain deltas after a snapshot", () => {
-    const importMoment = anAction("IMPORT").forward;
-    const momentLog = new MomentLog();
-    momentLog.setSnapshot(importMoment, "s-0");
+  it("can obtain deltas after the initial state", () => {
+    const momentLog = new MomentLog("s-0");
 
     const firstAction = anAction("FIRST");
     momentLog.append(firstAction.forward, firstAction.reverse);

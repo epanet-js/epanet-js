@@ -29,7 +29,7 @@ export const useInitializeBranch = () => {
         version: mainState.version,
         hydraulicModel: copyModel(mainState.hydraulicModel),
         labelManager,
-        momentLog: new MomentLog(),
+        momentLog: new MomentLog(mainState.hydraulicModel.version),
         simulation: mainState.simulation,
         simulationSourceId: mainState.simulationSourceId,
         simulationSettings: mainState.simulationSettings,
