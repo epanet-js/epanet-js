@@ -85,48 +85,66 @@ export const WelcomeDialog = () => {
                 <FileIcon />
                 {translate("startBlankProject")}
               </Button>
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  if (isOurFileOn) {
-                    openProject({ source: "welcome" });
-                  } else {
-                    void openInpFromFs({ source: "welcome" });
-                  }
-                }}
-                style={{ width: "100%" }}
-              >
-                {isOurFileOn ? <FolderOpenIcon /> : <FileSpreadsheetIcon />}
-                {translate(isOurFileOn ? "openProject" : "openINP")}
-                {isOurFileOn && (
-                  <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-purple-100 text-purple-700 rounded-full">
-                    {translate("newBadge")}
-                  </span>
-                )}
-              </Button>
-              {isOurFileOn && (
-                <Button
-                  variant="quiet"
-                  onClick={() => {
-                    void openInpFromFs({ source: "welcome" });
-                  }}
-                  style={{ width: "100%", marginTop: "0.5rem" }}
-                >
-                  <FileSpreadsheetIcon />
-                  {translate("importINP")}
-                </Button>
+              {isOurFileOn ? (
+                <>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      void openInpFromFs({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <FileSpreadsheetIcon />
+                    {translate("importINP")}
+                  </Button>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      openModelBuilder({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <GlobeIcon />
+                    {translate("importFromGIS")}
+                    <EarlyAccessIcon size="sm" />
+                  </Button>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      openProject({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                    className="mt-4"
+                  >
+                    <FolderOpenIcon />
+                    {translate("open")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      void openInpFromFs({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <FileSpreadsheetIcon />
+                    {translate("openINP")}
+                  </Button>
+                  <Button
+                    variant="quiet"
+                    onClick={() => {
+                      openModelBuilder({ source: "welcome" });
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    <GlobeIcon />
+                    {translate("importFromGIS")}
+                    <EarlyAccessIcon size="sm" />
+                  </Button>
+                </>
               )}
-              <Button
-                variant="quiet"
-                onClick={() => {
-                  openModelBuilder({ source: "welcome" });
-                }}
-                style={{ width: "100%" }}
-              >
-                <GlobeIcon />
-                {translate("importFromGIS")}
-                <EarlyAccessIcon size="sm" />
-              </Button>
 
               <div className="mt-4 flex items-start flex-col gap-2">
                 <a
