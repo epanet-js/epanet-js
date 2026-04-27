@@ -1,33 +1,9 @@
-import { FeatureCollection, Geometry, Point } from "geojson";
 import { ExportedFile, ExportEntry } from "../types";
+import { generateGeoJson } from "./generate-geojson";
 
-const emptyGeometry: Point = {
-  type: "Point",
-  coordinates: [],
-};
-
-const generateGeoJson = (entry: ExportEntry): string => {
-  const featureCollection: FeatureCollection = {
-    type: "FeatureCollection",
-    features: [],
-  };
-
-  entry.data.forEach((item) => {
-    const geometry =
-      "geometry" in item ? (item.geometry as Geometry) : emptyGeometry;
-    const properties = { ...item };
-    if ("geometry" in properties) {
-      delete properties.geometry;
-    }
-
-    featureCollection.features.push({
-      type: "Feature",
-      geometry,
-      properties,
-    });
-  });
-
-  return JSON.stringify(featureCollection);
+const toGeoJsonString = (entry: ExportEntry) => {
+  const geojson = generateGeoJson(entry.data);
+  return JSON.stringify(geojson);
 };
 
 export const exportGeoJson = (entry: ExportEntry): ExportedFile => ({
@@ -35,5 +11,5 @@ export const exportGeoJson = (entry: ExportEntry): ExportedFile => ({
   extensions: [".geojson"],
   mimeTypes: ["application/geo+json"],
   description: "GeoJSON",
-  blob: new Blob([generateGeoJson(entry)], { type: "application/geo+json" }),
+  blob: new Blob([toGeoJsonString(entry)], { type: "application/geo+json" }),
 });
