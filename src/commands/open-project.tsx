@@ -64,6 +64,13 @@ export const useOpenProjectFile = () => {
               details: `File version ${result.fileVersion}, app version ${result.appVersion}.`,
               Icon: WarningIcon,
             });
+            userTracking.capture({
+              name: "projectFile.openFailed",
+              source,
+              reason: "tooNew",
+              fileVersion: result.fileVersion,
+              appVersion: result.appVersion,
+            });
             return;
           }
           if (result.status === "corrupt") {
@@ -79,6 +86,11 @@ export const useOpenProjectFile = () => {
             captureError(
               new Error(`openProject corrupt: ${result.errorDetails}`),
             );
+            userTracking.capture({
+              name: "projectFile.openFailed",
+              source,
+              reason: "corrupt",
+            });
             return;
           }
           if (result.status === "migration-failed") {
@@ -96,6 +108,13 @@ export const useOpenProjectFile = () => {
                 `openProject migration-failed (v${result.fileVersion}→${result.appVersion}): ${result.errorDetails}`,
               ),
             );
+            userTracking.capture({
+              name: "projectFile.openFailed",
+              source,
+              reason: "migrationFailed",
+              fileVersion: result.fileVersion,
+              appVersion: result.appVersion,
+            });
             return;
           }
           notify({
@@ -109,6 +128,11 @@ export const useOpenProjectFile = () => {
           captureError(
             new Error(`openProject internal: ${result.errorDetails}`),
           );
+          userTracking.capture({
+            name: "projectFile.openFailed",
+            source,
+            reason: "internal",
+          });
           return;
         }
 
@@ -157,6 +181,11 @@ export const useOpenProjectFile = () => {
           description: "Something went wrong while opening the file.",
           details: formatErrorDetails(error),
           Icon: WarningIcon,
+        });
+        userTracking.capture({
+          name: "projectFile.openFailed",
+          source,
+          reason: "exception",
         });
       }
     },

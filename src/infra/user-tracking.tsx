@@ -363,6 +363,14 @@ export type ProjectFileOpened = {
   units: EpanetUnitSystem;
 };
 
+export type ProjectFileOpenFailed = {
+  name: "projectFile.openFailed";
+  source: string;
+  reason: "tooNew" | "corrupt" | "migrationFailed" | "internal" | "exception";
+  fileVersion?: number;
+  appVersion?: number;
+};
+
 type OperationUndone = {
   name: "operation.undone";
   source: "shortcut" | "toolbar";
@@ -959,6 +967,7 @@ export type UserEvent =
   | ProjectSaved
   | OpenProjectStarted
   | ProjectFileOpened
+  | ProjectFileOpenFailed
   | OperationUndone
   | OperationRedone
   | DrawingModeEnabled
