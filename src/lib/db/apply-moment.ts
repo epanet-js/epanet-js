@@ -4,28 +4,28 @@ import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CustomerPointId } from "src/hydraulic-model/customer-points";
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
-import { assetsToRows } from "./set-all-assets";
+import { assetsToRows } from "./mappers/assets/to-rows";
 import {
   toCustomerPointRow,
   toCustomerPointDemandRow,
-} from "./set-all-customer-points";
-import { toJunctionDemandRow } from "./set-all-junction-demands";
-import { patternsToRows } from "./set-all-patterns";
-import { curvesToRows } from "./set-all-curves";
-import { serializeControls } from "./set-all-controls";
+} from "./mappers/customer-points/to-rows";
+import { toJunctionDemandRow } from "./mappers/junction-demands/to-rows";
+import { patternsToRows } from "./mappers/patterns/to-rows";
+import { curvesToRows } from "./mappers/curves/to-rows";
+import { serializeControls } from "./mappers/controls/to-rows";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,
   type AssetPatchRows,
-} from "./asset-patches";
+} from "./mappers/assets/patches";
+import type { AssetRows } from "./mappers/assets/schema";
 import type {
-  AssetRows,
   CustomerPointRow,
   CustomerPointDemandRow,
-  JunctionDemandRow,
-  PatternRow,
-  CurveRow,
-} from "./rows";
+} from "./mappers/customer-points/schema";
+import type { JunctionDemandRow } from "./mappers/junction-demands/schema";
+import type { PatternRow } from "./mappers/patterns/schema";
+import type { CurveRow } from "./mappers/curves/schema";
 
 export type CustomerPointDemandUpdate = {
   customerPointId: CustomerPointId;

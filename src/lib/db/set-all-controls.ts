@@ -1,17 +1,7 @@
 import type { Controls } from "src/hydraulic-model/controls";
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
-import { controlsSchema } from "./build-controls-data";
-
-export const serializeControls = (controls: Controls): string => {
-  const result = controlsSchema.safeParse(controls);
-  if (!result.success) {
-    throw new Error(
-      `Controls: data does not match schema — ${result.error.message}`,
-    );
-  }
-  return JSON.stringify(result.data);
-};
+import { serializeControls } from "./mappers/controls/to-rows";
 
 export const setAllControls = async (controls: Controls): Promise<void> => {
   await timed("setAllControls", async () => {

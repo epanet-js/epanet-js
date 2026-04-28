@@ -9,14 +9,16 @@ import type {
   PipeRow,
   PumpRow,
   ValveRow,
+} from "./mappers/assets/schema";
+import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
-  JunctionDemandRow,
-  PatternRow,
-  CurveRow,
-} from "./rows";
-import type { AssetPatchRow } from "./asset-patches";
+} from "./mappers/customer-points/schema";
+import type { JunctionDemandRow } from "./mappers/junction-demands/schema";
+import type { PatternRow } from "./mappers/patterns/schema";
+import type { CurveRow } from "./mappers/curves/schema";
+import type { AssetPatchRow } from "./mappers/assets/patches";
 import type { ApplyMomentPayload } from "./apply-moment";
 import type { OpenDbResult } from "./open-project";
 import { formatErrorDetails } from "src/lib/errors";

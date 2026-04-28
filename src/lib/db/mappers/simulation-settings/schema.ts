@@ -1,0 +1,55 @@
+import { z } from "zod";
+
+const finiteNumber = z.number().finite();
+const finiteInt = z.number().int();
+
+const timingSchema = z.object({
+  duration: finiteNumber,
+  hydraulicTimestep: finiteNumber,
+  reportTimestep: finiteNumber,
+  patternTimestep: finiteNumber,
+  qualityTimestep: finiteNumber.optional(),
+  ruleTimestep: finiteNumber.optional(),
+});
+
+export const simulationSettingsSchema = z.object({
+  version: z.string(),
+  timing: timingSchema,
+  globalDemandMultiplier: finiteNumber,
+  demandModel: z.enum(["DDA", "PDA"]),
+  minimumPressure: finiteNumber,
+  requiredPressure: finiteNumber,
+  pressureExponent: finiteNumber,
+  emitterExponent: finiteNumber,
+  backflowAllowed: z.boolean(),
+  trials: finiteNumber.optional(),
+  accuracy: finiteNumber.optional(),
+  unbalancedMode: z.enum(["STOP", "CONTINUE"]).optional(),
+  unbalancedExtraTrials: finiteNumber.optional(),
+  headError: finiteNumber.optional(),
+  flowChange: finiteNumber.optional(),
+  checkFreq: finiteNumber.optional(),
+  maxCheck: finiteNumber.optional(),
+  dampLimit: finiteNumber.optional(),
+  viscosity: finiteNumber.optional(),
+  specificGravity: finiteNumber.optional(),
+  qualitySimulationType: z.enum(["none", "chemical", "age", "trace"]),
+  qualityChemicalName: z.string(),
+  qualityMassUnit: z.enum(["mg/L", "ug/L"]),
+  qualityTraceNodeId: finiteInt.nullable(),
+  tolerance: finiteNumber,
+  diffusivity: finiteNumber,
+  reactionBulkOrder: finiteNumber,
+  reactionWallOrder: finiteNumber,
+  reactionTankOrder: finiteNumber,
+  reactionGlobalBulk: finiteNumber,
+  reactionGlobalWall: finiteNumber,
+  reactionLimitingPotential: finiteNumber,
+  reactionRoughnessCorrelation: finiteNumber,
+  reportEnergy: z.boolean(),
+  energyGlobalEfficiency: finiteNumber,
+  energyGlobalPrice: finiteNumber,
+  energyGlobalPatternId: finiteInt.nullable(),
+  energyDemandCharge: finiteNumber,
+  statusReport: z.enum(["YES", "NO", "FULL"]),
+});

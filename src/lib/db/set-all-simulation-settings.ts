@@ -1,19 +1,7 @@
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
-import { simulationSettingsSchema } from "./build-simulation-settings-data";
-
-export const serializeSimulationSettings = (
-  settings: SimulationSettings,
-): string => {
-  const result = simulationSettingsSchema.safeParse(settings);
-  if (!result.success) {
-    throw new Error(
-      `Simulation settings: data does not match schema — ${result.error.message}`,
-    );
-  }
-  return JSON.stringify(result.data);
-};
+import { serializeSimulationSettings } from "./mappers/simulation-settings/to-rows";
 
 export const setAllSimulationSettings = async (
   settings: SimulationSettings,

@@ -1,14 +1,14 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { projectSettingsSchema } from "./build-project-settings-data";
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
+import { serializeProjectSettings } from "./mappers/project-settings/to-rows";
 
 export const saveProjectSettings = async (
   settings: ProjectSettings,
 ): Promise<void> => {
   await timed("saveProjectSettings", async () => {
-    const validated = projectSettingsSchema.parse(settings);
+    const data = serializeProjectSettings(settings);
     const worker = getDbWorker();
-    await worker.saveProjectSettings(JSON.stringify(validated));
+    await worker.saveProjectSettings(data);
   });
 };
