@@ -142,6 +142,9 @@ export const ErrorIcon = icon(CircleX);
 export const StopSimulationIcon = icon(CirclePause);
 export const UserIcon = icon(User);
 export const RefreshIcon = icon(RefreshCw);
+export const SpinnerIcon: React.FC<IconProps> = (props) => (
+  <RefreshIcon {...props} className={`${props.className ?? ""} animate-spin`} />
+);
 export const PencilIcon = icon(Pencil);
 export const RedrawIcon = icon(PencilLine);
 export const ArrowRightIcon = icon(ArrowRight);

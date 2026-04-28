@@ -12,7 +12,7 @@ import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { notify } from "src/components/notifications";
-import { RefreshIcon, SuccessIcon, WarningIcon } from "src/icons";
+import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -26,10 +26,6 @@ export const saveProjectAsShortcut = "ctrl+shift+s";
 export const projectExtension = ".ejsdb";
 
 const saveProjectToastId = "save-project";
-
-const SpinnerIcon = (props: React.ComponentProps<typeof RefreshIcon>) => (
-  <RefreshIcon {...props} className={`${props.className ?? ""} animate-spin`} />
-);
 
 type FileAccess = { fileSave: typeof fileSaveType };
 

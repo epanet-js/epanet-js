@@ -49,7 +49,7 @@ describe("save inp", () => {
       isDemoNetwork: false,
     });
 
-    expect(screen.getByText(/saved/i)).toBeInTheDocument();
+    expect(screen.getByText(/exported as inp/i)).toBeInTheDocument();
   });
 
   it("reuses previous file handle when available", async () => {
@@ -122,7 +122,7 @@ describe("save inp", () => {
     renderComponent({ store });
     await triggerSave();
 
-    expect(screen.getByText(/canceled saving/i)).toBeInTheDocument();
+    expect(screen.getByText(/canceled exporting inp/i)).toBeInTheDocument();
   });
 
   const triggerSave = async () => {
