@@ -48,6 +48,7 @@ export const useOpenRecentFile = () => {
             name: "recentFile.opened",
             source,
             filename: entry.name,
+            kind: isProject ? "project" : "inp",
           });
         } catch (error) {
           notify({

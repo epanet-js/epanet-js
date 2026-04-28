@@ -283,6 +283,7 @@ export type RecentFileOpened = {
   name: "recentFile.opened";
   source: "toolbar" | "welcome";
   filename: string;
+  kind: "inp" | "project";
 };
 
 export type ImportInpCompleted = {
