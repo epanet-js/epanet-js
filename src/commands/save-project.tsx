@@ -146,9 +146,9 @@ export const useSaveProject = ({
         set,
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) => {
-        userTracking.capture({ name: "project.saved", source, isSaveAs });
-
         if (!isOurFileOn) return false;
+
+        userTracking.capture({ name: "project.saved", source, isSaveAs });
 
         const projectInfo = get(projectFileInfoAtom);
         if (!projectInfo && get(userSettingsAtom).showProjectSavedInfo) {

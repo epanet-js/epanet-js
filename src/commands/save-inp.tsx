@@ -54,7 +54,7 @@ export const useSaveInp = ({
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) {
         userTracking.capture({
-          name: "model.saved",
+          name: isOurFileOn ? "inp.exported" : "model.saved",
           source,
           isSaveAs,
         });
@@ -155,7 +155,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map],
+      [userTracking, getFsAccess, addRecent, translate, map, isOurFileOn],
     ),
   );
 

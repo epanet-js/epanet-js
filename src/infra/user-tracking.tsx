@@ -336,6 +336,12 @@ type ModelSaved = {
   isSaveAs?: boolean;
 };
 
+type InpExported = {
+  name: "inp.exported";
+  source: string;
+  isSaveAs?: boolean;
+};
+
 type ProjectSaved = {
   name: "project.saved";
   source: string;
@@ -939,6 +945,7 @@ export type UserEvent =
   | NewModelStarted
   | NewModelCompleted
   | ModelSaved
+  | InpExported
   | ProjectSaved
   | OpenProjectStarted
   | OperationUndone
