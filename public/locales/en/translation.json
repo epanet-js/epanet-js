@@ -400,6 +400,7 @@
   "openINP": "Open INP",
   "openProject": "Open project",
   "openModel": "Open model",
+  "initializedProjectFromInp": "Initialized project from EPANET INP",
   "importINP": "Import INP",
   "exportINP": "Export INP",
   "deprecatedImportFromGIS": "Import from GIS data",

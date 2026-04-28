@@ -166,6 +166,7 @@ export const useOpenProject = () => {
   const openProjectFile = useOpenProjectFile();
   const importInp = useImportInp();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const openProject = useCallback(
@@ -185,12 +186,26 @@ export const useOpenProject = () => {
 
       if (file.name.toLowerCase().endsWith(inpExtension)) {
         void importInp([file]);
+        notify({
+          variant: "success",
+          title: translate("initializedProjectFromInp"),
+          Icon: SuccessIcon,
+          size: "sm",
+        });
         return;
       }
 
       await openProjectFile(file);
     },
-    [openFile, isReady, openProjectFile, importInp, userTracking, isOurFileOn],
+    [
+      openFile,
+      isReady,
+      openProjectFile,
+      importInp,
+      userTracking,
+      translate,
+      isOurFileOn,
+    ],
   );
 
   return useCallback(
