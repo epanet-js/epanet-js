@@ -11,7 +11,8 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
 import { userSettingsAtom } from "src/state/user-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { notifyPromiseState } from "src/components/notifications";
+import { notify } from "src/components/notifications";
+import { RefreshIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -23,6 +24,12 @@ import { MapContext, captureThumbnail } from "src/map";
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
 export const projectExtension = ".ejsdb";
+
+const saveProjectToastId = "save-project";
+
+const SpinnerIcon = (props: React.ComponentProps<typeof RefreshIcon>) => (
+  <RefreshIcon {...props} className={`${props.className ?? ""} animate-spin`} />
+);
 
 type FileAccess = { fileSave: typeof fileSaveType };
 
@@ -102,15 +109,33 @@ export const useSaveProject = ({
           }
         };
 
+        notify({
+          variant: "default",
+          title: translate("savingProject"),
+          Icon: SpinnerIcon,
+          id: saveProjectToastId,
+          size: "sm",
+          dismissable: false,
+          duration: Infinity,
+        });
         try {
-          const promise = asyncSave();
-          await notifyPromiseState(promise, {
-            loading: translate("saving"),
-            success: translate("saved"),
-            error: translate("saveCanceled"),
+          await asyncSave();
+          notify({
+            variant: "success",
+            title: translate("saved"),
+            Icon: SuccessIcon,
+            id: saveProjectToastId,
+            size: "sm",
           });
           return true;
         } catch {
+          notify({
+            variant: "warning",
+            title: translate("saveCanceled"),
+            Icon: WarningIcon,
+            id: saveProjectToastId,
+            size: "sm",
+          });
           return false;
         }
       },
