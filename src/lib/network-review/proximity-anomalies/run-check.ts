@@ -1,7 +1,11 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, canUseWorker } from "src/infra/worker";
+import {
+  ArrayBufferType,
+  canUseWorker,
+  enrichWorkerError,
+} from "src/infra/worker";
 import {
   decodeProximityAnomalies,
   EncodedProximityAnomalies,
@@ -69,6 +73,8 @@ const runWithWorker = async (
       Comlink.transfer(data, hydraulicModelTransferables(data)),
       distance,
     );
+  } catch (e) {
+    throw enrichWorkerError("proximity-anomalies", e);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

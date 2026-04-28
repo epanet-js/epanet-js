@@ -3,7 +3,7 @@ import * as Comlink from "comlink";
 import { AssetId } from "src/hydraulic-model/asset-types";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
-import { canUseWorker } from "src/infra/worker";
+import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import { encodeTraceData } from "./encode-trace-buffers";
 import {
   flowDirectionTransferables,
@@ -111,6 +111,8 @@ const runWithWorker = async (
         ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
       ]),
     );
+  } catch (e) {
+    throw enrichWorkerError("trace", e);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

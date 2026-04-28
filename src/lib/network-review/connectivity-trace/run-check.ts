@@ -1,7 +1,11 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, canUseWorker } from "src/infra/worker";
+import {
+  ArrayBufferType,
+  canUseWorker,
+  enrichWorkerError,
+} from "src/infra/worker";
 import { EncodedSubNetwork, SubNetwork, decodeSubNetworks } from "./data";
 import { findSubNetworks } from "./find-subnetworks";
 import type { ConnectivityTraceWorkerAPI } from "./worker";
@@ -63,6 +67,8 @@ const runWithWorker = async (
     return await workerAPI.findSubNetworks(
       Comlink.transfer(data, hydraulicModelTransferables(data)),
     );
+  } catch (e) {
+    throw enrichWorkerError("connectivity-trace", e);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

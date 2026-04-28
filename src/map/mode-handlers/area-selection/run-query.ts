@@ -12,7 +12,7 @@ import {
   assetIndexTransferables,
 } from "src/hydraulic-model/asset-index";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
-import { canUseWorker } from "src/infra/worker";
+import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import type { SpatialQueryWorkerAPI } from "./worker-api";
 import {
   EncodedContainedAssets,
@@ -95,6 +95,8 @@ const runWithWorker = async (
       ),
       points,
     );
+  } catch (e) {
+    throw enrichWorkerError("spatial-query", e);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

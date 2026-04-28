@@ -1,7 +1,11 @@
 import * as Comlink from "comlink";
 
 import { HydraulicModel } from "src/hydraulic-model";
-import { ArrayBufferType, canUseWorker } from "src/infra/worker";
+import {
+  ArrayBufferType,
+  canUseWorker,
+  enrichWorkerError,
+} from "src/infra/worker";
 import {
   decodeCrossingPipes,
   EncodedCrossingPipes,
@@ -68,6 +72,8 @@ const runWithWorker = async (
       Comlink.transfer(data, hydraulicModelTransferables(data)),
       junctionTolerance,
     );
+  } catch (e) {
+    throw enrichWorkerError("crossing-pipes", e);
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

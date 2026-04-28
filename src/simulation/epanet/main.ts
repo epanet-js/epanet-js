@@ -3,6 +3,7 @@ import { lib as webWorker } from "src/lib/worker";
 import { EPSSimulationResult, ProgressCallback } from "./worker";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
+import { enrichWorkerError } from "src/infra/worker";
 
 let cancelRequested = false;
 
@@ -26,14 +27,19 @@ export const runSimulation = withDebugInstrumentation(
         return cancelRequested ? false : undefined;
       },
     );
-    const result = await webWorker.runSimulation(
-      inp,
-      appId,
-      proxiedCallback,
-      flags,
-      scenarioKey,
-      runId,
-    );
+    let result: EPSSimulationResult;
+    try {
+      result = await webWorker.runSimulation(
+        inp,
+        appId,
+        proxiedCallback,
+        flags,
+        scenarioKey,
+        runId,
+      );
+    } catch (e) {
+      throw enrichWorkerError("simulation", e);
+    }
     if (result.jsError) {
       captureError(new Error(`Simulation JS error: ${result.jsError}`));
     }

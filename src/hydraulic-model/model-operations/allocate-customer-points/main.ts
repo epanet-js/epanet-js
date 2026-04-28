@@ -3,6 +3,7 @@ import { HydraulicModel } from "../../hydraulic-model";
 import { CustomerPoint, CustomerPoints } from "../../customer-points";
 import { AllocationRule, AllocationResult } from "./types";
 import { prepareWorkerData, RunData } from "./prepare-data";
+import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation, AllocationResultItem } from "./run-allocation";
 import type { AllocationWorkerAPI } from "./worker";
 
@@ -111,6 +112,8 @@ const runAllocationWithWorkers = async (
     const workerResults = await Promise.all(workerPromises);
 
     return workerResults.flat();
+  } catch (e) {
+    throw enrichWorkerError("customer-allocation", e);
   } finally {
     workers.forEach((worker) => {
       worker.terminate();
