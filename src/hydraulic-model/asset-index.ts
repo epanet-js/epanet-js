@@ -298,6 +298,12 @@ export type AssetIndexBuffers = {
   nodeTypes: BinaryData;
 };
 
+export function assetIndexTransferables(b: AssetIndexBuffers): ArrayBuffer[] {
+  return [b.index, b.linkIds, b.nodeIds, b.linkTypes, b.nodeTypes].filter(
+    (buf): buf is ArrayBuffer => buf instanceof ArrayBuffer,
+  );
+}
+
 export class AssetIndexEncoder {
   private indexBuilder: FixedSizeBufferBuilder<AssetIndexEntry>;
   private linkIdsBuilder: FixedSizeBufferBuilder<AssetId>;

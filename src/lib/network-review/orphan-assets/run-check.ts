@@ -7,6 +7,8 @@ import {
   buildOrphanAssets,
   encodeData,
 } from "./data";
+import { topologyTransferables } from "src/hydraulic-model/topology/types";
+import { assetIndexTransferables } from "src/hydraulic-model/asset-index";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker-api";
 import { BufferType } from "src/lib/buffers";
@@ -56,7 +58,12 @@ const runWithWorker = async (
 
   try {
     const data = encodeData(model, bufferType);
-    return await workerAPI.findOrphanAssets(data);
+    return await workerAPI.findOrphanAssets(
+      Comlink.transfer(data, [
+        ...topologyTransferables(data.topologyBuffers),
+        ...assetIndexTransferables(data.assetIndexBuffers),
+      ]),
+    );
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

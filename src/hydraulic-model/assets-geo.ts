@@ -204,6 +204,19 @@ export type AssetsGeoBuffers = {
   segmentsSpatialIndex: BinaryData;
 };
 
+export function assetsGeoTransferables(b: AssetsGeoBuffers): ArrayBuffer[] {
+  return [
+    b.nodesGeo,
+    b.linksGeo,
+    b.segmentsGeo,
+    b.segmentsLinkIndex,
+    b.linkSegments.data,
+    b.linkSegments.index,
+    b.nodesSpatialIndex,
+    b.segmentsSpatialIndex,
+  ].filter((buf): buf is ArrayBuffer => buf instanceof ArrayBuffer);
+}
+
 export const EncodedSize = {
   coordinate: DataSize.decimal,
   position: DataSize.decimal * 2,

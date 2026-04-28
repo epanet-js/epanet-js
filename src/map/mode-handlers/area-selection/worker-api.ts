@@ -1,3 +1,4 @@
+import * as Comlink from "comlink";
 import { Position } from "src/types";
 import {
   AssetsGeoBuffers,
@@ -31,11 +32,11 @@ function queryContainedAssetsFromBuffers(
   const assetIds = queryContainedAssets(assetsGeoView, points);
 
   const buffer = new Uint32Array(assetIds);
-
-  return {
+  const result: EncodedContainedAssets = {
     assetIds: buffer.buffer,
     count: assetIds.length,
   };
+  return Comlink.transfer(result, [buffer.buffer]);
 }
 
 export const workerAPI: SpatialQueryWorkerAPI = {

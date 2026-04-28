@@ -5,6 +5,12 @@ import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
 import { canUseWorker } from "src/infra/worker";
 import { encodeTraceData } from "./encode-trace-buffers";
+import {
+  flowDirectionTransferables,
+  allowedFlowDirectionTransferables,
+} from "./trace-buffers";
+import { topologyTransferables } from "src/hydraulic-model/topology/types";
+import { assetIndexTransferables } from "src/hydraulic-model/asset-index";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { TraceMode, TraceStart, TraceResult } from "./types";
@@ -95,7 +101,16 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.runTrace(input.mode, start, data);
+    return await workerAPI.runTrace(
+      input.mode,
+      start,
+      Comlink.transfer(data, [
+        ...topologyTransferables(data.topologyBuffers),
+        ...assetIndexTransferables(data.assetIndexBuffers),
+        ...flowDirectionTransferables(data.flowDirectionBuffers),
+        ...allowedFlowDirectionTransferables(data.allowedFlowDirectionBuffers),
+      ]),
+    );
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();

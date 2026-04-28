@@ -14,6 +14,14 @@ export interface AllowedFlowDirectionBuffers {
   allowedFlowDirections: BinaryData;
 }
 
+export function allowedFlowDirectionTransferables(
+  b: AllowedFlowDirectionBuffers,
+): ArrayBuffer[] {
+  return b.allowedFlowDirections instanceof ArrayBuffer
+    ? [b.allowedFlowDirections]
+    : [];
+}
+
 export class AllowedFlowDirectionView implements AllowedFlowDirectionQueries {
   private _view?: Uint8Array;
 
@@ -38,6 +46,12 @@ export class AllowedFlowDirectionView implements AllowedFlowDirectionQueries {
 
 export interface FlowDirectionBuffers {
   flowDirections: BinaryData;
+}
+
+export function flowDirectionTransferables(
+  b: FlowDirectionBuffers,
+): ArrayBuffer[] {
+  return b.flowDirections instanceof ArrayBuffer ? [b.flowDirections] : [];
 }
 
 export class FlowDirectionView implements FlowDirectionQueries {

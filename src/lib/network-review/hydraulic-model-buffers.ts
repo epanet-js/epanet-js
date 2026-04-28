@@ -56,6 +56,24 @@ export type HydraulicModelBuffers = Omit<
   "nodeIdsLookup" | "linkIdsLookup"
 >;
 
+export function hydraulicModelTransferables(
+  b: HydraulicModelBuffers,
+): ArrayBuffer[] {
+  return [
+    b.links.connections,
+    b.links.bounds,
+    b.links.types,
+    b.nodes.positions,
+    b.nodes.connections.data,
+    b.nodes.connections.index,
+    b.nodes.types,
+    b.nodes.geoIndex,
+    b.pipeSegments.ids,
+    b.pipeSegments.coordinates,
+    b.pipeSegments.geoIndex,
+  ].filter((buf): buf is ArrayBuffer => buf instanceof ArrayBuffer);
+}
+
 type EncodingOptions = {
   nodes?: Set<"connections" | "types" | "geoIndex" | "bounds">;
   links?: Set<"connections" | "types" | "geoIndex" | "bounds">;

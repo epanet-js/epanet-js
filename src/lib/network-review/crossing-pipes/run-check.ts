@@ -10,6 +10,7 @@ import {
 import {
   HydraulicModelBuffers,
   HydraulicModelEncoder,
+  hydraulicModelTransferables,
 } from "../hydraulic-model-buffers";
 import { findCrossingPipes } from "./find-crossing-pipes";
 import { CrossingPipesWorkerAPI } from "./worker";
@@ -63,7 +64,10 @@ const runWithWorker = async (
   signal?.addEventListener("abort", abortHandler);
 
   try {
-    return await workerAPI.findCrossingPipes(data, junctionTolerance);
+    return await workerAPI.findCrossingPipes(
+      Comlink.transfer(data, hydraulicModelTransferables(data)),
+      junctionTolerance,
+    );
   } finally {
     signal?.removeEventListener("abort", abortHandler);
     worker.terminate();
