@@ -20,7 +20,7 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ProjectSettings } from "src/lib/project-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
-import { WarningIcon } from "src/icons";
+import { SuccessIcon, WarningIcon } from "src/icons";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
@@ -38,6 +38,7 @@ export const useImportInp = () => {
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
   const isXyDetectOn = useFeatureFlag("FLAG_XY_DETECT");
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
 
@@ -108,6 +109,15 @@ export const useImportInp = () => {
           void addRecent(name, handle);
         }
       }
+      if (isOurFileOn) {
+        notify({
+          variant: "success",
+          title: translate("initializedProjectFromInp"),
+          Icon: SuccessIcon,
+          size: "sm",
+        });
+      }
+
       if (!issues) {
         setDialogState(null);
         return;
@@ -122,6 +132,8 @@ export const useImportInp = () => {
       setDialogState,
       setInpFileInfo,
       setProjectFileInfo,
+      isOurFileOn,
+      translate,
     ],
   );
 
