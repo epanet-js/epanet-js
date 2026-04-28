@@ -28,7 +28,6 @@ import { useOpenProject } from "src/commands/open-project";
 import { useSaveInp } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
 import { useShowWelcome } from "src/commands/show-welcome";
-import { useShowExamples } from "src/commands/show-examples";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { projectExtension } from "src/commands/save-project";
@@ -222,7 +221,6 @@ export const FileDropdown = () => {
 
 const NewProjectSubmenu = () => {
   const createNewProject = useNewProject();
-  const showExamples = useShowExamples();
   const openModelBuilder = useOpenModelBuilder();
   const openInpFromFs = useOpenInpFromFs();
   const userTracking = useUserTracking();
@@ -248,15 +246,6 @@ const NewProjectSubmenu = () => {
           >
             <FileIcon />
             {translate("newProject.blank")}
-          </StyledItem>
-
-          <StyledItem
-            onSelect={() => {
-              showExamples({ source: "toolbar" });
-            }}
-          >
-            <NewFromExampleIcon />
-            {translate("newProject.fromExample")}
           </StyledItem>
 
           <StyledItem

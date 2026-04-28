@@ -32,10 +32,6 @@ export type WelcomeDialogState = {
   type: "welcome";
 };
 
-export type ExamplesDialogState = {
-  type: "examples";
-};
-
 export type NetworkProjectionDialogState = {
   type: "networkProjection";
   source: "import" | "map-panel";
@@ -210,7 +206,6 @@ export type DialogState =
   | SimulationSummaryState
   | SimulationReportDialogState
   | WelcomeDialogState
-  | ExamplesDialogState
   | InpIssuesDialogState
   | { type: "loading" }
   | AlertInpOutputState
