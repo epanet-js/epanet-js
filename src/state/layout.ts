@@ -41,8 +41,6 @@ export const defaultSplits: Splits = {
 };
 export const splitsAtom = atom<Splits>(defaultSplits);
 
-export const bottomExpandedAtom = atom<boolean>(false);
-
 export enum TabOption {
   Asset = "Asset",
   Map = "Map",

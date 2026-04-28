@@ -1,11 +1,6 @@
 import React, { memo } from "react";
 import { dialogAtom } from "src/state/dialog";
-import {
-  bottomExpandedAtom,
-  splitsAtom,
-  TabOption,
-  tabAtom,
-} from "src/state/layout";
+import { splitsAtom, TabOption, tabAtom } from "src/state/layout";
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
 
@@ -15,7 +10,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
 import { BottomResizer } from "src/components/resizer";
-import { Maximize2Icon, Minimize2Icon } from "src/icons";
 import { DataTablesPanel } from "./data-tables";
 
 function Tab({
@@ -123,28 +117,15 @@ export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
 
 export const BottomPanel = memo(function BottomPanelInner() {
   const splits = useAtomValue(splitsAtom);
-  const [expanded, setExpanded] = useAtom(bottomExpandedAtom);
 
   if (!splits.bottomOpen) return null;
 
   return (
     <div
-      style={expanded ? undefined : { height: splits.bottom }}
-      className={clsx(
-        "bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900",
-        expanded ? "absolute inset-0 z-50" : "relative flex-shrink-0",
-      )}
+      style={{ height: splits.bottom }}
+      className="relative flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900"
     >
-      {!expanded && <BottomResizer />}
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="absolute top-1 right-1 z-10 p-1 rounded
-          text-gray-500 hover:text-black dark:hover:text-white
-          hover:bg-gray-100 dark:hover:bg-gray-700"
-        aria-label={expanded ? "Collapse panel" : "Expand panel"}
-      >
-        {expanded ? <Minimize2Icon /> : <Maximize2Icon />}
-      </button>
+      <BottomResizer />
       <DataTablesPanel />
     </div>
   );

@@ -53,8 +53,6 @@ import {
   LocateOff,
   MapIcon,
   MapPinned,
-  Maximize2,
-  Minimize2,
   MapPinXInside,
   Menu,
   MousePointer2,
@@ -229,8 +227,6 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
-export const Maximize2Icon = icon(Maximize2);
-export const Minimize2Icon = icon(Minimize2);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
