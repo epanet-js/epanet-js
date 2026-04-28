@@ -1,7 +1,11 @@
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import clsx from "clsx";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { TabRoot, TabList, Tab } from "src/components/tab";
+import {
+  stagingModelDerivedAtom,
+  simulationResultsDerivedAtom,
+} from "src/state/derived-branch-state";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeProperties } from "src/hydraulic-model/model-operations";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
@@ -13,7 +17,11 @@ import {
   textReadonlyColumn,
   type GridColumn,
 } from "src/components/data-grid";
+import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { projectSettingsAtom } from "src/state/project-settings";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 
 type AssetRow = Record<string, unknown> & { id: AssetId };
 
@@ -37,42 +45,220 @@ const ASSET_TYPE_TAB_KEY: Record<AssetType, string> = {
 
 const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
   junction: ["elevation", "emitterCoefficient", "initialQuality"],
-  pipe: ["length", "diameter", "roughness", "minorLoss"],
-  pump: [],
-  valve: ["diameter", "setting"],
-  reservoir: ["head"],
-  tank: ["elevation", "initialLevel", "minLevel", "maxLevel", "diameter"],
+  pipe: [
+    "diameter",
+    "length",
+    "roughness",
+    "minorLoss",
+    "bulkReactionCoeff",
+    "wallReactionCoeff",
+  ],
+  pump: ["speed", "energyPrice"],
+  valve: ["setting", "diameter", "minorLoss"],
+  reservoir: ["elevation", "head", "initialQuality"],
+  tank: [
+    "elevation",
+    "initialLevel",
+    "minLevel",
+    "maxLevel",
+    "diameter",
+    "initialQuality",
+    "bulkReactionCoeff",
+  ],
 };
+
+const NULLABLE_KEYS = new Set([
+  "bulkReactionCoeff",
+  "wallReactionCoeff",
+  "energyPrice",
+]);
+
+type Simulation = NonNullable<
+  ReturnType<typeof useAtomValue<typeof simulationResultsDerivedAtom>>
+>;
+type TranslateFn = ReturnType<typeof useTranslate>;
+type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
+
+function fmtNum(v: number | null | undefined): string {
+  return v != null ? localizeDecimal(v, { decimals: 3 }) : "";
+}
+
+function buildSimRow(
+  type: AssetType,
+  assetId: AssetId,
+  simulation: Simulation,
+  translate: TranslateFn,
+): Record<string, string> {
+  switch (type) {
+    case "junction": {
+      const r = simulation.getJunction(assetId);
+      return {
+        sim_pressure: fmtNum(r?.pressure),
+        sim_head: fmtNum(r?.head),
+        sim_demand: fmtNum(r?.demand),
+      };
+    }
+    case "pipe": {
+      const r = simulation.getPipe(assetId);
+      return {
+        sim_flow: fmtNum(r?.flow),
+        sim_velocity: fmtNum(r?.velocity),
+        sim_headloss: fmtNum(r?.headloss),
+        sim_unitHeadloss: fmtNum(r?.unitHeadloss),
+        sim_status: r?.status ? translate(`pipe.${r.status}`) : "",
+      };
+    }
+    case "pump": {
+      const r = simulation.getPump(assetId);
+      return {
+        sim_flow: fmtNum(r?.flow),
+        sim_headloss: fmtNum(r?.headloss),
+        sim_status: r?.status ? translate(`pump.${r.status}`) : "",
+      };
+    }
+    case "valve": {
+      const r = simulation.getValve(assetId);
+      return {
+        sim_flow: fmtNum(r?.flow),
+        sim_velocity: fmtNum(r?.velocity),
+        sim_headloss: fmtNum(r?.headloss),
+        sim_status: r?.status ? translate(`valve.${r.status}`) : "",
+      };
+    }
+    case "reservoir": {
+      const r = simulation.getReservoir(assetId);
+      return {
+        sim_head: fmtNum(r?.head),
+        sim_netFlow: fmtNum(r?.netFlow),
+      };
+    }
+    case "tank": {
+      const r = simulation.getTank(assetId);
+      return {
+        sim_head: fmtNum(r?.head),
+        sim_level: fmtNum(r?.level),
+        sim_volume: fmtNum(r?.volume),
+        sim_netFlow: fmtNum(r?.netFlow),
+      };
+    }
+  }
+}
+
+function buildSimColumns(
+  type: AssetType,
+  translate: TranslateFn,
+  units: UnitsSpec,
+  translateUnit: TranslateUnitFn,
+): GridColumn[] {
+  const ro = (
+    key: string,
+    name: string,
+    unit: Parameters<TranslateUnitFn>[0] = null,
+  ) => {
+    const u = translateUnit(unit);
+    return textReadonlyColumn(key, { header: u ? `${name} (${u})` : name });
+  };
+  switch (type) {
+    case "junction":
+      return [
+        ro("sim_pressure", translate("pressure"), units.pressure),
+        ro("sim_head", translate("head"), units.head),
+        ro("sim_demand", translate("demand"), units.actualDemand),
+      ];
+    case "pipe":
+      return [
+        ro("sim_flow", translate("flow"), units.flow),
+        ro("sim_velocity", translate("velocity"), units.velocity),
+        ro("sim_headloss", translate("headlossShort"), units.headloss),
+        ro("sim_unitHeadloss", translate("unitHeadloss"), units.unitHeadloss),
+        ro("sim_status", translate("actualStatus")),
+      ];
+    case "pump":
+      return [
+        ro("sim_flow", translate("flow"), units.flow),
+        ro("sim_headloss", translate("pumpHead"), units.headloss),
+        ro("sim_status", translate("actualStatus")),
+      ];
+    case "valve":
+      return [
+        ro("sim_flow", translate("flow"), units.flow),
+        ro("sim_velocity", translate("velocity"), units.velocity),
+        ro("sim_headloss", translate("headlossShort"), units.headloss),
+        ro("sim_status", translate("actualStatus")),
+      ];
+    case "reservoir":
+      return [
+        ro("sim_head", translate("head"), units.head),
+        ro("sim_netFlow", translate("netFlow"), units.netFlow),
+      ];
+    case "tank":
+      return [
+        ro("sim_head", translate("head"), units.head),
+        ro("sim_level", translate("level"), units.level),
+        ro("sim_volume", translate("volume"), units.volume),
+        ro("sim_netFlow", translate("netFlow"), units.netFlow),
+      ];
+  }
+}
 
 function buildColumns(
   type: AssetType,
-  translate: ReturnType<typeof useTranslate>,
+  translate: TranslateFn,
+  hasSimulation: boolean,
+  units: UnitsSpec,
+  translateUnit: TranslateUnitFn,
 ): GridColumn[] {
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
-  const numericCol = (key: string, header: string) =>
+  const hdr = (name: string, unit: Parameters<TranslateUnitFn>[0] = null) => {
+    const u = translateUnit(unit);
+    return u ? `${name} (${u})` : name;
+  };
+
+  const numericCol = (
+    key: string,
+    name: string,
+    unit: Parameters<TranslateUnitFn>[0] = null,
+  ) =>
     editable.has(key)
-      ? floatColumn(key, { header })
-      : textReadonlyColumn(key, { header });
+      ? floatColumn(key, {
+          header: hdr(name, unit),
+          ...(NULLABLE_KEYS.has(key)
+            ? { nullValue: null, deleteValue: null }
+            : {}),
+        })
+      : textReadonlyColumn(key, { header: hdr(name, unit) });
+
+  const simCols = hasSimulation
+    ? buildSimColumns(type, translate, units, translateUnit)
+    : [];
 
   switch (type) {
     case "junction":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("elevation", translate("elevation")),
-        numericCol("emitterCoefficient", translate("emitterCoefficient")),
+        numericCol("elevation", translate("elevation"), units.elevation),
+        numericCol(
+          "emitterCoefficient",
+          translate("emitterCoefficient"),
+          units.emitterCoefficient,
+        ),
         numericCol("initialQuality", translate("initialQuality")),
+        ...simCols,
       ];
     case "pipe":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("length", translate("length")),
-        numericCol("diameter", translate("diameter")),
-        numericCol("roughness", translate("roughness")),
-        numericCol("minorLoss", translate("minorLoss")),
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
+        numericCol("diameter", translate("diameter"), units.diameter),
+        numericCol("length", translate("length"), units.length),
+        numericCol("roughness", translate("roughness"), units.roughness),
+        numericCol("minorLoss", translate("minorLoss"), units.minorLoss),
+        numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
+        numericCol("wallReactionCoeff", translate("wallReactionCoeff")),
+        ...simCols,
       ];
     case "pump":
       return [
@@ -80,30 +266,45 @@ function buildColumns(
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
+        numericCol("speed", translate("initialSpeed"), units.speed),
+        numericCol("energyPrice", translate("energyPrice")),
+        ...simCols,
       ];
     case "valve":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        textReadonlyColumn("kind", { header: "Type" }),
-        numericCol("diameter", translate("diameter")),
-        numericCol("setting", "Setting"),
+        textReadonlyColumn("kind", { header: translate("valveType") }),
+        numericCol("setting", translate("setting")),
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
+        numericCol("diameter", translate("diameter"), units.diameter),
+        numericCol("minorLoss", translate("minorLoss"), units.minorLoss),
+        ...simCols,
       ];
     case "reservoir":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("head", translate("head")),
+        numericCol("elevation", translate("elevation"), units.elevation),
+        numericCol("head", translate("head"), units.head),
+        numericCol("initialQuality", translate("initialQuality")),
+        ...simCols,
       ];
     case "tank":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("elevation", translate("elevation")),
-        numericCol("initialLevel", translate("initialLevel")),
-        numericCol("minLevel", translate("minLevel")),
-        numericCol("maxLevel", translate("maxLevel")),
-        numericCol("diameter", translate("diameter")),
+        numericCol("elevation", translate("elevation"), units.elevation),
+        numericCol(
+          "initialLevel",
+          translate("initialLevel"),
+          units.initialLevel,
+        ),
+        numericCol("minLevel", translate("minLevel"), units.minLevel),
+        numericCol("maxLevel", translate("maxLevel"), units.maxLevel),
+        numericCol("diameter", translate("diameter"), units.tankDiameter),
+        numericCol("initialQuality", translate("initialQuality")),
+        numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
+        ...simCols,
       ];
   }
 }
@@ -115,58 +316,31 @@ function assetToRow(asset: {
   return { id: asset.id, ...asset.feature.properties };
 }
 
-function Tab({
-  onClick,
-  active,
-  label,
-}: {
-  onClick: () => void;
-  active: boolean;
-  label: string;
-}) {
-  return (
-    <button
-      role="tab"
-      onClick={onClick}
-      aria-selected={active}
-      className={clsx(
-        "text-left text-sm py-1 px-3 focus:outline-none",
-        active
-          ? "text-black dark:text-white"
-          : `bg-gray-100 dark:bg-gray-900
-             border-b border-gray-200 dark:border-black
-             text-gray-500 dark:text-gray-400
-             hover:text-black dark:hover:text-gray-200
-             focus:text-black`,
-      )}
-    >
-      {label}
-    </button>
-  );
-}
-
 export const DataTablesPanel = memo(function DataTablesPanelInner() {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulation = useAtomValue(simulationResultsDerivedAtom);
+  const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useModelTransaction();
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
 
-  const assetsByType = useMemo(() => {
-    const map = new Map<AssetType, AssetRow[]>();
-    for (const type of ASSET_TYPES) {
-      const rows: AssetRow[] = [];
-      for (const asset of hydraulicModel.assets.values()) {
-        if (asset.type === type) {
-          rows.push(assetToRow(asset));
-        }
+  const assetIdsByType = useMemo(() => {
+    const map = new Map<AssetType, AssetId[]>();
+    for (const asset of hydraulicModel.assets.values()) {
+      const type = asset.type as AssetType;
+      const ids = map.get(type);
+      if (ids) {
+        ids.push(asset.id);
+      } else {
+        map.set(type, [asset.id]);
       }
-      if (rows.length > 0) map.set(type, rows);
     }
     return map;
   }, [hydraulicModel.assets]);
 
   const presentTypes = useMemo(
-    () => ASSET_TYPES.filter((t) => assetsByType.has(t)),
-    [assetsByType],
+    () => ASSET_TYPES.filter((t) => assetIdsByType.has(t)),
+    [assetIdsByType],
   );
 
   const [activeTab, setActiveTab] = useState<AssetType | null>(
@@ -174,16 +348,62 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
   );
 
   const effectiveTab =
-    activeTab && assetsByType.has(activeTab)
+    activeTab && assetIdsByType.has(activeTab)
       ? activeTab
       : (presentTypes[0] ?? null);
 
-  const rows = effectiveTab ? (assetsByType.get(effectiveTab) ?? []) : [];
-
   const columns = useMemo(
-    () => (effectiveTab ? buildColumns(effectiveTab, translate) : []),
-    [effectiveTab, translate],
+    () =>
+      effectiveTab
+        ? buildColumns(
+            effectiveTab,
+            translate,
+            simulation !== null,
+            units,
+            translateUnit,
+          )
+        : [],
+    [effectiveTab, translate, simulation, units, translateUnit],
   );
+
+  const [rows, setRows] = useState<AssetRow[] | null>(null);
+
+  useEffect(() => {
+    if (!effectiveTab) {
+      setRows([]);
+      return;
+    }
+    const ids = assetIdsByType.get(effectiveTab) ?? [];
+    let cancelled = false;
+
+    async function compute() {
+      setRows(null);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (cancelled) return;
+
+      const result: AssetRow[] = [];
+      for (const id of ids) {
+        const asset = hydraulicModel.assets.get(id);
+        if (!asset) continue;
+        const simFields = simulation
+          ? buildSimRow(effectiveTab, id, simulation, translate)
+          : {};
+        result.push({ ...assetToRow(asset), ...simFields });
+      }
+      setRows(result);
+    }
+
+    void compute();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectiveTab,
+    assetIdsByType,
+    hydraulicModel.assets,
+    simulation,
+    translate,
+  ]);
 
   const onChange = useCallback(
     (newRows: AssetRow[]) => {
@@ -191,7 +411,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       const editableKeys = EDITABLE_NUMERIC_KEYS[effectiveTab];
       for (let i = 0; i < newRows.length; i++) {
         const newRow = newRows[i];
-        const oldRow = rows[i];
+        const oldRow = rows?.[i];
         if (!oldRow) continue;
         const assetId = newRow.id;
         const changes: PropertyChange[] = [];
@@ -222,35 +442,34 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col">
-      <div
-        role="tablist"
-        className="flex h-8 flex-none
-          sticky top-0 z-10
-          bg-white dark:bg-gray-800
-          divide-x divide-gray-200 dark:divide-black
-          border-b border-gray-200 dark:border-black
-          pr-8"
-      >
+    <TabRoot
+      className="absolute inset-0 flex flex-col"
+      value={effectiveTab ?? undefined}
+      onValueChange={(v) => setActiveTab(v as AssetType)}
+    >
+      <TabList>
         {presentTypes.map((type) => (
-          <Tab
-            key={type}
-            onClick={() => setActiveTab(type)}
-            active={effectiveTab === type}
-            label={translate(ASSET_TYPE_TAB_KEY[type])}
-          />
+          <Tab key={type} value={type}>
+            {translate(ASSET_TYPE_TAB_KEY[type])}
+          </Tab>
         ))}
+      </TabList>
+      <div className="flex-1 min-h-0 relative">
+        {rows === null ? (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-600">
+            <SpinnerIcon />
+          </div>
+        ) : (
+          <DataGrid
+            key={effectiveTab}
+            data={rows}
+            columns={columns}
+            onChange={onChange as (data: Record<string, unknown>[]) => void}
+            createRow={() => ({}) as Record<string, unknown>}
+            gutterColumn={false}
+          />
+        )}
       </div>
-      <div className="flex-1 min-h-0">
-        <DataGrid
-          key={effectiveTab}
-          data={rows}
-          columns={columns}
-          onChange={onChange as (data: Record<string, unknown>[]) => void}
-          createRow={() => ({}) as Record<string, unknown>}
-          gutterColumn={false}
-        />
-      </div>
-    </div>
+    </TabRoot>
   );
 });
