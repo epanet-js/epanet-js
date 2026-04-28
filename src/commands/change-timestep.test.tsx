@@ -15,6 +15,7 @@ import { createMockResultsReader } from "src/__helpers__/state";
 
 vi.mock("src/infra/storage/opfs-storage", () => ({
   OPFSStorage: vi.fn(),
+  isOPFSAvailable: vi.fn().mockResolvedValue(true),
 }));
 
 const initialResultsReader = createMockResultsReader();

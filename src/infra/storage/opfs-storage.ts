@@ -142,7 +142,17 @@ export class OPFSStorage implements IKeyBufferStore {
   }
 }
 
+export async function isOPFSAvailable(): Promise<boolean> {
+  try {
+    await navigator.storage.getDirectory();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function cleanupStaleOPFS(thresholdMs: number): Promise<void> {
+  if (!(await isOPFSAvailable())) return;
   const staleAppIds = findStaleAppIds(thresholdMs);
 
   for (const appId of staleAppIds) {

@@ -226,6 +226,7 @@
   "pumpCurve": "Pump curve",
   "pumpHead": "Pump head",
   "simulate": "Simulate",
+  "simulateUnavailablePrivateBrowsing": "Simulation is not available in older browsers or private browsing mode. Try updating your browser or using another window.",
   "simulation": "Simulation",
   "simulationReport": "Simulation report",
   "simulationReadyToRun": "Ready to run",

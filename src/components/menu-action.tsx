@@ -4,6 +4,39 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useRef, useState } from "react";
 
+export function DisabledMenuAction({
+  label,
+  reason,
+  children,
+}: {
+  label: string;
+  reason: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
+        <div className="h-10 opacity-60 cursor-not-allowed group bn flex items-stretch py-1 focus:outline-none">
+          <Tooltip.Trigger asChild>
+            <Button
+              variant={"quiet/mode"}
+              disabled
+              aria-label={label}
+              aria-disabled
+            >
+              {children}
+              {label}
+            </Button>
+          </Tooltip.Trigger>
+        </div>
+        <TContent side="bottom">{reason}</TContent>
+      </Tooltip.Root>
+    </div>
+  );
+}
+
 export default function MenuAction({
   selected = false,
   onClick,
