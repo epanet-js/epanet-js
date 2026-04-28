@@ -90,12 +90,12 @@ export const WelcomeDialog = () => {
                   <Button
                     variant="quiet"
                     onClick={() => {
-                      void openInpFromFs({ source: "welcome" });
+                      openProject({ source: "welcome" });
                     }}
                     style={{ width: "100%" }}
                   >
-                    <FileSpreadsheetIcon />
-                    {translate("importINP")}
+                    <FolderOpenIcon />
+                    {translate("openModel")}
                   </Button>
                   <Button
                     variant="quiet"
@@ -103,21 +103,11 @@ export const WelcomeDialog = () => {
                       openModelBuilder({ source: "welcome" });
                     }}
                     style={{ width: "100%" }}
+                    className="mt-4"
                   >
                     <GlobeIcon />
                     {translate("importFromGIS")}
                     <EarlyAccessIcon size="sm" />
-                  </Button>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      openProject({ source: "welcome" });
-                    }}
-                    style={{ width: "100%" }}
-                    className="mt-4"
-                  >
-                    <FolderOpenIcon />
-                    {translate("open")}
                   </Button>
                 </>
               ) : (

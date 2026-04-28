@@ -399,6 +399,7 @@
   "importFromINP": "Import from INP file",
   "openINP": "Open INP",
   "openProject": "Open project",
+  "openModel": "Open model",
   "importINP": "Import INP",
   "exportINP": "Export INP",
   "deprecatedImportFromGIS": "Import from GIS data",
