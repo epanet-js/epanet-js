@@ -16,6 +16,7 @@ import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
 import { BottomResizer } from "src/components/resizer";
 import { Maximize2Icon, Minimize2Icon } from "src/icons";
+import { DataTablesPanel } from "./data-tables";
 
 function Tab({
   onClick,
@@ -144,9 +145,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
       >
         {expanded ? <Minimize2Icon /> : <Maximize2Icon />}
       </button>
-      <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-sm">
-        PLACEHOLDER
-      </div>
+      <DataTablesPanel />
     </div>
   );
 });
