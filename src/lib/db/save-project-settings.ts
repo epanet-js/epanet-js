@@ -1,5 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { projectSettingsSchema } from "src/lib/project-settings/project-settings-schema";
+import { projectSettingsSchema } from "./build-project-settings-data";
 import { getDbWorker } from "./get-db-worker";
 import { timed } from "./perf-log";
 

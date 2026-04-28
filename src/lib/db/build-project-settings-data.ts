@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ProjectSettings } from "./project-settings";
+import type { ProjectSettings } from "src/lib/project-settings";
 import type { Unit } from "src/quantity";
 
 const unitSchema: z.ZodType<Unit> = z
@@ -133,3 +133,28 @@ export const projectSettingsSchema: z.ZodType<ProjectSettings> = z.object({
   formatting: formattingSpecSchema,
   projection: projectionSchema,
 });
+
+export const buildProjectSettingsData = (
+  data: string | null,
+): ProjectSettings => {
+  if (data === null) {
+    throw new Error("Project settings: data is missing");
+  }
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(data);
+  } catch (error) {
+    throw new Error("Project settings: data is not valid JSON", {
+      cause: error,
+    });
+  }
+
+  const result = projectSettingsSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(
+      `Project settings: data does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
+};

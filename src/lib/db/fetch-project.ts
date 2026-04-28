@@ -1,4 +1,3 @@
-import { projectSettingsSchema } from "src/lib/project-settings/project-settings-schema";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -16,6 +15,7 @@ import { buildPatternsData } from "./build-patterns-data";
 import { buildCurvesData } from "./build-curves-data";
 import { buildControlsData } from "./build-controls-data";
 import { buildSimulationSettingsData } from "./build-simulation-settings-data";
+import { buildProjectSettingsData } from "./build-project-settings-data";
 import { buildJunctionDemandsData } from "./build-junction-demands-data";
 import {
   findMaxId,
@@ -107,9 +107,7 @@ export const fetchProject = async (
     return timed(
       "fetchProject.build",
       () => {
-        const projectSettings = projectSettingsSchema.parse(
-          JSON.parse(settingsJson),
-        );
+        const projectSettings = buildProjectSettingsData(settingsJson);
         const assetRows = {
           junctions,
           reservoirs,
