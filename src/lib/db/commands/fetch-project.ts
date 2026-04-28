@@ -7,17 +7,17 @@ import {
 } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { getDbWorker } from "./get-db-worker";
-import { timed } from "./perf-log";
-import { buildAssetsData } from "./mappers/assets/builders";
-import { buildCustomerPointsData } from "./mappers/customer-points/builders";
-import { buildPatternsData } from "./mappers/patterns/builders";
-import { buildCurvesData } from "./mappers/curves/builders";
-import { buildControlsData } from "./mappers/controls/builders";
-import { buildSimulationSettingsData } from "./mappers/simulation-settings/builders";
-import { buildProjectSettingsData } from "./mappers/project-settings/builders";
-import { buildJunctionDemandsData } from "./mappers/junction-demands/builders";
-import { findMaxId } from "./ids";
+import { getDbWorker } from "../get-db-worker";
+import { timed } from "../perf-log";
+import { buildAssetsData } from "../mappers/assets/builders";
+import { buildCustomerPointsData } from "../mappers/customer-points/builders";
+import { buildPatternsData } from "../mappers/patterns/builders";
+import { buildCurvesData } from "../mappers/curves/builders";
+import { buildControlsData } from "../mappers/controls/builders";
+import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
+import { buildProjectSettingsData } from "../mappers/project-settings/builders";
+import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
+import { findMaxId } from "../ids";
 import type {
   JunctionRow,
   ReservoirRow,
@@ -25,15 +25,15 @@ import type {
   PipeRow,
   PumpRow,
   ValveRow,
-} from "./mappers/assets/schema";
+} from "../mappers/assets/schema";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
-} from "./mappers/customer-points/schema";
-import type { PatternRow } from "./mappers/patterns/schema";
-import type { JunctionDemandRow } from "./mappers/junction-demands/schema";
-import type { CurveRow } from "./mappers/curves/schema";
+} from "../mappers/customer-points/schema";
+import type { PatternRow } from "../mappers/patterns/schema";
+import type { JunctionDemandRow } from "../mappers/junction-demands/schema";
+import type { CurveRow } from "../mappers/curves/schema";
 
 export type Project = {
   projectSettings: ProjectSettings;

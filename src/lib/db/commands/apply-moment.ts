@@ -2,30 +2,30 @@ import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { Asset } from "src/hydraulic-model/asset-types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CustomerPointId } from "src/hydraulic-model/customer-points";
-import { getDbWorker } from "./get-db-worker";
-import { timed } from "./perf-log";
-import { assetsToRows } from "./mappers/assets/to-rows";
+import { getDbWorker } from "../get-db-worker";
+import { timed } from "../perf-log";
+import { assetsToRows } from "../mappers/assets/to-rows";
 import {
   toCustomerPointRow,
   toCustomerPointDemandRow,
-} from "./mappers/customer-points/to-rows";
-import { toJunctionDemandRow } from "./mappers/junction-demands/to-rows";
-import { patternsToRows } from "./mappers/patterns/to-rows";
-import { curvesToRows } from "./mappers/curves/to-rows";
-import { serializeControls } from "./mappers/controls/to-rows";
+} from "../mappers/customer-points/to-rows";
+import { toJunctionDemandRow } from "../mappers/junction-demands/to-rows";
+import { patternsToRows } from "../mappers/patterns/to-rows";
+import { curvesToRows } from "../mappers/curves/to-rows";
+import { serializeControls } from "../mappers/controls/to-rows";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,
   type AssetPatchRows,
-} from "./mappers/assets/patches";
-import type { AssetRows } from "./mappers/assets/schema";
+} from "../mappers/assets/patches";
+import type { AssetRows } from "../mappers/assets/schema";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
-} from "./mappers/customer-points/schema";
-import type { JunctionDemandRow } from "./mappers/junction-demands/schema";
-import type { PatternRow } from "./mappers/patterns/schema";
-import type { CurveRow } from "./mappers/curves/schema";
+} from "../mappers/customer-points/schema";
+import type { JunctionDemandRow } from "../mappers/junction-demands/schema";
+import type { PatternRow } from "../mappers/patterns/schema";
+import type { CurveRow } from "../mappers/curves/schema";
 
 export type CustomerPointDemandUpdate = {
   customerPointId: CustomerPointId;

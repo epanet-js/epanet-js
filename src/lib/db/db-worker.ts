@@ -19,8 +19,8 @@ import type { JunctionDemandRow } from "./mappers/junction-demands/schema";
 import type { PatternRow } from "./mappers/patterns/schema";
 import type { CurveRow } from "./mappers/curves/schema";
 import type { AssetPatchRow } from "./mappers/assets/patches";
-import type { ApplyMomentPayload } from "./apply-moment";
-import type { OpenDbResult } from "./open-project";
+import type { ApplyMomentPayload } from "./commands/apply-moment";
+import type { OpenDbResult } from "./commands/open-project";
 import { formatErrorDetails } from "src/lib/errors";
 
 type Stmt = {

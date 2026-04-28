@@ -1,7 +1,7 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { getDbWorker } from "./get-db-worker";
-import { timed } from "./perf-log";
-import { serializeProjectSettings } from "./mappers/project-settings/to-rows";
+import { getDbWorker } from "../get-db-worker";
+import { timed } from "../perf-log";
+import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
 
 export const saveProjectSettings = async (
   settings: ProjectSettings,

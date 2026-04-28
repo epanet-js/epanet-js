@@ -7,14 +7,15 @@ import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import { pointsSchema } from "../curves/schema";
-import type {
-  AssetRows,
-  JunctionRow,
-  ReservoirRow,
-  TankRow,
-  PipeRow,
-  PumpRow,
-  ValveRow,
+import {
+  linkCoordinatesSchema,
+  type AssetRows,
+  type JunctionRow,
+  type ReservoirRow,
+  type TankRow,
+  type PipeRow,
+  type PumpRow,
+  type ValveRow,
 } from "./schema";
 
 export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
@@ -115,7 +116,7 @@ const toPipeRow = (pipe: Pipe): PipeRow => ({
   is_active: toDbBool(pipe.isActive),
   start_node_id: pipe.connections[0],
   end_node_id: pipe.connections[1],
-  coords: JSON.stringify(pipe.coordinates),
+  coords: toDbLinkCoordinates(pipe, "Pipe"),
   length: pipe.length,
   initial_status: pipe.initialStatus,
   diameter: pipe.diameter,
@@ -132,7 +133,7 @@ const toPumpRow = (pump: Pump): PumpRow => ({
   is_active: toDbBool(pump.isActive),
   start_node_id: pump.connections[0],
   end_node_id: pump.connections[1],
-  coords: JSON.stringify(pump.coordinates),
+  coords: toDbLinkCoordinates(pump, "Pump"),
   length: pump.length,
   initial_status: pump.initialStatus,
   definition_type: pump.definitionType,
@@ -145,6 +146,19 @@ const toPumpRow = (pump: Pump): PumpRow => ({
   curve_id: toDbId(pump.curveId),
   curve_points: toDbCurvePoints(pump),
 });
+
+const toDbLinkCoordinates = (
+  link: Pipe | Pump | Valve,
+  kind: string,
+): string => {
+  const result = linkCoordinatesSchema.safeParse(link.coordinates);
+  if (!result.success) {
+    throw new Error(
+      `${kind} ${link.id} (${link.label}): coords must be an array of finite-number arrays — ${result.error.message}`,
+    );
+  }
+  return JSON.stringify(result.data);
+};
 
 const toDbCurvePoints = (pump: Pump): string | null => {
   const points: CurvePoint[] | undefined = pump.curve;
@@ -165,7 +179,7 @@ const toValveRow = (valve: Valve): ValveRow => ({
   is_active: toDbBool(valve.isActive),
   start_node_id: valve.connections[0],
   end_node_id: valve.connections[1],
-  coords: JSON.stringify(valve.coordinates),
+  coords: toDbLinkCoordinates(valve, "Valve"),
   length: valve.length,
   initial_status: valve.initialStatus,
   diameter: valve.diameter,

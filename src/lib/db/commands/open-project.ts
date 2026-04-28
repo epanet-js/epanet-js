@@ -1,5 +1,5 @@
-import { getDbWorker } from "./get-db-worker";
-import { timed } from "./perf-log";
+import { getDbWorker } from "../get-db-worker";
+import { timed } from "../perf-log";
 
 export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }

@@ -1,5 +1,5 @@
-import { getDbWorker } from "./get-db-worker";
-import { timedWith } from "./perf-log";
+import { getDbWorker } from "../get-db-worker";
+import { timedWith } from "../perf-log";
 
 export const exportDb = async (): Promise<Blob> => {
   return timedWith(

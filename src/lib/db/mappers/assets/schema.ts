@@ -1,4 +1,7 @@
+import { z } from "zod";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+
+export const linkCoordinatesSchema = z.array(z.array(z.number().finite()));
 
 type NodeRowShared = {
   id: AssetId;

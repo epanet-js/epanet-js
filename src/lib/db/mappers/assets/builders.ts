@@ -23,14 +23,15 @@ import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
 import { pointsSchema } from "../curves/schema";
-import type {
-  AssetRows,
-  JunctionRow,
-  ReservoirRow,
-  TankRow,
-  PipeRow,
-  PumpRow,
-  ValveRow,
+import {
+  linkCoordinatesSchema,
+  type AssetRows,
+  type JunctionRow,
+  type ReservoirRow,
+  type TankRow,
+  type PipeRow,
+  type PumpRow,
+  type ValveRow,
 } from "./schema";
 
 export const buildAssetsData = (
@@ -152,7 +153,7 @@ const buildPipe = (row: PipeRow, assetFactory: AssetFactory): Pipe =>
   assetFactory.createPipe({
     id: row.id,
     label: row.label ?? undefined,
-    coordinates: JSON.parse(row.coords) as Position[],
+    coordinates: parseLinkCoordinates(row, "Pipe"),
     connections: [row.start_node_id, row.end_node_id],
     initialStatus: nullable(row.initial_status) as PipeStatus | undefined,
     length: nullable(row.length),
@@ -168,7 +169,7 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
   assetFactory.createPump({
     id: row.id,
     label: row.label ?? undefined,
-    coordinates: JSON.parse(row.coords) as Position[],
+    coordinates: parseLinkCoordinates(row, "Pump"),
     connections: [row.start_node_id, row.end_node_id],
     initialStatus: nullable(row.initial_status) as PumpStatus | undefined,
     definitionType: row.definition_type as PumpDefintionType,
@@ -187,7 +188,7 @@ const buildValve = (row: ValveRow, assetFactory: AssetFactory): Valve =>
   assetFactory.createValve({
     id: row.id,
     label: row.label ?? undefined,
-    coordinates: JSON.parse(row.coords) as Position[],
+    coordinates: parseLinkCoordinates(row, "Valve"),
     connections: [row.start_node_id, row.end_node_id],
     diameter: nullable(row.diameter),
     minorLoss: nullable(row.minor_loss),
@@ -202,6 +203,28 @@ const nullable = <T>(v: T | null | undefined): T | undefined =>
   v === null ? undefined : v;
 
 const toBool = (v: number): boolean => v === 1;
+
+const parseLinkCoordinates = (
+  row: PipeRow | PumpRow | ValveRow,
+  kind: string,
+): Position[] => {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(row.coords);
+  } catch (error) {
+    throw new Error(
+      `${kind} ${row.id} (${row.label}): coords is not valid JSON`,
+      { cause: error },
+    );
+  }
+  const result = linkCoordinatesSchema.safeParse(raw);
+  if (!result.success) {
+    throw new Error(
+      `${kind} ${row.id} (${row.label}): coords must be an array of finite-number arrays — ${result.error.message}`,
+    );
+  }
+  return result.data as Position[];
+};
 
 const parsePumpCurvePoints = (row: PumpRow): CurvePoint[] | undefined => {
   if (row.curve_points === null) return undefined;
