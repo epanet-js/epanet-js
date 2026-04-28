@@ -411,6 +411,7 @@
   "recent": "Recent",
   "recentNetworks": "Recent projects",
   "dropInp": "Drop an .INP file here to open the model.",
+  "dropProjectOrInp": "Drag your project or INP model here.",
   "inpMissing": "Invalid file type. Use an .INP file.",
   "couldNotOpenRecentFile": "Could not open the recent file. Try Open INP option.",
   "recentFilePermissionDenied": "Permission to access this file was denied. Try using Open INP instead.",

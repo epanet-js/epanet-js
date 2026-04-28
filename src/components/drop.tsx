@@ -1,14 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { captureError } from "src/infra/error-tracking";
 import { getFilesFromDataTransferItems } from "@placemarkio/flat-drop-files";
 import type { FileWithHandle } from "browser-fs-access";
 import { StyledDropOverlay } from "./elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { useImportInp } from "src/commands/import-inp";
+import { useImportInp, inpExtension } from "src/commands/import-inp";
+import { useOpenProjectFile } from "src/commands/open-project";
+import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-import { useAtomValue } from "jotai";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+
+type DropHandler = {
+  matches: (file: FileWithHandle) => boolean;
+  handle: (files: FileWithHandle[]) => void | Promise<void>;
+};
 
 /**
  * From an event, get files, with handles for re-saving.
@@ -33,8 +41,32 @@ const Drop = () => {
   const [dragging, setDragging] = useState<boolean>(false);
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const importInp = useImportInp();
+  const openProjectFile = useOpenProjectFile();
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
+  const setDialogState = useSetAtom(dialogAtom);
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+
+  const handlers: DropHandler[] = useMemo(
+    () => [
+      ...(isOurFileOn
+        ? [
+            {
+              matches: (f: FileWithHandle) =>
+                f.name.toLowerCase().endsWith(projectExtension),
+              handle: (files: FileWithHandle[]) =>
+                openProjectFile(files[0], "dragDrop"),
+            },
+          ]
+        : []),
+      {
+        matches: (f: FileWithHandle) =>
+          f.name.toLowerCase().endsWith(inpExtension),
+        handle: (files: FileWithHandle[]) => importInp(files, "dragDrop"),
+      },
+    ],
+    [isOurFileOn, openProjectFile, importInp],
+  );
 
   useEffect(() => {
     window.addEventListener("dragover", stopWindowDrag);
@@ -60,7 +92,16 @@ const Drop = () => {
         extensions: files.map((f) => getFileExtension(f.name)),
         count: files.length,
       });
-      checkUnsavedChanges(() => importInp(files, "dragDrop"));
+
+      const handler = handlers.find((h) => files.some(h.matches));
+      if (!handler) {
+        setDialogState({ type: "invalidFilesError" });
+        userTracking.capture({ name: "invalidFilesError.seen" });
+        return;
+      }
+
+      const matchingFiles = files.filter(handler.matches);
+      checkUnsavedChanges(() => void handler.handle(matchingFiles));
     };
 
     const onDragEnter = () => {
@@ -106,12 +147,21 @@ const Drop = () => {
       document.removeEventListener("dragleave", onDragLeave);
       document.removeEventListener("drop", onDropCaught);
     };
-  }, [setDragging, checkUnsavedChanges, importInp, userTracking, dialog]);
+  }, [
+    setDragging,
+    checkUnsavedChanges,
+    handlers,
+    userTracking,
+    dialog,
+    setDialogState,
+  ]);
 
   if (dialog && dialog.type !== "welcome") return null;
 
   return dragging ? (
-    <StyledDropOverlay>{translate("dropInp")}</StyledDropOverlay>
+    <StyledDropOverlay>
+      {translate(isOurFileOn ? "dropProjectOrInp" : "dropInp")}
+    </StyledDropOverlay>
   ) : null;
 };
 
