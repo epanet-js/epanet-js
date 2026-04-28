@@ -104,7 +104,7 @@ export const ScenariosPaywallConnector = ({
     const file = new File([await response.blob()], name);
 
     checkUnsavedChanges(async () => {
-      await importInp([file]);
+      await importInp([file], "scenariosPaywall");
       runSimulationThenProceed();
     });
   }, [checkUnsavedChanges, importInp, runSimulationThenProceed]);

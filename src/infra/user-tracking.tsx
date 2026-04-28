@@ -288,6 +288,7 @@ export type RecentFileOpened = {
 
 export type ImportInpCompleted = {
   name: "importInp.completed";
+  source: string;
   counts: Record<string, number>;
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
@@ -352,6 +353,14 @@ type ProjectSaved = {
 export type OpenProjectStarted = {
   name: "openProject.started";
   source: string;
+};
+
+export type ProjectFileOpened = {
+  name: "projectFile.opened";
+  source: string;
+  counts: Record<string, number>;
+  headlossFormula: HeadlossFormula;
+  units: EpanetUnitSystem;
 };
 
 type OperationUndone = {
@@ -949,6 +958,7 @@ export type UserEvent =
   | InpExported
   | ProjectSaved
   | OpenProjectStarted
+  | ProjectFileOpened
   | OperationUndone
   | OperationRedone
   | DrawingModeEnabled

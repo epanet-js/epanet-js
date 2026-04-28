@@ -40,9 +40,9 @@ export const useOpenRecentFile = () => {
           });
           const isProject = entry.name.toLowerCase().endsWith(projectExtension);
           if (isProject) {
-            await openProjectFile(fileWithHandle);
+            await openProjectFile(fileWithHandle, source);
           } else {
-            void importInp([fileWithHandle]);
+            void importInp([fileWithHandle], source);
           }
           userTracking.capture({
             name: "recentFile.opened",

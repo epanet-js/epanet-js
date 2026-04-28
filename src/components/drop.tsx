@@ -60,7 +60,7 @@ const Drop = () => {
         extensions: files.map((f) => getFileExtension(f.name)),
         count: files.length,
       });
-      checkUnsavedChanges(() => importInp(files));
+      checkUnsavedChanges(() => importInp(files, "dragDrop"));
     };
 
     const onDragEnter = () => {

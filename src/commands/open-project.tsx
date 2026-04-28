@@ -10,6 +10,8 @@ import {
   type OpenPersistedProjectPhase,
 } from "src/hooks/persistence/use-open-persisted-project";
 import { useUserTracking } from "src/infra/user-tracking";
+import { chooseUnitSystem } from "src/simulation/build-inp";
+import type { Asset } from "src/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError } from "src/infra/error-tracking";
@@ -34,9 +36,10 @@ export const useOpenProjectFile = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const map = useContext(MapContext);
   const translate = useTranslate();
+  const userTracking = useUserTracking();
 
   return useCallback(
-    async (file: FileWithHandle) => {
+    async (file: FileWithHandle, source: string) => {
       try {
         setDialogState({ type: "openProjectProgress", phase: "opening" });
 
@@ -136,6 +139,14 @@ export const useOpenProjectFile = () => {
           Icon: SuccessIcon,
           size: "sm",
         });
+
+        userTracking.capture({
+          name: "projectFile.opened",
+          source,
+          counts: tallyAssetCounts(result.hydraulicModel.assets),
+          headlossFormula: result.projectSettings.headlossFormula,
+          units: chooseUnitSystem(result.projectSettings.units),
+        });
       } catch (error) {
         setDialogState(null);
         captureError(error as Error);
@@ -156,8 +167,19 @@ export const useOpenProjectFile = () => {
       setDialogState,
       map,
       translate,
+      userTracking,
     ],
   );
+};
+
+const tallyAssetCounts = (
+  assets: Map<unknown, Asset>,
+): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  for (const asset of assets.values()) {
+    counts[asset.type] = (counts[asset.type] ?? 0) + 1;
+  }
+  return counts;
 };
 
 export const useOpenProject = () => {
@@ -185,7 +207,7 @@ export const useOpenProject = () => {
       if (!file) return;
 
       if (file.name.toLowerCase().endsWith(inpExtension)) {
-        void importInp([file]);
+        void importInp([file], source);
         notify({
           variant: "success",
           title: translate("initializedProjectFromInp"),
@@ -195,7 +217,7 @@ export const useOpenProject = () => {
         return;
       }
 
-      await openProjectFile(file);
+      await openProjectFile(file, source);
     },
     [
       openFile,

@@ -32,7 +32,7 @@ export const useOpenInpFromFs = () => {
           return;
         }
 
-        void importInp([file]);
+        void importInp([file], source);
       } catch (error) {
         captureError(error as Error);
       }

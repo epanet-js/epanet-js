@@ -67,7 +67,7 @@ const handleModelBuildComplete = (
     });
 
     checkUnsavedChanges(async () => {
-      await importInp([inpFile]);
+      await importInp([inpFile], "modelBuilder");
       toggleNetworkReview({ source: "auto", state: true });
     });
   }, 1000);

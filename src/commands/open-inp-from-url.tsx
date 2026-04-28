@@ -43,7 +43,7 @@ export const useOpenInpFromUrl = () => {
         const name = parseName(url);
         const inpFile = new File([await response.blob()], name);
 
-        checkUnsavedChanges(() => importInp([inpFile]));
+        checkUnsavedChanges(() => importInp([inpFile], "exampleModel"));
       } catch (error) {
         captureError(error as Error);
         handleDownloadError();

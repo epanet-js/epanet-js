@@ -153,7 +153,7 @@ export const useImportInp = () => {
   );
 
   const importInp = useCallback(
-    async (files: FileWithHandle[]) => {
+    async (files: FileWithHandle[], source: string) => {
       const file = validateAndPrepare(files);
       if (!file) return;
 
@@ -180,7 +180,7 @@ export const useImportInp = () => {
           suggestedXyScale,
         } = result;
         userTracking.capture(
-          buildCompleteEvent(projectSettings, issues, stats),
+          buildCompleteEvent(source, projectSettings, issues, stats),
         );
 
         if (projectionStatus === "unknown") {
@@ -242,6 +242,7 @@ export const useImportInp = () => {
 };
 
 const buildCompleteEvent = (
+  source: string,
   projectSettings: ProjectSettings,
   issues: ParserIssues | null,
   stats: InpStats,
@@ -269,6 +270,7 @@ const buildCompleteEvent = (
 
   return {
     name: "importInp.completed",
+    source,
     counts: Object.fromEntries(stats.counts),
     headlossFormula: projectSettings.headlossFormula,
     units: chooseUnitSystem(projectSettings.units),

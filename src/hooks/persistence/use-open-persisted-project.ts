@@ -3,6 +3,7 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
+import type { ProjectSettings } from "src/lib/project-settings";
 import type { FetchProjectPhase } from "src/lib/db/fetch-project";
 import {
   clearSimulationStorage,
@@ -18,7 +19,12 @@ type OpenPersistedProjectInput = {
 };
 
 export type OpenPersistedProjectResult =
-  | { status: "ok"; modelVersion: string; hydraulicModel: HydraulicModel }
+  | {
+      status: "ok";
+      modelVersion: string;
+      hydraulicModel: HydraulicModel;
+      projectSettings: ProjectSettings;
+    }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt" | "internal"; errorDetails: string }
   | {
@@ -60,6 +66,7 @@ export const useOpenPersistedProject = () => {
           status: "ok",
           modelVersion: hydraulicModel.version,
           hydraulicModel,
+          projectSettings,
         };
       },
       [],
