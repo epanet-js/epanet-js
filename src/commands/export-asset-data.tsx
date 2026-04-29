@@ -12,14 +12,6 @@ import { simulationStepAtom } from "src/state/simulation";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { Asset } from "src/hydraulic-model/asset-types";
 import type { ResultsReader } from "src/simulation/results-reader";
-import type { fileSave as fileSaveType } from "browser-fs-access";
-
-const getDefaultFsAccess = async () => {
-  const { fileSave } = await import("browser-fs-access");
-  return { fileSave };
-};
-
-type FileAccess = { fileSave: typeof fileSaveType };
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -27,9 +19,7 @@ export type DataExportOptions = {
   simulationStep?: number;
 };
 
-export const useExportAssetData = ({
-  getFsAccess = getDefaultFsAccess,
-}: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
+export const useExportAssetData = () => {
   const translate = useTranslate();
 
   const exportNetwork = useAtomCallback(
@@ -60,8 +50,6 @@ export const useExportAssetData = ({
         const resultsReader = (await getResultsReader()) ?? undefined;
 
         const doExport = async () => {
-          const { fileSave } = await getFsAccess();
-
           const data = buildDataForExport(
             options.format,
             hydraulicModel,
@@ -69,15 +57,7 @@ export const useExportAssetData = ({
           );
 
           const fileName = "export";
-          const exportedFile = await Export.exportFile(fileName, data);
-
-          const saveOptions = {
-            mimeTypes: exportedFile.mimeTypes,
-            description: exportedFile.description,
-            extensions: exportedFile.extensions,
-            fileName: exportedFile.fileName,
-          };
-          await fileSave(exportedFile.blob, saveOptions, null);
+          await Export.exportFile(fileName, data);
         };
 
         try {
@@ -88,7 +68,7 @@ export const useExportAssetData = ({
           });
         } catch {}
       },
-      [translate, getFsAccess],
+      [translate],
     ),
   );
 

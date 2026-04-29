@@ -1,26 +1,37 @@
-import JSZip from "jszip";
+import { Zip, ZipDeflate } from "fflate";
 import { ExportedFile } from "../types";
 
 export const exportZip = async (
-  fileName: string,
+  handle: FileSystemFileHandle,
   exportedFiles: ExportedFile[],
-): Promise<ExportedFile> => {
-  const zip = new JSZip();
+) => {
+  const writable = await handle.createWritable();
 
-  exportedFiles.forEach((file) => {
-    zip.file(file.fileName, file.blob);
+  await new Promise<void>((resolve, reject) => {
+    const zip = new Zip(async (err, data, final) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      await writable.write(data);
+      if (final) resolve();
+    });
+
+    void (async () => {
+      try {
+        for (const file of exportedFiles) {
+          const buffer = await file.blob.arrayBuffer();
+          const entry = new ZipDeflate(file.fileName);
+          zip.add(entry);
+          entry.push(new Uint8Array(buffer), true);
+        }
+
+        zip.end();
+      } catch (err) {
+        reject(err);
+      }
+    })();
   });
 
-  const blob = await zip.generateAsync({
-    type: "blob",
-    mimeType: "application/zip",
-  });
-
-  return {
-    fileName: `${fileName}.zip`,
-    extensions: [".zip"],
-    mimeTypes: ["application/zip"],
-    description: ".ZIP Compressed File",
-    blob,
-  };
+  await writable.close();
 };

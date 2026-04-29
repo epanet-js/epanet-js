@@ -11,19 +11,11 @@ import { Export } from "src/lib/export";
 import { Store } from "src/state";
 import { useExportAssetData, DataExportOptions } from "./export-asset-data";
 import { Junction } from "src/hydraulic-model";
-import { stubFileSave, lastSaveCall } from "src/__helpers__/browser-fs-mock";
 import { ExportEntry } from "src/lib/export/types";
 
 describe("export-asset-data", () => {
   beforeEach(() => {
-    vi.spyOn(Export, "exportFile").mockResolvedValue({
-      blob: new Blob(),
-      fileName: "export.geojson",
-      description: "GeoJSON",
-      extensions: [".geojson"],
-      mimeTypes: ["application/geo+json"],
-    });
-    stubFileSave({ fileName: "export.geojson" });
+    vi.spyOn(Export, "exportFile").mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -73,15 +65,6 @@ describe("export-asset-data", () => {
     expect(pipesData.map((f) => f.id)).toEqual(
       expect.arrayContaining([IDS.P1]),
     );
-
-    const { options, handle } = lastSaveCall();
-    expect(options).toEqual({
-      fileName: "export.geojson",
-      extensions: [".geojson"],
-      description: "GeoJSON",
-      mimeTypes: ["application/geo+json"],
-    });
-    expect(handle).toBeNull();
   });
 
   it("includes all asset-specific properties", async () => {

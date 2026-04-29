@@ -2,34 +2,62 @@ import { exportFile } from "./export-file";
 import { FileExporters } from "./exporters";
 import { ExportEntry } from "./types";
 
+import { FileSystemHelpers } from "./helpers";
+
+const mockHandle = {} as FileSystemFileHandle;
+
 describe("export-file", () => {
-  beforeEach(() => {});
-
-  it("returns the file directly when there is a single entry", async () => {
-    mockGeoJsonExporter(["nodes.geojson"]);
-
-    const result = await exportFile("export", [geoJsonEntry("nodes")]);
-
-    expect(result.fileName).toBe("nodes.geojson");
+  beforeEach(() => {
+    vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
+      false,
+    );
+    vi.spyOn(FileSystemHelpers, "openFileInOpfs").mockResolvedValue(mockHandle);
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      mockHandle,
+    );
+    vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
+    vi.spyOn(FileExporters, "exportZip").mockResolvedValue(undefined);
   });
 
-  it("returns a zip when there are multiple entries", async () => {
-    mockZipExporter("export.zip");
+  it("generates a ZIP file with all entries", async () => {
     mockGeoJsonExporter(["nodes.geojson", "pipes.geojson"]);
 
-    const result = await exportFile("export", [
-      geoJsonEntry("nodes"),
-      geoJsonEntry("pipes"),
-    ]);
+    await exportFile("export", [geoJsonEntry("nodes"), geoJsonEntry("pipes")]);
 
-    expect(result.fileName).toBe("export.zip");
-    expect(result.mimeTypes).toEqual(["application/zip"]);
     expect(FileExporters.exportZip).toHaveBeenCalledWith(
-      "export",
+      mockHandle,
       expect.arrayContaining([
         expect.objectContaining({ fileName: "nodes.geojson" }),
         expect.objectContaining({ fileName: "pipes.geojson" }),
       ]),
+    );
+  });
+
+  it("uses native file system handles when supported by the browser", async () => {
+    vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
+      true,
+    );
+    mockGeoJsonExporter(["nodes.geojson"]);
+
+    await exportFile("export", [geoJsonEntry("nodes")]);
+
+    expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
+      "export.zip",
+    );
+    expect(FileSystemHelpers.openFileInOpfs).not.toHaveBeenCalled();
+    expect(FileSystemHelpers.triggerDownload).not.toHaveBeenCalled();
+  });
+
+  it("uses OPFS and triggers download when native file system is not supported", async () => {
+    mockGeoJsonExporter(["nodes.geojson"]);
+
+    await exportFile("export", [geoJsonEntry("nodes")]);
+
+    expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
+    expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
+    expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
+      "export.zip",
+      mockHandle,
     );
   });
 
@@ -71,16 +99,6 @@ function mockShapefileExporter(files: string[]) {
         blob: new Blob([], { type: "application/zip" }),
       },
     ]);
-  });
-}
-
-function mockZipExporter(file: string) {
-  vi.spyOn(FileExporters, "exportZip").mockResolvedValue({
-    fileName: file,
-    extensions: [".zip"],
-    mimeTypes: ["application/zip"],
-    description: "ZIP Compressed File",
-    blob: new Blob([], { type: "application/zip" }),
   });
 }
 

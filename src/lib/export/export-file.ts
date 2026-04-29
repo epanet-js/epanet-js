@@ -1,4 +1,5 @@
 import { FileExporters } from "./exporters";
+import { FileSystemHelpers } from "./helpers";
 import type { ExportEntry, ExportedFile } from "./types";
 
 const nullExporter = (): ExportedFile[] => [
@@ -11,10 +12,7 @@ const nullExporter = (): ExportedFile[] => [
   },
 ];
 
-export const exportFile = async (
-  fileName: string,
-  entries: ExportEntry[],
-): Promise<ExportedFile> => {
+export const exportFile = async (fileName: string, entries: ExportEntry[]) => {
   const exporters = {
     geojson: FileExporters.exportGeoJson,
     shapefile: FileExporters.exportShapefile,
@@ -26,9 +24,14 @@ export const exportFile = async (
     await Promise.all(entries.map((entry) => exporters[entry.format](entry)))
   ).flat();
 
-  if (exportedFiles.length === 1) {
-    return exportedFiles[0];
-  }
+  const zipFileName = `${fileName}.zip`;
+  const handle = FileSystemHelpers.isFileSystemAccessSupported()
+    ? await FileSystemHelpers.openFileInFileSystem(zipFileName)
+    : await FileSystemHelpers.openFileInOpfs(zipFileName);
 
-  return await FileExporters.exportZip(fileName, exportedFiles);
+  await FileExporters.exportZip(handle, exportedFiles);
+
+  if (!FileSystemHelpers.isFileSystemAccessSupported()) {
+    await FileSystemHelpers.triggerDownload(zipFileName, handle);
+  }
 };

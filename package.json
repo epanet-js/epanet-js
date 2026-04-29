@@ -160,7 +160,6 @@
     "jotai-optics": "^0.4.0",
     "js-quantities": "^1.8.0",
     "jsonwebtoken": "^9.0.2",
-    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
     "mapbox-gl": "^3.4.0",
