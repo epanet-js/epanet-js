@@ -17,12 +17,11 @@ import {
   RowAction,
 } from "../types";
 import { useRowsNavigation } from "../hooks";
-import { GridRow } from "./grid-row";
-import { RowsRef } from "./rows";
+import { GridRow, ROW_HEIGHT } from "./grid-row";
+import { GridHeader } from "./grid-header";
+import { GridRef } from "./types";
 
-export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
-
-export type ScrollableRowsProps<TData> = {
+export type VirtualGridProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
   rowCount: number;
@@ -49,9 +48,11 @@ export type ScrollableRowsProps<TData> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
+  onSelectColumn: (colIndex: number) => void;
+  onSelectAll: () => void;
 };
 
-export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
+export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
   {
     table,
     columns,
@@ -75,11 +76,14 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     readOnly,
     variant,
     cellHasWarning,
-  }: ScrollableRowsProps<TData>,
-  ref: React.ForwardedRef<RowsRef>,
+    onSelectColumn,
+    onSelectAll,
+  }: VirtualGridProps<TData>,
+  ref: React.ForwardedRef<GridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
   const [rowsHeight, setRowsHeight] = useState<number | undefined>(undefined);
   const [scrollState, setScrollState] = useState<ScrollState>({
     hasVerticalScroll: false,
@@ -200,13 +204,28 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
   return (
     <div
       ref={containerRef}
-      className="flex-1 min-h-0 datagrid-scroll-container"
+      className="flex-1 min-h-0 flex flex-col datagrid-scroll-container"
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
+      <div ref={headerScrollRef} className="shrink-0 overflow-hidden">
+        <GridHeader
+          table={table}
+          showGutterColumn={gutterColumn}
+          showActionsColumn={!readOnly && !!rowActions}
+          onSelectColumn={onSelectColumn}
+          onSelectAll={onSelectAll}
+          variant={variant}
+        />
+      </div>
       <div
         ref={scrollRef}
         onMouseDown={onEmptyAreaMouseDown}
-        className="outline-none overflow-auto flex-1 border border-gray-200 h-full datagrid-scroll-area"
+        onScroll={() => {
+          if (headerScrollRef.current && scrollRef.current) {
+            headerScrollRef.current.scrollLeft = scrollRef.current.scrollLeft;
+          }
+        }}
+        className="outline-none overflow-auto flex-1 border border-gray-200 datagrid-scroll-area"
       >
         <div
           style={{
@@ -291,7 +310,7 @@ export const ScrollableRows = forwardRef(function ScrollableRows<TData>(
     </div>
   );
 }) as <TData>(
-  props: ScrollableRowsProps<TData> & { ref?: React.Ref<RowsRef> },
+  props: VirtualGridProps<TData> & { ref?: React.Ref<GridRef> },
 ) => React.ReactElement;
 
 // --- Scroll state and shadows ---

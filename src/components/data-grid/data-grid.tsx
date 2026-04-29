@@ -20,13 +20,7 @@ import {
   useEditMode,
   useMouseSelection,
 } from "./hooks";
-import {
-  GridHeader,
-  Rows,
-  RowsRef,
-  ScrollableRows,
-  AddRowButton,
-} from "./shared";
+import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
 
 type DataGridProps<TData extends Record<string, unknown>> = {
   data: TData[];
@@ -65,7 +59,7 @@ export const DataGrid = forwardRef(function DataGrid<
   ref: React.ForwardedRef<DataGridRef>,
 ) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const rowsRef = useRef<RowsRef>(null);
+  const rowsRef = useRef<GridRef>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -235,6 +229,9 @@ export const DataGrid = forwardRef(function DataGrid<
     onCellDoubleClick: handleCellDoubleClick,
     onGutterClick: handleGutterClick,
     onCellChange: handleCellChange,
+    onEmptyAreaMouseDown: handleEmptyAreaMouseDown,
+    onSelectColumn: (col: number) => selectCells({ colIndex: col }),
+    onSelectAll: () => selectCells(),
     stopEditing,
     startEditing,
     selectCells,
@@ -267,23 +264,10 @@ export const DataGrid = forwardRef(function DataGrid<
         }
         data-capture-escape-key
       >
-        <GridHeader
-          table={table}
-          showGutterColumn={gutterColumn}
-          showActionsColumn={!readOnly && !!rowActions}
-          onSelectColumn={(col) => selectCells({ colIndex: col })}
-          onSelectAll={() => selectCells()}
-          variant={variant}
-        />
-
         {isSpreadsheet ? (
-          <ScrollableRows
-            ref={rowsRef}
-            {...rowsProps}
-            onEmptyAreaMouseDown={handleEmptyAreaMouseDown}
-          />
+          <VirtualGrid ref={rowsRef} {...rowsProps} />
         ) : (
-          <Rows ref={rowsRef} {...rowsProps} />
+          <InlineGrid ref={rowsRef} {...rowsProps} />
         )}
       </div>
 

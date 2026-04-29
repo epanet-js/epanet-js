@@ -11,6 +11,7 @@ type GridHeaderProps<T> = {
   onSelectAll: () => void;
   variant: DataGridVariant;
   style?: React.CSSProperties;
+  className?: string;
 };
 
 export function GridHeader<T>({
@@ -21,15 +22,21 @@ export function GridHeader<T>({
   onSelectAll,
   variant,
   style,
+  className,
 }: GridHeaderProps<T>) {
   return (
     <div
       role="row"
-      className={clsx("flex shrink-0 z-10", "border border-transparent", {
-        "bg-gray-100 border-t-gray-200 border-x-gray-200":
-          variant === "spreadsheet",
-        "bg-gray-50": variant === "rows",
-      })}
+      className={clsx(
+        "flex shrink-0 min-w-full",
+        "border border-transparent",
+        className,
+        {
+          "bg-gray-100 border-t-gray-200 border-x-gray-200":
+            variant === "spreadsheet",
+          "bg-gray-50": variant === "inline",
+        },
+      )}
       style={style}
     >
       {showGutterColumn && (
@@ -40,7 +47,7 @@ export function GridHeader<T>({
             "border border-transparent w-8",
             {
               "bg-gray-100": variant === "spreadsheet",
-              "bg-gray-50": variant === "rows",
+              "bg-gray-50": variant === "inline",
             },
           )}
           onClick={onSelectAll}

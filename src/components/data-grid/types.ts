@@ -58,4 +58,4 @@ export type DataGridRef = {
   selection: GridSelection | null;
 };
 
-export type DataGridVariant = "spreadsheet" | "rows";
+export type DataGridVariant = "spreadsheet" | "inline";

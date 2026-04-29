@@ -286,7 +286,7 @@ export const DemandCategoriesEditor = ({
             createRow={createRow}
             rowActions={rowActions}
             addRowLabel={translate("addDemandCategory")}
-            variant="rows"
+            variant="inline"
             gutterColumn
             readOnly={readOnly}
           />

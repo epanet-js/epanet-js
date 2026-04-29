@@ -1,4 +1,6 @@
 import { Row, Cell } from "@tanstack/react-table";
+
+export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
 import {
   CellPosition,
   DataGridVariant,

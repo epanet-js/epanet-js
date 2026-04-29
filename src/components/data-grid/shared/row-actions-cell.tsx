@@ -25,11 +25,11 @@ export function RowActionsCell({
         "sticky right-0 shrink-0 w-8 h-8 bg-white z-10",
         "border border-transparent",
         {
-          "border-t-gray-200": variant === "rows" && rowIndex === 0,
+          "border-t-gray-200": variant === "inline" && rowIndex === 0,
         },
         {
           "border-b-gray-200":
-            variant === "rows" || (variant === "spreadsheet" && !isLastRow),
+            variant === "inline" || (variant === "spreadsheet" && !isLastRow),
         },
         { "border-l-gray-200": variant === "spreadsheet" },
       )}

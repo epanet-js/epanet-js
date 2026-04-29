@@ -78,12 +78,12 @@ export function GridDataCell<T>({
         selectionEdge?.right ? "border-r-purple-500" : "border-r-transparent",
         selectionEdge?.top
           ? "border-t-purple-500"
-          : variant === "rows" && rowIndex === 0
+          : variant === "inline" && rowIndex === 0
             ? "border-t-gray-200"
             : "border-t-transparent",
         selectionEdge?.bottom
           ? "border-b-purple-500"
-          : variant === "rows" || (variant === "spreadsheet" && !isLastRow)
+          : variant === "inline" || (variant === "spreadsheet" && !isLastRow)
             ? "border-b-gray-200"
             : "border-b-transparent",
       )}

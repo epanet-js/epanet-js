@@ -10,12 +10,10 @@ import {
 } from "../types";
 import { useRowsNavigation } from "../hooks";
 import { GridRow } from "./grid-row";
+import { GridHeader } from "./grid-header";
+import { GridRef } from "./types";
 
-export type RowsRef = {
-  handleKeyDown: (e: React.KeyboardEvent) => void;
-};
-
-export type RowsProps<TData> = {
+export type InlineGridProps<TData> = {
   table: Table<TData>;
   columns: GridColumn[];
   rowCount: number;
@@ -27,6 +25,9 @@ export type RowsProps<TData> = {
   onCellDoubleClick: (col: number) => void;
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
+  onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
+  onSelectColumn: (colIndex: number) => void;
+  onSelectAll: () => void;
   stopEditing: () => void;
   startEditing: () => void;
   selectCells: (options?: {
@@ -43,7 +44,7 @@ export type RowsProps<TData> = {
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
 };
 
-export const Rows = forwardRef(function Rows<TData>(
+export const InlineGrid = forwardRef(function InlineGrid<TData>(
   {
     table,
     columns,
@@ -56,6 +57,9 @@ export const Rows = forwardRef(function Rows<TData>(
     onCellDoubleClick,
     onGutterClick,
     onCellChange,
+    onEmptyAreaMouseDown,
+    onSelectColumn,
+    onSelectAll,
     stopEditing,
     startEditing,
     selectCells,
@@ -66,8 +70,8 @@ export const Rows = forwardRef(function Rows<TData>(
     readOnly,
     variant,
     cellHasWarning,
-  }: RowsProps<TData>,
-  ref: React.ForwardedRef<RowsRef>,
+  }: InlineGridProps<TData>,
+  ref: React.ForwardedRef<GridRef>,
 ) {
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
@@ -93,7 +97,15 @@ export const Rows = forwardRef(function Rows<TData>(
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" onMouseDown={onEmptyAreaMouseDown}>
+      <GridHeader
+        table={table}
+        showGutterColumn={gutterColumn}
+        showActionsColumn={!readOnly && !!rowActions}
+        onSelectColumn={onSelectColumn}
+        onSelectAll={onSelectAll}
+        variant={variant}
+      />
       {rows.map((row, rowIndex) => {
         const isLast = rowIndex === rows.length - 1;
 
@@ -132,5 +144,5 @@ export const Rows = forwardRef(function Rows<TData>(
     </div>
   );
 }) as <TData>(
-  props: RowsProps<TData> & { ref?: React.Ref<RowsRef> },
+  props: InlineGridProps<TData> & { ref?: React.Ref<GridRef> },
 ) => React.ReactElement;

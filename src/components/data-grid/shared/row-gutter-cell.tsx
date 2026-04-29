@@ -23,7 +23,7 @@ export function RowGutterCell({
         { "border-b-gray-200": variant === "spreadsheet" && isLastRow },
         {
           "bg-gray-100": variant === "spreadsheet",
-          "bg-gray-50": variant === "rows",
+          "bg-gray-50": variant === "inline",
         },
       )}
       onClick={onClick}
