@@ -245,7 +245,7 @@ function NavigableListInner<S extends string>(
     <NavigableListContext.Provider value={contextValue}>
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border-gray-200 dark:border-gray-700 p-2 border-r"
+        className="flex-1 overflow-y-auto outline-none placemark-scrollbar scroll-shadows border-gray-200 dark:border-gray-700 px-2 border-r"
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
         tabIndex={0}
@@ -253,7 +253,7 @@ function NavigableListInner<S extends string>(
           "data-capture-escape-key": true,
         })}
       >
-        {children}
+        <div className="py-2">{children}</div>
       </div>
     </NavigableListContext.Provider>
   );
