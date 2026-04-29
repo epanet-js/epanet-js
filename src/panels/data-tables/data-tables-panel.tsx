@@ -663,6 +663,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
             onChange={onChange as (data: Record<string, unknown>[]) => void}
             createRow={() => ({}) as Record<string, unknown>}
             gutterColumn={false}
+            resizable
           />
         )}
       </div>

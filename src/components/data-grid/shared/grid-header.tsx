@@ -62,7 +62,13 @@ export function GridHeader<T>({
           <div
             key={header.id}
             role="columnheader"
-            className="flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 grow min-w-0 text-gray-600 border border-transparent"
+            className={clsx(
+              "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 text-gray-600 border border-transparent overflow-visible",
+              {
+                grow: !(table.options.meta as { resizable?: boolean })
+                  ?.resizable,
+              },
+            )}
             style={{
               width: header.getSize(),
               minWidth: header.getSize(),
@@ -72,6 +78,21 @@ export function GridHeader<T>({
             <span className="truncate">
               {flexRender(header.column.columnDef.header, header.getContext())}
             </span>
+            {!!(table.options.meta as { resizable?: boolean })?.resizable && (
+              <div
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  header.getResizeHandler()(e);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className={clsx(
+                  "absolute -right-[3px] top-0 h-full w-1 cursor-col-resize select-none touch-none z-10",
+                  header.column.getIsResizing()
+                    ? "bg-purple-500"
+                    : "bg-gray-300 opacity-0 group-hover:opacity-100",
+                )}
+              />
+            )}
           </div>
         )),
       )}

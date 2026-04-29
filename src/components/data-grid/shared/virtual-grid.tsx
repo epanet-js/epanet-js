@@ -167,11 +167,12 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
       }
 
       const gutterWidth = gutterColumn ? 32 : 0;
+      const leafColumns = table.getAllLeafColumns();
       let colStart = gutterWidth;
       for (let i = 0; i < activeCell.col; i++) {
-        colStart += columns[i]?.size ?? 100;
+        colStart += leafColumns[i]?.getSize() ?? 100;
       }
-      const colEnd = colStart + (columns[activeCell.col]?.size ?? 100);
+      const colEnd = colStart + (leafColumns[activeCell.col]?.getSize() ?? 100);
 
       const scrollLeft = container.scrollLeft;
       const viewportWidth = container.clientWidth;
@@ -182,7 +183,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
         container.scrollLeft = colEnd - viewportWidth;
       }
     },
-    [activeCell, gutterColumn, columns],
+    [activeCell, gutterColumn, table],
   );
 
   const rowVirtualizer = useVirtualizer({

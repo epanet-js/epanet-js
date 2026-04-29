@@ -4,8 +4,13 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react";
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  type ColumnSizingState,
+} from "@tanstack/react-table";
 import {
   DataGridRef,
   DataGridVariant,
@@ -28,6 +33,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onChange: (data: TData[]) => void;
   createRow: () => TData;
   readOnly?: boolean;
+  resizable?: boolean;
   emptyState?: React.ReactNode;
   rowActions?: RowAction[];
   addRowLabel?: string;
@@ -47,6 +53,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onChange,
     createRow,
     readOnly = false,
+    resizable = false,
     emptyState,
     rowActions,
     addRowLabel,
@@ -62,6 +69,8 @@ export const DataGrid = forwardRef(function DataGrid<
   const rowsRef = useRef<GridRef>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   const { editMode, startEditing, stopEditing } = useEditMode();
 
@@ -163,6 +172,12 @@ export const DataGrid = forwardRef(function DataGrid<
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    meta: { resizable },
+    ...(resizable && {
+      columnResizeMode: "onChange",
+      state: { columnSizing },
+      onColumnSizingChange: setColumnSizing,
+    }),
   });
 
   const handleCellDoubleClick = useCallback(
