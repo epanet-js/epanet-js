@@ -189,6 +189,7 @@
   "valve.tcv.detailed": "TCV: Throttle Control Valve",
   "valve.gpv.detailed": "GPV: General Purpose Valve",
   "valve.pcv.detailed": "PCV: Positional Control Valve",
+  "valve.flv.detailed": "FLV: Floating Valve",
   "valveStatus": "Valve status",
   "initialStatus": "Initial status",
   "initialLevel": "Initial level",

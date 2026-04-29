@@ -53,7 +53,9 @@ export const runSimulation = async (
   const useNewEngine = flags["useNewEngine"];
   const ws = useNewEngine ? new NewWorkspace() : new Workspace();
   if (useNewEngine) {
-    await (ws as NewWorkspace).loadModuleVersion(EpanetEngine);
+    await (ws as NewWorkspace).loadModuleVersion(() =>
+      EpanetEngine({ locateFile: () => "/EpanetEngine-float-valves.wasm" }),
+    );
   } else {
     await (ws as Workspace).loadModule();
   }
