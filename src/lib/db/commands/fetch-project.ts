@@ -18,7 +18,6 @@ import { buildControlsData } from "../mappers/controls/builders";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
-import { findMaxId } from "../ids";
 import {
   junctionRowSchema,
   reservoirRowSchema,
@@ -112,6 +111,7 @@ export const fetchProject = async (
       curvesRaw,
       controlsData,
       simulationSettingsData,
+      maxId,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
@@ -120,6 +120,7 @@ export const fetchProject = async (
         worker.getCurves(),
         worker.getControls(),
         worker.getSimulationSettings(),
+        worker.getMaxId(),
       ]),
     );
     if (!settingsJson) {
@@ -167,7 +168,6 @@ export const fetchProject = async (
         );
         const curveRows = parseRows(curveRowSchema, curvesRaw, "Curves");
 
-        const maxId = findMaxId(assetRows, cpData, patternRows, curveRows);
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
         const factories = initializeModelFactories({
           idGenerator,

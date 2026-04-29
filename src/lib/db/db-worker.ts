@@ -901,6 +901,28 @@ const api = {
     );
   },
 
+  async getMaxId(): Promise<number> {
+    return timed("getMaxId", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec(
+        `SELECT MAX(m) AS m FROM (
+           SELECT MAX(id) AS m FROM junctions UNION ALL
+           SELECT MAX(id) FROM reservoirs UNION ALL
+           SELECT MAX(id) FROM tanks UNION ALL
+           SELECT MAX(id) FROM pipes UNION ALL
+           SELECT MAX(id) FROM pumps UNION ALL
+           SELECT MAX(id) FROM valves UNION ALL
+           SELECT MAX(id) FROM customer_points UNION ALL
+           SELECT MAX(id) FROM patterns UNION ALL
+           SELECT MAX(id) FROM curves
+         )`,
+        { returnValue: "resultRows" },
+      ) as Array<Array<number | null>>;
+      return rows[0]?.[0] ?? 0;
+    });
+  },
+
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
     return timed(
       "applyMoment",

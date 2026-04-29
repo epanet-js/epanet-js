@@ -3,22 +3,11 @@ import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { buildCustomerPointsData } from "./builders";
-import { findMaxId } from "../../ids";
-import type { AssetRows } from "../assets/schema";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
 } from "./schema";
-
-const emptyAssetRows = (): AssetRows => ({
-  junctions: [],
-  reservoirs: [],
-  tanks: [],
-  pipes: [],
-  pumps: [],
-  valves: [],
-});
 
 const emptyCpData = (): CustomerPointsData => ({
   customerPoints: [],
@@ -208,43 +197,5 @@ describe("buildCustomerPointsData", () => {
     const fresh = factories.customerPointFactory.create([0, 0]);
 
     expect(fresh.label).not.toBe("CP1");
-  });
-});
-
-describe("findMaxId", () => {
-  it("includes customer point ids in the scan", () => {
-    const assetRows = emptyAssetRows();
-    const cpData: CustomerPointsData = {
-      customerPoints: [makeCpRow({ id: 123, label: "CP1" })],
-      demands: [],
-    };
-
-    expect(findMaxId(assetRows, cpData)).toBe(123);
-  });
-
-  it("returns the max across assets and customer points", () => {
-    const assetRows = emptyAssetRows();
-    assetRows.junctions = [
-      {
-        id: 200,
-        type: "junction",
-        label: null,
-        is_active: 1,
-        coord_x: 0,
-        coord_y: 0,
-        elevation: null,
-        initial_quality: null,
-        chemical_source_type: null,
-        chemical_source_strength: null,
-        chemical_source_pattern_id: null,
-        emitter_coefficient: null,
-      },
-    ];
-    const cpData: CustomerPointsData = {
-      customerPoints: [makeCpRow({ id: 50, label: "CP1" })],
-      demands: [],
-    };
-
-    expect(findMaxId(assetRows, cpData)).toBe(200);
   });
 });
