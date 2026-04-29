@@ -1,4 +1,4 @@
-export type ExportFormat = "geojson" | "shapefile" | "csv" | "xlsx";
+export type ExportFormat = "geojson" | "csv";
 
 export type ExportEntry = {
   format: ExportFormat;

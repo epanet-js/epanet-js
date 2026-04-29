@@ -1,23 +1,11 @@
 import { FileExporters } from "./exporters";
 import { FileSystemHelpers } from "./helpers";
-import type { ExportEntry, ExportedFile } from "./types";
-
-const nullExporter = (): ExportedFile[] => [
-  {
-    fileName: "",
-    extensions: [],
-    mimeTypes: [],
-    description: "",
-    blob: new Blob([], { type: "text/plain" }),
-  },
-];
+import type { ExportEntry } from "./types";
 
 export const exportFile = async (fileName: string, entries: ExportEntry[]) => {
   const exporters = {
     geojson: FileExporters.exportGeoJson,
-    shapefile: FileExporters.exportShapefile,
     csv: FileExporters.exportCsv,
-    xlsx: nullExporter,
   };
 
   const exportedFiles = (

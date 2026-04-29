@@ -63,14 +63,14 @@ describe("export-file", () => {
 
   it("passes-through data to the appropriate exporter", async () => {
     mockGeoJsonExporter(["nodes.geojson"]);
-    mockShapefileExporter(["pipes.zip"]);
+    mockCsvExporter(["pipes.zip"]);
     const geojson = geoJsonEntry("nodes");
-    const shapefile = shapefileEntry("pipes");
+    const shapefile = csvEntry("pipes");
 
     await exportFile("export", [geojson, shapefile]);
 
     expect(FileExporters.exportGeoJson).toHaveBeenCalledWith(geojson);
-    expect(FileExporters.exportShapefile).toHaveBeenCalledWith(shapefile);
+    expect(FileExporters.exportCsv).toHaveBeenCalledWith(shapefile);
   });
 });
 
@@ -88,22 +88,22 @@ function mockGeoJsonExporter(files: string[]) {
   });
 }
 
-function mockShapefileExporter(files: string[]) {
+function mockCsvExporter(files: string[]) {
   files.forEach((file) => {
-    vi.spyOn(FileExporters, "exportShapefile").mockResolvedValue([
+    vi.spyOn(FileExporters, "exportCsv").mockResolvedValue([
       {
         fileName: file,
-        extensions: [".zip"],
-        mimeTypes: ["application/zip"],
-        description: "ZIP Compressed Shapefiles",
-        blob: new Blob([], { type: "application/zip" }),
+        extensions: [".csv"],
+        mimeTypes: ["text/csv"],
+        description: "CSV File",
+        blob: new Blob([], { type: "text/csv" }),
       },
     ]);
   });
 }
 
-function shapefileEntry(name: string): ExportEntry {
-  return { format: "shapefile", name, data: [{ id: 1 }] };
+function csvEntry(name: string): ExportEntry {
+  return { format: "csv", name, data: [{ id: 1 }] };
 }
 
 function geoJsonEntry(name: string): ExportEntry {
