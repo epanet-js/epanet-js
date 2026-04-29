@@ -6,10 +6,16 @@ import {
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Demand } from "src/hydraulic-model/demands";
 import { ModelFactories } from "src/hydraulic-model/factories";
-import type { CustomerPointsData } from "./schema";
+import { parseRows } from "../parse-rows";
+import { customerPointRowSchema, customerPointDemandRowSchema } from "./schema";
+
+export type RawCustomerPointsData = {
+  customerPoints: unknown[];
+  demands: unknown[];
+};
 
 export const buildCustomerPointsData = (
-  rows: CustomerPointsData,
+  rawData: RawCustomerPointsData,
   factories: ModelFactories,
 ): {
   customerPoints: CustomerPoints;
@@ -20,7 +26,18 @@ export const buildCustomerPointsData = (
   const customerPointsLookup = new CustomerPointsLookup();
   const customerDemands = new Map<CustomerPointId, Demand[]>();
 
-  for (const row of rows.customerPoints) {
+  const cpRows = parseRows(
+    customerPointRowSchema,
+    rawData.customerPoints,
+    "CustomerPoints",
+  );
+  const demandRows = parseRows(
+    customerPointDemandRowSchema,
+    rawData.demands,
+    "CustomerPointDemands",
+  );
+
+  for (const row of cpRows) {
     const customerPoint = factories.customerPointFactory.load({
       id: row.id,
       coordinates: [row.coord_x, row.coord_y],
@@ -43,7 +60,7 @@ export const buildCustomerPointsData = (
     customerDemands.set(customerPoint.id, []);
   }
 
-  for (const row of rows.demands) {
+  for (const row of demandRows) {
     const list = customerDemands.get(row.customer_point_id);
     if (!list) continue;
     list.push({

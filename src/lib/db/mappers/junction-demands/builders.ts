@@ -3,11 +3,13 @@ import type {
   Demand,
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
-import type { JunctionDemandRow } from "./schema";
+import { parseRows } from "../parse-rows";
+import { junctionDemandRowSchema } from "./schema";
 
 export const buildJunctionDemandsData = (
-  rows: JunctionDemandRow[],
+  rawRows: unknown[],
 ): JunctionAssignedDemands => {
+  const rows = parseRows(junctionDemandRowSchema, rawRows, "JunctionDemands");
   const junctions: JunctionAssignedDemands = new Map<AssetId, Demand[]>();
   for (const row of rows) {
     const list = junctions.get(row.junction_id) ?? [];

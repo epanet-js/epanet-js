@@ -23,9 +23,15 @@ import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
 import { pointsSchema } from "../curves/schema";
+import { parseRows } from "../parse-rows";
 import {
   linkCoordinatesSchema,
-  type AssetRows,
+  junctionRowSchema,
+  reservoirRowSchema,
+  tankRowSchema,
+  pipeRowSchema,
+  pumpRowSchema,
+  valveRowSchema,
   type JunctionRow,
   type ReservoirRow,
   type TankRow,
@@ -34,8 +40,17 @@ import {
   type ValveRow,
 } from "./schema";
 
+export type RawAssetRows = {
+  junctions: unknown[];
+  reservoirs: unknown[];
+  tanks: unknown[];
+  pipes: unknown[];
+  pumps: unknown[];
+  valves: unknown[];
+};
+
 export const buildAssetsData = (
-  rows: AssetRows,
+  rawRows: RawAssetRows,
   factories: ModelFactories,
 ): { assets: AssetsMap; assetIndex: AssetIndex; topology: Topology } => {
   const assets: AssetsMap = new Map();
@@ -43,39 +58,54 @@ export const buildAssetsData = (
   const assetIndex = new AssetIndex(factories.idGenerator, assets);
   const { assetFactory } = factories;
 
-  for (const row of rows.junctions) {
+  const junctions = parseRows(
+    junctionRowSchema,
+    rawRows.junctions,
+    "Junctions",
+  );
+  const reservoirs = parseRows(
+    reservoirRowSchema,
+    rawRows.reservoirs,
+    "Reservoirs",
+  );
+  const tanks = parseRows(tankRowSchema, rawRows.tanks, "Tanks");
+  const pipes = parseRows(pipeRowSchema, rawRows.pipes, "Pipes");
+  const pumps = parseRows(pumpRowSchema, rawRows.pumps, "Pumps");
+  const valves = parseRows(valveRowSchema, rawRows.valves, "Valves");
+
+  for (const row of junctions) {
     const junction = buildJunction(row, assetFactory);
     assets.set(junction.id, junction);
     assetIndex.addNode(junction.id);
   }
 
-  for (const row of rows.reservoirs) {
+  for (const row of reservoirs) {
     const reservoir = buildReservoir(row, assetFactory);
     assets.set(reservoir.id, reservoir);
     assetIndex.addNode(reservoir.id);
   }
 
-  for (const row of rows.tanks) {
+  for (const row of tanks) {
     const tank = buildTank(row, assetFactory);
     assets.set(tank.id, tank);
     assetIndex.addNode(tank.id);
   }
 
-  for (const row of rows.pipes) {
+  for (const row of pipes) {
     const pipe = buildPipe(row, assetFactory);
     assets.set(pipe.id, pipe);
     assetIndex.addLink(pipe.id);
     topology.addLink(pipe.id, row.start_node_id, row.end_node_id);
   }
 
-  for (const row of rows.pumps) {
+  for (const row of pumps) {
     const pump = buildPump(row, assetFactory);
     assets.set(pump.id, pump);
     assetIndex.addLink(pump.id);
     topology.addLink(pump.id, row.start_node_id, row.end_node_id);
   }
 
-  for (const row of rows.valves) {
+  for (const row of valves) {
     const valve = buildValve(row, assetFactory);
     assets.set(valve.id, valve);
     assetIndex.addLink(valve.id);

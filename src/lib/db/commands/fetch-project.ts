@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -18,22 +17,6 @@ import { buildControlsData } from "../mappers/controls/builders";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
-import {
-  junctionRowSchema,
-  reservoirRowSchema,
-  tankRowSchema,
-  pipeRowSchema,
-  pumpRowSchema,
-  valveRowSchema,
-} from "../mappers/assets/schema";
-import {
-  customerPointRowSchema,
-  customerPointDemandRowSchema,
-  type CustomerPointsData,
-} from "../mappers/customer-points/schema";
-import { patternRowSchema } from "../mappers/patterns/schema";
-import { junctionDemandRowSchema } from "../mappers/junction-demands/schema";
-import { curveRowSchema } from "../mappers/curves/schema";
 
 export type Project = {
   projectSettings: ProjectSettings;
@@ -50,21 +33,6 @@ export type FetchProjectPhase =
 
 export type FetchProjectOptions = {
   onProgress?: (phase: FetchProjectPhase) => void;
-};
-
-const parseRows = <S extends z.ZodTypeAny>(
-  schema: S,
-  rows: unknown[],
-  kind: string,
-): z.infer<S>[] => {
-  const arraySchema = z.array(schema);
-  const result = arraySchema.safeParse(rows);
-  if (!result.success) {
-    throw new Error(
-      `${kind}: row data does not match schema — ${result.error.message}`,
-    );
-  }
-  return result.data;
 };
 
 export const fetchProject = async (
@@ -132,41 +100,6 @@ export const fetchProject = async (
       "fetchProject.build",
       () => {
         const projectSettings = buildProjectSettingsData(settingsJson);
-        const assetRows = {
-          junctions: parseRows(junctionRowSchema, junctionsRaw, "Junctions"),
-          reservoirs: parseRows(
-            reservoirRowSchema,
-            reservoirsRaw,
-            "Reservoirs",
-          ),
-          tanks: parseRows(tankRowSchema, tanksRaw, "Tanks"),
-          pipes: parseRows(pipeRowSchema, pipesRaw, "Pipes"),
-          pumps: parseRows(pumpRowSchema, pumpsRaw, "Pumps"),
-          valves: parseRows(valveRowSchema, valvesRaw, "Valves"),
-        };
-        const cpData: CustomerPointsData = {
-          customerPoints: parseRows(
-            customerPointRowSchema,
-            customerPointsRaw,
-            "CustomerPoints",
-          ),
-          demands: parseRows(
-            customerPointDemandRowSchema,
-            customerPointDemandsRaw,
-            "CustomerPointDemands",
-          ),
-        };
-        const patternRows = parseRows(
-          patternRowSchema,
-          patternsRaw,
-          "Patterns",
-        );
-        const junctionDemandRows = parseRows(
-          junctionDemandRowSchema,
-          junctionDemandsRaw,
-          "JunctionDemands",
-        );
-        const curveRows = parseRows(curveRowSchema, curvesRaw, "Curves");
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
         const factories = initializeModelFactories({
@@ -176,18 +109,31 @@ export const fetchProject = async (
         });
 
         const { assets, assetIndex, topology } = buildAssetsData(
-          assetRows,
+          {
+            junctions: junctionsRaw,
+            reservoirs: reservoirsRaw,
+            tanks: tanksRaw,
+            pipes: pipesRaw,
+            pumps: pumpsRaw,
+            valves: valvesRaw,
+          },
           factories,
         );
         const { customerPoints, customerPointsLookup, customerDemands } =
-          buildCustomerPointsData(cpData, factories);
-        const patterns = buildPatternsData(patternRows);
-        const curves = buildCurvesData(curveRows);
+          buildCustomerPointsData(
+            {
+              customerPoints: customerPointsRaw,
+              demands: customerPointDemandsRaw,
+            },
+            factories,
+          );
+        const patterns = buildPatternsData(patternsRaw);
+        const curves = buildCurvesData(curvesRaw);
         const controls = buildControlsData(controlsData);
         const simulationSettings = buildSimulationSettingsData(
           simulationSettingsData,
         );
-        const junctionDemands = buildJunctionDemandsData(junctionDemandRows);
+        const junctionDemands = buildJunctionDemandsData(junctionDemandsRaw);
 
         const hydraulicModel = initializeHydraulicModel({
           idGenerator,
