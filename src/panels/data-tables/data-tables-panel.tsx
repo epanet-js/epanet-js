@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { TabRoot, TabList, Tab } from "src/components/tab";
 import {
@@ -423,60 +423,81 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       ? activeTab
       : (presentTypes[0] ?? null);
 
+  const hasSimulation = simulation !== null;
   const columns = useMemo(
     () =>
       effectiveTab
         ? buildColumns(
             effectiveTab,
             translate,
-            simulation !== null,
+            hasSimulation,
             units,
             translateUnit,
             formatting,
           )
         : [],
-    [effectiveTab, translate, simulation, units, translateUnit, formatting],
+    [effectiveTab, translate, hasSimulation, units, translateUnit, formatting],
   );
 
   const [rows, setRows] = useState<AssetRow[] | null>(null);
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
 
-  useEffect(() => {
-    if (!effectiveTab) {
-      setRows([]);
-      return;
-    }
-    const ids = assetIdsByType.get(effectiveTab) ?? [];
-    let cancelled = false;
+  const prevTabRef = useRef<typeof effectiveTab | undefined>(undefined);
 
-    async function compute() {
-      setRows(null);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      if (cancelled) return;
-
-      const result: AssetRow[] = [];
-      for (const id of ids) {
-        const asset = hydraulicModel.assets.get(id);
-        if (!asset) continue;
-        const simFields = simulation
-          ? buildSimRow(effectiveTab, id, simulation, translate, formatSimValue)
-          : {};
-        result.push({ ...assetToRow(asset), ...simFields });
+  useEffect(
+    function updateTableOnTabChange() {
+      if (!effectiveTab) {
+        setRows([]);
+        prevTabRef.current = effectiveTab;
+        return;
       }
-      setRows(result);
-    }
+      const ids = assetIdsByType.get(effectiveTab) ?? [];
+      let cancelled = false;
+      const tabChanged = prevTabRef.current !== effectiveTab;
 
-    void compute();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    effectiveTab,
-    assetIdsByType,
-    hydraulicModel.assets,
-    simulation,
-    translate,
-    formatSimValue,
-  ]);
+      async function compute() {
+        if (tabChanged) {
+          setRows(null);
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        if (cancelled) return;
+
+        const result: AssetRow[] = [];
+        for (const id of ids) {
+          const asset = hydraulicModel.assets.get(id);
+          if (!asset) continue;
+          const simFields = simulation
+            ? buildSimRow(
+                effectiveTab,
+                id,
+                simulation,
+                translate,
+                formatSimValue,
+              )
+            : {};
+          result.push({ ...assetToRow(asset), ...simFields });
+        }
+        if (!cancelled) {
+          setRows(result);
+          prevTabRef.current = effectiveTab;
+        }
+      }
+
+      void compute();
+      return () => {
+        cancelled = true;
+      };
+    },
+    [
+      effectiveTab,
+      assetIdsByType,
+      hydraulicModel.assets,
+      simulation,
+      translate,
+      formatSimValue,
+    ],
+  );
 
   const onChange = useCallback(
     (newRows: AssetRow[]) => {
@@ -484,7 +505,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       const editableKeys = EDITABLE_NUMERIC_KEYS[effectiveTab];
       for (let i = 0; i < newRows.length; i++) {
         const newRow = newRows[i];
-        const oldRow = rows?.[i];
+        const oldRow = rowsRef.current?.[i];
         if (!oldRow) continue;
         const assetId = newRow.id;
         const changes: PropertyChange[] = [];
@@ -503,7 +524,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
         }
       }
     },
-    [rows, effectiveTab, hydraulicModel, transact],
+    [effectiveTab, hydraulicModel, transact],
   );
 
   if (presentTypes.length === 0) {
