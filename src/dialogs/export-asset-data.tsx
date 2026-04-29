@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useExportData } from "src/commands/export-data";
+import { useExportAssetData } from "src/commands/export-asset-data";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { dialogAtom } from "src/state/dialog";
@@ -14,12 +14,12 @@ const exportFormats: { value: ExportFormat; labelKey: string }[] = [
   { value: "csv", labelKey: "exportCsv" },
 ];
 
-export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
+export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
-  const exportData = useExportData();
+  const exportAssetData = useExportAssetData();
   const setDialogState = useSetAtom(dialogAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
-  const currentSimulationStep = useAtomValue(simulationStepAtom);
+  const simulationStep = useAtomValue(simulationStepAtom) ?? 0;
   const hasSimulationResults =
     simulation.status === "success" || simulation.status === "warning";
 
@@ -31,34 +31,30 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
   const [format, setFormat] = useState<ExportFormat>("geojson");
   const [includeSimulationResults, setIncludeSimulationResults] =
     useState(false);
-  const [exportAllResultsAsCsv, setExportAllResultsAsCsv] = useState(false);
-  const [selectedTimestep, setSelectedTimestep] = useState<number>(
-    currentSimulationStep ?? 0,
-  );
 
   const handleExport = useCallback(async () => {
     setDialogState(null);
-    await exportData({
+    await exportAssetData({
       format,
       includeSimulationResults,
-      simulationStep: includeSimulationResults ? selectedTimestep : undefined,
-      exportAllResultsAsCsv,
+      simulationStep,
     });
   }, [
-    exportData,
-    exportAllResultsAsCsv,
+    exportAssetData,
     format,
     includeSimulationResults,
-    selectedTimestep,
+    simulationStep,
     setDialogState,
   ]);
 
-  const showTimestepSelector =
-    includeSimulationResults && hasSimulationResults && timestepCount > 1;
+  const isEpsSimulation = timestepCount > 1;
+  const includeSimulationResultsLabelText = isEpsSimulation
+    ? `${translate("exportSimulationResultsForCurrentStep")} ${formatTimestepTime(simulationStep ?? 0, reportingTimeStep)}`
+    : translate("exportSimulationResults");
 
   return (
     <BaseDialog
-      title={translate("exportData")}
+      title={translate("exportAssetData")}
       size="sm"
       isOpen={true}
       onClose={onClose}
@@ -103,40 +99,9 @@ export const ExportDataDialog = ({ onClose }: { onClose: () => void }) => {
               className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
             />
             <span className="text-sm text-gray-700">
-              {translate("includeSimulationResults")}
+              {includeSimulationResultsLabelText}
             </span>
           </label>
-
-          {showTimestepSelector && (
-            <div className="space-y-2 pl-6">
-              <select
-                value={exportAllResultsAsCsv ? "all" : "single"}
-                onChange={(e) =>
-                  setExportAllResultsAsCsv(e.target.value === "all")
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-              >
-                <option value="single">
-                  {translate("exportSingleTimestep")}
-                </option>
-                <option value="all">{translate("exportAllTimesteps")}</option>
-              </select>
-
-              {!exportAllResultsAsCsv && (
-                <select
-                  value={selectedTimestep}
-                  onChange={(e) => setSelectedTimestep(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  {Array.from({ length: timestepCount }, (_, i) => (
-                    <option key={i} value={i}>
-                      {formatTimestepTime(i, reportingTimeStep)}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </BaseDialog>

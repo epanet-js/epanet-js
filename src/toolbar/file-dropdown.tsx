@@ -58,7 +58,7 @@ export const FileDropdown = () => {
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-  const isExportOn = useFeatureFlag("FLAG_EXPORT");
+  const isExportAssetDataOn = useFeatureFlag("FLAG_EXPORT_ASSET_DATA");
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -195,17 +195,17 @@ export const FileDropdown = () => {
                 </StyledItem>
               )}
 
-              {isExportOn && (
+              {isExportAssetDataOn && <DDSeparator />}
+              {isExportAssetDataOn && (
                 <StyledItem
                   onSelect={() => {
-                    setDialogState({ type: "exportData" });
+                    setDialogState({ type: "exportAssetData" });
                   }}
                 >
-                  <DownloadIcon />
-                  {translate("exportData")}
+                  <FileSpreadsheetIcon />
+                  {translate("exportAssetData")}
                 </StyledItem>
               )}
-
               <RecentFilesMenu isOurFileOn={isOurFileOn} />
             </DDContent>
           </DD.Portal>

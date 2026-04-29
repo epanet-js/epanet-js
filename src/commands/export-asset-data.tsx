@@ -25,10 +25,9 @@ export type DataExportOptions = {
   format: ExportFormat;
   includeSimulationResults: boolean;
   simulationStep?: number;
-  exportAllResultsAsCsv?: boolean;
 };
 
-export const useExportData = ({
+export const useExportAssetData = ({
   getFsAccess = getDefaultFsAccess,
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const translate = useTranslate();
@@ -68,21 +67,6 @@ export const useExportData = ({
             hydraulicModel,
             resultsReader,
           );
-
-          if (options.exportAllResultsAsCsv) {
-            const simulation = get(simulationDerivedAtom);
-            if (
-              "epsResultsReader" in simulation &&
-              simulation.epsResultsReader
-            ) {
-              const allResultsData = await buildAllTimestepsForExport(
-                hydraulicModel,
-                simulation.epsResultsReader,
-              );
-
-              data.push(...allResultsData);
-            }
-          }
 
           const fileName = "export";
           const exportedFile = await Export.exportFile(fileName, data);

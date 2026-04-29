@@ -9,13 +9,13 @@ import {
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Export } from "src/lib/export";
 import { Store } from "src/state";
-import { useExportData, DataExportOptions } from "./export-data";
+import { useExportAssetData, DataExportOptions } from "./export-asset-data";
 import { Junction } from "src/hydraulic-model";
 import type { SimulationState } from "src/state/simulation";
 import { stubFileSave, lastSaveCall } from "src/__helpers__/browser-fs-mock";
 import { ExportEntry } from "src/lib/export/types";
 
-describe("export-data", () => {
+describe("export-asset-data", () => {
   beforeEach(() => {
     vi.spyOn(Export, "exportFile").mockResolvedValue({
       blob: new Blob(),
@@ -116,102 +116,6 @@ describe("export-data", () => {
     });
   });
 
-  describe("exportAllResultsAsCsv", () => {
-    it("appends one CSV entry per asset type with a row for each timestep", async () => {
-      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1)
-        .aJunction(IDS.J2)
-        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-        .build();
-
-      const step0 = createMockResultsReader({
-        junctions: {
-          [IDS.J1]: { pressure: 10 },
-          [IDS.J2]: { pressure: 11 },
-        },
-        pipes: { [IDS.P1]: { flow: 1 } },
-      });
-      const step1 = createMockResultsReader({
-        junctions: {
-          [IDS.J1]: { pressure: 20 },
-          [IDS.J2]: { pressure: 21 },
-        },
-        pipes: { [IDS.P1]: { flow: 2 } },
-      });
-
-      const simulation = {
-        status: "success",
-        report: "",
-        modelVersion: hydraulicModel.version,
-        settingsVersion: "",
-        epsResultsReader: {
-          timestepCount: 2,
-          reportingTimeStep: 3600,
-          getResultsForTimestep: (step: number) =>
-            Promise.resolve(step === 0 ? step0 : step1),
-        },
-      } as unknown as SimulationState;
-
-      const store = setInitialState({
-        hydraulicModel,
-        simulation,
-        simulationStep: 0,
-      });
-      renderComponent({
-        store,
-        options: {
-          format: "geojson",
-          includeSimulationResults: false,
-          exportAllResultsAsCsv: true,
-        },
-      });
-
-      await triggerExport({
-        format: "geojson",
-        includeSimulationResults: false,
-        exportAllResultsAsCsv: true,
-      });
-
-      const [, files] = vi.mocked(Export.exportFile).mock.calls[0];
-      const csvEntries = files.filter((f) => f.format === "csv");
-
-      expect(csvEntries).toHaveLength(6);
-      expectFilesToBePresent(csvEntries, [
-        "sim_junction",
-        "sim_tank",
-        "sim_reservoir",
-        "sim_pipe",
-        "sim_pump",
-        "sim_valve",
-      ]);
-
-      const junctionRows = csvEntries[0].data as Record<string, unknown>[];
-      expect(junctionRows).toHaveLength(4); // 2 junctions × 2 timesteps
-      expect(junctionRows[0]).toMatchObject({
-        timestep: "00:00",
-        sim_pressure: 10,
-      });
-      expect(junctionRows[1]).toMatchObject({
-        timestep: "00:00",
-        sim_pressure: 11,
-      });
-      expect(junctionRows[2]).toMatchObject({
-        timestep: "01:00",
-        sim_pressure: 20,
-      });
-      expect(junctionRows[3]).toMatchObject({
-        timestep: "01:00",
-        sim_pressure: 21,
-      });
-
-      const pipeRows = csvEntries[3].data as Record<string, unknown>[];
-      expect(pipeRows).toHaveLength(2); // 1 pipe × 2 timesteps
-      expect(pipeRows[0]).toMatchObject({ timestep: "00:00", sim_flow: 1 });
-      expect(pipeRows[1]).toMatchObject({ timestep: "01:00", sim_flow: 2 });
-    });
-  });
-
   describe("with simulation results", () => {
     it("appends sim_ properties to each asset when simulation exists", async () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;
@@ -269,11 +173,11 @@ describe("export-data", () => {
   };
 
   const TestableComponent = ({ options }: { options: DataExportOptions }) => {
-    const exportData = useExportData();
+    const exportAssetData = useExportAssetData();
     return (
       <button
         aria-label={`export-${options.format}-${options.includeSimulationResults}`}
-        onClick={() => exportData(options)}
+        onClick={() => exportAssetData(options)}
       >
         Export
       </button>

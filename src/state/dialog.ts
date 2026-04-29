@@ -192,8 +192,8 @@ export type ActivatingTrialDialogState = {
   type: "activatingTrial";
 };
 
-export type ExportDataDialogState = {
-  type: "exportData";
+export type ExportAssetDataDialogState = {
+  type: "exportAssetData";
 };
 
 export type DialogState =
@@ -234,7 +234,7 @@ export type DialogState =
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
-  | ExportDataDialogState
+  | ExportAssetDataDialogState
   | NetworkProjectionDialogState
   | null;
 

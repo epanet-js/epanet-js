@@ -399,11 +399,17 @@ const ActivatingTrialDialog = dynamic(
   },
 );
 
-const ExportDataDialog = dynamic<{
+const ExportAssetDataDialog = dynamic<{
   onClose: () => void;
-}>(() => import("src/dialogs/export-data").then((r) => r.ExportDataDialog), {
-  loading: () => <LoadingDialog />,
-});
+}>(
+  () =>
+    import("src/dialogs/export-asset-data").then(
+      (r) => r.ExportAssetDataDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
 
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
@@ -569,8 +575,8 @@ export const Dialogs = memo(function Dialogs() {
     );
   }
 
-  if (dialog.type === "exportData") {
-    return <ExportDataDialog onClose={onClose} />;
+  if (dialog.type === "exportAssetData") {
+    return <ExportAssetDataDialog onClose={onClose} />;
   }
 
   if (dialog.type === "networkProjection") {
