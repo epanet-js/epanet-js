@@ -5,10 +5,13 @@ import {
   stagingModelDerivedAtom,
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeProperties } from "src/hydraulic-model/model-operations";
+import {
+  changeProperties,
+  changeLabel,
+} from "src/hydraulic-model/model-operations";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+import { modelFactoriesAtom } from "src/state/model-factories";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import {
@@ -99,68 +102,63 @@ type Simulation = NonNullable<
 >;
 type TranslateFn = ReturnType<typeof useTranslate>;
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
-type FormatFn = (
-  value: number | null | undefined,
-  property: QuantityProperty,
-) => string;
 
 function buildSimRow(
   type: AssetType,
   assetId: AssetId,
   simulation: Simulation,
   translate: TranslateFn,
-  fmt: FormatFn,
-): Record<string, string> {
+): Record<string, number | string | null> {
   switch (type) {
     case "junction": {
       const sim = simulation.getJunction(assetId);
       return {
-        sim_pressure: fmt(sim?.pressure, "pressure"),
-        sim_head: fmt(sim?.head, "head"),
-        sim_demand: fmt(sim?.demand, "actualDemand"),
+        sim_pressure: sim?.pressure ?? null,
+        sim_head: sim?.head ?? null,
+        sim_demand: sim?.demand ?? null,
       };
     }
     case "pipe": {
       const sim = simulation.getPipe(assetId);
       return {
-        sim_flow: fmt(sim?.flow, "flow"),
-        sim_velocity: fmt(sim?.velocity, "velocity"),
-        sim_headloss: fmt(sim?.headloss, "headloss"),
-        sim_unitHeadloss: fmt(sim?.unitHeadloss, "unitHeadloss"),
+        sim_flow: sim?.flow ?? null,
+        sim_velocity: sim?.velocity ?? null,
+        sim_headloss: sim?.headloss ?? null,
+        sim_unitHeadloss: sim?.unitHeadloss ?? null,
         sim_status: sim?.status ? translate(`pipe.${sim.status}`) : "",
       };
     }
     case "pump": {
       const sim = simulation.getPump(assetId);
       return {
-        sim_flow: fmt(sim?.flow, "flow"),
-        sim_headloss: fmt(sim?.headloss, "headloss"),
+        sim_flow: sim?.flow ?? null,
+        sim_headloss: sim?.headloss ?? null,
         sim_status: sim?.status ? translate(`pump.${sim.status}`) : "",
       };
     }
     case "valve": {
       const sim = simulation.getValve(assetId);
       return {
-        sim_flow: fmt(sim?.flow, "flow"),
-        sim_velocity: fmt(sim?.velocity, "velocity"),
-        sim_headloss: fmt(sim?.headloss, "headloss"),
+        sim_flow: sim?.flow ?? null,
+        sim_velocity: sim?.velocity ?? null,
+        sim_headloss: sim?.headloss ?? null,
         sim_status: sim?.status ? translate(`valve.${sim.status}`) : "",
       };
     }
     case "reservoir": {
       const r = simulation.getReservoir(assetId);
       return {
-        sim_head: fmt(r?.head, "head"),
-        sim_netFlow: fmt(r?.netFlow, "netFlow"),
+        sim_head: r?.head ?? null,
+        sim_netFlow: r?.netFlow ?? null,
       };
     }
     case "tank": {
       const sim = simulation.getTank(assetId);
       return {
-        sim_head: fmt(sim?.head, "head"),
-        sim_level: fmt(sim?.level, "level"),
-        sim_volume: fmt(sim?.volume, "volume"),
-        sim_netFlow: fmt(sim?.netFlow, "netFlow"),
+        sim_head: sim?.head ?? null,
+        sim_level: sim?.level ?? null,
+        sim_volume: sim?.volume ?? null,
+        sim_netFlow: sim?.netFlow ?? null,
       };
     }
   }
@@ -171,69 +169,123 @@ function buildSimColumns(
   translate: TranslateFn,
   units: UnitsSpec,
   translateUnit: TranslateUnitFn,
+  formatting: FormattingSpec,
 ): GridColumn[] {
-  const readOnlyColumn = (
-    key: string,
+  const headerLabel = (
     name: string,
     unit: Parameters<TranslateUnitFn>[0] = null,
   ) => {
     const unitLabel = translateUnit(unit);
-    return textColumn(key, {
-      header: unitLabel ? `${name} (${unitLabel})` : name,
+    return unitLabel ? `${name} (${unitLabel})` : name;
+  };
+  const simNumericValue = (
+    key: string,
+    name: string,
+    unit: Parameters<TranslateUnitFn>[0],
+    property: QuantityProperty,
+  ) =>
+    floatColumn(key, {
+      header: headerLabel(name, unit),
+      decimals: getDecimals(formatting, property),
       readonly: true,
     });
-  };
+  const simTextValue = (key: string, name: string) =>
+    textColumn(key, { header: name, readonly: true });
+
   switch (type) {
     case "junction":
       return [
-        readOnlyColumn("sim_pressure", translate("pressure"), units.pressure),
-        readOnlyColumn("sim_head", translate("head"), units.head),
-        readOnlyColumn("sim_demand", translate("demand"), units.actualDemand),
+        simNumericValue(
+          "sim_pressure",
+          translate("pressure"),
+          units.pressure,
+          "pressure",
+        ),
+        simNumericValue("sim_head", translate("head"), units.head, "head"),
+        simNumericValue(
+          "sim_demand",
+          translate("demand"),
+          units.actualDemand,
+          "actualDemand",
+        ),
       ];
     case "pipe":
       return [
-        readOnlyColumn("sim_flow", translate("flow"), units.flow),
-        readOnlyColumn("sim_velocity", translate("velocity"), units.velocity),
-        readOnlyColumn(
+        simNumericValue("sim_flow", translate("flow"), units.flow, "flow"),
+        simNumericValue(
+          "sim_velocity",
+          translate("velocity"),
+          units.velocity,
+          "velocity",
+        ),
+        simNumericValue(
           "sim_headloss",
           translate("headlossShort"),
           units.headloss,
+          "headloss",
         ),
-        readOnlyColumn(
+        simNumericValue(
           "sim_unitHeadloss",
           translate("unitHeadloss"),
           units.unitHeadloss,
+          "unitHeadloss",
         ),
-        readOnlyColumn("sim_status", translate("actualStatus")),
+        simTextValue("sim_status", translate("actualStatus")),
       ];
     case "pump":
       return [
-        readOnlyColumn("sim_flow", translate("flow"), units.flow),
-        readOnlyColumn("sim_headloss", translate("pumpHead"), units.headloss),
-        readOnlyColumn("sim_status", translate("actualStatus")),
+        simNumericValue("sim_flow", translate("flow"), units.flow, "flow"),
+        simNumericValue(
+          "sim_headloss",
+          translate("pumpHead"),
+          units.headloss,
+          "headloss",
+        ),
+        simTextValue("sim_status", translate("actualStatus")),
       ];
     case "valve":
       return [
-        readOnlyColumn("sim_flow", translate("flow"), units.flow),
-        readOnlyColumn("sim_velocity", translate("velocity"), units.velocity),
-        readOnlyColumn(
+        simNumericValue("sim_flow", translate("flow"), units.flow, "flow"),
+        simNumericValue(
+          "sim_velocity",
+          translate("velocity"),
+          units.velocity,
+          "velocity",
+        ),
+        simNumericValue(
           "sim_headloss",
           translate("headlossShort"),
           units.headloss,
+          "headloss",
         ),
-        readOnlyColumn("sim_status", translate("actualStatus")),
+        simTextValue("sim_status", translate("actualStatus")),
       ];
     case "reservoir":
       return [
-        readOnlyColumn("sim_head", translate("head"), units.head),
-        readOnlyColumn("sim_netFlow", translate("netFlow"), units.netFlow),
+        simNumericValue("sim_head", translate("head"), units.head, "head"),
+        simNumericValue(
+          "sim_netFlow",
+          translate("netFlow"),
+          units.netFlow,
+          "netFlow",
+        ),
       ];
     case "tank":
       return [
-        readOnlyColumn("sim_head", translate("head"), units.head),
-        readOnlyColumn("sim_level", translate("level"), units.level),
-        readOnlyColumn("sim_volume", translate("volume"), units.volume),
-        readOnlyColumn("sim_netFlow", translate("netFlow"), units.netFlow),
+        simNumericValue("sim_head", translate("head"), units.head, "head"),
+        simNumericValue("sim_level", translate("level"), units.level, "level"),
+        simNumericValue(
+          "sim_volume",
+          translate("volume"),
+          units.volume,
+          "volume",
+        ),
+        simNumericValue(
+          "sim_netFlow",
+          translate("netFlow"),
+          units.netFlow,
+          "netFlow",
+        ),
       ];
   }
 }
@@ -273,13 +325,13 @@ function buildColumns(
     });
 
   const simCols = hasSimulation
-    ? buildSimColumns(type, translate, units, translateUnit)
+    ? buildSimColumns(type, translate, units, translateUnit, formatting)
     : [];
 
   switch (type) {
     case "junction":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -297,7 +349,7 @@ function buildColumns(
       ];
     case "pipe":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pipeStatuses.map((s) => ({
@@ -325,7 +377,7 @@ function buildColumns(
       ];
     case "pump":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pumpStatuses.map((s) => ({
@@ -339,7 +391,7 @@ function buildColumns(
       ];
     case "valve":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         filterableSelectColumn("kind", {
           header: translate("valveType"),
           options: valveKinds.map((k) => ({
@@ -371,7 +423,7 @@ function buildColumns(
       ];
     case "reservoir":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -384,7 +436,7 @@ function buildColumns(
       ];
     case "tank":
       return [
-        textColumn("label", { header: translate("label"), readonly: true }),
+        textColumn("label", { header: translate("label") }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -433,19 +485,10 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { transact } = useModelTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-
-  const formatSimValue = useCallback<FormatFn>(
-    (value, property) =>
-      value != null
-        ? localizeDecimal(value, {
-            decimals: getDecimals(formatting, property),
-          })
-        : "",
-    [formatting],
-  );
 
   const assetIdsByType = useMemo(() => {
     const map = new Map<AssetType, AssetId[]>();
@@ -520,13 +563,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
           const asset = hydraulicModel.assets.get(id);
           if (!asset) continue;
           const simFields = simulation
-            ? buildSimRow(
-                effectiveTab,
-                id,
-                simulation,
-                translate,
-                formatSimValue,
-              )
+            ? buildSimRow(effectiveTab, id, simulation, translate)
             : {};
           result.push({ ...assetToRow(asset), ...simFields });
         }
@@ -547,7 +584,6 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       hydraulicModel.assets,
       simulation,
       translate,
-      formatSimValue,
     ],
   );
 
@@ -563,6 +599,17 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
         const oldRow = rowsRef.current?.[i];
         if (!oldRow) continue;
         const assetId = newRow.id;
+
+        if (
+          typeof newRow.label === "string" &&
+          newRow.label !== oldRow.label &&
+          labelManager.isLabelAvailable(newRow.label, effectiveTab, assetId)
+        ) {
+          transact(
+            changeLabel(hydraulicModel, { assetId, newLabel: newRow.label }),
+          );
+        }
+
         const changes: PropertyChange[] = [];
         for (const key of editableKeys) {
           if (newRow[key] !== oldRow[key]) {
@@ -579,7 +626,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
         }
       }
     },
-    [effectiveTab, hydraulicModel, transact],
+    [effectiveTab, hydraulicModel, labelManager, transact],
   );
 
   if (presentTypes.length === 0) {
