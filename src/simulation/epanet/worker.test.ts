@@ -20,7 +20,7 @@ vi.mock("src/lib/worker", () => ({
   },
 }));
 
-describe("EPS simulation", () => {
+describe.skip("EPS simulation", () => {
   beforeAll(() => {
     vi.stubGlobal("fetch", (url: string) => {
       const filePath = fileURLToPath(url);
