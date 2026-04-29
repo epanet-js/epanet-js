@@ -7,13 +7,18 @@ import {
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { CellProps, EditMode, GridColumn } from "../types";
 
-function formatLocaleNumber(value: number | null | undefined): string {
+function formatLocaleNumber(
+  value: number | null | undefined,
+  decimals = 9,
+): string {
   if (value === null || value === undefined) return "";
-  return localizeDecimal(value, { decimals: 9 });
+  return localizeDecimal(value, { decimals });
 }
 
 type FloatCellProps = CellProps<number | null> & {
   nullValue?: number | null;
+  decimals?: number;
+  readonly?: boolean;
 };
 
 export function FloatCell({
@@ -22,6 +27,8 @@ export function FloatCell({
   onChange,
   stopEditing,
   nullValue = null,
+  decimals,
+  readonly,
 }: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
@@ -100,7 +107,15 @@ export function FloatCell({
     [editMode, commit, stopEditing],
   );
 
-  const formattedValue = formatLocaleNumber(value);
+  const formattedValue = formatLocaleNumber(value, decimals);
+
+  if (readonly) {
+    return (
+      <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500">
+        {formattedValue}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -133,14 +148,21 @@ export function floatColumn(
     size?: number;
     deleteValue?: number | null;
     nullValue?: number | null;
+    decimals?: number;
+    readonly?: boolean;
   },
 ): GridColumn {
-  const { nullValue } = options;
+  const { nullValue, decimals, readonly } = options;
 
   const CellComponent =
-    nullValue !== undefined
+    nullValue !== undefined || decimals !== undefined || readonly
       ? (props: CellProps<number | null>) => (
-          <FloatCell {...props} nullValue={nullValue} />
+          <FloatCell
+            {...props}
+            nullValue={nullValue}
+            decimals={decimals}
+            readonly={readonly}
+          />
         )
       : FloatCell;
 
@@ -151,9 +173,10 @@ export function floatColumn(
     cellComponent: CellComponent,
     copyValue: (v) => {
       const num = v as number | null;
-      return num != null ? localizeDecimal(num) : "";
+      return formatLocaleNumber(num, decimals);
     },
     pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
     deleteValue: options.deleteValue ?? null,
+    ...(readonly ? { disabled: true, disableKeys: true } : {}),
   };
 }

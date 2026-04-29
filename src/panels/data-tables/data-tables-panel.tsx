@@ -21,7 +21,12 @@ import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
-import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
+import { getDecimals } from "src/lib/project-settings";
+import type {
+  UnitsSpec,
+  FormattingSpec,
+} from "src/lib/project-settings/quantities-spec";
+import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 
 type AssetRow = Record<string, unknown> & { id: AssetId };
 
@@ -78,67 +83,68 @@ type Simulation = NonNullable<
 >;
 type TranslateFn = ReturnType<typeof useTranslate>;
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
-
-function fmtNum(v: number | null | undefined): string {
-  return v != null ? localizeDecimal(v, { decimals: 3 }) : "";
-}
+type FormatFn = (
+  value: number | null | undefined,
+  property: QuantityProperty,
+) => string;
 
 function buildSimRow(
   type: AssetType,
   assetId: AssetId,
   simulation: Simulation,
   translate: TranslateFn,
+  fmt: FormatFn,
 ): Record<string, string> {
   switch (type) {
     case "junction": {
-      const r = simulation.getJunction(assetId);
+      const sim = simulation.getJunction(assetId);
       return {
-        sim_pressure: fmtNum(r?.pressure),
-        sim_head: fmtNum(r?.head),
-        sim_demand: fmtNum(r?.demand),
+        sim_pressure: fmt(sim?.pressure, "pressure"),
+        sim_head: fmt(sim?.head, "head"),
+        sim_demand: fmt(sim?.demand, "actualDemand"),
       };
     }
     case "pipe": {
-      const r = simulation.getPipe(assetId);
+      const sim = simulation.getPipe(assetId);
       return {
-        sim_flow: fmtNum(r?.flow),
-        sim_velocity: fmtNum(r?.velocity),
-        sim_headloss: fmtNum(r?.headloss),
-        sim_unitHeadloss: fmtNum(r?.unitHeadloss),
-        sim_status: r?.status ? translate(`pipe.${r.status}`) : "",
+        sim_flow: fmt(sim?.flow, "flow"),
+        sim_velocity: fmt(sim?.velocity, "velocity"),
+        sim_headloss: fmt(sim?.headloss, "headloss"),
+        sim_unitHeadloss: fmt(sim?.unitHeadloss, "unitHeadloss"),
+        sim_status: sim?.status ? translate(`pipe.${sim.status}`) : "",
       };
     }
     case "pump": {
-      const r = simulation.getPump(assetId);
+      const sim = simulation.getPump(assetId);
       return {
-        sim_flow: fmtNum(r?.flow),
-        sim_headloss: fmtNum(r?.headloss),
-        sim_status: r?.status ? translate(`pump.${r.status}`) : "",
+        sim_flow: fmt(sim?.flow, "flow"),
+        sim_headloss: fmt(sim?.headloss, "headloss"),
+        sim_status: sim?.status ? translate(`pump.${sim.status}`) : "",
       };
     }
     case "valve": {
-      const r = simulation.getValve(assetId);
+      const sim = simulation.getValve(assetId);
       return {
-        sim_flow: fmtNum(r?.flow),
-        sim_velocity: fmtNum(r?.velocity),
-        sim_headloss: fmtNum(r?.headloss),
-        sim_status: r?.status ? translate(`valve.${r.status}`) : "",
+        sim_flow: fmt(sim?.flow, "flow"),
+        sim_velocity: fmt(sim?.velocity, "velocity"),
+        sim_headloss: fmt(sim?.headloss, "headloss"),
+        sim_status: sim?.status ? translate(`valve.${sim.status}`) : "",
       };
     }
     case "reservoir": {
       const r = simulation.getReservoir(assetId);
       return {
-        sim_head: fmtNum(r?.head),
-        sim_netFlow: fmtNum(r?.netFlow),
+        sim_head: fmt(r?.head, "head"),
+        sim_netFlow: fmt(r?.netFlow, "netFlow"),
       };
     }
     case "tank": {
-      const r = simulation.getTank(assetId);
+      const sim = simulation.getTank(assetId);
       return {
-        sim_head: fmtNum(r?.head),
-        sim_level: fmtNum(r?.level),
-        sim_volume: fmtNum(r?.volume),
-        sim_netFlow: fmtNum(r?.netFlow),
+        sim_head: fmt(sim?.head, "head"),
+        sim_level: fmt(sim?.level, "level"),
+        sim_volume: fmt(sim?.volume, "volume"),
+        sim_netFlow: fmt(sim?.netFlow, "netFlow"),
       };
     }
   }
@@ -207,6 +213,7 @@ function buildColumns(
   hasSimulation: boolean,
   units: UnitsSpec,
   translateUnit: TranslateUnitFn,
+  formatting: FormattingSpec,
 ): GridColumn[] {
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
@@ -219,15 +226,17 @@ function buildColumns(
     key: string,
     name: string,
     unit: Parameters<TranslateUnitFn>[0] = null,
+    property?: QuantityProperty,
   ) =>
-    editable.has(key)
-      ? floatColumn(key, {
-          header: hdr(name, unit),
-          ...(NULLABLE_KEYS.has(key)
-            ? { nullValue: null, deleteValue: null }
-            : {}),
-        })
-      : textReadonlyColumn(key, { header: hdr(name, unit) });
+    floatColumn(key, {
+      header: hdr(name, unit),
+      decimals:
+        property != null
+          ? getDecimals(formatting, property)
+          : formatting.defaultDecimals,
+      readonly: !editable.has(key),
+      ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
+    });
 
   const simCols = hasSimulation
     ? buildSimColumns(type, translate, units, translateUnit)
@@ -237,11 +246,17 @@ function buildColumns(
     case "junction":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("elevation", translate("elevation"), units.elevation),
+        numericCol(
+          "elevation",
+          translate("elevation"),
+          units.elevation,
+          "elevation",
+        ),
         numericCol(
           "emitterCoefficient",
           translate("emitterCoefficient"),
           units.emitterCoefficient,
+          "emitterCoefficient",
         ),
         numericCol("initialQuality", translate("initialQuality")),
         ...simCols,
@@ -252,10 +267,20 @@ function buildColumns(
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
-        numericCol("diameter", translate("diameter"), units.diameter),
-        numericCol("length", translate("length"), units.length),
+        numericCol(
+          "diameter",
+          translate("diameter"),
+          units.diameter,
+          "diameter",
+        ),
+        numericCol("length", translate("length"), units.length, "length"),
         numericCol("roughness", translate("roughness"), units.roughness),
-        numericCol("minorLoss", translate("minorLoss"), units.minorLoss),
+        numericCol(
+          "minorLoss",
+          translate("minorLoss"),
+          units.minorLoss,
+          "minorLoss",
+        ),
         numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
         numericCol("wallReactionCoeff", translate("wallReactionCoeff")),
         ...simCols,
@@ -266,7 +291,7 @@ function buildColumns(
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
-        numericCol("speed", translate("initialSpeed"), units.speed),
+        numericCol("speed", translate("initialSpeed"), units.speed, "speed"),
         numericCol("energyPrice", translate("energyPrice")),
         ...simCols,
       ];
@@ -278,30 +303,66 @@ function buildColumns(
         textReadonlyColumn("initialStatus", {
           header: translate("initialStatus"),
         }),
-        numericCol("diameter", translate("diameter"), units.diameter),
-        numericCol("minorLoss", translate("minorLoss"), units.minorLoss),
+        numericCol(
+          "diameter",
+          translate("diameter"),
+          units.diameter,
+          "diameter",
+        ),
+        numericCol(
+          "minorLoss",
+          translate("minorLoss"),
+          units.minorLoss,
+          "minorLoss",
+        ),
         ...simCols,
       ];
     case "reservoir":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("elevation", translate("elevation"), units.elevation),
-        numericCol("head", translate("head"), units.head),
+        numericCol(
+          "elevation",
+          translate("elevation"),
+          units.elevation,
+          "elevation",
+        ),
+        numericCol("head", translate("head"), units.head, "head"),
         numericCol("initialQuality", translate("initialQuality")),
         ...simCols,
       ];
     case "tank":
       return [
         textReadonlyColumn("label", { header: translate("label") }),
-        numericCol("elevation", translate("elevation"), units.elevation),
+        numericCol(
+          "elevation",
+          translate("elevation"),
+          units.elevation,
+          "elevation",
+        ),
         numericCol(
           "initialLevel",
           translate("initialLevel"),
           units.initialLevel,
+          "initialLevel",
         ),
-        numericCol("minLevel", translate("minLevel"), units.minLevel),
-        numericCol("maxLevel", translate("maxLevel"), units.maxLevel),
-        numericCol("diameter", translate("diameter"), units.tankDiameter),
+        numericCol(
+          "minLevel",
+          translate("minLevel"),
+          units.minLevel,
+          "minLevel",
+        ),
+        numericCol(
+          "maxLevel",
+          translate("maxLevel"),
+          units.maxLevel,
+          "maxLevel",
+        ),
+        numericCol(
+          "diameter",
+          translate("diameter"),
+          units.tankDiameter,
+          "tankDiameter",
+        ),
         numericCol("initialQuality", translate("initialQuality")),
         numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
         ...simCols,
@@ -319,10 +380,20 @@ function assetToRow(asset: {
 export const DataTablesPanel = memo(function DataTablesPanelInner() {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
-  const { units } = useAtomValue(projectSettingsAtom);
+  const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { transact } = useModelTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+
+  const formatSimValue = useCallback<FormatFn>(
+    (value, property) =>
+      value != null
+        ? localizeDecimal(value, {
+            decimals: getDecimals(formatting, property),
+          })
+        : "",
+    [formatting],
+  );
 
   const assetIdsByType = useMemo(() => {
     const map = new Map<AssetType, AssetId[]>();
@@ -361,9 +432,10 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
             simulation !== null,
             units,
             translateUnit,
+            formatting,
           )
         : [],
-    [effectiveTab, translate, simulation, units, translateUnit],
+    [effectiveTab, translate, simulation, units, translateUnit, formatting],
   );
 
   const [rows, setRows] = useState<AssetRow[] | null>(null);
@@ -386,7 +458,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
         const asset = hydraulicModel.assets.get(id);
         if (!asset) continue;
         const simFields = simulation
-          ? buildSimRow(effectiveTab, id, simulation, translate)
+          ? buildSimRow(effectiveTab, id, simulation, translate, formatSimValue)
           : {};
         result.push({ ...assetToRow(asset), ...simFields });
       }
@@ -403,6 +475,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
     hydraulicModel.assets,
     simulation,
     translate,
+    formatSimValue,
   ]);
 
   const onChange = useCallback(

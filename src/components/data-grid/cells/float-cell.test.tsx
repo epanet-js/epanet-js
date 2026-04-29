@@ -267,6 +267,53 @@ describe("FloatCell", () => {
     });
   });
 
+  describe("decimals prop", () => {
+    it("formats display value to the specified number of decimals", () => {
+      render(<FloatCell {...defaultProps} value={1.23456} decimals={2} />);
+
+      expect(screen.getByDisplayValue("1.23")).toBeInTheDocument();
+    });
+
+    it("edit mode initialises with full precision regardless of decimals", () => {
+      render(
+        <FloatCell
+          {...defaultProps}
+          value={1.23456}
+          decimals={2}
+          editMode="full"
+        />,
+      );
+
+      expect(screen.getByRole("textbox")).toHaveValue("1.23456");
+    });
+  });
+
+  describe("readonly prop", () => {
+    it("renders text instead of an input", () => {
+      render(<FloatCell {...defaultProps} value={1.5} readonly />);
+
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      expect(screen.getByText("1.5")).toBeInTheDocument();
+    });
+
+    it("formats value with the specified decimals", () => {
+      render(
+        <FloatCell {...defaultProps} value={1.23456} decimals={2} readonly />,
+      );
+
+      expect(screen.getByText("1.23")).toBeInTheDocument();
+    });
+
+    it("renders empty for null value", () => {
+      const { container } = render(
+        <FloatCell {...defaultProps} value={null} readonly />,
+      );
+
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      expect(container.firstChild).toHaveTextContent("");
+    });
+  });
+
   describe("escape key", () => {
     it("stops editing without committing", async () => {
       const user = setupUser();
@@ -328,6 +375,28 @@ describe("floatColumn", () => {
       const column = floatColumn("value", { header: "Value" });
 
       expect(column.copyValue?.(null)).toBe("");
+    });
+
+    it("respects decimals option", () => {
+      const column = floatColumn("value", { header: "Value", decimals: 2 });
+
+      expect(column.copyValue?.(1.23456)).toBe("1.23");
+    });
+  });
+
+  describe("readonly option", () => {
+    it("sets disabled and disableKeys", () => {
+      const column = floatColumn("value", { header: "Value", readonly: true });
+
+      expect(column.disabled).toBe(true);
+      expect(column.disableKeys).toBe(true);
+    });
+
+    it("does not set disabled when not readonly", () => {
+      const column = floatColumn("value", { header: "Value" });
+
+      expect(column.disabled).toBeFalsy();
+      expect(column.disableKeys).toBeFalsy();
     });
   });
 
