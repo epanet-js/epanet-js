@@ -108,7 +108,6 @@ const buildDataForExport = (
     pump: [],
     valve: [],
   };
-
   Array.from(hydraulicModel.assets.values()).forEach((asset) => {
     const simulationResults = resultsReader
       ? getSimulationProps(asset, resultsReader)
@@ -129,58 +128,6 @@ const buildDataForExport = (
     { format, name: "pipe", data: exportedAssets.pipe },
     { format, name: "pump", data: exportedAssets.pump },
     { format, name: "valve", data: exportedAssets.valve },
-  ];
-};
-
-const formatTimestep = (index: number, intervalSeconds: number): string => {
-  const total = index * intervalSeconds;
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-};
-
-type EPSResultsReaderLike = {
-  timestepCount: number;
-  reportingTimeStep: number;
-  getResultsForTimestep: (step: number) => Promise<ResultsReader>;
-};
-
-const buildAllTimestepsForExport = async (
-  hydraulicModel: HydraulicModel,
-  epsResultsReader: EPSResultsReaderLike,
-): Promise<ExportEntry[]> => {
-  const { timestepCount, reportingTimeStep } = epsResultsReader;
-  const assets = Array.from(hydraulicModel.assets.values());
-
-  const accumulated: Record<string, object[]> = {
-    junction: [],
-    tank: [],
-    reservoir: [],
-    pipe: [],
-    pump: [],
-    valve: [],
-  };
-
-  for (let step = 0; step < timestepCount; step++) {
-    const reader = await epsResultsReader.getResultsForTimestep(step);
-    const timestep = formatTimestep(step, reportingTimeStep);
-
-    assets.forEach((asset) => {
-      accumulated[asset.type].push({
-        timestep,
-        label: asset.label,
-        ...getSimulationProps(asset, reader),
-      });
-    });
-  }
-
-  return [
-    { format: "csv", name: "sim_junction", data: accumulated.junction },
-    { format: "csv", name: "sim_tank", data: accumulated.tank },
-    { format: "csv", name: "sim_reservoir", data: accumulated.reservoir },
-    { format: "csv", name: "sim_pipe", data: accumulated.pipe },
-    { format: "csv", name: "sim_pump", data: accumulated.pump },
-    { format: "csv", name: "sim_valve", data: accumulated.valve },
   ];
 };
 

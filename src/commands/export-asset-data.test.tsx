@@ -11,7 +11,6 @@ import { Export } from "src/lib/export";
 import { Store } from "src/state";
 import { useExportAssetData, DataExportOptions } from "./export-asset-data";
 import { Junction } from "src/hydraulic-model";
-import type { SimulationState } from "src/state/simulation";
 import { stubFileSave, lastSaveCall } from "src/__helpers__/browser-fs-mock";
 import { ExportEntry } from "src/lib/export/types";
 
