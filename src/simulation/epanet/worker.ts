@@ -50,7 +50,7 @@ export const runSimulation = async (
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
-  const useNewEngine = flags["useNewEngine"];
+  const useNewEngine = true; //flags["useNewEngine"];
   const ws = useNewEngine ? new NewWorkspace() : new Workspace();
   if (useNewEngine) {
     await (ws as NewWorkspace).loadModuleVersion(() =>
