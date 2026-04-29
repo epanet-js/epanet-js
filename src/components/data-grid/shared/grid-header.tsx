@@ -12,6 +12,7 @@ type GridHeaderProps<T> = {
   variant: DataGridVariant;
   style?: React.CSSProperties;
   className?: string;
+  scrollbarGap?: number;
 };
 
 export function GridHeader<T>({
@@ -23,12 +24,13 @@ export function GridHeader<T>({
   variant,
   style,
   className,
+  scrollbarGap,
 }: GridHeaderProps<T>) {
   return (
     <div
       role="row"
       className={clsx(
-        "flex shrink-0 min-w-full",
+        "flex shrink-0 min-w-full w-max",
         "border border-transparent",
         className,
         {
@@ -80,6 +82,9 @@ export function GridHeader<T>({
             "shrink-0 sticky right-0 w-8 h-8 z-10 border border-transparent",
           )}
         />
+      )}
+      {!!scrollbarGap && (
+        <div className="shrink-0" style={{ width: scrollbarGap }} />
       )}
     </div>
   );

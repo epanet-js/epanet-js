@@ -215,6 +215,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           onSelectColumn={onSelectColumn}
           onSelectAll={onSelectAll}
           variant={variant}
+          scrollbarGap={scrollState.scrollbarWidth}
         />
       </div>
       <div
