@@ -45,6 +45,17 @@ describe("toPatternRow", () => {
       }),
     ).toThrow(/multipliers must be an array of finite numbers/);
   });
+
+  it("throws when type is not a known pattern type", () => {
+    expect(() =>
+      toPatternRow({
+        id: 9,
+        label: "BadType",
+        type: "unknown" as never,
+        multipliers: [1],
+      }),
+    ).toThrow(/row does not match schema/);
+  });
 });
 
 describe("patternsToRows", () => {

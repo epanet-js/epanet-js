@@ -6,9 +6,16 @@ import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
 import type { CurvePoint } from "src/hydraulic-model/curves";
+import type { ZodTypeAny } from "zod";
 import { pointsSchema } from "../curves/schema";
 import {
   linkCoordinatesSchema,
+  junctionRowSchema,
+  reservoirRowSchema,
+  tankRowSchema,
+  pipeRowSchema,
+  pumpRowSchema,
+  valveRowSchema,
   type AssetRows,
   type JunctionRow,
   type ReservoirRow,
@@ -54,98 +61,173 @@ export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
   return rows;
 };
 
-const toJunctionRow = (junction: Junction): JunctionRow => ({
-  id: junction.id,
-  type: "junction",
-  label: junction.label,
-  is_active: toDbBool(junction.isActive),
-  coord_x: junction.coordinates[0],
-  coord_y: junction.coordinates[1],
-  elevation: junction.elevation,
-  initial_quality: junction.initialQuality,
-  chemical_source_type: junction.chemicalSourceType ?? null,
-  chemical_source_strength: junction.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbId(junction.chemicalSourcePatternId),
-  emitter_coefficient: junction.emitterCoefficient,
-});
+const validateRow = <T>(
+  schema: ZodTypeAny,
+  row: unknown,
+  kind: string,
+  id: number,
+  label: string | null,
+): T => {
+  const result = schema.safeParse(row);
+  if (!result.success) {
+    throw new Error(
+      `${kind} ${id} (${label ?? ""}): row does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data as T;
+};
 
-const toReservoirRow = (reservoir: Reservoir): ReservoirRow => ({
-  id: reservoir.id,
-  type: "reservoir",
-  label: reservoir.label,
-  is_active: toDbBool(reservoir.isActive),
-  coord_x: reservoir.coordinates[0],
-  coord_y: reservoir.coordinates[1],
-  elevation: reservoir.elevation,
-  initial_quality: reservoir.initialQuality,
-  chemical_source_type: reservoir.chemicalSourceType ?? null,
-  chemical_source_strength: reservoir.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbId(reservoir.chemicalSourcePatternId),
-  head: reservoir.head,
-  head_pattern_id: toDbId(reservoir.headPatternId),
-});
+const toJunctionRow = (junction: Junction): JunctionRow =>
+  validateRow<JunctionRow>(
+    junctionRowSchema,
+    {
+      id: junction.id,
+      type: "junction",
+      label: junction.label,
+      is_active: toDbBool(junction.isActive),
+      coord_x: junction.coordinates[0],
+      coord_y: junction.coordinates[1],
+      elevation: junction.elevation,
+      initial_quality: junction.initialQuality,
+      chemical_source_type: junction.chemicalSourceType ?? null,
+      chemical_source_strength: junction.chemicalSourceStrength ?? null,
+      chemical_source_pattern_id: toDbId(junction.chemicalSourcePatternId),
+      emitter_coefficient: junction.emitterCoefficient,
+    },
+    "Junction",
+    junction.id,
+    junction.label,
+  );
 
-const toTankRow = (tank: Tank): TankRow => ({
-  id: tank.id,
-  type: "tank",
-  label: tank.label,
-  is_active: toDbBool(tank.isActive),
-  coord_x: tank.coordinates[0],
-  coord_y: tank.coordinates[1],
-  elevation: tank.elevation,
-  initial_quality: tank.initialQuality,
-  chemical_source_type: tank.chemicalSourceType ?? null,
-  chemical_source_strength: tank.chemicalSourceStrength ?? null,
-  chemical_source_pattern_id: toDbId(tank.chemicalSourcePatternId),
-  initial_level: tank.initialLevel,
-  min_level: tank.minLevel,
-  max_level: tank.maxLevel,
-  min_volume: tank.minVolume,
-  diameter: tank.diameter,
-  overflow: toDbBool(tank.overflow),
-  mixing_model: tank.mixingModel,
-  mixing_fraction: tank.mixingFraction,
-  bulk_reaction_coeff: tank.bulkReactionCoeff ?? null,
-  volume_curve_id: toDbId(tank.volumeCurveId),
-});
+const toReservoirRow = (reservoir: Reservoir): ReservoirRow =>
+  validateRow<ReservoirRow>(
+    reservoirRowSchema,
+    {
+      id: reservoir.id,
+      type: "reservoir",
+      label: reservoir.label,
+      is_active: toDbBool(reservoir.isActive),
+      coord_x: reservoir.coordinates[0],
+      coord_y: reservoir.coordinates[1],
+      elevation: reservoir.elevation,
+      initial_quality: reservoir.initialQuality,
+      chemical_source_type: reservoir.chemicalSourceType ?? null,
+      chemical_source_strength: reservoir.chemicalSourceStrength ?? null,
+      chemical_source_pattern_id: toDbId(reservoir.chemicalSourcePatternId),
+      head: reservoir.head,
+      head_pattern_id: toDbId(reservoir.headPatternId),
+    },
+    "Reservoir",
+    reservoir.id,
+    reservoir.label,
+  );
 
-const toPipeRow = (pipe: Pipe): PipeRow => ({
-  id: pipe.id,
-  type: "pipe",
-  label: pipe.label,
-  is_active: toDbBool(pipe.isActive),
-  start_node_id: pipe.connections[0],
-  end_node_id: pipe.connections[1],
-  coords: toDbLinkCoordinates(pipe, "Pipe"),
-  length: pipe.length,
-  initial_status: pipe.initialStatus,
-  diameter: pipe.diameter,
-  roughness: pipe.roughness,
-  minor_loss: pipe.minorLoss,
-  bulk_reaction_coeff: pipe.bulkReactionCoeff ?? null,
-  wall_reaction_coeff: pipe.wallReactionCoeff ?? null,
-});
+const toTankRow = (tank: Tank): TankRow =>
+  validateRow<TankRow>(
+    tankRowSchema,
+    {
+      id: tank.id,
+      type: "tank",
+      label: tank.label,
+      is_active: toDbBool(tank.isActive),
+      coord_x: tank.coordinates[0],
+      coord_y: tank.coordinates[1],
+      elevation: tank.elevation,
+      initial_quality: tank.initialQuality,
+      chemical_source_type: tank.chemicalSourceType ?? null,
+      chemical_source_strength: tank.chemicalSourceStrength ?? null,
+      chemical_source_pattern_id: toDbId(tank.chemicalSourcePatternId),
+      initial_level: tank.initialLevel,
+      min_level: tank.minLevel,
+      max_level: tank.maxLevel,
+      min_volume: tank.minVolume,
+      diameter: tank.diameter,
+      overflow: toDbBool(tank.overflow),
+      mixing_model: tank.mixingModel,
+      mixing_fraction: tank.mixingFraction,
+      bulk_reaction_coeff: tank.bulkReactionCoeff ?? null,
+      volume_curve_id: toDbId(tank.volumeCurveId),
+    },
+    "Tank",
+    tank.id,
+    tank.label,
+  );
 
-const toPumpRow = (pump: Pump): PumpRow => ({
-  id: pump.id,
-  type: "pump",
-  label: pump.label,
-  is_active: toDbBool(pump.isActive),
-  start_node_id: pump.connections[0],
-  end_node_id: pump.connections[1],
-  coords: toDbLinkCoordinates(pump, "Pump"),
-  length: pump.length,
-  initial_status: pump.initialStatus,
-  definition_type: pump.definitionType,
-  power: pump.power,
-  speed: pump.speed,
-  speed_pattern_id: toDbId(pump.speedPatternId),
-  efficiency_curve_id: toDbId(pump.efficiencyCurveId),
-  energy_price: pump.energyPrice ?? null,
-  energy_price_pattern_id: toDbId(pump.energyPricePatternId),
-  curve_id: toDbId(pump.curveId),
-  curve_points: toDbCurvePoints(pump),
-});
+const toPipeRow = (pipe: Pipe): PipeRow =>
+  validateRow<PipeRow>(
+    pipeRowSchema,
+    {
+      id: pipe.id,
+      type: "pipe",
+      label: pipe.label,
+      is_active: toDbBool(pipe.isActive),
+      start_node_id: pipe.connections[0],
+      end_node_id: pipe.connections[1],
+      coords: toDbLinkCoordinates(pipe, "Pipe"),
+      length: pipe.length,
+      initial_status: pipe.initialStatus,
+      diameter: pipe.diameter,
+      roughness: pipe.roughness,
+      minor_loss: pipe.minorLoss,
+      bulk_reaction_coeff: pipe.bulkReactionCoeff ?? null,
+      wall_reaction_coeff: pipe.wallReactionCoeff ?? null,
+    },
+    "Pipe",
+    pipe.id,
+    pipe.label,
+  );
+
+const toPumpRow = (pump: Pump): PumpRow =>
+  validateRow<PumpRow>(
+    pumpRowSchema,
+    {
+      id: pump.id,
+      type: "pump",
+      label: pump.label,
+      is_active: toDbBool(pump.isActive),
+      start_node_id: pump.connections[0],
+      end_node_id: pump.connections[1],
+      coords: toDbLinkCoordinates(pump, "Pump"),
+      length: pump.length,
+      initial_status: pump.initialStatus,
+      definition_type: pump.definitionType,
+      power: pump.power,
+      speed: pump.speed,
+      speed_pattern_id: toDbId(pump.speedPatternId),
+      efficiency_curve_id: toDbId(pump.efficiencyCurveId),
+      energy_price: pump.energyPrice ?? null,
+      energy_price_pattern_id: toDbId(pump.energyPricePatternId),
+      curve_id: toDbId(pump.curveId),
+      curve_points: toDbCurvePoints(pump),
+    },
+    "Pump",
+    pump.id,
+    pump.label,
+  );
+
+const toValveRow = (valve: Valve): ValveRow =>
+  validateRow<ValveRow>(
+    valveRowSchema,
+    {
+      id: valve.id,
+      type: "valve",
+      label: valve.label,
+      is_active: toDbBool(valve.isActive),
+      start_node_id: valve.connections[0],
+      end_node_id: valve.connections[1],
+      coords: toDbLinkCoordinates(valve, "Valve"),
+      length: valve.length,
+      initial_status: valve.initialStatus,
+      diameter: valve.diameter,
+      minor_loss: valve.minorLoss,
+      valve_kind: valve.kind,
+      setting: valve.setting,
+      curve_id: toDbId(valve.curveId),
+    },
+    "Valve",
+    valve.id,
+    valve.label,
+  );
 
 const toDbLinkCoordinates = (
   link: Pipe | Pump | Valve,
@@ -171,23 +253,6 @@ const toDbCurvePoints = (pump: Pump): string | null => {
   }
   return JSON.stringify(result.data);
 };
-
-const toValveRow = (valve: Valve): ValveRow => ({
-  id: valve.id,
-  type: "valve",
-  label: valve.label,
-  is_active: toDbBool(valve.isActive),
-  start_node_id: valve.connections[0],
-  end_node_id: valve.connections[1],
-  coords: toDbLinkCoordinates(valve, "Valve"),
-  length: valve.length,
-  initial_status: valve.initialStatus,
-  diameter: valve.diameter,
-  minor_loss: valve.minorLoss,
-  valve_kind: valve.kind,
-  setting: valve.setting,
-  curve_id: toDbId(valve.curveId),
-});
 
 const toDbBool = (v: boolean): number => (v ? 1 : 0);
 

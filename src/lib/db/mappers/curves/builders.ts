@@ -1,4 +1,4 @@
-import type { CurveType, Curves, ICurve } from "src/hydraulic-model/curves";
+import type { Curves, ICurve } from "src/hydraulic-model/curves";
 import { pointsSchema, type CurveRow } from "./schema";
 
 export const buildCurvesData = (rows: CurveRow[]): Curves => {
@@ -9,7 +9,7 @@ export const buildCurvesData = (rows: CurveRow[]): Curves => {
       label: row.label,
       points: parsePoints(row),
     };
-    if (row.type !== null) curve.type = row.type as CurveType;
+    if (row.type !== null) curve.type = row.type;
     curves.set(row.id, curve);
   }
   return curves;

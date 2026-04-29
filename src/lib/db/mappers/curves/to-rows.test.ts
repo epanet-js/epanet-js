@@ -51,6 +51,17 @@ describe("toCurveRow", () => {
       }),
     ).toThrow(/points must be an array of \{x,y\} with finite numbers/);
   });
+
+  it("throws when type is not a known curve type", () => {
+    expect(() =>
+      toCurveRow({
+        id: 9,
+        label: "BadType",
+        type: "unknown" as never,
+        points: [{ x: 0, y: 0 }],
+      }),
+    ).toThrow(/row does not match schema/);
+  });
 });
 
 describe("curvesToRows", () => {

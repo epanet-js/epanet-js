@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -18,22 +19,22 @@ import { buildSimulationSettingsData } from "../mappers/simulation-settings/buil
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
 import { findMaxId } from "../ids";
-import type {
-  JunctionRow,
-  ReservoirRow,
-  TankRow,
-  PipeRow,
-  PumpRow,
-  ValveRow,
+import {
+  junctionRowSchema,
+  reservoirRowSchema,
+  tankRowSchema,
+  pipeRowSchema,
+  pumpRowSchema,
+  valveRowSchema,
 } from "../mappers/assets/schema";
-import type {
-  CustomerPointRow,
-  CustomerPointDemandRow,
-  CustomerPointsData,
+import {
+  customerPointRowSchema,
+  customerPointDemandRowSchema,
+  type CustomerPointsData,
 } from "../mappers/customer-points/schema";
-import type { PatternRow } from "../mappers/patterns/schema";
-import type { JunctionDemandRow } from "../mappers/junction-demands/schema";
-import type { CurveRow } from "../mappers/curves/schema";
+import { patternRowSchema } from "../mappers/patterns/schema";
+import { junctionDemandRowSchema } from "../mappers/junction-demands/schema";
+import { curveRowSchema } from "../mappers/curves/schema";
 
 export type Project = {
   projectSettings: ProjectSettings;
@@ -52,6 +53,21 @@ export type FetchProjectOptions = {
   onProgress?: (phase: FetchProjectPhase) => void;
 };
 
+const parseRows = <S extends z.ZodTypeAny>(
+  schema: S,
+  rows: unknown[],
+  kind: string,
+): z.infer<S>[] => {
+  const arraySchema = z.array(schema);
+  const result = arraySchema.safeParse(rows);
+  if (!result.success) {
+    throw new Error(
+      `${kind}: row data does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
+};
+
 export const fetchProject = async (
   options: FetchProjectOptions = {},
 ): Promise<Project> => {
@@ -60,43 +76,48 @@ export const fetchProject = async (
     const worker = getDbWorker();
 
     onProgress?.("reading-assets");
-    const [junctions, reservoirs, tanks, pipes, pumps, valves] = await timed(
-      "fetchProject.readAssets",
-      () =>
-        Promise.all([
-          worker.getJunctions() as Promise<JunctionRow[]>,
-          worker.getReservoirs() as Promise<ReservoirRow[]>,
-          worker.getTanks() as Promise<TankRow[]>,
-          worker.getPipes() as Promise<PipeRow[]>,
-          worker.getPumps() as Promise<PumpRow[]>,
-          worker.getValves() as Promise<ValveRow[]>,
-        ]),
+    const [
+      junctionsRaw,
+      reservoirsRaw,
+      tanksRaw,
+      pipesRaw,
+      pumpsRaw,
+      valvesRaw,
+    ] = await timed("fetchProject.readAssets", () =>
+      Promise.all([
+        worker.getJunctions(),
+        worker.getReservoirs(),
+        worker.getTanks(),
+        worker.getPipes(),
+        worker.getPumps(),
+        worker.getValves(),
+      ]),
     );
 
     onProgress?.("reading-customer-points");
-    const [customerPointRows, customerPointDemandRows] = await timed(
+    const [customerPointsRaw, customerPointDemandsRaw] = await timed(
       "fetchProject.readCustomerPoints",
       () =>
         Promise.all([
-          worker.getCustomerPoints() as Promise<CustomerPointRow[]>,
-          worker.getCustomerPointDemands() as Promise<CustomerPointDemandRow[]>,
+          worker.getCustomerPoints(),
+          worker.getCustomerPointDemands(),
         ]),
     );
 
     onProgress?.("reading-settings");
     const [
       settingsJson,
-      patternRows,
-      junctionDemandRows,
-      curveRows,
+      patternsRaw,
+      junctionDemandsRaw,
+      curvesRaw,
       controlsData,
       simulationSettingsData,
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
-        worker.getPatterns() as Promise<PatternRow[]>,
-        worker.getJunctionDemands() as Promise<JunctionDemandRow[]>,
-        worker.getCurves() as Promise<CurveRow[]>,
+        worker.getPatterns(),
+        worker.getJunctionDemands(),
+        worker.getCurves(),
         worker.getControls(),
         worker.getSimulationSettings(),
       ]),
@@ -111,17 +132,40 @@ export const fetchProject = async (
       () => {
         const projectSettings = buildProjectSettingsData(settingsJson);
         const assetRows = {
-          junctions,
-          reservoirs,
-          tanks,
-          pipes,
-          pumps,
-          valves,
+          junctions: parseRows(junctionRowSchema, junctionsRaw, "Junctions"),
+          reservoirs: parseRows(
+            reservoirRowSchema,
+            reservoirsRaw,
+            "Reservoirs",
+          ),
+          tanks: parseRows(tankRowSchema, tanksRaw, "Tanks"),
+          pipes: parseRows(pipeRowSchema, pipesRaw, "Pipes"),
+          pumps: parseRows(pumpRowSchema, pumpsRaw, "Pumps"),
+          valves: parseRows(valveRowSchema, valvesRaw, "Valves"),
         };
         const cpData: CustomerPointsData = {
-          customerPoints: customerPointRows,
-          demands: customerPointDemandRows,
+          customerPoints: parseRows(
+            customerPointRowSchema,
+            customerPointsRaw,
+            "CustomerPoints",
+          ),
+          demands: parseRows(
+            customerPointDemandRowSchema,
+            customerPointDemandsRaw,
+            "CustomerPointDemands",
+          ),
         };
+        const patternRows = parseRows(
+          patternRowSchema,
+          patternsRaw,
+          "Patterns",
+        );
+        const junctionDemandRows = parseRows(
+          junctionDemandRowSchema,
+          junctionDemandsRaw,
+          "JunctionDemands",
+        );
+        const curveRows = parseRows(curveRowSchema, curvesRaw, "Curves");
 
         const maxId = findMaxId(assetRows, cpData, patternRows, curveRows);
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
@@ -169,13 +213,13 @@ export const fetchProject = async (
         };
       },
       {
-        j: junctions.length,
-        r: reservoirs.length,
-        t: tanks.length,
-        p: pipes.length,
-        pu: pumps.length,
-        v: valves.length,
-        cp: customerPointRows.length,
+        j: junctionsRaw.length,
+        r: reservoirsRaw.length,
+        t: tanksRaw.length,
+        p: pipesRaw.length,
+        pu: pumpsRaw.length,
+        v: valvesRaw.length,
+        cp: customerPointsRaw.length,
       },
     );
   });

@@ -1,19 +1,26 @@
 import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
-import { multipliersSchema, type PatternRow } from "./schema";
+import { multipliersSchema, patternRowSchema, type PatternRow } from "./schema";
 
 export const toPatternRow = (pattern: Pattern): PatternRow => {
-  const result = multipliersSchema.safeParse(pattern.multipliers);
-  if (!result.success) {
+  const multipliersResult = multipliersSchema.safeParse(pattern.multipliers);
+  if (!multipliersResult.success) {
     throw new Error(
-      `Pattern ${pattern.id} (${pattern.label}): multipliers must be an array of finite numbers — ${result.error.message}`,
+      `Pattern ${pattern.id} (${pattern.label}): multipliers must be an array of finite numbers — ${multipliersResult.error.message}`,
     );
   }
-  return {
+  const candidate = {
     id: pattern.id,
     label: pattern.label,
     type: pattern.type ?? null,
-    multipliers: JSON.stringify(result.data),
+    multipliers: JSON.stringify(multipliersResult.data),
   };
+  const rowResult = patternRowSchema.safeParse(candidate);
+  if (!rowResult.success) {
+    throw new Error(
+      `Pattern ${pattern.id} (${pattern.label}): row does not match schema — ${rowResult.error.message}`,
+    );
+  }
+  return rowResult.data;
 };
 
 export const patternsToRows = (patterns: Patterns): PatternRow[] => {

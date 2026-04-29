@@ -1,17 +1,49 @@
+import { z } from "zod";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import { pointsSchema } from "../curves/schema";
+import {
+  junctionRowSchema,
+  reservoirRowSchema,
+  tankRowSchema,
+  pipeRowSchema,
+  pumpRowSchema,
+  valveRowSchema,
+} from "./schema";
 
-export type AssetPatchRow = { id: AssetId } & Record<string, unknown>;
+const asPatchSchema = <T extends z.ZodObject<z.ZodRawShape>>(rowSchema: T) =>
+  rowSchema.partial().required({ id: true });
+
+export const junctionPatchRowSchema = asPatchSchema(junctionRowSchema);
+export const reservoirPatchRowSchema = asPatchSchema(reservoirRowSchema);
+export const tankPatchRowSchema = asPatchSchema(tankRowSchema);
+export const pipePatchRowSchema = asPatchSchema(pipeRowSchema);
+export const pumpPatchRowSchema = asPatchSchema(pumpRowSchema);
+export const valvePatchRowSchema = asPatchSchema(valveRowSchema);
+
+export type JunctionPatchRow = z.infer<typeof junctionPatchRowSchema>;
+export type ReservoirPatchRow = z.infer<typeof reservoirPatchRowSchema>;
+export type TankPatchRow = z.infer<typeof tankPatchRowSchema>;
+export type PipePatchRow = z.infer<typeof pipePatchRowSchema>;
+export type PumpPatchRow = z.infer<typeof pumpPatchRowSchema>;
+export type ValvePatchRow = z.infer<typeof valvePatchRowSchema>;
+
+export type AssetPatchRow =
+  | JunctionPatchRow
+  | ReservoirPatchRow
+  | TankPatchRow
+  | PipePatchRow
+  | PumpPatchRow
+  | ValvePatchRow;
 
 export type AssetPatchRows = {
-  junctions: AssetPatchRow[];
-  reservoirs: AssetPatchRow[];
-  tanks: AssetPatchRow[];
-  pipes: AssetPatchRow[];
-  pumps: AssetPatchRow[];
-  valves: AssetPatchRow[];
+  junctions: JunctionPatchRow[];
+  reservoirs: ReservoirPatchRow[];
+  tanks: TankPatchRow[];
+  pipes: PipePatchRow[];
+  pumps: PumpPatchRow[];
+  valves: ValvePatchRow[];
 };
 
 export const emptyAssetPatchRows = (): AssetPatchRows => ({
@@ -31,29 +63,82 @@ export const assetPatchesToRows = (
     switch (patch.type) {
       case "junction":
         rows.junctions.push(
-          toPatchRow(patch.id, patch.properties, junctionMap),
+          parsePatch(
+            junctionPatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, junctionMap),
+            "Junction",
+            patch.id,
+          ),
         );
         break;
       case "reservoir":
         rows.reservoirs.push(
-          toPatchRow(patch.id, patch.properties, reservoirMap),
+          parsePatch(
+            reservoirPatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, reservoirMap),
+            "Reservoir",
+            patch.id,
+          ),
         );
         break;
       case "tank":
-        rows.tanks.push(toPatchRow(patch.id, patch.properties, tankMap));
+        rows.tanks.push(
+          parsePatch(
+            tankPatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, tankMap),
+            "Tank",
+            patch.id,
+          ),
+        );
         break;
       case "pipe":
-        rows.pipes.push(toPatchRow(patch.id, patch.properties, pipeMap));
+        rows.pipes.push(
+          parsePatch(
+            pipePatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, pipeMap),
+            "Pipe",
+            patch.id,
+          ),
+        );
         break;
       case "pump":
-        rows.pumps.push(toPatchRow(patch.id, patch.properties, pumpMap));
+        rows.pumps.push(
+          parsePatch(
+            pumpPatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, pumpMap),
+            "Pump",
+            patch.id,
+          ),
+        );
         break;
       case "valve":
-        rows.valves.push(toPatchRow(patch.id, patch.properties, valveMap));
+        rows.valves.push(
+          parsePatch(
+            valvePatchRowSchema,
+            buildPatchObject(patch.id, patch.properties, valveMap),
+            "Valve",
+            patch.id,
+          ),
+        );
         break;
     }
   }
   return rows;
+};
+
+const parsePatch = <T>(
+  schema: z.ZodType<T>,
+  patch: Record<string, unknown>,
+  kind: string,
+  id: AssetId,
+): T => {
+  const result = schema.safeParse(patch);
+  if (!result.success) {
+    throw new Error(
+      `${kind} ${id} patch: row does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
 };
 
 type ColumnMap = Record<
@@ -61,12 +146,12 @@ type ColumnMap = Record<
   { col: string; transform?: (v: unknown) => unknown }
 >;
 
-const toPatchRow = (
+const buildPatchObject = (
   id: AssetId,
   properties: Record<string, unknown>,
   map: ColumnMap,
-): AssetPatchRow => {
-  const row: AssetPatchRow = { id };
+): Record<string, unknown> => {
+  const row: Record<string, unknown> = { id };
   for (const key in properties) {
     const entry = map[key];
     if (!entry) continue;

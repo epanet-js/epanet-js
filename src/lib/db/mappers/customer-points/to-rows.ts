@@ -7,17 +7,19 @@ import type {
   CustomerAssignedDemands,
   Demand,
 } from "src/hydraulic-model/demands";
-import type {
-  CustomerPointRow,
-  CustomerPointDemandRow,
-  CustomerPointsData,
+import {
+  customerPointRowSchema,
+  customerPointDemandRowSchema,
+  type CustomerPointRow,
+  type CustomerPointDemandRow,
+  type CustomerPointsData,
 } from "./schema";
 
 export const toCustomerPointRow = (
   customerPoint: CustomerPoint,
 ): CustomerPointRow => {
   const connection = customerPoint.connection;
-  return {
+  const candidate = {
     id: customerPoint.id,
     label: customerPoint.label,
     coord_x: customerPoint.coordinates[0],
@@ -27,18 +29,34 @@ export const toCustomerPointRow = (
     snap_x: connection ? connection.snapPoint[0] : null,
     snap_y: connection ? connection.snapPoint[1] : null,
   };
+  const result = customerPointRowSchema.safeParse(candidate);
+  if (!result.success) {
+    throw new Error(
+      `CustomerPoint ${customerPoint.id} (${customerPoint.label}): row does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
 };
 
 export const toCustomerPointDemandRow = (
   customerPointId: CustomerPointId,
   demand: Demand,
   ordinal: number,
-): CustomerPointDemandRow => ({
-  customer_point_id: customerPointId,
-  ordinal,
-  base_demand: demand.baseDemand,
-  pattern_id: demand.patternId ?? null,
-});
+): CustomerPointDemandRow => {
+  const candidate = {
+    customer_point_id: customerPointId,
+    ordinal,
+    base_demand: demand.baseDemand,
+    pattern_id: demand.patternId ?? null,
+  };
+  const result = customerPointDemandRowSchema.safeParse(candidate);
+  if (!result.success) {
+    throw new Error(
+      `CustomerPoint ${customerPointId} demand ${ordinal}: row does not match schema — ${result.error.message}`,
+    );
+  }
+  return result.data;
+};
 
 export const customerPointsToRows = (
   customerPoints: CustomerPoints,

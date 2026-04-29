@@ -1,20 +1,32 @@
-export type CustomerPointRow = {
-  id: number;
-  label: string;
-  coord_x: number;
-  coord_y: number;
-  pipe_id: number | null;
-  junction_id: number | null;
-  snap_x: number | null;
-  snap_y: number | null;
-};
+import { z } from "zod";
 
-export type CustomerPointDemandRow = {
-  customer_point_id: number;
-  ordinal: number;
-  base_demand: number;
-  pattern_id: number | null;
-};
+const id = z.number().int();
+const fkId = z.number().int().nullable();
+const finiteCoord = z.number().finite();
+const finiteCoordNullable = z.number().finite().nullable();
+
+export const customerPointRowSchema = z.object({
+  id,
+  label: z.string(),
+  coord_x: finiteCoord,
+  coord_y: finiteCoord,
+  pipe_id: fkId,
+  junction_id: fkId,
+  snap_x: finiteCoordNullable,
+  snap_y: finiteCoordNullable,
+});
+
+export const customerPointDemandRowSchema = z.object({
+  customer_point_id: id,
+  ordinal: z.number().int(),
+  base_demand: z.number().finite(),
+  pattern_id: fkId,
+});
+
+export type CustomerPointRow = z.infer<typeof customerPointRowSchema>;
+export type CustomerPointDemandRow = z.infer<
+  typeof customerPointDemandRowSchema
+>;
 
 export type CustomerPointsData = {
   customerPoints: CustomerPointRow[];

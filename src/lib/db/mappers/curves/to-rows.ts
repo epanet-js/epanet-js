@@ -1,19 +1,26 @@
 import type { Curves, ICurve } from "src/hydraulic-model/curves";
-import { pointsSchema, type CurveRow } from "./schema";
+import { curveRowSchema, pointsSchema, type CurveRow } from "./schema";
 
 export const toCurveRow = (curve: ICurve): CurveRow => {
-  const result = pointsSchema.safeParse(curve.points);
-  if (!result.success) {
+  const pointsResult = pointsSchema.safeParse(curve.points);
+  if (!pointsResult.success) {
     throw new Error(
-      `Curve ${curve.id} (${curve.label}): points must be an array of {x,y} with finite numbers — ${result.error.message}`,
+      `Curve ${curve.id} (${curve.label}): points must be an array of {x,y} with finite numbers — ${pointsResult.error.message}`,
     );
   }
-  return {
+  const candidate = {
     id: curve.id,
     label: curve.label,
     type: curve.type ?? null,
-    points: JSON.stringify(result.data),
+    points: JSON.stringify(pointsResult.data),
   };
+  const rowResult = curveRowSchema.safeParse(candidate);
+  if (!rowResult.success) {
+    throw new Error(
+      `Curve ${curve.id} (${curve.label}): row does not match schema — ${rowResult.error.message}`,
+    );
+  }
+  return rowResult.data;
 };
 
 export const curvesToRows = (curves: Curves): CurveRow[] => {

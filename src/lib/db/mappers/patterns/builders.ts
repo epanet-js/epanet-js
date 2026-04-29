@@ -1,8 +1,4 @@
-import type {
-  Pattern,
-  PatternType,
-  Patterns,
-} from "src/hydraulic-model/patterns";
+import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
 import { multipliersSchema, type PatternRow } from "./schema";
 
 export const buildPatternsData = (rows: PatternRow[]): Patterns => {
@@ -13,7 +9,7 @@ export const buildPatternsData = (rows: PatternRow[]): Patterns => {
       label: row.label,
       multipliers: parseMultipliers(row),
     };
-    if (row.type !== null) pattern.type = row.type as PatternType;
+    if (row.type !== null) pattern.type = row.type;
     patterns.set(row.id, pattern);
   }
   return patterns;
