@@ -8,7 +8,6 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   RangeMode,
   appendBreak,
-  applyMode,
   changeIntervalColor,
   changeRangeSize,
   deleteBreak,
@@ -22,8 +21,14 @@ import {
   validateAscindingBreaks,
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtomValue } from "jotai";
 import { useRegenerateBreaks } from "src/hooks/use-regenerate-breaks";
+import { getSortedDataForProperty } from "src/map/symbology/symbology-data-source";
+import {
+  stagingModelDerivedAtom,
+  simulationResultsDerivedAtom,
+} from "src/state/derived-branch-state";
 
 import { Selector } from "src/components/form/selector";
 import * as d3 from "d3-array";
@@ -50,8 +55,8 @@ export const RangeColorRuleEditor = ({
 
   const userTracking = useUserTracking();
   const {
-    sortedData,
     regenerate,
+    regenerateFromCurrentStep,
     regenerateFromAllData,
     canRegenerateFromAllData,
     isWorking,
@@ -82,40 +87,6 @@ export const RangeColorRuleEditor = ({
 
   const [colorRule, setColorRule] = useState<RangeColorRule>(initialColorRule);
 
-  const isDebugHistogramEnabled = useFeatureFlag("FLAG_DEBUG_HISTOGRAM");
-
-  const debugData = useMemo(() => {
-    if (!isDebugHistogramEnabled) return { histogram: [], min: 0, max: 0 };
-
-    function createHistogram(values: number[], breaks: number[]) {
-      const histogram = new Array(breaks.length - 1).fill(0);
-      let valueIndex = 0;
-
-      const min = values[0];
-      const max = values[values.length - 1];
-
-      for (let bin = 0; bin < breaks.length - 1; bin++) {
-        const left = breaks[bin];
-        const right = breaks[bin + 1];
-
-        while (valueIndex < values.length && values[valueIndex] <= right) {
-          if (values[valueIndex] > left) {
-            histogram[bin]++;
-          }
-          valueIndex++;
-        }
-      }
-
-      return { histogram, min, max };
-    }
-
-    return createHistogram(sortedData, [
-      -Infinity,
-      ...colorRule.breaks,
-      +Infinity,
-    ]);
-  }, [colorRule.breaks, sortedData, isDebugHistogramEnabled]);
-
   const [error, setError] = useState<ErrorType | null>(null);
 
   const submitChange = (newColorRule: RangeColorRule) => {
@@ -145,37 +116,26 @@ export const RangeColorRuleEditor = ({
     setError(null);
   };
 
-  const handleModeChange = (newMode: RangeMode) => {
+  const handleModeChange = async (newMode: RangeMode) => {
     userTracking.capture({
       name: "colorRange.rangeMode.changed",
       mode: newMode,
       property: colorRule.property,
     });
-    const result = applyMode(colorRule, newMode, sortedData);
-    setColorRule(result.colorRule);
-    if (result.error) {
-      showError("notEnoughData", result.colorRule);
-    } else {
-      clearError();
-      submitChange(result.colorRule);
-    }
+    const result = await regenerate({ ...colorRule, mode: newMode });
+    if (result) applyRegenerateResult(result);
   };
 
-  const handleRangeSizeChange = (numIntervals: number) => {
+  const handleRangeSizeChange = async (numIntervals: number) => {
     userTracking.capture({
       name: "colorRange.classes.changed",
       classesCount: numIntervals,
       property: colorRule.property,
     });
 
-    const result = changeRangeSize(colorRule, sortedData, numIntervals);
-    setColorRule(result.colorRule);
-    if (result.error) {
-      showError("notEnoughData", result.colorRule);
-    } else {
-      clearError();
-      submitChange(result.colorRule);
-    }
+    const sized = changeRangeSize(colorRule, [], numIntervals);
+    const result = await regenerate(sized.colorRule);
+    if (result) applyRegenerateResult(result);
   };
 
   const handleIntervalColorChange = (index: number, color: string) => {
@@ -255,6 +215,18 @@ export const RangeColorRuleEditor = ({
     }
   };
 
+  const LONG_PRESS_MS = 500;
+  const [isRegenerateDropdownOpen, setIsRegenerateDropdownOpen] =
+    useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const wasLongPressRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
+
   const applyRegenerateResult = (result: {
     colorRule: RangeColorRule;
     error?: boolean;
@@ -268,13 +240,47 @@ export const RangeColorRuleEditor = ({
     }
   };
 
-  const handleRegenerate = () => {
-    applyRegenerateResult(regenerate(colorRule));
+  const handleRegenerate = async () => {
+    const result = await regenerate(colorRule);
+    if (result) applyRegenerateResult(result);
+  };
+
+  const handleRegenerateFromCurrentStep = async () => {
+    const result = await regenerateFromCurrentStep(colorRule);
+    if (result) applyRegenerateResult(result);
   };
 
   const handleRegenerateFromAllData = async () => {
     const result = await regenerateFromAllData(colorRule);
     if (result) applyRegenerateResult(result);
+  };
+
+  const handleRegeneratePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    if (isWorking) return;
+    wasLongPressRef.current = false;
+    longPressTimerRef.current = window.setTimeout(() => {
+      wasLongPressRef.current = true;
+      setIsRegenerateDropdownOpen(true);
+    }, LONG_PRESS_MS);
+  };
+
+  const handleRegeneratePointerUp = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (isWorking) return;
+    if (!wasLongPressRef.current && !isRegenerateDropdownOpen) {
+      void handleRegenerate();
+    }
+  };
+
+  const handleRegeneratePointerLeave = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
   };
 
   const numIntervals = colorRule.breaks.length + 1;
@@ -327,32 +333,36 @@ export const RangeColorRuleEditor = ({
                 {translate(error)}
               </p>
             )}
-            {isDebugHistogramEnabled && (
-              <>
-                <p>Histogram: {JSON.stringify(debugData.histogram)}</p>
-                <p>Min: {debugData.min}</p>
-                <p>Max: {debugData.max}</p>
-              </>
-            )}
+            <DebugHistogram colorRule={colorRule} />
           </div>
           <div className="flex flex-col items-center w-full gap-y-2">
             {canRegenerateFromAllData ? (
-              <DD.Root>
+              <DD.Root
+                open={isRegenerateDropdownOpen}
+                onOpenChange={setIsRegenerateDropdownOpen}
+              >
                 <DD.Trigger asChild>
                   <Button
-                    className="text-center text-sm"
+                    className="text-center text-sm relative"
                     size="full-width"
                     disabled={isWorking}
+                    onPointerDown={handleRegeneratePointerDown}
+                    onPointerUp={handleRegeneratePointerUp}
+                    onPointerLeave={handleRegeneratePointerLeave}
                   >
                     <RefreshIcon
                       className={isWorking ? "animate-spin" : undefined}
                     />
                     {translate("regenerate")}
+                    <span
+                      className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400"
+                      aria-hidden="true"
+                    />
                   </Button>
                 </DD.Trigger>
                 <DD.Portal>
                   <DDContent align="start" side="top" sideOffset={4}>
-                    <StyledItem onSelect={handleRegenerate}>
+                    <StyledItem onSelect={handleRegenerateFromCurrentStep}>
                       {translate("regenerateFromCurrentStep")}
                     </StyledItem>
                     <StyledItem onSelect={handleRegenerateFromAllData}>
@@ -551,5 +561,57 @@ const ModeSelector = ({
         onModeChange(newMode);
       }}
     />
+  );
+};
+
+const DebugHistogram = ({ colorRule }: { colorRule: RangeColorRule }) => {
+  const isEnabled = useFeatureFlag("FLAG_DEBUG_HISTOGRAM");
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulationResults = useAtomValue(simulationResultsDerivedAtom);
+
+  const sortedData = useMemo(
+    () =>
+      getSortedDataForProperty(
+        colorRule.property,
+        hydraulicModel,
+        simulationResults,
+        {
+          absValues: Boolean(colorRule.absValues),
+        },
+      ),
+    [
+      colorRule.property,
+      colorRule.absValues,
+      hydraulicModel,
+      simulationResults,
+    ],
+  );
+
+  const histogram = useMemo(() => {
+    const breaks = [-Infinity, ...colorRule.breaks, +Infinity];
+    const bins: number[] = new Array(breaks.length - 1).fill(0);
+    let valueIndex = 0;
+    for (let bin = 0; bin < breaks.length - 1; bin++) {
+      const left = breaks[bin];
+      const right = breaks[bin + 1];
+      while (
+        valueIndex < sortedData.length &&
+        sortedData[valueIndex] <= right
+      ) {
+        if (sortedData[valueIndex] > left) bins[bin]++;
+        valueIndex++;
+      }
+    }
+    return bins;
+  }, [sortedData, colorRule.breaks]);
+
+  if (!isEnabled) return null;
+
+  return (
+    <>
+      <p>Histogram: {JSON.stringify(histogram)}</p>
+      <p>Min: {sortedData[0]}</p>
+      <p>Max: {sortedData[sortedData.length - 1]}</p>
+    </>
   );
 };

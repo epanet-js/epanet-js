@@ -29,15 +29,17 @@ export type BreaksDataMode = "currentStep" | "initial" | "allSteps";
 
 export type SimulationDataSource =
   | { mode: "currentStep"; resultsReader: ResultsReader }
-  | { mode: "initial"; epsReader: EPSResultsReader }
-  | { mode: "allSteps"; epsReader: EPSResultsReader };
+  | {
+      mode: "initial";
+      epsReader: EPSResultsReader;
+      resultsReader?: ResultsReader | null;
+    }
+  | {
+      mode: "allSteps";
+      epsReader: EPSResultsReader;
+      resultsReader?: ResultsReader | null;
+    };
 
-/**
- * Returns the sorted values to use for break generation for a simulation
- * property. The discriminated `source` carries everything each mode needs;
- * future modes (`initial`, `allSteps`) will widen the union and require an
- * `EPSResultsReader` rather than a per-step `ResultsReader`.
- */
 export const getSortedSimulationDataForBreaks = async (
   property: SimulationProperty,
   source: SimulationDataSource,
@@ -46,10 +48,28 @@ export const getSortedSimulationDataForBreaks = async (
   switch (source.mode) {
     case "currentStep":
       return getSortedSimulationValues(source.resultsReader, property, options);
-    case "initial":
-      return getInitialSortedValues(source.epsReader, property, options);
-    case "allSteps":
-      return getAllStepsSortedValues(source.epsReader, property, options);
+    case "initial": {
+      const data = await getInitialSortedValues(
+        source.epsReader,
+        property,
+        options,
+      );
+      if (data) return data;
+      return source.resultsReader
+        ? getSortedSimulationValues(source.resultsReader, property, options)
+        : null;
+    }
+    case "allSteps": {
+      const data = await getAllStepsSortedValues(
+        source.epsReader,
+        property,
+        options,
+      );
+      if (data) return data;
+      return source.resultsReader
+        ? getSortedSimulationValues(source.resultsReader, property, options)
+        : null;
+    }
   }
 };
 
