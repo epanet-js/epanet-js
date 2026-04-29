@@ -26,7 +26,6 @@ const makeFactories = (maxId = 0) =>
 
 const makeJunction = (overrides: Partial<JunctionRow>): JunctionRow => ({
   id: 0,
-  type: "junction",
   label: null,
   is_active: 1,
   coord_x: 0,
@@ -42,7 +41,6 @@ const makeJunction = (overrides: Partial<JunctionRow>): JunctionRow => ({
 
 const makePipe = (overrides: Partial<PipeRow>): PipeRow => ({
   id: 0,
-  type: "pipe",
   label: null,
   is_active: 1,
   start_node_id: 0,
@@ -60,7 +58,6 @@ const makePipe = (overrides: Partial<PipeRow>): PipeRow => ({
 
 const makePump = (overrides: Partial<PumpRow>): PumpRow => ({
   id: 0,
-  type: "pump",
   label: null,
   is_active: 1,
   start_node_id: 0,

@@ -42,20 +42,17 @@ const linkRowShared = {
 
 export const junctionRowSchema = z.object({
   ...nodeRowShared,
-  type: z.literal("junction"),
   emitter_coefficient: nullableNumber,
 });
 
 export const reservoirRowSchema = z.object({
   ...nodeRowShared,
-  type: z.literal("reservoir"),
   head: nullableNumber,
   head_pattern_id: fkId,
 });
 
 export const tankRowSchema = z.object({
   ...nodeRowShared,
-  type: z.literal("tank"),
   initial_level: nullableNumber,
   min_level: nullableNumber,
   max_level: nullableNumber,
@@ -70,7 +67,6 @@ export const tankRowSchema = z.object({
 
 export const pipeRowSchema = z.object({
   ...linkRowShared,
-  type: z.literal("pipe"),
   initial_status: z.enum(pipeStatuses).nullable(),
   diameter: nullableNumber,
   roughness: nullableNumber,
@@ -81,7 +77,6 @@ export const pipeRowSchema = z.object({
 
 export const pumpRowSchema = z.object({
   ...linkRowShared,
-  type: z.literal("pump"),
   initial_status: z.enum(pumpStatuses).nullable(),
   definition_type: z.enum(["power", "curve", "curveId"]),
   power: nullableNumber,
@@ -96,7 +91,6 @@ export const pumpRowSchema = z.object({
 
 export const valveRowSchema = z.object({
   ...linkRowShared,
-  type: z.literal("valve"),
   initial_status: z.enum(valveStatuses).nullable(),
   diameter: nullableNumber,
   minor_loss: nullableNumber,

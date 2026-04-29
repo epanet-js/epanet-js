@@ -16,6 +16,7 @@ export default defineConfig({
     exclude: ["src/**/*.benchmark.test.ts", "src/**/*.benchmark.test.tsx"],
     environmentMatchGlobs: [
       ["src/**/*.test.tsx", "jsdom"],
+      ["src/**/*.integration.test.ts", "jsdom"],
       ["src/**/*.test.ts", "node"],
     ],
     dir: "./",

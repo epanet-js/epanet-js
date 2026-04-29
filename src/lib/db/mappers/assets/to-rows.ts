@@ -82,7 +82,6 @@ const toJunctionRow = (junction: Junction): JunctionRow =>
     junctionRowSchema,
     {
       id: junction.id,
-      type: "junction",
       label: junction.label,
       is_active: toDbBool(junction.isActive),
       coord_x: junction.coordinates[0],
@@ -104,7 +103,6 @@ const toReservoirRow = (reservoir: Reservoir): ReservoirRow =>
     reservoirRowSchema,
     {
       id: reservoir.id,
-      type: "reservoir",
       label: reservoir.label,
       is_active: toDbBool(reservoir.isActive),
       coord_x: reservoir.coordinates[0],
@@ -127,7 +125,6 @@ const toTankRow = (tank: Tank): TankRow =>
     tankRowSchema,
     {
       id: tank.id,
-      type: "tank",
       label: tank.label,
       is_active: toDbBool(tank.isActive),
       coord_x: tank.coordinates[0],
@@ -158,7 +155,6 @@ const toPipeRow = (pipe: Pipe): PipeRow =>
     pipeRowSchema,
     {
       id: pipe.id,
-      type: "pipe",
       label: pipe.label,
       is_active: toDbBool(pipe.isActive),
       start_node_id: pipe.connections[0],
@@ -182,7 +178,6 @@ const toPumpRow = (pump: Pump): PumpRow =>
     pumpRowSchema,
     {
       id: pump.id,
-      type: "pump",
       label: pump.label,
       is_active: toDbBool(pump.isActive),
       start_node_id: pump.connections[0],
@@ -210,7 +205,6 @@ const toValveRow = (valve: Valve): ValveRow =>
     valveRowSchema,
     {
       id: valve.id,
-      type: "valve",
       label: valve.label,
       is_active: toDbBool(valve.isActive),
       start_node_id: valve.connections[0],

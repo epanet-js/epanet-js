@@ -104,7 +104,6 @@ describe("assetsToRows", () => {
 
     expect(rows.junctions[0]).toMatchObject({
       id: 1,
-      type: "junction",
       label: "J1",
       coord_x: 10,
       coord_y: 20,
@@ -113,7 +112,6 @@ describe("assetsToRows", () => {
     });
     expect(rows.pipes[0]).toMatchObject({
       id: 4,
-      type: "pipe",
       start_node_id: 1,
       end_node_id: 2,
       is_active: 1,
