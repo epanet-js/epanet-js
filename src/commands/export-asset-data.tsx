@@ -57,7 +57,7 @@ export const useExportAssetData = () => {
           );
 
           const fileName = "export";
-          await Export.exportFile(fileName, data);
+          await Export.exportAssetData(fileName, data);
         };
 
         try {

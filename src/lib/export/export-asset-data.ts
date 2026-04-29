@@ -2,7 +2,10 @@ import { FileExporters } from "./exporters";
 import { FileSystemHelpers } from "./helpers";
 import type { ExportEntry } from "./types";
 
-export const exportFile = async (fileName: string, entries: ExportEntry[]) => {
+export const exportAssetData = async (
+  fileName: string,
+  entries: ExportEntry[],
+) => {
   const exporters = {
     geojson: FileExporters.exportGeoJson,
     csv: FileExporters.exportCsv,

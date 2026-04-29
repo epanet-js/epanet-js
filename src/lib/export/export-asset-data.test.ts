@@ -1,4 +1,4 @@
-import { exportFile } from "./export-file";
+import { exportAssetData } from "./export-asset-data";
 import { FileExporters } from "./exporters";
 import { ExportEntry } from "./types";
 
@@ -6,7 +6,7 @@ import { FileSystemHelpers } from "./helpers";
 
 const mockHandle = {} as FileSystemFileHandle;
 
-describe("export-file", () => {
+describe("export-asset-data", () => {
   beforeEach(() => {
     vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
       false,
@@ -22,7 +22,10 @@ describe("export-file", () => {
   it("generates a ZIP file with all entries", async () => {
     mockGeoJsonExporter(["nodes.geojson", "pipes.geojson"]);
 
-    await exportFile("export", [geoJsonEntry("nodes"), geoJsonEntry("pipes")]);
+    await exportAssetData("export", [
+      geoJsonEntry("nodes"),
+      geoJsonEntry("pipes"),
+    ]);
 
     expect(FileExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
@@ -39,7 +42,7 @@ describe("export-file", () => {
     );
     mockGeoJsonExporter(["nodes.geojson"]);
 
-    await exportFile("export", [geoJsonEntry("nodes")]);
+    await exportAssetData("export", [geoJsonEntry("nodes")]);
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
@@ -51,7 +54,7 @@ describe("export-file", () => {
   it("uses OPFS and triggers download when native file system is not supported", async () => {
     mockGeoJsonExporter(["nodes.geojson"]);
 
-    await exportFile("export", [geoJsonEntry("nodes")]);
+    await exportAssetData("export", [geoJsonEntry("nodes")]);
 
     expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
     expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
@@ -67,7 +70,7 @@ describe("export-file", () => {
     const geojson = geoJsonEntry("nodes");
     const shapefile = csvEntry("pipes");
 
-    await exportFile("export", [geojson, shapefile]);
+    await exportAssetData("export", [geojson, shapefile]);
 
     expect(FileExporters.exportGeoJson).toHaveBeenCalledWith(geojson);
     expect(FileExporters.exportCsv).toHaveBeenCalledWith(shapefile);
