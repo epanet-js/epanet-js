@@ -1,7 +1,7 @@
 "use client";
 import { memo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { useProfileViewData, ProfileViewData } from "./data";
+import { useProfileViewData, ProfileViewData } from "./chart-data";
 import { ProfileChart } from "./profile-chart";
 
 export const ProfileViewPanel = memo(function ProfileViewPanel() {

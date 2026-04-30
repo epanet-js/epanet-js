@@ -1,14 +1,9 @@
 "use client";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useSetAtom } from "jotai";
-import {
-  ProfileLink,
-  ProfilePoint,
-  ProfileViewData,
-  TerrainPoint,
-} from "./data";
+import { ProfileLink, ProfileViewData } from "./chart-data";
 import { useStripPlanIcons } from "./use-strip-plan-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -20,130 +15,11 @@ import { traceDuration } from "src/infra/with-instrumentation";
 import { useAtomValue } from "jotai";
 import { colors } from "src/lib/constants";
 import { USelection } from "src/selection/selection";
-import { coordinatesAtLength, PathSegment } from "./path-position";
+import { ProfileTooltip } from "./profile-tooltip";
 
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 2;
-const SNAP_PIXEL_THRESHOLD = 5;
-
-function findLinkAt(
-  x: number,
-  links: ProfileLink[] | null,
-): ProfileLink | null {
-  if (!links) return null;
-  for (const link of links) {
-    if (x >= link.startLength && x <= link.endLength) return link;
-  }
-  return null;
-}
-
-function interpolateTerrain(
-  x: number,
-  terrain: TerrainPoint[] | null,
-): number | null {
-  if (!terrain || terrain.length === 0) return null;
-  if (x <= terrain[0].cumulativeLength) return terrain[0].elevation;
-  const last = terrain[terrain.length - 1];
-  if (x >= last.cumulativeLength) return last.elevation;
-  for (let i = 0; i < terrain.length - 1; i++) {
-    const a = terrain[i];
-    const b = terrain[i + 1];
-    if (x >= a.cumulativeLength && x <= b.cumulativeLength) {
-      const span = b.cumulativeLength - a.cumulativeLength;
-      if (span <= 0) return a.elevation;
-      const t = (x - a.cumulativeLength) / span;
-      return a.elevation + (b.elevation - a.elevation) * t;
-    }
-  }
-  return null;
-}
-
-function interpolateHgl(x: number, points: ProfilePoint[]): number | null {
-  for (let i = 0; i < points.length - 1; i++) {
-    const a = points[i];
-    const b = points[i + 1];
-    if (x >= a.cumulativeLength && x <= b.cumulativeLength) {
-      if (a.head === null || b.head === null) return null;
-      const span = b.cumulativeLength - a.cumulativeLength;
-      if (span <= 0) return a.head;
-      const t = (x - a.cumulativeLength) / span;
-      return a.head + (b.head - a.head) * t;
-    }
-  }
-  return null;
-}
-
-type TooltipDeps = {
-  points: ProfilePoint[];
-  links: ProfileLink[] | null;
-  terrain: TerrainPoint[] | null;
-  pressureFactor: number | null;
-  elevColor: string;
-  translate: (key: string) => string;
-  pathSegments: PathSegment[];
-  setHoverHighlight: (coordinates: [number, number] | null) => void;
-};
-
-function buildTooltipHtml(
-  cursorX: number,
-  snappedIdx: number | null,
-  deps: TooltipDeps,
-): string {
-  const { points, links, terrain, pressureFactor, elevColor, translate } = deps;
-  const hglColor = "#2563eb";
-  const dot = (color: string) =>
-    `<span style="display:inline-block;width:8px;height:8px;background:${color};margin-right:4px;border-radius:50%;"></span>`;
-  const spacer = `<span style="display:inline-block;width:8px;height:8px;margin-right:4px;"></span>`;
-  const fmt = (v: number) => localizeDecimal(v, { decimals: 2 });
-
-  if (snappedIdx !== null) {
-    const nearest = points[snappedIdx];
-    const lines: string[] = [];
-    lines.push(
-      `${dot(elevColor)}${translate("profileView.elevation")}: ${fmt(nearest.elevation)}`,
-    );
-    if (nearest.head !== null) {
-      lines.push(
-        `${dot(hglColor)}${translate("profileView.hgl")}: ${fmt(nearest.head)}`,
-      );
-    }
-    if (nearest.pressure !== null) {
-      lines.push(`${spacer}${translate("pressure")}: ${fmt(nearest.pressure)}`);
-    }
-    return `<strong>${nearest.label}</strong><br/>${lines.join("<br/>")}`;
-  }
-
-  const link = findLinkAt(cursorX, links);
-  if (link?.type === "pump" || link?.type === "valve") return "";
-
-  const elev = interpolateTerrain(cursorX, terrain);
-  const hgl = interpolateHgl(cursorX, points);
-  const pressure =
-    hgl !== null && elev !== null && pressureFactor !== null
-      ? pressureFactor * (hgl - elev)
-      : null;
-
-  const lines: string[] = [];
-  if (elev !== null) {
-    lines.push(
-      `${dot(elevColor)}${translate("profileView.elevation")}: ${fmt(elev)}`,
-    );
-  }
-  if (hgl !== null) {
-    lines.push(`${dot(hglColor)}${translate("profileView.hgl")}: ${fmt(hgl)}`);
-  }
-  if (pressure !== null) {
-    lines.push(`${spacer}${translate("pressure")}: ${fmt(pressure)}`);
-  }
-  if (lines.length === 0) return "";
-
-  const estimatedTag = `<em style="opacity:0.7;font-style:italic;">(${translate("profileView.estimated")})</em>`;
-  const header = link
-    ? `<strong>${link.label}</strong> ${estimatedTag}`
-    : `<strong>${translate("profileView.estimated")}</strong>`;
-  return `${header}<br/>${lines.join("<br/>")}`;
-}
 
 interface ProfileChartProps {
   data: ProfileViewData;
@@ -382,126 +258,9 @@ export const ProfileChart = memo(function ProfileChart({
 
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const tooltipDepsRef = useRef<TooltipDeps>({
-    points,
-    links,
-    terrain,
-    pressureFactor,
-    elevColor: nodeSymbology.defaults.color,
-    translate,
-    pathSegments,
-    setHoverHighlight,
-  });
-  tooltipDepsRef.current = {
-    points,
-    links,
-    terrain,
-    pressureFactor,
-    elevColor: nodeSymbology.defaults.color,
-    translate,
-    pathSegments,
-    setHoverHighlight,
-  };
-
-  const [tooltipState, setTooltipState] = useState<{
-    px: number;
-    py: number;
-    html: string;
-  } | null>(null);
 
   const onChartReady = useCallback((chart: any) => {
     chartRef.current = chart;
-  }, []);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const handleMove = (e: MouseEvent) => {
-      const chart = chartRef.current;
-      if (!chart) return;
-      const rect = el.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
-      /* eslint-disable @typescript-eslint/no-unsafe-call,
-         @typescript-eslint/no-unsafe-member-access,
-         @typescript-eslint/no-unsafe-assignment */
-      const result =
-        chart.convertFromPixel({ gridIndex: 0 }, [px, py]) ??
-        chart.convertFromPixel({ seriesIndex: 0 }, [px, py]);
-      const cursorX = Array.isArray(result) ? (result[0] as number) : NaN;
-      if (Number.isNaN(cursorX)) {
-        chart.dispatchAction({
-          type: "updateAxisPointer",
-          currTrigger: "leave",
-        });
-        setTooltipState(null);
-        tooltipDepsRef.current.setHoverHighlight(null);
-        return;
-      }
-
-      const deps = tooltipDepsRef.current;
-      let snappedIdx: number | null = null;
-      let snappedPixelX: number | null = null;
-      let bestDist = SNAP_PIXEL_THRESHOLD;
-      for (let i = 0; i < deps.points.length; i++) {
-        const pointPx = chart.convertToPixel(
-          { xAxisIndex: 0 },
-          deps.points[i].cumulativeLength,
-        );
-        if (typeof pointPx !== "number" || Number.isNaN(pointPx)) continue;
-        const d = Math.abs(pointPx - px);
-        if (d <= bestDist) {
-          bestDist = d;
-          snappedIdx = i;
-          snappedPixelX = pointPx;
-        }
-      }
-
-      const effectivePixelX = snappedPixelX ?? px;
-      chart.dispatchAction({
-        type: "updateAxisPointer",
-        currTrigger: "mousemove",
-        x: effectivePixelX,
-        y: py,
-      });
-      /* eslint-enable */
-
-      const markerCoordinates =
-        snappedIdx !== null
-          ? deps.points[snappedIdx].coordinates
-          : coordinatesAtLength(deps.pathSegments, cursorX);
-      deps.setHoverHighlight(markerCoordinates);
-
-      const html = buildTooltipHtml(cursorX, snappedIdx, deps);
-      if (!html) {
-        setTooltipState(null);
-        return;
-      }
-      setTooltipState({ px, py, html });
-    };
-    const handleLeave = () => {
-      const chart = chartRef.current;
-      if (chart) {
-        /* eslint-disable @typescript-eslint/no-unsafe-call,
-           @typescript-eslint/no-unsafe-member-access */
-        chart.dispatchAction({
-          type: "updateAxisPointer",
-          currTrigger: "leave",
-        });
-        /* eslint-enable */
-      }
-      setTooltipState(null);
-      tooltipDepsRef.current.setHoverHighlight(null);
-    };
-
-    el.addEventListener("mousemove", handleMove);
-    el.addEventListener("mouseleave", handleLeave);
-    return () => {
-      el.removeEventListener("mousemove", handleMove);
-      el.removeEventListener("mouseleave", handleLeave);
-      tooltipDepsRef.current.setHoverHighlight(null);
-    };
   }, []);
 
   const stripY = (yAxisRange.min + yAxisRange.max) / 2;
@@ -838,27 +597,18 @@ export const ProfileChart = memo(function ProfileChart({
         onEvents={{ click: onChartClick }}
         onChartReady={onChartReady}
       />
-      {tooltipState && (
-        <div
-          style={{
-            position: "absolute",
-            left: tooltipState.px + 12,
-            top: tooltipState.py + 12,
-            pointerEvents: "none",
-            background: "white",
-            border: "1px solid #e5e7eb",
-            borderRadius: 4,
-            padding: "6px 8px",
-            fontSize: 12,
-            lineHeight: 1.5,
-            color: "#111827",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-            zIndex: 1000,
-            whiteSpace: "nowrap",
-          }}
-          dangerouslySetInnerHTML={{ __html: tooltipState.html }}
-        />
-      )}
+      <ProfileTooltip
+        containerRef={containerRef}
+        chartRef={chartRef}
+        points={points}
+        links={links}
+        terrain={terrain}
+        pressureFactor={pressureFactor}
+        pathSegments={pathSegments}
+        elevColor={nodeSymbology.defaults.color}
+        translate={translate}
+        setHoverHighlight={setHoverHighlight}
+      />
     </div>
   );
 });
