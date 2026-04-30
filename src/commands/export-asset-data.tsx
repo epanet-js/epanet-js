@@ -14,6 +14,7 @@ export type DataExportOptions = {
   format: ExportFormat;
   includeSimulationResults: boolean;
   simulationStep?: number;
+  selectedAssets: Set<number>;
 };
 
 export const useExportAssetData = () => {
@@ -53,6 +54,7 @@ export const useExportAssetData = () => {
             options.format,
             hydraulicModel,
             options.includeSimulationResults,
+            options.selectedAssets,
             resultsReader,
           );
         };

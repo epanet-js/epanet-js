@@ -6,6 +6,7 @@ import { FileSystemHelpers } from "./helpers";
 
 const mockHandle = {} as FileSystemFileHandle;
 const model = HydraulicModelBuilder.empty();
+const noSelection = new Set<number>();
 
 describe("export-asset-data", () => {
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe("export-asset-data", () => {
   it("generates ZIP file from exported files", async () => {
     const exportedFiles = mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false);
+    await exportAssetData("export", "geojson", model, false, noSelection);
 
     expect(AssetExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
@@ -37,7 +38,7 @@ describe("export-asset-data", () => {
     );
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false);
+    await exportAssetData("export", "geojson", model, false, noSelection);
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
@@ -49,7 +50,7 @@ describe("export-asset-data", () => {
   it("uses OPFS and triggers download when native file system is not supported", async () => {
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false);
+    await exportAssetData("export", "geojson", model, false, noSelection);
 
     expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
     expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
@@ -63,11 +64,19 @@ describe("export-asset-data", () => {
     const resultsReader = {} as ResultsReader;
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, true, resultsReader);
+    await exportAssetData(
+      "export",
+      "geojson",
+      model,
+      true,
+      noSelection,
+      resultsReader,
+    );
 
     expect(AssetExporters.exportGeoJson).toHaveBeenCalledWith(
       model,
       true,
+      noSelection,
       resultsReader,
     );
   });
@@ -76,11 +85,19 @@ describe("export-asset-data", () => {
     const resultsReader = {} as ResultsReader;
     mockCsvExporter();
 
-    await exportAssetData("export", "csv", model, true, resultsReader);
+    await exportAssetData(
+      "export",
+      "csv",
+      model,
+      true,
+      noSelection,
+      resultsReader,
+    );
 
     expect(AssetExporters.exportCsv).toHaveBeenCalledWith(
       model,
       true,
+      noSelection,
       resultsReader,
     );
   });

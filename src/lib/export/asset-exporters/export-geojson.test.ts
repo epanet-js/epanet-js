@@ -3,10 +3,12 @@ import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportGeoJson } from "./export-geojson";
 
+const noSelection = new Set<number>();
+
 describe("export-geojson", () => {
   it("generates a GeoJSON file for each asset type", async () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportGeoJson(model, false);
+    const files = exportGeoJson(model, false, noSelection);
 
     for (const file of files) {
       const geoJson = await parseGeoJson(file);
@@ -22,7 +24,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 10 })
       .build();
-    const files = exportGeoJson(model, false);
+    const files = exportGeoJson(model, false, noSelection);
 
     const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
 
@@ -41,7 +43,7 @@ describe("export-geojson", () => {
       .aJunction(2, { label: "J2" })
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
-    const files = exportGeoJson(model, false);
+    const files = exportGeoJson(model, false, noSelection);
 
     const junctionGeoJson = await parseGeoJson(
       findFile(files, "junction.geojson"),
@@ -58,13 +60,26 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportGeoJson(model, true, resultsReader);
+    const files = exportGeoJson(model, true, noSelection, resultsReader);
 
     const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
     expect(geoJson.features[0].properties).toMatchObject({
       pressure: 42,
       demand: 5,
     });
+  });
+
+  it("only exports selected assets when selectedAssets is non-empty", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .aJunction(2, { label: "J2" })
+      .build();
+    const files = exportGeoJson(model, false, new Set([1]));
+
+    const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
+
+    expect(geoJson.features).toHaveLength(1);
+    expect(geoJson.features[0].properties).toMatchObject({ label: "J1" });
   });
 });
 
@@ -74,7 +89,11 @@ const findFile = (files: ExportedFile[], name: string) =>
 const parseGeoJson = async (file: ExportedFile) =>
   JSON.parse(await file.blob.text()) as {
     type: string;
-    features: { type: string; geometry: object; properties: object }[];
+    features: {
+      type: string;
+      geometry: object;
+      properties: Record<string, unknown>;
+    }[];
   };
 
 const mockResultsReader = (pressure: number, demand: number) =>

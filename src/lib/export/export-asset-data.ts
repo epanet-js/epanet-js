@@ -9,6 +9,7 @@ export const exportAssetData = async (
   format: ExportFormat,
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
+  selectedAssets: Set<number>,
   resultsReader?: ResultsReader,
 ) => {
   const exporters = {
@@ -19,6 +20,7 @@ export const exportAssetData = async (
   const exportedFiles = exporters[format](
     hydraulicModel,
     includeSimulationResults,
+    selectedAssets,
     resultsReader,
   );
 

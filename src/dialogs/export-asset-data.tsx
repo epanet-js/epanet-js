@@ -6,6 +6,8 @@ import { useExportAssetData } from "src/commands/export-asset-data";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { dialogAtom } from "src/state/dialog";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import type { ExportFormat } from "src/lib/export/types";
 
 const exportFormats: { value: ExportFormat; labelKey: string }[] = [
@@ -27,23 +29,35 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const timestepCount = epsResultsReader?.timestepCount ?? 0;
   const reportingTimeStep = epsResultsReader?.reportingTimeStep ?? 3600;
 
+  const selection = useAtomValue(selectionAtom);
+  const selectedIds = USelection.toIds(selection);
+  const hasSelection = selectedIds.length > 0;
+
   const [format, setFormat] = useState<ExportFormat>("geojson");
   const [includeSimulationResults, setIncludeSimulationResults] =
     useState(false);
+  const [selectedAssetsOnly, setSelectedAssetsOnly] = useState(false);
 
   const handleExport = useCallback(async () => {
+    const selectedAssets = selectedAssetsOnly
+      ? new Set(selectedIds)
+      : new Set<number>();
     setDialogState(null);
+
     await exportAssetData({
       format,
       includeSimulationResults,
       simulationStep,
+      selectedAssets,
     });
   }, [
+    selectedAssetsOnly,
+    selectedIds,
+    setDialogState,
     exportAssetData,
     format,
     includeSimulationResults,
     simulationStep,
-    setDialogState,
   ]);
 
   const isEpsSimulation = timestepCount > 1;
@@ -99,6 +113,20 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
             />
             <span className="text-sm text-gray-700">
               {includeSimulationResultsLabelText}
+            </span>
+          </label>
+          <label
+            className={`flex items-center gap-x-2 ${hasSelection ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+          >
+            <input
+              type="checkbox"
+              checked={selectedAssetsOnly}
+              disabled={!hasSelection}
+              onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
+              className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+            />
+            <span className="text-sm text-gray-700">
+              {translate("exportSelectedAssetsOnly")}
             </span>
           </label>
         </div>

@@ -1276,6 +1276,7 @@
   "exportCsv": "CSV",
   "exportGeojson": "GeoJSON",
   "exportShapefile": "Shapefile (GIS)",
+  "exportSelectedAssetsOnly": "Selected assets only",
   "dialog": {
     "save": "Save",
     "cancel": "Cancel",

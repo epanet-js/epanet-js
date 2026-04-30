@@ -69,6 +69,7 @@ const allocateProperties = () => {
 export const exportCsv = (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
+  selectedAssets: Set<number>,
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const charsPerCol = 64;
@@ -77,6 +78,7 @@ export const exportCsv = (
   const size = numCols * numRows * charsPerCol;
   const parts: string[] = new Array(numCols + 1);
   const encoder = new TextEncoder();
+  const hasAssetSelection = selectedAssets.size > 0;
 
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
@@ -144,6 +146,7 @@ export const exportCsv = (
       writeHeader(asset, Object.keys(simulationValues));
     }
 
+    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
     writeAsset(asset, simulationValues);
   });
 

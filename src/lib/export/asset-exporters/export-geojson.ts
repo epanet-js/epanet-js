@@ -106,6 +106,7 @@ const removeTrailingComma = (
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
+  selectedAssets: Set<number>,
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const entrySize = estimateEntrySize(hydraulicModel);
@@ -113,10 +114,13 @@ export const exportGeoJson = (
   const encoder = new TextEncoder();
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
+  const hasAssetSelection = selectedAssets.size > 0;
 
   encodeHeader(buffers, offsets, encoder);
 
   hydraulicModel.assets.forEach((asset) => {
+    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
+
     const simulationValues = includeSimulationResults
       ? getSimulationResults[asset.type](asset)
       : {};

@@ -3,10 +3,12 @@ import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportCsv } from "./export-csv";
 
+const noSelection = new Set<number>();
+
 describe("export-csv", () => {
   it("always returns one file per asset type with correct metadata", () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportCsv(model, false);
+    const files = exportCsv(model, false, noSelection);
 
     expect(files).toHaveLength(6);
     expect(files.map((f) => f.fileName)).toEqual(
@@ -21,7 +23,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 42 })
       .build();
-    const files = exportCsv(model, false);
+    const files = exportCsv(model, false, noSelection);
 
     const lines = await readCsv(findFile(files, "junction.csv"));
     const headers = lines[0].split(",").filter(Boolean);
@@ -41,7 +43,7 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aPipe(2, { startNodeId: 1 })
       .build();
-    const files = exportCsv(model, false);
+    const files = exportCsv(model, false, noSelection);
 
     const junctionLines = await readCsv(findFile(files, "junction.csv"));
     const pipeLines = await readCsv(findFile(files, "pipe.csv"));
@@ -55,7 +57,7 @@ describe("export-csv", () => {
     const junction = model.assets.get(1)!;
     junction.setProperty("someObject", { nested: true });
 
-    const files = exportCsv(model, false);
+    const files = exportCsv(model, false, noSelection);
     const lines = await readCsv(findFile(files, "junction.csv"));
     const [row] = parseCsvRows(lines);
 
@@ -68,12 +70,26 @@ describe("export-csv", () => {
     const demand = 10;
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportCsv(model, true, resultsReader);
+    const files = exportCsv(model, true, noSelection, resultsReader);
     const lines = await readCsv(findFile(files, "junction.csv"));
     const [row] = parseCsvRows(lines);
 
     expect(row.sim_pressure).toBe("42");
     expect(row.sim_demand).toBe("10");
+  });
+
+  it("only exports selected assets when selectedAssets is non-empty", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .aJunction(2, { label: "J2" })
+      .build();
+    const files = exportCsv(model, false, new Set([1]));
+
+    const lines = await readCsv(findFile(files, "junction.csv"));
+    const rows = parseCsvRows(lines);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].label).toBe("J1");
   });
 });
 
