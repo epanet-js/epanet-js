@@ -1,19 +1,26 @@
+import { HydraulicModel } from "src/hydraulic-model";
 import { FileExporters } from "./exporters";
 import { FileSystemHelpers } from "./helpers";
-import type { ExportEntry } from "./types";
+import type { ExportFormat } from "./types";
+import { ResultsReader } from "src/simulation";
 
 export const exportAssetData = async (
   fileName: string,
-  entries: ExportEntry[],
+  format: ExportFormat,
+  hydraulicModel: HydraulicModel,
+  includeSimulationResults: boolean,
+  resultsReader?: ResultsReader,
 ) => {
   const exporters = {
     geojson: FileExporters.exportGeoJson,
     csv: FileExporters.exportCsv,
   };
 
-  const exportedFiles = (
-    await Promise.all(entries.map((entry) => exporters[entry.format](entry)))
-  ).flat();
+  const exportedFiles = exporters[format](
+    hydraulicModel,
+    includeSimulationResults,
+    resultsReader,
+  );
 
   const zipFileName = `${fileName}.zip`;
   const handle = FileSystemHelpers.isFileSystemAccessSupported()

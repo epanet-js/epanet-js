@@ -1,10 +1,11 @@
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
 import { FileExporters } from "./exporters";
-import { ExportEntry } from "./types";
-
 import { FileSystemHelpers } from "./helpers";
 
 const mockHandle = {} as FileSystemFileHandle;
+const model = HydraulicModelBuilder.empty();
 
 describe("export-asset-data", () => {
   beforeEach(() => {
@@ -19,30 +20,24 @@ describe("export-asset-data", () => {
     vi.spyOn(FileExporters, "exportZip").mockResolvedValue(undefined);
   });
 
-  it("generates a ZIP file with all entries", async () => {
-    mockGeoJsonExporter(["nodes.geojson", "pipes.geojson"]);
+  it("generates ZIP file from exported files", async () => {
+    const exportedFiles = mockGeoJsonExporter();
 
-    await exportAssetData("export", [
-      geoJsonEntry("nodes"),
-      geoJsonEntry("pipes"),
-    ]);
+    await exportAssetData("export", "geojson", model, false);
 
     expect(FileExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
-      expect.arrayContaining([
-        expect.objectContaining({ fileName: "nodes.geojson" }),
-        expect.objectContaining({ fileName: "pipes.geojson" }),
-      ]),
+      exportedFiles,
     );
   });
 
-  it("uses native file system handles when supported by the browser", async () => {
+  it("uses native file system handle when supported by the browser", async () => {
     vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
       true,
     );
-    mockGeoJsonExporter(["nodes.geojson"]);
+    mockGeoJsonExporter();
 
-    await exportAssetData("export", [geoJsonEntry("nodes")]);
+    await exportAssetData("export", "geojson", model, false);
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
@@ -52,9 +47,9 @@ describe("export-asset-data", () => {
   });
 
   it("uses OPFS and triggers download when native file system is not supported", async () => {
-    mockGeoJsonExporter(["nodes.geojson"]);
+    mockGeoJsonExporter();
 
-    await exportAssetData("export", [geoJsonEntry("nodes")]);
+    await exportAssetData("export", "geojson", model, false);
 
     expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
     expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
@@ -64,51 +59,57 @@ describe("export-asset-data", () => {
     );
   });
 
-  it("passes-through data to the appropriate exporter", async () => {
-    mockGeoJsonExporter(["nodes.geojson"]);
-    mockCsvExporter(["pipes.zip"]);
-    const geojson = geoJsonEntry("nodes");
-    const shapefile = csvEntry("pipes");
+  it("calls the geojson exporter for geojson format", async () => {
+    const resultsReader = {} as ResultsReader;
+    mockGeoJsonExporter();
 
-    await exportAssetData("export", [geojson, shapefile]);
+    await exportAssetData("export", "geojson", model, true, resultsReader);
 
-    expect(FileExporters.exportGeoJson).toHaveBeenCalledWith(geojson);
-    expect(FileExporters.exportCsv).toHaveBeenCalledWith(shapefile);
+    expect(FileExporters.exportGeoJson).toHaveBeenCalledWith(
+      model,
+      true,
+      resultsReader,
+    );
+  });
+
+  it("calls the csv exporter for csv format", async () => {
+    const resultsReader = {} as ResultsReader;
+    mockCsvExporter();
+
+    await exportAssetData("export", "csv", model, true, resultsReader);
+
+    expect(FileExporters.exportCsv).toHaveBeenCalledWith(
+      model,
+      true,
+      resultsReader,
+    );
   });
 });
 
-function mockGeoJsonExporter(files: string[]) {
-  files.forEach((file) => {
-    vi.spyOn(FileExporters, "exportGeoJson").mockReturnValueOnce([
-      {
-        fileName: file,
-        extensions: [".geojson"],
-        mimeTypes: ["application/geo+json"],
-        description: "GeoJSON",
-        blob: new Blob([], { type: "application/geo+json" }),
-      },
-    ]);
-  });
+function mockGeoJsonExporter() {
+  const files = [
+    {
+      fileName: "junction.geojson",
+      extensions: [".geojson"],
+      mimeTypes: ["application/geo+json"],
+      description: "GeoJSON File",
+      blob: new Blob([], { type: "application/geo+json" }),
+    },
+  ];
+  vi.spyOn(FileExporters, "exportGeoJson").mockReturnValue(files);
+  return files;
 }
 
-function mockCsvExporter(files: string[]) {
-  files.forEach((file) => {
-    vi.spyOn(FileExporters, "exportCsv").mockResolvedValue([
-      {
-        fileName: file,
-        extensions: [".csv"],
-        mimeTypes: ["text/csv"],
-        description: "CSV File",
-        blob: new Blob([], { type: "text/csv" }),
-      },
-    ]);
-  });
-}
-
-function csvEntry(name: string): ExportEntry {
-  return { format: "csv", name, data: [{ id: 1 }] };
-}
-
-function geoJsonEntry(name: string): ExportEntry {
-  return { format: "geojson", name, data: [{ id: 1 }] };
+function mockCsvExporter() {
+  const files = [
+    {
+      fileName: "junction.csv",
+      extensions: [".csv"],
+      mimeTypes: ["text/csv"],
+      description: "CSV File",
+      blob: new Blob([], { type: "text/csv" }),
+    },
+  ];
+  vi.spyOn(FileExporters, "exportCsv").mockReturnValue(files);
+  return files;
 }
