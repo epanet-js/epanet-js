@@ -513,5 +513,16 @@ export function filterableSelectColumn<T extends string | number = string>(
     },
     deleteValue: options.deleteValue ?? null,
     ...(isEmpty ? { disabled: true, disableKeys: true } : {}),
+    sortingFn: (rowA, rowB, columnId) => {
+      const aVal = rowA.getValue(columnId);
+      const bVal = rowB.getValue(columnId);
+      const aLabel =
+        options.options.find((o) => o.value === aVal)?.label ??
+        String(aVal ?? "");
+      const bLabel =
+        options.options.find((o) => o.value === bVal)?.label ??
+        String(bVal ?? "");
+      return aLabel.localeCompare(bLabel);
+    },
   };
 }

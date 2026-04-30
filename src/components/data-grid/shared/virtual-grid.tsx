@@ -251,20 +251,20 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           {virtualRows.map((virtualRow) => {
             const rowsModel = table.getRowModel();
             const row = rowsModel.rows[virtualRow.index];
-            const rowIndex = virtualRow.index;
+            const visualIndex = virtualRow.index; // visual position for selection
             const isLast = virtualRow.index === rowsModel.rows.length - 1;
 
             return (
               <div
                 key={row.id}
                 role="row"
-                aria-rowindex={rowIndex + 2}
+                aria-rowindex={visualIndex + 2}
                 className="flex absolute w-full h-8"
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
                 <GridRow
                   row={row}
-                  rowIndex={rowIndex}
+                  rowIndex={visualIndex}
                   columns={columns}
                   activeCell={activeCell}
                   selection={selection}

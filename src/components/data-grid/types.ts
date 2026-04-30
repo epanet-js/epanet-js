@@ -26,6 +26,17 @@ export type CellProps<TValue = unknown> = {
   startEditing: (mode?: "quick" | "full") => void;
 };
 
+export type GridSortingFn =
+  | "auto"
+  | "alphanumeric"
+  | "text"
+  | "basic"
+  | ((
+      rowA: { getValue: (id: string) => unknown },
+      rowB: { getValue: (id: string) => unknown },
+      columnId: string,
+    ) => number);
+
 export type GridColumn = {
   // Required
   accessorKey: string;
@@ -48,6 +59,7 @@ export type GridColumn = {
   // Column behavior
   disabled?: boolean;
   disableKeys?: boolean;
+  sortingFn?: GridSortingFn;
 };
 
 export type DataGridRef = {

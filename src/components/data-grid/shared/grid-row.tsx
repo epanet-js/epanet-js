@@ -106,7 +106,7 @@ export function GridRow<TData>({
             onStartEditing={startEditing}
             onChange={
               accessorKey
-                ? (value) => onCellChange(rowIndex, accessorKey, value)
+                ? (value) => onCellChange(row.index, accessorKey, value)
                 : undefined
             }
             CellComponent={column.cellComponent}

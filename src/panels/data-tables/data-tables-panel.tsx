@@ -840,6 +840,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
             createRow={() => ({}) as Record<string, unknown>}
             gutterColumn={false}
             resizable
+            sortable
             minColumnSizePx={100}
           />
         )}

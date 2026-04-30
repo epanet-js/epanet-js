@@ -5,7 +5,11 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+} from "@tanstack/react-table";
 import {
   DataGridRef,
   DataGridVariant,
@@ -38,6 +42,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   variant?: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   autoAddNewRows?: boolean;
+  sortable?: boolean;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -59,6 +64,7 @@ export const DataGrid = forwardRef(function DataGrid<
     variant = "spreadsheet",
     cellHasWarning,
     autoAddNewRows = false,
+    sortable = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -79,6 +85,11 @@ export const DataGrid = forwardRef(function DataGrid<
     },
     columnResizeMode: "onChange",
     enableColumnResizing: resizable,
+    // Data sorting options
+    getSortedRowModel: getSortedRowModel(),
+    enableSorting: sortable,
+    enableSortingRemoval: true,
+    enableMultiSort: false,
   });
 
   const { editMode, startEditing, stopEditing } = useEditMode();
