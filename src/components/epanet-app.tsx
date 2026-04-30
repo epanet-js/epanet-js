@@ -120,7 +120,9 @@ export function EpanetApp() {
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
-  const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
+  const isDataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const isBottomPanelOn = isDataTablesOn || isProfileViewOn;
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
@@ -228,6 +230,7 @@ function DraggableMap({
   persistentTransform: Transform;
 }) {
   const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setNodeRef, transform } = useDraggable({
     id: "map",

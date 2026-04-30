@@ -421,6 +421,16 @@ const FirstScenarioDialog = dynamic<{
   },
 );
 
+const ProfileNoPathDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/profile-no-path").then((r) => r.ProfileNoPathDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -664,6 +674,9 @@ export const Dialogs = memo(function Dialogs() {
         />
       ),
     )
+    .with({ type: "profileNoPath" }, () => (
+      <ProfileNoPathDialog onClose={onClose} />
+    ))
     .exhaustive();
 
   return content;

@@ -1,16 +1,24 @@
 import React, { memo } from "react";
 import { dialogAtom } from "src/state/dialog";
-import { splitsAtom, TabOption, tabAtom } from "src/state/layout";
+import {
+  bottomPanelViewAtom,
+  BottomPanelView,
+  splitsAtom,
+  TabOption,
+  tabAtom,
+} from "src/state/layout";
 import { useAtom, useAtomValue } from "jotai";
 import clsx from "clsx";
 
 import FeatureEditor from "./feature-editor";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { MapStylingEditor } from "./map-styling-editor";
 import { NetworkReview } from "./network-review";
 import { BottomResizer } from "src/components/resizer";
 import { DataTablesPanel } from "./data-tables";
+import { ProfileViewPanel } from "./profile-view";
 
 function Tab({
   onClick,
@@ -117,19 +125,86 @@ export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
 
 export const BottomPanel = memo(function BottomPanelInner() {
   const splits = useAtomValue(splitsAtom);
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const [view, setView] = useAtom(bottomPanelViewAtom);
 
   if (!splits.bottomOpen) return null;
+
+  // TEMP: remove with panel registry migration
+  const showSwitch = isProfileViewOn;
+  const activeView: BottomPanelView = isProfileViewOn ? view : "dataTables";
 
   return (
     <div
       style={{ height: splits.bottom }}
-      className="relative flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900"
+      className="relative flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 flex flex-col"
     >
       <BottomResizer />
-      <DataTablesPanel />
+      {showSwitch && <BottomPanelViewSwitch value={view} onChange={setView} />}
+      <div className="flex-1 min-h-0 relative">
+        {activeView === "profileView" ? (
+          <ProfileViewPanel />
+        ) : (
+          <DataTablesPanel />
+        )}
+      </div>
     </div>
   );
 });
+
+// TEMP: remove with panel registry migration
+const BottomPanelViewSwitch = memo(function BottomPanelViewSwitch({
+  value,
+  onChange,
+}: {
+  value: BottomPanelView;
+  onChange: (v: BottomPanelView) => void;
+}) {
+  return (
+    <div className="flex-none flex items-center gap-1 px-2 h-7 border-b border-gray-200 dark:border-gray-900 text-xs">
+      <SwitchPill
+        selected={value === "dataTables"}
+        onClick={() => onChange("dataTables")}
+      >
+        Tables
+      </SwitchPill>
+      <SwitchPill
+        selected={value === "profileView"}
+        onClick={() => onChange("profileView")}
+      >
+        Profile
+      </SwitchPill>
+      <span className="ml-auto text-[10px] uppercase tracking-wide text-gray-400">
+        temp
+      </span>
+    </div>
+  );
+});
+
+// TEMP: remove with panel registry migration
+const SwitchPill = ({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={selected}
+    className={clsx(
+      "px-2 py-0.5 rounded text-xs",
+      selected
+        ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-200",
+    )}
+  >
+    {children}
+  </button>
+);
 
 export const FullPanel = memo(function FullPanelInner() {
   return (

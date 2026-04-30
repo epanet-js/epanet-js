@@ -1284,5 +1284,27 @@
     "keepEditing": "Keep editing",
     "discardWithunsavedChangesHint": "You have unsaved changes. Are you sure you want to discard them?",
     "saveWithWarningsHint": "There are some validation warnings."
+  },
+  "profileView": {
+    "toolbar": "Profile view",
+    "selectStart": "Click a node or pipe to set the start of the profile",
+    "selectEnd": "Click a node or pipe to set the end of the profile",
+    "selectPath": "Multiple paths found. Click any highlighted asset to select a route.",
+    "cancelSelection": "Cancel",
+    "noPath": {
+      "title": "No path found",
+      "message": "No connected path was found between the selected nodes."
+    },
+    "elevation": "Elevation",
+    "hgl": "HGL",
+    "distance": "Distance",
+    "close": "Close profile",
+    "estimated": "Estimated",
+    "empty": {
+      "idle": "Open the profile-view tool from the toolbar (or press 9) to start.",
+      "selectingStart": "Click a node or pipe on the map to set the start of the profile.",
+      "selectingEnd": "Click a node or pipe on the map to set the end of the profile.",
+      "noData": "No data."
+    }
   }
 }

@@ -1,6 +1,7 @@
 import type { HandlerContext } from "src/types";
 import { Mode } from "src/state/mode";
 import { useNoneHandlers } from "./none";
+import { useProfileViewHandlers } from "./profile-view";
 import { useDrawNodeHandlers } from "./draw-node";
 import { useDrawLinkHandlers } from "./draw-link";
 import { useDrawCustomerPointHandlers } from "./draw-customer-point";
@@ -55,6 +56,7 @@ export function useModeHandlers(handlerContext: HandlerContext) {
     [Mode.BOUNDARY_TRACE_SELECT]: useTraceSelectHandlers(handlerContext),
     [Mode.UPSTREAM_TRACE_SELECT]: useTraceSelectHandlers(handlerContext),
     [Mode.DOWNSTREAM_TRACE_SELECT]: useTraceSelectHandlers(handlerContext),
+    [Mode.PROFILE_VIEW]: useProfileViewHandlers(handlerContext),
   };
   return HANDLERS;
 }

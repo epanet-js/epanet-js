@@ -48,6 +48,11 @@ export enum TabOption {
 
 export const tabAtom = atom<TabOption>(TabOption.Asset);
 
+// TEMP: remove with panel registry migration. Replace with
+// panelRegistryAtom + bottomActiveTabAtom (see specs/guidelines/layout.md).
+export type BottomPanelView = "dataTables" | "profileView";
+export const bottomPanelViewAtom = atom<BottomPanelView>("dataTables");
+
 export type MultiAssetPanelCollapse = {
   junction: boolean;
   pipe: boolean;

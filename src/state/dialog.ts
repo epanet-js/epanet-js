@@ -196,6 +196,10 @@ export type ExportAssetDataDialogState = {
   type: "exportAssetData";
 };
 
+export type ProfileNoPathDialogState = {
+  type: "profileNoPath";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -236,6 +240,7 @@ export type DialogState =
   | ActivatingTrialDialogState
   | ExportAssetDataDialogState
   | NetworkProjectionDialogState
+  | ProfileNoPathDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

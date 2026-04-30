@@ -1,6 +1,7 @@
 import {
   LucideProps,
   LucideIcon,
+  AreaChart,
   ArrowDownWideNarrow,
   ArrowDownUp,
   ArrowRight,
@@ -227,6 +228,7 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
+export const ProfileViewIcon = icon(AreaChart);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",

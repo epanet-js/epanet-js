@@ -4,8 +4,10 @@ import { memo } from "react";
 import { useAtomValue } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useDrawingMode } from "src/commands/set-drawing-mode";
+import { useToggleProfileView } from "src/commands/toggle-profile-view";
 import { useTranslate } from "src/hooks/use-translate";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SelectionTool } from "./selection-tool";
 import { TraceTool } from "./trace-tool";
 import { DrawingToolDropdown } from "./drawing-tool-dropdown";
@@ -19,6 +21,7 @@ import {
   ValveIcon,
   PipeIcon,
   CustomerPointIcon,
+  ProfileViewIcon,
 } from "src/icons";
 
 export type DrawingModeOption = {
@@ -76,6 +79,8 @@ export default memo(function Modes({
   const translate = useTranslate();
   const isMdOrLarger = useBreakpoint("md");
   const isLgOrLarger = useBreakpoint("lg");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const toggleProfileView = useToggleProfileView();
 
   return (
     <div className="flex items-center justify-start" role="radiogroup">
@@ -98,6 +103,17 @@ export default memo(function Modes({
       </MenuAction>
       <SelectionTool />
       <TraceTool />
+      {isProfileViewOn && (
+        <MenuAction
+          role="radio"
+          selected={currentMode === Mode.PROFILE_VIEW}
+          label={translate("profileView.toolbar")}
+          onClick={toggleProfileView}
+          disabled={false}
+        >
+          <ProfileViewIcon />
+        </MenuAction>
+      )}
       {!isMdOrLarger ? null : isLgOrLarger ? (
         DRAWING_MODE_OPTIONS.map(({ mode, hotkey, Icon }) => {
           const modeInfo = MODE_INFO[mode];

@@ -119,6 +119,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   const { folderMap } = data;
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+
   // State
   const [flatbushInstance, setFlatbushInstance] =
     useState<FlatbushLike>(EmptyIndex);
@@ -389,6 +390,7 @@ export const MapCanvas = memo(function MapCanvas({
 
     if (cursor === "pointer-add") return "cursor-pointer-add";
     if (cursor === "pointer-subtract") return "cursor-pointer-subtract";
+    if (cursor === "pointer") return "placemark-cursor-pointer";
 
     if (cursor === "move") return "cursor-move";
 
@@ -399,8 +401,6 @@ export const MapCanvas = memo(function MapCanvas({
       mode.mode !== Mode.DOWNSTREAM_TRACE_SELECT
     )
       return "cursor-crosshair";
-
-    if (cursor === "pointer") return "placemark-cursor-pointer";
 
     return "placemark-cursor-default";
   }, [cursor, mode]);

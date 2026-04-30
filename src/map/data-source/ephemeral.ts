@@ -4,6 +4,7 @@ import { AssetsMap } from "src/hydraulic-model";
 import {
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
+  EphemeralProfileView,
 } from "src/state/drawing";
 import { Mode } from "src/state/mode";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
@@ -40,7 +41,39 @@ export const buildEphemeralStateSource = (
     return buildAreaSelectionSourceData(ephemeralState);
   }
 
+  if (ephemeralState.type === "profileView") {
+    return buildProfileViewSourceData(ephemeralState, assets);
+  }
+
   return [];
+};
+
+const assetIconProps = (asset: Asset) => {
+  if (asset.isLink || asset.type === "junction") return {};
+  return { icon: `${asset.type}-highlight` };
+};
+
+const buildProfileViewSourceData = (
+  state: EphemeralProfileView,
+  assets: AssetsMap,
+): Feature[] => {
+  const features: Feature[] = [];
+  const ids = new Set<number>();
+  if (state.startNodeId !== undefined) ids.add(state.startNodeId);
+  if (state.hoveredNodeId !== undefined) ids.add(state.hoveredNodeId);
+
+  for (const id of ids) {
+    const asset = assets.get(id);
+    if (!asset || asset.isLink) continue;
+    features.push({
+      ...asset.feature,
+      properties: {
+        ...asset.feature.properties,
+        ...assetIconProps(asset),
+      },
+    } as Feature);
+  }
+  return features;
 };
 
 const buildMoveAssetsSourceData = (
@@ -49,18 +82,12 @@ const buildMoveAssetsSourceData = (
 ) => {
   const features: Feature[] = [];
 
-  const iconProps = (asset: Asset) => {
-    if (asset.isLink || asset.type === "junction") return {};
-
-    return { icon: `${asset.type}-highlight` };
-  };
-
   for (const asset of ephemeralState.targetAssets) {
     features.push({
       ...asset.feature,
       properties: {
         draft: true,
-        ...iconProps(asset),
+        ...assetIconProps(asset),
       } as any,
     });
   }
