@@ -824,16 +824,13 @@ describe("FilterableSelectCell", () => {
       expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
 
-    it("displays empty content when no value is selected in readOnly mode", () => {
-      const { container } = render(
+    it("displays placeholder when no value is selected in readOnly mode", () => {
+      render(
         <FilterableSelectCell {...defaultProps} value={null} readOnly />,
       );
 
-      // Should not show the placeholder in readOnly mode
-      expect(screen.queryByText("Select...")).not.toBeInTheDocument();
-      // Should have empty span
-      const span = container.querySelector("span");
-      expect(span?.textContent).toBe("");
+      // Should show the placeholder in readOnly mode
+      expect(screen.getByText("Select...")).toBeInTheDocument();
       expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
 

@@ -474,7 +474,9 @@ export function LibrarySelectRow<P extends string>({
       listClassName={emptyOptionLabel ? "first:italic" : ""}
       nullable={true}
       placeholder={
-        placeholder ?? emptyOptionLabel ?? `${translate("select")}...`
+        readOnly
+          ? (placeholder ?? emptyOptionLabel ?? "")
+          : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`)
       }
       onChange={handleChange}
       readOnly={readOnly}

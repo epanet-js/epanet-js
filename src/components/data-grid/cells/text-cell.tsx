@@ -1,29 +1,45 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import clsx from "clsx";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { CellProps, EditMode, GridColumn } from "../types";
+
+const VALIDATION_DEBOUNCE_MS = 150;
 
 type TextCellProps = CellProps<string | null> & {
   readonly?: boolean;
+  validate?: (value: string, rowIndex: number) => boolean;
 };
 
 export function TextCell({
   value,
+  rowIndex,
   editMode,
   onChange,
   stopEditing,
   readonly,
+  validate,
 }: TextCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
+  const [hasError, setHasError] = useState(false);
   const shouldCommitOnBlurRef = useRef(false);
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [prevEditMode, setPrevEditMode] = useState<EditMode>(false);
 
   if (editMode && editMode !== prevEditMode) {
     setPrevEditMode(editMode);
     setEditValue(value ?? "");
+    setHasError(false);
     shouldCommitOnBlurRef.current = true;
   }
   if (!editMode && prevEditMode) {
     setPrevEditMode(false);
+    setHasError(false);
   }
 
   useLayoutEffect(() => {
@@ -33,9 +49,37 @@ export function TextCell({
     }
   }, [editMode]);
 
+  useEffect(() => {
+    return () => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    };
+  }, []);
+
+  const isValid = useCallback(
+    (v: string) => !validate || v === "" || validate(v, rowIndex),
+    [validate, rowIndex],
+  );
+
   const commit = useCallback(() => {
+    if (!isValid(editValue)) return;
     onChange(editValue || null);
-  }, [editValue, onChange]);
+  }, [editValue, isValid, onChange]);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.target.value;
+      setEditValue(newValue);
+
+      if (validate) {
+        if (validationTimerRef.current)
+          clearTimeout(validationTimerRef.current);
+        validationTimerRef.current = setTimeout(() => {
+          setHasError(newValue !== "" && !validate(newValue, rowIndex));
+        }, VALIDATION_DEBOUNCE_MS);
+      }
+    },
+    [validate, rowIndex],
+  );
 
   const handleBlur = useCallback(() => {
     if (!shouldCommitOnBlurRef.current) return;
@@ -72,12 +116,19 @@ export function TextCell({
   }
 
   return (
-    <div className="w-full h-full flex items-center">
+    <div
+      className={clsx(
+        "w-full h-full flex items-center",
+        hasError &&
+          editMode &&
+          "z-[2] bg-orange-100 dark:bg-orange-900/30 ring-1 ring-orange-500 dark:ring-orange-700",
+      )}
+    >
       <input
         ref={inputRef}
         type="text"
         value={editMode ? editValue : (value ?? "")}
-        onChange={(e) => setEditValue(e.target.value)}
+        onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
@@ -93,13 +144,17 @@ export function textColumn(
     header: string;
     size?: number;
     readonly?: boolean;
+    validate?: (value: string, rowIndex: number) => boolean;
   },
 ): GridColumn {
-  const { readonly } = options;
+  const { readonly, validate } = options;
 
-  const CellComponent = readonly
-    ? (props: CellProps<string | null>) => <TextCell {...props} readonly />
-    : TextCell;
+  const CellComponent =
+    readonly || validate
+      ? (props: CellProps<string | null>) => (
+          <TextCell {...props} readonly={readonly} validate={validate} />
+        )
+      : TextCell;
 
   return {
     accessorKey,

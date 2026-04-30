@@ -4,6 +4,7 @@ import { TabRoot, TabList, Tab } from "src/components/tab";
 import {
   stagingModelDerivedAtom,
   simulationResultsDerivedAtom,
+  simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import {
@@ -27,6 +28,14 @@ import {
   valveKinds,
   valveStatuses,
 } from "src/hydraulic-model/asset-types/valve";
+import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
+import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
+import type {
+  Patterns,
+  PatternId,
+  PatternType,
+} from "src/hydraulic-model/patterns";
+import type { Curves, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -59,16 +68,32 @@ const ASSET_TYPE_TAB_KEY: Record<AssetType, string> = {
 };
 
 const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
-  junction: [],
+  junction: ["chemicalSourceType", "chemicalSourcePatternId"],
   pipe: ["initialStatus"],
-  pump: ["initialStatus"],
-  valve: ["kind", "initialStatus"],
-  reservoir: [],
-  tank: [],
+  pump: [
+    "initialStatus",
+    "curveId",
+    "speedPatternId",
+    "efficiencyCurveId",
+    "energyPricePatternId",
+  ],
+  valve: ["kind", "initialStatus", "curveId"],
+  reservoir: ["headPatternId", "chemicalSourceType", "chemicalSourcePatternId"],
+  tank: [
+    "mixingModel",
+    "volumeCurveId",
+    "chemicalSourceType",
+    "chemicalSourcePatternId",
+  ],
 };
 
 const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
-  junction: ["elevation", "emitterCoefficient", "initialQuality"],
+  junction: [
+    "elevation",
+    "emitterCoefficient",
+    "initialQuality",
+    "chemicalSourceStrength",
+  ],
   pipe: [
     "diameter",
     "length",
@@ -79,15 +104,18 @@ const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
   ],
   pump: ["speed", "energyPrice"],
   valve: ["setting", "diameter", "minorLoss"],
-  reservoir: ["elevation", "head", "initialQuality"],
+  reservoir: ["elevation", "head", "initialQuality", "chemicalSourceStrength"],
   tank: [
     "elevation",
     "initialLevel",
     "minLevel",
     "maxLevel",
+    "minVolume",
     "diameter",
     "initialQuality",
     "bulkReactionCoeff",
+    "mixingFraction",
+    "chemicalSourceStrength",
   ],
 };
 
@@ -95,6 +123,8 @@ const NULLABLE_KEYS = new Set([
   "bulkReactionCoeff",
   "wallReactionCoeff",
   "energyPrice",
+  "chemicalSourceStrength",
+  "mixingFraction",
 ]);
 
 type Simulation = NonNullable<
@@ -297,6 +327,10 @@ function buildColumns(
   units: UnitsSpec,
   translateUnit: TranslateUnitFn,
   formatting: FormattingSpec,
+  patterns: Patterns,
+  curves: Curves,
+  energyGlobalPatternId: PatternId | null,
+  validateLabel?: (label: string, rowIndex: number) => boolean,
 ): GridColumn[] {
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
@@ -324,6 +358,67 @@ function buildColumns(
       ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
     });
 
+  const patternOpts = (filterType: PatternType) =>
+    [...patterns.values()]
+      .filter((p) => p.type === filterType)
+      .map((p) => ({ value: p.id, label: p.label }));
+
+  const curveOpts = (filterType: CurveType) =>
+    [...curves.values()]
+      .filter((c) => c.type === filterType)
+      .map((c) => ({ value: c.id, label: c.label }));
+
+  const energyPricePatternPlaceholder = (() => {
+    if (energyGlobalPatternId !== null) {
+      const p = patterns.get(energyGlobalPatternId);
+      if (p) return p.label;
+    }
+    return translate("constant");
+  })();
+
+  const patternCol = (
+    key: string,
+    name: string,
+    filterType: PatternType,
+    placeholder = translate("constant"),
+  ) =>
+    filterableSelectColumn(key, {
+      header: name,
+      options: patternOpts(filterType),
+      placeholder,
+      deleteValue: null,
+    });
+
+  const curveCol = (key: string, name: string, filterType: CurveType) =>
+    filterableSelectColumn(key, {
+      header: name,
+      options: curveOpts(filterType),
+      placeholder: translate("none"),
+      deleteValue: null,
+    });
+
+  const chemicalSourceTypeCols = () => [
+    filterableSelectColumn("chemicalSourceType", {
+      header: translate("chemicalSourceType"),
+      options: [
+        { value: "none", label: translate("none") },
+        ...chemicalSourceTypes.map((t) => ({
+          value: t,
+          label: translate(`source.${t}`),
+        })),
+      ],
+      placeholder: translate("none"),
+      deleteValue: "none",
+    }),
+    numericCol("chemicalSourceStrength", translate("chemicalSourceStrength")),
+    patternCol(
+      "chemicalSourcePatternId",
+      translate("chemicalSourcePattern"),
+      "qualitySourceStrength",
+      translate("none"),
+    ),
+  ];
+
   const simCols = hasSimulation
     ? buildSimColumns(type, translate, units, translateUnit, formatting)
     : [];
@@ -331,7 +426,10 @@ function buildColumns(
   switch (type) {
     case "junction":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -345,11 +443,15 @@ function buildColumns(
           "emitterCoefficient",
         ),
         numericCol("initialQuality", translate("initialQuality")),
+        ...chemicalSourceTypeCols(),
         ...simCols,
       ];
     case "pipe":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pipeStatuses.map((s) => ({
@@ -377,7 +479,10 @@ function buildColumns(
       ];
     case "pump":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pumpStatuses.map((s) => ({
@@ -386,12 +491,28 @@ function buildColumns(
           })),
         }),
         numericCol("speed", translate("initialSpeed"), units.speed, "speed"),
+        curveCol("curveId", translate("pumpCurve"), "pump"),
         numericCol("energyPrice", translate("energyPrice")),
+        patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
+        curveCol(
+          "efficiencyCurveId",
+          translate("efficiencyCurve"),
+          "efficiency",
+        ),
+        patternCol(
+          "energyPricePatternId",
+          translate("energyPricePattern"),
+          "energyPrice",
+          energyPricePatternPlaceholder,
+        ),
         ...simCols,
       ];
     case "valve":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         filterableSelectColumn("kind", {
           header: translate("valveType"),
           options: valveKinds.map((k) => ({
@@ -419,11 +540,20 @@ function buildColumns(
           units.minorLoss,
           "minorLoss",
         ),
+        filterableSelectColumn("curveId", {
+          header: translate("curve"),
+          options: [...curveOpts("headloss"), ...curveOpts("valve")],
+          placeholder: translate("none"),
+          deleteValue: null,
+        }),
         ...simCols,
       ];
     case "reservoir":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -431,12 +561,17 @@ function buildColumns(
           "elevation",
         ),
         numericCol("head", translate("head"), units.head, "head"),
+        patternCol("headPatternId", translate("headPattern"), "reservoirHead"),
         numericCol("initialQuality", translate("initialQuality")),
+        ...chemicalSourceTypeCols(),
         ...simCols,
       ];
     case "tank":
       return [
-        textColumn("label", { header: translate("label") }),
+        textColumn("label", {
+          header: translate("label"),
+          validate: validateLabel,
+        }),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -462,13 +597,30 @@ function buildColumns(
           "maxLevel",
         ),
         numericCol(
+          "minVolume",
+          translate("minVolume"),
+          units.minVolume,
+          "minVolume",
+        ),
+        numericCol(
           "diameter",
           translate("diameter"),
           units.tankDiameter,
           "tankDiameter",
         ),
+        curveCol("volumeCurveId", translate("volumeCurve"), "volume"),
         numericCol("initialQuality", translate("initialQuality")),
         numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
+        filterableSelectColumn("mixingModel", {
+          header: translate("mixingModel"),
+          options: tankMixingModels.map((m) => ({
+            value: m,
+            label: translate(`tank.${m}`),
+          })),
+          deleteValue: "mixed",
+        }),
+        numericCol("mixingFraction", translate("mixingFraction")),
+        ...chemicalSourceTypeCols(),
         ...simCols,
       ];
   }
@@ -484,6 +636,7 @@ function assetToRow(asset: {
 export const DataTablesPanel = memo(function DataTablesPanelInner() {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const { transact } = useModelTransaction();
@@ -529,9 +682,32 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
             units,
             translateUnit,
             formatting,
+            hydraulicModel.patterns,
+            hydraulicModel.curves,
+            simulationSettings?.energyGlobalPatternId ?? null,
+            (label, rowIndex) => {
+              const assetId = rowsRef.current?.[rowIndex]?.id;
+              if (assetId === undefined) return true;
+              return labelManager.isLabelAvailable(
+                label,
+                effectiveTab,
+                assetId,
+              );
+            },
           )
         : [],
-    [effectiveTab, translate, hasSimulation, units, translateUnit, formatting],
+    [
+      effectiveTab,
+      translate,
+      hasSimulation,
+      units,
+      translateUnit,
+      formatting,
+      hydraulicModel.patterns,
+      hydraulicModel.curves,
+      simulationSettings?.energyGlobalPatternId,
+      labelManager,
+    ],
   );
 
   const [rows, setRows] = useState<AssetRow[] | null>(null);

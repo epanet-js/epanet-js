@@ -283,8 +283,18 @@ export function FilterableSelectCell({
 
   if (readOnly) {
     return (
-      <div className="w-full h-full flex items-center pl-2 text-sm text-gray-700">
-        <span className="truncate">{selectedOption?.label ?? ""}</span>
+      <div className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm">
+        <span
+          className={clsx(
+            "truncate",
+            !selectedOption ? "text-gray-400" : "text-gray-700",
+          )}
+        >
+          {selectedOption?.label ?? placeholder}
+        </span>
+        <div className="pl-1 text-gray-400">
+          <ChevronDownIcon />
+        </div>
       </div>
     );
   }
@@ -475,6 +485,7 @@ export function filterableSelectColumn<T extends string | number = string>(
     minOptionsForSearch?: number;
   },
 ): GridColumn {
+  const isEmpty = options.options.length === 0;
   return {
     accessorKey,
     header: options.header,
@@ -482,6 +493,7 @@ export function filterableSelectColumn<T extends string | number = string>(
     cellComponent: (props: CellProps<string | number | null>) => (
       <FilterableSelectCell
         {...props}
+        readOnly={isEmpty || props.readOnly}
         options={options.options as FilterableSelectOption<string | number>[]}
         placeholder={options.placeholder ?? ""}
         minOptionsForSearch={options.minOptionsForSearch}
@@ -500,5 +512,6 @@ export function filterableSelectColumn<T extends string | number = string>(
       return match ? match.value : null;
     },
     deleteValue: options.deleteValue ?? null,
+    ...(isEmpty ? { disabled: true, disableKeys: true } : {}),
   };
 }
