@@ -825,9 +825,7 @@ describe("FilterableSelectCell", () => {
     });
 
     it("displays placeholder when no value is selected in readOnly mode", () => {
-      render(
-        <FilterableSelectCell {...defaultProps} value={null} readOnly />,
-      );
+      render(<FilterableSelectCell {...defaultProps} value={null} readOnly />);
 
       // Should show the placeholder in readOnly mode
       expect(screen.getByText("Select...")).toBeInTheDocument();
