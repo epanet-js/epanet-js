@@ -20,7 +20,7 @@ import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { profileViewAtom } from "src/state/profile-view";
-import { highlightsAtom } from "src/state/highlights";
+import { Highlight, highlightsAtom } from "src/state/highlights";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { colors } from "src/lib/constants";
@@ -183,11 +183,26 @@ export const ProfileChart = memo(function ProfileChart({
   const profileView = useAtomValue(profileViewAtom);
   const model = useAtomValue(stagingModelDerivedAtom);
   const setHighlights = useSetAtom(highlightsAtom);
+  const pathHighlights = useMemo<Highlight[]>(() => {
+    if (profileView.phase !== "showingProfile") return [];
+    const items: Highlight[] = [];
+    for (const linkId of profileView.path.linkIds) {
+      items.push({ type: "asset", assetId: linkId });
+    }
+    for (const nodeId of profileView.path.nodeIds) {
+      items.push({ type: "asset", assetId: nodeId });
+    }
+    return items;
+  }, [profileView]);
   const setHoverHighlight = useCallback(
     (coordinates: [number, number] | null) => {
-      setHighlights(coordinates ? [{ type: "marker", coordinates }] : []);
+      if (!coordinates) {
+        setHighlights([]);
+        return;
+      }
+      setHighlights([...pathHighlights, { type: "marker", coordinates }]);
     },
-    [setHighlights],
+    [setHighlights, pathHighlights],
   );
 
   const pathSegments = useMemo<PathSegment[]>(() => {
