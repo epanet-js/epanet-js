@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
-import { FileExporters } from "./exporters";
+import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "./helpers";
 
 const mockHandle = {} as FileSystemFileHandle;
@@ -17,7 +17,7 @@ describe("export-asset-data", () => {
       mockHandle,
     );
     vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
-    vi.spyOn(FileExporters, "exportZip").mockResolvedValue(undefined);
+    vi.spyOn(AssetExporters, "exportZip").mockResolvedValue(undefined);
   });
 
   it("generates ZIP file from exported files", async () => {
@@ -25,7 +25,7 @@ describe("export-asset-data", () => {
 
     await exportAssetData("export", "geojson", model, false);
 
-    expect(FileExporters.exportZip).toHaveBeenCalledWith(
+    expect(AssetExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
       exportedFiles,
     );
@@ -65,7 +65,7 @@ describe("export-asset-data", () => {
 
     await exportAssetData("export", "geojson", model, true, resultsReader);
 
-    expect(FileExporters.exportGeoJson).toHaveBeenCalledWith(
+    expect(AssetExporters.exportGeoJson).toHaveBeenCalledWith(
       model,
       true,
       resultsReader,
@@ -78,7 +78,7 @@ describe("export-asset-data", () => {
 
     await exportAssetData("export", "csv", model, true, resultsReader);
 
-    expect(FileExporters.exportCsv).toHaveBeenCalledWith(
+    expect(AssetExporters.exportCsv).toHaveBeenCalledWith(
       model,
       true,
       resultsReader,
@@ -96,7 +96,7 @@ function mockGeoJsonExporter() {
       blob: new Blob([], { type: "application/geo+json" }),
     },
   ];
-  vi.spyOn(FileExporters, "exportGeoJson").mockReturnValue(files);
+  vi.spyOn(AssetExporters, "exportGeoJson").mockReturnValue(files);
   return files;
 }
 
@@ -110,6 +110,6 @@ function mockCsvExporter() {
       blob: new Blob([], { type: "text/csv" }),
     },
   ];
-  vi.spyOn(FileExporters, "exportCsv").mockReturnValue(files);
+  vi.spyOn(AssetExporters, "exportCsv").mockReturnValue(files);
   return files;
 }

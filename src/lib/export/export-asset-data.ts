@@ -1,5 +1,5 @@
 import { HydraulicModel } from "src/hydraulic-model";
-import { FileExporters } from "./exporters";
+import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "./helpers";
 import type { ExportFormat } from "./types";
 import { ResultsReader } from "src/simulation";
@@ -12,8 +12,8 @@ export const exportAssetData = async (
   resultsReader?: ResultsReader,
 ) => {
   const exporters = {
-    geojson: FileExporters.exportGeoJson,
-    csv: FileExporters.exportCsv,
+    geojson: AssetExporters.exportGeoJson,
+    csv: AssetExporters.exportCsv,
   };
 
   const exportedFiles = exporters[format](
@@ -27,7 +27,7 @@ export const exportAssetData = async (
     ? await FileSystemHelpers.openFileInFileSystem(zipFileName)
     : await FileSystemHelpers.openFileInOpfs(zipFileName);
 
-  await FileExporters.exportZip(handle, exportedFiles);
+  await AssetExporters.exportZip(handle, exportedFiles);
 
   if (!FileSystemHelpers.isFileSystemAccessSupported()) {
     await FileSystemHelpers.triggerDownload(zipFileName, handle);
