@@ -1,9 +1,18 @@
 import { AssetWriter } from "./asset-writer";
+import { DBF_NUMBER_DECIMALS, DBF_NUMBER_LENGTH } from "./constants";
 import { freezeSchema, ensureField } from "./schema";
 
 const encoder = new TextEncoder();
 
-function makeWriter(shapeType: 1 | 3, fieldDefs: { key: string; type: "C" | "N" | "L"; length: number; decimals?: number }[] = []) {
+function makeWriter(
+  shapeType: 1 | 3,
+  fieldDefs: {
+    key: string;
+    type: "C" | "N" | "L";
+    length: number;
+    decimals?: number;
+  }[] = [],
+) {
   const w = new AssetWriter(shapeType);
   for (const f of fieldDefs) {
     const info = ensureField(w.fields, f.key);
@@ -27,7 +36,12 @@ describe("AssetWriter constructor", () => {
     expect(w.shpBodyBytes).toBe(0);
     expect(w.fields.size).toBe(0);
     expect(w.frozenSchema).toEqual([]);
-    expect(w.bbox).toEqual({ xmin: Infinity, ymin: Infinity, xmax: -Infinity, ymax: -Infinity });
+    expect(w.bbox).toEqual({
+      xmin: Infinity,
+      ymin: Infinity,
+      xmax: -Infinity,
+      ymax: -Infinity,
+    });
   });
 });
 
@@ -62,12 +76,17 @@ describe("AssetWriter.allocate", () => {
   it("computes recordLength as 1 (flag) + sum of field lengths", () => {
     const w = makeWriter(1, [
       { key: "name", type: "C", length: 10 },
-      { key: "value", type: "N", length: 8, decimals: 2 },
+      {
+        key: "value",
+        type: "N",
+        length: DBF_NUMBER_LENGTH,
+        decimals: DBF_NUMBER_DECIMALS,
+      },
     ]);
     w.recordCount = 1;
     w.shpBodyBytes = 28;
     w.allocate();
-    expect(w.recordLength).toBe(1 + 10 + 8);
+    expect(w.recordLength).toBe(1 + 10 + DBF_NUMBER_LENGTH);
   });
 
   it("allocates dbf buffer of correct size with no fields", () => {

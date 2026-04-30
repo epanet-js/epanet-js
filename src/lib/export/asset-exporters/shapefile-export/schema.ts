@@ -1,3 +1,5 @@
+import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
+
 const NON_ASCII = /[^\x00-\x7f]/;
 const INVALID_DBF_NAME_CHAR = /[^A-Z0-9_]/g;
 
@@ -68,8 +70,11 @@ export function inferFieldType(
     if (info.dbfType === null) {
       info.dbfType = "L";
       info.maxLength = 1;
-    } else if (info.dbfType === "N" || info.dbfType === "C") {
+    } else if (info.dbfType === "N") {
       info.dbfType = "C";
+      info.promotedToString = true;
+      info.maxLength = DBF_NUMBER_LENGTH; // numbers occupy up to DBF_NUMBER_LENGTH chars
+    } else if (info.dbfType === "C") {
       info.promotedToString = true;
       if (5 > info.maxLength) info.maxLength = 5; // "false"
     }
@@ -77,23 +82,16 @@ export function inferFieldType(
   }
 
   if (typeof value === "number") {
-    const s = value.toString();
-    const dotIdx = s.indexOf(".");
-    const decimals = dotIdx === -1 ? 0 : s.length - dotIdx - 1;
-    const len = s.length;
-
     if (info.dbfType === null) {
       info.dbfType = "N";
-      info.maxLength = len;
-      info.maxDecimals = decimals;
     } else if (info.dbfType === "N") {
-      if (len > info.maxLength) info.maxLength = len;
-      if (decimals > info.maxDecimals) info.maxDecimals = decimals;
+      // no-op: type is already fixed
     } else {
       // 'L' or 'C' → promote to 'C'
+      const s = value.toString();
+      const byteLen = measureStringBytes(s, scratch, encoder);
       info.dbfType = "C";
       info.promotedToString = true;
-      const byteLen = measureStringBytes(s, scratch, encoder);
       if (byteLen > info.maxLength) info.maxLength = byteLen;
     }
     return;
@@ -109,8 +107,14 @@ export function inferFieldType(
     } else if (info.dbfType === "C") {
       if (byteLen > info.maxLength) info.maxLength = byteLen;
       if (NON_ASCII.test(value)) info.hasNonAscii = true;
+    } else if (info.dbfType === "N") {
+      // promote N → C, prior numbers occupied up to DBF_NUMBER_LENGTH chars
+      info.dbfType = "C";
+      info.promotedToString = true;
+      info.maxLength = Math.max(DBF_NUMBER_LENGTH, byteLen);
+      if (NON_ASCII.test(value)) info.hasNonAscii = true;
     } else {
-      // 'N' or 'L' → promote to 'C'
+      // 'L' → promote to 'C'
       info.dbfType = "C";
       info.promotedToString = true;
       if (byteLen > info.maxLength) info.maxLength = byteLen;
@@ -127,7 +131,12 @@ export function inferFieldType(
     info.maxLength = byteLen;
   } else if (info.dbfType === "C") {
     if (byteLen > info.maxLength) info.maxLength = byteLen;
+  } else if (info.dbfType === "N") {
+    info.dbfType = "C";
+    info.promotedToString = true;
+    info.maxLength = Math.max(DBF_NUMBER_LENGTH, byteLen);
   } else {
+    // 'L' → promote to 'C'
     info.dbfType = "C";
     info.promotedToString = true;
     if (byteLen > info.maxLength) info.maxLength = byteLen;
@@ -175,16 +184,13 @@ export function freezeSchema(
       decimals = 0;
     } else if (info.dbfType === "N") {
       type = "N";
-      length = Math.min(info.maxLength, 19);
-      decimals = info.maxDecimals;
-      // Cap decimals so integer part + dot + decimals fits within length
-      if (decimals > 0 && decimals >= length - 1) {
-        decimals = Math.max(0, length - 2);
-      }
+      length = DBF_NUMBER_LENGTH;
+      decimals = DBF_NUMBER_DECIMALS;
     } else {
       // 'C' or null (only nulls seen)
       type = "C";
-      length = info.dbfType === null ? 1 : Math.max(1, Math.min(info.maxLength, 254));
+      length =
+        info.dbfType === null ? 1 : Math.max(1, Math.min(info.maxLength, 254));
       decimals = 0;
     }
 

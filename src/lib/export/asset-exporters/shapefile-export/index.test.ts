@@ -21,7 +21,7 @@ function fileNames(files: { fileName: string }[]) {
 }
 
 describe("exportShapefiles", () => {
-  it("returns 5 files per non-empty asset type (shp, shx, dbf, prj, cpg)", async () => {
+  it("returns 5 files per non-empty asset type (shp, shx, dbf, prj, cpg)", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { coordinates: [10, 20] })
       .build();

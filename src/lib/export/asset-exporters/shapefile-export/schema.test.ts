@@ -1,4 +1,5 @@
 import { ensureField, freezeSchema, inferFieldType } from "./schema";
+import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 const encoder = new TextEncoder();
 const scratch = new Uint8Array(1024);
@@ -20,21 +21,20 @@ describe("inferFieldType", () => {
     expect(info.maxLength).toBe(1);
   });
 
-  it("number: sets N type with length and decimals", () => {
+  it("number: sets N type", () => {
     const fields = new Map();
     const info = ensureField(fields, "x");
     inferFieldType(info, 3.14, scratch, encoder);
     expect(info.dbfType).toBe("N");
-    expect(info.maxLength).toBe(4); // "3.14"
-    expect(info.maxDecimals).toBe(2);
   });
 
-  it("integer number: decimals = 0", () => {
+  it("number: stays N across multiple values", () => {
     const fields = new Map();
     const info = ensureField(fields, "x");
-    inferFieldType(info, 42, scratch, encoder);
+    inferFieldType(info, 1.5, scratch, encoder);
+    inferFieldType(info, 100.123, scratch, encoder);
+    inferFieldType(info, -9.9, scratch, encoder);
     expect(info.dbfType).toBe("N");
-    expect(info.maxDecimals).toBe(0);
   });
 
   it("string: sets C type with byte length", () => {
@@ -53,14 +53,24 @@ describe("inferFieldType", () => {
     expect(info.maxLength).toBe(JSON.stringify({ a: 1 }).length);
   });
 
-  it("type promotion: number then string → C, max of both lengths", () => {
+  it("type promotion: number then string → C, maxLength = max(DBF_NUMBER_LENGTH, string length)", () => {
     const fields = new Map();
     const info = ensureField(fields, "x");
     inferFieldType(info, 42, scratch, encoder);
     inferFieldType(info, "longstring", scratch, encoder);
     expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(10); // "longstring"
+    expect(info.maxLength).toBe(DBF_NUMBER_LENGTH); // DBF_NUMBER_LENGTH > "longstring".length
     expect(info.promotedToString).toBe(true);
+  });
+
+  it("type promotion: number then long string → C, maxLength = string length when longer", () => {
+    const fields = new Map();
+    const info = ensureField(fields, "x");
+    inferFieldType(info, 42, scratch, encoder);
+    const longStr = "a".repeat(DBF_NUMBER_LENGTH + 5);
+    inferFieldType(info, longStr, scratch, encoder);
+    expect(info.dbfType).toBe("C");
+    expect(info.maxLength).toBe(DBF_NUMBER_LENGTH + 5);
   });
 
   it("type promotion: boolean then number → C", () => {
@@ -69,16 +79,6 @@ describe("inferFieldType", () => {
     inferFieldType(info, true, scratch, encoder);
     inferFieldType(info, 42, scratch, encoder);
     expect(info.dbfType).toBe("C");
-  });
-
-  it("N: tracks maxLength and maxDecimals across multiple values", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, 1.5, scratch, encoder);
-    inferFieldType(info, 100.123, scratch, encoder);
-    inferFieldType(info, -9.9, scratch, encoder);
-    expect(info.maxLength).toBe(7); // "100.123"
-    expect(info.maxDecimals).toBe(3);
   });
 
   it("non-ASCII string: measures byte length", () => {
@@ -104,15 +104,13 @@ describe("freezeSchema", () => {
     expect(schema[0].decimals).toBe(0);
   });
 
-  it("N type: capped at 19 chars", () => {
+  it("N type: uses fixed DBF_NUMBER_LENGTH and DBF_NUMBER_DECIMALS", () => {
     const fields = new Map();
-    const info = ensureField(fields, "val");
-    info.dbfType = "N";
-    info.maxLength = 25;
-    info.maxDecimals = 2;
+    ensureField(fields, "val").dbfType = "N";
 
     const schema = freezeSchema(fields, encoder);
-    expect(schema[0].length).toBe(19);
+    expect(schema[0].length).toBe(DBF_NUMBER_LENGTH);
+    expect(schema[0].decimals).toBe(DBF_NUMBER_DECIMALS);
   });
 
   it("C type: capped at 254", () => {

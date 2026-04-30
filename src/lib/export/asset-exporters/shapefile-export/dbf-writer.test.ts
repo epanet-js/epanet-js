@@ -1,6 +1,7 @@
 import { AssetWriter } from "./asset-writer";
 import { ensureField, freezeSchema } from "./schema";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
+import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 const encoder = new TextEncoder();
 
@@ -8,7 +9,6 @@ type FieldDef = {
   key: string;
   type: "C" | "N" | "L";
   length: number;
-  decimals?: number;
 };
 
 function makeWriter(fieldDefs: FieldDef[], recordCount = 1) {
@@ -17,7 +17,6 @@ function makeWriter(fieldDefs: FieldDef[], recordCount = 1) {
     const info = ensureField(w.fields, f.key);
     info.dbfType = f.type;
     info.maxLength = f.length;
-    info.maxDecimals = f.decimals ?? 0;
   }
   w.frozenSchema = freezeSchema(w.fields, encoder);
   w.recordCount = recordCount;
@@ -26,6 +25,10 @@ function makeWriter(fieldDefs: FieldDef[], recordCount = 1) {
   writeDbfHeader(w);
   return w;
 }
+
+// Resolved field length for N is always DBF_NUMBER_LENGTH
+const N_LEN = DBF_NUMBER_LENGTH;
+const N_DEC = DBF_NUMBER_DECIMALS;
 
 describe("writeDbfHeader", () => {
   it("writes dBase III marker (0x03) at byte 0", () => {
@@ -57,7 +60,7 @@ describe("writeDbfHeader", () => {
   it("writes field type as ASCII at byte 11 of each field descriptor", () => {
     const w = makeWriter([
       { key: "label", type: "C", length: 10 },
-      { key: "count", type: "N", length: 5, decimals: 0 },
+      { key: "count", type: "N", length: 5 },
       { key: "active", type: "L", length: 1 },
     ]);
     expect(w.dbf[32 + 11]).toBe("C".charCodeAt(0));
@@ -65,14 +68,19 @@ describe("writeDbfHeader", () => {
     expect(w.dbf[96 + 11]).toBe("L".charCodeAt(0));
   });
 
-  it("writes field length at byte 16 of each field descriptor", () => {
+  it("writes field length at byte 16 of each C field descriptor", () => {
     const w = makeWriter([{ key: "name", type: "C", length: 12 }]);
     expect(w.dbf[32 + 16]).toBe(12);
   });
 
-  it("writes decimal count at byte 17 of each field descriptor", () => {
-    const w = makeWriter([{ key: "val", type: "N", length: 8, decimals: 3 }]);
-    expect(w.dbf[32 + 17]).toBe(3);
+  it("writes fixed DBF_NUMBER_LENGTH at byte 16 for N fields", () => {
+    const w = makeWriter([{ key: "val", type: "N", length: 5 }]);
+    expect(w.dbf[32 + 16]).toBe(N_LEN);
+  });
+
+  it("writes fixed DBF_NUMBER_DECIMALS at byte 17 for N fields", () => {
+    const w = makeWriter([{ key: "val", type: "N", length: 5 }]);
+    expect(w.dbf[32 + 17]).toBe(N_DEC);
   });
 
   it("writes header terminator 0x0D after field descriptors", () => {
@@ -122,32 +130,34 @@ describe("writeDbfRecord", () => {
     expect(w.dbf[recStart + 1]).toBe(0x3f); // '?'
   });
 
-  it("N field: right-aligns formatted number with leading spaces", () => {
-    const w = makeWriter([{ key: "val", type: "N", length: 8, decimals: 2 }]);
+  it("N field: right-aligns number with DBF_NUMBER_DECIMALS decimal places", () => {
+    const w = makeWriter([{ key: "val", type: "N", length: 5 }]);
     const recStart = w.dbfCursor;
     writeDbfRecord(w, { val: 3.14 }, {}, encoder);
-    const field = w.dbf.slice(recStart + 1, recStart + 9);
+    const field = w.dbf.slice(recStart + 1, recStart + 1 + N_LEN);
     const str = new TextDecoder().decode(field);
-    expect(str).toBe("    3.14");
+    const expected = (3.14).toFixed(N_DEC).padStart(N_LEN);
+    expect(str).toBe(expected);
   });
 
-  it("N field: fills with spaces for null", () => {
-    const w = makeWriter([{ key: "val", type: "N", length: 5, decimals: 0 }]);
+  it("N field: fills entire field with spaces for null", () => {
+    const w = makeWriter([{ key: "val", type: "N", length: 5 }]);
     const recStart = w.dbfCursor;
     writeDbfRecord(w, { val: null }, {}, encoder);
-    const field = w.dbf.slice(recStart + 1, recStart + 6);
+    const field = w.dbf.slice(recStart + 1, recStart + 1 + N_LEN);
     expect(Array.from(field).every((b) => b === 0x20)).toBe(true);
   });
 
   it("N field: fills with '*' when formatted number overflows field width", () => {
-    const w = makeWriter([{ key: "v", type: "N", length: 3, decimals: 0 }]);
+    const w = makeWriter([{ key: "v", type: "N", length: 5 }]);
     const recStart = w.dbfCursor;
-    writeDbfRecord(w, { v: 12345 }, {}, encoder);
-    const field = w.dbf.slice(recStart + 1, recStart + 4);
+    // 1e20.toFixed(DBF_NUMBER_DECIMALS) exceeds DBF_NUMBER_LENGTH characters
+    writeDbfRecord(w, { v: 1e20 }, {}, encoder);
+    const field = w.dbf.slice(recStart + 1, recStart + 1 + N_LEN);
     expect(Array.from(field).every((b) => b === 0x2a)).toBe(true); // '*'
   });
 
-  it("C field: writes string left-padded with spaces on right", () => {
+  it("C field: writes string padded with spaces on right", () => {
     const w = makeWriter([{ key: "name", type: "C", length: 10 }]);
     const recStart = w.dbfCursor;
     writeDbfRecord(w, { name: "hello" }, {}, encoder);
@@ -166,27 +176,23 @@ describe("writeDbfRecord", () => {
   });
 
   it("falls back to simValues when prop key is absent", () => {
-    const w = makeWriter([
-      { key: "pressure", type: "N", length: 6, decimals: 2 },
-    ]);
+    const w = makeWriter([{ key: "pressure", type: "N", length: 6 }]);
     const recStart = w.dbfCursor;
     writeDbfRecord(w, {}, { pressure: 12.5 }, encoder);
     const field = new TextDecoder().decode(
-      w.dbf.slice(recStart + 1, recStart + 7),
+      w.dbf.slice(recStart + 1, recStart + 1 + N_LEN),
     );
-    expect(field.trim()).toBe("12.50");
+    expect(field.trim()).toBe((12.5).toFixed(N_DEC));
   });
 
   it("props take precedence over simValues for same key", () => {
-    const w = makeWriter([
-      { key: "pressure", type: "N", length: 6, decimals: 2 },
-    ]);
+    const w = makeWriter([{ key: "pressure", type: "N", length: 6 }]);
     const recStart = w.dbfCursor;
     writeDbfRecord(w, { pressure: 5.0 }, { pressure: 99.0 }, encoder);
     const field = new TextDecoder().decode(
-      w.dbf.slice(recStart + 1, recStart + 7),
+      w.dbf.slice(recStart + 1, recStart + 1 + N_LEN),
     );
-    expect(field.trim()).toBe("5.00");
+    expect(field.trim()).toBe((5.0).toFixed(N_DEC));
   });
 
   it("advances dbfCursor by recordLength", () => {
