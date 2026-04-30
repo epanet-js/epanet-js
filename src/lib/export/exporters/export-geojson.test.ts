@@ -1,4 +1,5 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportGeoJson } from "./export-geojson";
 
@@ -50,6 +51,21 @@ describe("export-geojson", () => {
     expect(junctionGeoJson.features).toHaveLength(2);
     expect(pipeGeoJson.features).toHaveLength(1);
   });
+
+  it("merges simulation results into feature properties", async () => {
+    const pressure = 42;
+    const demand = 5;
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const resultsReader = mockResultsReader(pressure, demand);
+
+    const files = exportGeoJson(model, true, resultsReader);
+
+    const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
+    expect(geoJson.features[0].properties).toMatchObject({
+      pressure: 42,
+      demand: 5,
+    });
+  });
 });
 
 const findFile = (files: ExportedFile[], name: string) =>
@@ -60,3 +76,13 @@ const parseGeoJson = async (file: ExportedFile) =>
     type: string;
     features: { type: string; geometry: object; properties: object }[];
   };
+
+const mockResultsReader = (pressure: number, demand: number) =>
+  ({
+    getJunction: vi.fn().mockReturnValue({ pressure, demand }),
+    getTank: vi.fn().mockReturnValue({}),
+    getReservoir: vi.fn().mockReturnValue({}),
+    getPipe: vi.fn().mockReturnValue({}),
+    getPump: vi.fn().mockReturnValue({}),
+    getValve: vi.fn().mockReturnValue({}),
+  }) as unknown as ResultsReader;

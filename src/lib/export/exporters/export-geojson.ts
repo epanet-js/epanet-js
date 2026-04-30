@@ -48,11 +48,11 @@ const allocateBuffers = (size: number) => {
   return { buffers, offsets };
 };
 
-const assetToGeoJson = (asset: Asset) => {
+const assetToGeoJson = (asset: Asset, simulationResults = {}) => {
   const mapped = {
     type: "Feature",
     geometry: asset?.feature.geometry,
-    properties: asset?.feature.properties,
+    properties: { ...asset?.feature.properties, ...simulationResults },
   };
   return JSON.stringify(mapped);
 };
@@ -106,22 +106,26 @@ const removeTrailingComma = (
 
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
-  _includeSimulationResults: boolean,
-  _resultsReader?: ResultsReader,
+  includeSimulationResults: boolean,
+  resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const entrySize = estimateEntrySize(hydraulicModel);
   const size = hydraulicModel.assets.size * 2 * entrySize + 1024;
   const encoder = new TextEncoder();
+  const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
 
   encodeHeader(buffers, offsets, encoder);
 
   hydraulicModel.assets.forEach((asset) => {
+    const simulationValues = includeSimulationResults
+      ? getSimulationResults[asset.type](asset)
+      : {};
     const buffer = buffers[asset.type];
     const offset = offsets[asset.type];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const view = buffer.subarray(offset);
-    const geoJson = assetToGeoJson(asset);
+    const geoJson = assetToGeoJson(asset, simulationValues);
 
     const textContent = `${geoJson},`;
     const { written } = encoder.encodeInto(textContent, view);
