@@ -1,10 +1,11 @@
 "use client";
 import { memo, useCallback, useMemo, useRef } from "react";
 import ReactECharts from "echarts-for-react";
-import type { EChartsOption } from "echarts";
+import type { EChartsOption, SeriesOption } from "echarts";
 import { useSetAtom } from "jotai";
 import { ProfileViewData } from "./chart-data";
 import {
+  buildProfileChartOption,
   elevationDropsPlot,
   elevationLinePlot,
   hglBandPlot,
@@ -12,6 +13,7 @@ import {
   hglLinePlot,
   junctionsStripPlot,
   pipesStripPlot,
+  profileGridTopOffset,
   pumpValvesStripPlot,
   pumpsStripPlot,
   reservoirsStripPlot,
@@ -21,7 +23,6 @@ import {
 } from "./plots";
 import { useStripPlanIcons } from "./use-strip-plan-icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { localizeDecimal } from "src/infra/i18n/numbers";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
@@ -30,10 +31,6 @@ import { traceDuration } from "src/infra/with-instrumentation";
 import { useAtomValue } from "jotai";
 import { USelection } from "src/selection/selection";
 import { ProfileTooltip } from "./profile-tooltip";
-
-const STRIP_GRID_TOP = 6;
-const STRIP_GRID_HEIGHT = 30;
-const STRIP_PROFILE_GAP = 2;
 
 function notNull<T>(value: T | null): value is T {
   return value !== null;
@@ -210,119 +207,24 @@ export const ProfileChart = memo(function ProfileChart({
     stripIcons,
   ]);
 
-  const profileGridTop =
-    STRIP_GRID_TOP +
-    STRIP_GRID_HEIGHT +
-    STRIP_PROFILE_GAP +
-    (hasSimulation ? 4 : 0);
+  const profileGridTop = profileGridTopOffset(hasSimulation);
 
   const option: EChartsOption = useMemo(
     () =>
-      traceDuration("DEBUG PROFILE_CHART:option", () => ({
-        animation: false,
-        grid: [
-          {
-            top: profileGridTop,
-            right: 12,
-            bottom: 12,
-            left: 12,
-            containLabel: true,
-          },
-          {
-            top: STRIP_GRID_TOP,
-            height: STRIP_GRID_HEIGHT,
-            right: 12,
-            left: 12,
-            containLabel: true,
-          },
-        ],
-        xAxis: [
-          {
-            type: "value",
-            min: 0,
-            max: totalLength,
-            nameLocation: "middle",
-            splitLine: { show: true, lineStyle: { color: "#e5e7eb" } },
-            axisTick: { customValues: nodePositions } as any,
-            axisLabel: {
-              hideOverlap: true,
-              customValues: nodePositions,
-              formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
-            } as any,
-            axisPointer: {
-              show: true,
-              type: "line",
-              snap: false,
-              triggerTooltip: false,
-              label: { show: false },
-              lineStyle: { color: "#9ca3af", width: 1, type: "dashed" },
-            } as any,
-          },
-          {
-            gridIndex: 1,
-            type: "value",
-            min: 0,
-            max: totalLength,
-            show: false,
-            axisPointer: {
-              show: true,
-              type: "line",
-              snap: false,
-              triggerTooltip: false,
-              label: { show: false },
-              lineStyle: { color: "#9ca3af", width: 1, type: "dashed" },
-            } as any,
-          },
-        ],
-        yAxis: [
-          {
-            type: "value",
-            min: Math.round(yAxisRange.min),
-            max: Math.round(yAxisRange.max),
-            interval: Math.round(yAxisRange.interval),
-            axisLabel: {
-              fontSize: 12,
-              formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
-            },
-          },
-          {
-            gridIndex: 1,
-            type: "value",
-            min: yAxisRange.min,
-            max: yAxisRange.max,
-            interval: yAxisRange.interval,
-            axisLine: { show: false },
-            axisTick: { show: false },
-            splitLine: { show: false },
-            axisLabel: {
-              fontSize: 12,
-              color: "transparent",
-              formatter: (val: number) => localizeDecimal(val, { decimals: 0 }),
-            },
-          },
-        ],
-        series: [
-          ...((series ?? []) as any[]),
-          ...((stripSeries ?? []) as any[]),
-        ],
-        tooltip: { show: false },
-        axisPointer: {
-          link: [{ xAxisIndex: [0, 1] }],
-          triggerOn: "none",
-        } as any,
-        dataZoom: [
-          {
-            type: "inside",
-            xAxisIndex: [0, 1],
-            filterMode: "none",
-            zoomOnMouseWheel: true,
-            moveOnMouseMove: true,
-            moveOnMouseWheel: false,
-            preventDefaultMouseMove: true,
-            minValueSpan: 1,
-          },
-        ],
-      })),
+      traceDuration("DEBUG PROFILE_CHART:option", () =>
+        buildProfileChartOption({
+          series: [
+            ...(series ?? []),
+            ...((stripSeries ?? []) as SeriesOption[]),
+          ],
+          xTickPositions: nodePositions,
+          xMax: totalLength,
+          yMin: yAxisRange.min,
+          yMax: yAxisRange.max,
+          yInterval: yAxisRange.interval,
+          profileGridTop,
+        }),
+      ),
     [
       series,
       stripSeries,
