@@ -132,6 +132,7 @@ type Simulation = NonNullable<
 >;
 type TranslateFn = ReturnType<typeof useTranslate>;
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
+type QualityAnalysisType = "none" | "age" | "trace" | "chemical";
 
 function buildSimRow(
   type: AssetType,
@@ -139,6 +140,21 @@ function buildSimRow(
   simulation: Simulation,
   translate: TranslateFn,
 ): Record<string, number | string | null> {
+  const qualityFields = (
+    sim:
+      | {
+          waterAge: number | null;
+          waterTrace: number | null;
+          chemicalConcentration: number | null;
+        }
+      | null
+      | undefined,
+  ) => ({
+    sim_waterAge: sim?.waterAge ?? null,
+    sim_waterTrace: sim?.waterTrace ?? null,
+    sim_chemicalConcentration: sim?.chemicalConcentration ?? null,
+  });
+
   switch (type) {
     case "junction": {
       const sim = simulation.getJunction(assetId);
@@ -146,6 +162,7 @@ function buildSimRow(
         sim_pressure: sim?.pressure ?? null,
         sim_head: sim?.head ?? null,
         sim_demand: sim?.demand ?? null,
+        ...qualityFields(sim),
       };
     }
     case "pipe": {
@@ -156,14 +173,24 @@ function buildSimRow(
         sim_headloss: sim?.headloss ?? null,
         sim_unitHeadloss: sim?.unitHeadloss ?? null,
         sim_status: sim?.status ? translate(`pipe.${sim.status}`) : "",
+        ...qualityFields(sim),
       };
     }
     case "pump": {
       const sim = simulation.getPump(assetId);
+      const energy = simulation.getPumpEnergy(assetId);
       return {
         sim_flow: sim?.flow ?? null,
         sim_headloss: sim?.headloss ?? null,
         sim_status: sim?.status ? translate(`pump.${sim.status}`) : "",
+        ...qualityFields(sim),
+        sim_utilization: energy?.utilization ?? null,
+        sim_averageEfficiency: energy?.averageEfficiency ?? null,
+        sim_averageKwPerFlowUnit: energy?.averageKwPerFlowUnit ?? null,
+        sim_averageKw: energy?.averageKw ?? null,
+        sim_peakKw: energy?.peakKw ?? null,
+        sim_averageCostPerDay: energy?.averageCostPerDay ?? null,
+        sim_demandCharge: energy?.demandCharge ?? null,
       };
     }
     case "valve": {
@@ -173,6 +200,7 @@ function buildSimRow(
         sim_velocity: sim?.velocity ?? null,
         sim_headloss: sim?.headloss ?? null,
         sim_status: sim?.status ? translate(`valve.${sim.status}`) : "",
+        ...qualityFields(sim),
       };
     }
     case "reservoir": {
@@ -180,6 +208,7 @@ function buildSimRow(
       return {
         sim_head: r?.head ?? null,
         sim_netFlow: r?.netFlow ?? null,
+        ...qualityFields(r),
       };
     }
     case "tank": {
@@ -189,6 +218,7 @@ function buildSimRow(
         sim_level: sim?.level ?? null,
         sim_volume: sim?.volume ?? null,
         sim_netFlow: sim?.netFlow ?? null,
+        ...qualityFields(sim),
       };
     }
   }
@@ -200,6 +230,7 @@ function buildSimColumns(
   units: UnitsSpec,
   translateUnit: TranslateUnitFn,
   formatting: FormattingSpec,
+  qualityType: QualityAnalysisType,
 ): GridColumn[] {
   const headerLabel = (
     name: string,
@@ -212,15 +243,49 @@ function buildSimColumns(
     key: string,
     name: string,
     unit: Parameters<TranslateUnitFn>[0],
-    property: QuantityProperty,
+    property?: QuantityProperty,
   ) =>
     floatColumn(key, {
       header: headerLabel(name, unit),
-      decimals: getDecimals(formatting, property),
+      decimals:
+        property != null
+          ? getDecimals(formatting, property)
+          : formatting.defaultDecimals,
       readonly: true,
     });
   const simTextValue = (key: string, name: string) =>
     textColumn(key, { header: name, readonly: true });
+
+  const qualityCols = (): GridColumn[] => {
+    if (qualityType === "age")
+      return [
+        simNumericValue(
+          "sim_waterAge",
+          translate("waterAge"),
+          units.waterAge,
+          "waterAge",
+        ),
+      ];
+    if (qualityType === "trace")
+      return [
+        simNumericValue(
+          "sim_waterTrace",
+          translate("waterTrace"),
+          units.waterTrace,
+          "waterTrace",
+        ),
+      ];
+    if (qualityType === "chemical")
+      return [
+        simNumericValue(
+          "sim_chemicalConcentration",
+          translate("chemicalConcentration"),
+          units.chemicalConcentration,
+          "chemicalConcentration",
+        ),
+      ];
+    return [];
+  };
 
   switch (type) {
     case "junction":
@@ -238,6 +303,7 @@ function buildSimColumns(
           units.actualDemand,
           "actualDemand",
         ),
+        ...qualityCols(),
       ];
     case "pipe":
       return [
@@ -261,6 +327,7 @@ function buildSimColumns(
           "unitHeadloss",
         ),
         simTextValue("sim_status", translate("actualStatus")),
+        ...qualityCols(),
       ];
     case "pump":
       return [
@@ -272,6 +339,43 @@ function buildSimColumns(
           "headloss",
         ),
         simTextValue("sim_status", translate("actualStatus")),
+        ...qualityCols(),
+        simNumericValue(
+          "sim_utilization",
+          translate("utilization"),
+          units.efficiency,
+          "efficiency",
+        ),
+        simNumericValue(
+          "sim_averageEfficiency",
+          translate("averageEfficiency"),
+          units.efficiency,
+          "efficiency",
+        ),
+        simNumericValue(
+          "sim_averageKwPerFlowUnit",
+          translate("averageKwPerFlowUnit"),
+          units.averageKwPerFlowUnit,
+          "averageKwPerFlowUnit",
+        ),
+        simNumericValue(
+          "sim_averageKw",
+          translate("averageKw"),
+          units.power,
+          "power",
+        ),
+        simNumericValue(
+          "sim_peakKw",
+          translate("peakKw"),
+          units.power,
+          "power",
+        ),
+        simNumericValue(
+          "sim_averageCostPerDay",
+          translate("averageCostPerDay"),
+          null,
+        ),
+        simNumericValue("sim_demandCharge", translate("demandCharge"), null),
       ];
     case "valve":
       return [
@@ -289,6 +393,7 @@ function buildSimColumns(
           "headloss",
         ),
         simTextValue("sim_status", translate("actualStatus")),
+        ...qualityCols(),
       ];
     case "reservoir":
       return [
@@ -299,6 +404,7 @@ function buildSimColumns(
           units.netFlow,
           "netFlow",
         ),
+        ...qualityCols(),
       ];
     case "tank":
       return [
@@ -316,6 +422,7 @@ function buildSimColumns(
           units.netFlow,
           "netFlow",
         ),
+        ...qualityCols(),
       ];
   }
 }
@@ -330,6 +437,7 @@ function buildColumns(
   patterns: Patterns,
   curves: Curves,
   energyGlobalPatternId: PatternId | null,
+  qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
 ): GridColumn[] {
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
@@ -420,7 +528,14 @@ function buildColumns(
   ];
 
   const simCols = hasSimulation
-    ? buildSimColumns(type, translate, units, translateUnit, formatting)
+    ? buildSimColumns(
+        type,
+        translate,
+        units,
+        translateUnit,
+        formatting,
+        qualityType,
+      )
     : [];
 
   switch (type) {
@@ -672,6 +787,35 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       : (presentTypes[0] ?? null);
 
   const hasSimulation = simulation !== null;
+
+  const qualityType = useMemo((): QualityAnalysisType => {
+    if (!simulation) return "none";
+    for (const [type, ids] of assetIdsByType) {
+      if (ids.length === 0) continue;
+      const id = ids[0];
+      let q:
+        | {
+            waterAge: number | null;
+            waterTrace: number | null;
+            chemicalConcentration: number | null;
+          }
+        | null
+        | undefined;
+      if (type === "junction") q = simulation.getJunction(id);
+      else if (type === "pipe") q = simulation.getPipe(id);
+      else if (type === "pump") q = simulation.getPump(id);
+      else if (type === "valve") q = simulation.getValve(id);
+      else if (type === "reservoir") q = simulation.getReservoir(id);
+      else if (type === "tank") q = simulation.getTank(id);
+      if (!q) continue;
+      if (q.waterAge != null) return "age";
+      if (q.waterTrace != null) return "trace";
+      if (q.chemicalConcentration != null) return "chemical";
+      return "none";
+    }
+    return "none";
+  }, [simulation, assetIdsByType]);
+
   const columns = useMemo(
     () =>
       effectiveTab
@@ -685,7 +829,8 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
             hydraulicModel.patterns,
             hydraulicModel.curves,
             simulationSettings?.energyGlobalPatternId ?? null,
-            (label, rowIndex) => {
+            qualityType,
+            (label: string, rowIndex: number) => {
               const assetId = rowsRef.current?.[rowIndex]?.id;
               if (assetId === undefined) return true;
               return labelManager.isLabelAvailable(
@@ -706,6 +851,7 @@ export const DataTablesPanel = memo(function DataTablesPanelInner() {
       hydraulicModel.patterns,
       hydraulicModel.curves,
       simulationSettings?.energyGlobalPatternId,
+      qualityType,
       labelManager,
     ],
   );
