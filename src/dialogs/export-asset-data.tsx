@@ -48,7 +48,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
 
   const isEpsSimulation = timestepCount > 1;
   const includeSimulationResultsLabelText = isEpsSimulation
-    ? `${translate("exportSimulationResultsForCurrentStep")} ${formatTimestepTime(simulationStep ?? 0, reportingTimeStep)}`
+    ? `${translate("exportSimulationResultsForCurrentStep")} (${formatTimestepTime(simulationStep ?? 0, reportingTimeStep)})`
     : translate("exportSimulationResults");
 
   return (
