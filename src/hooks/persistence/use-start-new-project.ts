@@ -157,3 +157,24 @@ export const useStartNewProject = () => {
 
   return { startNewProject };
 };
+
+export const useSeedDefaultProjectDb = () => {
+  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+
+  return useAtomCallback(
+    useCallback(
+      (get: Getter) => {
+        if (!isOurFileOn) return;
+        void db
+          .importProject({
+            newDb: true,
+            projectSettings: get(projectSettingsAtom),
+            hydraulicModel: get(stagingModelAtom),
+            simulationSettings: get(simulationSettingsAtom),
+          })
+          .catch(captureError);
+      },
+      [isOurFileOn],
+    ),
+  );
+};

@@ -63,6 +63,7 @@ import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useSeedDefaultProjectDb } from "src/hooks/persistence/use-start-new-project";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -87,10 +88,19 @@ export function EpanetApp() {
 
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
+  const seedDefaultProjectDb = useSeedDefaultProjectDb();
+  const dbInitializedRef = useRef(false);
 
   useEffect(() => {
     void initStorage();
   }, []);
+
+  useEffect(() => {
+    if (dbInitializedRef.current) return;
+    if (!isReady) return;
+    dbInitializedRef.current = true;
+    seedDefaultProjectDb();
+  }, [isReady, seedDefaultProjectDb]);
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {
