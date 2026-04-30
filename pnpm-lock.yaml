@@ -71,9 +71,6 @@ importers:
       '@logtail/types':
         specifier: ^0.4.20
         version: 0.4.20
-      '@mapbox/shp-write':
-        specifier: ^0.4.3
-        version: 0.4.3
       '@next/env':
         specifier: ^14.2.3
         version: 14.2.3
@@ -1350,9 +1347,6 @@ packages:
 
   '@mapbox/point-geometry@0.1.0':
     resolution: {integrity: sha512-6j56HdLTwWGO0fJPlrZtdU/B13q8Uwmo18Ck2GnGgN9PCFyKTZ3UbXeEdRFh18i9XQ92eH2VdtpJHpBD3aripQ==}
-
-  '@mapbox/shp-write@0.4.3':
-    resolution: {integrity: sha512-mkKIHgtnytyP+cXfk+joYeWwk+SODZ7COQusTcO1rZQVUn68MjzW2F74XMsNIusabnwj5aoKNI8B3mYq9KZ9AQ==}
 
   '@mapbox/tiny-sdf@2.0.6':
     resolution: {integrity: sha512-qMqa27TLw+ZQz5Jk+RcwZGH7BQf5G/TrutJhspsca/3SHwmgKQ1iq+d3Jxz5oysPVYTGP6aXxCo5Lk9Er6YBAA==}
@@ -4103,9 +4097,6 @@ packages:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
 
-  dbf@0.2.0:
-    resolution: {integrity: sha512-JMeGCJzFcVGsfnkIuqrnuiSkJpTu6c4AKJg3LXDnfW7zU/2PSIue3KG4fz9c+/mmlDzT+rVCwyEHzzhxzrzPiA==}
-
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
 
@@ -4652,9 +4643,6 @@ packages:
   file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
-
-  file-saver@2.0.5:
-    resolution: {integrity: sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==}
 
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
@@ -5264,9 +5252,6 @@ packages:
   jackspeak@3.1.2:
     resolution: {integrity: sha512-kWmLKn2tRtfYMF/BakihVVRzBKOxz4gJMiL2Rj91WnAB5TPZumSH99R/Yf1qE1u4uRimvCSJfm6hnxohXeEXjQ==}
     engines: {node: '>=14'}
-
-  jdataview@2.5.0:
-    resolution: {integrity: sha512-ZJop3D5nyDcWPBPv4NPnhCvx3HgQNsCXMfw8gpNKY16BobgxmVF+kJ08aHuqk6bJQVeL2mkf6nDCcZPMompalw==}
 
   jest-diff@27.5.1:
     resolution: {integrity: sha512-m0NvkX55LDt9T4mctTEgnZk3fmEg3NRYutvMPWM/0iPnkFj2wIeF45O1718cMSOFO1vINkqmxqD8vE37uTEbqw==}
@@ -8417,12 +8402,6 @@ snapshots:
 
   '@mapbox/point-geometry@0.1.0': {}
 
-  '@mapbox/shp-write@0.4.3':
-    dependencies:
-      dbf: 0.2.0
-      file-saver: 2.0.5
-      jszip: 3.10.1
-
   '@mapbox/tiny-sdf@2.0.6': {}
 
   '@mapbox/unitbezier@0.0.0': {}
@@ -11536,10 +11515,6 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.24.6
 
-  dbf@0.2.0:
-    dependencies:
-      jdataview: 2.5.0
-
   debounce@1.2.1: {}
 
   debug@3.2.7:
@@ -12248,8 +12223,6 @@ snapshots:
     dependencies:
       flat-cache: 3.2.0
 
-  file-saver@2.0.5: {}
-
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
@@ -12920,8 +12893,6 @@ snapshots:
       '@isaacs/cliui': 8.0.2
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
-
-  jdataview@2.5.0: {}
 
   jest-diff@27.5.1:
     dependencies:
