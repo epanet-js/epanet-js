@@ -28,7 +28,7 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
 };
 
 const allocateBuffers = (size: number) => {
-  const buffers: Record<AssetType, Uint8Array<ArrayBuffer>> = {
+  const buffers: Record<AssetType, Uint8Array> = {
     junction: new Uint8Array(size),
     reservoir: new Uint8Array(size),
     tank: new Uint8Array(size),
@@ -64,7 +64,7 @@ const estimateEntrySize = (hydraulicModel: HydraulicModel) => {
 };
 
 const encodeHeader = (
-  buffers: Record<AssetType, Uint8Array<ArrayBuffer>>,
+  buffers: Record<AssetType, Uint8Array>,
   offsets: Record<AssetType, number>,
   textEncoder: TextEncoder,
 ) => {
@@ -77,7 +77,7 @@ const encodeHeader = (
 };
 
 const encodeEnd = (
-  buffers: Record<AssetType, Uint8Array<ArrayBuffer>>,
+  buffers: Record<AssetType, Uint8Array>,
   offsets: Record<AssetType, number>,
   textEncoder: TextEncoder,
 ) => {
@@ -85,7 +85,6 @@ const encodeEnd = (
   types.forEach((type) => {
     const buffer = buffers[type];
     const offset = offsets[type];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const view = buffer.subarray(offset);
     const { written } = textEncoder.encodeInto(GEOJSON_END, view);
     offsets[type] += written;
@@ -93,7 +92,7 @@ const encodeEnd = (
 };
 
 const removeTrailingComma = (
-  buffers: Record<AssetType, Uint8Array<ArrayBuffer>>,
+  buffers: Record<AssetType, Uint8Array>,
   offsets: Record<AssetType, number>,
 ) => {
   const types = Object.keys(buffers) as AssetType[];
@@ -123,7 +122,6 @@ export const exportGeoJson = (
       : {};
     const buffer = buffers[asset.type];
     const offset = offsets[asset.type];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const view = buffer.subarray(offset);
     const geoJson = assetToGeoJson(asset, simulationValues);
 
@@ -137,7 +135,6 @@ export const exportGeoJson = (
 
   return Object.entries(buffers).map(([type, buffer]) => {
     const offset = offsets[type as AssetType];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const bufferView = buffer.subarray(0, offset);
 
     return {

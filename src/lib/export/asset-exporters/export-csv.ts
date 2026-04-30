@@ -25,7 +25,7 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
 };
 
 const allocateBuffers = (size: number) => {
-  const buffers: Record<AssetType, Uint8Array<ArrayBuffer>> = {
+  const buffers: Record<AssetType, Uint8Array> = {
     junction: new Uint8Array(size),
     reservoir: new Uint8Array(size),
     tank: new Uint8Array(size),
@@ -85,7 +85,6 @@ export const exportCsv = (
   const encode = (asset: Asset) => {
     const buffer = buffers[asset.type];
     const offset = offsets[asset.type];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const view = buffer.subarray(offset);
 
     const { written } = encoder.encodeInto(parts.join(","), view);
@@ -150,7 +149,6 @@ export const exportCsv = (
 
   return Object.entries(buffers).map(([type, buffer]) => {
     const offset = offsets[type as AssetType];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const bufferView = buffer.subarray(0, offset);
 
     return {
