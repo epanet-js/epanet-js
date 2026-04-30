@@ -79,6 +79,7 @@ export function defineEmptySources(style: Style) {
   style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
   style.sources["map-overlay"] = emptyGeoJSONSource;
+  style.sources["highlights"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
 }
 
@@ -107,6 +108,10 @@ import {
   ephemeralSelectionFillLayer,
   ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
+import {
+  highlightsMarkerHaloLayer,
+  highlightsMarkerLayer,
+} from "src/map/layers/highlights";
 import { gridMinorLayer, gridMajorLayer } from "src/map/layers/grid";
 import {
   selectedPipesLayer,
@@ -304,6 +309,8 @@ export function makeLayers({
     }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
+    highlightsMarkerHaloLayer({ source: "highlights" }),
+    highlightsMarkerLayer({ source: "highlights" }),
     ...linkLabelsLayer({
       sources: ["main-features", "delta-features"],
     }),

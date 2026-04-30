@@ -34,6 +34,7 @@ import {
 } from "src/state/simulation";
 import { offlineAtom } from "src/state/offline";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
+import { highlightsAtom, type Highlight } from "src/state/highlights";
 import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
 import type { CustomerPoints } from "src/hydraulic-model/customer-points";
@@ -120,6 +121,7 @@ export type MapState = {
   customerPoints: CustomerPoints;
   currentZoom: number;
   mapOverlayFeatures: GeoJSON.Feature[];
+  highlights: Highlight[];
 };
 
 export const nullMapState: MapState = {
@@ -144,6 +146,7 @@ export const nullMapState: MapState = {
   customerPoints: new Map(),
   currentZoom: DEFAULT_ZOOM,
   mapOverlayFeatures: [],
+  highlights: [],
 } as const;
 
 export const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -175,6 +178,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const movedAssetIds = get(movedAssetIdsAtom);
   const isOffline = get(offlineAtom);
   const mapOverlayFeatures = get(mapOverlayFeaturesAtom);
+  const highlights = get(highlightsAtom);
 
   return {
     momentLogId: momentLog.id,
@@ -194,5 +198,6 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     customerPoints,
     currentZoom,
     mapOverlayFeatures,
+    highlights,
   };
 });

@@ -5,6 +5,7 @@ export type DataSource =
   | "selected-features"
   | "ephemeral"
   | "map-overlay"
+  | "highlights"
   | "grid";
 
 export const FeatureSources = {

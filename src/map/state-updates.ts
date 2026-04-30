@@ -29,9 +29,11 @@ import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
   buildEphemeralStateSource,
+  buildHighlightsSource,
   buildSelectionSource,
   FeatureSources,
 } from "./data-source";
+import type { Highlight } from "src/state/highlights";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
 import { buildBaseStyle, makeLayers } from "./build-style";
@@ -119,6 +121,7 @@ const detectChanges = (
   hasSyncMomentChanged: boolean;
   hasNewResults: boolean;
   hasNewMapOverlay: boolean;
+  hasNewHighlights: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -150,6 +153,7 @@ const detectChanges = (
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
     hasNewResults: state.resultsReader !== prev.resultsReader,
     hasNewMapOverlay: state.mapOverlayFeatures !== prev.mapOverlayFeatures,
+    hasNewHighlights: state.highlights !== prev.highlights,
   };
 };
 
@@ -202,6 +206,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasSyncMomentChanged,
       hasNewResults,
       hasNewMapOverlay,
+      hasNewHighlights,
     } = changes;
 
     const selectionSize = USelection.toIds(mapState.selection).length;
@@ -418,6 +423,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewMapOverlay) {
           await updateMapOverlaySource(map, mapState.mapOverlayFeatures);
+        }
+
+        if (hasNewHighlights) {
+          await updateHighlightsSource(map, mapState.highlights);
         }
 
         if (
@@ -914,6 +923,14 @@ const updateMapOverlaySource = async (
     "map-overlay",
     features as unknown as import("src/types").Feature[],
   );
+};
+
+const updateHighlightsSource = async (
+  map: MapEngine,
+  highlights: Highlight[],
+): Promise<void> => {
+  const features = buildHighlightsSource(highlights);
+  await map.setSource("highlights", features);
 };
 
 const buildCustomerPointsEphemeralOverlay = (
