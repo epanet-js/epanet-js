@@ -60,11 +60,7 @@ export function GridDataCell<T>({
       aria-selected={isSelected}
       className={clsx(
         "relative h-8 shrink-0 select-none border cursor-cell",
-        {
-          grow: !(
-            cell.getContext().table.options.meta as { resizable?: boolean }
-          )?.resizable,
-        },
+        { grow: !cell.column.getCanResize() },
         hasWarning
           ? "bg-orange-50"
           : isActive

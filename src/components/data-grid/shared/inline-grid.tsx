@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { Table } from "@tanstack/react-table";
 import {
   CellPosition,
@@ -8,7 +8,7 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useRowsNavigation } from "../hooks";
+import { getReservedWidth, useColumnSizing, useRowsNavigation } from "../hooks";
 import { GridRow } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
@@ -73,6 +73,14 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
   }: InlineGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
 ) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { resetColumnSize } = useColumnSizing({
+    table,
+    containerRef,
+    reservedWidth: getReservedWidth({ gutterColumn, rowActions, readOnly }),
+  });
+
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
   const visibleRowCount = rows.length;
@@ -97,7 +105,11 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
   );
 
   return (
-    <div className="flex flex-col" onMouseDown={onEmptyAreaMouseDown}>
+    <div
+      ref={containerRef}
+      className="flex flex-col"
+      onMouseDown={onEmptyAreaMouseDown}
+    >
       <GridHeader
         table={table}
         showGutterColumn={gutterColumn}
@@ -105,6 +117,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
         onSelectColumn={onSelectColumn}
         onSelectAll={onSelectAll}
         variant={variant}
+        resetColumnSize={resetColumnSize}
       />
       {rows.map((row, rowIndex) => {
         const isLast = rowIndex === rows.length - 1;

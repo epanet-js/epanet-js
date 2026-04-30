@@ -16,10 +16,11 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useRowsNavigation } from "../hooks";
+import { useColumnSizing, useRowsNavigation } from "../hooks";
 import { GridRow, ROW_HEIGHT } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
+import { FIXED_COLUMN_SIZE, getReservedWidth } from "../hooks";
 
 export type VirtualGridProps<TData> = {
   table: Table<TData>;
@@ -127,6 +128,20 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
     return () => resizeObserver.disconnect();
   }, []);
 
+  const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
+  const actionsWidth = rowActions ? FIXED_COLUMN_SIZE : 0;
+
+  const { resetColumnSize } = useColumnSizing({
+    table,
+    containerRef,
+    reservedWidth: getReservedWidth({
+      gutterColumn,
+      rowActions,
+      readOnly,
+      scrollbarWidth: scrollState.scrollbarWidth + 2,
+    }),
+  });
+
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;
 
@@ -166,7 +181,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
         container.scrollTop = rowBottom - container.clientHeight;
       }
 
-      const gutterWidth = gutterColumn ? 32 : 0;
+      const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
       const leafColumns = table.getAllLeafColumns();
       let colStart = gutterWidth;
       for (let i = 0; i < activeCell.col; i++) {
@@ -199,9 +214,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
 
   const isReady = rowsHeight !== undefined;
 
-  const gutterWidth = gutterColumn ? 32 : 0;
-  const actionsWidth = rowActions ? 32 : 0;
-
   return (
     <div
       ref={containerRef}
@@ -217,6 +229,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           onSelectAll={onSelectAll}
           variant={variant}
           scrollbarGap={scrollState.scrollbarWidth}
+          resetColumnSize={resetColumnSize}
         />
       </div>
       <div

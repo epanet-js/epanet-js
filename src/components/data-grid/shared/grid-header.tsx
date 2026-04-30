@@ -13,6 +13,7 @@ type GridHeaderProps<T> = {
   style?: React.CSSProperties;
   className?: string;
   scrollbarGap?: number;
+  resetColumnSize?: (columnId: string) => void;
 };
 
 export function GridHeader<T>({
@@ -25,6 +26,7 @@ export function GridHeader<T>({
   style,
   className,
   scrollbarGap,
+  resetColumnSize,
 }: GridHeaderProps<T>) {
   return (
     <div
@@ -64,10 +66,7 @@ export function GridHeader<T>({
             role="columnheader"
             className={clsx(
               "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 text-gray-600 border border-transparent overflow-visible",
-              {
-                grow: !(table.options.meta as { resizable?: boolean })
-                  ?.resizable,
-              },
+              { grow: !header.column.getCanResize() },
             )}
             style={{
               width: header.getSize(),
@@ -78,11 +77,15 @@ export function GridHeader<T>({
             <span className="truncate">
               {flexRender(header.column.columnDef.header, header.getContext())}
             </span>
-            {!!(table.options.meta as { resizable?: boolean })?.resizable && (
+            {header.column.getCanResize() && (
               <div
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   header.getResizeHandler()(e);
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  resetColumnSize?.(header.column.id);
                 }}
                 onClick={(e) => e.stopPropagation()}
                 className={clsx(

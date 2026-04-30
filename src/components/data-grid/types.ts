@@ -33,6 +33,8 @@ export type GridColumn = {
 
   // Layout
   size?: number;
+  minSize?: number;
+  maxSize?: number;
 
   // Cell rendering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
