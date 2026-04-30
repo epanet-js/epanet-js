@@ -3,7 +3,22 @@ import { memo, useCallback, useMemo, useRef } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useSetAtom } from "jotai";
-import { ProfileLink, ProfileViewData } from "./chart-data";
+import { ProfileViewData } from "./chart-data";
+import {
+  elevationDropsPlot,
+  elevationLinePlot,
+  hglBandPlot,
+  hglDropsPlot,
+  hglLinePlot,
+  junctionsStripPlot,
+  pipesStripPlot,
+  pumpValvesStripPlot,
+  pumpsStripPlot,
+  reservoirsStripPlot,
+  tanksStripPlot,
+  terrainAreaPlot,
+  valvesStripPlot,
+} from "./plots";
 import { useStripPlanIcons } from "./use-strip-plan-icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -13,13 +28,16 @@ import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { highlightsAtom } from "src/state/highlights";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { useAtomValue } from "jotai";
-import { colors } from "src/lib/constants";
 import { USelection } from "src/selection/selection";
 import { ProfileTooltip } from "./profile-tooltip";
 
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 2;
+
+function notNull<T>(value: T | null): value is T {
+  return value !== null;
+}
 
 interface ProfileChartProps {
   data: ProfileViewData;
@@ -117,7 +135,7 @@ export const ProfileChart = memo(function ProfileChart({
 
   // Light brown vertical drops: node elevation down to X axis
   const elevDropsData = useMemo(() => {
-    const result: (number[] | null)[] = [];
+    const result: ([number, number] | null)[] = [];
     points.forEach((p) => {
       result.push([p.cumulativeLength, p.elevation]);
       result.push([p.cumulativeLength, yAxisRange.min]);
@@ -128,122 +146,23 @@ export const ProfileChart = memo(function ProfileChart({
 
   const series: EChartsOption["series"] = useMemo(() => {
     return traceDuration("DEBUG PROFILE_CHART:series", () => {
-      const terrainSeries = terrainData
-        ? [
-            {
-              type: "line" as const,
-              name: "terrain",
-              data: terrainData,
-              lineStyle: { opacity: 0, width: 0 },
-              itemStyle: { opacity: 0 },
-              areaStyle: { color: "#c8a96e", opacity: 0.22 },
-              symbol: "none",
-              smooth: false,
-              silent: true,
-              showInLegend: false,
-              tooltip: { show: false },
-            },
-          ]
-        : [];
-
-      const hglBandSeries = hglBandSegments
-        ? [
-            {
-              type: "custom" as const,
-              name: "hglBand",
-              data: hglBandSegments,
-              silent: true,
-              showInLegend: false,
-              tooltip: { show: false },
-              z: 1,
-              /* eslint-disable @typescript-eslint/no-explicit-any,
-               @typescript-eslint/no-unsafe-assignment,
-               @typescript-eslint/no-unsafe-call,
-               @typescript-eslint/no-unsafe-member-access */
-              renderItem: (params: any, api: any) => {
-                const segment = hglBandSegments[params.dataIndex];
-                if (!segment || segment.length < 2) return null;
-                const polygon: number[][] = [];
-                for (let i = 0; i < segment.length; i++) {
-                  polygon.push(api.coord([segment[i].x, segment[i].max]));
-                }
-                for (let i = segment.length - 1; i >= 0; i--) {
-                  polygon.push(api.coord([segment[i].x, segment[i].min]));
-                }
-                return {
-                  type: "polygon" as const,
-                  shape: { points: polygon },
-                  style: { fill: "#2563eb", opacity: 0.12 },
-                  silent: true,
-                };
-              },
-              /* eslint-enable */
-            },
-          ]
-        : [];
-
-      const elevDropsSeries = {
-        type: "line" as const,
-        name: "elevDrops",
-        data: elevDropsData,
-        lineStyle: { color: "#ada9a0", width: 1 },
-        itemStyle: { opacity: 0 },
-        symbol: "none",
-        connectNulls: false,
-        silent: true,
-        showInLegend: false,
-        tooltip: { show: false },
-      };
-
-      const base = [
-        ...terrainSeries,
-        ...hglBandSeries,
-        elevDropsSeries,
-        {
-          type: "line" as const,
-          name: translate("profileView.elevation"),
-          data: elevationData,
-          lineStyle: { color: linkSymbology.defaults.color, width: 1.75 },
-          itemStyle: {
-            color: nodeSymbology.defaults.color,
-            borderColor: "#98abeb",
-            borderWidth: 0.75,
-          },
-          symbol: "circle",
-          symbolSize: 5,
-          smooth: false,
-        },
-      ];
-
-      if (!hasSimulation) return base;
-
-      const hglDropsSeries = {
-        type: "line" as const,
-        name: "hglDrops",
-        data: hglDropsData,
-        lineStyle: { color: "#2563eb", width: 1.25 },
-        itemStyle: { opacity: 0 },
-        symbol: "none",
-        connectNulls: false,
-        silent: true,
-        showInLegend: false,
-        tooltip: { show: false },
-      };
-
+      const linkColor = linkSymbology.defaults.color;
+      const nodeColor = nodeSymbology.defaults.color;
       return [
-        ...base,
-        hglDropsSeries,
-        {
-          type: "line" as const,
-          name: translate("profileView.hgl"),
-          data: hglData,
-          lineStyle: { color: "#2563eb", width: 2 },
-          itemStyle: { color: "#2563eb" },
-          symbol: "circle",
-          symbolSize: 0,
-          smooth: false,
-        },
-      ];
+        terrainAreaPlot(terrainData),
+        hglBandPlot(hglBandSegments),
+        elevationDropsPlot(elevDropsData),
+        elevationLinePlot(
+          elevationData,
+          linkColor,
+          nodeColor,
+          translate("profileView.elevation"),
+        ),
+        hasSimulation ? hglDropsPlot(hglDropsData) : null,
+        hasSimulation
+          ? hglLinePlot(hglData, translate("profileView.hgl"))
+          : null,
+      ].filter(notNull);
     });
   }, [
     translate,
@@ -254,6 +173,8 @@ export const ProfileChart = memo(function ProfileChart({
     hglDropsData,
     elevDropsData,
     hglBandSegments,
+    linkSymbology.defaults.color,
+    nodeSymbology.defaults.color,
   ]);
 
   const chartRef = useRef<any>(null);
@@ -267,186 +188,18 @@ export const ProfileChart = memo(function ProfileChart({
 
   const stripSeries = useMemo<EChartsOption["series"]>(() => {
     return traceDuration("DEBUG PROFILE_CHART:stripSeries", () => {
-      if (!links || links.length === 0) return [];
-
-      const pipes = links.filter((l) => l.type === "pipe");
-      const pumpValves = links.filter(
-        (l) => l.type === "pump" || l.type === "valve",
-      );
-
-      const buildSegmentData = (segments: ProfileLink[]) => {
-        const data: any[] = [];
-        for (const seg of segments) {
-          data.push({
-            value: [seg.startLength, stripY],
-            linkId: seg.linkId,
-          });
-          data.push({
-            value: [seg.endLength, stripY],
-            linkId: seg.linkId,
-          });
-          data.push(null);
-        }
-        return data;
-      };
-
+      if (links.length === 0) return [];
       const pipeColor = linkSymbology.defaults.color;
-      const linkActiveColor = colors.orange700;
-
-      const series: any[] = [];
-
-      if (pipes.length > 0) {
-        series.push({
-          type: "line" as const,
-          name: "stripPipes",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: buildSegmentData(pipes),
-          lineStyle: { color: pipeColor, width: 3 },
-          itemStyle: { color: pipeColor },
-          symbol: "circle",
-          symbolSize: 6,
-          connectNulls: false,
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 2,
-        });
-      }
-
-      if (pumpValves.length > 0) {
-        series.push({
-          type: "line" as const,
-          name: "stripPumpValves",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: buildSegmentData(pumpValves),
-          lineStyle: { color: linkActiveColor, width: 3 },
-          itemStyle: { color: linkActiveColor },
-          symbol: "circle",
-          symbolSize: 6,
-          connectNulls: false,
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 2,
-        });
-      }
-
-      const junctions = points.filter((p) => p.nodeType === "junction");
-      if (junctions.length > 0) {
-        series.push({
-          type: "scatter" as const,
-          name: "stripNodes",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: junctions.map((j) => ({
-            value: [j.cumulativeLength, stripY],
-            nodeId: j.nodeId,
-          })),
-          symbol: "circle",
-          symbolSize: 7,
-          itemStyle: {
-            color: nodeSymbology.defaults.color,
-            borderColor: "#98abeb",
-            borderWidth: 1,
-            opacity: 1,
-          },
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 5,
-        });
-      }
-
-      const tanks = points.filter((p) => p.nodeType === "tank");
-      if (tanks.length > 0) {
-        const tankUrl = stripIcons.iconUrl("tank");
-        series.push({
-          type: "scatter" as const,
-          name: "stripNodes",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: tanks.map((t) => ({
-            value: [t.cumulativeLength, stripY],
-            nodeId: t.nodeId,
-            symbol: tankUrl ? `image://${tankUrl}` : "rect",
-          })),
-          symbolSize: 18,
-          itemStyle: { opacity: 1 },
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 5,
-        });
-      }
-
-      const reservoirs = points.filter((p) => p.nodeType === "reservoir");
-      if (reservoirs.length > 0) {
-        const reservoirUrl = stripIcons.iconUrl("reservoir");
-        series.push({
-          type: "scatter" as const,
-          name: "stripNodes",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: reservoirs.map((r) => ({
-            value: [r.cumulativeLength, stripY],
-            nodeId: r.nodeId,
-            symbol: reservoirUrl ? `image://${reservoirUrl}` : "diamond",
-          })),
-          symbolSize: 18,
-          itemStyle: { opacity: 1 },
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 5,
-        });
-      }
-
-      const pumps = links.filter((l) => l.type === "pump");
-      if (pumps.length > 0) {
-        series.push({
-          type: "scatter" as const,
-          name: "stripPumpIcons",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: pumps.map((p) => ({
-            value: [p.midLength, stripY],
-            linkId: p.linkId,
-            symbol:
-              stripIcons.pumpUrl(p) !== null
-                ? `image://${stripIcons.pumpUrl(p)}`
-                : "circle",
-            symbolRotate: p.reversed ? 90 : -90,
-          })),
-          symbolSize: 18,
-          itemStyle: { opacity: 1 },
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 10,
-        });
-      }
-
-      const valves = links.filter((l) => l.type === "valve");
-      if (valves.length > 0) {
-        series.push({
-          type: "scatter" as const,
-          name: "stripValveIcons",
-          xAxisIndex: 1,
-          yAxisIndex: 1,
-          data: valves.map((v) => ({
-            value: [v.midLength, stripY],
-            linkId: v.linkId,
-            symbol:
-              stripIcons.valveUrl(v) !== null
-                ? `image://${stripIcons.valveUrl(v)}`
-                : "circle",
-            symbolRotate: v.reversed ? 90 : -90,
-          })),
-          symbolSize: 18,
-          itemStyle: { opacity: 1 },
-          showInLegend: false,
-          tooltip: { show: false },
-          z: 10,
-        });
-      }
-
-      return series;
+      const nodeColor = nodeSymbology.defaults.color;
+      return [
+        pipesStripPlot(links, pipeColor, stripY),
+        pumpValvesStripPlot(links, stripY),
+        junctionsStripPlot(points, nodeColor, stripY),
+        tanksStripPlot(points, stripIcons, stripY),
+        reservoirsStripPlot(points, stripIcons, stripY),
+        pumpsStripPlot(links, stripIcons, stripY),
+        valvesStripPlot(links, stripIcons, stripY),
+      ].filter(notNull);
     });
   }, [
     links,
