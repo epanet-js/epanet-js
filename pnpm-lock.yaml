@@ -711,6 +711,9 @@ importers:
       jsdom:
         specifier: ^20.0.3
         version: 20.0.3(canvas@2.11.2)
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
       lint-staged:
         specifier: 13.1.0
         version: 13.1.0
