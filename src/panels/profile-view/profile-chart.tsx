@@ -19,10 +19,8 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
-import {
-  profileChartHoverPositionAtom,
-  profileViewAtom,
-} from "src/state/profile-view";
+import { profileViewAtom } from "src/state/profile-view";
+import { highlightsAtom } from "src/state/highlights";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { colors } from "src/lib/constants";
@@ -102,9 +100,7 @@ type TooltipDeps = {
   elevColor: string;
   translate: (key: string) => string;
   pathSegments: PathSegment[];
-  setChartHoverPosition: (
-    value: { coordinates: [number, number] } | null,
-  ) => void;
+  setHoverHighlight: (coordinates: [number, number] | null) => void;
 };
 
 function buildTooltipHtml(
@@ -186,7 +182,13 @@ export const ProfileChart = memo(function ProfileChart({
   const stripIcons = useStripPlanIcons();
   const profileView = useAtomValue(profileViewAtom);
   const model = useAtomValue(stagingModelDerivedAtom);
-  const setChartHoverPosition = useSetAtom(profileChartHoverPositionAtom);
+  const setHighlights = useSetAtom(highlightsAtom);
+  const setHoverHighlight = useCallback(
+    (coordinates: [number, number] | null) => {
+      setHighlights(coordinates ? [{ type: "marker", coordinates }] : []);
+    },
+    [setHighlights],
+  );
 
   const pathSegments = useMemo<PathSegment[]>(() => {
     if (profileView.phase !== "showingProfile") return [];
@@ -461,7 +463,7 @@ export const ProfileChart = memo(function ProfileChart({
     elevColor: nodeSymbology.defaults.color,
     translate,
     pathSegments,
-    setChartHoverPosition,
+    setHoverHighlight,
   });
   tooltipDepsRef.current = {
     points,
@@ -471,7 +473,7 @@ export const ProfileChart = memo(function ProfileChart({
     elevColor: nodeSymbology.defaults.color,
     translate,
     pathSegments,
-    setChartHoverPosition,
+    setHoverHighlight,
   };
 
   const [tooltipState, setTooltipState] = useState<{
@@ -507,7 +509,7 @@ export const ProfileChart = memo(function ProfileChart({
           currTrigger: "leave",
         });
         setTooltipState(null);
-        tooltipDepsRef.current.setChartHoverPosition(null);
+        tooltipDepsRef.current.setHoverHighlight(null);
         return;
       }
 
@@ -542,9 +544,7 @@ export const ProfileChart = memo(function ProfileChart({
         snappedIdx !== null
           ? deps.points[snappedIdx].coordinates
           : coordinatesAtLength(deps.pathSegments, cursorX);
-      deps.setChartHoverPosition(
-        markerCoordinates ? { coordinates: markerCoordinates } : null,
-      );
+      deps.setHoverHighlight(markerCoordinates);
 
       const html = buildTooltipHtml(cursorX, snappedIdx, deps);
       if (!html) {
@@ -565,7 +565,7 @@ export const ProfileChart = memo(function ProfileChart({
         /* eslint-enable */
       }
       setTooltipState(null);
-      tooltipDepsRef.current.setChartHoverPosition(null);
+      tooltipDepsRef.current.setHoverHighlight(null);
     };
 
     el.addEventListener("mousemove", handleMove);
@@ -573,7 +573,7 @@ export const ProfileChart = memo(function ProfileChart({
     return () => {
       el.removeEventListener("mousemove", handleMove);
       el.removeEventListener("mouseleave", handleLeave);
-      tooltipDepsRef.current.setChartHoverPosition(null);
+      tooltipDepsRef.current.setHoverHighlight(null);
     };
   }, []);
 

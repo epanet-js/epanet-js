@@ -16,7 +16,3 @@ export type ProfileViewState =
     };
 
 export const profileViewAtom = atom<ProfileViewState>({ phase: "idle" });
-
-export const profileChartHoverPositionAtom = atom<{
-  coordinates: [number, number];
-} | null>(null);
