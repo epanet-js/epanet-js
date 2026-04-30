@@ -220,10 +220,16 @@ export const DataGrid = forwardRef(function DataGrid<
     [onChange],
   );
 
-  const handleFocus = useCallback(() => {
-    if (activeCell || data.length === 0) return;
-    focusRow(0);
-  }, [activeCell, data.length, focusRow]);
+  const handleFocus = useCallback(
+    (e: React.FocusEvent) => {
+      if (activeCell || data.length === 0) return;
+      const target = e.target as HTMLElement;
+      if (!gridRef.current?.contains(target)) return;
+      if (target.closest('[role="columnheader"]')) return;
+      focusRow(0);
+    },
+    [activeCell, data.length, focusRow],
+  );
 
   const handleEmptyAreaMouseDown = useCallback(
     (e: React.MouseEvent) => {
