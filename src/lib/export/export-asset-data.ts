@@ -15,6 +15,7 @@ export const exportAssetData = async (
   const exporters = {
     geojson: AssetExporters.exportGeoJson,
     csv: AssetExporters.exportCsv,
+    shapefile: AssetExporters.exportShapefiles,
   };
 
   const exportedFiles = exporters[format](
