@@ -8,6 +8,12 @@ export interface TopologyQueries {
   getNodes(linkId: AssetId): [AssetId, AssetId];
 }
 
+export type PathData = {
+  nodeIds: AssetId[];
+  linkIds: AssetId[];
+  totalLength: number;
+};
+
 export interface TopologyBuffers {
   linkConnections: BinaryData;
   nodeConnections: BufferWithIndex;
