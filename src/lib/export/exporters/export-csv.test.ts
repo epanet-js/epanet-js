@@ -1,25 +1,114 @@
-import { ExportEntry } from "../types";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { ResultsReader } from "src/simulation";
+import { ExportedFile } from "../types";
 import { exportCsv } from "./export-csv";
 
 describe("export-csv", () => {
-  it("uses object keys as headers", async () => {
-    const entry: ExportEntry = {
-      format: "csv",
-      name: "junction",
-      data: [{ id: 1, name: "J1", elevation: 10 }],
-    };
+  it("always returns one file per asset type with correct metadata", () => {
+    const model = HydraulicModelBuilder.empty();
+    const files = exportCsv(model, false);
 
-    const [exported] = exportCsv(entry);
+    expect(files).toHaveLength(6);
+    expect(files.map((f) => f.fileName)).toEqual(
+      expect.arrayContaining(ALL_ASSET_TYPES.map((t) => `${t}.csv`)),
+    );
+    expect(files[0].extensions).toEqual([".csv"]);
+    expect(files[0].mimeTypes).toEqual(["text/csv"]);
+    expect(files[0].description).toBe("CSV File");
+  });
 
-    const text = await exported.blob.text();
-    const [header, row] = text.split("\n").map((l) => l.trim());
+  it("uses asset properties as headers and values as data rows", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 42 })
+      .build();
+    const files = exportCsv(model, false);
 
-    expect(header).toBe("id,name,elevation");
-    expect(row).toBe("1,J1,10");
+    const lines = await readCsv(findFile(files, "junction.csv"));
+    const headers = lines[0].split(",").filter(Boolean);
+    const [row] = parseCsvRows(lines);
 
-    expect(exported.fileName).toBe("junction.csv");
-    expect(exported.extensions).toEqual([".csv"]);
-    expect(exported.mimeTypes).toEqual(["text/csv"]);
-    expect(exported.description).toBe("CSV");
+    expect(headers).toContain("label");
+    expect(headers).toContain("elevation");
+    expect(headers).toContain("type");
+    expect(headers.some((h) => h.startsWith("sim_"))).toBe(false);
+    expect(row.label).toBe("J1");
+    expect(row.type).toBe("junction");
+    expect(row.elevation).toBe("42");
+  });
+
+  it("generates separate CSV files per asset type", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .aPipe(2, { startNodeId: 1 })
+      .build();
+    const files = exportCsv(model, false);
+
+    const junctionLines = await readCsv(findFile(files, "junction.csv"));
+    const pipeLines = await readCsv(findFile(files, "pipe.csv"));
+
+    expect(junctionLines).toHaveLength(2);
+    expect(pipeLines).toHaveLength(2);
+  });
+
+  it("writes object-type property values as empty strings", async () => {
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const junction = model.assets.get(1)!;
+    junction.setProperty("someObject", { nested: true });
+
+    const files = exportCsv(model, false);
+    const lines = await readCsv(findFile(files, "junction.csv"));
+    const [row] = parseCsvRows(lines);
+
+    expect(row.someObject).toBe("");
+  });
+
+  it("adds sim_ columns from resultsReader when includeSimulationResults is true", async () => {
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const pressure = 42;
+    const demand = 10;
+    const resultsReader = mockResultsReader(pressure, demand);
+
+    const files = exportCsv(model, true, resultsReader);
+    const lines = await readCsv(findFile(files, "junction.csv"));
+    const [row] = parseCsvRows(lines);
+
+    expect(row.sim_pressure).toBe("42");
+    expect(row.sim_demand).toBe("10");
   });
 });
+
+const ALL_ASSET_TYPES = [
+  "junction",
+  "reservoir",
+  "tank",
+  "pipe",
+  "pump",
+  "valve",
+];
+
+const mockResultsReader = (pressure: number, demand: number) => {
+  return {
+    getJunction: vi.fn().mockReturnValue({ pressure, demand }),
+    getTank: vi.fn().mockReturnValue({}),
+    getReservoir: vi.fn().mockReturnValue({}),
+    getPipe: vi.fn().mockReturnValue({}),
+    getPump: vi.fn().mockReturnValue({}),
+    getValve: vi.fn().mockReturnValue({}),
+  } as unknown as ResultsReader;
+};
+
+const findFile = (files: ExportedFile[], name: string) =>
+  files.find((f) => f.fileName === name)!;
+
+const readCsv = async (file: ExportedFile) => {
+  const text = await file.blob.text();
+  return text.split("\n").filter(Boolean);
+};
+
+const parseCsvRows = (lines: string[]) => {
+  const headers = lines[0].split(",").filter(Boolean);
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    return Object.fromEntries(headers.map((h, i) => [h, values[i] ?? ""]));
+  });
+};
