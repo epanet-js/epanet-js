@@ -1,35 +1,28 @@
 "use client";
 import { memo } from "react";
-import { useAtomValue } from "jotai";
-import { profileViewAtom, ProfileViewState } from "src/state/profile-view";
 import { useTranslate } from "src/hooks/use-translate";
-import { useProfileData, useProfileLinks } from "./use-profile-data";
-import { useProfileHglRange } from "./use-profile-hgl-range";
+import { useProfileViewData, ProfileViewData } from "./data";
 import { ProfileChart } from "./profile-chart";
 
 export const ProfileViewPanel = memo(function ProfileViewPanel() {
-  const profileView = useAtomValue(profileViewAtom);
-  const points = useProfileData();
-  const links = useProfileLinks();
-  const { ranges: hglRanges } = useProfileHglRange();
+  const data = useProfileViewData();
 
-  const showChart =
-    profileView.phase === "showingProfile" && points && points.length > 0;
+  const showChart = data.phase === "showingProfile" && data.points.length > 0;
 
   return (
     <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
       <div className="flex-1 min-h-0">
         {showChart ? (
-          <ProfileChart points={points} links={links} hglRanges={hglRanges} />
+          <ProfileChart data={data} />
         ) : (
-          <ProfileEmptyState phase={profileView.phase} />
+          <ProfileEmptyState phase={data.phase} />
         )}
       </div>
     </div>
   );
 });
 
-const ProfileEmptyState = ({ phase }: { phase: ProfileViewState["phase"] }) => {
+const ProfileEmptyState = ({ phase }: { phase: ProfileViewData["phase"] }) => {
   const translate = useTranslate();
   const message = (() => {
     switch (phase) {

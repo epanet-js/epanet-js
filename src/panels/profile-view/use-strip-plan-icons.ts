@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildIconUrls, IconId } from "src/map/icons/icons-sprite";
-import { ProfileLink } from "./use-profile-data";
+import { ProfileLink } from "./data";
 
 export type StripPlanIcons = {
   pumpUrl: (link: ProfileLink) => string | null;

@@ -3,6 +3,7 @@ import measureLength from "@turf/length";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { LinkAsset } from "src/hydraulic-model/asset-types";
 import { PathData } from "src/state/profile-view";
+import { traceDuration } from "src/infra/with-instrumentation";
 
 export type PathSegment = {
   cumulativeStart: number;
@@ -12,6 +13,15 @@ export type PathSegment = {
 };
 
 export function buildPathSegments(
+  path: PathData,
+  assets: AssetsMap,
+): PathSegment[] {
+  return traceDuration("DEBUG PROFILE_VIEW:buildPathSegments", () =>
+    buildPathSegmentsImpl(path, assets),
+  );
+}
+
+function buildPathSegmentsImpl(
   path: PathData,
   assets: AssetsMap,
 ): PathSegment[] {
