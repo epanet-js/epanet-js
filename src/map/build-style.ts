@@ -109,8 +109,14 @@ import {
   ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
 import {
+  highlightsIconsHaloLayer,
+  highlightsIconsLayer,
+  highlightsJunctionsLayer,
   highlightsMarkerHaloLayer,
   highlightsMarkerLayer,
+  highlightsPipesLayer,
+  highlightsPumpLinesLayer,
+  highlightsValveLinesLayer,
 } from "src/map/layers/highlights";
 import { gridMinorLayer, gridMajorLayer } from "src/map/layers/grid";
 import {
@@ -309,6 +315,12 @@ export function makeLayers({
     }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
+    highlightsPipesLayer({ source: "highlights" }),
+    highlightsPumpLinesLayer({ source: "highlights" }),
+    highlightsValveLinesLayer({ source: "highlights" }),
+    highlightsJunctionsLayer({ source: "highlights" }),
+    highlightsIconsHaloLayer({ source: "highlights" }),
+    highlightsIconsLayer({ source: "highlights" }),
     highlightsMarkerHaloLayer({ source: "highlights" }),
     highlightsMarkerLayer({ source: "highlights" }),
     ...linkLabelsLayer({

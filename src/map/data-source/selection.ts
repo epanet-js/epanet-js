@@ -67,7 +67,7 @@ export const buildSelectionSource = (
   return features;
 };
 
-const buildLinkSelectionFeature = (
+export const buildLinkSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
   units: UnitsSpec,
@@ -101,7 +101,7 @@ const buildLinkSelectionFeature = (
   return feature;
 };
 
-const buildPointSelectionFeature = (
+export const buildPointSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
 ): Feature => {
@@ -116,7 +116,7 @@ const buildPointSelectionFeature = (
   };
 };
 
-const buildIconSelectionFeature = (
+export const buildIconSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
 ): Feature => {
@@ -132,7 +132,7 @@ const buildIconSelectionFeature = (
   };
 };
 
-const buildLinkIconSelectionFeature = (
+export const buildLinkIconSelectionFeature = (
   asset: Asset,
   featureId: AssetId,
 ): Feature => {
