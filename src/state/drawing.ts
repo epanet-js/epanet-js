@@ -28,10 +28,13 @@ export type EphemeralConnectCustomerPoints = {
   strategy: "nearest-to-point" | "cursor";
 };
 
+export type DraftPath = { nodeIds: AssetId[]; linkIds: AssetId[] };
+
 export type EphemeralProfileView = {
   type: "profileView";
   startNodeId?: AssetId;
   hoveredNodeId?: AssetId;
+  path?: DraftPath;
 };
 
 export type EphemeralEditingState =

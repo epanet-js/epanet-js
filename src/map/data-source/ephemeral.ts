@@ -2,6 +2,7 @@ import { Feature, Position } from "src/types";
 import { Asset, NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
 import { AssetsMap } from "src/hydraulic-model";
 import {
+  DraftPath,
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
   EphemeralProfileView,
@@ -17,35 +18,102 @@ export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,
   assets: AssetsMap,
 ): Feature[] => {
+  const draftPathFeatures =
+    "path" in ephemeralState && ephemeralState.path
+      ? buildDraftPathFeatures(ephemeralState.path, assets)
+      : [];
+
   if (ephemeralState.type == "drawLink") {
-    return buildDrawLinkSourceData(ephemeralState, assets);
+    return [
+      ...draftPathFeatures,
+      ...buildDrawLinkSourceData(ephemeralState, assets),
+    ];
   }
 
   if (ephemeralState.type === "drawNode") {
-    return buildDrawNodeSourceData(ephemeralState, assets);
+    return [
+      ...draftPathFeatures,
+      ...buildDrawNodeSourceData(ephemeralState, assets),
+    ];
   }
 
   if (ephemeralState.type === "moveAssets") {
-    return buildMoveAssetsSourceData(ephemeralState, assets);
+    return [
+      ...draftPathFeatures,
+      ...buildMoveAssetsSourceData(ephemeralState, assets),
+    ];
   }
 
   if (ephemeralState.type === "connectCustomerPoints") {
-    return buildConnectCustomerPointsSourceData(ephemeralState, assets);
+    return [
+      ...draftPathFeatures,
+      ...buildConnectCustomerPointsSourceData(ephemeralState, assets),
+    ];
   }
 
   if (ephemeralState.type === "moveCustomerPoint") {
-    return [];
+    return draftPathFeatures;
   }
 
   if (ephemeralState.type === "areaSelect") {
-    return buildAreaSelectionSourceData(ephemeralState);
+    return [
+      ...draftPathFeatures,
+      ...buildAreaSelectionSourceData(ephemeralState),
+    ];
   }
 
   if (ephemeralState.type === "profileView") {
-    return buildProfileViewSourceData(ephemeralState, assets);
+    return [
+      ...draftPathFeatures,
+      ...buildProfileViewSourceData(ephemeralState, assets),
+    ];
   }
 
-  return [];
+  return draftPathFeatures;
+};
+
+const buildDraftPathFeatures = (
+  path: DraftPath,
+  assets: AssetsMap,
+): Feature[] => {
+  const features: Feature[] = [];
+
+  for (const nodeId of path.nodeIds) {
+    const asset = assets.get(nodeId);
+    if (!asset || asset.isLink) continue;
+    const node = asset as NodeAsset;
+    const properties: any = { draftPath: true };
+    if (node.type === "tank" || node.type === "reservoir") {
+      properties.icon = `${node.type}-highlighted`;
+      properties.type = node.type;
+    }
+    features.push({
+      type: "Feature",
+      id: `draft-path-node-${nodeId}`,
+      properties,
+      geometry: {
+        type: "Point",
+        coordinates: node.coordinates,
+      },
+    });
+  }
+
+  for (const linkId of path.linkIds) {
+    const asset = assets.get(linkId);
+    if (!asset || !asset.isLink) continue;
+    const link = asset as LinkAsset;
+    features.push({
+      type: "Feature",
+      id: `draft-path-link-${linkId}`,
+      properties: { draftPath: true },
+      geometry: {
+        type: "LineString",
+        coordinates: link.coordinates,
+      },
+    });
+  }
+
+  return features;
 };
 
 const assetIconProps = (asset: Asset) => {
@@ -59,8 +127,10 @@ const buildProfileViewSourceData = (
 ): Feature[] => {
   const features: Feature[] = [];
   const ids = new Set<number>();
-  if (state.startNodeId !== undefined) ids.add(state.startNodeId);
   if (state.hoveredNodeId !== undefined) ids.add(state.hoveredNodeId);
+  if (state.startNodeId !== undefined && !state.path) {
+    ids.add(state.startNodeId);
+  }
 
   for (const id of ids) {
     const asset = assets.get(id);

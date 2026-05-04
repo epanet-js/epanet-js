@@ -100,6 +100,9 @@ import {
 } from "src/map/layers/map-overlay";
 import {
   ephemeralDraftLineLayer,
+  ephemeralDraftPathLineLayer,
+  ephemeralDraftPathNodeLayer,
+  ephemeralDraftPathIconLayer,
   ephemeralIconHighlightLayers,
   ephemeralJunctionHighlightLayers,
   ephemeralHaloLayer,
@@ -247,6 +250,7 @@ export function makeLayers({
     }),
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
+    ephemeralDraftPathLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "main-features",
@@ -294,6 +298,7 @@ export function makeLayers({
     highlightsPumpLinesLayer({ source: "highlights" }),
     highlightsValveLinesLayer({ source: "highlights" }),
     highlightsJunctionsLayer({ source: "highlights" }),
+    ephemeralDraftPathNodeLayer({ source: "ephemeral" }),
     selectedIconsHaloLayer({
       source: "selected-features",
       layerId: "selected-icons-halo",
@@ -318,6 +323,7 @@ export function makeLayers({
       source: "selected-features",
       layerId: "selected-icons",
     }),
+    ephemeralDraftPathIconLayer({ source: "ephemeral" }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     highlightsIconsLayer({ source: "highlights" }),

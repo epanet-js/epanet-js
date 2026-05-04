@@ -1,13 +1,15 @@
+import { useRef } from "react";
 import throttle from "lodash/throttle";
 import { useAtomValue, useSetAtom } from "jotai";
 import { HandlerContext } from "src/types";
 import { profileViewAtom } from "src/state/profile-view";
 import { dialogAtom } from "src/state/dialog";
 import { modeAtom, Mode } from "src/state/mode";
-import { ephemeralStateAtom } from "src/state/drawing";
+import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
+import { AssetId } from "src/hydraulic-model";
 import { shortestPath } from "src/hydraulic-model/path-finding";
 import { useClickedAsset } from "src/map/mode-handlers/utils";
 
@@ -29,6 +31,12 @@ export function useProfileViewHandlers(
     ephemeralState.type === "profileView"
       ? ephemeralState.startNodeId
       : undefined;
+
+  const draftPathCacheRef = useRef<{
+    startNodeId: AssetId;
+    hoveredNodeId: AssetId;
+    path: DraftPath | undefined;
+  } | null>(null);
 
   const click: Handlers["click"] = (e) => {
     const clickedAsset = getClickedAsset(e);
@@ -75,10 +83,42 @@ export function useProfileViewHandlers(
     const hoveredNodeId =
       hoveredAsset && hoveredAsset.isNode ? hoveredAsset.id : undefined;
 
+    let path: DraftPath | undefined;
+    if (
+      draftStartNodeId !== undefined &&
+      hoveredNodeId !== undefined &&
+      hoveredNodeId !== draftStartNodeId
+    ) {
+      const cached = draftPathCacheRef.current;
+      if (
+        cached &&
+        cached.startNodeId === draftStartNodeId &&
+        cached.hoveredNodeId === hoveredNodeId
+      ) {
+        path = cached.path;
+      } else {
+        const found = shortestPath(
+          hydraulicModel.topology,
+          hydraulicModel.assets,
+          draftStartNodeId,
+          hoveredNodeId,
+        );
+        path = found
+          ? { nodeIds: found.nodeIds, linkIds: found.linkIds }
+          : undefined;
+        draftPathCacheRef.current = {
+          startNodeId: draftStartNodeId,
+          hoveredNodeId,
+          path,
+        };
+      }
+    }
+
     setEphemeralState({
       type: "profileView",
       startNodeId: draftStartNodeId,
       hoveredNodeId,
+      path,
     });
     setCursor(hoveredNodeId !== undefined ? "pointer" : "");
   }, 16);
