@@ -109,3 +109,14 @@ export function useColumnSizing<TData>({
 
   return { fillSizesRef, resetColumnSize };
 }
+
+export function useManualColumnSizing<TData>(table: Table<TData>) {
+  const tableRef = useRef(table);
+  tableRef.current = table;
+
+  const resetColumnSize = useCallback((columnId: string) => {
+    tableRef.current.getColumn(columnId)?.resetSize();
+  }, []);
+
+  return { resetColumnSize };
+}

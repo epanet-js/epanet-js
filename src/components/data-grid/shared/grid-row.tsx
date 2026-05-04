@@ -70,56 +70,59 @@ export function GridRow<TData>({
         />
       )}
 
-      {row.getVisibleCells().map((cell: Cell<TData, unknown>, colIndex) => {
-        const column = columns[colIndex];
-        const accessorKey = column.accessorKey;
-        const isSelected = isCellSelected(selection, colIndex, rowIndex);
-        const isActive = isCellActive(activeCell, colIndex, rowIndex);
-        const isCurrentIteractiveCell =
-          isActive && isSingleCellSelection(selection);
+      {row
+        .getVisibleCells()
+        .map((cell: Cell<TData, unknown>, colIndex, cells) => {
+          const column = columns[colIndex];
+          const accessorKey = column.accessorKey;
+          const isSelected = isCellSelected(selection, colIndex, rowIndex);
+          const isActive = isCellActive(activeCell, colIndex, rowIndex);
+          const isCurrentIteractiveCell =
+            isActive && isSingleCellSelection(selection);
 
-        return (
-          <GridDataCell
-            key={cell.id}
-            cell={cell}
-            colIndex={colIndex}
-            rowIndex={rowIndex}
-            isSelected={isSelected}
-            isActive={isActive}
-            editMode={isCurrentIteractiveCell ? editMode : false}
-            isInteractive={isCurrentIteractiveCell}
-            readOnly={readOnly || !!column.disabled}
-            selectionEdge={
-              isSelected && selection
-                ? {
-                    top: rowIndex === selection.min.row,
-                    bottom: rowIndex === selection.max.row,
-                    left: colIndex === selection.min.col,
-                    right: colIndex === selection.max.col,
-                  }
-                : undefined
-            }
-            onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
-            onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
-            onDoubleClick={() => onCellDoubleClick(colIndex)}
-            onBlur={stopEditing}
-            onStartEditing={startEditing}
-            onChange={
-              accessorKey
-                ? (value) => onCellChange(row.index, accessorKey, value)
-                : undefined
-            }
-            CellComponent={column.cellComponent}
-            variant={variant}
-            isLastRow={cellsIsLastRow}
-            hasWarning={
-              accessorKey
-                ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
-                : false
-            }
-          />
-        );
-      })}
+          return (
+            <GridDataCell
+              key={cell.id}
+              cell={cell}
+              colIndex={colIndex}
+              rowIndex={rowIndex}
+              isSelected={isSelected}
+              isActive={isActive}
+              editMode={isCurrentIteractiveCell ? editMode : false}
+              isInteractive={isCurrentIteractiveCell}
+              readOnly={readOnly || !!column.disabled}
+              selectionEdge={
+                isSelected && selection
+                  ? {
+                      top: rowIndex === selection.min.row,
+                      bottom: rowIndex === selection.max.row,
+                      left: colIndex === selection.min.col,
+                      right: colIndex === selection.max.col,
+                    }
+                  : undefined
+              }
+              onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
+              onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
+              onDoubleClick={() => onCellDoubleClick(colIndex)}
+              onBlur={stopEditing}
+              onStartEditing={startEditing}
+              onChange={
+                accessorKey
+                  ? (value) => onCellChange(row.index, accessorKey, value)
+                  : undefined
+              }
+              CellComponent={column.cellComponent}
+              variant={variant}
+              isLastRow={cellsIsLastRow}
+              isLastCol={colIndex === cells.length - 1}
+              hasWarning={
+                accessorKey
+                  ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
+                  : false
+              }
+            />
+          );
+        })}
 
       <RowActionsCell
         rowActions={rowActions}

@@ -28,6 +28,7 @@ type GridDataCellProps<T> = {
   CellComponent: GridColumn["cellComponent"];
   variant: DataGridVariant;
   isLastRow: boolean;
+  isLastCol: boolean;
   hasWarning?: boolean;
 };
 
@@ -50,6 +51,7 @@ export function GridDataCell<T>({
   CellComponent,
   variant,
   isLastRow,
+  isLastCol,
   hasWarning,
 }: GridDataCellProps<T>) {
   return (
@@ -76,7 +78,11 @@ export function GridDataCell<T>({
           : variant === "spreadsheet"
             ? "border-l-gray-200"
             : "border-l-transparent",
-        selectionEdge?.right ? "border-r-purple-500" : "border-r-transparent",
+        selectionEdge?.right
+          ? "border-r-purple-500"
+          : isLastCol && cell.column.getCanResize()
+            ? "border-r-gray-200"
+            : "border-r-transparent",
         selectionEdge?.top
           ? "border-t-purple-500"
           : variant === "inline" && rowIndex === 0

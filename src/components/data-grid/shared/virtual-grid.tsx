@@ -8,6 +8,7 @@ import {
 } from "react";
 import { Table } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import clsx from "clsx";
 import {
   CellPosition,
   DataGridVariant,
@@ -16,11 +17,11 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useColumnSizing, useRowsNavigation } from "../hooks";
+import { useManualColumnSizing, useRowsNavigation } from "../hooks";
 import { GridRow, ROW_HEIGHT } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
-import { FIXED_COLUMN_SIZE, getReservedWidth } from "../hooks";
+import { FIXED_COLUMN_SIZE } from "../hooks";
 
 export type VirtualGridProps<TData> = {
   table: Table<TData>;
@@ -131,16 +132,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
   const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
   const actionsWidth = rowActions ? FIXED_COLUMN_SIZE : 0;
 
-  const { resetColumnSize } = useColumnSizing({
-    table,
-    containerRef,
-    reservedWidth: getReservedWidth({
-      gutterColumn,
-      rowActions,
-      readOnly,
-      scrollbarWidth: scrollState.scrollbarWidth + 2,
-    }),
-  });
+  const { resetColumnSize } = useManualColumnSizing(table);
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;
@@ -259,7 +251,10 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
                 key={row.id}
                 role="row"
                 aria-rowindex={visualIndex + 2}
-                className="flex absolute w-full h-8"
+                className={clsx(
+                  "flex absolute h-8",
+                  table.options.enableColumnResizing ? "w-max" : "w-full",
+                )}
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
                 <GridRow

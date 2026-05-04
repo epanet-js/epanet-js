@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef } from "react";
+import clsx from "clsx";
 import { Table } from "@tanstack/react-table";
 import {
   CellPosition,
@@ -8,7 +9,7 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { getReservedWidth, useColumnSizing, useRowsNavigation } from "../hooks";
+import { useManualColumnSizing, useRowsNavigation } from "../hooks";
 import { GridRow } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
@@ -75,11 +76,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { resetColumnSize } = useColumnSizing({
-    table,
-    containerRef,
-    reservedWidth: getReservedWidth({ gutterColumn, rowActions, readOnly }),
-  });
+  const { resetColumnSize } = useManualColumnSizing(table);
 
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
@@ -127,7 +124,10 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
             key={row.id}
             role="row"
             aria-rowindex={rowIndex + 2}
-            className="flex w-full h-8"
+            className={clsx(
+              "flex h-8",
+              table.options.enableColumnResizing ? "w-max" : "w-full",
+            )}
           >
             <GridRow
               row={row}
