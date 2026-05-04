@@ -160,6 +160,8 @@ export const ExportTimeSeriesDialog = ({
 
   const exceedsLimit = sizeLimit > 0 && estimatedBytes > sizeLimit;
   const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB || exceedsLimit;
+  const exportDisabled =
+    exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
   return (
     <BaseDialog
@@ -171,7 +173,7 @@ export const ExportTimeSeriesDialog = ({
         <SimpleDialogActions
           action={translate("export")}
           onAction={onClose}
-          isDisabled={exceedsLimit}
+          isDisabled={exportDisabled}
           secondary={{
             action: translate("dialog.cancel"),
             onClick: onClose,
