@@ -67,13 +67,8 @@ export function useProfileViewHandlers(
         type: "multi",
         ids: [...path.nodeIds, ...path.linkIds],
       });
+      setMode({ mode: Mode.NONE });
       return;
-    }
-
-    if (profileView.phase === "showingProfile") {
-      setProfileView({ phase: "selectingEnd", startNodeId: nodeId });
-      setEphemeralState({ type: "profileView", startNodeId: nodeId });
-      setSelection(SELECTION_NONE);
     }
   };
 
