@@ -163,6 +163,29 @@ export const ExportTimeSeriesDialog = ({
   const exportDisabled =
     exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
+  if (model.assets.size === 0) {
+    return (
+      <BaseDialog
+        title={translate("exportTimeSeries")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
+        }
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray-700">
+            {translate("exportAssetData.noAssets")}
+          </p>
+        </div>
+      </BaseDialog>
+    );
+  }
+
   return (
     <BaseDialog
       title={translate("exportTimeSeries")}
