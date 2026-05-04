@@ -12,12 +12,11 @@ import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ProfileTooltip } from "./profile-tooltip";
 import { useChartCursor } from "./use-chart-cursor";
+import { useChartClick } from "./use-chart-click";
 import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
-import { useMainPlotClick } from "./main-plot/use-main-plot-click";
 import { buildStripSeries } from "./strip-plot/series";
 import { useStripPlanIcons } from "./strip-plot/use-strip-plan-icons";
-import { useStripPlotClick } from "./strip-plot/use-strip-plot-click";
 
 interface ChartContainerProps {
   data: ProfileViewData;
@@ -140,20 +139,6 @@ export const ChartContainer = memo(function ChartContainer({
     ],
   );
 
-  const onMainPlotClick = useMainPlotClick(points);
-  const onStripPlotClick = useStripPlotClick();
-  const onChartClick = useCallback(
-    (params: any) => {
-      const seriesName: string | undefined = params?.seriesName;
-      if (typeof seriesName === "string" && seriesName.startsWith("strip")) {
-        onStripPlotClick(params);
-        return;
-      }
-      onMainPlotClick(params);
-    },
-    [onMainPlotClick, onStripPlotClick],
-  );
-
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -172,6 +157,8 @@ export const ChartContainer = memo(function ChartContainer({
     setHoverHighlight,
   });
 
+  useChartClick({ containerRef, chartRef, points, links });
+
   if (isDebugOn) {
     //eslint-disable-next-line no-console
     console.log(
@@ -188,7 +175,6 @@ export const ChartContainer = memo(function ChartContainer({
         option={option}
         style={{ height: "100%", width: "100%" }}
         notMerge={true}
-        onEvents={{ click: onChartClick }}
         onChartReady={onChartReady}
       />
       <ProfileTooltip

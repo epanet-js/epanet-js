@@ -112,3 +112,20 @@ export function interpolateHgl(
   }
   return null;
 }
+
+export function interpolateElevation(
+  x: number,
+  points: ProfilePoint[],
+): number | null {
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (x >= a.cumulativeLength && x <= b.cumulativeLength) {
+      const span = b.cumulativeLength - a.cumulativeLength;
+      if (span <= 0) return a.elevation;
+      const t = (x - a.cumulativeLength) / span;
+      return a.elevation + (b.elevation - a.elevation) * t;
+    }
+  }
+  return null;
+}

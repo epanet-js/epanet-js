@@ -3,9 +3,15 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import throttle from "lodash/throttle";
 import { ProfileLink, ProfilePoint, TerrainPoint } from "./chart-data";
 import { coordinatesAtLength, PathSegment } from "./path-position";
-import { getTooltipContent, VisibleTooltipContent } from "./tooltip-data";
+import {
+  findLinkAt,
+  getTooltipContent,
+  interpolateElevation,
+  interpolateHgl,
+  VisibleTooltipContent,
+} from "./tooltip-data";
 
-const SNAP_PIXEL_THRESHOLD = 10;
+export const SNAP_PIXEL_THRESHOLD = 10;
 
 export type ChartCursorState = {
   px: number;
@@ -83,6 +89,7 @@ export function useChartCursor({
           type: "updateAxisPointer",
           currTrigger: "leave",
         });
+        chart.getZr().setCursorStyle("default");
         setCursorState(null);
         scheduleHover(null);
         return;
@@ -115,6 +122,32 @@ export function useChartCursor({
       });
       /* eslint-enable */
 
+      /* eslint-disable @typescript-eslint/no-unsafe-call,
+         @typescript-eslint/no-unsafe-member-access,
+         @typescript-eslint/no-unsafe-assignment */
+      const inStripGrid = chart.containPixel({ gridIndex: 1 }, [px, py]);
+      const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
+
+      let cursorStyle: "pointer" | "grab" | "default" = "default";
+      if (snappedIdx !== null) {
+        cursorStyle = "pointer";
+      } else if (inStripGrid) {
+        cursorStyle =
+          findLinkAt(cursorX, deps.links) !== null ? "pointer" : "grab";
+      } else if (inMainGrid) {
+        cursorStyle = isNearMainPlotLine(
+          chart,
+          cursorX,
+          py,
+          deps.points,
+          SNAP_PIXEL_THRESHOLD,
+        )
+          ? "pointer"
+          : "grab";
+      }
+      chart.getZr().setCursorStyle(cursorStyle);
+      /* eslint-enable */
+
       const markerCoordinates =
         snappedIdx !== null
           ? deps.points[snappedIdx].coordinates
@@ -145,6 +178,7 @@ export function useChartCursor({
           type: "updateAxisPointer",
           currTrigger: "leave",
         });
+        chart.getZr().setCursorStyle("default");
         /* eslint-enable */
       }
       setCursorState(null);
@@ -163,4 +197,32 @@ export function useChartCursor({
   }, []);
 
   return cursorState;
+}
+
+function isNearMainPlotLine(
+  chart: any,
+  cursorX: number,
+  py: number,
+  points: ProfilePoint[],
+  threshold: number,
+): boolean {
+  /* eslint-disable @typescript-eslint/no-unsafe-call,
+     @typescript-eslint/no-unsafe-member-access,
+     @typescript-eslint/no-unsafe-assignment */
+  const elevation = interpolateElevation(cursorX, points);
+  if (elevation !== null) {
+    const elevPy = chart.convertToPixel({ yAxisIndex: 0 }, elevation);
+    if (typeof elevPy === "number" && Math.abs(py - elevPy) <= threshold) {
+      return true;
+    }
+  }
+  const hgl = interpolateHgl(cursorX, points);
+  if (hgl !== null) {
+    const hglPy = chart.convertToPixel({ yAxisIndex: 0 }, hgl);
+    if (typeof hglPy === "number" && Math.abs(py - hglPy) <= threshold) {
+      return true;
+    }
+  }
+  return false;
+  /* eslint-enable */
 }
