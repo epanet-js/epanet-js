@@ -10,6 +10,7 @@ import { EPSResultsReader } from "./eps-results-reader";
 import { SimulationMetadata } from "./simulation-metadata";
 import { InMemoryStorage } from "src/infra/storage";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -18,6 +19,8 @@ vi.mock("src/lib/worker", () => ({
 }));
 
 describe("EPSResultsReader", () => {
+  beforeAll(() => patchEpanetLoader());
+
   beforeEach(() => {
     (lib.runSimulation as unknown as Mock).mockImplementation(
       workerRunSimulation,

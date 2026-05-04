@@ -23,15 +23,12 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setSimulationStep = useSetAtom(simulationStepAtom);
-
-  const isNewEngineOn = useFeatureFlag("FLAG_NEW_EPANET_ENGINE");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -94,7 +91,7 @@ export const useRunSimulation = () => {
           inp,
           appId,
           reportProgress,
-          { runQuality, useNewEngine: isNewEngineOn },
+          { runQuality },
           scenarioKey,
           runId,
         );
@@ -171,7 +168,7 @@ export const useRunSimulation = () => {
           ignoreLabel: options?.ignoreLabel,
         });
       },
-      [setSimulationState, setDialogState, setSimulationStep, isNewEngineOn],
+      [setSimulationState, setDialogState, setSimulationStep],
     ),
   );
 

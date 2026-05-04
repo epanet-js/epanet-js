@@ -10,6 +10,7 @@ import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
 import { Mock } from "vitest";
 import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker";
+import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -18,6 +19,8 @@ vi.mock("src/lib/worker", () => ({
 }));
 
 describe("Run simulation", () => {
+  beforeAll(() => patchEpanetLoader());
+
   beforeEach(() => {
     wireWebWorker();
   });

@@ -5,13 +5,11 @@ import {
   LinkType,
   NodeProperty,
   NodeType,
-  Project,
-  Workspace,
   TimeParameter,
+  Project,
 } from "epanet-js";
-import { Project as NewProject } from "epanet-js-v9";
-import { Workspace as NewWorkspace } from "epanet-js-v9/slim";
-import { EpanetEngine } from "epanet-js-v9/engines/v2.3.5";
+import { Workspace } from "epanet-js/slim";
+import { EpanetEngine } from "epanet-js/engines/v2.3.5";
 import { SimulationStatus } from "../result";
 import { OPFSStorage } from "src/infra/storage";
 import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
@@ -50,17 +48,10 @@ export const runSimulation = async (
   // eslint-disable-next-line no-console
   if (Object.keys(flags).length) console.log("Running with flags", flags);
 
-  const useNewEngine = flags["useNewEngine"];
-  const ws = useNewEngine ? new NewWorkspace() : new Workspace();
-  if (useNewEngine) {
-    await (ws as NewWorkspace).loadModuleVersion(EpanetEngine);
-  } else {
-    await (ws as Workspace).loadModule();
-  }
+  const ws = new Workspace();
+  await ws.loadModuleVersion(EpanetEngine);
 
-  const model = useNewEngine
-    ? new NewProject(ws as NewWorkspace)
-    : new Project(ws as Workspace);
+  const model = new Project(ws);
   ws.writeFile("net.inp", inp);
 
   let timestepCount = 0;
@@ -180,7 +171,7 @@ const curateReport = (input: string): string => {
   return input.replace(errorOnlyOncePerLine, "");
 };
 
-const extractResultsData = (ws: Workspace | NewWorkspace) => {
+const extractResultsData = (ws: Workspace) => {
   const resultsOutBinary = ws.readFile("results.out", "binary");
   const fileSize = resultsOutBinary.byteLength;
   const metadata = new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE);
@@ -211,7 +202,7 @@ class MissingSimulationDataAccumulator {
   private tankVolumesPerTimestep: number[][] = [];
   private pumpStatusPerTimestep: number[][] = [];
 
-  constructor(model: Project | NewProject) {
+  constructor(model: Project) {
     this.nodeCount = model.getCount(CountType.NodeCount);
     this.linkCount = model.getCount(CountType.LinkCount);
 
@@ -232,7 +223,7 @@ class MissingSimulationDataAccumulator {
     this.pumpCount = this.pumpIndices.length;
   }
 
-  appendTimestepData(model: Project | NewProject) {
+  appendTimestepData(model: Project) {
     if (this.supplySourcesCount > 0) {
       const volumes: number[] = [];
       for (const nodeIndex of this.supplySourceIndices) {
