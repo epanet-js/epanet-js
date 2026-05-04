@@ -19,12 +19,12 @@ export const useToggleProfileView = () => {
 
   return () => {
     if (mode === Mode.PROFILE_VIEW) {
-      setProfileView({ phase: "idle" });
+      setProfileView(null);
       setEphemeral({ type: "none" });
       setSelection(SELECTION_NONE);
       void setDrawingMode(Mode.NONE);
     } else {
-      setProfileView({ phase: "selectingStart" });
+      setProfileView(null);
       setEphemeral({ type: "profileView" });
       setSelection(SELECTION_NONE);
       setMode({ mode: Mode.PROFILE_VIEW });

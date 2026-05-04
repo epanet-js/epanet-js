@@ -2,9 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import {
   profileViewAtom,
-  ProfileViewState,
+  ProfileViewPlot,
+  ProfileViewUiPhase,
   PathData,
 } from "src/state/profile-view";
+import { Mode, modeAtom } from "src/state/mode";
+import { ephemeralStateAtom } from "src/state/drawing";
 import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
@@ -68,7 +71,7 @@ export type HglRange = {
 export type HglBandSegment = { x: number; min: number; max: number };
 
 export type ProfileViewData = {
-  phase: ProfileViewState["phase"];
+  phase: ProfileViewUiPhase;
   points: ProfilePoint[];
   links: ProfileLink[];
   pathSegments: PathSegment[];
@@ -91,22 +94,36 @@ export type ProfileViewData = {
 
 type SyncProfileViewData = Omit<
   ProfileViewData,
-  "terrain" | "terrainData" | "hglRanges" | "hglBandSegments"
+  "phase" | "terrain" | "terrainData" | "hglRanges" | "hglBandSegments"
 >;
 
 export function useProfileViewData(): ProfileViewData {
-  const profileView = useAtomValue(profileViewAtom);
+  const plot = useAtomValue(profileViewAtom);
+  const { mode } = useAtomValue(modeAtom);
+  const ephemeralState = useAtomValue(ephemeralStateAtom);
   const model = useAtomValue(stagingModelDerivedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
 
+  const phase = useMemo<ProfileViewUiPhase>(() => {
+    if (plot !== null) return "showingProfile";
+    if (mode !== Mode.PROFILE_VIEW) return "idle";
+    if (
+      ephemeralState.type === "profileView" &&
+      ephemeralState.startNodeId !== undefined
+    ) {
+      return "selectingEnd";
+    }
+    return "selectingStart";
+  }, [plot, mode, ephemeralState]);
+
   const sync = useMemo(
-    () => computeProfileViewData(profileView, model.assets, results ?? null),
-    [profileView, model.assets, results],
+    () => computeProfileViewData(plot, model.assets, results ?? null),
+    [plot, model.assets, results],
   );
 
   const terrain = useTerrainElevations(sync.terrainSamples);
-  const hglRanges = useHglRanges(profileView, simulation, model.assets);
+  const hglRanges = useHglRanges(plot, simulation, model.assets);
 
   const terrainData = useMemo(() => buildTerrainData(terrain), [terrain]);
   const hglBandSegments = useMemo(
@@ -114,17 +131,16 @@ export function useProfileViewData(): ProfileViewData {
     [sync.points, hglRanges],
   );
 
-  return { ...sync, terrain, terrainData, hglRanges, hglBandSegments };
+  return { phase, ...sync, terrain, terrainData, hglRanges, hglBandSegments };
 }
 
 function computeProfileViewData(
-  profileView: ProfileViewState,
+  plot: ProfileViewPlot | null,
   assets: AssetsMap,
   results: ResultsReader | null,
 ): SyncProfileViewData {
-  if (profileView.phase !== "showingProfile") {
+  if (plot === null) {
     return {
-      phase: profileView.phase,
       points: [],
       links: [],
       pathSegments: [],
@@ -140,7 +156,7 @@ function computeProfileViewData(
     };
   }
 
-  const path = profileView.path;
+  const path = plot.path;
 
   const pathSegments = buildPathSegments(path, assets);
   const points = computeProfilePoints(path, assets, results);
@@ -165,7 +181,6 @@ function computeProfileViewData(
   const hglDropsData = buildHglDropsData(points, hasSimulation);
 
   return {
-    phase: "showingProfile",
     points,
     links,
     pathSegments,
@@ -517,7 +532,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
 type NodeRef = { nodeId: AssetId; type: "junction" | "tank" | "reservoir" };
 
 function useHglRanges(
-  profileView: ProfileViewState,
+  plot: ProfileViewPlot | null,
   simulation: SimulationState,
   assets: AssetsMap,
 ): (HglRange | null)[] | null {
@@ -529,8 +544,7 @@ function useHglRanges(
       ? simulation.epsResultsReader
       : null;
 
-  const pathNodeIds =
-    profileView.phase === "showingProfile" ? profileView.path.nodeIds : null;
+  const pathNodeIds = plot !== null ? plot.path.nodeIds : null;
   const pathKey = pathNodeIds ? pathNodeIds.join(",") : "";
 
   useEffect(() => {

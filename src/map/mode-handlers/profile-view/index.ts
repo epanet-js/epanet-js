@@ -17,7 +17,7 @@ export function useProfileViewHandlers(
   const { hydraulicModel, map } = handlerContext;
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
-  const profileView = useAtomValue(profileViewAtom);
+  const ephemeralState = useAtomValue(ephemeralStateAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setMode = useSetAtom(modeAtom);
@@ -25,72 +25,61 @@ export function useProfileViewHandlers(
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
 
+  const draftStartNodeId =
+    ephemeralState.type === "profileView"
+      ? ephemeralState.startNodeId
+      : undefined;
+
   const click: Handlers["click"] = (e) => {
     const clickedAsset = getClickedAsset(e);
     if (!clickedAsset || !clickedAsset.isNode) return;
     const nodeId = clickedAsset.id;
 
-    if (profileView.phase === "selectingStart") {
-      setProfileView({ phase: "selectingEnd", startNodeId: nodeId });
+    if (draftStartNodeId === undefined) {
       setEphemeralState({ type: "profileView", startNodeId: nodeId });
       return;
     }
 
-    if (profileView.phase === "selectingEnd") {
-      const startNodeId = profileView.startNodeId;
-      if (nodeId === startNodeId) return;
+    if (nodeId === draftStartNodeId) return;
 
-      const path = shortestPath(
-        hydraulicModel.topology,
-        hydraulicModel.assets,
-        startNodeId,
-        nodeId,
-      );
+    const path = shortestPath(
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+      draftStartNodeId,
+      nodeId,
+    );
 
-      if (path === null) {
-        setDialogState({ type: "profileNoPath" });
-        setProfileView({ phase: "idle" });
-        setEphemeralState({ type: "none" });
-        setSelection(SELECTION_NONE);
-        setMode({ mode: Mode.NONE });
-        return;
-      }
-
-      setProfileView({
-        phase: "showingProfile",
-        path,
-        startNodeId,
-        endNodeId: nodeId,
-      });
+    if (path === null) {
+      setDialogState({ type: "profileNoPath" });
       setEphemeralState({ type: "none" });
-      setSelection({
-        type: "multi",
-        ids: [...path.nodeIds, ...path.linkIds],
-      });
+      setSelection(SELECTION_NONE);
       setMode({ mode: Mode.NONE });
       return;
     }
+
+    setProfileView({
+      startNodeId: draftStartNodeId,
+      endNodeId: nodeId,
+      path,
+    });
+    setEphemeralState({ type: "none" });
+    setSelection({
+      type: "multi",
+      ids: [...path.nodeIds, ...path.linkIds],
+    });
+    setMode({ mode: Mode.NONE });
   };
 
   const move: Handlers["move"] = throttle((e) => {
-    if (
-      profileView.phase !== "selectingStart" &&
-      profileView.phase !== "selectingEnd"
-    ) {
-      setCursor("");
-      return;
-    }
-
     const hoveredAsset = getClickedAsset(e);
     const hoveredNodeId =
       hoveredAsset && hoveredAsset.isNode ? hoveredAsset.id : undefined;
 
-    const startNodeId =
-      profileView.phase === "selectingEnd"
-        ? profileView.startNodeId
-        : undefined;
-
-    setEphemeralState({ type: "profileView", startNodeId, hoveredNodeId });
+    setEphemeralState({
+      type: "profileView",
+      startNodeId: draftStartNodeId,
+      hoveredNodeId,
+    });
     setCursor(hoveredNodeId !== undefined ? "pointer" : "");
   }, 16);
 
@@ -103,7 +92,7 @@ export function useProfileViewHandlers(
     keydown: () => {},
     keyup: () => {},
     exit: () => {
-      setProfileView({ phase: "idle" });
+      setProfileView(null);
       setEphemeralState({ type: "none" });
       setSelection(SELECTION_NONE);
       setCursor("");

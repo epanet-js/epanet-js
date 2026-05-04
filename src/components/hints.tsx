@@ -11,7 +11,6 @@ import {
 import { selectionAtom } from "src/state/selection";
 import { hideHintsAtom } from "src/state/user-settings";
 import { Mode, modeAtom } from "src/state/mode";
-import { profileViewAtom } from "src/state/profile-view";
 import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/map-symbology";
@@ -95,7 +94,6 @@ export function Hints() {
   const dialogState = useAtomValue(dialogAtom);
   const symbology = useAtomValue(symbologyAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
-  const profileView = useAtomValue(profileViewAtom);
   const show = useBreakpoint("lg");
   const isEditionBlocked = useIsEditionBlocked();
 
@@ -410,23 +408,20 @@ export function Hints() {
       );
     }
     case Mode.PROFILE_VIEW: {
-      if (profileView.phase === "selectingStart") {
-        return (
-          <Hint
-            hintId={"PROFILE_VIEW_SELECT_START"}
-            text={translate("profileView.selectStart")}
-          />
-        );
-      }
-      if (profileView.phase === "selectingEnd") {
-        return (
-          <Hint
-            hintId={"PROFILE_VIEW_SELECT_END"}
-            text={translate("profileView.selectEnd")}
-          />
-        );
-      }
-      break;
+      const hasStart =
+        ephemeralState.type === "profileView" &&
+        ephemeralState.startNodeId !== undefined;
+      return hasStart ? (
+        <Hint
+          hintId={"PROFILE_VIEW_SELECT_END"}
+          text={translate("profileView.selectEnd")}
+        />
+      ) : (
+        <Hint
+          hintId={"PROFILE_VIEW_SELECT_START"}
+          text={translate("profileView.selectStart")}
+        />
+      );
     }
     default:
       return null;
