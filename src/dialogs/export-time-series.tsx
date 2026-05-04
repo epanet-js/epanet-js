@@ -4,6 +4,12 @@ import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
+import { stagingModelAtom } from "src/state/hydraulic-model";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import { Export } from "src/lib/export";
+import type { ExportTimeSeriesMetrics } from "src/lib/export/types";
+
+const SIZE_WARNING_LIMIT_GB = 1;
 
 type NodeFields = {
   pressure: boolean;
@@ -57,7 +63,14 @@ export const ExportTimeSeriesDialog = ({
   const translate = useTranslate();
 
   const selection = useAtomValue(selectionAtom);
-  const hasSelection = USelection.toIds(selection).length > 0;
+  const selectedIds = USelection.toIds(selection);
+  const hasSelection = selectedIds.length > 0;
+
+  const model = useAtomValue(stagingModelAtom);
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const epsResultsReader =
+    "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+  const timestepCount = epsResultsReader?.timestepCount ?? 0;
 
   const [selectedAssetsOnly, setSelectedAssetsOnly] = useState(false);
   const [nodeFields, setNodeFields] = useState<NodeFields>({
@@ -102,6 +115,44 @@ export const ExportTimeSeriesDialog = ({
       unitHeadloss: next,
     });
   };
+
+  const getNodeCount = () => {
+    if (selectedAssetsOnly) {
+      return selectedIds.filter((id) => model.assets.get(id)?.isNode).length;
+    }
+    return model.assetIndex.nodeCount;
+  };
+  const getLinkCount = () => {
+    if (selectedAssetsOnly) {
+      return selectedIds.filter((id) => model.assets.get(id)?.isLink).length;
+    }
+    return model.assetIndex.linkCount;
+  };
+
+  const selectedNodeMetrics = (
+    Object.entries(nodeFields) as [keyof NodeFields, boolean][]
+  )
+    .filter(([, checked]) => checked)
+    .map(([key]) => key as ExportTimeSeriesMetrics);
+  const selectedLinkMetrics = (
+    Object.entries(linkFields) as [keyof LinkFields, boolean][]
+  )
+    .filter(([, checked]) => checked)
+    .map(([key]) => key as ExportTimeSeriesMetrics);
+
+  const estimatedBytes =
+    Export.estimateTimeSeriesSize(
+      selectedNodeMetrics,
+      getNodeCount(),
+      timestepCount,
+    ) +
+    Export.estimateTimeSeriesSize(
+      selectedLinkMetrics,
+      getLinkCount(),
+      timestepCount,
+    );
+  const estimatedGB = estimatedBytes / 1024 ** 3;
+  const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB;
 
   return (
     <BaseDialog
@@ -225,6 +276,20 @@ export const ExportTimeSeriesDialog = ({
             </div>
           </div>
         </div>
+
+        {showSizeWarning && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md space-y-1">
+            <p className="text-sm font-medium text-yellow-800">
+              {translate(
+                "exportTimeSeries.largeExportTitle",
+                estimatedGB.toFixed(1),
+              )}
+            </p>
+            <p className="text-sm text-yellow-800">
+              {translate("exportTimeSeries.largeExportDescription")}
+            </p>
+          </div>
+        )}
       </div>
     </BaseDialog>
   );

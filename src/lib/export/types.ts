@@ -13,3 +13,13 @@ export type ExportedFile = {
   description: string;
   blob: Blob;
 };
+
+export type ExportTimeSeriesMetrics =
+  | "status"
+  | "flow"
+  | "velocity"
+  | "unitHeadloss"
+  | "pressure"
+  | "head"
+  | "demand"
+  | "waterQuality";

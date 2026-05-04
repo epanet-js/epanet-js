@@ -1269,6 +1269,8 @@
   },
   "exportAssetData": "Export Asset Data",
   "exportTimeSeries": "Export Simulation Time-Series",
+  "exportTimeSeries.largeExportTitle": "Large export size ({{1}} GB)",
+  "exportTimeSeries.largeExportDescription": "Large files may be slow to generate and difficult to open in other apps. Consider filtering your data or reducing the number of simulation steps to lower its size.",
   "exportFormat": "Export format",
   "exportSingleTimestep": "Single time-step",
   "exportAllTimesteps": "All time-steps (as CSV)",

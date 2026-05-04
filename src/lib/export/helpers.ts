@@ -31,9 +31,17 @@ const triggerDownload = async (
   URL.revokeObjectURL(url);
 };
 
+const fileSizeLimit = async () => {
+  if (isFileSystemAccessSupported()) return -1;
+
+  const { quota, usage } = await navigator.storage.estimate();
+  return (quota ?? 0) - (usage ?? 0);
+};
+
 export const FileSystemHelpers = {
   openFileInOpfs,
   openFileInFileSystem,
   isFileSystemAccessSupported,
   triggerDownload,
+  fileSizeLimit,
 };
