@@ -1270,7 +1270,7 @@
   "exportAssetData": "Export asset data",
   "exportAssetData.noAssets": "No assets to export were found. Double-check that your project has assets.",
   "exportTimeSeries": "Export simulation time-series",
-  "exportTimeSeries.largeExportTitle": "Large export size ({{1}} GB)",
+  "exportTimeSeries.largeExportTitle": "Large export size (~{{1}} GB)",
   "exportTimeSeries.largeExportDescription": "Large files may be slow to generate and difficult to open in other apps. Consider filtering your data or reducing the number of simulation steps to lower its size.",
   "exportFormat": "File type",
   "exportSingleTimestep": "Single time-step",

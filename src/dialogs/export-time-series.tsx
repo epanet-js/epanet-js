@@ -278,14 +278,14 @@ export const ExportTimeSeriesDialog = ({
         </div>
 
         {showSizeWarning && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md space-y-1">
-            <p className="text-sm font-medium text-yellow-800">
+          <div className="p-3 bg-yellow-100 rounded-md space-y-1">
+            <p className="text-sm font-bold">
               {translate(
                 "exportTimeSeries.largeExportTitle",
                 estimatedGB.toFixed(1),
               )}
             </p>
-            <p className="text-sm text-yellow-800">
+            <p className="text-sm">
               {translate("exportTimeSeries.largeExportDescription")}
             </p>
           </div>
