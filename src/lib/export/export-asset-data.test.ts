@@ -2,7 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
 import { AssetExporters } from "./asset-exporters";
-import { FileSystemHelpers } from "./helpers";
+import { FileSystemHelpers } from "./file-system-helpers";
 
 const mockHandle = {} as FileSystemFileHandle;
 const model = HydraulicModelBuilder.empty();

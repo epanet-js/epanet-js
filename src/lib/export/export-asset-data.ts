@@ -1,6 +1,6 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { AssetExporters } from "./asset-exporters";
-import { FileSystemHelpers } from "./helpers";
+import { FileSystemHelpers } from "./file-system-helpers";
 import type { ExportFormat } from "./types";
 import { ResultsReader } from "src/simulation";
 
