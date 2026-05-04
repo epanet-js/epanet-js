@@ -27,7 +27,12 @@ export const exportAssetData = async (
 
   const zipFileName = `${fileName}.zip`;
   const handle = FileSystemHelpers.isFileSystemAccessSupported()
-    ? await FileSystemHelpers.openFileInFileSystem(zipFileName)
+    ? await FileSystemHelpers.openFileInFileSystem(
+        zipFileName,
+        "ZIP File",
+        "application/zip",
+        ".zip",
+      )
     : await FileSystemHelpers.openFileInOpfs(zipFileName);
 
   await AssetExporters.exportZip(handle, exportedFiles);

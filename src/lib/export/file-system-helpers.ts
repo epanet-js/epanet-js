@@ -9,10 +9,13 @@ const openFileInOpfs = async (
 
 const openFileInFileSystem = async (
   fileName: string,
+  description: string,
+  mimeType: string,
+  extension: string,
 ): Promise<FileSystemFileHandle> => {
   return await window.showSaveFilePicker({
     suggestedName: fileName,
-    types: [{ description: "ZIP", accept: { "application/zip": [".zip"] } }],
+    types: [{ description, accept: { [mimeType]: [extension] } }],
   });
 };
 
