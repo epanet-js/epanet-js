@@ -1268,6 +1268,7 @@
     "noResultsDescription": "Try searching for a different location or zooming out on the map to expand your search area."
   },
   "exportAssetData": "Export Asset Data",
+  "exportTimeSeries": "Export Simulation Time-Series",
   "exportFormat": "Export format",
   "exportSingleTimestep": "Single time-step",
   "exportAllTimesteps": "All time-steps (as CSV)",

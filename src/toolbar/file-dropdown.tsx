@@ -59,6 +59,7 @@ export const FileDropdown = () => {
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isExportAssetDataOn = useFeatureFlag("FLAG_EXPORT_ASSET_DATA");
+  const isExportTimeSeriesOn = useFeatureFlag("FLAG_EXPORT_TIME_SERIES");
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -204,6 +205,17 @@ export const FileDropdown = () => {
                 >
                   <FileSpreadsheetIcon />
                   {translate("exportAssetData")}
+                </StyledItem>
+              )}
+              {isExportTimeSeriesOn && <DDSeparator />}
+              {isExportTimeSeriesOn && (
+                <StyledItem
+                  onSelect={() => {
+                    setDialogState({ type: "exportTimeSeries" });
+                  }}
+                >
+                  <FileSpreadsheetIcon />
+                  {translate("exportTimeSeries")}
                 </StyledItem>
               )}
               <RecentFilesMenu isOurFileOn={isOurFileOn} />

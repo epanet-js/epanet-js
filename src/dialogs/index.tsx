@@ -411,6 +411,18 @@ const ExportAssetDataDialog = dynamic<{
   },
 );
 
+const ExportTimeSeriesDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/export-time-series").then(
+      (r) => r.ExportTimeSeriesDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -587,6 +599,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "exportAssetData") {
     return <ExportAssetDataDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "exportTimeSeries") {
+    return <ExportTimeSeriesDialog onClose={onClose} />;
   }
 
   if (dialog.type === "networkProjection") {

@@ -196,6 +196,10 @@ export type ExportAssetDataDialogState = {
   type: "exportAssetData";
 };
 
+export type ExportTimeSeriesDialogState = {
+  type: "exportTimeSeries";
+};
+
 export type ProfileNoPathDialogState = {
   type: "profileNoPath";
 };
@@ -239,6 +243,7 @@ export type DialogState =
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState
   | ExportAssetDataDialogState
+  | ExportTimeSeriesDialogState
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState
   | null;
