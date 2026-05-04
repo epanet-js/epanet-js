@@ -38,8 +38,10 @@ export const traceDuration = <T>(name: string, fn: () => T): T => {
   const start = performance.now();
   const result = fn();
   const duration = performance.now() - start;
-  //eslint-disable-next-line no-console
-  console.log(`${name} execution time: ${duration.toFixed(2)} ms`);
+  if (isDebugOn) {
+    //eslint-disable-next-line no-console
+    console.log(`${name} execution time: ${duration.toFixed(2)} ms`);
+  }
   return result;
 };
 
