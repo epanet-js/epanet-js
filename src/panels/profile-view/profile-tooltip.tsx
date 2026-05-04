@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import throttle from "lodash/throttle";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { ProfileLink, ProfilePoint, TerrainPoint } from "./chart-data";
 import { coordinatesAtLength, PathSegment } from "./path-position";
@@ -59,6 +60,14 @@ export function ProfileTooltip({
     const el = containerRef.current;
     if (!el) return;
 
+    const scheduleHover = throttle(
+      (coords: [number, number] | null) => {
+        depsRef.current.setHoverHighlight(coords);
+      },
+      100,
+      { leading: false, trailing: true },
+    );
+
     const handleMove = (e: MouseEvent) => {
       const chart = chartRef.current;
       if (!chart) return;
@@ -78,7 +87,7 @@ export function ProfileTooltip({
           currTrigger: "leave",
         });
         setTooltipState(null);
-        depsRef.current.setHoverHighlight(null);
+        scheduleHover(null);
         return;
       }
 
@@ -113,7 +122,7 @@ export function ProfileTooltip({
         snappedIdx !== null
           ? deps.points[snappedIdx].coordinates
           : coordinatesAtLength(deps.pathSegments, cursorX);
-      deps.setHoverHighlight(markerCoordinates);
+      scheduleHover(markerCoordinates);
 
       const content = getTooltipContent(
         cursorX,
@@ -142,7 +151,7 @@ export function ProfileTooltip({
         /* eslint-enable */
       }
       setTooltipState(null);
-      depsRef.current.setHoverHighlight(null);
+      scheduleHover(null);
     };
 
     el.addEventListener("mousemove", handleMove);
@@ -150,6 +159,7 @@ export function ProfileTooltip({
     return () => {
       el.removeEventListener("mousemove", handleMove);
       el.removeEventListener("mouseleave", handleLeave);
+      scheduleHover.cancel();
       depsRef.current.setHoverHighlight(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
