@@ -186,6 +186,29 @@ export const ExportTimeSeriesDialog = ({
     );
   }
 
+  if (epsResultsReader === null) {
+    return (
+      <BaseDialog
+        title={translate("exportTimeSeries")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
+        }
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray-700">
+            {translate("exportTimeSeries.noSimulation")}
+          </p>
+        </div>
+      </BaseDialog>
+    );
+  }
+
   return (
     <BaseDialog
       title={translate("exportTimeSeries")}
