@@ -12,6 +12,7 @@ import {
   hglDropsPlot,
   hglLinePlot,
   junctionsStripPlot,
+  nodesHitStripPlot,
   pipesStripPlot,
   profileGridTopOffset,
   pumpValvesStripPlot,
@@ -198,6 +199,7 @@ export const ProfileChart = memo(function ProfileChart({
         reservoirsStripPlot(points, stripIcons, stripY),
         pumpsStripPlot(links, stripIcons, stripY),
         valvesStripPlot(links, stripIcons, stripY),
+        nodesHitStripPlot(points, stripY),
       ].filter(notNull);
     });
   }, [

@@ -5,7 +5,7 @@ import { ProfileLink, ProfilePoint, TerrainPoint } from "./chart-data";
 import { coordinatesAtLength, PathSegment } from "./path-position";
 import { getTooltipContent, VisibleTooltipContent } from "./tooltip-data";
 
-const SNAP_PIXEL_THRESHOLD = 5;
+const SNAP_PIXEL_THRESHOLD = 10;
 
 export type ChartCursorState = {
   px: number;
