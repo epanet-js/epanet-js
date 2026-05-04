@@ -2,7 +2,7 @@
 import { memo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useProfileViewData, ProfileViewData } from "./chart-data";
-import { ProfileChart } from "./profile-chart";
+import { ChartContainer } from "./chart-container";
 
 export const ProfileViewPanel = memo(function ProfileViewPanel() {
   const data = useProfileViewData();
@@ -13,7 +13,7 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
     <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
       <div className="flex-1 min-h-0">
         {showChart ? (
-          <ProfileChart data={data} />
+          <ChartContainer data={data} />
         ) : (
           <ProfileEmptyState phase={data.phase} />
         )}
