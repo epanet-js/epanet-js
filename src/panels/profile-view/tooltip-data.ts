@@ -17,6 +17,8 @@ export type TooltipContent =
     }
   | { kind: "hidden" };
 
+export type VisibleTooltipContent = Exclude<TooltipContent, { kind: "hidden" }>;
+
 export function getTooltipContent(
   cursorX: number,
   snappedIdx: number | null,

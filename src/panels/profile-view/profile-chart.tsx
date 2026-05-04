@@ -32,6 +32,7 @@ import { isDebugOn } from "src/infra/debug-mode";
 import { useAtomValue } from "jotai";
 import { USelection } from "src/selection/selection";
 import { ProfileTooltip } from "./profile-tooltip";
+import { useChartCursor } from "./use-chart-cursor";
 
 function notNull<T>(value: T | null): value is T {
   return value !== null;
@@ -210,6 +211,17 @@ export const ProfileChart = memo(function ProfileChart({
 
   const profileGridTop = profileGridTopOffset(hasSimulation);
 
+  const cursorState = useChartCursor({
+    containerRef,
+    chartRef,
+    points,
+    links,
+    terrain,
+    pressureFactor,
+    pathSegments,
+    setHoverHighlight,
+  });
+
   const option: EChartsOption = useMemo(
     () =>
       traceDuration("DEBUG PROFILE_CHART:option", () =>
@@ -256,16 +268,9 @@ export const ProfileChart = memo(function ProfileChart({
         onChartReady={onChartReady}
       />
       <ProfileTooltip
-        containerRef={containerRef}
-        chartRef={chartRef}
-        points={points}
-        links={links}
-        terrain={terrain}
-        pressureFactor={pressureFactor}
-        pathSegments={pathSegments}
+        state={cursorState}
         elevColor={nodeSymbology.defaults.color}
         translate={translate}
-        setHoverHighlight={setHoverHighlight}
       />
     </div>
   );
