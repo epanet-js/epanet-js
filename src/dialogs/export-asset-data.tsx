@@ -103,28 +103,28 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
 
         <div className="border-t border-gray-200 pt-4 space-y-3">
           <label
-            className={`flex items-center gap-x-2 ${hasSimulationResults ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+            className={`flex items-center gap-x-2 w-max ${hasSimulationResults ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
           >
             <input
               type="checkbox"
               checked={includeSimulationResults}
               disabled={!hasSimulationResults}
               onChange={(e) => setIncludeSimulationResults(e.target.checked)}
-              className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+              className="rounded text-purple-600 focus:ring-purple-500"
             />
             <span className="text-sm text-gray-700">
               {includeSimulationResultsLabelText}
             </span>
           </label>
           <label
-            className={`flex items-center gap-x-2 ${hasSelection ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+            className={`flex items-center gap-x-2 w-max ${hasSelection ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
           >
             <input
               type="checkbox"
               checked={selectedAssetsOnly}
               disabled={!hasSelection}
               onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-              className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+              className="rounded text-purple-600 focus:ring-purple-500"
             />
             <span className="text-sm text-gray-700">
               {translate("exportSelectedAssetsOnly")}
