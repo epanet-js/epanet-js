@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useAtomValue } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 
 type NodeFields = {
   pressure: boolean;
@@ -52,6 +55,9 @@ export const ExportTimeSeriesDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+
+  const selection = useAtomValue(selectionAtom);
+  const hasSelection = USelection.toIds(selection).length > 0;
 
   const [selectedAssetsOnly, setSelectedAssetsOnly] = useState(false);
   const [nodeFields, setNodeFields] = useState<NodeFields>({
@@ -115,12 +121,15 @@ export const ExportTimeSeriesDialog = ({
       }
     >
       <div className="p-4 space-y-4">
-        <label className="flex items-center gap-x-2 cursor-pointer">
+        <label
+          className={`flex items-center gap-x-2 ${hasSelection ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
+        >
           <input
             type="checkbox"
             checked={selectedAssetsOnly}
+            disabled={!hasSelection}
             onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-            className="rounded text-purple-600 focus:ring-purple-500"
+            className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
           />
           <span className="text-sm text-gray-700">
             {translate("exportSelectedAssetsOnly")}
