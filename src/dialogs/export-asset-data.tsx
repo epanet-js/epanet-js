@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { stagingModelAtom } from "src/state/hydraulic-model";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useExportAssetData } from "src/commands/export-asset-data";
@@ -18,6 +19,7 @@ const exportFormats: { value: ExportFormat; labelKey: string }[] = [
 
 export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
+  const model = useAtomValue(stagingModelAtom);
   const exportAssetData = useExportAssetData();
   const setDialogState = useSetAtom(dialogAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
@@ -65,6 +67,29 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const includeSimulationResultsLabelText = isEpsSimulation
     ? `${translate("exportSimulationResultsForCurrentStep")} (${formatTimestepTime(simulationStep ?? 0, reportingTimeStep)})`
     : translate("exportSimulationResults");
+
+  if (model.assets.size === 0) {
+    return (
+      <BaseDialog
+        title={translate("exportAssetData")}
+        size="sm"
+        isOpen={true}
+        onClose={onClose}
+        footer={
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
+        }
+      >
+        <div className="p-4">
+          <p className="text-sm text-gray-700">
+            {translate("exportAssetData.noAssets")}
+          </p>
+        </div>
+      </BaseDialog>
+    );
+  }
 
   return (
     <BaseDialog
