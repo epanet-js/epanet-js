@@ -42,6 +42,9 @@ describe("export-asset-data", () => {
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
+      "ZIP File",
+      "application/zip",
+      ".zip",
     );
     expect(FileSystemHelpers.openFileInOpfs).not.toHaveBeenCalled();
     expect(FileSystemHelpers.triggerDownload).not.toHaveBeenCalled();

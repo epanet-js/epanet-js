@@ -1,3 +1,9 @@
+const openDirectoryInFileSystem =
+  async (): Promise<FileSystemDirectoryHandle> =>
+    await window.showDirectoryPicker();
+
+const openOpfsRootDirectory = () => navigator.storage.getDirectory();
+
 const openFileInOpfs = async (
   fileName: string,
 ): Promise<FileSystemFileHandle> => {
@@ -47,4 +53,6 @@ export const FileSystemHelpers = {
   isFileSystemAccessSupported,
   triggerDownload,
   fileSizeLimit,
+  openDirectoryInFileSystem,
+  openOpfsRootDirectory,
 };

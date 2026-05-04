@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { useAtomValue } from "jotai";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useExportTimeSeries } from "src/commands/export-time-series";
+import { dialogAtom } from "src/state/dialog";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
@@ -61,6 +63,8 @@ export const ExportTimeSeriesDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const exportTimeSeries = useExportTimeSeries();
+  const setDialogState = useSetAtom(dialogAtom);
 
   const selection = useAtomValue(selectionAtom);
   const selectedIds = USelection.toIds(selection);
@@ -163,6 +167,22 @@ export const ExportTimeSeriesDialog = ({
   const exportDisabled =
     exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
+  const handleExport = useCallback(async () => {
+    const metrics = [...selectedNodeMetrics, ...selectedLinkMetrics];
+    const selectedAssets = selectedAssetsOnly
+      ? new Set(selectedIds)
+      : new Set<number>();
+    setDialogState(null);
+    await exportTimeSeries({ metrics, selectedAssets });
+  }, [
+    selectedNodeMetrics,
+    selectedLinkMetrics,
+    selectedAssetsOnly,
+    selectedIds,
+    setDialogState,
+    exportTimeSeries,
+  ]);
+
   if (model.assets.size === 0) {
     return (
       <BaseDialog
@@ -218,7 +238,7 @@ export const ExportTimeSeriesDialog = ({
       footer={
         <SimpleDialogActions
           action={translate("export")}
-          onAction={onClose}
+          onAction={handleExport}
           isDisabled={exportDisabled}
           secondary={{
             action: translate("dialog.cancel"),
