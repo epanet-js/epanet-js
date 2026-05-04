@@ -152,7 +152,14 @@ export const ExportTimeSeriesDialog = ({
       timestepCount,
     );
   const estimatedGB = estimatedBytes / 1024 ** 3;
-  const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB;
+
+  const [sizeLimit, setSizeLimit] = useState(-1);
+  useEffect(() => {
+    void Export.fileSizeLimit().then(setSizeLimit);
+  }, []);
+
+  const exceedsLimit = sizeLimit > 0 && estimatedBytes > sizeLimit;
+  const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB || exceedsLimit;
 
   return (
     <BaseDialog
@@ -164,6 +171,7 @@ export const ExportTimeSeriesDialog = ({
         <SimpleDialogActions
           action={translate("export")}
           onAction={onClose}
+          isDisabled={exceedsLimit}
           secondary={{
             action: translate("dialog.cancel"),
             onClick: onClose,
@@ -278,15 +286,29 @@ export const ExportTimeSeriesDialog = ({
         </div>
 
         {showSizeWarning && (
-          <div className="p-3 bg-yellow-100 rounded-md space-y-1">
-            <p className="text-sm font-bold">
+          <div
+            className={`p-3 rounded-md space-y-1 ${
+              exceedsLimit
+                ? "bg-red-50 border border-red-200"
+                : "bg-yellow-50 border border-yellow-200"
+            }`}
+          >
+            <p
+              className={`text-sm font-medium ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
+            >
               {translate(
                 "exportTimeSeries.largeExportTitle",
                 estimatedGB.toFixed(1),
               )}
             </p>
-            <p className="text-sm">
-              {translate("exportTimeSeries.largeExportDescription")}
+            <p
+              className={`text-sm ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
+            >
+              {translate(
+                exceedsLimit
+                  ? "exportTimeSeries.exceededSizeExportDescription"
+                  : "exportTimeSeries.largeExportDescription",
+              )}
             </p>
           </div>
         )}

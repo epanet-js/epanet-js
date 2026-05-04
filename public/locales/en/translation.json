@@ -1272,6 +1272,7 @@
   "exportTimeSeries": "Export simulation time-series",
   "exportTimeSeries.largeExportTitle": "Large export size (~{{1}} GB)",
   "exportTimeSeries.largeExportDescription": "Large files may be slow to generate and difficult to open in other apps. Consider filtering your data or reducing the number of simulation steps to lower its size.",
+  "exportTimeSeries.exceededSizeExportDescription": "Export size exceeds maximum export size supported by your browser. Consider filtering your data or reducing the number of simulation steps to lower its size.",
   "exportFormat": "File type",
   "exportSingleTimestep": "Single time-step",
   "exportAllTimesteps": "All time-steps (as CSV)",
