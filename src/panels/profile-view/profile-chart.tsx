@@ -28,6 +28,7 @@ import { tabAtom, TabOption } from "src/state/layout";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { highlightsAtom } from "src/state/highlights";
 import { traceDuration } from "src/infra/with-instrumentation";
+import { isDebugOn } from "src/infra/debug-mode";
 import { useAtomValue } from "jotai";
 import { USelection } from "src/selection/selection";
 import { ProfileTooltip } from "./profile-tooltip";
@@ -235,10 +236,12 @@ export const ProfileChart = memo(function ProfileChart({
     ],
   );
 
-  //eslint-disable-next-line no-console
-  console.log(
-    `DEBUG PROFILE_CHART:render points=${points.length} links=${links?.length ?? 0}`,
-  );
+  if (isDebugOn) {
+    //eslint-disable-next-line no-console
+    console.log(
+      `DEBUG PROFILE_CHART:render points=${points.length} links=${links?.length ?? 0}`,
+    );
+  }
 
   return (
     <div

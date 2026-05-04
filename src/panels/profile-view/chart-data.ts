@@ -17,6 +17,7 @@ import type { EPSResultsReader } from "src/simulation";
 import { Highlight } from "src/state/highlights";
 import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
+import { isDebugOn } from "src/infra/debug-mode";
 import { fetchElevationForPoint } from "src/lib/elevations";
 import {
   buildPathSegments,
@@ -486,12 +487,14 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
         ).catch(() => null),
       ),
     ).then((results) => {
-      //eslint-disable-next-line no-console
-      console.log(
-        `DEBUG PROFILE_VIEW:terrainElevations samples=${samples.length} time=${(
-          performance.now() - start
-        ).toFixed(2)} ms`,
-      );
+      if (isDebugOn) {
+        //eslint-disable-next-line no-console
+        console.log(
+          `DEBUG PROFILE_VIEW:terrainElevations samples=${samples.length} time=${(
+            performance.now() - start
+          ).toFixed(2)} ms`,
+        );
+      }
       if (!cancelled) {
         setTerrainPoints(
           results.map((elevation, i) => ({
@@ -592,12 +595,14 @@ function useHglRanges(
         }),
       );
 
-      //eslint-disable-next-line no-console
-      console.log(
-        `DEBUG PROFILE_VIEW:hglRange nodes=${nodeRefs.length} time=${(
-          performance.now() - start
-        ).toFixed(2)} ms`,
-      );
+      if (isDebugOn) {
+        //eslint-disable-next-line no-console
+        console.log(
+          `DEBUG PROFILE_VIEW:hglRange nodes=${nodeRefs.length} time=${(
+            performance.now() - start
+          ).toFixed(2)} ms`,
+        );
+      }
       if (controller.signal.aborted) return;
       setRanges(results);
     };
