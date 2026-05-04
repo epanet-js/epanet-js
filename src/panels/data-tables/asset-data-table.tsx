@@ -12,6 +12,14 @@ import {
 } from "src/hydraulic-model/model-operations";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import type {
+  Junction,
+  Pipe,
+  Pump,
+  Valve,
+  Reservoir,
+  Tank,
+} from "src/hydraulic-model/asset-types";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import {
@@ -613,7 +621,7 @@ function buildColumns(
           header: translate("valveType"),
           options: valveKinds.map((k) => ({
             value: k,
-            label: k.toUpperCase(),
+            label: translate(`valve.${k}.detailed`),
           })),
         }),
         numericCol("setting", translate("setting")),
@@ -722,11 +730,96 @@ function buildColumns(
   }
 }
 
-function assetToRow(asset: {
-  id: AssetId;
-  feature: { properties: Record<string, unknown> };
-}): AssetRow {
-  return { id: asset.id, ...asset.feature.properties };
+function buildAssetRow(
+  assetType: AssetType,
+  asset: Junction | Pipe | Pump | Valve | Reservoir | Tank,
+): AssetRow {
+  const base = { id: asset.id, label: asset.label };
+  switch (assetType) {
+    case "junction": {
+      const a = asset as Junction;
+      return {
+        ...base,
+        elevation: a.elevation,
+        emitterCoefficient: a.emitterCoefficient,
+        initialQuality: a.initialQuality,
+        chemicalSourceType: a.chemicalSourceType,
+        chemicalSourceStrength: a.chemicalSourceStrength,
+        chemicalSourcePatternId: a.chemicalSourcePatternId,
+      };
+    }
+    case "pipe": {
+      const a = asset as Pipe;
+      return {
+        ...base,
+        initialStatus: a.initialStatus,
+        diameter: a.diameter,
+        length: a.length,
+        roughness: a.roughness,
+        minorLoss: a.minorLoss,
+        bulkReactionCoeff: a.bulkReactionCoeff,
+        wallReactionCoeff: a.wallReactionCoeff,
+      };
+    }
+    case "pump": {
+      const a = asset as Pump;
+      return {
+        ...base,
+        initialStatus: a.initialStatus,
+        speed: a.speed,
+        curveId: a.curveId,
+        energyPrice: a.energyPrice,
+        speedPatternId: a.speedPatternId,
+        efficiencyCurveId: a.efficiencyCurveId,
+        energyPricePatternId: a.energyPricePatternId,
+      };
+    }
+    case "valve": {
+      const a = asset as Valve;
+      return {
+        ...base,
+        kind: a.kind,
+        setting: a.setting,
+        initialStatus: a.initialStatus,
+        diameter: a.diameter,
+        minorLoss: a.minorLoss,
+        curveId: a.curveId,
+      };
+    }
+    case "reservoir": {
+      const a = asset as Reservoir;
+      return {
+        ...base,
+        elevation: a.elevation,
+        head: a.head,
+        headPatternId: a.headPatternId,
+        initialQuality: a.initialQuality,
+        chemicalSourceType: a.chemicalSourceType,
+        chemicalSourceStrength: a.chemicalSourceStrength,
+        chemicalSourcePatternId: a.chemicalSourcePatternId,
+      };
+    }
+    case "tank": {
+      const a = asset as Tank;
+      return {
+        ...base,
+        elevation: a.elevation,
+        initialLevel: a.initialLevel,
+        minLevel: a.minLevel,
+        maxLevel: a.maxLevel,
+        minVolume: a.minVolume,
+        diameter: a.diameter,
+        volumeCurveId: a.volumeCurveId,
+        initialQuality: a.initialQuality,
+        bulkReactionCoeff: a.bulkReactionCoeff,
+        mixingModel: a.mixingModel,
+        mixingFraction: a.mixingFraction,
+        chemicalSourceType: a.chemicalSourceType,
+        chemicalSourceStrength: a.chemicalSourceStrength,
+        chemicalSourcePatternId: a.chemicalSourcePatternId,
+      };
+    }
+  }
 }
 
 interface AssetDataTableProps {
@@ -833,7 +926,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           const simFields = simulation
             ? buildSimRow(assetType, id, simulation, translate)
             : {};
-          result.push({ ...assetToRow(asset), ...simFields });
+          result.push({ ...buildAssetRow(assetType, asset), ...simFields });
         }
         if (!cancelled) setRows(result);
       }
