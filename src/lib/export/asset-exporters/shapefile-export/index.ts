@@ -4,7 +4,7 @@ import {
   type HydraulicModel,
 } from "src/hydraulic-model";
 import { type ResultsReader } from "src/simulation";
-import { type ExportedFile } from "../../types";
+import { type ExportedAssetTypes, type ExportedFile } from "../../types";
 import { SHAPE_POINT, SHAPE_POLYLINE, PRJ_BYTES, CPG_BYTES } from "./constants";
 import { AssetWriter } from "./asset-writer";
 import { ensureField, inferFieldType, freezeSchema } from "./schema";
@@ -40,13 +40,14 @@ export const exportShapefiles = (
   selectedAssets: Set<number>,
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
-  const writers: Record<AssetType, AssetWriter> = {
+  const writers: Record<ExportedAssetTypes, AssetWriter> = {
     junction: new AssetWriter(SHAPE_POINT),
     reservoir: new AssetWriter(SHAPE_POINT),
     tank: new AssetWriter(SHAPE_POINT),
     pipe: new AssetWriter(SHAPE_POLYLINE),
     pump: new AssetWriter(SHAPE_POLYLINE),
     valve: new AssetWriter(SHAPE_POLYLINE),
+    customerPoint: new AssetWriter(SHAPE_POINT),
   };
 
   const encoder = new TextEncoder();
@@ -54,7 +55,6 @@ export const exportShapefiles = (
   const hasSelection = selectedAssets.size > 0;
   const getSimResults = buildSimulationResultsReader(resultsReader);
 
-  // ── Pass 1: measure ───────────────────────────────────────────────────────
   for (const asset of hydraulicModel.assets.values()) {
     if (hasSelection && !selectedAssets.has(asset.id)) continue;
 
@@ -87,7 +87,30 @@ export const exportShapefiles = (
     }
   }
 
-  // ── Between passes: freeze schemas, allocate, write headers ──────────────
+  const cpWriter = writers["customerPoint"];
+  for (const point of hydraulicModel.customerPoints.values()) {
+    cpWriter.recordCount++;
+    cpWriter.shpBodyBytes += 28;
+
+    const connection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+
+    inferFieldType(
+      ensureField(cpWriter.fields, "label"),
+      point.label,
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(cpWriter.fields, "connection"),
+      connection,
+      scratch,
+      encoder,
+    );
+  }
+
   for (const type in writers) {
     const w = writers[type as AssetType];
     if (w.recordCount === 0) continue;
@@ -117,7 +140,6 @@ export const exportShapefiles = (
     props.connections = `${first?.label},${second?.label}`;
   };
 
-  // ── Pass 2: write ─────────────────────────────────────────────────────────
   for (const asset of hydraulicModel.assets.values()) {
     if (hasSelection && !selectedAssets.has(asset.id)) continue;
 
@@ -152,7 +174,38 @@ export const exportShapefiles = (
     writeDbfRecord(w, props, simValues, encoder);
   }
 
-  // ── Post-pass: patch bboxes, write DBF EOF ────────────────────────────────
+  const customerPointWriter = writers["customerPoint"];
+  for (const point of hydraulicModel.customerPoints.values()) {
+    const recIdx = customerPointWriter.nextRecordIndex();
+    const shxOffsetWords = customerPointWriter.shpCursor / 2;
+
+    writePoint(customerPointWriter, point.coordinates, recIdx);
+
+    customerPointWriter.shxView.setUint32(
+      customerPointWriter.shxCursor,
+      shxOffsetWords,
+      false,
+    );
+    customerPointWriter.shxView.setUint32(
+      customerPointWriter.shxCursor + 4,
+      10,
+      false,
+    );
+    customerPointWriter.shxCursor += 8;
+
+    const connection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+
+    writeDbfRecord(
+      customerPointWriter,
+      { label: point.label, connection },
+      {},
+      encoder,
+    );
+  }
+
   for (const type in writers) {
     const w = writers[type as AssetType];
     if (w.recordCount === 0) continue;
@@ -161,7 +214,6 @@ export const exportShapefiles = (
     w.dbf[w.dbf.length - 1] = 0x1a; // EOF marker
   }
 
-  // ── Build result ──────────────────────────────────────────────────────────
   const result: ExportedFile[] = [];
 
   for (const type in writers) {

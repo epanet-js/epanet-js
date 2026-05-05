@@ -207,4 +207,107 @@ describe("exportShapefiles", () => {
     const bytes = await blobBytes(shx.blob);
     expect(bytes.length).toBe(100 + 8 * 2);
   });
+
+  it("produces customerPoint files when customer points exist", () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [5, 10], label: "CP1" })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const names = fileNames(files);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "customerPoint.shp",
+        "customerPoint.shx",
+        "customerPoint.dbf",
+        "customerPoint.prj",
+        "customerPoint.cpg",
+      ]),
+    );
+  });
+
+  it("omits customerPoint files when there are no customer points", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const names = fileNames(files);
+    expect(names.some((n) => n.startsWith("customerPoint."))).toBe(false);
+  });
+
+  it("customerPoint DBF has correct record count", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [0, 0] })
+      .aCustomerPoint(2, { coordinates: [1, 1] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const view = await blobView(dbf.blob);
+    expect(view.getUint32(4, true)).toBe(2);
+  });
+
+  it("customerPoint DBF header contains LABEL and CONNECTION field names", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [0, 0], label: "CP1" })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
+    expect(text).toContain("LABEL");
+    expect(text).toContain("CONNECTION");
+  });
+
+  it("customerPoint DBF record contains the point label", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [0, 0], label: "MyPoint" })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
+    expect(text).toContain("MyPoint");
+  });
+
+  it("customerPoint DBF connection field contains connected junction label", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aJunction(2, { coordinates: [1, 1] })
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aCustomerPoint(4, {
+        coordinates: [0.5, 0.5],
+        connection: { pipeId: 3, junctionId: 1 },
+      })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
+    expect(text).toContain("J1");
+  });
+
+  it("customerPoint SHP produces SHAPE_POINT (type 1) records", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [3, 7] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const shp = files.find((f) => f.fileName === "customerPoint.shp")!;
+    const view = await blobView(shp.blob);
+    expect(view.getUint32(32, true)).toBe(1); // shape type in header
+  });
+
+  it("customerPoint SHX has 8 bytes per record after the 100-byte header", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(1, { coordinates: [0, 0] })
+      .aCustomerPoint(2, { coordinates: [1, 1] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const shx = files.find((f) => f.fileName === "customerPoint.shx")!;
+    const bytes = await blobBytes(shx.blob);
+    expect(bytes.length).toBe(100 + 8 * 2);
+  });
 });
