@@ -125,13 +125,13 @@ export function useChartCursor({
       /* eslint-disable @typescript-eslint/no-unsafe-call,
          @typescript-eslint/no-unsafe-member-access,
          @typescript-eslint/no-unsafe-assignment */
-      const inStripGrid = chart.containPixel({ gridIndex: 1 }, [px, py]);
+      const inSldGrid = chart.containPixel({ gridIndex: 1 }, [px, py]);
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
 
       let cursorStyle: "pointer" | "grab" | "default" = "default";
       if (snappedIdx !== null) {
         cursorStyle = "pointer";
-      } else if (inStripGrid) {
+      } else if (inSldGrid) {
         cursorStyle =
           findLinkAt(cursorX, deps.links) !== null ? "pointer" : "grab";
       } else if (inMainGrid) {

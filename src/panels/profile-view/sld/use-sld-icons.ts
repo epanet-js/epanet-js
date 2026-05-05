@@ -2,13 +2,13 @@ import { useMemo } from "react";
 import { buildIconUrls, IconId } from "src/map/icons/icons-sprite";
 import { ProfileLink } from "../chart-data";
 
-export type StripPlanIcons = {
+export type SldIcons = {
   pumpUrl: (link: ProfileLink) => string | null;
   valveUrl: (link: ProfileLink) => string | null;
   iconUrl: (id: IconId) => string | null;
 };
 
-export function useStripPlanIcons(): StripPlanIcons {
+export function useSldIcons(): SldIcons {
   const urlById = useMemo(() => {
     const map = new Map<IconId, string>();
     for (const { id, url } of buildIconUrls()) {

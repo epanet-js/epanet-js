@@ -15,8 +15,8 @@ import { useChartCursor } from "./use-chart-cursor";
 import { useChartClick } from "./use-chart-click";
 import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
-import { buildStripSeries } from "./strip-plot/series";
-import { useStripPlanIcons } from "./strip-plot/use-strip-plan-icons";
+import { buildSldSeries } from "./sld/series";
+import { useSldIcons } from "./sld/use-sld-icons";
 
 interface ChartContainerProps {
   data: ProfileViewData;
@@ -46,7 +46,7 @@ export const ChartContainer = memo(function ChartContainer({
   const translate = useTranslate();
   const linkSymbology = useAtomValue(linkSymbologyAtom);
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
-  const stripIcons = useStripPlanIcons();
+  const sldIcons = useSldIcons();
   const setHighlights = useSetAtom(highlightsAtom);
 
   const linkColor = linkSymbology.defaults.color;
@@ -68,7 +68,7 @@ export const ChartContainer = memo(function ChartContainer({
     [points, terrainData, hglRanges],
   );
 
-  const stripY = (yAxisRange.min + yAxisRange.max) / 2;
+  const sldY = (yAxisRange.min + yAxisRange.max) / 2;
 
   const mainSeries = useMemo(
     () =>
@@ -101,17 +101,17 @@ export const ChartContainer = memo(function ChartContainer({
     ],
   );
 
-  const stripSeries = useMemo(
+  const sldSeries = useMemo(
     () =>
-      buildStripSeries({
+      buildSldSeries({
         points,
         links,
-        stripY,
+        sldY,
         pipeColor: linkColor,
         nodeColor,
-        stripIcons,
+        sldIcons,
       }),
-    [points, links, stripY, linkColor, nodeColor, stripIcons],
+    [points, links, sldY, linkColor, nodeColor, sldIcons],
   );
 
   const profileGridTop = profileGridTopOffset(hasSimulation);
@@ -120,7 +120,7 @@ export const ChartContainer = memo(function ChartContainer({
     () =>
       traceDuration("DEBUG PROFILE_CHART:option", () =>
         buildProfileChartOption({
-          series: [...mainSeries, ...stripSeries],
+          series: [...mainSeries, ...sldSeries],
           xTickPositions: nodePositions,
           xMax: totalLength,
           yMin: yAxisRange.min,
@@ -131,7 +131,7 @@ export const ChartContainer = memo(function ChartContainer({
       ),
     [
       mainSeries,
-      stripSeries,
+      sldSeries,
       nodePositions,
       totalLength,
       yAxisRange,

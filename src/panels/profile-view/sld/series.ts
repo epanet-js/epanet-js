@@ -2,53 +2,53 @@ import type { SeriesOption } from "echarts";
 import { colors } from "src/lib/constants";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { ProfileLink, ProfilePoint } from "../chart-data";
-import type { StripPlanIcons } from "./use-strip-plan-icons";
+import type { SldIcons } from "./use-sld-icons";
 
 const NODE_BORDER_COLOR = "#98abeb";
 
-const PIPE_STRIP_HALF_HEIGHT = 1.5;
+const PIPE_SLD_HALF_HEIGHT = 1.5;
 
-export type BuildStripSeriesParams = {
+export type BuildSldSeriesParams = {
   points: ProfilePoint[];
   links: ProfileLink[];
-  stripY: number;
+  sldY: number;
   pipeColor: string;
   nodeColor: string;
-  stripIcons: StripPlanIcons;
+  sldIcons: SldIcons;
 };
 
-export function buildStripSeries({
+export function buildSldSeries({
   points,
   links,
-  stripY,
+  sldY,
   pipeColor,
   nodeColor,
-  stripIcons,
-}: BuildStripSeriesParams): SeriesOption[] {
-  return traceDuration("DEBUG PROFILE_CHART:stripSeries", () => {
+  sldIcons,
+}: BuildSldSeriesParams): SeriesOption[] {
+  return traceDuration("DEBUG PROFILE_CHART:sldSeries", () => {
     if (links.length === 0) return [];
     return [
-      pipesStripPlot(links, pipeColor, stripY),
-      pumpValvesStripPlot(links, stripY),
-      junctionsStripPlot(points, nodeColor, stripY),
-      tanksStripPlot(points, stripIcons, stripY),
-      reservoirsStripPlot(points, stripIcons, stripY),
-      pumpsStripPlot(links, stripIcons, stripY),
-      valvesStripPlot(links, stripIcons, stripY),
+      pipesSld(links, pipeColor, sldY),
+      pumpValvesSld(links, sldY),
+      junctionsSld(points, nodeColor, sldY),
+      tanksSld(points, sldIcons, sldY),
+      reservoirsSld(points, sldIcons, sldY),
+      pumpsSld(links, sldIcons, sldY),
+      valvesSld(links, sldIcons, sldY),
     ].filter(notNull);
   });
 }
 
-function pipesStripPlot(
+function pipesSld(
   links: ProfileLink[],
   pipeColor: string,
-  stripY: number,
+  sldY: number,
 ): SeriesOption | null {
   const pipes = links.filter((l) => l.type === "pipe");
   if (pipes.length === 0) return null;
   return {
     type: "custom" as const,
-    name: "stripPipes",
+    name: "sldPipes",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: pipes.map((p) => p.startLength),
@@ -63,16 +63,16 @@ function pipesStripPlot(
     renderItem: (params: any, api: any) => {
       const pipe = pipes[params.dataIndex];
       if (!pipe) return null;
-      const start = api.coord([pipe.startLength, stripY]);
-      const end = api.coord([pipe.endLength, stripY]);
+      const start = api.coord([pipe.startLength, sldY]);
+      const end = api.coord([pipe.endLength, sldY]);
       const width = end[0] - start[0];
       return {
         type: "rect" as const,
         shape: {
           x: start[0],
-          y: start[1] - PIPE_STRIP_HALF_HEIGHT,
+          y: start[1] - PIPE_SLD_HALF_HEIGHT,
           width,
-          height: PIPE_STRIP_HALF_HEIGHT * 2,
+          height: PIPE_SLD_HALF_HEIGHT * 2,
         },
         style: { fill: pipeColor },
       };
@@ -81,9 +81,9 @@ function pipesStripPlot(
   };
 }
 
-function pumpValvesStripPlot(
+function pumpValvesSld(
   links: ProfileLink[],
-  stripY: number,
+  sldY: number,
 ): SeriesOption | null {
   const pumpValves = links.filter(
     (l) => l.type === "pump" || l.type === "valve",
@@ -92,10 +92,10 @@ function pumpValvesStripPlot(
   const color = colors.orange700;
   return {
     type: "line" as const,
-    name: "stripPumpValves",
+    name: "sldPumpValves",
     xAxisIndex: 1,
     yAxisIndex: 1,
-    data: buildSegmentData(pumpValves, stripY),
+    data: buildSegmentData(pumpValves, sldY),
     lineStyle: { color, width: 3 },
     itemStyle: { color },
     symbol: "circle",
@@ -106,20 +106,20 @@ function pumpValvesStripPlot(
   };
 }
 
-function junctionsStripPlot(
+function junctionsSld(
   points: ProfilePoint[],
   nodeColor: string,
-  stripY: number,
+  sldY: number,
 ): SeriesOption | null {
   const junctions = points.filter((p) => p.nodeType === "junction");
   if (junctions.length === 0) return null;
   return {
     type: "scatter" as const,
-    name: "stripNodes",
+    name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: junctions.map((j) => ({
-      value: [j.cumulativeLength, stripY],
+      value: [j.cumulativeLength, sldY],
       nodeId: j.nodeId,
     })),
     symbol: "circle",
@@ -135,21 +135,21 @@ function junctionsStripPlot(
   };
 }
 
-function tanksStripPlot(
+function tanksSld(
   points: ProfilePoint[],
-  stripIcons: StripPlanIcons,
-  stripY: number,
+  sldIcons: SldIcons,
+  sldY: number,
 ): SeriesOption | null {
   const tanks = points.filter((p) => p.nodeType === "tank");
   if (tanks.length === 0) return null;
-  const tankUrl = stripIcons.iconUrl("tank");
+  const tankUrl = sldIcons.iconUrl("tank");
   return {
     type: "scatter" as const,
-    name: "stripNodes",
+    name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: tanks.map((t) => ({
-      value: [t.cumulativeLength, stripY],
+      value: [t.cumulativeLength, sldY],
       nodeId: t.nodeId,
       symbol: tankUrl ? `image://${tankUrl}` : "rect",
     })),
@@ -160,21 +160,21 @@ function tanksStripPlot(
   };
 }
 
-function reservoirsStripPlot(
+function reservoirsSld(
   points: ProfilePoint[],
-  stripIcons: StripPlanIcons,
-  stripY: number,
+  sldIcons: SldIcons,
+  sldY: number,
 ): SeriesOption | null {
   const reservoirs = points.filter((p) => p.nodeType === "reservoir");
   if (reservoirs.length === 0) return null;
-  const reservoirUrl = stripIcons.iconUrl("reservoir");
+  const reservoirUrl = sldIcons.iconUrl("reservoir");
   return {
     type: "scatter" as const,
-    name: "stripNodes",
+    name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: reservoirs.map((r) => ({
-      value: [r.cumulativeLength, stripY],
+      value: [r.cumulativeLength, sldY],
       nodeId: r.nodeId,
       symbol: reservoirUrl ? `image://${reservoirUrl}` : "diamond",
     })),
@@ -185,24 +185,24 @@ function reservoirsStripPlot(
   };
 }
 
-function pumpsStripPlot(
+function pumpsSld(
   links: ProfileLink[],
-  stripIcons: StripPlanIcons,
-  stripY: number,
+  sldIcons: SldIcons,
+  sldY: number,
 ): SeriesOption | null {
   const pumps = links.filter((l) => l.type === "pump");
   if (pumps.length === 0) return null;
   return {
     type: "scatter" as const,
-    name: "stripPumpIcons",
+    name: "sldPumpIcons",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: pumps.map((p) => ({
-      value: [p.midLength, stripY],
+      value: [p.midLength, sldY],
       linkId: p.linkId,
       symbol:
-        stripIcons.pumpUrl(p) !== null
-          ? `image://${stripIcons.pumpUrl(p)!}`
+        sldIcons.pumpUrl(p) !== null
+          ? `image://${sldIcons.pumpUrl(p)!}`
           : "circle",
       symbolRotate: p.reversed ? 90 : -90,
     })),
@@ -213,24 +213,24 @@ function pumpsStripPlot(
   };
 }
 
-function valvesStripPlot(
+function valvesSld(
   links: ProfileLink[],
-  stripIcons: StripPlanIcons,
-  stripY: number,
+  sldIcons: SldIcons,
+  sldY: number,
 ): SeriesOption | null {
   const valves = links.filter((l) => l.type === "valve");
   if (valves.length === 0) return null;
   return {
     type: "scatter" as const,
-    name: "stripValveIcons",
+    name: "sldValveIcons",
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: valves.map((v) => ({
-      value: [v.midLength, stripY],
+      value: [v.midLength, sldY],
       linkId: v.linkId,
       symbol:
-        stripIcons.valveUrl(v) !== null
-          ? `image://${stripIcons.valveUrl(v)!}`
+        sldIcons.valveUrl(v) !== null
+          ? `image://${sldIcons.valveUrl(v)!}`
           : "circle",
       symbolRotate: v.reversed ? 90 : -90,
     })),
@@ -241,11 +241,11 @@ function valvesStripPlot(
   };
 }
 
-function buildSegmentData(segments: ProfileLink[], stripY: number) {
+function buildSegmentData(segments: ProfileLink[], sldY: number) {
   const data: any[] = [];
   for (const seg of segments) {
-    data.push({ value: [seg.startLength, stripY], linkId: seg.linkId });
-    data.push({ value: [seg.endLength, stripY], linkId: seg.linkId });
+    data.push({ value: [seg.startLength, sldY], linkId: seg.linkId });
+    data.push({ value: [seg.endLength, sldY], linkId: seg.linkId });
     data.push(null);
   }
   return data;
