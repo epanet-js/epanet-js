@@ -1283,6 +1283,8 @@
   "chartBuilder.rightAxis": "Right axis – {{1}} ({{2}})",
   "chartBuilder.buildChart": "Build Chart",
   "chartBuilder.noAssets": "To plot a graph, please select at least one asset directly from the map.",
+  "chartBuilder.noSimulation.title": "Simulation required",
+  "chartBuilder.noSimulation.message": "To plot a chart, you need to run a simulation first.",
   "exportFormat": "Export format",
   "exportSingleTimestep": "Single time-step",
   "exportAllTimesteps": "All time-steps (as CSV)",

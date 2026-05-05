@@ -263,7 +263,7 @@ export const styledDialogContent = ({
   height?: "md" | "lg" | "xl" | "xxl";
 }) => {
   if (size === "fullscreen") {
-    return "fixed inset-0 z-[100] w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
+    return "fixed inset-4 z-[100] rounded-lg flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
   }
 
   const widthClass =

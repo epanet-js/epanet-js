@@ -458,6 +458,18 @@ const ProfileNoPathDialog = dynamic<{
   },
 );
 
+const ChartBuilderNoSimulationDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/chart-builder-no-simulation").then(
+      (r) => r.ChartBuilderNoSimulationDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -703,6 +715,9 @@ export const Dialogs = memo(function Dialogs() {
     )
     .with({ type: "profileNoPath" }, () => (
       <ProfileNoPathDialog onClose={onClose} />
+    ))
+    .with({ type: "chartBuilderNoSimulation" }, () => (
+      <ChartBuilderNoSimulationDialog onClose={onClose} />
     ))
     .with({ type: "chartBuilder" }, () => (
       <ChartBuilderWizard isOpen onClose={onClose} />

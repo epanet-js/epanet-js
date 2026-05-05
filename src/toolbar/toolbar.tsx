@@ -226,8 +226,13 @@ export const Toolbar = ({
           <MenuAction
             label={translate("chartBuilder.label")}
             role="button"
-            onClick={() => setDialog({ type: "chartBuilder" })}
-            disabled={!showQuickGraph}
+            onClick={() =>
+              setDialog({
+                type: showQuickGraph
+                  ? "chartBuilder"
+                  : "chartBuilderNoSimulation",
+              })
+            }
           >
             <ChartLineIcon />
           </MenuAction>

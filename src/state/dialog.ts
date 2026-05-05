@@ -204,6 +204,10 @@ export type ChartBuilderDialogState = {
   type: "chartBuilder";
 };
 
+export type ChartBuilderNoSimulationDialogState = {
+  type: "chartBuilderNoSimulation";
+};
+
 export type ChartBuilderChartDialogState = {
   type: "chartBuilderChart";
   selectedAssetIds: number[];
@@ -255,6 +259,7 @@ export type DialogState =
   | ProfileNoPathDialogState
   | ChartBuilderDialogState
   | ChartBuilderChartDialogState
+  | ChartBuilderNoSimulationDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
