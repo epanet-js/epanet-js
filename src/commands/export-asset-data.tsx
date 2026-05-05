@@ -50,7 +50,12 @@ export const useExportAssetData = () => {
         const networkName = get(currentFileNameAtom) ?? "";
 
         const doExport = async () => {
-          const fileName = `export-${options.format}-${networkName}`;
+          const networkNameDot = networkName.lastIndexOf(".");
+          const networkNameWithoutExtension = networkName.substring(
+            0,
+            networkNameDot < 0 ? networkName.length - 1 : networkNameDot,
+          );
+          const fileName = `${networkNameWithoutExtension}-export-${options.format}`;
           await Export.exportAssetData(
             fileName,
             options.format,
