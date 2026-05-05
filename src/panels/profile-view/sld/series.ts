@@ -37,7 +37,7 @@ export function buildSldSeries({
     if (links.length === 0) return [];
     return [
       pipesSld(links, pipeColor, sldY, selectedIds),
-      ...pumpValvesSld(links, sldY, selectedIds),
+      ...pumpValvesSld(links, sldY),
       junctionsSld(points, nodeColor, sldY, selectedIds),
       tanksSld(points, sldIcons, sldY, selectedIds),
       reservoirsSld(points, sldIcons, sldY, selectedIds),
@@ -92,33 +92,17 @@ function pipesSld(
   };
 }
 
-function pumpValvesSld(
-  links: ProfileLink[],
-  sldY: number,
-  selectedIds: ReadonlySet<number>,
-): SeriesOption[] {
+function pumpValvesSld(links: ProfileLink[], sldY: number): SeriesOption[] {
   const pumpValves = links.filter(
     (l) => l.type === "pump" || l.type === "valve",
   );
   if (pumpValves.length === 0) return [];
-
-  const unselected = pumpValves.filter((l) => !selectedIds.has(l.linkId));
-  const selected = pumpValves.filter((l) => selectedIds.has(l.linkId));
-
-  const series: SeriesOption[] = [];
-  if (unselected.length > 0) {
-    series.push(buildPumpValveLineSeries(unselected, sldY, colors.orange700));
-  }
-  if (selected.length > 0) {
-    series.push(buildPumpValveLineSeries(selected, sldY, SELECTION_COLOR));
-  }
-  return series;
+  return [buildPumpValveLineSeries(pumpValves, sldY)];
 }
 
 function buildPumpValveLineSeries(
   segments: ProfileLink[],
   sldY: number,
-  color: string,
 ): SeriesOption {
   return {
     type: "line" as const,
@@ -126,10 +110,10 @@ function buildPumpValveLineSeries(
     xAxisIndex: 1,
     yAxisIndex: 1,
     data: buildSegmentData(segments, sldY),
-    lineStyle: { color, width: 3 },
-    itemStyle: { color },
+    lineStyle: { color: colors.orange700, width: 1 },
+    itemStyle: { color: colors.orange700 },
     symbol: "circle",
-    symbolSize: 6,
+    symbolSize: 4,
     connectNulls: false,
     tooltip: { show: false },
     z: 2,
