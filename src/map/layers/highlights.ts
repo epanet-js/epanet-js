@@ -1,6 +1,7 @@
 import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { colors } from "src/lib/constants";
+import { junctionCircleSizes } from "./junctions";
 
 export const highlightsPathHaloLayer = ({
   source,
@@ -21,32 +22,6 @@ export const highlightsPathHaloLayer = ({
   };
 };
 
-export const highlightsMarkerLayer = ({
-  source,
-}: {
-  source: DataSource;
-}): CircleLayer => {
-  return {
-    id: "highlights-marker",
-    type: "circle",
-    source,
-    filter: [
-      "all",
-      ["==", "$type", "Point"],
-      ["has", "marker"],
-      ["!has", "icon"],
-      ["!has", "halo"],
-    ],
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 5, 20, 8],
-      "circle-color": colors.indigo600,
-      "circle-stroke-color": "#fff",
-      "circle-stroke-width": 2,
-    },
-    minzoom: 10,
-  };
-};
-
 export const highlightsMarkerHaloLayer = ({
   source,
 }: {
@@ -60,13 +35,37 @@ export const highlightsMarkerHaloLayer = ({
       "all",
       ["==", "$type", "Point"],
       ["has", "marker"],
-      ["has", "halo"],
+      ["!has", "icon"],
     ],
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 24],
       "circle-color": colors.indigo300,
       "circle-opacity": 0.7,
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
+    },
+    minzoom: 10,
+  };
+};
+
+export const highlightsMarkerLayer = ({
+  source,
+}: {
+  source: DataSource;
+}): CircleLayer => {
+  return {
+    id: "highlights-marker",
+    type: "circle",
+    source,
+    filter: [
+      "all",
+      ["==", "$type", "Point"],
+      ["has", "marker"],
+      ["has", "dot"],
+    ],
+    paint: {
+      "circle-color": colors.indigo800,
+      "circle-stroke-color": colors.indigo200,
+      ...junctionCircleSizes(),
     },
     minzoom: 10,
   };

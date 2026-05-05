@@ -13,10 +13,10 @@ export const buildHighlightsSource = (
       if (highlight.nodeType === "tank" || highlight.nodeType === "reservoir") {
         properties.icon = `${highlight.nodeType}-highlight`;
       } else if (
-        highlight.linkType === "pump" ||
-        highlight.linkType === "valve"
+        highlight.linkType !== "pump" &&
+        highlight.linkType !== "valve"
       ) {
-        properties.halo = true;
+        properties.dot = true;
       }
       features.push({
         type: "Feature",
