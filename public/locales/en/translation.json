@@ -1277,7 +1277,7 @@
   "exportFormat": "File type",
   "exportSingleTimestep": "Single time-step",
   "exportAllTimesteps": "All time-steps (as CSV)",
-  "exportSimulationResultsForCurrentStep": "Include simulation results for current step",
+  "exportSimulationResultsForCurrentStep": "Include results at current step",
   "exportSimulationResults": "Include simulation results",
   "exporting": "Exporting...",
   "exported": "Exported successfully",
