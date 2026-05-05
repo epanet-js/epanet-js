@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { queryContainedAssets } from "./spatial-queries";
+import {
+  findClosestEndpointNode,
+  queryContainedAssets,
+} from "./spatial-queries";
 import { AssetsGeoIndex } from "./assets-geo";
+import { getPipe } from "./assets-map";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 
 describe("queryContainedAssets", () => {
@@ -602,5 +606,63 @@ describe("queryContainedAssets", () => {
       expect(result).toContain(IDS.J2);
       expect(result).not.toContain(IDS.J3);
     });
+  });
+});
+
+describe("findClosestEndpointNode", () => {
+  it("returns the start node when point is closer to first vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 10 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const pipe = getPipe(model.assets, IDS.P1)!;
+
+    expect(findClosestEndpointNode(pipe, [1, 0])).toBe(IDS.J1);
+  });
+
+  it("returns the end node when point is closer to last vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 10 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const pipe = getPipe(model.assets, IDS.P1)!;
+
+    expect(findClosestEndpointNode(pipe, [9, 0])).toBe(IDS.J2);
+  });
+
+  it("returns the start node at the exact midpoint as a deterministic tie-break", () => {
+    const IDS = { J1: 1, J2: 2, P1: 10 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const pipe = getPipe(model.assets, IDS.P1)!;
+
+    expect(findClosestEndpointNode(pipe, [5, 0])).toBe(IDS.J1);
+  });
+
+  it("returns the closer endpoint when the point is near an intermediate vertex", () => {
+    const IDS = { J1: 1, J2: 2, P1: 10 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [3, 5],
+          [10, 0],
+        ],
+      })
+      .build();
+    const pipe = getPipe(model.assets, IDS.P1)!;
+
+    expect(findClosestEndpointNode(pipe, [3, 5])).toBe(IDS.J1);
   });
 });

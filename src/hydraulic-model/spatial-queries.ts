@@ -1,11 +1,12 @@
 import { Feature, Polygon, Position } from "geojson";
-import { AssetId } from "./asset-types";
+import { AssetId, LinkAsset } from "./asset-types";
 import { AssetsGeoQueries } from "./assets-geo";
 import bbox from "@turf/bbox";
 import { polygon } from "@turf/helpers";
 import booleanConcave from "@turf/boolean-concave";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import booleanContains from "@turf/boolean-contains";
+import turfDistance from "@turf/distance";
 
 export function queryContainedAssets(
   geoIndex: AssetsGeoQueries,
@@ -40,6 +41,18 @@ export function queryContainedAssets(
   }
 
   return assetIds;
+}
+
+export function findClosestEndpointNode(
+  link: LinkAsset,
+  point: Position,
+): AssetId {
+  const [startNodeId, endNodeId] = link.connections;
+  const distToStart = turfDistance(point, link.firstVertex, {
+    units: "meters",
+  });
+  const distToEnd = turfDistance(point, link.lastVertex, { units: "meters" });
+  return distToStart <= distToEnd ? startNodeId : endNodeId;
 }
 
 type BoundingBox = [number, number, number, number];

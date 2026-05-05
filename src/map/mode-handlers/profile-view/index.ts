@@ -8,9 +8,10 @@ import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
-import { AssetId } from "src/hydraulic-model";
+import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { shortestPath } from "src/hydraulic-model/path-finding";
-import { useClickedAsset } from "src/map/mode-handlers/utils";
+import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
+import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 
 export function useProfileViewHandlers(
   handlerContext: HandlerContext,
@@ -37,10 +38,21 @@ export function useProfileViewHandlers(
     path: DraftPath | undefined;
   } | null>(null);
 
+  const resolveNodeId = (
+    asset: Asset | null,
+    e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
+  ): AssetId | undefined => {
+    if (!asset) return undefined;
+    if (asset.isNode) return asset.id;
+    if (asset.isLink)
+      return findClosestEndpointNode(asset as LinkAsset, getMapCoord(e));
+    return undefined;
+  };
+
   const click: Handlers["click"] = (e) => {
     const clickedAsset = getClickedAsset(e);
-    if (!clickedAsset || !clickedAsset.isNode) return;
-    const nodeId = clickedAsset.id;
+    const nodeId = resolveNodeId(clickedAsset, e);
+    if (nodeId === undefined) return;
 
     if (plot !== null) {
       setProfileView(null);
@@ -84,8 +96,7 @@ export function useProfileViewHandlers(
 
   const move: Handlers["move"] = throttle((e) => {
     const hoveredAsset = getClickedAsset(e);
-    const hoveredNodeId =
-      hoveredAsset && hoveredAsset.isNode ? hoveredAsset.id : undefined;
+    const hoveredNodeId = resolveNodeId(hoveredAsset, e);
 
     let path: DraftPath | undefined;
     if (
