@@ -322,8 +322,13 @@ function pumpValveSelectionHalo(
   };
 }
 
-function buildSegmentData(segments: ProfileLink[], sldY: number) {
-  const data: any[] = [];
+type LineSegmentDatum = { value: [number, number]; linkId: number } | null;
+
+function buildSegmentData(
+  segments: ProfileLink[],
+  sldY: number,
+): LineSegmentDatum[] {
+  const data: LineSegmentDatum[] = [];
   for (const seg of segments) {
     data.push({ value: [seg.startLength, sldY], linkId: seg.linkId });
     data.push({ value: [seg.endLength, sldY], linkId: seg.linkId });
