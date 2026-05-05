@@ -34,7 +34,7 @@ export class AssetWriter {
   }
 
   allocate(): void {
-    this.recordLength = 1; // deletion flag byte
+    this.recordLength = 1;
     for (let i = 0; i < this.frozenSchema.length; i++) {
       this.recordLength += this.frozenSchema[i].length;
     }

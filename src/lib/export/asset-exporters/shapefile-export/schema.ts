@@ -22,21 +22,6 @@ export type Field = {
   offsetInRecord: number;
 };
 
-function measureStringBytes(
-  str: string,
-  scratch: Uint8Array,
-  encoder: TextEncoder,
-): number {
-  if (NON_ASCII.test(str)) {
-    if (str.length * 4 > scratch.length) {
-      return encoder.encode(str).length;
-    }
-    const { written } = encoder.encodeInto(str, scratch);
-    return written;
-  }
-  return str.length;
-}
-
 export function ensureField(
   fields: Map<string, FieldInfo>,
   key: string,
@@ -73,10 +58,10 @@ export function inferFieldType(
     } else if (info.dbfType === "N") {
       info.dbfType = "C";
       info.promotedToString = true;
-      info.maxLength = DBF_NUMBER_LENGTH; // numbers occupy up to DBF_NUMBER_LENGTH chars
+      info.maxLength = DBF_NUMBER_LENGTH;
     } else if (info.dbfType === "C") {
       info.promotedToString = true;
-      if (5 > info.maxLength) info.maxLength = 5; // "false"
+      if (5 > info.maxLength) info.maxLength = 5;
     }
     return;
   }
@@ -85,9 +70,7 @@ export function inferFieldType(
     if (info.dbfType === null) {
       info.dbfType = "N";
     } else if (info.dbfType === "N") {
-      // no-op: type is already fixed
     } else {
-      // 'L' or 'C' → promote to 'C'
       const s = value.toString();
       const byteLen = measureStringBytes(s, scratch, encoder);
       info.dbfType = "C";
@@ -108,13 +91,11 @@ export function inferFieldType(
       if (byteLen > info.maxLength) info.maxLength = byteLen;
       if (NON_ASCII.test(value)) info.hasNonAscii = true;
     } else if (info.dbfType === "N") {
-      // promote N → C, prior numbers occupied up to DBF_NUMBER_LENGTH chars
       info.dbfType = "C";
       info.promotedToString = true;
       info.maxLength = Math.max(DBF_NUMBER_LENGTH, byteLen);
       if (NON_ASCII.test(value)) info.hasNonAscii = true;
     } else {
-      // 'L' → promote to 'C'
       info.dbfType = "C";
       info.promotedToString = true;
       if (byteLen > info.maxLength) info.maxLength = byteLen;
@@ -123,7 +104,6 @@ export function inferFieldType(
     return;
   }
 
-  // Anything else: JSON.stringify, treat as string
   const s = JSON.stringify(value);
   const byteLen = measureStringBytes(s, scratch, encoder);
   if (info.dbfType === null) {
@@ -136,28 +116,9 @@ export function inferFieldType(
     info.promotedToString = true;
     info.maxLength = Math.max(DBF_NUMBER_LENGTH, byteLen);
   } else {
-    // 'L' → promote to 'C'
     info.dbfType = "C";
     info.promotedToString = true;
     if (byteLen > info.maxLength) info.maxLength = byteLen;
-  }
-}
-
-function sanitizeName(key: string): string {
-  const upper = key.toUpperCase().replace(INVALID_DBF_NAME_CHAR, "_");
-  if (upper.length <= 10) return upper;
-  return upper.slice(0, 10);
-}
-
-function deduplicateName(base: string, usedNames: Set<string>): string {
-  if (!usedNames.has(base)) return base;
-  let counter = 1;
-  for (;;) {
-    const suffix = String(counter);
-    const truncatedBase = base.slice(0, 10 - suffix.length);
-    const candidate = truncatedBase + suffix;
-    if (!usedNames.has(candidate)) return candidate;
-    counter++;
   }
 }
 
@@ -167,7 +128,7 @@ export function freezeSchema(
 ): Field[] {
   const frozen: Field[] = [];
   const usedNames = new Set<string>();
-  let offset = 1; // start at 1 to skip the deletion flag byte
+  let offset = 1;
 
   for (const [, info] of fields) {
     const sanitized = sanitizeName(info.originalKey);
@@ -187,7 +148,6 @@ export function freezeSchema(
       length = DBF_NUMBER_LENGTH;
       decimals = DBF_NUMBER_DECIMALS;
     } else {
-      // 'C' or null (only nulls seen)
       type = "C";
       length =
         info.dbfType === null ? 1 : Math.max(1, Math.min(info.maxLength, 254));
@@ -211,4 +171,37 @@ export function freezeSchema(
   }
 
   return frozen;
+}
+
+function measureStringBytes(
+  str: string,
+  scratch: Uint8Array,
+  encoder: TextEncoder,
+): number {
+  if (NON_ASCII.test(str)) {
+    if (str.length * 4 > scratch.length) {
+      return encoder.encode(str).length;
+    }
+    const { written } = encoder.encodeInto(str, scratch);
+    return written;
+  }
+  return str.length;
+}
+
+function sanitizeName(key: string): string {
+  const upper = key.toUpperCase().replace(INVALID_DBF_NAME_CHAR, "_");
+  if (upper.length <= 10) return upper;
+  return upper.slice(0, 10);
+}
+
+function deduplicateName(base: string, usedNames: Set<string>): string {
+  if (!usedNames.has(base)) return base;
+  let counter = 1;
+  for (;;) {
+    const suffix = String(counter);
+    const truncatedBase = base.slice(0, 10 - suffix.length);
+    const candidate = truncatedBase + suffix;
+    if (!usedNames.has(candidate)) return candidate;
+    counter++;
+  }
 }
