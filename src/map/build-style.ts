@@ -101,8 +101,6 @@ import {
 import {
   ephemeralDraftLineLayer,
   ephemeralDraftPathLineLayer,
-  ephemeralDraftPathNodeLayer,
-  ephemeralDraftPathIconLayer,
   ephemeralIconHighlightLayers,
   ephemeralJunctionHighlightLayers,
   ephemeralHaloLayer,
@@ -204,6 +202,7 @@ export function makeLayers({
     mapOverlayOutlineLayer({ source: "map-overlay" }),
     mapOverlayLabelLayer({ source: "map-overlay" }),
     ephemeralHaloLayer({ source: "ephemeral" }),
+    ephemeralDraftPathLineLayer({ source: "ephemeral" }),
     pipesLayer({
       source: "main-features",
       layerId: "main-features-pipes",
@@ -250,7 +249,6 @@ export function makeLayers({
     }),
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
-    ephemeralDraftPathLineLayer({ source: "ephemeral" }),
     ephemeralPipeHighlightLayer({ source: "ephemeral" }),
     pipeArrows({
       source: "main-features",
@@ -298,7 +296,6 @@ export function makeLayers({
     highlightsPumpLinesLayer({ source: "highlights" }),
     highlightsValveLinesLayer({ source: "highlights" }),
     highlightsJunctionsLayer({ source: "highlights" }),
-    ephemeralDraftPathNodeLayer({ source: "ephemeral" }),
     selectedIconsHaloLayer({
       source: "selected-features",
       layerId: "selected-icons-halo",
@@ -323,7 +320,6 @@ export function makeLayers({
       source: "selected-features",
       layerId: "selected-icons",
     }),
-    ephemeralDraftPathIconLayer({ source: "ephemeral" }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     highlightsIconsLayer({ source: "highlights" }),

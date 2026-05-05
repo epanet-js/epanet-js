@@ -78,14 +78,20 @@ const buildDraftPathFeatures = (
 ): Feature[] => {
   const features: Feature[] = [];
 
-  for (const nodeId of path.nodeIds) {
+  const endpointNodeIds = new Set<number>();
+  if (path.nodeIds.length > 0) {
+    endpointNodeIds.add(path.nodeIds[0]);
+    endpointNodeIds.add(path.nodeIds[path.nodeIds.length - 1]);
+  }
+
+  for (const nodeId of endpointNodeIds) {
     const asset = assets.get(nodeId);
     if (!asset || asset.isLink) continue;
     const node = asset as NodeAsset;
-    const properties: any = { draftPath: true };
+    const properties: any = { halo: true };
     if (node.type === "tank" || node.type === "reservoir") {
-      properties.icon = `${node.type}-highlighted`;
-      properties.type = node.type;
+      properties.icon = `${node.type}-highlight`;
+      properties.draftPath = true;
     }
     features.push({
       type: "Feature",

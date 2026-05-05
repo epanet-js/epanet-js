@@ -1,7 +1,6 @@
 import { CircleLayer, FillLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { colors } from "src/lib/constants";
-import { strokeColorFor } from "src/lib/color";
 import { junctionCircleSizes } from "./junctions";
 
 export const ephemeralHaloLayer = ({ source }: { source: DataSource }) => {
@@ -116,70 +115,10 @@ export const ephemeralDraftPathLineLayer = ({
     source,
     filter: ["all", ["==", "$type", "LineString"], ["has", "draftPath"]],
     paint: {
-      "line-opacity": 1,
-      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 5],
-      "line-color": colors.cyan600,
-    },
-  };
-};
-
-export const ephemeralDraftPathNodeLayer = ({
-  source,
-}: {
-  source: DataSource;
-}): CircleLayer => {
-  return {
-    id: "ephemeral-draft-path-node",
-    type: "circle",
-    source,
-    filter: [
-      "all",
-      ["==", "$type", "Point"],
-      ["has", "draftPath"],
-      ["!has", "icon"],
-    ],
-    paint: {
-      "circle-color": colors.cyan600,
-      "circle-stroke-color": strokeColorFor(colors.cyan600),
-      ...junctionCircleSizes(),
-    },
-    minzoom: 10,
-  };
-};
-
-export const ephemeralDraftPathIconLayer = ({
-  source,
-}: {
-  source: DataSource;
-}): SymbolLayer => {
-  return {
-    id: "ephemeral-draft-path-icon",
-    type: "symbol",
-    source,
-    layout: {
-      "icon-image": ["get", "icon"],
-      "icon-size": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        13,
-        ["match", ["get", "type"], "reservoir", 0.2, 0.2],
-        20,
-        ["match", ["get", "type"], "reservoir", 0.5, 0.4],
-      ],
-      "icon-allow-overlap": true,
-    },
-    filter: [
-      "all",
-      ["has", "draftPath"],
-      [
-        "any",
-        ["==", ["get", "type"], "tank"],
-        ["==", ["get", "type"], "reservoir"],
-      ],
-    ],
-    paint: {
-      "icon-opacity": 1,
+      "line-opacity": 0.7,
+      "line-width": ["interpolate", ["linear"], ["zoom"], 12, 6, 20, 22],
+      "line-color": colors.indigo300,
+      "line-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 8],
     },
   };
 };
