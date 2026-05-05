@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, type RefObject } from "react";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { Mode, modeAtom } from "src/state/mode";
@@ -22,12 +22,27 @@ export function useChartClick({
   points,
   links,
 }: UseChartClickParams): void {
+  const selection = useAtomValue(selectionAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
   const setMode = useSetAtom(modeAtom);
 
-  const depsRef = useRef({ points, links, setSelection, setTab, setMode });
-  depsRef.current = { points, links, setSelection, setTab, setMode };
+  const depsRef = useRef({
+    points,
+    links,
+    selection,
+    setSelection,
+    setTab,
+    setMode,
+  });
+  depsRef.current = {
+    points,
+    links,
+    selection,
+    setSelection,
+    setTab,
+    setMode,
+  };
 
   useEffect(() => {
     const el = containerRef.current;
@@ -54,14 +69,21 @@ export function useChartClick({
       /* eslint-enable */
 
       if (snap?.kind === "link") {
-        deps.setSelection(USelection.single(snap.link.linkId));
+        deps.setSelection(
+          USelection.toggleSingleSelectionId(deps.selection, snap.link.linkId),
+        );
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
         return;
       }
 
       if (snap?.kind === "node") {
-        deps.setSelection(USelection.single(deps.points[snap.index].nodeId));
+        deps.setSelection(
+          USelection.toggleSingleSelectionId(
+            deps.selection,
+            deps.points[snap.index].nodeId,
+          ),
+        );
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
         return;
@@ -69,7 +91,9 @@ export function useChartClick({
 
       const link = findLinkAt(cursorX, deps.links);
       if (link) {
-        deps.setSelection(USelection.single(link.linkId));
+        deps.setSelection(
+          USelection.toggleSingleSelectionId(deps.selection, link.linkId),
+        );
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
       }
