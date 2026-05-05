@@ -1,4 +1,5 @@
 import { ProfileLink, ProfilePoint, TerrainPoint } from "./chart-data";
+import type { SldSnap } from "./snap";
 
 export type TooltipContent =
   | {
@@ -21,14 +22,14 @@ export type VisibleTooltipContent = Exclude<TooltipContent, { kind: "hidden" }>;
 
 export function getTooltipContent(
   cursorX: number,
-  snappedIdx: number | null,
+  snap: SldSnap,
   points: ProfilePoint[],
   links: ProfileLink[],
   terrain: TerrainPoint[] | null,
   pressureFactor: number | null,
 ): TooltipContent {
-  if (snappedIdx !== null) {
-    const nearest = points[snappedIdx];
+  if (snap?.kind === "node") {
+    const nearest = points[snap.index];
     return {
       kind: "node",
       label: nearest.label,
@@ -38,19 +39,23 @@ export function getTooltipContent(
     };
   }
 
-  const link = findLinkAt(cursorX, links);
-  if (link?.type === "pump" || link?.type === "valve") {
-    return { kind: "hidden" };
-  }
+  const link = snap?.kind === "link" ? snap.link : findLinkAt(cursorX, links);
+  const isPumpOrValve = link?.type === "pump" || link?.type === "valve";
+  const sampleX = snap?.kind === "link" ? snap.link.midLength : cursorX;
 
-  const elevation = interpolateTerrain(cursorX, terrain);
-  const hgl = interpolateHgl(cursorX, points);
+  const elevation = interpolateTerrain(sampleX, terrain);
+  const hgl = isPumpOrValve ? null : interpolateHgl(sampleX, points);
   const pressure =
     hgl !== null && elevation !== null && pressureFactor !== null
       ? pressureFactor * (hgl - elevation)
       : null;
 
-  if (elevation === null && hgl === null && pressure === null) {
+  if (
+    link === null &&
+    elevation === null &&
+    hgl === null &&
+    pressure === null
+  ) {
     return { kind: "hidden" };
   }
 

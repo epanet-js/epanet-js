@@ -10,8 +10,9 @@ import {
   interpolateHgl,
   VisibleTooltipContent,
 } from "./tooltip-data";
+import { pickSldSnap, SNAP_PIXEL_THRESHOLD } from "./snap";
 
-export const SNAP_PIXEL_THRESHOLD = 10;
+export { SNAP_PIXEL_THRESHOLD };
 
 export type ChartCursorState = {
   px: number;
@@ -96,24 +97,9 @@ export function useChartCursor({
       }
 
       const deps = depsRef.current;
-      let snappedIdx: number | null = null;
-      let snappedPixelX: number | null = null;
-      let bestDist = SNAP_PIXEL_THRESHOLD;
-      for (let i = 0; i < deps.points.length; i++) {
-        const pointPx = chart.convertToPixel(
-          { xAxisIndex: 0 },
-          deps.points[i].cumulativeLength,
-        );
-        if (typeof pointPx !== "number" || Number.isNaN(pointPx)) continue;
-        const d = Math.abs(pointPx - px);
-        if (d <= bestDist) {
-          bestDist = d;
-          snappedIdx = i;
-          snappedPixelX = pointPx;
-        }
-      }
+      const snap = pickSldSnap(chart, deps.points, deps.links, px);
 
-      const effectivePixelX = snappedPixelX ?? px;
+      const effectivePixelX = snap?.pixelX ?? px;
       chart.dispatchAction({
         type: "updateAxisPointer",
         currTrigger: "mousemove",
@@ -129,7 +115,7 @@ export function useChartCursor({
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
 
       let cursorStyle: "pointer" | "grab" | "default" = "default";
-      if (snappedIdx !== null) {
+      if (snap !== null) {
         cursorStyle = "pointer";
       } else if (inSldGrid) {
         cursorStyle =
@@ -149,14 +135,16 @@ export function useChartCursor({
       /* eslint-enable */
 
       const markerCoordinates =
-        snappedIdx !== null
-          ? deps.points[snappedIdx].coordinates
-          : coordinatesAtLength(deps.pathSegments, cursorX);
+        snap?.kind === "node"
+          ? deps.points[snap.index].coordinates
+          : snap?.kind === "link"
+            ? coordinatesAtLength(deps.pathSegments, snap.link.midLength)
+            : coordinatesAtLength(deps.pathSegments, cursorX);
       scheduleHover(markerCoordinates);
 
       const content = getTooltipContent(
         cursorX,
-        snappedIdx,
+        snap,
         deps.points,
         deps.links,
         deps.terrain,

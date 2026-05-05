@@ -6,7 +6,7 @@ import { tabAtom, TabOption } from "src/state/layout";
 import { USelection } from "src/selection/selection";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
-import { SNAP_PIXEL_THRESHOLD } from "./use-chart-cursor";
+import { pickSldSnap } from "./snap";
 
 interface UseChartClickParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -48,25 +48,17 @@ export function useChartClick({
       if (Number.isNaN(cursorX)) return;
 
       const deps = depsRef.current;
-
-      let snappedIdx: number | null = null;
-      let bestDist = SNAP_PIXEL_THRESHOLD;
-      for (let i = 0; i < deps.points.length; i++) {
-        const pointPx = chart.convertToPixel(
-          { xAxisIndex: 0 },
-          deps.points[i].cumulativeLength,
-        );
-        if (typeof pointPx !== "number" || Number.isNaN(pointPx)) continue;
-        const d = Math.abs(pointPx - px);
-        if (d <= bestDist) {
-          bestDist = d;
-          snappedIdx = i;
-        }
-      }
+      const snap = pickSldSnap(chart, deps.points, deps.links, px);
       /* eslint-enable */
 
-      if (snappedIdx !== null) {
-        deps.setSelection(USelection.single(deps.points[snappedIdx].nodeId));
+      if (snap?.kind === "link") {
+        deps.setSelection(USelection.single(snap.link.linkId));
+        deps.setTab(TabOption.Asset);
+        return;
+      }
+
+      if (snap?.kind === "node") {
+        deps.setSelection(USelection.single(deps.points[snap.index].nodeId));
         deps.setTab(TabOption.Asset);
         return;
       }
