@@ -1,6 +1,7 @@
 import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
-import { ExportedFile } from "../types";
+import { ExportedAssetTypes, ExportedFile } from "../types";
+import { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {
@@ -25,42 +26,46 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
 };
 
 const allocateBuffers = (size: number) => {
-  const buffers: Record<AssetType, Uint8Array> = {
+  const buffers: Record<ExportedAssetTypes, Uint8Array> = {
     junction: new Uint8Array(size),
     reservoir: new Uint8Array(size),
     tank: new Uint8Array(size),
     pipe: new Uint8Array(size),
     pump: new Uint8Array(size),
     valve: new Uint8Array(size),
+    customerPoint: new Uint8Array(size),
   };
-  const offsets: Record<AssetType, number> = {
+  const offsets: Record<ExportedAssetTypes, number> = {
     junction: 0,
     reservoir: 0,
     tank: 0,
     pipe: 0,
     pump: 0,
     valve: 0,
+    customerPoint: 0,
   };
 
   return { buffers, offsets };
 };
 
 const allocateProperties = () => {
-  const properties: Record<AssetType, string[]> = {
+  const properties: Record<ExportedAssetTypes, string[]> = {
     junction: [],
     reservoir: [],
     tank: [],
     pipe: [],
     pump: [],
     valve: [],
+    customerPoint: [],
   };
-  const simulationProperties: Record<AssetType, Set<string>> = {
+  const simulationProperties: Record<ExportedAssetTypes, Set<string>> = {
     junction: new Set<string>(),
     reservoir: new Set<string>(),
     tank: new Set<string>(),
     pipe: new Set<string>(),
     pump: new Set<string>(),
     valve: new Set<string>(),
+    customerPoint: new Set<string>(),
   };
 
   return { properties, simulationProperties };
@@ -84,13 +89,13 @@ export const exportCsv = (
   const { buffers, offsets } = allocateBuffers(size);
   const { properties, simulationProperties } = allocateProperties();
 
-  const encode = (asset: Asset) => {
-    const buffer = buffers[asset.type];
-    const offset = offsets[asset.type];
+  const encode = (type: ExportedAssetTypes) => {
+    const buffer = buffers[type];
+    const offset = offsets[type];
     const view = buffer.subarray(offset);
 
-    const { written } = encoder.encodeInto(parts.join(","), view);
-    offsets[asset.type] += written;
+    const { written } = encoder.encodeInto(`${parts.join(",")}\n`, view);
+    offsets[type] += written;
   };
 
   const writeHeader = (asset: Asset, simulationProps: string[]) => {
@@ -109,9 +114,36 @@ export const exportCsv = (
     simulationProperties[asset.type].forEach((property) => {
       parts[partIdx++] = property;
     });
-    parts[partIdx++] = "\n";
 
-    encode(asset);
+    encode(asset.type);
+  };
+
+  const writeCustomerPointsHeader = () => {
+    parts.length = 0;
+    let partIdx = 0;
+
+    parts[partIdx++] = "label";
+    parts[partIdx++] = "coordinates";
+    parts[partIdx++] = "connection";
+
+    encode("customerPoint");
+  };
+
+  const writeCustomerPoint = (point: CustomerPoint) => {
+    parts.length = 0;
+    let partIdx = 0;
+
+    const coordinates = `${point.coordinates[0].toFixed(4)}|${point.coordinates[1].toFixed(4)}`;
+    const connection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+
+    parts[partIdx++] = point.label;
+    parts[partIdx++] = coordinates;
+    parts[partIdx++] = connection;
+
+    encode("customerPoint");
   };
 
   const writeAsset = (
@@ -171,9 +203,7 @@ export const exportCsv = (
       parts[partIdx++] = formatted;
     });
 
-    parts[partIdx++] = "\n";
-
-    encode(asset);
+    encode(asset.type);
   };
 
   hydraulicModel.assets.forEach((asset) => {
@@ -188,6 +218,10 @@ export const exportCsv = (
     if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
     writeAsset(asset, simulationValues);
   });
+
+  writeCustomerPointsHeader();
+
+  hydraulicModel.customerPoints.forEach((point) => writeCustomerPoint(point));
 
   return Object.entries(buffers).map(([type, buffer]) => {
     const offset = offsets[type as AssetType];

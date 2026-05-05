@@ -87,6 +87,51 @@ describe("export-geojson", () => {
     });
   });
 
+  it("exports customer points as Point features with label and connection", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .aPipe(2, { startNodeId: 1, label: "P1" })
+      .aCustomerPoint(10, {
+        label: "CP1",
+        coordinates: [1.5, 2.5],
+        connection: { pipeId: 2, junctionId: 1 },
+      })
+      .build();
+    const files = exportGeoJson(model, false, noSelection);
+
+    const geoJson = await parseGeoJson(
+      findFile(files, "customerPoint.geojson"),
+    );
+
+    expect(geoJson.features).toHaveLength(1);
+    expect(geoJson.features[0].type).toBe("Feature");
+    expect(geoJson.features[0].geometry).toMatchObject({
+      type: "Point",
+      coordinates: [1.5, 2.5],
+    });
+    expect(geoJson.features[0].properties).toMatchObject({
+      label: "CP1",
+      connection: "J1",
+    });
+  });
+
+  it("exports customer points with empty connection when unconnected", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
+      .build();
+    const files = exportGeoJson(model, false, noSelection);
+
+    const geoJson = await parseGeoJson(
+      findFile(files, "customerPoint.geojson"),
+    );
+
+    expect(geoJson.features).toHaveLength(1);
+    expect(geoJson.features[0].properties).toMatchObject({
+      label: "CP1",
+      connection: "",
+    });
+  });
+
   it("only exports selected assets when selectedAssets is non-empty", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })

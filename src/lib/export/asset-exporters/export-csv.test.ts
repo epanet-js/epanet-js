@@ -10,7 +10,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.empty();
     const files = exportCsv(model, false, noSelection);
 
-    expect(files).toHaveLength(6);
+    expect(files).toHaveLength(7);
     expect(files.map((f) => f.fileName)).toEqual(
       expect.arrayContaining(ALL_ASSET_TYPES.map((t) => `${t}.csv`)),
     );
@@ -96,6 +96,40 @@ describe("export-csv", () => {
     expect(row.sim_demand).toBe("10");
   });
 
+  it("exports customer points with label, coordinates, and connection columns", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .aPipe(2, { startNodeId: 1, label: "P1" })
+      .aCustomerPoint(10, {
+        label: "CP1",
+        coordinates: [1.1234, 2.5678],
+        connection: { pipeId: 2, junctionId: 1 },
+      })
+      .build();
+    const files = exportCsv(model, false, noSelection);
+
+    const lines = await readCsv(findFile(files, "customerPoint.csv"));
+    const headers = lines[0].split(",").filter(Boolean);
+    const [row] = parseCsvRows(lines);
+
+    expect(headers).toEqual(["label", "coordinates", "connection"]);
+    expect(row.label).toBe("CP1");
+    expect(row.coordinates).toBe("1.1234|2.5678");
+    expect(row.connection).toBe("J1");
+  });
+
+  it("exports customer points with empty connection when unconnected", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
+      .build();
+    const files = exportCsv(model, false, noSelection);
+
+    const lines = await readCsv(findFile(files, "customerPoint.csv"));
+    const [row] = parseCsvRows(lines);
+
+    expect(row.connection).toBe("");
+  });
+
   it("only exports selected assets when selectedAssets is non-empty", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })
@@ -118,6 +152,7 @@ const ALL_ASSET_TYPES = [
   "pipe",
   "pump",
   "valve",
+  "customerPoint",
 ];
 
 const mockResultsReader = (pressure: number, demand: number) => {

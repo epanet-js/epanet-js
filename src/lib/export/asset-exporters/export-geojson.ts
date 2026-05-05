@@ -1,5 +1,5 @@
 import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
-import { ExportedFile } from "../types";
+import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 
 const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
@@ -28,21 +28,23 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
 };
 
 const allocateBuffers = (size: number) => {
-  const buffers: Record<AssetType, Uint8Array> = {
+  const buffers: Record<ExportedAssetTypes, Uint8Array> = {
     junction: new Uint8Array(size),
     reservoir: new Uint8Array(size),
     tank: new Uint8Array(size),
     pipe: new Uint8Array(size),
     pump: new Uint8Array(size),
     valve: new Uint8Array(size),
+    customerPoint: new Uint8Array(size),
   };
-  const offsets: Record<AssetType, number> = {
+  const offsets: Record<ExportedAssetTypes, number> = {
     junction: 0,
     reservoir: 0,
     tank: 0,
     pipe: 0,
     pump: 0,
     valve: 0,
+    customerPoint: 0,
   };
 
   return { buffers, offsets };
@@ -102,11 +104,11 @@ const encodeHeader = (
 };
 
 const encodeEnd = (
-  buffers: Record<AssetType, Uint8Array>,
-  offsets: Record<AssetType, number>,
+  buffers: Record<ExportedAssetTypes, Uint8Array>,
+  offsets: Record<ExportedAssetTypes, number>,
   textEncoder: TextEncoder,
 ) => {
-  const types = Object.keys(buffers) as AssetType[];
+  const types = Object.keys(buffers) as ExportedAssetTypes[];
   types.forEach((type) => {
     const buffer = buffers[type];
     const offset = offsets[type];
@@ -117,10 +119,10 @@ const encodeEnd = (
 };
 
 const removeTrailingComma = (
-  buffers: Record<AssetType, Uint8Array>,
-  offsets: Record<AssetType, number>,
+  buffers: Record<ExportedAssetTypes, Uint8Array>,
+  offsets: Record<ExportedAssetTypes, number>,
 ) => {
-  const types = Object.keys(buffers) as AssetType[];
+  const types = Object.keys(buffers) as ExportedAssetTypes[];
   types.forEach((type) => {
     if (offsets[type] > GEOJSON_HEADER.length) {
       offsets[type] -= 1;
@@ -157,6 +159,31 @@ export const exportGeoJson = (
     const textContent = `${geoJson},`;
     const { written } = encoder.encodeInto(textContent, view);
     offsets[asset.type] += written;
+  });
+
+  hydraulicModel.customerPoints.forEach((point) => {
+    const connection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+    const mapped = {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: point.coordinates,
+      },
+      properties: {
+        label: point.label,
+        connection,
+      },
+    };
+
+    const buffer = buffers["customerPoint"];
+    const offset = offsets["customerPoint"];
+    const view = buffer.subarray(offset);
+
+    const { written } = encoder.encodeInto(`${JSON.stringify(mapped)},`, view);
+    offsets["customerPoint"] += written;
   });
 
   removeTrailingComma(buffers, offsets);
