@@ -64,6 +64,24 @@ describe("export-csv", () => {
     expect(row.someObject).toBe("");
   });
 
+  it("writes connections as | separated values", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(10)
+      .aJunction(20)
+      .aPipe(1, { label: "P1", startNodeId: 10, endNodeId: 20 })
+      .build();
+    const pipe = model.assets.get(1)!;
+    pipe.setProperty("connections", [10, 20]);
+
+    const files = exportCsv(model, false, noSelection);
+    const lines = await readCsv(findFile(files, "pipe.csv"));
+    const { connections } = parseCsvRows(lines).find(
+      (r) => r.label === "P1",
+    ) as { connections: string };
+
+    expect(connections).toBe("J1|J2");
+  });
+
   it("adds sim_ columns from resultsReader when includeSimulationResults is true", async () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const pressure = 42;

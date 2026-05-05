@@ -99,6 +99,24 @@ export const exportShapefiles = (
     writeDbfHeader(w);
   }
 
+  const formatConnections = (props: { connections: number[] | string }) => {
+    const [firstId, secondId] = props.connections as number[];
+    const first = hydraulicModel.assets.get(firstId);
+    const second = hydraulicModel.assets.get(secondId);
+
+    if (first === undefined && second === undefined) return;
+    if (first === undefined) {
+      props.connections = `${second?.label}`;
+      return;
+    }
+    if (second === undefined) {
+      props.connections = `${first?.label}`;
+      return;
+    }
+
+    props.connections = `${first?.label},${second?.label}`;
+  };
+
   // ── Pass 2: write ─────────────────────────────────────────────────────────
   for (const asset of hydraulicModel.assets.values()) {
     if (hasSelection && !selectedAssets.has(asset.id)) continue;
@@ -124,7 +142,10 @@ export const exportShapefiles = (
     w.shxCursor += 8;
 
     // DBF record
-    const props = asset.feature.properties as Record<string, unknown>;
+    const props = { ...asset.feature.properties } as Record<string, unknown>;
+    if ("connections" in props) {
+      formatConnections(props as { connections: number[] | string });
+    }
     const simValues = includeSimulationResults
       ? (getSimResults[asset.type](asset) as Record<string, unknown>)
       : ({} as Record<string, unknown>);

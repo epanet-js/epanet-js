@@ -138,10 +138,29 @@ export const exportCsv = (
       return asNumber.toFixed(4);
     };
 
+    const formatConnections = (connections: number[]) => {
+      const [firstId, secondId] = connections;
+      const first = hydraulicModel.assets.get(firstId);
+      const second = hydraulicModel.assets.get(secondId);
+
+      if (first === undefined && second === undefined) return "";
+      if (first === undefined) return second?.label ?? "";
+      if (second === undefined) return first?.label ?? "";
+
+      return `${first?.label}|${second?.label}`;
+    };
+
     properties[asset.type].forEach((property) => {
       const value = asset.getProperty(property);
-      const isObject = typeof value === "object" && value !== null;
-      const formatted = truncateIfNumber(value);
+      const isObject =
+        typeof value === "object" &&
+        value !== null &&
+        property !== "connections";
+      const isConnections = property === "connections";
+      const formatted = isConnections
+        ? formatConnections(value as unknown as number[])
+        : truncateIfNumber(value);
+
       parts[partIdx++] = isObject ? "" : formatted;
     });
 

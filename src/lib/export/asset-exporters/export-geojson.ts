@@ -48,27 +48,44 @@ const allocateBuffers = (size: number) => {
   return { buffers, offsets };
 };
 
-const assetToGeoJson = (asset: Asset, simulationResults = {}) => {
-  const numberReplacer = (
+const assetToGeoJson = (
+  hydraulicModel: HydraulicModel,
+  asset: Asset,
+  simulationResults = {},
+) => {
+  const buildConnections = (connections: number[]) => {
+    const [firstId, secondId] = connections;
+    const first = hydraulicModel.assets.get(firstId);
+    const second = hydraulicModel.assets.get(secondId);
+
+    return [first?.label, second?.label];
+  };
+  const replacer = (
     key: string,
     value: string | number | boolean | object | null,
   ) => {
+    if (key === "connections") {
+      return buildConnections(value as number[]);
+    }
+    if (value === null) return undefined;
     if (typeof value !== "number") return value;
     if (Math.trunc(value) === value) return value;
     return Number(value.toFixed(4));
   };
+
   const mapped = {
     type: "Feature",
     geometry: asset?.feature.geometry,
     properties: { ...asset?.feature.properties, ...simulationResults },
   };
-  return JSON.stringify(mapped, numberReplacer);
+
+  return JSON.stringify(mapped, replacer);
 };
 
 const estimateEntrySize = (hydraulicModel: HydraulicModel) => {
   const asset = hydraulicModel.assets.values().next().value;
   if (!asset) return 0;
-  return assetToGeoJson(asset).length;
+  return assetToGeoJson(hydraulicModel, asset).length;
 };
 
 const encodeHeader = (
@@ -135,7 +152,7 @@ export const exportGeoJson = (
     const buffer = buffers[asset.type];
     const offset = offsets[asset.type];
     const view = buffer.subarray(offset);
-    const geoJson = assetToGeoJson(asset, simulationValues);
+    const geoJson = assetToGeoJson(hydraulicModel, asset, simulationValues);
 
     const textContent = `${geoJson},`;
     const { written } = encoder.encodeInto(textContent, view);

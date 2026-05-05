@@ -160,6 +160,20 @@ describe("exportShapefiles", () => {
     expect(view.getUint32(32, true)).toBe(3); // shape type in header
   });
 
+  it("pipe DBF connections field is formatted as 'startLabel,endLabel'", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aJunction(2, { coordinates: [1, 1] })
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set());
+    const dbf = files.find((f) => f.fileName === "pipe.dbf")!;
+    const bytes = await blobBytes(dbf.blob);
+    const text = new TextDecoder("latin1").decode(bytes);
+    expect(text).toContain("J1,J2");
+  });
+
   it("includes simulation result fields when includeSimulationResults=true", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { coordinates: [0, 0] })

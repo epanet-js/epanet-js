@@ -37,6 +37,24 @@ describe("export-geojson", () => {
     });
   });
 
+  it("transforms connections to use labels and not IDs", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(10, { label: "J1" })
+      .aJunction(20, { label: "J2" })
+      .aPipe(30, { label: "P1", startNodeId: 10, endNodeId: 20 })
+      .build();
+    const files = exportGeoJson(model, false, noSelection);
+
+    const geoJson = await parseGeoJson(findFile(files, "pipe.geojson"));
+
+    const pipe = geoJson.features.find((f) => f.properties.label === "P1");
+    expect(pipe?.type).toBe("Feature");
+    expect(pipe?.properties).toMatchObject({
+      label: "P1",
+      connections: ["J1", "J2"],
+    });
+  });
+
   it("separates assets by type into their respective files", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })

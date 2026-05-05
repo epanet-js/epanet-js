@@ -47,10 +47,10 @@ export const useExportAssetData = () => {
 
         const hydraulicModel = get(stagingModelDerivedAtom);
         const resultsReader = (await getResultsReader()) ?? undefined;
-        const networkName = get(currentFileNameAtom);
+        const networkName = get(currentFileNameAtom) ?? "";
 
         const doExport = async () => {
-          const fileName = networkName ? `export-${networkName}` : "export";
+          const fileName = `export-${options.format}-${networkName}`;
           await Export.exportAssetData(
             fileName,
             options.format,
