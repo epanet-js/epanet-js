@@ -334,4 +334,78 @@ describe("DataMappingStep", () => {
       expect(patternSelector).toHaveTextContent("CONSTANT");
     });
   });
+
+  describe("label property switching", () => {
+    const twoFeatureInputData = () => ({
+      properties: new Set(["name", "demand"]),
+      features: [
+        {
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [0.001, 0.001],
+          },
+          properties: { name: "Alpha", demand: 10 },
+        },
+        {
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [0.002, 0.002],
+          },
+          properties: { name: "Beta", demand: 20 },
+        },
+      ],
+    });
+
+    it("does not advance the auto-generated label counter when switching label property and back", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: twoFeatureInputData(),
+      });
+
+      renderWizard(store);
+
+      const demandSelector = screen.getByRole("combobox", { name: "Demand" });
+      await user.click(demandSelector);
+      await user.click(await screen.findByRole("option", { name: "demand" }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+      });
+
+      expect(screen.getByText("CP1")).toBeInTheDocument();
+      expect(screen.getByText("CP2")).toBeInTheDocument();
+
+      const labelSelector = screen.getByRole("combobox", { name: "Label" });
+      await user.click(labelSelector);
+      await user.click(await screen.findByRole("option", { name: "name" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("Alpha")).toBeInTheDocument();
+      });
+      expect(screen.getByText("Beta")).toBeInTheDocument();
+
+      await user.click(labelSelector);
+      await user.click(
+        await screen.findByRole("option", {
+          name: /none.*auto.*generate/i,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("CP1")).toBeInTheDocument();
+      });
+      expect(screen.getByText("CP2")).toBeInTheDocument();
+      expect(screen.queryByText("CP3")).not.toBeInTheDocument();
+      expect(screen.queryByText("CP4")).not.toBeInTheDocument();
+    });
+  });
 });

@@ -7,7 +7,10 @@ import {
 import { AssetFactory } from "./asset-factory";
 import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 
-export { CustomerPointFactory } from "./customer-point-factory";
+export {
+  CustomerPointFactory,
+  buildCustomerPointPreviewFactory,
+} from "./customer-point-factory";
 export { AssetFactory } from "./asset-factory";
 
 export type ModelFactories = {

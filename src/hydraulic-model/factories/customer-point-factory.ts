@@ -1,11 +1,22 @@
 import { Position } from "geojson";
-import { IdGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
 import {
   CustomerPoint,
   CustomerPointId,
 } from "src/hydraulic-model/customer-points";
 import { roundCoordinates } from "src/lib/geometry";
 import { LabelManager } from "src/hydraulic-model/label-manager";
+
+export const buildCustomerPointPreviewFactory = (
+  labelManager: LabelManager,
+): CustomerPointFactory => {
+  const previewLabelManager = new LabelManager();
+  previewLabelManager.copyTypeFrom("customerPoint", labelManager);
+  return new CustomerPointFactory(
+    new ConsecutiveIdsGenerator(),
+    previewLabelManager,
+  );
+};
 
 export class CustomerPointFactory {
   private idGenerator: IdGenerator;

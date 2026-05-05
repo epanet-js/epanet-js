@@ -1,9 +1,15 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
-import { AllocationRule } from "src/hydraulic-model/customer-points";
+import {
+  AllocationRule,
+  CustomerPoint,
+  CustomerPointId,
+} from "src/hydraulic-model/customer-points";
+import { Demand } from "src/hydraulic-model/demands";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
@@ -30,6 +36,8 @@ export const AllocationStep: React.FC<{
 }> = ({ onBack, onFinish, renderActions = true, wizardState }) => {
   const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { customerPointFactory, idGenerator } =
+    useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { customerPointsImportReset } = useCustomerPointsImportReset();
@@ -63,10 +71,30 @@ export const AllocationStep: React.FC<{
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     try {
-      const customerPointsToAdd = [
+      const previewPoints = [
         ...allocationResult.allocatedCustomerPoints.values(),
         ...allocationResult.disconnectedCustomerPoints.values(),
       ];
+
+      const customerPointsToAdd: CustomerPoint[] = [];
+      const reconciledDemands = new Map<CustomerPointId, Demand[]>();
+      const previewDemands = parsedDataSummary?.customerPointDemands;
+
+      for (const previewPoint of previewPoints) {
+        const reconciled = customerPointFactory.load({
+          id: idGenerator.newId(),
+          coordinates: previewPoint.coordinates,
+          label: previewPoint.label,
+        });
+        if (previewPoint.connection) {
+          reconciled.connect(previewPoint.connection);
+        }
+        customerPointsToAdd.push(reconciled);
+        const demands = previewDemands?.get(previewPoint.id);
+        if (demands) {
+          reconciledDemands.set(reconciled.id, demands);
+        }
+      }
 
       const updatedHydraulicModel = addCustomerPoints(
         hydraulicModel,
@@ -74,7 +102,7 @@ export const AllocationStep: React.FC<{
         {
           preserveJunctionDemands: keepDemands,
           overrideExisting: true,
-          customerPointDemands: parsedDataSummary?.customerPointDemands,
+          customerPointDemands: reconciledDemands,
         },
       );
 
@@ -112,6 +140,8 @@ export const AllocationStep: React.FC<{
     onFinish,
     setProcessing,
     customerPointsImportReset,
+    customerPointFactory,
+    idGenerator,
     userTracking,
     setError,
     translate,

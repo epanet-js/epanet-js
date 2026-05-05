@@ -7,6 +7,7 @@ import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { buildCustomerPointPreviewFactory } from "src/hydraulic-model/factories";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
@@ -42,7 +43,7 @@ export const DataMappingStep: React.FC<{
   const userTracking = useUserTracking();
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
+  const { labelManager } = useAtomValue(modelFactoriesAtom);
   const patterns = hydraulicModel.patterns;
   const {
     parsedDataSummary,
@@ -99,12 +100,14 @@ export const DataMappingStep: React.FC<{
             features: inputData.features,
           });
 
+          const previewFactory = buildCustomerPointPreviewFactory(labelManager);
+
           for (const parsed of parseCustomerPoints(
             fileContent,
             issues,
             demandImportUnit,
             demandTargetUnit,
-            customerPointFactory,
+            previewFactory,
             demandPropertyName,
             labelPropertyName,
             patternId,
@@ -154,7 +157,7 @@ export const DataMappingStep: React.FC<{
       setLoading,
       setError,
       projectSettings.units,
-      customerPointFactory,
+      labelManager,
       setParsedDataSummary,
       userTracking,
       selectedFile,

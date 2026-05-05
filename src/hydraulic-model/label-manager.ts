@@ -38,6 +38,20 @@ export class LabelManager {
     this.indexPerType = counters;
   }
 
+  copyTypeFrom(type: LabelType, source: LabelManager): void {
+    const sourceCounter = source.indexPerType.get(type);
+    if (sourceCounter !== undefined) {
+      this.indexPerType.set(type, sourceCounter);
+    }
+    for (const [label, entries] of source.labelToEntries) {
+      for (const entry of entries) {
+        if (entry.type === type) {
+          this.register(label, type, entry.id);
+        }
+      }
+    }
+  }
+
   private normalizeLabel(label: string): string {
     return label.toUpperCase();
   }
