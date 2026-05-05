@@ -4,7 +4,6 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { HandlerContext } from "src/types";
 import { profileViewAtom } from "src/state/profile-view";
 import { dialogAtom } from "src/state/dialog";
-import { modeAtom, Mode } from "src/state/mode";
 import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
@@ -20,9 +19,9 @@ export function useProfileViewHandlers(
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
+  const plot = useAtomValue(profileViewAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
@@ -43,6 +42,13 @@ export function useProfileViewHandlers(
     if (!clickedAsset || !clickedAsset.isNode) return;
     const nodeId = clickedAsset.id;
 
+    if (plot !== null) {
+      setProfileView(null);
+      setSelection(SELECTION_NONE);
+      setEphemeralState({ type: "profileView", startNodeId: nodeId });
+      return;
+    }
+
     if (draftStartNodeId === undefined) {
       setEphemeralState({ type: "profileView", startNodeId: nodeId });
       return;
@@ -61,7 +67,6 @@ export function useProfileViewHandlers(
       setDialogState({ type: "profileNoPath" });
       setEphemeralState({ type: "none" });
       setSelection(SELECTION_NONE);
-      setMode({ mode: Mode.NONE });
       return;
     }
 
@@ -75,7 +80,6 @@ export function useProfileViewHandlers(
       type: "multi",
       ids: [...path.nodeIds, ...path.linkIds],
     });
-    setMode({ mode: Mode.NONE });
   };
 
   const move: Handlers["move"] = throttle((e) => {
