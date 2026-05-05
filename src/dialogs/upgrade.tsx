@@ -476,6 +476,11 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
 
   const goToTeamsRequestForm = () => {
     userTracking.capture({ name: "teamsRequest.clicked" });
+    userTracking.capture({
+      name: "checkout.started",
+      plan: "teams",
+      paymentType,
+    });
     window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
   };
 

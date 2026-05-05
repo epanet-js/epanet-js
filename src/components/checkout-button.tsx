@@ -46,7 +46,14 @@ export const CheckoutButton = ({
 
   return (
     <Button
-      onClick={() => startCheckout(plan, paymentType)}
+      onClick={() => {
+        userTracking.capture({
+          name: "checkout.started",
+          plan,
+          paymentType,
+        });
+        void startCheckout(plan, paymentType);
+      }}
       variant={variant}
       size="full-width"
     >
