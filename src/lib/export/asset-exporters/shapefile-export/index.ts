@@ -45,6 +45,22 @@ export const exportShapefiles = (
     const props = asset.feature.properties as Record<string, unknown>;
     for (const key in props) {
       if (key === "type") continue;
+      if (key === "connections") {
+        const [firstId, secondId] = props.connections as number[];
+        inferFieldType(
+          ensureField(writer.fields, "startNode"),
+          hydraulicModel.assets.get(firstId)?.label ?? "",
+          scratch,
+          encoder,
+        );
+        inferFieldType(
+          ensureField(writer.fields, "endNode"),
+          hydraulicModel.assets.get(secondId)?.label ?? "",
+          scratch,
+          encoder,
+        );
+        continue;
+      }
       inferFieldType(
         ensureField(writer.fields, key),
         props[key],
@@ -74,9 +90,13 @@ export const exportShapefiles = (
     customerPointWriter.recordCount++;
     customerPointWriter.shpBodyBytes += 28;
 
-    const connection =
+    const junctionConnection =
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+    const pipeConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
         : "";
 
     inferFieldType(
@@ -86,8 +106,38 @@ export const exportShapefiles = (
       encoder,
     );
     inferFieldType(
-      ensureField(customerPointWriter.fields, "connection"),
-      connection,
+      ensureField(customerPointWriter.fields, "x"),
+      point.coordinates[0],
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(customerPointWriter.fields, "y"),
+      point.coordinates[1],
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(customerPointWriter.fields, "junctionConnection"),
+      junctionConnection,
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(customerPointWriter.fields, "pipeConnection"),
+      pipeConnection,
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(customerPointWriter.fields, "connectionX"),
+      point.connection?.snapPoint[0] ?? null,
+      scratch,
+      encoder,
+    );
+    inferFieldType(
+      ensureField(customerPointWriter.fields, "connectionY"),
+      point.connection?.snapPoint[1] ?? null,
       scratch,
       encoder,
     );
@@ -128,10 +178,10 @@ export const exportShapefiles = (
 
     const props = { ...asset.feature.properties } as Record<string, unknown>;
     if ("connections" in props) {
-      props.connections = resolveConnectionLabels(
-        props.connections as number[],
-        hydraulicModel,
-      );
+      const [firstId, secondId] = props.connections as number[];
+      props.startNode = hydraulicModel.assets.get(firstId)?.label ?? "";
+      props.endNode = hydraulicModel.assets.get(secondId)?.label ?? "";
+      delete props.connections;
     }
     const simValues = includeSimulationResults
       ? (getSimResults[asset.type](asset) as Record<string, unknown>)
@@ -157,14 +207,26 @@ export const exportShapefiles = (
     );
     customerPointWriter.shxCursor += 8;
 
-    const connection =
+    const junctionConnection =
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+    const pipeConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
         : "";
 
     writeDbfRecord(
       customerPointWriter,
-      { label: point.label, connection },
+      {
+        label: point.label,
+        x: point.coordinates[0],
+        y: point.coordinates[1],
+        junctionConnection,
+        pipeConnection,
+        connectionX: point.connection?.snapPoint[0] ?? null,
+        connectionY: point.connection?.snapPoint[1] ?? null,
+      },
       {},
       encoder,
     );
@@ -222,20 +284,6 @@ export const exportShapefiles = (
   }
 
   return result;
-};
-
-const resolveConnectionLabels = (
-  connections: number[],
-  hydraulicModel: HydraulicModel,
-): string => {
-  const [firstId, secondId] = connections;
-  const first = hydraulicModel.assets.get(firstId);
-  const second = hydraulicModel.assets.get(secondId);
-
-  if (first === undefined && second === undefined) return "";
-  if (first === undefined) return second?.label ?? "";
-  if (second === undefined) return first?.label ?? "";
-  return `${first.label},${second.label}`;
 };
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {

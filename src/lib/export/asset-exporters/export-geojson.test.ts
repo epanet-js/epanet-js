@@ -51,7 +51,8 @@ describe("export-geojson", () => {
     expect(pipe?.type).toBe("Feature");
     expect(pipe?.properties).toMatchObject({
       label: "P1",
-      connections: ["J1", "J2"],
+      startNode: "J1",
+      endNode: "J2",
     });
   });
 
@@ -111,7 +112,8 @@ describe("export-geojson", () => {
     });
     expect(geoJson.features[0].properties).toMatchObject({
       label: "CP1",
-      connection: "J1",
+      junctionConnection: "J1",
+      pipeConnection: "P1",
     });
   });
 
@@ -128,7 +130,6 @@ describe("export-geojson", () => {
     expect(geoJson.features).toHaveLength(1);
     expect(geoJson.features[0].properties).toMatchObject({
       label: "CP1",
-      connection: "",
     });
   });
 

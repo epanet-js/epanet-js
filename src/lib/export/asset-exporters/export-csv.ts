@@ -79,7 +79,9 @@ export const exportCsv = (
 ): ExportedFile[] => {
   const charsPerCol = 64;
   const numCols = 64;
-  const numRows = hydraulicModel.assets.size + 1;
+  const numRows =
+    Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) +
+    1;
   const size = numCols * numRows * charsPerCol;
   const parts: string[] = new Array(numCols + 1);
   const encoder = new TextEncoder();
@@ -109,8 +111,14 @@ export const exportCsv = (
     simulationProperties[asset.type].delete("type");
 
     properties[asset.type].forEach((property) => {
-      parts[partIdx++] = property;
+      if (property === "connections") {
+        parts[partIdx++] = "startNode";
+        parts[partIdx++] = "endNode";
+      } else {
+        parts[partIdx++] = property;
+      }
     });
+
     simulationProperties[asset.type].forEach((property) => {
       parts[partIdx++] = property;
     });
@@ -123,8 +131,12 @@ export const exportCsv = (
     let partIdx = 0;
 
     parts[partIdx++] = "label";
-    parts[partIdx++] = "coordinates";
-    parts[partIdx++] = "connection";
+    parts[partIdx++] = "x";
+    parts[partIdx++] = "y";
+    parts[partIdx++] = "junctionConnection";
+    parts[partIdx++] = "pipeConnection";
+    parts[partIdx++] = "connectionX";
+    parts[partIdx++] = "connectionY";
 
     encode("customerPoint");
   };
@@ -133,15 +145,22 @@ export const exportCsv = (
     parts.length = 0;
     let partIdx = 0;
 
-    const coordinates = `${point.coordinates[0].toFixed(4)}|${point.coordinates[1].toFixed(4)}`;
-    const connection =
+    const junctionConnection =
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
         : "";
+    const pipeConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
+        : "";
 
     parts[partIdx++] = point.label;
-    parts[partIdx++] = coordinates;
-    parts[partIdx++] = connection;
+    parts[partIdx++] = point.coordinates[0]?.toFixed(4) ?? "";
+    parts[partIdx++] = point.coordinates[1]?.toFixed(4) ?? "";
+    parts[partIdx++] = junctionConnection;
+    parts[partIdx++] = pipeConnection;
+    parts[partIdx++] = Number(point.connection?.snapPoint[0])?.toFixed(4) ?? "";
+    parts[partIdx++] = Number(point.connection?.snapPoint[1])?.toFixed(4) ?? "";
 
     encode("customerPoint");
   };
@@ -171,29 +190,34 @@ export const exportCsv = (
     };
 
     const formatConnections = (connections: number[]) => {
-      const [firstId, secondId] = connections;
-      const first = hydraulicModel.assets.get(firstId);
-      const second = hydraulicModel.assets.get(secondId);
+      const startAsset = hydraulicModel.assets.get(
+        (connections as unknown as number[])[0],
+      );
+      const endAsset = hydraulicModel.assets.get(
+        (connections as unknown as number[])[1],
+      );
 
-      if (first === undefined && second === undefined) return "";
-      if (first === undefined) return second?.label ?? "";
-      if (second === undefined) return first?.label ?? "";
+      const startNode = startAsset?.label ?? "";
+      const endNode = endAsset?.label ?? "";
 
-      return `${first?.label}|${second?.label}`;
+      return { startNode, endNode };
     };
 
     properties[asset.type].forEach((property) => {
       const value = asset.getProperty(property);
-      const isObject =
-        typeof value === "object" &&
-        value !== null &&
-        property !== "connections";
       const isConnections = property === "connections";
-      const formatted = isConnections
-        ? formatConnections(value as unknown as number[])
-        : truncateIfNumber(value);
 
-      parts[partIdx++] = isObject ? "" : formatted;
+      if (!isConnections) {
+        const formatted = truncateIfNumber(value);
+        parts[partIdx++] = formatted;
+      } else {
+        const { startNode, endNode } = formatConnections(
+          value as unknown as number[],
+        );
+
+        parts[partIdx++] = startNode;
+        parts[partIdx++] = endNode;
+      }
     });
 
     simulationProperties[asset.type].forEach((property) => {

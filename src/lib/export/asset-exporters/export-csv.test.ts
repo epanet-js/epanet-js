@@ -52,36 +52,6 @@ describe("export-csv", () => {
     expect(pipeLines).toHaveLength(2);
   });
 
-  it("writes object-type property values as empty strings", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
-    const junction = model.assets.get(1)!;
-    junction.setProperty("someObject", { nested: true });
-
-    const files = exportCsv(model, false, noSelection);
-    const lines = await readCsv(findFile(files, "junction.csv"));
-    const [row] = parseCsvRows(lines);
-
-    expect(row.someObject).toBe("");
-  });
-
-  it("writes connections as | separated values", async () => {
-    const model = HydraulicModelBuilder.with()
-      .aJunction(10)
-      .aJunction(20)
-      .aPipe(1, { label: "P1", startNodeId: 10, endNodeId: 20 })
-      .build();
-    const pipe = model.assets.get(1)!;
-    pipe.setProperty("connections", [10, 20]);
-
-    const files = exportCsv(model, false, noSelection);
-    const lines = await readCsv(findFile(files, "pipe.csv"));
-    const { connections } = parseCsvRows(lines).find(
-      (r) => r.label === "P1",
-    ) as { connections: string };
-
-    expect(connections).toBe("J1|J2");
-  });
-
   it("adds sim_ columns from resultsReader when includeSimulationResults is true", async () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const pressure = 42;
@@ -96,7 +66,7 @@ describe("export-csv", () => {
     expect(row.sim_demand).toBe("10");
   });
 
-  it("exports customer points with label, coordinates, and connection columns", async () => {
+  it("exports customer points with all connection columns", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })
       .aPipe(2, { startNodeId: 1, label: "P1" })
@@ -112,10 +82,22 @@ describe("export-csv", () => {
     const headers = lines[0].split(",").filter(Boolean);
     const [row] = parseCsvRows(lines);
 
-    expect(headers).toEqual(["label", "coordinates", "connection"]);
+    expect(headers).toEqual([
+      "label",
+      "x",
+      "y",
+      "junctionConnection",
+      "pipeConnection",
+      "connectionX",
+      "connectionY",
+    ]);
     expect(row.label).toBe("CP1");
-    expect(row.coordinates).toBe("1.1234|2.5678");
-    expect(row.connection).toBe("J1");
+    expect(row.x).toBe("1.1234");
+    expect(row.y).toBe("2.5678");
+    expect(row.junctionConnection).toBe("J1");
+    expect(row.pipeConnection).toBe("P1");
+    expect(row.connectionX).toBe("1.1234");
+    expect(row.connectionY).toBe("2.5678");
   });
 
   it("exports customer points with empty connection when unconnected", async () => {
@@ -127,7 +109,8 @@ describe("export-csv", () => {
     const lines = await readCsv(findFile(files, "customerPoint.csv"));
     const [row] = parseCsvRows(lines);
 
-    expect(row.connection).toBe("");
+    expect(row.junctionConnection).toBe("");
+    expect(row.pipeConnection).toBe("");
   });
 
   it("only exports selected assets when selectedAssets is non-empty", async () => {

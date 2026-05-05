@@ -1,6 +1,7 @@
 import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
+import { Feature } from "geojson";
 
 const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
 const GEOJSON_END = `]}`;
@@ -55,31 +56,37 @@ const assetToGeoJson = (
   asset: Asset,
   simulationResults = {},
 ) => {
-  const buildConnections = (connections: number[]) => {
-    const [firstId, secondId] = connections;
-    const first = hydraulicModel.assets.get(firstId);
-    const second = hydraulicModel.assets.get(secondId);
-
-    return [first?.label, second?.label];
+  const buildConnection = (connection: number) => {
+    const asset = hydraulicModel.assets.get(connection);
+    return asset?.label;
   };
+
   const replacer = (
-    key: string,
+    _: string,
     value: string | number | boolean | object | null,
   ) => {
-    if (key === "connections") {
-      return buildConnections(value as number[]);
-    }
     if (value === null) return undefined;
     if (typeof value !== "number") return value;
     if (Math.trunc(value) === value) return value;
     return Number(value.toFixed(4));
   };
 
-  const mapped = {
+  const mapped: Feature = {
     type: "Feature",
     geometry: asset?.feature.geometry,
     properties: { ...asset?.feature.properties, ...simulationResults },
   };
+
+  if (
+    "properties" in mapped &&
+    mapped.properties !== null &&
+    "connections" in (mapped.properties as object)
+  ) {
+    const [start, end] = mapped.properties?.connections as number[];
+    delete mapped.properties["connections"];
+    mapped.properties["startNode"] = buildConnection(start);
+    mapped.properties["endNode"] = buildConnection(end);
+  }
 
   return JSON.stringify(mapped, replacer);
 };
@@ -123,6 +130,7 @@ const removeTrailingComma = (
   offsets: Record<ExportedAssetTypes, number>,
 ) => {
   const types = Object.keys(buffers) as ExportedAssetTypes[];
+
   types.forEach((type) => {
     if (offsets[type] > GEOJSON_HEADER.length) {
       offsets[type] -= 1;
@@ -137,7 +145,11 @@ export const exportGeoJson = (
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const entrySize = estimateEntrySize(hydraulicModel);
-  const size = hydraulicModel.assets.size * 2 * entrySize + 1024;
+  const size =
+    Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) *
+      2 *
+      entrySize +
+    1024;
   const encoder = new TextEncoder();
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
@@ -162,9 +174,13 @@ export const exportGeoJson = (
   });
 
   hydraulicModel.customerPoints.forEach((point) => {
-    const connection =
+    const junctionConnection =
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+    const pipeConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
         : "";
     const mapped = {
       type: "Feature",
@@ -174,7 +190,10 @@ export const exportGeoJson = (
       },
       properties: {
         label: point.label,
-        connection,
+        junctionConnection,
+        pipeConnection,
+        connectionX: point.connection?.snapPoint[0].toFixed(4) ?? undefined,
+        connectionY: point.connection?.snapPoint[1].toFixed(4) ?? undefined,
       },
     };
 

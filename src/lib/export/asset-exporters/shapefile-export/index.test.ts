@@ -160,7 +160,7 @@ describe("exportShapefiles", () => {
     expect(view.getUint32(32, true)).toBe(3); // shape type in header
   });
 
-  it("pipe DBF connections field is formatted as 'startLabel,endLabel'", async () => {
+  it("pipe DBF has separate startNode and endNode fields with connection labels", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { coordinates: [0, 0] })
       .aJunction(2, { coordinates: [1, 1] })
@@ -171,7 +171,10 @@ describe("exportShapefiles", () => {
     const dbf = files.find((f) => f.fileName === "pipe.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     const text = new TextDecoder("latin1").decode(bytes);
-    expect(text).toContain("J1,J2");
+    expect(text).toContain("STARTNODE");
+    expect(text).toContain("ENDNODE");
+    expect(text).toContain("J1");
+    expect(text).toContain("J2");
   });
 
   it("includes simulation result fields when includeSimulationResults=true", async () => {
@@ -248,7 +251,7 @@ describe("exportShapefiles", () => {
     expect(view.getUint32(4, true)).toBe(2);
   });
 
-  it("customerPoint DBF header contains LABEL and CONNECTION field names", async () => {
+  it("customerPoint DBF header contains all expected field names", async () => {
     const model = HydraulicModelBuilder.with()
       .aCustomerPoint(1, { coordinates: [0, 0], label: "CP1" })
       .build();
@@ -257,7 +260,10 @@ describe("exportShapefiles", () => {
     const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("LABEL");
-    expect(text).toContain("CONNECTION");
+    expect(text).toContain("X");
+    expect(text).toContain("Y");
+    expect(text).toContain("JUNCTIONCO");
+    expect(text).toContain("PIPECONNEC");
   });
 
   it("customerPoint DBF record contains the point label", async () => {
@@ -271,11 +277,11 @@ describe("exportShapefiles", () => {
     expect(text).toContain("MyPoint");
   });
 
-  it("customerPoint DBF connection field contains connected junction label", async () => {
+  it("customerPoint DBF record contains junction and pipe connection labels", async () => {
     const model = HydraulicModelBuilder.with()
-      .aJunction(1, { coordinates: [0, 0] })
+      .aJunction(1, { label: "J1", coordinates: [0, 0] })
       .aJunction(2, { coordinates: [1, 1] })
-      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aPipe(3, { label: "P3", startNodeId: 1, endNodeId: 2 })
       .aCustomerPoint(4, {
         coordinates: [0.5, 0.5],
         connection: { pipeId: 3, junctionId: 1 },
@@ -286,6 +292,7 @@ describe("exportShapefiles", () => {
     const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("J1");
+    expect(text).toContain("P3");
   });
 
   it("customerPoint SHP produces SHAPE_POINT (type 1) records", async () => {
