@@ -393,9 +393,9 @@ describe("textColumn", () => {
     });
   });
 
-  describe("readonly option", () => {
+  describe("isReadOnly option", () => {
     it("sets disabled and disableKeys", () => {
-      const column = textColumn("name", { header: "Name", readonly: true });
+      const column = textColumn("name", { header: "Name", isReadOnly: true });
 
       expect(column.disabled).toBe(true);
       expect(column.disableKeys).toBe(true);

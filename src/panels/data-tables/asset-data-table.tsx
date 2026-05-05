@@ -10,20 +10,15 @@ import {
   changeProperties,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
+import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
+import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import type {
-  Junction,
-  Pipe,
-  Pump,
-  Valve,
-  Reservoir,
-  Tank,
-} from "src/hydraulic-model/asset-types";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import {
   DataGrid,
+  booleanColumn,
   floatColumn,
   filterableSelectColumn,
   textColumn,
@@ -45,6 +40,7 @@ import type {
 import type { Curves, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getDecimals } from "src/lib/project-settings";
@@ -53,8 +49,7 @@ import type {
   FormattingSpec,
 } from "src/lib/project-settings/quantities-spec";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
-
-type AssetRow = Record<string, unknown> & { id: AssetId };
+import { type AssetRow, buildRows } from "./data";
 
 const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
   junction: ["chemicalSourceType", "chemicalSourcePatternId"],
@@ -69,6 +64,7 @@ const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
   valve: ["kind", "initialStatus", "curveId"],
   reservoir: ["headPatternId", "chemicalSourceType", "chemicalSourcePatternId"],
   tank: [
+    "overflow",
     "mixingModel",
     "volumeCurveId",
     "chemicalSourceType",
@@ -116,102 +112,8 @@ const NULLABLE_KEYS = new Set([
   "mixingFraction",
 ]);
 
-type Simulation = NonNullable<
-  ReturnType<typeof useAtomValue<typeof simulationResultsDerivedAtom>>
->;
-type TranslateFn = ReturnType<typeof useTranslate>;
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
 type QualityAnalysisType = "none" | "age" | "trace" | "chemical";
-
-function buildSimRow(
-  type: AssetType,
-  assetId: AssetId,
-  simulation: Simulation,
-  translate: TranslateFn,
-): Record<string, number | string | null> {
-  const qualityFields = (
-    sim:
-      | {
-          waterAge: number | null;
-          waterTrace: number | null;
-          chemicalConcentration: number | null;
-        }
-      | null
-      | undefined,
-  ) => ({
-    sim_waterAge: sim?.waterAge ?? null,
-    sim_waterTrace: sim?.waterTrace ?? null,
-    sim_chemicalConcentration: sim?.chemicalConcentration ?? null,
-  });
-
-  switch (type) {
-    case "junction": {
-      const sim = simulation.getJunction(assetId);
-      return {
-        sim_pressure: sim?.pressure ?? null,
-        sim_head: sim?.head ?? null,
-        sim_demand: sim?.demand ?? null,
-        ...qualityFields(sim),
-      };
-    }
-    case "pipe": {
-      const sim = simulation.getPipe(assetId);
-      return {
-        sim_flow: sim?.flow ?? null,
-        sim_velocity: sim?.velocity ?? null,
-        sim_headloss: sim?.headloss ?? null,
-        sim_unitHeadloss: sim?.unitHeadloss ?? null,
-        sim_status: sim?.status ? translate(`pipe.${sim.status}`) : "",
-        ...qualityFields(sim),
-      };
-    }
-    case "pump": {
-      const sim = simulation.getPump(assetId);
-      const energy = simulation.getPumpEnergy(assetId);
-      return {
-        sim_flow: sim?.flow ?? null,
-        sim_headloss: sim?.headloss ?? null,
-        sim_status: sim?.status ? translate(`pump.${sim.status}`) : "",
-        ...qualityFields(sim),
-        sim_utilization: energy?.utilization ?? null,
-        sim_averageEfficiency: energy?.averageEfficiency ?? null,
-        sim_averageKwPerFlowUnit: energy?.averageKwPerFlowUnit ?? null,
-        sim_averageKw: energy?.averageKw ?? null,
-        sim_peakKw: energy?.peakKw ?? null,
-        sim_averageCostPerDay: energy?.averageCostPerDay ?? null,
-        sim_demandCharge: energy?.demandCharge ?? null,
-      };
-    }
-    case "valve": {
-      const sim = simulation.getValve(assetId);
-      return {
-        sim_flow: sim?.flow ?? null,
-        sim_velocity: sim?.velocity ?? null,
-        sim_headloss: sim?.headloss ?? null,
-        sim_status: sim?.status ? translate(`valve.${sim.status}`) : "",
-        ...qualityFields(sim),
-      };
-    }
-    case "reservoir": {
-      const r = simulation.getReservoir(assetId);
-      return {
-        sim_head: r?.head ?? null,
-        sim_netFlow: r?.netFlow ?? null,
-        ...qualityFields(r),
-      };
-    }
-    case "tank": {
-      const sim = simulation.getTank(assetId);
-      return {
-        sim_head: sim?.head ?? null,
-        sim_level: sim?.level ?? null,
-        sim_volume: sim?.volume ?? null,
-        sim_netFlow: sim?.netFlow ?? null,
-        ...qualityFields(sim),
-      };
-    }
-  }
-}
 
 function buildSimColumns(
   type: AssetType,
@@ -240,10 +142,10 @@ function buildSimColumns(
         property != null
           ? getDecimals(formatting, property)
           : formatting.defaultDecimals,
-      readonly: true,
+      isReadOnly: true,
     });
   const simTextValue = (key: string, name: string) =>
-    textColumn(key, { header: name, readonly: true });
+    textColumn(key, { header: name, isReadOnly: true });
 
   const qualityCols = (): GridColumn[] => {
     if (qualityType === "age")
@@ -288,7 +190,7 @@ function buildSimColumns(
         simNumericValue("sim_head", translate("head"), units.head, "head"),
         simNumericValue(
           "sim_demand",
-          translate("demand"),
+          translate("actualDemand"),
           units.actualDemand,
           "actualDemand",
         ),
@@ -428,6 +330,7 @@ function buildColumns(
   energyGlobalPatternId: PatternId | null,
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
+  getRow?: (rowIndex: number) => AssetRow | undefined,
 ): GridColumn[] {
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
@@ -444,6 +347,7 @@ function buildColumns(
     name: string,
     unit: Parameters<TranslateUnitFn>[0] = null,
     property?: QuantityProperty,
+    isReadOnly?: (rowIndex: number) => boolean,
   ) =>
     floatColumn(key, {
       header: headerLabel(name, unit),
@@ -451,8 +355,16 @@ function buildColumns(
         property != null
           ? getDecimals(formatting, property)
           : formatting.defaultDecimals,
-      readonly: !editable.has(key),
+      isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
+    });
+
+  const booleanCol = (key: string, name: string, isReadOnly = false) =>
+    booleanColumn(key, {
+      header: name,
+      trueLabel: translate("yes"),
+      falseLabel: translate("no"),
+      isReadOnly,
     });
 
   const patternOpts = (filterType: PatternType) =>
@@ -478,12 +390,14 @@ function buildColumns(
     name: string,
     filterType: PatternType,
     placeholder = translate("constant"),
+    isReadOnly?: (rowIndex: number) => boolean,
   ) =>
     filterableSelectColumn(key, {
       header: name,
       options: patternOpts(filterType),
       placeholder,
       deleteValue: null,
+      isReadOnly,
     });
 
   const curveCol = (key: string, name: string, filterType: CurveType) =>
@@ -494,25 +408,35 @@ function buildColumns(
       deleteValue: null,
     });
 
+  const isChemicalSourceNone = (rowIndex: number) => {
+    const row = getRow?.(rowIndex);
+    return row?.chemicalSourceType == null;
+  };
+
   const chemicalSourceTypeCols = () => [
     filterableSelectColumn("chemicalSourceType", {
       header: translate("chemicalSourceType"),
-      options: [
-        { value: "none", label: translate("none") },
-        ...chemicalSourceTypes.map((t) => ({
-          value: t,
-          label: translate(`source.${t}`),
-        })),
-      ],
+      options: chemicalSourceTypes.map((t) => ({
+        value: t,
+        label: translate(`source.${t}`),
+      })),
+      emptyOptionLabel: translate("none"),
       placeholder: translate("none"),
-      deleteValue: "none",
+      deleteValue: null,
     }),
-    numericCol("chemicalSourceStrength", translate("chemicalSourceStrength")),
+    numericCol(
+      "chemicalSourceStrength",
+      translate("chemicalSourceStrength"),
+      undefined,
+      undefined,
+      isChemicalSourceNone,
+    ),
     patternCol(
       "chemicalSourcePatternId",
       translate("chemicalSourcePattern"),
       "qualitySourceStrength",
       translate("none"),
+      isChemicalSourceNone,
     ),
   ];
 
@@ -534,6 +458,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -546,6 +471,21 @@ function buildColumns(
           units.emitterCoefficient,
           "emitterCoefficient",
         ),
+        floatColumn("avgDemand", {
+          header: headerLabel(translate("directDemand"), units.baseDemand),
+          decimals: getDecimals(formatting, "baseDemand"),
+          isReadOnly: true,
+        }),
+        floatColumn("avgCustomerDemand", {
+          header: headerLabel(translate("customerDemand"), units.baseDemand),
+          decimals: getDecimals(formatting, "baseDemand"),
+          isReadOnly: true,
+        }),
+        floatColumn("customerPointCount", {
+          header: translate("connectedCustomers"),
+          decimals: 0,
+          isReadOnly: true,
+        }),
         numericCol("initialQuality", translate("initialQuality")),
         ...chemicalSourceTypeCols(),
         ...simCols,
@@ -556,6 +496,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled")),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pipeStatuses.map((s) => ({
@@ -587,6 +528,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled")),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pumpStatuses.map((s) => ({
@@ -617,6 +559,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled")),
         filterableSelectColumn("kind", {
           header: translate("valveType"),
           options: valveKinds.map((k) => ({
@@ -649,6 +592,10 @@ function buildColumns(
           options: [...curveOpts("headloss"), ...curveOpts("valve")],
           placeholder: translate("none"),
           deleteValue: null,
+          isReadOnly: (rowIndex) => {
+            const kind = getRow?.(rowIndex)?.kind;
+            return kind !== "gpv" && kind !== "pcv";
+          },
         }),
         ...simCols,
       ];
@@ -658,6 +605,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -676,6 +624,7 @@ function buildColumns(
           header: translate("label"),
           validate: validateLabel,
         }),
+        booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
           "elevation",
           translate("elevation"),
@@ -724,101 +673,10 @@ function buildColumns(
           deleteValue: "mixed",
         }),
         numericCol("mixingFraction", translate("mixingFraction")),
+        booleanCol("overflow", translate("canOverflow")),
         ...chemicalSourceTypeCols(),
         ...simCols,
       ];
-  }
-}
-
-function buildAssetRow(
-  assetType: AssetType,
-  asset: Junction | Pipe | Pump | Valve | Reservoir | Tank,
-): AssetRow {
-  const base = { id: asset.id, label: asset.label };
-  switch (assetType) {
-    case "junction": {
-      const a = asset as Junction;
-      return {
-        ...base,
-        elevation: a.elevation,
-        emitterCoefficient: a.emitterCoefficient,
-        initialQuality: a.initialQuality,
-        chemicalSourceType: a.chemicalSourceType,
-        chemicalSourceStrength: a.chemicalSourceStrength,
-        chemicalSourcePatternId: a.chemicalSourcePatternId,
-      };
-    }
-    case "pipe": {
-      const a = asset as Pipe;
-      return {
-        ...base,
-        initialStatus: a.initialStatus,
-        diameter: a.diameter,
-        length: a.length,
-        roughness: a.roughness,
-        minorLoss: a.minorLoss,
-        bulkReactionCoeff: a.bulkReactionCoeff,
-        wallReactionCoeff: a.wallReactionCoeff,
-      };
-    }
-    case "pump": {
-      const a = asset as Pump;
-      return {
-        ...base,
-        initialStatus: a.initialStatus,
-        speed: a.speed,
-        curveId: a.curveId,
-        energyPrice: a.energyPrice,
-        speedPatternId: a.speedPatternId,
-        efficiencyCurveId: a.efficiencyCurveId,
-        energyPricePatternId: a.energyPricePatternId,
-      };
-    }
-    case "valve": {
-      const a = asset as Valve;
-      return {
-        ...base,
-        kind: a.kind,
-        setting: a.setting,
-        initialStatus: a.initialStatus,
-        diameter: a.diameter,
-        minorLoss: a.minorLoss,
-        curveId: a.curveId,
-      };
-    }
-    case "reservoir": {
-      const a = asset as Reservoir;
-      return {
-        ...base,
-        elevation: a.elevation,
-        head: a.head,
-        headPatternId: a.headPatternId,
-        initialQuality: a.initialQuality,
-        chemicalSourceType: a.chemicalSourceType,
-        chemicalSourceStrength: a.chemicalSourceStrength,
-        chemicalSourcePatternId: a.chemicalSourcePatternId,
-      };
-    }
-    case "tank": {
-      const a = asset as Tank;
-      return {
-        ...base,
-        elevation: a.elevation,
-        initialLevel: a.initialLevel,
-        minLevel: a.minLevel,
-        maxLevel: a.maxLevel,
-        minVolume: a.minVolume,
-        diameter: a.diameter,
-        volumeCurveId: a.volumeCurveId,
-        initialQuality: a.initialQuality,
-        bulkReactionCoeff: a.bulkReactionCoeff,
-        mixingModel: a.mixingModel,
-        mixingFraction: a.mixingFraction,
-        chemicalSourceType: a.chemicalSourceType,
-        chemicalSourceStrength: a.chemicalSourceStrength,
-        chemicalSourcePatternId: a.chemicalSourcePatternId,
-      };
-    }
   }
 }
 
@@ -895,6 +753,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           if (assetId === undefined) return true;
           return labelManager.isLabelAvailable(label, assetType, assetId);
         },
+        (rowIndex: number) => rowsRef.current?.[rowIndex],
       ),
     [
       assetType,
@@ -919,15 +778,13 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         await new Promise((resolve) => setTimeout(resolve, 0));
         if (cancelled) return;
 
-        const result: AssetRow[] = [];
-        for (const id of assetIds) {
-          const asset = hydraulicModel.assets.get(id);
-          if (!asset) continue;
-          const simFields = simulation
-            ? buildSimRow(assetType, id, simulation, translate)
-            : {};
-          result.push({ ...buildAssetRow(assetType, asset), ...simFields });
-        }
+        const result = buildRows(
+          assetType,
+          assetIds,
+          hydraulicModel,
+          simulation,
+          translate,
+        );
         if (!cancelled) setRows(result);
       }
 
@@ -936,7 +793,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         cancelled = true;
       };
     },
-    [assetType, assetIds, hydraulicModel.assets, simulation, translate],
+    [assetType, assetIds, hydraulicModel, simulation, translate],
   );
 
   const onChange = useCallback(
@@ -959,6 +816,11 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           transact(
             changeLabel(hydraulicModel, { assetId, newLabel: newRow.label }),
           );
+        }
+
+        if (newRow.isActive !== oldRow.isActive) {
+          const op = newRow.isActive ? activateAssets : deactivateAssets;
+          transact(op(hydraulicModel, { assetIds: [assetId] }));
         }
 
         const changes: PropertyChange[] = [];

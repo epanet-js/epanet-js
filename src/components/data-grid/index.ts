@@ -8,6 +8,7 @@ export type {
   CellPosition,
 } from "./types";
 
+export { booleanColumn } from "./cells/boolean-cell";
 export { floatColumn } from "./cells/float-cell";
 export { filterableSelectColumn } from "./cells/filterable-select-cell";
 export { textReadonlyColumn } from "./cells/text-readonly-cell";

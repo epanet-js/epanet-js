@@ -111,7 +111,7 @@ export function FloatCell({
 
   if (readonly) {
     return (
-      <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500">
+      <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 bg-gray-50">
         {formattedValue}
       </div>
     );
@@ -149,19 +149,26 @@ export function floatColumn(
     deleteValue?: number | null;
     nullValue?: number | null;
     decimals?: number;
-    readonly?: boolean;
+    isReadOnly?: boolean | ((rowIndex: number) => boolean);
   },
 ): GridColumn {
-  const { nullValue, decimals, readonly } = options;
+  const { nullValue, decimals, isReadOnly: readonly } = options;
+  const isStaticReadOnly = readonly === true;
+  const isDynamicReadOnly = typeof readonly === "function";
+  const resolveReadOnly = (rowIndex: number) =>
+    typeof readonly === "function" ? readonly(rowIndex) : (readonly ?? false);
 
   const CellComponent =
-    nullValue !== undefined || decimals !== undefined || readonly
+    nullValue !== undefined ||
+    decimals !== undefined ||
+    isStaticReadOnly ||
+    isDynamicReadOnly
       ? (props: CellProps<number | null>) => (
           <FloatCell
             {...props}
             nullValue={nullValue}
             decimals={decimals}
-            readonly={readonly}
+            readonly={resolveReadOnly(props.rowIndex)}
           />
         )
       : FloatCell;
@@ -177,6 +184,6 @@ export function floatColumn(
     },
     pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
     deleteValue: options.deleteValue ?? null,
-    ...(readonly ? { disabled: true, disableKeys: true } : {}),
+    ...(isStaticReadOnly ? { disabled: true, disableKeys: true } : {}),
   };
 }

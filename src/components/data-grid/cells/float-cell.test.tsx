@@ -386,7 +386,10 @@ describe("floatColumn", () => {
 
   describe("readonly option", () => {
     it("sets disabled and disableKeys", () => {
-      const column = floatColumn("value", { header: "Value", readonly: true });
+      const column = floatColumn("value", {
+        header: "Value",
+        isReadOnly: true,
+      });
 
       expect(column.disabled).toBe(true);
       expect(column.disableKeys).toBe(true);

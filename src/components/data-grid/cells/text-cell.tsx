@@ -109,7 +109,7 @@ export function TextCell({
 
   if (readonly) {
     return (
-      <div className="w-full h-full flex items-center px-2 text-sm text-gray-500">
+      <div className="w-full h-full flex items-center px-2 text-sm text-gray-500 bg-gray-50">
         {value ?? ""}
       </div>
     );
@@ -143,16 +143,16 @@ export function textColumn(
   options: {
     header: string;
     size?: number;
-    readonly?: boolean;
+    isReadOnly?: boolean;
     validate?: (value: string, rowIndex: number) => boolean;
   },
 ): GridColumn {
-  const { readonly, validate } = options;
+  const { isReadOnly, validate } = options;
 
   const CellComponent =
-    readonly || validate
+    isReadOnly || validate
       ? (props: CellProps<string | null>) => (
-          <TextCell {...props} readonly={readonly} validate={validate} />
+          <TextCell {...props} readonly={isReadOnly} validate={validate} />
         )
       : TextCell;
 
@@ -164,6 +164,6 @@ export function textColumn(
     copyValue: (v) => (v as string | null) ?? "",
     pasteValue: (v) => v || null,
     deleteValue: null,
-    ...(readonly ? { disabled: true, disableKeys: true } : {}),
+    ...(isReadOnly ? { disabled: true, disableKeys: true } : {}),
   };
 }
