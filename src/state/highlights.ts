@@ -4,6 +4,8 @@ import type { AssetId } from "src/hydraulic-model";
 export type MarkerHighlight = {
   type: "marker";
   coordinates: [number, number];
+  nodeType?: "junction" | "tank" | "reservoir";
+  linkType?: "pipe" | "pump" | "valve";
 };
 
 export type AssetHighlight = {

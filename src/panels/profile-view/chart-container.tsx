@@ -13,7 +13,7 @@ import { USelection } from "src/selection/selection";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ProfileTooltip } from "./profile-tooltip";
-import { useChartCursor } from "./use-chart-cursor";
+import { useChartCursor, type HoverMarker } from "./use-chart-cursor";
 import { useChartClick } from "./use-chart-click";
 import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
@@ -61,12 +61,20 @@ export const ChartContainer = memo(function ChartContainer({
   );
 
   const setHoverHighlight = useCallback(
-    (coordinates: [number, number] | null) => {
-      if (!coordinates) {
+    (marker: HoverMarker | null) => {
+      if (!marker) {
         setHighlights([]);
         return;
       }
-      setHighlights([...pathHighlights, { type: "marker", coordinates }]);
+      setHighlights([
+        ...pathHighlights,
+        {
+          type: "marker",
+          coordinates: marker.coordinates,
+          nodeType: marker.nodeType,
+          linkType: marker.linkType,
+        },
+      ]);
     },
     [setHighlights, pathHighlights],
   );

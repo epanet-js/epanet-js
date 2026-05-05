@@ -110,14 +110,10 @@ import {
   ephemeralSelectionOutlineLayer,
 } from "src/map/layers/ephemeral-state";
 import {
-  highlightsIconsHaloLayer,
-  highlightsIconsLayer,
-  highlightsJunctionsLayer,
   highlightsMarkerHaloLayer,
+  highlightsMarkerIconLayer,
   highlightsMarkerLayer,
-  highlightsPipesLayer,
-  highlightsPumpLinesLayer,
-  highlightsValveLinesLayer,
+  highlightsPathHaloLayer,
 } from "src/map/layers/highlights";
 import { gridMinorLayer, gridMajorLayer } from "src/map/layers/grid";
 import {
@@ -203,6 +199,8 @@ export function makeLayers({
     mapOverlayLabelLayer({ source: "map-overlay" }),
     ephemeralHaloLayer({ source: "ephemeral" }),
     ephemeralDraftPathLineLayer({ source: "ephemeral" }),
+    highlightsPathHaloLayer({ source: "highlights" }),
+    highlightsMarkerHaloLayer({ source: "highlights" }),
     pipesLayer({
       source: "main-features",
       layerId: "main-features-pipes",
@@ -292,15 +290,10 @@ export function makeLayers({
       source: "selected-features",
       layerId: "selected-junctions",
     }),
-    highlightsPipesLayer({ source: "highlights" }),
-    highlightsPumpLinesLayer({ source: "highlights" }),
-    highlightsValveLinesLayer({ source: "highlights" }),
-    highlightsJunctionsLayer({ source: "highlights" }),
     selectedIconsHaloLayer({
       source: "selected-features",
       layerId: "selected-icons-halo",
     }),
-    highlightsIconsHaloLayer({ source: "highlights" }),
     ...valveIcons({
       source: "icons",
       layerId: "valve-icons",
@@ -322,8 +315,7 @@ export function makeLayers({
     }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
-    highlightsIconsLayer({ source: "highlights" }),
-    highlightsMarkerHaloLayer({ source: "highlights" }),
+    highlightsMarkerIconLayer({ source: "highlights" }),
     highlightsMarkerLayer({ source: "highlights" }),
     ...linkLabelsLayer({
       sources: ["main-features", "delta-features"],

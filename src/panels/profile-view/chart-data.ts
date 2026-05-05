@@ -465,9 +465,6 @@ function buildPathHighlights(path: PathData): Highlight[] {
   for (const linkId of path.linkIds) {
     items.push({ type: "asset", assetId: linkId });
   }
-  for (const nodeId of path.nodeIds) {
-    items.push({ type: "asset", assetId: nodeId });
-  }
   return items;
 }
 

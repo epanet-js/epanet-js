@@ -428,21 +428,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         const hasAssetHighlights = mapState.highlights.some(
           (h) => h.type === "asset",
         );
-        if (
-          hasNewHighlights ||
-          (hasAssetHighlights &&
-            (hasNewEditions ||
-              hasNewStyles ||
-              hasNewResults ||
-              (hasNewSimulation && mapState.simulation.status !== "running")))
-        ) {
-          await updateHighlightsSource(
-            map,
-            mapState.highlights,
-            assets,
-            units,
-            mapState.resultsReader,
-          );
+        if (hasNewHighlights || (hasAssetHighlights && hasNewEditions)) {
+          await updateHighlightsSource(map, mapState.highlights, assets);
         }
 
         if (
@@ -945,15 +932,8 @@ const updateHighlightsSource = async (
   map: MapEngine,
   highlights: Highlight[],
   assets: AssetsMap,
-  units: UnitsSpec,
-  simulationResults?: ResultsReader | null,
 ): Promise<void> => {
-  const features = buildHighlightsSource(
-    highlights,
-    assets,
-    units,
-    simulationResults,
-  );
+  const features = buildHighlightsSource(highlights, assets);
   await map.setSource("highlights", features);
 };
 

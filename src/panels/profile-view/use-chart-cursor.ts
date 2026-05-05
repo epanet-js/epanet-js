@@ -20,6 +20,12 @@ export type ChartCursorState = {
   content: VisibleTooltipContent;
 } | null;
 
+export type HoverMarker = {
+  coordinates: [number, number];
+  nodeType?: ProfilePoint["nodeType"];
+  linkType?: ProfileLink["type"];
+};
+
 interface UseChartCursorParams {
   containerRef: RefObject<HTMLDivElement | null>;
   chartRef: RefObject<any>;
@@ -28,7 +34,7 @@ interface UseChartCursorParams {
   terrain: TerrainPoint[] | null;
   pressureFactor: number | null;
   pathSegments: PathSegment[];
-  setHoverHighlight: (coordinates: [number, number] | null) => void;
+  setHoverHighlight: (marker: HoverMarker | null) => void;
 }
 
 export function useChartCursor({
@@ -65,8 +71,8 @@ export function useChartCursor({
     if (!el) return;
 
     const scheduleHover = throttle(
-      (coords: [number, number] | null) => {
-        depsRef.current.setHoverHighlight(coords);
+      (marker: HoverMarker | null) => {
+        depsRef.current.setHoverHighlight(marker);
       },
       100,
       { leading: false, trailing: true },
@@ -134,13 +140,23 @@ export function useChartCursor({
       chart.getZr().setCursorStyle(cursorStyle);
       /* eslint-enable */
 
-      const markerCoordinates =
-        snap?.kind === "node"
-          ? deps.points[snap.index].coordinates
-          : snap?.kind === "link"
-            ? coordinatesAtLength(deps.pathSegments, snap.link.midLength)
-            : coordinatesAtLength(deps.pathSegments, cursorX);
-      scheduleHover(markerCoordinates);
+      let marker: HoverMarker | null = null;
+      if (snap?.kind === "node") {
+        marker = {
+          coordinates: deps.points[snap.index].coordinates,
+          nodeType: deps.points[snap.index].nodeType,
+        };
+      } else if (snap?.kind === "link") {
+        const coordinates = coordinatesAtLength(
+          deps.pathSegments,
+          snap.link.midLength,
+        );
+        if (coordinates) marker = { coordinates, linkType: snap.link.type };
+      } else {
+        const coordinates = coordinatesAtLength(deps.pathSegments, cursorX);
+        if (coordinates) marker = { coordinates };
+      }
+      scheduleHover(marker);
 
       const content = getTooltipContent(
         cursorX,
