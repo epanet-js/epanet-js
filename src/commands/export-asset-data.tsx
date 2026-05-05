@@ -8,6 +8,7 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
+import { currentFileNameAtom } from "src/state/file-system";
 import type { ResultsReader } from "src/simulation/results-reader";
 
 export type DataExportOptions = {
@@ -46,9 +47,10 @@ export const useExportAssetData = () => {
 
         const hydraulicModel = get(stagingModelDerivedAtom);
         const resultsReader = (await getResultsReader()) ?? undefined;
+        const networkName = get(currentFileNameAtom);
 
         const doExport = async () => {
-          const fileName = "export";
+          const fileName = networkName ? `export-${networkName}` : "export";
           await Export.exportAssetData(
             fileName,
             options.format,
