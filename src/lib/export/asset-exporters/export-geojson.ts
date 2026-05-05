@@ -49,12 +49,20 @@ const allocateBuffers = (size: number) => {
 };
 
 const assetToGeoJson = (asset: Asset, simulationResults = {}) => {
+  const numberReplacer = (
+    key: string,
+    value: string | number | boolean | object | null,
+  ) => {
+    if (typeof value !== "number") return value;
+    if (Math.trunc(value) === value) return value;
+    return Number(value.toFixed(4));
+  };
   const mapped = {
     type: "Feature",
     geometry: asset?.feature.geometry,
     properties: { ...asset?.feature.properties, ...simulationResults },
   };
-  return JSON.stringify(mapped);
+  return JSON.stringify(mapped, numberReplacer);
 };
 
 const estimateEntrySize = (hydraulicModel: HydraulicModel) => {

@@ -121,15 +121,35 @@ export const exportCsv = (
     parts.length = 0;
     let partIdx = 0;
 
+    const truncateIfNumber = (
+      field: string | number | boolean | null | undefined,
+    ) => {
+      if (field === undefined || field === null) return "";
+      if (typeof field === "number") {
+        if (Math.trunc(field) === field) return field.toString();
+        return field.toFixed(4);
+      }
+      if (typeof field !== "string") return field.toString();
+
+      const asNumber = Number(field);
+      if (Number.isNaN(asNumber)) return field;
+
+      if (Math.trunc(asNumber) === asNumber) return field;
+      return asNumber.toFixed(4);
+    };
+
     properties[asset.type].forEach((property) => {
       const value = asset.getProperty(property);
       const isObject = typeof value === "object" && value !== null;
-      parts[partIdx++] = isObject ? "" : (value?.toString() ?? "");
+      const formatted = truncateIfNumber(value);
+      parts[partIdx++] = isObject ? "" : formatted;
     });
 
     simulationProperties[asset.type].forEach((property) => {
       const originalProperty = property.split("sim_")[1];
-      parts[partIdx++] = simulationValues[originalProperty]?.toString() ?? "";
+      const value = simulationValues[originalProperty];
+      const formatted = truncateIfNumber(value);
+      parts[partIdx++] = formatted;
     });
 
     parts[partIdx++] = "\n";
