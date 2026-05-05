@@ -1,12 +1,18 @@
 import type { SeriesOption } from "echarts";
 import { colors } from "src/lib/constants";
+import { strokeColorFor } from "src/lib/color";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { ProfileLink, ProfilePoint } from "../chart-data";
 import type { SldIcons } from "./use-sld-icons";
 
 const NODE_BORDER_COLOR = "#98abeb";
 
+const SELECTION_COLOR = colors.fuchsia500;
+const SELECTION_STROKE_COLOR = strokeColorFor(SELECTION_COLOR);
+
 const PIPE_SLD_HALF_HEIGHT = 1.5;
+
+const EMPTY_SELECTION: ReadonlySet<number> = new Set();
 
 export type BuildSldSeriesParams = {
   points: ProfilePoint[];
@@ -15,6 +21,7 @@ export type BuildSldSeriesParams = {
   pipeColor: string;
   nodeColor: string;
   sldIcons: SldIcons;
+  selectedIds?: ReadonlySet<number>;
 };
 
 export function buildSldSeries({
@@ -24,17 +31,19 @@ export function buildSldSeries({
   pipeColor,
   nodeColor,
   sldIcons,
+  selectedIds = EMPTY_SELECTION,
 }: BuildSldSeriesParams): SeriesOption[] {
   return traceDuration("DEBUG PROFILE_CHART:sldSeries", () => {
     if (links.length === 0) return [];
     return [
-      pipesSld(links, pipeColor, sldY),
-      pumpValvesSld(links, sldY),
-      junctionsSld(points, nodeColor, sldY),
-      tanksSld(points, sldIcons, sldY),
-      reservoirsSld(points, sldIcons, sldY),
+      pipesSld(links, pipeColor, sldY, selectedIds),
+      ...pumpValvesSld(links, sldY, selectedIds),
+      junctionsSld(points, nodeColor, sldY, selectedIds),
+      tanksSld(points, sldIcons, sldY, selectedIds),
+      reservoirsSld(points, sldIcons, sldY, selectedIds),
       pumpsSld(links, sldIcons, sldY),
       valvesSld(links, sldIcons, sldY),
+      pumpValveSelectionHalo(links, sldY, selectedIds),
     ].filter(notNull);
   });
 }
@@ -43,6 +52,7 @@ function pipesSld(
   links: ProfileLink[],
   pipeColor: string,
   sldY: number,
+  selectedIds: ReadonlySet<number>,
 ): SeriesOption | null {
   const pipes = links.filter((l) => l.type === "pipe");
   if (pipes.length === 0) return null;
@@ -66,6 +76,7 @@ function pipesSld(
       const start = api.coord([pipe.startLength, sldY]);
       const end = api.coord([pipe.endLength, sldY]);
       const width = end[0] - start[0];
+      const fill = selectedIds.has(pipe.linkId) ? SELECTION_COLOR : pipeColor;
       return {
         type: "rect" as const,
         shape: {
@@ -74,7 +85,7 @@ function pipesSld(
           width,
           height: PIPE_SLD_HALF_HEIGHT * 2,
         },
-        style: { fill: pipeColor },
+        style: { fill },
       };
     },
     /* eslint-enable */
@@ -84,18 +95,37 @@ function pipesSld(
 function pumpValvesSld(
   links: ProfileLink[],
   sldY: number,
-): SeriesOption | null {
+  selectedIds: ReadonlySet<number>,
+): SeriesOption[] {
   const pumpValves = links.filter(
     (l) => l.type === "pump" || l.type === "valve",
   );
-  if (pumpValves.length === 0) return null;
-  const color = colors.orange700;
+  if (pumpValves.length === 0) return [];
+
+  const unselected = pumpValves.filter((l) => !selectedIds.has(l.linkId));
+  const selected = pumpValves.filter((l) => selectedIds.has(l.linkId));
+
+  const series: SeriesOption[] = [];
+  if (unselected.length > 0) {
+    series.push(buildPumpValveLineSeries(unselected, sldY, colors.orange700));
+  }
+  if (selected.length > 0) {
+    series.push(buildPumpValveLineSeries(selected, sldY, SELECTION_COLOR));
+  }
+  return series;
+}
+
+function buildPumpValveLineSeries(
+  segments: ProfileLink[],
+  sldY: number,
+  color: string,
+): SeriesOption {
   return {
     type: "line" as const,
     name: "sldPumpValves",
     xAxisIndex: 1,
     yAxisIndex: 1,
-    data: buildSegmentData(pumpValves, sldY),
+    data: buildSegmentData(segments, sldY),
     lineStyle: { color, width: 3 },
     itemStyle: { color },
     symbol: "circle",
@@ -110,6 +140,7 @@ function junctionsSld(
   points: ProfilePoint[],
   nodeColor: string,
   sldY: number,
+  selectedIds: ReadonlySet<number>,
 ): SeriesOption | null {
   const junctions = points.filter((p) => p.nodeType === "junction");
   if (junctions.length === 0) return null;
@@ -121,6 +152,14 @@ function junctionsSld(
     data: junctions.map((j) => ({
       value: [j.cumulativeLength, sldY],
       nodeId: j.nodeId,
+      itemStyle: selectedIds.has(j.nodeId)
+        ? {
+            color: SELECTION_COLOR,
+            borderColor: SELECTION_STROKE_COLOR,
+            borderWidth: 1,
+            opacity: 1,
+          }
+        : undefined,
     })),
     symbol: "circle",
     symbolSize: 7,
@@ -139,10 +178,12 @@ function tanksSld(
   points: ProfilePoint[],
   sldIcons: SldIcons,
   sldY: number,
+  selectedIds: ReadonlySet<number>,
 ): SeriesOption | null {
   const tanks = points.filter((p) => p.nodeType === "tank");
   if (tanks.length === 0) return null;
   const tankUrl = sldIcons.iconUrl("tank");
+  const tankSelectedUrl = sldIcons.iconUrl("tank-selected");
   return {
     type: "scatter" as const,
     name: "sldNodes",
@@ -151,7 +192,10 @@ function tanksSld(
     data: tanks.map((t) => ({
       value: [t.cumulativeLength, sldY],
       nodeId: t.nodeId,
-      symbol: tankUrl ? `image://${tankUrl}` : "rect",
+      symbol: pickIconSymbol(
+        selectedIds.has(t.nodeId) ? tankSelectedUrl : tankUrl,
+        "rect",
+      ),
     })),
     symbolSize: 18,
     itemStyle: { opacity: 1 },
@@ -164,10 +208,12 @@ function reservoirsSld(
   points: ProfilePoint[],
   sldIcons: SldIcons,
   sldY: number,
+  selectedIds: ReadonlySet<number>,
 ): SeriesOption | null {
   const reservoirs = points.filter((p) => p.nodeType === "reservoir");
   if (reservoirs.length === 0) return null;
   const reservoirUrl = sldIcons.iconUrl("reservoir");
+  const reservoirSelectedUrl = sldIcons.iconUrl("reservoir-selected");
   return {
     type: "scatter" as const,
     name: "sldNodes",
@@ -176,13 +222,20 @@ function reservoirsSld(
     data: reservoirs.map((r) => ({
       value: [r.cumulativeLength, sldY],
       nodeId: r.nodeId,
-      symbol: reservoirUrl ? `image://${reservoirUrl}` : "diamond",
+      symbol: pickIconSymbol(
+        selectedIds.has(r.nodeId) ? reservoirSelectedUrl : reservoirUrl,
+        "diamond",
+      ),
     })),
     symbolSize: 18,
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
     z: 5,
   };
+}
+
+function pickIconSymbol(url: string | null, fallback: string): string {
+  return url ? `image://${url}` : fallback;
 }
 
 function pumpsSld(
@@ -238,6 +291,34 @@ function valvesSld(
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
     z: 10,
+  };
+}
+
+function pumpValveSelectionHalo(
+  links: ProfileLink[],
+  sldY: number,
+  selectedIds: ReadonlySet<number>,
+): SeriesOption | null {
+  const selected = links.filter(
+    (l) =>
+      (l.type === "pump" || l.type === "valve") && selectedIds.has(l.linkId),
+  );
+  if (selected.length === 0) return null;
+  return {
+    type: "scatter" as const,
+    name: "sldPumpValveSelectionHalo",
+    xAxisIndex: 1,
+    yAxisIndex: 1,
+    data: selected.map((l) => ({
+      value: [l.midLength, sldY],
+      linkId: l.linkId,
+    })),
+    symbol: "circle",
+    symbolSize: 24,
+    itemStyle: { color: SELECTION_COLOR, opacity: 0.8 },
+    silent: true,
+    tooltip: { show: false },
+    z: 9,
   };
 }
 

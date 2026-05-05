@@ -8,6 +8,8 @@ import { buildProfileChartOption, profileGridTopOffset } from "./chart-options";
 import { useTranslate } from "src/hooks/use-translate";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { highlightsAtom } from "src/state/highlights";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection/selection";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ProfileTooltip } from "./profile-tooltip";
@@ -48,9 +50,15 @@ export const ChartContainer = memo(function ChartContainer({
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const sldIcons = useSldIcons();
   const setHighlights = useSetAtom(highlightsAtom);
+  const selection = useAtomValue(selectionAtom);
 
   const linkColor = linkSymbology.defaults.color;
   const nodeColor = nodeSymbology.defaults.color;
+
+  const selectedIds = useMemo(
+    () => new Set<number>(USelection.toIds(selection)),
+    [selection],
+  );
 
   const setHoverHighlight = useCallback(
     (coordinates: [number, number] | null) => {
@@ -110,8 +118,9 @@ export const ChartContainer = memo(function ChartContainer({
         pipeColor: linkColor,
         nodeColor,
         sldIcons,
+        selectedIds,
       }),
-    [points, links, sldY, linkColor, nodeColor, sldIcons],
+    [points, links, sldY, linkColor, nodeColor, sldIcons, selectedIds],
   );
 
   const profileGridTop = profileGridTopOffset(hasSimulation);
