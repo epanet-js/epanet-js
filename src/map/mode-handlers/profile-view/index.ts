@@ -56,7 +56,6 @@ export function useProfileViewHandlers(
 
     if (plot !== null) {
       setProfileView(null);
-      setSelection(SELECTION_NONE);
       setEphemeralState({ type: "profileView", startNodeId: nodeId });
       return;
     }
