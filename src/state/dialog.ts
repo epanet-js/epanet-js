@@ -200,6 +200,18 @@ export type ProfileNoPathDialogState = {
   type: "profileNoPath";
 };
 
+export type ChartBuilderDialogState = {
+  type: "chartBuilder";
+};
+
+export type ChartBuilderChartDialogState = {
+  type: "chartBuilderChart";
+  selectedAssetIds: number[];
+  nodeProperty: string | null;
+  linkProperty: string | null;
+  chartTitle: string;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -241,6 +253,8 @@ export type DialogState =
   | ExportAssetDataDialogState
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState
+  | ChartBuilderDialogState
+  | ChartBuilderChartDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

@@ -411,6 +411,33 @@ const ExportAssetDataDialog = dynamic<{
   },
 );
 
+const ChartBuilderWizard = dynamic<{
+  isOpen: boolean;
+  onClose: () => void;
+}>(
+  () => import("src/dialogs/chart-builder").then((r) => r.ChartBuilderWizard),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
+const ChartBuilderChartDialog = dynamic<{
+  isOpen: boolean;
+  onClose: () => void;
+  selectedAssetIds: number[];
+  nodeProperty: string | null;
+  linkProperty: string | null;
+  chartTitle: string;
+}>(
+  () =>
+    import("src/dialogs/chart-builder/chart-dialog").then(
+      (r) => r.ChartBuilderChartDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -677,6 +704,22 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "profileNoPath" }, () => (
       <ProfileNoPathDialog onClose={onClose} />
     ))
+    .with({ type: "chartBuilder" }, () => (
+      <ChartBuilderWizard isOpen onClose={onClose} />
+    ))
+    .with(
+      { type: "chartBuilderChart" },
+      ({ selectedAssetIds, nodeProperty, linkProperty, chartTitle }) => (
+        <ChartBuilderChartDialog
+          isOpen
+          onClose={onClose}
+          selectedAssetIds={selectedAssetIds}
+          nodeProperty={nodeProperty}
+          linkProperty={linkProperty}
+          chartTitle={chartTitle}
+        />
+      ),
+    )
     .exhaustive();
 
   return content;

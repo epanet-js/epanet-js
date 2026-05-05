@@ -16,6 +16,7 @@ import {
   PanelRightActiveIcon,
   PanelRightIcon,
   SearchIcon,
+  ChartLineIcon,
 } from "src/icons";
 import Modes from "./modes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -48,6 +49,8 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
+import { useShowQuickGraph } from "src/panels/asset-panel/quick-graph";
+import { dialogAtom } from "src/state/dialog";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -73,7 +76,10 @@ export const Toolbar = ({
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const isChartBuilderOn = useFeatureFlag("FLAG_CHART_BUILDER");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
+  const setDialog = useSetAtom(dialogAtom);
+  const showQuickGraph = useShowQuickGraph();
 
   const { undo, redo } = useHistoryControl();
 
@@ -216,6 +222,16 @@ export const Toolbar = ({
         >
           <FileTextIcon />
         </MenuAction>
+        {isChartBuilderOn && (
+          <MenuAction
+            label={translate("chartBuilder.label")}
+            role="button"
+            onClick={() => setDialog({ type: "chartBuilder" })}
+            disabled={!showQuickGraph}
+          >
+            <ChartLineIcon />
+          </MenuAction>
+        )}
         <Divider />
         <OperationalDataDropdown />
       </div>

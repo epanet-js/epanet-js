@@ -457,8 +457,13 @@ export function valvesStripPlot(
   };
 }
 
-function buildSegmentData(segments: ProfileLink[], stripY: number) {
-  const data: any[] = [];
+type SegmentPoint = { value: [number, number]; linkId: number } | null;
+
+function buildSegmentData(
+  segments: ProfileLink[],
+  stripY: number,
+): SegmentPoint[] {
+  const data: SegmentPoint[] = [];
   for (const seg of segments) {
     data.push({ value: [seg.startLength, stripY], linkId: seg.linkId });
     data.push({ value: [seg.endLength, stripY], linkId: seg.linkId });

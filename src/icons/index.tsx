@@ -7,6 +7,7 @@ import {
   ArrowUpNarrowWide,
   Bell,
   ChartColumn,
+  ChartLine,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -225,6 +226,7 @@ export const LocateIcon = icon(Locate);
 export const LocateOffIcon = icon(LocateOff);
 export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
+export const ChartLineIcon = icon(ChartLine);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
 

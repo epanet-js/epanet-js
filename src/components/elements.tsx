@@ -284,7 +284,7 @@ export const styledDialogContent = ({
       md: "h-[300px]",
       lg: "h-[480px]",
       xl: "h-[640px]",
-      xxl: "h-[848px]",
+      xxl: "h-full",
     }[height];
 
   return clsx(

@@ -27,7 +27,7 @@ import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
 
-const QUICK_GRAPH_PROPERTIES: {
+export const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
     value: QuickGraphPropertyByAssetType[K];
     labelKey: string;
@@ -72,7 +72,7 @@ const QUICK_GRAPH_PROPERTIES: {
   ],
 };
 
-const QUALITY_OPTIONS: {
+export const QUALITY_OPTIONS: {
   value: string;
   quantityKey: QuantityProperty;
 }[] = [
