@@ -107,13 +107,13 @@ export const exportShapefiles = (
       encoder,
     );
     inferFieldType(
-      ensureField(customerPointWriter.fields, "x"),
+      ensureField(customerPointWriter.fields, "positionX"),
       point.coordinates[0],
       scratch,
       encoder,
     );
     inferFieldType(
-      ensureField(customerPointWriter.fields, "y"),
+      ensureField(customerPointWriter.fields, "positionY"),
       point.coordinates[1],
       scratch,
       encoder,

@@ -260,8 +260,8 @@ describe("exportShapefiles", () => {
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("LABEL");
-    expect(text).toContain("X");
-    expect(text).toContain("Y");
+    expect(text).toContain("POSITIONX");
+    expect(text).toContain("POSITIONY");
     expect(text).toContain("JUNCTIONCO");
     expect(text).toContain("PIPECONNEC");
   });

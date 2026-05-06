@@ -84,16 +84,16 @@ describe("export-csv", () => {
 
     expect(headers).toEqual([
       "label",
-      "x",
-      "y",
+      "positionX",
+      "positionY",
       "junctionConnection",
       "pipeConnection",
       "connectionX",
       "connectionY",
     ]);
     expect(row.label).toBe("CP1");
-    expect(row.x).toBe("1.1234");
-    expect(row.y).toBe("2.5678");
+    expect(row.positionX).toBe("1.1234");
+    expect(row.positionY).toBe("2.5678");
     expect(row.junctionConnection).toBe("J1");
     expect(row.pipeConnection).toBe("P1");
     expect(row.connectionX).toBe("1.1234");

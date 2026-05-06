@@ -136,8 +136,8 @@ export const exportCsv = (
     let partIdx = 0;
 
     parts[partIdx++] = "label";
-    parts[partIdx++] = "x";
-    parts[partIdx++] = "y";
+    parts[partIdx++] = "positionX";
+    parts[partIdx++] = "positionY";
     parts[partIdx++] = "junctionConnection";
     parts[partIdx++] = "pipeConnection";
     parts[partIdx++] = "connectionX";
