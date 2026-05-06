@@ -1,10 +1,9 @@
-import { type Field, type FieldInfo } from "./schema";
+import { type Field } from "./schema";
 
 export class AssetWriter {
   readonly shapeType: 1 | 3;
   recordCount = 0;
   shpBodyBytes = 0;
-  fields: Map<string, FieldInfo> = new Map();
   frozenSchema: Field[] = [];
   recordLength = 0;
 

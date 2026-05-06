@@ -1,12 +1,8 @@
 import { AssetWriter } from "./asset-writer";
 import { writePoint, writePolyLine } from "./geometry-writer";
-import { freezeSchema } from "./schema";
-
-const encoder = new TextEncoder();
 
 function makeWriter(shapeType: 1 | 3, shpBodyBytes: number) {
   const w = new AssetWriter(shapeType);
-  w.frozenSchema = freezeSchema(w.fields, encoder);
   w.recordCount = 1;
   w.shpBodyBytes = shpBodyBytes;
   w.allocate();

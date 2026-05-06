@@ -1,9 +1,13 @@
 import { AssetWriter } from "./asset-writer";
-import { ensureField, freezeSchema } from "./schema";
+import { type Field } from "./schema";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 const encoder = new TextEncoder();
+
+// Resolved field length for N is always DBF_NUMBER_LENGTH
+const N_LEN = DBF_NUMBER_LENGTH;
+const N_DEC = DBF_NUMBER_DECIMALS;
 
 type FieldDef = {
   key: string;
@@ -11,24 +15,36 @@ type FieldDef = {
   length: number;
 };
 
+function makeFields(fieldDefs: FieldDef[]): Field[] {
+  let offset = 1;
+  return fieldDefs.map((f) => {
+    const length =
+      f.type === "N" ? DBF_NUMBER_LENGTH : f.type === "L" ? 1 : f.length;
+    const decimals = f.type === "N" ? DBF_NUMBER_DECIMALS : 0;
+    const dbfName = f.key.toUpperCase().slice(0, 10);
+    const field: Field = {
+      originalKey: f.key,
+      dbfName,
+      dbfNameBytes: encoder.encode(dbfName),
+      type: f.type,
+      length,
+      decimals,
+      offsetInRecord: offset,
+    };
+    offset += length;
+    return field;
+  });
+}
+
 function makeWriter(fieldDefs: FieldDef[], recordCount = 1) {
   const w = new AssetWriter(1);
-  for (const f of fieldDefs) {
-    const info = ensureField(w.fields, f.key);
-    info.dbfType = f.type;
-    info.maxLength = f.length;
-  }
-  w.frozenSchema = freezeSchema(w.fields, encoder);
+  w.frozenSchema = makeFields(fieldDefs);
   w.recordCount = recordCount;
   w.shpBodyBytes = 28 * recordCount;
   w.allocate();
   writeDbfHeader(w);
   return w;
 }
-
-// Resolved field length for N is always DBF_NUMBER_LENGTH
-const N_LEN = DBF_NUMBER_LENGTH;
-const N_DEC = DBF_NUMBER_DECIMALS;
 
 describe("writeDbfHeader", () => {
   it("writes dBase III marker (0x03) at byte 0", () => {

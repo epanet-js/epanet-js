@@ -1,8 +1,5 @@
 import { AssetWriter } from "./asset-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
-import { freezeSchema } from "./schema";
-
-const encoder = new TextEncoder();
 
 function makeAllocatedWriter(
   shapeType: 1 | 3,
@@ -10,7 +7,6 @@ function makeAllocatedWriter(
   shpBodyBytes = 28,
 ) {
   const w = new AssetWriter(shapeType);
-  w.frozenSchema = freezeSchema(w.fields, encoder);
   w.recordCount = recordCount;
   w.shpBodyBytes = shpBodyBytes;
   w.allocate();

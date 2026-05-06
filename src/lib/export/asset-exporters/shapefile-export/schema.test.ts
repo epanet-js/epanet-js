@@ -1,190 +1,76 @@
-import { ensureField, freezeSchema, inferFieldType } from "./schema";
+import { buildSchema } from "./schema";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 const encoder = new TextEncoder();
-const scratch = new Uint8Array(1024);
 
-describe("inferFieldType", () => {
-  it("null/undefined: ensures field exists, leaves dbfType null", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, null, scratch, encoder);
-    inferFieldType(info, undefined, scratch, encoder);
-    expect(info.dbfType).toBeNull();
+describe("buildSchema", () => {
+  it("returns an empty array for an empty key set", () => {
+    expect(buildSchema([], encoder)).toEqual([]);
   });
 
-  it("boolean: sets L type with length 1", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, true, scratch, encoder);
-    expect(info.dbfType).toBe("L");
-    expect(info.maxLength).toBe(1);
+  it("skips keys not in PROPERTY_SCHEMA", () => {
+    const fields = buildSchema(["unknownKey", "anotherUnknown"], encoder);
+    expect(fields).toHaveLength(0);
   });
 
-  it("number: sets N type", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, 3.14, scratch, encoder);
-    expect(info.dbfType).toBe("N");
+  it("maps a number property to an N field with fixed length and decimals", () => {
+    const [field] = buildSchema(["elevation"], encoder);
+    expect(field.type).toBe("N");
+    expect(field.length).toBe(DBF_NUMBER_LENGTH);
+    expect(field.decimals).toBe(DBF_NUMBER_DECIMALS);
+    expect(field.dbfName).toBe("ELEVATION");
   });
 
-  it("number: stays N across multiple values", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, 1.5, scratch, encoder);
-    inferFieldType(info, 100.123, scratch, encoder);
-    inferFieldType(info, -9.9, scratch, encoder);
-    expect(info.dbfType).toBe("N");
+  it("maps a boolean property to an L field with length 1 and decimals 0", () => {
+    const [field] = buildSchema(["overflow"], encoder);
+    expect(field.type).toBe("L");
+    expect(field.length).toBe(1);
+    expect(field.decimals).toBe(0);
+    expect(field.dbfName).toBe("OVERFLOW");
   });
 
-  it("string: sets C type with byte length", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, "hello", scratch, encoder);
-    expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(5);
+  it("maps a string property to a C field with fixed length and decimals 0", () => {
+    const [field] = buildSchema(["label"], encoder);
+    expect(field.type).toBe("C");
+    expect(field.length).toBeGreaterThan(0);
+    expect(field.decimals).toBe(0);
+    expect(field.dbfName).toBe("LABEL");
   });
 
-  it("object: JSON.stringify, treated as C type", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, { a: 1 }, scratch, encoder);
-    expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(JSON.stringify({ a: 1 }).length);
+  it("preserves the original JS key in originalKey", () => {
+    const [field] = buildSchema(["junctionConnection"], encoder);
+    expect(field.originalKey).toBe("junctionConnection");
+    expect(field.dbfName).toBe("JUNCCONN");
   });
 
-  it("type promotion: number then string → C, maxLength = max(DBF_NUMBER_LENGTH, string length)", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, 42, scratch, encoder);
-    inferFieldType(info, "longstring", scratch, encoder);
-    expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(DBF_NUMBER_LENGTH); // DBF_NUMBER_LENGTH > "longstring".length
-    expect(info.promotedToString).toBe(true);
+  it("encodes dbfNameBytes as UTF-8 matching the dbfName", () => {
+    const [field] = buildSchema(["pressure"], encoder);
+    expect(field.dbfNameBytes).toEqual(encoder.encode("PRESSURE"));
   });
 
-  it("type promotion: number then long string → C, maxLength = string length when longer", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, 42, scratch, encoder);
-    const longStr = "a".repeat(DBF_NUMBER_LENGTH + 5);
-    inferFieldType(info, longStr, scratch, encoder);
-    expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(DBF_NUMBER_LENGTH + 5);
+  it("assigns offsetInRecord starting at 1, accumulating field lengths", () => {
+    const fields = buildSchema(["label", "elevation", "overflow"], encoder);
+    expect(fields[0].offsetInRecord).toBe(1);
+    expect(fields[1].offsetInRecord).toBe(1 + fields[0].length);
+    expect(fields[2].offsetInRecord).toBe(1 + fields[0].length + fields[1].length);
   });
 
-  it("type promotion: boolean then number → C", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, true, scratch, encoder);
-    inferFieldType(info, 42, scratch, encoder);
-    expect(info.dbfType).toBe("C");
-  });
-
-  it("non-ASCII string: measures byte length", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "x");
-    inferFieldType(info, "héllo", scratch, encoder); // 'é' is 2 bytes in UTF-8
-    expect(info.dbfType).toBe("C");
-    expect(info.maxLength).toBe(6); // 5 chars but 6 UTF-8 bytes
-    expect(info.hasNonAscii).toBe(true);
-  });
-});
-
-describe("freezeSchema", () => {
-  it("L type: length=1, decimals=0", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "active");
-    info.dbfType = "L";
-    info.maxLength = 1;
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].type).toBe("L");
-    expect(schema[0].length).toBe(1);
-    expect(schema[0].decimals).toBe(0);
-  });
-
-  it("N type: uses fixed DBF_NUMBER_LENGTH and DBF_NUMBER_DECIMALS", () => {
-    const fields = new Map();
-    ensureField(fields, "val").dbfType = "N";
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].length).toBe(DBF_NUMBER_LENGTH);
-    expect(schema[0].decimals).toBe(DBF_NUMBER_DECIMALS);
-  });
-
-  it("C type: capped at 254", () => {
-    const fields = new Map();
-    const info = ensureField(fields, "text");
-    info.dbfType = "C";
-    info.maxLength = 300;
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].length).toBe(254);
-  });
-
-  it("null dbfType (only nulls): C with length 1", () => {
-    const fields = new Map();
-    ensureField(fields, "x");
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].type).toBe("C");
-    expect(schema[0].length).toBe(1);
-  });
-
-  it("sanitizes field name: uppercase and replaces non-alphanumeric", () => {
-    const fields = new Map();
-    ensureField(fields, "pipe-length (m)").dbfType = "N";
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].dbfName).toBe("PIPE_LENGT");
-  });
-
-  it("truncates name to 10 chars", () => {
-    const fields = new Map();
-    ensureField(fields, "averylongerpropertyname").dbfType = "C";
-    ensureField(fields, "averylongerpropertyname").maxLength = 5;
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].dbfName.length).toBeLessThanOrEqual(10);
-  });
-
-  it("resolves collisions with numeric suffix", () => {
-    const fields = new Map();
-    // Both truncate to "ABCDEFGHIJ" (10 chars)
-    const a = ensureField(fields, "abcdefghij");
-    a.dbfType = "C";
-    a.maxLength = 3;
-    const b = ensureField(fields, "abcdefghijXX");
-    b.dbfType = "C";
-    b.maxLength = 3;
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].dbfName).toBe("ABCDEFGHIJ");
-    expect(schema[1].dbfName).toBe("ABCDEFGHI1");
-    expect(schema[1].dbfName.length).toBeLessThanOrEqual(10);
-  });
-
-  it("computes offsetInRecord starting at 1 (after deletion flag)", () => {
-    const fields = new Map();
-    const a = ensureField(fields, "a");
-    a.dbfType = "C";
-    a.maxLength = 5;
-    const b = ensureField(fields, "b");
-    b.dbfType = "C";
-    b.maxLength = 3;
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].offsetInRecord).toBe(1);
-    expect(schema[1].offsetInRecord).toBe(6); // 1 + 5
-  });
-
-  it("dbfNameBytes is pre-encoded and ≤10 bytes", () => {
-    const fields = new Map();
-    ensureField(fields, "label").dbfType = "C";
-
-    const schema = freezeSchema(fields, encoder);
-    expect(schema[0].dbfNameBytes).toBeInstanceOf(Uint8Array);
-    expect(schema[0].dbfNameBytes.length).toBeLessThanOrEqual(10);
+  it("uses the correct fixed DBF key for remapped properties", () => {
+    const cases: [string, string][] = [
+      ["bulkReactionCoeff", "BULKCOEFF"],
+      ["wallReactionCoeff", "WALLCOEFF"],
+      ["junctionConnection", "JUNCCONN"],
+      ["pipeConnection", "PIPECONN"],
+      ["connectionX", "CONNX"],
+      ["connectionY", "CONNY"],
+      ["positionX", "POSX"],
+      ["positionY", "POSY"],
+      ["startNode", "STARTNODE"],
+      ["endNode", "ENDNODE"],
+    ];
+    for (const [key, expectedDbfKey] of cases) {
+      const [field] = buildSchema([key], encoder);
+      expect(field.dbfName).toBe(expectedDbfKey);
+    }
   });
 });

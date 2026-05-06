@@ -1,26 +1,12 @@
 import { AssetWriter } from "./asset-writer";
 import { DBF_NUMBER_DECIMALS, DBF_NUMBER_LENGTH } from "./constants";
-import { freezeSchema, ensureField } from "./schema";
+import { buildSchema } from "./schema";
 
 const encoder = new TextEncoder();
 
-function makeWriter(
-  shapeType: 1 | 3,
-  fieldDefs: {
-    key: string;
-    type: "C" | "N" | "L";
-    length: number;
-    decimals?: number;
-  }[] = [],
-) {
+function makeWriter(shapeType: 1 | 3, fieldKeys: string[] = []) {
   const w = new AssetWriter(shapeType);
-  for (const f of fieldDefs) {
-    const info = ensureField(w.fields, f.key);
-    info.dbfType = f.type;
-    info.maxLength = f.length;
-    info.maxDecimals = f.decimals ?? 0;
-  }
-  w.frozenSchema = freezeSchema(w.fields, encoder);
+  w.frozenSchema = buildSchema(fieldKeys, encoder);
   return w;
 }
 
@@ -34,7 +20,6 @@ describe("AssetWriter constructor", () => {
     const w = new AssetWriter(1);
     expect(w.recordCount).toBe(0);
     expect(w.shpBodyBytes).toBe(0);
-    expect(w.fields.size).toBe(0);
     expect(w.frozenSchema).toEqual([]);
     expect(w.bbox).toEqual({
       xmin: Infinity,
@@ -74,19 +59,12 @@ describe("AssetWriter.allocate", () => {
   });
 
   it("computes recordLength as 1 (flag) + sum of field lengths", () => {
-    const w = makeWriter(1, [
-      { key: "name", type: "C", length: 10 },
-      {
-        key: "value",
-        type: "N",
-        length: DBF_NUMBER_LENGTH,
-        decimals: DBF_NUMBER_DECIMALS,
-      },
-    ]);
+    // "label": C(50), "pressure": N(DBF_NUMBER_LENGTH)
+    const w = makeWriter(1, ["label", "pressure"]);
     w.recordCount = 1;
     w.shpBodyBytes = 28;
     w.allocate();
-    expect(w.recordLength).toBe(1 + 10 + DBF_NUMBER_LENGTH);
+    expect(w.recordLength).toBe(1 + 50 + DBF_NUMBER_LENGTH);
   });
 
   it("allocates dbf buffer of correct size with no fields", () => {
@@ -100,7 +78,8 @@ describe("AssetWriter.allocate", () => {
   });
 
   it("sets dbfCursor to start of first record (after header + terminator)", () => {
-    const w = makeWriter(1, [{ key: "x", type: "C", length: 5 }]);
+    // "label": C(50) → 1 field
+    const w = makeWriter(1, ["label"]);
     w.recordCount = 2;
     w.shpBodyBytes = 56;
     w.allocate();

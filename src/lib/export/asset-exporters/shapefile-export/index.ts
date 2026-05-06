@@ -3,11 +3,21 @@ import { type ResultsReader } from "src/simulation";
 import { type ExportedAssetTypes, type ExportedFile } from "../../types";
 import { SHAPE_POINT, SHAPE_POLYLINE, PRJ_BYTES, CPG_BYTES } from "./constants";
 import { AssetWriter } from "./asset-writer";
-import { ensureField, inferFieldType, freezeSchema } from "./schema";
+import { buildSchema } from "./schema";
 import { writePoint, writePolyLine } from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
 import { FILE_NAMES } from "../constants";
+
+const CUSTOMER_POINT_FIELDS = [
+  "label",
+  "positionX",
+  "positionY",
+  "junctionConnection",
+  "pipeConnection",
+  "connectionX",
+  "connectionY",
+] as const;
 
 export const exportShapefiles = (
   hydraulicModel: HydraulicModel,
@@ -26,9 +36,17 @@ export const exportShapefiles = (
   };
 
   const encoder = new TextEncoder();
-  const scratch = new Uint8Array(1024);
   const hasSelection = selectedAssets.size > 0;
   const getSimResults = buildSimulationResultsReader(resultsReader);
+  const seenFields: Record<ExportedAssetTypes, Set<string>> = {
+    junction: new Set(),
+    reservoir: new Set(),
+    tank: new Set(),
+    pipe: new Set(),
+    pump: new Set(),
+    valve: new Set(),
+    customerPoint: new Set(CUSTOMER_POINT_FIELDS),
+  };
 
   for (const asset of hydraulicModel.assets.values()) {
     if (hasSelection && !selectedAssets.has(asset.id)) continue;
@@ -47,27 +65,11 @@ export const exportShapefiles = (
     for (const key in props) {
       if (key === "type") continue;
       if (key === "connections") {
-        const [firstId, secondId] = props.connections as number[];
-        inferFieldType(
-          ensureField(writer.fields, "startNode"),
-          hydraulicModel.assets.get(firstId)?.label ?? "",
-          scratch,
-          encoder,
-        );
-        inferFieldType(
-          ensureField(writer.fields, "endNode"),
-          hydraulicModel.assets.get(secondId)?.label ?? "",
-          scratch,
-          encoder,
-        );
+        seenFields[asset.type].add("startNode");
+        seenFields[asset.type].add("endNode");
         continue;
       }
-      inferFieldType(
-        ensureField(writer.fields, key),
-        props[key],
-        scratch,
-        encoder,
-      );
+      seenFields[asset.type].add(key);
     }
 
     if (includeSimulationResults) {
@@ -76,79 +78,22 @@ export const exportShapefiles = (
         unknown
       >;
       for (const key in simValues) {
-        inferFieldType(
-          ensureField(writer.fields, key),
-          simValues[key],
-          scratch,
-          encoder,
-        );
+        seenFields[asset.type].add(key);
       }
     }
   }
 
-  const customerPointWriter = writers["customerPoint"];
   for (const point of hydraulicModel.customerPoints.values()) {
-    customerPointWriter.recordCount++;
-    customerPointWriter.shpBodyBytes += 28;
-
-    const junctionConnection =
-      point.connection !== null
-        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
-        : "";
-    const pipeConnection =
-      point.connection !== null
-        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
-        : "";
-
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "label"),
-      point.label,
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "positionX"),
-      point.coordinates[0],
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "positionY"),
-      point.coordinates[1],
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "junctionConnection"),
-      junctionConnection,
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "pipeConnection"),
-      pipeConnection,
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "connectionX"),
-      point.connection?.snapPoint[0] ?? null,
-      scratch,
-      encoder,
-    );
-    inferFieldType(
-      ensureField(customerPointWriter.fields, "connectionY"),
-      point.connection?.snapPoint[1] ?? null,
-      scratch,
-      encoder,
-    );
+    writers["customerPoint"].recordCount++;
+    writers["customerPoint"].shpBodyBytes += 28;
   }
 
   for (const type in writers) {
-    const writer = writers[type as ExportedAssetTypes];
+    const t = type as ExportedAssetTypes;
+    const writer = writers[t];
     if (writer.recordCount === 0) continue;
 
-    writer.frozenSchema = freezeSchema(writer.fields, encoder);
+    writer.frozenSchema = buildSchema(seenFields[t], encoder);
     writer.allocate();
     writeShpHeader(writer);
     writeShxHeader(writer);
@@ -190,6 +135,7 @@ export const exportShapefiles = (
     writeDbfRecord(writer, props, simValues, encoder);
   }
 
+  const customerPointWriter = writers["customerPoint"];
   for (const point of hydraulicModel.customerPoints.values()) {
     const recordIndex = customerPointWriter.nextRecordIndex();
     const shxOffsetWords = customerPointWriter.shpCursor / 2;
