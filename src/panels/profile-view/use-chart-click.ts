@@ -7,7 +7,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { USelection } from "src/selection/selection";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
-import { pickSldSnap } from "./snap";
+import { isNearMainPlotLine, pickSldSnap } from "./snap";
 
 interface UseChartClickParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -15,6 +15,8 @@ interface UseChartClickParams {
   points: ProfilePoint[];
   links: ProfileLink[];
 }
+
+const DRAG_THRESHOLD_PX = 4;
 
 export function useChartClick({
   containerRef,
@@ -48,7 +50,21 @@ export function useChartClick({
     const el = containerRef.current;
     if (!el) return;
 
+    let mouseDownPos: { x: number; y: number } | null = null;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      mouseDownPos = { x: e.clientX, y: e.clientY };
+    };
+
     const handleClick = (e: MouseEvent) => {
+      const start = mouseDownPos;
+      mouseDownPos = null;
+      if (start) {
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) return;
+      }
+
       const chart = chartRef.current;
       if (!chart) return;
       const rect = el.getBoundingClientRect();
@@ -66,6 +82,8 @@ export function useChartClick({
 
       const deps = depsRef.current;
       const snap = pickSldSnap(chart, deps.points, deps.links, px);
+      const inSldGrid = chart.containPixel({ gridIndex: 1 }, [px, py]);
+      const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
       /* eslint-enable */
 
       if (snap?.kind === "link") {
@@ -90,17 +108,24 @@ export function useChartClick({
       }
 
       const link = findLinkAt(cursorX, deps.links);
-      if (link) {
-        deps.setSelection(
-          USelection.toggleSingleSelectionId(deps.selection, link.linkId),
-        );
-        deps.setTab(TabOption.Asset);
-        deps.setMode({ mode: Mode.NONE });
-      }
+      if (!link) return;
+
+      const isOverSelectable =
+        (inSldGrid && link !== null) ||
+        (inMainGrid && isNearMainPlotLine(chart, cursorX, py, deps.points));
+      if (!isOverSelectable) return;
+
+      deps.setSelection(
+        USelection.toggleSingleSelectionId(deps.selection, link.linkId),
+      );
+      deps.setTab(TabOption.Asset);
+      deps.setMode({ mode: Mode.NONE });
     };
 
+    el.addEventListener("mousedown", handleMouseDown);
     el.addEventListener("click", handleClick);
     return () => {
+      el.removeEventListener("mousedown", handleMouseDown);
       el.removeEventListener("click", handleClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

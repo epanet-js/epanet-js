@@ -1,4 +1,5 @@
 import type { ProfileLink, ProfilePoint } from "./chart-data";
+import { interpolateElevation, interpolateHgl } from "./tooltip-data";
 
 export const SNAP_PIXEL_THRESHOLD = 10;
 
@@ -10,6 +11,34 @@ export type SldSnap =
 interface ChartLike {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   convertToPixel: (...args: any[]) => any;
+  /* eslint-enable */
+}
+
+export function isNearMainPlotLine(
+  chart: ChartLike,
+  cursorX: number,
+  py: number,
+  points: ProfilePoint[],
+  threshold: number = SNAP_PIXEL_THRESHOLD,
+): boolean {
+  /* eslint-disable @typescript-eslint/no-unsafe-call,
+     @typescript-eslint/no-unsafe-member-access,
+     @typescript-eslint/no-unsafe-assignment */
+  const elevation = interpolateElevation(cursorX, points);
+  if (elevation !== null) {
+    const elevPy = chart.convertToPixel({ yAxisIndex: 0 }, elevation);
+    if (typeof elevPy === "number" && Math.abs(py - elevPy) <= threshold) {
+      return true;
+    }
+  }
+  const hgl = interpolateHgl(cursorX, points);
+  if (hgl !== null) {
+    const hglPy = chart.convertToPixel({ yAxisIndex: 0 }, hgl);
+    if (typeof hglPy === "number" && Math.abs(py - hglPy) <= threshold) {
+      return true;
+    }
+  }
+  return false;
   /* eslint-enable */
 }
 

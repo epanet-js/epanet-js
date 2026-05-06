@@ -6,11 +6,9 @@ import { coordinatesAtLength, PathSegment } from "./path-position";
 import {
   findLinkAt,
   getTooltipContent,
-  interpolateElevation,
-  interpolateHgl,
   VisibleTooltipContent,
 } from "./tooltip-data";
-import { pickSldSnap, SNAP_PIXEL_THRESHOLD } from "./snap";
+import { isNearMainPlotLine, pickSldSnap, SNAP_PIXEL_THRESHOLD } from "./snap";
 
 export { SNAP_PIXEL_THRESHOLD };
 
@@ -201,32 +199,4 @@ export function useChartCursor({
   }, []);
 
   return cursorState;
-}
-
-function isNearMainPlotLine(
-  chart: any,
-  cursorX: number,
-  py: number,
-  points: ProfilePoint[],
-  threshold: number,
-): boolean {
-  /* eslint-disable @typescript-eslint/no-unsafe-call,
-     @typescript-eslint/no-unsafe-member-access,
-     @typescript-eslint/no-unsafe-assignment */
-  const elevation = interpolateElevation(cursorX, points);
-  if (elevation !== null) {
-    const elevPy = chart.convertToPixel({ yAxisIndex: 0 }, elevation);
-    if (typeof elevPy === "number" && Math.abs(py - elevPy) <= threshold) {
-      return true;
-    }
-  }
-  const hgl = interpolateHgl(cursorX, points);
-  if (hgl !== null) {
-    const hglPy = chart.convertToPixel({ yAxisIndex: 0 }, hgl);
-    if (typeof hglPy === "number" && Math.abs(py - hglPy) <= threshold) {
-      return true;
-    }
-  }
-  return false;
-  /* eslint-enable */
 }
