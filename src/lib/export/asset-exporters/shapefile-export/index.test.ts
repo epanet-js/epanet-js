@@ -260,10 +260,10 @@ describe("exportShapefiles", () => {
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("LABEL");
-    expect(text).toContain("POSITIONX");
-    expect(text).toContain("POSITIONY");
-    expect(text).toContain("JUNCTIONCO");
-    expect(text).toContain("PIPECONNEC");
+    expect(text).toContain("POSX");
+    expect(text).toContain("POSY");
+    expect(text).toContain("JUNCCONN");
+    expect(text).toContain("PIPECONN");
   });
 
   it("customerPoint DBF record contains the point label", async () => {

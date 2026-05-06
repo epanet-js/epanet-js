@@ -221,8 +221,8 @@ export const exportShapefiles = (
       customerPointWriter,
       {
         label: point.label,
-        x: point.coordinates[0],
-        y: point.coordinates[1],
+        positionX: point.coordinates[0],
+        positionY: point.coordinates[1],
         junctionConnection,
         pipeConnection,
         connectionX: point.connection?.snapPoint[0] ?? null,

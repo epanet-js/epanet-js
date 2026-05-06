@@ -3,6 +3,48 @@ import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 const NON_ASCII = /[^\x00-\x7f]/;
 const INVALID_DBF_NAME_CHAR = /[^A-Z0-9_]/g;
 
+const PROPERTY_DBF_MAP: Record<string, string> = {
+  diameter: "DIAMETER",
+  roughness: "ROUGHNESS",
+  minorLoss: "MINORLOSS",
+  initialStatus: "INITSTATUS",
+  bulkReactionCoeff: "BULKCOEFF",
+  wallReactionCoeff: "WALLCOEFF",
+  length: "LENGTH",
+  flow: "FLOW",
+  velocity: "VELOCITY",
+  elevation: "ELEVATION",
+  initialQuality: "INITQUAL",
+  chemicalSourceType: "SRCTYPE",
+  chemicalSourceStrength: "SRCSTRENGT",
+  emitterCoefficient: "EMITTER",
+  definitionType: "DEFTYPE",
+  power: "POWER",
+  speed: "SPEED",
+  energyPrice: "ENERGYCOST",
+  head: "HEAD",
+  initialLevel: "INITLEVEL",
+  minLevel: "MINLEVEL",
+  maxLevel: "MAXLEVEL",
+  minVolume: "MINVOLUME",
+  overflow: "OVERFLOW",
+  mixingModel: "MIXMODEL",
+  mixingFraction: "MIXFRAC",
+  pressure: "PRESSURE",
+  kind: "KIND",
+  setting: "SETTING",
+  label: "LABEL",
+  isActive: "ISACTIVE",
+  junctionConnection: "JUNCCONN",
+  pipeConnection: "PIPECONN",
+  connectionX: "CONNX",
+  connectionY: "CONNY",
+  positionX: "POSX",
+  positionY: "POSY",
+  startNode: "STARTNODE",
+  endNode: "ENDNODE",
+};
+
 export type FieldInfo = {
   originalKey: string;
   dbfType: "C" | "N" | "L" | null;
@@ -131,8 +173,8 @@ export function freezeSchema(
   let offset = 1;
 
   for (const [, info] of fields) {
-    const sanitized = sanitizeName(info.originalKey);
-    const dbfName = deduplicateName(sanitized, usedNames);
+    const fixed = PROPERTY_DBF_MAP[info.originalKey];
+    const dbfName = fixed ?? deduplicateName(sanitizeName(info.originalKey), usedNames);
     usedNames.add(dbfName);
 
     let type: "C" | "N" | "L";
