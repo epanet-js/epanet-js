@@ -5,6 +5,8 @@ import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { Mode, modeAtom } from "src/state/mode";
 import { USelection } from "src/selection/selection";
+import type { Sel } from "src/selection/types";
+import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
 import { isNearMainPlotLine, pickSldSnap } from "./snap";
@@ -28,6 +30,7 @@ export function useChartClick({
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
   const setMode = useSetAtom(modeAtom);
+  const zoomTo = useZoomTo();
 
   const depsRef = useRef({
     points,
@@ -36,6 +39,7 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
+    zoomTo,
   });
   depsRef.current = {
     points,
@@ -44,6 +48,7 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
+    zoomTo,
   };
 
   useEffect(() => {
@@ -86,24 +91,24 @@ export function useChartClick({
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
       /* eslint-enable */
 
-      if (snap?.kind === "link") {
-        deps.setSelection(
-          USelection.toggleSingleSelectionId(deps.selection, snap.link.linkId),
+      const selectAndZoom = (id: number) => {
+        const next: Sel = USelection.toggleSingleSelectionId(
+          deps.selection,
+          id,
         );
+        deps.setSelection(next);
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
+        if (next.type !== "none") deps.zoomTo(next);
+      };
+
+      if (snap?.kind === "link") {
+        selectAndZoom(snap.link.linkId);
         return;
       }
 
       if (snap?.kind === "node") {
-        deps.setSelection(
-          USelection.toggleSingleSelectionId(
-            deps.selection,
-            deps.points[snap.index].nodeId,
-          ),
-        );
-        deps.setTab(TabOption.Asset);
-        deps.setMode({ mode: Mode.NONE });
+        selectAndZoom(deps.points[snap.index].nodeId);
         return;
       }
 
@@ -115,11 +120,7 @@ export function useChartClick({
         (inMainGrid && isNearMainPlotLine(chart, cursorX, py, deps.points));
       if (!isOverSelectable) return;
 
-      deps.setSelection(
-        USelection.toggleSingleSelectionId(deps.selection, link.linkId),
-      );
-      deps.setTab(TabOption.Asset);
-      deps.setMode({ mode: Mode.NONE });
+      selectAndZoom(link.linkId);
     };
 
     el.addEventListener("mousedown", handleMouseDown);
