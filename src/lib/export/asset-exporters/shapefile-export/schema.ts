@@ -67,8 +67,17 @@ export function buildSchema(
     const def = PROPERTY_SCHEMA[key];
     if (!def) continue;
 
-    const length =
-      def.type === "N" ? DBF_NUMBER_LENGTH : def.type === "L" ? 1 : def.length;
+    const length = (() => {
+      if (def.type === "N") {
+        return DBF_NUMBER_LENGTH;
+      }
+      if (def.type === "L") {
+        return 1;
+      }
+
+      return (def as { length: number }).length;
+    })();
+
     const decimals = def.type === "N" ? DBF_NUMBER_DECIMALS : 0;
 
     fields.push({

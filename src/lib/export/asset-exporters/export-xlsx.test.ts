@@ -6,8 +6,8 @@ import { exportXlsx } from "./export-xlsx";
 function makeMockHandle() {
   const chunks: Uint8Array[] = [];
   const handle = {
-    createWritable: async () => ({
-      write: async (chunk: Uint8Array) => {
+    createWritable: () => ({
+      write: (chunk: Uint8Array) => {
         chunks.push(chunk);
       },
       close: async () => {},
