@@ -83,10 +83,9 @@ export const exportShapefiles = (
     }
   }
 
-  for (const point of hydraulicModel.customerPoints.values()) {
-    writers["customerPoint"].recordCount++;
-    writers["customerPoint"].shpBodyBytes += 28;
-  }
+  writers["customerPoint"].recordCount = hydraulicModel.customerPoints.size;
+  writers["customerPoint"].shpBodyBytes =
+    28 * hydraulicModel.customerPoints.size;
 
   for (const type in writers) {
     const t = type as ExportedAssetTypes;

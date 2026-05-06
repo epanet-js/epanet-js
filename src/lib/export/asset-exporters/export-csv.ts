@@ -1,4 +1,4 @@
-import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
+import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";

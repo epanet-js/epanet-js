@@ -52,7 +52,9 @@ describe("buildSchema", () => {
     const fields = buildSchema(["label", "elevation", "overflow"], encoder);
     expect(fields[0].offsetInRecord).toBe(1);
     expect(fields[1].offsetInRecord).toBe(1 + fields[0].length);
-    expect(fields[2].offsetInRecord).toBe(1 + fields[0].length + fields[1].length);
+    expect(fields[2].offsetInRecord).toBe(
+      1 + fields[0].length + fields[1].length,
+    );
   });
 
   it("uses the correct fixed DBF key for remapped properties", () => {

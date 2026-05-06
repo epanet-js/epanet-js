@@ -68,11 +68,7 @@ export function buildSchema(
     if (!def) continue;
 
     const length =
-      def.type === "N"
-        ? DBF_NUMBER_LENGTH
-        : def.type === "L"
-          ? 1
-          : def.length;
+      def.type === "N" ? DBF_NUMBER_LENGTH : def.type === "L" ? 1 : def.length;
     const decimals = def.type === "N" ? DBF_NUMBER_DECIMALS : 0;
 
     fields.push({

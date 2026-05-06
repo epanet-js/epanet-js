@@ -1,5 +1,5 @@
 import { AssetWriter } from "./asset-writer";
-import { DBF_NUMBER_DECIMALS, DBF_NUMBER_LENGTH } from "./constants";
+import { DBF_NUMBER_LENGTH } from "./constants";
 import { buildSchema } from "./schema";
 
 const encoder = new TextEncoder();
