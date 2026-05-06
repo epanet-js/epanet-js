@@ -564,45 +564,52 @@ function useHglRanges(
 
     const fetchAll = async () => {
       const start = performance.now();
-      const results = await Promise.all(
-        nodeRefs.map(async (ref) => {
-          if (!ref) return null;
-          try {
-            let series;
-            if (ref.type === "junction") {
-              series = await epsResultsReader.getTimeSeries(
-                ref.nodeId,
-                "junction",
-                "head",
-              );
-            } else if (ref.type === "tank") {
-              series = await epsResultsReader.getTimeSeries(
-                ref.nodeId,
-                "tank",
-                "head",
-              );
-            } else {
-              series = await epsResultsReader.getTimeSeries(
-                ref.nodeId,
-                "reservoir",
-                "head",
-              );
-            }
-            if (!series || series.values.length === 0) return null;
-            let min = series.values[0];
-            let max = series.values[0];
-            for (let i = 1; i < series.values.length; i++) {
-              const v = series.values[i];
-              if (v < min) min = v;
-              if (v > max) max = v;
-            }
-            return { nodeId: ref.nodeId, minHead: min, maxHead: max };
-          } catch (err) {
-            captureError(err as Error);
-            return null;
+      const results: (HglRange | null)[] = new Array(nodeRefs.length);
+      for (let i = 0; i < nodeRefs.length; i++) {
+        if (controller.signal.aborted) return;
+        const ref = nodeRefs[i];
+        if (!ref) {
+          results[i] = null;
+          continue;
+        }
+        try {
+          let series;
+          if (ref.type === "junction") {
+            series = await epsResultsReader.getTimeSeries(
+              ref.nodeId,
+              "junction",
+              "head",
+            );
+          } else if (ref.type === "tank") {
+            series = await epsResultsReader.getTimeSeries(
+              ref.nodeId,
+              "tank",
+              "head",
+            );
+          } else {
+            series = await epsResultsReader.getTimeSeries(
+              ref.nodeId,
+              "reservoir",
+              "head",
+            );
           }
-        }),
-      );
+          if (!series || series.values.length === 0) {
+            results[i] = null;
+            continue;
+          }
+          let min = series.values[0];
+          let max = series.values[0];
+          for (let j = 1; j < series.values.length; j++) {
+            const v = series.values[j];
+            if (v < min) min = v;
+            if (v > max) max = v;
+          }
+          results[i] = { nodeId: ref.nodeId, minHead: min, maxHead: max };
+        } catch (err) {
+          captureError(err as Error);
+          results[i] = null;
+        }
+      }
 
       if (isDebugOn) {
         //eslint-disable-next-line no-console
