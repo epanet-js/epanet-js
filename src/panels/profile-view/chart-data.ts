@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
+import { LngLat } from "mapbox-gl";
+import { useElevations } from "src/map/elevations/use-elevations";
 import {
   profileViewAtom,
   ProfileViewPlot,
@@ -21,7 +23,6 @@ import { Highlight } from "src/state/highlights";
 import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
-import { fetchElevationForPoint } from "src/lib/elevations";
 import {
   buildPathSegments,
   PathSegment,
@@ -472,6 +473,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
   const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
     null,
   );
+  const { fetchElevation } = useElevations("m");
 
   const sampleKey =
     samples.length > 0
@@ -493,10 +495,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
     const start = performance.now();
     void Promise.all(
       samples.map((s) =>
-        fetchElevationForPoint(
-          { lng: s.coordinates[0], lat: s.coordinates[1] },
-          { unit: "m" },
-        ).catch(() => null),
+        fetchElevation(new LngLat(s.coordinates[0], s.coordinates[1])),
       ),
     ).then((results) => {
       if (isDebugOn) {
@@ -511,7 +510,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
         setTerrainPoints(
           results.map((elevation, i) => ({
             cumulativeLength: samples[i].cumulativeLength,
-            elevation: elevation ?? 0,
+            elevation,
           })),
         );
       }
@@ -521,7 +520,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sampleKey]);
+  }, [sampleKey, fetchElevation]);
 
   return terrainPoints;
 }
