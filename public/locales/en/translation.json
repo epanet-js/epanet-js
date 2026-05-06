@@ -1283,6 +1283,7 @@
   "exported": "Exported successfully",
   "exportFailed": "Export failed",
   "exportCsv": "CSV",
+  "exportXlsx": "Excel Spreadsheet (XLSX)",
   "exportGeojson": "GeoJSON",
   "exportShapefile": "Shapefile (GIS)",
   "exportSelectedAssetsOnly": "Selected assets only",

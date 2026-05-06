@@ -55,7 +55,11 @@ export const useExportAssetData = () => {
             0,
             networkNameDot < 0 ? networkName.length - 1 : networkNameDot,
           );
-          const fileName = `${networkNameWithoutExtension}-export-${options.format}`;
+          const fileName =
+            options.format === "xlsx"
+              ? `${networkNameWithoutExtension}-export`
+              : `${networkNameWithoutExtension}-export-${options.format}`;
+
           await Export.exportAssetData(
             fileName,
             options.format,

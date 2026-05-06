@@ -1,6 +1,6 @@
 import { AssetType } from "src/hydraulic-model";
 
-export type ExportFormat = "geojson" | "csv" | "shapefile";
+export type ExportFormat = "geojson" | "csv" | "shapefile" | "xlsx";
 export type ExportedAssetTypes = AssetType | "customerPoint";
 
 export type ExportEntry = {

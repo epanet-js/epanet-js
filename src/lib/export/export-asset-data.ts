@@ -18,6 +18,17 @@ export const exportAssetData = async (
     shapefile: AssetExporters.exportShapefiles,
   };
 
+  if (format === "xlsx") {
+    await handleXlsx(
+      fileName,
+      hydraulicModel,
+      includeSimulationResults,
+      selectedAssets,
+      resultsReader,
+    );
+    return;
+  }
+
   const exportedFiles = exporters[format](
     hydraulicModel,
     includeSimulationResults,
@@ -39,5 +50,35 @@ export const exportAssetData = async (
 
   if (!FileSystemHelpers.isFileSystemAccessSupported()) {
     await FileSystemHelpers.triggerDownload(zipFileName, handle);
+  }
+};
+
+const handleXlsx = async (
+  fileName: string,
+  hydraulicModel: HydraulicModel,
+  includeSimulationResults: boolean,
+  selectedAssets: Set<number>,
+  resultsReader?: ResultsReader,
+) => {
+  const xlsxFileName = `${fileName}.xlsx`;
+  const handle = FileSystemHelpers.isFileSystemAccessSupported()
+    ? await FileSystemHelpers.openFileInFileSystem(
+        xlsxFileName,
+        "XLSX Spreadsheet",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".xlsx",
+      )
+    : await FileSystemHelpers.openFileInOpfs(fileName);
+
+  await AssetExporters.exportXlsx(
+    handle,
+    hydraulicModel,
+    includeSimulationResults,
+    selectedAssets,
+    resultsReader,
+  );
+
+  if (!FileSystemHelpers.isFileSystemAccessSupported()) {
+    await FileSystemHelpers.triggerDownload(xlsxFileName, handle);
   }
 };

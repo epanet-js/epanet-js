@@ -15,6 +15,7 @@ const exportFormats: { value: ExportFormat; labelKey: string }[] = [
   { value: "geojson", labelKey: "exportGeojson" },
   { value: "csv", labelKey: "exportCsv" },
   { value: "shapefile", labelKey: "exportShapefile" },
+  { value: "xlsx", labelKey: "exportXlsx" },
 ];
 
 export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
