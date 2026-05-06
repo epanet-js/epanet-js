@@ -105,6 +105,10 @@ export const exportCsv = (
     let partIdx = 0;
 
     properties[asset.type] = asset.listProperties();
+    if (asset.isNode) {
+      properties[asset.type].unshift("positionX", "positionY");
+    }
+
     simulationProperties[asset.type] = new Set<string>(
       simulationProps.map((p) => `sim_${p}`),
     );
@@ -203,13 +207,27 @@ export const exportCsv = (
       return { startNode, endNode };
     };
 
+    const getPosition = (asset: Asset, property: string) => {
+      if (!asset.isNode) return "";
+      const x = asset.coordinates[0] as number;
+      const y = asset.coordinates[1] as number;
+
+      return property === "positionX" ? x.toFixed(4) : y.toFixed(4);
+    };
+
     properties[asset.type].forEach((property) => {
-      const value = asset.getProperty(property);
+      const isPosition = property === "positionX" || property === "positionY";
       const isConnections = property === "connections";
+
+      const value = isPosition
+        ? getPosition(asset, property)
+        : asset.getProperty(property);
+
+      const isObject = typeof value === "object";
 
       if (!isConnections) {
         const formatted = truncateIfNumber(value);
-        parts[partIdx++] = formatted;
+        parts[partIdx++] = isObject ? "" : formatted;
       } else {
         const { startNode, endNode } = formatConnections(
           value as unknown as number[],
