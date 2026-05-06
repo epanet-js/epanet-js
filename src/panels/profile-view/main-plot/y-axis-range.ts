@@ -36,8 +36,6 @@ export function computeYAxisRange({
   const dataMin = Math.min(...vals);
   const dataMax = Math.max(...vals);
   const span = dataMax - dataMin || 10;
-  const padding = span * 0.08;
-  const yMin = dataMin - padding;
-  const yMax = dataMax + padding;
-  return { min: yMin, max: yMax, interval: (yMax - yMin) / 9 };
+  const yMax = dataMax + span * 0.08;
+  return { min: dataMin, max: yMax, interval: (yMax - dataMin) / 9 };
 }
