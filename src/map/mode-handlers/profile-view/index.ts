@@ -84,7 +84,6 @@ export function useProfileViewHandlers(
     setProfileView({
       startNodeId: draftStartNodeId,
       endNodeId: nodeId,
-      path,
     });
     setEphemeralState({ type: "none" });
     setSelection({

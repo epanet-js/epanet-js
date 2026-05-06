@@ -7,7 +7,6 @@ export type { PathData };
 export type ProfileViewPlot = {
   startNodeId: AssetId;
   endNodeId: AssetId;
-  path: PathData;
 };
 
 export type ProfileViewUiPhase =

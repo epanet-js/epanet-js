@@ -16,7 +16,8 @@ import {
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { type SimulationState } from "src/state/simulation";
-import { AssetId, AssetsMap } from "src/hydraulic-model";
+import { AssetId, AssetsMap, HydraulicModel } from "src/hydraulic-model";
+import { shortestPath } from "src/hydraulic-model/path-finding";
 import { ResultsReader } from "src/simulation/results-reader";
 import type { EPSResultsReader } from "src/simulation";
 import { Highlight } from "src/state/highlights";
@@ -106,6 +107,8 @@ export function useProfileViewData(): ProfileViewData {
   const results = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
 
+  const path = useProfileViewPath(plot, model);
+
   const phase = useMemo<ProfileViewUiPhase>(() => {
     if (plot !== null) return "showingProfile";
     if (mode !== Mode.PROFILE_VIEW) return "idle";
@@ -119,12 +122,12 @@ export function useProfileViewData(): ProfileViewData {
   }, [plot, mode, ephemeralState]);
 
   const sync = useMemo(
-    () => computeProfileViewData(plot, model.assets, results ?? null),
-    [plot, model.assets, results],
+    () => computeProfileViewData(path, model.assets, results ?? null),
+    [path, model.assets, results],
   );
 
   const terrain = useTerrainElevations(sync.terrainSamples);
-  const hglRanges = useHglRanges(plot, simulation, model.assets);
+  const hglRanges = useHglRanges(path, simulation, model.assets);
 
   const terrainData = useMemo(() => buildTerrainData(terrain), [terrain]);
   const hglBandSegments = useMemo(
@@ -135,12 +138,26 @@ export function useProfileViewData(): ProfileViewData {
   return { phase, ...sync, terrain, terrainData, hglRanges, hglBandSegments };
 }
 
-function computeProfileViewData(
+function useProfileViewPath(
   plot: ProfileViewPlot | null,
+  model: HydraulicModel,
+): PathData | null {
+  return useMemo(() => {
+    if (plot === null) return null;
+    const { startNodeId, endNodeId } = plot;
+    if (!model.assets.get(startNodeId) || !model.assets.get(endNodeId)) {
+      return null;
+    }
+    return shortestPath(model.topology, model.assets, startNodeId, endNodeId);
+  }, [plot, model.topology, model.assets]);
+}
+
+function computeProfileViewData(
+  path: PathData | null,
   assets: AssetsMap,
   results: ResultsReader | null,
 ): SyncProfileViewData {
-  if (plot === null) {
+  if (path === null) {
     return {
       points: [],
       links: [],
@@ -156,8 +173,6 @@ function computeProfileViewData(
       hglDropsData: [],
     };
   }
-
-  const path = plot.path;
 
   const pathSegments = buildPathSegments(path, assets);
   const points = computeProfilePoints(path, assets, results);
@@ -527,7 +542,7 @@ function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
 type NodeRef = { nodeId: AssetId; type: "junction" | "tank" | "reservoir" };
 
 function useHglRanges(
-  plot: ProfileViewPlot | null,
+  path: PathData | null,
   simulation: SimulationState,
   assets: AssetsMap,
 ): (HglRange | null)[] | null {
@@ -539,7 +554,7 @@ function useHglRanges(
       ? simulation.epsResultsReader
       : null;
 
-  const pathNodeIds = plot !== null ? plot.path.nodeIds : null;
+  const pathNodeIds = path !== null ? path.nodeIds : null;
   const pathKey = pathNodeIds ? pathNodeIds.join(",") : "";
 
   useEffect(() => {
