@@ -77,7 +77,7 @@ export type ProfileViewData = {
   links: ProfileLink[];
   pathSegments: PathSegment[];
   pathHighlights: Highlight[];
-  terrainSamples: TerrainSample[][];
+  terrainSamples: TerrainSample[];
   // Chart-ready projections — same data, shape ECharts wants.
   elevationData: [number, number][];
   hglData: [number, number | null][];
@@ -414,7 +414,7 @@ const TARGET_TERRAIN_SAMPLES = 250;
 const MIN_TERRAIN_SPACING_M = 5;
 const MAX_TERRAIN_SPACING_M = 200;
 
-function computeTerrainSamples(segments: PathSegment[]): TerrainSample[][] {
+function computeTerrainSamples(segments: PathSegment[]): TerrainSample[] {
   return traceDuration("DEBUG PROFILE_VIEW:computeTerrainSamples", () => {
     if (segments.length === 0) return [];
 
@@ -428,7 +428,7 @@ function computeTerrainSamples(segments: PathSegment[]): TerrainSample[][] {
     );
     const sampleCount = Math.max(2, Math.ceil(totalLength / spacing) + 1);
 
-    const groups: TerrainSample[][] = segments.map(() => []);
+    const samples: TerrainSample[] = [];
     let segmentIndex = 0;
     for (let i = 0; i < sampleCount; i++) {
       const cumulativeLength =
@@ -454,10 +454,10 @@ function computeTerrainSamples(segments: PathSegment[]): TerrainSample[][] {
         segment.geodesicLength,
         fraction,
       );
-      groups[segmentIndex].push({ cumulativeLength, coordinates });
+      samples.push({ cumulativeLength, coordinates });
     }
 
-    return groups;
+    return samples;
   });
 }
 
@@ -469,76 +469,51 @@ function buildPathHighlights(path: PathData): Highlight[] {
   return items;
 }
 
-const BREATHING_DELAY_MS = 0;
-
-function yieldToBrowser(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function useTerrainElevations(
-  sampleGroups: TerrainSample[][],
-): TerrainPoint[] | null {
+function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
   const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
     null,
   );
   const { fetchElevations } = useElevations("m");
 
   const sampleKey =
-    sampleGroups.length > 0
-      ? sampleGroups
-          .map((group) =>
-            group
-              .map((s) => `${s.cumulativeLength}:${s.coordinates.join(",")}`)
-              .join("|"),
-          )
-          .join("||")
+    samples.length > 0
+      ? samples
+          .map((s) => `${s.cumulativeLength}:${s.coordinates.join(",")}`)
+          .join("|")
       : "";
 
   useEffect(() => {
-    if (sampleGroups.length === 0) {
+    if (samples.length === 0) {
       setTerrainPoints(null);
       return;
     }
 
-    setTerrainPoints([]);
+    setTerrainPoints(null);
 
     let cancelled = false;
+    const start = performance.now();
 
-    void (async () => {
-      const start = performance.now();
-      const accumulated: TerrainPoint[] = [];
-      let totalSamples = 0;
-
-      for (const group of sampleGroups) {
-        if (cancelled) return;
-        if (group.length === 0) continue;
-
-        const elevations = await fetchElevations(
-          group.map((s) => new LngLat(s.coordinates[0], s.coordinates[1])),
-        );
-        if (cancelled) return;
-
-        for (let i = 0; i < group.length; i++) {
-          accumulated.push({
-            cumulativeLength: group[i].cumulativeLength,
-            elevation: elevations[i],
-          });
-        }
-        totalSamples += group.length;
-        setTerrainPoints([...accumulated]);
-
-        await yieldToBrowser(BREATHING_DELAY_MS);
-      }
+    void fetchElevations(
+      samples.map((s) => new LngLat(s.coordinates[0], s.coordinates[1])),
+    ).then((elevations) => {
+      if (cancelled) return;
 
       if (isDebugOn) {
         //eslint-disable-next-line no-console
         console.log(
-          `DEBUG PROFILE_VIEW:terrainElevations samples=${totalSamples} segments=${sampleGroups.length} time=${(
+          `DEBUG PROFILE_VIEW:terrainElevations samples=${samples.length} time=${(
             performance.now() - start
           ).toFixed(2)} ms`,
         );
       }
-    })();
+
+      setTerrainPoints(
+        elevations.map((elevation, i) => ({
+          cumulativeLength: samples[i].cumulativeLength,
+          elevation,
+        })),
+      );
+    });
 
     return () => {
       cancelled = true;
