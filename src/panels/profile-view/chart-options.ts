@@ -27,6 +27,8 @@ export type ProfileChartOptionParams = {
   yMax: number;
   yInterval: number;
   profileGridTop: number;
+  zoomStart?: number;
+  zoomEnd?: number;
 };
 
 export function buildProfileChartOption({
@@ -37,6 +39,8 @@ export function buildProfileChartOption({
   yMax,
   yInterval,
   profileGridTop,
+  zoomStart = 0,
+  zoomEnd = 100,
 }: ProfileChartOptionParams): EChartsOption {
   const axisPointer = {
     show: true,
@@ -131,6 +135,8 @@ export function buildProfileChartOption({
         moveOnMouseWheel: false,
         preventDefaultMouseMove: true,
         minValueSpan: 1,
+        start: zoomStart,
+        end: zoomEnd,
       },
     ],
   };

@@ -133,6 +133,16 @@ export const ChartContainer = memo(function ChartContainer({
 
   const profileGridTop = profileGridTopOffset(hasSimulation);
 
+  const zoomRef = useRef<{ start: number; end: number }>({
+    start: 0,
+    end: 100,
+  });
+  const lastPointsRef = useRef(points);
+  if (lastPointsRef.current !== points) {
+    lastPointsRef.current = points;
+    zoomRef.current = { start: 0, end: 100 };
+  }
+
   const option: EChartsOption = useMemo(
     () =>
       traceDuration("DEBUG PROFILE_CHART:option", () =>
@@ -144,6 +154,8 @@ export const ChartContainer = memo(function ChartContainer({
           yMax: yAxisRange.max,
           yInterval: yAxisRange.interval,
           profileGridTop,
+          zoomStart: zoomRef.current.start,
+          zoomEnd: zoomRef.current.end,
         }),
       ),
     [
@@ -162,6 +174,18 @@ export const ChartContainer = memo(function ChartContainer({
   const onChartReady = useCallback((chart: any) => {
     chartRef.current = chart;
   }, []);
+
+  const onDataZoom = useCallback((params: any) => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access,
+       @typescript-eslint/no-unsafe-assignment */
+    const batch = params?.batch?.[0] ?? params;
+    if (typeof batch?.start === "number" && typeof batch?.end === "number") {
+      zoomRef.current = { start: batch.start, end: batch.end };
+    }
+    /* eslint-enable */
+  }, []);
+
+  const onEvents = useMemo(() => ({ datazoom: onDataZoom }), [onDataZoom]);
 
   const cursorState = useChartCursor({
     containerRef,
@@ -193,6 +217,7 @@ export const ChartContainer = memo(function ChartContainer({
         style={{ height: "100%", width: "100%" }}
         notMerge={true}
         onChartReady={onChartReady}
+        onEvents={onEvents}
       />
       <ProfileTooltip
         state={cursorState}
