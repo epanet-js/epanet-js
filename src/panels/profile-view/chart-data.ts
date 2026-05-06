@@ -481,7 +481,7 @@ function useTerrainElevations(
   const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
     null,
   );
-  const { fetchElevation } = useElevations("m");
+  const { fetchElevations } = useElevations("m");
 
   const sampleKey =
     sampleGroups.length > 0
@@ -513,10 +513,8 @@ function useTerrainElevations(
         if (cancelled) return;
         if (group.length === 0) continue;
 
-        const elevations = await Promise.all(
-          group.map((s) =>
-            fetchElevation(new LngLat(s.coordinates[0], s.coordinates[1])),
-          ),
+        const elevations = await fetchElevations(
+          group.map((s) => new LngLat(s.coordinates[0], s.coordinates[1])),
         );
         if (cancelled) return;
 
@@ -546,7 +544,7 @@ function useTerrainElevations(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sampleKey, fetchElevation]);
+  }, [sampleKey, fetchElevations]);
 
   return terrainPoints;
 }

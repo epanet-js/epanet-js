@@ -4,10 +4,14 @@ export type {
   ElevationSource,
 } from "./elevation-source-types";
 
-export { fetchElevationFromSources } from "./fetch-elevation";
+export {
+  fetchElevationFromSources,
+  fetchElevationsFromSources,
+} from "./fetch-elevation";
 
 export {
   fetchElevationForPoint,
+  fetchElevationsForPoints,
   prefetchElevationsTile,
   queryClient,
   tileSize,

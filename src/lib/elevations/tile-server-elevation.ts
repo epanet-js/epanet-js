@@ -61,6 +61,37 @@ export async function fetchElevationForPoint(
   return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
+export async function fetchElevationsForPoints(
+  points: LngLat[],
+  {
+    unit,
+    tileServer,
+    setUpCanvas = defaultCanvasSetupFn,
+  }: { unit: Unit; tileServer?: TileServerConfig; setUpCanvas?: CanvasSetupFn },
+): Promise<(number | null)[]> {
+  const config = resolveTileServerConfig(tileServer);
+  const tileGroups = groupPointsByTile(points, config.tileZoom);
+  const results: (number | null)[] = points.map(() => null);
+
+  await Promise.all(
+    tileGroups.map(async (group) => {
+      const pixels = await fetchAndDecodeTilePixels(
+        group.tileX,
+        group.tileY,
+        config,
+        setUpCanvas,
+      );
+      if (!pixels) return;
+
+      for (const { index, point } of group.entries) {
+        results[index] = readElevationFromPixels(pixels, point, config, unit);
+      }
+    }),
+  );
+
+  return results;
+}
+
 export async function prefetchElevationsTile(
   { lng, lat }: LngLat,
   config?: TileServerConfig,
@@ -76,6 +107,86 @@ export async function prefetchElevationsTile(
     queryKey,
     queryFn: () => fetchTileFromUrl(url),
   });
+}
+
+type TileGroup = {
+  tileX: number;
+  tileY: number;
+  entries: { index: number; point: LngLat }[];
+};
+
+function resolveTileServerConfig(
+  tileServer: TileServerConfig | undefined,
+): TileServerConfig {
+  return (
+    tileServer ?? {
+      tileUrlTemplate: defaultTileUrlTemplate,
+      tileZoom,
+      tileSize,
+    }
+  );
+}
+
+function groupPointsByTile(points: LngLat[], tileZoom: number): TileGroup[] {
+  const groups = new Map<string, TileGroup>();
+  for (let i = 0; i < points.length; i++) {
+    const { lng, lat } = points[i];
+    const tile = lngLatToTile(lng, lat, tileZoom);
+    const id = `${tile.x}/${tile.y}`;
+    let group = groups.get(id);
+    if (!group) {
+      group = { tileX: tile.x, tileY: tile.y, entries: [] };
+      groups.set(id, group);
+    }
+    group.entries.push({ index: i, point: points[i] });
+  }
+  return Array.from(groups.values());
+}
+
+async function fetchAndDecodeTilePixels(
+  tileX: number,
+  tileY: number,
+  config: TileServerConfig,
+  setUpCanvas: CanvasSetupFn,
+): Promise<Uint8ClampedArray | null> {
+  const url = config.tileUrlTemplate
+    .replace("{z}", String(config.tileZoom))
+    .replace("{x}", String(tileX))
+    .replace("{y}", String(tileY));
+  const queryKey = ["terrain-tile", `${tileX}/${tileY}`];
+
+  let blob: Blob | undefined;
+  try {
+    blob = await queryClient.fetchQuery({
+      queryKey,
+      queryFn: () => fetchTileFromUrl(url),
+    });
+  } catch {
+    return null;
+  }
+  if (!blob) return null;
+
+  const { ctx, img } = await setUpCanvas(blob, config.tileSize);
+  ctx.drawImage(img, 0, 0, config.tileSize, config.tileSize);
+  return ctx.getImageData(0, 0, config.tileSize, config.tileSize).data;
+}
+
+function readElevationFromPixels(
+  pixels: Uint8ClampedArray,
+  point: LngLat,
+  config: TileServerConfig,
+  unit: Unit,
+): number {
+  const { x, y } = getPixelDescriptor(point.lat, point.lng, config);
+  const offset = (y * config.tileSize + x) * 4;
+  const elevationInMeters = parseFloat(
+    decodeTerrainRGB(
+      pixels[offset],
+      pixels[offset + 1],
+      pixels[offset + 2],
+    ).toFixed(2),
+  );
+  return convertTo({ value: elevationInMeters, unit: "m" }, unit);
 }
 
 const buildTileDescriptor = (

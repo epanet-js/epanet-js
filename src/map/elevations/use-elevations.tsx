@@ -9,7 +9,10 @@ import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { UnavailableIcon } from "src/icons";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
-import { fetchElevationFromSources } from "src/lib/elevations";
+import {
+  fetchElevationFromSources,
+  fetchElevationsFromSources,
+} from "src/lib/elevations";
 
 const fallbackElevation = 0;
 
@@ -62,7 +65,37 @@ export const useElevations = (unit: Unit) => {
     [autoElevations, isOffline, sources, unit, translate],
   );
 
-  return { fetchElevation, prefetchTile };
+  const fetchElevations = useCallback(
+    async (lngLats: LngLat[]): Promise<number[]> => {
+      if (!autoElevations) return lngLats.map(() => fallbackElevation);
+
+      try {
+        const availableSources = isOffline
+          ? sources.filter((s) => s.type !== "tile-server")
+          : sources;
+        const elevations = await fetchElevationsFromSources(
+          availableSources,
+          lngLats.map((l) => ({ lng: l.lng, lat: l.lat })),
+          unit,
+        );
+        if (isOffline && elevations.some((e) => e === null)) {
+          notifyOfflineElevation(translate);
+        }
+        return elevations.map((e) => e ?? fallbackElevation);
+      } catch (error) {
+        if ((error as Error).message.includes("Failed to fetch")) {
+          notifyOfflineElevation(translate);
+        }
+        if ((error as Error).message.includes("Tile not found")) {
+          notifyTileNotAvailable(translate);
+        }
+        return lngLats.map(() => fallbackElevation);
+      }
+    },
+    [autoElevations, isOffline, sources, unit, translate],
+  );
+
+  return { fetchElevation, fetchElevations, prefetchTile };
 };
 
 const notifyOfflineElevation = (translate: ReturnType<typeof useTranslate>) => {
