@@ -5,8 +5,13 @@ const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 2;
 const SIMULATION_TOP_PADDING = 4;
-const GRID_SIDE = 12;
-const GRID_BOTTOM = 12;
+const GRID_RIGHT = 24;
+const GRID_LEFT = 28;
+const GRID_BOTTOM = 30;
+const X_AXIS_NAME_GAP = 22;
+const Y_AXIS_LABEL_CHAR_WIDTH = 7;
+const Y_AXIS_LABEL_MARGIN = 8;
+const Y_AXIS_NAME_BUFFER = 8;
 const SPLIT_LINE_COLOR = "#e5e7eb";
 const AXIS_POINTER_COLOR = "#9ca3af";
 
@@ -29,6 +34,10 @@ export type ProfileChartOptionParams = {
   profileGridTop: number;
   zoomStart?: number;
   zoomEnd?: number;
+  xAxisName: string;
+  yAxisName: string;
+  lengthDecimals: number;
+  elevationDecimals: number;
 };
 
 export function buildProfileChartOption({
@@ -41,6 +50,10 @@ export function buildProfileChartOption({
   profileGridTop,
   zoomStart = 0,
   zoomEnd = 100,
+  xAxisName,
+  yAxisName,
+  lengthDecimals,
+  elevationDecimals,
 }: ProfileChartOptionParams): EChartsOption {
   const axisPointer = {
     show: true,
@@ -51,23 +64,41 @@ export function buildProfileChartOption({
     lineStyle: { color: AXIS_POINTER_COLOR, width: 1, type: "dashed" },
   };
 
-  const formatInteger = (val: number) => localizeDecimal(val, { decimals: 0 });
+  const formatLength = (val: number) =>
+    localizeDecimal(val, { decimals: lengthDecimals });
+  const formatElevation = (val: number) =>
+    localizeDecimal(val, { decimals: elevationDecimals });
+
+  const yLabelMagnitude = Math.max(
+    Math.abs(Math.round(yMin)),
+    Math.abs(Math.round(yMax)),
+  );
+  const yLabelSample = localizeDecimal(yLabelMagnitude, {
+    decimals: elevationDecimals,
+  });
+  const yLabelWidthEst = yLabelSample.length * Y_AXIS_LABEL_CHAR_WIDTH;
+  const yAxisNameGap =
+    yLabelWidthEst + Y_AXIS_LABEL_MARGIN + Y_AXIS_NAME_BUFFER;
+
+  const yMinRounded = Math.round(yMin);
+  const yMaxRounded = Math.round(yMax);
+  const yIntervalRounded = Math.round(yInterval);
 
   return {
     animation: false,
     grid: [
       {
         top: profileGridTop,
-        right: GRID_SIDE,
+        right: GRID_RIGHT,
         bottom: GRID_BOTTOM,
-        left: GRID_SIDE,
+        left: GRID_LEFT,
         containLabel: true,
       },
       {
         top: STRIP_GRID_TOP,
         height: STRIP_GRID_HEIGHT,
-        right: GRID_SIDE,
-        left: GRID_SIDE,
+        right: GRID_RIGHT,
+        left: GRID_LEFT,
         containLabel: true,
       },
     ],
@@ -76,13 +107,15 @@ export function buildProfileChartOption({
         type: "value",
         min: 0,
         max: xMax,
+        name: xAxisName,
         nameLocation: "middle",
+        nameGap: X_AXIS_NAME_GAP,
         splitLine: { show: true, lineStyle: { color: SPLIT_LINE_COLOR } },
         axisTick: { customValues: xTickPositions } as any,
         axisLabel: {
           hideOverlap: true,
           customValues: xTickPositions,
-          formatter: formatInteger,
+          formatter: formatLength,
         } as any,
         axisPointer: axisPointer as any,
       },
@@ -98,24 +131,28 @@ export function buildProfileChartOption({
     yAxis: [
       {
         type: "value",
-        min: Math.round(yMin),
-        max: Math.round(yMax),
-        interval: Math.round(yInterval),
-        axisLabel: { fontSize: 12, formatter: formatInteger },
+        min: yMinRounded,
+        max: yMaxRounded,
+        interval: yIntervalRounded,
+        name: yAxisName,
+        nameLocation: "middle",
+        nameGap: yAxisNameGap,
+        nameRotate: 90,
+        axisLabel: { fontSize: 12, formatter: formatElevation },
       },
       {
         gridIndex: 1,
         type: "value",
-        min: yMin,
-        max: yMax,
-        interval: yInterval,
+        min: yMinRounded,
+        max: yMaxRounded,
+        interval: yIntervalRounded,
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { show: false },
         axisLabel: {
           fontSize: 12,
           color: "transparent",
-          formatter: formatInteger,
+          formatter: formatElevation,
         },
       },
     ],

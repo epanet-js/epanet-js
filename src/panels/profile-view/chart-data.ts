@@ -24,6 +24,9 @@ import { Highlight } from "src/state/highlights";
 import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { getDecimals } from "src/lib/project-settings";
+import { Unit } from "src/quantity";
 import {
   buildPathSegments,
   PathSegment,
@@ -92,11 +95,27 @@ export type ProfileViewData = {
   terrainData: [number, number][] | null;
   hglRanges: (HglRange | null)[] | null;
   hglBandSegments: HglBandSegment[][] | null;
+  elevationUnit: Unit;
+  lengthUnit: Unit;
+  pressureUnit: Unit;
+  elevationDecimals: number;
+  pressureDecimals: number;
+  lengthDecimals: number;
 };
 
 type SyncProfileViewData = Omit<
   ProfileViewData,
-  "phase" | "terrain" | "terrainData" | "hglRanges" | "hglBandSegments"
+  | "phase"
+  | "terrain"
+  | "terrainData"
+  | "hglRanges"
+  | "hglBandSegments"
+  | "elevationUnit"
+  | "lengthUnit"
+  | "pressureUnit"
+  | "elevationDecimals"
+  | "pressureDecimals"
+  | "lengthDecimals"
 >;
 
 export function useProfileViewData(): ProfileViewData {
@@ -106,6 +125,7 @@ export function useProfileViewData(): ProfileViewData {
   const model = useAtomValue(stagingModelDerivedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
+  const { units, formatting } = useAtomValue(projectSettingsAtom);
 
   const path = useProfileViewPath(plot, model);
 
@@ -126,8 +146,8 @@ export function useProfileViewData(): ProfileViewData {
     [path, model.assets, results],
   );
 
-  const terrain = useTerrainElevations(sync.terrainSamples);
   const hglRanges = useHglRanges(path, simulation, model.assets);
+  const terrain = useTerrainElevations(sync.terrainSamples, units.elevation);
 
   const terrainData = useMemo(() => buildTerrainData(terrain), [terrain]);
   const hglBandSegments = useMemo(
@@ -135,7 +155,24 @@ export function useProfileViewData(): ProfileViewData {
     [sync.points, hglRanges],
   );
 
-  return { phase, ...sync, terrain, terrainData, hglRanges, hglBandSegments };
+  const elevationDecimals = getDecimals(formatting, "elevation") ?? 2;
+  const pressureDecimals = getDecimals(formatting, "pressure") ?? 2;
+  const lengthDecimals = getDecimals(formatting, "length") ?? 0;
+
+  return {
+    phase,
+    ...sync,
+    terrain,
+    terrainData,
+    hglRanges,
+    hglBandSegments,
+    elevationUnit: units.elevation,
+    lengthUnit: units.length,
+    pressureUnit: units.pressure,
+    elevationDecimals,
+    pressureDecimals,
+    lengthDecimals,
+  };
 }
 
 function useProfileViewPath(
@@ -436,12 +473,19 @@ function computeTerrainSamples(segments: PathSegment[]): TerrainSample[] {
     const totalLength = segments[segments.length - 1].cumulativeEnd;
     if (totalLength <= 0) return [];
 
-    const spacing = clamp(
-      totalLength / TARGET_TERRAIN_SAMPLES,
+    const totalGeodesicMeters = segments.reduce(
+      (sum, s) => sum + s.geodesicLength,
+      0,
+    );
+    const geodesicSpacing = clamp(
+      totalGeodesicMeters / TARGET_TERRAIN_SAMPLES,
       MIN_TERRAIN_SPACING_M,
       MAX_TERRAIN_SPACING_M,
     );
-    const sampleCount = Math.max(2, Math.ceil(totalLength / spacing) + 1);
+    const sampleCount =
+      totalGeodesicMeters > 0
+        ? Math.max(2, Math.ceil(totalGeodesicMeters / geodesicSpacing) + 1)
+        : 2;
 
     const samples: TerrainSample[] = [];
     let segmentIndex = 0;
@@ -484,11 +528,14 @@ function buildPathHighlights(path: PathData): Highlight[] {
   return items;
 }
 
-function useTerrainElevations(samples: TerrainSample[]): TerrainPoint[] | null {
+function useTerrainElevations(
+  samples: TerrainSample[],
+  elevationUnit: Unit,
+): TerrainPoint[] | null {
   const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
     null,
   );
-  const { fetchElevations } = useElevations("m");
+  const { fetchElevations } = useElevations(elevationUnit);
 
   const sampleKey =
     samples.length > 0

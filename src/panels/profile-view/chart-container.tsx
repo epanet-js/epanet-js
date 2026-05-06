@@ -6,6 +6,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { ProfileViewData } from "./chart-data";
 import { buildProfileChartOption, profileGridTopOffset } from "./chart-options";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { highlightsAtom } from "src/state/highlights";
 import { selectionAtom } from "src/state/selection";
@@ -43,9 +44,16 @@ export const ChartContainer = memo(function ChartContainer({
     totalLength,
     hasSimulation,
     pressureFactor,
+    elevationUnit,
+    lengthUnit,
+    pressureUnit,
+    elevationDecimals,
+    pressureDecimals,
+    lengthDecimals,
   } = data;
 
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
   const linkSymbology = useAtomValue(linkSymbologyAtom);
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const sldIcons = useSldIcons();
@@ -142,6 +150,15 @@ export const ChartContainer = memo(function ChartContainer({
     lastPointsRef.current = points;
     zoomRef.current = { start: 0, end: 100 };
   }
+  const lengthUnitLabel = translateUnit(lengthUnit);
+  const elevationUnitLabel = translateUnit(elevationUnit);
+  const pressureUnitLabel = translateUnit(pressureUnit);
+  const xAxisName = lengthUnitLabel
+    ? `${translate("profileView.distance")} (${lengthUnitLabel})`
+    : translate("profileView.distance");
+  const yAxisName = elevationUnitLabel
+    ? `${translate("profileView.elevation")} (${elevationUnitLabel})`
+    : translate("profileView.elevation");
 
   const option: EChartsOption = useMemo(
     () =>
@@ -156,6 +173,10 @@ export const ChartContainer = memo(function ChartContainer({
           profileGridTop,
           zoomStart: zoomRef.current.start,
           zoomEnd: zoomRef.current.end,
+          xAxisName,
+          yAxisName,
+          lengthDecimals,
+          elevationDecimals,
         }),
       ),
     [
@@ -165,6 +186,10 @@ export const ChartContainer = memo(function ChartContainer({
       totalLength,
       yAxisRange,
       profileGridTop,
+      xAxisName,
+      yAxisName,
+      lengthDecimals,
+      elevationDecimals,
     ],
   );
 
@@ -210,7 +235,12 @@ export const ChartContainer = memo(function ChartContainer({
   return (
     <div
       ref={containerRef}
-      style={{ position: "relative", height: "100%", width: "100%" }}
+      style={{
+        position: "relative",
+        height: "100%",
+        width: "100%",
+        overflow: "hidden",
+      }}
     >
       <ReactECharts
         option={option}
@@ -221,8 +251,13 @@ export const ChartContainer = memo(function ChartContainer({
       />
       <ProfileTooltip
         state={cursorState}
+        containerRef={containerRef}
         elevColor={nodeColor}
         translate={translate}
+        elevationUnitLabel={elevationUnitLabel}
+        pressureUnitLabel={pressureUnitLabel}
+        elevationDecimals={elevationDecimals}
+        pressureDecimals={pressureDecimals}
       />
     </div>
   );
