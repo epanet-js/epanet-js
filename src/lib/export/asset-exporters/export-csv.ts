@@ -2,6 +2,7 @@ import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { FILE_NAMES } from "./constants";
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {
@@ -265,12 +266,13 @@ export const exportCsv = (
 
   hydraulicModel.customerPoints.forEach((point) => writeCustomerPoint(point));
 
-  return Object.entries(buffers).map(([type, buffer]) => {
-    const offset = offsets[type as AssetType];
+  return Object.entries(buffers).map(([t, buffer]) => {
+    const type = t as ExportedAssetTypes;
+    const offset = offsets[type];
     const bufferView = buffer.subarray(0, offset);
 
     return {
-      fileName: `${type}.csv`,
+      fileName: `${FILE_NAMES[type]}.csv`,
       extensions: [".csv"],
       mimeTypes: ["text/csv"],
       description: "CSV File",

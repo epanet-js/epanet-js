@@ -12,7 +12,7 @@ describe("export-csv", () => {
 
     expect(files).toHaveLength(7);
     expect(files.map((f) => f.fileName)).toEqual(
-      expect.arrayContaining(ALL_ASSET_TYPES.map((t) => `${t}.csv`)),
+      expect.arrayContaining(ALL_ASSET_FILE_NAMES.map((t) => `${t}.csv`)),
     );
     expect(files[0].extensions).toEqual([".csv"]);
     expect(files[0].mimeTypes).toEqual(["text/csv"]);
@@ -25,7 +25,7 @@ describe("export-csv", () => {
       .build();
     const files = exportCsv(model, false, noSelection);
 
-    const lines = await readCsv(findFile(files, "junction.csv"));
+    const lines = await readCsv(findFile(files, "junctions.csv"));
     const headers = lines[0].split(",").filter(Boolean);
     const [row] = parseCsvRows(lines);
 
@@ -45,8 +45,8 @@ describe("export-csv", () => {
       .build();
     const files = exportCsv(model, false, noSelection);
 
-    const junctionLines = await readCsv(findFile(files, "junction.csv"));
-    const pipeLines = await readCsv(findFile(files, "pipe.csv"));
+    const junctionLines = await readCsv(findFile(files, "junctions.csv"));
+    const pipeLines = await readCsv(findFile(files, "pipes.csv"));
 
     expect(junctionLines).toHaveLength(2);
     expect(pipeLines).toHaveLength(2);
@@ -59,7 +59,7 @@ describe("export-csv", () => {
     const resultsReader = mockResultsReader(pressure, demand);
 
     const files = exportCsv(model, true, noSelection, resultsReader);
-    const lines = await readCsv(findFile(files, "junction.csv"));
+    const lines = await readCsv(findFile(files, "junctions.csv"));
     const [row] = parseCsvRows(lines);
 
     expect(row.sim_pressure).toBe("42");
@@ -78,7 +78,7 @@ describe("export-csv", () => {
       .build();
     const files = exportCsv(model, false, noSelection);
 
-    const lines = await readCsv(findFile(files, "customerPoint.csv"));
+    const lines = await readCsv(findFile(files, "customer-points.csv"));
     const headers = lines[0].split(",").filter(Boolean);
     const [row] = parseCsvRows(lines);
 
@@ -106,7 +106,7 @@ describe("export-csv", () => {
       .build();
     const files = exportCsv(model, false, noSelection);
 
-    const lines = await readCsv(findFile(files, "customerPoint.csv"));
+    const lines = await readCsv(findFile(files, "customer-points.csv"));
     const [row] = parseCsvRows(lines);
 
     expect(row.junctionConnection).toBe("");
@@ -120,7 +120,7 @@ describe("export-csv", () => {
       .build();
     const files = exportCsv(model, false, new Set([1]));
 
-    const lines = await readCsv(findFile(files, "junction.csv"));
+    const lines = await readCsv(findFile(files, "junctions.csv"));
     const rows = parseCsvRows(lines);
 
     expect(rows).toHaveLength(1);
@@ -128,14 +128,14 @@ describe("export-csv", () => {
   });
 });
 
-const ALL_ASSET_TYPES = [
-  "junction",
-  "reservoir",
-  "tank",
-  "pipe",
-  "pump",
-  "valve",
-  "customerPoint",
+const ALL_ASSET_FILE_NAMES = [
+  "junctions",
+  "reservoirs",
+  "tanks",
+  "pipes",
+  "pumps",
+  "valves",
+  "customer-points",
 ];
 
 const mockResultsReader = (pressure: number, demand: number) => {

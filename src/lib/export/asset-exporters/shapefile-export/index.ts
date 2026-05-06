@@ -7,6 +7,7 @@ import { ensureField, inferFieldType, freezeSchema } from "./schema";
 import { writePoint, writePolyLine } from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
+import { FILE_NAMES } from "../constants";
 
 export const exportShapefiles = (
   hydraulicModel: HydraulicModel,
@@ -242,40 +243,42 @@ export const exportShapefiles = (
 
   const result: ExportedFile[] = [];
 
-  for (const type in writers) {
-    const writer = writers[type as ExportedAssetTypes];
+  for (const t in writers) {
+    const type = t as ExportedAssetTypes;
+    const writer = writers[type];
     if (writer.recordCount === 0) continue;
+    const fileName = FILE_NAMES[type];
 
     result.push({
-      fileName: `${type}.shp`,
+      fileName: `${fileName}.shp`,
       extensions: [".shp"],
       mimeTypes: ["application/octet-stream"],
       description: "Shapefile",
       blob: new Blob([writer.shp]),
     });
     result.push({
-      fileName: `${type}.shx`,
+      fileName: `${fileName}.shx`,
       extensions: [".shx"],
       mimeTypes: ["application/octet-stream"],
       description: "Shapefile Index",
       blob: new Blob([writer.shx]),
     });
     result.push({
-      fileName: `${type}.dbf`,
+      fileName: `${fileName}.dbf`,
       extensions: [".dbf"],
       mimeTypes: ["application/octet-stream"],
       description: "Shapefile Attributes",
       blob: new Blob([writer.dbf]),
     });
     result.push({
-      fileName: `${type}.prj`,
+      fileName: `${fileName}.prj`,
       extensions: [".prj"],
       mimeTypes: ["text/plain"],
       description: "Shapefile Projection",
       blob: new Blob([PRJ_BYTES]),
     });
     result.push({
-      fileName: `${type}.cpg`,
+      fileName: `${fileName}.cpg`,
       extensions: [".cpg"],
       mimeTypes: ["text/plain"],
       description: "Shapefile Code Page",

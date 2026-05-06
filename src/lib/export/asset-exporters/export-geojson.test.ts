@@ -26,7 +26,7 @@ describe("export-geojson", () => {
       .build();
     const files = exportGeoJson(model, false, noSelection);
 
-    const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
     expect(geoJson.features).toHaveLength(1);
     expect(geoJson.features[0].type).toBe("Feature");
@@ -45,7 +45,7 @@ describe("export-geojson", () => {
       .build();
     const files = exportGeoJson(model, false, noSelection);
 
-    const geoJson = await parseGeoJson(findFile(files, "pipe.geojson"));
+    const geoJson = await parseGeoJson(findFile(files, "pipes.geojson"));
 
     const pipe = geoJson.features.find((f) => f.properties.label === "P1");
     expect(pipe?.type).toBe("Feature");
@@ -65,9 +65,9 @@ describe("export-geojson", () => {
     const files = exportGeoJson(model, false, noSelection);
 
     const junctionGeoJson = await parseGeoJson(
-      findFile(files, "junction.geojson"),
+      findFile(files, "junctions.geojson"),
     );
-    const pipeGeoJson = await parseGeoJson(findFile(files, "pipe.geojson"));
+    const pipeGeoJson = await parseGeoJson(findFile(files, "pipes.geojson"));
 
     expect(junctionGeoJson.features).toHaveLength(2);
     expect(pipeGeoJson.features).toHaveLength(1);
@@ -81,7 +81,7 @@ describe("export-geojson", () => {
 
     const files = exportGeoJson(model, true, noSelection, resultsReader);
 
-    const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.features[0].properties).toMatchObject({
       pressure: 42,
       demand: 5,
@@ -101,7 +101,7 @@ describe("export-geojson", () => {
     const files = exportGeoJson(model, false, noSelection);
 
     const geoJson = await parseGeoJson(
-      findFile(files, "customerPoint.geojson"),
+      findFile(files, "customer-points.geojson"),
     );
 
     expect(geoJson.features).toHaveLength(1);
@@ -124,7 +124,7 @@ describe("export-geojson", () => {
     const files = exportGeoJson(model, false, noSelection);
 
     const geoJson = await parseGeoJson(
-      findFile(files, "customerPoint.geojson"),
+      findFile(files, "customer-points.geojson"),
     );
 
     expect(geoJson.features).toHaveLength(1);
@@ -140,7 +140,7 @@ describe("export-geojson", () => {
       .build();
     const files = exportGeoJson(model, false, new Set([1]));
 
-    const geoJson = await parseGeoJson(findFile(files, "junction.geojson"));
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
     expect(geoJson.features).toHaveLength(1);
     expect(geoJson.features[0].properties).toMatchObject({ label: "J1" });

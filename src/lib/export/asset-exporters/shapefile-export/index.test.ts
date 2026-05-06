@@ -30,11 +30,11 @@ describe("exportShapefiles", () => {
     expect(files.length).toBe(5);
     expect(fileNames(files)).toEqual(
       expect.arrayContaining([
-        "junction.shp",
-        "junction.shx",
-        "junction.dbf",
-        "junction.prj",
-        "junction.cpg",
+        "junctions.shp",
+        "junctions.shx",
+        "junctions.dbf",
+        "junctions.prj",
+        "junctions.cpg",
       ]),
     );
   });
@@ -46,8 +46,8 @@ describe("exportShapefiles", () => {
 
     const files = exportShapefiles(model, false, new Set());
     const names = fileNames(files);
-    expect(names.some((n) => n.startsWith("pipe."))).toBe(false);
-    expect(names.some((n) => n.startsWith("junction."))).toBe(true);
+    expect(names.some((n) => n.startsWith("pipes."))).toBe(false);
+    expect(names.some((n) => n.startsWith("junctions."))).toBe(true);
   });
 
   it("produces one group of 5 files per asset type", () => {
@@ -69,7 +69,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set([1]));
-    const dbfFile = files.find((f) => f.fileName === "junction.dbf")!;
+    const dbfFile = files.find((f) => f.fileName === "junctions.dbf")!;
     // record count in DBF header (bytes 4-7, little-endian)
     return blobView(dbfFile.blob).then((view) => {
       expect(view.getUint32(4, true)).toBe(1);
@@ -82,7 +82,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shpFile = files.find((f) => f.fileName === "junction.shp")!;
+    const shpFile = files.find((f) => f.fileName === "junctions.shp")!;
     const view = await blobView(shpFile.blob);
     expect(view.getUint32(0, false)).toBe(0x0000270a);
   });
@@ -93,7 +93,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const prjFile = files.find((f) => f.fileName === "junction.prj")!;
+    const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
     const text = await blobText(prjFile.blob);
     expect(text).toContain("WGS 84");
     expect(text).toContain("GEOGCS");
@@ -105,7 +105,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const cpgFile = files.find((f) => f.fileName === "junction.cpg")!;
+    const cpgFile = files.find((f) => f.fileName === "junctions.cpg")!;
     expect(await blobText(cpgFile.blob)).toBe("UTF-8");
   });
 
@@ -115,7 +115,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shpFile = files.find((f) => f.fileName === "junction.shp")!;
+    const shpFile = files.find((f) => f.fileName === "junctions.shp")!;
     const view = await blobView(shpFile.blob);
     expect(view.getFloat64(36, true)).toBeCloseTo(10.5); // xmin
     expect(view.getFloat64(44, true)).toBeCloseTo(20.5); // ymin
@@ -131,7 +131,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "junction.dbf")!;
+    const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const view = await blobView(dbf.blob);
     expect(view.getUint32(4, true)).toBe(3);
   });
@@ -142,7 +142,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "junction.dbf")!;
+    const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     expect(bytes[bytes.length - 1]).toBe(0x1a);
   });
@@ -155,7 +155,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shp = files.find((f) => f.fileName === "pipe.shp")!;
+    const shp = files.find((f) => f.fileName === "pipes.shp")!;
     const view = await blobView(shp.blob);
     expect(view.getUint32(32, true)).toBe(3); // shape type in header
   });
@@ -168,7 +168,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "pipe.dbf")!;
+    const dbf = files.find((f) => f.fileName === "pipes.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     const text = new TextDecoder("latin1").decode(bytes);
     expect(text).toContain("STARTNODE");
@@ -192,7 +192,7 @@ describe("exportShapefiles", () => {
     } as any;
 
     const files = exportShapefiles(model, true, new Set(), mockResultsReader);
-    const dbf = files.find((f) => f.fileName === "junction.dbf")!;
+    const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     // The DBF should contain the field name "PRESSURE" somewhere in the header
     const text = new TextDecoder("latin1").decode(bytes);
@@ -206,7 +206,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shx = files.find((f) => f.fileName === "junction.shx")!;
+    const shx = files.find((f) => f.fileName === "junctions.shx")!;
     const bytes = await blobBytes(shx.blob);
     expect(bytes.length).toBe(100 + 8 * 2);
   });
@@ -220,11 +220,11 @@ describe("exportShapefiles", () => {
     const names = fileNames(files);
     expect(names).toEqual(
       expect.arrayContaining([
-        "customerPoint.shp",
-        "customerPoint.shx",
-        "customerPoint.dbf",
-        "customerPoint.prj",
-        "customerPoint.cpg",
+        "customer-points.shp",
+        "customer-points.shx",
+        "customer-points.dbf",
+        "customer-points.prj",
+        "customer-points.cpg",
       ]),
     );
   });
@@ -236,7 +236,7 @@ describe("exportShapefiles", () => {
 
     const files = exportShapefiles(model, false, new Set());
     const names = fileNames(files);
-    expect(names.some((n) => n.startsWith("customerPoint."))).toBe(false);
+    expect(names.some((n) => n.startsWith("customer-points."))).toBe(false);
   });
 
   it("customerPoint DBF has correct record count", async () => {
@@ -246,7 +246,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const view = await blobView(dbf.blob);
     expect(view.getUint32(4, true)).toBe(2);
   });
@@ -257,7 +257,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("LABEL");
     expect(text).toContain("X");
@@ -272,7 +272,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("MyPoint");
   });
@@ -289,7 +289,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const dbf = files.find((f) => f.fileName === "customerPoint.dbf")!;
+    const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("J1");
     expect(text).toContain("P3");
@@ -301,7 +301,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shp = files.find((f) => f.fileName === "customerPoint.shp")!;
+    const shp = files.find((f) => f.fileName === "customer-points.shp")!;
     const view = await blobView(shp.blob);
     expect(view.getUint32(32, true)).toBe(1); // shape type in header
   });
@@ -313,7 +313,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = exportShapefiles(model, false, new Set());
-    const shx = files.find((f) => f.fileName === "customerPoint.shx")!;
+    const shx = files.find((f) => f.fileName === "customer-points.shx")!;
     const bytes = await blobBytes(shx.blob);
     expect(bytes.length).toBe(100 + 8 * 2);
   });

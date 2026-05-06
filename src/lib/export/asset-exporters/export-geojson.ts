@@ -2,6 +2,7 @@ import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature } from "geojson";
+import { FILE_NAMES } from "./constants";
 
 const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
 const GEOJSON_END = `]}`;
@@ -208,12 +209,13 @@ export const exportGeoJson = (
   removeTrailingComma(buffers, offsets);
   encodeEnd(buffers, offsets, encoder);
 
-  return Object.entries(buffers).map(([type, buffer]) => {
-    const offset = offsets[type as AssetType];
+  return Object.entries(buffers).map(([t, buffer]) => {
+    const type = t as ExportedAssetTypes;
+    const offset = offsets[type];
     const bufferView = buffer.subarray(0, offset);
 
     return {
-      fileName: `${type}.geojson`,
+      fileName: `${FILE_NAMES[type]}.geojson`,
       extensions: [".geojson"],
       mimeTypes: ["text/geo+json"],
       description: "GeoJSON File",
