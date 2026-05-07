@@ -46,6 +46,7 @@ import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
 import { CommandShortcuts } from "./commands-shortcuts";
+import { PanelRegistrations } from "src/panels/panel-registrations";
 import { CommandBar } from "./command-bar/command-bar";
 import { SimulationPlaybackController } from "./simulation-playback-controller";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -215,6 +216,7 @@ export function EpanetApp() {
         <Drop />
         <Dialogs />
         <CommandBar />
+        <PanelRegistrations />
         <Suspense fallback={null}>
           <CommandShortcuts />
           <SimulationPlaybackController />

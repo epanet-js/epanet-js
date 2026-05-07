@@ -3,15 +3,16 @@ import { useAtom, useAtomValue } from "jotai";
 import { TabRoot, TabList, Tab } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { splitsAtom } from "src/state/layout";
-import { bottomActiveTabAtom, effectiveZone } from "src/state/panel-layout";
-import { panelRegistryAtom } from "src/panels/registry";
+import {
+  bottomActiveTabAtom,
+  effectiveZone,
+  panelRegistryAtom,
+} from "src/state/panel-layout";
 
 export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const panels = useAtomValue(panelRegistryAtom);
   const { layout } = useAtomValue(splitsAtom);
-  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const translate = useTranslate();
   const [activeTabId, setActiveTabId] = useAtom(bottomActiveTabAtom);
 
@@ -19,13 +20,11 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
 
   const visiblePanels = useMemo(
     () =>
-      panels.filter((p) => {
-        if (p.id === "profile-view" && !isProfileViewOn) return false;
-        return (
-          effectiveZone(p, resolvedLayout) === "bottom" && p.shown !== false
-        );
-      }),
-    [panels, resolvedLayout, isProfileViewOn],
+      panels.filter(
+        (p) =>
+          effectiveZone(p, resolvedLayout) === "bottom" && p.shown !== false,
+      ),
+    [panels, resolvedLayout],
   );
 
   const effectiveTabId =
@@ -51,7 +50,7 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
           </Tab>
         ))}
       </TabList>
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 flex flex-col relative">
         <DefaultErrorBoundary>
           <ActivePanel />
         </DefaultErrorBoundary>
