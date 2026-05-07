@@ -25,7 +25,7 @@ export function Tab({
   return (
     <Tabs.Trigger
       className={clsx(
-        `px-4 h-10 text-sm font-medium tracking-wide
+        `px-4 h-8 text-sm
         text-gray-500 dark:text-gray-400
         hover:text-gray-800 dark:hover:text-gray-200
         hover:bg-gray-100 dark:hover:bg-gray-700/50
