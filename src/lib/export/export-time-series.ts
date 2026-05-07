@@ -12,6 +12,7 @@ export const estimateTimeSeriesSize = (
 ) => numAssets * metrics.length * timestepCount * LINE_SIZE;
 
 export const exportTimeSeries = async (
+  networkName: string,
   directory: FileSystemDirectoryHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
@@ -28,7 +29,7 @@ export const exportTimeSeries = async (
   const buffer = new Uint8Array(4096);
 
   for (const metric of metrics) {
-    const fileName = `export_${metric}.csv`;
+    const fileName = `${networkName}-export-${metric}.csv`;
     const handle = await directory.getFileHandle(fileName, { create: true });
     const stream = await handle.createWritable();
 

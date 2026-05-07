@@ -9,6 +9,7 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import type { ExportTimeSeriesMetrics } from "src/lib/export/types";
+import { currentFileNameAtom } from "src/state";
 
 export type ExportTimeSeriesOptions = {
   selectedAssets: Set<number>;
@@ -23,6 +24,12 @@ export const useExportTimeSeries = () => {
       async (get, _set, options: ExportTimeSeriesOptions) => {
         const hydraulicModel = get(stagingModelDerivedAtom);
         const simulation = get(simulationDerivedAtom);
+        const networkFile = get(currentFileNameAtom) ?? "";
+        const networkNameDot = networkFile.lastIndexOf(".");
+        const networkName = networkFile.substring(
+          0,
+          networkNameDot < 0 ? networkFile.length - 1 : networkNameDot,
+        );
 
         if (
           !("epsResultsReader" in simulation) ||
@@ -39,6 +46,7 @@ export const useExportTimeSeries = () => {
 
         const doExport = async () => {
           await Export.exportTimeSeries(
+            networkName,
             directory,
             hydraulicModel,
             epsResultsReader,
