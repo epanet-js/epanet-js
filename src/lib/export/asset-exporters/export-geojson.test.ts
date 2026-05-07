@@ -177,6 +177,51 @@ describe("export-geojson", () => {
     const [cx] = cpGeoJson.features[0].geometry.coordinates as number[];
     expect(cx).not.toBe(1);
   });
+
+  it("includes a named CRS with the WGS84 OGC URN for the default projection", async () => {
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const files = exportGeoJson(model, false, noSelection, WGS84);
+
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
+    expect(geoJson.crs).toEqual({
+      type: "name",
+      properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" },
+    });
+  });
+
+  it("includes a named CRS using the projection id for xy-grid projections", async () => {
+    const xyGrid = {
+      type: "xy-grid" as const,
+      id: "my-grid",
+      name: "My Grid",
+      centroid: [0, 0] as [number, number],
+    };
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const files = exportGeoJson(model, false, noSelection, xyGrid);
+
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
+    expect(geoJson.crs).toEqual({
+      type: "name",
+      properties: { name: "my-grid" },
+    });
+  });
+
+  it("includes a named CRS using the projection code for proj4 projections", async () => {
+    const proj4 = {
+      type: "proj4" as const,
+      id: "epsg-4326",
+      name: "WGS 84",
+      code: "EPSG:4326",
+    };
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const files = exportGeoJson(model, false, noSelection, proj4);
+
+    const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
+    expect(geoJson.crs).toEqual({
+      type: "name",
+      properties: { name: "EPSG:4326" },
+    });
+  });
 });
 
 const findFile = (files: ExportedFile[], name: string) =>
@@ -185,6 +230,7 @@ const findFile = (files: ExportedFile[], name: string) =>
 const parseGeoJson = async (file: ExportedFile) =>
   JSON.parse(await file.blob.text()) as {
     type: string;
+    crs?: { type: string; properties: { name: string } };
     features: {
       type: string;
       geometry: { type: string; coordinates: unknown };

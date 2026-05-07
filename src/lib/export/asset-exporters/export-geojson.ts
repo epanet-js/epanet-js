@@ -10,8 +10,21 @@ import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
 import { createProjectionMapper } from "src/lib/projections";
 
-const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
 const GEOJSON_END = `]}`;
+
+const buildCrs = (projection: Projection): string => {
+  switch (projection.type) {
+    case "wgs84":
+      return '{"type":"name","properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}}';
+    case "proj4":
+      return `{"type":"name","properties":{"name":${JSON.stringify(projection.code)}}}`;
+    case "xy-grid":
+      return `{"type":"name","properties":{"name":${JSON.stringify(projection.id)}}}`;
+  }
+};
+
+const buildGeoJsonHeader = (projection: Projection): string =>
+  `{"type":"FeatureCollection","crs":${buildCrs(projection)},"features":[`;
 
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
@@ -31,8 +44,9 @@ export const exportGeoJson = (
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
   const hasAssetSelection = selectedAssets.size > 0;
+  const header = buildGeoJsonHeader(projection);
 
-  encodeHeader(buffers, offsets, encoder);
+  encodeHeader(buffers, offsets, encoder, header);
 
   hydraulicModel.assets.forEach((asset) => {
     if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
@@ -92,7 +106,7 @@ export const exportGeoJson = (
     offsets["customerPoint"] += written;
   });
 
-  removeTrailingComma(buffers, offsets);
+  removeTrailingComma(buffers, offsets, header.length);
   encodeEnd(buffers, offsets, encoder);
 
   return Object.entries(buffers).map(([t, buffer]) => {
@@ -231,11 +245,12 @@ const encodeHeader = (
   buffers: Record<AssetType, Uint8Array>,
   offsets: Record<AssetType, number>,
   textEncoder: TextEncoder,
+  header: string,
 ) => {
   const types = Object.keys(buffers) as AssetType[];
   types.forEach((type) => {
     const buffer = buffers[type];
-    const { written } = textEncoder.encodeInto(GEOJSON_HEADER, buffer);
+    const { written } = textEncoder.encodeInto(header, buffer);
     offsets[type] += written;
   });
 };
@@ -258,11 +273,12 @@ const encodeEnd = (
 const removeTrailingComma = (
   buffers: Record<ExportedAssetTypes, Uint8Array>,
   offsets: Record<ExportedAssetTypes, number>,
+  headerLength: number,
 ) => {
   const types = Object.keys(buffers) as ExportedAssetTypes[];
 
   types.forEach((type) => {
-    if (offsets[type] > GEOJSON_HEADER.length) {
+    if (offsets[type] > headerLength) {
       offsets[type] -= 1;
     }
   });
