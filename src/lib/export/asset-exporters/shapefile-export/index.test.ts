@@ -351,4 +351,39 @@ describe("exportShapefiles", () => {
     const cpx = cpView.getFloat64(100 + 12, true);
     expect(cpx).not.toBe(1);
   });
+
+  it(".prj uses the proj4 code string for proj4 projections", async () => {
+    const proj4Proj = {
+      type: "proj4" as const,
+      id: "EPSG:3857",
+      name: "WGS 84 / Pseudo-Mercator",
+      code: "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs",
+    };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set(), proj4Proj);
+    const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
+    const text = await blobText(prjFile.blob);
+    expect(text).toBe(proj4Proj.code);
+  });
+
+  it(".prj uses a LOCAL_CS WKT for xy-grid projections", async () => {
+    const xyGrid = {
+      type: "xy-grid" as const,
+      id: "my-grid",
+      name: "My Local Grid",
+      centroid: [0, 0] as [number, number],
+    };
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+
+    const files = exportShapefiles(model, false, new Set(), xyGrid);
+    const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
+    const text = await blobText(prjFile.blob);
+    expect(text).toContain("LOCAL_CS");
+    expect(text).toContain("My Local Grid");
+  });
 });

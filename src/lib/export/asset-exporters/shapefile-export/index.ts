@@ -5,7 +5,7 @@ import {
 } from "src/hydraulic-model";
 import { type ResultsReader } from "src/simulation";
 import { type ExportedAssetTypes, type ExportedFile } from "../../types";
-import { SHAPE_POINT, SHAPE_POLYLINE, PRJ_BYTES, CPG_BYTES } from "./constants";
+import { SHAPE_POINT, SHAPE_POLYLINE, WGS84_WKT, CPG_BYTES } from "./constants";
 import { AssetWriter } from "./asset-writer";
 import { buildSchema } from "./schema";
 import { writePoint, writePolyLine } from "./geometry-writer";
@@ -236,7 +236,7 @@ export const exportShapefiles = (
       extensions: [".prj"],
       mimeTypes: ["text/plain"],
       description: "Shapefile Projection",
-      blob: new Blob([PRJ_BYTES]),
+      blob: new Blob([buildPrjContent(projection)]),
     });
     result.push({
       fileName: `${fileName}.cpg`,
@@ -270,4 +270,15 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
     pump: (asset: Asset) => resultsReader.getPump(asset.id) ?? {},
     valve: (asset: Asset) => resultsReader.getValve(asset.id) ?? {},
   };
+};
+
+const buildPrjContent = (projection: Projection): string => {
+  switch (projection.type) {
+    case "wgs84":
+      return WGS84_WKT;
+    case "proj4":
+      return projection.code;
+    case "xy-grid":
+      return `LOCAL_CS["${projection.name}",LOCAL_DATUM["${projection.name}",32767],UNIT["m",1],AXIS["X",EAST],AXIS["Y",NORTH]]`;
+  }
 };
