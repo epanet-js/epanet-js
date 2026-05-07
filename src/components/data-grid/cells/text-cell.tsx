@@ -109,8 +109,8 @@ export function TextCell({
 
   if (readonly) {
     return (
-      <div className="w-full h-full flex items-center px-2 text-sm text-gray-500 bg-gray-50">
-        {value ?? ""}
+      <div className="w-full h-full flex items-center px-2 text-sm text-gray-500 bg-gray-50 overflow-hidden">
+        <span className="truncate">{value ?? ""}</span>
       </div>
     );
   }
