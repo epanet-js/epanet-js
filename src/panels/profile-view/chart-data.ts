@@ -17,7 +17,7 @@ import {
 } from "src/state/derived-branch-state";
 import { type SimulationState } from "src/state/simulation";
 import { AssetId, AssetsMap, HydraulicModel } from "src/hydraulic-model";
-import { shortestPath } from "src/hydraulic-model/path-finding";
+import { shortestPathByDistance, shortestPathByFlow } from "./path-finding";
 import { ResultsReader } from "src/simulation/results-reader";
 import type { EPSResultsReader } from "src/simulation";
 import { Highlight } from "src/state/highlights";
@@ -127,7 +127,7 @@ export function useProfileViewData(): ProfileViewData {
   const simulation = useAtomValue(simulationDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
 
-  const path = useProfileViewPath(plot, model);
+  const path = useProfileViewPath(plot, model, results);
 
   const phase = useMemo<ProfileViewUiPhase>(() => {
     if (plot !== null) return "showingProfile";
@@ -178,6 +178,7 @@ export function useProfileViewData(): ProfileViewData {
 function useProfileViewPath(
   plot: ProfileViewPlot | null,
   model: HydraulicModel,
+  results: ResultsReader | null,
 ): PathData | null {
   return useMemo(() => {
     if (plot === null) return null;
@@ -185,8 +186,21 @@ function useProfileViewPath(
     if (!model.assets.get(startNodeId) || !model.assets.get(endNodeId)) {
       return null;
     }
-    return shortestPath(model.topology, model.assets, startNodeId, endNodeId);
-  }, [plot, model.topology, model.assets]);
+    return results
+      ? shortestPathByFlow(
+          model.topology,
+          model.assets,
+          results,
+          startNodeId,
+          endNodeId,
+        )
+      : shortestPathByDistance(
+          model.topology,
+          model.assets,
+          startNodeId,
+          endNodeId,
+        );
+  }, [plot, model.topology, model.assets, results]);
 }
 
 function computeProfileViewData(

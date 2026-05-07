@@ -9,8 +9,13 @@ import { cursorStyleAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
-import { shortestPath } from "src/hydraulic-model/path-finding";
+import {
+  shortestPathByDistance,
+  shortestPathByFlow,
+} from "src/panels/profile-view/path-finding";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
+import { ResultsReader } from "src/simulation/results-reader";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 
 export function useProfileViewHandlers(
@@ -21,6 +26,7 @@ export function useProfileViewHandlers(
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const plot = useAtomValue(profileViewAtom);
+  const results = useAtomValue(simulationResultsDerivedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -35,8 +41,25 @@ export function useProfileViewHandlers(
   const draftPathCacheRef = useRef<{
     startNodeId: AssetId;
     hoveredNodeId: AssetId;
+    results: ResultsReader | null;
     path: DraftPath | undefined;
   } | null>(null);
+
+  const computePath = (start: AssetId, end: AssetId) =>
+    results
+      ? shortestPathByFlow(
+          hydraulicModel.topology,
+          hydraulicModel.assets,
+          results,
+          start,
+          end,
+        )
+      : shortestPathByDistance(
+          hydraulicModel.topology,
+          hydraulicModel.assets,
+          start,
+          end,
+        );
 
   const resolveNodeId = (
     asset: Asset | null,
@@ -67,12 +90,7 @@ export function useProfileViewHandlers(
 
     if (nodeId === draftStartNodeId) return;
 
-    const path = shortestPath(
-      hydraulicModel.topology,
-      hydraulicModel.assets,
-      draftStartNodeId,
-      nodeId,
-    );
+    const path = computePath(draftStartNodeId, nodeId);
 
     if (path === null) {
       setDialogState({ type: "profileNoPath" });
@@ -106,22 +124,19 @@ export function useProfileViewHandlers(
       if (
         cached &&
         cached.startNodeId === draftStartNodeId &&
-        cached.hoveredNodeId === hoveredNodeId
+        cached.hoveredNodeId === hoveredNodeId &&
+        cached.results === results
       ) {
         path = cached.path;
       } else {
-        const found = shortestPath(
-          hydraulicModel.topology,
-          hydraulicModel.assets,
-          draftStartNodeId,
-          hoveredNodeId,
-        );
+        const found = computePath(draftStartNodeId, hoveredNodeId);
         path = found
           ? { nodeIds: found.nodeIds, linkIds: found.linkIds }
           : undefined;
         draftPathCacheRef.current = {
           startNodeId: draftStartNodeId,
           hoveredNodeId,
+          results,
           path,
         };
       }
