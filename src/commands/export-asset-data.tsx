@@ -10,6 +10,7 @@ import {
 import { simulationStepAtom } from "src/state/simulation";
 import { currentFileNameAtom } from "src/state/file-system";
 import type { ResultsReader } from "src/simulation/results-reader";
+import { projectSettingsAtom } from "src/state/project-settings";
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -48,6 +49,7 @@ export const useExportAssetData = () => {
         const hydraulicModel = get(stagingModelDerivedAtom);
         const resultsReader = (await getResultsReader()) ?? undefined;
         const networkName = get(currentFileNameAtom) ?? "";
+        const projectSettings = get(projectSettingsAtom);
 
         const doExport = async () => {
           const networkNameDot = networkName.lastIndexOf(".");
@@ -66,6 +68,7 @@ export const useExportAssetData = () => {
             hydraulicModel,
             options.includeSimulationResults,
             options.selectedAssets,
+            projectSettings.projection,
             resultsReader,
           );
         };

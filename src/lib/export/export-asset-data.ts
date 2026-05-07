@@ -1,4 +1,4 @@
-import { HydraulicModel } from "src/hydraulic-model";
+import { HydraulicModel, Projection } from "src/hydraulic-model";
 import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "./file-system-helpers";
 import type { ExportFormat } from "./types";
@@ -10,6 +10,7 @@ export const exportAssetData = async (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
   selectedAssets: Set<number>,
+  projection: Projection,
   resultsReader?: ResultsReader,
 ) => {
   const exporters = {
@@ -24,6 +25,7 @@ export const exportAssetData = async (
       hydraulicModel,
       includeSimulationResults,
       selectedAssets,
+      projection,
       resultsReader,
     );
     return;
@@ -33,6 +35,7 @@ export const exportAssetData = async (
     hydraulicModel,
     includeSimulationResults,
     selectedAssets,
+    projection,
     resultsReader,
   );
 
@@ -58,6 +61,7 @@ const handleXlsx = async (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
   selectedAssets: Set<number>,
+  projection: Projection,
   resultsReader?: ResultsReader,
 ) => {
   const xlsxFileName = `${fileName}.xlsx`;
@@ -75,6 +79,7 @@ const handleXlsx = async (
     hydraulicModel,
     includeSimulationResults,
     selectedAssets,
+    projection,
     resultsReader,
   );
 

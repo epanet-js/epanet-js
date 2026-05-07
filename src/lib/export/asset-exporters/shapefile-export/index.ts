@@ -1,4 +1,4 @@
-import { type Asset, type HydraulicModel } from "src/hydraulic-model";
+import { Projection, type Asset, type HydraulicModel } from "src/hydraulic-model";
 import { type ResultsReader } from "src/simulation";
 import { type ExportedAssetTypes, type ExportedFile } from "../../types";
 import { SHAPE_POINT, SHAPE_POLYLINE, PRJ_BYTES, CPG_BYTES } from "./constants";
@@ -23,6 +23,7 @@ export const exportShapefiles = (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
   selectedAssets: Set<number>,
+  projection: Projection,
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const writers: Record<ExportedAssetTypes, AssetWriter> = {

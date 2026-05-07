@@ -1,81 +1,14 @@
-import { Asset, HydraulicModel } from "src/hydraulic-model";
+import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
 
-const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
-  if (!resultsReader) {
-    return {
-      junction: () => ({}),
-      tank: () => ({}),
-      reservoir: () => ({}),
-      pipe: () => ({}),
-      pump: () => ({}),
-      valve: () => ({}),
-    };
-  }
-
-  return {
-    junction: (asset: Asset) => resultsReader.getJunction(asset.id) ?? {},
-    tank: (asset: Asset) => resultsReader.getTank(asset.id) ?? {},
-    reservoir: (asset: Asset) => resultsReader.getReservoir(asset.id) ?? {},
-    pipe: (asset: Asset) => resultsReader.getPipe(asset.id) ?? {},
-    pump: (asset: Asset) => resultsReader.getPump(asset.id) ?? {},
-    valve: (asset: Asset) => resultsReader.getValve(asset.id) ?? {},
-  };
-};
-
-const allocateBuffers = (size: number) => {
-  const buffers: Record<ExportedAssetTypes, Uint8Array> = {
-    junction: new Uint8Array(size),
-    reservoir: new Uint8Array(size),
-    tank: new Uint8Array(size),
-    pipe: new Uint8Array(size),
-    pump: new Uint8Array(size),
-    valve: new Uint8Array(size),
-    customerPoint: new Uint8Array(size),
-  };
-  const offsets: Record<ExportedAssetTypes, number> = {
-    junction: 0,
-    reservoir: 0,
-    tank: 0,
-    pipe: 0,
-    pump: 0,
-    valve: 0,
-    customerPoint: 0,
-  };
-
-  return { buffers, offsets };
-};
-
-const allocateProperties = () => {
-  const properties: Record<ExportedAssetTypes, string[]> = {
-    junction: [],
-    reservoir: [],
-    tank: [],
-    pipe: [],
-    pump: [],
-    valve: [],
-    customerPoint: [],
-  };
-  const simulationProperties: Record<ExportedAssetTypes, Set<string>> = {
-    junction: new Set<string>(),
-    reservoir: new Set<string>(),
-    tank: new Set<string>(),
-    pipe: new Set<string>(),
-    pump: new Set<string>(),
-    valve: new Set<string>(),
-    customerPoint: new Set<string>(),
-  };
-
-  return { properties, simulationProperties };
-};
-
 export const exportCsv = (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
   selectedAssets: Set<number>,
+  projection: Projection,
   resultsReader?: ResultsReader,
 ): ExportedFile[] => {
   const charsPerCol = 64;
@@ -281,4 +214,73 @@ export const exportCsv = (
       }),
     };
   });
+};
+
+
+const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
+  if (!resultsReader) {
+    return {
+      junction: () => ({}),
+      tank: () => ({}),
+      reservoir: () => ({}),
+      pipe: () => ({}),
+      pump: () => ({}),
+      valve: () => ({}),
+    };
+  }
+
+  return {
+    junction: (asset: Asset) => resultsReader.getJunction(asset.id) ?? {},
+    tank: (asset: Asset) => resultsReader.getTank(asset.id) ?? {},
+    reservoir: (asset: Asset) => resultsReader.getReservoir(asset.id) ?? {},
+    pipe: (asset: Asset) => resultsReader.getPipe(asset.id) ?? {},
+    pump: (asset: Asset) => resultsReader.getPump(asset.id) ?? {},
+    valve: (asset: Asset) => resultsReader.getValve(asset.id) ?? {},
+  };
+};
+
+const allocateBuffers = (size: number) => {
+  const buffers: Record<ExportedAssetTypes, Uint8Array> = {
+    junction: new Uint8Array(size),
+    reservoir: new Uint8Array(size),
+    tank: new Uint8Array(size),
+    pipe: new Uint8Array(size),
+    pump: new Uint8Array(size),
+    valve: new Uint8Array(size),
+    customerPoint: new Uint8Array(size),
+  };
+  const offsets: Record<ExportedAssetTypes, number> = {
+    junction: 0,
+    reservoir: 0,
+    tank: 0,
+    pipe: 0,
+    pump: 0,
+    valve: 0,
+    customerPoint: 0,
+  };
+
+  return { buffers, offsets };
+};
+
+const allocateProperties = () => {
+  const properties: Record<ExportedAssetTypes, string[]> = {
+    junction: [],
+    reservoir: [],
+    tank: [],
+    pipe: [],
+    pump: [],
+    valve: [],
+    customerPoint: [],
+  };
+  const simulationProperties: Record<ExportedAssetTypes, Set<string>> = {
+    junction: new Set<string>(),
+    reservoir: new Set<string>(),
+    tank: new Set<string>(),
+    pipe: new Set<string>(),
+    pump: new Set<string>(),
+    valve: new Set<string>(),
+    customerPoint: new Set<string>(),
+  };
+
+  return { properties, simulationProperties };
 };

@@ -1,4 +1,9 @@
-import { Asset, AssetType, HydraulicModel } from "src/hydraulic-model";
+import {
+  Asset,
+  AssetType,
+  HydraulicModel,
+  Projection,
+} from "src/hydraulic-model";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature } from "geojson";
@@ -6,6 +11,94 @@ import { FILE_NAMES } from "./constants";
 
 const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
 const GEOJSON_END = `]}`;
+
+export const exportGeoJson = (
+  hydraulicModel: HydraulicModel,
+  includeSimulationResults: boolean,
+  selectedAssets: Set<number>,
+  projection: Projection,
+  resultsReader?: ResultsReader,
+): ExportedFile[] => {
+  const entrySize = estimateEntrySize(hydraulicModel);
+  const size =
+    Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) *
+      2 *
+      entrySize +
+    1024;
+  const encoder = new TextEncoder();
+  const getSimulationResults = buildSimulationResultsReader(resultsReader);
+  const { buffers, offsets } = allocateBuffers(size);
+  const hasAssetSelection = selectedAssets.size > 0;
+
+  encodeHeader(buffers, offsets, encoder);
+
+  hydraulicModel.assets.forEach((asset) => {
+    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
+
+    const simulationValues = includeSimulationResults
+      ? getSimulationResults[asset.type](asset)
+      : {};
+    const buffer = buffers[asset.type];
+    const offset = offsets[asset.type];
+    const view = buffer.subarray(offset);
+    const geoJson = assetToGeoJson(hydraulicModel, asset, simulationValues);
+
+    const textContent = `${geoJson},`;
+    const { written } = encoder.encodeInto(textContent, view);
+    offsets[asset.type] += written;
+  });
+
+  hydraulicModel.customerPoints.forEach((point) => {
+    const junctionConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
+        : "";
+    const pipeConnection =
+      point.connection !== null
+        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
+        : "";
+    const mapped = {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: point.coordinates,
+      },
+      properties: {
+        label: point.label,
+        junctionConnection,
+        pipeConnection,
+        connectionX: point.connection?.snapPoint[0].toFixed(4) ?? undefined,
+        connectionY: point.connection?.snapPoint[1].toFixed(4) ?? undefined,
+      },
+    };
+
+    const buffer = buffers["customerPoint"];
+    const offset = offsets["customerPoint"];
+    const view = buffer.subarray(offset);
+
+    const { written } = encoder.encodeInto(`${JSON.stringify(mapped)},`, view);
+    offsets["customerPoint"] += written;
+  });
+
+  removeTrailingComma(buffers, offsets);
+  encodeEnd(buffers, offsets, encoder);
+
+  return Object.entries(buffers).map(([t, buffer]) => {
+    const type = t as ExportedAssetTypes;
+    const offset = offsets[type];
+    const bufferView = buffer.subarray(0, offset);
+
+    return {
+      fileName: `${FILE_NAMES[type]}.geojson`,
+      extensions: [".geojson"],
+      mimeTypes: ["text/geo+json"],
+      description: "GeoJSON File",
+      blob: new Blob([bufferView], {
+        type: "text/geo+json",
+      }),
+    };
+  });
+};
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {
@@ -147,92 +240,5 @@ const removeTrailingComma = (
     if (offsets[type] > GEOJSON_HEADER.length) {
       offsets[type] -= 1;
     }
-  });
-};
-
-export const exportGeoJson = (
-  hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
-  resultsReader?: ResultsReader,
-): ExportedFile[] => {
-  const entrySize = estimateEntrySize(hydraulicModel);
-  const size =
-    Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) *
-      2 *
-      entrySize +
-    1024;
-  const encoder = new TextEncoder();
-  const getSimulationResults = buildSimulationResultsReader(resultsReader);
-  const { buffers, offsets } = allocateBuffers(size);
-  const hasAssetSelection = selectedAssets.size > 0;
-
-  encodeHeader(buffers, offsets, encoder);
-
-  hydraulicModel.assets.forEach((asset) => {
-    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
-
-    const simulationValues = includeSimulationResults
-      ? getSimulationResults[asset.type](asset)
-      : {};
-    const buffer = buffers[asset.type];
-    const offset = offsets[asset.type];
-    const view = buffer.subarray(offset);
-    const geoJson = assetToGeoJson(hydraulicModel, asset, simulationValues);
-
-    const textContent = `${geoJson},`;
-    const { written } = encoder.encodeInto(textContent, view);
-    offsets[asset.type] += written;
-  });
-
-  hydraulicModel.customerPoints.forEach((point) => {
-    const junctionConnection =
-      point.connection !== null
-        ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")
-        : "";
-    const pipeConnection =
-      point.connection !== null
-        ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
-        : "";
-    const mapped = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: point.coordinates,
-      },
-      properties: {
-        label: point.label,
-        junctionConnection,
-        pipeConnection,
-        connectionX: point.connection?.snapPoint[0].toFixed(4) ?? undefined,
-        connectionY: point.connection?.snapPoint[1].toFixed(4) ?? undefined,
-      },
-    };
-
-    const buffer = buffers["customerPoint"];
-    const offset = offsets["customerPoint"];
-    const view = buffer.subarray(offset);
-
-    const { written } = encoder.encodeInto(`${JSON.stringify(mapped)},`, view);
-    offsets["customerPoint"] += written;
-  });
-
-  removeTrailingComma(buffers, offsets);
-  encodeEnd(buffers, offsets, encoder);
-
-  return Object.entries(buffers).map(([t, buffer]) => {
-    const type = t as ExportedAssetTypes;
-    const offset = offsets[type];
-    const bufferView = buffer.subarray(0, offset);
-
-    return {
-      fileName: `${FILE_NAMES[type]}.geojson`,
-      extensions: [".geojson"],
-      mimeTypes: ["text/geo+json"],
-      description: "GeoJSON File",
-      blob: new Blob([bufferView], {
-        type: "text/geo+json",
-      }),
-    };
   });
 };

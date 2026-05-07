@@ -1,5 +1,5 @@
 import { Zip, ZipDeflate } from "fflate";
-import { Asset, HydraulicModel } from "src/hydraulic-model";
+import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
@@ -26,6 +26,7 @@ export const exportXlsx = async (
   hydraulicModel: HydraulicModel,
   includeSimulationResults: boolean,
   selectedAssets: Set<number>,
+  projection: Projection,
   resultsReader?: ResultsReader,
 ): Promise<void> => {
   const stream = await handle.createWritable();
