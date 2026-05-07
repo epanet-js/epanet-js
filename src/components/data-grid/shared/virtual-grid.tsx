@@ -232,7 +232,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
             headerScrollRef.current.scrollLeft = scrollRef.current.scrollLeft;
           }
         }}
-        className="outline-none overflow-auto flex-1 border border-gray-200 datagrid-scroll-area"
+        className="outline-none overflow-auto overscroll-none flex-1 border border-gray-200 datagrid-scroll-area"
       >
         <div
           style={{
