@@ -52,10 +52,18 @@ const allocateBuffers = (size: number) => {
   return { buffers, offsets };
 };
 
+const prefixSimulationKeys = (simulationResults: Record<string, unknown>) => {
+  const prefixed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(simulationResults)) {
+    if (key !== "type") prefixed[`sim_${key}`] = value;
+  }
+  return prefixed;
+};
+
 const assetToGeoJson = (
   hydraulicModel: HydraulicModel,
   asset: Asset,
-  simulationResults = {},
+  simulationResults: Record<string, unknown> = {},
 ) => {
   const buildConnection = (connection: number) => {
     const asset = hydraulicModel.assets.get(connection);
@@ -75,7 +83,10 @@ const assetToGeoJson = (
   const mapped: Feature = {
     type: "Feature",
     geometry: asset?.feature.geometry,
-    properties: { ...asset?.feature.properties, ...simulationResults },
+    properties: {
+      ...asset?.feature.properties,
+      ...prefixSimulationKeys(simulationResults),
+    },
   };
 
   if (

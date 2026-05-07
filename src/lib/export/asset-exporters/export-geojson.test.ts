@@ -83,8 +83,8 @@ describe("export-geojson", () => {
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.features[0].properties).toMatchObject({
-      pressure: 42,
-      demand: 5,
+      sim_pressure: 42,
+      sim_demand: 5,
     });
   });
 
