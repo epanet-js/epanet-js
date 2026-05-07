@@ -1,5 +1,6 @@
 import type { EChartsOption, SeriesOption } from "echarts";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import { roundToSignificantDigits } from "src/infra/rounding";
 
 const STRIP_GRID_TOP = 6;
 const STRIP_GRID_HEIGHT = 30;
@@ -65,7 +66,9 @@ export function buildProfileChartOption({
   };
 
   const formatLength = (val: number) =>
-    localizeDecimal(val, { decimals: lengthDecimals });
+    localizeDecimal(roundToSignificantDigits(val, 3), {
+      decimals: lengthDecimals,
+    });
   const formatElevation = (val: number) =>
     localizeDecimal(val, { decimals: elevationDecimals });
 
