@@ -79,14 +79,14 @@ describe("useSelection", () => {
         });
       });
 
-      it("sets active cell to end of row", () => {
+      it("sets active cell to first column of selected row", () => {
         const { result } = renderHook(() => useSelection(defaultOptions));
 
         act(() => {
           result.current.selectCells({ rowIndex: 2 });
         });
 
-        expect(result.current.activeCell).toEqual({ col: 2, row: 2 });
+        expect(result.current.activeCell).toEqual({ col: 0, row: 2 });
       });
     });
 
@@ -104,14 +104,14 @@ describe("useSelection", () => {
         });
       });
 
-      it("sets active cell to bottom of column", () => {
+      it("sets active cell to top of selected column", () => {
         const { result } = renderHook(() => useSelection(defaultOptions));
 
         act(() => {
           result.current.selectCells({ colIndex: 1 });
         });
 
-        expect(result.current.activeCell).toEqual({ col: 1, row: 4 });
+        expect(result.current.activeCell).toEqual({ col: 1, row: 0 });
       });
     });
 
@@ -129,14 +129,14 @@ describe("useSelection", () => {
         });
       });
 
-      it("sets active cell to bottom-right corner", () => {
+      it("sets active cell to top-left corner", () => {
         const { result } = renderHook(() => useSelection(defaultOptions));
 
         act(() => {
           result.current.selectCells();
         });
 
-        expect(result.current.activeCell).toEqual({ col: 2, row: 4 });
+        expect(result.current.activeCell).toEqual({ col: 0, row: 0 });
       });
     });
 
@@ -214,6 +214,60 @@ describe("useSelection", () => {
         min: { col: 0, row: 0 },
         max: { col: 2, row: 2 },
       });
+    });
+
+    it("extends column selection to adjacent column with shift+click", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectCells({ colIndex: 0 });
+      });
+      act(() => {
+        result.current.selectCells({ colIndex: 2, extend: true });
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+      // active cell stays at row 0 (top of column), not the bottom
+      expect(result.current.activeCell).toEqual({ col: 2, row: 0 });
+    });
+
+    it("extends row selection to adjacent row with shift+click on gutter", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectCells({ rowIndex: 0 });
+      });
+      act(() => {
+        result.current.selectCells({ rowIndex: 4, extend: true });
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+      // active cell stays at col 0 (first column), not the last
+      expect(result.current.activeCell).toEqual({ col: 0, row: 4 });
+    });
+
+    it("preserves active cell row when selecting a column with an existing selection", () => {
+      const { result } = renderHook(() => useSelection(defaultOptions));
+
+      act(() => {
+        result.current.selectCells({ colIndex: 1, rowIndex: 3 });
+      });
+      act(() => {
+        result.current.selectCells({ colIndex: 2 });
+      });
+
+      expect(result.current.selection).toEqual({
+        min: { col: 2, row: 0 },
+        max: { col: 2, row: 4 },
+      });
+      // active cell row stays at 0 (top of column), col moves to new column
+      expect(result.current.activeCell).toEqual({ col: 2, row: 0 });
     });
 
     it("does nothing when extend is true but no existing selection", () => {

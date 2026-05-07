@@ -528,6 +528,202 @@ describe("DataGrid", () => {
     });
   });
 
+  describe("column header selection", () => {
+    it("selects entire column when clicking column header", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      const labelHeader = screen.getByRole("columnheader", { name: "Label" });
+      await user.click(labelHeader);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 2 },
+        });
+      });
+    });
+
+    it("active cell is at row 0 when selecting a full column", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<DataGridRef>();
+
+      render(
+        <DataGrid
+          ref={ref}
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Click a cell in the last row first
+      await user.click(screen.getByText("Row 3"));
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 2 },
+          max: { col: 0, row: 2 },
+        });
+      });
+
+      // Now click column header — active cell should be at row 0, not row 2
+      const labelHeader = screen.getByRole("columnheader", { name: "Label" });
+      await user.click(labelHeader);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 2 },
+        });
+      });
+
+      // Pressing Escape should collapse to active cell at row 0
+      const grid = screen.getByRole("grid");
+      grid.focus();
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+    });
+
+    it("extends column selection with shift+click on another column header", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Click first column header
+      await user.click(screen.getByRole("columnheader", { name: "Label" }));
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 2 },
+        });
+      });
+
+      // Shift+click second column header — should extend to both columns, all rows
+      await user.keyboard("[ShiftLeft>]");
+      await user.click(screen.getByRole("columnheader", { name: "Value" }));
+      await user.keyboard("[/ShiftLeft]");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 1, row: 2 },
+        });
+      });
+    });
+  });
+
+  describe("gutter shift+click selection", () => {
+    it("extends row selection with shift+click on gutter", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          gutterColumn
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      const gutterCells = container.querySelectorAll(".text-xs.cursor-pointer");
+
+      // Click first gutter row
+      await user.click(gutterCells[0]);
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 1, row: 0 },
+        });
+      });
+
+      // Shift+click third gutter row — should extend to rows 0–2, all columns
+      await user.keyboard("[ShiftLeft>]");
+      await user.click(gutterCells[2]);
+      await user.keyboard("[/ShiftLeft]");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 1, row: 2 },
+        });
+      });
+    });
+
+    it("active cell stays in first column after shift+click on gutter", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+      const ref = createRef<DataGridRef>();
+
+      const { container } = render(
+        <DataGrid
+          ref={ref}
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          gutterColumn
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      const gutterCells = container.querySelectorAll(".text-xs.cursor-pointer");
+      await user.click(gutterCells[0]);
+      await user.keyboard("[ShiftLeft>]");
+      await user.click(gutterCells[2]);
+      await user.keyboard("[/ShiftLeft]");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 1, row: 2 },
+        });
+      });
+
+      // Escape collapses to active cell — should be at col 0 (not rightmost col 1), row 2 (last clicked row)
+      const grid = screen.getByRole("grid");
+      grid.focus();
+      await user.keyboard("{Escape}");
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 0, row: 2 },
+          max: { col: 0, row: 2 },
+        });
+      });
+    });
+  });
+
   describe("escape key handling", () => {
     it("reduces multi-cell selection to single active cell on first Escape", async () => {
       const user = setupUser();
@@ -561,11 +757,11 @@ describe("DataGrid", () => {
       grid.focus();
       await user.keyboard("{Escape}");
 
-      // Should reduce to single cell (the active cell at max position)
+      // Should reduce to single cell (the active cell at min position)
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith({
-          min: { col: 1, row: 2 },
-          max: { col: 1, row: 2 },
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
         });
       });
 

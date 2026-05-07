@@ -27,7 +27,7 @@ export type InlineGridProps<TData> = {
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
-  onSelectColumn: (colIndex: number) => void;
+  onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
   stopEditing: () => void;
   startEditing: () => void;
@@ -59,7 +59,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
     onGutterClick,
     onCellChange,
     onEmptyAreaMouseDown,
-    onSelectColumn,
+    onColumnHeaderClick,
     onSelectAll,
     stopEditing,
     startEditing,
@@ -111,7 +111,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
         table={table}
         showGutterColumn={gutterColumn}
         showActionsColumn={!readOnly && !!rowActions}
-        onSelectColumn={onSelectColumn}
+        onColumnHeaderClick={onColumnHeaderClick}
         onSelectAll={onSelectAll}
         variant={variant}
         fitWidthToContent={fitWidthToContent}

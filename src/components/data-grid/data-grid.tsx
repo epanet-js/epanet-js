@@ -259,7 +259,8 @@ export const DataGrid = forwardRef(function DataGrid<
     onGutterClick: handleGutterClick,
     onCellChange: handleCellChange,
     onEmptyAreaMouseDown: handleEmptyAreaMouseDown,
-    onSelectColumn: (col: number) => selectCells({ colIndex: col }),
+    onColumnHeaderClick: (col: number, e: React.MouseEvent) =>
+      selectCells({ colIndex: col, extend: e.shiftKey }),
     onSelectAll: () => selectCells(),
     stopEditing,
     startEditing,

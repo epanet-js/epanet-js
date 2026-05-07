@@ -50,7 +50,7 @@ export type VirtualGridProps<TData> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
-  onSelectColumn: (colIndex: number) => void;
+  onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
 };
 
@@ -78,7 +78,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
     readOnly,
     variant,
     cellHasWarning,
-    onSelectColumn,
+    onColumnHeaderClick,
     onSelectAll,
   }: VirtualGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
@@ -217,7 +217,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           table={table}
           showGutterColumn={gutterColumn}
           showActionsColumn={!readOnly && !!rowActions}
-          onSelectColumn={onSelectColumn}
+          onColumnHeaderClick={onColumnHeaderClick}
           onSelectAll={onSelectAll}
           variant={variant}
           scrollbarGap={scrollState.scrollbarWidth}

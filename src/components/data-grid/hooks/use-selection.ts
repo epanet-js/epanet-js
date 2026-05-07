@@ -83,13 +83,33 @@ export function useSelection({
         rowCount,
       );
 
-      const newSelectionState =
+      const extended =
         extend && selectionState.activeCell
           ? extendSelection(selectionState, target)
-          : {
-              anchor: target.min,
-              activeCell: target.max,
-            };
+          : null;
+
+      const newSelectionState = {
+        activeCell: {
+          col:
+            extended && colIndex !== undefined
+              ? extended.activeCell.col
+              : target.min.col,
+          row:
+            extended && rowIndex !== undefined
+              ? extended.activeCell.row
+              : target.min.row,
+        },
+        anchor: {
+          col:
+            extended && colIndex !== undefined
+              ? extended.anchor.col
+              : target.max.col,
+          row:
+            extended && rowIndex !== undefined
+              ? extended.anchor.row
+              : target.max.row,
+        },
+      };
 
       const selectionChanged = !isSelectionStateEqual(
         selectionState,

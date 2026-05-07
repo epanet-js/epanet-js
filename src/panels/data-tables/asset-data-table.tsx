@@ -890,7 +890,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           columns={columns}
           onChange={onChange as (data: Record<string, unknown>[]) => void}
           createRow={() => ({}) as Record<string, unknown>}
-          gutterColumn={false}
+          gutterColumn
           resizable
           sortable
           minColumnSizePx={20}

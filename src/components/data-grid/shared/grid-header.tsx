@@ -16,7 +16,7 @@ type GridHeaderProps<T> = {
   showGutterColumn: boolean;
   showActionsColumn: boolean;
   table: Table<T>;
-  onSelectColumn: (colIndex: number) => void;
+  onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
   variant: DataGridVariant;
   style?: React.CSSProperties;
@@ -29,7 +29,7 @@ export function GridHeader<T>({
   showGutterColumn,
   showActionsColumn,
   table,
-  onSelectColumn,
+  onColumnHeaderClick,
   onSelectAll,
   variant,
   style,
@@ -77,7 +77,7 @@ export function GridHeader<T>({
               key={header.id}
               header={header}
               colIndex={colIndex}
-              onSelectColumn={onSelectColumn}
+              onColumnHeaderClick={onColumnHeaderClick}
               fitWidthToContent={fitWidthToContent}
               translate={translate}
             />
@@ -101,13 +101,13 @@ export function GridHeader<T>({
 function HeaderCell<T>({
   header,
   colIndex,
-  onSelectColumn,
+  onColumnHeaderClick,
   fitWidthToContent,
   translate,
 }: {
   header: Header<T, unknown>;
   colIndex: number;
-  onSelectColumn: (colIndex: number) => void;
+  onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   fitWidthToContent?: (columnId: string) => void;
   translate: (key: string) => string;
 }) {
@@ -126,7 +126,7 @@ function HeaderCell<T>({
         width: header.getSize(),
         minWidth: header.getSize(),
       }}
-      onClick={() => onSelectColumn(colIndex)}
+      onClick={(e) => onColumnHeaderClick(colIndex, e)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
