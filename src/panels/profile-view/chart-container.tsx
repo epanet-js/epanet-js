@@ -53,6 +53,7 @@ export const ChartContainer = memo(function ChartContainer({
     elevationDecimals,
     pressureDecimals,
     lengthDecimals,
+    isUnprojected,
   } = data;
 
   const translate = useTranslate();
@@ -290,6 +291,7 @@ export const ChartContainer = memo(function ChartContainer({
     pressureFactor,
     pathSegments,
     setHoverHighlight,
+    allowEstimates: !isUnprojected,
   });
 
   useChartClick({ containerRef, chartRef, points, links });

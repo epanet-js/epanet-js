@@ -34,6 +34,7 @@ interface UseChartCursorParams {
   pressureFactor: number | null;
   pathSegments: PathSegment[];
   setHoverHighlight: (marker: HoverMarker | null) => void;
+  allowEstimates: boolean;
 }
 
 export function useChartCursor({
@@ -45,6 +46,7 @@ export function useChartCursor({
   pressureFactor,
   pathSegments,
   setHoverHighlight,
+  allowEstimates,
 }: UseChartCursorParams): ChartCursorState {
   const [cursorState, setCursorState] = useState<ChartCursorState>(null);
 
@@ -55,6 +57,7 @@ export function useChartCursor({
     pressureFactor,
     pathSegments,
     setHoverHighlight,
+    allowEstimates,
   });
   depsRef.current = {
     points,
@@ -63,6 +66,7 @@ export function useChartCursor({
     pressureFactor,
     pathSegments,
     setHoverHighlight,
+    allowEstimates,
   };
 
   useEffect(() => {
@@ -164,6 +168,7 @@ export function useChartCursor({
         deps.links,
         deps.terrain,
         deps.pressureFactor,
+        deps.allowEstimates,
       );
       if (content.kind === "hidden") {
         setCursorState(null);

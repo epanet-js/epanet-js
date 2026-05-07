@@ -25,6 +25,7 @@ import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { isUnprojectedAtom } from "src/state/map-projection";
 import { getDecimals } from "src/lib/project-settings";
 import { Unit } from "src/quantity";
 import {
@@ -101,6 +102,7 @@ export type ProfileViewData = {
   elevationDecimals: number;
   pressureDecimals: number;
   lengthDecimals: number;
+  isUnprojected: boolean;
 };
 
 type SyncProfileViewData = Omit<
@@ -116,6 +118,7 @@ type SyncProfileViewData = Omit<
   | "elevationDecimals"
   | "pressureDecimals"
   | "lengthDecimals"
+  | "isUnprojected"
 >;
 
 export function useProfileViewData(): ProfileViewData {
@@ -126,6 +129,7 @@ export function useProfileViewData(): ProfileViewData {
   const results = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
 
   const path = useProfileViewPath(plot, model, results);
 
@@ -147,7 +151,10 @@ export function useProfileViewData(): ProfileViewData {
   );
 
   const hglRanges = useHglRanges(path, simulation, model.assets);
-  const terrain = useTerrainElevations(sync.terrainSamples, units.elevation);
+  const terrain = useTerrainElevations(
+    isUnprojected ? [] : sync.terrainSamples,
+    units.elevation,
+  );
 
   const terrainData = useMemo(() => buildTerrainData(terrain), [terrain]);
   const hglBandSegments = useMemo(
@@ -172,6 +179,7 @@ export function useProfileViewData(): ProfileViewData {
     elevationDecimals,
     pressureDecimals,
     lengthDecimals,
+    isUnprojected,
   };
 }
 

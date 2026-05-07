@@ -27,6 +27,7 @@ export function getTooltipContent(
   links: ProfileLink[],
   terrain: TerrainPoint[] | null,
   pressureFactor: number | null,
+  allowEstimates: boolean,
 ): TooltipContent {
   if (snap?.kind === "node") {
     const nearest = points[snap.index];
@@ -37,6 +38,10 @@ export function getTooltipContent(
       hgl: nearest.head,
       pressure: nearest.pressure,
     };
+  }
+
+  if (!allowEstimates) {
+    return { kind: "hidden" };
   }
 
   const link = snap?.kind === "link" ? snap.link : findLinkAt(cursorX, links);
