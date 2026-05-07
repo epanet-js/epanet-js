@@ -1,5 +1,5 @@
 "use client";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -155,10 +155,10 @@ export const ChartContainer = memo(function ChartContainer({
   if (lastPointsRef.current !== points) {
     lastPointsRef.current = points;
     zoomRef.current = { start: 0, end: 100 };
+    setZoomWindow((prev) =>
+      prev.start === 0 && prev.end === 100 ? prev : { start: 0, end: 100 },
+    );
   }
-  useEffect(() => {
-    setZoomWindow({ start: 0, end: 100 });
-  }, [points]);
   const lengthUnitLabel = translateUnit(lengthUnit);
   const elevationUnitLabel = translateUnit(elevationUnit);
   const pressureUnitLabel = translateUnit(pressureUnit);
@@ -203,7 +203,7 @@ export const ChartContainer = memo(function ChartContainer({
   );
 
   const chartRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [fadeBounds, setFadeBounds] = useState<{
     left: number;
@@ -245,44 +245,40 @@ export const ChartContainer = memo(function ChartContainer({
     /* eslint-enable */
   }, [totalLength]);
 
-  const onChartReady = useCallback(
-    (chart: any) => {
-      chartRef.current = chart;
-      recomputeFadeBounds();
-    },
-    [recomputeFadeBounds],
-  );
+  const onChartReady = useCallback((chart: any) => {
+    chartRef.current = chart;
+  }, []);
 
-  const onDataZoom = useCallback(
-    (params: any) => {
-      /* eslint-disable @typescript-eslint/no-unsafe-member-access,
+  const onDataZoom = useCallback((params: any) => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access,
        @typescript-eslint/no-unsafe-assignment */
-      const batch = params?.batch?.[0] ?? params;
-      if (typeof batch?.start === "number" && typeof batch?.end === "number") {
-        zoomRef.current = { start: batch.start, end: batch.end };
-        setZoomWindow({ start: batch.start, end: batch.end });
+    const batch = params?.batch?.[0] ?? params;
+    if (typeof batch?.start === "number" && typeof batch?.end === "number") {
+      zoomRef.current = { start: batch.start, end: batch.end };
+      setZoomWindow({ start: batch.start, end: batch.end });
+    }
+    /* eslint-enable */
+  }, []);
+
+  const onEvents = useMemo(
+    () => ({ datazoom: onDataZoom, finished: recomputeFadeBounds }),
+    [onDataZoom, recomputeFadeBounds],
+  );
+
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const setContainerNode = useCallback(
+    (el: HTMLDivElement | null) => {
+      containerRef.current = el;
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      if (el && typeof ResizeObserver !== "undefined") {
+        const observer = new ResizeObserver(() => recomputeFadeBounds());
+        observer.observe(el);
+        observerRef.current = observer;
       }
-      /* eslint-enable */
-      recomputeFadeBounds();
     },
     [recomputeFadeBounds],
   );
-
-  const onEvents = useMemo(() => ({ datazoom: onDataZoom }), [onDataZoom]);
-
-  useEffect(() => {
-    recomputeFadeBounds();
-  }, [recomputeFadeBounds]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => {
-      recomputeFadeBounds();
-    });
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [recomputeFadeBounds]);
 
   const cursorState = useChartCursor({
     containerRef,
@@ -309,7 +305,7 @@ export const ChartContainer = memo(function ChartContainer({
 
   return (
     <div
-      ref={containerRef}
+      ref={setContainerNode}
       style={{
         position: "relative",
         height: "100%",
