@@ -76,7 +76,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { resetColumnSize } = useManualColumnSizing(table);
+  const { fitWidthToContent } = useManualColumnSizing(table, containerRef);
 
   const rows = table.getRowModel().rows;
   const colCount = columns.length;
@@ -114,7 +114,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
         onSelectColumn={onSelectColumn}
         onSelectAll={onSelectAll}
         variant={variant}
-        resetColumnSize={resetColumnSize}
+        fitWidthToContent={fitWidthToContent}
       />
       {rows.map((row, rowIndex) => {
         const isLast = rowIndex === rows.length - 1;

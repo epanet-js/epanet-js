@@ -132,7 +132,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
   const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
   const actionsWidth = rowActions ? FIXED_COLUMN_SIZE : 0;
 
-  const { resetColumnSize } = useManualColumnSizing(table);
+  const { fitWidthToContent } = useManualColumnSizing(table, containerRef);
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;
@@ -221,7 +221,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           onSelectAll={onSelectAll}
           variant={variant}
           scrollbarGap={scrollState.scrollbarWidth}
-          resetColumnSize={resetColumnSize}
+          fitWidthToContent={fitWidthToContent}
         />
       </div>
       <div

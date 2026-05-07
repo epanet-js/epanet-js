@@ -95,7 +95,7 @@ export function useColumnSizing<TData>({
     [containerRef, reservedWidth],
   );
 
-  const resetColumnSize = useCallback((columnId: string) => {
+  const fitWidthToContent = useCallback((columnId: string) => {
     const fillSize = fillSizesRef.current[columnId];
     if (fillSize !== undefined) {
       tableRef.current.setColumnSizing((prev) => ({
@@ -107,16 +107,127 @@ export function useColumnSizing<TData>({
     }
   }, []);
 
-  return { fillSizesRef, resetColumnSize };
+  return { fillSizesRef, fitWidthToContent };
 }
 
-export function useManualColumnSizing<TData>(table: Table<TData>) {
+export function useManualColumnSizing<TData>(
+  table: Table<TData>,
+  containerRef: React.RefObject<HTMLElement>,
+) {
   const tableRef = useRef(table);
   tableRef.current = table;
+  const fittedSizesRef = useRef<Record<string, number>>({});
 
-  const resetColumnSize = useCallback((columnId: string) => {
-    tableRef.current.getColumn(columnId)?.resetSize();
-  }, []);
+  useEffect(() => {
+    const sizing = table.getState().columnSizing;
+    for (const columnId of Object.keys(fittedSizesRef.current)) {
+      if (sizing[columnId] !== fittedSizesRef.current[columnId]) {
+        delete fittedSizesRef.current[columnId];
+      }
+    }
+  }, [table.getState().columnSizing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { resetColumnSize };
+  const fitWidthToContent = useCallback(
+    (columnId: string) => {
+      const t = tableRef.current;
+      const col = t.getColumn(columnId);
+      if (!col) return;
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        col.resetSize();
+        return;
+      }
+
+      const { cellFont, headerFont } = resolveCanvasFonts(containerRef.current);
+      const colDef = col.columnDef;
+
+      const minWidth = measureHeaderMinWidth(ctx, headerFont);
+
+      let contentWidth = 0;
+      const isDataFitted = columnId in fittedSizesRef.current;
+      if (isDataFitted) {
+        ctx.font = headerFont;
+        const headerText =
+          typeof colDef.header === "string" ? colDef.header : "";
+        contentWidth = ctx.measureText(headerText).width;
+        delete fittedSizesRef.current[columnId];
+      }
+
+      const cellWidth = measureMaxCellWidth(
+        ctx,
+        cellFont,
+        t.getRowModel().rows,
+        colDef as ColDefForSizing,
+      );
+      contentWidth = Math.max(contentWidth, cellWidth);
+
+      const extraWidth = (colDef as ColDefForSizing).autoSizeExtraWidth ?? 16;
+      const newSize = Math.max(
+        Math.ceil(contentWidth) + extraWidth + 2,
+        minWidth,
+      );
+
+      if (!isDataFitted) fittedSizesRef.current[columnId] = newSize;
+      t.setColumnSizing((prev) => ({ ...prev, [columnId]: newSize }));
+    },
+    [containerRef],
+  );
+
+  return { fitWidthToContent };
+}
+
+// actions button w-6 -mr-1 (20) + border (2)
+const HEADER_SORT_BUTTON_AND_BORDER = 22;
+
+function resolveCanvasFonts(el: HTMLElement | null): {
+  cellFont: string;
+  headerFont: string;
+} {
+  const computedStyle = el ? getComputedStyle(el) : null;
+  const fontSize = computedStyle?.fontSize ?? "14px";
+  const fontFamily =
+    computedStyle?.fontFamily ?? "ui-sans-serif, system-ui, sans-serif";
+  return {
+    cellFont: `${fontSize} ${fontFamily}`,
+    headerFont: `600 ${fontSize} ${fontFamily}`,
+  };
+}
+
+function measureHeaderMinWidth(
+  ctx: CanvasRenderingContext2D,
+  headerFont: string,
+): number {
+  ctx.font = headerFont;
+  const ellipsisWidth = ctx.measureText("…").width;
+  const wideCharWidth = ctx.measureText("W").width;
+  return (
+    Math.ceil(wideCharWidth + ellipsisWidth) + HEADER_SORT_BUTTON_AND_BORDER
+  );
+}
+
+type ColDefForSizing = {
+  accessorKey?: string;
+  copyValue?: (v: unknown) => string;
+  autoSizeExtraWidth?: number;
+};
+
+function measureMaxCellWidth(
+  ctx: CanvasRenderingContext2D,
+  cellFont: string,
+  rows: { getValue: (id: string) => unknown }[],
+  colDef: ColDefForSizing,
+): number {
+  ctx.font = cellFont;
+  const columnId = colDef.accessorKey ?? "";
+  const { copyValue } = colDef;
+  let maxWidth = 0;
+  for (const row of rows) {
+    const value = row.getValue(columnId);
+    const text = copyValue ? copyValue(value) : String(value ?? "");
+    const w = ctx.measureText(text).width;
+    if (w > maxWidth) maxWidth = w;
+  }
+  return maxWidth;
 }

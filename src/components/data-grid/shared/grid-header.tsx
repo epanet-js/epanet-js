@@ -22,7 +22,7 @@ type GridHeaderProps<T> = {
   style?: React.CSSProperties;
   className?: string;
   scrollbarGap?: number;
-  resetColumnSize?: (columnId: string) => void;
+  fitWidthToContent?: (columnId: string) => void;
 };
 
 export function GridHeader<T>({
@@ -35,7 +35,7 @@ export function GridHeader<T>({
   style,
   className,
   scrollbarGap,
-  resetColumnSize,
+  fitWidthToContent,
 }: GridHeaderProps<T>) {
   const translate = useTranslate();
   return (
@@ -78,7 +78,7 @@ export function GridHeader<T>({
               header={header}
               colIndex={colIndex}
               onSelectColumn={onSelectColumn}
-              resetColumnSize={resetColumnSize}
+              fitWidthToContent={fitWidthToContent}
               translate={translate}
             />
           )),
@@ -102,13 +102,13 @@ function HeaderCell<T>({
   header,
   colIndex,
   onSelectColumn,
-  resetColumnSize,
+  fitWidthToContent,
   translate,
 }: {
   header: Header<T, unknown>;
   colIndex: number;
   onSelectColumn: (colIndex: number) => void;
-  resetColumnSize?: (columnId: string) => void;
+  fitWidthToContent?: (columnId: string) => void;
   translate: (key: string) => string;
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -147,7 +147,7 @@ function HeaderCell<T>({
       {header.column.getCanResize() && (
         <ColumnResizer
           onMouseDown={header.getResizeHandler()}
-          onDoubleClick={() => resetColumnSize?.(header.column.id)}
+          onDoubleClick={() => fitWidthToContent?.(header.column.id)}
           isResizing={header.column.getIsResizing()}
         />
       )}

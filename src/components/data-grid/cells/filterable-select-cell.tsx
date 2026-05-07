@@ -593,6 +593,7 @@ export function filterableSelectColumn<
         minOptionsForSearch={options.minOptionsForSearch}
       />
     ),
+    autoSizeExtraWidth: 32, // Account for chevron + padding
     copyValue: (v) => {
       const match = options.options.find((opt) => opt.value === v);
       return match?.label ?? "";

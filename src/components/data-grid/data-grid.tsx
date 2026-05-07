@@ -274,7 +274,11 @@ export const DataGrid = forwardRef(function DataGrid<
   };
 
   return (
-    <div className={isSpreadsheet ? "flex flex-col h-full" : "flex flex-col"}>
+    <div
+      className={
+        isSpreadsheet ? "flex flex-col h-full text-sm" : "flex flex-col text-sm"
+      }
+    >
       <div
         ref={gridRef}
         role="grid"

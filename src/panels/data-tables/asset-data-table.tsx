@@ -858,7 +858,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           gutterColumn={false}
           resizable
           sortable
-          minColumnSizePx={100}
+          minColumnSizePx={20}
         />
       )}
     </div>
