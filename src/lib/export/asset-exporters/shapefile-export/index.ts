@@ -1,4 +1,8 @@
-import { Projection, type Asset, type HydraulicModel } from "src/hydraulic-model";
+import {
+  Projection,
+  type Asset,
+  type HydraulicModel,
+} from "src/hydraulic-model";
 import { type ResultsReader } from "src/simulation";
 import { type ExportedAssetTypes, type ExportedFile } from "../../types";
 import { SHAPE_POINT, SHAPE_POLYLINE, PRJ_BYTES, CPG_BYTES } from "./constants";
@@ -8,6 +12,8 @@ import { writePoint, writePolyLine } from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
 import { FILE_NAMES } from "../constants";
+import { createProjectionMapper } from "src/lib/projections";
+import { type Position } from "geojson";
 
 const CUSTOMER_POINT_FIELDS = [
   "label",
@@ -37,6 +43,7 @@ export const exportShapefiles = (
   };
 
   const encoder = new TextEncoder();
+  const transformCoord = createProjectionMapper(projection).toSource;
   const hasSelection = selectedAssets.size > 0;
   const getSimResults = buildSimulationResultsReader(resultsReader);
   const seenFields: Record<ExportedAssetTypes, Set<string>> = {
@@ -109,11 +116,15 @@ export const exportShapefiles = (
     let contentLengthWords: number;
 
     if (writer.shapeType === SHAPE_POINT) {
-      const coords = asset.feature.geometry.coordinates as number[];
+      const coords = transformCoord(
+        asset.feature.geometry.coordinates as Position,
+      );
       writePoint(writer, coords, recordIndex);
       contentLengthWords = 10;
     } else {
-      const coords = asset.feature.geometry.coordinates as number[][];
+      const coords = (asset.feature.geometry.coordinates as Position[]).map(
+        transformCoord,
+      );
       writePolyLine(writer, coords, recordIndex);
       contentLengthWords = 24 + 8 * coords.length;
     }
@@ -140,7 +151,11 @@ export const exportShapefiles = (
     const recordIndex = customerPointWriter.nextRecordIndex();
     const shxOffsetWords = customerPointWriter.shpCursor / 2;
 
-    writePoint(customerPointWriter, point.coordinates, recordIndex);
+    const [x, y] = transformCoord(point.coordinates);
+    const snapPoint = point.connection?.snapPoint;
+    const [sx, sy] = snapPoint ? transformCoord(snapPoint) : [null, null];
+
+    writePoint(customerPointWriter, [x, y], recordIndex);
 
     customerPointWriter.shxView.setUint32(
       customerPointWriter.shxCursor,
@@ -167,12 +182,12 @@ export const exportShapefiles = (
       customerPointWriter,
       {
         label: point.label,
-        positionX: point.coordinates[0],
-        positionY: point.coordinates[1],
+        positionX: x,
+        positionY: y,
         junctionConnection,
         pipeConnection,
-        connectionX: point.connection?.snapPoint[0] ?? null,
-        connectionY: point.connection?.snapPoint[1] ?? null,
+        connectionX: sx,
+        connectionY: sy,
       },
       {},
       encoder,

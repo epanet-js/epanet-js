@@ -6,8 +6,9 @@ import {
 } from "src/hydraulic-model";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
-import { Feature } from "geojson";
+import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
+import { createProjectionMapper } from "src/lib/projections";
 
 const GEOJSON_HEADER = `{"type":"FeatureCollection","features":[`;
 const GEOJSON_END = `]}`;
@@ -26,6 +27,7 @@ export const exportGeoJson = (
       entrySize +
     1024;
   const encoder = new TextEncoder();
+  const transformCoord = createProjectionMapper(projection).toSource;
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
   const hasAssetSelection = selectedAssets.size > 0;
@@ -41,7 +43,12 @@ export const exportGeoJson = (
     const buffer = buffers[asset.type];
     const offset = offsets[asset.type];
     const view = buffer.subarray(offset);
-    const geoJson = assetToGeoJson(hydraulicModel, asset, simulationValues);
+    const geoJson = assetToGeoJson(
+      hydraulicModel,
+      asset,
+      simulationValues,
+      transformCoord,
+    );
 
     const textContent = `${geoJson},`;
     const { written } = encoder.encodeInto(textContent, view);
@@ -57,18 +64,23 @@ export const exportGeoJson = (
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
         : "";
+    const [x, y] = transformCoord(point.coordinates);
+    const snapPoint = point.connection?.snapPoint;
+    const [cx, cy] = snapPoint
+      ? transformCoord(snapPoint)
+      : [undefined, undefined];
     const mapped = {
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: point.coordinates,
+        coordinates: [x, y],
       },
       properties: {
         label: point.label,
         junctionConnection,
         pipeConnection,
-        connectionX: point.connection?.snapPoint[0].toFixed(4) ?? undefined,
-        connectionY: point.connection?.snapPoint[1].toFixed(4) ?? undefined,
+        connectionX: cx !== undefined ? Number(cx.toFixed(4)) : undefined,
+        connectionY: cy !== undefined ? Number(cy.toFixed(4)) : undefined,
       },
     };
 
@@ -157,6 +169,7 @@ const assetToGeoJson = (
   hydraulicModel: HydraulicModel,
   asset: Asset,
   simulationResults: Record<string, unknown> = {},
+  transformCoord: (p: Position) => Position = (p) => p,
 ) => {
   const buildConnection = (connection: number) => {
     const asset = hydraulicModel.assets.get(connection);
@@ -173,9 +186,21 @@ const assetToGeoJson = (
     return Number(value.toFixed(4));
   };
 
+  const geometry = asset?.feature.geometry;
+  const transformedGeometry =
+    geometry?.type === "Point"
+      ? {
+          ...geometry,
+          coordinates: transformCoord(geometry.coordinates),
+        }
+      : {
+          ...geometry,
+          coordinates: geometry.coordinates.map(transformCoord),
+        };
+
   const mapped: Feature = {
     type: "Feature",
-    geometry: asset?.feature.geometry,
+    geometry: transformedGeometry as Feature["geometry"],
     properties: {
       ...asset?.feature.properties,
       ...prefixSimulationKeys(simulationResults),

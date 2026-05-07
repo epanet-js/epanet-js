@@ -2,13 +2,14 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportGeoJson } from "./export-geojson";
+import { WGS84 } from "src/lib/projections";
 
 const noSelection = new Set<number>();
 
 describe("export-geojson", () => {
   it("generates a GeoJSON file for each asset type", async () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     for (const file of files) {
       const geoJson = await parseGeoJson(file);
@@ -24,7 +25,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 10 })
       .build();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
@@ -43,7 +44,7 @@ describe("export-geojson", () => {
       .aJunction(20, { label: "J2" })
       .aPipe(30, { label: "P1", startNodeId: 10, endNodeId: 20 })
       .build();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     const geoJson = await parseGeoJson(findFile(files, "pipes.geojson"));
 
@@ -62,7 +63,7 @@ describe("export-geojson", () => {
       .aJunction(2, { label: "J2" })
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     const junctionGeoJson = await parseGeoJson(
       findFile(files, "junctions.geojson"),
@@ -79,7 +80,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportGeoJson(model, true, noSelection, resultsReader);
+    const files = exportGeoJson(model, true, noSelection, WGS84, resultsReader);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.features[0].properties).toMatchObject({
@@ -98,7 +99,7 @@ describe("export-geojson", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     const geoJson = await parseGeoJson(
       findFile(files, "customer-points.geojson"),
@@ -121,7 +122,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
       .build();
-    const files = exportGeoJson(model, false, noSelection);
+    const files = exportGeoJson(model, false, noSelection, WGS84);
 
     const geoJson = await parseGeoJson(
       findFile(files, "customer-points.geojson"),
@@ -138,12 +139,43 @@ describe("export-geojson", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportGeoJson(model, false, new Set([1]));
+    const files = exportGeoJson(model, false, new Set([1]), WGS84);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
     expect(geoJson.features).toHaveLength(1);
     expect(geoJson.features[0].properties).toMatchObject({ label: "J1" });
+  });
+
+  it("transforms geometry coordinates using the given projection", async () => {
+    const xyGrid = {
+      type: "xy-grid" as const,
+      id: "test",
+      name: "Test XY Grid",
+      centroid: [0, 0] as [number, number],
+      scale: 1000,
+    };
+    const IDS = { J1: 1, P1: 2, CP1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [1, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1 })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [1, 0],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const files = exportGeoJson(model, false, noSelection, xyGrid);
+
+    const jGeoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
+    const [jx] = jGeoJson.features[0].geometry.coordinates as number[];
+    expect(jx).not.toBe(1);
+
+    const cpGeoJson = await parseGeoJson(
+      findFile(files, "customer-points.geojson"),
+    );
+    const [cx] = cpGeoJson.features[0].geometry.coordinates as number[];
+    expect(cx).not.toBe(1);
   });
 });
 
@@ -155,7 +187,7 @@ const parseGeoJson = async (file: ExportedFile) =>
     type: string;
     features: {
       type: string;
-      geometry: object;
+      geometry: { type: string; coordinates: unknown };
       properties: Record<string, unknown>;
     }[];
   };

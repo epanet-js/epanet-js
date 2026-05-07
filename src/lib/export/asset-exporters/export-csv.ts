@@ -3,6 +3,8 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
+import { createProjectionMapper } from "src/lib/projections";
+import { Position } from "geojson";
 
 export const exportCsv = (
   hydraulicModel: HydraulicModel,
@@ -21,6 +23,7 @@ export const exportCsv = (
   const encoder = new TextEncoder();
   const hasAssetSelection = selectedAssets.size > 0;
 
+  const transformCoord = createProjectionMapper(projection).toSource;
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
   const { properties, simulationProperties } = allocateProperties();
@@ -92,13 +95,17 @@ export const exportCsv = (
         ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
         : "";
 
+    const [x, y] = transformCoord(point.coordinates);
+    const snapPoint = point.connection?.snapPoint;
+    const [sx, sy] = snapPoint ? transformCoord(snapPoint) : [null, null];
+
     parts[partIdx++] = point.label;
-    parts[partIdx++] = point.coordinates[0]?.toFixed(4) ?? "";
-    parts[partIdx++] = point.coordinates[1]?.toFixed(4) ?? "";
+    parts[partIdx++] = x.toFixed(4);
+    parts[partIdx++] = y.toFixed(4);
     parts[partIdx++] = junctionConnection;
     parts[partIdx++] = pipeConnection;
-    parts[partIdx++] = Number(point.connection?.snapPoint[0])?.toFixed(4) ?? "";
-    parts[partIdx++] = Number(point.connection?.snapPoint[1])?.toFixed(4) ?? "";
+    parts[partIdx++] = sx !== null ? sx.toFixed(4) : "";
+    parts[partIdx++] = sy !== null ? sy.toFixed(4) : "";
 
     encode("customerPoint");
   };
@@ -143,9 +150,7 @@ export const exportCsv = (
 
     const getPosition = (asset: Asset, property: string) => {
       if (!asset.isNode) return "";
-      const x = asset.coordinates[0] as number;
-      const y = asset.coordinates[1] as number;
-
+      const [x, y] = transformCoord(asset.coordinates as Position);
       return property === "positionX" ? x.toFixed(4) : y.toFixed(4);
     };
 
@@ -215,7 +220,6 @@ export const exportCsv = (
     };
   });
 };
-
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {

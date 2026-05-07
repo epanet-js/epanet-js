@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { exportXlsx } from "./export-xlsx";
+import { WGS84 } from "src/lib/projections";
 
 function makeMockHandle() {
   const chunks: Uint8Array[] = [];
@@ -56,7 +57,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection);
+    await exportXlsx(handle, model, false, noSelection, WGS84);
 
     const wb = getWorkbook();
     expect(wb.SheetNames).toEqual([
@@ -84,7 +85,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, new Set([IDS.J1]));
+    await exportXlsx(handle, model, false, new Set([IDS.J1]), WGS84);
 
     const wb = getWorkbook();
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
@@ -101,7 +102,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection);
+    await exportXlsx(handle, model, false, noSelection, WGS84);
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "pipes");
@@ -132,7 +133,14 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, true, noSelection, mockResultsReader);
+    await exportXlsx(
+      handle,
+      model,
+      true,
+      noSelection,
+      WGS84,
+      mockResultsReader,
+    );
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "junctions");
@@ -167,7 +175,14 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, true, noSelection, mockResultsReader);
+    await exportXlsx(
+      handle,
+      model,
+      true,
+      noSelection,
+      WGS84,
+      mockResultsReader,
+    );
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "junctions");
@@ -199,7 +214,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection);
+    await exportXlsx(handle, model, false, noSelection, WGS84);
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "customer-points");
@@ -227,5 +242,40 @@ describe("exportXlsx", () => {
     expect(cp1Row[pipeIdx]).toBe("PA");
     expect(cp2Row[junctionIdx] ?? "").toBe("");
     expect(cp2Row[pipeIdx] ?? "").toBe("");
+  });
+
+  it("transforms coordinates using the given projection", async () => {
+    const xyGrid = {
+      type: "xy-grid" as const,
+      id: "test",
+      name: "Test XY Grid",
+      centroid: [0, 0] as [number, number],
+      scale: 1000,
+    };
+    const IDS = { J1: 1, CP1: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [1, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1 })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [1, 0],
+        connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, false, noSelection, xyGrid);
+
+    const wb = getWorkbook();
+    const jRows = sheetRows(wb, "junctions");
+    const jHeaders = jRows[0];
+    const jData = jRows[1];
+    const posXIdx = jHeaders.indexOf("positionX");
+    expect(String(jData[posXIdx])).not.toBe("1");
+
+    const cpRows = sheetRows(wb, "customer-points");
+    const cpHeaders = cpRows[0];
+    const cpData = cpRows[1];
+    const cpXIdx = cpHeaders.indexOf("positionX");
+    expect(String(cpData[cpXIdx])).not.toBe("1");
   });
 });

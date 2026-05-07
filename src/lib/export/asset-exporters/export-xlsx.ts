@@ -4,6 +4,8 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
+import { createProjectionMapper } from "src/lib/projections";
+import { Position } from "geojson";
 
 const MAX_ROWS = 1_048_575;
 
@@ -48,6 +50,7 @@ export const exportXlsx = async (
         pushStaticEntry(zip, "xl/workbook.xml", workbookXml());
         pushStaticEntry(zip, "xl/_rels/workbook.xml.rels", workbookRelsXml());
 
+        const transformCoord = createProjectionMapper(projection).toSource;
         const getSimResults = buildSimulationResultsReader(resultsReader);
         const hasSelection = selectedAssets.size > 0;
 
@@ -79,7 +82,7 @@ export const exportXlsx = async (
             pushRow(
               sheetEntry,
               ++rowCount,
-              buildRow(asset, simValues, hydraulicModel),
+              buildRow(asset, simValues, hydraulicModel, transformCoord),
             );
           });
 
@@ -99,7 +102,7 @@ export const exportXlsx = async (
           pushRow(
             customerSheetEntry,
             ++customerRowCount,
-            buildCustomerPointRow(point, hydraulicModel),
+            buildCustomerPointRow(point, hydraulicModel, transformCoord),
           );
         });
 
@@ -235,6 +238,7 @@ const buildRow = (
   asset: Asset,
   simValues: Record<string, unknown>,
   hydraulicModel: HydraulicModel,
+  transformCoord: (p: Position) => Position,
 ): unknown[] => {
   const propertyKeys = asset.listProperties();
   if (asset.isNode) propertyKeys.unshift("positionX", "positionY");
@@ -246,9 +250,9 @@ const buildRow = (
 
   for (const key of propertyKeys) {
     if (key === "positionX") {
-      row.push((asset.coordinates as number[])[0]);
+      row.push(transformCoord(asset.coordinates as Position)[0]);
     } else if (key === "positionY") {
-      row.push((asset.coordinates as number[])[1]);
+      row.push(transformCoord(asset.coordinates as Position)[1]);
     } else if (key === "connections") {
       const [startId, endId] = asset.getProperty(
         "connections",
@@ -273,6 +277,7 @@ const buildRow = (
 const buildCustomerPointRow = (
   point: CustomerPoint,
   hydraulicModel: HydraulicModel,
+  transformCoord: (p: Position) => Position,
 ): unknown[] => {
   const junctionConnection =
     point.connection !== null
@@ -282,16 +287,11 @@ const buildCustomerPointRow = (
     point.connection !== null
       ? (hydraulicModel.assets.get(point.connection.pipeId)?.label ?? "")
       : "";
+  const [x, y] = transformCoord(point.coordinates);
+  const snapPoint = point.connection?.snapPoint;
+  const [sx, sy] = snapPoint ? transformCoord(snapPoint) : ["", ""];
 
-  return [
-    point.label,
-    point.coordinates[0],
-    point.coordinates[1],
-    junctionConnection,
-    pipeConnection,
-    point.connection?.snapPoint[0] ?? "",
-    point.connection?.snapPoint[1] ?? "",
-  ];
+  return [point.label, x, y, junctionConnection, pipeConnection, sx, sy];
 };
 
 const colLetter = (colIndex: number): string => {

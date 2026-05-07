@@ -3,6 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
 import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "./file-system-helpers";
+import { WGS84 } from "src/lib/projections";
 
 const mockHandle = {} as FileSystemFileHandle;
 const model = HydraulicModelBuilder.empty();
@@ -24,7 +25,14 @@ describe("export-asset-data", () => {
   it("generates ZIP file from exported files", async () => {
     const exportedFiles = mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false, noSelection);
+    await exportAssetData(
+      "export",
+      "geojson",
+      model,
+      false,
+      noSelection,
+      WGS84,
+    );
 
     expect(AssetExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
@@ -38,7 +46,14 @@ describe("export-asset-data", () => {
     );
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false, noSelection);
+    await exportAssetData(
+      "export",
+      "geojson",
+      model,
+      false,
+      noSelection,
+      WGS84,
+    );
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
@@ -53,7 +68,14 @@ describe("export-asset-data", () => {
   it("uses OPFS and triggers download when native file system is not supported", async () => {
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, false, noSelection);
+    await exportAssetData(
+      "export",
+      "geojson",
+      model,
+      false,
+      noSelection,
+      WGS84,
+    );
 
     expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
     expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
@@ -73,6 +95,7 @@ describe("export-asset-data", () => {
       model,
       true,
       noSelection,
+      WGS84,
       resultsReader,
     );
 
@@ -80,6 +103,7 @@ describe("export-asset-data", () => {
       model,
       true,
       noSelection,
+      WGS84,
       resultsReader,
     );
   });
@@ -94,6 +118,7 @@ describe("export-asset-data", () => {
       model,
       true,
       noSelection,
+      WGS84,
       resultsReader,
     );
 
@@ -101,6 +126,7 @@ describe("export-asset-data", () => {
       model,
       true,
       noSelection,
+      WGS84,
       resultsReader,
     );
   });
