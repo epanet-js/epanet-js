@@ -2,10 +2,10 @@ import type { EChartsOption, SeriesOption } from "echarts";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { roundToSignificantDigits } from "src/infra/rounding";
 
-const STRIP_GRID_TOP = 6;
-const STRIP_GRID_HEIGHT = 30;
-const STRIP_PROFILE_GAP = 2;
-const SIMULATION_TOP_PADDING = 4;
+export const STRIP_GRID_TOP = 8;
+export const STRIP_GRID_HEIGHT = 30;
+const STRIP_PROFILE_GAP = 4;
+const SIMULATION_TOP_PADDING = 0;
 const GRID_RIGHT = 24;
 const GRID_LEFT = 28;
 const GRID_BOTTOM = 30;
@@ -57,7 +57,7 @@ export function buildProfileChartOption({
   elevationDecimals,
 }: ProfileChartOptionParams): EChartsOption {
   const axisPointer = {
-    show: true,
+    show: false,
     type: "line",
     snap: false,
     triggerTooltip: false,

@@ -15,6 +15,7 @@ export { SNAP_PIXEL_THRESHOLD };
 export type ChartCursorState = {
   px: number;
   py: number;
+  cursorX: number;
   content: VisibleTooltipContent;
 } | null;
 
@@ -168,7 +169,7 @@ export function useChartCursor({
         setCursorState(null);
         return;
       }
-      setCursorState({ px, py, content });
+      setCursorState({ px, py, cursorX: effectivePixelX, content });
     };
 
     const handleLeave = () => {

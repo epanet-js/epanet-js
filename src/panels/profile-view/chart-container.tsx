@@ -1,5 +1,5 @@
 "use client";
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -20,6 +20,8 @@ import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
 import { buildSldSeries } from "./sld/series";
 import { useSldIcons } from "./sld/use-sld-icons";
+
+const STRIP_FADE_WIDTH = 24;
 
 interface ChartContainerProps {
   data: ProfileViewData;
@@ -145,11 +147,18 @@ export const ChartContainer = memo(function ChartContainer({
     start: 0,
     end: 100,
   });
+  const [zoomWindow, setZoomWindow] = useState<{ start: number; end: number }>({
+    start: 0,
+    end: 100,
+  });
   const lastPointsRef = useRef(points);
   if (lastPointsRef.current !== points) {
     lastPointsRef.current = points;
     zoomRef.current = { start: 0, end: 100 };
   }
+  useEffect(() => {
+    setZoomWindow({ start: 0, end: 100 });
+  }, [points]);
   const lengthUnitLabel = translateUnit(lengthUnit);
   const elevationUnitLabel = translateUnit(elevationUnit);
   const pressureUnitLabel = translateUnit(pressureUnit);
@@ -196,21 +205,84 @@ export const ChartContainer = memo(function ChartContainer({
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const onChartReady = useCallback((chart: any) => {
-    chartRef.current = chart;
-  }, []);
+  const [fadeBounds, setFadeBounds] = useState<{
+    left: number;
+    right: number;
+    top: number;
+    height: number;
+  } | null>(null);
 
-  const onDataZoom = useCallback((params: any) => {
+  const recomputeFadeBounds = useCallback(() => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access,
-       @typescript-eslint/no-unsafe-assignment */
-    const batch = params?.batch?.[0] ?? params;
-    if (typeof batch?.start === "number" && typeof batch?.end === "number") {
-      zoomRef.current = { start: batch.start, end: batch.end };
+       @typescript-eslint/no-unsafe-assignment,
+       @typescript-eslint/no-unsafe-call */
+    const chart = chartRef.current;
+    if (!chart || totalLength <= 0) {
+      setFadeBounds(null);
+      return;
     }
+    const model = chart.getModel?.();
+    const stripRect = model
+      ?.getComponent?.("grid", 1)
+      ?.coordinateSystem?.getRect?.();
+    const mainRect = model
+      ?.getComponent?.("grid", 0)
+      ?.coordinateSystem?.getRect?.();
+    if (!stripRect || !mainRect) return;
+    const left = stripRect.x;
+    const right = stripRect.x + stripRect.width;
+    const top = stripRect.y;
+    const height = mainRect.y + mainRect.height - top;
+    setFadeBounds((prev) =>
+      prev &&
+      prev.left === left &&
+      prev.right === right &&
+      prev.top === top &&
+      prev.height === height
+        ? prev
+        : { left, right, top, height },
+    );
     /* eslint-enable */
-  }, []);
+  }, [totalLength]);
+
+  const onChartReady = useCallback(
+    (chart: any) => {
+      chartRef.current = chart;
+      recomputeFadeBounds();
+    },
+    [recomputeFadeBounds],
+  );
+
+  const onDataZoom = useCallback(
+    (params: any) => {
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access,
+       @typescript-eslint/no-unsafe-assignment */
+      const batch = params?.batch?.[0] ?? params;
+      if (typeof batch?.start === "number" && typeof batch?.end === "number") {
+        zoomRef.current = { start: batch.start, end: batch.end };
+        setZoomWindow({ start: batch.start, end: batch.end });
+      }
+      /* eslint-enable */
+      recomputeFadeBounds();
+    },
+    [recomputeFadeBounds],
+  );
 
   const onEvents = useMemo(() => ({ datazoom: onDataZoom }), [onDataZoom]);
+
+  useEffect(() => {
+    recomputeFadeBounds();
+  }, [recomputeFadeBounds]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      recomputeFadeBounds();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [recomputeFadeBounds]);
 
   const cursorState = useChartCursor({
     containerRef,
@@ -232,6 +304,9 @@ export const ChartContainer = memo(function ChartContainer({
     );
   }
 
+  const hasHiddenLeft = zoomWindow.start > 0;
+  const hasHiddenRight = zoomWindow.end < 100;
+
   return (
     <div
       ref={containerRef}
@@ -249,6 +324,41 @@ export const ChartContainer = memo(function ChartContainer({
         onChartReady={onChartReady}
         onEvents={onEvents}
       />
+      {fadeBounds && hasHiddenLeft && (
+        <div
+          aria-hidden
+          className="profile-strip-fade-left"
+          style={{
+            top: fadeBounds.top,
+            left: fadeBounds.left,
+            width: STRIP_FADE_WIDTH,
+            height: fadeBounds.height,
+          }}
+        />
+      )}
+      {fadeBounds && hasHiddenRight && (
+        <div
+          aria-hidden
+          className="profile-strip-fade-right"
+          style={{
+            top: fadeBounds.top,
+            left: fadeBounds.right - STRIP_FADE_WIDTH,
+            width: STRIP_FADE_WIDTH,
+            height: fadeBounds.height,
+          }}
+        />
+      )}
+      {fadeBounds && cursorState && (
+        <div
+          aria-hidden
+          className="profile-cursor-line"
+          style={{
+            top: fadeBounds.top,
+            left: cursorState.cursorX,
+            height: fadeBounds.height,
+          }}
+        />
+      )}
       <ProfileTooltip
         state={cursorState}
         containerRef={containerRef}

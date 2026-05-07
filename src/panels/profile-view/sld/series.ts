@@ -61,6 +61,7 @@ function pipesSld(
     name: "sldPipes",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: pipes.map((p) => p.startLength),
     silent: true,
     tooltip: { show: false },
@@ -109,6 +110,7 @@ function buildPumpValveLineSeries(
     name: "sldPumpValves",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: buildSegmentData(segments, sldY),
     lineStyle: { color: colors.orange700, width: 1 },
     itemStyle: { color: colors.orange700 },
@@ -133,6 +135,7 @@ function junctionsSld(
     name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: junctions.map((j) => ({
       value: [j.cumulativeLength, sldY],
       nodeId: j.nodeId,
@@ -173,6 +176,7 @@ function tanksSld(
     name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: tanks.map((t) => ({
       value: [t.cumulativeLength, sldY],
       nodeId: t.nodeId,
@@ -203,6 +207,7 @@ function reservoirsSld(
     name: "sldNodes",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: reservoirs.map((r) => ({
       value: [r.cumulativeLength, sldY],
       nodeId: r.nodeId,
@@ -234,6 +239,7 @@ function pumpsSld(
     name: "sldPumpIcons",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: pumps.map((p) => ({
       value: [p.midLength, sldY],
       linkId: p.linkId,
@@ -262,6 +268,7 @@ function valvesSld(
     name: "sldValveIcons",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: valves.map((v) => ({
       value: [v.midLength, sldY],
       linkId: v.linkId,
@@ -293,6 +300,7 @@ function pumpValveSelectionHalo(
     name: "sldPumpValveSelectionHalo",
     xAxisIndex: 1,
     yAxisIndex: 1,
+    clip: true,
     data: selected.map((l) => ({
       value: [l.midLength, sldY],
       linkId: l.linkId,

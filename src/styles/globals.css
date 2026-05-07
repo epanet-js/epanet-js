@@ -395,6 +395,37 @@ body.dark .mapboxgl-ctrl-attrib-button {
   background: linear-gradient(to left, rgba(0, 0, 0, 0.3), transparent);
 }
 
+.profile-strip-fade-left,
+.profile-strip-fade-right {
+  position: absolute;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.profile-strip-fade-left {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.profile-strip-fade-right {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.dark .profile-strip-fade-left {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.dark .profile-strip-fade-right {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.profile-cursor-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 11;
+  width: 0;
+  border-left: 1px dashed #9ca3af;
+}
+
 /* DataGrid scroll shadows — uses named scroll timelines so shadows
    (positioned as siblings outside the scroll container) can reference
    the scroll container's progress. */
