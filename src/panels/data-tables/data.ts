@@ -116,6 +116,7 @@ function buildSimRow(
     case "reservoir": {
       const r = simulation.getReservoir(assetId);
       return {
+        sim_pressure: r?.pressure ?? null,
         sim_head: r?.head ?? null,
         sim_netFlow: r?.netFlow ?? null,
         ...qualityFields(r),

@@ -286,6 +286,12 @@ function buildSimColumns(
       ];
     case "reservoir":
       return [
+        simNumericValue(
+          "sim_pressure",
+          translate("pressure"),
+          units.pressure,
+          "pressure",
+        ),
         simNumericValue("sim_head", translate("head"), units.head, "head"),
         simNumericValue(
           "sim_netFlow",
