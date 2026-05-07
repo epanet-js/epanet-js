@@ -17,7 +17,7 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useManualColumnSizing, useRowsNavigation } from "../hooks";
+import { useFitColumnWidth, useRowsNavigation } from "../hooks";
 import { GridRow, ROW_HEIGHT } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
@@ -132,7 +132,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
   const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
   const actionsWidth = rowActions ? FIXED_COLUMN_SIZE : 0;
 
-  const { fitWidthToContent } = useManualColumnSizing(table, containerRef);
+  const { fitWidthToContent } = useFitColumnWidth(table, containerRef);
 
   const visibleRowCount = rowsHeight ? Math.floor(rowsHeight / ROW_HEIGHT) : 10;
   const colCount = columns.length;

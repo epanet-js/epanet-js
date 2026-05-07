@@ -9,7 +9,7 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { useManualColumnSizing, useRowsNavigation } from "../hooks";
+import { useFitColumnWidth, useRowsNavigation } from "../hooks";
 import { GridRow } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
@@ -76,7 +76,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { fitWidthToContent } = useManualColumnSizing(table, containerRef);
+  const { fitWidthToContent } = useFitColumnWidth(table, containerRef);
 
   const rows = table.getRowModel().rows;
   const colCount = columns.length;

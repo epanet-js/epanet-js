@@ -12,7 +12,7 @@ export { useEditMode } from "./use-edit-mode";
 export { useMouseSelection } from "./use-mouse-selection";
 export {
   useColumnSizing,
-  useManualColumnSizing,
+  useFitColumnWidth,
   getReservedWidth,
   FIXED_COLUMN_SIZE,
 } from "./use-column-sizing";

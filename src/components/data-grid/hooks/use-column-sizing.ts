@@ -110,7 +110,7 @@ export function useColumnSizing<TData>({
   return { fillSizesRef, fitWidthToContent };
 }
 
-export function useManualColumnSizing<TData>(
+export function useFitColumnWidth<TData>(
   table: Table<TData>,
   containerRef: React.RefObject<HTMLElement>,
 ) {
