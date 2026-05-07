@@ -238,6 +238,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
           style={{
             height: totalSize,
             position: "relative",
+            minWidth: table.getTotalSize(),
           }}
         >
           {virtualRows.map((virtualRow) => {
