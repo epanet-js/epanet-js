@@ -11,6 +11,7 @@ import { simulationStepAtom } from "src/state/simulation";
 import { currentFileNameAtom } from "src/state/file-system";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -21,6 +22,7 @@ export type DataExportOptions = {
 
 export const useExportAssetData = () => {
   const translate = useTranslate();
+  const { capture } = useUserTracking();
 
   const exportNetwork = useAtomCallback(
     useCallback(
@@ -79,9 +81,15 @@ export const useExportAssetData = () => {
             success: translate("exported"),
             error: translate("exportFailed"),
           });
+          capture({
+            name: "assetData.exported",
+            format: options.format,
+            includeSimulationResults: options.includeSimulationResults,
+            hasSelection: options.selectedAssets.size > 0,
+          });
         } catch {}
       },
-      [translate],
+      [translate, capture],
     ),
   );
 

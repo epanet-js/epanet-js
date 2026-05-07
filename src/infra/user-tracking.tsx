@@ -924,6 +924,13 @@ type CurveChanged = {
   property: "label" | "points" | "type";
 };
 
+type AssetDataExported = {
+  name: "assetData.exported";
+  format: "geojson" | "csv" | "shapefile" | "xlsx";
+  includeSimulationResults: boolean;
+  hasSelection: boolean;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -1213,7 +1220,8 @@ export type UserEvent =
   | CurvesUncategorized
   | CurveAdded
   | CurveDeleted
-  | CurveChanged;
+  | CurveChanged
+  | AssetDataExported;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
