@@ -148,6 +148,43 @@ describe("exportXlsx", () => {
     expect(String(dataRow[demandIdx])).toBe("5");
   });
 
+  it("truncates decimal numbers to 4 decimal places", async () => {
+    const IDS = { J1: 1 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0.123456789, 1.987654321] })
+      .build();
+
+    const mockResultsReader = {
+      getJunction: vi
+        .fn()
+        .mockReturnValue({ pressure: 42.123456789, demand: 5.00019 }),
+      getTank: vi.fn().mockReturnValue({}),
+      getReservoir: vi.fn().mockReturnValue({}),
+      getPipe: vi.fn().mockReturnValue({}),
+      getPump: vi.fn().mockReturnValue({}),
+      getValve: vi.fn().mockReturnValue({}),
+    } as unknown as ResultsReader;
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, true, noSelection, mockResultsReader);
+
+    const wb = getWorkbook();
+    const rows = sheetRows(wb, "junctions");
+    const headers = rows[0];
+    const dataRow = rows[1];
+
+    const posXIdx = headers.indexOf("positionX");
+    const posYIdx = headers.indexOf("positionY");
+    const pressureIdx = headers.indexOf("sim_pressure");
+    const demandIdx = headers.indexOf("sim_demand");
+
+    expect(String(dataRow[posXIdx])).toBe("0.1235");
+    expect(String(dataRow[posYIdx])).toBe("1.9877");
+    expect(String(dataRow[pressureIdx])).toBe("42.1235");
+    expect(String(dataRow[demandIdx])).toBe("5.0002");
+  });
+
   it("writes customer point sheet with correct headers and connection values", async () => {
     const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 } as const;
 

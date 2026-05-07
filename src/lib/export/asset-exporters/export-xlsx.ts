@@ -165,8 +165,10 @@ const cellXml = (
 ): string => {
   const ref = `${colLetter(colIndex)}${rowIndex}`;
   if (value === null || value === undefined || value === "") return "";
-  if (typeof value === "number")
-    return `<c r="${ref}" t="n"><v>${value}</v></c>`;
+  if (typeof value === "number") {
+    const numberValue = Math.trunc(value) === value ? value : value.toFixed(4);
+    return `<c r="${ref}" t="n"><v>${numberValue}</v></c>`;
+  }
   return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(String(value))}</t></is></c>`;
 };
 
