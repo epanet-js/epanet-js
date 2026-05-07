@@ -19,6 +19,7 @@ type FloatCellProps = CellProps<number | null> & {
   nullValue?: number | null;
   decimals?: number;
   readonly?: boolean;
+  placeholder?: string;
 };
 
 export function FloatCell({
@@ -29,6 +30,7 @@ export function FloatCell({
   nullValue = null,
   decimals,
   readonly,
+  placeholder,
 }: FloatCellProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [editValue, setEditValue] = useState("");
@@ -108,11 +110,16 @@ export function FloatCell({
   );
 
   const formattedValue = formatLocaleNumber(value, decimals);
+  const displayValue = !editMode && value === null ? "" : formattedValue;
 
   if (readonly) {
     return (
       <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 bg-gray-50">
-        {formattedValue}
+        {value === null && placeholder != null ? (
+          <span className="italic">{placeholder}</span>
+        ) : (
+          formattedValue
+        )}
       </div>
     );
   }
@@ -130,12 +137,13 @@ export function FloatCell({
         ref={inputRef}
         type="text"
         inputMode="decimal"
-        value={editMode ? editValue : formattedValue}
+        value={editMode ? editValue : displayValue}
+        placeholder={placeholder}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
-        className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate"
+        className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400"
       />
     </div>
   );
@@ -150,9 +158,10 @@ export function floatColumn(
     nullValue?: number | null;
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
+    placeholder?: string;
   },
 ): GridColumn {
-  const { nullValue, decimals, isReadOnly: readonly } = options;
+  const { nullValue, decimals, isReadOnly: readonly, placeholder } = options;
   const isStaticReadOnly = readonly === true;
   const isDynamicReadOnly = typeof readonly === "function";
   const resolveReadOnly = (rowIndex: number) =>
@@ -162,13 +171,15 @@ export function floatColumn(
     nullValue !== undefined ||
     decimals !== undefined ||
     isStaticReadOnly ||
-    isDynamicReadOnly
+    isDynamicReadOnly ||
+    placeholder !== undefined
       ? (props: CellProps<number | null>) => (
           <FloatCell
             {...props}
             nullValue={nullValue}
             decimals={decimals}
             readonly={resolveReadOnly(props.rowIndex)}
+            placeholder={placeholder}
           />
         )
       : FloatCell;

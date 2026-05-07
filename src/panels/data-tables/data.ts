@@ -139,32 +139,57 @@ function buildComputedFields(
   assetId: AssetId,
   hydraulicModel: HydraulicModel,
 ): Record<string, unknown> {
-  if (assetType !== "junction") return {};
+  if (assetType === "junction") {
+    const junctionDemands = getJunctionDemands(hydraulicModel.demands, assetId);
+    const avgDemand = calculateAverageDemand(
+      junctionDemands,
+      hydraulicModel.patterns,
+    );
+    const customerPoints = getActiveCustomerPoints(
+      hydraulicModel.customerPointsLookup,
+      hydraulicModel.assets,
+      assetId,
+    );
+    const avgCustomerDemand = customerPoints.reduce(
+      (sum, cp) =>
+        sum +
+        calculateAverageDemand(
+          getCustomerPointDemands(hydraulicModel.demands, cp.id),
+          hydraulicModel.patterns,
+        ),
+      0,
+    );
+    return {
+      avgDemand,
+      avgCustomerDemand,
+      customerPointCount: customerPoints.length,
+    };
+  }
 
-  const junctionDemands = getJunctionDemands(hydraulicModel.demands, assetId);
-  const avgDemand = calculateAverageDemand(
-    junctionDemands,
-    hydraulicModel.patterns,
-  );
-  const customerPoints = getActiveCustomerPoints(
-    hydraulicModel.customerPointsLookup,
-    hydraulicModel.assets,
-    assetId,
-  );
-  const avgCustomerDemand = customerPoints.reduce(
-    (sum, cp) =>
-      sum +
-      calculateAverageDemand(
-        getCustomerPointDemands(hydraulicModel.demands, cp.id),
-        hydraulicModel.patterns,
-      ),
-    0,
-  );
-  return {
-    avgDemand,
-    avgCustomerDemand,
-    customerPointCount: customerPoints.length,
-  };
+  if (assetType === "pipe") {
+    const pipe = hydraulicModel.assets.get(assetId) as Pipe;
+    const [startNodeId, endNodeId] = pipe.connections;
+    const customerPoints = Array.from(
+      hydraulicModel.customerPointsLookup.getCustomerPoints(assetId),
+    );
+    const customerDemand = customerPoints.reduce(
+      (sum, cp) =>
+        sum +
+        calculateAverageDemand(
+          getCustomerPointDemands(hydraulicModel.demands, cp.id),
+          hydraulicModel.patterns,
+        ),
+      0,
+    );
+    return {
+      startNode: hydraulicModel.assets.get(startNodeId)?.label ?? "",
+      endNode: hydraulicModel.assets.get(endNodeId)?.label ?? "",
+      customerDemand,
+      customerPointCount: customerPoints.length,
+    };
+  }
+
+  return {};
 }
 
 function buildAssetRow(

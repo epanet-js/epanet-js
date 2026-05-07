@@ -32,11 +32,7 @@ import {
 } from "src/hydraulic-model/asset-types/valve";
 import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
 import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
-import type {
-  Patterns,
-  PatternId,
-  PatternType,
-} from "src/hydraulic-model/patterns";
+import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { Curves, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -44,6 +40,8 @@ import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getDecimals } from "src/lib/project-settings";
+import { localizeDecimal } from "src/infra/i18n/numbers";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type {
   UnitsSpec,
   FormattingSpec,
@@ -327,11 +325,15 @@ function buildColumns(
   formatting: FormattingSpec,
   patterns: Patterns,
   curves: Curves,
-  energyGlobalPatternId: PatternId | null,
+  simulationSettings: SimulationSettings | null,
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
 ): GridColumn[] {
+  const energyGlobalPatternId =
+    simulationSettings?.energyGlobalPatternId ?? null;
+  const reactionGlobalBulk = simulationSettings?.reactionGlobalBulk ?? 0;
+  const reactionGlobalWall = simulationSettings?.reactionGlobalWall ?? 0;
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
   const headerLabel = (
@@ -497,6 +499,14 @@ function buildColumns(
           validate: validateLabel,
         }),
         booleanCol("isActive", translate("isEnabled")),
+        textColumn("startNode", {
+          header: translate("startNode"),
+          isReadOnly: true,
+        }),
+        textColumn("endNode", {
+          header: translate("endNode"),
+          isReadOnly: true,
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pipeStatuses.map((s) => ({
@@ -518,8 +528,28 @@ function buildColumns(
           units.minorLoss,
           "minorLoss",
         ),
-        numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
-        numericCol("wallReactionCoeff", translate("wallReactionCoeff")),
+        floatColumn("customerDemand", {
+          header: headerLabel(translate("customerDemand"), units.baseDemand),
+          decimals: getDecimals(formatting, "baseDemand"),
+          isReadOnly: true,
+        }),
+        floatColumn("customerPointCount", {
+          header: translate("connectedCustomers"),
+          decimals: 0,
+          isReadOnly: true,
+        }),
+        floatColumn("bulkReactionCoeff", {
+          header: translate("bulkReactionCoeff"),
+          decimals: formatting.defaultDecimals,
+          deleteValue: null,
+          placeholder: localizeDecimal(reactionGlobalBulk),
+        }),
+        floatColumn("wallReactionCoeff", {
+          header: translate("wallReactionCoeff"),
+          decimals: formatting.defaultDecimals,
+          deleteValue: null,
+          placeholder: localizeDecimal(reactionGlobalWall),
+        }),
         ...simCols,
       ];
     case "pump":
@@ -663,7 +693,12 @@ function buildColumns(
         ),
         curveCol("volumeCurveId", translate("volumeCurve"), "volume"),
         numericCol("initialQuality", translate("initialQuality")),
-        numericCol("bulkReactionCoeff", translate("bulkReactionCoeff")),
+        floatColumn("bulkReactionCoeff", {
+          header: translate("bulkReactionCoeff"),
+          decimals: formatting.defaultDecimals,
+          deleteValue: null,
+          placeholder: localizeDecimal(reactionGlobalBulk),
+        }),
         filterableSelectColumn("mixingModel", {
           header: translate("mixingModel"),
           options: tankMixingModels.map((m) => ({
@@ -746,7 +781,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         formatting,
         hydraulicModel.patterns,
         hydraulicModel.curves,
-        simulationSettings?.energyGlobalPatternId ?? null,
+        simulationSettings,
         qualityType,
         (label: string, rowIndex: number) => {
           const assetId = rowsRef.current?.[rowIndex]?.id;
@@ -764,7 +799,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       formatting,
       hydraulicModel.patterns,
       hydraulicModel.curves,
-      simulationSettings?.energyGlobalPatternId,
+      simulationSettings,
       qualityType,
       labelManager,
     ],
