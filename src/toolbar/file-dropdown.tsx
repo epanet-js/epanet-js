@@ -196,7 +196,7 @@ export const FileDropdown = () => {
                 </StyledItem>
               )}
 
-              {isExportAssetDataOn && <DDSeparator />}
+              {(isExportAssetDataOn || isExportTimeSeriesOn) && <DDSeparator />}
               {isExportAssetDataOn && (
                 <StyledItem
                   onSelect={() => {
@@ -207,7 +207,6 @@ export const FileDropdown = () => {
                   {translate("exportAssetData")}
                 </StyledItem>
               )}
-              {isExportTimeSeriesOn && <DDSeparator />}
               {isExportTimeSeriesOn && (
                 <StyledItem
                   onSelect={() => {

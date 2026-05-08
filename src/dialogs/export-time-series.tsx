@@ -365,7 +365,9 @@ export const ExportTimeSeriesDialog = ({
               className={`text-sm font-medium ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
             >
               {translate(
-                "exportTimeSeries.largeExportTitle",
+                exceedsLimit
+                  ? "exportTimeSeries.exceededSizeTitle"
+                  : "exportTimeSeries.largeExportTitle",
                 estimatedGB.toFixed(1),
               )}
             </p>
