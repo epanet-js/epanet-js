@@ -2,7 +2,6 @@ import * as Progress from "@radix-ui/react-progress";
 import { useState } from "react";
 import { SimulationProgressDialogState } from "src/state/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { cancelSimulation } from "src/simulation/epanet/main";
 import { Button } from "src/components/elements";
 import { BaseDialog } from "../components/dialog";
@@ -63,7 +62,6 @@ export const SimulationProgressDialog = ({
   modal: SimulationProgressDialogState;
 }) => {
   const translate = useTranslate();
-  const isStopSimulationOn = useFeatureFlag("FLAG_STOP_SIMULATION");
   const [stopping, setStopping] = useState(false);
   const { currentTime, totalDuration, phase } = modal;
 
@@ -88,20 +86,18 @@ export const SimulationProgressDialog = ({
           totalDuration={totalDuration}
           isIndeterminate={phase === "finalizing"}
         />
-        {isStopSimulationOn && (
-          <div className="flex justify-center">
-            <Button
-              variant="default"
-              size="sm"
-              disabled={stopping}
-              onClick={handleStop}
-            >
-              {stopping
-                ? translate("stoppingSimulation")
-                : translate("stopSimulation")}
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-center">
+          <Button
+            variant="default"
+            size="sm"
+            disabled={stopping}
+            onClick={handleStop}
+          >
+            {stopping
+              ? translate("stoppingSimulation")
+              : translate("stopSimulation")}
+          </Button>
+        </div>
       </div>
     </BaseDialog>
   );
