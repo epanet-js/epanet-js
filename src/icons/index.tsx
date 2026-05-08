@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ChevronUp,
   ChevronsLeft,
+  ChevronsLeftRightEllipsis,
   Circle,
   CircleCheck,
   CircleDotDashed,
@@ -230,6 +231,7 @@ export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
 export const TableIcon = icon(Table);
+export const SelectPathIcon = icon(ChevronsLeftRightEllipsis);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
