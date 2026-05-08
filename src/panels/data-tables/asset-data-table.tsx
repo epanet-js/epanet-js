@@ -10,7 +10,10 @@ import {
   changeProperties,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
-import { tankVolumeCurveChanges } from "src/hydraulic-model/utilities/tank-volume-curve-changes";
+import {
+  tankVolumeCurveChanges,
+  chemicalSourceTypeChanges,
+} from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
@@ -31,7 +34,10 @@ import {
   valveKinds,
   valveStatuses,
 } from "src/hydraulic-model/asset-types/valve";
-import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
+import {
+  chemicalSourceTypes,
+  type ChemicalSourceType,
+} from "src/hydraulic-model/asset-types/node";
 import {
   tankMixingModels,
   TANK_TWO_COMPARTMENT_MIXING,
@@ -912,6 +918,18 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             );
             if (curveChanges) changes.push(...curveChanges);
           }
+        }
+
+        const sourceTypeIdx = changes.findIndex(
+          (c) => c.property === "chemicalSourceType",
+        );
+        if (sourceTypeIdx !== -1) {
+          const [sourceTypeChange] = changes.splice(sourceTypeIdx, 1);
+          changes.push(
+            ...chemicalSourceTypeChanges(
+              sourceTypeChange.value as ChemicalSourceType | null,
+            ),
+          );
         }
 
         if (changes.length > 0) {

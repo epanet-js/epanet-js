@@ -1,5 +1,5 @@
-import type { PropertyChange } from "../model-operations/change-property";
-import type { Curves, CurveId } from "../curves";
+import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+import type { Curves, CurveId } from "src/hydraulic-model/curves";
 
 export function tankVolumeCurveChanges(
   curves: Curves,

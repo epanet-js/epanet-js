@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "src/hydraulic-model/mutations/apply-moment";
 import { changeProperties } from "src/hydraulic-model/model-operations/change-property";
-import { tankVolumeCurveChanges } from "src/hydraulic-model/utilities/tank-volume-curve-changes";
+import { tankVolumeCurveChanges } from "src/hydraulic-model/model-operations/property-changes/tank-volume-curve-changes";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import { Tank } from "src/hydraulic-model/asset-types";
 

@@ -1,6 +1,6 @@
 export { moveNode } from "./move-node";
-export { changeProperty } from "./change-property";
-export { changeProperties } from "./change-property";
+export { changeProperty, changeProperties } from "./change-property";
+export type { PropertyChange } from "./change-property";
 export { changeLabel } from "./change-label";
 export { allocateCustomerPoints } from "./allocate-customer-points";
 export { disconnectCustomers } from "./disconnect-customers";
@@ -19,3 +19,4 @@ export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";
 export { moveCustomerPoint } from "./move-customer-point";
 export { changeCustomerPointLabel } from "./change-customer-point-label";
+export * from "./property-changes";

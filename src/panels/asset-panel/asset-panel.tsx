@@ -103,7 +103,10 @@ import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { PatternId } from "src/hydraulic-model/patterns";
 import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
-import { tankVolumeCurveChanges } from "src/hydraulic-model/utilities/tank-volume-curve-changes";
+import {
+  tankVolumeCurveChanges,
+  chemicalSourceTypeChanges,
+} from "src/hydraulic-model/model-operations";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Unit } from "src/quantity";
 
@@ -2652,19 +2655,11 @@ const ChemicalSourceEditor = ({
         placeholder={translate("none")}
         listClassName="first:italic"
         onChange={(_name, value) => {
-          if (value === "none") {
-            onBatchPropertyChange([
-              { property: "chemicalSourceType", value: undefined },
-              { property: "chemicalSourceStrength", value: undefined },
-              { property: "chemicalSourcePatternId", value: undefined },
-            ]);
-          } else {
-            onPropertyChange(
-              "chemicalSourceType",
-              value as ChemicalSourceType,
-              typedNode.chemicalSourceType,
-            );
-          }
+          onBatchPropertyChange(
+            chemicalSourceTypeChanges(
+              value === "none" ? null : (value as ChemicalSourceType),
+            ),
+          );
         }}
         readOnly={readOnly}
       />
