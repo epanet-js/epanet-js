@@ -36,7 +36,8 @@ export const AlertExportInpDialog = ({
       }
     >
       <div className="p-4 text-sm text-gray-700">
-        <p>{translate("alertExportInpDetail")}</p>
+        <p className="pb-2">{translate("alertExportInpDetail")}</p>
+        <p>{translate("alertExportInpRecommendation")}</p>
       </div>
     </BaseDialog>
   );
