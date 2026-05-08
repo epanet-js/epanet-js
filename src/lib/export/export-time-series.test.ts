@@ -3,14 +3,19 @@ import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { FileSystemHelpers } from "./file-system-helpers";
 import { estimateTimeSeriesSize, exportTimeSeries } from "./export-time-series";
-import { ExportTimeSeriesMetrics } from "./types";
 
 const noSelection = new Set<number>();
 
 describe("estimateTimeSeriesSize", () => {
   it("calculates size for given metrics, assets and timesteps", () => {
-    const result = estimateTimeSeriesSize(["pressure", "flow"], 3, 5);
-    expect(result).toBe(3 * 2 * 64 * 7);
+    const numAssets = 3;
+    const timeStepCount = 5;
+    const result = estimateTimeSeriesSize(
+      ["pressure", "flow"],
+      numAssets,
+      timeStepCount,
+    );
+    expect(result).toBe(3 * 2 * (16 * 5 + 64));
   });
 });
 
@@ -286,11 +291,12 @@ const makeStream = () => {
     return Promise.resolve();
   });
   const close = vi.fn(() => Promise.resolve());
+  const abort = vi.fn(() => Promise.resolve());
   const getText = () => {
     const decoder = new TextDecoder();
     return chunks.map((c) => decoder.decode(c)).join("");
   };
-  return { write, close, getText };
+  return { write, close, abort, getText };
 };
 
 const makeDirectory = () => {
@@ -305,6 +311,7 @@ const makeDirectory = () => {
           Promise.resolve({
             write: stream.write,
             close: stream.close,
+            abort: stream.abort,
           } as unknown as FileSystemWritableFileStream),
         ),
       } as unknown as FileSystemFileHandle;
@@ -328,9 +335,26 @@ const makeResultsReader = (
   ({
     timestepCount,
     reportingTimeStep,
-    getTimeSeries: vi.fn(
-      (id: number, _type: string, metric: ExportTimeSeriesMetrics) =>
-        Promise.resolve(data[`${id}:${metric}`] ?? null),
+    iterateTimeSeries: vi.fn(
+      async (
+        assets: Map<number, { id: number; type: string }>,
+        metrics: string[],
+        onResult: (
+          metric: string,
+          asset: { id: number; type: string },
+          ts: TimeSeries | null,
+        ) => Promise<void>,
+      ) => {
+        for (const metric of metrics) {
+          for (const asset of assets.values()) {
+            await onResult(
+              metric,
+              asset,
+              data[`${asset.id}:${metric}`] ?? null,
+            );
+          }
+        }
+      },
     ),
   }) as unknown as EPSResultsReader;
 

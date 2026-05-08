@@ -11,6 +11,8 @@ export interface IKeyBufferStore {
     blockCount: number,
   ): Promise<ArrayBuffer>;
 
+  getFile(key: string): Promise<File>;
+
   getSize(key: string): Promise<number>;
 
   clear(): Promise<void>;

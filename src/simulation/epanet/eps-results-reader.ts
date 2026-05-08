@@ -21,7 +21,7 @@ import {
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
-import { AssetId, AssetType } from "src/hydraulic-model";
+import { Asset, AssetId, AssetType } from "src/hydraulic-model";
 
 export type { SimulationIds } from "./simulation-metadata";
 
@@ -120,6 +120,36 @@ const LINK_PROPERTY_INDEX: Record<LinkProperty, number> = {
   setting: 5,
   reactionRate: 6,
   friction: 7,
+};
+
+// Maps property strings to binary node/link property indices.
+// Properties not listed here (e.g. "level", "volume") need special handling
+// and are not covered by the contiguous-read path.
+const NODE_RESULTS_PROPERTY_INDEX: Partial<Record<string, number>> = {
+  demand: NODE_PROPERTY_INDEX.demand,
+  netFlow: NODE_PROPERTY_INDEX.demand,
+  head: NODE_PROPERTY_INDEX.head,
+  pressure: NODE_PROPERTY_INDEX.pressure,
+  quality: NODE_PROPERTY_INDEX.quality,
+  waterQuality: NODE_PROPERTY_INDEX.quality,
+  waterAge: NODE_PROPERTY_INDEX.quality,
+  waterTrace: NODE_PROPERTY_INDEX.quality,
+  chemicalConcentration: NODE_PROPERTY_INDEX.quality,
+};
+
+const LINK_RESULTS_PROPERTY_INDEX: Partial<Record<string, number>> = {
+  flow: LINK_PROPERTY_INDEX.flow,
+  velocity: LINK_PROPERTY_INDEX.velocity,
+  headloss: LINK_PROPERTY_INDEX.headloss,
+  unitHeadloss: LINK_PROPERTY_INDEX.headloss,
+  avgQuality: LINK_PROPERTY_INDEX.avgQuality,
+  status: LINK_PROPERTY_INDEX.status,
+  setting: LINK_PROPERTY_INDEX.setting,
+  reactionRate: LINK_PROPERTY_INDEX.reactionRate,
+  friction: LINK_PROPERTY_INDEX.friction,
+  waterAge: LINK_PROPERTY_INDEX.avgQuality,
+  waterTrace: LINK_PROPERTY_INDEX.avgQuality,
+  chemicalConcentration: LINK_PROPERTY_INDEX.avgQuality,
 };
 
 export interface TimeSeries {
@@ -517,6 +547,385 @@ export class EPSResultsReader {
 
     const values = await this.storage.readBlockSeries(
       PUMP_STATUS_KEY,
+      baseOffset,
+      FLOAT_SIZE,
+      blockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
+  }
+
+  async iterateTimeSeries<M extends string>(
+    assets: Map<number, Asset>,
+    properties: M[],
+    onResult: (
+      metric: M,
+      asset: Asset,
+      timeSeries: TimeSeries | null,
+    ) => Promise<void>,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    if (!this.metadata) return;
+
+    const resultsFile = await this.storage.getFile(RESULTS_OUT_KEY);
+
+    let pumpStatusFile: File | null = null;
+    const { pumpCount } = this.metadata.simulationMetadata;
+    if (pumpCount > 0) {
+      try {
+        pumpStatusFile = await this.storage.getFile(PUMP_STATUS_KEY);
+      } catch {
+        // Pump status file unavailable
+      }
+    }
+
+    const {
+      nodeCount,
+      linkCount,
+      reportingStepsCount: T,
+    } = this.metadata.simulationMetadata;
+    const { resultsBaseOffset, timestepBlockSize } = this.metadata;
+
+    // Read the entire dynamic results section in one contiguous read.
+    // readSize = blockSize = timestepBlockSize, so no striding waste.
+    // For large simulations, _readBlockSeriesFromFile chunks at 64 MB.
+    // Layout: [T0: node_demands×N, node_heads×N, ..., link_flows×L, ...], [T1: ...], ...
+    const resultsRaw = await this._readBlockSeriesFromFile(
+      resultsFile,
+      resultsBaseOffset,
+      timestepBlockSize,
+      timestepBlockSize,
+      T,
+    );
+    const resultsFloat = new Float32Array(resultsRaw);
+    const timestepFloats = timestepBlockSize / FLOAT_SIZE;
+    const nodeDataFloats = nodeCount * NODE_RESULT_FLOATS;
+
+    // Read pump status contiguously (pumpCount floats per timestep, sequential)
+    let pumpStatusFloat: Float32Array | null = null;
+    if (
+      pumpStatusFile &&
+      pumpCount > 0 &&
+      properties.some((p) => p === "status")
+    ) {
+      const raw = await pumpStatusFile
+        .slice(0, pumpCount * T * FLOAT_SIZE)
+        .arrayBuffer();
+      pumpStatusFloat = new Float32Array(raw);
+    }
+
+    // Iterate (property × asset), extracting values from in-memory buffers.
+    // Yield to the browser event loop every ~16ms so the UI stays responsive
+    // (progress bar updates, button clicks). setTimeout posts a macrotask,
+    // giving the browser a chance to paint between chunks of work.
+    let itersSinceYield = 0;
+    let lastYield = performance.now();
+
+    for (const property of properties) {
+      const nodePropertyIdx = NODE_RESULTS_PROPERTY_INDEX[property];
+      const linkPropertyIdx = LINK_RESULTS_PROPERTY_INDEX[property];
+
+      for (const asset of assets.values()) {
+        signal?.throwIfAborted();
+
+        if (++itersSinceYield >= 1000) {
+          itersSinceYield = 0;
+          if (performance.now() - lastYield >= 16) {
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
+            lastYield = performance.now();
+          }
+        }
+
+        let ts: TimeSeries | null = null;
+
+        if (!asset.isLink) {
+          if (nodePropertyIdx !== undefined) {
+            const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
+              String(asset.id),
+            );
+            if (nodeIndex !== undefined) {
+              ts = this._extractNodeTs(
+                resultsFloat,
+                nodePropertyIdx,
+                nodeIndex,
+                nodeCount,
+                T,
+                timestepFloats,
+              );
+            }
+          }
+        } else if (asset.type === "pump" && property === "status") {
+          if (pumpStatusFloat) {
+            const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+              String(asset.id),
+            );
+            if (linkIndex !== undefined) {
+              const pumpPosition = this.pumpPositionByLinkIndex.get(linkIndex);
+              if (pumpPosition !== undefined) {
+                ts = this._extractTs(
+                  pumpStatusFloat,
+                  pumpPosition,
+                  pumpCount,
+                  T,
+                );
+              }
+            }
+          }
+        } else if (linkPropertyIdx !== undefined) {
+          const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+            String(asset.id),
+          );
+          if (linkIndex !== undefined) {
+            ts = this._extractLinkTs(
+              resultsFloat,
+              linkPropertyIdx,
+              linkIndex,
+              linkCount,
+              T,
+              timestepFloats,
+              nodeDataFloats,
+            );
+          }
+        }
+
+        await onResult(property, asset, ts);
+      }
+    }
+  }
+
+  private _extractNodeTs(
+    buf: Float32Array,
+    propertyIndex: number,
+    nodeIndex: number,
+    nodeCount: number,
+    T: number,
+    timestepFloats: number,
+  ): TimeSeries {
+    const values = new Float32Array(T);
+    const base = propertyIndex * nodeCount + nodeIndex;
+    for (let t = 0; t < T; t++) {
+      values[t] = buf[t * timestepFloats + base];
+    }
+    return this._buildTimeSeriesFromValues(values);
+  }
+
+  private _extractLinkTs(
+    buf: Float32Array,
+    propertyIndex: number,
+    linkIndex: number,
+    linkCount: number,
+    T: number,
+    timestepFloats: number,
+    nodeDataFloats: number,
+  ): TimeSeries {
+    const values = new Float32Array(T);
+    const base = nodeDataFloats + propertyIndex * linkCount + linkIndex;
+    for (let t = 0; t < T; t++) {
+      values[t] = buf[t * timestepFloats + base];
+    }
+    return this._buildTimeSeriesFromValues(values);
+  }
+
+  private _extractTs(
+    buf: Float32Array,
+    assetIndex: number,
+    assetCount: number,
+    T: number,
+  ): TimeSeries {
+    const values = new Float32Array(T);
+    for (let t = 0; t < T; t++) {
+      values[t] = buf[t * assetCount + assetIndex];
+    }
+    return this._buildTimeSeriesFromValues(values);
+  }
+
+  private _buildTimeSeriesFromValues(values: Float32Array): TimeSeries {
+    return {
+      values,
+      intervalsCount: values.length,
+      intervalSeconds: this.metadata!.simulationMetadata.reportingTimeStep,
+    };
+  }
+
+  private async _getTimeSeriesFromFile(
+    resultsFile: File,
+    pumpStatusFile: File | null,
+    assetId: AssetId,
+    assetType: AssetType,
+    property: string,
+  ): Promise<TimeSeries | null> {
+    switch (assetType) {
+      case "junction":
+      case "reservoir":
+      case "tank":
+        return this._getNodePropertyTimeSeriesFromFile(
+          resultsFile,
+          assetId,
+          property as NodeProperty,
+        );
+      case "pipe":
+      case "valve":
+        return this._getLinkPropertyTimeSeriesFromFile(
+          resultsFile,
+          assetId,
+          property as LinkProperty,
+        );
+      case "pump":
+        if (property === "status") {
+          return pumpStatusFile
+            ? this._getPumpStatusTimeSeriesFromFile(pumpStatusFile, assetId)
+            : null;
+        }
+        return this._getLinkPropertyTimeSeriesFromFile(
+          resultsFile,
+          assetId,
+          property as LinkProperty,
+        );
+    }
+  }
+
+  private async _readBlockSeriesFromFile(
+    file: File,
+    baseOffset: number,
+    readSize: number,
+    blockSize: number,
+    blockCount: number,
+  ): Promise<ArrayBuffer> {
+    if (blockCount === 0) return new ArrayBuffer(0);
+
+    const MAX_BYTES_PER_CHUNK = 64 * 1024 * 1024;
+    const maxBlocksPerChunk = Math.max(
+      1,
+      Math.floor(MAX_BYTES_PER_CHUNK / blockSize),
+    );
+
+    type Chunk = { firstBlock: number; blocksInChunk: number };
+    const chunks: Chunk[] = [];
+    for (
+      let firstBlock = 0;
+      firstBlock < blockCount;
+      firstBlock += maxBlocksPerChunk
+    ) {
+      chunks.push({
+        firstBlock,
+        blocksInChunk: Math.min(maxBlocksPerChunk, blockCount - firstBlock),
+      });
+    }
+
+    const chunkBuffers = await Promise.all(
+      chunks.map(({ firstBlock, blocksInChunk }) => {
+        const chunkOffset = baseOffset + firstBlock * blockSize;
+        const chunkLength = (blocksInChunk - 1) * blockSize + readSize;
+        return file.slice(chunkOffset, chunkOffset + chunkLength).arrayBuffer();
+      }),
+    );
+
+    const result = new ArrayBuffer(readSize * blockCount);
+    const dst = new Uint8Array(result);
+    for (let c = 0; c < chunks.length; c++) {
+      const { firstBlock, blocksInChunk } = chunks[c];
+      const chunk = new Uint8Array(chunkBuffers[c]);
+      for (let i = 0; i < blocksInChunk; i++) {
+        dst.set(
+          chunk.subarray(i * blockSize, i * blockSize + readSize),
+          (firstBlock + i) * readSize,
+        );
+      }
+    }
+
+    return result;
+  }
+
+  private async _getNodePropertyTimeSeriesFromFile(
+    file: File,
+    nodeId: AssetId,
+    property: NodeProperty,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
+
+    const nodeIndex = this.metadata.simulationIds.nodeIdToIndex.get(
+      String(nodeId),
+    );
+    if (nodeIndex === undefined) return null;
+
+    const { resultsBaseOffset, timestepBlockSize, simulationMetadata } =
+      this.metadata;
+    const propertyIndex = NODE_PROPERTY_INDEX[property];
+    const { nodeCount } = simulationMetadata;
+
+    const baseOffset =
+      resultsBaseOffset +
+      propertyIndex * nodeCount * FLOAT_SIZE +
+      nodeIndex * FLOAT_SIZE;
+
+    const values = await this._readBlockSeriesFromFile(
+      file,
+      baseOffset,
+      FLOAT_SIZE,
+      timestepBlockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
+  }
+
+  private async _getLinkPropertyTimeSeriesFromFile(
+    file: File,
+    linkId: AssetId,
+    property: LinkProperty,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
+
+    const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+      String(linkId),
+    );
+    if (linkIndex === undefined) return null;
+
+    const { resultsBaseOffset, timestepBlockSize, simulationMetadata } =
+      this.metadata;
+    const propertyIndex = LINK_PROPERTY_INDEX[property];
+    const { nodeCount, linkCount } = simulationMetadata;
+
+    const nodeDataSize = nodeCount * NODE_RESULT_FLOATS * FLOAT_SIZE;
+    const baseOffset =
+      resultsBaseOffset +
+      nodeDataSize +
+      propertyIndex * linkCount * FLOAT_SIZE +
+      linkIndex * FLOAT_SIZE;
+
+    const values = await this._readBlockSeriesFromFile(
+      file,
+      baseOffset,
+      FLOAT_SIZE,
+      timestepBlockSize,
+      simulationMetadata.reportingStepsCount,
+    );
+    return this._buildTimeSeries(values);
+  }
+
+  private async _getPumpStatusTimeSeriesFromFile(
+    pumpStatusFile: File,
+    pumpId: AssetId,
+  ): Promise<TimeSeries | null> {
+    if (!this.metadata) return null;
+
+    const linkIndex = this.metadata.simulationIds.linkIdToIndex.get(
+      String(pumpId),
+    );
+    if (linkIndex === undefined) return null;
+
+    const { simulationMetadata } = this.metadata;
+    const { pumpCount } = simulationMetadata;
+
+    if (pumpCount === 0) return null;
+
+    const pumpPosition = this.pumpPositionByLinkIndex.get(linkIndex);
+    if (pumpPosition === undefined) return null;
+
+    const baseOffset = pumpPosition * FLOAT_SIZE;
+    const blockSize = pumpCount * FLOAT_SIZE;
+
+    const values = await this._readBlockSeriesFromFile(
+      pumpStatusFile,
       baseOffset,
       FLOAT_SIZE,
       blockSize,

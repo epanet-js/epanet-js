@@ -97,6 +97,12 @@ export class OPFSStorage implements IKeyBufferStore {
     return result;
   }
 
+  async getFile(filename: string): Promise<File> {
+    const dir = await this.getAppDir();
+    const fileHandle = await dir.getFileHandle(filename);
+    return fileHandle.getFile();
+  }
+
   async getSize(filename: string): Promise<number> {
     const dir = await this.getAppDir();
     const fileHandle = await dir.getFileHandle(filename);

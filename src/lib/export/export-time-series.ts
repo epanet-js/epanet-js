@@ -10,6 +10,8 @@ export const estimateTimeSeriesSize = (
   timestepCount: number,
 ) => numAssets * metrics.length * lineSize(timestepCount);
 
+const BATCH_SIZE = 4 * 1024 * 1024; // 4 MB write buffer per metric
+
 export const exportTimeSeries = async (
   networkName: string,
   directory: FileSystemDirectoryHandle,
@@ -21,65 +23,115 @@ export const exportTimeSeries = async (
   signal?: AbortSignal,
 ) => {
   const encoder = new TextEncoder();
-  const buffer = new Uint8Array(lineSize(resultsReader.timestepCount));
+  const headerBuf = new Uint8Array(lineSize(resultsReader.timestepCount));
+  const MAX_ROW_SIZE = lineSize(resultsReader.timestepCount);
   const hasSelection = selectedAssets.size > 0;
   const totalProgress = metrics.length * hydraulicModel.assets.size;
   let progress = 1;
 
-  for (const metric of metrics) {
-    signal?.throwIfAborted();
+  const streams = new Map<
+    ExportTimeSeriesMetrics,
+    FileSystemWritableFileStream
+  >();
+  const handles = new Map<ExportTimeSeriesMetrics, FileSystemFileHandle>();
+  const batchBufs = new Map<ExportTimeSeriesMetrics, Uint8Array>();
+  const batchOffs = new Map<ExportTimeSeriesMetrics, number>();
 
-    const fileName = `${networkName}-export-${metric}.csv`;
-    const handle = await directory.getFileHandle(fileName, { create: true });
-    const stream = await handle.createWritable();
+  try {
+    for (const metric of metrics) {
+      signal?.throwIfAborted();
+      const fileName = `${networkName}-export-${metric}.csv`;
+      const handle = await directory.getFileHandle(fileName, { create: true });
+      const stream = await handle.createWritable();
+      handles.set(metric, handle);
+      streams.set(metric, stream);
+      batchBufs.set(metric, new Uint8Array(BATCH_SIZE));
+      batchOffs.set(metric, 0);
 
-    try {
       const offset = encodeHeader(
-        buffer,
+        headerBuf,
         resultsReader.timestepCount,
         resultsReader.reportingTimeStep,
         encoder,
       );
-      const view = buffer.subarray(0, offset);
-      await stream.write(view);
-
-      for (const asset of hydraulicModel.assets.values()) {
-        signal?.throwIfAborted();
-
-        const epanetType = asset.isLink ? "link" : "node";
-        const results = await resultsReader.getTimeSeries(
-          asset.id,
-          asset.type,
-          metric,
-        );
-
-        onProgress((progress++ / totalProgress) * 100);
-
-        if (hasSelection && !selectedAssets.has(asset.id)) continue;
-        if (results === null) continue;
-        if (!METRICS_BY_TYPE[epanetType].has(metric)) continue;
-
-        const offset = encodeValues(buffer, asset, results, encoder, metric);
-
-        const view = buffer.subarray(0, offset);
-        await stream.write(view);
-      }
-
-      await stream.close();
-    } catch (err) {
-      await stream.abort();
-      throw err;
+      await stream.write(headerBuf.subarray(0, offset));
     }
 
+    await resultsReader.iterateTimeSeries(
+      hydraulicModel.assets,
+      metrics,
+      async (metric, asset, results) => {
+        onProgress((progress++ / totalProgress) * 100);
+
+        const epanetType = asset.isLink ? "link" : "node";
+        if (hasSelection && !selectedAssets.has(asset.id)) return;
+        if (results === null) return;
+        if (!METRICS_BY_TYPE[epanetType].has(metric)) return;
+
+        const batchBuf = batchBufs.get(metric)!;
+        let batchOff = batchOffs.get(metric)!;
+
+        if (batchOff + MAX_ROW_SIZE > BATCH_SIZE) {
+          await streams.get(metric)!.write(batchBuf.subarray(0, batchOff));
+          batchOff = 0;
+        }
+
+        const rowLen = encodeValues(
+          batchBuf.subarray(batchOff),
+          asset,
+          results,
+          encoder,
+          metric,
+        );
+        batchOffs.set(metric, batchOff + rowLen);
+      },
+      signal,
+    );
+
+    for (const metric of metrics) {
+      const batchOff = batchOffs.get(metric)!;
+      if (batchOff > 0) {
+        await streams
+          .get(metric)!
+          .write(batchBufs.get(metric)!.subarray(0, batchOff));
+      }
+    }
+  } catch (err) {
+    for (const stream of streams.values()) {
+      try {
+        await stream.abort();
+      } catch {}
+    }
+    throw err;
+  }
+
+  for (const metric of metrics) {
+    const stream = streams.get(metric);
+    if (!stream) continue;
+    await stream.close();
+
     if (!FileSystemHelpers.isFileSystemAccessSupported()) {
-      await FileSystemHelpers.triggerDownload(fileName, handle);
+      const fileName = `${networkName}-export-${metric}.csv`;
+      await FileSystemHelpers.triggerDownload(fileName, handles.get(metric)!);
     }
   }
 };
 
-const lineSize = (timestepCount: number) => 64 * (timestepCount + 2);
+const lineSize = (timestepCount: number) => 16 * timestepCount + 64;
 
-const mapLinkStatus = (status: number) => (status < 3 ? "closed" : "open");
+const encodeFloat4 = (
+  buf: Uint8Array,
+  off: number,
+  value: number,
+  encoder: TextEncoder,
+): number => {
+  const { written } = encoder.encodeInto(value.toFixed(4), buf.subarray(off));
+  return off + written;
+};
+
+// Pre-encoded bytes for status labels (including trailing comma)
+const STATUS_CLOSED = new Uint8Array([99, 108, 111, 115, 101, 100, 44]); // "closed,"
+const STATUS_OPEN = new Uint8Array([111, 112, 101, 110, 44]); // "open,"
 
 const encodeHeader = (
   buffer: Uint8Array,
@@ -104,32 +156,34 @@ const encodeHeader = (
 };
 
 const encodeValues = (
-  buffer: Uint8Array,
+  buf: Uint8Array,
   asset: Asset,
   results: TimeSeries,
   encoder: TextEncoder,
   metric: ExportTimeSeriesMetrics,
-) => {
-  buffer.fill(0);
-  let { written: offset } = encoder.encodeInto(
+): number => {
+  // No fill(0) — every byte is written explicitly below
+  let { written: off } = encoder.encodeInto(
     `${asset.label},${asset.type},`,
-    buffer,
+    buf,
   );
 
-  for (let i = 0; i < results.values.length; i++) {
-    const raw = results.values[i];
-    const value = metric === "status" ? mapLinkStatus(raw) : raw.toFixed(4);
-
-    const { written } = encoder.encodeInto(
-      `${value},`,
-      buffer.subarray(offset),
-    );
-    offset += written;
+  const values = results.values;
+  if (metric === "status") {
+    for (let i = 0; i < values.length; i++) {
+      const bytes = values[i] < 3 ? STATUS_CLOSED : STATUS_OPEN;
+      buf.set(bytes, off);
+      off += bytes.length;
+    }
+  } else {
+    for (let i = 0; i < values.length; i++) {
+      off = encodeFloat4(buf, off, values[i], encoder);
+      buf[off++] = 44; // ','
+    }
   }
 
-  encoder.encodeInto("\n", buffer.subarray(offset - 1));
-
-  return offset;
+  buf[off - 1] = 10; // replace trailing ',' with '\n'
+  return off;
 };
 
 const METRICS_BY_TYPE = {

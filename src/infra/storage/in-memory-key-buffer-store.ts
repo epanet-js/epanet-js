@@ -49,6 +49,12 @@ export class InMemoryKeyBufferStore implements IKeyBufferStore {
     return Promise.resolve(result);
   }
 
+  getFile(key: string): Promise<File> {
+    const data = this.data.get(key);
+    if (!data) throw new Error(`Key "${key}" not found in storage`);
+    return Promise.resolve(new File([data], key));
+  }
+
   getSize(key: string): Promise<number> {
     const data = this.data.get(key);
     if (!data) throw new Error(`Key "${key}" not found in storage`);
