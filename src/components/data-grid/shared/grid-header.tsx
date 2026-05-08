@@ -132,6 +132,8 @@ function HeaderCell<T>({
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hasActions = header.column.getCanSort();
+  const sortDirection = header.column.getIsSorted();
+  const showActionsMenu = (isHovered || isMenuOpen) && hasActions;
 
   return (
     <div
@@ -152,7 +154,16 @@ function HeaderCell<T>({
       <span className="truncate">
         {flexRender(header.column.columnDef.header, header.getContext())}
       </span>
-      {(isHovered || isMenuOpen) && hasActions && (
+      {sortDirection && !showActionsMenu && (
+        <span className="ml-auto shrink-0 -mr-1 h-6 w-6 flex items-center justify-center">
+          {sortDirection === "asc" ? (
+            <SortAscendingIcon size="md" />
+          ) : (
+            <SortDescendingIcon size="md" />
+          )}
+        </span>
+      )}
+      {showActionsMenu && (
         <HeaderActionsButton
           onSortAscending={() => header.column.toggleSorting(false)}
           onSortDescending={() => header.column.toggleSorting(true)}
@@ -234,7 +245,7 @@ function HeaderActionsButton({
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreActionsIcon size="sm" />
+          <MoreActionsIcon size="md" />
         </Button>
       </DD.Trigger>
       <DD.Portal>
