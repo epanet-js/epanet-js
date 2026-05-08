@@ -3,6 +3,7 @@ import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { FileSystemHelpers } from "./file-system-helpers";
 import { estimateTimeSeriesSize, exportTimeSeries } from "./export-time-series";
+import { NUM_DECIMAL_PLACES } from "./constants";
 
 const noSelection = new Set<number>();
 
@@ -136,7 +137,7 @@ describe("exportTimeSeries", () => {
     expect(lines[2]).toContain("open");
   });
 
-  it("formats numeric values with 4 decimal places", async () => {
+  it(`formats numeric values with ${NUM_DECIMAL_PLACES} decimal places`, async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { label: "J1" })
@@ -159,7 +160,7 @@ describe("exportTimeSeries", () => {
     const lines = getText("net-export-pressure.csv")
       .split("\n")
       .filter(Boolean);
-    expect(lines[1]).toContain("1.2346");
+    expect(lines[1]).toContain((1.23456).toFixed(NUM_DECIMAL_PLACES));
   });
 
   it("skips assets not in selection when selection is non-empty", async () => {
