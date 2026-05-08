@@ -44,7 +44,11 @@ import {
   tankMixingModels,
   TANK_TWO_COMPARTMENT_MIXING,
 } from "src/hydraulic-model/asset-types/tank";
-import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
+import type {
+  Patterns,
+  PatternId,
+  PatternType,
+} from "src/hydraulic-model/patterns";
 import type { Curves, CurveId, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -349,15 +353,16 @@ function buildColumns(
   formatting: FormattingSpec,
   patterns: Patterns,
   curves: Curves,
-  simulationSettings: SimulationSettings | null,
+  simulationSettings: SimulationSettings,
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
 ): GridColumn[] {
-  const energyGlobalPatternId =
-    simulationSettings?.energyGlobalPatternId ?? null;
-  const reactionGlobalBulk = simulationSettings?.reactionGlobalBulk ?? 0;
-  const reactionGlobalWall = simulationSettings?.reactionGlobalWall ?? 0;
+  const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
+  const energyGlobalPrice = simulationSettings.energyGlobalPrice;
+  const energyGlobalEfficiency = simulationSettings.energyGlobalEfficiency;
+  const reactionGlobalBulk = simulationSettings.reactionGlobalBulk;
+  const reactionGlobalWall = simulationSettings.reactionGlobalWall;
   const editable = new Set(EDITABLE_NUMERIC_KEYS[type]);
 
   const headerLabel = (
@@ -374,6 +379,7 @@ function buildColumns(
     unit: Parameters<TranslateUnitFn>[0] = null,
     property?: QuantityProperty,
     isReadOnly?: (rowIndex: number) => boolean,
+    placeholder?: string,
   ) =>
     floatColumn(key, {
       header: headerLabel(name, unit),
@@ -382,6 +388,7 @@ function buildColumns(
           ? getDecimals(formatting, property)
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
+      placeholder,
       ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
     });
 
@@ -393,9 +400,9 @@ function buildColumns(
       isReadOnly,
     });
 
-  const patternOpts = (filterType: PatternType) =>
+  const patternOpts = (filterType: PatternType, excludeId?: PatternId) =>
     [...patterns.values()]
-      .filter((p) => p.type === filterType)
+      .filter((p) => p.type === filterType && p.id !== excludeId)
       .map((p) => ({ value: p.id, label: p.label }));
 
   const curveOpts = (filterType: CurveType) =>
@@ -417,22 +424,28 @@ function buildColumns(
     filterType: PatternType,
     placeholder = translate("constant"),
     isReadOnly?: (rowIndex: number) => boolean,
+    excludeId?: PatternId,
   ) =>
     filterableSelectColumn(key, {
       header: name,
-      options: patternOpts(filterType),
+      options: patternOpts(filterType, excludeId),
       placeholder,
       emptyOptionLabel: placeholder,
       deleteValue: null,
       isReadOnly,
     });
 
-  const curveCol = (key: string, name: string, filterType: CurveType) =>
+  const curveCol = (
+    key: string,
+    name: string,
+    filterType: CurveType,
+    placeholder?: string,
+  ) =>
     filterableSelectColumn(key, {
       header: name,
       options: curveOpts(filterType),
-      placeholder: translate("none"),
-      emptyOptionLabel: translate("none"),
+      placeholder: placeholder ?? translate("none"),
+      emptyOptionLabel: placeholder ?? translate("none"),
       deleteValue: null,
     });
 
@@ -585,6 +598,14 @@ function buildColumns(
           validate: validateLabel,
         }),
         booleanCol("isActive", translate("isEnabled")),
+        textColumn("startNode", {
+          header: translate("startNode"),
+          isReadOnly: true,
+        }),
+        textColumn("endNode", {
+          header: translate("endNode"),
+          isReadOnly: true,
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: pumpStatuses.map((s) => ({
@@ -593,19 +614,29 @@ function buildColumns(
           })),
         }),
         numericCol("speed", translate("initialSpeed"), units.speed, "speed"),
-        curveCol("curveId", translate("pumpCurve"), "pump"),
-        numericCol("energyPrice", translate("energyPrice")),
         patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
+        curveCol("curveId", translate("pumpCurve"), "pump"),
+        numericCol(
+          "energyPrice",
+          translate("energyPrice"),
+          undefined,
+          undefined,
+          undefined,
+          localizeDecimal(energyGlobalPrice),
+        ),
         curveCol(
           "efficiencyCurveId",
           translate("efficiencyCurve"),
           "efficiency",
+          translate("constantPercent", localizeDecimal(energyGlobalEfficiency)),
         ),
         patternCol(
           "energyPricePatternId",
           translate("energyPricePattern"),
           "energyPrice",
           energyPricePatternPlaceholder,
+          undefined,
+          energyGlobalPatternId ?? undefined,
         ),
         ...simCols,
       ];

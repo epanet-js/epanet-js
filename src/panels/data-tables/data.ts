@@ -137,6 +137,18 @@ function buildSimRow(
   }
 }
 
+function resolveConnectionLabels(
+  assetId: AssetId,
+  hydraulicModel: HydraulicModel,
+) {
+  const link = hydraulicModel.assets.get(assetId) as Pipe | Pump | Valve;
+  const [startNodeId, endNodeId] = link.connections;
+  return {
+    startNode: hydraulicModel.assets.get(startNodeId)?.label ?? "",
+    endNode: hydraulicModel.assets.get(endNodeId)?.label ?? "",
+  };
+}
+
 function buildComputedFields(
   assetType: AssetType,
   assetId: AssetId,
@@ -182,18 +194,15 @@ function buildComputedFields(
     return {};
   }
 
+  if (assetType === "pump") {
+    return resolveConnectionLabels(assetId, hydraulicModel);
+  }
+
   if (assetType === "valve") {
-    const valve = hydraulicModel.assets.get(assetId) as Valve;
-    const [startNodeId, endNodeId] = valve.connections;
-    return {
-      startNode: hydraulicModel.assets.get(startNodeId)?.label ?? "",
-      endNode: hydraulicModel.assets.get(endNodeId)?.label ?? "",
-    };
+    return resolveConnectionLabels(assetId, hydraulicModel);
   }
 
   if (assetType === "pipe") {
-    const pipe = hydraulicModel.assets.get(assetId) as Pipe;
-    const [startNodeId, endNodeId] = pipe.connections;
     const customerPoints = Array.from(
       hydraulicModel.customerPointsLookup.getCustomerPoints(assetId),
     );
@@ -207,8 +216,7 @@ function buildComputedFields(
       0,
     );
     return {
-      startNode: hydraulicModel.assets.get(startNodeId)?.label ?? "",
-      endNode: hydraulicModel.assets.get(endNodeId)?.label ?? "",
+      ...resolveConnectionLabels(assetId, hydraulicModel),
       customerDemand,
       customerPointCount: customerPoints.length,
     };

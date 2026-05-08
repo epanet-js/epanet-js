@@ -414,6 +414,7 @@ type LibrarySelectRowProps<P extends string> = {
   ) => void;
   emptyOptionLabel?: string;
   placeholder?: string;
+  excludeId?: number;
   readOnly?: boolean;
   comparison?: PropertyComparison;
 };
@@ -428,6 +429,7 @@ export function LibrarySelectRow<P extends string>({
   onChange,
   emptyOptionLabel,
   placeholder,
+  excludeId,
   readOnly,
   comparison,
 }: LibrarySelectRowProps<P>) {
@@ -440,6 +442,7 @@ export function LibrarySelectRow<P extends string>({
     const itemGroup: SelectorOption<number>[] = [];
     for (const item of collection.values()) {
       if (item.type !== filterByType) continue;
+      if (item.id === excludeId) continue;
       itemGroup.push({ value: item.id, label: item.label });
     }
     const emptyGroup: SelectorOption<number>[] = emptyOptionLabel
@@ -450,7 +453,7 @@ export function LibrarySelectRow<P extends string>({
       ? [...emptyGroup, ...itemGroup]
       : [];
     return [libraryGroup, selectableOptions];
-  }, [collection, filterByType, libraryLabel, emptyOptionLabel]);
+  }, [collection, filterByType, libraryLabel, emptyOptionLabel, excludeId]);
 
   const handleChange = useCallback(
     (_name: P, newValue: number | null, oldValue: number | null) => {

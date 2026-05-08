@@ -2168,6 +2168,7 @@ const PumpEditor = ({
         <PumpEfficiencyCurveField
           pump={pump}
           curves={hydraulicModel.curves}
+          globalEfficiency={simulationSettings.energyGlobalEfficiency}
           onChange={onPropertyChange}
           readOnly={readonly}
         />
@@ -2453,11 +2454,13 @@ const VariableSpeedField = ({
 const PumpEfficiencyCurveField = ({
   pump,
   curves,
+  globalEfficiency,
   onChange,
   readOnly = false,
 }: {
   pump: Pump;
   curves: Curves;
+  globalEfficiency: number;
   onChange: OnPropertyChange;
   readOnly?: boolean;
 }) => {
@@ -2520,7 +2523,10 @@ const PumpEfficiencyCurveField = ({
           })
         }
         selected={pump.efficiencyCurveId ?? null}
-        emptyOptionLabel={translate("none")}
+        emptyOptionLabel={translate(
+          "constantPercent",
+          localizeDecimal(globalEfficiency),
+        )}
         onChange={handleOnChange}
         readOnly={readOnly}
       />
@@ -2771,8 +2777,9 @@ const PumpEnergyPricePatternField = ({
           })
         }
         selected={pump.energyPricePatternId ?? null}
-        emptyOptionLabel={translate("constant")}
+        emptyOptionLabel={placeholder}
         placeholder={placeholder}
+        excludeId={globalPatternId ?? undefined}
         onChange={handleChange}
         readOnly={readOnly}
       />
