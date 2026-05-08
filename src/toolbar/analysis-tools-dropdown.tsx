@@ -1,0 +1,76 @@
+import * as DD from "@radix-ui/react-dropdown-menu";
+import * as Tooltip from "@radix-ui/react-tooltip";
+
+import {
+  AnalysisToolsIcon,
+  ChevronDownIcon,
+  ProfileViewIcon,
+  TableIcon,
+} from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  Button,
+  DDContent,
+  StyledItem,
+  TContent,
+  StyledTooltipArrow,
+} from "src/components/elements";
+import { useShowDataTables } from "src/commands/show-data-tables";
+import { useShowProfileView } from "src/commands/show-profile-view";
+import { useStartProfileSelection } from "src/commands/start-profile-selection";
+
+export const AnalysisToolsDropdown = () => {
+  const translate = useTranslate();
+  const isDataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
+  const showDataTables = useShowDataTables();
+  const showProfileView = useShowProfileView();
+  const startProfileSelection = useStartProfileSelection();
+
+  return (
+    <Tooltip.Root delayDuration={200}>
+      <div className="h-10 w-12 group bn flex items-stretch py-1 focus:outline-none">
+        <DD.Root>
+          <Tooltip.Trigger asChild>
+            <DD.Trigger asChild>
+              <Button variant="quiet">
+                <AnalysisToolsIcon />
+                <ChevronDownIcon size="sm" />
+              </Button>
+            </DD.Trigger>
+          </Tooltip.Trigger>
+          <DD.Portal>
+            <DDContent
+              align="start"
+              side="bottom"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              {isDataTablesOn && (
+                <StyledItem
+                  onSelect={() => showDataTables({ source: "toolbar" })}
+                >
+                  <TableIcon />
+                  {translate("dataTables.title")}
+                </StyledItem>
+              )}
+
+              <StyledItem
+                onSelect={() => {
+                  showProfileView({ source: "toolbar" });
+                  startProfileSelection({ source: "toolbar" });
+                }}
+              >
+                <ProfileViewIcon />
+                {translate("profileView.toolbar")}
+              </StyledItem>
+            </DDContent>
+          </DD.Portal>
+        </DD.Root>
+      </div>
+      <TContent side="bottom">
+        <StyledTooltipArrow />
+        {translate("analysisTools")}
+      </TContent>
+    </Tooltip.Root>
+  );
+};

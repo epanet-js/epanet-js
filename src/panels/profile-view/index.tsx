@@ -1,6 +1,8 @@
 "use client";
 import { memo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
+import { Button } from "src/components/elements";
+import { useStartProfileSelection } from "src/commands/start-profile-selection";
 import { useProfileViewData, ProfileViewData } from "./chart-data";
 import { ChartContainer } from "./chart-container";
 
@@ -24,19 +26,27 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
 
 const ProfileEmptyState = ({ phase }: { phase: ProfileViewData["phase"] }) => {
   const translate = useTranslate();
-  const message = (() => {
-    switch (phase) {
-      case "selectingStart":
-        return translate("profileView.empty.selectingStart");
-      case "selectingEnd":
-        return translate("profileView.empty.selectingEnd");
-      case "showingProfile":
-        return translate("profileView.empty.noData");
-      case "idle":
-      default:
-        return translate("profileView.empty.idle");
-    }
-  })();
+  const startSelection = useStartProfileSelection();
+
+  if (phase === "idle") {
+    return (
+      <div className="h-full flex items-center justify-center px-4">
+        <Button
+          variant="primary"
+          onClick={() => startSelection({ source: "panel" })}
+        >
+          {translate("profileView.selectPath")}
+        </Button>
+      </div>
+    );
+  }
+
+  const message =
+    phase === "selectingStart"
+      ? translate("profileView.empty.selectingStart")
+      : phase === "selectingEnd"
+        ? translate("profileView.empty.selectingEnd")
+        : translate("profileView.empty.noData");
 
   return (
     <div className="h-full flex items-center justify-center text-gray-400 text-xs px-4 text-center">

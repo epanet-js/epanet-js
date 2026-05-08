@@ -75,12 +75,14 @@ import {
   RouteOff,
   Save,
   SaveAll,
+  ScanText,
   Search,
   Settings,
   SquareDashed,
   SquareStack,
   Star,
   Sun,
+  Table,
   TextCursorInput,
   Timer,
   Trash,
@@ -227,6 +229,7 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
+export const TableIcon = icon(Table);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
@@ -239,6 +242,21 @@ export const ReverseIcon: React.FC<IconProps> = ({
       size={pixels}
       {...props}
       style={{ transform: "rotate(90deg)", ...props.style }}
+    />
+  );
+};
+
+export const AnalysisToolsIcon: React.FC<IconProps> = ({
+  size: rawSize = "md",
+  ...props
+}) => {
+  const pixels = getPixels(rawSize);
+
+  return (
+    <ScanText
+      size={pixels}
+      {...props}
+      style={{ transform: "rotate(-90deg)", ...props.style }}
     />
   );
 };

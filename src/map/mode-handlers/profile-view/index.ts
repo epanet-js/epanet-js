@@ -6,6 +6,7 @@ import { profileViewAtom } from "src/state/profile-view";
 import { dialogAtom } from "src/state/dialog";
 import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
+import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
@@ -25,13 +26,13 @@ export function useProfileViewHandlers(
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
-  const plot = useAtomValue(profileViewAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
+  const setMode = useSetAtom(modeAtom);
 
   const draftStartNodeId =
     ephemeralState.type === "profileView"
@@ -77,12 +78,6 @@ export function useProfileViewHandlers(
     const nodeId = resolveNodeId(clickedAsset, e);
     if (nodeId === undefined) return;
 
-    if (plot !== null) {
-      setProfileView(null);
-      setEphemeralState({ type: "profileView", startNodeId: nodeId });
-      return;
-    }
-
     if (draftStartNodeId === undefined) {
       setEphemeralState({ type: "profileView", startNodeId: nodeId });
       return;
@@ -108,6 +103,7 @@ export function useProfileViewHandlers(
       type: "multi",
       ids: [...path.nodeIds, ...path.linkIds],
     });
+    setMode({ mode: Mode.NONE });
   };
 
   const move: Handlers["move"] = throttle((e) => {
@@ -160,10 +156,21 @@ export function useProfileViewHandlers(
     keydown: () => {},
     keyup: () => {},
     exit: () => {
+      const hasDraft =
+        ephemeralState.type === "profileView" &&
+        ephemeralState.startNodeId !== undefined;
+
       setProfileView(null);
-      setEphemeralState({ type: "none" });
       setSelection(SELECTION_NONE);
       setCursor("");
+
+      if (hasDraft) {
+        setEphemeralState({ type: "profileView" });
+        return;
+      }
+
+      setEphemeralState({ type: "none" });
+      setMode({ mode: Mode.NONE });
     },
   };
 }

@@ -12,6 +12,7 @@
     "selectedFile": "Selected: {{1}}"
   },
   "operationalData": "Operational data",
+  "analysisTools": "Analysis tools",
   "select": "Select",
   "selection": "Selection",
   "junction": "Junction",
@@ -1305,7 +1306,8 @@
     "toolbar": "Profile view",
     "selectStart": "Click a node or pipe to set the start of the profile",
     "selectEnd": "Click a node or pipe to set the end of the profile",
-    "selectPath": "Multiple paths found. Click any highlighted asset to select a route.",
+    "selectPath": "Select path",
+    "selectPathHint": "Multiple paths found. Click any highlighted asset to select a route.",
     "cancelSelection": "Cancel",
     "noPath": {
       "title": "No path found",
@@ -1317,7 +1319,6 @@
     "close": "Close profile",
     "estimated": "Estimated",
     "empty": {
-      "idle": "Open the profile-view tool from the toolbar (or press 9) to start.",
       "selectingStart": "Click a node or pipe on the map to set the start of the profile.",
       "selectingEnd": "Click a node or pipe on the map to set the end of the profile.",
       "noData": "No data."

@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { TabRoot, TabList, Tab } from "src/components/tab";
 import { DefaultErrorBoundary } from "src/components/elements";
@@ -9,12 +9,14 @@ import {
   effectiveZone,
   panelRegistryAtom,
 } from "src/state/panel-layout";
+import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
 
 export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const panels = useAtomValue(panelRegistryAtom);
   const { layout } = useAtomValue(splitsAtom);
   const translate = useTranslate();
   const [activeTabId, setActiveTabId] = useAtom(bottomActiveTabAtom);
+  const exitProfileViewMode = useExitProfileViewMode();
 
   const resolvedLayout = layout === "VERTICAL" ? "vertical" : "horizontal";
 
@@ -35,12 +37,22 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const ActivePanel =
     visiblePanels.find((p) => p.id === effectiveTabId)?.component ?? null;
 
+  const handleTabChange = useCallback(
+    (newTabId: string) => {
+      if (effectiveTabId === "profile-view" && newTabId !== "profile-view") {
+        exitProfileViewMode();
+      }
+      setActiveTabId(newTabId);
+    },
+    [effectiveTabId, exitProfileViewMode, setActiveTabId],
+  );
+
   if (visiblePanels.length === 0 || !ActivePanel) return null;
 
   return (
     <TabRoot
       value={effectiveTabId ?? undefined}
-      onValueChange={setActiveTabId}
+      onValueChange={handleTabChange}
       className="absolute inset-0 flex flex-col"
     >
       <TabList>

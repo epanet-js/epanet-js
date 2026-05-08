@@ -20,7 +20,9 @@ import {
 import Modes from "./modes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
+import { bottomActiveTabAtom } from "src/state/panel-layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
+import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
@@ -48,6 +50,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
+import { AnalysisToolsDropdown } from "./analysis-tools-dropdown";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -73,6 +76,7 @@ export const Toolbar = ({
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
 
   const { undo, redo } = useHistoryControl();
@@ -218,6 +222,7 @@ export const Toolbar = ({
         </MenuAction>
         <Divider />
         <OperationalDataDropdown />
+        {isProfileViewOn && <AnalysisToolsDropdown />}
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
         <CommandBarButton />
@@ -257,6 +262,8 @@ const CommandBarButton = () => {
 const LayoutActions = () => {
   const translate = useTranslate();
   const [splits, setSplits] = useAtom(splitsAtom);
+  const activeBottomTab = useAtomValue(bottomActiveTabAtom);
+  const exitProfileViewMode = useExitProfileViewMode();
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
@@ -293,9 +300,12 @@ const LayoutActions = () => {
         <MenuAction
           label="Toggle bottom panel"
           role="button"
-          onClick={() =>
-            setSplits((s) => ({ ...s, bottomOpen: !s.bottomOpen }))
-          }
+          onClick={() => {
+            if (splits.bottomOpen && activeBottomTab === "profile-view") {
+              exitProfileViewMode();
+            }
+            setSplits((s) => ({ ...s, bottomOpen: !s.bottomOpen }));
+          }}
         >
           {bottomPanelIcon}
         </MenuAction>
