@@ -10,7 +10,7 @@ import {
 } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { DataGridVariant } from "../types";
+import { DataGridVariant, GridSelection } from "../types";
 
 type GridHeaderProps<T> = {
   showGutterColumn: boolean;
@@ -19,6 +19,8 @@ type GridHeaderProps<T> = {
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
   variant: DataGridVariant;
+  selection: GridSelection | null;
+  rowCount: number;
   style?: React.CSSProperties;
   className?: string;
   scrollbarGap?: number;
@@ -32,12 +34,27 @@ export function GridHeader<T>({
   onColumnHeaderClick,
   onSelectAll,
   variant,
+  selection,
+  rowCount,
   style,
   className,
   scrollbarGap,
   fitWidthToContent,
 }: GridHeaderProps<T>) {
   const translate = useTranslate();
+
+  const allRowsSelected =
+    variant === "spreadsheet" &&
+    selection !== null &&
+    rowCount > 0 &&
+    selection.min.row === 0 &&
+    selection.max.row === rowCount - 1;
+
+  const isColSelected = (colIndex: number) =>
+    allRowsSelected &&
+    colIndex >= selection.min.col &&
+    colIndex <= selection.max.col;
+
   return (
     <div
       role="row"
@@ -57,12 +74,10 @@ export function GridHeader<T>({
         <div
           role="columnheader"
           className={clsx(
-            "relative flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 text-gray-600 sticky left-0 z-10",
+            "relative flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 sticky left-0 z-10",
             "border border-transparent w-8",
-            {
-              "bg-gray-100": variant === "spreadsheet",
-              "bg-gray-50": variant === "inline",
-            },
+            "text-gray-600",
+            variant === "spreadsheet" ? "bg-gray-100" : "bg-gray-50",
           )}
           onClick={onSelectAll}
         >
@@ -77,6 +92,7 @@ export function GridHeader<T>({
               key={header.id}
               header={header}
               colIndex={colIndex}
+              isSelected={isColSelected(colIndex)}
               onColumnHeaderClick={onColumnHeaderClick}
               fitWidthToContent={fitWidthToContent}
               translate={translate}
@@ -101,12 +117,14 @@ export function GridHeader<T>({
 function HeaderCell<T>({
   header,
   colIndex,
+  isSelected,
   onColumnHeaderClick,
   fitWidthToContent,
   translate,
 }: {
   header: Header<T, unknown>;
   colIndex: number;
+  isSelected: boolean;
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   fitWidthToContent?: (columnId: string) => void;
   translate: (key: string) => string;
@@ -119,8 +137,9 @@ function HeaderCell<T>({
     <div
       role="columnheader"
       className={clsx(
-        "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 text-gray-600 border border-transparent overflow-visible",
+        "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 border border-transparent overflow-visible",
         { grow: !header.column.getCanResize() },
+        isSelected ? "bg-purple-500 text-white" : "text-gray-600",
       )}
       style={{
         width: header.getSize(),
@@ -141,6 +160,7 @@ function HeaderCell<T>({
             setIsMenuOpen(open);
             if (!open) setIsHovered(false);
           }}
+          isSelected={isSelected}
           translate={translate}
         />
       )}
@@ -189,11 +209,13 @@ function HeaderActionsButton({
   onSortAscending,
   onSortDescending,
   onOpenChange,
+  isSelected,
   translate,
 }: {
   onSortAscending: () => void;
   onSortDescending: () => void;
   onOpenChange: (open: boolean) => void;
+  isSelected: boolean;
   translate: (key: string) => string;
 }) {
   return (
@@ -203,7 +225,12 @@ function HeaderActionsButton({
           variant="quiet"
           size="xs"
           aria-label={translate("moreActions")}
-          className="ml-auto -mr-1 h-6 w-6 shrink-0 hover:bg-gray-200"
+          className={clsx(
+            "ml-auto -mr-1 h-6 w-6 shrink-0",
+            isSelected
+              ? "text-white hover:bg-white/20 data-[state=open]:bg-white/20"
+              : "hover:bg-gray-200",
+          )}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >

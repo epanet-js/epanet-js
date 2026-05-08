@@ -114,6 +114,8 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
         onColumnHeaderClick={onColumnHeaderClick}
         onSelectAll={onSelectAll}
         variant={variant}
+        selection={selection}
+        rowCount={rowCount}
         fitWidthToContent={fitWidthToContent}
       />
       {rows.map((row, rowIndex) => {
