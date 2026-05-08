@@ -23,6 +23,21 @@ export function useClipboard<TData extends Record<string, unknown>>({
 
     const rows: string[] = [];
 
+    const allRowsSelected =
+      selection.min.row === 0 && selection.max.row === data.length - 1;
+
+    if (allRowsSelected) {
+      const headers: string[] = [];
+      for (
+        let colIndex = selection.min.col;
+        colIndex <= selection.max.col;
+        colIndex++
+      ) {
+        headers.push(columns[colIndex]?.header ?? "");
+      }
+      rows.push(headers.join("\t"));
+    }
+
     for (
       let rowIndex = selection.min.row;
       rowIndex <= selection.max.row;

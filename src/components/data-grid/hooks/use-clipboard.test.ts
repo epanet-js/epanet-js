@@ -269,14 +269,15 @@ describe("useClipboard", () => {
   });
 
   describe("copyToClipboard", () => {
-    it("copies selected cells to clipboard", async () => {
+    it("copies selected cells to clipboard without headers for partial selection", async () => {
       const data: TestRow[] = [
         { id: "1", name: "Alice", value: "100" },
         { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
       ];
       const selection: GridSelection = {
         min: { col: 0, row: 0 },
-        max: { col: 1, row: 1 },
+        max: { col: 1, row: 1 }, // only rows 0-1, not all 3 rows
       };
 
       const writeText = vi.fn().mockResolvedValue(undefined);
@@ -299,6 +300,99 @@ describe("useClipboard", () => {
       });
 
       expect(writeText).toHaveBeenCalledWith("1\tAlice\n2\tBob");
+    });
+
+    it("includes headers when all rows are selected (full column)", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+      const selection: GridSelection = {
+        min: { col: 1, row: 0 },
+        max: { col: 1, row: 1 }, // single column, all rows
+      };
+
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange: vi.fn(),
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copyToClipboard();
+      });
+
+      expect(writeText).toHaveBeenCalledWith("Name\nAlice\nBob");
+    });
+
+    it("includes headers when all rows and all columns are selected (full table)", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+      const selection: GridSelection = {
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 1 }, // all columns, all rows
+      };
+
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange: vi.fn(),
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copyToClipboard();
+      });
+
+      expect(writeText).toHaveBeenCalledWith(
+        "ID\tName\tValue\n1\tAlice\t100\n2\tBob\t200",
+      );
+    });
+
+    it("does not include headers for partial row selection", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
+      ];
+      const selection: GridSelection = {
+        min: { col: 0, row: 0 },
+        max: { col: 2, row: 1 }, // all columns but only rows 0-1, not all 3
+      };
+
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange: vi.fn(),
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copyToClipboard();
+      });
+
+      expect(writeText).toHaveBeenCalledWith("1\tAlice\t100\n2\tBob\t200");
     });
 
     it("does nothing when no selection", async () => {
