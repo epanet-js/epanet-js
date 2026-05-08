@@ -3,6 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
+import { NUM_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { Position } from "geojson";
 
@@ -100,12 +101,12 @@ export const exportCsv = (
     const [sx, sy] = snapPoint ? transformCoord(snapPoint) : [null, null];
 
     parts[partIdx++] = point.label;
-    parts[partIdx++] = x.toFixed(4);
-    parts[partIdx++] = y.toFixed(4);
+    parts[partIdx++] = x.toFixed(NUM_DECIMAL_PLACES);
+    parts[partIdx++] = y.toFixed(NUM_DECIMAL_PLACES);
     parts[partIdx++] = junctionConnection;
     parts[partIdx++] = pipeConnection;
-    parts[partIdx++] = sx !== null ? sx.toFixed(4) : "";
-    parts[partIdx++] = sy !== null ? sy.toFixed(4) : "";
+    parts[partIdx++] = sx !== null ? sx.toFixed(NUM_DECIMAL_PLACES) : "";
+    parts[partIdx++] = sy !== null ? sy.toFixed(NUM_DECIMAL_PLACES) : "";
 
     encode("customerPoint");
   };
@@ -123,7 +124,7 @@ export const exportCsv = (
       if (field === undefined || field === null) return "";
       if (typeof field === "number") {
         if (Math.trunc(field) === field) return field.toString();
-        return field.toFixed(4);
+        return field.toFixed(NUM_DECIMAL_PLACES);
       }
       if (typeof field !== "string") return field.toString();
 
@@ -131,7 +132,7 @@ export const exportCsv = (
       if (Number.isNaN(asNumber)) return field;
 
       if (Math.trunc(asNumber) === asNumber) return field;
-      return asNumber.toFixed(4);
+      return asNumber.toFixed(NUM_DECIMAL_PLACES);
     };
 
     const formatConnections = (connections: number[]) => {
@@ -151,7 +152,9 @@ export const exportCsv = (
     const getPosition = (asset: Asset, property: string) => {
       if (!asset.isNode) return "";
       const [x, y] = transformCoord(asset.coordinates as Position);
-      return property === "positionX" ? x.toFixed(4) : y.toFixed(4);
+      return property === "positionX"
+        ? x.toFixed(NUM_DECIMAL_PLACES)
+        : y.toFixed(NUM_DECIMAL_PLACES);
     };
 
     properties[asset.type].forEach((property) => {

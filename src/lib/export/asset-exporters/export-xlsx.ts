@@ -4,6 +4,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
+import { NUM_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { Position } from "geojson";
 
@@ -170,7 +171,8 @@ const cellXml = (
   const ref = `${colLetter(colIndex)}${rowIndex}`;
   if (value === null || value === undefined || value === "") return "";
   if (typeof value === "number") {
-    const numberValue = Math.trunc(value) === value ? value : value.toFixed(4);
+    const numberValue =
+      Math.trunc(value) === value ? value : value.toFixed(NUM_DECIMAL_PLACES);
     return `<c r="${ref}" t="n"><v>${numberValue}</v></c>`;
   }
   return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(String(value))}</t></is></c>`;

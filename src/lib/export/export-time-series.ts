@@ -3,6 +3,7 @@ import { ExportTimeSeriesMetrics } from "./types";
 import { EPSResultsReader } from "src/simulation";
 import { FileSystemHelpers } from "./file-system-helpers";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
+import { NUM_DECIMAL_PLACES } from "./constants";
 
 export const estimateTimeSeriesSize = (
   metrics: ExportTimeSeriesMetrics[],
@@ -119,26 +120,25 @@ export const exportTimeSeries = async (
 
 const lineSize = (timestepCount: number) => 16 * timestepCount + 64;
 
-// Writes a float32 value as "X.XXXX" ASCII bytes directly into buf at off.
-// Returns the new offset. Avoids string allocation entirely.
-const encodeFloat4 = (buf: Uint8Array, off: number, value: number): number => {
+// Writes a float32 value as ASCII bytes directly into buf at off,
+// using NUM_DECIMAL_PLACES decimal digits. Returns the new offset.
+// Avoids string allocation entirely.
+const FLOAT_SCALE = 10 ** NUM_DECIMAL_PLACES;
+const encodeFloat = (buf: Uint8Array, off: number, value: number): number => {
   if (!isFinite(value)) {
-    buf[off] = 48;
-    buf[off + 1] = 46;
-    buf[off + 2] = 48;
-    buf[off + 3] = 48;
-    buf[off + 4] = 48;
-    buf[off + 5] = 48;
-    return off + 6; // "0.0000"
+    buf[off++] = 48; // '0'
+    buf[off++] = 46; // '.'
+    for (let i = 0; i < NUM_DECIMAL_PLACES; i++) buf[off++] = 48; // '0' × N
+    return off;
   }
   if (value < 0) {
     buf[off++] = 45;
     value = -value;
   } // '-'
 
-  const scaled = Math.round(value * 10000);
-  const frac = scaled % 10000;
-  let int = (scaled / 10000) | 0;
+  const scaled = Math.round(value * FLOAT_SCALE);
+  const frac = scaled % FLOAT_SCALE;
+  let int = (scaled / FLOAT_SCALE) | 0;
 
   if (int === 0) {
     buf[off++] = 48; // '0'
@@ -157,10 +157,9 @@ const encodeFloat4 = (buf: Uint8Array, off: number, value: number): number => {
   }
 
   buf[off++] = 46; // '.'
-  buf[off++] = 48 + ((frac / 1000) | 0);
-  buf[off++] = 48 + (((frac / 100) | 0) % 10);
-  buf[off++] = 48 + (((frac / 10) | 0) % 10);
-  buf[off++] = 48 + (frac % 10);
+  for (let d = NUM_DECIMAL_PLACES - 1; d >= 0; d--) {
+    buf[off++] = 48 + (Math.floor(frac / 10 ** d) % 10);
+  }
   return off;
 };
 
@@ -212,7 +211,7 @@ const encodeValues = (
     }
   } else {
     for (let i = 0; i < values.length; i++) {
-      off = encodeFloat4(buf, off, values[i]);
+      off = encodeFloat(buf, off, values[i]);
       buf[off++] = 44; // ','
     }
   }

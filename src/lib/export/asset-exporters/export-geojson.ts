@@ -8,6 +8,7 @@ import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
+import { NUM_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 
 const GEOJSON_END = `]}`;
@@ -93,8 +94,10 @@ export const exportGeoJson = (
         label: point.label,
         junctionConnection,
         pipeConnection,
-        connectionX: cx !== undefined ? Number(cx.toFixed(4)) : undefined,
-        connectionY: cy !== undefined ? Number(cy.toFixed(4)) : undefined,
+        connectionX:
+          cx !== undefined ? Number(cx.toFixed(NUM_DECIMAL_PLACES)) : undefined,
+        connectionY:
+          cy !== undefined ? Number(cy.toFixed(NUM_DECIMAL_PLACES)) : undefined,
       },
     };
 
@@ -197,7 +200,7 @@ const assetToGeoJson = (
     if (value === null) return undefined;
     if (typeof value !== "number") return value;
     if (Math.trunc(value) === value) return value;
-    return Number(value.toFixed(4));
+    return Number(value.toFixed(NUM_DECIMAL_PLACES));
   };
 
   const geometry = asset?.feature.geometry;
