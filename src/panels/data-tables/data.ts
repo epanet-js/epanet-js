@@ -14,6 +14,7 @@ import {
   getCustomerPointDemands,
   HydraulicModel,
 } from "src/hydraulic-model";
+import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
 import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { ResultsReader } from "src/simulation";
@@ -125,6 +126,7 @@ function buildSimRow(
     case "tank": {
       const sim = simulation.getTank(assetId);
       return {
+        sim_pressure: sim?.pressure ?? null,
         sim_head: sim?.head ?? null,
         sim_level: sim?.level ?? null,
         sim_volume: sim?.volume ?? null,
@@ -165,6 +167,19 @@ function buildComputedFields(
       avgCustomerDemand,
       customerPointCount: customerPoints.length,
     };
+  }
+
+  if (assetType === "tank") {
+    const tank = hydraulicModel.assets.get(assetId) as Tank;
+    if (tank.volumeCurveId) {
+      const curve = hydraulicModel.curves.get(tank.volumeCurveId);
+      if (curve && curve.points.length > 0) {
+        const { minLevel, maxLevel, minVolume, maxVolume } =
+          tankVolumeCurveRange(curve);
+        return { minLevel, maxLevel, minVolume, maxVolume };
+      }
+    }
+    return {};
   }
 
   if (assetType === "pipe") {
@@ -271,6 +286,7 @@ function buildAssetRow(
         minLevel: a.minLevel,
         maxLevel: a.maxLevel,
         minVolume: a.minVolume,
+        maxVolume: a.maxVolume,
         diameter: a.diameter,
         volumeCurveId: a.volumeCurveId,
         initialQuality: a.initialQuality,

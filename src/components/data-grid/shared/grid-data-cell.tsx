@@ -12,7 +12,6 @@ export type SelectionEdge = {
 type GridDataCellProps<T> = {
   cell: Cell<T, unknown>;
   colIndex: number;
-  rowIndex: number;
   isSelected: boolean;
   isActive: boolean;
   editMode: EditMode;
@@ -35,7 +34,6 @@ type GridDataCellProps<T> = {
 export function GridDataCell<T>({
   cell,
   colIndex,
-  rowIndex,
   isSelected,
   isActive,
   editMode,
@@ -85,7 +83,7 @@ export function GridDataCell<T>({
             : "border-r-transparent",
         selectionEdge?.top
           ? "border-t-purple-500"
-          : variant === "inline" && rowIndex === 0
+          : variant === "inline" && cell.row.index === 0
             ? "border-t-gray-200"
             : "border-t-transparent",
         selectionEdge?.bottom
@@ -105,8 +103,8 @@ export function GridDataCell<T>({
       {CellComponent ? (
         <CellComponent
           value={cell.getValue()}
-          rowIndex={rowIndex}
-          columnIndex={colIndex}
+          rowIndex={cell.row.index}
+          columnIndex={cell.column.getIndex()}
           isActive={isActive && isInteractive}
           editMode={isActive && isInteractive ? editMode : false}
           readOnly={readOnly}

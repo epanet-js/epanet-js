@@ -85,7 +85,6 @@ export function GridRow<TData>({
               key={cell.id}
               cell={cell}
               colIndex={colIndex}
-              rowIndex={rowIndex}
               isSelected={isSelected}
               isActive={isActive}
               editMode={isCurrentIteractiveCell ? editMode : false}

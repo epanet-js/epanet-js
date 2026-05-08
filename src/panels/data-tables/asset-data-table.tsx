@@ -10,6 +10,7 @@ import {
   changeProperties,
   changeLabel,
 } from "src/hydraulic-model/model-operations";
+import { tankVolumeCurveChanges } from "src/hydraulic-model/utilities/tank-volume-curve-changes";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
@@ -31,9 +32,12 @@ import {
   valveStatuses,
 } from "src/hydraulic-model/asset-types/valve";
 import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
-import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
+import {
+  tankMixingModels,
+  TANK_TWO_COMPARTMENT_MIXING,
+} from "src/hydraulic-model/asset-types/tank";
 import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
-import type { Curves, CurveType } from "src/hydraulic-model/curves";
+import type { Curves, CurveId, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import type { TranslateFn } from "src/hooks/use-translate";
@@ -303,6 +307,12 @@ function buildSimColumns(
       ];
     case "tank":
       return [
+        simNumericValue(
+          "sim_pressure",
+          translate("pressure"),
+          units.pressure,
+          "pressure",
+        ),
         simNumericValue("sim_head", translate("head"), units.head, "head"),
         simNumericValue("sim_level", translate("level"), units.level, "level"),
         simNumericValue(
@@ -404,6 +414,7 @@ function buildColumns(
       header: name,
       options: patternOpts(filterType),
       placeholder,
+      emptyOptionLabel: placeholder,
       deleteValue: null,
       isReadOnly,
     });
@@ -413,6 +424,7 @@ function buildColumns(
       header: name,
       options: curveOpts(filterType),
       placeholder: translate("none"),
+      emptyOptionLabel: translate("none"),
       deleteValue: null,
     });
 
@@ -678,33 +690,36 @@ function buildColumns(
           translate("minLevel"),
           units.minLevel,
           "minLevel",
+          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
         ),
         numericCol(
           "maxLevel",
           translate("maxLevel"),
           units.maxLevel,
           "maxLevel",
+          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
         ),
         numericCol(
           "minVolume",
           translate("minVolume"),
           units.minVolume,
           "minVolume",
+          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
         ),
+        floatColumn("maxVolume", {
+          header: headerLabel(translate("maxVolume"), units.minVolume),
+          decimals: getDecimals(formatting, "minVolume"),
+          isReadOnly: true,
+        }),
         numericCol(
           "diameter",
           translate("diameter"),
           units.tankDiameter,
           "tankDiameter",
+          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
         ),
         curveCol("volumeCurveId", translate("volumeCurve"), "volume"),
-        numericCol("initialQuality", translate("initialQuality")),
-        floatColumn("bulkReactionCoeff", {
-          header: translate("bulkReactionCoeff"),
-          decimals: formatting.defaultDecimals,
-          deleteValue: null,
-          placeholder: localizeDecimal(reactionGlobalBulk),
-        }),
+        booleanCol("overflow", translate("canOverflow")),
         filterableSelectColumn("mixingModel", {
           header: translate("mixingModel"),
           options: tankMixingModels.map((m) => ({
@@ -713,8 +728,20 @@ function buildColumns(
           })),
           deleteValue: "mixed",
         }),
-        numericCol("mixingFraction", translate("mixingFraction")),
-        booleanCol("overflow", translate("canOverflow")),
+        floatColumn("mixingFraction", {
+          header: translate("mixingFraction"),
+          decimals: formatting.defaultDecimals,
+          deleteValue: null,
+          isReadOnly: (rowIndex) =>
+            getRow?.(rowIndex)?.mixingModel !== TANK_TWO_COMPARTMENT_MIXING,
+        }),
+        numericCol("initialQuality", translate("initialQuality")),
+        floatColumn("bulkReactionCoeff", {
+          header: translate("bulkReactionCoeff"),
+          decimals: formatting.defaultDecimals,
+          deleteValue: null,
+          placeholder: localizeDecimal(reactionGlobalBulk),
+        }),
         ...chemicalSourceTypeCols(),
         ...simCols,
       ];
@@ -873,6 +900,20 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             } as PropertyChange);
           }
         }
+        if (assetType === "tank") {
+          const curveChangeIdx = changes.findIndex(
+            (c) => c.property === "volumeCurveId",
+          );
+          if (curveChangeIdx !== -1) {
+            const [curveChange] = changes.splice(curveChangeIdx, 1);
+            const curveChanges = tankVolumeCurveChanges(
+              hydraulicModel.curves,
+              curveChange.value as CurveId | null,
+            );
+            if (curveChanges) changes.push(...curveChanges);
+          }
+        }
+
         if (changes.length > 0) {
           transact(
             changeProperties(hydraulicModel, { assetIds: [assetId], changes }),

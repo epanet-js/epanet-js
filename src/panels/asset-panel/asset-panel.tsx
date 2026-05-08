@@ -102,12 +102,8 @@ import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { PatternId } from "src/hydraulic-model/patterns";
-import {
-  CurveId,
-  Curves,
-  ICurve,
-  getCurveBounds,
-} from "src/hydraulic-model/curves";
+import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
+import { tankVolumeCurveChanges } from "src/hydraulic-model/utilities/tank-volume-curve-changes";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Unit } from "src/quantity";
 
@@ -1468,20 +1464,8 @@ const TankDefinitionField = ({
 
   const handleCurveChange = useCallback(
     (_name: string, newValue: CurveId | null) => {
-      if (newValue === null) return;
-      const curve = curves.get(newValue);
-      if (!curve || !curve.points.length) return;
-      const bounds = getCurveBounds(curves, newValue);
-      if (!bounds) return;
-      onBatchPropertyChange([
-        { property: "volumeCurveId", value: newValue },
-        { property: "minLevel", value: curve.points[0].x },
-        {
-          property: "maxLevel",
-          value: curve.points[curve.points.length - 1].x,
-        },
-        { property: "minVolume", value: curve.points[0].y },
-      ]);
+      const changes = tankVolumeCurveChanges(curves, newValue);
+      if (changes) onBatchPropertyChange(changes);
     },
     [curves, onBatchPropertyChange],
   );
