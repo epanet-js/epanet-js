@@ -119,14 +119,49 @@ export const exportTimeSeries = async (
 
 const lineSize = (timestepCount: number) => 16 * timestepCount + 64;
 
-const encodeFloat4 = (
-  buf: Uint8Array,
-  off: number,
-  value: number,
-  encoder: TextEncoder,
-): number => {
-  const { written } = encoder.encodeInto(value.toFixed(4), buf.subarray(off));
-  return off + written;
+// Writes a float32 value as "X.XXXX" ASCII bytes directly into buf at off.
+// Returns the new offset. Avoids string allocation entirely.
+const encodeFloat4 = (buf: Uint8Array, off: number, value: number): number => {
+  if (!isFinite(value)) {
+    buf[off] = 48;
+    buf[off + 1] = 46;
+    buf[off + 2] = 48;
+    buf[off + 3] = 48;
+    buf[off + 4] = 48;
+    buf[off + 5] = 48;
+    return off + 6; // "0.0000"
+  }
+  if (value < 0) {
+    buf[off++] = 45;
+    value = -value;
+  } // '-'
+
+  const scaled = Math.round(value * 10000);
+  const frac = scaled % 10000;
+  let int = (scaled / 10000) | 0;
+
+  if (int === 0) {
+    buf[off++] = 48; // '0'
+  } else {
+    const start = off;
+    while (int > 0) {
+      buf[off++] = 48 + (int % 10);
+      int = (int / 10) | 0;
+    }
+    // digits were written least-significant first — reverse them
+    for (let l = start, r = off - 1; l < r; l++, r--) {
+      const tmp = buf[l];
+      buf[l] = buf[r];
+      buf[r] = tmp;
+    }
+  }
+
+  buf[off++] = 46; // '.'
+  buf[off++] = 48 + ((frac / 1000) | 0);
+  buf[off++] = 48 + (((frac / 100) | 0) % 10);
+  buf[off++] = 48 + (((frac / 10) | 0) % 10);
+  buf[off++] = 48 + (frac % 10);
+  return off;
 };
 
 // Pre-encoded bytes for status labels (including trailing comma)
@@ -177,7 +212,7 @@ const encodeValues = (
     }
   } else {
     for (let i = 0; i < values.length; i++) {
-      off = encodeFloat4(buf, off, values[i], encoder);
+      off = encodeFloat4(buf, off, values[i]);
       buf[off++] = 44; // ','
     }
   }
