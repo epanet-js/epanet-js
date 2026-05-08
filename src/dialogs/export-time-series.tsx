@@ -120,19 +120,6 @@ export const ExportTimeSeriesDialog = ({
     });
   };
 
-  const getNodeCount = () => {
-    if (selectedAssetsOnly) {
-      return selectedIds.filter((id) => model.assets.get(id)?.isNode).length;
-    }
-    return model.assetIndex.nodeCount;
-  };
-  const getLinkCount = () => {
-    if (selectedAssetsOnly) {
-      return selectedIds.filter((id) => model.assets.get(id)?.isLink).length;
-    }
-    return model.assetIndex.linkCount;
-  };
-
   const selectedNodeMetrics = (
     Object.entries(nodeFields) as [keyof NodeFields, boolean][]
   )
@@ -144,15 +131,22 @@ export const ExportTimeSeriesDialog = ({
     .filter(([, checked]) => checked)
     .map(([key]) => key as ExportTimeSeriesMetrics);
 
+  const nodeCount = hasSelection
+    ? selectedIds.filter((id) => model.assets.get(id)?.isNode).length
+    : model.assetIndex.nodeCount;
+  const linkCount = hasSelection
+    ? selectedIds.filter((id) => model.assets.get(id)?.isLink).length
+    : model.assetIndex.linkCount;
+
   const estimatedBytes =
     Export.estimateTimeSeriesSize(
       selectedNodeMetrics,
-      getNodeCount(),
+      nodeCount,
       timestepCount,
     ) +
     Export.estimateTimeSeriesSize(
       selectedLinkMetrics,
-      getLinkCount(),
+      linkCount,
       timestepCount,
     );
   const estimatedGB = estimatedBytes / 1024 ** 3;
