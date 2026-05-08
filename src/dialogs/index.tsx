@@ -154,6 +154,18 @@ const ProjectSavedInfoDialog = dynamic<{
   },
 );
 
+const FileFormatUpdatedDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/file-format-updated").then(
+      (r) => r.FileFormatUpdatedDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const AlertScenariosNotSavedDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
@@ -640,6 +652,9 @@ export const Dialogs = memo(function Dialogs() {
         onClose={onClose}
       />
     ))
+    .with({ type: "fileFormatUpdated" }, () => (
+      <FileFormatUpdatedDialog onClose={onClose} />
+    ))
     .with({ type: "alertScenariosNotSaved" }, ({ onContinue }) => (
       <AlertScenariosNotSavedDialog onContinue={onContinue} onClose={onClose} />
     ))
@@ -662,8 +677,14 @@ export const Dialogs = memo(function Dialogs() {
       <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
-    .with({ type: "inpIssues" }, ({ issues }) => (
-      <InpIssuesDialog issues={issues} onClose={onClose} />
+    .with({ type: "inpIssues" }, ({ issues, onAfterClose }) => (
+      <InpIssuesDialog
+        issues={issues}
+        onClose={() => {
+          onClose();
+          onAfterClose?.();
+        }}
+      />
     ))
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />

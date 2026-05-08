@@ -1,7 +1,9 @@
 import { useCallback, useContext } from "react";
 import { useSetAtom } from "jotai";
+import { useAtomCallback } from "jotai/utils";
 import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
+import { userSettingsAtom } from "src/state/user-settings";
 import { captureError } from "src/infra/error-tracking";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
@@ -20,7 +22,7 @@ import { InpStats } from "src/import/inp/inp-data";
 import { ProjectSettings } from "src/lib/project-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
-import { SuccessIcon, WarningIcon } from "src/icons";
+import { WarningIcon } from "src/icons";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
@@ -41,6 +43,30 @@ export const useImportInp = () => {
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
+
+  const handleImportComplete = useAtomCallback(
+    useCallback(
+      (get, set, issues: ParserIssues | null) => {
+        const showFormat =
+          isOurFileOn && get(userSettingsAtom).showFileFormatUpdated;
+        const openFormatDialog = () =>
+          set(dialogAtom, { type: "fileFormatUpdated" });
+
+        if (!issues) {
+          if (showFormat) openFormatDialog();
+          else set(dialogAtom, null);
+          return;
+        }
+
+        set(dialogAtom, {
+          type: "inpIssues",
+          issues,
+          onAfterClose: showFormat ? openFormatDialog : undefined,
+        });
+      },
+      [isOurFileOn],
+    ),
+  );
 
   const completeImport = useCallback(
     async (
@@ -109,31 +135,15 @@ export const useImportInp = () => {
           void addRecent(name, handle);
         }
       }
-      if (isOurFileOn) {
-        notify({
-          variant: "success",
-          title: translate("initializedProjectFromInp"),
-          Icon: SuccessIcon,
-          size: "sm",
-        });
-      }
-
-      if (!issues) {
-        setDialogState(null);
-        return;
-      }
-
-      setDialogState({ type: "inpIssues", issues });
+      handleImportComplete(issues);
     },
     [
       addRecent,
       startNewProject,
       map,
-      setDialogState,
       setInpFileInfo,
       setProjectFileInfo,
-      isOurFileOn,
-      translate,
+      handleImportComplete,
     ],
   );
 

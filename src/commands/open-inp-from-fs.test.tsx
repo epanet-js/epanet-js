@@ -26,6 +26,8 @@ import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
+import { userSettingsAtom } from "src/state/user-settings";
 
 const aMoment = (name: string) => ({ note: name });
 
@@ -319,6 +321,163 @@ it("shows warning when using unsupported features", async () => {
   expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
   const hydraulicModel = store.get(stagingModelAtom);
   expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
+});
+
+describe("file format updated dialog", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("shows the dialog after a clean import when FLAG_OUR_FILE is on", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState();
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp(),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/file format updated/i)).toBeInTheDocument();
+  });
+
+  it("does not show the dialog when FLAG_OUR_FILE is off", async () => {
+    stubFeatureOff("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState();
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp(),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
+  });
+
+  it("does not show the dialog when the user has skipped it", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState();
+    store.set(userSettingsAtom, {
+      showFirstScenarioDialog: true,
+      showProjectSavedInfo: true,
+      showFileFormatUpdated: false,
+    });
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp(),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
+  });
+
+  it("persists the skip preference when checkbox is ticked on Understood", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState();
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp(),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/file format updated/i),
+      ).not.toBeInTheDocument();
+    });
+    expect(store.get(userSettingsAtom).showFileFormatUpdated).toBe(false);
+  });
+
+  it("keeps the skip preference at default when Understood is clicked without ticking", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState();
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp(),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/file format updated/i),
+      ).not.toBeInTheDocument();
+    });
+    expect(store.get(userSettingsAtom).showFileFormatUpdated).toBe(true);
+  });
+
+  it("chains after the inp issues dialog when the import has issues", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const store = setInitialState({
+      hydraulicModel: HydraulicModelBuilder.empty(),
+    });
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: inpWithUnsupportedFeatures({ junctionId: "J1" }),
+    });
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(/partially supported features/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/file format updated/i)).toBeInTheDocument();
+    });
+  });
 });
 
 const triggerCommand = async () => {

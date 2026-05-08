@@ -51,6 +51,11 @@ export type MissingCoordinatesDialogState = {
 export type InpIssuesDialogState = {
   type: "inpIssues";
   issues: ParserIssues;
+  onAfterClose?: () => void;
+};
+
+export type FileFormatUpdatedDialogState = {
+  type: "fileFormatUpdated";
 };
 
 export type AlertInpOutputState = {
@@ -219,6 +224,7 @@ export type DialogState =
   | AlertInpOutputState
   | AlertExportInpState
   | ProjectSavedInfoState
+  | FileFormatUpdatedDialogState
   | MissingCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
