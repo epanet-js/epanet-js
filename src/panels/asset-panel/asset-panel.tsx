@@ -66,7 +66,6 @@ import {
   ValveKind,
   ValveStatus,
   valveKinds,
-  valveCurveTypeFrom,
 } from "src/hydraulic-model/asset-types/valve";
 import {
   AssetEditorContent,
@@ -106,6 +105,7 @@ import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
+  valveKindChanges,
 } from "src/hydraulic-model/model-operations";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Unit } from "src/quantity";
@@ -1831,11 +1831,7 @@ const ValveEditor = ({
     newValue: ValveKind,
     oldValue: ValveKind,
   ) => {
-    const changes: PropertyChange[] = [{ property: "kind", value: newValue }];
-    if (valveCurveTypeFrom(newValue) !== valveCurveTypeFrom(oldValue)) {
-      changes.push({ property: "curveId", value: undefined });
-    }
-    onBatchPropertyChange(changes);
+    onBatchPropertyChange(valveKindChanges(newValue, oldValue));
   };
 
   const handleStatusChange = (

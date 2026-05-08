@@ -13,6 +13,7 @@ import {
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
+  valveKindChanges,
 } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
@@ -33,6 +34,7 @@ import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
 import {
   valveKinds,
   valveStatuses,
+  type ValveKind,
 } from "src/hydraulic-model/asset-types/valve";
 import {
   chemicalSourceTypes,
@@ -614,6 +616,14 @@ function buildColumns(
           validate: validateLabel,
         }),
         booleanCol("isActive", translate("isEnabled")),
+        textColumn("startNode", {
+          header: translate("startNode"),
+          isReadOnly: true,
+        }),
+        textColumn("endNode", {
+          header: translate("endNode"),
+          isReadOnly: true,
+        }),
         filterableSelectColumn("kind", {
           header: translate("valveType"),
           options: valveKinds.map((k) => ({
@@ -621,7 +631,24 @@ function buildColumns(
             label: translate(`valve.${k}.detailed`),
           })),
         }),
-        numericCol("setting", translate("setting")),
+        numericCol(
+          "setting",
+          translate("setting"),
+          undefined,
+          undefined,
+          (rowIndex) => getRow?.(rowIndex)?.kind === "gpv",
+        ),
+        filterableSelectColumn("curveId", {
+          header: translate("valveCurve"),
+          options: [...curveOpts("headloss"), ...curveOpts("valve")],
+          placeholder: translate("none"),
+          emptyOptionLabel: translate("none"),
+          deleteValue: null,
+          isReadOnly: (rowIndex) => {
+            const kind = getRow?.(rowIndex)?.kind;
+            return kind !== "gpv" && kind !== "pcv";
+          },
+        }),
         filterableSelectColumn("initialStatus", {
           header: translate("initialStatus"),
           options: valveStatuses.map((s) => ({
@@ -641,16 +668,6 @@ function buildColumns(
           units.minorLoss,
           "minorLoss",
         ),
-        filterableSelectColumn("curveId", {
-          header: translate("curve"),
-          options: [...curveOpts("headloss"), ...curveOpts("valve")],
-          placeholder: translate("none"),
-          deleteValue: null,
-          isReadOnly: (rowIndex) => {
-            const kind = getRow?.(rowIndex)?.kind;
-            return kind !== "gpv" && kind !== "pcv";
-          },
-        }),
         ...simCols,
       ];
     case "reservoir":
@@ -917,6 +934,19 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               curveChange.value as CurveId | null,
             );
             if (curveChanges) changes.push(...curveChanges);
+          }
+        }
+
+        if (assetType === "valve") {
+          const kindChangeIdx = changes.findIndex((c) => c.property === "kind");
+          if (kindChangeIdx !== -1) {
+            const [kindChange] = changes.splice(kindChangeIdx, 1);
+            changes.push(
+              ...valveKindChanges(
+                kindChange.value as ValveKind,
+                oldRow.kind as ValveKind,
+              ),
+            );
           }
         }
 

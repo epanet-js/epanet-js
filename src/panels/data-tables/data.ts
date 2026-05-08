@@ -182,6 +182,15 @@ function buildComputedFields(
     return {};
   }
 
+  if (assetType === "valve") {
+    const valve = hydraulicModel.assets.get(assetId) as Valve;
+    const [startNodeId, endNodeId] = valve.connections;
+    return {
+      startNode: hydraulicModel.assets.get(startNodeId)?.label ?? "",
+      endNode: hydraulicModel.assets.get(endNodeId)?.label ?? "",
+    };
+  }
+
   if (assetType === "pipe") {
     const pipe = hydraulicModel.assets.get(assetId) as Pipe;
     const [startNodeId, endNodeId] = pipe.connections;
