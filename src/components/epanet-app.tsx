@@ -241,8 +241,6 @@ function DraggableMap({
   layout: ResolvedLayout;
   persistentTransform: Transform;
 }) {
-  const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
-
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setNodeRef, transform } = useDraggable({
     id: "map",
@@ -276,21 +274,10 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />
-      {isAnimateSimulationOn ? (
-        <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-          <TimestepSelector />
-          <MapLoading />
-        </div>
-      ) : (
-        <>
-          <div className="absolute top-3 right-3">
-            <MapLoading />
-          </div>
-          <div className="absolute top-3 right-3">
-            <TimestepSelector />
-          </div>
-        </>
-      )}
+      <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+        <TimestepSelector />
+        <MapLoading />
+      </div>
     </div>
   );
 }

@@ -32,7 +32,6 @@ import {
   currentSpeedWarningAtom,
 } from "src/state/simulation-playback";
 import { useTogglePlayback } from "src/commands/toggle-playback";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 
 export const TimestepSelector = () => {
@@ -73,7 +72,6 @@ export const TimestepSelectorUI = ({
   onChangeTimestep,
 }: TimestepSelectorUIProps) => {
   const translate = useTranslate();
-  const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
   const canGoPrevious = currentTimestepIndex > 0;
   const canGoNext = currentTimestepIndex < timestepCount - 1;
 
@@ -85,8 +83,8 @@ export const TimestepSelectorUI = ({
   return (
     <div className="grid grid-cols-[min-content] gap-1">
       <div className="flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-sm shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
-        {isAnimateSimulationOn && <PlayButton />}
-        {isAnimateSimulationOn && <SpeedButton />}
+        <PlayButton />
+        <SpeedButton />
         <Button
           variant="quiet/mode"
           className="h-8"
@@ -113,7 +111,7 @@ export const TimestepSelectorUI = ({
           onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
         />
       </div>
-      {isAnimateSimulationOn && isPlaying && speedWarning && (
+      {isPlaying && speedWarning && (
         <div className="flex items-start gap-1.5 text-xs bg-gray-100 dark:bg-gray-900/80 px-2 py-1 rounded-sm shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
           <WarningIcon className="shrink-0 mt-px text-orange-500" />
           <span className="break-words min-w-0">

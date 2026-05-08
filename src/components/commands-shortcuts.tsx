@@ -143,7 +143,6 @@ export const CommandShortcuts = () => {
   const showControls = useShowControls();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
   const { togglePlayback } = useTogglePlayback();
-  const isAnimateSimulationOn = useFeatureFlag("FLAG_ANIMATE_SIMULATION");
   const isEditionBlocked = useIsEditionBlocked();
   const createScenario = useCreateScenario();
   const toggleBranch = useToggleBranch();
@@ -487,7 +486,6 @@ export const CommandShortcuts = () => {
     },
     [togglePlayback],
     "Play/pause simulation",
-    !isAnimateSimulationOn,
   );
 
   useHotkeys(

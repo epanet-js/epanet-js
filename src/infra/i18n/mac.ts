@@ -7,6 +7,7 @@ export const backspaceSymbol = "⌫";
 export const deleteSymbol = "⌦";
 export const leftArrowSymbol = "←";
 export const rightArrowSymbol = "→";
+export const spaceSymbol = "␣";
 
 export function localizeKeybinding(
   keys: string,
@@ -23,6 +24,7 @@ export function localizeKeybinding(
     .replace("ALT", isMac ? optionSymbol : "Alt")
     .replace("LEFT", leftArrowSymbol)
     .replace("RIGHT", rightArrowSymbol)
+    .replace("SPACE", spaceSymbol)
     .replace(`${cmdSymbol}+`, cmdSymbol)
     .replace(`${optionSymbol}+`, optionSymbol)
     .replace(`${macShiftSymbol}+`, macShiftSymbol)

@@ -16,6 +16,7 @@ import {
   previousTimestepShortcut,
   nextTimestepShortcut,
 } from "src/commands/change-timestep";
+import { togglePlaybackShortcut } from "src/commands/toggle-playback";
 import {
   toggleBranchShortcut,
   goToMainShortcut,
@@ -97,6 +98,10 @@ export function CheatsheetDialog() {
         {
           binding: showControlsShortcut,
           description: "controls.title",
+        },
+        {
+          binding: togglePlaybackShortcut,
+          description: "togglePlayback",
         },
         {
           binding: previousTimestepShortcut,
