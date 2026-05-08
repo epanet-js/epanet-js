@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { useExportTimeSeries } from "src/commands/export-time-series";
-import { dialogAtom } from "src/state/dialog";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
@@ -64,7 +63,6 @@ export const ExportTimeSeriesDialog = ({
 }) => {
   const translate = useTranslate();
   const exportTimeSeries = useExportTimeSeries();
-  const setDialogState = useSetAtom(dialogAtom);
 
   const selection = useAtomValue(selectionAtom);
   const selectedIds = USelection.toIds(selection);
@@ -151,6 +149,11 @@ export const ExportTimeSeriesDialog = ({
     );
   const estimatedGB = estimatedBytes / 1024 ** 3;
 
+  const [isExporting, setIsExporting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const [sizeLimit, setSizeLimit] = useState(-1);
   useEffect(() => {
     void Export.fileSizeLimit().then(setSizeLimit);
@@ -159,23 +162,45 @@ export const ExportTimeSeriesDialog = ({
   const exceedsLimit = sizeLimit > 0 && estimatedBytes > sizeLimit;
   const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB || exceedsLimit;
   const exportDisabled =
-    exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
+    isExporting || exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
   const handleExport = useCallback(async () => {
     const metrics = [...selectedNodeMetrics, ...selectedLinkMetrics];
     const selectedAssets = selectedAssetsOnly
       ? new Set(selectedIds)
       : new Set<number>();
-    setDialogState(null);
-    await exportTimeSeries({ metrics, selectedAssets });
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsExporting(true);
+    setProgress(0);
+    setIsComplete(false);
+    try {
+      await exportTimeSeries({
+        metrics,
+        selectedAssets,
+        onProgress: setProgress,
+        signal: controller.signal,
+      });
+      setIsComplete(true);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      throw err;
+    } finally {
+      setIsExporting(false);
+      abortControllerRef.current = null;
+    }
   }, [
     selectedNodeMetrics,
     selectedLinkMetrics,
     selectedAssetsOnly,
     selectedIds,
-    setDialogState,
     exportTimeSeries,
   ]);
+
+  const handleCancel = useCallback(() => {
+    abortControllerRef.current?.abort();
+    onClose();
+  }, [onClose]);
 
   if (model.assets.size === 0) {
     return (
@@ -228,17 +253,24 @@ export const ExportTimeSeriesDialog = ({
       title={translate("exportTimeSeries")}
       size="sm"
       isOpen={true}
-      onClose={onClose}
+      onClose={handleCancel}
       footer={
-        <SimpleDialogActions
-          action={translate("export")}
-          onAction={handleExport}
-          isDisabled={exportDisabled}
-          secondary={{
-            action: translate("dialog.cancel"),
-            onClick: onClose,
-          }}
-        />
+        isComplete ? (
+          <SimpleDialogActions
+            action={translate("dialog.close")}
+            onAction={onClose}
+          />
+        ) : (
+          <SimpleDialogActions
+            action={translate("export")}
+            onAction={handleExport}
+            isDisabled={exportDisabled}
+            secondary={{
+              action: translate("dialog.cancel"),
+              onClick: handleCancel,
+            }}
+          />
+        )
       }
     >
       <div className="p-4 space-y-4">
@@ -346,6 +378,25 @@ export const ExportTimeSeriesDialog = ({
             </div>
           </div>
         </div>
+
+        {(isExporting || isComplete) && (
+          <div className="border-t border-gray-200 pt-4 space-y-2">
+            <p className="text-sm text-gray-700">
+              {isComplete
+                ? translate("exportTimeSeries.complete")
+                : translate(
+                    "exportTimeSeries.inProgress",
+                    String(Math.round(progress)),
+                  )}
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-purple-600 h-2 rounded-full transition-all duration-150"
+                style={{ width: `${isComplete ? 100 : progress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {showSizeWarning && (
           <div

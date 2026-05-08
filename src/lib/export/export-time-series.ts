@@ -17,7 +17,8 @@ export const exportTimeSeries = async (
   resultsReader: EPSResultsReader,
   selectedAssets: Set<number>,
   metrics: ExportTimeSeriesMetrics[],
-  onProgress: (progress: number) => void,
+  onProgress: (progressPercentage: number) => void,
+  signal?: AbortSignal,
 ) => {
   const encoder = new TextEncoder();
   const buffer = new Uint8Array(lineSize(resultsReader.timestepCount));
@@ -26,40 +27,49 @@ export const exportTimeSeries = async (
   let progress = 1;
 
   for (const metric of metrics) {
+    signal?.throwIfAborted();
+
     const fileName = `${networkName}-export-${metric}.csv`;
     const handle = await directory.getFileHandle(fileName, { create: true });
     const stream = await handle.createWritable();
 
-    const offset = encodeHeader(
-      buffer,
-      resultsReader.timestepCount,
-      resultsReader.reportingTimeStep,
-      encoder,
-    );
-    const view = buffer.subarray(0, offset);
-    await stream.write(view);
-
-    for (const asset of hydraulicModel.assets.values()) {
-      const epanetType = asset.isLink ? "link" : "node";
-      const results = await resultsReader.getTimeSeries(
-        asset.id,
-        asset.type,
-        metric,
+    try {
+      const offset = encodeHeader(
+        buffer,
+        resultsReader.timestepCount,
+        resultsReader.reportingTimeStep,
+        encoder,
       );
-
-      onProgress((progress++ / totalProgress) * 100);
-
-      if (hasSelection && !selectedAssets.has(asset.id)) continue;
-      if (results === null) continue;
-      if (!METRICS_BY_TYPE[epanetType].has(metric)) continue;
-
-      const offset = encodeValues(buffer, asset, results, encoder, metric);
-
       const view = buffer.subarray(0, offset);
       await stream.write(view);
-    }
 
-    await stream.close();
+      for (const asset of hydraulicModel.assets.values()) {
+        signal?.throwIfAborted();
+
+        const epanetType = asset.isLink ? "link" : "node";
+        const results = await resultsReader.getTimeSeries(
+          asset.id,
+          asset.type,
+          metric,
+        );
+
+        onProgress((progress++ / totalProgress) * 100);
+
+        if (hasSelection && !selectedAssets.has(asset.id)) continue;
+        if (results === null) continue;
+        if (!METRICS_BY_TYPE[epanetType].has(metric)) continue;
+
+        const offset = encodeValues(buffer, asset, results, encoder, metric);
+
+        const view = buffer.subarray(0, offset);
+        await stream.write(view);
+      }
+
+      await stream.close();
+    } catch (err) {
+      await stream.abort();
+      throw err;
+    }
 
     if (!FileSystemHelpers.isFileSystemAccessSupported()) {
       await FileSystemHelpers.triggerDownload(fileName, handle);
