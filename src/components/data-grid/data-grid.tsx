@@ -233,7 +233,12 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleEmptyAreaMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
+      if (e.target !== e.currentTarget) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const onScrollbar =
+        e.clientX > rect.left + e.currentTarget.clientWidth ||
+        e.clientY > rect.top + e.currentTarget.clientHeight;
+      if (!onScrollbar) {
         clearSelection();
       }
     },
