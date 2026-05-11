@@ -53,6 +53,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/hooks/use-auth";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
+import { ProfileSimulationToastGuard } from "./profile-simulation-toast-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
@@ -226,6 +227,7 @@ export function EpanetApp() {
       </MapContext.Provider>
       <TabCloseGuard />
       <OfflineGuard />
+      <ProfileSimulationToastGuard />
       <NotificationFromUrl />
       <PrivacyBanner />
     </main>

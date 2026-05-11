@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
@@ -10,6 +10,7 @@ import {
 } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useStartProfileSelection } from "./start-profile-selection";
+import { ProfileSimulationToastGuard } from "src/components/profile-simulation-toast-guard";
 
 describe("useStartProfileSelection", () => {
   it("enters profile-view mode when simulation results are available", async () => {
@@ -41,6 +42,31 @@ describe("useStartProfileSelection", () => {
       screen.getByText(/run a simulation first to view the profile/i),
     ).toBeInTheDocument();
     expect(store.get(modeAtom).mode).toBe(Mode.NONE);
+  });
+
+  it("dismisses the warning toast once simulation results become available", async () => {
+    const store = setInitialState({});
+
+    render(
+      <CommandContainer store={store}>
+        <ProfileSimulationToastGuard />
+        <TestableComponent />
+      </CommandContainer>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "start" }));
+
+    expect(await screen.findByText(/simulation required/i)).toBeInTheDocument();
+
+    act(() => {
+      setInitialState({ store, simulationResults: createMockResultsReader() });
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/simulation required/i),
+      ).not.toBeInTheDocument();
+    });
   });
 
   const TestableComponent = () => {

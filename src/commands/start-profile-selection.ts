@@ -8,6 +8,9 @@ import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 
+export const profileSimulationRequiredToastId =
+  "profile-view-simulation-required-toast";
+
 export const useStartProfileSelection = () => {
   const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
@@ -26,6 +29,8 @@ export const useStartProfileSelection = () => {
           variant: "warning",
           title: translate("profileView.simulationRequired"),
           description: translate("profileView.simulationRequiredHint"),
+          id: profileSimulationRequiredToastId,
+          duration: Infinity,
         });
         return;
       }
