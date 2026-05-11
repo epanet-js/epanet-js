@@ -2,8 +2,10 @@
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
+import * as CM from "@radix-ui/react-context-menu";
 import { useAtomValue, useSetAtom } from "jotai";
 import { ProfileViewData } from "./chart-data";
+import { ProfileContextMenu } from "./profile-context-menu";
 import { buildProfileChartOption, profileGridTopOffset } from "./chart-options";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -26,10 +28,12 @@ const STRIP_FADE_WIDTH = 24;
 
 interface ChartContainerProps {
   data: ProfileViewData;
+  pathIds: number[];
 }
 
 export const ChartContainer = memo(function ChartContainer({
   data,
+  pathIds,
 }: ChartContainerProps) {
   const {
     points,
@@ -298,6 +302,15 @@ export const ChartContainer = memo(function ChartContainer({
 
   useChartZoomToSelection({ chartRef, points, links, totalLength });
 
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+  const onContextMenuOpenChange = useCallback(
+    (open: boolean) => {
+      setIsContextMenuOpen(open);
+      if (open) setHighlights([]);
+    },
+    [setHighlights],
+  );
+
   if (isDebugOn) {
     //eslint-disable-next-line no-console
     console.log(
@@ -309,67 +322,72 @@ export const ChartContainer = memo(function ChartContainer({
   const hasHiddenRight = zoomWindow.end < 100;
 
   return (
-    <div
-      ref={setContainerNode}
-      style={{
-        position: "relative",
-        height: "100%",
-        width: "100%",
-        overflow: "hidden",
-      }}
-    >
-      <ReactECharts
-        option={option}
-        style={{ height: "100%", width: "100%" }}
-        notMerge={true}
-        onChartReady={onChartReady}
-        onEvents={onEvents}
-      />
-      {fadeBounds && hasHiddenLeft && (
+    <CM.Root modal={false} onOpenChange={onContextMenuOpenChange}>
+      <CM.Trigger asChild>
         <div
-          aria-hidden
-          className="profile-strip-fade-left"
+          ref={setContainerNode}
           style={{
-            top: fadeBounds.top,
-            left: fadeBounds.left,
-            width: STRIP_FADE_WIDTH,
-            height: fadeBounds.height,
+            position: "relative",
+            height: "100%",
+            width: "100%",
+            overflow: "hidden",
           }}
-        />
-      )}
-      {fadeBounds && hasHiddenRight && (
-        <div
-          aria-hidden
-          className="profile-strip-fade-right"
-          style={{
-            top: fadeBounds.top,
-            left: fadeBounds.right - STRIP_FADE_WIDTH,
-            width: STRIP_FADE_WIDTH,
-            height: fadeBounds.height,
-          }}
-        />
-      )}
-      {fadeBounds && cursorState && (
-        <div
-          aria-hidden
-          className="profile-cursor-line"
-          style={{
-            top: fadeBounds.top,
-            left: cursorState.cursorX,
-            height: fadeBounds.height,
-          }}
-        />
-      )}
-      <ProfileTooltip
-        state={cursorState}
-        containerRef={containerRef}
-        elevColor={nodeColor}
-        translate={translate}
-        elevationUnitLabel={elevationUnitLabel}
-        pressureUnitLabel={pressureUnitLabel}
-        elevationDecimals={elevationDecimals}
-        pressureDecimals={pressureDecimals}
-      />
-    </div>
+        >
+          <ReactECharts
+            option={option}
+            style={{ height: "100%", width: "100%" }}
+            notMerge={true}
+            onChartReady={onChartReady}
+            onEvents={onEvents}
+          />
+          {fadeBounds && hasHiddenLeft && (
+            <div
+              aria-hidden
+              className="profile-strip-fade-left"
+              style={{
+                top: fadeBounds.top,
+                left: fadeBounds.left,
+                width: STRIP_FADE_WIDTH,
+                height: fadeBounds.height,
+              }}
+            />
+          )}
+          {fadeBounds && hasHiddenRight && (
+            <div
+              aria-hidden
+              className="profile-strip-fade-right"
+              style={{
+                top: fadeBounds.top,
+                left: fadeBounds.right - STRIP_FADE_WIDTH,
+                width: STRIP_FADE_WIDTH,
+                height: fadeBounds.height,
+              }}
+            />
+          )}
+          {fadeBounds && cursorState && !isContextMenuOpen && (
+            <div
+              aria-hidden
+              className="profile-cursor-line"
+              style={{
+                top: fadeBounds.top,
+                left: cursorState.cursorX,
+                height: fadeBounds.height,
+              }}
+            />
+          )}
+          <ProfileTooltip
+            state={isContextMenuOpen ? null : cursorState}
+            containerRef={containerRef}
+            elevColor={nodeColor}
+            translate={translate}
+            elevationUnitLabel={elevationUnitLabel}
+            pressureUnitLabel={pressureUnitLabel}
+            elevationDecimals={elevationDecimals}
+            pressureDecimals={pressureDecimals}
+          />
+        </div>
+      </CM.Trigger>
+      <ProfileContextMenu pathIds={pathIds} />
+    </CM.Root>
   );
 });

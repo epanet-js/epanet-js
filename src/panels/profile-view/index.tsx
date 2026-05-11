@@ -1,11 +1,9 @@
 "use client";
 import { memo, useMemo } from "react";
-import { useAtom } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { Button } from "src/components/elements";
-import { AddIcon, SelectPathIcon } from "src/icons";
+import { AddIcon } from "src/icons";
 import { useStartProfileSelection } from "src/commands/start-profile-selection";
-import { selectionAtom } from "src/state/selection";
 import { useProfileViewData, ProfileViewData } from "./chart-data";
 import { ChartContainer } from "./chart-container";
 
@@ -13,25 +11,6 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
   const data = useProfileViewData();
 
   const showChart = data.phase === "showingProfile" && data.points.length > 0;
-
-  return (
-    <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
-      {showChart && <ProfileActionRow data={data} />}
-      <div className="flex-1 min-h-0">
-        {showChart ? (
-          <ChartContainer data={data} />
-        ) : (
-          <ProfileEmptyState phase={data.phase} />
-        )}
-      </div>
-    </div>
-  );
-});
-
-const ProfileActionRow = ({ data }: { data: ProfileViewData }) => {
-  const translate = useTranslate();
-  const startSelection = useStartProfileSelection();
-  const [selection, setSelection] = useAtom(selectionAtom);
 
   const pathIds = useMemo(
     () => [
@@ -41,12 +20,23 @@ const ProfileActionRow = ({ data }: { data: ProfileViewData }) => {
     [data.points, data.links],
   );
 
-  const isAllPathSelected = useMemo(() => {
-    if (selection.type !== "multi") return false;
-    if (selection.ids.length !== pathIds.length) return false;
-    const selected = new Set(selection.ids);
-    return pathIds.every((id) => selected.has(id));
-  }, [selection, pathIds]);
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
+      {showChart && <ProfileActionRow />}
+      <div className="flex-1 min-h-0">
+        {showChart ? (
+          <ChartContainer data={data} pathIds={pathIds} />
+        ) : (
+          <ProfileEmptyState phase={data.phase} />
+        )}
+      </div>
+    </div>
+  );
+});
+
+const ProfileActionRow = () => {
+  const translate = useTranslate();
+  const startSelection = useStartProfileSelection();
 
   return (
     <div className="flex items-center gap-2 pl-3 pr-5 py-2 border-b border-gray-100 dark:border-gray-700">
@@ -57,15 +47,6 @@ const ProfileActionRow = ({ data }: { data: ProfileViewData }) => {
       >
         <AddIcon size="sm" />
         {translate("profileView.new")}
-      </Button>
-      <Button
-        variant="default"
-        size="xs"
-        disabled={isAllPathSelected}
-        onClick={() => setSelection({ type: "multi", ids: pathIds })}
-      >
-        <SelectPathIcon size="sm" />
-        {translate("profileView.selectAll")}
       </Button>
     </div>
   );
