@@ -185,7 +185,7 @@ const toPumpRow = (pump: Pump): PumpRow =>
       coords: toDbLinkCoordinates(pump, "Pump"),
       length: pump.length,
       initial_status: pump.initialStatus,
-      definition_type: pump.definitionType,
+      definition_type: toDbDefinitionType(pump),
       power: pump.power,
       speed: pump.speed,
       speed_pattern_id: toDbId(pump.speedPatternId),
@@ -246,6 +246,11 @@ const toDbCurvePoints = (pump: Pump): string | null => {
     );
   }
   return JSON.stringify(result.data);
+};
+
+const toDbDefinitionType = (pump: Pump): string => {
+  if (pump.definitionType !== "curve") return pump.definitionType;
+  return pump.curve?.length === 1 ? "designPointCurve" : "standardCurve";
 };
 
 const toDbBool = (v: boolean): number => (v ? 1 : 0);

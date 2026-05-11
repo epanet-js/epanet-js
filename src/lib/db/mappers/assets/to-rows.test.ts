@@ -153,12 +153,25 @@ describe("assetsToRows", () => {
     });
     assets.set(curveIdPump.id, curveIdPump);
 
-    const curvePump = assetFactory.createPump({
+    const designPointPump = assetFactory.createPump({
       id: 3,
       label: "PU3",
       definitionType: "curve",
+      curve: [{ x: 100, y: 10 }],
     });
-    assets.set(curvePump.id, curvePump);
+    assets.set(designPointPump.id, designPointPump);
+
+    const standardCurvePump = assetFactory.createPump({
+      id: 4,
+      label: "PU4",
+      definitionType: "curve",
+      curve: [
+        { x: 0, y: 20 },
+        { x: 100, y: 10 },
+        { x: 200, y: 0 },
+      ],
+    });
+    assets.set(standardCurvePump.id, standardCurvePump);
 
     const rows = assetsToRows(assets.values());
 
@@ -174,7 +187,11 @@ describe("assetsToRows", () => {
     });
     expect(rows.pumps[2]).toMatchObject({
       id: 3,
-      definition_type: "curve",
+      definition_type: "designPointCurve",
+    });
+    expect(rows.pumps[3]).toMatchObject({
+      id: 4,
+      definition_type: "standardCurve",
     });
   });
 

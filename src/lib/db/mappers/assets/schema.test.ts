@@ -75,6 +75,39 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts all valid pump definition_type values including legacy curve", () => {
+    const base = {
+      id: 1,
+      label: null,
+      is_active: 1 as const,
+      start_node_id: 1,
+      end_node_id: 2,
+      coords: "[[0,0],[1,1]]",
+      length: null,
+      initial_status: null,
+      power: null,
+      speed: null,
+      speed_pattern_id: null,
+      efficiency_curve_id: null,
+      energy_price: null,
+      energy_price_pattern_id: null,
+      curve_id: null,
+      curve_points: null,
+    };
+
+    for (const type of [
+      "power",
+      "curve",
+      "designPointCurve",
+      "standardCurve",
+      "curveId",
+    ]) {
+      expect(
+        pumpRowSchema.safeParse({ ...base, definition_type: type }).success,
+      ).toBe(true);
+    }
+  });
+
   it("rejects tank rows with an unknown mixing_model", () => {
     const result = tankRowSchema.safeParse({
       id: 1,
