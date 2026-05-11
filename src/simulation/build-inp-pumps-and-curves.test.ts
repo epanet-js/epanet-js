@@ -14,7 +14,7 @@ describe("build inp with pumps and curves", () => {
         endNodeId: IDS.NODE2,
         label: "PU1",
         initialStatus: "on",
-        definitionType: "curve",
+        definitionType: "standardCurve",
         curve: [
           { x: 0, y: 60 },
           { x: 20, y: 40 },
@@ -208,7 +208,7 @@ describe("build inp with pumps and curves", () => {
           endNodeId: IDS.NODE2,
           label: "PU1",
           initialStatus: "on",
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 20, y: 40 }],
           speed: 0.8,
         })

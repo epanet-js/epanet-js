@@ -1032,7 +1032,8 @@ const appendPump = (
           ].join("\t"),
       );
       break;
-    case "curve":
+    case "designPointCurve":
+    case "standardCurve":
       const localCurveId = idMap.localCurveId(pump.label);
       sections.pumps.push(
         commentPrefix +

@@ -7,12 +7,18 @@ export type PumpStatus = (typeof pumpStatuses)[number];
 
 export type PumpStatusWarning = "cannot-deliver-flow" | "cannot-deliver-head";
 
-export type PumpDefintionType = "power" | "curve" | "curveId";
+export const pumpDefinitionTypes = [
+  "power",
+  "designPointCurve",
+  "standardCurve",
+  "curveId",
+] as const;
+export type PumpDefinitionType = (typeof pumpDefinitionTypes)[number];
 
 export type PumpProperties = {
   type: "pump";
   initialStatus: PumpStatus;
-  definitionType: PumpDefintionType;
+  definitionType: PumpDefinitionType;
   power: number;
   speed: number;
   speedPatternId?: PatternId;
@@ -69,7 +75,11 @@ export class Pump extends Link<PumpProperties> {
 
   getCurve = (curves: Curves): ICurve | CurvePoint[] | undefined => {
     if (this.definitionType === "power") return undefined;
-    if (this.definitionType === "curve") return this.curve;
+    if (
+      this.definitionType === "designPointCurve" ||
+      this.definitionType === "standardCurve"
+    )
+      return this.curve;
     if (!this.curveId) return undefined;
     const curve = curves.get(this.curveId);
     return curve;

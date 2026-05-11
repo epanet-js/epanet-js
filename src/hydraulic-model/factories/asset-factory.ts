@@ -41,7 +41,7 @@ export type PumpBuildData = {
   initialStatus?: PumpStatus;
   coordinates?: Position[];
   connections?: LinkConnections;
-  definitionType?: PumpDefintionType;
+  definitionType?: PumpDefinitionType;
   power?: number;
   curve?: CurvePoint[];
   curveId?: CurveId;
@@ -108,7 +108,7 @@ import { IdGenerator } from "src/lib/id-generator";
 import { LabelManager, LabelType } from "../label-manager";
 import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
-  PumpDefintionType,
+  PumpDefinitionType,
   PumpQuantity,
   PumpStatus,
 } from "../asset-types/pump";
@@ -210,7 +210,7 @@ export class AssetFactory {
     ],
     initialStatus = "on",
     connections = nullConnections,
-    definitionType = "curve",
+    definitionType = "designPointCurve",
     curveId,
     curve,
     power,
@@ -235,7 +235,7 @@ export class AssetFactory {
       curveId,
       curve: curve
         ? curve
-        : definitionType === "curve"
+        : definitionType === "designPointCurve"
           ? defaultCurvePoints("pump")
           : undefined,
       efficiencyCurveId,

@@ -259,7 +259,7 @@ export class HydraulicModelBuilder {
     const { startNodeId, endNodeId, ...properties } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
-    const definitionType = properties.definitionType || "curve";
+    const definitionType = properties.definitionType || "designPointCurve";
     const curve = properties.curve || [{ x: 1, y: 1 }];
 
     const pump = this.assetFactory.createPump({

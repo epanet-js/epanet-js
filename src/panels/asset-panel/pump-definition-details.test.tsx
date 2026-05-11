@@ -414,7 +414,7 @@ describe("PumpDefinitionDetails", () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           power: 50,
           curve: [{ x: 50, y: 100 }],
         });
@@ -445,7 +445,7 @@ describe("PumpDefinitionDetails", () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           power: 0,
           curve: [{ x: 50, y: 100 }],
         });
@@ -478,7 +478,7 @@ describe("PumpDefinitionDetails", () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 50, y: 100 }],
         });
 
@@ -498,7 +498,7 @@ describe("PumpDefinitionDetails", () => {
         );
 
         expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "curve" },
+          { property: "definitionType", value: "standardCurve" },
           {
             property: "curve",
             value: [
@@ -522,7 +522,7 @@ describe("PumpDefinitionDetails", () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "standardCurve",
           curve: [
             { x: 0, y: 150 },
             { x: 50, y: 100 },
@@ -544,7 +544,7 @@ describe("PumpDefinitionDetails", () => {
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
         expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "curve" },
+          { property: "definitionType", value: "designPointCurve" },
           {
             property: "curve",
             value: [{ x: 50, y: 100 }],
@@ -566,7 +566,7 @@ describe("PumpDefinitionDetails", () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 50, y: 100 }],
         });
 
@@ -602,7 +602,7 @@ describe("PumpDefinitionDetails", () => {
           ],
         ]);
         const pump = buildPump({
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 50, y: 100 }],
         });
 
@@ -654,7 +654,7 @@ describe("PumpDefinitionDetails", () => {
         await user.click(screen.getByRole("option", { name: /design point/i }));
 
         expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "curve" },
+          { property: "definitionType", value: "designPointCurve" },
           { property: "curve", value: [{ x: 1, y: 1 }] },
           { property: "curveId", value: undefined },
         ]);
@@ -683,7 +683,7 @@ describe("PumpDefinitionDetails", () => {
         );
 
         expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "curve" },
+          { property: "definitionType", value: "standardCurve" },
           {
             property: "curve",
             value: [
@@ -704,7 +704,7 @@ describe("PumpDefinitionDetails", () => {
     it("updates display when curve changes externally (e.g., undo)", () => {
       const onChange = vi.fn();
       const pump = buildPump({
-        definitionType: "curve",
+        definitionType: "designPointCurve",
         curve: [{ x: 50, y: 100 }],
       });
 
@@ -739,7 +739,7 @@ describe("PumpDefinitionDetails", () => {
     it("updates selector when pump.definitionType changes externally (e.g., undo)", () => {
       const onChange = vi.fn();
       const pump = buildPump({
-        definitionType: "curve",
+        definitionType: "designPointCurve",
         curve: [{ x: 50, y: 100 }],
       });
 

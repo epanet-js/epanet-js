@@ -79,7 +79,7 @@ describe("parse pumps", () => {
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
     expect(pump.initialStatus).toEqual("on");
-    expect(pump.definitionType).toEqual("curve");
+    expect(pump.definitionType).toEqual("designPointCurve");
     expect(pump.curve).toEqual([{ x: designFlow, y: designHead }]);
   });
 
@@ -339,7 +339,7 @@ describe("parse pumps", () => {
     expect(pump1.power).toEqual(10);
 
     const pump2 = getByLabel(hydraulicModel.assets, "pu2") as Pump;
-    expect(pump2.definitionType).toEqual("curve");
+    expect(pump2.definitionType).toEqual("designPointCurve");
     expect(pump2.initialStatus).toEqual("off");
     expect(pump2.curve).toEqual([{ x: 10, y: 20 }]);
   });
@@ -419,7 +419,7 @@ describe("parse pumps", () => {
 
       const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
       expect(pump.initialStatus).toEqual("on");
-      expect(pump.definitionType).toEqual("curve");
+      expect(pump.definitionType).toEqual("standardCurve");
       expect(pump.curve).toEqual([
         { x: 0, y: 300 },
         { x: 100, y: 250 },
@@ -534,7 +534,7 @@ describe("parse pumps", () => {
       expect(issues?.hasUndefinedPumpCurve).toBe(1);
 
       const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-      expect(pump.definitionType).toEqual("curve");
+      expect(pump.definitionType).toEqual("designPointCurve");
       expect(pump.curve).toEqual([{ x: 1, y: 1 }]);
     });
   });
@@ -568,7 +568,7 @@ describe("parse pumps", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const pump = getByLabel(hydraulicModel.assets, pumpId) as Pump;
-    expect(pump.definitionType).toEqual("curve");
+    expect(pump.definitionType).toEqual("standardCurve");
     expect(pump.speed).toEqual(speed);
     expect(pump.initialStatus).toEqual("on");
   });

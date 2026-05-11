@@ -132,69 +132,6 @@ describe("assetsToRows", () => {
     });
   });
 
-  it("writes the pump definition_type column for each definition variant", () => {
-    const factories = makeFactories();
-    const { assetFactory } = factories;
-    const assets: AssetsMap = new Map();
-
-    const powerPump = assetFactory.createPump({
-      id: 1,
-      label: "PU1",
-      definitionType: "power",
-      power: 75,
-    });
-    assets.set(powerPump.id, powerPump);
-
-    const curveIdPump = assetFactory.createPump({
-      id: 2,
-      label: "PU2",
-      definitionType: "curveId",
-      curveId: 99,
-    });
-    assets.set(curveIdPump.id, curveIdPump);
-
-    const designPointPump = assetFactory.createPump({
-      id: 3,
-      label: "PU3",
-      definitionType: "curve",
-      curve: [{ x: 100, y: 10 }],
-    });
-    assets.set(designPointPump.id, designPointPump);
-
-    const standardCurvePump = assetFactory.createPump({
-      id: 4,
-      label: "PU4",
-      definitionType: "curve",
-      curve: [
-        { x: 0, y: 20 },
-        { x: 100, y: 10 },
-        { x: 200, y: 0 },
-      ],
-    });
-    assets.set(standardCurvePump.id, standardCurvePump);
-
-    const rows = assetsToRows(assets.values());
-
-    expect(rows.pumps[0]).toMatchObject({
-      id: 1,
-      definition_type: "power",
-      power: 75,
-    });
-    expect(rows.pumps[1]).toMatchObject({
-      id: 2,
-      definition_type: "curveId",
-      curve_id: 99,
-    });
-    expect(rows.pumps[2]).toMatchObject({
-      id: 3,
-      definition_type: "designPointCurve",
-    });
-    expect(rows.pumps[3]).toMatchObject({
-      id: 4,
-      definition_type: "standardCurve",
-    });
-  });
-
   it("serializes isActive=false as 0", () => {
     const factories = makeFactories();
     const junction = factories.assetFactory.createJunction({
@@ -211,7 +148,7 @@ describe("assetsToRows", () => {
 });
 
 describe("assetsToRows + buildAssetsData round-trip", () => {
-  it("preserves pump definitionType across the three variants", () => {
+  it("preserves pump definitionType across all four variants", () => {
     const factories = makeFactories();
     const { assetFactory } = factories;
     const original: AssetsMap = new Map();
@@ -250,7 +187,17 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
         id: 5,
         label: "PU3",
         connections: [1, 2],
-        definitionType: "curve",
+        definitionType: "designPointCurve",
+        curve: [{ x: 100, y: 10 }],
+      }),
+    );
+    original.set(
+      6,
+      assetFactory.createPump({
+        id: 6,
+        label: "PU4",
+        connections: [1, 2],
+        definitionType: "standardCurve",
         curve: [
           { x: 0, y: 100 },
           { x: 50, y: 80 },
@@ -267,8 +214,10 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
     expect((rebuilt.get(3) as Pump).definitionType).toBe("power");
     expect((rebuilt.get(4) as Pump).definitionType).toBe("curveId");
     expect((rebuilt.get(4) as Pump).curveId).toBe(7);
-    expect((rebuilt.get(5) as Pump).definitionType).toBe("curve");
-    expect((rebuilt.get(5) as Pump).curve).toEqual([
+    expect((rebuilt.get(5) as Pump).definitionType).toBe("designPointCurve");
+    expect((rebuilt.get(5) as Pump).curve).toEqual([{ x: 100, y: 10 }]);
+    expect((rebuilt.get(6) as Pump).definitionType).toBe("standardCurve");
+    expect((rebuilt.get(6) as Pump).curve).toEqual([
       { x: 0, y: 100 },
       { x: 50, y: 80 },
       { x: 100, y: 0 },
@@ -332,7 +281,7 @@ describe("assetsToRows + buildAssetsData round-trip", () => {
         id: 3,
         label: "BadPump",
         connections: [1, 2],
-        definitionType: "curve",
+        definitionType: "designPointCurve",
         curve: [{ x: 0, y: NaN }],
       }),
     );

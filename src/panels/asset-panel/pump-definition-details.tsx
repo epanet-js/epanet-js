@@ -15,7 +15,7 @@ import {
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Pump, PumpDefintionType } from "src/hydraulic-model/asset-types/pump";
+import { Pump, PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import type {
   PropertyComparison,
@@ -29,12 +29,6 @@ import {
   NestedSection,
 } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
-
-export type PumpDefinitionMode =
-  | "power"
-  | "designPointCurve"
-  | "standardCurve"
-  | "curveId";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -72,7 +66,12 @@ export const PumpDefinitionDetails = ({
         return curve.points;
       }
     }
-    if (pump.definitionType === "curve" && pump.curve) return pump.curve;
+    if (
+      (pump.definitionType === "designPointCurve" ||
+        pump.definitionType === "standardCurve") &&
+      pump.curve
+    )
+      return pump.curve;
     return [{ x: 1, y: 1 }];
   }, [pump.curve, pump.curveId, pump.definitionType, curves]);
 
@@ -117,9 +116,7 @@ const PumpDefinitionDetailsInner = ({
   const translate = useTranslate();
 
   const [localDefinitionType, setLocalDefinitionType] =
-    useState<PumpDefinitionMode>(() =>
-      inferDefinitionMode(pump.definitionType, curve),
-    );
+    useState<PumpDefinitionType>(() => pump.definitionType);
 
   const definitionModeOptions = useMemo(
     () =>
@@ -128,7 +125,7 @@ const PumpDefinitionDetailsInner = ({
         { label: translate("designPointCurve"), value: "designPointCurve" },
         { label: translate("standardCurve"), value: "standardCurve" },
         { label: translate("namedCurve"), value: "curveId" },
-      ] as { label: string; value: PumpDefinitionMode }[],
+      ] as { label: string; value: PumpDefinitionType }[],
     [translate],
   );
 
@@ -144,8 +141,8 @@ const PumpDefinitionDetailsInner = ({
   const handleDefinitionTypeChange = useCallback(
     (
       _name: string,
-      newValue: PumpDefinitionMode,
-      oldValue: PumpDefinitionMode,
+      newValue: PumpDefinitionType,
+      oldValue: PumpDefinitionType,
     ) => {
       setLocalDefinitionType(newValue);
 
@@ -181,7 +178,7 @@ const PumpDefinitionDetailsInner = ({
       }
 
       onChange([
-        { property: "definitionType", value: "curve" },
+        { property: "definitionType", value: newValue },
         { property: "curve", value: validPoints },
         { property: "curveId", value: undefined },
       ]);
@@ -537,7 +534,7 @@ const getDiffWithBaseModel = ({
   }
 
   const baseDefinitionType = definitionTypeComparison?.baseValue as
-    | PumpDefintionType
+    | PumpDefinitionType
     | undefined;
   const baseCurveLabel = baseCurve?.label;
 
@@ -580,19 +577,6 @@ const getDiffWithBaseModel = ({
     hasChanged: true,
     tooltipText: lines.length > 0 ? lines.join("\n") : undefined,
   };
-};
-
-const inferDefinitionMode = (
-  modelType: PumpDefintionType,
-  curve: CurvePoint[],
-): PumpDefinitionMode => {
-  if (modelType === "power") return "power";
-  if (modelType === "curveId") {
-    return "curveId";
-  }
-  const curveType = getCurvePointsType(curve);
-  if (curveType === "multiPointCurve") return "curveId";
-  return curveType;
 };
 
 const initialPointsFromCurve = (
@@ -658,7 +642,7 @@ const calculateCurvePoints = (
 
 const extractValidPoints = (
   displayPoints: MaybePumpCurvePoint[],
-  curveType: CurvePointsType | PumpDefinitionMode,
+  curveType: CurvePointsType,
 ): CurvePoint[] | null => {
   if (curveType === "designPointCurve") {
     const dp = displayPoints[1];

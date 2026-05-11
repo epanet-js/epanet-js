@@ -165,7 +165,7 @@ describe("buildAssetsData", () => {
     expect(pump.curveId).toBe(99);
   });
 
-  it("maps designPointCurve and standardCurve DB values to curve in the model", () => {
+  it("rebuilds pump designPointCurve and standardCurve definition types", () => {
     const rows = emptyRows();
     rows.junctions = [
       makeJunction({ id: 1, label: "J1" }),
@@ -194,29 +194,8 @@ describe("buildAssetsData", () => {
 
     const { assets } = buildAssetsData(rows, makeFactories(11));
 
-    expect((assets.get(10) as Pump).definitionType).toBe("curve");
-    expect((assets.get(11) as Pump).definitionType).toBe("curve");
-  });
-
-  it("maps legacy curve DB value to curve in the model", () => {
-    const rows = emptyRows();
-    rows.junctions = [
-      makeJunction({ id: 1, label: "J1" }),
-      makeJunction({ id: 2, label: "J2", coord_x: 1 }),
-    ];
-    rows.pumps = [
-      makePump({
-        id: 10,
-        start_node_id: 1,
-        end_node_id: 2,
-        definition_type: "curve",
-        curve_points: JSON.stringify([{ x: 100, y: 10 }]),
-      }),
-    ];
-
-    const { assets } = buildAssetsData(rows, makeFactories(10));
-
-    expect((assets.get(10) as Pump).definitionType).toBe("curve");
+    expect((assets.get(10) as Pump).definitionType).toBe("designPointCurve");
+    expect((assets.get(11) as Pump).definitionType).toBe("standardCurve");
   });
 
   it("populates the asset index with nodes and links", () => {

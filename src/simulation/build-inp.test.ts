@@ -250,7 +250,7 @@ describe("build inp", () => {
         endNodeId: IDS.NODE2,
         label: "P1",
         initialStatus: "on",
-        definitionType: "curve",
+        definitionType: "standardCurve",
         curve: [
           { x: 0, y: 60 },
           { x: 20, y: 40 },
@@ -1326,7 +1326,7 @@ describe("build inp", () => {
           startNodeId: IDS.J1,
           endNodeId: IDS.J2,
           label: "P1",
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 100, y: 50 }],
           isActive: false,
         })

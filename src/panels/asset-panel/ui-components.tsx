@@ -18,8 +18,10 @@ import { Selector, SelectorOption } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
-import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
-import type { PumpDefinitionMode } from "./pump-definition-details";
+import {
+  PumpDefinitionType,
+  PumpStatus,
+} from "src/hydraulic-model/asset-types/pump";
 import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
@@ -291,7 +293,7 @@ type SelectRowValue =
   | PipeStatus
   | ValveKind
   | ValveStatus
-  | PumpDefinitionMode
+  | PumpDefinitionType
   | PumpStatus
   | TankDefinitionMode
   | TankMixingModel

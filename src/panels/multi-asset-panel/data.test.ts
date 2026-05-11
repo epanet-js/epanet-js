@@ -361,7 +361,7 @@ describe("computeMultiAssetData", () => {
       .aPump(IDS.PU1, {
         startNodeId: IDS.J1,
         endNodeId: IDS.J2,
-        definitionType: "curve",
+        definitionType: "standardCurve",
         curve: [
           { x: 0, y: 40 },
           { x: 150, y: 30 },

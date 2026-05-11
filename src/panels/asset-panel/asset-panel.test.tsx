@@ -618,7 +618,7 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 20, y: 10 }],
           speed: 0.8,
         })
@@ -669,7 +669,7 @@ describe("AssetPanel", () => {
           label: "MY_PUMP",
           connections: [IDS.j1, IDS.j2],
           initialStatus: "on",
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 20, y: 40 }],
           power: 100,
         })

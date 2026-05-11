@@ -97,7 +97,6 @@ describe("asset row schemas", () => {
 
     for (const type of [
       "power",
-      "curve",
       "designPointCurve",
       "standardCurve",
       "curveId",

@@ -174,7 +174,7 @@ export function useDrawLinkHandlers({
       case "pump":
         return assetFactory.createPump({
           ...startProperties,
-          definitionType: "curve",
+          definitionType: "designPointCurve",
           curve: [{ x: 1, y: 1 }],
         });
       case "valve":
