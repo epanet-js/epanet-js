@@ -71,6 +71,24 @@ const ProfileEmptyState = ({ phase }: { phase: ProfileViewData["phase"] }) => {
     );
   }
 
+  if (phase === "pathBroken") {
+    return (
+      <div className="h-full flex flex-col items-center justify-center px-4 gap-3 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs">
+          {translate("profileView.empty.pathBroken")}
+        </p>
+        <Button
+          variant="default"
+          size="xs"
+          onClick={() => startSelection({ source: "panel" })}
+        >
+          <AddIcon size="sm" />
+          {translate("profileView.createProfile")}
+        </Button>
+      </div>
+    );
+  }
+
   const message =
     phase === "selectingStart"
       ? translate("profileView.empty.selectingStart")

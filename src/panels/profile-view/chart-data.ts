@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useEffect, useMemo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import { LngLat } from "mapbox-gl";
 import { useElevations } from "src/map/elevations/use-elevations";
 import {
   profileViewAtom,
-  ProfileViewPlot,
+  ProfileViewSnapshot,
   ProfileViewUiPhase,
   PathData,
 } from "src/state/profile-view";
@@ -13,68 +13,38 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
-  simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { type SimulationState } from "src/state/simulation";
-import { AssetId, AssetsMap, HydraulicModel } from "src/hydraulic-model";
-import { shortestPathByDistance, shortestPathByFlow } from "./path-finding";
+import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
-import type { EPSResultsReader } from "src/simulation";
 import { Highlight } from "src/state/highlights";
 import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
-import { projectSettingsAtom } from "src/state/project-settings";
-import { isUnprojectedAtom } from "src/state/map-projection";
-import { getDecimals } from "src/lib/project-settings";
 import { Unit } from "src/quantity";
 import {
   buildPathSegments,
   PathSegment,
   interpolateAlongPolyline,
 } from "./path-position";
+import {
+  HglBandSegment,
+  HglRange,
+  ProfileLink,
+  ProfilePoint,
+  SyncProfileViewData,
+  TerrainPoint,
+  TerrainSample,
+} from "./chart-types";
 
-export type ProfilePoint = {
-  nodeId: AssetId;
-  nodeType: "junction" | "tank" | "reservoir";
-  cumulativeLength: number;
-  elevation: number;
-  head: number | null;
-  pressure: number | null;
-  label: string;
-  coordinates: [number, number];
+export type {
+  HglBandSegment,
+  HglRange,
+  ProfileLink,
+  ProfilePoint,
+  TerrainPoint,
+  TerrainSample,
 };
-
-export type ProfileLink = {
-  linkId: AssetId;
-  type: "pipe" | "pump" | "valve";
-  valveKind?: string;
-  status: string;
-  isActive: boolean;
-  startLength: number;
-  endLength: number;
-  midLength: number;
-  label: string;
-  reversed: boolean;
-};
-
-export type TerrainSample = {
-  cumulativeLength: number;
-  coordinates: [number, number];
-};
-
-export type TerrainPoint = {
-  cumulativeLength: number;
-  elevation: number;
-};
-
-export type HglRange = {
-  nodeId: AssetId;
-  minHead: number;
-  maxHead: number;
-};
-
-export type HglBandSegment = { x: number; min: number; max: number };
 
 export type ProfileViewData = {
   phase: ProfileViewUiPhase;
@@ -83,7 +53,6 @@ export type ProfileViewData = {
   pathSegments: PathSegment[];
   pathHighlights: Highlight[];
   terrainSamples: TerrainSample[];
-  // Chart-ready projections — same data, shape ECharts wants.
   elevationData: [number, number][];
   hglData: [number, number | null][];
   nodePositions: number[];
@@ -91,7 +60,6 @@ export type ProfileViewData = {
   hasSimulation: boolean;
   pressureFactor: number | null;
   hglDropsData: ([number, number] | null)[];
-  // Async, populated as fetches resolve.
   terrain: TerrainPoint[] | null;
   terrainData: [number, number][] | null;
   hglRanges: (HglRange | null)[] | null;
@@ -105,36 +73,28 @@ export type ProfileViewData = {
   isUnprojected: boolean;
 };
 
-type SyncProfileViewData = Omit<
-  ProfileViewData,
-  | "phase"
-  | "terrain"
-  | "terrainData"
-  | "hglRanges"
-  | "hglBandSegments"
-  | "elevationUnit"
-  | "lengthUnit"
-  | "pressureUnit"
-  | "elevationDecimals"
-  | "pressureDecimals"
-  | "lengthDecimals"
-  | "isUnprojected"
->;
-
 export function useProfileViewData(): ProfileViewData {
-  const plot = useAtomValue(profileViewAtom);
+  const snapshot = useAtomValue(profileViewAtom);
+  const setSnapshot = useSetAtom(profileViewAtom);
   const { mode } = useAtomValue(modeAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const model = useAtomValue(stagingModelDerivedAtom);
-  const results = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
-  const { units, formatting } = useAtomValue(projectSettingsAtom);
-  const isUnprojected = useAtomValue(isUnprojectedAtom);
 
-  const path = useProfileViewPath(plot, model, results);
+  const isBroken = useMemo(() => {
+    if (snapshot === null) return false;
+    for (const id of snapshot.nodeIds) {
+      if (!model.assets.get(id)) return true;
+    }
+    for (const id of snapshot.linkIds) {
+      if (!model.assets.get(id)) return true;
+    }
+    return false;
+  }, [snapshot, model.assets]);
 
   const phase = useMemo<ProfileViewUiPhase>(() => {
-    if (plot !== null) return "showingProfile";
+    if (snapshot !== null && isBroken) return "pathBroken";
+    if (snapshot !== null) return "showingProfile";
     if (mode !== Mode.PROFILE_VIEW) return "idle";
     if (
       ephemeralState.type === "profileView" &&
@@ -143,75 +103,74 @@ export function useProfileViewData(): ProfileViewData {
       return "selectingEnd";
     }
     return "selectingStart";
-  }, [plot, mode, ephemeralState]);
+  }, [snapshot, isBroken, mode, ephemeralState]);
 
-  const sync = useMemo(
-    () => computeProfileViewData(path, model.assets, results ?? null),
-    [path, model.assets, results],
-  );
+  useFetchTerrainOnce(snapshot, setSnapshot);
+  useFetchHglRangesOnce(snapshot, simulation, setSnapshot);
 
-  const hglRanges = useHglRanges(path, simulation, model.assets);
-  const terrain = useTerrainElevations(
-    isUnprojected ? [] : sync.terrainSamples,
-    units.elevation,
-  );
-
-  const terrainData = useMemo(() => buildTerrainData(terrain), [terrain]);
   const hglBandSegments = useMemo(
-    () => buildHglBandSegments(sync.points, hglRanges),
-    [sync.points, hglRanges],
+    () =>
+      snapshot
+        ? buildHglBandSegments(snapshot.data.points, snapshot.hglRanges)
+        : null,
+    [snapshot],
+  );
+  const terrainData = useMemo(
+    () => (snapshot ? buildTerrainData(snapshot.terrain) : null),
+    [snapshot],
   );
 
-  const elevationDecimals = getDecimals(formatting, "elevation") ?? 2;
-  const pressureDecimals = getDecimals(formatting, "pressure") ?? 2;
-  const lengthDecimals = getDecimals(formatting, "length") ?? 0;
+  if (!snapshot || isBroken) {
+    return buildEmptyData(phase);
+  }
 
   return {
     phase,
-    ...sync,
-    terrain,
+    ...snapshot.data,
+    terrain: snapshot.terrain,
     terrainData,
-    hglRanges,
+    hglRanges: snapshot.hglRanges,
     hglBandSegments,
-    elevationUnit: units.elevation,
-    lengthUnit: units.length,
-    pressureUnit: units.pressure,
-    elevationDecimals,
-    pressureDecimals,
-    lengthDecimals,
-    isUnprojected,
+    elevationUnit: snapshot.units.elevation,
+    lengthUnit: snapshot.units.length,
+    pressureUnit: snapshot.units.pressure,
+    elevationDecimals: snapshot.decimals.elevation,
+    pressureDecimals: snapshot.decimals.pressure,
+    lengthDecimals: snapshot.decimals.length,
+    isUnprojected: snapshot.isUnprojected,
   };
 }
 
-function useProfileViewPath(
-  plot: ProfileViewPlot | null,
-  model: HydraulicModel,
-  results: ResultsReader | null,
-): PathData | null {
-  return useMemo(() => {
-    if (plot === null) return null;
-    const { startNodeId, endNodeId } = plot;
-    if (!model.assets.get(startNodeId) || !model.assets.get(endNodeId)) {
-      return null;
-    }
-    return results
-      ? shortestPathByFlow(
-          model.topology,
-          model.assets,
-          results,
-          startNodeId,
-          endNodeId,
-        )
-      : shortestPathByDistance(
-          model.topology,
-          model.assets,
-          startNodeId,
-          endNodeId,
-        );
-  }, [plot, model.topology, model.assets, results]);
+function buildEmptyData(phase: ProfileViewUiPhase): ProfileViewData {
+  return {
+    phase,
+    points: [],
+    links: [],
+    pathSegments: [],
+    pathHighlights: [],
+    terrainSamples: [],
+    elevationData: [],
+    hglData: [],
+    nodePositions: [],
+    totalLength: 0,
+    hasSimulation: false,
+    pressureFactor: null,
+    hglDropsData: [],
+    terrain: null,
+    terrainData: null,
+    hglRanges: null,
+    hglBandSegments: null,
+    elevationUnit: "m" as Unit,
+    lengthUnit: "m" as Unit,
+    pressureUnit: "m" as Unit,
+    elevationDecimals: 2,
+    pressureDecimals: 2,
+    lengthDecimals: 0,
+    isUnprojected: false,
+  };
 }
 
-function computeProfileViewData(
+export function computeProfileViewData(
   path: PathData | null,
   assets: AssetsMap,
   results: ResultsReader | null,
@@ -550,31 +509,28 @@ function buildPathHighlights(path: PathData): Highlight[] {
   return items;
 }
 
-function useTerrainElevations(
-  samples: TerrainSample[],
-  elevationUnit: Unit,
-): TerrainPoint[] | null {
-  const [terrainPoints, setTerrainPoints] = useState<TerrainPoint[] | null>(
-    null,
-  );
+type SnapshotUpdater = (
+  updater: (curr: ProfileViewSnapshot | null) => ProfileViewSnapshot | null,
+) => void;
+
+function useFetchTerrainOnce(
+  snapshot: ProfileViewSnapshot | null,
+  setSnapshot: SnapshotUpdater,
+) {
+  const elevationUnit: Unit = snapshot?.units.elevation ?? ("m" as Unit);
   const { fetchElevations } = useElevations(elevationUnit);
 
-  const sampleKey =
-    samples.length > 0
-      ? samples
-          .map((s) => `${s.cumulativeLength}:${s.coordinates.join(",")}`)
-          .join("|")
-      : "";
+  const snapshotId = snapshot?.id ?? null;
 
   useEffect(() => {
-    if (samples.length === 0) {
-      setTerrainPoints(null);
-      return;
-    }
-
-    setTerrainPoints(null);
+    if (!snapshot) return;
+    if (snapshot.terrain !== null) return;
+    if (snapshot.isUnprojected) return;
+    if (snapshot.data.terrainSamples.length === 0) return;
 
     let cancelled = false;
+    const samples = snapshot.data.terrainSamples;
+    const capturedId = snapshot.id;
     const start = performance.now();
 
     void fetchElevations(
@@ -591,11 +547,12 @@ function useTerrainElevations(
         );
       }
 
-      setTerrainPoints(
-        elevations.map((elevation, i) => ({
-          cumulativeLength: samples[i].cumulativeLength,
-          elevation,
-        })),
+      const terrain: TerrainPoint[] = elevations.map((elevation, i) => ({
+        cumulativeLength: samples[i].cumulativeLength,
+        elevation,
+      }));
+      setSnapshot((curr) =>
+        curr && curr.id === capturedId ? { ...curr, terrain } : curr,
       );
     });
 
@@ -603,80 +560,57 @@ function useTerrainElevations(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sampleKey, fetchElevations]);
-
-  return terrainPoints;
+  }, [snapshotId]);
 }
 
-type NodeRef = { nodeId: AssetId; type: "junction" | "tank" | "reservoir" };
-
-function useHglRanges(
-  path: PathData | null,
+function useFetchHglRangesOnce(
+  snapshot: ProfileViewSnapshot | null,
   simulation: SimulationState,
-  assets: AssetsMap,
-): (HglRange | null)[] | null {
-  const [ranges, setRanges] = useState<(HglRange | null)[] | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  const epsResultsReader: EPSResultsReader | null =
-    "epsResultsReader" in simulation && simulation.epsResultsReader
-      ? simulation.epsResultsReader
-      : null;
-
-  const pathNodeIds = path !== null ? path.nodeIds : null;
-  const pathKey = pathNodeIds ? pathNodeIds.join(",") : "";
+  setSnapshot: SnapshotUpdater,
+) {
+  const snapshotId = snapshot?.id ?? null;
 
   useEffect(() => {
-    if (!pathNodeIds || !epsResultsReader) {
-      setRanges(null);
-      return;
-    }
+    if (!snapshot) return;
+    if (snapshot.hglRanges !== null) return;
+    if (snapshot.data.points.length === 0) return;
 
-    const nodeRefs: (NodeRef | null)[] = pathNodeIds.map((nodeId) => {
-      const asset = assets.get(nodeId);
-      if (!asset || asset.isLink) return null;
-      const type = asset.type;
-      if (type !== "junction" && type !== "tank" && type !== "reservoir") {
-        return null;
-      }
-      return { nodeId, type };
-    });
+    const epsResultsReader =
+      "epsResultsReader" in simulation && simulation.epsResultsReader
+        ? simulation.epsResultsReader
+        : null;
+    if (!epsResultsReader) return;
 
-    abortControllerRef.current?.abort();
     const controller = new AbortController();
-    abortControllerRef.current = controller;
+    const points = snapshot.data.points;
+    const capturedId = snapshot.id;
+    const capturedReader = epsResultsReader;
 
     const fetchAll = async () => {
       const start = performance.now();
-      const results: (HglRange | null)[] = new Array(nodeRefs.length);
-      for (let i = 0; i < nodeRefs.length; i++) {
+      const results: (HglRange | null)[] = new Array(points.length);
+      for (let i = 0; i < points.length; i++) {
         if (controller.signal.aborted) return;
-        const ref = nodeRefs[i];
-        if (!ref) {
-          results[i] = null;
-          continue;
-        }
+        const point = points[i];
         try {
-          let series;
-          if (ref.type === "junction") {
-            series = await epsResultsReader.getTimeSeries(
-              ref.nodeId,
-              "junction",
-              "head",
-            );
-          } else if (ref.type === "tank") {
-            series = await epsResultsReader.getTimeSeries(
-              ref.nodeId,
-              "tank",
-              "head",
-            );
-          } else {
-            series = await epsResultsReader.getTimeSeries(
-              ref.nodeId,
-              "reservoir",
-              "head",
-            );
-          }
+          const series =
+            point.nodeType === "junction"
+              ? await capturedReader.getTimeSeries(
+                  point.nodeId,
+                  "junction",
+                  "head",
+                )
+              : point.nodeType === "tank"
+                ? await capturedReader.getTimeSeries(
+                    point.nodeId,
+                    "tank",
+                    "head",
+                  )
+                : await capturedReader.getTimeSeries(
+                    point.nodeId,
+                    "reservoir",
+                    "head",
+                  );
           if (!series || series.values.length === 0) {
             results[i] = null;
             continue;
@@ -688,7 +622,7 @@ function useHglRanges(
             if (v < min) min = v;
             if (v > max) max = v;
           }
-          results[i] = { nodeId: ref.nodeId, minHead: min, maxHead: max };
+          results[i] = { nodeId: point.nodeId, minHead: min, maxHead: max };
         } catch (err) {
           captureError(err as Error);
           results[i] = null;
@@ -698,13 +632,15 @@ function useHglRanges(
       if (isDebugOn) {
         //eslint-disable-next-line no-console
         console.log(
-          `DEBUG PROFILE_VIEW:hglRange nodes=${nodeRefs.length} time=${(
+          `DEBUG PROFILE_VIEW:hglRange nodes=${points.length} time=${(
             performance.now() - start
           ).toFixed(2)} ms`,
         );
       }
       if (controller.signal.aborted) return;
-      setRanges(results);
+      setSnapshot((curr) =>
+        curr && curr.id === capturedId ? { ...curr, hglRanges: results } : curr,
+      );
     };
 
     void fetchAll();
@@ -713,9 +649,7 @@ function useHglRanges(
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathKey, epsResultsReader, assets]);
-
-  return ranges;
+  }, [snapshotId]);
 }
 
 function clamp(value: number, min: number, max: number): number {

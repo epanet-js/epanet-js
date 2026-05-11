@@ -14,8 +14,11 @@ import {
   shortestPathByDistance,
   shortestPathByFlow,
 } from "src/panels/profile-view/path-finding";
+import { buildProfileViewSnapshot } from "src/panels/profile-view/snapshot";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { isUnprojectedAtom } from "src/state/map-projection";
 import { ResultsReader } from "src/simulation/results-reader";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 
@@ -27,6 +30,8 @@ export function useProfileViewHandlers(
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -85,23 +90,27 @@ export function useProfileViewHandlers(
 
     if (nodeId === draftStartNodeId) return;
 
-    const path = computePath(draftStartNodeId, nodeId);
+    const built = buildProfileViewSnapshot({
+      startNodeId: draftStartNodeId,
+      endNodeId: nodeId,
+      hydraulicModel,
+      results,
+      projectSettings,
+      isUnprojected,
+    });
 
-    if (path === null) {
+    if ("error" in built) {
       setDialogState({ type: "profileNoPath" });
       setEphemeralState({ type: "none" });
       setSelection(SELECTION_NONE);
       return;
     }
 
-    setProfileView({
-      startNodeId: draftStartNodeId,
-      endNodeId: nodeId,
-    });
+    setProfileView(built.snapshot);
     setEphemeralState({ type: "none" });
     setSelection({
       type: "multi",
-      ids: [...path.nodeIds, ...path.linkIds],
+      ids: [...built.snapshot.nodeIds, ...built.snapshot.linkIds],
     });
     setMode({ mode: Mode.NONE });
   };

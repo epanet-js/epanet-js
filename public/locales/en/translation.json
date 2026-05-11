@@ -1326,6 +1326,7 @@
     },
     "simulationRequired": "Simulation required",
     "simulationRequiredHint": "Run a simulation first to view the profile.",
+    "refresh": "Refresh",
     "elevation": "Elevation",
     "hgl": "HGL",
     "distance": "Distance",
@@ -1334,7 +1335,8 @@
     "empty": {
       "selectingStart": "Click a node or pipe on the map to set the start of the profile.",
       "selectingEnd": "Click a node or pipe on the map to set the end of the profile.",
-      "noData": "No data."
+      "noData": "No data.",
+      "pathBroken": "Some assets in this profile no longer exist. Create a new profile to continue."
     }
   }
 }
