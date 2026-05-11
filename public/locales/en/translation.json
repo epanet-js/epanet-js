@@ -1317,8 +1317,6 @@
     "close": "Close profile view",
     "selectStart": "Click a node or pipe to set the start of the profile",
     "selectEnd": "Click a node or pipe to set the end of the profile",
-    "createProfile": "Create profile",
-    "new": "New",
     "selectAll": "Select all",
     "selectPath": "Select path",
     "selectPathHint": "Multiple paths found. Click any highlighted asset to select a route.",
