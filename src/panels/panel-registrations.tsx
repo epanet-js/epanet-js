@@ -1,5 +1,7 @@
+import { useAtomValue } from "jotai";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRegisterPanel } from "src/state/panel-layout";
+import { hasProfileViewAtom } from "src/state/profile-view";
 import { AssetDataTable } from "./data-tables/asset-data-table";
 import { ProfileViewPanel } from "./profile-view";
 
@@ -8,6 +10,7 @@ const BOTTOM = { horizontal: "bottom", vertical: "bottom" } as const;
 export const PanelRegistrations = () => {
   const dataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
   const profileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const hasProfileView = useAtomValue(hasProfileViewAtom);
 
   useRegisterPanel(
     {
@@ -70,7 +73,7 @@ export const PanelRegistrations = () => {
       component: ProfileViewPanel,
       defaultZone: BOTTOM,
     },
-    profileViewOn,
+    profileViewOn && hasProfileView,
   );
 
   return null;

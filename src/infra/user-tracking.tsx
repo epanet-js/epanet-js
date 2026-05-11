@@ -1157,6 +1157,7 @@ export type UserEvent =
   | { name: "dataTables.opened"; source: string }
   | { name: "profileView.opened"; source: string }
   | { name: "profileView.selectionStarted"; source: string }
+  | { name: "profileView.closed"; source: string }
   | {
       name: "simulationSetting.changed";
       settingName: string;

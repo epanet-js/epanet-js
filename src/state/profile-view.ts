@@ -7,6 +7,7 @@ import {
   SyncProfileViewData,
   TerrainPoint,
 } from "src/panels/profile-view/chart-types";
+import { Mode, modeAtom } from "src/state/mode";
 
 export type { PathData };
 
@@ -40,3 +41,12 @@ export type ProfileViewUiPhase =
   | "pathBroken";
 
 export const profileViewAtom = atom<ProfileViewSnapshot | null>(null);
+
+export const profileViewOpenAtom = atom(false);
+
+export const hasProfileViewAtom = atom(
+  (get) =>
+    get(profileViewOpenAtom) ||
+    get(profileViewAtom) !== null ||
+    get(modeAtom).mode === Mode.PROFILE_VIEW,
+);

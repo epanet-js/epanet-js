@@ -1314,6 +1314,7 @@
   "profileView": {
     "title": "Profile view",
     "toolbar": "Profile view",
+    "close": "Close profile view",
     "selectStart": "Click a node or pipe to set the start of the profile",
     "selectEnd": "Click a node or pipe to set the end of the profile",
     "createProfile": "Create profile",
