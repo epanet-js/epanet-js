@@ -189,6 +189,7 @@ export function floatColumn(
     header: options.header,
     size: options.size,
     cellComponent: CellComponent,
+    placeholder,
     copyValue: (v) => {
       const num = v as number | null;
       return formatLocaleNumber(num, decimals);

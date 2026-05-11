@@ -629,6 +629,7 @@ export function filterableSelectColumn<
       />
     ),
     autoSizeExtraWidth: 32, // Account for chevron + padding
+    placeholder: options.placeholder,
     copyValue: (v) => {
       const match = options.options.find((opt) => opt.value === v);
       return match?.label ?? "";

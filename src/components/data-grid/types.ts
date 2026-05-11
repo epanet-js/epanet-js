@@ -48,6 +48,8 @@ export type GridColumn = {
   maxSize?: number;
   // Extra px to add to canvas-measured text width when auto-sizing. Defaults to 16px
   autoSizeExtraWidth?: number;
+  // Text shown when the cell value is null/empty; used when auto-sizing the column
+  placeholder?: string;
 
   // Cell rendering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

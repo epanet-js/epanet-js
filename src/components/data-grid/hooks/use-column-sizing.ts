@@ -116,16 +116,6 @@ export function useFitColumnWidth<TData>(
 ) {
   const tableRef = useRef(table);
   tableRef.current = table;
-  const fittedSizesRef = useRef<Record<string, number>>({});
-
-  useEffect(() => {
-    const sizing = table.getState().columnSizing;
-    for (const columnId of Object.keys(fittedSizesRef.current)) {
-      if (sizing[columnId] !== fittedSizesRef.current[columnId]) {
-        delete fittedSizesRef.current[columnId];
-      }
-    }
-  }, [table.getState().columnSizing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fitWidthToContent = useCallback(
     (columnId: string) => {
@@ -145,31 +135,30 @@ export function useFitColumnWidth<TData>(
 
       const minWidth = measureHeaderMinWidth(ctx, headerFont);
 
-      let contentWidth = 0;
-      const isDataFitted = columnId in fittedSizesRef.current;
-      if (isDataFitted) {
-        ctx.font = headerFont;
-        const headerText =
-          typeof colDef.header === "string" ? colDef.header : "";
-        contentWidth = ctx.measureText(headerText).width;
-        delete fittedSizesRef.current[columnId];
-      }
+      ctx.font = headerFont;
+      const headerText = typeof colDef.header === "string" ? colDef.header : "";
+      const headerWidth = ctx.measureText(headerText).width;
 
+      const sizingDef = colDef as ColDefForSizing;
       const cellWidth = measureMaxCellWidth(
         ctx,
         cellFont,
         t.getRowModel().rows,
-        colDef as ColDefForSizing,
+        sizingDef,
       );
-      contentWidth = Math.max(contentWidth, cellWidth);
 
-      const extraWidth = (colDef as ColDefForSizing).autoSizeExtraWidth ?? 16;
+      ctx.font = cellFont;
+      const placeholderWidth = sizingDef.placeholder
+        ? ctx.measureText(sizingDef.placeholder).width
+        : 0;
+
+      const contentWidth = Math.max(headerWidth, cellWidth, placeholderWidth);
+      const extraWidth = sizingDef.autoSizeExtraWidth ?? 16;
       const newSize = Math.max(
         Math.ceil(contentWidth) + extraWidth + 2,
         minWidth,
       );
 
-      if (!isDataFitted) fittedSizesRef.current[columnId] = newSize;
       t.setColumnSizing((prev) => ({ ...prev, [columnId]: newSize }));
     },
     [containerRef],
@@ -211,6 +200,7 @@ type ColDefForSizing = {
   accessorKey?: string;
   copyValue?: (v: unknown) => string;
   autoSizeExtraWidth?: number;
+  placeholder?: string;
 };
 
 function measureMaxCellWidth(
