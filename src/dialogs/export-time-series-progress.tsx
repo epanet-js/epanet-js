@@ -18,18 +18,22 @@ export const ExportTimeSeriesProgressDialog = ({
 
   return (
     <BaseDialog
-      title={translate("exportTimeSeries")}
+      title={translate("exportTimeSeries.progress")}
       size="sm"
       isOpen={true}
       onClose={isComplete ? onClose : onCancel}
       preventClose={!isComplete}
       footer={
         isComplete ? (
-          <SimpleDialogActions action={translate("ok")} onAction={onClose} />
+          <SimpleDialogActions
+            secondary={{ action: translate("ok"), onClick: onClose }}
+          />
         ) : (
           <SimpleDialogActions
-            action={translate("dialog.cancel")}
-            onAction={onCancel}
+            secondary={{
+              action: translate("dialog.cancel"),
+              onClick: onCancel,
+            }}
           />
         )
       }
