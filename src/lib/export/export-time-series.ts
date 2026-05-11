@@ -11,7 +11,7 @@ export const estimateTimeSeriesSize = (
   timestepCount: number,
 ) => numAssets * metrics.length * lineSize(timestepCount);
 
-const BATCH_SIZE = 4 * 1024 * 1024; // 4 MB write buffer per metric
+const BATCH_SIZE = 4 * 1024 * 1024;
 
 export const exportTimeSeries = async (
   networkName: string,
@@ -25,7 +25,7 @@ export const exportTimeSeries = async (
 ) => {
   const encoder = new TextEncoder();
   const headerBuf = new Uint8Array(lineSize(resultsReader.timestepCount));
-  const MAX_ROW_SIZE = lineSize(resultsReader.timestepCount);
+  const maxRowSize = lineSize(resultsReader.timestepCount);
   const hasSelection = selectedAssets.size > 0;
   const totalProgress = metrics.length * hydraulicModel.assets.size;
   let progress = 1;
@@ -35,8 +35,8 @@ export const exportTimeSeries = async (
     FileSystemWritableFileStream
   >();
   const handles = new Map<ExportTimeSeriesMetrics, FileSystemFileHandle>();
-  const batchBufs = new Map<ExportTimeSeriesMetrics, Uint8Array>();
-  const batchOffs = new Map<ExportTimeSeriesMetrics, number>();
+  const buffers = new Map<ExportTimeSeriesMetrics, Uint8Array>();
+  const offsets = new Map<ExportTimeSeriesMetrics, number>();
 
   try {
     for (const metric of metrics) {
@@ -46,8 +46,8 @@ export const exportTimeSeries = async (
       const stream = await handle.createWritable();
       handles.set(metric, handle);
       streams.set(metric, stream);
-      batchBufs.set(metric, new Uint8Array(BATCH_SIZE));
-      batchOffs.set(metric, 0);
+      buffers.set(metric, new Uint8Array(BATCH_SIZE));
+      offsets.set(metric, 0);
 
       const offset = encodeHeader(
         headerBuf,
@@ -69,32 +69,32 @@ export const exportTimeSeries = async (
         if (results === null) return;
         if (!METRICS_BY_TYPE[epanetType].has(metric)) return;
 
-        const batchBuf = batchBufs.get(metric)!;
-        let batchOff = batchOffs.get(metric)!;
+        const buffer = buffers.get(metric)!;
+        let offset = offsets.get(metric)!;
 
-        if (batchOff + MAX_ROW_SIZE > BATCH_SIZE) {
-          await streams.get(metric)!.write(batchBuf.subarray(0, batchOff));
-          batchOff = 0;
+        if (offset + maxRowSize > BATCH_SIZE) {
+          await streams.get(metric)!.write(buffer.subarray(0, offset));
+          offset = 0;
         }
 
-        const rowLen = encodeValues(
-          batchBuf.subarray(batchOff),
+        const written = encodeValues(
+          buffer.subarray(offset),
           asset,
           results,
           encoder,
           metric,
         );
-        batchOffs.set(metric, batchOff + rowLen);
+        offsets.set(metric, offset + written);
       },
       signal,
     );
 
     for (const metric of metrics) {
-      const batchOff = batchOffs.get(metric)!;
-      if (batchOff > 0) {
+      const offset = offsets.get(metric)!;
+      if (offset > 0) {
         await streams
           .get(metric)!
-          .write(batchBufs.get(metric)!.subarray(0, batchOff));
+          .write(buffers.get(metric)!.subarray(0, offset));
       }
     }
   } catch (err) {
@@ -124,48 +124,59 @@ const lineSize = (timestepCount: number) => 16 * timestepCount + 64;
 // using NUM_DECIMAL_PLACES decimal digits. Returns the new offset.
 // Avoids string allocation entirely.
 const FLOAT_SCALE = 10 ** NUM_DECIMAL_PLACES;
-const encodeFloat = (buf: Uint8Array, off: number, value: number): number => {
+const encodeFloat = (
+  buffer: Uint8Array,
+  offset: number,
+  value: number,
+): number => {
+  const UTF8_ZERO = 48;
+  const UTF8_DOT = 46;
+  const UTF8_MINUS_SIGN = 45;
+
   if (!isFinite(value)) {
-    buf[off++] = 48; // '0'
-    buf[off++] = 46; // '.'
-    for (let i = 0; i < NUM_DECIMAL_PLACES; i++) buf[off++] = 48; // '0' × N
-    return off;
+    buffer[offset++] = UTF8_ZERO;
+    buffer[offset++] = UTF8_DOT;
+    for (let i = 0; i < NUM_DECIMAL_PLACES; i++) {
+      buffer[offset++] = UTF8_ZERO;
+    }
+    return offset;
   }
+
   if (value < 0) {
-    buf[off++] = 45;
+    buffer[offset++] = UTF8_MINUS_SIGN;
     value = -value;
-  } // '-'
+  }
 
   const scaled = Math.round(value * FLOAT_SCALE);
   const frac = scaled % FLOAT_SCALE;
-  let int = (scaled / FLOAT_SCALE) | 0;
+  let integerPart = (scaled / FLOAT_SCALE) | 0;
 
-  if (int === 0) {
-    buf[off++] = 48; // '0'
+  if (integerPart === 0) {
+    buffer[offset++] = UTF8_ZERO;
   } else {
-    const start = off;
-    while (int > 0) {
-      buf[off++] = 48 + (int % 10);
-      int = (int / 10) | 0;
+    const start = offset;
+    while (integerPart > 0) {
+      buffer[offset++] = UTF8_ZERO + (integerPart % 10);
+      integerPart = (integerPart / 10) | 0;
     }
+
     // digits were written least-significant first — reverse them
-    for (let l = start, r = off - 1; l < r; l++, r--) {
-      const tmp = buf[l];
-      buf[l] = buf[r];
-      buf[r] = tmp;
+    for (let l = start, r = offset - 1; l < r; l++, r--) {
+      const tmp = buffer[l];
+      buffer[l] = buffer[r];
+      buffer[r] = tmp;
     }
   }
 
-  buf[off++] = 46; // '.'
+  buffer[offset++] = UTF8_DOT;
   for (let d = NUM_DECIMAL_PLACES - 1; d >= 0; d--) {
-    buf[off++] = 48 + (Math.floor(frac / 10 ** d) % 10);
+    buffer[offset++] = UTF8_ZERO + (Math.floor(frac / 10 ** d) % 10);
   }
-  return off;
+  return offset;
 };
 
-// Pre-encoded bytes for status labels (including trailing comma)
-const STATUS_CLOSED = new Uint8Array([99, 108, 111, 115, 101, 100, 44]); // "closed,"
-const STATUS_OPEN = new Uint8Array([111, 112, 101, 110, 44]); // "open,"
+const UTF8_STATUS_CLOSED = new TextEncoder().encode("closed,");
+const UTF8_STATUS_OPEN = new TextEncoder().encode("open,");
 
 const encodeHeader = (
   buffer: Uint8Array,
@@ -189,35 +200,40 @@ const encodeHeader = (
   return offset;
 };
 
+const getStatus = (status: number) =>
+  status < 3 ? UTF8_STATUS_CLOSED : UTF8_STATUS_OPEN;
+
 const encodeValues = (
-  buf: Uint8Array,
+  buffer: Uint8Array,
   asset: Asset,
   results: TimeSeries,
   encoder: TextEncoder,
   metric: ExportTimeSeriesMetrics,
 ): number => {
-  // No fill(0) — every byte is written explicitly below
-  let { written: off } = encoder.encodeInto(
+  const UTF8_COMMA = 44;
+  const UTF8_NEW_LINE = 10;
+
+  let { written: offset } = encoder.encodeInto(
     `${asset.label},${asset.type},`,
-    buf,
+    buffer,
   );
 
   const values = results.values;
   if (metric === "status") {
     for (let i = 0; i < values.length; i++) {
-      const bytes = values[i] < 3 ? STATUS_CLOSED : STATUS_OPEN;
-      buf.set(bytes, off);
-      off += bytes.length;
+      const bytes = getStatus(values[i]);
+      buffer.set(bytes, offset);
+      offset += bytes.length;
     }
   } else {
     for (let i = 0; i < values.length; i++) {
-      off = encodeFloat(buf, off, values[i]);
-      buf[off++] = 44; // ','
+      offset = encodeFloat(buffer, offset, values[i]);
+      buffer[offset++] = UTF8_COMMA;
     }
   }
 
-  buf[off - 1] = 10; // replace trailing ',' with '\n'
-  return off;
+  buffer[offset - 1] = UTF8_NEW_LINE;
+  return offset;
 };
 
 const METRICS_BY_TYPE = {
