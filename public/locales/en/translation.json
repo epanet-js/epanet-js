@@ -1324,6 +1324,8 @@
       "title": "No path found",
       "message": "No connected path was found between the selected nodes."
     },
+    "simulationRequired": "Simulation required",
+    "simulationRequiredHint": "Run a simulation first to view the profile.",
     "elevation": "Elevation",
     "hgl": "HGL",
     "distance": "Distance",
