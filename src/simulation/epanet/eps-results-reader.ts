@@ -636,7 +636,7 @@ export class EPSResultsReader {
           }
         }
 
-        let ts: TimeSeries | null = null;
+        let timeSeries: TimeSeries | null = null;
 
         if (!asset.isLink) {
           if (nodePropertyIdx !== undefined) {
@@ -644,7 +644,7 @@ export class EPSResultsReader {
               String(asset.id),
             );
             if (nodeIndex !== undefined) {
-              ts = this._extractNodeTs(
+              timeSeries = this._extractNodeTs(
                 resultsFloat,
                 nodePropertyIdx,
                 nodeIndex,
@@ -662,7 +662,7 @@ export class EPSResultsReader {
             if (linkIndex !== undefined) {
               const pumpPosition = this.pumpPositionByLinkIndex.get(linkIndex);
               if (pumpPosition !== undefined) {
-                ts = this._extractTs(
+                timeSeries = this._extractTs(
                   pumpStatusFloat,
                   pumpPosition,
                   pumpCount,
@@ -676,7 +676,7 @@ export class EPSResultsReader {
             String(asset.id),
           );
           if (linkIndex !== undefined) {
-            ts = this._extractLinkTs(
+            timeSeries = this._extractLinkTs(
               resultsFloat,
               linkPropertyIdx,
               linkIndex,
@@ -688,13 +688,13 @@ export class EPSResultsReader {
           }
         }
 
-        await onResult(property, asset, ts);
+        await onResult(property, asset, timeSeries);
       }
     }
   }
 
   private _extractNodeTs(
-    buf: Float32Array,
+    buffer: Float32Array,
     propertyIndex: number,
     nodeIndex: number,
     nodeCount: number,
@@ -704,7 +704,7 @@ export class EPSResultsReader {
     const values = new Float32Array(T);
     const base = propertyIndex * nodeCount + nodeIndex;
     for (let t = 0; t < T; t++) {
-      values[t] = buf[t * timestepFloats + base];
+      values[t] = buffer[t * timestepFloats + base];
     }
     return this._buildTimeSeriesFromValues(values);
   }
