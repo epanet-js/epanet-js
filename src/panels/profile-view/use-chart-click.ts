@@ -6,7 +6,6 @@ import { tabAtom, TabOption } from "src/state/layout";
 import { Mode, modeAtom } from "src/state/mode";
 import { USelection } from "src/selection/selection";
 import type { Sel } from "src/selection/types";
-import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
 import { isNearMainPlotLine, pickSldSnap } from "./snap";
@@ -30,7 +29,6 @@ export function useChartClick({
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
   const setMode = useSetAtom(modeAtom);
-  const zoomTo = useZoomTo();
 
   const depsRef = useRef({
     points,
@@ -39,7 +37,6 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
-    zoomTo,
   });
   depsRef.current = {
     points,
@@ -48,7 +45,6 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
-    zoomTo,
   };
 
   useEffect(() => {
@@ -91,7 +87,7 @@ export function useChartClick({
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
       /* eslint-enable */
 
-      const selectAndZoom = (id: number) => {
+      const selectAsset = (id: number) => {
         const next: Sel = USelection.toggleSingleSelectionId(
           deps.selection,
           id,
@@ -99,16 +95,15 @@ export function useChartClick({
         deps.setSelection(next);
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
-        if (next.type !== "none") deps.zoomTo(next);
       };
 
       if (snap?.kind === "link") {
-        selectAndZoom(snap.link.linkId);
+        selectAsset(snap.link.linkId);
         return;
       }
 
       if (snap?.kind === "node") {
-        selectAndZoom(deps.points[snap.index].nodeId);
+        selectAsset(deps.points[snap.index].nodeId);
         return;
       }
 
@@ -120,7 +115,7 @@ export function useChartClick({
         (inMainGrid && isNearMainPlotLine(chart, cursorX, py, deps.points));
       if (!isOverSelectable) return;
 
-      selectAndZoom(link.linkId);
+      selectAsset(link.linkId);
     };
 
     el.addEventListener("mousedown", handleMouseDown);
