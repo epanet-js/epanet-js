@@ -7,8 +7,8 @@ import {
 } from "react";
 import {
   floatColumn,
+  textColumn,
   DataGrid,
-  textReadonlyColumn,
   type DataGridRef,
   type GridSelection,
   type RowAction,
@@ -177,9 +177,10 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
 
     const columns = useMemo(
       () => [
-        textReadonlyColumn("timestep", {
+        textColumn("timestep", {
           header: translate("timestep"),
           size: 82,
+          isReadOnly: true,
         }),
         floatColumn("multiplier", {
           header: translate("multiplier"),

@@ -10,7 +10,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { DataGrid } from "./data-grid";
 import { floatColumn } from "./cells/float-cell";
 import { filterableSelectColumn } from "./cells/filterable-select-cell";
-import { textReadonlyColumn } from "./cells/text-readonly-cell";
+import { textColumn } from "./cells/text-cell";
 import type { GridColumn } from "./types";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
@@ -29,7 +29,7 @@ const categoryOptions = [
 ];
 
 const columns: GridColumn[] = [
-  textReadonlyColumn("label", { header: "Label", size: 80 }),
+  textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
   floatColumn("value", { header: "Value", size: 100, deleteValue: null }),
   filterableSelectColumn("category", {
     header: "Category",
@@ -609,7 +609,7 @@ describe("DataGrid edit mode integration", () => {
       ];
 
       const columnsWithSearch: GridColumn[] = [
-        textReadonlyColumn("label", { header: "Label", size: 80 }),
+        textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
         filterableSelectColumn("category", {
           header: "Category",
           options: manyOptions,

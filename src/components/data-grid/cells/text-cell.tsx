@@ -109,7 +109,7 @@ export function TextCell({
 
   if (readonly) {
     return (
-      <div className="w-full h-full flex items-center px-2 text-sm text-gray-500 bg-gray-50 overflow-hidden">
+      <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 bg-gray-50 overflow-hidden">
         <span className="truncate">{value ?? ""}</span>
       </div>
     );
@@ -132,7 +132,7 @@ export function TextCell({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
-        className="w-full px-2 text-sm outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate"
+        className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate"
       />
     </div>
   );

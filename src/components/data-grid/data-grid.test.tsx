@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { createRef } from "react";
 import { DataGrid } from "./data-grid";
 import { floatColumn } from "./cells/float-cell";
-import { textReadonlyColumn } from "./cells/text-readonly-cell";
+import { textColumn } from "./cells/text-cell";
 import type { DataGridRef, GridColumn } from "./types";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
@@ -11,7 +11,7 @@ const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 type TestRow = { value: number | null; label: string };
 
 const columns: GridColumn[] = [
-  textReadonlyColumn("label", { header: "Label", size: 80 }),
+  textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
   floatColumn("value", { header: "Value", size: 100, deleteValue: 0 }),
 ];
 
