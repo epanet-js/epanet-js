@@ -87,11 +87,14 @@ export function useChartClick({
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
       /* eslint-enable */
 
+      const shift = e.shiftKey;
+
       const selectAsset = (id: number) => {
-        const next: Sel = USelection.toggleSingleSelectionId(
-          deps.selection,
-          id,
-        );
+        const next: Sel = shift
+          ? USelection.isSelected(deps.selection, id)
+            ? USelection.removeFeatureFromSelection(deps.selection, id)
+            : USelection.addSelectionId(deps.selection, id)
+          : USelection.toggleSingleSelectionId(deps.selection, id);
         deps.setSelection(next);
         deps.setTab(TabOption.Asset);
         deps.setMode({ mode: Mode.NONE });
