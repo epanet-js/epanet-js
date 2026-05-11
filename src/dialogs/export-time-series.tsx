@@ -152,6 +152,9 @@ export const ExportTimeSeriesDialog = ({
 
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const progressCalls = useRef(0);
+  const lastYield = useRef(0);
+
   const [isComplete, setIsComplete] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -159,6 +162,17 @@ export const ExportTimeSeriesDialog = ({
   useEffect(() => {
     void Export.fileSizeLimit().then(setSizeLimit);
   }, []);
+
+  const onProgress = async (progress: number) => {
+    if (++progressCalls.current >= 1000) {
+      progressCalls.current = 0;
+      if (performance.now() - lastYield.current >= 16) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        lastYield.current = performance.now();
+      }
+    }
+    setProgress(progress);
+  };
 
   const exceedsLimit = sizeLimit > 0 && estimatedBytes > sizeLimit;
   const showSizeWarning = estimatedGB >= SIZE_WARNING_LIMIT_GB || exceedsLimit;
@@ -179,7 +193,7 @@ export const ExportTimeSeriesDialog = ({
       await exportTimeSeries({
         metrics,
         selectedAssets,
-        onProgress: setProgress,
+        onProgress,
         signal: controller.signal,
       });
       setIsComplete(true);

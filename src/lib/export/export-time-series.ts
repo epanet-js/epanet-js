@@ -20,7 +20,7 @@ export const exportTimeSeries = async (
   resultsReader: EPSResultsReader,
   selectedAssets: Set<number>,
   metrics: ExportTimeSeriesMetrics[],
-  onProgress: (progressPercentage: number) => void,
+  onProgress: (progressPercentage: number) => Promise<void>,
   signal?: AbortSignal,
 ) => {
   const encoder = new TextEncoder();
@@ -62,7 +62,7 @@ export const exportTimeSeries = async (
       hydraulicModel.assets,
       metrics,
       async (metric, asset, results) => {
-        onProgress((progress++ / totalProgress) * 100);
+        await onProgress((progress++ / totalProgress) * 100);
 
         const epanetType = asset.isLink ? "link" : "node";
         if (hasSelection && !selectedAssets.has(asset.id)) return;

@@ -614,28 +614,12 @@ export class EPSResultsReader {
       pumpStatusFloat = new Float32Array(raw);
     }
 
-    // Iterate (property × asset), extracting values from in-memory buffers.
-    // Yield to the browser event loop every ~16ms so the UI stays responsive
-    // (progress bar updates, button clicks). setTimeout posts a macrotask,
-    // giving the browser a chance to paint between chunks of work.
-    let itersSinceYield = 0;
-    let lastYield = performance.now();
-
     for (const property of properties) {
       const nodePropertyIdx = NODE_RESULTS_PROPERTY_INDEX[property];
       const linkPropertyIdx = LINK_RESULTS_PROPERTY_INDEX[property];
 
       for (const asset of assets.values()) {
         signal?.throwIfAborted();
-
-        if (++itersSinceYield >= 1000) {
-          itersSinceYield = 0;
-          if (performance.now() - lastYield >= 16) {
-            await new Promise<void>((resolve) => setTimeout(resolve, 0));
-            lastYield = performance.now();
-          }
-        }
-
         let timeSeries: TimeSeries | null = null;
 
         if (!asset.isLink) {

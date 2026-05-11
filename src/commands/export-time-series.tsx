@@ -12,7 +12,7 @@ import { currentFileNameAtom } from "src/state";
 export type ExportTimeSeriesOptions = {
   selectedAssets: Set<number>;
   metrics: ExportTimeSeriesMetrics[];
-  onProgress: (progress: number) => void;
+  onProgress: (progress: number) => Promise<void>;
   signal?: AbortSignal;
 };
 
