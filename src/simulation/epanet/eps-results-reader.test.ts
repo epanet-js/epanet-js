@@ -310,7 +310,7 @@ describe("EPSResultsReader", () => {
       expect(pipe?.headloss).toBeCloseTo(pipe?.unitHeadloss ?? 0, 5);
     });
 
-    it("reads pump results with headloss and status", async () => {
+    it("reads pump results with head and status", async () => {
       const IDS = { R1: 1, J1: 2, PUMP1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(IDS.R1, { head: 50 })
@@ -338,7 +338,7 @@ describe("EPSResultsReader", () => {
       expect(pump).not.toBeNull();
       expect(pump?.type).toEqual("pump");
       expect(pump?.flow).toBeGreaterThanOrEqual(0);
-      expect(pump?.headloss).toBeCloseTo(-1);
+      expect(pump?.head).toBeGreaterThan(0);
       expect(pump?.status).toMatch(/on|off/);
       // statusWarning should be null or one of the warning types
       expect([null, "cannot-deliver-head", "cannot-deliver-flow"]).toContain(

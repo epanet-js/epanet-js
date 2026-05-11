@@ -668,8 +668,7 @@ const appendPumpStats = (
   // Simulation results - read from ResultsReader
   const pumpSim = simulationResults?.getPump(pump.id);
   const flow = pumpSim?.flow ?? null;
-  // pump head = -pumpSimulation.headloss
-  const head = pumpSim ? -pumpSim.headloss : null;
+  const head = pumpSim?.head ?? null;
   const status = pumpSim?.status ?? null;
   const statusWarning = pumpSim?.statusWarning ?? null;
 

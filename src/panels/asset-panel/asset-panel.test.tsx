@@ -705,7 +705,7 @@ describe("AssetPanel", () => {
           pumps: {
             [IDS.PU1]: {
               flow: 20.1234,
-              headloss: -10.1234,
+              head: 10.1234,
               status: "on",
             },
           },

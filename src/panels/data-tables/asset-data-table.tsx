@@ -242,12 +242,7 @@ function buildSimColumns(
     case "pump":
       return [
         simNumericValue("sim_flow", translate("flow"), units.flow, "flow"),
-        simNumericValue(
-          "sim_headloss",
-          translate("pumpHead"),
-          units.headloss,
-          "headloss",
-        ),
+        simNumericValue("sim_head", translate("pumpHead"), units.head, "head"),
         simTextValue("sim_status", translate("actualStatus")),
         ...qualityCols(),
         simNumericValue(

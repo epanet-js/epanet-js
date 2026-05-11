@@ -25,7 +25,7 @@ export type ValveSimulation = {
 export type PumpSimulation = {
   type: "pump";
   flow: number;
-  headloss: number;
+  head: number;
   status: "on" | "off";
   statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
   waterAge: number | null;

@@ -2049,7 +2049,7 @@ const PumpEditor = ({
   const pumpEnergy = simulation?.getPumpEnergy(pump.id) ?? null;
 
   const simFlow = pumpSimulation?.flow ?? null;
-  const simHead = pumpSimulation ? -pumpSimulation.headloss : null;
+  const simHead = pumpSimulation?.head ?? null;
   const statusText = translate(pumpStatusLabel(pumpSimulation ?? null));
 
   const statusOptions = useMemo(() => {

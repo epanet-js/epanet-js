@@ -50,7 +50,7 @@ const QUICK_GRAPH_PROPERTIES: {
   ],
   pump: [
     { value: "flow", labelKey: "flow", quantityKey: "flow" },
-    { value: "headloss", labelKey: "pumpHead", quantityKey: "head" },
+    { value: "head", labelKey: "pumpHead", quantityKey: "head" },
   ],
   valve: [
     { value: "flow", labelKey: "flow", quantityKey: "flow" },

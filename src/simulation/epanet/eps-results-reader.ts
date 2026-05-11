@@ -78,7 +78,7 @@ export type PipeProperty =
   | "chemicalConcentration";
 export type PumpProperty =
   | "flow"
-  | "headloss"
+  | "head"
   | "status"
   | "waterAge"
   | "waterTrace"
@@ -334,6 +334,14 @@ export class EPSResultsReader {
           property === "chemicalConcentration"
         )
           return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
+        if (property === "head") {
+          const headloss = await this._getLinkPropertyTimeSeries(
+            assetId,
+            "headloss",
+          );
+          if (!headloss) return null;
+          return { ...headloss, values: headloss.values.map((v) => -v) };
+        }
         return this._getLinkPropertyTimeSeries(
           assetId,
           property as LinkProperty,
@@ -759,6 +767,15 @@ export class EPSResultsReader {
           return pumpStatusFile
             ? this._getPumpStatusTimeSeriesFromFile(pumpStatusFile, assetId)
             : null;
+        }
+        if (property === "head") {
+          const headloss = await this._getLinkPropertyTimeSeriesFromFile(
+            resultsFile,
+            assetId,
+            "headloss",
+          );
+          if (!headloss) return null;
+          return { ...headloss, values: headloss.values.map((v) => -v) };
         }
         return this._getLinkPropertyTimeSeriesFromFile(
           resultsFile,
@@ -1245,7 +1262,7 @@ class TimestepResultsReader implements ResultsReader {
     return {
       type: "pump",
       flow: linkData.flow,
-      headloss: linkData.headloss,
+      head: -linkData.headloss,
       status: isOn ? "on" : "off",
       statusWarning: this.mapPumpStatusWarning(statusValue),
       waterAge: qualityType === "age" ? linkData.avgQuality : null,

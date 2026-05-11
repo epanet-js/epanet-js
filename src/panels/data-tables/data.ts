@@ -92,7 +92,7 @@ function buildSimRow(
       const energy = simulation.getPumpEnergy(assetId);
       return {
         sim_flow: sim?.flow ?? null,
-        sim_headloss: sim?.headloss != null ? -sim.headloss : null,
+        sim_head: sim?.head ?? null,
         sim_status: sim?.status ? translate(`pump.${sim.status}`) : "",
         ...qualityFields(sim),
         sim_utilization: energy?.utilization ?? null,

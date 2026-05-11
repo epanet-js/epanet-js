@@ -296,7 +296,7 @@ export type SimulationData = {
     number,
     Partial<{
       flow: number;
-      headloss: number;
+      head: number;
       status: "on" | "off";
       statusWarning: "cannot-deliver-flow" | "cannot-deliver-head" | null;
       waterAge: number | null;
@@ -380,7 +380,7 @@ export const createMockResultsReader = (
     return {
       type: "pump",
       flow: sim.flow ?? 0,
-      headloss: sim.headloss ?? 0,
+      head: sim.head ?? 0,
       status: sim.status ?? "on",
       statusWarning: sim.statusWarning ?? null,
       waterAge: sim.waterAge ?? null,
