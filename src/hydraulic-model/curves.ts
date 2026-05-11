@@ -145,8 +145,7 @@ export const getVolumeCurveErrors = (
   return errors;
 };
 
-/** Headloss curves (GPV): X strictly increasing, Y non-decreasing.
- *  EPANET's gpvcoeff() clamps negative slopes to TINY. */
+/** Headloss curves (GPV): X strictly increasing, Y unconstrained. */
 export const getHeadlossCurveErrors = (
   points: CurvePoint[],
 ): CurveErrorPoint[] => {
@@ -172,10 +171,6 @@ export const getHeadlossCurveErrors = (
     if (points[i].x <= points[i - 1].x) {
       add(i - 1, "x");
       add(i, "x");
-    }
-    if (points[i].y < points[i - 1].y) {
-      add(i - 1, "y");
-      add(i, "y");
     }
   }
 
