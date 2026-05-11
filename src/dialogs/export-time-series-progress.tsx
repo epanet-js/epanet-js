@@ -39,7 +39,7 @@ export const ExportTimeSeriesProgressDialog = ({
       }
     >
       <div className="p-4 space-y-2">
-        <p className="text-sm text-gray-700 flex items-center gap-1.5">
+        <p className="tabular-nums text-sm text-gray-700 flex items-center gap-1.5">
           {isComplete && <SuccessIcon className="text-green-600 shrink-0" />}
           {isComplete
             ? translate("exportTimeSeries.complete")
