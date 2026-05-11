@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useExportTimeSeries } from "src/commands/export-time-series";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
+import { ExportTimeSeriesProgressDialog } from "./export-time-series-progress";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
@@ -202,6 +203,17 @@ export const ExportTimeSeriesDialog = ({
     onClose();
   }, [onClose]);
 
+  if (isExporting || isComplete) {
+    return (
+      <ExportTimeSeriesProgressDialog
+        progress={progress}
+        isComplete={isComplete}
+        onCancel={handleCancel}
+        onClose={onClose}
+      />
+    );
+  }
+
   if (model.assets.size === 0) {
     return (
       <BaseDialog
@@ -255,22 +267,15 @@ export const ExportTimeSeriesDialog = ({
       isOpen={true}
       onClose={handleCancel}
       footer={
-        isComplete ? (
-          <SimpleDialogActions
-            action={translate("dialog.close")}
-            onAction={onClose}
-          />
-        ) : (
-          <SimpleDialogActions
-            action={translate("export")}
-            onAction={handleExport}
-            isDisabled={exportDisabled}
-            secondary={{
-              action: translate("dialog.cancel"),
-              onClick: handleCancel,
-            }}
-          />
-        )
+        <SimpleDialogActions
+          action={translate("export")}
+          onAction={handleExport}
+          isDisabled={exportDisabled}
+          secondary={{
+            action: translate("dialog.cancel"),
+            onClick: handleCancel,
+          }}
+        />
       }
     >
       <div className="p-4 space-y-4">
@@ -378,25 +383,6 @@ export const ExportTimeSeriesDialog = ({
             </div>
           </div>
         </div>
-
-        {(isExporting || isComplete) && (
-          <div className="border-t border-gray-200 pt-4 space-y-2">
-            <p className="text-sm text-gray-700">
-              {isComplete
-                ? translate("exportTimeSeries.complete")
-                : translate(
-                    "exportTimeSeries.inProgress",
-                    String(Math.round(progress)),
-                  )}
-            </p>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-purple-600 h-2 rounded-full transition-all duration-150"
-                style={{ width: `${isComplete ? 100 : progress}%` }}
-              />
-            </div>
-          </div>
-        )}
 
         {showSizeWarning && (
           <div
