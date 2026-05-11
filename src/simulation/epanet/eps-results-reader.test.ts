@@ -1450,6 +1450,7 @@ describe("EPSResultsReader", () => {
         ["pressure", "flow"],
         async (metric, asset) => {
           calls.push({ metric, assetId: asset.id });
+          return Promise.resolve();
         },
       );
 
@@ -1488,6 +1489,7 @@ describe("EPSResultsReader", () => {
         ["pressure", "head", "demand"],
         async (metric, asset, ts) => {
           if (asset.id === IDS.J1) seriesMap.set(metric, ts);
+          return Promise.resolve();
         },
       );
 
@@ -1536,6 +1538,7 @@ describe("EPSResultsReader", () => {
         ["flow", "velocity"],
         async (metric, asset, ts) => {
           if (asset.id === IDS.P1) seriesMap.set(metric, ts);
+          return Promise.resolve();
         },
       );
 
@@ -1581,6 +1584,7 @@ describe("EPSResultsReader", () => {
         ["status"],
         async (metric, asset, ts) => {
           if (asset.id === IDS.PUMP1) pumpStatusTs = ts;
+          return Promise.resolve();
         },
       );
 
@@ -1621,6 +1625,7 @@ describe("EPSResultsReader", () => {
         ["flow"], // "flow" is not in NODE_RESULTS_PROPERTY_INDEX
         async (metric, asset, ts) => {
           if (asset.id === IDS.J1) junctionFlowTs = ts;
+          return Promise.resolve();
         },
       );
 
@@ -1653,6 +1658,7 @@ describe("EPSResultsReader", () => {
         ["pressure"], // "pressure" is not in LINK_RESULTS_PROPERTY_INDEX
         async (metric, asset, ts) => {
           if (asset.id === IDS.P1) pipePressureTs = ts;
+          return Promise.resolve();
         },
       );
 
