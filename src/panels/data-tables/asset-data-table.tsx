@@ -14,6 +14,7 @@ import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
   valveKindChanges,
+  pumpDefinitionTypeChanges,
 } from "src/hydraulic-model/model-operations";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
@@ -30,7 +31,10 @@ import {
   type GridColumn,
 } from "src/components/data-grid";
 import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
-import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
+import {
+  pumpStatuses,
+  type PumpDefinitionType,
+} from "src/hydraulic-model/asset-types/pump";
 import {
   valveKinds,
   valveStatuses,
@@ -70,6 +74,7 @@ const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
   pipe: ["initialStatus"],
   pump: [
     "initialStatus",
+    "definitionType",
     "curveId",
     "speedPatternId",
     "efficiencyCurveId",
@@ -101,7 +106,7 @@ const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
     "bulkReactionCoeff",
     "wallReactionCoeff",
   ],
-  pump: ["speed", "energyPrice"],
+  pump: ["speed", "power", "energyPrice"],
   valve: ["setting", "diameter", "minorLoss"],
   reservoir: ["elevation", "head", "initialQuality", "chemicalSourceStrength"],
   tank: [
@@ -440,6 +445,7 @@ function buildColumns(
     name: string,
     filterType: CurveType,
     placeholder?: string,
+    isReadOnly?: (rowIndex: number) => boolean,
   ) =>
     filterableSelectColumn(key, {
       header: name,
@@ -447,6 +453,7 @@ function buildColumns(
       placeholder: placeholder ?? translate("none"),
       emptyOptionLabel: placeholder ?? translate("none"),
       deleteValue: null,
+      isReadOnly,
     });
 
   const isChemicalSourceNone = (rowIndex: number) => {
@@ -613,9 +620,45 @@ function buildColumns(
             label: translate(`pump.${s}`),
           })),
         }),
+        filterableSelectColumn("definitionType", {
+          header: translate("pumpType"),
+          options: [
+            { value: "power", label: translate("constantPower") },
+            {
+              value: "designPointCurve",
+              label: translate("designPointCurve"),
+              enabled: false,
+            },
+            {
+              value: "standardCurve",
+              label: translate("standardCurve"),
+              enabled: false,
+            },
+            { value: "curveId", label: translate("namedCurve") },
+          ],
+        }),
+        curveCol(
+          "curveId",
+          translate("libraryCurve"),
+          "pump",
+          undefined,
+          (rowIndex) => getRow?.(rowIndex)?.definitionType !== "curveId",
+        ),
+        numericCol(
+          "power",
+          translate("power"),
+          units.power,
+          "power",
+          (rowIndex) => getRow?.(rowIndex)?.definitionType !== "power",
+        ),
         numericCol("speed", translate("initialSpeed"), units.speed, "speed"),
         patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
-        curveCol("curveId", translate("pumpCurve"), "pump"),
+        curveCol(
+          "efficiencyCurveId",
+          translate("efficiencyCurve"),
+          "efficiency",
+          translate("constantPercent", localizeDecimal(energyGlobalEfficiency)),
+        ),
         numericCol(
           "energyPrice",
           translate("energyPrice"),
@@ -623,12 +666,6 @@ function buildColumns(
           undefined,
           undefined,
           localizeDecimal(energyGlobalPrice),
-        ),
-        curveCol(
-          "efficiencyCurveId",
-          translate("efficiencyCurve"),
-          "efficiency",
-          translate("constantPercent", localizeDecimal(energyGlobalEfficiency)),
         ),
         patternCol(
           "energyPricePatternId",
@@ -965,6 +1002,20 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               curveChange.value as CurveId | null,
             );
             if (curveChanges) changes.push(...curveChanges);
+          }
+        }
+
+        if (assetType === "pump") {
+          const defTypeIdx = changes.findIndex(
+            (c) => c.property === "definitionType",
+          );
+          if (defTypeIdx !== -1) {
+            const [defTypeChange] = changes.splice(defTypeIdx, 1);
+            changes.push(
+              ...pumpDefinitionTypeChanges(
+                defTypeChange.value as PumpDefinitionType,
+              ),
+            );
           }
         }
 

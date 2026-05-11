@@ -16,6 +16,7 @@ export type FilterableSelectOption<
 > = {
   value: T;
   label: string;
+  enabled?: boolean;
 };
 
 type FilterableSelectCellProps<
@@ -54,11 +55,9 @@ function findMatchingIndex(
   query: string,
 ): number {
   const char = query.toLowerCase();
-  const matchIndex = options.findIndex((opt) =>
-    opt.label.toLowerCase().startsWith(char),
+  return options.findIndex(
+    (opt) => opt.enabled !== false && opt.label.toLowerCase().startsWith(char),
   );
-
-  return matchIndex;
 }
 
 function calculateNextListIndex(
@@ -85,6 +84,23 @@ function calculateNextListIndex(
     default:
       return null;
   }
+}
+
+function skipDisabled(
+  options: FilterableSelectOption<string | number | boolean>[],
+  index: number,
+  direction: 1 | -1,
+  hasEmptyOption: boolean,
+): number {
+  const first = hasEmptyOption ? 0 : 1;
+  const last = options.length;
+  let i = index;
+  while (i >= first && i <= last) {
+    if (i === 0) return 0;
+    if (options[i - 1]?.enabled !== false) return i;
+    i += direction;
+  }
+  return index;
 }
 
 export function FilterableSelectCell({
@@ -155,14 +171,20 @@ export function FilterableSelectCell({
   const commit = useCallback(() => {
     if (activeIndex === 0 && emptyOptionLabel) {
       onChange(null);
-    } else if (filteredOptions[activeIndex - 1]) {
-      onChange(filteredOptions[activeIndex - 1].value);
+    } else {
+      const active = filteredOptions[activeIndex - 1];
+      if (active && active.enabled !== false) {
+        onChange(active.value);
+      } else {
+        return;
+      }
     }
     onClose();
   }, [filteredOptions, activeIndex, emptyOptionLabel, onChange, onClose]);
 
   const handleOptionClick = useCallback(
     (option: FilterableSelectOption<string | number | boolean>) => {
+      if (option.enabled === false) return;
       onChange(option.value);
       onClose();
     },
@@ -191,13 +213,21 @@ export function FilterableSelectCell({
         ) {
           setMode("navigation");
           setActiveIndex((prev) => {
-            return (
-              calculateNextListIndex(
-                e.key,
-                prev,
-                filteredOptions.length,
-                !!emptyOptionLabel,
-              ) ?? prev
+            const next = calculateNextListIndex(
+              e.key,
+              prev,
+              filteredOptions.length,
+              !!emptyOptionLabel,
+            );
+            if (next === null) return prev;
+            const direction = ["ArrowDown", "PageDown", "End"].includes(e.key)
+              ? 1
+              : -1;
+            return skipDisabled(
+              filteredOptions,
+              next,
+              direction,
+              !!emptyOptionLabel,
             );
           });
         }
@@ -504,17 +534,22 @@ const Option: FunctionComponent<OptionProps> = ({
   onMouseDown,
   onClick,
 }) => {
+  const isDisabled = option.enabled === false;
   return (
     <li
       role="option"
       aria-selected={isSelected}
+      aria-disabled={isDisabled}
       className={clsx(
-        "flex items-center justify-between gap-4 px-2 py-2 cursor-pointer text-gray-700 rounded",
-        isActive && "bg-purple-300/40",
-        !isActive && "hover:bg-gray-100",
+        "flex items-center justify-between gap-4 px-2 py-2 rounded",
+        isDisabled
+          ? "cursor-default text-gray-400"
+          : "cursor-pointer text-gray-700",
+        !isDisabled && isActive && "bg-purple-300/40",
+        !isDisabled && !isActive && "hover:bg-gray-100",
       )}
-      onMouseDown={onMouseDown}
-      onClick={() => onClick(option)}
+      onMouseDown={isDisabled ? undefined : onMouseDown}
+      onClick={isDisabled ? undefined : () => onClick(option)}
     >
       <span>{option.label}</span>
       {isSelected && <CheckIcon className="text-purple-700 flex-shrink-0" />}
@@ -601,8 +636,9 @@ export function filterableSelectColumn<
     pasteValue: (v) => {
       const match = options.options.find(
         (opt) =>
-          String(opt.value) === v ||
-          opt.label.toLowerCase() === v.toLowerCase(),
+          opt.enabled !== false &&
+          (String(opt.value) === v ||
+            opt.label.toLowerCase() === v.toLowerCase()),
       );
       return match ? match.value : null;
     },

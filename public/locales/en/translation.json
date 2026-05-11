@@ -226,6 +226,7 @@
   "pumpType": "Pump type",
   "pumpDefinition": "Definition",
   "pumpCurve": "Pump curve",
+  "libraryCurve": "Library curve",
   "pumpHead": "Pump head",
   "simulate": "Simulate",
   "simulateUnavailablePrivateBrowsing": "Simulation is not available in older browsers or private browsing mode. Try updating your browser or using another window.",

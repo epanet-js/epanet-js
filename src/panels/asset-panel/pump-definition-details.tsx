@@ -22,6 +22,7 @@ import type {
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+import { pumpDefinitionTypeChanges } from "src/hydraulic-model/model-operations";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import {
   BlockComparisonField,
@@ -147,19 +148,16 @@ const PumpDefinitionDetailsInner = ({
       setLocalDefinitionType(newValue);
 
       if (newValue === "power") {
-        return onChange([
-          { property: "definitionType", value: "power" },
-          { property: "power", value: pump.power },
-          { property: "curveId", value: undefined },
-        ]);
+        return onChange(
+          pumpDefinitionTypeChanges("power", { power: pump.power }),
+        );
       }
 
       if (newValue === "curveId") {
         if (pump.curveId)
-          onChange([
-            { property: "definitionType", value: "curveId" },
-            { property: "curveId", value: pump.curveId },
-          ]);
+          onChange(
+            pumpDefinitionTypeChanges("curveId", { curveId: pump.curveId }),
+          );
         return;
       }
 
@@ -177,11 +175,7 @@ const PumpDefinitionDetailsInner = ({
         return;
       }
 
-      onChange([
-        { property: "definitionType", value: newValue },
-        { property: "curve", value: validPoints },
-        { property: "curveId", value: undefined },
-      ]);
+      onChange(pumpDefinitionTypeChanges(newValue, { curve: validPoints }));
     },
     [curve, onChange, pump.power, pump.curveId],
   );
