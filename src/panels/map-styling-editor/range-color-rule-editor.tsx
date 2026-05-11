@@ -21,7 +21,7 @@ import {
   validateAscindingBreaks,
 } from "src/map/symbology/range-color-rule";
 import { useTranslate } from "src/hooks/use-translate";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useRegenerateBreaks } from "src/hooks/use-regenerate-breaks";
 import { getSortedDataForProperty } from "src/map/symbology/symbology-data-source";
@@ -36,7 +36,13 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/map-symbology";
 import { LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { notify } from "src/components/notifications";
-import { ErrorIcon, AddIcon, DeleteIcon, RefreshIcon } from "src/icons";
+import {
+  ErrorIcon,
+  AddIcon,
+  DeleteIcon,
+  RefreshIcon,
+  ChevronDownIcon,
+} from "src/icons";
 
 type ErrorType = "rampShouldBeAscending" | "notEnoughData";
 
@@ -215,17 +221,8 @@ export const RangeColorRuleEditor = ({
     }
   };
 
-  const LONG_PRESS_MS = 500;
   const [isRegenerateDropdownOpen, setIsRegenerateDropdownOpen] =
     useState(false);
-  const longPressTimerRef = useRef<number | null>(null);
-  const wasLongPressRef = useRef(false);
-
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-    };
-  }, []);
 
   const applyRegenerateResult = (result: {
     colorRule: RangeColorRule;
@@ -253,34 +250,6 @@ export const RangeColorRuleEditor = ({
   const handleRegenerateFromAllData = async () => {
     const result = await regenerateFromAllData(colorRule);
     if (result) applyRegenerateResult(result);
-  };
-
-  const handleRegeneratePointerDown = (e: React.PointerEvent) => {
-    e.preventDefault();
-    if (isWorking) return;
-    wasLongPressRef.current = false;
-    longPressTimerRef.current = window.setTimeout(() => {
-      wasLongPressRef.current = true;
-      setIsRegenerateDropdownOpen(true);
-    }, LONG_PRESS_MS);
-  };
-
-  const handleRegeneratePointerUp = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    if (isWorking) return;
-    if (!wasLongPressRef.current && !isRegenerateDropdownOpen) {
-      void handleRegenerate();
-    }
-  };
-
-  const handleRegeneratePointerLeave = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
   };
 
   const numIntervals = colorRule.breaks.length + 1;
@@ -341,25 +310,27 @@ export const RangeColorRuleEditor = ({
                 open={isRegenerateDropdownOpen}
                 onOpenChange={setIsRegenerateDropdownOpen}
               >
-                <DD.Trigger asChild>
+                <div className="flex w-full">
                   <Button
-                    className="text-center text-sm relative"
+                    className="text-center text-sm flex-1 rounded-r-none border-r-0"
                     size="full-width"
                     disabled={isWorking}
-                    onPointerDown={handleRegeneratePointerDown}
-                    onPointerUp={handleRegeneratePointerUp}
-                    onPointerLeave={handleRegeneratePointerLeave}
+                    onClick={() => void handleRegenerate()}
                   >
                     <RefreshIcon
                       className={isWorking ? "animate-spin" : undefined}
                     />
                     {translate("regenerate")}
-                    <span
-                      className="absolute bottom-1 right-1 border-l-[5px] border-l-transparent border-b-[5px] border-b-gray-400"
-                      aria-hidden="true"
-                    />
                   </Button>
-                </DD.Trigger>
+                  <DD.Trigger asChild>
+                    <Button
+                      className="text-sm px-2 rounded-l-none border-l"
+                      disabled={isWorking}
+                    >
+                      <ChevronDownIcon />
+                    </Button>
+                  </DD.Trigger>
+                </div>
                 <DD.Portal>
                   <DDContent align="start" side="top" sideOffset={4}>
                     <StyledItem onSelect={handleRegenerateFromCurrentStep}>
