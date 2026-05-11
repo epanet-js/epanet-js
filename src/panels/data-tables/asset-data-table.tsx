@@ -393,12 +393,7 @@ function buildColumns(
     });
 
   const booleanCol = (key: string, name: string, isReadOnly = false) =>
-    booleanColumn(key, {
-      header: name,
-      trueLabel: translate("yes"),
-      falseLabel: translate("no"),
-      isReadOnly,
-    });
+    booleanColumn(key, { header: name, isReadOnly });
 
   const patternOpts = (filterType: PatternType, excludeId?: PatternId) =>
     [...patterns.values()]

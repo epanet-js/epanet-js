@@ -215,6 +215,7 @@ function measureMaxCellWidth(
   let maxWidth = 0;
   for (const row of rows) {
     const value = row.getValue(columnId);
+    if (typeof value === "boolean") continue;
     const text = copyValue ? copyValue(value) : String(value ?? "");
     const w = ctx.measureText(text).width;
     if (w > maxWidth) maxWidth = w;
