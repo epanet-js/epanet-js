@@ -78,7 +78,13 @@ export const pipeRowSchema = z.object({
 export const pumpRowSchema = z.object({
   ...linkRowShared,
   initial_status: z.enum(pumpStatuses).nullable(),
-  definition_type: z.enum(["power", "curve", "curveId"]),
+  definition_type: z.enum([
+    "power",
+    "curve",
+    "designPointCurve",
+    "standardCurve",
+    "curveId",
+  ]),
   power: nullableNumber,
   speed: nullableNumber,
   speed_pattern_id: fkId,

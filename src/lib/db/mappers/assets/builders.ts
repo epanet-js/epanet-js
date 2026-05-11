@@ -202,7 +202,7 @@ const buildPump = (row: PumpRow, assetFactory: AssetFactory): Pump =>
     coordinates: parseLinkCoordinates(row, "Pump"),
     connections: [row.start_node_id, row.end_node_id],
     initialStatus: nullable(row.initial_status) as PumpStatus | undefined,
-    definitionType: row.definition_type as PumpDefintionType,
+    definitionType: resolveDefinitionType(row),
     power: nullable(row.power),
     curveId: nullable(row.curve_id),
     curve: parsePumpCurvePoints(row),
@@ -274,4 +274,14 @@ const parsePumpCurvePoints = (row: PumpRow): CurvePoint[] | undefined => {
     );
   }
   return result.data;
+};
+
+const resolveDefinitionType = (row: PumpRow): PumpDefintionType => {
+  if (
+    row.definition_type === "designPointCurve" ||
+    row.definition_type === "standardCurve"
+  ) {
+    return "curve";
+  }
+  return row.definition_type as PumpDefintionType;
 };
