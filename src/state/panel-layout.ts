@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ComponentType } from "react";
 import { atom, useSetAtom } from "jotai";
+import { splitsAtom } from "src/state/layout";
 
 export type Zone = "left" | "right" | "center" | "bottom";
 export type ResolvedLayout = "horizontal" | "vertical";
@@ -30,6 +31,21 @@ export const panelRegistryAtom = atom<PanelEntry[]>((get) => {
 });
 
 export const bottomActiveTabAtom = atom<string | null>(null);
+
+export const effectiveBottomTabAtom = atom<string | null>((get) => {
+  const activeTabId = get(bottomActiveTabAtom);
+  const { layout } = get(splitsAtom);
+  const resolvedLayout: ResolvedLayout =
+    layout === "VERTICAL" ? "vertical" : "horizontal";
+  const visiblePanels = get(panelRegistryAtom).filter(
+    (p) => effectiveZone(p, resolvedLayout) === "bottom" && p.shown !== false,
+  );
+  return (
+    visiblePanels.find((p) => p.id === activeTabId)?.id ??
+    visiblePanels[0]?.id ??
+    null
+  );
+});
 
 export function effectiveZone(
   entry: PanelEntry,

@@ -12,6 +12,7 @@ import {
 } from "src/state/panel-layout";
 import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
 import { useCloseProfileView } from "src/commands/close-profile-view";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const panels = useAtomValue(panelRegistryAtom);
@@ -20,6 +21,7 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const [activeTabId, setActiveTabId] = useAtom(bottomActiveTabAtom);
   const exitProfileViewMode = useExitProfileViewMode();
   const closeProfileView = useCloseProfileView();
+  const userTracking = useUserTracking();
 
   const resolvedLayout = layout === "VERTICAL" ? "vertical" : "horizontal";
 
@@ -45,9 +47,15 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
       if (effectiveTabId === "profile-view" && newTabId !== "profile-view") {
         exitProfileViewMode();
       }
+      if (newTabId !== effectiveTabId) {
+        userTracking.capture({
+          name: "bottomPanel.tabSwitched",
+          tabId: newTabId,
+        });
+      }
       setActiveTabId(newTabId);
     },
-    [effectiveTabId, exitProfileViewMode, setActiveTabId],
+    [effectiveTabId, exitProfileViewMode, setActiveTabId, userTracking],
   );
 
   if (visiblePanels.length === 0 || !ActivePanel) return null;

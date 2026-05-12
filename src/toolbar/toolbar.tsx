@@ -20,7 +20,10 @@ import {
 import Modes from "./modes";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
-import { bottomActiveTabAtom } from "src/state/panel-layout";
+import {
+  bottomActiveTabAtom,
+  effectiveBottomTabAtom,
+} from "src/state/panel-layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -263,10 +266,12 @@ const LayoutActions = () => {
   const translate = useTranslate();
   const [splits, setSplits] = useAtom(splitsAtom);
   const activeBottomTab = useAtomValue(bottomActiveTabAtom);
+  const effectiveBottomTab = useAtomValue(effectiveBottomTabAtom);
   const exitProfileViewMode = useExitProfileViewMode();
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
   const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
+  const userTracking = useUserTracking();
 
   const leftPanelIcon = splits.leftOpen ? (
     <PanelLeftActiveIcon />
@@ -304,7 +309,13 @@ const LayoutActions = () => {
             if (splits.bottomOpen && activeBottomTab === "profile-view") {
               exitProfileViewMode();
             }
-            setSplits((s) => ({ ...s, bottomOpen: !s.bottomOpen }));
+            const newOpen = !splits.bottomOpen;
+            setSplits((s) => ({ ...s, bottomOpen: newOpen }));
+            userTracking.capture({
+              name: "bottomPanel.toggled",
+              open: newOpen,
+              activeTabId: effectiveBottomTab,
+            });
           }}
         >
           {bottomPanelIcon}

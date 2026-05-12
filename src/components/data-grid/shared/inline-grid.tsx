@@ -35,6 +35,7 @@ export type InlineGridProps<TData extends Record<string, unknown>> = {
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
+  onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
   stopEditing: () => void;
   startEditing: () => void;
   selectCells: (options?: {
@@ -74,6 +75,7 @@ export const InlineGrid = forwardRef(function InlineGrid<
     onEmptyAreaMouseDown,
     onColumnHeaderClick,
     onSelectAll,
+    onColumnSort,
     stopEditing,
     startEditing,
     selectCells,
@@ -132,6 +134,7 @@ export const InlineGrid = forwardRef(function InlineGrid<
         variant={variant}
         selection={selection}
         fitWidthToContent={fitWidthToContent}
+        onColumnSort={onColumnSort}
       />
       {rows.map((row, rowIndex) => {
         const isLast = rowIndex === rows.length - 1;

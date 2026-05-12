@@ -1162,6 +1162,42 @@ export type UserEvent =
   | { name: "patternsLibrary.opened"; source: string }
   | { name: "assetControls.opened"; source: string }
   | { name: "dataTables.opened"; source: string }
+  | { name: "bottomPanel.tabSwitched"; tabId: string }
+  | { name: "bottomPanel.toggled"; open: boolean; activeTabId: string | null }
+  | {
+      name: "dataTables.cellEdited";
+      type: Asset["type"];
+      property: string;
+      count: number;
+    }
+  | {
+      name: "dataTables.copied";
+      type: Asset["type"];
+      rows: number;
+      cols: number;
+      allRows: boolean;
+      allCols: boolean;
+    }
+  | {
+      name: "dataTables.pasted";
+      type: Asset["type"];
+      rows: number;
+      cols: number;
+      allRows: boolean;
+      allCols: boolean;
+    }
+  | {
+      name: "dataTables.sorted";
+      type: Asset["type"];
+      property: string;
+      direction: "asc" | "desc";
+    }
+  | {
+      name: "dataTables.selectedInMap";
+      type: Asset["type"];
+      source: "cell-context" | "gutter-context";
+      count: number;
+    }
   | { name: "profileView.opened"; source: string }
   | { name: "profileView.selectionStarted"; source: string }
   | { name: "profileView.closed"; source: string }

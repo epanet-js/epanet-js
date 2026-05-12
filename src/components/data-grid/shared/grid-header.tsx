@@ -24,6 +24,7 @@ type GridHeaderProps<T> = {
   className?: string;
   scrollbarGap?: number;
   fitWidthToContent?: (columnId: string) => void;
+  onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
 };
 
 export function GridHeader<T>({
@@ -38,6 +39,7 @@ export function GridHeader<T>({
   className,
   scrollbarGap,
   fitWidthToContent,
+  onColumnSort,
 }: GridHeaderProps<T>) {
   const translate = useTranslate();
 
@@ -95,6 +97,7 @@ export function GridHeader<T>({
               onColumnHeaderClick={onColumnHeaderClick}
               fitWidthToContent={fitWidthToContent}
               translate={translate}
+              onColumnSort={onColumnSort}
             />
           )),
         )}
@@ -120,6 +123,7 @@ function HeaderCell<T>({
   onColumnHeaderClick,
   fitWidthToContent,
   translate,
+  onColumnSort,
 }: {
   header: Header<T, unknown>;
   colIndex: number;
@@ -127,6 +131,7 @@ function HeaderCell<T>({
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   fitWidthToContent?: (columnId: string) => void;
   translate: (key: string) => string;
+  onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
 }) {
   const cellRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -166,8 +171,14 @@ function HeaderCell<T>({
       )}
       {showActionsMenu && (
         <HeaderActionsButton
-          onSortAscending={() => header.column.toggleSorting(false)}
-          onSortDescending={() => header.column.toggleSorting(true)}
+          onSortAscending={() => {
+            header.column.toggleSorting(false);
+            onColumnSort?.(header.column.id, "asc");
+          }}
+          onSortDescending={() => {
+            header.column.toggleSorting(true);
+            onColumnSort?.(header.column.id, "desc");
+          }}
           onOpenChange={(open) => {
             setIsMenuOpen(open);
             if (!open) {

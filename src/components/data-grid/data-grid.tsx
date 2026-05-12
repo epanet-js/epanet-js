@@ -49,6 +49,19 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   autoAddNewRows?: boolean;
   sortable?: boolean;
+  onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
+  onCopy?: (info: {
+    rows: number;
+    cols: number;
+    allRows: boolean;
+    allCols: boolean;
+  }) => void;
+  onPaste?: (info: {
+    rows: number;
+    cols: number;
+    allRows: boolean;
+    allCols: boolean;
+  }) => void;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -73,6 +86,9 @@ export const DataGrid = forwardRef(function DataGrid<
     cellHasWarning,
     autoAddNewRows = false,
     sortable = false,
+    onColumnSort,
+    onCopy: onCopyCallback,
+    onPaste: onPasteCallback,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -185,6 +201,8 @@ export const DataGrid = forwardRef(function DataGrid<
       onChange,
       createRow,
       readOnly,
+      onCopy: onCopyCallback,
+      onPaste: onPasteCallback,
     });
 
   useImperativeHandle(
@@ -344,6 +362,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onColumnHeaderClick: (col: number, e: React.MouseEvent) =>
       selectCells({ colIndex: col, extend: e.shiftKey }),
     onSelectAll: () => selectCells(),
+    onColumnSort,
     stopEditing,
     startEditing,
     selectCells,

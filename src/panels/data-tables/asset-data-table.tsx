@@ -36,6 +36,7 @@ import {
 } from "src/components/data-grid";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useDeleteAssets } from "src/commands/delete-assets";
+import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PointerClickIcon } from "src/icons";
 import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import {
@@ -855,6 +856,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const isEditionBlocked = useIsEditionBlocked();
   const selectAssetsInApp = useSelectAssetsInApp();
   const deleteAssetsAction = useDeleteAssets();
+  const userTracking = useUserTracking();
 
   const assetIds = useMemo(() => {
     const ids: AssetId[] = [];
@@ -963,6 +965,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ...EDITABLE_SELECT_KEYS[assetType],
       ];
       const moments: ModelMoment[] = [];
+      const editedProperties = new Map<string, number>();
       for (let i = 0; i < newRows.length; i++) {
         const newRow = newRows[i];
         const oldRow = rowsRef.current?.[i];
@@ -977,11 +980,19 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           moments.push(
             changeLabel(hydraulicModel, { assetId, newLabel: newRow.label }),
           );
+          editedProperties.set(
+            "label",
+            (editedProperties.get("label") ?? 0) + 1,
+          );
         }
 
         if (newRow.isActive !== oldRow.isActive) {
           const op = newRow.isActive ? activateAssets : deactivateAssets;
           moments.push(op(hydraulicModel, { assetIds: [assetId] }));
+          editedProperties.set(
+            "isActive",
+            (editedProperties.get("isActive") ?? 0) + 1,
+          );
         }
 
         const changes: PropertyChange[] = [];
@@ -991,6 +1002,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               property: key,
               value: newRow[key],
             } as PropertyChange);
+            editedProperties.set(key, (editedProperties.get(key) ?? 0) + 1);
           }
         }
         if (assetType === "tank") {
@@ -1054,9 +1066,19 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       }
 
       const merged = mergeMoments(moments, "Edit asset table");
-      if (merged) transact(merged);
+      if (merged) {
+        transact(merged);
+        for (const [property, count] of editedProperties) {
+          userTracking.capture({
+            name: "dataTables.cellEdited",
+            type: assetType,
+            property,
+            count,
+          });
+        }
+      }
     },
-    [assetType, hydraulicModel, labelManager, transact],
+    [assetType, hydraulicModel, labelManager, transact, userTracking],
   );
 
   const getAssetIdsFromSortedRows = useCallback(
@@ -1099,13 +1121,18 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         label: translate("selectInMap"),
         icon: <PointerClickIcon />,
         onSelect: (selection, sortedRows) => {
-          selectAssetsInApp(
-            getAssetIdsFromSortedRows(
-              sortedRows as AssetRow[],
-              selection.min.row,
-              selection.max.row,
-            ),
+          const ids = getAssetIdsFromSortedRows(
+            sortedRows as AssetRow[],
+            selection.min.row,
+            selection.max.row,
           );
+          selectAssetsInApp(ids);
+          userTracking.capture({
+            name: "dataTables.selectedInMap",
+            type: assetType,
+            source: "cell-context",
+            count: ids.length,
+          });
         },
       },
       ...(isEditionBlocked ? [] : [deleteAction as CellContextAction]),
@@ -1116,6 +1143,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       getAssetIdsFromSortedRows,
       isEditionBlocked,
       deleteAction,
+      userTracking,
+      assetType,
     ],
   );
 
@@ -1125,13 +1154,18 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         label: translate("selectInMap"),
         icon: <PointerClickIcon />,
         onSelect: (selection, sortedRows) => {
-          selectAssetsInApp(
-            getAssetIdsFromSortedRows(
-              sortedRows as AssetRow[],
-              selection.min.row,
-              selection.max.row,
-            ),
+          const ids = getAssetIdsFromSortedRows(
+            sortedRows as AssetRow[],
+            selection.min.row,
+            selection.max.row,
           );
+          selectAssetsInApp(ids);
+          userTracking.capture({
+            name: "dataTables.selectedInMap",
+            type: assetType,
+            source: "gutter-context",
+            count: ids.length,
+          });
         },
       },
       ...(isEditionBlocked ? [] : [deleteAction as GutterContextAction]),
@@ -1142,7 +1176,53 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       getAssetIdsFromSortedRows,
       isEditionBlocked,
       deleteAction,
+      userTracking,
+      assetType,
     ],
+  );
+
+  const handleSort = useCallback(
+    (columnId: string, direction: "asc" | "desc") => {
+      userTracking.capture({
+        name: "dataTables.sorted",
+        type: assetType,
+        property: columnId,
+        direction,
+      });
+    },
+    [userTracking, assetType],
+  );
+
+  const handleCopy = useCallback(
+    (info: {
+      rows: number;
+      cols: number;
+      allRows: boolean;
+      allCols: boolean;
+    }) => {
+      userTracking.capture({
+        name: "dataTables.copied",
+        type: assetType,
+        ...info,
+      });
+    },
+    [userTracking, assetType],
+  );
+
+  const handlePaste = useCallback(
+    (info: {
+      rows: number;
+      cols: number;
+      allRows: boolean;
+      allCols: boolean;
+    }) => {
+      userTracking.capture({
+        name: "dataTables.pasted",
+        type: assetType,
+        ...info,
+      });
+    },
+    [userTracking, assetType],
   );
 
   return (
@@ -1165,6 +1245,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           readOnly={isEditionBlocked}
           cellContextActions={cellContextActions}
           gutterContextActions={gutterContextActions}
+          onColumnSort={handleSort}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
         />
       )}
     </div>

@@ -8,6 +8,18 @@ type UseClipboardOptions<TData extends Record<string, unknown>> = {
   onChange: (data: TData[]) => void;
   createRow: () => TData;
   readOnly?: boolean;
+  onCopy?: (info: {
+    rows: number;
+    cols: number;
+    allRows: boolean;
+    allCols: boolean;
+  }) => void;
+  onPaste?: (info: {
+    rows: number;
+    cols: number;
+    allRows: boolean;
+    allCols: boolean;
+  }) => void;
 };
 
 export function useClipboard<TData extends Record<string, unknown>>({
@@ -17,6 +29,8 @@ export function useClipboard<TData extends Record<string, unknown>>({
   onChange,
   createRow,
   readOnly = false,
+  onCopy,
+  onPaste,
 }: UseClipboardOptions<TData>) {
   const copyToClipboard = useCallback(async () => {
     if (!selection) return;
@@ -71,7 +85,15 @@ export function useClipboard<TData extends Record<string, unknown>>({
 
     const text = rows.join("\n");
     await navigator.clipboard.writeText(text);
-  }, [selection, columns, data]);
+    const selRows = selection.max.row - selection.min.row + 1;
+    const selCols = selection.max.col - selection.min.col + 1;
+    onCopy?.({
+      rows: selRows,
+      cols: selCols,
+      allRows: selRows === data.length,
+      allCols: selCols === columns.length,
+    });
+  }, [selection, columns, data, onCopy]);
 
   const applyPaste = useCallback(
     (text: string) => {
@@ -122,8 +144,21 @@ export function useClipboard<TData extends Record<string, unknown>>({
       }
 
       onChange(newData);
+
+      const writtenCols = Math.min(
+        targetCols,
+        columns.length - selection.min.col,
+      );
+      onPaste?.({
+        rows: targetRows,
+        cols: writtenCols,
+        allRows:
+          selection.min.row === 0 &&
+          selection.min.row + targetRows >= newData.length,
+        allCols: selection.min.col === 0 && writtenCols === columns.length,
+      });
     },
-    [selection, columns, data, onChange, createRow, readOnly],
+    [selection, columns, data, onChange, createRow, readOnly, onPaste],
   );
 
   const pasteFromClipboard = useCallback(async () => {

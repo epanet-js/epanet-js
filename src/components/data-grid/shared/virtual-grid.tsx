@@ -59,6 +59,7 @@ export type VirtualGridProps<TData extends Record<string, unknown>> = {
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
+  onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
   cellContextMenu?: CellContextMenuConfig<TData>;
   gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
@@ -94,6 +95,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
     cellHasWarning,
     onColumnHeaderClick,
     onSelectAll,
+    onColumnSort,
     cellContextMenu,
     gutterContextMenu,
   }: VirtualGridProps<TData>,
@@ -239,6 +241,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
           selection={selection}
           scrollbarGap={scrollState.scrollbarWidth}
           fitWidthToContent={fitWidthToContent}
+          onColumnSort={onColumnSort}
         />
       </div>
       <div
