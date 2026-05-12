@@ -214,6 +214,7 @@ export type ChartBuilderChartDialogState = {
   nodeProperty: string | null;
   linkProperty: string | null;
   chartTitle: string;
+  chartType: "line" | "variability";
 };
 
 export type DialogState =

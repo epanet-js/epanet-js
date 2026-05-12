@@ -12,8 +12,6 @@ import {
 } from "./use-chart-data";
 import type { AssetSeries } from "./use-chart-data";
 
-const MAX_LINES = 12;
-
 const CHART_COLORS = [
   "#A2780B",
   "#FF4939",
@@ -197,12 +195,14 @@ interface ChartStepProps {
   selectedAssetIds: number[];
   nodeProperty: string | null;
   linkProperty: string | null;
+  chartType: "line" | "variability";
 }
 
 export function ChartStep({
   selectedAssetIds,
   nodeProperty,
   linkProperty,
+  chartType,
 }: ChartStepProps) {
   const translate = useTranslate();
   const {
@@ -226,19 +226,23 @@ export function ChartStep({
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const series: any[] = [];
+    const nodeSeriesNames: string[] = [];
+    const linkSeriesNames: string[] = [];
 
     const buildGroup = (
       group: AssetSeries[],
       yAxisIndex: number,
       colorScale: string[],
       dashed = false,
+      names: string[] = [],
     ) => {
       if (group.length === 0) return;
       const valid = group.filter((s) => s.timeSeries);
       if (valid.length === 0) return;
 
-      if (valid.length <= MAX_LINES) {
+      if (chartType === "line") {
         valid.forEach((s, i) => {
+          names.push(s.label);
           series.push(
             buildLineSeries(
               s.label,
@@ -250,6 +254,7 @@ export function ChartStep({
           );
         });
       } else {
+        names.push("P10", "P10–P90", "P25", "P25–P75", "Median (P50)");
         const percs = computePercentileSeries(
           valid.map((s) => s.timeSeries!.values),
           timestepCount,
@@ -260,13 +265,25 @@ export function ChartStep({
       }
     };
 
-    buildGroup(nodeSeries, 0, isMixed ? EMERALD_SCALE : CHART_COLORS);
+    // For variability on mixed types, only show nodes — dual-axis percentile bands are unreadable
+    const showLinks = !(isMixed && chartType === "variability");
+
     buildGroup(
-      linkSeries,
-      isMixed ? 1 : 0,
-      isMixed ? ORANGE_SCALE : CHART_COLORS,
-      isMixed,
+      nodeSeries,
+      0,
+      isMixed ? EMERALD_SCALE : CHART_COLORS,
+      false,
+      nodeSeriesNames,
     );
+    if (showLinks) {
+      buildGroup(
+        linkSeries,
+        isMixed ? 1 : 0,
+        isMixed ? ORANGE_SCALE : CHART_COLORS,
+        isMixed,
+        linkSeriesNames,
+      );
+    }
 
     const yAxisLeft = buildYAxisConfig(
       isMixed ? allNodeValues : [...allNodeValues, ...allLinkValues],
@@ -295,17 +312,67 @@ export function ChartStep({
         ]
       : { ...yAxisLeft };
 
+    const showLegend = series.length <= 10;
+    const useTwoLegends =
+      isMixed &&
+      chartType === "line" &&
+      showLegend &&
+      nodeSeriesNames.length > 0 &&
+      linkSeriesNames.length > 0;
+
+    const legendBase = {
+      itemWidth: 28,
+      itemHeight: 8,
+      textStyle: { fontSize: 11, color: colors.gray600 },
+    };
+
+    const legend = useTwoLegends
+      ? [
+          { ...legendBase, data: nodeSeriesNames, bottom: 20, left: 52 },
+          { ...legendBase, data: linkSeriesNames, bottom: 2, left: 52 },
+        ]
+      : { ...legendBase, show: showLegend, bottom: 0, left: "center" };
+
+    const graphic = useTwoLegends
+      ? [
+          {
+            type: "text",
+            bottom: 28,
+            left: 16,
+            style: {
+              text: "Nodes",
+              fontSize: 10,
+              fill: colors.gray400,
+              font: "10px sans-serif",
+            },
+          },
+          {
+            type: "text",
+            bottom: 8,
+            left: 16,
+            style: {
+              text: "Links",
+              fontSize: 10,
+              fill: colors.gray400,
+              font: "10px sans-serif",
+            },
+          },
+        ]
+      : undefined;
+
+    const gridBottom = useTwoLegends ? 48 : showLegend ? 36 : 16;
+
     return {
       animation: false,
-      grid: { top: 28, right: 16, bottom: 36, left: 16, containLabel: true },
-      legend: {
-        show: true,
-        bottom: 0,
-        left: "center",
-        itemWidth: 16,
-        itemHeight: 8,
-        textStyle: { fontSize: 11, color: colors.gray600 },
+      grid: {
+        top: 28,
+        right: 16,
+        bottom: gridBottom,
+        left: 16,
+        containLabel: true,
       },
+      legend,
+      ...(graphic ? { graphic } : {}),
       xAxis: buildXAxis(timestepCount, intervalSeconds),
       yAxis,
       series,
@@ -337,6 +404,7 @@ export function ChartStep({
       },
     };
   }, [
+    chartType,
     timestepCount,
     intervalSeconds,
     nodeSeries,
@@ -349,6 +417,19 @@ export function ChartStep({
     linkAxisLabel,
     isMixed,
   ]);
+
+  const hideLegend = useMemo(() => {
+    const skipLinks = isMixed && chartType === "variability";
+    const validNodes = nodeSeries.filter((s) => s.timeSeries).length;
+    const validLinks = skipLinks
+      ? 0
+      : linkSeries.filter((s) => s.timeSeries).length;
+    const count =
+      chartType === "variability"
+        ? (validNodes > 0 ? 5 : 0) + (validLinks > 0 ? 5 : 0)
+        : validNodes + validLinks;
+    return count > 10;
+  }, [nodeSeries, linkSeries, isMixed, chartType]);
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -372,25 +453,34 @@ export function ChartStep({
   }
 
   return (
-    <div ref={containerRef} className="relative flex-1 min-h-0 w-full">
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
-          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      {!isLoading && timestepCount === 0 ? (
-        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-          No data available
-        </div>
-      ) : (
-        <div className="absolute inset-0">
-          <ReactECharts
-            ref={chartRef}
-            option={option}
-            style={{ height: "100%", width: "100%" }}
-            opts={{ renderer: "svg" }}
-          />
-        </div>
+    <div ref={containerRef} className="flex flex-col flex-1 min-h-0 w-full">
+      <div className="relative flex-1 min-h-0">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
+            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {!isLoading && timestepCount === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+            No data available
+          </div>
+        ) : (
+          <div className="absolute inset-0">
+            <ReactECharts
+              ref={chartRef}
+              option={option}
+              notMerge={true}
+              style={{ height: "100%", width: "100%" }}
+              opts={{ renderer: "svg" }}
+            />
+          </div>
+        )}
+      </div>
+      {hideLegend && (
+        <p className="text-sm text-center text-gray-400 py-1.5">
+          Too many elements to display a legend — hover over the chart to
+          identify individual series.
+        </p>
       )}
     </div>
   );

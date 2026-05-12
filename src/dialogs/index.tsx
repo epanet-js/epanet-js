@@ -428,6 +428,7 @@ const ChartBuilderChartDialog = dynamic<{
   nodeProperty: string | null;
   linkProperty: string | null;
   chartTitle: string;
+  chartType: "line" | "variability";
 }>(
   () =>
     import("src/dialogs/chart-builder/chart-dialog").then(
@@ -724,7 +725,13 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with(
       { type: "chartBuilderChart" },
-      ({ selectedAssetIds, nodeProperty, linkProperty, chartTitle }) => (
+      ({
+        selectedAssetIds,
+        nodeProperty,
+        linkProperty,
+        chartTitle,
+        chartType,
+      }) => (
         <ChartBuilderChartDialog
           isOpen
           onClose={onClose}
@@ -732,6 +739,7 @@ export const Dialogs = memo(function Dialogs() {
           nodeProperty={nodeProperty}
           linkProperty={linkProperty}
           chartTitle={chartTitle}
+          chartType={chartType}
         />
       ),
     )

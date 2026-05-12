@@ -115,8 +115,22 @@ export function ChartBuilderWizard({
       nodeProperty,
       linkProperty,
       chartTitle,
+      chartType: selectedAssetIds.length >= 2 ? "variability" : "line",
     });
   };
+
+  const footer =
+    selectedAssetIds.length === 0 ? (
+      <AckDialogAction label={translate("understood")} onAck={onClose} />
+    ) : (
+      <SimpleDialogActions
+        action={translate("chartBuilder.buildChart")}
+        onAction={handleBuild}
+        onClose={onClose}
+        isDisabled={!canBuild}
+        autoFocusSubmit={false}
+      />
+    );
 
   return (
     <BaseDialog
@@ -124,19 +138,7 @@ export function ChartBuilderWizard({
       size="xs"
       isOpen={isOpen}
       onClose={onClose}
-      footer={
-        selectedAssetIds.length === 0 ? (
-          <AckDialogAction label={translate("understood")} onAck={onClose} />
-        ) : (
-          <SimpleDialogActions
-            action={translate("chartBuilder.buildChart")}
-            onAction={handleBuild}
-            onClose={onClose}
-            isDisabled={!canBuild}
-            autoFocusSubmit={false}
-          />
-        )
-      }
+      footer={footer}
     >
       <div className="px-4 py-4">
         {selectedAssetIds.length === 0 ? (
