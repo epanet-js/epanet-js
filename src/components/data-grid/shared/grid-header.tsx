@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Table, flexRender, Header } from "@tanstack/react-table";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
@@ -129,6 +129,7 @@ function HeaderCell<T>({
   fitWidthToContent?: (columnId: string) => void;
   translate: (key: string) => string;
 }) {
+  const cellRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hasActions = header.column.getCanSort();
@@ -137,6 +138,7 @@ function HeaderCell<T>({
 
   return (
     <div
+      ref={cellRef}
       role="columnheader"
       className={clsx(
         "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 border border-transparent overflow-visible",
@@ -169,7 +171,11 @@ function HeaderCell<T>({
           onSortDescending={() => header.column.toggleSorting(true)}
           onOpenChange={(open) => {
             setIsMenuOpen(open);
-            if (!open) setIsHovered(false);
+            if (!open) {
+              requestAnimationFrame(() => {
+                setIsHovered(cellRef.current?.matches(":hover") ?? false);
+              });
+            }
           }}
           isSelected={isSelected}
           translate={translate}
