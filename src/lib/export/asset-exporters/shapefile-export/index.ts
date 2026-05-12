@@ -4,7 +4,11 @@ import {
   type HydraulicModel,
 } from "src/hydraulic-model";
 import { type ResultsReader } from "src/simulation";
-import { type ExportedAssetTypes, type ExportedFile } from "../../types";
+import {
+  type AssetExportOptions,
+  type ExportedAssetTypes,
+  type ExportedFile,
+} from "../../types";
 import { SHAPE_POINT, SHAPE_POLYLINE, WGS84_WKT, CPG_BYTES } from "./constants";
 import { AssetWriter } from "./asset-writer";
 import { buildSchema } from "./schema";
@@ -27,11 +31,13 @@ const CUSTOMER_POINT_FIELDS = [
 
 export const exportShapefiles = (
   hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
   projection: Projection,
-  resultsReader?: ResultsReader,
+  options?: AssetExportOptions,
 ): ExportedFile[] => {
+  const includeSimulationResults =
+    (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
+  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const resultsReader = options?.resultsReader;
   const writers: Record<ExportedAssetTypes, AssetWriter> = {
     junction: new AssetWriter(SHAPE_POINT),
     reservoir: new AssetWriter(SHAPE_POINT),

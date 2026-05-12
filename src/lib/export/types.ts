@@ -1,4 +1,5 @@
 import { AssetType } from "src/hydraulic-model";
+import { ResultsReader } from "src/simulation";
 
 export type ExportFormat = "geojson" | "csv" | "shapefile" | "xlsx";
 export type ExportedAssetTypes = AssetType | "customerPoint";
@@ -37,6 +38,12 @@ export const ALL_METRICS: ExportSimulationResultsProperties[] = [
   "unitHeadloss",
   "status",
 ];
+
+export type AssetExportOptions = {
+  includeSimulationResults?: boolean;
+  selectedAssets?: Set<number>;
+  resultsReader?: ResultsReader;
+};
 
 export type SimulationResultsOptions = {
   selectedAssets?: Set<number>;

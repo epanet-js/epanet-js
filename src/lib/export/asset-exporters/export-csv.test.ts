@@ -5,12 +5,10 @@ import { exportCsv } from "./export-csv";
 import { WGS84 } from "src/lib/projections";
 import { COORDINATE_DECIMAL_PLACES } from "../constants";
 
-const noSelection = new Set<number>();
-
 describe("export-csv", () => {
   it("always returns one file per asset type with correct metadata", () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     expect(files).toHaveLength(7);
     expect(files.map((f) => f.fileName)).toEqual(
@@ -25,7 +23,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 42 })
       .build();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const headers = lines[0].split(",").filter(Boolean);
@@ -45,7 +43,7 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aPipe(2, { startNodeId: 1 })
       .build();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const pipeLines = await readCsv(findFile(files, "pipes.csv"));
@@ -60,7 +58,10 @@ describe("export-csv", () => {
     const demand = 10;
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportCsv(model, true, noSelection, WGS84, resultsReader);
+    const files = exportCsv(model, WGS84, {
+      includeSimulationResults: true,
+      resultsReader,
+    });
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const [row] = parseCsvRows(lines);
 
@@ -78,7 +79,7 @@ describe("export-csv", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     const lines = await readCsv(findFile(files, "customer-points.csv"));
     const headers = lines[0].split(",").filter(Boolean);
@@ -112,7 +113,7 @@ describe("export-csv", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const [jRow] = parseCsvRows(junctionLines);
@@ -143,7 +144,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
       .build();
-    const files = exportCsv(model, false, noSelection, WGS84);
+    const files = exportCsv(model, WGS84);
 
     const lines = await readCsv(findFile(files, "customer-points.csv"));
     const [row] = parseCsvRows(lines);
@@ -170,7 +171,7 @@ describe("export-csv", () => {
       })
       .build();
 
-    const files = exportCsv(model, false, noSelection, xyGrid);
+    const files = exportCsv(model, xyGrid);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const [jRow] = parseCsvRows(junctionLines);
@@ -187,7 +188,7 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportCsv(model, false, new Set([1]), WGS84);
+    const files = exportCsv(model, WGS84, { selectedAssets: new Set([1]) });
 
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const rows = parseCsvRows(lines);

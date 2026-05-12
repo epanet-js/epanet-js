@@ -68,10 +68,12 @@ export const useExportAssetData = () => {
             fileName,
             options.format,
             hydraulicModel,
-            options.includeSimulationResults,
-            options.selectedAssets,
             projectSettings.projection,
-            resultsReader,
+            {
+              includeSimulationResults: options.includeSimulationResults,
+              selectedAssets: options.selectedAssets,
+              resultsReader,
+            },
           );
         };
 

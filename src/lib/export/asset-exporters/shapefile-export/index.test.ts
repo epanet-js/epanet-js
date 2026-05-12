@@ -27,7 +27,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [10, 20] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     expect(files.length).toBe(5);
     expect(fileNames(files)).toEqual(
       expect.arrayContaining([
@@ -45,7 +45,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const names = fileNames(files);
     expect(names.some((n) => n.startsWith("pipes."))).toBe(false);
     expect(names.some((n) => n.startsWith("junctions."))).toBe(true);
@@ -58,7 +58,7 @@ describe("exportShapefiles", () => {
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     // junction × 5 + pipe × 5 = 10
     expect(files.length).toBe(10);
   });
@@ -69,7 +69,9 @@ describe("exportShapefiles", () => {
       .aJunction(2, { coordinates: [5, 5] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set([1]), WGS84);
+    const files = exportShapefiles(model, WGS84, {
+      selectedAssets: new Set([1]),
+    });
     const dbfFile = files.find((f) => f.fileName === "junctions.dbf")!;
     // record count in DBF header (bytes 4-7, little-endian)
     return blobView(dbfFile.blob).then((view) => {
@@ -82,7 +84,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shpFile = files.find((f) => f.fileName === "junctions.shp")!;
     const view = await blobView(shpFile.blob);
     expect(view.getUint32(0, false)).toBe(0x0000270a);
@@ -93,7 +95,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
     const text = await blobText(prjFile.blob);
     expect(text).toContain("WGS 84");
@@ -105,7 +107,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const cpgFile = files.find((f) => f.fileName === "junctions.cpg")!;
     expect(await blobText(cpgFile.blob)).toBe("UTF-8");
   });
@@ -115,7 +117,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [10.5, 20.5] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shpFile = files.find((f) => f.fileName === "junctions.shp")!;
     const view = await blobView(shpFile.blob);
     expect(view.getFloat64(36, true)).toBeCloseTo(10.5); // xmin
@@ -131,7 +133,7 @@ describe("exportShapefiles", () => {
       .aJunction(3, { coordinates: [2, 2] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const view = await blobView(dbf.blob);
     expect(view.getUint32(4, true)).toBe(3);
@@ -142,7 +144,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     expect(bytes[bytes.length - 1]).toBe(0x1a);
@@ -155,7 +157,7 @@ describe("exportShapefiles", () => {
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shp = files.find((f) => f.fileName === "pipes.shp")!;
     const view = await blobView(shp.blob);
     expect(view.getUint32(32, true)).toBe(3); // shape type in header
@@ -168,7 +170,7 @@ describe("exportShapefiles", () => {
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "pipes.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     const text = new TextDecoder("latin1").decode(bytes);
@@ -192,13 +194,10 @@ describe("exportShapefiles", () => {
       getValve: () => ({}),
     } as any;
 
-    const files = exportShapefiles(
-      model,
-      true,
-      new Set(),
-      WGS84,
-      mockResultsReader,
-    );
+    const files = exportShapefiles(model, WGS84, {
+      includeSimulationResults: true,
+      resultsReader: mockResultsReader,
+    });
     const dbf = files.find((f) => f.fileName === "junctions.dbf")!;
     const bytes = await blobBytes(dbf.blob);
     // The DBF should contain the field name "PRESSURE" somewhere in the header
@@ -212,7 +211,7 @@ describe("exportShapefiles", () => {
       .aJunction(2, { coordinates: [1, 1] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shx = files.find((f) => f.fileName === "junctions.shx")!;
     const bytes = await blobBytes(shx.blob);
     expect(bytes.length).toBe(100 + 8 * 2);
@@ -223,7 +222,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(1, { coordinates: [5, 10], label: "CP1" })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const names = fileNames(files);
     expect(names).toEqual(
       expect.arrayContaining([
@@ -241,7 +240,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const names = fileNames(files);
     expect(names.some((n) => n.startsWith("customer-points."))).toBe(false);
   });
@@ -252,7 +251,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(2, { coordinates: [1, 1] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const view = await blobView(dbf.blob);
     expect(view.getUint32(4, true)).toBe(2);
@@ -263,7 +262,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(1, { coordinates: [0, 0], label: "CP1" })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("LABEL");
@@ -278,7 +277,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(1, { coordinates: [0, 0], label: "MyPoint" })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("MyPoint");
@@ -295,7 +294,7 @@ describe("exportShapefiles", () => {
       })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const dbf = files.find((f) => f.fileName === "customer-points.dbf")!;
     const text = new TextDecoder("latin1").decode(await blobBytes(dbf.blob));
     expect(text).toContain("J1");
@@ -307,7 +306,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(1, { coordinates: [3, 7] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shp = files.find((f) => f.fileName === "customer-points.shp")!;
     const view = await blobView(shp.blob);
     expect(view.getUint32(32, true)).toBe(1); // shape type in header
@@ -319,7 +318,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(2, { coordinates: [1, 1] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), WGS84);
+    const files = exportShapefiles(model, WGS84);
     const shx = files.find((f) => f.fileName === "customer-points.shx")!;
     const bytes = await blobBytes(shx.blob);
     expect(bytes.length).toBe(100 + 8 * 2);
@@ -339,7 +338,7 @@ describe("exportShapefiles", () => {
       .aCustomerPoint(IDS.CP1, { coordinates: [1, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), xyGrid);
+    const files = exportShapefiles(model, xyGrid);
 
     const jShp = files.find((f) => f.fileName === "junctions.shp")!;
     const jView = await blobView(jShp.blob);
@@ -363,7 +362,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), proj4Proj);
+    const files = exportShapefiles(model, proj4Proj);
     const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
     const text = await blobText(prjFile.blob);
     expect(text).toBe(proj4Proj.code);
@@ -380,7 +379,7 @@ describe("exportShapefiles", () => {
       .aJunction(1, { coordinates: [0, 0] })
       .build();
 
-    const files = exportShapefiles(model, false, new Set(), xyGrid);
+    const files = exportShapefiles(model, xyGrid);
     const prjFile = files.find((f) => f.fileName === "junctions.prj")!;
     const text = await blobText(prjFile.blob);
     expect(text).toContain("LOCAL_CS");

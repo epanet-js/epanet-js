@@ -31,8 +31,6 @@ function sheetRows(workbook: XLSX.WorkBook, sheetName: string): string[][] {
   return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
 }
 
-const noSelection = new Set<number>();
-
 describe("exportXlsx", () => {
   it("produces one sheet per asset type with correct names and row counts", async () => {
     const IDS = {
@@ -58,7 +56,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection, WGS84);
+    await exportXlsx(handle, model, WGS84);
 
     const wb = getWorkbook();
     expect(wb.SheetNames).toEqual([
@@ -86,7 +84,9 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, new Set([IDS.J1]), WGS84);
+    await exportXlsx(handle, model, WGS84, {
+      selectedAssets: new Set([IDS.J1]),
+    });
 
     const wb = getWorkbook();
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
@@ -103,7 +103,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection, WGS84);
+    await exportXlsx(handle, model, WGS84);
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "pipes");
@@ -134,14 +134,10 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(
-      handle,
-      model,
-      true,
-      noSelection,
-      WGS84,
-      mockResultsReader,
-    );
+    await exportXlsx(handle, model, WGS84, {
+      includeSimulationResults: true,
+      resultsReader: mockResultsReader,
+    });
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "junctions");
@@ -176,14 +172,10 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(
-      handle,
-      model,
-      true,
-      noSelection,
-      WGS84,
-      mockResultsReader,
-    );
+    await exportXlsx(handle, model, WGS84, {
+      includeSimulationResults: true,
+      resultsReader: mockResultsReader,
+    });
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "junctions");
@@ -223,7 +215,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection, WGS84);
+    await exportXlsx(handle, model, WGS84);
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "customer-points");
@@ -272,7 +264,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, false, noSelection, xyGrid);
+    await exportXlsx(handle, model, xyGrid);
 
     const wb = getWorkbook();
     const jRows = sheetRows(wb, "junctions");

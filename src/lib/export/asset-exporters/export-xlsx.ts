@@ -1,7 +1,7 @@
 import { Zip, ZipDeflate } from "fflate";
 import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
-import { ExportedAssetTypes } from "../types";
+import { AssetExportOptions, ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
@@ -27,11 +27,14 @@ const SHEET_NAMES = [
 export const exportXlsx = async (
   handle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
   projection: Projection,
-  resultsReader?: ResultsReader,
+  options?: AssetExportOptions,
 ): Promise<void> => {
+  const includeSimulationResults =
+    (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
+  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const resultsReader = options?.resultsReader;
+
   const stream = await handle.createWritable();
 
   try {

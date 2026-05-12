@@ -1,17 +1,14 @@
 import { HydraulicModel, Projection } from "src/hydraulic-model";
 import { AssetExporters } from "./asset-exporters";
 import { FileSystemHelpers } from "./file-system-helpers";
-import type { ExportFormat } from "./types";
-import { ResultsReader } from "src/simulation";
+import type { AssetExportOptions, ExportFormat } from "./types";
 
 export const exportAssetData = async (
   fileName: string,
   format: ExportFormat,
   hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
   projection: Projection,
-  resultsReader?: ResultsReader,
+  options?: AssetExportOptions,
 ) => {
   const exporters = {
     geojson: AssetExporters.exportGeoJson,
@@ -20,24 +17,11 @@ export const exportAssetData = async (
   };
 
   if (format === "xlsx") {
-    await handleXlsx(
-      fileName,
-      hydraulicModel,
-      includeSimulationResults,
-      selectedAssets,
-      projection,
-      resultsReader,
-    );
+    await handleXlsx(fileName, hydraulicModel, projection, options);
     return;
   }
 
-  const exportedFiles = exporters[format](
-    hydraulicModel,
-    includeSimulationResults,
-    selectedAssets,
-    projection,
-    resultsReader,
-  );
+  const exportedFiles = exporters[format](hydraulicModel, projection, options);
 
   const zipFileName = `${fileName}.zip`;
   const handle = FileSystemHelpers.isFileSystemAccessSupported()
@@ -59,10 +43,8 @@ export const exportAssetData = async (
 const handleXlsx = async (
   fileName: string,
   hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
   projection: Projection,
-  resultsReader?: ResultsReader,
+  options?: AssetExportOptions,
 ) => {
   const xlsxFileName = `${fileName}.xlsx`;
   const handle = FileSystemHelpers.isFileSystemAccessSupported()
@@ -74,14 +56,7 @@ const handleXlsx = async (
       )
     : await FileSystemHelpers.openFileInOpfs(fileName);
 
-  await AssetExporters.exportXlsx(
-    handle,
-    hydraulicModel,
-    includeSimulationResults,
-    selectedAssets,
-    projection,
-    resultsReader,
-  );
+  await AssetExporters.exportXlsx(handle, hydraulicModel, projection, options);
 
   if (!FileSystemHelpers.isFileSystemAccessSupported()) {
     await FileSystemHelpers.triggerDownload(xlsxFileName, handle);

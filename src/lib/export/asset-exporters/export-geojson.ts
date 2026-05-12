@@ -4,7 +4,7 @@ import {
   HydraulicModel,
   Projection,
 } from "src/hydraulic-model";
-import { ExportedAssetTypes, ExportedFile } from "../types";
+import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
@@ -29,11 +29,13 @@ const buildGeoJsonHeader = (projection: Projection): string =>
 
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
-  includeSimulationResults: boolean,
-  selectedAssets: Set<number>,
   projection: Projection,
-  resultsReader?: ResultsReader,
+  options?: AssetExportOptions,
 ): ExportedFile[] => {
+  const includeSimulationResults =
+    (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
+  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const resultsReader = options?.resultsReader;
   const entrySize = estimateEntrySize(hydraulicModel);
   const size =
     Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) *
