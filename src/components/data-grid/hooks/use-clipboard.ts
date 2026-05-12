@@ -81,21 +81,30 @@ export function useClipboard<TData extends Record<string, unknown>>({
       if (!text) return;
 
       const clipboardRows = text.split("\n").map((row) => row.split("\t"));
-      const newData = [...data];
+      const pasteRows = clipboardRows.length;
+      const pasteCols = Math.max(...clipboardRows.map((r) => r.length));
 
-      // Extend data array if clipboard content exceeds current size
-      const requiredRows = selection.min.row + clipboardRows.length;
+      const selRows = selection.max.row - selection.min.row + 1;
+      const selCols = selection.max.col - selection.min.col + 1;
+
+      // Tile the clipboard block to cover the full selection when the
+      // selection is larger; otherwise use the clipboard dimensions, which
+      // may extend past a single-cell selection.
+      const targetRows = Math.max(selRows, pasteRows);
+      const targetCols = Math.max(selCols, pasteCols);
+
+      const newData = [...data];
+      const requiredRows = selection.min.row + targetRows;
       while (newData.length < requiredRows) {
         newData.push(createRow());
       }
 
-      for (let i = 0; i < clipboardRows.length; i++) {
+      for (let i = 0; i < targetRows; i++) {
         const rowIndex = selection.min.row + i;
-
-        const clipboardRow = clipboardRows[i];
+        const clipboardRow = clipboardRows[i % pasteRows];
         const newRow = { ...newData[rowIndex] };
 
-        for (let j = 0; j < clipboardRow.length; j++) {
+        for (let j = 0; j < targetCols; j++) {
           const colIndex = selection.min.col + j;
           if (colIndex >= columns.length) break;
 
@@ -105,10 +114,9 @@ export function useClipboard<TData extends Record<string, unknown>>({
           const accessorKey = column?.accessorKey;
           if (!accessorKey) continue;
 
+          const cellText = clipboardRow[j % clipboardRow.length] ?? "";
           const pasteValue = column.pasteValue;
-          const value = pasteValue
-            ? pasteValue(clipboardRow[j])
-            : clipboardRow[j];
+          const value = pasteValue ? pasteValue(cellText) : cellText;
           (newRow as Record<string, unknown>)[accessorKey] = value;
         }
 

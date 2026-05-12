@@ -266,6 +266,125 @@ describe("useClipboard", () => {
 
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it("tiles the pasted block across a larger selection", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
+        { id: "4", name: "Dave", value: "400" },
+      ];
+      const onChange = vi.fn();
+      const selection: GridSelection = {
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 3 },
+      };
+
+      Object.assign(navigator, {
+        clipboard: {
+          readText: vi.fn().mockResolvedValue("X\tY\nZ\tW"),
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange,
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.pasteFromClipboard();
+      });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { id: "X", name: "Y", value: "100" },
+        { id: "Z", name: "W", value: "200" },
+        { id: "X", name: "Y", value: "300" },
+        { id: "Z", name: "W", value: "400" },
+      ]);
+    });
+
+    it("repeats a single cell value across the whole selection", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
+      ];
+      const onChange = vi.fn();
+      const selection: GridSelection = {
+        min: { col: 1, row: 0 },
+        max: { col: 2, row: 2 },
+      };
+
+      Object.assign(navigator, {
+        clipboard: {
+          readText: vi.fn().mockResolvedValue("hi"),
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange,
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.pasteFromClipboard();
+      });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { id: "1", name: "hi", value: "hi" },
+        { id: "2", name: "hi", value: "hi" },
+        { id: "3", name: "hi", value: "hi" },
+      ]);
+    });
+
+    it("tiles with partial repetition when selection is not a clean multiple", async () => {
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
+      ];
+      const onChange = vi.fn();
+      const selection: GridSelection = {
+        min: { col: 1, row: 0 },
+        max: { col: 1, row: 2 },
+      };
+
+      Object.assign(navigator, {
+        clipboard: {
+          readText: vi.fn().mockResolvedValue("A\nB"),
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useClipboard({
+          selection,
+          columns: createTestColumns(),
+          data,
+          onChange,
+          createRow: createTestRow,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.pasteFromClipboard();
+      });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { id: "1", name: "A", value: "100" },
+        { id: "2", name: "B", value: "200" },
+        { id: "3", name: "A", value: "300" },
+      ]);
+    });
   });
 
   describe("copyToClipboard", () => {
