@@ -172,13 +172,13 @@ type SatelliteViewToggled = {
 
 export type AssetDeleted = {
   name: "asset.deleted";
-  source: "shortcut" | "toolbar" | "context-menu";
+  source: "shortcut" | "toolbar" | "context-menu" | "data-table";
   type: Asset["type"];
 };
 
 export type AssetsDeleted = {
   name: "assets.deleted";
-  source: "shortcut" | "toolbar" | "context-menu";
+  source: "shortcut" | "toolbar" | "context-menu" | "data-table";
   count: number;
 };
 

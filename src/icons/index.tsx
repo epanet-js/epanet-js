@@ -21,6 +21,7 @@ import {
   CircleSlash2,
   CircleX,
   Copy,
+  ClipboardPaste,
   Crosshair,
   Download,
   EllipsisVertical,
@@ -230,6 +231,8 @@ export const ControlsIcon = icon(FileCode);
 export const PatternsIcon = icon(ChartColumn);
 export const RenameIcon = icon(TextCursorInput);
 export const DuplicateIcon = icon(Copy);
+export const CopyIcon = icon(Copy);
+export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
 export const SelectPathIcon = icon(ChevronsLeftRightEllipsis);
 

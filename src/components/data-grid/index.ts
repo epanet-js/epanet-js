@@ -5,6 +5,8 @@ export type {
   GridSelection,
   GridColumn,
   RowAction,
+  CellContextAction,
+  GutterContextAction,
   CellPosition,
 } from "./types";
 

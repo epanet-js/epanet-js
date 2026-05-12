@@ -1,24 +1,33 @@
+import * as CM from "@radix-ui/react-context-menu";
 import clsx from "clsx";
 import { DataGridVariant } from "../types";
+import {
+  GutterContextMenuConfig,
+  GutterContextMenuContent,
+} from "./grid-context-menus";
 
-type RowGutterCellProps = {
+type RowGutterCellProps<TData extends Record<string, unknown>> = {
   rowIndex: number;
   onClick: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   variant: DataGridVariant;
   isLastRow: boolean;
   showRowNumbers?: boolean;
   isRowSelected?: boolean;
+  gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
 
-export function RowGutterCell({
+export function RowGutterCell<TData extends Record<string, unknown>>({
   rowIndex,
   onClick,
+  onContextMenu,
   variant,
   isLastRow,
   showRowNumbers = true,
   isRowSelected = false,
-}: RowGutterCellProps) {
-  return (
+  gutterContextMenu,
+}: RowGutterCellProps<TData>) {
+  const cellNode = (
     <div
       role="rowheader"
       className={clsx(
@@ -39,8 +48,19 @@ export function RowGutterCell({
             },
       )}
       onClick={onClick}
+      onContextMenu={onContextMenu}
     >
       {showRowNumbers ? rowIndex + 1 : null}
     </div>
+  );
+
+  if (!gutterContextMenu || gutterContextMenu.actions.length === 0)
+    return cellNode;
+
+  return (
+    <CM.Root>
+      <CM.Trigger asChild>{cellNode}</CM.Trigger>
+      <GutterContextMenuContent {...gutterContextMenu} rowIndex={rowIndex} />
+    </CM.Root>
   );
 }

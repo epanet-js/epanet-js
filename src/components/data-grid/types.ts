@@ -14,6 +14,24 @@ export type RowAction = {
   disabled?: (rowIndex: number) => boolean;
 };
 
+export type ContextActionVariant = "default" | "destructive";
+
+export type CellContextAction<TData = unknown> = {
+  label: string;
+  icon: React.ReactNode;
+  onSelect: (selection: GridSelection, sortedRows: TData[]) => void;
+  disabled?: (selection: GridSelection) => boolean;
+  variant?: ContextActionVariant;
+};
+
+export type GutterContextAction<TData = unknown> = {
+  label: string;
+  icon: React.ReactNode;
+  onSelect: (selection: GridSelection, sortedRows: TData[]) => void;
+  disabled?: (rowIndex: number) => boolean;
+  variant?: ContextActionVariant;
+};
+
 export type CellProps<TValue = unknown> = {
   value: TValue;
   rowIndex: number;

@@ -1,5 +1,6 @@
 export { moveNode } from "./move-node";
 export { changeProperty, changeProperties } from "./change-property";
+export { mergeMoments } from "./merge-moments";
 export type { PropertyChange } from "./change-property";
 export { changeLabel } from "./change-label";
 export { allocateCustomerPoints } from "./allocate-customer-points";

@@ -18,8 +18,12 @@ import {
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
+import {
+  CellContextMenuConfig,
+  GutterContextMenuConfig,
+} from "./grid-context-menus";
 
-export type GridRowProps<TData> = {
+export type GridRowProps<TData extends Record<string, unknown>> = {
   row: Row<TData>;
   rowIndex: number;
   columns: GridColumn[];
@@ -29,7 +33,9 @@ export type GridRowProps<TData> = {
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
+  onCellContextMenu?: (col: number, row: number, e: React.MouseEvent) => void;
   onGutterClick: (row: number, e: React.MouseEvent) => void;
+  onGutterContextMenu?: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   stopEditing: () => void;
   startEditing: () => void;
@@ -41,9 +47,11 @@ export type GridRowProps<TData> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
+  cellContextMenu?: CellContextMenuConfig<TData>;
+  gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
 
-export function GridRow<TData>({
+export function GridRow<TData extends Record<string, unknown>>({
   row,
   rowIndex,
   columns,
@@ -53,7 +61,9 @@ export function GridRow<TData>({
   onCellMouseDown,
   onCellMouseEnter,
   onCellDoubleClick,
+  onCellContextMenu,
   onGutterClick,
+  onGutterContextMenu,
   onCellChange,
   stopEditing,
   startEditing,
@@ -65,6 +75,8 @@ export function GridRow<TData>({
   readOnly,
   variant,
   cellHasWarning,
+  cellContextMenu,
+  gutterContextMenu,
 }: GridRowProps<TData>) {
   return (
     <>
@@ -72,6 +84,11 @@ export function GridRow<TData>({
         <RowGutterCell
           rowIndex={rowIndex}
           onClick={(e) => onGutterClick(rowIndex, e)}
+          onContextMenu={
+            onGutterContextMenu
+              ? (e) => onGutterContextMenu(rowIndex, e)
+              : undefined
+          }
           variant={variant}
           isLastRow={gutterIsLastRow}
           showRowNumbers={showRowNumbers}
@@ -79,6 +96,7 @@ export function GridRow<TData>({
             isFullRowSelected(selection, columns.length) &&
             isCellSelected(selection, 0, rowIndex)
           }
+          gutterContextMenu={gutterContextMenu}
         />
       )}
 
@@ -115,6 +133,11 @@ export function GridRow<TData>({
               onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
               onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
               onDoubleClick={() => onCellDoubleClick(colIndex)}
+              onContextMenu={
+                onCellContextMenu
+                  ? (e) => onCellContextMenu(colIndex, rowIndex, e)
+                  : undefined
+              }
               onBlur={stopEditing}
               onStartEditing={startEditing}
               onChange={
@@ -131,6 +154,7 @@ export function GridRow<TData>({
                   ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
                   : false
               }
+              cellContextMenu={cellContextMenu}
             />
           );
         })}

@@ -9,7 +9,9 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import {
   changeProperties,
   changeLabel,
+  mergeMoments,
 } from "src/hydraulic-model/model-operations";
+import type { ModelMoment } from "src/hydraulic-model";
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,
@@ -29,7 +31,12 @@ import {
   filterableSelectColumn,
   textColumn,
   type GridColumn,
+  type CellContextAction,
+  type GutterContextAction,
 } from "src/components/data-grid";
+import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
+import { useDeleteAssets } from "src/commands/delete-assets";
+import { DeleteIcon, PointerClickIcon } from "src/icons";
 import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import {
   pumpStatuses,
@@ -844,6 +851,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const { transact } = useModelTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const selectAssetsInApp = useSelectAssetsInApp();
+  const deleteAssetsAction = useDeleteAssets();
 
   const assetIds = useMemo(() => {
     const ids: AssetId[] = [];
@@ -951,6 +960,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         ...EDITABLE_NUMERIC_KEYS[assetType],
         ...EDITABLE_SELECT_KEYS[assetType],
       ];
+      const moments: ModelMoment[] = [];
       for (let i = 0; i < newRows.length; i++) {
         const newRow = newRows[i];
         const oldRow = rowsRef.current?.[i];
@@ -962,14 +972,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           newRow.label !== oldRow.label &&
           labelManager.isLabelAvailable(newRow.label, assetType, assetId)
         ) {
-          transact(
+          moments.push(
             changeLabel(hydraulicModel, { assetId, newLabel: newRow.label }),
           );
         }
 
         if (newRow.isActive !== oldRow.isActive) {
           const op = newRow.isActive ? activateAssets : deactivateAssets;
-          transact(op(hydraulicModel, { assetIds: [assetId] }));
+          moments.push(op(hydraulicModel, { assetIds: [assetId] }));
         }
 
         const changes: PropertyChange[] = [];
@@ -1035,13 +1045,106 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         }
 
         if (changes.length > 0) {
-          transact(
+          moments.push(
             changeProperties(hydraulicModel, { assetIds: [assetId], changes }),
           );
         }
       }
+
+      const merged = mergeMoments(moments, "Edit asset table");
+      if (merged) transact(merged);
     },
     [assetType, hydraulicModel, labelManager, transact],
+  );
+
+  const getAssetIdsFromSortedRows = useCallback(
+    (sortedRows: AssetRow[], minRow: number, maxRow: number): AssetId[] => {
+      const ids: AssetId[] = [];
+      for (let i = minRow; i <= maxRow && i < sortedRows.length; i++) {
+        const id = sortedRows[i]?.id;
+        if (id !== undefined) ids.push(id);
+      }
+      return ids;
+    },
+    [],
+  );
+
+  const cellContextActions = useMemo<CellContextAction[]>(
+    () => [
+      {
+        label: translate("selectInMap"),
+        icon: <PointerClickIcon />,
+        onSelect: (selection, sortedRows) => {
+          selectAssetsInApp(
+            getAssetIdsFromSortedRows(
+              sortedRows as AssetRow[],
+              selection.min.row,
+              selection.max.row,
+            ),
+          );
+        },
+      },
+      {
+        label: translate("delete"),
+        icon: <DeleteIcon />,
+        variant: "destructive",
+        onSelect: (selection, sortedRows) => {
+          deleteAssetsAction(
+            getAssetIdsFromSortedRows(
+              sortedRows as AssetRow[],
+              selection.min.row,
+              selection.max.row,
+            ),
+            "data-table",
+          );
+        },
+      },
+    ],
+    [
+      translate,
+      selectAssetsInApp,
+      deleteAssetsAction,
+      getAssetIdsFromSortedRows,
+    ],
+  );
+
+  const gutterContextActions = useMemo<GutterContextAction[]>(
+    () => [
+      {
+        label: translate("selectInMap"),
+        icon: <PointerClickIcon />,
+        onSelect: (selection, sortedRows) => {
+          selectAssetsInApp(
+            getAssetIdsFromSortedRows(
+              sortedRows as AssetRow[],
+              selection.min.row,
+              selection.max.row,
+            ),
+          );
+        },
+      },
+      {
+        label: translate("delete"),
+        icon: <DeleteIcon />,
+        variant: "destructive",
+        onSelect: (selection, sortedRows) => {
+          deleteAssetsAction(
+            getAssetIdsFromSortedRows(
+              sortedRows as AssetRow[],
+              selection.min.row,
+              selection.max.row,
+            ),
+            "data-table",
+          );
+        },
+      },
+    ],
+    [
+      translate,
+      selectAssetsInApp,
+      deleteAssetsAction,
+      getAssetIdsFromSortedRows,
+    ],
   );
 
   return (
@@ -1061,6 +1164,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           resizable
           sortable
           minColumnSizePx={20}
+          cellContextActions={cellContextActions}
+          gutterContextActions={gutterContextActions}
         />
       )}
     </div>

@@ -22,8 +22,12 @@ import { GridRow, ROW_HEIGHT } from "./grid-row";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
 import { FIXED_COLUMN_SIZE } from "../hooks";
+import {
+  CellContextMenuConfig,
+  GutterContextMenuConfig,
+} from "./grid-context-menus";
 
-export type VirtualGridProps<TData> = {
+export type VirtualGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
   columns: GridColumn[];
   rowCount: number;
@@ -33,7 +37,9 @@ export type VirtualGridProps<TData> = {
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
+  onCellContextMenu?: (col: number, row: number, e: React.MouseEvent) => void;
   onGutterClick: (row: number, e: React.MouseEvent) => void;
+  onGutterContextMenu?: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   stopEditing: () => void;
@@ -53,9 +59,13 @@ export type VirtualGridProps<TData> = {
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
+  cellContextMenu?: CellContextMenuConfig<TData>;
+  gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
 
-export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
+export const VirtualGrid = forwardRef(function VirtualGrid<
+  TData extends Record<string, unknown>,
+>(
   {
     table,
     columns,
@@ -66,7 +76,9 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
+    onCellContextMenu,
     onGutterClick,
+    onGutterContextMenu,
     onEmptyAreaMouseDown,
     onCellChange,
     stopEditing,
@@ -82,6 +94,8 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
     cellHasWarning,
     onColumnHeaderClick,
     onSelectAll,
+    cellContextMenu,
+    gutterContextMenu,
   }: VirtualGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
 ) {
@@ -272,7 +286,9 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
                   onCellMouseDown={onCellMouseDown}
                   onCellMouseEnter={onCellMouseEnter}
                   onCellDoubleClick={onCellDoubleClick}
+                  onCellContextMenu={onCellContextMenu}
                   onGutterClick={onGutterClick}
+                  onGutterContextMenu={onGutterContextMenu}
                   onCellChange={onCellChange}
                   stopEditing={stopEditing}
                   startEditing={startEditing}
@@ -284,6 +300,8 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
                   readOnly={readOnly}
                   variant={variant}
                   cellHasWarning={cellHasWarning}
+                  cellContextMenu={cellContextMenu}
+                  gutterContextMenu={gutterContextMenu}
                 />
               </div>
             );
@@ -325,7 +343,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
       )}
     </div>
   );
-}) as <TData>(
+}) as <TData extends Record<string, unknown>>(
   props: VirtualGridProps<TData> & { ref?: React.Ref<GridRef> },
 ) => React.ReactElement;
 

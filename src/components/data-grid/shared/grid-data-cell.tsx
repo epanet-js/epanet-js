@@ -1,6 +1,11 @@
+import * as CM from "@radix-ui/react-context-menu";
 import { Cell } from "@tanstack/react-table";
 import clsx from "clsx";
 import { DataGridVariant, EditMode, GridColumn } from "../types";
+import {
+  CellContextMenuConfig,
+  CellContextMenuContent,
+} from "./grid-context-menus";
 
 export type SelectionEdge = {
   top: boolean;
@@ -9,8 +14,8 @@ export type SelectionEdge = {
   right: boolean;
 };
 
-type GridDataCellProps<T> = {
-  cell: Cell<T, unknown>;
+type GridDataCellProps<TData extends Record<string, unknown>> = {
+  cell: Cell<TData, unknown>;
   colIndex: number;
   isSelected: boolean;
   isActive: boolean;
@@ -21,6 +26,7 @@ type GridDataCellProps<T> = {
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseEnter: () => void;
   onDoubleClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   onStartEditing: () => void;
@@ -29,9 +35,10 @@ type GridDataCellProps<T> = {
   isLastRow: boolean;
   isLastCol: boolean;
   hasWarning?: boolean;
+  cellContextMenu?: CellContextMenuConfig<TData>;
 };
 
-export function GridDataCell<T>({
+export function GridDataCell<TData extends Record<string, unknown>>({
   cell,
   colIndex,
   isSelected,
@@ -43,6 +50,7 @@ export function GridDataCell<T>({
   onMouseDown,
   onMouseEnter,
   onDoubleClick,
+  onContextMenu,
   onBlur,
   onStartEditing,
   onChange,
@@ -51,8 +59,9 @@ export function GridDataCell<T>({
   isLastRow,
   isLastCol,
   hasWarning,
-}: GridDataCellProps<T>) {
-  return (
+  cellContextMenu,
+}: GridDataCellProps<TData>) {
+  const cellNode = (
     <div
       key={cell.id}
       role="gridcell"
@@ -99,6 +108,7 @@ export function GridDataCell<T>({
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
     >
       {CellComponent ? (
         <CellComponent
@@ -118,5 +128,14 @@ export function GridDataCell<T>({
         </div>
       )}
     </div>
+  );
+
+  if (!cellContextMenu) return cellNode;
+
+  return (
+    <CM.Root>
+      <CM.Trigger asChild>{cellNode}</CM.Trigger>
+      <CellContextMenuContent {...cellContextMenu} />
+    </CM.Root>
   );
 }

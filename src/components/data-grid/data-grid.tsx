@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from "react";
 import {
@@ -16,7 +17,10 @@ import {
   GridColumn,
   RowAction,
   GridSelection,
+  CellContextAction,
+  GutterContextAction,
 } from "./types";
+import { isCellSelected } from "./hooks";
 import {
   useSelection,
   useGridEditing,
@@ -36,6 +40,8 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   minColumnSizePx?: number;
   emptyState?: React.ReactNode;
   rowActions?: RowAction[];
+  cellContextActions?: CellContextAction<TData>[];
+  gutterContextActions?: GutterContextAction<TData>[];
   addRowLabel?: string;
   gutterColumn?: "hidden" | "selection" | "numbered";
   onSelectionChange?: (selection: GridSelection | null) => void;
@@ -58,6 +64,8 @@ export const DataGrid = forwardRef(function DataGrid<
     minColumnSizePx = 50,
     emptyState,
     rowActions,
+    cellContextActions,
+    gutterContextActions,
     addRowLabel,
     gutterColumn = "hidden",
     onSelectionChange,
@@ -169,14 +177,15 @@ export const DataGrid = forwardRef(function DataGrid<
     [editMode],
   );
 
-  const { handleCopy, handlePaste } = useClipboard({
-    selection,
-    columns,
-    data,
-    onChange,
-    createRow,
-    readOnly,
-  });
+  const { handleCopy, handlePaste, copyToClipboard, pasteFromClipboard } =
+    useClipboard({
+      selection,
+      columns,
+      data,
+      onChange,
+      createRow,
+      readOnly,
+    });
 
   useImperativeHandle(
     ref,
@@ -204,6 +213,68 @@ export const DataGrid = forwardRef(function DataGrid<
       selectCells({ rowIndex: row, extend: e.shiftKey });
     },
     [selectCells],
+  );
+
+  const handleCellContextMenu = useCallback(
+    (col: number, row: number) => {
+      if (!isCellSelected(selection, col, row)) {
+        selectCells({ colIndex: col, rowIndex: row });
+      }
+    },
+    [selection, selectCells],
+  );
+
+  const handleGutterContextMenu = useCallback(
+    (row: number) => {
+      const rowIsFullySelected =
+        selection !== null &&
+        selection.min.col === 0 &&
+        selection.max.col === columns.length - 1 &&
+        row >= selection.min.row &&
+        row <= selection.max.row;
+      if (!rowIsFullySelected) {
+        selectCells({ rowIndex: row });
+      }
+    },
+    [selection, selectCells, columns.length],
+  );
+
+  const tableRef = useRef(table);
+  tableRef.current = table;
+
+  const getSortedRows = useCallback(
+    () => tableRef.current.getRowModel().rows.map((r) => r.original),
+    [],
+  );
+
+  const cellContextMenu = useMemo(
+    () =>
+      cellContextActions
+        ? {
+            actions: cellContextActions,
+            selection,
+            getSortedRows,
+            onCopy: () => void copyToClipboard(),
+            onPaste: () => void pasteFromClipboard(),
+            readOnly,
+          }
+        : undefined,
+    [
+      cellContextActions,
+      selection,
+      getSortedRows,
+      copyToClipboard,
+      pasteFromClipboard,
+      readOnly,
+    ],
+  );
+
+  const gutterContextMenu = useMemo(
+    () =>
+      gutterContextActions && gutterContextActions.length > 0
+        ? { actions: gutterContextActions, selection, getSortedRows }
+        : undefined,
+    [gutterContextActions, selection, getSortedRows],
   );
 
   const handleCellChange = useCallback(
@@ -261,7 +332,13 @@ export const DataGrid = forwardRef(function DataGrid<
     onCellMouseDown: handleCellMouseDown,
     onCellMouseEnter: handleCellMouseEnter,
     onCellDoubleClick: handleCellDoubleClick,
+    onCellContextMenu: cellContextMenu
+      ? (col: number, row: number) => handleCellContextMenu(col, row)
+      : undefined,
     onGutterClick: handleGutterClick,
+    onGutterContextMenu: gutterContextMenu
+      ? (row: number) => handleGutterContextMenu(row)
+      : undefined,
     onCellChange: handleCellChange,
     onEmptyAreaMouseDown: handleEmptyAreaMouseDown,
     onColumnHeaderClick: (col: number, e: React.MouseEvent) =>
@@ -278,6 +355,8 @@ export const DataGrid = forwardRef(function DataGrid<
     readOnly,
     variant,
     cellHasWarning,
+    cellContextMenu,
+    gutterContextMenu,
   };
 
   return (

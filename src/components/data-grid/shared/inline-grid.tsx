@@ -11,10 +11,14 @@ import {
 } from "../types";
 import { useFitColumnWidth, useRowsNavigation } from "../hooks";
 import { GridRow } from "./grid-row";
+import {
+  CellContextMenuConfig,
+  GutterContextMenuConfig,
+} from "./grid-context-menus";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
 
-export type InlineGridProps<TData> = {
+export type InlineGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
   columns: GridColumn[];
   rowCount: number;
@@ -24,7 +28,9 @@ export type InlineGridProps<TData> = {
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
+  onCellContextMenu?: (col: number, row: number, e: React.MouseEvent) => void;
   onGutterClick: (row: number, e: React.MouseEvent) => void;
+  onGutterContextMenu?: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
   onEmptyAreaMouseDown: (e: React.MouseEvent) => void;
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
@@ -44,9 +50,13 @@ export type InlineGridProps<TData> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
+  cellContextMenu?: CellContextMenuConfig<TData>;
+  gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
 
-export const InlineGrid = forwardRef(function InlineGrid<TData>(
+export const InlineGrid = forwardRef(function InlineGrid<
+  TData extends Record<string, unknown>,
+>(
   {
     table,
     columns,
@@ -57,7 +67,9 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
+    onCellContextMenu,
     onGutterClick,
+    onGutterContextMenu,
     onCellChange,
     onEmptyAreaMouseDown,
     onColumnHeaderClick,
@@ -73,6 +85,8 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
     readOnly,
     variant,
     cellHasWarning,
+    cellContextMenu,
+    gutterContextMenu,
   }: InlineGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
 ) {
@@ -143,7 +157,9 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
               onCellMouseDown={onCellMouseDown}
               onCellMouseEnter={onCellMouseEnter}
               onCellDoubleClick={onCellDoubleClick}
+              onCellContextMenu={onCellContextMenu}
               onGutterClick={onGutterClick}
+              onGutterContextMenu={onGutterContextMenu}
               onCellChange={onCellChange}
               stopEditing={stopEditing}
               startEditing={startEditing}
@@ -155,12 +171,14 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
               readOnly={readOnly}
               variant={variant}
               cellHasWarning={cellHasWarning}
+              cellContextMenu={cellContextMenu}
+              gutterContextMenu={gutterContextMenu}
             />
           </div>
         );
       })}
     </div>
   );
-}) as <TData>(
+}) as <TData extends Record<string, unknown>>(
   props: InlineGridProps<TData> & { ref?: React.Ref<GridRef> },
 ) => React.ReactElement;
