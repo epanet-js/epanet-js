@@ -4,6 +4,7 @@ import { strokeColorFor } from "src/lib/color";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { ProfileLink, ProfilePoint } from "../chart-data";
 import type { SldIcons } from "./use-sld-icons";
+import type { SldVisibility } from "./visibility";
 
 const NODE_BORDER_COLOR = "#98abeb";
 
@@ -14,6 +15,11 @@ const PIPE_SLD_HALF_HEIGHT = 1.5;
 
 const EMPTY_SELECTION: ReadonlySet<number> = new Set();
 
+const DEFAULT_VISIBILITY: SldVisibility = {
+  showJunctions: true,
+  showOtherValves: true,
+};
+
 export type BuildSldSeriesParams = {
   points: ProfilePoint[];
   links: ProfileLink[];
@@ -22,6 +28,7 @@ export type BuildSldSeriesParams = {
   nodeColor: string;
   sldIcons: SldIcons;
   selectedIds?: ReadonlySet<number>;
+  visibility?: SldVisibility;
 };
 
 export function buildSldSeries({
@@ -32,18 +39,22 @@ export function buildSldSeries({
   nodeColor,
   sldIcons,
   selectedIds = EMPTY_SELECTION,
+  visibility = DEFAULT_VISIBILITY,
 }: BuildSldSeriesParams): SeriesOption[] {
   return traceDuration("DEBUG PROFILE_CHART:sldSeries", () => {
     if (links.length === 0) return [];
     return [
       pipesSld(links, pipeColor, sldY, selectedIds),
       ...pumpValvesSld(links, sldY),
-      junctionsSld(points, nodeColor, sldY, selectedIds),
-      tanksSld(points, sldIcons, sldY, selectedIds),
-      reservoirsSld(points, sldIcons, sldY, selectedIds),
+      pumpValveSelectionHalo(links, sldY, selectedIds, visibility),
+      visibility.showJunctions
+        ? junctionsSld(points, nodeColor, sldY, selectedIds)
+        : null,
+      visibility.showOtherValves ? otherValvesSld(links, sldIcons, sldY) : null,
       pumpsSld(links, sldIcons, sldY),
-      valvesSld(links, sldIcons, sldY),
-      pumpValveSelectionHalo(links, sldY, selectedIds),
+      prvValvesSld(links, sldIcons, sldY),
+      reservoirsSld(points, sldIcons, sldY, selectedIds),
+      tanksSld(points, sldIcons, sldY, selectedIds),
     ].filter(notNull);
   });
 }
@@ -188,7 +199,8 @@ function tanksSld(
     symbolSize: 18,
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
-    z: 5,
+    zlevel: 1,
+    z: 13,
   };
 }
 
@@ -219,7 +231,8 @@ function reservoirsSld(
     symbolSize: 18,
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
-    z: 5,
+    zlevel: 1,
+    z: 13,
   };
 }
 
@@ -252,17 +265,40 @@ function pumpsSld(
     symbolSize: 18,
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
-    z: 10,
+    zlevel: 1,
+    z: 12,
   };
 }
 
-function valvesSld(
+function prvValvesSld(
   links: ProfileLink[],
   sldIcons: SldIcons,
   sldY: number,
 ): SeriesOption | null {
-  const valves = links.filter((l) => l.type === "valve");
-  if (valves.length === 0) return null;
+  const prvs = links.filter((l) => l.type === "valve" && l.valveKind === "prv");
+  if (prvs.length === 0) return null;
+  return buildValveScatter(prvs, sldIcons, sldY, 1, 12);
+}
+
+function otherValvesSld(
+  links: ProfileLink[],
+  sldIcons: SldIcons,
+  sldY: number,
+): SeriesOption | null {
+  const others = links.filter(
+    (l) => l.type === "valve" && l.valveKind !== "prv",
+  );
+  if (others.length === 0) return null;
+  return buildValveScatter(others, sldIcons, sldY, 0, 7);
+}
+
+function buildValveScatter(
+  valves: ProfileLink[],
+  sldIcons: SldIcons,
+  sldY: number,
+  zlevel: number,
+  z: number,
+): SeriesOption {
   return {
     type: "scatter" as const,
     name: "sldValveIcons",
@@ -281,7 +317,8 @@ function valvesSld(
     symbolSize: 18,
     itemStyle: { opacity: 1 },
     tooltip: { show: false },
-    z: 10,
+    zlevel,
+    z,
   };
 }
 
@@ -289,11 +326,15 @@ function pumpValveSelectionHalo(
   links: ProfileLink[],
   sldY: number,
   selectedIds: ReadonlySet<number>,
+  visibility: SldVisibility,
 ): SeriesOption | null {
-  const selected = links.filter(
-    (l) =>
-      (l.type === "pump" || l.type === "valve") && selectedIds.has(l.linkId),
-  );
+  const selected = links.filter((l) => {
+    if (!selectedIds.has(l.linkId)) return false;
+    if (l.type === "pump") return true;
+    if (l.type !== "valve") return false;
+    if (l.valveKind === "prv") return true;
+    return visibility.showOtherValves;
+  });
   if (selected.length === 0) return null;
   return {
     type: "scatter" as const,
@@ -310,7 +351,7 @@ function pumpValveSelectionHalo(
     itemStyle: { color: SELECTION_COLOR, opacity: 0.8 },
     silent: true,
     tooltip: { show: false },
-    z: 9,
+    z: 6,
   };
 }
 

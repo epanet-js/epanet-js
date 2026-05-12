@@ -1,5 +1,6 @@
 import type { ProfileLink, ProfilePoint } from "./chart-data";
 import { interpolateElevation, interpolateHgl } from "./tooltip-data";
+import type { SldVisibility } from "./sld/visibility";
 
 export const SNAP_PIXEL_THRESHOLD = 10;
 
@@ -47,23 +48,61 @@ export function pickSldSnap(
   points: ProfilePoint[],
   links: ProfileLink[],
   px: number,
+  visibility?: SldVisibility,
 ): SldSnap {
-  const iconLink = nearestIconLink(chart, links, px);
-  if (iconLink) return iconLink;
+  const showJunctions = visibility?.showJunctions ?? true;
+  const showOtherValves = visibility?.showOtherValves ?? true;
 
-  return nearestNode(chart, points, px);
+  const tankOrReservoir = nearestNode(
+    chart,
+    points,
+    px,
+    (p) => p.nodeType === "tank" || p.nodeType === "reservoir",
+  );
+  if (tankOrReservoir) return tankOrReservoir;
+
+  const pumpOrPrv = nearestLink(
+    chart,
+    links,
+    px,
+    (l) => l.type === "pump" || (l.type === "valve" && l.valveKind === "prv"),
+  );
+  if (pumpOrPrv) return pumpOrPrv;
+
+  if (showOtherValves) {
+    const otherValve = nearestLink(
+      chart,
+      links,
+      px,
+      (l) => l.type === "valve" && l.valveKind !== "prv",
+    );
+    if (otherValve) return otherValve;
+  }
+
+  if (showJunctions) {
+    const junction = nearestNode(
+      chart,
+      points,
+      px,
+      (p) => p.nodeType === "junction",
+    );
+    if (junction) return junction;
+  }
+
+  return null;
 }
 
-function nearestIconLink(
+function nearestLink(
   chart: ChartLike,
   links: ProfileLink[],
   px: number,
+  predicate: (link: ProfileLink) => boolean,
 ): SldSnap {
   let best: ProfileLink | null = null;
   let bestPx = NaN;
   let bestDist = SNAP_PIXEL_THRESHOLD;
   for (const link of links) {
-    if (link.type !== "pump" && link.type !== "valve") continue;
+    if (!predicate(link)) continue;
     /* eslint-disable @typescript-eslint/no-unsafe-call,
        @typescript-eslint/no-unsafe-member-access,
        @typescript-eslint/no-unsafe-assignment */
@@ -84,11 +123,13 @@ function nearestNode(
   chart: ChartLike,
   points: ProfilePoint[],
   px: number,
+  predicate: (point: ProfilePoint) => boolean,
 ): SldSnap {
   let bestIdx: number | null = null;
   let bestPx = NaN;
   let bestDist = SNAP_PIXEL_THRESHOLD;
   for (let i = 0; i < points.length; i++) {
+    if (!predicate(points[i])) continue;
     /* eslint-disable @typescript-eslint/no-unsafe-call,
        @typescript-eslint/no-unsafe-member-access,
        @typescript-eslint/no-unsafe-assignment */

@@ -9,12 +9,14 @@ import type { Sel } from "src/selection/types";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
 import { isNearMainPlotLine, pickSldSnap } from "./snap";
+import type { SldVisibility } from "./sld/visibility";
 
 interface UseChartClickParams {
   containerRef: RefObject<HTMLDivElement | null>;
   chartRef: RefObject<any>;
   points: ProfilePoint[];
   links: ProfileLink[];
+  sldVisibility: SldVisibility;
 }
 
 const DRAG_THRESHOLD_PX = 4;
@@ -24,6 +26,7 @@ export function useChartClick({
   chartRef,
   points,
   links,
+  sldVisibility,
 }: UseChartClickParams): void {
   const selection = useAtomValue(selectionAtom);
   const setSelection = useSetAtom(selectionAtom);
@@ -37,6 +40,7 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
+    sldVisibility,
   });
   depsRef.current = {
     points,
@@ -45,6 +49,7 @@ export function useChartClick({
     setSelection,
     setTab,
     setMode,
+    sldVisibility,
   };
 
   useEffect(() => {
@@ -82,7 +87,13 @@ export function useChartClick({
       if (Number.isNaN(cursorX)) return;
 
       const deps = depsRef.current;
-      const snap = pickSldSnap(chart, deps.points, deps.links, px);
+      const snap = pickSldSnap(
+        chart,
+        deps.points,
+        deps.links,
+        px,
+        deps.sldVisibility,
+      );
       const inSldGrid = chart.containPixel({ gridIndex: 1 }, [px, py]);
       const inMainGrid = chart.containPixel({ gridIndex: 0 }, [px, py]);
       /* eslint-enable */

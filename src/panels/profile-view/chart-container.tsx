@@ -23,6 +23,7 @@ import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
 import { buildSldSeries } from "./sld/series";
 import { useSldIcons } from "./sld/use-sld-icons";
+import { computeSldVisibility } from "./sld/visibility";
 
 const STRIP_FADE_WIDTH = 24;
 
@@ -133,20 +134,6 @@ export const ChartContainer = memo(function ChartContainer({
     ],
   );
 
-  const sldSeries = useMemo(
-    () =>
-      buildSldSeries({
-        points,
-        links,
-        sldY,
-        pipeColor: linkColor,
-        nodeColor,
-        sldIcons,
-        selectedIds,
-      }),
-    [points, links, sldY, linkColor, nodeColor, sldIcons, selectedIds],
-  );
-
   const profileGridTop = profileGridTopOffset(hasSimulation);
 
   const zoomRef = useRef<{ start: number; end: number }>({
@@ -165,6 +152,59 @@ export const ChartContainer = memo(function ChartContainer({
       prev.start === 0 && prev.end === 100 ? prev : { start: 0, end: 100 },
     );
   }
+
+  const [fadeBounds, setFadeBounds] = useState<{
+    left: number;
+    right: number;
+    top: number;
+    height: number;
+    stripWidth: number;
+  } | null>(null);
+
+  const sldVisibility = useMemo(
+    () =>
+      computeSldVisibility({
+        points,
+        links,
+        zoomStart: zoomWindow.start,
+        zoomEnd: zoomWindow.end,
+        totalLength,
+        stripPixelWidth: fadeBounds?.stripWidth ?? null,
+      }),
+    [
+      points,
+      links,
+      zoomWindow.start,
+      zoomWindow.end,
+      totalLength,
+      fadeBounds?.stripWidth,
+    ],
+  );
+
+  const sldSeries = useMemo(
+    () =>
+      buildSldSeries({
+        points,
+        links,
+        sldY,
+        pipeColor: linkColor,
+        nodeColor,
+        sldIcons,
+        selectedIds,
+        visibility: sldVisibility,
+      }),
+    [
+      points,
+      links,
+      sldY,
+      linkColor,
+      nodeColor,
+      sldIcons,
+      selectedIds,
+      sldVisibility,
+    ],
+  );
+
   const lengthUnitLabel = translateUnit(lengthUnit);
   const elevationUnitLabel = translateUnit(elevationUnit);
   const pressureUnitLabel = translateUnit(pressureUnit);
@@ -211,13 +251,6 @@ export const ChartContainer = memo(function ChartContainer({
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const [fadeBounds, setFadeBounds] = useState<{
-    left: number;
-    right: number;
-    top: number;
-    height: number;
-  } | null>(null);
-
   const recomputeFadeBounds = useCallback(() => {
     /* eslint-disable @typescript-eslint/no-unsafe-member-access,
        @typescript-eslint/no-unsafe-assignment,
@@ -239,14 +272,16 @@ export const ChartContainer = memo(function ChartContainer({
     const right = stripRect.x + stripRect.width;
     const top = stripRect.y;
     const height = mainRect.y + mainRect.height - top;
+    const stripWidth = stripRect.width;
     setFadeBounds((prev) =>
       prev &&
       prev.left === left &&
       prev.right === right &&
       prev.top === top &&
-      prev.height === height
+      prev.height === height &&
+      prev.stripWidth === stripWidth
         ? prev
-        : { left, right, top, height },
+        : { left, right, top, height, stripWidth },
     );
     /* eslint-enable */
   }, [totalLength]);
@@ -296,9 +331,10 @@ export const ChartContainer = memo(function ChartContainer({
     pathSegments,
     setHoverHighlight,
     allowEstimates: !isUnprojected,
+    sldVisibility,
   });
 
-  useChartClick({ containerRef, chartRef, points, links });
+  useChartClick({ containerRef, chartRef, points, links, sldVisibility });
 
   useChartZoomToSelection({ chartRef, points, links, totalLength });
 

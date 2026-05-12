@@ -9,6 +9,7 @@ import {
   VisibleTooltipContent,
 } from "./tooltip-data";
 import { isNearMainPlotLine, pickSldSnap, SNAP_PIXEL_THRESHOLD } from "./snap";
+import type { SldVisibility } from "./sld/visibility";
 
 export { SNAP_PIXEL_THRESHOLD };
 
@@ -35,6 +36,7 @@ interface UseChartCursorParams {
   pathSegments: PathSegment[];
   setHoverHighlight: (marker: HoverMarker | null) => void;
   allowEstimates: boolean;
+  sldVisibility: SldVisibility;
 }
 
 export function useChartCursor({
@@ -47,6 +49,7 @@ export function useChartCursor({
   pathSegments,
   setHoverHighlight,
   allowEstimates,
+  sldVisibility,
 }: UseChartCursorParams): ChartCursorState {
   const [cursorState, setCursorState] = useState<ChartCursorState>(null);
 
@@ -58,6 +61,7 @@ export function useChartCursor({
     pathSegments,
     setHoverHighlight,
     allowEstimates,
+    sldVisibility,
   });
   depsRef.current = {
     points,
@@ -67,6 +71,7 @@ export function useChartCursor({
     pathSegments,
     setHoverHighlight,
     allowEstimates,
+    sldVisibility,
   };
 
   useEffect(() => {
@@ -106,7 +111,13 @@ export function useChartCursor({
       }
 
       const deps = depsRef.current;
-      const snap = pickSldSnap(chart, deps.points, deps.links, px);
+      const snap = pickSldSnap(
+        chart,
+        deps.points,
+        deps.links,
+        px,
+        deps.sldVisibility,
+      );
 
       const effectivePixelX = snap?.pixelX ?? px;
       chart.dispatchAction({
