@@ -10,15 +10,15 @@ const noSelection = new Set<number>();
 
 describe("exportXlsxSimulationResults", () => {
   beforeEach(() => {
-    vi.spyOn(
-      FileSystemHelpers,
-      "isFileSystemAccessSupported",
-    ).mockReturnValue(false);
+    vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
+      false,
+    );
     vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
   });
 
   it("creates a single XLSX file named with the network name", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
     const { dirHandle, getFileNames } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
@@ -36,7 +36,8 @@ describe("exportXlsxSimulationResults", () => {
   });
 
   it("creates one sheet per metric with display names", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
     const { dirHandle, getWorkbook } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
@@ -55,7 +56,8 @@ describe("exportXlsxSimulationResults", () => {
   });
 
   it("writes header row with id, type, and HH:MM timestep columns", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
     const { dirHandle, getWorkbook } = makeDirectory();
     const reader = makeResultsReader(3, 5400, {});
 
@@ -243,7 +245,8 @@ describe("exportXlsxSimulationResults", () => {
   });
 
   it("closes the stream after writing", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
     const { dirHandle, getClose } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
@@ -261,7 +264,8 @@ describe("exportXlsxSimulationResults", () => {
   });
 
   it("triggers download when FileSystem Access API is not supported", async () => {
-    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
     const { dirHandle } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
@@ -281,10 +285,6 @@ describe("exportXlsxSimulationResults", () => {
     );
   });
 });
-
-// ---------------------------------------------------------------------------
-// Test helpers
-// ---------------------------------------------------------------------------
 
 function sheetRows(workbook: XLSX.WorkBook, sheetName: string): unknown[][] {
   const sheet = workbook.Sheets[sheetName];
@@ -347,7 +347,10 @@ const makeResultsReader = (
     reportingTimeStep,
     iterateTimeSeries: vi.fn(
       async (
-        assets: Map<number, { id: number; type: string; isLink: boolean }>,
+        assets: Map<
+          number,
+          { id: number; type: string; isLink: boolean; label: string }
+        >,
         metrics: string[],
         onResult: (
           metric: string,

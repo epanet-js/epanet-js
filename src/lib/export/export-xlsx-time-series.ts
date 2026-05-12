@@ -43,20 +43,17 @@ export const exportXlsxSimulationResults = async (
   const numTimestepCols = resultsReader.timestepCount;
   const totalCols = 2 + numTimestepCols;
 
-  // Pre-compute column letters
   const colLetters: string[] = new Array(totalCols);
   for (let i = 0; i < totalCols; i++) {
     colLetters[i] = colLetter(i);
   }
 
-  // Pre-build header row XML
   const headerRowXml = buildHeaderRowXml(
     resultsReader.timestepCount,
     resultsReader.reportingTimeStep,
     colLetters,
   );
 
-  // Reusable row buffer — ~50 bytes per cell is a safe estimate
   const rowBufferSize = Math.max(64 * 1024, totalCols * 50);
   const rowBuffer = new Uint8Array(rowBufferSize);
   const encoder = new TextEncoder();
@@ -77,7 +74,11 @@ export const exportXlsxSimulationResults = async (
       });
 
       try {
-        pushStaticEntry(zip, "[Content_Types].xml", contentTypesXml(sheetNames));
+        pushStaticEntry(
+          zip,
+          "[Content_Types].xml",
+          contentTypesXml(sheetNames),
+        );
         pushStaticEntry(zip, "_rels/.rels", packageRelsXml());
         pushStaticEntry(zip, "xl/workbook.xml", workbookXml(sheetNames));
         pushStaticEntry(
@@ -138,7 +139,6 @@ export const exportXlsxSimulationResults = async (
           .then(() => {
             if (currentEntry) closeSheetEntry(currentEntry);
 
-            // Create empty sheets for metrics that were never encountered
             for (let i = 0; i < metrics.length; i++) {
               if (!writtenMetrics.has(metrics[i])) {
                 const entry = openSheetEntry(zip, i + 1);
@@ -165,10 +165,6 @@ export const exportXlsxSimulationResults = async (
     await FileSystemHelpers.triggerDownload(fileName, handle);
   }
 };
-
-// ---------------------------------------------------------------------------
-// Row XML builders
-// ---------------------------------------------------------------------------
 
 const buildHeaderRowXml = (
   timestepCount: number,
@@ -225,16 +221,11 @@ const pushEncodedRow = (
 ) => {
   const { written } = encoder.encodeInto(rowXml, buffer);
   if (written < rowXml.length) {
-    // Row exceeded buffer — fall back to allocation
     entry.push(encoder.encode(rowXml), false);
   } else {
     entry.push(buffer.subarray(0, written), false);
   }
 };
-
-// ---------------------------------------------------------------------------
-// XLSX structural XML generators (parametric on sheet names)
-// ---------------------------------------------------------------------------
 
 const enc = new TextEncoder();
 const encode = (str: string) => enc.encode(str);
@@ -271,10 +262,6 @@ const workbookXml = (sheetNames: string[]) =>
 
 const workbookRelsXml = (sheetNames: string[]) =>
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheetNames.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}</Relationships>`;
-
-// ---------------------------------------------------------------------------
-// Shared helpers
-// ---------------------------------------------------------------------------
 
 const colLetter = (colIndex: number): string => {
   let letter = "";
