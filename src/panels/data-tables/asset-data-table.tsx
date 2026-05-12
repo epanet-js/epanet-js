@@ -66,6 +66,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -851,6 +852,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const { transact } = useModelTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isEditionBlocked = useIsEditionBlocked();
   const selectAssetsInApp = useSelectAssetsInApp();
   const deleteAssetsAction = useDeleteAssets();
 
@@ -1069,6 +1071,28 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [],
   );
 
+  const deleteAction = useMemo(
+    () => ({
+      label: translate("delete"),
+      icon: <DeleteIcon />,
+      variant: "destructive" as const,
+      onSelect: (
+        selection: { min: { row: number }; max: { row: number } },
+        sortedRows: AssetRow[],
+      ) => {
+        deleteAssetsAction(
+          getAssetIdsFromSortedRows(
+            sortedRows,
+            selection.min.row,
+            selection.max.row,
+          ),
+          "data-table",
+        );
+      },
+    }),
+    [translate, deleteAssetsAction, getAssetIdsFromSortedRows],
+  );
+
   const cellContextActions = useMemo<CellContextAction[]>(
     () => [
       {
@@ -1084,27 +1108,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           );
         },
       },
-      {
-        label: translate("delete"),
-        icon: <DeleteIcon />,
-        variant: "destructive",
-        onSelect: (selection, sortedRows) => {
-          deleteAssetsAction(
-            getAssetIdsFromSortedRows(
-              sortedRows as AssetRow[],
-              selection.min.row,
-              selection.max.row,
-            ),
-            "data-table",
-          );
-        },
-      },
+      ...(isEditionBlocked ? [] : [deleteAction as CellContextAction]),
     ],
     [
       translate,
       selectAssetsInApp,
-      deleteAssetsAction,
       getAssetIdsFromSortedRows,
+      isEditionBlocked,
+      deleteAction,
     ],
   );
 
@@ -1123,27 +1134,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           );
         },
       },
-      {
-        label: translate("delete"),
-        icon: <DeleteIcon />,
-        variant: "destructive",
-        onSelect: (selection, sortedRows) => {
-          deleteAssetsAction(
-            getAssetIdsFromSortedRows(
-              sortedRows as AssetRow[],
-              selection.min.row,
-              selection.max.row,
-            ),
-            "data-table",
-          );
-        },
-      },
+      ...(isEditionBlocked ? [] : [deleteAction as GutterContextAction]),
     ],
     [
       translate,
       selectAssetsInApp,
-      deleteAssetsAction,
       getAssetIdsFromSortedRows,
+      isEditionBlocked,
+      deleteAction,
     ],
   );
 
@@ -1164,6 +1162,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           resizable
           sortable
           minColumnSizePx={20}
+          readOnly={isEditionBlocked}
           cellContextActions={cellContextActions}
           gutterContextActions={gutterContextActions}
         />
