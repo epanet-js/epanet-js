@@ -131,7 +131,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
         onSelectAll={onSelectAll}
         variant={variant}
         selection={selection}
-        rowCount={rowCount}
         fitWidthToContent={fitWidthToContent}
       />
       {rows.map((row, rowIndex) => {

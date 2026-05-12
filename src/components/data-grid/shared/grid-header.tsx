@@ -20,7 +20,6 @@ type GridHeaderProps<T> = {
   onSelectAll: () => void;
   variant: DataGridVariant;
   selection: GridSelection | null;
-  rowCount: number;
   style?: React.CSSProperties;
   className?: string;
   scrollbarGap?: number;
@@ -35,7 +34,6 @@ export function GridHeader<T>({
   onSelectAll,
   variant,
   selection,
-  rowCount,
   style,
   className,
   scrollbarGap,
@@ -43,6 +41,7 @@ export function GridHeader<T>({
 }: GridHeaderProps<T>) {
   const translate = useTranslate();
 
+  const rowCount = table.getRowModel().rows.length;
   const allRowsSelected =
     variant === "spreadsheet" &&
     selection !== null &&

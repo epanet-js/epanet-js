@@ -237,7 +237,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
           onSelectAll={onSelectAll}
           variant={variant}
           selection={selection}
-          rowCount={rowCount}
           scrollbarGap={scrollState.scrollbarWidth}
           fitWidthToContent={fitWidthToContent}
         />
