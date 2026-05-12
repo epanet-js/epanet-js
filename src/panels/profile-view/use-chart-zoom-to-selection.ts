@@ -13,6 +13,7 @@ const NODE_NEIGHBOR_LINKS = 4;
 
 interface UseChartZoomToSelectionParams {
   chartRef: RefObject<any>;
+  zoomRef: RefObject<{ start: number; end: number }>;
   points: ProfilePoint[];
   links: ProfileLink[];
   totalLength: number;
@@ -20,6 +21,7 @@ interface UseChartZoomToSelectionParams {
 
 export function useChartZoomToSelection({
   chartRef,
+  zoomRef,
   points,
   links,
   totalLength,
@@ -36,6 +38,13 @@ export function useChartZoomToSelection({
 
     const range = findAssetRangeOnPath(ids, points, links);
     if (!range) return;
+
+    const currentZoom = zoomRef.current ?? { start: 0, end: 100 };
+    const rangeStartPct = (range.start / totalLength) * 100;
+    const rangeEndPct = (range.end / totalLength) * 100;
+    if (rangeEndPct >= currentZoom.start && rangeStartPct <= currentZoom.end) {
+      return;
+    }
 
     const zoom = computeZoomWindow(range, totalLength, links.length);
     chart.dispatchAction({

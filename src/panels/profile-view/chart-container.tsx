@@ -336,7 +336,7 @@ export const ChartContainer = memo(function ChartContainer({
 
   useChartClick({ containerRef, chartRef, points, links, sldVisibility });
 
-  useChartZoomToSelection({ chartRef, points, links, totalLength });
+  useChartZoomToSelection({ chartRef, zoomRef, points, links, totalLength });
 
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const onContextMenuOpenChange = useCallback(
