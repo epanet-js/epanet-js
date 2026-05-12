@@ -19,6 +19,7 @@ import { ProfileTooltip } from "./profile-tooltip";
 import { useChartCursor, type HoverMarker } from "./use-chart-cursor";
 import { useChartClick } from "./use-chart-click";
 import { useChartZoomToSelection } from "./use-chart-zoom-to-selection";
+import { useChartWheelZoom } from "./use-chart-wheel-zoom";
 import { buildMainPlotSeries } from "./main-plot/series";
 import { computeYAxisRange } from "./main-plot/y-axis-range";
 import { buildSldSeries } from "./sld/series";
@@ -337,6 +338,8 @@ export const ChartContainer = memo(function ChartContainer({
   useChartClick({ containerRef, chartRef, points, links, sldVisibility });
 
   useChartZoomToSelection({ chartRef, zoomRef, points, links, totalLength });
+
+  useChartWheelZoom({ containerRef, chartRef, zoomRef, totalLength });
 
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const onContextMenuOpenChange = useCallback(
