@@ -145,14 +145,6 @@ export const ChartContainer = memo(function ChartContainer({
     start: 0,
     end: 100,
   });
-  const lastPointsRef = useRef(points);
-  if (lastPointsRef.current !== points) {
-    lastPointsRef.current = points;
-    zoomRef.current = { start: 0, end: 100 };
-    setZoomWindow((prev) =>
-      prev.start === 0 && prev.end === 100 ? prev : { start: 0, end: 100 },
-    );
-  }
 
   const [fadeBounds, setFadeBounds] = useState<{
     left: number;
