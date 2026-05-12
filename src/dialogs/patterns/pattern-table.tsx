@@ -221,7 +221,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
           createRow={createRow}
           rowActions={rowActions}
           addRowLabel={translate("addTimestep")}
-          gutterColumn
+          gutterColumn="numbered"
           onSelectionChange={onSelectionChange}
           variant="spreadsheet"
           readOnly={readOnly}

@@ -39,6 +39,7 @@ export type InlineGridProps<TData> = {
   clearSelection: () => void;
   blurGrid: () => void;
   gutterColumn: boolean;
+  showRowNumbers: boolean;
   rowActions?: RowAction[];
   readOnly: boolean;
   variant: DataGridVariant;
@@ -67,6 +68,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
     clearSelection,
     blurGrid,
     gutterColumn,
+    showRowNumbers,
     rowActions,
     readOnly,
     variant,
@@ -146,6 +148,7 @@ export const InlineGrid = forwardRef(function InlineGrid<TData>(
               stopEditing={stopEditing}
               startEditing={startEditing}
               gutterColumn={gutterColumn}
+              showRowNumbers={showRowNumbers}
               gutterIsLastRow={isLast}
               cellsIsLastRow={isLast}
               rowActions={rowActions}

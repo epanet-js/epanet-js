@@ -46,6 +46,7 @@ export type VirtualGridProps<TData> = {
   clearSelection: () => void;
   blurGrid: () => void;
   gutterColumn: boolean;
+  showRowNumbers: boolean;
   rowActions?: RowAction[];
   readOnly: boolean;
   variant: DataGridVariant;
@@ -74,6 +75,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
     clearSelection,
     blurGrid,
     gutterColumn,
+    showRowNumbers,
     rowActions,
     readOnly,
     variant,
@@ -275,6 +277,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<TData>(
                   stopEditing={stopEditing}
                   startEditing={startEditing}
                   gutterColumn={gutterColumn}
+                  showRowNumbers={showRowNumbers}
                   gutterIsLastRow={isLast && !hasVerticalScroll}
                   cellsIsLastRow={isLast && hasVerticalScroll}
                   rowActions={rowActions}

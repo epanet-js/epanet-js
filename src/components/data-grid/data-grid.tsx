@@ -37,7 +37,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   emptyState?: React.ReactNode;
   rowActions?: RowAction[];
   addRowLabel?: string;
-  gutterColumn?: boolean;
+  gutterColumn?: "hidden" | "selection" | "numbered";
   onSelectionChange?: (selection: GridSelection | null) => void;
   variant?: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
@@ -59,7 +59,7 @@ export const DataGrid = forwardRef(function DataGrid<
     emptyState,
     rowActions,
     addRowLabel,
-    gutterColumn = false,
+    gutterColumn = "hidden",
     onSelectionChange,
     variant = "spreadsheet",
     cellHasWarning,
@@ -272,7 +272,8 @@ export const DataGrid = forwardRef(function DataGrid<
     selectCells,
     clearSelection,
     blurGrid,
-    gutterColumn,
+    gutterColumn: gutterColumn !== "hidden",
+    showRowNumbers: gutterColumn === "numbered",
     rowActions: readOnly ? undefined : rowActions,
     readOnly,
     variant,

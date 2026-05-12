@@ -232,7 +232,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
         createRow={createRow}
         rowActions={rowActions}
         addRowLabel={translate("addPoint")}
-        gutterColumn
+        gutterColumn="numbered"
         onSelectionChange={onSelectionChange}
         variant="spreadsheet"
         readOnly={readOnly}

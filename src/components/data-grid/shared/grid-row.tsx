@@ -9,7 +9,12 @@ import {
   GridSelection,
   RowAction,
 } from "../types";
-import { isCellSelected, isCellActive, isSingleCellSelection } from "../hooks";
+import {
+  isCellSelected,
+  isCellActive,
+  isSingleCellSelection,
+  isFullRowSelected,
+} from "../hooks";
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
@@ -29,6 +34,7 @@ export type GridRowProps<TData> = {
   stopEditing: () => void;
   startEditing: () => void;
   gutterColumn: boolean;
+  showRowNumbers: boolean;
   gutterIsLastRow: boolean;
   cellsIsLastRow: boolean;
   rowActions?: RowAction[];
@@ -52,6 +58,7 @@ export function GridRow<TData>({
   stopEditing,
   startEditing,
   gutterColumn,
+  showRowNumbers,
   gutterIsLastRow,
   cellsIsLastRow,
   rowActions,
@@ -67,6 +74,11 @@ export function GridRow<TData>({
           onClick={(e) => onGutterClick(rowIndex, e)}
           variant={variant}
           isLastRow={gutterIsLastRow}
+          showRowNumbers={showRowNumbers}
+          isRowSelected={
+            isFullRowSelected(selection, columns.length) &&
+            isCellSelected(selection, 0, rowIndex)
+          }
         />
       )}
 

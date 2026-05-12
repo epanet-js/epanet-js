@@ -77,7 +77,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={vi.fn()}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
         />,
       );
 
@@ -452,7 +452,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={onChange}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
         />,
       );
 
@@ -481,7 +481,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={onChange}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
           readOnly
         />,
       );
@@ -509,7 +509,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={vi.fn()}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
           onSelectionChange={onSelectionChange}
         />,
       );
@@ -651,7 +651,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={vi.fn()}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
           onSelectionChange={onSelectionChange}
         />,
       );
@@ -692,7 +692,7 @@ describe("DataGrid", () => {
           columns={columns}
           onChange={vi.fn()}
           createRow={createRow}
-          gutterColumn
+          gutterColumn="numbered"
           onSelectionChange={onSelectionChange}
         />,
       );

@@ -287,7 +287,7 @@ export const DemandCategoriesEditor = ({
             rowActions={rowActions}
             addRowLabel={translate("addDemandCategory")}
             variant="inline"
-            gutterColumn
+            gutterColumn="numbered"
             readOnly={readOnly}
           />
         </NestedSection>
