@@ -196,6 +196,7 @@ interface ChartStepProps {
   nodeProperty: string | null;
   linkProperty: string | null;
   chartType: "line" | "variability";
+  assetGroup: "nodes" | "links" | "all";
 }
 
 export function ChartStep({
@@ -203,6 +204,7 @@ export function ChartStep({
   nodeProperty,
   linkProperty,
   chartType,
+  assetGroup,
 }: ChartStepProps) {
   const translate = useTranslate();
   const {
@@ -265,16 +267,22 @@ export function ChartStep({
       }
     };
 
-    // For variability on mixed types, only show nodes — dual-axis percentile bands are unreadable
-    const showLinks = !(isMixed && chartType === "variability");
+    // In mixed+variability, show only the selected group — dual-axis percentile bands are unreadable
+    const mixedVariability = isMixed && chartType === "variability";
+    const showNodes =
+      !mixedVariability || assetGroup === "nodes" || assetGroup === "all";
+    const showLinks =
+      !mixedVariability || assetGroup === "links" || assetGroup === "all";
 
-    buildGroup(
-      nodeSeries,
-      0,
-      isMixed ? EMERALD_SCALE : CHART_COLORS,
-      false,
-      nodeSeriesNames,
-    );
+    if (showNodes) {
+      buildGroup(
+        nodeSeries,
+        0,
+        isMixed ? EMERALD_SCALE : CHART_COLORS,
+        false,
+        nodeSeriesNames,
+      );
+    }
     if (showLinks) {
       buildGroup(
         linkSeries,
@@ -358,9 +366,23 @@ export function ChartStep({
             },
           },
         ]
-      : undefined;
+      : !showLegend
+        ? [
+            {
+              type: "text",
+              bottom: 4,
+              left: "center",
+              style: {
+                text: "Too many elements to display a legend — hover to identify individual series.",
+                fontSize: 14,
+                fill: colors.gray400,
+                textAlign: "center",
+              },
+            },
+          ]
+        : undefined;
 
-    const gridBottom = useTwoLegends ? 48 : showLegend ? 36 : 16;
+    const gridBottom = useTwoLegends ? 48 : 32;
 
     return {
       animation: false,
@@ -405,6 +427,7 @@ export function ChartStep({
     };
   }, [
     chartType,
+    assetGroup,
     timestepCount,
     intervalSeconds,
     nodeSeries,
@@ -417,19 +440,6 @@ export function ChartStep({
     linkAxisLabel,
     isMixed,
   ]);
-
-  const hideLegend = useMemo(() => {
-    const skipLinks = isMixed && chartType === "variability";
-    const validNodes = nodeSeries.filter((s) => s.timeSeries).length;
-    const validLinks = skipLinks
-      ? 0
-      : linkSeries.filter((s) => s.timeSeries).length;
-    const count =
-      chartType === "variability"
-        ? (validNodes > 0 ? 5 : 0) + (validLinks > 0 ? 5 : 0)
-        : validNodes + validLinks;
-    return count > 10;
-  }, [nodeSeries, linkSeries, isMixed, chartType]);
 
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -453,34 +463,26 @@ export function ChartStep({
   }
 
   return (
-    <div ref={containerRef} className="flex flex-col flex-1 min-h-0 w-full">
-      <div className="relative flex-1 min-h-0">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
-            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-        {!isLoading && timestepCount === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-            No data available
-          </div>
-        ) : (
-          <div className="absolute inset-0">
-            <ReactECharts
-              ref={chartRef}
-              option={option}
-              notMerge={true}
-              style={{ height: "100%", width: "100%" }}
-              opts={{ renderer: "svg" }}
-            />
-          </div>
-        )}
-      </div>
-      {hideLegend && (
-        <p className="text-sm text-center text-gray-400 py-1.5">
-          Too many elements to display a legend — hover over the chart to
-          identify individual series.
-        </p>
+    <div ref={containerRef} className="relative flex-1 min-h-0 w-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
+          <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+      {!isLoading && timestepCount === 0 ? (
+        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+          No data available
+        </div>
+      ) : (
+        <div className="absolute inset-0">
+          <ReactECharts
+            ref={chartRef}
+            option={option}
+            notMerge={true}
+            style={{ height: "100%", width: "100%" }}
+            opts={{ renderer: "svg" }}
+          />
+        </div>
       )}
     </div>
   );
