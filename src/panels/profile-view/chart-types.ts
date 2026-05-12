@@ -1,6 +1,4 @@
 import { AssetId } from "src/hydraulic-model";
-import { Highlight } from "src/state/highlights";
-import { PathSegment } from "./path-position";
 
 export type ProfilePoint = {
   nodeId: AssetId;
@@ -43,18 +41,3 @@ export type HglRange = {
 };
 
 export type HglBandSegment = { x: number; min: number; max: number };
-
-export type SyncProfileViewData = {
-  points: ProfilePoint[];
-  links: ProfileLink[];
-  pathSegments: PathSegment[];
-  pathHighlights: Highlight[];
-  terrainSamples: TerrainSample[];
-  elevationData: [number, number][];
-  hglData: [number, number | null][];
-  nodePositions: number[];
-  totalLength: number;
-  hasSimulation: boolean;
-  pressureFactor: number | null;
-  hglDropsData: ([number, number] | null)[];
-};

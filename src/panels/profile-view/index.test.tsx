@@ -4,10 +4,9 @@ import {
   createMockResultsReader,
   setInitialState,
 } from "src/__helpers__/state";
-import { profileViewAtom, ProfileViewSnapshot } from "src/state/profile-view";
+import { profileViewAtom, ProfileView } from "src/state/profile-view";
 import { AssetId } from "src/hydraulic-model";
 import { Store } from "src/state";
-import { Unit } from "src/quantity";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
 import { ProfileViewPanel } from "./index";
 
@@ -36,40 +35,20 @@ const buildLinearModel = () =>
     })
     .build();
 
-const aSnapshot = ({
+const aProfileView = ({
   nodeIds,
   linkIds,
 }: {
   nodeIds: AssetId[];
   linkIds: AssetId[];
-}): ProfileViewSnapshot => ({
-  id: "test-snapshot",
+}): ProfileView => ({
+  id: "test-profile-view",
   startNodeId: nodeIds[0],
   endNodeId: nodeIds[nodeIds.length - 1],
   nodeIds,
   linkIds,
-  data: {
-    points: [],
-    links: [],
-    pathSegments: [],
-    pathHighlights: [],
-    terrainSamples: [],
-    elevationData: [],
-    hglData: [],
-    nodePositions: [],
-    totalLength: 0,
-    hasSimulation: false,
-    pressureFactor: null,
-    hglDropsData: [],
-  },
   terrain: null,
   hglRanges: null,
-  units: {
-    elevation: "m" as Unit,
-    length: "m" as Unit,
-    pressure: "m" as Unit,
-  },
-  decimals: { elevation: 2, length: 0, pressure: 2 },
   isUnprojected: false,
 });
 
@@ -81,7 +60,7 @@ describe("ProfileViewPanel pathBroken state", () => {
     });
     store.set(
       profileViewAtom,
-      aSnapshot({
+      aProfileView({
         nodeIds: [IDS.J1, IDS.J2, 999],
         linkIds: [IDS.P1, IDS.P2],
       }),
@@ -99,7 +78,7 @@ describe("ProfileViewPanel pathBroken state", () => {
     });
     store.set(
       profileViewAtom,
-      aSnapshot({
+      aProfileView({
         nodeIds: [IDS.J1, IDS.J2, IDS.J3],
         linkIds: [IDS.P1, 999],
       }),

@@ -15,8 +15,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useCloseProfileView } from "./close-profile-view";
-import { buildProfileViewSnapshot } from "src/panels/profile-view/snapshot";
-import { defaultProjectSettings } from "src/lib/project-settings";
+import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 
 const IDS = {
   J1: 1,
@@ -43,18 +42,17 @@ const buildLinearModel = () =>
     })
     .build();
 
-const seedSnapshot = (store: Store) => {
+const seedProfileView = (store: Store) => {
   const hydraulicModel = store.get(stagingModelDerivedAtom);
-  const built = buildProfileViewSnapshot({
+  const built = buildProfileView({
     startNodeId: IDS.J1,
     endNodeId: IDS.J3,
     hydraulicModel,
     results: createMockResultsReader(),
-    projectSettings: defaultProjectSettings,
     isUnprojected: false,
   });
-  if ("error" in built) throw new Error("expected snapshot");
-  store.set(profileViewAtom, built.snapshot);
+  if ("error" in built) throw new Error("expected profileView");
+  store.set(profileViewAtom, built.profileView);
 };
 
 describe("useCloseProfileView", () => {
@@ -63,7 +61,7 @@ describe("useCloseProfileView", () => {
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
     });
-    seedSnapshot(store);
+    seedProfileView(store);
     expect(store.get(hasProfileViewAtom)).toBe(true);
 
     renderTrigger({ store });

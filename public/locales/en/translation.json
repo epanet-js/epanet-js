@@ -1325,7 +1325,6 @@
       "title": "No path found",
       "message": "No connected path was found between the selected nodes."
     },
-    "refresh": "Refresh",
     "elevation": "Elevation",
     "hgl": "HGL",
     "distance": "Distance",

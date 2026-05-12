@@ -11,10 +11,9 @@ import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { findProfilePath } from "src/panels/profile-view/path-finding";
-import { buildProfileViewSnapshot } from "src/panels/profile-view/snapshot";
+import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
-import { projectSettingsAtom } from "src/state/project-settings";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { ResultsReader } from "src/simulation/results-reader";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
@@ -27,7 +26,6 @@ export function useProfileViewHandlers(
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
-  const projectSettings = useAtomValue(projectSettingsAtom);
   const isUnprojected = useAtomValue(isUnprojectedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
@@ -80,12 +78,11 @@ export function useProfileViewHandlers(
 
     if (nodeId === draftStartNodeId) return;
 
-    const built = buildProfileViewSnapshot({
+    const built = buildProfileView({
       startNodeId: draftStartNodeId,
       endNodeId: nodeId,
       hydraulicModel,
       results,
-      projectSettings,
       isUnprojected,
     });
 
@@ -96,11 +93,11 @@ export function useProfileViewHandlers(
       return;
     }
 
-    setProfileView(built.snapshot);
+    setProfileView(built.profileView);
     setEphemeralState({ type: "none" });
     setSelection({
       type: "multi",
-      ids: [...built.snapshot.nodeIds, ...built.snapshot.linkIds],
+      ids: [...built.profileView.nodeIds, ...built.profileView.linkIds],
     });
     setMode({ mode: Mode.NONE });
   };

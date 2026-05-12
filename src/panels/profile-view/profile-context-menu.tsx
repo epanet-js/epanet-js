@@ -9,10 +9,9 @@ import {
 } from "src/components/context-actions/action-item";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { useRefreshProfileView } from "src/commands/refresh-profile-view";
 import { selectionAtom } from "src/state/selection";
 import type { Sel } from "src/selection/types";
-import { RefreshIcon, SelectPathIcon, ZoomToIcon } from "src/icons";
+import { SelectPathIcon, ZoomToIcon } from "src/icons";
 
 export const ProfileContextMenu = memo(function ProfileContextMenu({
   pathIds,
@@ -37,7 +36,6 @@ export const ProfileContextMenu = memo(function ProfileContextMenu({
 function useActions(pathIds: number[]): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
-  const refreshProfileView = useRefreshProfileView();
   const selection = useAtomValue(selectionAtom);
   const setSelection = useSetAtom(selectionAtom);
 
@@ -47,16 +45,6 @@ function useActions(pathIds: number[]): Action[] {
     const selected = new Set(selection.ids);
     return pathIds.every((id) => selected.has(id));
   }, [selection, pathIds]);
-
-  const refreshAction: Action = {
-    icon: <RefreshIcon />,
-    applicable: true,
-    label: translate("profileView.refresh"),
-    onSelect: () => {
-      refreshProfileView();
-      return Promise.resolve();
-    },
-  };
 
   const zoomToAction: Action = {
     icon: <ZoomToIcon />,
@@ -78,5 +66,5 @@ function useActions(pathIds: number[]): Action[] {
     },
   };
 
-  return [refreshAction, zoomToAction, selectAllAction];
+  return [zoomToAction, selectAllAction];
 }
