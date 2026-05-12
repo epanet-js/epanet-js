@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import clsx from "clsx";
 import { CellProps, GridColumn } from "../types";
 
 export function BooleanCell({
@@ -44,11 +45,10 @@ export function BooleanCell({
         disabled={readOnly}
         onChange={toggle}
         onKeyDown={handleKeyDown}
-        className={`w-4 h-4 text-purple-400 border-gray-300 rounded ${
-          readOnly
-            ? "cursor-not-allowed bg-gray-200 opacity-50"
-            : "cursor-pointer bg-gray-50 focus:ring-purple-500"
-        }`}
+        className={clsx(
+          "w-4 h-4 text-purple-500 border-gray-300 rounded outline-none focus:ring-0",
+          readOnly ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+        )}
       />
     </div>
   );
