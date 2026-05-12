@@ -1,13 +1,12 @@
 import { FileSystemHelpers } from "./file-system-helpers";
 import { exportAssetData } from "./export-asset-data";
-import { estimateTimeSeriesSize, exportTimeSeries } from "./export-time-series";
-import { exportXlsxSimulationResults } from "./export-xlsx-time-series";
+import { exportSimulationResults } from "./export-simulation-results";
+import { estimateSimulationResultsSize } from "./simulation-results";
 export type { ExportFormat } from "./types";
 
 export const Export = {
+  estimateSimulationResultsSize,
   exportAssetData,
-  exportTimeSeries,
-  exportXlsxSimulationResults,
-  estimateTimeSeriesSize,
+  exportSimulationResults,
   fileSizeLimit: FileSystemHelpers.fileSizeLimit,
 };

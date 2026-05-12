@@ -1,24 +1,11 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
-import { FileSystemHelpers } from "./file-system-helpers";
-import { estimateTimeSeriesSize, exportTimeSeries } from "./export-time-series";
-import { NUM_DECIMAL_PLACES } from "./constants";
+import { FileSystemHelpers } from "../file-system-helpers";
+import { exportCsvSimulationResults } from "./export-csv-simulation-results";
+import { NUM_DECIMAL_PLACES } from "../constants";
 
 const noSelection = new Set<number>();
-
-describe("estimateTimeSeriesSize", () => {
-  it("calculates size for given metrics, assets and timesteps", () => {
-    const numAssets = 3;
-    const timeStepCount = 5;
-    const result = estimateTimeSeriesSize(
-      ["pressure", "flow"],
-      numAssets,
-      timeStepCount,
-    );
-    expect(result).toBe(3 * 2 * (16 * 5 + 64));
-  });
-});
 
 describe("exportTimeSeries", () => {
   beforeEach(() => {
@@ -34,7 +21,7 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getFileNames } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "my-network",
       dirHandle,
       model,
@@ -56,7 +43,7 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getText } = makeDirectory();
     const reader = makeResultsReader(2, 5400, {});
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -84,7 +71,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.P1}:flow`]: makeTimeSeries([5]),
     });
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -122,7 +109,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.P2}:status`]: makeTimeSeries([3]),
     });
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -147,7 +134,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([1.23456]),
     });
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -175,7 +162,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.J2}:pressure`]: makeTimeSeries([20]),
     });
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -203,7 +190,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
     });
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -229,7 +216,7 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
     const onProgress = vi.fn();
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -248,7 +235,7 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getClose } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,
@@ -268,7 +255,7 @@ describe("exportTimeSeries", () => {
     const { dirHandle } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportTimeSeries(
+    await exportCsvSimulationResults(
       "net",
       dirHandle,
       model,

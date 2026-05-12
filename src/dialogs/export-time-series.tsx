@@ -138,12 +138,14 @@ export const ExportTimeSeriesDialog = ({
     : model.assetIndex.linkCount;
 
   const estimatedBytes =
-    Export.estimateTimeSeriesSize(
+    Export.estimateSimulationResultsSize(
+      "csv",
       selectedNodeMetrics,
       nodeCount,
       timestepCount,
     ) +
-    Export.estimateTimeSeriesSize(
+    Export.estimateSimulationResultsSize(
+      "csv",
       selectedLinkMetrics,
       linkCount,
       timestepCount,

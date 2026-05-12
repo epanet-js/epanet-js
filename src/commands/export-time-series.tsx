@@ -38,7 +38,8 @@ export const useExportTimeSeries = () => {
         ? await FileSystemHelpers.openDirectoryInFileSystem()
         : await FileSystemHelpers.openOpfsRootDirectory();
 
-      await Export.exportTimeSeries(
+      await Export.exportSimulationResults(
+        "csv",
         networkName,
         directory,
         hydraulicModel,

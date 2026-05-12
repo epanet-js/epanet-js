@@ -1,19 +1,11 @@
 import { Asset, HydraulicModel } from "src/hydraulic-model";
-import { ExportTimeSeriesMetrics } from "./types";
+import { ExportTimeSeriesMetrics } from "../types";
 import { EPSResultsReader } from "src/simulation";
-import { FileSystemHelpers } from "./file-system-helpers";
+import { FileSystemHelpers } from "../file-system-helpers";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
-import { NUM_DECIMAL_PLACES } from "./constants";
+import { NUM_DECIMAL_PLACES } from "../constants";
 
-export const estimateTimeSeriesSize = (
-  metrics: ExportTimeSeriesMetrics[],
-  numAssets: number,
-  timestepCount: number,
-) => numAssets * metrics.length * lineSize(timestepCount);
-
-const BATCH_SIZE = 4 * 1024 * 1024;
-
-export const exportTimeSeries = async (
+export const exportCsvSimulationResults = async (
   networkName: string,
   directory: FileSystemDirectoryHandle,
   hydraulicModel: HydraulicModel,
@@ -250,3 +242,5 @@ const formatTimestepTime = (
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 };
+
+const BATCH_SIZE = 4 * 1024 * 1024;

@@ -1,27 +1,9 @@
 import { Zip, ZipDeflate } from "fflate";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EPSResultsReader } from "src/simulation";
-import { ExportTimeSeriesMetrics } from "./types";
-import { FileSystemHelpers } from "./file-system-helpers";
-import { NUM_DECIMAL_PLACES } from "./constants";
-
-const MAX_ROWS = 1_048_575;
-
-const METRIC_SHEET_NAMES: Record<ExportTimeSeriesMetrics, string> = {
-  status: "Status",
-  flow: "Flow",
-  velocity: "Velocity",
-  unitHeadloss: "Unit Headloss",
-  pressure: "Pressure",
-  head: "Head",
-  demand: "Demand",
-  waterQuality: "Water Quality",
-};
-
-const METRICS_BY_TYPE = {
-  node: new Set(["pressure", "head", "demand", "waterQuality"]),
-  link: new Set(["flow", "velocity", "unitHeadloss", "status"]),
-};
+import { ExportTimeSeriesMetrics } from "../types";
+import { FileSystemHelpers } from "../file-system-helpers";
+import { NUM_DECIMAL_PLACES } from "../constants";
 
 export const exportXlsxSimulationResults = async (
   networkName: string,
@@ -289,4 +271,22 @@ const formatTimestepTime = (
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const MAX_ROWS = 1_048_575;
+
+const METRIC_SHEET_NAMES: Record<ExportTimeSeriesMetrics, string> = {
+  status: "Status",
+  flow: "Flow",
+  velocity: "Velocity",
+  unitHeadloss: "Unit Headloss",
+  pressure: "Pressure",
+  head: "Head",
+  demand: "Demand",
+  waterQuality: "Water Quality",
+};
+
+const METRICS_BY_TYPE = {
+  node: new Set(["pressure", "head", "demand", "waterQuality"]),
+  link: new Set(["flow", "velocity", "unitHeadloss", "status"]),
 };
