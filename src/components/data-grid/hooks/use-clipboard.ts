@@ -73,11 +73,9 @@ export function useClipboard<TData extends Record<string, unknown>>({
     await navigator.clipboard.writeText(text);
   }, [selection, columns, data]);
 
-  const pasteFromClipboard = useCallback(async () => {
-    if (!selection || readOnly) return;
-
-    try {
-      const text = await navigator.clipboard.readText();
+  const applyPaste = useCallback(
+    (text: string) => {
+      if (!selection || readOnly) return;
       if (!text) return;
 
       const clipboardRows = text.split("\n").map((row) => row.split("\t"));
@@ -124,10 +122,20 @@ export function useClipboard<TData extends Record<string, unknown>>({
       }
 
       onChange(newData);
+    },
+    [selection, columns, data, onChange, createRow, readOnly],
+  );
+
+  const pasteFromClipboard = useCallback(async () => {
+    if (!selection || readOnly) return;
+
+    try {
+      const text = await navigator.clipboard.readText();
+      applyPaste(text);
     } catch {
       // Clipboard access denied or other error
     }
-  }, [selection, columns, data, onChange, createRow, readOnly]);
+  }, [selection, readOnly, applyPaste]);
 
   const handleCopy = useCallback(
     (e: React.ClipboardEvent) => {
@@ -142,9 +150,14 @@ export function useClipboard<TData extends Record<string, unknown>>({
     (e: React.ClipboardEvent) => {
       if (!selection) return;
       e.preventDefault();
-      void pasteFromClipboard();
+      // Read synchronously from the ClipboardEvent. Going through
+      // navigator.clipboard.readText() can trigger an async permission check
+      // that steals window focus, which then breaks document-level keyboard
+      // shortcuts (undo/redo) until the grid is re-focused.
+      const text = e.clipboardData.getData("text/plain");
+      applyPaste(text);
     },
-    [selection, pasteFromClipboard],
+    [selection, applyPaste],
   );
 
   return { handleCopy, handlePaste, copyToClipboard, pasteFromClipboard };

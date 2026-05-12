@@ -143,7 +143,14 @@ export function FloatCell({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
-        className="w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400"
+        className={clsx(
+          "w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400",
+          // Mousetrap skips shortcuts when focus is on an <input>. The class
+          // "mousetrap" is the documented escape hatch; we opt in only when
+          // the input is not editable so document-level shortcuts (undo,
+          // etc.) still fire if the user clicks a non-editing cell.
+          !editMode && "mousetrap",
+        )}
       />
     </div>
   );
