@@ -1,6 +1,6 @@
 import { ExportSimulationResultsProperties } from "../types";
 export { exportCsvSimulationResults } from "./export-csv-simulation-results";
-export { exportXlsxSimulationResults } from "./export-xlsx-time-series";
+export { exportXlsxSimulationResults } from "./export-xlsx-simulation-results";
 
 const XML_ZIP_COMPRESSION_RATIO = 0.2;
 
