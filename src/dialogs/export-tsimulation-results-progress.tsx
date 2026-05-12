@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import * as Progress from "@radix-ui/react-progress";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -15,6 +16,9 @@ export const ExportSimulationResultsProgressDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const highWaterMark = useRef(0);
+  if (progress > highWaterMark.current) highWaterMark.current = progress;
+  const displayProgress = highWaterMark.current;
 
   return (
     <BaseDialog
@@ -45,19 +49,19 @@ export const ExportSimulationResultsProgressDialog = ({
             ? translate("exportTimeSeries.complete")
             : translate(
                 "exportTimeSeries.inProgress",
-                String(Math.round(progress)),
+                String(Math.round(displayProgress)),
               )}
         </p>
         {!isComplete && (
           <Progress.Root
             className="relative overflow-hidden bg-gray-200 rounded-full w-full h-2"
-            value={isComplete ? 100 : progress}
+            value={isComplete ? 100 : displayProgress}
             max={100}
           >
             <Progress.Indicator
               className="bg-purple-600 w-full h-full transition-all duration-150"
               style={{
-                transform: `translateX(-${isComplete ? 0 : 100 - progress}%)`,
+                transform: `translateX(-${isComplete ? 0 : 100 - displayProgress}%)`,
               }}
             />
           </Progress.Root>
