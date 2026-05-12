@@ -1,41 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import {
-  PipeSimulation,
-  PumpSimulation,
-  ResultsReader,
-  ValveSimulation,
-} from "src/simulation/results-reader";
-import { findProfilePath } from "./path-finding";
-
-type StatusMap = {
-  pipe?: Record<number, PipeSimulation["status"] | null>;
-  pump?: Record<number, PumpSimulation["status"] | null>;
-  valve?: Record<number, ValveSimulation["status"] | null>;
-};
-
-const stubResults = (statuses: StatusMap = {}): ResultsReader => {
-  const lookup = <T extends { status: string }>(
-    map: Record<number, T["status"] | null> | undefined,
-    id: number,
-  ) => {
-    if (!map || !(id in map)) return null;
-    const status = map[id];
-    if (status === null) return null;
-    return { status } as unknown as T;
-  };
-
-  return {
-    getJunction: () => null,
-    getTank: () => null,
-    getReservoir: () => null,
-    getPipe: (id: number) => lookup<PipeSimulation>(statuses.pipe, id),
-    getPump: (id: number) => lookup<PumpSimulation>(statuses.pump, id),
-    getValve: (id: number) => lookup<ValveSimulation>(statuses.valve, id),
-    getPumpEnergy: () => null,
-    getAllValues: () => [],
-  } as unknown as ResultsReader;
-};
+import { deriveProfilePath, findProfilePath } from "./path-finding";
 
 describe("findProfilePath", () => {
   it("picks the shorter of two parallel branches when nothing is blocked", () => {
@@ -69,13 +34,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path).not.toBeNull();
     expect(path!.linkIds).toEqual([IDS.shortPipe1, IDS.shortPipe2]);
@@ -96,13 +55,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path).toBeNull();
   });
@@ -120,13 +73,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.A,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.A);
 
     expect(path).toBeNull();
   });
@@ -171,13 +118,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path!.linkIds).toEqual([IDS.longOpen1, IDS.longOpen2]);
   });
@@ -221,13 +162,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
   });
@@ -271,154 +206,12 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
   });
 
-  it("treats a pipe as blocked when sim status is closed even if initialStatus is open", () => {
-    const IDS = {
-      A: 1,
-      B: 2,
-      C: 3,
-      D: 4,
-      shortPipe: 5,
-      shortTail: 6,
-      detour1: 7,
-      detour2: 8,
-    } as const;
-
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.A, { coordinates: [0, 0] })
-      .aJunction(IDS.B, { coordinates: [1, 0] })
-      .aJunction(IDS.C, { coordinates: [2, 0] })
-      .aJunction(IDS.D, { coordinates: [1, 1] })
-      .aPipe(IDS.shortPipe, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.B,
-        length: 10,
-        initialStatus: "open",
-      })
-      .aPipe(IDS.shortTail, {
-        startNodeId: IDS.B,
-        endNodeId: IDS.C,
-        length: 10,
-      })
-      .aPipe(IDS.detour1, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.D,
-        length: 100,
-      })
-      .aPipe(IDS.detour2, {
-        startNodeId: IDS.D,
-        endNodeId: IDS.C,
-        length: 100,
-      })
-      .build();
-
-    const results = stubResults({ pipe: { [IDS.shortPipe]: "closed" } });
-
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      results,
-    );
-
-    expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
-  });
-
-  it("treats a pipe as traversable when sim status is open even if initialStatus is closed", () => {
-    const IDS = {
-      A: 1,
-      B: 2,
-      C: 3,
-      shortPipe: 4,
-      shortTail: 5,
-    } as const;
-
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.A, { coordinates: [0, 0] })
-      .aJunction(IDS.B, { coordinates: [1, 0] })
-      .aJunction(IDS.C, { coordinates: [2, 0] })
-      .aPipe(IDS.shortPipe, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.B,
-        length: 10,
-        initialStatus: "closed",
-      })
-      .aPipe(IDS.shortTail, {
-        startNodeId: IDS.B,
-        endNodeId: IDS.C,
-        length: 10,
-      })
-      .build();
-
-    const results = stubResults({ pipe: { [IDS.shortPipe]: "open" } });
-
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      results,
-    );
-
-    expect(path).not.toBeNull();
-    expect(path!.linkIds).toEqual([IDS.shortPipe, IDS.shortTail]);
-  });
-
-  it("falls back to initialStatus when results are missing for that link", () => {
-    const IDS = {
-      A: 1,
-      B: 2,
-      C: 3,
-      pipeWithoutResult: 4,
-      pipeWithResult: 5,
-    } as const;
-
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.A, { coordinates: [0, 0] })
-      .aJunction(IDS.B, { coordinates: [1, 0] })
-      .aJunction(IDS.C, { coordinates: [2, 0] })
-      .aPipe(IDS.pipeWithoutResult, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.B,
-        length: 10,
-        initialStatus: "open",
-      })
-      .aPipe(IDS.pipeWithResult, {
-        startNodeId: IDS.B,
-        endNodeId: IDS.C,
-        length: 10,
-        initialStatus: "open",
-      })
-      .build();
-
-    const results = stubResults({
-      pipe: { [IDS.pipeWithResult]: "open" },
-    });
-
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      results,
-    );
-
-    expect(path).not.toBeNull();
-    expect(path!.linkIds).toEqual([IDS.pipeWithoutResult, IDS.pipeWithResult]);
-  });
-
-  it("returns null when every route is blocked", () => {
+  it("returns null when every route is blocked by initialStatus", () => {
     const IDS = {
       A: 1,
       B: 2,
@@ -461,13 +254,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path).toBeNull();
   });
@@ -512,42 +299,9 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
-  });
-
-  it("returns null for disconnected nodes even when results are provided", () => {
-    const IDS = { A: 1, B: 2, C: 3, P1: 4 } as const;
-
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.A, { coordinates: [0, 0] })
-      .aJunction(IDS.B, { coordinates: [1, 0] })
-      .aJunction(IDS.C, { coordinates: [5, 0] })
-      .aPipe(IDS.P1, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.B,
-        length: 1,
-      })
-      .build();
-
-    const results = stubResults({ pipe: { [IDS.P1]: "open" } });
-
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      results,
-    );
-
-    expect(path).toBeNull();
   });
 
   it("traverses valves whose initialStatus is active", () => {
@@ -575,13 +329,7 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path).not.toBeNull();
     expect(path!.linkIds).toEqual([IDS.valve, IDS.tail]);
@@ -613,15 +361,106 @@ describe("findProfilePath", () => {
       })
       .build();
 
-    const path = findProfilePath(
-      model.topology,
-      model.assets,
-      IDS.A,
-      IDS.C,
-      null,
-    );
+    const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
     expect(path).not.toBeNull();
     expect(path!.linkIds).toEqual([IDS.cvPipe, IDS.tail]);
+  });
+});
+
+describe("deriveProfilePath", () => {
+  it("matches findProfilePath for two anchors", () => {
+    const IDS = { A: 1, B: 2, C: 3, P1: 4, P2: 5 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.A, endNodeId: IDS.B, length: 10 })
+      .aPipe(IDS.P2, { startNodeId: IDS.B, endNodeId: IDS.C, length: 10 })
+      .build();
+
+    const path = deriveProfilePath(model.topology, model.assets, [
+      IDS.A,
+      IDS.C,
+    ]);
+
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.A, IDS.B, IDS.C]);
+    expect(path!.linkIds).toEqual([IDS.P1, IDS.P2]);
+    expect(path!.totalLength).toBe(20);
+  });
+
+  it("returns null when an anchor is missing from the model", () => {
+    const IDS = { A: 1, B: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.A, endNodeId: IDS.B, length: 10 })
+      .build();
+
+    const path = deriveProfilePath(model.topology, model.assets, [IDS.A, 999]);
+
+    expect(path).toBeNull();
+  });
+
+  it("returns null when any sub-path has no route", () => {
+    const IDS = { A: 1, B: 2, C: 3, P1: 4 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [5, 0] })
+      .aPipe(IDS.P1, { startNodeId: IDS.A, endNodeId: IDS.B, length: 10 })
+      .build();
+
+    const path = deriveProfilePath(model.topology, model.assets, [
+      IDS.A,
+      IDS.C,
+    ]);
+
+    expect(path).toBeNull();
+  });
+
+  it("concatenates sub-paths between three anchors", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      P_AB: 5,
+      P_BC: 6,
+      P_CD: 7,
+      P_AC: 8,
+    } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aJunction(IDS.D, { coordinates: [3, 0] })
+      .aPipe(IDS.P_AB, { startNodeId: IDS.A, endNodeId: IDS.B, length: 10 })
+      .aPipe(IDS.P_BC, { startNodeId: IDS.B, endNodeId: IDS.C, length: 10 })
+      .aPipe(IDS.P_CD, { startNodeId: IDS.C, endNodeId: IDS.D, length: 10 })
+      .aPipe(IDS.P_AC, { startNodeId: IDS.A, endNodeId: IDS.C, length: 1 })
+      .build();
+
+    const path = deriveProfilePath(model.topology, model.assets, [
+      IDS.A,
+      IDS.B,
+      IDS.D,
+    ]);
+
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.A, IDS.B, IDS.C, IDS.D]);
+    expect(path!.linkIds).toEqual([IDS.P_AB, IDS.P_BC, IDS.P_CD]);
+    expect(path!.totalLength).toBe(30);
+  });
+
+  it("returns null for fewer than two anchors", () => {
+    const IDS = { A: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .build();
+
+    expect(deriveProfilePath(model.topology, model.assets, [])).toBeNull();
+    expect(deriveProfilePath(model.topology, model.assets, [IDS.A])).toBeNull();
   });
 });

@@ -48,7 +48,6 @@ const seedProfileView = (store: Store) => {
     startNodeId: IDS.J1,
     endNodeId: IDS.J3,
     hydraulicModel,
-    results: createMockResultsReader(),
     isUnprojected: false,
   });
   if ("error" in built) throw new Error("expected profileView");

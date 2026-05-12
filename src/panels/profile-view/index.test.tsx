@@ -4,7 +4,12 @@ import {
   createMockResultsReader,
   setInitialState,
 } from "src/__helpers__/state";
-import { profileViewAtom, ProfileView } from "src/state/profile-view";
+import {
+  profilePathAtom,
+  profileViewAtom,
+  ProfileView,
+} from "src/state/profile-view";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { AssetId } from "src/hydraulic-model";
 import { Store } from "src/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
@@ -35,54 +40,35 @@ const buildLinearModel = () =>
     })
     .build();
 
-const aProfileView = ({
-  nodeIds,
-  linkIds,
-}: {
-  nodeIds: AssetId[];
-  linkIds: AssetId[];
-}): ProfileView => ({
+const aProfileView = ({ anchors }: { anchors: AssetId[] }): ProfileView => ({
   id: "test-profile-view",
-  startNodeId: nodeIds[0],
-  endNodeId: nodeIds[nodeIds.length - 1],
-  nodeIds,
-  linkIds,
+  anchors,
   terrain: null,
-  hglRanges: null,
   isUnprojected: false,
 });
 
 describe("ProfileViewPanel pathBroken state", () => {
-  it("shows the broken-path empty state when a frozen node id is missing", () => {
+  it("shows the broken-path empty state when an anchor is missing", () => {
     const store = setInitialState({
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
     });
-    store.set(
-      profileViewAtom,
-      aProfileView({
-        nodeIds: [IDS.J1, IDS.J2, 999],
-        linkIds: [IDS.P1, IDS.P2],
-      }),
-    );
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, 999] }));
 
     renderPanel({ store });
 
     expect(screen.getByText(/no longer exist/i)).toBeInTheDocument();
   });
 
-  it("shows the broken-path empty state when a frozen link id is missing", () => {
+  it("shows the broken-path empty state when no route exists between anchors", () => {
     const store = setInitialState({
-      hydraulicModel: buildLinearModel(),
+      hydraulicModel: HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], elevation: 10 })
+        .aJunction(IDS.J3, { coordinates: [2, 0], elevation: 12 })
+        .build(),
       simulationResults: createMockResultsReader(),
     });
-    store.set(
-      profileViewAtom,
-      aProfileView({
-        nodeIds: [IDS.J1, IDS.J2, IDS.J3],
-        linkIds: [IDS.P1, 999],
-      }),
-    );
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
 
     renderPanel({ store });
 
@@ -99,6 +85,78 @@ describe("ProfileViewPanel pathBroken state", () => {
 
     expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});
+
+describe("ProfileViewPanel reactive path", () => {
+  const N = 6;
+  const P2a = 7;
+  const P2b = 8;
+
+  const buildSplitModel = () =>
+    HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0], elevation: 10 })
+      .aJunction(IDS.J2, { coordinates: [1, 0], elevation: 11 })
+      .aJunction(N, { coordinates: [1.5, 0], elevation: 11.5 })
+      .aJunction(IDS.J3, { coordinates: [2, 0], elevation: 12 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        length: 100,
+      })
+      .aPipe(P2a, {
+        startNodeId: IDS.J2,
+        endNodeId: N,
+        length: 50,
+      })
+      .aPipe(P2b, {
+        startNodeId: N,
+        endNodeId: IDS.J3,
+        length: 50,
+      })
+      .build();
+
+  it("re-derives the path through a new junction after splitting a pipe", () => {
+    const store = setInitialState({ hydraulicModel: buildLinearModel() });
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    renderPanel({ store });
+
+    store.set(stagingModelDerivedAtom, buildSplitModel());
+
+    const path = store.get(profilePathAtom);
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.J1, IDS.J2, N, IDS.J3]);
+    expect(path!.linkIds).toEqual([IDS.P1, P2a, P2b]);
+    expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
+  });
+
+  it("re-derives the collapsed path after removing an intermediate node", () => {
+    const store = setInitialState({ hydraulicModel: buildSplitModel() });
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    renderPanel({ store });
+
+    store.set(stagingModelDerivedAtom, buildLinearModel());
+
+    const path = store.get(profilePathAtom);
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.J1, IDS.J2, IDS.J3]);
+    expect(path!.linkIds).toEqual([IDS.P1, IDS.P2]);
+    expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
+  });
+
+  it("honors a waypoint anchor in the middle", () => {
+    const store = setInitialState({ hydraulicModel: buildLinearModel() });
+    store.set(
+      profileViewAtom,
+      aProfileView({ anchors: [IDS.J1, IDS.J2, IDS.J3] }),
+    );
+    renderPanel({ store });
+
+    const path = store.get(profilePathAtom);
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.J1, IDS.J2, IDS.J3]);
+    expect(path!.linkIds).toEqual([IDS.P1, IDS.P2]);
+    expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
   });
 });
 

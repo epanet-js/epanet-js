@@ -4,6 +4,8 @@ import { LngLat } from "mapbox-gl";
 import { useElevations } from "src/map/elevations/use-elevations";
 import {
   profileViewAtom,
+  profilePathAtom,
+  hglRangesAtom,
   ProfileView,
   ProfileViewUiPhase,
   PathData,
@@ -12,16 +14,13 @@ import { Mode, modeAtom } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
 import {
   stagingModelDerivedAtom,
-  simulationDerivedAtom,
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getDecimals, ProjectSettings } from "src/lib/project-settings";
-import { type SimulationState } from "src/state/simulation";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
 import { Highlight } from "src/state/highlights";
-import { captureError } from "src/infra/error-tracking";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { Unit } from "src/quantity";
@@ -81,35 +80,13 @@ export function useProfileViewData(): ProfileViewData {
   const { mode } = useAtomValue(modeAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const model = useAtomValue(stagingModelDerivedAtom);
-  const simulation = useAtomValue(simulationDerivedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
+  const path = useAtomValue(profilePathAtom);
+  const hglRanges = useAtomValue(hglRangesAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
 
-  const path = useMemo<PathData | null>(
-    () =>
-      profileView
-        ? {
-            nodeIds: profileView.nodeIds,
-            linkIds: profileView.linkIds,
-            totalLength: 0,
-          }
-        : null,
-    [profileView],
-  );
-
-  const isBroken = useMemo(() => {
-    if (!profileView) return false;
-    for (const id of profileView.nodeIds) {
-      if (!model.assets.get(id)) return true;
-    }
-    for (const id of profileView.linkIds) {
-      if (!model.assets.get(id)) return true;
-    }
-    return false;
-  }, [profileView, model.assets]);
-
   const phase = useMemo<ProfileViewUiPhase>(() => {
-    if (profileView !== null && isBroken) return "pathBroken";
+    if (profileView !== null && path === null) return "pathBroken";
     if (profileView !== null) return "showingProfile";
     if (mode !== Mode.PROFILE_VIEW) return "idle";
     if (
@@ -119,25 +96,21 @@ export function useProfileViewData(): ProfileViewData {
       return "selectingEnd";
     }
     return "selectingStart";
-  }, [profileView, isBroken, mode, ephemeralState]);
+  }, [profileView, path, mode, ephemeralState]);
 
   const pathSegments = useMemo(
-    () => (path && !isBroken ? buildPathSegments(path, model.assets) : []),
-    [path, model.assets, isBroken],
+    () => (path ? buildPathSegments(path, model.assets) : []),
+    [path, model.assets],
   );
 
   const points = useMemo(
-    () =>
-      path && !isBroken
-        ? computeProfilePoints(path, model.assets, results)
-        : [],
-    [path, model.assets, results, isBroken],
+    () => (path ? computeProfilePoints(path, model.assets, results) : []),
+    [path, model.assets, results],
   );
 
   const links = useMemo(
-    () =>
-      path && !isBroken ? computeProfileLinks(path, model.assets, results) : [],
-    [path, model.assets, results, isBroken],
+    () => (path ? computeProfileLinks(path, model.assets, results) : []),
+    [path, model.assets, results],
   );
 
   const terrainSamples = useMemo(
@@ -182,9 +155,14 @@ export function useProfileViewData(): ProfileViewData {
   );
 
   const hglBandSegments = useMemo(
+    () => buildHglBandSegments(points, hglRanges),
+    [points, hglRanges],
+  );
+
+  const hglRangesList = useMemo(
     () =>
-      profileView ? buildHglBandSegments(points, profileView.hglRanges) : null,
-    [profileView, points],
+      hglRanges ? points.map((p) => hglRanges.get(p.nodeId) ?? null) : null,
+    [points, hglRanges],
   );
 
   const terrainData = useMemo(
@@ -198,14 +176,8 @@ export function useProfileViewData(): ProfileViewData {
     setProfileView,
     elevationUnit: projectSettings.units.elevation,
   });
-  useFetchHglRangesOnce({
-    profileView,
-    points,
-    simulation,
-    setProfileView,
-  });
 
-  if (!profileView || isBroken) {
+  if (!profileView || !path) {
     return buildEmptyData(phase, projectSettings);
   }
 
@@ -225,7 +197,7 @@ export function useProfileViewData(): ProfileViewData {
     hglDropsData,
     terrain: profileView.terrain,
     terrainData,
-    hglRanges: profileView.hglRanges,
+    hglRanges: hglRangesList,
     hglBandSegments,
     elevationUnit: projectSettings.units.elevation,
     lengthUnit: projectSettings.units.length,
@@ -308,14 +280,14 @@ function buildTerrainData(
 
 function buildHglBandSegments(
   points: ProfilePoint[],
-  hglRanges: (HglRange | null)[] | null,
+  hglRanges: Map<AssetId, HglRange | null> | null,
 ): HglBandSegment[][] | null {
   return traceDuration("DEBUG PROFILE_VIEW:hglBandSegments", () => {
-    if (!hglRanges || hglRanges.length !== points.length) return null;
+    if (!hglRanges) return null;
     const segments: HglBandSegment[][] = [];
     let current: HglBandSegment[] | null = null;
     for (let i = 0; i < points.length; i++) {
-      const r = hglRanges[i];
+      const r = hglRanges.get(points[i].nodeId) ?? null;
       if (r) {
         if (!current) current = [];
         current.push({
@@ -605,101 +577,6 @@ function useFetchTerrainOnce({
 
     return () => {
       cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileViewId]);
-}
-
-function useFetchHglRangesOnce({
-  profileView,
-  points,
-  simulation,
-  setProfileView,
-}: {
-  profileView: ProfileView | null;
-  points: ProfilePoint[];
-  simulation: SimulationState;
-  setProfileView: ProfileViewUpdater;
-}) {
-  const profileViewId = profileView?.id ?? null;
-
-  useEffect(() => {
-    if (!profileView) return;
-    if (profileView.hglRanges !== null) return;
-    if (points.length === 0) return;
-
-    const epsResultsReader =
-      "epsResultsReader" in simulation && simulation.epsResultsReader
-        ? simulation.epsResultsReader
-        : null;
-    if (!epsResultsReader) return;
-
-    const controller = new AbortController();
-    const capturedPoints = points;
-    const capturedId = profileView.id;
-    const capturedReader = epsResultsReader;
-
-    const fetchAll = async () => {
-      const start = performance.now();
-      const results: (HglRange | null)[] = new Array(capturedPoints.length);
-      for (let i = 0; i < capturedPoints.length; i++) {
-        if (controller.signal.aborted) return;
-        const point = capturedPoints[i];
-        try {
-          const series =
-            point.nodeType === "junction"
-              ? await capturedReader.getTimeSeries(
-                  point.nodeId,
-                  "junction",
-                  "head",
-                )
-              : point.nodeType === "tank"
-                ? await capturedReader.getTimeSeries(
-                    point.nodeId,
-                    "tank",
-                    "head",
-                  )
-                : await capturedReader.getTimeSeries(
-                    point.nodeId,
-                    "reservoir",
-                    "head",
-                  );
-          if (!series || series.values.length === 0) {
-            results[i] = null;
-            continue;
-          }
-          let min = series.values[0];
-          let max = series.values[0];
-          for (let j = 1; j < series.values.length; j++) {
-            const v = series.values[j];
-            if (v < min) min = v;
-            if (v > max) max = v;
-          }
-          results[i] = { nodeId: point.nodeId, minHead: min, maxHead: max };
-        } catch (err) {
-          captureError(err as Error);
-          results[i] = null;
-        }
-      }
-
-      if (isDebugOn) {
-        //eslint-disable-next-line no-console
-        console.log(
-          `DEBUG PROFILE_VIEW:hglRange nodes=${capturedPoints.length} time=${(
-            performance.now() - start
-          ).toFixed(2)} ms`,
-        );
-      }
-      if (controller.signal.aborted) return;
-      setProfileView((curr) =>
-        curr && curr.id === capturedId ? { ...curr, hglRanges: results } : curr,
-      );
-    };
-
-    void fetchAll();
-
-    return () => {
-      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileViewId]);

@@ -13,9 +13,7 @@ import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { findProfilePath } from "src/panels/profile-view/path-finding";
 import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
-import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 import { isUnprojectedAtom } from "src/state/map-projection";
-import { ResultsReader } from "src/simulation/results-reader";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 
 export function useProfileViewHandlers(
@@ -25,7 +23,6 @@ export function useProfileViewHandlers(
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
-  const results = useAtomValue(simulationResultsDerivedAtom);
   const isUnprojected = useAtomValue(isUnprojectedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
@@ -42,18 +39,12 @@ export function useProfileViewHandlers(
   const draftPathCacheRef = useRef<{
     startNodeId: AssetId;
     hoveredNodeId: AssetId;
-    results: ResultsReader | null;
+    assetsVersion: unknown;
     path: DraftPath | undefined;
   } | null>(null);
 
   const computePath = (start: AssetId, end: AssetId) =>
-    findProfilePath(
-      hydraulicModel.topology,
-      hydraulicModel.assets,
-      start,
-      end,
-      results,
-    );
+    findProfilePath(hydraulicModel.topology, hydraulicModel.assets, start, end);
 
   const resolveNodeId = (
     asset: Asset | null,
@@ -82,7 +73,6 @@ export function useProfileViewHandlers(
       startNodeId: draftStartNodeId,
       endNodeId: nodeId,
       hydraulicModel,
-      results,
       isUnprojected,
     });
 
@@ -97,7 +87,7 @@ export function useProfileViewHandlers(
     setEphemeralState({ type: "none" });
     setSelection({
       type: "multi",
-      ids: [...built.profileView.nodeIds, ...built.profileView.linkIds],
+      ids: [...built.path.nodeIds, ...built.path.linkIds],
     });
     setMode({ mode: Mode.NONE });
   };
@@ -117,7 +107,7 @@ export function useProfileViewHandlers(
         cached &&
         cached.startNodeId === draftStartNodeId &&
         cached.hoveredNodeId === hoveredNodeId &&
-        cached.results === results
+        cached.assetsVersion === hydraulicModel.assets
       ) {
         path = cached.path;
       } else {
@@ -128,7 +118,7 @@ export function useProfileViewHandlers(
         draftPathCacheRef.current = {
           startNodeId: draftStartNodeId,
           hoveredNodeId,
-          results,
+          assetsVersion: hydraulicModel.assets,
           path,
         };
       }
