@@ -28,8 +28,8 @@ export function ChartBuilderChartDialog({
   return (
     <BaseDialog
       title={chartTitle}
-      size="fullscreen"
-      height="xxl"
+      size="xl"
+      height="xl"
       isOpen={isOpen}
       onClose={onClose}
     >
