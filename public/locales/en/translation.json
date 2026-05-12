@@ -1312,7 +1312,11 @@
     "saveWithWarningsHint": "There are some validation warnings."
   },
   "dataTables": {
-    "title": "Data tables"
+    "title": "Data tables",
+    "copy": {
+      "includeHeadersPrompt": "Copied. Include column headers?",
+      "includeHeadersAction": "Copy with headers"
+    }
   },
   "profileView": {
     "title": "Profile view",

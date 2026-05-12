@@ -1,8 +1,16 @@
 import clsx from "clsx";
 import { CloseIcon } from "src/icons";
 import toast, { Toaster } from "react-hot-toast";
+import { Button, type B3Variant } from "src/components/elements";
 
 type NotificationVariant = "success" | "warning" | "error" | "default";
+
+type NotificationAction = {
+  label: string;
+  onClick: () => void;
+  variant?: B3Variant;
+  align?: "left" | "center" | "right" | "inline";
+};
 
 type NotificationBannerProps = {
   variant: NotificationVariant;
@@ -11,6 +19,9 @@ type NotificationBannerProps = {
   details?: string;
   Icon?: React.ElementType;
   className?: string;
+  action?: NotificationAction;
+  onActionClick?: () => void;
+  onDismiss?: () => void;
 };
 
 export const NotificationBanner = ({
@@ -20,7 +31,12 @@ export const NotificationBanner = ({
   details,
   Icon,
   className,
+  action,
+  onActionClick,
+  onDismiss,
 }: NotificationBannerProps) => {
+  const isInlineAction = action?.align === "inline";
+  const hasTitleRowExtras = isInlineAction || !!onDismiss;
   return (
     <div
       className={clsx(
@@ -45,7 +61,40 @@ export const NotificationBanner = ({
         />
       )}
       <div className="flex flex-col flex-grow space-y-1 min-w-0">
-        {title && <span className="text-sm font-semibold">{title}</span>}
+        {(title || hasTitleRowExtras) &&
+          (hasTitleRowExtras ? (
+            <div className="flex items-center gap-2">
+              {title && (
+                <span className="text-sm font-semibold flex-grow min-w-0">
+                  {title}
+                </span>
+              )}
+              {isInlineAction && action && (
+                <Button
+                  variant={action.variant ?? "primary"}
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => {
+                    action.onClick();
+                    onActionClick?.();
+                  }}
+                >
+                  {action.label}
+                </Button>
+              )}
+              {onDismiss && (
+                <button
+                  onClick={onDismiss}
+                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                >
+                  <span className="sr-only">Dismiss</span>
+                  <CloseIcon />
+                </button>
+              )}
+            </div>
+          ) : (
+            title && <span className="text-sm font-semibold">{title}</span>
+          ))}
         {description && <span className="text-sm">{description}</span>}
         {details && (
           <details className="text-xs">
@@ -56,6 +105,23 @@ export const NotificationBanner = ({
               {details}
             </pre>
           </details>
+        )}
+        {action && action.align !== "inline" && (
+          <Button
+            variant={action.variant ?? "default"}
+            size="sm"
+            className={clsx("mt-1", {
+              "self-start": !action.align || action.align === "left",
+              "self-center": action.align === "center",
+              "self-end": action.align === "right",
+            })}
+            onClick={() => {
+              action.onClick();
+              onActionClick?.();
+            }}
+          >
+            {action.label}
+          </Button>
         )}
       </div>
     </div>
@@ -121,6 +187,7 @@ export const notify = ({
   position = "top-center",
   dismissable = true,
   size = "auto",
+  action,
 }: {
   variant?: NotificationVariant;
   title: string;
@@ -129,9 +196,10 @@ export const notify = ({
   Icon?: React.ElementType;
   id?: string;
   duration?: number;
-  position?: "top-center" | "bottom-right";
+  position?: "top-center" | "bottom-right" | "bottom-center";
   dismissable?: boolean;
   size?: "auto" | "sm" | "md";
+  action?: NotificationAction;
 }) => {
   return toast.custom(
     (t) => (
@@ -155,20 +223,11 @@ export const notify = ({
           description={description}
           details={details}
           Icon={Icon}
-          className={clsx(
-            "shadow-md border rounded-lg",
-            dismissable && "pr-10",
-          )}
+          action={action}
+          onActionClick={() => toast.remove(t.id)}
+          onDismiss={dismissable ? () => toast.remove(t.id) : undefined}
+          className="shadow-md border rounded-lg"
         />
-        {dismissable && (
-          <button
-            onClick={() => toast.remove(t.id)}
-            className="absolute top-3 right-3 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-          >
-            <span className="sr-only">Dismiss</span>
-            <CloseIcon />
-          </button>
-        )}
       </div>
     ),
     { id, duration, position },

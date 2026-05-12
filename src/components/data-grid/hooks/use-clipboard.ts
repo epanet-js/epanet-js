@@ -13,12 +13,16 @@ type UseClipboardOptions<TData extends Record<string, unknown>> = {
     cols: number;
     allRows: boolean;
     allCols: boolean;
+    columnIds: string[];
+    canIncludeHeaders: boolean;
+    copyWithHeaders: () => Promise<void>;
   }) => void;
   onPaste?: (info: {
     rows: number;
     cols: number;
     allRows: boolean;
     allCols: boolean;
+    columnIds: string[];
   }) => void;
 };
 
@@ -32,68 +36,84 @@ export function useClipboard<TData extends Record<string, unknown>>({
   onCopy,
   onPaste,
 }: UseClipboardOptions<TData>) {
+  const writeSelectionToClipboard = useCallback(
+    async (includeHeaders: boolean) => {
+      if (!selection) return;
+
+      const rows: string[] = [];
+
+      if (includeHeaders) {
+        const headers: string[] = [];
+        for (
+          let colIndex = selection.min.col;
+          colIndex <= selection.max.col;
+          colIndex++
+        ) {
+          headers.push(columns[colIndex]?.header ?? "");
+        }
+        rows.push(headers.join("\t"));
+      }
+
+      for (
+        let rowIndex = selection.min.row;
+        rowIndex <= selection.max.row;
+        rowIndex++
+      ) {
+        const row = data[rowIndex];
+        const cells: string[] = [];
+
+        for (
+          let colIndex = selection.min.col;
+          colIndex <= selection.max.col;
+          colIndex++
+        ) {
+          const column = columns[colIndex];
+          const accessorKey = column?.accessorKey;
+          if (!accessorKey) {
+            cells.push("");
+            continue;
+          }
+
+          const value = (row as Record<string, unknown>)[accessorKey];
+          const copyValue = column.copyValue;
+          const stringValue = copyValue
+            ? copyValue(value)
+            : (value?.toString() ?? "");
+          cells.push(stringValue);
+        }
+
+        rows.push(cells.join("\t"));
+      }
+
+      await navigator.clipboard.writeText(rows.join("\n"));
+    },
+    [selection, columns, data],
+  );
+
   const copyToClipboard = useCallback(async () => {
     if (!selection) return;
 
-    const rows: string[] = [];
+    await writeSelectionToClipboard(false);
 
-    const allRowsSelected =
-      selection.min.row === 0 && selection.max.row === data.length - 1;
-
-    if (allRowsSelected) {
-      const headers: string[] = [];
-      for (
-        let colIndex = selection.min.col;
-        colIndex <= selection.max.col;
-        colIndex++
-      ) {
-        headers.push(columns[colIndex]?.header ?? "");
-      }
-      rows.push(headers.join("\t"));
-    }
-
-    for (
-      let rowIndex = selection.min.row;
-      rowIndex <= selection.max.row;
-      rowIndex++
-    ) {
-      const row = data[rowIndex];
-      const cells: string[] = [];
-
-      for (
-        let colIndex = selection.min.col;
-        colIndex <= selection.max.col;
-        colIndex++
-      ) {
-        const column = columns[colIndex];
-        const accessorKey = column?.accessorKey;
-        if (!accessorKey) {
-          cells.push("");
-          continue;
-        }
-
-        const value = (row as Record<string, unknown>)[accessorKey];
-        const copyValue = column.copyValue;
-        const stringValue = copyValue
-          ? copyValue(value)
-          : (value?.toString() ?? "");
-        cells.push(stringValue);
-      }
-
-      rows.push(cells.join("\t"));
-    }
-
-    const text = rows.join("\n");
-    await navigator.clipboard.writeText(text);
     const selRows = selection.max.row - selection.min.row + 1;
     const selCols = selection.max.col - selection.min.col + 1;
+    const allRows = selRows === data.length;
+    const allCols = selCols === columns.length;
+    const columnIds: string[] = [];
+    for (let c = selection.min.col; c <= selection.max.col; c++) {
+      const key = columns[c]?.accessorKey;
+      if (key) columnIds.push(key);
+    }
     onCopy?.({
       rows: selRows,
       cols: selCols,
-      allRows: selRows === data.length,
-      allCols: selCols === columns.length,
+      allRows,
+      allCols,
+      columnIds,
+      canIncludeHeaders: allRows,
+      copyWithHeaders: () => writeSelectionToClipboard(true),
     });
-  }, [selection, columns, data, onCopy]);
+  }, [selection, columns, data, onCopy, writeSelectionToClipboard]);
 
   const applyPaste = useCallback(
     (text: string) => {
@@ -149,6 +169,15 @@ export function useClipboard<TData extends Record<string, unknown>>({
         targetCols,
         columns.length - selection.min.col,
       );
+      const columnIds: string[] = [];
+      for (
+        let c = selection.min.col;
+        c < selection.min.col + writtenCols;
+        c++
+      ) {
+        const key = columns[c]?.accessorKey;
+        if (key) columnIds.push(key);
+      }
       onPaste?.({
         rows: targetRows,
         cols: writtenCols,
@@ -156,6 +185,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
           selection.min.row === 0 &&
           selection.min.row + targetRows >= newData.length,
         allCols: selection.min.col === 0 && writtenCols === columns.length,
+        columnIds,
       });
     },
     [selection, columns, data, onChange, createRow, readOnly, onPaste],

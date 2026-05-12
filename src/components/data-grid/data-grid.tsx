@@ -55,12 +55,16 @@ type DataGridProps<TData extends Record<string, unknown>> = {
     cols: number;
     allRows: boolean;
     allCols: boolean;
+    columnIds: string[];
+    canIncludeHeaders: boolean;
+    copyWithHeaders: () => Promise<void>;
   }) => void;
   onPaste?: (info: {
     rows: number;
     cols: number;
     allRows: boolean;
     allCols: boolean;
+    columnIds: string[];
   }) => void;
 };
 

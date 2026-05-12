@@ -1177,6 +1177,8 @@ export type UserEvent =
       cols: number;
       allRows: boolean;
       allCols: boolean;
+      withHeaders: boolean;
+      columnIds: string[];
     }
   | {
       name: "dataTables.pasted";
@@ -1185,6 +1187,7 @@ export type UserEvent =
       cols: number;
       allRows: boolean;
       allCols: boolean;
+      columnIds: string[];
     }
   | {
       name: "dataTables.sorted";

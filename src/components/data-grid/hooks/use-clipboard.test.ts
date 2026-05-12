@@ -421,14 +421,14 @@ describe("useClipboard", () => {
       expect(writeText).toHaveBeenCalledWith("1\tAlice\n2\tBob");
     });
 
-    it("includes headers when all rows are selected (full column)", async () => {
+    it("does not include headers by default for full-column selection", async () => {
       const data: TestRow[] = [
         { id: "1", name: "Alice", value: "100" },
         { id: "2", name: "Bob", value: "200" },
       ];
       const selection: GridSelection = {
         min: { col: 1, row: 0 },
-        max: { col: 1, row: 1 }, // single column, all rows
+        max: { col: 1, row: 1 },
       };
 
       const writeText = vi.fn().mockResolvedValue(undefined);
@@ -448,21 +448,22 @@ describe("useClipboard", () => {
         await result.current.copyToClipboard();
       });
 
-      expect(writeText).toHaveBeenCalledWith("Name\nAlice\nBob");
+      expect(writeText).toHaveBeenCalledWith("Alice\nBob");
     });
 
-    it("includes headers when all rows and all columns are selected (full table)", async () => {
+    it("signals canIncludeHeaders and exposes copyWithHeaders for full-table selection", async () => {
       const data: TestRow[] = [
         { id: "1", name: "Alice", value: "100" },
         { id: "2", name: "Bob", value: "200" },
       ];
       const selection: GridSelection = {
         min: { col: 0, row: 0 },
-        max: { col: 2, row: 1 }, // all columns, all rows
+        max: { col: 2, row: 1 },
       };
 
       const writeText = vi.fn().mockResolvedValue(undefined);
       Object.assign(navigator, { clipboard: { writeText } });
+      const onCopy = vi.fn();
 
       const { result } = renderHook(() =>
         useClipboard({
@@ -471,6 +472,7 @@ describe("useClipboard", () => {
           data,
           onChange: vi.fn(),
           createRow: createTestRow,
+          onCopy,
         }),
       );
 
@@ -478,7 +480,19 @@ describe("useClipboard", () => {
         await result.current.copyToClipboard();
       });
 
-      expect(writeText).toHaveBeenCalledWith(
+      expect(writeText).toHaveBeenLastCalledWith("1\tAlice\t100\n2\tBob\t200");
+      expect(onCopy).toHaveBeenCalledWith(
+        expect.objectContaining({ canIncludeHeaders: true }),
+      );
+
+      const info = onCopy.mock.calls[0][0] as {
+        copyWithHeaders: () => Promise<void>;
+      };
+      await act(async () => {
+        await info.copyWithHeaders();
+      });
+
+      expect(writeText).toHaveBeenLastCalledWith(
         "ID\tName\tValue\n1\tAlice\t100\n2\tBob\t200",
       );
     });

@@ -63,6 +63,7 @@ import type {
 } from "src/hydraulic-model/patterns";
 import type { Curves, CurveId, CurveType } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
+import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -1199,14 +1200,58 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       cols: number;
       allRows: boolean;
       allCols: boolean;
+      columnIds: string[];
+      canIncludeHeaders: boolean;
+      copyWithHeaders: () => Promise<void>;
     }) => {
+      const {
+        rows,
+        cols,
+        allRows,
+        allCols,
+        columnIds,
+        canIncludeHeaders,
+        copyWithHeaders,
+      } = info;
       userTracking.capture({
         name: "dataTables.copied",
         type: assetType,
-        ...info,
+        rows,
+        cols,
+        allRows,
+        allCols,
+        withHeaders: false,
+        columnIds,
       });
+
+      if (canIncludeHeaders) {
+        notify({
+          variant: "default",
+          title: translate("dataTables.copy.includeHeadersPrompt"),
+          duration: 6000,
+          position: "bottom-center",
+          action: {
+            label: translate("dataTables.copy.includeHeadersAction"),
+            variant: "default",
+            align: "inline",
+            onClick: () => {
+              void copyWithHeaders();
+              userTracking.capture({
+                name: "dataTables.copied",
+                type: assetType,
+                rows,
+                cols,
+                allRows,
+                allCols,
+                withHeaders: true,
+                columnIds,
+              });
+            },
+          },
+        });
+      }
     },
-    [userTracking, assetType],
+    [userTracking, assetType, translate],
   );
 
   const handlePaste = useCallback(
@@ -1215,6 +1260,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       cols: number;
       allRows: boolean;
       allCols: boolean;
+      columnIds: string[];
     }) => {
       userTracking.capture({
         name: "dataTables.pasted",
