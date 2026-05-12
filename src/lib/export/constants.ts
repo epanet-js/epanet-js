@@ -1,1 +1,2 @@
 export const NUM_DECIMAL_PLACES = 4;
+export const COORDINATE_DECIMAL_PLACES = 6;

@@ -3,6 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportGeoJson } from "./export-geojson";
 import { WGS84 } from "src/lib/projections";
+import { COORDINATE_DECIMAL_PLACES, NUM_DECIMAL_PLACES } from "../constants";
 
 const noSelection = new Set<number>();
 
@@ -132,6 +133,45 @@ describe("export-geojson", () => {
     expect(geoJson.features[0].properties).toMatchObject({
       label: "CP1",
     });
+  });
+
+  it(`formats geometry coordinates with ${COORDINATE_DECIMAL_PLACES} decimal places and properties with ${NUM_DECIMAL_PLACES}`, async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, {
+        label: "J1",
+        coordinates: [1.123456789, 2.987654321],
+        elevation: 9.87654321,
+      })
+      .aPipe(2, { startNodeId: 1, label: "P1" })
+      .aCustomerPoint(10, {
+        label: "CP1",
+        coordinates: [3.111111111, 4.999999999],
+        connection: { pipeId: 2, junctionId: 1 },
+      })
+      .build();
+    const files = exportGeoJson(model, false, noSelection, WGS84);
+
+    const jGeoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
+    const [jx, jy] = jGeoJson.features[0].geometry.coordinates as number[];
+    expect(jx).toBe(Number((1.123456789).toFixed(COORDINATE_DECIMAL_PLACES)));
+    expect(jy).toBe(Number((2.987654321).toFixed(COORDINATE_DECIMAL_PLACES)));
+    expect(jGeoJson.features[0].properties.elevation).toBe(
+      Number((9.87654321).toFixed(NUM_DECIMAL_PLACES)),
+    );
+
+    const cpGeoJson = await parseGeoJson(
+      findFile(files, "customer-points.geojson"),
+    );
+    const cp = cpGeoJson.features[0];
+    const [cpx, cpy] = cp.geometry.coordinates as number[];
+    expect(cpx).toBe(Number((3.111111111).toFixed(COORDINATE_DECIMAL_PLACES)));
+    expect(cpy).toBe(Number((4.999999999).toFixed(COORDINATE_DECIMAL_PLACES)));
+    expect(cp.properties.connectionX).toBe(
+      Number((3.111111111).toFixed(COORDINATE_DECIMAL_PLACES)),
+    );
+    expect(cp.properties.connectionY).toBe(
+      Number((4.999999999).toFixed(COORDINATE_DECIMAL_PLACES)),
+    );
   });
 
   it("only exports selected assets when selectedAssets is non-empty", async () => {

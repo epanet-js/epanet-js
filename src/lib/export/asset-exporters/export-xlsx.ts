@@ -4,7 +4,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
-import { NUM_DECIMAL_PLACES } from "../constants";
+import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { Position } from "geojson";
 
@@ -252,9 +252,17 @@ const buildRow = (
 
   for (const key of propertyKeys) {
     if (key === "positionX") {
-      row.push(transformCoord(asset.coordinates as Position)[0]);
+      row.push(
+        transformCoord(asset.coordinates as Position)[0].toFixed(
+          COORDINATE_DECIMAL_PLACES,
+        ),
+      );
     } else if (key === "positionY") {
-      row.push(transformCoord(asset.coordinates as Position)[1]);
+      row.push(
+        transformCoord(asset.coordinates as Position)[1].toFixed(
+          COORDINATE_DECIMAL_PLACES,
+        ),
+      );
     } else if (key === "connections") {
       const [startId, endId] = asset.getProperty(
         "connections",
@@ -291,9 +299,19 @@ const buildCustomerPointRow = (
       : "";
   const [x, y] = transformCoord(point.coordinates);
   const snapPoint = point.connection?.snapPoint;
-  const [sx, sy] = snapPoint ? transformCoord(snapPoint) : ["", ""];
+  const snapCoords = snapPoint ? transformCoord(snapPoint) : null;
+  const sx = snapCoords ? snapCoords[0].toFixed(COORDINATE_DECIMAL_PLACES) : "";
+  const sy = snapCoords ? snapCoords[1].toFixed(COORDINATE_DECIMAL_PLACES) : "";
 
-  return [point.label, x, y, junctionConnection, pipeConnection, sx, sy];
+  return [
+    point.label,
+    x.toFixed(COORDINATE_DECIMAL_PLACES),
+    y.toFixed(COORDINATE_DECIMAL_PLACES),
+    junctionConnection,
+    pipeConnection,
+    sx,
+    sy,
+  ];
 };
 
 const colLetter = (colIndex: number): string => {

@@ -3,7 +3,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { exportXlsx } from "./export-xlsx";
 import { WGS84 } from "src/lib/projections";
-import { NUM_DECIMAL_PLACES } from "../constants";
+import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 
 function makeMockHandle() {
   const chunks: Uint8Array[] = [];
@@ -157,7 +157,7 @@ describe("exportXlsx", () => {
     expect(String(dataRow[demandIdx])).toBe("5");
   });
 
-  it(`truncates decimal numbers to ${NUM_DECIMAL_PLACES} decimal places`, async () => {
+  it(`formats coordinates with ${COORDINATE_DECIMAL_PLACES} decimal places and other numbers with ${NUM_DECIMAL_PLACES}`, async () => {
     const IDS = { J1: 1 } as const;
 
     const model = HydraulicModelBuilder.with()
@@ -196,10 +196,10 @@ describe("exportXlsx", () => {
     const demandIdx = headers.indexOf("sim_demand");
 
     expect(String(dataRow[posXIdx])).toBe(
-      (0.123456789).toFixed(NUM_DECIMAL_PLACES),
+      (0.123456789).toFixed(COORDINATE_DECIMAL_PLACES),
     );
     expect(String(dataRow[posYIdx])).toBe(
-      (1.987654321).toFixed(NUM_DECIMAL_PLACES),
+      (1.987654321).toFixed(COORDINATE_DECIMAL_PLACES),
     );
     expect(String(dataRow[pressureIdx])).toBe(
       (42.123456789).toFixed(NUM_DECIMAL_PLACES),

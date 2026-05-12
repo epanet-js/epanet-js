@@ -3,7 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedAssetTypes, ExportedFile } from "../types";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { FILE_NAMES } from "./constants";
-import { NUM_DECIMAL_PLACES } from "../constants";
+import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { Position } from "geojson";
 
@@ -101,12 +101,12 @@ export const exportCsv = (
     const [sx, sy] = snapPoint ? transformCoord(snapPoint) : [null, null];
 
     parts[partIdx++] = point.label;
-    parts[partIdx++] = x.toFixed(NUM_DECIMAL_PLACES);
-    parts[partIdx++] = y.toFixed(NUM_DECIMAL_PLACES);
+    parts[partIdx++] = x.toFixed(COORDINATE_DECIMAL_PLACES);
+    parts[partIdx++] = y.toFixed(COORDINATE_DECIMAL_PLACES);
     parts[partIdx++] = junctionConnection;
     parts[partIdx++] = pipeConnection;
-    parts[partIdx++] = sx !== null ? sx.toFixed(NUM_DECIMAL_PLACES) : "";
-    parts[partIdx++] = sy !== null ? sy.toFixed(NUM_DECIMAL_PLACES) : "";
+    parts[partIdx++] = sx !== null ? sx.toFixed(COORDINATE_DECIMAL_PLACES) : "";
+    parts[partIdx++] = sy !== null ? sy.toFixed(COORDINATE_DECIMAL_PLACES) : "";
 
     encode("customerPoint");
   };
@@ -153,8 +153,8 @@ export const exportCsv = (
       if (!asset.isNode) return "";
       const [x, y] = transformCoord(asset.coordinates as Position);
       return property === "positionX"
-        ? x.toFixed(NUM_DECIMAL_PLACES)
-        : y.toFixed(NUM_DECIMAL_PLACES);
+        ? x.toFixed(COORDINATE_DECIMAL_PLACES)
+        : y.toFixed(COORDINATE_DECIMAL_PLACES);
     };
 
     properties[asset.type].forEach((property) => {
@@ -168,7 +168,9 @@ export const exportCsv = (
       const isObject = typeof value === "object";
 
       if (!isConnections) {
-        const formatted = truncateIfNumber(value);
+        const formatted = isPosition
+          ? (value as string)
+          : truncateIfNumber(value);
         parts[partIdx++] = isObject ? "" : formatted;
       } else {
         const { startNode, endNode } = formatConnections(

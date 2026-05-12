@@ -3,6 +3,7 @@ import { ResultsReader } from "src/simulation";
 import { ExportedFile } from "../types";
 import { exportCsv } from "./export-csv";
 import { WGS84 } from "src/lib/projections";
+import { COORDINATE_DECIMAL_PLACES } from "../constants";
 
 const noSelection = new Set<number>();
 
@@ -93,12 +94,49 @@ describe("export-csv", () => {
       "connectionY",
     ]);
     expect(row.label).toBe("CP1");
-    expect(row.positionX).toBe("1.1234");
-    expect(row.positionY).toBe("2.5678");
+    expect(row.positionX).toBe((1.1234).toFixed(COORDINATE_DECIMAL_PLACES));
+    expect(row.positionY).toBe((2.5678).toFixed(COORDINATE_DECIMAL_PLACES));
     expect(row.junctionConnection).toBe("J1");
     expect(row.pipeConnection).toBe("P1");
-    expect(row.connectionX).toBe("1.1234");
-    expect(row.connectionY).toBe("2.5678");
+    expect(row.connectionX).toBe((1.1234).toFixed(COORDINATE_DECIMAL_PLACES));
+    expect(row.connectionY).toBe((2.5678).toFixed(COORDINATE_DECIMAL_PLACES));
+  });
+
+  it(`formats coordinate columns with ${COORDINATE_DECIMAL_PLACES} decimal places`, async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [1.123456789, 2.987654321] })
+      .aPipe(2, { startNodeId: 1, label: "P1" })
+      .aCustomerPoint(10, {
+        label: "CP1",
+        coordinates: [3.111111111, 4.999999999],
+        connection: { pipeId: 2, junctionId: 1 },
+      })
+      .build();
+    const files = exportCsv(model, false, noSelection, WGS84);
+
+    const junctionLines = await readCsv(findFile(files, "junctions.csv"));
+    const [jRow] = parseCsvRows(junctionLines);
+    expect(jRow.positionX).toBe(
+      (1.123456789).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
+    expect(jRow.positionY).toBe(
+      (2.987654321).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
+
+    const cpLines = await readCsv(findFile(files, "customer-points.csv"));
+    const [cpRow] = parseCsvRows(cpLines);
+    expect(cpRow.positionX).toBe(
+      (3.111111111).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
+    expect(cpRow.positionY).toBe(
+      (4.999999999).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
+    expect(cpRow.connectionX).toBe(
+      (3.111111111).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
+    expect(cpRow.connectionY).toBe(
+      (4.999999999).toFixed(COORDINATE_DECIMAL_PLACES),
+    );
   });
 
   it("exports customer points with empty connection when unconnected", async () => {

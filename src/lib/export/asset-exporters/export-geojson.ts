@@ -8,7 +8,7 @@ import { ExportedAssetTypes, ExportedFile } from "../types";
 import { ResultsReader } from "src/simulation";
 import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
-import { NUM_DECIMAL_PLACES } from "../constants";
+import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 
 const GEOJSON_END = `]}`;
@@ -88,16 +88,23 @@ export const exportGeoJson = (
       type: "Feature",
       geometry: {
         type: "Point",
-        coordinates: [x, y],
+        coordinates: [
+          Number(x.toFixed(COORDINATE_DECIMAL_PLACES)),
+          Number(y.toFixed(COORDINATE_DECIMAL_PLACES)),
+        ],
       },
       properties: {
         label: point.label,
         junctionConnection,
         pipeConnection,
         connectionX:
-          cx !== undefined ? Number(cx.toFixed(NUM_DECIMAL_PLACES)) : undefined,
+          cx !== undefined
+            ? Number(cx.toFixed(COORDINATE_DECIMAL_PLACES))
+            : undefined,
         connectionY:
-          cy !== undefined ? Number(cy.toFixed(NUM_DECIMAL_PLACES)) : undefined,
+          cy !== undefined
+            ? Number(cy.toFixed(COORDINATE_DECIMAL_PLACES))
+            : undefined,
       },
     };
 
@@ -193,14 +200,19 @@ const assetToGeoJson = (
     return asset?.label;
   };
 
-  const replacer = (
+  const replacer = function (
+    this: unknown,
     _: string,
     value: string | number | boolean | object | null,
-  ) => {
+  ) {
     if (value === null) return undefined;
     if (typeof value !== "number") return value;
     if (Math.trunc(value) === value) return value;
-    return Number(value.toFixed(NUM_DECIMAL_PLACES));
+
+    const precision = Array.isArray(this)
+      ? COORDINATE_DECIMAL_PLACES
+      : NUM_DECIMAL_PLACES;
+    return Number(value.toFixed(precision));
   };
 
   const geometry = asset?.feature.geometry;
