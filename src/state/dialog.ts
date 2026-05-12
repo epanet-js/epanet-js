@@ -208,15 +208,6 @@ export type ChartBuilderNoSimulationDialogState = {
   type: "chartBuilderNoSimulation";
 };
 
-export type ChartBuilderChartDialogState = {
-  type: "chartBuilderChart";
-  selectedAssetIds: number[];
-  nodeProperty: string | null;
-  linkProperty: string | null;
-  chartTitle: string;
-  chartType: "line" | "variability";
-};
-
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -259,7 +250,6 @@ export type DialogState =
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState
   | ChartBuilderDialogState
-  | ChartBuilderChartDialogState
   | ChartBuilderNoSimulationDialogState
   | null;
 

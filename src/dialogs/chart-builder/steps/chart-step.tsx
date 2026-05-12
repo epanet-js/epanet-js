@@ -316,6 +316,11 @@ export function ChartStep({
             position: "right",
             alignTicks: true,
             splitLine: { show: false },
+            nameTextStyle: {
+              color: colors.gray500,
+              fontSize: 11,
+              align: "right",
+            },
           },
         ]
       : { ...yAxisLeft };

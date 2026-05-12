@@ -421,24 +421,6 @@ const ChartBuilderWizard = dynamic<{
   },
 );
 
-const ChartBuilderChartDialog = dynamic<{
-  isOpen: boolean;
-  onClose: () => void;
-  selectedAssetIds: number[];
-  nodeProperty: string | null;
-  linkProperty: string | null;
-  chartTitle: string;
-  chartType: "line" | "variability";
-}>(
-  () =>
-    import("src/dialogs/chart-builder/chart-dialog").then(
-      (r) => r.ChartBuilderChartDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
 const FirstScenarioDialog = dynamic<{
   onConfirm: () => void;
   onClose: () => void;
@@ -723,26 +705,6 @@ export const Dialogs = memo(function Dialogs() {
     .with({ type: "chartBuilder" }, () => (
       <ChartBuilderWizard isOpen onClose={onClose} />
     ))
-    .with(
-      { type: "chartBuilderChart" },
-      ({
-        selectedAssetIds,
-        nodeProperty,
-        linkProperty,
-        chartTitle,
-        chartType,
-      }) => (
-        <ChartBuilderChartDialog
-          isOpen
-          onClose={onClose}
-          selectedAssetIds={selectedAssetIds}
-          nodeProperty={nodeProperty}
-          linkProperty={linkProperty}
-          chartTitle={chartTitle}
-          chartType={chartType}
-        />
-      ),
-    )
     .exhaustive();
 
   return content;
