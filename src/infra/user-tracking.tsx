@@ -931,6 +931,13 @@ type AssetDataExported = {
   hasSelection: boolean;
 };
 
+type SimulationResultsExported = {
+  name: "simulationResults.exported";
+  format: "csv" | "xlsx";
+  metrics: string[];
+  hasSelection: boolean;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -1222,7 +1229,8 @@ export type UserEvent =
   | CurveAdded
   | CurveDeleted
   | CurveChanged
-  | AssetDataExported;
+  | AssetDataExported
+  | SimulationResultsExported;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
