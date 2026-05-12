@@ -1,11 +1,14 @@
 "use client";
 import { memo, useMemo } from "react";
+import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
+import { profileViewAtom } from "src/state/profile-view";
 import { useProfileViewData, ProfileViewData } from "./chart-data";
 import { ChartContainer } from "./chart-container";
 
 export const ProfileViewPanel = memo(function ProfileViewPanel() {
   const data = useProfileViewData();
+  const snapshot = useAtomValue(profileViewAtom);
 
   const showChart = data.phase === "showingProfile" && data.points.length > 0;
 
@@ -21,7 +24,7 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
     <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
       <div className="flex-1 min-h-0">
         {showChart ? (
-          <ChartContainer data={data} pathIds={pathIds} />
+          <ChartContainer key={snapshot?.id} data={data} pathIds={pathIds} />
         ) : (
           <ProfileEmptyState phase={data.phase} />
         )}
