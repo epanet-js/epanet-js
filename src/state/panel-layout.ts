@@ -1,4 +1,4 @@
-import { useEffect, type ComponentType } from "react";
+import { useEffect, useRef, type ComponentType } from "react";
 import { atom, useSetAtom } from "jotai";
 
 export type Zone = "left" | "right" | "center" | "bottom";
@@ -40,9 +40,15 @@ export function effectiveZone(
 
 export function useRegisterPanel(definition: PanelDefinition, enabled = true) {
   const setDefs = useSetAtom(panelDefinitionsAtom);
+  const definitionRef = useRef(definition);
+  definitionRef.current = definition;
+
+  const { id } = definition;
   useEffect(() => {
     if (!enabled) return;
-    setDefs((prev) => [...prev, definition]);
-    return () => setDefs((prev) => prev.filter((p) => p.id !== definition.id));
-  }, [definition, enabled, setDefs]);
+    setDefs((prev) =>
+      prev.some((p) => p.id === id) ? prev : [...prev, definitionRef.current],
+    );
+    return () => setDefs((prev) => prev.filter((p) => p.id !== id));
+  }, [id, enabled, setDefs]);
 }
