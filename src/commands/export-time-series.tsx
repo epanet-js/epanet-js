@@ -44,10 +44,7 @@ export const useExportTimeSeries = () => {
         directory,
         hydraulicModel,
         epsResultsReader,
-        options.selectedAssets,
-        options.metrics,
-        options.onProgress,
-        options.signal,
+        options,
       );
     }, []),
   );

@@ -1,7 +1,11 @@
 import { Zip, ZipDeflate } from "fflate";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EPSResultsReader } from "src/simulation";
-import { ExportTimeSeriesMetrics } from "../types";
+import {
+  ALL_METRICS,
+  ExportTimeSeriesMetrics,
+  SimulationResultsOptions,
+} from "../types";
 import { FileSystemHelpers } from "../file-system-helpers";
 import { NUM_DECIMAL_PLACES } from "../constants";
 
@@ -10,11 +14,13 @@ export const exportXlsxSimulationResults = async (
   directory: FileSystemDirectoryHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
-  selectedAssets: Set<number>,
-  metrics: ExportTimeSeriesMetrics[],
-  onProgress: (progressPercentage: number) => Promise<void>,
-  signal?: AbortSignal,
+  options?: SimulationResultsOptions,
 ) => {
+  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const metrics = options?.metrics ?? ALL_METRICS;
+  const onProgress = options?.onProgress;
+  const signal = options?.signal;
+
   signal?.throwIfAborted();
 
   const sheetNames = metrics.map((m) => METRIC_SHEET_NAMES[m]);
@@ -78,7 +84,8 @@ export const exportXlsxSimulationResults = async (
           hydraulicModel.assets,
           metrics,
           async (metric, asset, results) => {
-            await onProgress((progress++ / totalProgress) * 100);
+            if (onProgress)
+              await onProgress((progress++ / totalProgress) * 100);
 
             if (metric !== currentMetric) {
               if (currentEntry) closeSheetEntry(currentEntry);

@@ -26,3 +26,21 @@ export type ExportTimeSeriesMetrics =
   | "head"
   | "demand"
   | "waterQuality";
+
+export const ALL_METRICS: ExportTimeSeriesMetrics[] = [
+  "pressure",
+  "head",
+  "demand",
+  "waterQuality",
+  "flow",
+  "velocity",
+  "unitHeadloss",
+  "status",
+];
+
+export type SimulationResultsOptions = {
+  selectedAssets?: Set<number>;
+  metrics?: ExportTimeSeriesMetrics[];
+  onProgress?: (progressPercentage: number) => Promise<void>;
+  signal?: AbortSignal;
+};

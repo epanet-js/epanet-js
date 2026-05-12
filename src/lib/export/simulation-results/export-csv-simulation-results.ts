@@ -1,5 +1,9 @@
 import { Asset, HydraulicModel } from "src/hydraulic-model";
-import { ExportTimeSeriesMetrics } from "../types";
+import {
+  ALL_METRICS,
+  ExportTimeSeriesMetrics,
+  SimulationResultsOptions,
+} from "../types";
 import { EPSResultsReader } from "src/simulation";
 import { FileSystemHelpers } from "../file-system-helpers";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
@@ -10,11 +14,12 @@ export const exportCsvSimulationResults = async (
   directory: FileSystemDirectoryHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
-  selectedAssets: Set<number>,
-  metrics: ExportTimeSeriesMetrics[],
-  onProgress: (progressPercentage: number) => Promise<void>,
-  signal?: AbortSignal,
+  options?: SimulationResultsOptions,
 ) => {
+  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const metrics = options?.metrics ?? ALL_METRICS;
+  const onProgress = options?.onProgress;
+  const signal = options?.signal;
   const encoder = new TextEncoder();
   const headerBuf = new Uint8Array(lineSize(resultsReader.timestepCount));
   const maxRowSize = lineSize(resultsReader.timestepCount);
@@ -54,7 +59,7 @@ export const exportCsvSimulationResults = async (
       hydraulicModel.assets,
       metrics,
       async (metric, asset, results) => {
-        await onProgress((progress++ / totalProgress) * 100);
+        if (onProgress) await onProgress((progress++ / totalProgress) * 100);
 
         const epanetType = asset.isLink ? "link" : "node";
         if (hasSelection && !selectedAssets.has(asset.id)) return;

@@ -6,8 +6,6 @@ import { FileSystemHelpers } from "../file-system-helpers";
 import { exportXlsxSimulationResults } from "./export-xlsx-time-series";
 import { NUM_DECIMAL_PLACES } from "../constants";
 
-const noSelection = new Set<number>();
-
 describe("exportXlsxSimulationResults", () => {
   beforeEach(() => {
     vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
@@ -22,15 +20,9 @@ describe("exportXlsxSimulationResults", () => {
     const { dirHandle, getFileNames } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults(
-      "my-network",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("my-network", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     expect(getFileNames()).toEqual(["my-network-export.xlsx"]);
   });
@@ -41,15 +33,9 @@ describe("exportXlsxSimulationResults", () => {
     const { dirHandle, getWorkbook } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "flow", "status"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "flow", "status"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     expect(wb.SheetNames).toEqual(["Pressure", "Flow", "Status"]);
@@ -61,15 +47,9 @@ describe("exportXlsxSimulationResults", () => {
     const { dirHandle, getWorkbook } = makeDirectory();
     const reader = makeResultsReader(3, 5400, {});
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     const rows = sheetRows(wb, "Pressure");
@@ -90,15 +70,9 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.P1}:flow`]: makeTimeSeries([5]),
     });
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "flow"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "flow"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
 
@@ -124,15 +98,9 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.P2}:status`]: makeTimeSeries([3]),
     });
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["status"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["status"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     const rows = sheetRows(wb, "Status");
@@ -150,15 +118,9 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([1.23456]),
     });
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     const rows = sheetRows(wb, "Pressure");
@@ -179,15 +141,10 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.J2}:pressure`]: makeTimeSeries([20]),
     });
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      new Set([IDS.J1]),
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      selectedAssets: new Set([IDS.J1]),
+      metrics: ["pressure"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     const rows = sheetRows(wb, "Pressure");
@@ -206,15 +163,9 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
     });
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const wb = getWorkbook("net-export.xlsx");
     const rows = sheetRows(wb, "Pressure");
@@ -231,15 +182,10 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
     const onProgress = vi.fn();
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "head"],
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "head"],
       onProgress,
-    );
+    });
 
     expect(onProgress).toHaveBeenCalledTimes(4);
   });
@@ -250,15 +196,9 @@ describe("exportXlsxSimulationResults", () => {
     const { dirHandle, getClose } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     expect(getClose("net-export.xlsx")).toHaveBeenCalledOnce();
   });
@@ -269,15 +209,9 @@ describe("exportXlsxSimulationResults", () => {
     const { dirHandle } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
       "net-export.xlsx",

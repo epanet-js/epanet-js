@@ -5,8 +5,6 @@ import { FileSystemHelpers } from "../file-system-helpers";
 import { exportCsvSimulationResults } from "./export-csv-simulation-results";
 import { NUM_DECIMAL_PLACES } from "../constants";
 
-const noSelection = new Set<number>();
-
 describe("exportTimeSeries", () => {
   beforeEach(() => {
     vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
@@ -21,15 +19,9 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getFileNames } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults(
-      "my-network",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "demand"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("my-network", dirHandle, model, reader, {
+      metrics: ["pressure", "demand"],
+    });
 
     expect(getFileNames()).toEqual([
       "my-network-export-pressure.csv",
@@ -43,15 +35,9 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getText } = makeDirectory();
     const reader = makeResultsReader(2, 5400, {});
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const [header] = getText("net-export-pressure.csv").split("\n");
     expect(header).toBe("id,type,00:00,01:30");
@@ -71,15 +57,9 @@ describe("exportTimeSeries", () => {
       [`${IDS.P1}:flow`]: makeTimeSeries([5]),
     });
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "flow"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "flow"],
+    });
 
     const pressureLines = getText("net-export-pressure.csv")
       .split("\n")
@@ -109,15 +89,9 @@ describe("exportTimeSeries", () => {
       [`${IDS.P2}:status`]: makeTimeSeries([3]),
     });
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["status"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["status"],
+    });
 
     const lines = getText("net-export-status.csv").split("\n").filter(Boolean);
     expect(lines[1]).toContain("closed");
@@ -134,15 +108,9 @@ describe("exportTimeSeries", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([1.23456]),
     });
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const lines = getText("net-export-pressure.csv")
       .split("\n")
@@ -162,15 +130,10 @@ describe("exportTimeSeries", () => {
       [`${IDS.J2}:pressure`]: makeTimeSeries([20]),
     });
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      new Set([IDS.J1]),
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      selectedAssets: new Set([IDS.J1]),
+      metrics: ["pressure"],
+    });
 
     const lines = getText("net-export-pressure.csv")
       .split("\n")
@@ -190,15 +153,9 @@ describe("exportTimeSeries", () => {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
     });
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     const lines = getText("net-export-pressure.csv")
       .split("\n")
@@ -216,15 +173,10 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
     const onProgress = vi.fn();
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "head"],
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "head"],
       onProgress,
-    );
+    });
 
     expect(onProgress).toHaveBeenCalledTimes(4);
   });
@@ -235,15 +187,9 @@ describe("exportTimeSeries", () => {
     const { dirHandle, getClose } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure", "head"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure", "head"],
+    });
 
     expect(getClose("net-export-pressure.csv")).toHaveBeenCalledOnce();
     expect(getClose("net-export-head.csv")).toHaveBeenCalledOnce();
@@ -255,15 +201,9 @@ describe("exportTimeSeries", () => {
     const { dirHandle } = makeDirectory();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults(
-      "net",
-      dirHandle,
-      model,
-      reader,
-      noSelection,
-      ["pressure"],
-      vi.fn(),
-    );
+    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+      metrics: ["pressure"],
+    });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
       "net-export-pressure.csv",
