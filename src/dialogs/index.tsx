@@ -427,8 +427,8 @@ const ExportTimeSeriesDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/dialogs/export-time-series").then(
-      (r) => r.ExportTimeSeriesDialog,
+    import("src/dialogs/export-simulation-results").then(
+      (r) => r.ExportSimulationResultsDialog,
     ),
   {
     loading: () => <LoadingDialog />,

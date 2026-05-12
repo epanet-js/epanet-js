@@ -3,7 +3,7 @@ import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon } from "src/icons";
 
-export const ExportTimeSeriesProgressDialog = ({
+export const ExportSimulationResultsProgressDialog = ({
   progress,
   isComplete,
   onCancel,

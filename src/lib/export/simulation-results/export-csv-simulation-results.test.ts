@@ -20,7 +20,7 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("my-network", dirHandle, model, reader, {
-      metrics: ["pressure", "demand"],
+      properties: ["pressure", "demand"],
     });
 
     expect(getFileNames()).toEqual([
@@ -36,7 +36,7 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(2, 5400, {});
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const [header] = getText("net-export-pressure.csv").split("\n");
@@ -58,7 +58,7 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "flow"],
+      properties: ["pressure", "flow"],
     });
 
     const pressureLines = getText("net-export-pressure.csv")
@@ -90,7 +90,7 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["status"],
+      properties: ["status"],
     });
 
     const lines = getText("net-export-status.csv").split("\n").filter(Boolean);
@@ -109,7 +109,7 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -132,7 +132,7 @@ describe("exportTimeSeries", () => {
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -154,7 +154,7 @@ describe("exportTimeSeries", () => {
     });
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const lines = getText("net-export-pressure.csv")
@@ -174,7 +174,7 @@ describe("exportTimeSeries", () => {
     const onProgress = vi.fn();
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "head"],
+      properties: ["pressure", "head"],
       onProgress,
     });
 
@@ -188,7 +188,7 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "head"],
+      properties: ["pressure", "head"],
     });
 
     expect(getClose("net-export-pressure.csv")).toHaveBeenCalledOnce();
@@ -202,7 +202,7 @@ describe("exportTimeSeries", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportCsvSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(

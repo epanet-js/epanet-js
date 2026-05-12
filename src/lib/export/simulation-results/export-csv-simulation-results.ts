@@ -1,7 +1,7 @@
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import {
   ALL_METRICS,
-  ExportTimeSeriesMetrics,
+  ExportSimulationResultsProperties,
   SimulationResultsOptions,
 } from "../types";
 import { EPSResultsReader } from "src/simulation";
@@ -17,26 +17,29 @@ export const exportCsvSimulationResults = async (
   options?: SimulationResultsOptions,
 ) => {
   const selectedAssets = options?.selectedAssets ?? new Set<number>();
-  const metrics = options?.metrics ?? ALL_METRICS;
+  const properties = options?.properties ?? ALL_METRICS;
   const onProgress = options?.onProgress;
   const signal = options?.signal;
   const encoder = new TextEncoder();
   const headerBuf = new Uint8Array(lineSize(resultsReader.timestepCount));
   const maxRowSize = lineSize(resultsReader.timestepCount);
   const hasSelection = selectedAssets.size > 0;
-  const totalProgress = metrics.length * hydraulicModel.assets.size;
+  const totalProgress = properties.length * hydraulicModel.assets.size;
   let progress = 1;
 
   const streams = new Map<
-    ExportTimeSeriesMetrics,
+    ExportSimulationResultsProperties,
     FileSystemWritableFileStream
   >();
-  const handles = new Map<ExportTimeSeriesMetrics, FileSystemFileHandle>();
-  const buffers = new Map<ExportTimeSeriesMetrics, Uint8Array>();
-  const offsets = new Map<ExportTimeSeriesMetrics, number>();
+  const handles = new Map<
+    ExportSimulationResultsProperties,
+    FileSystemFileHandle
+  >();
+  const buffers = new Map<ExportSimulationResultsProperties, Uint8Array>();
+  const offsets = new Map<ExportSimulationResultsProperties, number>();
 
   try {
-    for (const metric of metrics) {
+    for (const metric of properties) {
       signal?.throwIfAborted();
       const fileName = `${networkName}-export-${metric}.csv`;
       const handle = await directory.getFileHandle(fileName, { create: true });
@@ -57,20 +60,20 @@ export const exportCsvSimulationResults = async (
 
     await resultsReader.iterateTimeSeries(
       hydraulicModel.assets,
-      metrics,
-      async (metric, asset, results) => {
+      properties,
+      async (property, asset, results) => {
         if (onProgress) await onProgress((progress++ / totalProgress) * 100);
 
         const epanetType = asset.isLink ? "link" : "node";
         if (hasSelection && !selectedAssets.has(asset.id)) return;
         if (results === null) return;
-        if (!METRICS_BY_TYPE[epanetType].has(metric)) return;
+        if (!METRICS_BY_TYPE[epanetType].has(property)) return;
 
-        const buffer = buffers.get(metric)!;
-        let offset = offsets.get(metric)!;
+        const buffer = buffers.get(property)!;
+        let offset = offsets.get(property)!;
 
         if (offset + maxRowSize > BATCH_SIZE) {
-          await streams.get(metric)!.write(buffer.subarray(0, offset));
+          await streams.get(property)!.write(buffer.subarray(0, offset));
           offset = 0;
         }
 
@@ -79,14 +82,14 @@ export const exportCsvSimulationResults = async (
           asset,
           results,
           encoder,
-          metric,
+          property,
         );
-        offsets.set(metric, offset + written);
+        offsets.set(property, offset + written);
       },
       signal,
     );
 
-    for (const metric of metrics) {
+    for (const metric of properties) {
       const offset = offsets.get(metric)!;
       if (offset > 0) {
         await streams
@@ -103,7 +106,7 @@ export const exportCsvSimulationResults = async (
     throw err;
   }
 
-  for (const metric of metrics) {
+  for (const metric of properties) {
     const stream = streams.get(metric);
     if (!stream) continue;
     await stream.close();
@@ -205,7 +208,7 @@ const encodeValues = (
   asset: Asset,
   results: TimeSeries,
   encoder: TextEncoder,
-  metric: ExportTimeSeriesMetrics,
+  metric: ExportSimulationResultsProperties,
 ): number => {
   const UTF8_COMMA = 44;
   const UTF8_NEW_LINE = 10;

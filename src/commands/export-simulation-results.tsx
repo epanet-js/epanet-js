@@ -6,19 +6,19 @@ import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import type { ExportTimeSeriesMetrics } from "src/lib/export/types";
+import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 import { currentFileNameAtom } from "src/state";
 
-export type ExportTimeSeriesOptions = {
+export type ExportSimulationResultsOptions = {
   selectedAssets: Set<number>;
-  metrics: ExportTimeSeriesMetrics[];
+  metrics: ExportSimulationResultsProperties[];
   onProgress: (progress: number) => Promise<void>;
   signal?: AbortSignal;
 };
 
-export const useExportTimeSeries = () => {
+export const useExportSimulationResults = () => {
   const run = useAtomCallback(
-    useCallback(async (get, _set, options: ExportTimeSeriesOptions) => {
+    useCallback(async (get, _set, options: ExportSimulationResultsOptions) => {
       const hydraulicModel = get(stagingModelDerivedAtom);
       const simulation = get(simulationDerivedAtom);
       const networkFile = get(currentFileNameAtom) ?? "";

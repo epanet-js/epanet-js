@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
-import { useExportTimeSeries } from "src/commands/export-time-series";
+import { useExportSimulationResults } from "src/commands/export-simulation-results";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
-import { ExportTimeSeriesProgressDialog } from "./export-time-series-progress";
+import { ExportSimulationResultsProgressDialog } from "./export-tsimulation-results-progress";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Export } from "src/lib/export";
-import type { ExportTimeSeriesMetrics } from "src/lib/export/types";
+import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 
 const SIZE_WARNING_LIMIT_GB = 1;
 
@@ -57,13 +57,13 @@ const IndeterminateCheckbox = ({
   );
 };
 
-export const ExportTimeSeriesDialog = ({
+export const ExportSimulationResultsDialog = ({
   onClose,
 }: {
   onClose: () => void;
 }) => {
   const translate = useTranslate();
-  const exportTimeSeries = useExportTimeSeries();
+  const exportSimulationResults = useExportSimulationResults();
 
   const selection = useAtomValue(selectionAtom);
   const selectedIds = USelection.toIds(selection);
@@ -123,12 +123,12 @@ export const ExportTimeSeriesDialog = ({
     Object.entries(nodeFields) as [keyof NodeFields, boolean][]
   )
     .filter(([, checked]) => checked)
-    .map(([key]) => key as ExportTimeSeriesMetrics);
+    .map(([key]) => key as ExportSimulationResultsProperties);
   const selectedLinkMetrics = (
     Object.entries(linkFields) as [keyof LinkFields, boolean][]
   )
     .filter(([, checked]) => checked)
-    .map(([key]) => key as ExportTimeSeriesMetrics);
+    .map(([key]) => key as ExportSimulationResultsProperties);
 
   const nodeCount = hasSelection
     ? selectedIds.filter((id) => model.assets.get(id)?.isNode).length
@@ -192,7 +192,7 @@ export const ExportTimeSeriesDialog = ({
     setProgress(0);
     setIsComplete(false);
     try {
-      await exportTimeSeries({
+      await exportSimulationResults({
         metrics,
         selectedAssets,
         onProgress,
@@ -211,7 +211,7 @@ export const ExportTimeSeriesDialog = ({
     selectedLinkMetrics,
     selectedAssetsOnly,
     selectedIds,
-    exportTimeSeries,
+    exportSimulationResults,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -221,7 +221,7 @@ export const ExportTimeSeriesDialog = ({
 
   if (isExporting || isComplete) {
     return (
-      <ExportTimeSeriesProgressDialog
+      <ExportSimulationResultsProgressDialog
         progress={progress}
         isComplete={isComplete}
         onCancel={handleCancel}

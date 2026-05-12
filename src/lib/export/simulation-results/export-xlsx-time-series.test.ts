@@ -21,7 +21,7 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("my-network", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     expect(getFileNames()).toEqual(["my-network-export.xlsx"]);
@@ -34,7 +34,7 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "flow", "status"],
+      properties: ["pressure", "flow", "status"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -48,7 +48,7 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(3, 5400, {});
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -71,7 +71,7 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "flow"],
+      properties: ["pressure", "flow"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -99,7 +99,7 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["status"],
+      properties: ["status"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -119,7 +119,7 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -143,7 +143,7 @@ describe("exportXlsxSimulationResults", () => {
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -164,7 +164,7 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     const wb = getWorkbook("net-export.xlsx");
@@ -183,7 +183,7 @@ describe("exportXlsxSimulationResults", () => {
     const onProgress = vi.fn();
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure", "head"],
+      properties: ["pressure", "head"],
       onProgress,
     });
 
@@ -197,7 +197,7 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     expect(getClose("net-export.xlsx")).toHaveBeenCalledOnce();
@@ -210,7 +210,7 @@ describe("exportXlsxSimulationResults", () => {
     const reader = makeResultsReader(1, 3600, {});
 
     await exportXlsxSimulationResults("net", dirHandle, model, reader, {
-      metrics: ["pressure"],
+      properties: ["pressure"],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(

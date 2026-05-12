@@ -3,7 +3,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { EPSResultsReader } from "src/simulation";
 import {
   ALL_METRICS,
-  ExportTimeSeriesMetrics,
+  ExportSimulationResultsProperties,
   SimulationResultsOptions,
 } from "../types";
 import { FileSystemHelpers } from "../file-system-helpers";
@@ -17,7 +17,7 @@ export const exportXlsxSimulationResults = async (
   options?: SimulationResultsOptions,
 ) => {
   const selectedAssets = options?.selectedAssets ?? new Set<number>();
-  const metrics = options?.metrics ?? ALL_METRICS;
+  const metrics = options?.properties ?? ALL_METRICS;
   const onProgress = options?.onProgress;
   const signal = options?.signal;
 
@@ -90,7 +90,7 @@ export const exportXlsxSimulationResults = async (
             if (metric !== currentMetric) {
               if (currentEntry) closeSheetEntry(currentEntry);
               const sheetIndex = metrics.indexOf(
-                metric as ExportTimeSeriesMetrics,
+                metric as ExportSimulationResultsProperties,
               );
               currentEntry = openSheetEntry(zip, sheetIndex + 1);
               pushEncodedRow(currentEntry, headerRowXml, rowBuffer, encoder);
@@ -116,7 +116,7 @@ export const exportXlsxSimulationResults = async (
               asset.label,
               asset.type,
               results.values,
-              metric as ExportTimeSeriesMetrics,
+              metric as ExportSimulationResultsProperties,
               colLetters,
             );
             pushEncodedRow(currentEntry!, rowXml, rowBuffer, encoder);
@@ -176,7 +176,7 @@ const buildDataRowXml = (
   label: string,
   assetType: string,
   values: Float32Array,
-  metric: ExportTimeSeriesMetrics,
+  metric: ExportSimulationResultsProperties,
   colLetters: string[],
 ): string => {
   let xml = `<row r="${rowIndex}">`;
@@ -282,7 +282,7 @@ const formatTimestepTime = (
 
 const MAX_ROWS = 1_048_575;
 
-const METRIC_SHEET_NAMES: Record<ExportTimeSeriesMetrics, string> = {
+const METRIC_SHEET_NAMES: Record<ExportSimulationResultsProperties, string> = {
   status: "Status",
   flow: "Flow",
   velocity: "Velocity",

@@ -17,7 +17,7 @@ export type ExportedFile = {
   blob: Blob;
 };
 
-export type ExportTimeSeriesMetrics =
+export type ExportSimulationResultsProperties =
   | "status"
   | "flow"
   | "velocity"
@@ -27,7 +27,7 @@ export type ExportTimeSeriesMetrics =
   | "demand"
   | "waterQuality";
 
-export const ALL_METRICS: ExportTimeSeriesMetrics[] = [
+export const ALL_METRICS: ExportSimulationResultsProperties[] = [
   "pressure",
   "head",
   "demand",
@@ -40,7 +40,7 @@ export const ALL_METRICS: ExportTimeSeriesMetrics[] = [
 
 export type SimulationResultsOptions = {
   selectedAssets?: Set<number>;
-  metrics?: ExportTimeSeriesMetrics[];
+  properties?: ExportSimulationResultsProperties[];
   onProgress?: (progressPercentage: number) => Promise<void>;
   signal?: AbortSignal;
 };
