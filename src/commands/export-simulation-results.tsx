@@ -10,6 +10,7 @@ import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 import { currentFileNameAtom } from "src/state";
 
 export type ExportSimulationResultsOptions = {
+  format: "csv" | "xlsx";
   selectedAssets: Set<number>;
   metrics: ExportSimulationResultsProperties[];
   onProgress: (progress: number) => Promise<void>;
@@ -39,7 +40,7 @@ export const useExportSimulationResults = () => {
         : await FileSystemHelpers.openOpfsRootDirectory();
 
       await Export.exportSimulationResults(
-        "csv",
+        options.format,
         networkName,
         directory,
         hydraulicModel,

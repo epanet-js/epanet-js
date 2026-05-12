@@ -11,6 +11,13 @@ import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Export } from "src/lib/export";
 import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 
+type SimulationExportFormat = "csv" | "xlsx";
+
+const exportFormats: { value: SimulationExportFormat; labelKey: string }[] = [
+  { value: "csv", labelKey: "exportCsv" },
+  { value: "xlsx", labelKey: "exportXlsx" },
+];
+
 const SIZE_WARNING_LIMIT_GB = 1;
 
 type NodeFields = {
@@ -75,6 +82,7 @@ export const ExportSimulationResultsDialog = ({
     "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
   const timestepCount = epsResultsReader?.timestepCount ?? 0;
 
+  const [format, setFormat] = useState<SimulationExportFormat>("csv");
   const [selectedAssetsOnly, setSelectedAssetsOnly] = useState(false);
   const [nodeFields, setNodeFields] = useState<NodeFields>({
     pressure: true,
@@ -139,13 +147,13 @@ export const ExportSimulationResultsDialog = ({
 
   const estimatedBytes =
     Export.estimateSimulationResultsSize(
-      "csv",
+      format,
       selectedNodeMetrics,
       nodeCount,
       timestepCount,
     ) +
     Export.estimateSimulationResultsSize(
-      "csv",
+      format,
       selectedLinkMetrics,
       linkCount,
       timestepCount,
@@ -193,6 +201,7 @@ export const ExportSimulationResultsDialog = ({
     setIsComplete(false);
     try {
       await exportSimulationResults({
+        format,
         metrics,
         selectedAssets,
         onProgress,
@@ -207,6 +216,7 @@ export const ExportSimulationResultsDialog = ({
       abortControllerRef.current = null;
     }
   }, [
+    format,
     selectedNodeMetrics,
     selectedLinkMetrics,
     selectedAssetsOnly,
@@ -295,6 +305,25 @@ export const ExportSimulationResultsDialog = ({
       }
     >
       <div className="p-4 space-y-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            {translate("exportFormat")}
+          </label>
+          <select
+            value={format}
+            onChange={(e) =>
+              setFormat(e.target.value as SimulationExportFormat)
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+          >
+            {exportFormats.map(({ value, labelKey }) => (
+              <option key={value} value={value}>
+                {translate(labelKey)}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <label
           className={`flex items-center gap-x-2 ${hasSelection ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
         >
