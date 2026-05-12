@@ -2,56 +2,48 @@ import { Asset, AssetId, AssetsMap, Topology } from "src/hydraulic-model";
 import { PathData } from "src/hydraulic-model/topology/types";
 import { ResultsReader } from "src/simulation/results-reader";
 
-export const shortestPathByDistance = (
+export const findProfilePath = (
   topology: Topology,
   assets: AssetsMap,
   startNodeId: AssetId,
   endNodeId: AssetId,
+  results: ResultsReader | null,
 ): PathData | null =>
-  topology.shortestPath(startNodeId, endNodeId, byLinkLength(assets));
+  topology.shortestPath(startNodeId, endNodeId, weightOf(assets, results));
 
-export const shortestPathByFlow = (
-  topology: Topology,
-  assets: AssetsMap,
-  results: ResultsReader,
-  startNodeId: AssetId,
-  endNodeId: AssetId,
-): PathData | null =>
-  topology.shortestPath(startNodeId, endNodeId, byInverseFlow(assets, results));
-
-const FLOW_EPSILON = 1e-9;
-
-const byLinkLength =
-  (assets: AssetsMap) =>
-  (linkId: AssetId): number => {
-    const link = assets.get(linkId);
-    if (link && link.isLink) {
-      return Math.max(0, (link as { length: number }).length || 0);
-    }
-    return 0;
-  };
-
-const byInverseFlow =
-  (assets: AssetsMap, results: ResultsReader) =>
+const weightOf =
+  (assets: AssetsMap, results: ResultsReader | null) =>
   (linkId: AssetId): number => {
     const link = assets.get(linkId);
     if (!link || !link.isLink) return 0;
-
-    const flow = readLinkFlow(results, link);
-    if (flow === null) return 1 / FLOW_EPSILON;
-
-    return 1 / Math.max(Math.abs(flow), FLOW_EPSILON);
+    if (isLinkBlocked(link, results)) return Infinity;
+    return Math.max(0, (link as { length: number }).length || 0);
   };
 
-const readLinkFlow = (results: ResultsReader, link: Asset): number | null => {
+const isLinkBlocked = (link: Asset, results: ResultsReader | null): boolean => {
+  if (link.isActive === false) return true;
+
   switch (link.type) {
-    case "pipe":
-      return results.getPipe(link.id)?.flow ?? null;
-    case "pump":
-      return results.getPump(link.id)?.flow ?? null;
-    case "valve":
-      return results.getValve(link.id)?.flow ?? null;
+    case "pipe": {
+      const simStatus = results?.getPipe(link.id)?.status ?? null;
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      return (simStatus ?? initialStatus) === "closed";
+    }
+    case "pump": {
+      const simStatus = results?.getPump(link.id)?.status ?? null;
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      return (simStatus ?? initialStatus) === "off";
+    }
+    case "valve": {
+      const simStatus = results?.getValve(link.id)?.status ?? null;
+      if (simStatus !== null) return simStatus === "closed";
+      const initialStatus = (link as unknown as { initialStatus: string })
+        .initialStatus;
+      return initialStatus === "closed";
+    }
     default:
-      return null;
+      return false;
   }
 };

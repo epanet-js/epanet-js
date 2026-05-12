@@ -5,7 +5,7 @@ import { ProjectSettings } from "src/lib/project-settings";
 import { getDecimals } from "src/lib/project-settings";
 import { ProfileViewSnapshot } from "src/state/profile-view";
 import { computeProfileViewData } from "./chart-data";
-import { shortestPathByDistance, shortestPathByFlow } from "./path-finding";
+import { findProfilePath } from "./path-finding";
 
 export type BuildProfileViewSnapshotArgs = {
   startNodeId: AssetId;
@@ -28,20 +28,13 @@ export function buildProfileViewSnapshot({
   projectSettings,
   isUnprojected,
 }: BuildProfileViewSnapshotArgs): BuildProfileViewSnapshotResult {
-  const path = results
-    ? shortestPathByFlow(
-        hydraulicModel.topology,
-        hydraulicModel.assets,
-        results,
-        startNodeId,
-        endNodeId,
-      )
-    : shortestPathByDistance(
-        hydraulicModel.topology,
-        hydraulicModel.assets,
-        startNodeId,
-        endNodeId,
-      );
+  const path = findProfilePath(
+    hydraulicModel.topology,
+    hydraulicModel.assets,
+    startNodeId,
+    endNodeId,
+    results,
+  );
 
   if (path === null) {
     return { error: "noPath" };

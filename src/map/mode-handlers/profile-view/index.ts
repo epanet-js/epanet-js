@@ -10,10 +10,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
-import {
-  shortestPathByDistance,
-  shortestPathByFlow,
-} from "src/panels/profile-view/path-finding";
+import { findProfilePath } from "src/panels/profile-view/path-finding";
 import { buildProfileViewSnapshot } from "src/panels/profile-view/snapshot";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
@@ -52,20 +49,13 @@ export function useProfileViewHandlers(
   } | null>(null);
 
   const computePath = (start: AssetId, end: AssetId) =>
-    results
-      ? shortestPathByFlow(
-          hydraulicModel.topology,
-          hydraulicModel.assets,
-          results,
-          start,
-          end,
-        )
-      : shortestPathByDistance(
-          hydraulicModel.topology,
-          hydraulicModel.assets,
-          start,
-          end,
-        );
+    findProfilePath(
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+      start,
+      end,
+      results,
+    );
 
   const resolveNodeId = (
     asset: Asset | null,
