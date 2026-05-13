@@ -91,7 +91,7 @@ export function useProfileViewData(): ProfileViewData {
     if (mode !== Mode.PROFILE_VIEW) return "idle";
     if (
       ephemeralState.type === "profileView" &&
-      ephemeralState.startNodeId !== undefined
+      (ephemeralState.anchorIds?.length ?? 0) > 0
     ) {
       return "selectingEnd";
     }

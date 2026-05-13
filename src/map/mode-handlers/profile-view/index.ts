@@ -10,10 +10,11 @@ import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
-import { findProfilePath } from "src/panels/profile-view/path-finding";
+import { deriveProfilePath } from "src/panels/profile-view/path-finding";
 import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
+import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 
 export function useProfileViewHandlers(
@@ -30,21 +31,16 @@ export function useProfileViewHandlers(
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const setMode = useSetAtom(modeAtom);
+  const { isShiftHeld } = useKeyboardState();
 
-  const draftStartNodeId =
-    ephemeralState.type === "profileView"
-      ? ephemeralState.startNodeId
-      : undefined;
+  const draftAnchorIds: AssetId[] =
+    (ephemeralState.type === "profileView" && ephemeralState.anchorIds) || [];
 
   const draftPathCacheRef = useRef<{
-    startNodeId: AssetId;
-    hoveredNodeId: AssetId;
+    anchorsKey: string;
     assetsVersion: unknown;
     path: DraftPath | undefined;
   } | null>(null);
-
-  const computePath = (start: AssetId, end: AssetId) =>
-    findProfilePath(hydraulicModel.topology, hydraulicModel.assets, start, end);
 
   const resolveNodeId = (
     asset: Asset | null,
@@ -62,16 +58,35 @@ export function useProfileViewHandlers(
     const nodeId = resolveNodeId(clickedAsset, e);
     if (nodeId === undefined) return;
 
-    if (draftStartNodeId === undefined) {
-      setEphemeralState({ type: "profileView", startNodeId: nodeId });
+    if (draftAnchorIds.length === 0) {
+      setEphemeralState({ type: "profileView", anchorIds: [nodeId] });
       return;
     }
 
-    if (nodeId === draftStartNodeId) return;
+    if (isShiftHeld()) {
+      const existingIndex = draftAnchorIds.indexOf(nodeId);
+      if (existingIndex !== -1) {
+        if (existingIndex === 0) return;
+        const nextAnchors = draftAnchorIds.filter((id) => id !== nodeId);
+        setEphemeralState({ type: "profileView", anchorIds: nextAnchors });
+        return;
+      }
+      const candidate = [...draftAnchorIds, nodeId];
+      const check = deriveProfilePath(
+        hydraulicModel.topology,
+        hydraulicModel.assets,
+        candidate,
+      );
+      if (check === null) return;
+      setEphemeralState({ type: "profileView", anchorIds: candidate });
+      return;
+    }
 
+    if (nodeId === draftAnchorIds[draftAnchorIds.length - 1]) return;
+
+    const allAnchors = [...draftAnchorIds, nodeId];
     const built = buildProfileView({
-      startNodeId: draftStartNodeId,
-      endNodeId: nodeId,
+      anchorIds: allAnchors,
       hydraulicModel,
       isUnprojected,
     });
@@ -96,28 +111,34 @@ export function useProfileViewHandlers(
     const hoveredAsset = getClickedAsset(e);
     const hoveredNodeId = resolveNodeId(hoveredAsset, e);
 
+    const extendable =
+      hoveredNodeId !== undefined && !draftAnchorIds.includes(hoveredNodeId);
+
+    const previewAnchors = extendable
+      ? [...draftAnchorIds, hoveredNodeId]
+      : draftAnchorIds;
+
     let path: DraftPath | undefined;
-    if (
-      draftStartNodeId !== undefined &&
-      hoveredNodeId !== undefined &&
-      hoveredNodeId !== draftStartNodeId
-    ) {
+    if (previewAnchors.length >= 2) {
+      const anchorsKey = previewAnchors.join(",");
       const cached = draftPathCacheRef.current;
       if (
         cached &&
-        cached.startNodeId === draftStartNodeId &&
-        cached.hoveredNodeId === hoveredNodeId &&
+        cached.anchorsKey === anchorsKey &&
         cached.assetsVersion === hydraulicModel.assets
       ) {
         path = cached.path;
       } else {
-        const found = computePath(draftStartNodeId, hoveredNodeId);
+        const found = deriveProfilePath(
+          hydraulicModel.topology,
+          hydraulicModel.assets,
+          previewAnchors,
+        );
         path = found
           ? { nodeIds: found.nodeIds, linkIds: found.linkIds }
           : undefined;
         draftPathCacheRef.current = {
-          startNodeId: draftStartNodeId,
-          hoveredNodeId,
+          anchorsKey,
           assetsVersion: hydraulicModel.assets,
           path,
         };
@@ -126,11 +147,20 @@ export function useProfileViewHandlers(
 
     setEphemeralState({
       type: "profileView",
-      startNodeId: draftStartNodeId,
+      anchorIds: draftAnchorIds,
       hoveredNodeId,
       path,
     });
-    setCursor(hoveredNodeId !== undefined ? "pointer" : "");
+
+    const isExtendForbidden =
+      extendable && draftAnchorIds.length >= 1 && path === undefined;
+    setCursor(
+      hoveredNodeId === undefined
+        ? ""
+        : isExtendForbidden
+          ? "not-allowed"
+          : "pointer",
+    );
   }, 16);
 
   return {
@@ -144,7 +174,7 @@ export function useProfileViewHandlers(
     exit: () => {
       const hasDraft =
         ephemeralState.type === "profileView" &&
-        ephemeralState.startNodeId !== undefined;
+        (ephemeralState.anchorIds?.length ?? 0) > 0;
 
       setProfileView(null);
       setSelection(SELECTION_NONE);

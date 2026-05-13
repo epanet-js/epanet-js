@@ -45,8 +45,7 @@ const buildLinearModel = () =>
 const seedProfileView = (store: Store) => {
   const hydraulicModel = store.get(stagingModelDerivedAtom);
   const built = buildProfileView({
-    startNodeId: IDS.J1,
-    endNodeId: IDS.J3,
+    anchorIds: [IDS.J1, IDS.J3],
     hydraulicModel,
     isUnprojected: false,
   });

@@ -410,7 +410,7 @@ export function Hints() {
     case Mode.PROFILE_VIEW: {
       const hasStart =
         ephemeralState.type === "profileView" &&
-        ephemeralState.startNodeId !== undefined;
+        (ephemeralState.anchorIds?.length ?? 0) > 0;
       return hasStart ? (
         <Hint
           hintId={"PROFILE_VIEW_SELECT_END"}

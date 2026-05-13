@@ -32,7 +32,7 @@ export type DraftPath = { nodeIds: AssetId[]; linkIds: AssetId[] };
 
 export type EphemeralProfileView = {
   type: "profileView";
-  startNodeId?: AssetId;
+  anchorIds?: AssetId[];
   hoveredNodeId?: AssetId;
   path?: DraftPath;
 };

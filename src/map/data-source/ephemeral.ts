@@ -134,8 +134,8 @@ const buildProfileViewSourceData = (
   const features: Feature[] = [];
   const ids = new Set<number>();
   if (state.hoveredNodeId !== undefined) ids.add(state.hoveredNodeId);
-  if (state.startNodeId !== undefined && !state.path) {
-    ids.add(state.startNodeId);
+  if (state.anchorIds) {
+    for (const id of state.anchorIds) ids.add(id);
   }
 
   for (const id of ids) {

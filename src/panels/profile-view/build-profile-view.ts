@@ -2,11 +2,10 @@ import { nanoid } from "nanoid";
 import { AssetId, HydraulicModel } from "src/hydraulic-model";
 import { PathData } from "src/hydraulic-model/topology/types";
 import { ProfileView } from "src/state/profile-view";
-import { findProfilePath } from "./path-finding";
+import { deriveProfilePath } from "./path-finding";
 
 export type BuildProfileViewArgs = {
-  startNodeId: AssetId;
-  endNodeId: AssetId;
+  anchorIds: AssetId[];
   hydraulicModel: HydraulicModel;
   isUnprojected: boolean;
 };
@@ -16,16 +15,14 @@ export type BuildProfileViewResult =
   | { error: "noPath" };
 
 export function buildProfileView({
-  startNodeId,
-  endNodeId,
+  anchorIds,
   hydraulicModel,
   isUnprojected,
 }: BuildProfileViewArgs): BuildProfileViewResult {
-  const path = findProfilePath(
+  const path = deriveProfilePath(
     hydraulicModel.topology,
     hydraulicModel.assets,
-    startNodeId,
-    endNodeId,
+    anchorIds,
   );
 
   if (path === null) {
@@ -35,7 +32,7 @@ export function buildProfileView({
   return {
     profileView: {
       id: nanoid(),
-      anchors: [startNodeId, endNodeId],
+      anchors: anchorIds,
       terrain: null,
       isUnprojected,
     },
