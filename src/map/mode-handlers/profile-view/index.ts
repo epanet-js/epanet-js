@@ -16,6 +16,7 @@ import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
+import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 
 export function useProfileViewHandlers(
   handlerContext: HandlerContext,
@@ -25,6 +26,7 @@ export function useProfileViewHandlers(
 
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const isUnprojected = useAtomValue(isUnprojectedAtom);
+  const results = useAtomValue(simulationResultsDerivedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
@@ -39,6 +41,7 @@ export function useProfileViewHandlers(
   const draftPathCacheRef = useRef<{
     anchorsKey: string;
     assetsVersion: unknown;
+    resultsVersion: unknown;
     path: DraftPath | undefined;
   } | null>(null);
 
@@ -76,6 +79,7 @@ export function useProfileViewHandlers(
         hydraulicModel.topology,
         hydraulicModel.assets,
         candidate,
+        results,
       );
       if (check === null) return;
       setEphemeralState({ type: "profileView", anchorIds: candidate });
@@ -89,6 +93,7 @@ export function useProfileViewHandlers(
       anchorIds: allAnchors,
       hydraulicModel,
       isUnprojected,
+      results,
     });
 
     if ("error" in built) {
@@ -125,7 +130,8 @@ export function useProfileViewHandlers(
       if (
         cached &&
         cached.anchorsKey === anchorsKey &&
-        cached.assetsVersion === hydraulicModel.assets
+        cached.assetsVersion === hydraulicModel.assets &&
+        cached.resultsVersion === results
       ) {
         path = cached.path;
       } else {
@@ -133,6 +139,7 @@ export function useProfileViewHandlers(
           hydraulicModel.topology,
           hydraulicModel.assets,
           previewAnchors,
+          results,
         );
         path = found
           ? { nodeIds: found.nodeIds, linkIds: found.linkIds }
@@ -140,6 +147,7 @@ export function useProfileViewHandlers(
         draftPathCacheRef.current = {
           anchorsKey,
           assetsVersion: hydraulicModel.assets,
+          resultsVersion: results,
           path,
         };
       }

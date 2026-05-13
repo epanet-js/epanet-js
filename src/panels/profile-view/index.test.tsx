@@ -10,6 +10,7 @@ import {
   ProfileView,
 } from "src/state/profile-view";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { simulationStepAtom } from "src/state/simulation";
 import { AssetId } from "src/hydraulic-model";
 import { Store } from "src/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
@@ -142,6 +143,58 @@ describe("ProfileViewPanel reactive path", () => {
     expect(path!.nodeIds).toEqual([IDS.J1, IDS.J2, IDS.J3]);
     expect(path!.linkIds).toEqual([IDS.P1, IDS.P2]);
     expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps the path rendered when a path link has initialStatus=closed", () => {
+    const V = 6;
+    const buildLinearWithClosedValve = () =>
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0, 0], elevation: 10 })
+        .aJunction(V, { coordinates: [0.5, 0], elevation: 10.5 })
+        .aJunction(IDS.J3, { coordinates: [2, 0], elevation: 12 })
+        .aValve(IDS.P1, {
+          startNodeId: IDS.J1,
+          endNodeId: V,
+          initialStatus: "closed",
+        })
+        .aPipe(IDS.P2, {
+          startNodeId: V,
+          endNodeId: IDS.J3,
+          length: 100,
+        })
+        .build();
+
+    const store = setInitialState({
+      hydraulicModel: buildLinearWithClosedValve(),
+    });
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, V, IDS.J3] }));
+    renderPanel({ store });
+
+    const path = store.get(profilePathAtom);
+    expect(path).not.toBeNull();
+    expect(path!.nodeIds).toEqual([IDS.J1, V, IDS.J3]);
+    expect(path!.linkIds).toEqual([IDS.P1, IDS.P2]);
+    expect(screen.queryByText(/no longer exist/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps the path identical when the simulation step changes", () => {
+    const store = setInitialState({
+      hydraulicModel: buildLinearModel(),
+      simulationResults: createMockResultsReader(),
+    });
+    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    renderPanel({ store });
+
+    const pathBefore = store.get(profilePathAtom);
+    expect(pathBefore).not.toBeNull();
+
+    store.set(simulationStepAtom, 5);
+
+    const pathAfter = store.get(profilePathAtom);
+    expect(pathAfter).not.toBeNull();
+    expect(pathAfter!.nodeIds).toEqual(pathBefore!.nodeIds);
+    expect(pathAfter!.linkIds).toEqual(pathBefore!.linkIds);
+    expect(pathAfter!.totalLength).toBe(pathBefore!.totalLength);
   });
 
   it("honors a waypoint anchor in the middle", () => {

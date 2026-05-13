@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { createMockResultsReader } from "src/__helpers__/state";
 import { deriveProfilePath, findProfilePath } from "./path-finding";
 
 describe("findProfilePath", () => {
@@ -462,5 +463,411 @@ describe("deriveProfilePath", () => {
 
     expect(deriveProfilePath(model.topology, model.assets, [])).toBeNull();
     expect(deriveProfilePath(model.topology, model.assets, [IDS.A])).toBeNull();
+  });
+});
+
+describe("path-finding with flow weighting", () => {
+  it("prefers the higher-flow branch when results are provided", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      lowFlow1: 5,
+      lowFlow2: 6,
+      highFlow1: 7,
+      highFlow2: 8,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aJunction(IDS.D, { coordinates: [1, 1] })
+      .aPipe(IDS.lowFlow1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        length: 10,
+      })
+      .aPipe(IDS.lowFlow2, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .aPipe(IDS.highFlow1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.D,
+        length: 100,
+      })
+      .aPipe(IDS.highFlow2, {
+        startNodeId: IDS.D,
+        endNodeId: IDS.C,
+        length: 100,
+      })
+      .build();
+
+    const results = createMockResultsReader({
+      pipes: {
+        [IDS.lowFlow1]: { flow: 0.01 },
+        [IDS.lowFlow2]: { flow: 0.01 },
+        [IDS.highFlow1]: { flow: 100 },
+        [IDS.highFlow2]: { flow: 100 },
+      },
+    });
+
+    const path = findProfilePath(
+      model.topology,
+      model.assets,
+      IDS.A,
+      IDS.C,
+      results,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.highFlow1, IDS.highFlow2]);
+  });
+
+  it("falls back to length-based weighting when results is null", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      shortPipe1: 4,
+      shortPipe2: 5,
+      longPipe: 6,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aPipe(IDS.shortPipe1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        length: 10,
+      })
+      .aPipe(IDS.shortPipe2, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .aPipe(IDS.longPipe, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.C,
+        length: 100,
+      })
+      .build();
+
+    const path = findProfilePath(
+      model.topology,
+      model.assets,
+      IDS.A,
+      IDS.C,
+      null,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.shortPipe1, IDS.shortPipe2]);
+  });
+
+  it("never routes through links that are closed at the current step", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      closedHighFlow: 5,
+      closedHighFlowTail: 6,
+      openLowFlow1: 7,
+      openLowFlow2: 8,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aJunction(IDS.D, { coordinates: [1, 1] })
+      .aPipe(IDS.closedHighFlow, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        length: 10,
+        initialStatus: "closed",
+      })
+      .aPipe(IDS.closedHighFlowTail, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .aPipe(IDS.openLowFlow1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.D,
+        length: 100,
+      })
+      .aPipe(IDS.openLowFlow2, {
+        startNodeId: IDS.D,
+        endNodeId: IDS.C,
+        length: 100,
+      })
+      .build();
+
+    const results = createMockResultsReader({
+      pipes: {
+        [IDS.closedHighFlow]: { flow: 1000, status: "closed" },
+        [IDS.closedHighFlowTail]: { flow: 1000, status: "open" },
+        [IDS.openLowFlow1]: { flow: 0.001, status: "open" },
+        [IDS.openLowFlow2]: { flow: 0.001, status: "open" },
+      },
+    });
+
+    const path = findProfilePath(
+      model.topology,
+      model.assets,
+      IDS.A,
+      IDS.C,
+      results,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.openLowFlow1, IDS.openLowFlow2]);
+  });
+
+  it("routes through a valve that is closed initially but open at the current step", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      valveOpenAtStep: 5,
+      valveTail: 6,
+      detour1: 7,
+      detour2: 8,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aJunction(IDS.D, { coordinates: [1, 1] })
+      .aValve(IDS.valveOpenAtStep, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        initialStatus: "closed",
+      })
+      .aPipe(IDS.valveTail, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .aPipe(IDS.detour1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.D,
+        length: 100,
+      })
+      .aPipe(IDS.detour2, {
+        startNodeId: IDS.D,
+        endNodeId: IDS.C,
+        length: 100,
+      })
+      .build();
+
+    const results = createMockResultsReader({
+      valves: {
+        [IDS.valveOpenAtStep]: { flow: 100, status: "open" },
+      },
+      pipes: {
+        [IDS.valveTail]: { flow: 100, status: "open" },
+        [IDS.detour1]: { flow: 0.001, status: "open" },
+        [IDS.detour2]: { flow: 0.001, status: "open" },
+      },
+    });
+
+    const path = findProfilePath(
+      model.topology,
+      model.assets,
+      IDS.A,
+      IDS.C,
+      results,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.valveOpenAtStep, IDS.valveTail]);
+  });
+
+  it("treats an 'active' valve at the current step the same as an open one", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      activeValve: 5,
+      valveTail: 6,
+      detour1: 7,
+      detour2: 8,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aJunction(IDS.D, { coordinates: [1, 1] })
+      .aValve(IDS.activeValve, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        initialStatus: "closed",
+      })
+      .aPipe(IDS.valveTail, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .aPipe(IDS.detour1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.D,
+        length: 100,
+      })
+      .aPipe(IDS.detour2, {
+        startNodeId: IDS.D,
+        endNodeId: IDS.C,
+        length: 100,
+      })
+      .build();
+
+    const results = createMockResultsReader({
+      valves: {
+        [IDS.activeValve]: { flow: 100, status: "active" },
+      },
+      pipes: {
+        [IDS.valveTail]: { flow: 100, status: "open" },
+        [IDS.detour1]: { flow: 0.001, status: "open" },
+        [IDS.detour2]: { flow: 0.001, status: "open" },
+      },
+    });
+
+    const path = findProfilePath(
+      model.topology,
+      model.assets,
+      IDS.A,
+      IDS.C,
+      results,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.activeValve, IDS.valveTail]);
+  });
+
+  it("ignoreStatus lets re-derivation traverse a link with initialStatus=closed", () => {
+    const IDS = { A: 1, B: 2, C: 3, V: 4, P: 5 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aJunction(IDS.C, { coordinates: [2, 0] })
+      .aValve(IDS.V, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        initialStatus: "closed",
+      })
+      .aPipe(IDS.P, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .build();
+
+    const blockedPath = deriveProfilePath(
+      model.topology,
+      model.assets,
+      [IDS.A, IDS.B, IDS.C],
+      null,
+    );
+    expect(blockedPath).toBeNull();
+
+    const lenientPath = deriveProfilePath(
+      model.topology,
+      model.assets,
+      [IDS.A, IDS.B, IDS.C],
+      null,
+      { ignoreStatus: true },
+    );
+    expect(lenientPath).not.toBeNull();
+    expect(lenientPath!.linkIds).toEqual([IDS.V, IDS.P]);
+  });
+
+  it("ignoreStatus still blocks inactive links", () => {
+    const IDS = { A: 1, B: 2, P: 3 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [1, 0] })
+      .aPipe(IDS.P, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        length: 10,
+        isActive: false,
+      })
+      .build();
+
+    const path = deriveProfilePath(
+      model.topology,
+      model.assets,
+      [IDS.A, IDS.B],
+      null,
+      { ignoreStatus: true },
+    );
+    expect(path).toBeNull();
+  });
+
+  it("applies flow weighting per segment with multiple anchors", () => {
+    const IDS = {
+      A: 1,
+      B: 2,
+      C: 3,
+      D: 4,
+      AB_low: 5,
+      AB_high1: 6,
+      AB_high2: 7,
+      MID: 8,
+      BC: 9,
+    } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.A, { coordinates: [0, 0] })
+      .aJunction(IDS.B, { coordinates: [2, 0] })
+      .aJunction(IDS.C, { coordinates: [3, 0] })
+      .aJunction(IDS.MID, { coordinates: [1, 1] })
+      .aPipe(IDS.AB_low, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.B,
+        length: 10,
+      })
+      .aPipe(IDS.AB_high1, {
+        startNodeId: IDS.A,
+        endNodeId: IDS.MID,
+        length: 100,
+      })
+      .aPipe(IDS.AB_high2, {
+        startNodeId: IDS.MID,
+        endNodeId: IDS.B,
+        length: 100,
+      })
+      .aPipe(IDS.BC, {
+        startNodeId: IDS.B,
+        endNodeId: IDS.C,
+        length: 10,
+      })
+      .build();
+
+    const results = createMockResultsReader({
+      pipes: {
+        [IDS.AB_low]: { flow: 0.01 },
+        [IDS.AB_high1]: { flow: 100 },
+        [IDS.AB_high2]: { flow: 100 },
+        [IDS.BC]: { flow: 50 },
+      },
+    });
+
+    const path = deriveProfilePath(
+      model.topology,
+      model.assets,
+      [IDS.A, IDS.C],
+      results,
+    );
+
+    expect(path!.linkIds).toEqual([IDS.AB_high1, IDS.AB_high2, IDS.BC]);
   });
 });
