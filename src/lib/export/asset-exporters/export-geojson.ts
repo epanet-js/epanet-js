@@ -13,12 +13,17 @@ import { createProjectionMapper } from "src/lib/projections";
 
 const GEOJSON_END = `]}`;
 
+const toEpsgUrn = (epsgId: string): string => {
+  const code = epsgId.split(":")[1];
+  return `urn:ogc:def:crs:EPSG::${code}`;
+};
+
 const buildCrs = (projection: Projection): string => {
   switch (projection.type) {
     case "wgs84":
-      return '{"type":"name","properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}}';
+      return '{"type":"name","properties":{"name":"urn:ogc:def:crs:EPSG::4326"}}';
     case "proj4":
-      return `{"type":"name","properties":{"name":${JSON.stringify(projection.code)}}}`;
+      return `{"type":"name","properties":{"name":${JSON.stringify(toEpsgUrn(projection.id))}}}`;
     case "xy-grid":
       return `{"type":"name","properties":{"name":${JSON.stringify(projection.id)}}}`;
   }

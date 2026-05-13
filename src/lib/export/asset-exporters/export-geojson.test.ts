@@ -219,14 +219,14 @@ describe("export-geojson", () => {
     expect(cx).not.toBe(1);
   });
 
-  it("includes a named CRS with the WGS84 OGC URN for the default projection", async () => {
+  it("includes a named CRS with the WGS84 EPSG URN for the default projection", async () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const files = exportGeoJson(model, WGS84);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.crs).toEqual({
       type: "name",
-      properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" },
+      properties: { name: "urn:ogc:def:crs:EPSG::4326" },
     });
   });
 
@@ -247,12 +247,12 @@ describe("export-geojson", () => {
     });
   });
 
-  it("includes a named CRS using the projection code for proj4 projections", async () => {
+  it("includes a named CRS using the projection id as EPSG URN for proj4 projections", async () => {
     const proj4 = {
       type: "proj4" as const,
-      id: "epsg-4326",
-      name: "WGS 84",
-      code: "EPSG:4326",
+      id: "EPSG:28355",
+      name: "GDA94 / MGA zone 55",
+      code: "+proj=utm +zone=55 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
     };
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const files = exportGeoJson(model, proj4);
@@ -260,7 +260,7 @@ describe("export-geojson", () => {
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.crs).toEqual({
       type: "name",
-      properties: { name: "EPSG:4326" },
+      properties: { name: "urn:ogc:def:crs:EPSG::28355" },
     });
   });
 });
