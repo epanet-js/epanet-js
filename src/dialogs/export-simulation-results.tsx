@@ -138,26 +138,14 @@ export const ExportSimulationResultsDialog = ({
     .filter(([, checked]) => checked)
     .map(([key]) => key as ExportSimulationResultsProperties);
 
-  const nodeCount = hasSelection
-    ? selectedIds.filter((id) => model.assets.get(id)?.isNode).length
-    : model.assetIndex.nodeCount;
-  const linkCount = hasSelection
-    ? selectedIds.filter((id) => model.assets.get(id)?.isLink).length
-    : model.assetIndex.linkCount;
+  const assetCount = hasSelection ? selectedIds.length : model.assets.size;
 
-  const estimatedBytes =
-    Export.estimateSimulationResultsSize(
-      format,
-      selectedNodeProperties,
-      nodeCount,
-      timestepCount,
-    ) +
-    Export.estimateSimulationResultsSize(
-      format,
-      selectedLinkProperties,
-      linkCount,
-      timestepCount,
-    );
+  const estimatedBytes = Export.estimateSimulationResultsSize(
+    format,
+    [...selectedNodeProperties, ...selectedLinkProperties],
+    assetCount,
+    timestepCount,
+  );
   const estimatedGB = estimatedBytes / 1024 ** 3;
 
   const [isExporting, setIsExporting] = useState(false);
