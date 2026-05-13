@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useExportSimulationResults } from "src/commands/export-simulation-results";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
-import { ExportSimulationResultsProgressDialog } from "./export-tsimulation-results-progress";
+import { ExportSimulationResultsProgressDialog } from "./export-simulation-results-progress";
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
@@ -150,6 +150,8 @@ export const ExportSimulationResultsDialog = ({
 
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentProperty, setCurrentProperty] =
+    useState<ExportSimulationResultsProperties | null>(null);
   const progressCalls = useRef(0);
   const lastYield = useRef(0);
 
@@ -163,7 +165,7 @@ export const ExportSimulationResultsDialog = ({
 
   const onProgress = async (
     progress: number,
-    _property: ExportSimulationResultsProperties,
+    property: ExportSimulationResultsProperties,
   ) => {
     if (++progressCalls.current >= 1000) {
       progressCalls.current = 0;
@@ -173,6 +175,7 @@ export const ExportSimulationResultsDialog = ({
       }
     }
     setProgress(progress);
+    setCurrentProperty(property);
   };
 
   const exceedsLimit = sizeLimit > 0 && estimatedBytes > sizeLimit;
@@ -224,6 +227,7 @@ export const ExportSimulationResultsDialog = ({
     return (
       <ExportSimulationResultsProgressDialog
         progress={progress}
+        currentProperty={currentProperty}
         isComplete={isComplete}
         onCancel={handleCancel}
         onClose={onClose}
