@@ -36,15 +36,156 @@ export const exportXlsxSimulationResults = async (
     colLetters[i] = colLetter(i);
   }
 
+  const colLetterBytes: Uint8Array[] = colLetters.map((l) => encode(l));
+
+  const XML_ROW_OPEN = encode('<row r="');
+  const XML_TAG_CLOSE = encode('">');
+  const XML_CELL_OPEN = encode('<c r="');
+  const XML_INLINE_STR_MID = encode('" t="inlineStr"><is><t>');
+  const XML_INLINE_STR_END = encode("</t></is></c>");
+  const XML_NUM_MID = encode('" t="n"><v>');
+  const XML_NUM_END = encode("</v></c>");
+  const XML_ROW_CLOSE = encode("</row>");
+  const XML_CLOSED = encode("closed");
+  const XML_OPEN = encode("open");
+
   const headerRowXml = buildHeaderRowXml(
     resultsReader.timestepCount,
     resultsReader.reportingTimeStep,
     colLetters,
   );
 
+  const BATCH_SIZE = 128 * 1024;
   const rowBufferSize = Math.max(64 * 1024, totalCols * 50);
-  const rowBuffer = new Uint8Array(rowBufferSize);
-  const encoder = new TextEncoder();
+  const batchBuffer = new Uint8Array(
+    Math.max(rowBufferSize * 2, BATCH_SIZE * 2),
+  );
+  let batchOffset = 0;
+
+  const encodeIntoBatch = (xml: string): number => {
+    const view = batchBuffer.subarray(batchOffset);
+    const { written } = encoder.encodeInto(xml, view);
+    if (written < xml.length) {
+      const full = encoder.encode(xml);
+      batchBuffer.set(full, batchOffset);
+      return batchOffset + full.length;
+    }
+    return batchOffset + written;
+  };
+
+  const flushBatch = (entry: ZipDeflate) => {
+    if (batchOffset > 0) {
+      entry.push(batchBuffer.subarray(0, batchOffset), false);
+      batchOffset = 0;
+    }
+  };
+
+  const writeBuf = (buf: Uint8Array) => {
+    batchBuffer.set(buf, batchOffset);
+    batchOffset += buf.length;
+  };
+
+  const writeAsciiStr = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      batchBuffer[batchOffset++] = s.charCodeAt(i);
+    }
+  };
+
+  const writeXmlEscaped = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      const ch = s.charCodeAt(i);
+      if (ch === UTF8_AMPERSAND) {
+        batchBuffer[batchOffset++] = UTF8_AMPERSAND;
+        batchBuffer[batchOffset++] = UTF8_a;
+        batchBuffer[batchOffset++] = UTF8_m;
+        batchBuffer[batchOffset++] = UTF8_p;
+        batchBuffer[batchOffset++] = UTF8_SEMICOLON;
+      } else if (ch === UTF8_LESS_THAN) {
+        batchBuffer[batchOffset++] = UTF8_AMPERSAND;
+        batchBuffer[batchOffset++] = UTF8_l;
+        batchBuffer[batchOffset++] = UTF8_t;
+        batchBuffer[batchOffset++] = UTF8_SEMICOLON;
+      } else if (ch === UTF8_GREATER_THAN) {
+        batchBuffer[batchOffset++] = UTF8_AMPERSAND;
+        batchBuffer[batchOffset++] = UTF8_g;
+        batchBuffer[batchOffset++] = UTF8_t;
+        batchBuffer[batchOffset++] = UTF8_SEMICOLON;
+      } else if (ch === UTF8_DOUBLE_QUOTE) {
+        batchBuffer[batchOffset++] = UTF8_AMPERSAND;
+        batchBuffer[batchOffset++] = UTF8_q;
+        batchBuffer[batchOffset++] = UTF8_u;
+        batchBuffer[batchOffset++] = UTF8_o;
+        batchBuffer[batchOffset++] = UTF8_t;
+        batchBuffer[batchOffset++] = UTF8_SEMICOLON;
+      } else if (ch === UTF8_SINGLE_QUOTE) {
+        batchBuffer[batchOffset++] = UTF8_AMPERSAND;
+        batchBuffer[batchOffset++] = UTF8_a;
+        batchBuffer[batchOffset++] = UTF8_p;
+        batchBuffer[batchOffset++] = UTF8_o;
+        batchBuffer[batchOffset++] = UTF8_s;
+        batchBuffer[batchOffset++] = UTF8_SEMICOLON;
+      } else {
+        batchBuffer[batchOffset++] = ch;
+      }
+    }
+  };
+
+  const writeNumber = (n: number) => {
+    const s = Math.trunc(n) === n ? String(n) : n.toFixed(NUM_DECIMAL_PLACES);
+    for (let i = 0; i < s.length; i++) {
+      batchBuffer[batchOffset++] = s.charCodeAt(i);
+    }
+  };
+
+  const writeDataRow = (
+    rowIndex: number,
+    label: string,
+    assetType: string,
+    values: Float32Array,
+    metric: ExportSimulationResultsProperties,
+  ) => {
+    const rowStr = String(rowIndex);
+
+    writeBuf(XML_ROW_OPEN);
+    writeAsciiStr(rowStr);
+    writeBuf(XML_TAG_CLOSE);
+
+    writeBuf(XML_CELL_OPEN);
+    writeBuf(colLetterBytes[0]);
+    writeAsciiStr(rowStr);
+    writeBuf(XML_INLINE_STR_MID);
+    writeXmlEscaped(label);
+    writeBuf(XML_INLINE_STR_END);
+
+    writeBuf(XML_CELL_OPEN);
+    writeBuf(colLetterBytes[1]);
+    writeAsciiStr(rowStr);
+    writeBuf(XML_INLINE_STR_MID);
+    writeAsciiStr(assetType);
+    writeBuf(XML_INLINE_STR_END);
+
+    if (metric === "status") {
+      for (let i = 0; i < values.length; i++) {
+        writeBuf(XML_CELL_OPEN);
+        writeBuf(colLetterBytes[i + 2]);
+        writeAsciiStr(rowStr);
+        writeBuf(XML_INLINE_STR_MID);
+        writeBuf(values[i] < 3 ? XML_CLOSED : XML_OPEN);
+        writeBuf(XML_INLINE_STR_END);
+      }
+    } else {
+      for (let i = 0; i < values.length; i++) {
+        writeBuf(XML_CELL_OPEN);
+        writeBuf(colLetterBytes[i + 2]);
+        writeAsciiStr(rowStr);
+        writeBuf(XML_NUM_MID);
+        writeNumber(values[i]);
+        writeBuf(XML_NUM_END);
+      }
+    }
+
+    writeBuf(XML_ROW_CLOSE);
+  };
 
   const hasSelection = selectedAssets.size > 0;
   const totalProgress = metrics.length * hydraulicModel.assets.size;
@@ -84,16 +225,20 @@ export const exportXlsxSimulationResults = async (
           hydraulicModel.assets,
           metrics,
           async (metric, asset, results) => {
-            if (onProgress)
+            if (onProgress) {
               await onProgress((progress++ / totalProgress) * 100);
+            }
 
             if (metric !== currentMetric) {
-              if (currentEntry) closeSheetEntry(currentEntry);
+              if (currentEntry) {
+                flushBatch(currentEntry);
+                closeSheetEntry(currentEntry);
+              }
               const sheetIndex = metrics.indexOf(
                 metric as ExportSimulationResultsProperties,
               );
               currentEntry = openSheetEntry(zip, sheetIndex + 1);
-              pushEncodedRow(currentEntry, headerRowXml, rowBuffer, encoder);
+              batchOffset = encodeIntoBatch(headerRowXml);
               currentMetric = metric;
               rowCount = 1;
               writtenMetrics.add(metric);
@@ -111,27 +256,34 @@ export const exportXlsxSimulationResults = async (
             }
 
             ++rowCount;
-            const rowXml = buildDataRowXml(
+
+            writeDataRow(
               rowCount,
               asset.label,
               asset.type,
               results.values,
               metric as ExportSimulationResultsProperties,
-              colLetters,
             );
-            pushEncodedRow(currentEntry!, rowXml, rowBuffer, encoder);
+
+            if (batchOffset >= BATCH_SIZE) {
+              flushBatch(currentEntry!);
+            }
           },
           signal,
         );
 
         iterationPromise
           .then(() => {
-            if (currentEntry) closeSheetEntry(currentEntry);
+            if (currentEntry) {
+              flushBatch(currentEntry);
+              closeSheetEntry(currentEntry);
+            }
 
             for (let i = 0; i < metrics.length; i++) {
               if (!writtenMetrics.has(metrics[i])) {
                 const entry = openSheetEntry(zip, i + 1);
-                pushEncodedRow(entry, headerRowXml, rowBuffer, encoder);
+                batchOffset = encodeIntoBatch(headerRowXml);
+                flushBatch(entry);
                 closeSheetEntry(entry);
               }
             }
@@ -155,6 +307,26 @@ export const exportXlsxSimulationResults = async (
   }
 };
 
+const UTF8_AMPERSAND = 38;
+const UTF8_SEMICOLON = 59;
+const UTF8_LESS_THAN = 60;
+const UTF8_GREATER_THAN = 62;
+const UTF8_DOUBLE_QUOTE = 34;
+const UTF8_SINGLE_QUOTE = 39;
+const UTF8_a = 97;
+const UTF8_g = 103;
+const UTF8_l = 108;
+const UTF8_m = 109;
+const UTF8_o = 111;
+const UTF8_p = 112;
+const UTF8_q = 113;
+const UTF8_s = 115;
+const UTF8_t = 116;
+const UTF8_u = 117;
+
+const encoder = new TextEncoder();
+const encode = (str: string) => encoder.encode(str);
+
 const buildHeaderRowXml = (
   timestepCount: number,
   reportingTimeStep: number,
@@ -171,62 +343,16 @@ const buildHeaderRowXml = (
   return xml;
 };
 
-const buildDataRowXml = (
-  rowIndex: number,
-  label: string,
-  assetType: string,
-  values: Float32Array,
-  metric: ExportSimulationResultsProperties,
-  colLetters: string[],
-): string => {
-  let xml = `<row r="${rowIndex}">`;
-  xml += `<c r="${colLetters[0]}${rowIndex}" t="inlineStr"><is><t>${escapeXml(label)}</t></is></c>`;
-  xml += `<c r="${colLetters[1]}${rowIndex}" t="inlineStr"><is><t>${assetType}</t></is></c>`;
-
-  if (metric === "status") {
-    for (let i = 0; i < values.length; i++) {
-      const status = values[i] < 3 ? "closed" : "open";
-      xml += `<c r="${colLetters[i + 2]}${rowIndex}" t="inlineStr"><is><t>${status}</t></is></c>`;
-    }
-  } else {
-    for (let i = 0; i < values.length; i++) {
-      const v =
-        Math.trunc(values[i]) === values[i]
-          ? values[i]
-          : values[i].toFixed(NUM_DECIMAL_PLACES);
-      xml += `<c r="${colLetters[i + 2]}${rowIndex}" t="n"><v>${v}</v></c>`;
-    }
-  }
-
-  xml += `</row>`;
-  return xml;
-};
-
-const pushEncodedRow = (
-  entry: ZipDeflate,
-  rowXml: string,
-  buffer: Uint8Array,
-  encoder: TextEncoder,
-) => {
-  const { written } = encoder.encodeInto(rowXml, buffer);
-  if (written < rowXml.length) {
-    entry.push(encoder.encode(rowXml), false);
-  } else {
-    entry.push(buffer.subarray(0, written), false);
-  }
-};
-
-const enc = new TextEncoder();
-const encode = (str: string) => enc.encode(str);
-
 const pushStaticEntry = (zip: Zip, name: string, content: string) => {
-  const entry = new ZipDeflate(name);
+  const entry = new ZipDeflate(name, { level: 0 });
   zip.add(entry);
   entry.push(encode(content), true);
 };
 
 const openSheetEntry = (zip: Zip, sheetNumber: number) => {
-  const entry = new ZipDeflate(`xl/worksheets/sheet${sheetNumber}.xml`);
+  const entry = new ZipDeflate(`xl/worksheets/sheet${sheetNumber}.xml`, {
+    level: 0,
+  });
   zip.add(entry);
   entry.push(
     encode(
