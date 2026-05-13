@@ -2,7 +2,7 @@ import { ExportSimulationResultsProperties } from "../types";
 export { exportCsvSimulationResults } from "./export-csv-simulation-results";
 export { exportXlsxSimulationResults } from "./export-xlsx-simulation-results";
 
-const XML_ZIP_COMPRESSION_RATIO = 0.2;
+const XML_INFLATION_RATIO = 1.3;
 
 export const estimateSimulationResultsSize = (
   format: "csv" | "xlsx",
@@ -11,7 +11,7 @@ export const estimateSimulationResultsSize = (
   timestepCount: number,
 ) => {
   const rawSize = numAssets * metrics.length * lineSize(timestepCount);
-  return format === "xlsx" ? XML_ZIP_COMPRESSION_RATIO * rawSize : rawSize;
+  return format === "xlsx" ? XML_INFLATION_RATIO * rawSize : rawSize;
 };
 
 const lineSize = (timestepCount: number) => 16 * timestepCount + 64;
