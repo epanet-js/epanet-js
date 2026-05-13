@@ -17,13 +17,13 @@ export const exportXlsxSimulationResults = async (
   options?: SimulationResultsOptions,
 ) => {
   const selectedAssets = options?.selectedAssets ?? new Set<number>();
-  const metrics = options?.properties ?? ALL_METRICS;
+  const properties = options?.properties ?? ALL_METRICS;
   const onProgress = options?.onProgress;
   const signal = options?.signal;
 
   signal?.throwIfAborted();
 
-  const sheetNames = metrics.map((m) => METRIC_SHEET_NAMES[m]);
+  const sheetNames = properties.map((m) => METRIC_SHEET_NAMES[m]);
   const fileName = `${networkName}-export.xlsx`;
   const handle = await directory.getFileHandle(fileName, { create: true });
   const stream = await handle.createWritable();
@@ -188,7 +188,7 @@ export const exportXlsxSimulationResults = async (
   };
 
   const hasSelection = selectedAssets.size > 0;
-  const totalProgress = metrics.length * hydraulicModel.assets.size;
+  const totalProgress = properties.length * hydraulicModel.assets.size;
   let progress = 1;
 
   try {
@@ -223,7 +223,7 @@ export const exportXlsxSimulationResults = async (
 
         const iterationPromise = resultsReader.iterateTimeSeries(
           hydraulicModel.assets,
-          metrics,
+          properties,
           async (metric, asset, results) => {
             if (onProgress) {
               await onProgress((progress++ / totalProgress) * 100);
@@ -234,7 +234,7 @@ export const exportXlsxSimulationResults = async (
                 flushBatch(currentEntry);
                 closeSheetEntry(currentEntry);
               }
-              const sheetIndex = metrics.indexOf(
+              const sheetIndex = properties.indexOf(
                 metric as ExportSimulationResultsProperties,
               );
               currentEntry = openSheetEntry(zip, sheetIndex + 1);
@@ -279,8 +279,8 @@ export const exportXlsxSimulationResults = async (
               closeSheetEntry(currentEntry);
             }
 
-            for (let i = 0; i < metrics.length; i++) {
-              if (!writtenMetrics.has(metrics[i])) {
+            for (let i = 0; i < properties.length; i++) {
+              if (!writtenMetrics.has(properties[i])) {
                 const entry = openSheetEntry(zip, i + 1);
                 batchOffset = encodeIntoBatch(headerRowXml);
                 flushBatch(entry);

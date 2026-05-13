@@ -127,12 +127,12 @@ export const ExportSimulationResultsDialog = ({
     });
   };
 
-  const selectedNodeMetrics = (
+  const selectedNodeProperties = (
     Object.entries(nodeFields) as [keyof NodeFields, boolean][]
   )
     .filter(([, checked]) => checked)
     .map(([key]) => key as ExportSimulationResultsProperties);
-  const selectedLinkMetrics = (
+  const selectedLinkProperties = (
     Object.entries(linkFields) as [keyof LinkFields, boolean][]
   )
     .filter(([, checked]) => checked)
@@ -148,13 +148,13 @@ export const ExportSimulationResultsDialog = ({
   const estimatedBytes =
     Export.estimateSimulationResultsSize(
       format,
-      selectedNodeMetrics,
+      selectedNodeProperties,
       nodeCount,
       timestepCount,
     ) +
     Export.estimateSimulationResultsSize(
       format,
-      selectedLinkMetrics,
+      selectedLinkProperties,
       linkCount,
       timestepCount,
     );
@@ -190,7 +190,7 @@ export const ExportSimulationResultsDialog = ({
     isExporting || exceedsLimit || nodeCheckedCount + linkCheckedCount === 0;
 
   const handleExport = useCallback(async () => {
-    const metrics = [...selectedNodeMetrics, ...selectedLinkMetrics];
+    const properties = [...selectedNodeProperties, ...selectedLinkProperties];
     const selectedAssets = selectedAssetsOnly
       ? new Set(selectedIds)
       : new Set<number>();
@@ -202,7 +202,7 @@ export const ExportSimulationResultsDialog = ({
     try {
       await exportSimulationResults({
         format,
-        metrics,
+        properties,
         selectedAssets,
         onProgress,
         signal: controller.signal,
@@ -217,8 +217,8 @@ export const ExportSimulationResultsDialog = ({
     }
   }, [
     format,
-    selectedNodeMetrics,
-    selectedLinkMetrics,
+    selectedNodeProperties,
+    selectedLinkProperties,
     selectedAssetsOnly,
     selectedIds,
     exportSimulationResults,

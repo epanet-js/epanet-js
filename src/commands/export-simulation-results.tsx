@@ -13,7 +13,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 export type ExportSimulationResultsOptions = {
   format: "csv" | "xlsx";
   selectedAssets: Set<number>;
-  metrics: ExportSimulationResultsProperties[];
+  properties: ExportSimulationResultsProperties[];
   onProgress: (progress: number) => Promise<void>;
   signal?: AbortSignal;
 };
@@ -58,7 +58,7 @@ export const useExportSimulationResults = () => {
         capture({
           name: "simulationResults.exported",
           format: options.format,
-          metrics: options.metrics,
+          properties: options.properties,
           hasSelection: options.selectedAssets.size > 0,
         });
       },

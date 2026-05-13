@@ -934,7 +934,7 @@ type AssetDataExported = {
 type SimulationResultsExported = {
   name: "simulationResults.exported";
   format: "csv" | "xlsx";
-  metrics: string[];
+  properties: string[];
   hasSelection: boolean;
 };
 
