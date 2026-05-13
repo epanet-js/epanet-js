@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import throttle from "lodash/throttle";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HandlerContext } from "src/types";
 import { profileViewAtom } from "src/state/profile-view";
 import { dialogAtom } from "src/state/dialog";
@@ -14,7 +14,6 @@ import { deriveProfilePath } from "src/panels/profile-view/path-finding";
 import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
-import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
 import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
 
@@ -24,6 +23,7 @@ export function useProfileViewHandlers(
   const { hydraulicModel, map } = handlerContext;
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
+  const store = useStore();
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const isUnprojected = useAtomValue(isUnprojectedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
@@ -33,7 +33,6 @@ export function useProfileViewHandlers(
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const setMode = useSetAtom(modeAtom);
-  const { isShiftHeld } = useKeyboardState();
 
   const draftAnchorIds: AssetId[] =
     (ephemeralState.type === "profileView" && ephemeralState.anchorIds) || [];
@@ -44,6 +43,11 @@ export function useProfileViewHandlers(
     resultsVersion: unknown;
     path: DraftPath | undefined;
   } | null>(null);
+
+  const getFreshAnchors = (): AssetId[] => {
+    const current = store.get(ephemeralStateAtom);
+    return (current.type === "profileView" && current.anchorIds) || [];
+  };
 
   const resolveNodeId = (
     asset: Asset | null,
@@ -61,36 +65,34 @@ export function useProfileViewHandlers(
     const nodeId = resolveNodeId(clickedAsset, e);
     if (nodeId === undefined) return;
 
-    if (draftAnchorIds.length === 0) {
+    const anchors = getFreshAnchors();
+
+    if (nodeId === anchors[anchors.length - 1]) return;
+
+    if (anchors.length === 0) {
       setEphemeralState({ type: "profileView", anchorIds: [nodeId] });
       return;
     }
 
-    if (isShiftHeld()) {
-      const existingIndex = draftAnchorIds.indexOf(nodeId);
-      if (existingIndex !== -1) {
-        if (existingIndex === 0) return;
-        const nextAnchors = draftAnchorIds.filter((id) => id !== nodeId);
-        setEphemeralState({ type: "profileView", anchorIds: nextAnchors });
-        return;
-      }
-      const candidate = [...draftAnchorIds, nodeId];
-      const check = deriveProfilePath(
-        hydraulicModel.topology,
-        hydraulicModel.assets,
-        candidate,
-        results,
-      );
-      if (check === null) return;
-      setEphemeralState({ type: "profileView", anchorIds: candidate });
-      return;
-    }
+    const candidate = [...anchors, nodeId];
+    const check = deriveProfilePath(
+      hydraulicModel.topology,
+      hydraulicModel.assets,
+      candidate,
+      results,
+    );
+    if (check === null) return;
+    setEphemeralState({ type: "profileView", anchorIds: candidate });
+  };
 
-    if (nodeId === draftAnchorIds[draftAnchorIds.length - 1]) return;
+  const double: Handlers["double"] = (e) => {
+    e.preventDefault();
 
-    const allAnchors = [...draftAnchorIds, nodeId];
+    const anchors = getFreshAnchors();
+    if (anchors.length < 2) return;
+
     const built = buildProfileView({
-      anchorIds: allAnchors,
+      anchorIds: anchors,
       hydraulicModel,
       isUnprojected,
       results,
@@ -176,7 +178,7 @@ export function useProfileViewHandlers(
     move,
     down: () => {},
     up: () => {},
-    double: () => {},
+    double,
     keydown: () => {},
     keyup: () => {},
     exit: () => {
