@@ -79,7 +79,7 @@ describe("findProfilePath", () => {
     expect(path).toBeNull();
   });
 
-  it("routes around a closed pipe", () => {
+  it("uses a closed pipe when it's the shortest route", () => {
     const IDS = {
       A: 1,
       B: 2,
@@ -121,10 +121,10 @@ describe("findProfilePath", () => {
 
     const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
-    expect(path!.linkIds).toEqual([IDS.longOpen1, IDS.longOpen2]);
+    expect(path!.linkIds).toEqual([IDS.shortClosed, IDS.shortClosedTail]);
   });
 
-  it("routes around a pump that is initially off", () => {
+  it("uses an off pump when it's the shortest route", () => {
     const IDS = {
       A: 1,
       B: 2,
@@ -165,10 +165,10 @@ describe("findProfilePath", () => {
 
     const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
-    expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
+    expect(path!.linkIds).toEqual([IDS.pumpOff, IDS.pipeTail]);
   });
 
-  it("routes around a closed valve", () => {
+  it("uses a closed valve when it's the shortest route", () => {
     const IDS = {
       A: 1,
       B: 2,
@@ -209,10 +209,10 @@ describe("findProfilePath", () => {
 
     const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
-    expect(path!.linkIds).toEqual([IDS.detour1, IDS.detour2]);
+    expect(path!.linkIds).toEqual([IDS.valveClosed, IDS.pipeTail]);
   });
 
-  it("returns null when every route is blocked by initialStatus", () => {
+  it("returns a route through closed-status links when no other connection exists", () => {
     const IDS = {
       A: 1,
       B: 2,
@@ -257,7 +257,8 @@ describe("findProfilePath", () => {
 
     const path = findProfilePath(model.topology, model.assets, IDS.A, IDS.C);
 
-    expect(path).toBeNull();
+    expect(path).not.toBeNull();
+    expect(path!.linkIds.length).toBe(2);
   });
 
   it("treats inactive links as blocked and takes the active detour", () => {
@@ -568,16 +569,16 @@ describe("path-finding with flow weighting", () => {
     expect(path!.linkIds).toEqual([IDS.shortPipe1, IDS.shortPipe2]);
   });
 
-  it("never routes through links that are closed at the current step", () => {
+  it("prefers the open route over a closed one because the closed pipe has near-zero flow", () => {
     const IDS = {
       A: 1,
       B: 2,
       C: 3,
       D: 4,
-      closedHighFlow: 5,
-      closedHighFlowTail: 6,
-      openLowFlow1: 7,
-      openLowFlow2: 8,
+      shortClosedNoFlow: 5,
+      shortTail: 6,
+      longOpen1: 7,
+      longOpen2: 8,
     } as const;
 
     const model = HydraulicModelBuilder.with()
@@ -585,23 +586,23 @@ describe("path-finding with flow weighting", () => {
       .aJunction(IDS.B, { coordinates: [1, 0] })
       .aJunction(IDS.C, { coordinates: [2, 0] })
       .aJunction(IDS.D, { coordinates: [1, 1] })
-      .aPipe(IDS.closedHighFlow, {
+      .aPipe(IDS.shortClosedNoFlow, {
         startNodeId: IDS.A,
         endNodeId: IDS.B,
         length: 10,
         initialStatus: "closed",
       })
-      .aPipe(IDS.closedHighFlowTail, {
+      .aPipe(IDS.shortTail, {
         startNodeId: IDS.B,
         endNodeId: IDS.C,
         length: 10,
       })
-      .aPipe(IDS.openLowFlow1, {
+      .aPipe(IDS.longOpen1, {
         startNodeId: IDS.A,
         endNodeId: IDS.D,
         length: 100,
       })
-      .aPipe(IDS.openLowFlow2, {
+      .aPipe(IDS.longOpen2, {
         startNodeId: IDS.D,
         endNodeId: IDS.C,
         length: 100,
@@ -610,10 +611,10 @@ describe("path-finding with flow weighting", () => {
 
     const results = createMockResultsReader({
       pipes: {
-        [IDS.closedHighFlow]: { flow: 1000, status: "closed" },
-        [IDS.closedHighFlowTail]: { flow: 1000, status: "open" },
-        [IDS.openLowFlow1]: { flow: 0.001, status: "open" },
-        [IDS.openLowFlow2]: { flow: 0.001, status: "open" },
+        [IDS.shortClosedNoFlow]: { flow: 0, status: "closed" },
+        [IDS.shortTail]: { flow: 100, status: "open" },
+        [IDS.longOpen1]: { flow: 100, status: "open" },
+        [IDS.longOpen2]: { flow: 100, status: "open" },
       },
     });
 
@@ -625,7 +626,7 @@ describe("path-finding with flow weighting", () => {
       results,
     );
 
-    expect(path!.linkIds).toEqual([IDS.openLowFlow1, IDS.openLowFlow2]);
+    expect(path!.linkIds).toEqual([IDS.longOpen1, IDS.longOpen2]);
   });
 
   it("routes through a valve that is closed initially but open at the current step", () => {
@@ -750,45 +751,7 @@ describe("path-finding with flow weighting", () => {
     expect(path!.linkIds).toEqual([IDS.activeValve, IDS.valveTail]);
   });
 
-  it("ignoreStatus lets re-derivation traverse a link with initialStatus=closed", () => {
-    const IDS = { A: 1, B: 2, C: 3, V: 4, P: 5 } as const;
-
-    const model = HydraulicModelBuilder.with()
-      .aJunction(IDS.A, { coordinates: [0, 0] })
-      .aJunction(IDS.B, { coordinates: [1, 0] })
-      .aJunction(IDS.C, { coordinates: [2, 0] })
-      .aValve(IDS.V, {
-        startNodeId: IDS.A,
-        endNodeId: IDS.B,
-        initialStatus: "closed",
-      })
-      .aPipe(IDS.P, {
-        startNodeId: IDS.B,
-        endNodeId: IDS.C,
-        length: 10,
-      })
-      .build();
-
-    const blockedPath = deriveProfilePath(
-      model.topology,
-      model.assets,
-      [IDS.A, IDS.B, IDS.C],
-      null,
-    );
-    expect(blockedPath).toBeNull();
-
-    const lenientPath = deriveProfilePath(
-      model.topology,
-      model.assets,
-      [IDS.A, IDS.B, IDS.C],
-      null,
-      { ignoreStatus: true },
-    );
-    expect(lenientPath).not.toBeNull();
-    expect(lenientPath!.linkIds).toEqual([IDS.V, IDS.P]);
-  });
-
-  it("ignoreStatus still blocks inactive links", () => {
+  it("blocks inactive links regardless of arguments", () => {
     const IDS = { A: 1, B: 2, P: 3 } as const;
 
     const model = HydraulicModelBuilder.with()
@@ -802,14 +765,20 @@ describe("path-finding with flow weighting", () => {
       })
       .build();
 
-    const path = deriveProfilePath(
-      model.topology,
-      model.assets,
-      [IDS.A, IDS.B],
-      null,
-      { ignoreStatus: true },
-    );
-    expect(path).toBeNull();
+    expect(
+      deriveProfilePath(model.topology, model.assets, [IDS.A, IDS.B]),
+    ).toBeNull();
+    expect(
+      findProfilePath(
+        model.topology,
+        model.assets,
+        IDS.A,
+        IDS.B,
+        createMockResultsReader({
+          pipes: { [IDS.P]: { flow: 100, status: "open" } },
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("applies flow weighting per segment with multiple anchors", () => {

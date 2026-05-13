@@ -42,13 +42,7 @@ export const profilePathAtom = atom<PathData | null>((get) => {
   const profileView = get(profileViewAtom);
   if (!profileView) return null;
   const model = get(stagingModelDerivedAtom);
-  return deriveProfilePath(
-    model.topology,
-    model.assets,
-    profileView.anchors,
-    null,
-    { ignoreStatus: true },
-  );
+  return deriveProfilePath(model.topology, model.assets, profileView.anchors);
 });
 
 const hglRangesAsyncAtom = atom(
