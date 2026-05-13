@@ -226,7 +226,10 @@ export const exportXlsxSimulationResults = async (
           properties,
           async (metric, asset, results) => {
             if (onProgress) {
-              await onProgress((progress++ / totalProgress) * 100);
+              await onProgress(
+                Math.trunc((progress++ / totalProgress) * 100),
+                metric as ExportSimulationResultsProperties,
+              );
             }
 
             if (metric !== currentMetric) {

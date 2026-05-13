@@ -188,6 +188,10 @@ describe("exportXlsxSimulationResults", () => {
     });
 
     expect(onProgress).toHaveBeenCalledTimes(4);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 25, "pressure");
+    expect(onProgress).toHaveBeenNthCalledWith(2, 50, "pressure");
+    expect(onProgress).toHaveBeenNthCalledWith(3, 75, "head");
+    expect(onProgress).toHaveBeenNthCalledWith(4, 100, "head");
   });
 
   it("closes the stream after writing", async () => {

@@ -161,7 +161,10 @@ export const ExportSimulationResultsDialog = ({
     void Export.fileSizeLimit().then(setSizeLimit);
   }, []);
 
-  const onProgress = async (progress: number) => {
+  const onProgress = async (
+    progress: number,
+    _property: ExportSimulationResultsProperties,
+  ) => {
     if (++progressCalls.current >= 1000) {
       progressCalls.current = 0;
       if (performance.now() - lastYield.current >= 16) {

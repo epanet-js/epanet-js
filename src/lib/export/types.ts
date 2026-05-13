@@ -48,6 +48,9 @@ export type AssetExportOptions = {
 export type SimulationResultsOptions = {
   selectedAssets?: Set<number>;
   properties?: ExportSimulationResultsProperties[];
-  onProgress?: (progressPercentage: number) => Promise<void>;
+  onProgress?: (
+    progressPercentage: number,
+    property: ExportSimulationResultsProperties,
+  ) => Promise<void>;
   signal?: AbortSignal;
 };

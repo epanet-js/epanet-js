@@ -14,7 +14,10 @@ export type ExportSimulationResultsOptions = {
   format: "csv" | "xlsx";
   selectedAssets: Set<number>;
   properties: ExportSimulationResultsProperties[];
-  onProgress: (progress: number) => Promise<void>;
+  onProgress: (
+    progress: number,
+    property: ExportSimulationResultsProperties,
+  ) => Promise<void>;
   signal?: AbortSignal;
 };
 

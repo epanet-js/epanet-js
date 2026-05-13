@@ -62,7 +62,11 @@ export const exportCsvSimulationResults = async (
       hydraulicModel.assets,
       properties,
       async (property, asset, results) => {
-        if (onProgress) await onProgress((progress++ / totalProgress) * 100);
+        if (onProgress)
+          await onProgress(
+            Math.trunc((progress++ / totalProgress) * 100),
+            property as ExportSimulationResultsProperties,
+          );
 
         const epanetType = asset.isLink ? "link" : "node";
         if (hasSelection && !selectedAssets.has(asset.id)) return;
