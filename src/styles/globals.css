@@ -41,6 +41,52 @@ details > summary {
 }
 
 :root {
+  /* Semantic color tokens — accent */
+  --color-accent: theme("colors.purple.500");
+  --color-accent-hover: theme("colors.purple.600");
+  --color-accent-subtle: theme("colors.purple.100");
+  --color-accent-text: theme("colors.purple.600");
+
+  /* Semantic color tokens — background */
+  --color-background-base: theme("colors.white");
+  --color-background-panel: theme("colors.gray.50");
+  --color-background-popover: theme("colors.white");
+  --color-background-hover: theme("colors.gray.100");
+  --color-background-active: theme("colors.gray.200");
+
+  /* Semantic color tokens — text */
+  --color-text-default: theme("colors.gray.900");
+  --color-text-subtle: theme("colors.gray.500");
+  --color-text-disabled: theme("colors.gray.300");
+
+  /* Semantic color tokens — border */
+  --color-border: theme("colors.gray.200");
+  --color-border-strong: theme("colors.gray.300");
+
+  /* Semantic color tokens — warning */
+  --color-warning-text: theme("colors.orange.600");
+  --color-warning-icon: theme("colors.orange.500");
+  --color-warning-subtle: theme("colors.orange.50");
+  --color-warning-border: theme("colors.orange.200");
+
+  /* Semantic color tokens — error */
+  --color-error-text: theme("colors.red.600");
+  --color-error-icon: theme("colors.red.500");
+  --color-error-subtle: theme("colors.red.50");
+  --color-error-border: theme("colors.red.200");
+
+  /* Semantic color tokens — success */
+  --color-success-text: theme("colors.green.600");
+  --color-success-icon: theme("colors.green.500");
+  --color-success-subtle: theme("colors.green.50");
+  --color-success-border: theme("colors.green.200");
+
+  /* Semantic color tokens — info */
+  --color-info-text: theme("colors.blue.600");
+  --color-info-icon: theme("colors.blue.500");
+  --color-info-subtle: theme("colors.blue.50");
+  --color-info-border: theme("colors.blue.200");
+
   --cursor-default: url('/cursors/cursor-default.svg') 10 10, auto;
   --cursor-true-default: url('/cursors/cursor-true-default.svg') 4 2, auto;
   --cursor-pointer: url('/cursors/cursor-pointer.svg') 8 1, pointer;
@@ -192,6 +238,52 @@ details summary::-webkit-details-marker {
 }
 
 .dark {
+  /* Semantic color tokens — accent */
+  --color-accent: theme("colors.purple.500");
+  --color-accent-hover: theme("colors.purple.300");
+  --color-accent-subtle: theme("colors.purple.900");
+  --color-accent-text: theme("colors.purple.400");
+
+  /* Semantic color tokens — background */
+  --color-background-base: theme("colors.gray.900");
+  --color-background-panel: theme("colors.gray.800");
+  --color-background-popover: theme("colors.gray.800");
+  --color-background-hover: theme("colors.gray.700");
+  --color-background-active: theme("colors.gray.600");
+
+  /* Semantic color tokens — text */
+  --color-text-default: theme("colors.white");
+  --color-text-subtle: theme("colors.gray.400");
+  --color-text-disabled: theme("colors.gray.600");
+
+  /* Semantic color tokens — border */
+  --color-border: theme("colors.gray.700");
+  --color-border-strong: theme("colors.gray.600");
+
+  /* Semantic color tokens — warning */
+  --color-warning-text: theme("colors.orange.400");
+  --color-warning-icon: theme("colors.orange.400");
+  --color-warning-subtle: theme("colors.orange.950");
+  --color-warning-border: theme("colors.orange.800");
+
+  /* Semantic color tokens — error */
+  --color-error-text: theme("colors.red.300");
+  --color-error-icon: theme("colors.red.400");
+  --color-error-subtle: theme("colors.red.950");
+  --color-error-border: theme("colors.red.800");
+
+  /* Semantic color tokens — success */
+  --color-success-text: theme("colors.green.400");
+  --color-success-icon: theme("colors.green.400");
+  --color-success-subtle: theme("colors.green.950");
+  --color-success-border: theme("colors.green.800");
+
+  /* Semantic color tokens — info */
+  --color-info-text: theme("colors.blue.400");
+  --color-info-icon: theme("colors.blue.400");
+  --color-info-subtle: theme("colors.blue.950");
+  --color-info-border: theme("colors.blue.800");
+
   --highlight-purple: theme("colors.purple.300");
   --highlight-dark-purple: theme("colors.purple.100");
   --highlight-yellow: theme("colors.yellow.100");
@@ -202,6 +294,12 @@ details summary::-webkit-details-marker {
   --highlight-background: theme("colors.gray.800");
   --highlight-tooltip-text: theme("colors.white");
   --cm-font: theme("fontFamily.mono");
+}
+
+@layer base {
+  :where(:root) .border {
+    border-color: var(--color-border);
+  }
 }
 
 .cm-editor.cm-focused {

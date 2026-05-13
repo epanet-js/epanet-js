@@ -1,7 +1,9 @@
+"use client";
 import clsx from "clsx";
 import { CloseIcon } from "src/icons";
 import toast, { Toaster } from "react-hot-toast";
 import { Button, type B3Variant } from "src/components/elements";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NotificationVariant = "success" | "warning" | "error" | "default";
 
@@ -35,28 +37,45 @@ export const NotificationBanner = ({
   onActionClick,
   onDismiss,
 }: NotificationBannerProps) => {
+  const isThemeTokensOn = useFeatureFlag("FLAG_THEME_TOKENS");
   const isInlineAction = action?.align === "inline";
   const hasTitleRowExtras = isInlineAction || !!onDismiss;
   return (
     <div
       className={clsx(
         "flex items-start p-3",
-        {
-          "bg-green-50 border-green-200": variant === "success",
-          "bg-orange-50 border-orange-200": variant === "warning",
-          "bg-red-50 border-red-200": variant === "error",
-          "bg-white borcer-gray-400": variant === "default",
-        },
+        isThemeTokensOn
+          ? {
+              "bg-success-subtle border-success": variant === "success",
+              "bg-warning-subtle border-warning": variant === "warning",
+              "bg-error-subtle border-error": variant === "error",
+              "bg-white border-gray-400": variant === "default",
+            }
+          : {
+              "bg-green-50 border-green-200": variant === "success",
+              "bg-orange-50 border-orange-200": variant === "warning",
+              "bg-red-50 border-red-200": variant === "error",
+              "bg-white border-gray-400": variant === "default",
+            },
         className,
       )}
     >
       {Icon && (
         <Icon
-          className={clsx("h-5 w-5 mr-3 flex-shrink-0", {
-            "text-green-500": variant === "success",
-            "text-red-500": variant === "error",
-            "text-orange-500": variant === "warning",
-          })}
+          className={clsx(
+            "h-5 w-5 mr-3 flex-shrink-0",
+            isThemeTokensOn
+              ? {
+                  "text-success-icon": variant === "success",
+                  "text-error-icon": variant === "error",
+                  "text-warning-icon": variant === "warning",
+                }
+              : {
+                  "text-green-500": variant === "success",
+                  "text-red-500": variant === "error",
+                  "text-orange-500": variant === "warning",
+                },
+          )}
           aria-hidden="true"
         />
       )}
@@ -65,7 +84,12 @@ export const NotificationBanner = ({
           (hasTitleRowExtras ? (
             <div className="flex items-center gap-2">
               {title && (
-                <span className="text-sm font-semibold flex-grow min-w-0">
+                <span
+                  className={clsx(
+                    isThemeTokensOn ? "text-size-base" : "text-sm",
+                    "font-semibold flex-grow min-w-0",
+                  )}
+                >
                   {title}
                 </span>
               )}
@@ -93,11 +117,24 @@ export const NotificationBanner = ({
               )}
             </div>
           ) : (
-            title && <span className="text-sm font-semibold">{title}</span>
+            title && (
+              <span
+                className={clsx(
+                  isThemeTokensOn ? "text-size-base" : "text-sm",
+                  "font-semibold",
+                )}
+              >
+                {title}
+              </span>
+            )
           ))}
-        {description && <span className="text-sm">{description}</span>}
+        {description && (
+          <span className={isThemeTokensOn ? "text-size-base" : "text-sm"}>
+            {description}
+          </span>
+        )}
         {details && (
-          <details className="text-xs">
+          <details className={isThemeTokensOn ? "text-size-small" : "text-xs"}>
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
               Show details
             </summary>

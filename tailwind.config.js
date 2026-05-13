@@ -8,7 +8,7 @@ const postcss = require("postcss");
 
 module.exports = {
   jit: "enable",
-  content: ["./{components,src,pages}/**/*.{js,ts,jsx,tsx}"],
+  content: ["./{app,components,src,pages}/**/*.{js,ts,jsx,tsx}"],
   darkMode: "class",
   theme: {
     data: {
@@ -38,11 +38,97 @@ module.exports = {
       teal: colors.teal,
     },
     extend: {
+      /*
+       * Semantic tokens — use these instead of raw Tailwind shades.
+       *
+       * BACKGROUND
+       *   bg-base              App/page background
+       *   bg-panel             Cards, sidebars, dialogs
+       *   bg-popover           Dropdowns, tooltips, floating UI
+       *   bg-base-hover        Interactive hover fill
+       *   bg-base-active       Interactive active/pressed fill
+       *
+       * TEXT
+       *   text-default         Primary text
+       *   text-subtle          Secondary/supporting text
+       *   text-disabled        Disabled state text
+       *
+       * BORDER
+       *   border               Default border
+       *   border-strong        Emphasized border
+       *
+       * ACCENT
+       *   bg-accent            Accent background (purple)
+       *   text-accent          Accent text
+       *
+       * STATUS  (warning / error / success / info)
+       *   bg-{status}-subtle   Tinted background
+       *   border-{status}      Status border
+       *   text-{status}        Status text
+       *   text-{status}-icon   Icon color
+       *
+       * FONT SIZES
+       *   text-size-heading-1  1.5rem
+       *   text-size-heading-2  1.25rem
+       *   text-size-heading-3  1.125rem
+       *   text-size-base       0.875rem
+       *   text-size-small      0.75rem
+       */
+      colors: {
+        accent: {
+          DEFAULT: "var(--color-accent)",
+          hover: "var(--color-accent-hover)",
+          subtle: "var(--color-accent-subtle)",
+        },
+        base: {
+          DEFAULT: "var(--color-background-base)",
+          hover: "var(--color-background-hover)",
+          active: "var(--color-background-active)",
+        },
+        panel: "var(--color-background-panel)",
+        popover: "var(--color-background-popover)",
+        "warning-subtle": "var(--color-warning-subtle)",
+        "error-subtle": "var(--color-error-subtle)",
+        "success-subtle": "var(--color-success-subtle)",
+        "info-subtle": "var(--color-info-subtle)",
+      },
+      textColor: {
+        default: "var(--color-text-default)",
+        subtle: "var(--color-text-subtle)",
+        disabled: "var(--color-text-disabled)",
+        accent: "var(--color-accent-text)",
+        warning: "var(--color-warning-text)",
+        "warning-icon": "var(--color-warning-icon)",
+        error: "var(--color-error-text)",
+        "error-icon": "var(--color-error-icon)",
+        success: "var(--color-success-text)",
+        "success-icon": "var(--color-success-icon)",
+        info: "var(--color-info-text)",
+        "info-icon": "var(--color-info-icon)",
+      },
+      borderColor: {
+        strong: "var(--color-border-strong)",
+        warning: "var(--color-warning-border)",
+        error: "var(--color-error-border)",
+        success: "var(--color-success-border)",
+        info: "var(--color-info-border)",
+      },
       keyframes: {
         appear: {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
         },
+      },
+      fontSize: {
+        "size-heading-1": "1.5rem",
+        "size-heading-2": "1.25rem",
+        "size-heading-3": "1.125rem",
+        "size-base": "0.875rem",
+        "size-small": "0.75rem",
+      },
+      fontWeight: {
+        medium: "500",
+        semibold: "500",
       },
       fontFamily: {
         handwritten: ["Caveat", "cursive"],
