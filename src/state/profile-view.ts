@@ -69,13 +69,13 @@ const hglRangesAsyncAtom = atom(
 
     try {
       const rawRanges = await reader.getHeadRangesForNodes(nodeIds);
-      for (const nodeId of nodeIds) {
-        const range = rawRanges.get(nodeId);
+      nodeIds.forEach((nodeId, i) => {
+        const [min, max] = rawRanges[i];
         ranges.set(
           nodeId,
-          range ? { nodeId, minHead: range.min, maxHead: range.max } : null,
+          min <= max ? { nodeId, minHead: min, maxHead: max } : null,
         );
-      }
+      });
     } catch (err) {
       captureError(err as Error);
       for (const nodeId of nodeIds) ranges.set(nodeId, null);

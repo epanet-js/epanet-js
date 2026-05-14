@@ -1454,8 +1454,9 @@ describe("EPSResultsReader", () => {
         cases.map((c) => c.nodeId),
       );
 
-      expect(bulk.size).toBe(cases.length);
-      for (const { nodeId, type } of cases) {
+      expect(bulk.length).toBe(cases.length);
+      for (let i = 0; i < cases.length; i++) {
+        const { nodeId, type } = cases[i];
         const series =
           type === "reservoir"
             ? await reader.getTimeSeries(nodeId, "reservoir", "head")
@@ -1467,10 +1468,9 @@ describe("EPSResultsReader", () => {
         const expectedMin = Math.min(...series!.values);
         const expectedMax = Math.max(...series!.values);
 
-        const range = bulk.get(nodeId);
-        expect(range).toBeDefined();
-        expect(range!.min).toBeCloseTo(expectedMin, 3);
-        expect(range!.max).toBeCloseTo(expectedMax, 3);
+        const [min, max] = bulk[i];
+        expect(min).toBeCloseTo(expectedMin, 3);
+        expect(max).toBeCloseTo(expectedMax, 3);
       }
     });
 
@@ -1495,12 +1495,11 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const bulk = await reader.getHeadRangesForNodes([IDS.J1]);
-      const range = bulk.get(IDS.J1);
-      expect(range).toBeDefined();
-      expect(range!.min).toBeCloseTo(range!.max, 6);
+      const [min, max] = bulk[0];
+      expect(min).toBeCloseTo(max, 6);
     });
 
-    it("omits unknown node ids from the returned map", async () => {
+    it("returns [Infinity, -Infinity] for unknown node ids while preserving order", async () => {
       const IDS = { R1: 1, J1: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(IDS.R1, { head: 100 })
@@ -1521,11 +1520,12 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const bulk = await reader.getHeadRangesForNodes([IDS.J1, 999]);
-      expect(bulk.has(IDS.J1)).toBe(true);
-      expect(bulk.has(999)).toBe(false);
+      expect(bulk.length).toBe(2);
+      expect(bulk[0][0]).toBeLessThanOrEqual(bulk[0][1]);
+      expect(bulk[1]).toEqual([Infinity, -Infinity]);
     });
 
-    it("returns an empty map for an empty input", async () => {
+    it("returns an empty array for an empty input", async () => {
       const IDS = { R1: 1, J1: 2, P1: 3 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(IDS.R1, { head: 100 })
@@ -1545,17 +1545,20 @@ describe("EPSResultsReader", () => {
       await reader.initialize();
 
       const bulk = await reader.getHeadRangesForNodes([]);
-      expect(bulk.size).toBe(0);
+      expect(bulk.length).toBe(0);
     });
 
-    it("returns an empty map when reader is not initialized", async () => {
+    it("returns [Infinity, -Infinity] entries when reader is not initialized", async () => {
       const storage = new InMemoryStorage(
         "test-head-ranges-bulk-uninitialized",
       );
       const reader = new EPSResultsReader(storage);
 
       const bulk = await reader.getHeadRangesForNodes([1, 2]);
-      expect(bulk.size).toBe(0);
+      expect(bulk).toEqual([
+        [Infinity, -Infinity],
+        [Infinity, -Infinity],
+      ]);
     });
 
     it("opens the head-ranges file only once for the entire batch", async () => {
