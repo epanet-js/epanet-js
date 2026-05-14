@@ -1,9 +1,10 @@
 "use client";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
 import * as CM from "@radix-ui/react-context-menu";
 import { useAtomValue, useSetAtom } from "jotai";
+import debounce from "lodash/debounce";
 import { ProfileViewData } from "./chart-data";
 import { ProfileContextMenu } from "./profile-context-menu";
 import { buildProfileChartOption, profileGridTopOffset } from "./chart-options";
@@ -145,6 +146,15 @@ export const ChartContainer = memo(function ChartContainer({
     start: 0,
     end: 100,
   });
+  const [settledZoom, setSettledZoom] = useState<{
+    start: number;
+    end: number;
+  }>({ start: 0, end: 100 });
+  const debouncedSetSettled = useMemo(
+    () => debounce(setSettledZoom, 200, { leading: false, trailing: true }),
+    [],
+  );
+  useEffect(() => () => debouncedSetSettled.cancel(), [debouncedSetSettled]);
 
   const [fadeBounds, setFadeBounds] = useState<{
     left: number;
@@ -159,16 +169,16 @@ export const ChartContainer = memo(function ChartContainer({
       computeSldVisibility({
         points,
         links,
-        zoomStart: zoomWindow.start,
-        zoomEnd: zoomWindow.end,
+        zoomStart: settledZoom.start,
+        zoomEnd: settledZoom.end,
         totalLength,
         stripPixelWidth: fadeBounds?.stripWidth ?? null,
       }),
     [
       points,
       links,
-      zoomWindow.start,
-      zoomWindow.end,
+      settledZoom.start,
+      settledZoom.end,
       totalLength,
       fadeBounds?.stripWidth,
     ],
@@ -283,16 +293,20 @@ export const ChartContainer = memo(function ChartContainer({
     chartRef.current = chart;
   }, []);
 
-  const onDataZoom = useCallback((params: any) => {
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access,
-       @typescript-eslint/no-unsafe-assignment */
-    const batch = params?.batch?.[0] ?? params;
-    if (typeof batch?.start === "number" && typeof batch?.end === "number") {
-      zoomRef.current = { start: batch.start, end: batch.end };
-      setZoomWindow({ start: batch.start, end: batch.end });
-    }
-    /* eslint-enable */
-  }, []);
+  const onDataZoom = useCallback(
+    (params: any) => {
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access,
+         @typescript-eslint/no-unsafe-assignment */
+      const batch = params?.batch?.[0] ?? params;
+      if (typeof batch?.start === "number" && typeof batch?.end === "number") {
+        zoomRef.current = { start: batch.start, end: batch.end };
+        setZoomWindow({ start: batch.start, end: batch.end });
+        debouncedSetSettled({ start: batch.start, end: batch.end });
+      }
+      /* eslint-enable */
+    },
+    [debouncedSetSettled],
+  );
 
   const onEvents = useMemo(
     () => ({ datazoom: onDataZoom, finished: recomputeFadeBounds }),
