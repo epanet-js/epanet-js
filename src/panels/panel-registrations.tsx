@@ -3,20 +3,26 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRegisterPanel } from "src/state/panel-layout";
 import { hasProfileViewAtom } from "src/state/profile-view";
 import { AssetDataTable } from "./data-tables/asset-data-table";
+import { AssetDataTableWithFeatures } from "./data-tables/asset-data-table-with-features";
 import { ProfileViewPanel } from "./profile-view";
 
 const BOTTOM = { horizontal: "bottom", vertical: "bottom" } as const;
 
 export const PanelRegistrations = () => {
   const dataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
+  const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
   const profileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const hasProfileView = useAtomValue(hasProfileViewAtom);
+
+  const AssetDataTableComponent = dataGridRefactorOn
+    ? AssetDataTableWithFeatures
+    : AssetDataTable;
 
   useRegisterPanel(
     {
       id: "junction",
       labelKey: "junctions",
-      component: () => <AssetDataTable assetType="junction" />,
+      component: () => <AssetDataTableComponent assetType="junction" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,
@@ -25,7 +31,7 @@ export const PanelRegistrations = () => {
     {
       id: "pipe",
       labelKey: "pipes",
-      component: () => <AssetDataTable assetType="pipe" />,
+      component: () => <AssetDataTableComponent assetType="pipe" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,
@@ -34,7 +40,7 @@ export const PanelRegistrations = () => {
     {
       id: "pump",
       labelKey: "pumps",
-      component: () => <AssetDataTable assetType="pump" />,
+      component: () => <AssetDataTableComponent assetType="pump" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,
@@ -43,7 +49,7 @@ export const PanelRegistrations = () => {
     {
       id: "valve",
       labelKey: "valves",
-      component: () => <AssetDataTable assetType="valve" />,
+      component: () => <AssetDataTableComponent assetType="valve" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,
@@ -52,7 +58,7 @@ export const PanelRegistrations = () => {
     {
       id: "reservoir",
       labelKey: "reservoirs",
-      component: () => <AssetDataTable assetType="reservoir" />,
+      component: () => <AssetDataTableComponent assetType="reservoir" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,
@@ -61,7 +67,7 @@ export const PanelRegistrations = () => {
     {
       id: "tank",
       labelKey: "tanks",
-      component: () => <AssetDataTable assetType="tank" />,
+      component: () => <AssetDataTableComponent assetType="tank" />,
       defaultZone: BOTTOM,
     },
     dataTablesOn,

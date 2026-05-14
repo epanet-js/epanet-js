@@ -1,4 +1,11 @@
 export { DataGrid } from "./data-grid";
+export { DataGridWithFeatures } from "./data-grid-with-features";
+export type { DataGridWithFeaturesRef } from "./data-grid-with-features";
+export type {
+  ClipboardCopyInfo,
+  ClipboardPasteInfo,
+  CopySelectionOptions,
+} from "./features";
 
 export type {
   DataGridRef,
