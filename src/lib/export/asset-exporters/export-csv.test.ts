@@ -205,16 +205,6 @@ describe("export-csv", () => {
   });
 });
 
-const ALL_ASSET_FILE_NAMES = [
-  "junctions",
-  "reservoirs",
-  "tanks",
-  "pipes",
-  "pumps",
-  "valves",
-  "customer-points",
-];
-
 const mockResultsReader = (pressure: number, demand: number) => {
   return {
     getJunction: vi.fn().mockReturnValue({ pressure, demand }),

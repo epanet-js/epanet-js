@@ -34,10 +34,7 @@ export const exportXlsx = async (
   const assetTypeCounts = new Map<string, number>();
   hydraulicModel.assets.forEach((asset) => {
     if (hasSelection && !selectedAssets.has(asset.id)) return;
-    assetTypeCounts.set(
-      asset.type,
-      (assetTypeCounts.get(asset.type) ?? 0) + 1,
-    );
+    assetTypeCounts.set(asset.type, (assetTypeCounts.get(asset.type) ?? 0) + 1);
   });
 
   const activeAssetTypes = ALL_ASSET_TYPES.filter(

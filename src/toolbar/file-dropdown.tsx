@@ -52,9 +52,7 @@ export const FileDropdown = () => {
   const openProject = useOpenProject();
   const showWelcome = useShowWelcome();
   const openModelBuilder = useOpenModelBuilder();
-  const saveInp = useSaveInp();
   const saveProject = useSaveProject();
-  const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
@@ -177,45 +175,12 @@ export const FileDropdown = () => {
                 </StyledItem>
               )}
 
-              {isOurFileOn && (
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({
-                      type: "alertExportInp",
-                      onSaveProject: () => {
-                        void saveProject({ source: "toolbar" });
-                      },
-                      onExportAnyway: () => {
-                        void saveInp({ source: "toolbar", isSaveAs: true });
-                      },
-                    });
-                  }}
-                >
-                  <DownloadIcon />
-                  {translate("exportINP")}
-                </StyledItem>
-              )}
-
-              {(isExportAssetDataOn || isExportTimeSeriesOn) && <DDSeparator />}
-              {isExportAssetDataOn && (
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({ type: "exportAssetData" });
-                  }}
-                >
-                  <FileSpreadsheetIcon />
-                  {translate("exportAssetData")}
-                </StyledItem>
-              )}
-              {isExportTimeSeriesOn && (
-                <StyledItem
-                  onSelect={() => {
-                    setDialogState({ type: "exportTimeSeries" });
-                  }}
-                >
-                  <FileSpreadsheetIcon />
-                  {translate("exportTimeSeries")}
-                </StyledItem>
+              {(isOurFileOn || isExportAssetDataOn || isExportTimeSeriesOn) && (
+                <ExportSubmenu
+                  isExportAssetDataOn={isExportAssetDataOn}
+                  isExportTimeSeriesOn={isExportTimeSeriesOn}
+                  isOurFileOn={isOurFileOn}
+                />
               )}
               <RecentFilesMenu isOurFileOn={isOurFileOn} />
             </DDContent>
@@ -281,6 +246,73 @@ const NewProjectSubmenu = () => {
             <FileSpreadsheetIcon />
             {translate("newProject.fromEpanetInp")}
           </StyledItem>
+        </DDSubContent>
+      </DD.Portal>
+    </DD.Sub>
+  );
+};
+
+const ExportSubmenu = ({
+  isExportAssetDataOn,
+  isExportTimeSeriesOn,
+  isOurFileOn,
+}: {
+  isExportAssetDataOn: boolean;
+  isExportTimeSeriesOn: boolean;
+  isOurFileOn: boolean;
+}) => {
+  const saveInp = useSaveInp();
+  const saveProject = useSaveProject();
+  const setDialogState = useSetAtom(dialogAtom);
+  const translate = useTranslate();
+
+  return (
+    <DD.Sub>
+      <DDSubTriggerItem>
+        <DownloadIcon />
+        {translate("export")}
+        <ChevronRightIcon size="sm" className="ml-auto" />
+      </DDSubTriggerItem>
+      <DD.Portal>
+        <DDSubContent sideOffset={4} alignOffset={-4}>
+          {isOurFileOn && (
+            <StyledItem
+              onSelect={() => {
+                setDialogState({
+                  type: "alertExportInp",
+                  onSaveProject: () => {
+                    void saveProject({ source: "toolbar" });
+                  },
+                  onExportAnyway: () => {
+                    void saveInp({ source: "toolbar", isSaveAs: true });
+                  },
+                });
+              }}
+            >
+              <FileIcon />
+              {translate("export.epanetInp")}
+            </StyledItem>
+          )}
+          {isExportAssetDataOn && (
+            <StyledItem
+              onSelect={() => {
+                setDialogState({ type: "exportAssetData" });
+              }}
+            >
+              <FileSpreadsheetIcon />
+              {translate("export.assetData")}
+            </StyledItem>
+          )}
+          {isExportTimeSeriesOn && (
+            <StyledItem
+              onSelect={() => {
+                setDialogState({ type: "exportTimeSeries" });
+              }}
+            >
+              <FileSpreadsheetIcon />
+              {translate("export.simulationResults")}
+            </StyledItem>
+          )}
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>
