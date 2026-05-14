@@ -7,7 +7,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { stagingModelAtom } from "src/state/hydraulic-model";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { Export } from "src/lib/export";
 import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 
@@ -78,6 +81,9 @@ export const ExportSimulationResultsDialog = ({
 
   const model = useAtomValue(stagingModelAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
+  const isWaterQualityEnabled =
+    simulationSettings.qualitySimulationType !== "none";
   const epsResultsReader =
     "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
   const timestepCount = epsResultsReader?.timestepCount ?? 0;
@@ -88,7 +94,7 @@ export const ExportSimulationResultsDialog = ({
     pressure: true,
     head: true,
     demand: true,
-    waterQuality: true,
+    waterQuality: isWaterQualityEnabled,
   });
   const [linkFields, setLinkFields] = useState<LinkFields>({
     status: true,
@@ -113,7 +119,7 @@ export const ExportSimulationResultsDialog = ({
       pressure: next,
       head: next,
       demand: next,
-      waterQuality: next,
+      waterQuality: isWaterQualityEnabled && next,
     });
   };
 
@@ -355,27 +361,32 @@ export const ExportSimulationResultsDialog = ({
                   ["demand", "demand"],
                   ["waterQuality", "simulationSettings.waterQuality"],
                 ] as [keyof NodeFields, string][]
-              ).map(([key, translationKey]) => (
-                <label
-                  key={key}
-                  className="flex items-center gap-x-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={nodeFields[key]}
-                    onChange={(e) =>
-                      setNodeFields((prev) => ({
-                        ...prev,
-                        [key]: e.target.checked,
-                      }))
-                    }
-                    className="rounded text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {translate(translationKey)}
-                  </span>
-                </label>
-              ))}
+              ).map(([key, translationKey]) => {
+                const disabled =
+                  key === "waterQuality" && !isWaterQualityEnabled;
+                return (
+                  <label
+                    key={key}
+                    className={`flex items-center gap-x-2 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={nodeFields[key]}
+                      disabled={disabled}
+                      onChange={(e) =>
+                        setNodeFields((prev) => ({
+                          ...prev,
+                          [key]: e.target.checked,
+                        }))
+                      }
+                      className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+                    />
+                    <span className="text-sm text-gray-700">
+                      {translate(translationKey)}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
