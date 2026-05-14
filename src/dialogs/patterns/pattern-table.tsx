@@ -6,13 +6,16 @@ import {
   useImperativeHandle,
 } from "react";
 import {
-  floatColumn,
-  textColumn,
   DataGrid,
+  DataGridWithFeatures,
   type DataGridRef,
+  type DataGridWithFeaturesRef,
   type GridSelection,
   type RowAction,
+  floatColumn,
+  textColumn,
 } from "src/components/data-grid";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PatternMultipliers } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -78,6 +81,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
     ref,
   ) {
     const translate = useTranslate();
+    const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
     const gridRef = useRef<DataGridRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -211,21 +215,29 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
       [onChange, recalculateTimesteps],
     );
 
+    const sharedProps = {
+      data: rowData,
+      columns,
+      onChange: handleChange,
+      createRow,
+      rowActions,
+      addRowLabel: translate("addTimestep"),
+      gutterColumn: "numbered" as const,
+      onSelectionChange,
+      variant: "spreadsheet" as const,
+      readOnly,
+    };
+
     return (
       <div ref={containerRef} className="h-full">
-        <DataGrid<PatternRow>
-          ref={gridRef}
-          data={rowData}
-          columns={columns}
-          onChange={handleChange}
-          createRow={createRow}
-          rowActions={rowActions}
-          addRowLabel={translate("addTimestep")}
-          gutterColumn="numbered"
-          onSelectionChange={onSelectionChange}
-          variant="spreadsheet"
-          readOnly={readOnly}
-        />
+        {dataGridRefactorOn ? (
+          <DataGridWithFeatures<PatternRow>
+            ref={gridRef as React.Ref<DataGridWithFeaturesRef>}
+            {...sharedProps}
+          />
+        ) : (
+          <DataGrid<PatternRow> ref={gridRef} {...sharedProps} />
+        )}
       </div>
     );
   },

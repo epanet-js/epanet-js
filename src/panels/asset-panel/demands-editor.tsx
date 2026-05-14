@@ -1,11 +1,14 @@
 import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import {
   DataGrid,
-  DataGridRef,
+  DataGridWithFeatures,
+  type DataGridRef,
+  type DataGridWithFeaturesRef,
   floatColumn,
   filterableSelectColumn,
-  GridColumn,
+  type GridColumn,
 } from "src/components/data-grid";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Button } from "src/components/elements";
 import { Patterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
@@ -71,6 +74,7 @@ export const DemandCategoriesEditor = ({
   readOnly = false,
 }: Props) => {
   const translate = useTranslate();
+  const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
   const [showEmptyGrid, setShowEmptyGrid] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<DataGridRef>(null);
@@ -268,6 +272,18 @@ export const DemandCategoriesEditor = ({
     );
   }
 
+  const sharedProps = {
+    data: rowData,
+    columns,
+    onChange: handleChange,
+    createRow,
+    rowActions,
+    addRowLabel: translate("addDemandCategory"),
+    variant: "inline" as const,
+    gutterColumn: "numbered" as const,
+    readOnly,
+  };
+
   return (
     <BlockComparisonField hasChanged={comparison?.hasChanged ?? false}>
       <div ref={containerRef} className="flex flex-col gap-2">
@@ -278,18 +294,14 @@ export const DemandCategoriesEditor = ({
           {translate("demandCategories")}
         </label>
         <NestedSection className="pb-2" indentation={0}>
-          <DataGrid<DemandCategoryRow>
-            ref={gridRef}
-            data={rowData}
-            columns={columns}
-            onChange={handleChange}
-            createRow={createRow}
-            rowActions={rowActions}
-            addRowLabel={translate("addDemandCategory")}
-            variant="inline"
-            gutterColumn="numbered"
-            readOnly={readOnly}
-          />
+          {dataGridRefactorOn ? (
+            <DataGridWithFeatures<DemandCategoryRow>
+              ref={gridRef as React.Ref<DataGridWithFeaturesRef>}
+              {...sharedProps}
+            />
+          ) : (
+            <DataGrid<DemandCategoryRow> ref={gridRef} {...sharedProps} />
+          )}
         </NestedSection>
       </div>
     </BlockComparisonField>
