@@ -88,6 +88,7 @@ function hglBandPlot(
     type: "custom" as const,
     name: "hglBand",
     data: hglBandSegments,
+    clip: true,
     silent: true,
     tooltip: { show: false },
     z: 1,
