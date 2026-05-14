@@ -72,12 +72,12 @@ export function GridDataCell<TData extends Record<string, unknown>>({
         { grow: !cell.column.getCanResize() },
         hasWarning
           ? "bg-orange-50"
-          : isActive
-            ? "bg-white"
-            : isSelected
-              ? "bg-purple-300/10"
-              : readOnly
-                ? "bg-gray-50"
+          : readOnly
+            ? "bg-gray-50"
+            : isActive
+              ? "bg-white"
+              : isSelected
+                ? "bg-purple-300/10"
                 : "bg-white",
         { "z-[1]": selectionEdge },
         selectionEdge?.left

@@ -35,8 +35,21 @@ export function BooleanCell({
     [toggle],
   );
 
+  const handleWrapperMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (readOnly) return;
+      // Route focus to the checkbox
+      e.preventDefault();
+      inputRef.current?.focus();
+    },
+    [readOnly],
+  );
+
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div
+      className="w-full h-full flex items-center justify-center"
+      onMouseDown={handleWrapperMouseDown}
+    >
       <input
         ref={inputRef}
         type="checkbox"

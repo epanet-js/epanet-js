@@ -1,12 +1,7 @@
 import clsx from "clsx";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { CellProps, EditMode, GridColumn } from "../types";
+import { useCallback, useEffect, useRef } from "react";
+import { CellProps, GridColumn } from "../types";
+import { useEditableTextInput } from "./use-editable-text-input";
 
 const VALIDATION_DEBOUNCE_MS = 150;
 
@@ -24,46 +19,46 @@ export function TextCell({
   readonly,
   validate,
 }: TextCellProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [editValue, setEditValue] = useState("");
-  const [hasError, setHasError] = useState(false);
-  const shouldCommitOnBlurRef = useRef(false);
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [prevEditMode, setPrevEditMode] = useState<EditMode>(false);
-
-  if (editMode && editMode !== prevEditMode) {
-    setPrevEditMode(editMode);
-    setEditValue(value ?? "");
-    setHasError(false);
-    shouldCommitOnBlurRef.current = true;
-  }
-  if (!editMode && prevEditMode) {
-    setPrevEditMode(false);
-    setHasError(false);
-  }
-
-  useLayoutEffect(() => {
-    if (editMode) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [editMode]);
-
-  useEffect(() => {
-    return () => {
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    };
-  }, []);
 
   const isValid = useCallback(
     (v: string) => !validate || v === "" || validate(v, rowIndex),
     [validate, rowIndex],
   );
 
-  const commit = useCallback(() => {
-    if (!isValid(editValue)) return;
-    onChange(editValue || null);
-  }, [editValue, isValid, onChange]);
+  const parse = useCallback(
+    (raw: string): string | null | undefined => {
+      if (!isValid(raw)) return undefined;
+      return raw || null;
+    },
+    [isValid],
+  );
+
+  const format = useCallback((v: string | null) => v ?? "", []);
+
+  const {
+    inputRef,
+    editValue,
+    setEditValue,
+    hasError,
+    setHasError,
+    committedDisplay,
+    handleBlur,
+    handleKeyDown,
+  } = useEditableTextInput<string | null>({
+    value,
+    editMode,
+    onChange,
+    stopEditing,
+    parse,
+    format,
+  });
+
+  useEffect(() => {
+    return () => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    };
+  }, []);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,33 +73,7 @@ export function TextCell({
         }, VALIDATION_DEBOUNCE_MS);
       }
     },
-    [validate, rowIndex],
-  );
-
-  const handleBlur = useCallback(() => {
-    if (!shouldCommitOnBlurRef.current) return;
-    shouldCommitOnBlurRef.current = false;
-    commit();
-  }, [commit]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        shouldCommitOnBlurRef.current = false;
-        commit();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        shouldCommitOnBlurRef.current = false;
-        stopEditing();
-      } else if (
-        editMode === "quick" &&
-        ["ArrowUp", "ArrowDown", "Tab"].includes(e.key)
-      ) {
-        commit();
-      }
-    },
-    [editMode, commit, stopEditing],
+    [validate, rowIndex, setEditValue, setHasError],
   );
 
   if (readonly) {
@@ -127,17 +96,16 @@ export function TextCell({
       <input
         ref={inputRef}
         type="text"
-        value={editMode ? editValue : (value ?? "")}
+        value={editMode ? editValue : (committedDisplay ?? value ?? "")}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
         className={clsx(
           "w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate",
-          // See float-cell: opt the readonly state into Mousetrap's escape
-          // hatch so document-level shortcuts (undo, etc.) still fire when
-          // a cell is selected via mouse.
-          !editMode && "mousetrap",
+          // Mousetrap forces availability of global hot keys when not editing
+          // pointer-events-none prevents text selection highlight when not editing
+          !editMode && "mousetrap pointer-events-none",
         )}
       />
     </div>

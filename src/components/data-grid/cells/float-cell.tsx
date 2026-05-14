@@ -1,11 +1,12 @@
 import clsx from "clsx";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { CellProps, EditMode, GridColumn } from "../types";
+import { CellProps, GridColumn } from "../types";
+import { useEditableTextInput } from "./use-editable-text-input";
 
 function formatLocaleNumber(
   value: number | null | undefined,
@@ -22,6 +23,14 @@ type FloatCellProps = CellProps<number | null> & {
   placeholder?: string;
 };
 
+const FLOAT_QUICK_NAV_KEYS = [
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "Tab",
+] as const;
+
 export function FloatCell({
   value,
   editMode,
@@ -32,29 +41,45 @@ export function FloatCell({
   readonly,
   placeholder,
 }: FloatCellProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [editValue, setEditValue] = useState("");
-  const [hasError, setHasError] = useState(false);
-  const shouldCommitOnBlurRef = useRef(false);
-  const [prevEditMode, setPrevEditMode] = useState<EditMode>(false);
+  const parse = useCallback(
+    (raw: string): number | null | undefined => {
+      const parsed = parseNumericInput(raw);
+      if (parsed !== null) return parsed;
+      if (raw.trim() === "") return nullValue;
+      return undefined;
+    },
+    [nullValue],
+  );
 
-  if (editMode && editMode !== prevEditMode) {
-    setPrevEditMode(editMode);
-    setEditValue(formatLocaleNumber(value));
-    setHasError(false);
-    shouldCommitOnBlurRef.current = true;
-  }
-  if (!editMode && prevEditMode) {
-    setPrevEditMode(false);
-    setHasError(false);
-  }
+  const format = useCallback(
+    (v: number | null) => (v === null ? "" : formatLocaleNumber(v, decimals)),
+    [decimals],
+  );
 
-  useLayoutEffect(() => {
-    if (editMode) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [editMode]);
+  const formatForEdit = useCallback(
+    (v: number | null) => formatLocaleNumber(v),
+    [],
+  );
+
+  const {
+    inputRef,
+    editValue,
+    setEditValue,
+    hasError,
+    setHasError,
+    committedDisplay,
+    handleBlur,
+    handleKeyDown,
+  } = useEditableTextInput<number | null>({
+    value,
+    editMode,
+    onChange,
+    stopEditing,
+    parse,
+    format,
+    formatForEdit,
+    quickNavKeys: FLOAT_QUICK_NAV_KEYS,
+  });
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,48 +94,13 @@ export function FloatCell({
         newValue.trim() !== "" && parseNumericInput(newValue) === null,
       );
     },
-    [editValue],
-  );
-
-  const commit = useCallback(() => {
-    const parsed = parseNumericInput(editValue);
-    if (parsed !== null) {
-      onChange(parsed);
-    } else if (editValue.trim() === "") {
-      onChange(nullValue);
-    }
-  }, [editValue, onChange, nullValue]);
-
-  const handleBlur = useCallback(() => {
-    if (!shouldCommitOnBlurRef.current) return;
-    shouldCommitOnBlurRef.current = false;
-    commit();
-  }, [commit]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        shouldCommitOnBlurRef.current = false;
-        commit();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        shouldCommitOnBlurRef.current = false;
-        stopEditing();
-      } else if (
-        editMode === "quick" &&
-        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(
-          e.key,
-        )
-      ) {
-        commit();
-      }
-    },
-    [editMode, commit, stopEditing],
+    [editValue, setEditValue, setHasError],
   );
 
   const formattedValue = formatLocaleNumber(value, decimals);
-  const displayValue = !editMode && value === null ? "" : formattedValue;
+  const baseDisplay = !editMode && value === null ? "" : formattedValue;
+  const displayValue =
+    !editMode && committedDisplay !== null ? committedDisplay : baseDisplay;
 
   if (readonly) {
     return (
@@ -145,11 +135,9 @@ export function FloatCell({
         readOnly={!editMode}
         className={clsx(
           "w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400",
-          // Mousetrap skips shortcuts when focus is on an <input>. The class
-          // "mousetrap" is the documented escape hatch; we opt in only when
-          // the input is not editable so document-level shortcuts (undo,
-          // etc.) still fire if the user clicks a non-editing cell.
-          !editMode && "mousetrap",
+          // Mousetrap forces availability of global hot keys when not editing
+          // pointer-events-none prevents text selection highlight when not editing
+          !editMode && "mousetrap pointer-events-none",
         )}
       />
     </div>
