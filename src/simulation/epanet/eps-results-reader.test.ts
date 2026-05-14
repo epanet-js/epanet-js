@@ -1413,6 +1413,193 @@ describe("EPSResultsReader", () => {
     });
   });
 
+  describe("getHeadRangesForNodes", () => {
+    it("returns per-node min/max head matching the head time series", async () => {
+      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 120 })
+        .aTank(IDS.T1, {
+          elevation: 100,
+          initialLevel: 15,
+          minLevel: 5,
+          maxLevel: 25,
+          diameter: 120,
+        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+        .build();
+      const simulationSettings = SimulationSettingsBuilder.with()
+        .timing({ duration: 7200, hydraulicTimestep: 3600 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings,
+      });
+
+      const testAppId = "test-head-ranges-bulk";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const cases = [
+        { nodeId: IDS.R1, type: "reservoir" as const },
+        { nodeId: IDS.T1, type: "tank" as const },
+        { nodeId: IDS.J1, type: "junction" as const },
+      ];
+      const bulk = await reader.getHeadRangesForNodes(
+        cases.map((c) => c.nodeId),
+      );
+
+      expect(bulk.size).toBe(cases.length);
+      for (const { nodeId, type } of cases) {
+        const series =
+          type === "reservoir"
+            ? await reader.getTimeSeries(nodeId, "reservoir", "head")
+            : type === "tank"
+              ? await reader.getTimeSeries(nodeId, "tank", "head")
+              : await reader.getTimeSeries(nodeId, "junction", "head");
+
+        expect(series).not.toBeNull();
+        const expectedMin = Math.min(...series!.values);
+        const expectedMax = Math.max(...series!.values);
+
+        const range = bulk.get(nodeId);
+        expect(range).toBeDefined();
+        expect(range!.min).toBeCloseTo(expectedMin, 3);
+        expect(range!.max).toBeCloseTo(expectedMax, 3);
+      }
+    });
+
+    it("returns equal min and max for a steady-state (single-timestep) run", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-head-ranges-steady";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const bulk = await reader.getHeadRangesForNodes([IDS.J1]);
+      const range = bulk.get(IDS.J1);
+      expect(range).toBeDefined();
+      expect(range!.min).toBeCloseTo(range!.max, 6);
+    });
+
+    it("omits unknown node ids from the returned map", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-head-ranges-bulk-mixed";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const bulk = await reader.getHeadRangesForNodes([IDS.J1, 999]);
+      expect(bulk.has(IDS.J1)).toBe(true);
+      expect(bulk.has(999)).toBe(false);
+    });
+
+    it("returns an empty map for an empty input", async () => {
+      const IDS = { R1: 1, J1: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 100 })
+        .aJunction(IDS.J1)
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+      const testAppId = "test-head-ranges-bulk-empty";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      const bulk = await reader.getHeadRangesForNodes([]);
+      expect(bulk.size).toBe(0);
+    });
+
+    it("returns an empty map when reader is not initialized", async () => {
+      const storage = new InMemoryStorage(
+        "test-head-ranges-bulk-uninitialized",
+      );
+      const reader = new EPSResultsReader(storage);
+
+      const bulk = await reader.getHeadRangesForNodes([1, 2]);
+      expect(bulk.size).toBe(0);
+    });
+
+    it("opens the head-ranges file only once for the entire batch", async () => {
+      const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aReservoir(IDS.R1, { head: 120 })
+        .aTank(IDS.T1, {
+          elevation: 100,
+          initialLevel: 15,
+          minLevel: 5,
+          maxLevel: 25,
+          diameter: 120,
+        })
+        .aJunction(IDS.J1)
+        .aJunctionDemand(IDS.J1, [{ baseDemand: 10 }])
+        .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
+        .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+        .build();
+      const simulationSettings = SimulationSettingsBuilder.with()
+        .timing({ duration: 7200, hydraulicTimestep: 3600 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings,
+      });
+
+      const testAppId = "test-head-ranges-bulk-readcount";
+      await runSimulation(inp, testAppId);
+
+      const storage = new InMemoryStorage(testAppId);
+      const getFileSpy = vi.spyOn(storage, "getFile");
+      const reader = new EPSResultsReader(storage);
+      await reader.initialize();
+
+      getFileSpy.mockClear();
+      await reader.getHeadRangesForNodes([IDS.R1, IDS.T1, IDS.J1]);
+
+      const headRangesOpens = getFileSpy.mock.calls.filter(
+        ([key]) => key === "head-ranges.bin",
+      );
+      expect(headRangesOpens.length).toBe(1);
+    });
+  });
+
   describe("iterateTimeSeries", () => {
     it("does not call onResult when not initialized", async () => {
       const storage = new InMemoryStorage("test-its-uninitialized");

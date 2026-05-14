@@ -10,7 +10,12 @@ import {
   type SimulationProperty,
 } from "../results-reader";
 import { IKeyBufferStore } from "src/infra/storage";
-import { RESULTS_OUT_KEY, TANK_VOLUMES_KEY, PUMP_STATUS_KEY } from "./worker";
+import {
+  RESULTS_OUT_KEY,
+  TANK_VOLUMES_KEY,
+  PUMP_STATUS_KEY,
+  HEAD_RANGES_KEY,
+} from "./worker";
 import {
   SimulationMetadata,
   type SimulationIds,
@@ -561,6 +566,51 @@ export class EPSResultsReader {
       simulationMetadata.reportingStepsCount,
     );
     return this._buildTimeSeries(values);
+  }
+
+  async getHeadRangesForNodes(
+    nodeIds: AssetId[],
+  ): Promise<Map<AssetId, { min: number; max: number }>> {
+    const result = new Map<AssetId, { min: number; max: number }>();
+    if (!this.metadata || nodeIds.length === 0) return result;
+
+    const nodeIdToIndex = this.metadata.simulationIds.nodeIdToIndex;
+    const targets: { nodeId: AssetId; nodeIndex: number }[] = [];
+    for (const nodeId of nodeIds) {
+      const nodeIndex = nodeIdToIndex.get(String(nodeId));
+      if (nodeIndex === undefined) continue;
+      targets.push({ nodeId, nodeIndex });
+    }
+    if (targets.length === 0) return result;
+
+    let file: File;
+    try {
+      file = await this.storage.getFile(HEAD_RANGES_KEY);
+    } catch (err) {
+      captureError(err as Error);
+      return result;
+    }
+
+    const sliceSize = 2 * FLOAT_SIZE;
+    const buffers = await Promise.all(
+      targets.map(({ nodeIndex }) => {
+        const offset = nodeIndex * sliceSize;
+        return file.slice(offset, offset + sliceSize).arrayBuffer();
+      }),
+    );
+
+    for (let i = 0; i < targets.length; i++) {
+      const { nodeId } = targets[i];
+      const buffer = buffers[i];
+      if (buffer.byteLength < sliceSize) continue;
+      const view = new Float32Array(buffer);
+      const min = view[0];
+      const max = view[1];
+      if (!isFinite(min) || !isFinite(max)) continue;
+      result.set(nodeId, { min, max });
+    }
+
+    return result;
   }
 
   async iterateTimeSeries<M extends string>(

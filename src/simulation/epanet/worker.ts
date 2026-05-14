@@ -17,6 +17,7 @@ import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
 export const PUMP_STATUS_KEY = "pump-status.bin";
+export const HEAD_RANGES_KEY = "head-ranges.bin";
 
 export type EPSSimulationResult = {
   status: SimulationStatus;
@@ -127,6 +128,7 @@ export const runSimulation = async (
     await storage.save(RESULTS_OUT_KEY, resultsBuffer);
     await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
     await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
+    await storage.save(HEAD_RANGES_KEY, missingDataAccumulator.headRanges());
 
     return {
       status: report.includes("WARNING") ? "warning" : "success",
@@ -201,10 +203,14 @@ class MissingSimulationDataAccumulator {
   private pumpIndices: number[] = [];
   private tankVolumesPerTimestep: number[][] = [];
   private pumpStatusPerTimestep: number[][] = [];
+  private nodeHeadMin: Float32Array;
+  private nodeHeadMax: Float32Array;
 
   constructor(model: Project) {
     this.nodeCount = model.getCount(CountType.NodeCount);
     this.linkCount = model.getCount(CountType.LinkCount);
+    this.nodeHeadMin = new Float32Array(this.nodeCount).fill(Infinity);
+    this.nodeHeadMax = new Float32Array(this.nodeCount).fill(-Infinity);
 
     for (let i = 1; i <= this.nodeCount; i++) {
       const nodeType = model.getNodeType(i);
@@ -224,6 +230,13 @@ class MissingSimulationDataAccumulator {
   }
 
   appendTimestepData(model: Project) {
+    const heads = model.getNodeValues(NodeProperty.Head);
+    for (let i = 0; i < this.nodeCount; i++) {
+      const h = heads[i];
+      if (h < this.nodeHeadMin[i]) this.nodeHeadMin[i] = h;
+      if (h > this.nodeHeadMax[i]) this.nodeHeadMax[i] = h;
+    }
+
     if (this.supplySourcesCount > 0) {
       const volumes: number[] = [];
       for (const nodeIndex of this.supplySourceIndices) {
@@ -259,5 +272,14 @@ class MissingSimulationDataAccumulator {
       this.pumpStatusPerTimestep.flat(),
     );
     return pumpStatusBinary.buffer as ArrayBuffer;
+  }
+
+  headRanges(): ArrayBuffer {
+    const interleaved = new Float32Array(this.nodeCount * 2);
+    for (let i = 0; i < this.nodeCount; i++) {
+      interleaved[i * 2] = this.nodeHeadMin[i];
+      interleaved[i * 2 + 1] = this.nodeHeadMax[i];
+    }
+    return interleaved.buffer as ArrayBuffer;
   }
 }

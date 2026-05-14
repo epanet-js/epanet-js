@@ -60,35 +60,25 @@ const hglRangesAsyncAtom = atom(
     const model = get(stagingModelDerivedAtom);
     const ranges = new Map<AssetId, HglRange | null>();
 
+    const nodeIds: AssetId[] = [];
     for (const nodeId of path.nodeIds) {
       const node = model.assets.get(nodeId);
       if (!node || node.isLink) continue;
-      const nodeType = node.type as "junction" | "tank" | "reservoir";
+      nodeIds.push(nodeId);
+    }
 
-      try {
-        const series =
-          nodeType === "junction"
-            ? await reader.getTimeSeries(nodeId, "junction", "head")
-            : nodeType === "tank"
-              ? await reader.getTimeSeries(nodeId, "tank", "head")
-              : await reader.getTimeSeries(nodeId, "reservoir", "head");
-
-        if (!series || series.values.length === 0) {
-          ranges.set(nodeId, null);
-          continue;
-        }
-        let min = series.values[0];
-        let max = series.values[0];
-        for (let i = 1; i < series.values.length; i++) {
-          const v = series.values[i];
-          if (v < min) min = v;
-          if (v > max) max = v;
-        }
-        ranges.set(nodeId, { nodeId, minHead: min, maxHead: max });
-      } catch (err) {
-        captureError(err as Error);
-        ranges.set(nodeId, null);
+    try {
+      const rawRanges = await reader.getHeadRangesForNodes(nodeIds);
+      for (const nodeId of nodeIds) {
+        const range = rawRanges.get(nodeId);
+        ranges.set(
+          nodeId,
+          range ? { nodeId, minHead: range.min, maxHead: range.max } : null,
+        );
       }
+    } catch (err) {
+      captureError(err as Error);
+      for (const nodeId of nodeIds) ranges.set(nodeId, null);
     }
 
     return ranges;
