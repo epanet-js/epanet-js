@@ -88,7 +88,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
       {selectedFile && (
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-white rounded-md px-3 py-2 border border-gray-200 shadow-sm">
+          <div className="bg-white rounded-md px-3 py-2 border border-gray-200 shadow-xs">
             <p className="text-sm text-gray-600 truncate">
               {translate("dropZone.selectedFile", selectedFile.name)}
             </p>

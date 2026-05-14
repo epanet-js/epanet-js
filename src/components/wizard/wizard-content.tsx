@@ -10,7 +10,8 @@ export const WizardContent: React.FC<WizardContentProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col flex-grow min-h-[${minHeight}] px-4 overflow-hidden`}
+      className="flex flex-col grow px-4 overflow-hidden"
+      style={{ minHeight }}
     >
       {children}
     </div>

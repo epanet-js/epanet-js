@@ -22,7 +22,7 @@ export function RowGutterCell<TData extends Record<string, unknown>>({
   onClick,
   onContextMenu,
   variant,
-  isLastRow,
+  isLastRow: _isLastRow,
   showRowNumbers = true,
   isRowSelected = false,
   gutterContextMenu,
@@ -37,8 +37,7 @@ export function RowGutterCell<TData extends Record<string, unknown>>({
           : "text-gray-600",
         "border border-transparent w-8",
         {
-          "border-b-gray-200":
-            (variant === "spreadsheet" && isLastRow) || !showRowNumbers,
+          "border-b-gray-200": variant === "spreadsheet" || !showRowNumbers,
         },
         isRowSelected && variant === "spreadsheet"
           ? "bg-purple-500"

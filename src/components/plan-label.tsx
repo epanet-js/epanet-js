@@ -26,7 +26,7 @@ export const PlanLabel = ({
         <img
           src={organization.imageUrl}
           alt={organization.name}
-          className="h-4 w-4 rounded-sm object-cover"
+          className="h-4 w-4 rounded-xs object-cover"
         />
         {organization.name}
       </>

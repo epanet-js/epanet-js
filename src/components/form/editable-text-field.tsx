@@ -246,7 +246,7 @@ function styledInput({
       "font-normal": fontWeight === "normal",
       "font-semibold": fontWeight === "semibold",
     },
-    "rounded-sm block overflow-hidden whitespace-nowrap text-ellipsis w-full",
+    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis w-full",
     isInteractive && "focus-visible:ring-inset",
   );
 }

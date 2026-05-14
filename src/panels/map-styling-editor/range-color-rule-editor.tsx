@@ -282,7 +282,7 @@ export const RangeColorRuleEditor = ({
       {error !== "notEnoughData" && (
         <>
           <div className="max-h-[400px] overflow-y-auto">
-            <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-sm ">
+            <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-xs ">
               <IntervalsEditor
                 numIntervals={numIntervals}
                 breaks={colorRule.breaks}
@@ -394,7 +394,7 @@ const IntervalsEditor = ({
           <div
             className={clsx(
               i === 0 || i === colors.length - 1 ? "h-[54px]" : "h-[37.5px]",
-              "rounded rounded-md padding-1 w-4",
+              "rounded-sm rounded-md padding-1 w-4",
             )}
             key={i}
           >

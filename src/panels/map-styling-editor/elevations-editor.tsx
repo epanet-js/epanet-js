@@ -338,7 +338,7 @@ const GeoTiffTilesPopover = ({
         actions={actions}
         readonly={readonly}
       />
-      <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded">
+      <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded-sm">
         <ul className="flex flex-col">
           {source.tiles.map((tile) => (
             <li

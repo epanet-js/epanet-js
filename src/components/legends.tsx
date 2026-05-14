@@ -61,7 +61,7 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
       >
         <div className="flex w-full items-center justify-between">
           <div className="text-xs text-wrap select-none">{title}</div>
-          <span className="flex-shrink-0">
+          <span className="shrink-0">
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </span>
         </div>
@@ -80,7 +80,7 @@ const LegendContainer = ({
 }) => {
   return (
     <div
-      className="space-y-1 text-xs bg-white dark:bg-gray-900 dark:text-white border border-gray-300 dark:border-black w-32 rounded-sm"
+      className="space-y-1 text-xs bg-white dark:bg-gray-900 dark:text-white border border-gray-300 dark:border-black w-32 rounded-xs"
       onClick={onClick}
     >
       {children}
@@ -92,7 +92,7 @@ export const LegendRamp = ({ colorRule }: { colorRule: RangeColorRule }) => {
   const { colors, breaks, interpolate } = colorRule;
   return (
     <div
-      className="relative w-4 h-32 rounded dark:border dark:border-white "
+      className="relative w-4 h-32 rounded-sm dark:border dark:border-white "
       style={{
         background: linearGradient({
           colors: colors,

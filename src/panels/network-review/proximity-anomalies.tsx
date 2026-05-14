@@ -139,7 +139,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
         inputRef={distanceInputRef}
         disabled={isLoading}
       />
-      <div className="relative flex-grow flex flex-col">
+      <div className="relative grow flex flex-col">
         {isReady ? (
           <>
             {proximityAnomalies.length > 0 ? (

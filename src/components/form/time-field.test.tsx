@@ -248,8 +248,8 @@ describe("TimeField", () => {
     });
   });
 
-  describe("commit on blur", () => {
-    it("commits valid value on blur", async () => {
+  describe("commit on blur-sm", () => {
+    it("commits valid value on blur-sm", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -272,7 +272,7 @@ describe("TimeField", () => {
       expect(onChangeValue).toHaveBeenCalledWith(2 * 3600);
     });
 
-    it("resets invalid value on blur", async () => {
+    it("resets invalid value on blur-sm", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 

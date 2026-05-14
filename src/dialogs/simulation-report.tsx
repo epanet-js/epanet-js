@@ -73,7 +73,7 @@ export const SimulationReportDialog = () => {
             parts.push(
               <span
                 key={`${index}-slot-${slotIndex}`}
-                className="text-purple-600 underline cursor-pointer hover:text-purple-700 hover:bg-purple-50 px-1 rounded"
+                className="text-purple-600 underline cursor-pointer hover:text-purple-700 hover:bg-purple-50 px-1 rounded-sm"
                 onClick={() => handleAssetClick(assetId)}
               >
                 {asset.label}

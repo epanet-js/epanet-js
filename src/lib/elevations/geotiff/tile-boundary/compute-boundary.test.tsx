@@ -65,7 +65,7 @@ describe("computeTileBoundaries", () => {
     expect(results[0].polygon!.type).toBe("Polygon");
   });
 
-  it("returns a closed polygon ring", async () => {
+  it("returns a closed polygon ring-3", async () => {
     const tile = await loadFixtureTile();
     const { results, promise } = collectResults([tile]);
     await promise;

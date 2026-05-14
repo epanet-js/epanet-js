@@ -378,7 +378,7 @@ export function FilterableSelectCell({
             type="button"
             tabIndex={-1}
             onKeyDown={handleTriggerKeyDown}
-            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-none text-left min-w-0"
+            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-hidden text-left min-w-0"
           >
             <span
               className={clsx("truncate", !selectedOption && "text-gray-400")}
@@ -414,7 +414,7 @@ export function FilterableSelectCell({
               ref={listContainerRef}
               tabIndex={showSearch ? -1 : 0}
               onKeyDown={handlePopoverKeyDown}
-              className="outline-none"
+              className="outline-hidden"
             >
               {showSearch && (
                 <div className="p-2 border-b border-gray-200">
@@ -424,7 +424,7 @@ export function FilterableSelectCell({
                     value={searchQuery}
                     onChange={handleSearchChange}
                     placeholder="Search..."
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   />
                 </div>
               )}
@@ -503,7 +503,7 @@ const OptionsList: FunctionComponent<OptionsListProps> = ({
       ref={listRef}
       tabIndex={-1}
       role="listbox"
-      className="outline-none max-h-56 overflow-auto p-1"
+      className="outline-hidden max-h-56 overflow-auto p-1"
     >
       {options.map((option, index) => (
         <Option
@@ -541,7 +541,7 @@ const Option: FunctionComponent<OptionProps> = ({
       aria-selected={isSelected}
       aria-disabled={isDisabled}
       className={clsx(
-        "flex items-center justify-between gap-4 px-2 py-2 rounded",
+        "flex items-center justify-between gap-4 px-2 py-2 rounded-sm",
         isDisabled
           ? "cursor-default text-gray-400"
           : "cursor-pointer text-gray-700",
@@ -552,7 +552,7 @@ const Option: FunctionComponent<OptionProps> = ({
       onClick={isDisabled ? undefined : () => onClick(option)}
     >
       <span>{option.label}</span>
-      {isSelected && <CheckIcon className="text-purple-700 flex-shrink-0" />}
+      {isSelected && <CheckIcon className="text-purple-700 shrink-0" />}
     </li>
   );
 };
@@ -578,7 +578,7 @@ const EmptyOption: FunctionComponent<EmptyOptionProps> = ({
         role="option"
         aria-selected={isSelected}
         className={clsx(
-          "flex items-center justify-between gap-4 px-2 py-2 cursor-pointer text-gray-400 italic rounded border-b border-gray-100",
+          "flex items-center justify-between gap-4 px-2 py-2 cursor-pointer text-gray-400 italic rounded-sm border-b border-gray-100",
           isActive && "bg-purple-300/40",
           !isActive && "hover:bg-gray-100",
         )}
@@ -586,7 +586,7 @@ const EmptyOption: FunctionComponent<EmptyOptionProps> = ({
         onClick={onClick}
       >
         <span>{label}</span>
-        {isSelected && <CheckIcon className="text-purple-700 flex-shrink-0" />}
+        {isSelected && <CheckIcon className="text-purple-700 shrink-0" />}
       </div>
     </div>
   );

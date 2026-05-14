@@ -107,7 +107,7 @@ export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {
 export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
-    <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+    <div className="grow flex flex-col items-center justify-center px-4 pb-4">
       <div className="text-gray-400">
         <NoIssuesIcon size={96} />
       </div>
@@ -134,14 +134,14 @@ export const useLoadingStatus = () => {
 export const LoadingState = ({ overlay = false }: { overlay?: boolean }) => {
   if (overlay) {
     return (
-      <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10">
+      <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-xs z-10">
         <Loading />
       </div>
     );
   }
 
   return (
-    <div className="flex-grow flex flex-col items-center justify-center px-4 pb-4">
+    <div className="grow flex flex-col items-center justify-center px-4 pb-4">
       <Loading />
     </div>
   );

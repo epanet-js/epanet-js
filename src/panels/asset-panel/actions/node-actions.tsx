@@ -43,7 +43,7 @@ export function NodeActions({ readonly = false }: { readonly?: boolean }) {
   const actions = useNodeActions(readonly);
 
   return (
-    <div className="flex gap-1 h-8 my-[-0.5rem]">
+    <div className="flex gap-1 h-8 -my-2">
       {actions
         .filter((action) => action.applicable)
         .map((action, i) => (

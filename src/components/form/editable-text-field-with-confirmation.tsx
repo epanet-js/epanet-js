@@ -217,7 +217,7 @@ function styledInput({
       "text-sm": textSize === "sm",
       "text-md": textSize === "md",
     },
-    "rounded-sm block overflow-hidden whitespace-nowrap text-ellipsis w-full placeholder:italic",
+    "rounded-xs block overflow-hidden whitespace-nowrap text-ellipsis w-full placeholder:italic",
     "focus-visible:ring-inset",
   );
 }

@@ -109,7 +109,7 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
         itemsCount={subnetworks.length}
         autoFocus={subnetworks.length === 0 && !isLoading}
       />
-      <div className="relative flex-grow flex flex-col">
+      <div className="relative grow flex flex-col">
         {isReady ? (
           <>
             {subnetworks.length > 0 ? (

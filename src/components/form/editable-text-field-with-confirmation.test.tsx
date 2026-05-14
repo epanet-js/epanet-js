@@ -182,7 +182,7 @@ describe("EditableTextFieldWithConfirmation", () => {
   });
 
   describe("validation error handling", () => {
-    it("does not blur when validation returns error", async () => {
+    it("does not blur-sm when validation returns error", async () => {
       const user = setupUser();
       const onChangeValue = vi.fn().mockReturnValue(true); // returns error
 
@@ -237,8 +237,8 @@ describe("EditableTextFieldWithConfirmation", () => {
     });
   });
 
-  describe("blur behavior", () => {
-    it("commits on blur if dirty", async () => {
+  describe("blur-sm behavior", () => {
+    it("commits on blur-sm if dirty", async () => {
       const user = setupUser();
       const onChangeValue = vi.fn();
 
@@ -263,7 +263,7 @@ describe("EditableTextFieldWithConfirmation", () => {
       });
     });
 
-    it("resets on blur if not dirty", async () => {
+    it("resets on blur-sm if not dirty", async () => {
       const user = setupUser();
       const onChangeValue = vi.fn();
       const onReset = vi.fn();

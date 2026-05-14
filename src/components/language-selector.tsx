@@ -41,9 +41,9 @@ export const LanguageSelector = ({
     >
       <DD.Trigger asChild>
         {asChild ? (
-          <span className={padding ? "" : "!p-0"}>{translate("language")}</span>
+          <span className={padding ? "" : "p-0!"}>{translate("language")}</span>
         ) : (
-          <Button variant="quiet" className={padding ? "" : "!p-0"}>
+          <Button variant="quiet" className={padding ? "" : "p-0!"}>
             {translate("language")}
           </Button>
         )}
@@ -74,7 +74,7 @@ export const LanguageSelector = ({
               {language.experimental && (
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg max-w-48 z-50"
+                    className="bg-gray-900 text-white text-xs px-2 py-1 rounded-sm shadow-lg max-w-48 z-50"
                     sideOffset={5}
                   >
                     {translate("experimentalLanguage")}

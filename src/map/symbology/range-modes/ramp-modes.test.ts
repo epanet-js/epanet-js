@@ -53,7 +53,7 @@ describe("equal interval breaks", () => {
 });
 
 describe("pretty breaks", () => {
-  it("assigns rounded breaks matching the target breaks", () => {
+  it("assigns rounded-sm breaks matching the target breaks", () => {
     const sortedData = [12, 34, 56, 78, 45, 90];
     const numBreaks = 3;
     const breaks = calculatePrettyBreaks(sortedData, numBreaks);
@@ -76,7 +76,7 @@ describe("pretty breaks", () => {
     ]);
   });
 
-  it("can generate breaks when not starting from a rounded value", () => {
+  it("can generate breaks when not starting from a rounded-sm value", () => {
     const sortedData = [1.2, 4.85];
 
     expect(calculatePrettyBreaks(sortedData, 3)).toEqual([2, 3, 4]);

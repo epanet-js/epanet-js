@@ -52,7 +52,7 @@ export const NotificationBanner = ({
     >
       {Icon && (
         <Icon
-          className={clsx("h-5 w-5 mr-3 flex-shrink-0", {
+          className={clsx("h-5 w-5 mr-3 shrink-0", {
             "text-green-500": variant === "success",
             "text-red-500": variant === "error",
             "text-orange-500": variant === "warning",
@@ -60,12 +60,12 @@ export const NotificationBanner = ({
           aria-hidden="true"
         />
       )}
-      <div className="flex flex-col flex-grow space-y-1 min-w-0">
+      <div className="flex flex-col grow space-y-1 min-w-0">
         {(title || hasTitleRowExtras) &&
           (hasTitleRowExtras ? (
             <div className="flex items-center gap-2">
               {title && (
-                <span className="text-sm font-semibold flex-grow min-w-0">
+                <span className="text-sm font-semibold grow min-w-0">
                   {title}
                 </span>
               )}
@@ -85,7 +85,7 @@ export const NotificationBanner = ({
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-indigo-500"
                 >
                   <span className="sr-only">Dismiss</span>
                   <CloseIcon />
@@ -101,7 +101,7 @@ export const NotificationBanner = ({
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
               Show details
             </summary>
-            <pre className="mt-1 whitespace-pre-wrap break-words font-mono text-gray-700 bg-white/60 rounded p-2 max-h-40 overflow-auto">
+            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-gray-700 bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
               {details}
             </pre>
           </details>

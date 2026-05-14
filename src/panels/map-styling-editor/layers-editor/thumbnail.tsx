@@ -10,11 +10,11 @@ export function Thumbnail({
   return (
     <div
       className={clsx(
-        "group flex flex-col justify-center items-center rounded-sm",
+        "group flex flex-col justify-center items-center rounded-xs",
         "w-32 aspect-video",
-        "group-hover:ring group-hover:ring-2 group-hover:ring-purple-300",
-        "focus:ring focus:ring-2 focus:ring-purple-300",
-        "data-state-on:ring data-state-on:ring-2 data-state-on:ring-purple-500",
+        "group-hover:ring-3 group-hover:ring-2 group-hover:ring-purple-300",
+        "focus:ring-3 focus:ring-2 focus:ring-purple-300",
+        "data-state-on:ring-3 data-state-on:ring-2 data-state-on:ring-purple-500",
         mapboxLayer.thumbnailClass,
       )}
     />

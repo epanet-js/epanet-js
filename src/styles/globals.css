@@ -1,7 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
+@config '../../tailwind.config.js';
+
+@custom-variant pointer-coarse (@media (pointer: coarse));
+@custom-variant pointer-fine (@media (pointer: fine));
+@custom-variant pointer-none (@media (pointer: none));
+@custom-variant hover-hover (@media (hover: hover));
+@custom-variant hover-none (@media (hover: none));
+
+/* Portrait orientation breakpoints */
+@custom-variant vsm (@media (width < 768px) and (orientation: portrait));
+@custom-variant vmd (@media (width >= 768px) and (orientation: portrait));
+
+/* Landscape height breakpoints */
+@custom-variant hxs (@media (height < 400px) and (orientation: landscape));
+@custom-variant hsm (@media (height >= 400px) and (orientation: landscape));
+@custom-variant hmd (@media (height >= 640px) and (orientation: landscape));
+@custom-variant hlg (@media (height >= 800px) and (orientation: landscape));
+@custom-variant hxl (@media (height > 1080px) and (orientation: landscape));
+
+/* max-xs: not built-in in v4 (max-sm and above are built-in) */
+@custom-variant max-xs (@media not all and (width >= 480px));
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+/*
+  CSS variables for palette colors used in this file.
+  In Tailwind v4, @config loads JS theme values for utility generation but does
+  not emit CSS variables — those require @theme blocks or explicit :root rules.
+*/
+:root {
+  --color-black: #000;
+  --color-white: #fff;
+  --color-gray-200: oklch(92.2% 0 0);
+  --color-gray-300: oklch(87% 0 0);
+  --color-gray-500: oklch(55.6% 0 0);
+  --color-gray-700: oklch(37.1% 0 0);
+  --color-gray-800: oklch(26.9% 0 0);
+  --color-purple-100: oklch(94.6% 0.033 307.174);
+  --color-purple-300: oklch(82.7% 0.119 306.383);
+  --color-purple-500: oklch(62.7% 0.265 303.9);
+  --color-purple-700: oklch(49.6% 0.265 301.924);
+  --color-yellow-100: oklch(97.3% 0.071 103.193);
+  --color-yellow-300: oklch(90.5% 0.182 98.111);
+  --color-yellow-500: oklch(79.5% 0.184 86.047);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200);
+  }
+}
 
 .mapboxgl-ctrl-bottom-right {
   display: none !important;
@@ -179,29 +238,29 @@ details summary::-webkit-details-marker {
 }
 
 :root {
-  --highlight-purple: theme("colors.purple.500");
-  --highlight-dark-purple: theme("colors.purple.700");
-  --highlight-yellow: theme("colors.yellow.500");
-  --highlight-dark-yellow: theme("colors.yellow.500");
-  --highlight-gray: theme("colors.gray.300");
-  --highlight-dark-gray: theme("colors.gray.500");
-  --highlight-light-gray: theme("colors.purple.100");
-  --highlight-tooltip-text: theme("colors.black");
-  --highlight-background: theme("colors.white");
-  --cm-font: theme("fontFamily.mono");
+  --highlight-purple: var(--color-purple-500);
+  --highlight-dark-purple: var(--color-purple-700);
+  --highlight-yellow: var(--color-yellow-500);
+  --highlight-dark-yellow: var(--color-yellow-500);
+  --highlight-gray: var(--color-gray-300);
+  --highlight-dark-gray: var(--color-gray-500);
+  --highlight-light-gray: var(--color-purple-100);
+  --highlight-tooltip-text: var(--color-black);
+  --highlight-background: var(--color-white);
+  --cm-font: var(--font-mono);
 }
 
 .dark {
-  --highlight-purple: theme("colors.purple.300");
-  --highlight-dark-purple: theme("colors.purple.100");
-  --highlight-yellow: theme("colors.yellow.100");
-  --highlight-dark-yellow: theme("colors.yellow.300");
-  --highlight-gray: theme("colors.gray.300");
-  --highlight-dark-gray: theme("colors.gray.500");
-  --highlight-light-gray: theme("colors.gray.700");
-  --highlight-background: theme("colors.gray.800");
-  --highlight-tooltip-text: theme("colors.white");
-  --cm-font: theme("fontFamily.mono");
+  --highlight-purple: var(--color-purple-300);
+  --highlight-dark-purple: var(--color-purple-100);
+  --highlight-yellow: var(--color-yellow-100);
+  --highlight-dark-yellow: var(--color-yellow-300);
+  --highlight-gray: var(--color-gray-300);
+  --highlight-dark-gray: var(--color-gray-500);
+  --highlight-light-gray: var(--color-gray-700);
+  --highlight-background: var(--color-gray-800);
+  --highlight-tooltip-text: var(--color-white);
+  --cm-font: var(--font-mono);
 }
 
 .cm-editor.cm-focused {
@@ -218,7 +277,7 @@ details summary::-webkit-details-marker {
  */
 
 .properties-tab {
-  @apply py-0.5 px-1 text-xs cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm;
+  @apply py-0.5 px-1 text-xs cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xs;
 }
 
 .properties-tab[data-state="active"] {
@@ -251,8 +310,8 @@ details summary::-webkit-details-marker {
 }
 
 body.dark .mapboxgl-ctrl-group {
-  background-color: theme("colors.gray.800");
-  box-shadow: 0 0 0 1px theme("colors.gray.500");
+  background-color: var(--color-gray-800);
+  box-shadow: 0 0 0 1px var(--color-gray-500);
 }
 
 body.dark .mapboxgl-ctrl button.mapboxgl-ctrl-zoom-in .mapboxgl-ctrl-icon {
@@ -281,7 +340,7 @@ body.dark .mapboxgl-ctrl-attrib-button {
 
 .placemark-scrollbar::-webkit-scrollbar-thumb {
   @apply bg-gray-400 dark:bg-gray-100;
-  @apply hover:bg-gray-500 hover:dark:bg-white;
+  @apply hover:bg-gray-500 dark:hover:bg-white;
 }
 
 .placemark-scrollbar::-webkit-scrollbar {
@@ -481,7 +540,7 @@ body.dark .mapboxgl-ctrl-attrib-button {
     overflow-auto
     p-2
     border
-    border-gray-300 dark:border-gray-500 rounded
+    border-gray-300 dark:border-gray-500 rounded-sm
     dark:bg-gray-800 dark:text-white;
 
   > * + * {

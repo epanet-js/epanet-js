@@ -393,7 +393,7 @@ export const NetworkProjectionDialog = ({
       }
     >
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        <div className="flex-shrink-0 w-[300px] border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col min-h-0">
+        <div className="shrink-0 w-[300px] border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col min-h-0">
           <ProjectionSearch
             projections={projections}
             onLocationSelect={handleLocationSelect}
@@ -415,7 +415,7 @@ export const NetworkProjectionDialog = ({
                 showEmptyState={!!selectedLocation || !!initialProjection}
               />
               {projectionError && (
-                <p className="mt-2 text-sm text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-950 flex-shrink-0">
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-950 shrink-0">
                   {projectionError}
                 </p>
               )}

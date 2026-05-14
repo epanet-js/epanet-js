@@ -277,7 +277,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={translate("assetSearch.placeholder")}
-            className="flex-1 bg-transparent border-0 px-2 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder:italic placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:border-transparent focus:shadow-none"
+            className="flex-1 bg-transparent border-0 px-2 py-3 text-sm text-gray-800 dark:text-gray-100 placeholder:italic placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-hidden focus:outline-hidden focus-visible:outline-hidden focus:ring-0 focus-visible:ring-0 focus:border-transparent focus:shadow-none"
           />
         </div>
         <div
@@ -309,7 +309,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => commit(option, index)}
                   className={clsx(
-                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded cursor-pointer text-gray-900 dark:text-gray-100",
+                    "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-gray-900 dark:text-gray-100",
                     index === activeIndex
                       ? "bg-purple-300/40"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700",

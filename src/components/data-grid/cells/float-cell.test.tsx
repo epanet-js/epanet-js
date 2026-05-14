@@ -196,7 +196,7 @@ describe("FloatCell", () => {
       expect(stopEditing).not.toHaveBeenCalled();
     });
 
-    it("commits value on blur", async () => {
+    it("commits value on blur-sm", async () => {
       const user = setupUser();
       const onChange = vi.fn();
       const stopEditing = vi.fn();

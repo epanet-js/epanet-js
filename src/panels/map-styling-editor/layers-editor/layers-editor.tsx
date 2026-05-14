@@ -852,7 +852,7 @@ const OpacitySetting = ({
           className="text-xs
           px-1 py-0.5
           border-gray-300
-          rounded-sm
+          rounded-xs
           dark:text-white
           dark:bg-transparent
         opacity-50 hover:opacity-100 focus:opacity-100
@@ -1324,7 +1324,7 @@ const VectorFileItem = ({
                 layout="fixed-label"
                 labelSize="md"
               >
-                <div className="h-7 border rounded-sm overflow-hidden">
+                <div className="h-7 border rounded-xs overflow-hidden">
                   <ColorPopover
                     color={layerConfig.color}
                     onChange={(color) =>

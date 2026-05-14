@@ -320,7 +320,7 @@ export const AllocationStep: React.FC<{
 
   return (
     <>
-      <div className="overflow-y-auto flex-grow space-y-4 scroll-shadows">
+      <div className="overflow-y-auto grow space-y-4 scroll-shadows">
         <div>
           <h2 className="text-lg font-semibold mb-2">
             {translate("importCustomerPoints.wizard.allocationStep.title")}

@@ -223,7 +223,7 @@ function ColumnResizer({
       }}
       onClick={(e) => e.stopPropagation()}
       className={clsx(
-        "absolute -right-[3px] top-0 h-full w-1 cursor-col-resize select-none touch-none z-10",
+        "absolute right-[-3px] top-0 h-full w-1 cursor-col-resize select-none touch-none z-10",
         isResizing
           ? "bg-purple-500"
           : "bg-gray-300 opacity-0 group-hover:opacity-100",

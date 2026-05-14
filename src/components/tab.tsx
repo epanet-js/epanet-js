@@ -32,7 +32,7 @@ export function Tab({
         data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400
         border-b-2 border-transparent
         data-[state=active]:border-purple-600 dark:data-[state=active]:border-purple-400
-        focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-purple-500
+        focus:outline-hidden focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-purple-500
         transition-colors`,
         className,
       )}

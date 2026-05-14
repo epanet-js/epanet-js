@@ -56,7 +56,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
   onChange,
   CellComponent,
   variant,
-  isLastRow,
+  isLastRow: _isLastRow,
   isLastCol,
   hasWarning,
   cellContextMenu,
@@ -79,7 +79,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
               : readOnly
                 ? "bg-gray-50"
                 : "bg-white",
-        { "z-[1]": selectionEdge },
+        { "z-1": selectionEdge },
         selectionEdge?.left
           ? "border-l-purple-500"
           : variant === "spreadsheet"
@@ -97,7 +97,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
             : "border-t-transparent",
         selectionEdge?.bottom
           ? "border-b-purple-500"
-          : variant === "inline" || (variant === "spreadsheet" && !isLastRow)
+          : variant === "inline" || variant === "spreadsheet"
             ? "border-b-gray-200"
             : "border-b-transparent",
       )}

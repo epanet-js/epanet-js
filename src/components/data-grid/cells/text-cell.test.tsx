@@ -120,7 +120,7 @@ describe("TextCell", () => {
       expect(onChange).toHaveBeenCalledWith(null);
     });
 
-    it("commits value on blur", async () => {
+    it("commits value on blur-sm", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
@@ -194,7 +194,7 @@ describe("TextCell", () => {
         expect(onChange).not.toHaveBeenCalled();
       });
 
-      it("does not commit invalid value on blur", async () => {
+      it("does not commit invalid value on blur-sm", async () => {
         const user = setupUser();
         const onChange = vi.fn();
 

@@ -32,8 +32,8 @@ export const triggerStylesFor = (
       : "text-gray-700 bg-white dark:bg-gray-900",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
-      "focus:justify-between hover:border hover:rounded-sm hover:border-gray-200 hover:justify-between min-w-[90px]",
-    "border rounded-sm justify-between",
+      "focus:justify-between hover:border hover:rounded-xs hover:border-gray-200 hover:justify-between min-w-[90px]",
+    "border rounded-xs justify-between",
     isWarning
       ? "border-orange-500 dark:border-orange-700"
       : {
@@ -197,7 +197,7 @@ export function Selector<T extends string | number>({
   }, [styleOptions, disabled]);
 
   const contentStyles = useMemo(() => {
-    return `bg-white min-w-[var(--radix-select-trigger-width)] border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50 overflow-hidden`;
+    return `bg-white min-w-(--radix-select-trigger-width) border ${effectiveStyleOptions.textSize} rounded-md shadow-md z-50 overflow-hidden`;
   }, [effectiveStyleOptions.textSize]);
 
   const handleValueChange = (newValue: string) => {

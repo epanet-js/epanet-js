@@ -51,7 +51,7 @@ export function ColorPopover({
     <P.Root>
       <P.Trigger asChild disabled={readonly}>
         <button
-          className="h-full w-full rounded-sm"
+          className="h-full w-full rounded-xs"
           aria-label={ariaLabel}
           data-color={color}
           disabled={readonly}

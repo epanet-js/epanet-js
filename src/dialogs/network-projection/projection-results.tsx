@@ -65,7 +65,7 @@ export const ProjectionResults = ({
 
   return (
     <div className="mt-3 flex flex-col min-h-0">
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex-shrink-0">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 shrink-0">
         {t("networkProjection.matchingProjections")} ({results.length})
       </p>
       <ul className="space-y-0.5 min-h-0 overflow-y-auto scroll-shadows">
@@ -80,7 +80,7 @@ export const ProjectionResults = ({
                 type="button"
                 onClick={() => onSelect(p)}
                 className={clsx(
-                  "w-full text-left px-2 py-1.5 text-sm rounded",
+                  "w-full text-left px-2 py-1.5 text-sm rounded-sm",
                   isSelected
                     ? "bg-purple-100 dark:bg-purple-900/30"
                     : "hover:bg-purple-50 dark:hover:bg-gray-700",

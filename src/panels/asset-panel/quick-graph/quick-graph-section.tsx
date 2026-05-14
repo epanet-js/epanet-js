@@ -267,7 +267,7 @@ const QuickGraphSection = ({
   const { isPinned } = footerState;
 
   const pinButton = (
-    <div className="flex h-8 my-[-0.5rem]">
+    <div className="flex h-8 -my-2">
       <Button
         variant="quiet"
         onClick={handlePinToggle}

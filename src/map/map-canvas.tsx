@@ -429,7 +429,7 @@ const MapError = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
-      <div className="flex flex-col items-start max-w-screen-sm p-6">
+      <div className="flex flex-col items-start max-w-(--breakpoint-sm) p-6">
         <h3 className="text-md font-semibold text-gray-700 mb-4">
           {translate("cannotRenderMap")}
         </h3>
@@ -455,7 +455,7 @@ const SatelliteResolutionMessage = ({ zoom }: { zoom: number | undefined }) => {
           "top-[60px] sm:top-1/2",
         )}
       >
-        <div className="bg-gray-800 text-white rounded shadow-md py-1 px-2 m-2">
+        <div className="bg-gray-800 text-white rounded-sm shadow-md py-1 px-2 m-2">
           {translate("signUpToUnlockResolution")}
         </div>
       </div>

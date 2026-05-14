@@ -79,7 +79,7 @@ export function MultiValueRow({
             nullLabel={nullLabel}
           />
         ) : (
-          <div className="flex-shrink-0 w-7" />
+          <div className="shrink-0 w-7" />
         )}
         <div className="flex-1 min-w-0">
           <EditableField
@@ -126,7 +126,7 @@ const StatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={setIsOpen}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
-        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-sm text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
       >
         <MultipleValuesIcon />
       </P.Trigger>

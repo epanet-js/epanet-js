@@ -137,7 +137,7 @@ export const ProjectionSection = () => {
             !isReadonly && (
               <Button
                 variant="quiet/mode"
-                className="h-8 flex-shrink-0"
+                className="h-8 shrink-0"
                 onClick={handleOpenProjectionDialog}
                 aria-label="Change projection"
               >

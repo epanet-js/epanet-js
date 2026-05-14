@@ -171,7 +171,7 @@ export const DataInputStep: React.FC<{
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto flex-grow">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto grow">
         {/* Left Column - File Input */}
         <div className="bg-white dark:bg-slate-800 space-y-6 h-full md:p-6 p-2">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -229,7 +229,7 @@ export const DataInputStep: React.FC<{
               )}
               className="w-full h-full object-cover transition-transform duration-300"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"></div>
 
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
@@ -249,12 +249,12 @@ export const DataInputStep: React.FC<{
               </div>
 
               {/* Video duration indicator */}
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
+              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">
                 5:23
               </div>
 
               {/* Video title overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4">
                 <p className="text-white text-sm font-medium">
                   epanet-js Customer Points Import Tutorial
                 </p>

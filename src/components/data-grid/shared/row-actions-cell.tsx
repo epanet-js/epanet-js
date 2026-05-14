@@ -14,7 +14,7 @@ export function RowActionsCell({
   rowIndex,
   rowActions,
   variant,
-  isLastRow,
+  isLastRow: _isLastRow,
   disabled = false,
 }: RowActionsCellProps) {
   return rowActions ? (
@@ -29,7 +29,7 @@ export function RowActionsCell({
         },
         {
           "border-b-gray-200":
-            variant === "inline" || (variant === "spreadsheet" && !isLastRow),
+            variant === "inline" || variant === "spreadsheet",
         },
         { "border-l-gray-200": variant === "spreadsheet" },
       )}

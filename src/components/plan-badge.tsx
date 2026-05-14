@@ -2,14 +2,14 @@ import { Plan } from "src/lib/account-plans";
 import { useTranslate } from "src/hooks/use-translate";
 
 const planStyles: Record<string, string> = {
-  free: "bg-gradient-to-r from-purple-100 via-purple-200 to-purple-300 text-purple-800",
-  pro: "bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 font-bold text-yellow-700",
+  free: "bg-linear-to-r from-purple-100 via-purple-200 to-purple-300 text-purple-800",
+  pro: "bg-linear-to-r from-yellow-200 via-yellow-300 to-yellow-400 font-bold text-yellow-700",
   personal:
-    "bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 text-gray-700 font-bold shadow-md",
+    "bg-linear-to-r from-blue-200 via-blue-300 to-blue-400 text-gray-700 font-bold shadow-md",
   education:
-    "bg-gradient-to-r from-green-300 via-green-400 to-green-600 text-gray-100 font-bold shadow-md",
+    "bg-linear-to-r from-green-300 via-green-400 to-green-600 text-gray-100 font-bold shadow-md",
   teams:
-    "bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white font-bold shadow-md",
+    "bg-linear-to-r from-red-500 via-red-600 to-red-700 text-white font-bold shadow-md",
 };
 
 const planBadgeText: Record<Plan, string> = {

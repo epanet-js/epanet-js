@@ -107,7 +107,7 @@ export function LinkActions({ readonly = false }: { readonly?: boolean }) {
   const actions = useLinkActions(readonly);
 
   return (
-    <div className="flex gap-1 h-8 my-[-0.5rem]">
+    <div className="flex gap-1 h-8 -my-2">
       {actions
         .filter((action) => action.applicable)
         .map((action, i) => (

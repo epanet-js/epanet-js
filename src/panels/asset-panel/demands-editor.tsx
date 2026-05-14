@@ -272,7 +272,7 @@ export const DemandCategoriesEditor = ({
     <BlockComparisonField hasChanged={comparison?.hasChanged ?? false}>
       <div ref={containerRef} className="flex flex-col gap-2">
         <label
-          className="text-sm text-gray-500 w-full flex-shrink-0"
+          className="text-sm text-gray-500 w-full shrink-0"
           aria-label={`label: ${translate("demandCategories")}`}
         >
           {translate("demandCategories")}
