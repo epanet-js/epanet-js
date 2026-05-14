@@ -18,6 +18,7 @@ import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
 import { FILE_NAMES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { type Position } from "geojson";
+import { getEsriWktString } from "src/lib/projections";
 
 const CUSTOMER_POINT_FIELDS = [
   "label",
@@ -29,11 +30,11 @@ const CUSTOMER_POINT_FIELDS = [
   "connectionY",
 ] as const;
 
-export const exportShapefiles = (
+export const exportShapefiles = async (
   hydraulicModel: HydraulicModel,
   projection: Projection,
   options?: AssetExportOptions,
-): ExportedFile[] => {
+): Promise<ExportedFile[]> => {
   const includeSimulationResults =
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
   const selectedAssets = options?.selectedAssets ?? new Set<number>();
@@ -209,6 +210,7 @@ export const exportShapefiles = (
   }
 
   const result: ExportedFile[] = [];
+  const prjContent = await buildPrjContent(projection);
 
   for (const t in writers) {
     const type = t as ExportedAssetTypes;
@@ -242,7 +244,7 @@ export const exportShapefiles = (
       extensions: [".prj"],
       mimeTypes: ["text/plain"],
       description: "Shapefile Projection",
-      blob: new Blob([buildPrjContent(projection)]),
+      blob: new Blob([prjContent]),
     });
     result.push({
       fileName: `${fileName}.cpg`,
@@ -278,12 +280,12 @@ const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   };
 };
 
-const buildPrjContent = (projection: Projection): string => {
+const buildPrjContent = async (projection: Projection): Promise<string> => {
   switch (projection.type) {
     case "wgs84":
       return WGS84_WKT;
     case "proj4":
-      return projection.code;
+      return await getEsriWktString(projection);
     case "xy-grid":
       return `LOCAL_CS["${projection.name}",LOCAL_DATUM["${projection.name}",32767],UNIT["m",1],AXIS["X",EAST],AXIS["Y",NORTH]]`;
   }

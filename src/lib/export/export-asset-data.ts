@@ -10,18 +10,22 @@ export const exportAssetData = async (
   projection: Projection,
   options?: AssetExportOptions,
 ) => {
+  if (format === "xlsx") {
+    await handleXlsx(fileName, hydraulicModel, projection, options);
+    return;
+  }
+
   const exporters = {
     geojson: AssetExporters.exportGeoJson,
     csv: AssetExporters.exportCsv,
     shapefile: AssetExporters.exportShapefiles,
   };
 
-  if (format === "xlsx") {
-    await handleXlsx(fileName, hydraulicModel, projection, options);
-    return;
-  }
-
-  const exportedFiles = exporters[format](hydraulicModel, projection, options);
+  const exportedFiles = await exporters[format](
+    hydraulicModel,
+    projection,
+    options,
+  );
 
   const zipFileName = `${fileName}.zip`;
   const handle = FileSystemHelpers.isFileSystemAccessSupported()
