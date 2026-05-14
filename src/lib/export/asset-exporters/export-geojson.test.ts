@@ -6,18 +6,28 @@ import { WGS84 } from "src/lib/projections";
 import { COORDINATE_DECIMAL_PLACES, NUM_DECIMAL_PLACES } from "../constants";
 
 describe("export-geojson", () => {
-  it("generates a GeoJSON file for each asset type", async () => {
+  it("returns no files for an empty model", () => {
     const model = HydraulicModelBuilder.empty();
     const files = exportGeoJson(model, WGS84);
 
-    for (const file of files) {
-      const geoJson = await parseGeoJson(file);
-      expect(geoJson.type).toBe("FeatureCollection");
-      expect(Array.isArray(geoJson.features)).toBe(true);
-      expect(file.extensions).toEqual([".geojson"]);
-      expect(file.mimeTypes).toEqual(["text/geo+json"]);
-      expect(file.description).toBe("GeoJSON File");
-    }
+    expect(files).toHaveLength(0);
+  });
+
+  it("returns one GeoJSON file per non-empty asset type with correct metadata", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+    const files = exportGeoJson(model, WGS84);
+
+    expect(files).toHaveLength(1);
+    const file = files[0];
+    const geoJson = await parseGeoJson(file);
+    expect(geoJson.type).toBe("FeatureCollection");
+    expect(Array.isArray(geoJson.features)).toBe(true);
+    expect(file.fileName).toBe("junctions.geojson");
+    expect(file.extensions).toEqual([".geojson"]);
+    expect(file.mimeTypes).toEqual(["text/geo+json"]);
+    expect(file.description).toBe("GeoJSON File");
   });
 
   it("includes asset geometry and properties in the feature", async () => {

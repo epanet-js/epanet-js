@@ -32,7 +32,7 @@ function sheetRows(workbook: XLSX.WorkBook, sheetName: string): string[][] {
 }
 
 describe("exportXlsx", () => {
-  it("produces one sheet per asset type with correct names and row counts", async () => {
+  it("produces one sheet per non-empty asset type with correct names and row counts", async () => {
     const IDS = {
       J1: 1,
       R1: 2,
@@ -72,6 +72,18 @@ describe("exportXlsx", () => {
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
     expect(sheetRows(wb, "pipes")).toHaveLength(2);
     expect(sheetRows(wb, "customer-points")).toHaveLength(3);
+  });
+
+  it("omits sheets for asset types with no records", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .build();
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84);
+
+    const wb = getWorkbook();
+    expect(wb.SheetNames).toEqual(["junctions"]);
   });
 
   it("only writes selected assets, but always writes all customer points", async () => {

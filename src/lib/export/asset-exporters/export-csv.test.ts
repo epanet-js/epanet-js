@@ -6,14 +6,21 @@ import { WGS84 } from "src/lib/projections";
 import { COORDINATE_DECIMAL_PLACES } from "../constants";
 
 describe("export-csv", () => {
-  it("always returns one file per asset type with correct metadata", () => {
+  it("returns no files for an empty model", () => {
     const model = HydraulicModelBuilder.empty();
     const files = exportCsv(model, WGS84);
 
-    expect(files).toHaveLength(7);
-    expect(files.map((f) => f.fileName)).toEqual(
-      expect.arrayContaining(ALL_ASSET_FILE_NAMES.map((t) => `${t}.csv`)),
-    );
+    expect(files).toHaveLength(0);
+  });
+
+  it("returns one file per non-empty asset type with correct metadata", () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1" })
+      .build();
+    const files = exportCsv(model, WGS84);
+
+    expect(files).toHaveLength(1);
+    expect(files[0].fileName).toBe("junctions.csv");
     expect(files[0].extensions).toEqual([".csv"]);
     expect(files[0].mimeTypes).toEqual(["text/csv"]);
     expect(files[0].description).toBe("CSV File");

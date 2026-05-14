@@ -10,18 +10,13 @@ import { Position } from "geojson";
 
 const MAX_ROWS = 1_048_575;
 
-const ASSET_TYPES: Exclude<ExportedAssetTypes, "customerPoint">[] = [
+const ALL_ASSET_TYPES: Exclude<ExportedAssetTypes, "customerPoint">[] = [
   "junction",
   "reservoir",
   "tank",
   "pipe",
   "pump",
   "valve",
-];
-
-const SHEET_NAMES = [
-  ...ASSET_TYPES.map((t) => FILE_NAMES[t]),
-  FILE_NAMES["customerPoint"],
 ];
 
 export const exportXlsx = async (
@@ -34,6 +29,28 @@ export const exportXlsx = async (
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
   const selectedAssets = options?.selectedAssets ?? new Set<number>();
   const resultsReader = options?.resultsReader;
+
+  const hasSelection = selectedAssets.size > 0;
+  const assetTypeCounts = new Map<string, number>();
+  hydraulicModel.assets.forEach((asset) => {
+    if (hasSelection && !selectedAssets.has(asset.id)) return;
+    assetTypeCounts.set(
+      asset.type,
+      (assetTypeCounts.get(asset.type) ?? 0) + 1,
+    );
+  });
+
+  const activeAssetTypes = ALL_ASSET_TYPES.filter(
+    (t) => (assetTypeCounts.get(t) ?? 0) > 0,
+  );
+  const hasCustomerPoints = hydraulicModel.customerPoints.size > 0;
+
+  const sheetNames = [
+    ...activeAssetTypes.map((t) => FILE_NAMES[t]),
+    ...(hasCustomerPoints ? [FILE_NAMES["customerPoint"]] : []),
+  ];
+
+  if (sheetNames.length === 0) return;
 
   const stream = await handle.createWritable();
 
@@ -49,16 +66,23 @@ export const exportXlsx = async (
       });
 
       try {
-        pushStaticEntry(zip, "[Content_Types].xml", contentTypesXml());
+        pushStaticEntry(
+          zip,
+          "[Content_Types].xml",
+          contentTypesXml(sheetNames),
+        );
         pushStaticEntry(zip, "_rels/.rels", packageRelsXml());
-        pushStaticEntry(zip, "xl/workbook.xml", workbookXml());
-        pushStaticEntry(zip, "xl/_rels/workbook.xml.rels", workbookRelsXml());
+        pushStaticEntry(zip, "xl/workbook.xml", workbookXml(sheetNames));
+        pushStaticEntry(
+          zip,
+          "xl/_rels/workbook.xml.rels",
+          workbookRelsXml(sheetNames),
+        );
 
         const transformCoord = createProjectionMapper(projection).toSource;
         const getSimResults = buildSimulationResultsReader(resultsReader);
-        const hasSelection = selectedAssets.size > 0;
 
-        for (const [sheetIndex, assetType] of ASSET_TYPES.entries()) {
+        for (const [sheetIndex, assetType] of activeAssetTypes.entries()) {
           const sheetEntry = openSheetEntry(zip, sheetIndex + 1);
           let headerWritten = false;
           let rowCount = 0;
@@ -93,24 +117,30 @@ export const exportXlsx = async (
           closeSheetEntry(sheetEntry);
         }
 
-        const customerSheetEntry = openSheetEntry(zip, ASSET_TYPES.length + 1);
-        pushRow(customerSheetEntry, 1, CUSTOMER_POINT_HEADERS);
-        let customerRowCount = 1;
-
-        hydraulicModel.customerPoints.forEach((point) => {
-          if (customerRowCount >= MAX_ROWS) {
-            throw new Error(
-              `Sheet exceeds Excel's ${MAX_ROWS.toLocaleString()} row limit`,
-            );
-          }
-          pushRow(
-            customerSheetEntry,
-            ++customerRowCount,
-            buildCustomerPointRow(point, hydraulicModel, transformCoord),
+        if (hasCustomerPoints) {
+          const customerSheetEntry = openSheetEntry(
+            zip,
+            activeAssetTypes.length + 1,
           );
-        });
+          pushRow(customerSheetEntry, 1, CUSTOMER_POINT_HEADERS);
+          let customerRowCount = 1;
 
-        closeSheetEntry(customerSheetEntry);
+          hydraulicModel.customerPoints.forEach((point) => {
+            if (customerRowCount >= MAX_ROWS) {
+              throw new Error(
+                `Sheet exceeds Excel's ${MAX_ROWS.toLocaleString()} row limit`,
+              );
+            }
+            pushRow(
+              customerSheetEntry,
+              ++customerRowCount,
+              buildCustomerPointRow(point, hydraulicModel, transformCoord),
+            );
+          });
+
+          closeSheetEntry(customerSheetEntry);
+        }
+
         zip.end();
       } catch (err) {
         reject(err);
@@ -181,17 +211,17 @@ const cellXml = (
   return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(String(value))}</t></is></c>`;
 };
 
-const contentTypesXml = () =>
-  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${SHEET_NAMES.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`;
+const contentTypesXml = (sheetNames: string[]) =>
+  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheetNames.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`;
 
 const packageRelsXml = () =>
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
 
-const workbookXml = () =>
-  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${SHEET_NAMES.map((name, i) => `<sheet name="${escapeXml(name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>`;
+const workbookXml = (sheetNames: string[]) =>
+  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheetNames.map((name, i) => `<sheet name="${escapeXml(name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>`;
 
-const workbookRelsXml = () =>
-  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${SHEET_NAMES.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}</Relationships>`;
+const workbookRelsXml = (sheetNames: string[]) =>
+  `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheetNames.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}</Relationships>`;
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {

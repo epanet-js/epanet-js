@@ -207,25 +207,28 @@ export const exportCsv = (
     writeAsset(asset, simulationValues);
   });
 
-  writeCustomerPointsHeader();
+  if (hydraulicModel.customerPoints.size > 0) {
+    writeCustomerPointsHeader();
+    hydraulicModel.customerPoints.forEach((point) => writeCustomerPoint(point));
+  }
 
-  hydraulicModel.customerPoints.forEach((point) => writeCustomerPoint(point));
+  return Object.entries(buffers)
+    .filter(([t]) => offsets[t as ExportedAssetTypes] > 0)
+    .map(([t, buffer]) => {
+      const type = t as ExportedAssetTypes;
+      const offset = offsets[type];
+      const bufferView = buffer.subarray(0, offset);
 
-  return Object.entries(buffers).map(([t, buffer]) => {
-    const type = t as ExportedAssetTypes;
-    const offset = offsets[type];
-    const bufferView = buffer.subarray(0, offset);
-
-    return {
-      fileName: `${FILE_NAMES[type]}.csv`,
-      extensions: [".csv"],
-      mimeTypes: ["text/csv"],
-      description: "CSV File",
-      blob: new Blob([bufferView], {
-        type: "text/csv",
-      }),
-    };
-  });
+      return {
+        fileName: `${FILE_NAMES[type]}.csv`,
+        extensions: [".csv"],
+        mimeTypes: ["text/csv"],
+        description: "CSV File",
+        blob: new Blob([bufferView], {
+          type: "text/csv",
+        }),
+      };
+    });
 };
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {

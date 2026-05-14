@@ -126,21 +126,27 @@ export const exportGeoJson = (
   removeTrailingComma(buffers, offsets, header.length);
   encodeEnd(buffers, offsets, encoder);
 
-  return Object.entries(buffers).map(([t, buffer]) => {
-    const type = t as ExportedAssetTypes;
-    const offset = offsets[type];
-    const bufferView = buffer.subarray(0, offset);
+  const headerByteLength = encoder.encode(header).length;
+  const endByteLength = encoder.encode(GEOJSON_END).length;
+  const emptyFileLength = headerByteLength + endByteLength;
 
-    return {
-      fileName: `${FILE_NAMES[type]}.geojson`,
-      extensions: [".geojson"],
-      mimeTypes: ["text/geo+json"],
-      description: "GeoJSON File",
-      blob: new Blob([bufferView], {
-        type: "text/geo+json",
-      }),
-    };
-  });
+  return Object.entries(buffers)
+    .filter(([t]) => offsets[t as ExportedAssetTypes] > emptyFileLength)
+    .map(([t, buffer]) => {
+      const type = t as ExportedAssetTypes;
+      const offset = offsets[type];
+      const bufferView = buffer.subarray(0, offset);
+
+      return {
+        fileName: `${FILE_NAMES[type]}.geojson`,
+        extensions: [".geojson"],
+        mimeTypes: ["text/geo+json"],
+        description: "GeoJSON File",
+        blob: new Blob([bufferView], {
+          type: "text/geo+json",
+        }),
+      };
+    });
 };
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
