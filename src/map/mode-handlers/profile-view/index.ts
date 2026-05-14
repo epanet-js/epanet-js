@@ -3,12 +3,10 @@ import throttle from "lodash/throttle";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HandlerContext } from "src/types";
 import { profileViewAtom } from "src/state/profile-view";
-import { dialogAtom } from "src/state/dialog";
 import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
-import { SELECTION_NONE } from "src/selection/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { deriveProfilePath } from "src/panels/profile-view/path-finding";
 import { buildProfileView } from "src/panels/profile-view/build-profile-view";
@@ -24,29 +22,26 @@ export function useProfileViewHandlers(
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
 
   const store = useStore();
-  const ephemeralState = useAtomValue(ephemeralStateAtom);
   const isUnprojected = useAtomValue(isUnprojectedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
   const setProfileView = useSetAtom(profileViewAtom);
-  const setDialogState = useSetAtom(dialogAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const setMode = useSetAtom(modeAtom);
 
-  const draftAnchorIds: AssetId[] =
-    (ephemeralState.type === "profileView" && ephemeralState.anchorIds) || [];
-
-  const draftPathCacheRef = useRef<{
+  const previewPathCacheRef = useRef<{
     anchorsKey: string;
     assetsVersion: unknown;
     resultsVersion: unknown;
     path: DraftPath | undefined;
   } | null>(null);
 
-  const getFreshAnchors = (): AssetId[] => {
-    const current = store.get(ephemeralStateAtom);
-    return (current.type === "profileView" && current.anchorIds) || [];
+  const getCurrentAnchors = (): AssetId[] => {
+    const profileView = store.get(profileViewAtom);
+    if (profileView) return profileView.anchors;
+    const ephemeral = store.get(ephemeralStateAtom);
+    return (ephemeral.type === "profileView" && ephemeral.anchorIds) || [];
   };
 
   const resolveNodeId = (
@@ -60,82 +55,71 @@ export function useProfileViewHandlers(
     return undefined;
   };
 
+  const exitMode = () => {
+    setCursor("");
+    setEphemeralState({ type: "none" });
+    setMode({ mode: Mode.NONE });
+  };
+
   const click: Handlers["click"] = (e) => {
     const clickedAsset = getClickedAsset(e);
     const nodeId = resolveNodeId(clickedAsset, e);
     if (nodeId === undefined) return;
 
-    const anchors = getFreshAnchors();
-
+    const anchors = getCurrentAnchors();
     if (nodeId === anchors[anchors.length - 1]) return;
 
-    if (anchors.length === 0) {
-      setEphemeralState({ type: "profileView", anchorIds: [nodeId] });
+    const candidate = [...anchors, nodeId];
+
+    if (candidate.length < 2) {
+      setEphemeralState({ type: "profileView", anchorIds: candidate });
       return;
     }
 
-    const candidate = [...anchors, nodeId];
-    const check = deriveProfilePath(
-      hydraulicModel.topology,
-      hydraulicModel.assets,
-      candidate,
-      results,
-    );
-    if (check === null) return;
-    setEphemeralState({ type: "profileView", anchorIds: candidate });
-  };
-
-  const double: Handlers["double"] = (e) => {
-    e.preventDefault();
-
-    const anchors = getFreshAnchors();
-    if (anchors.length < 2) return;
-
     const built = buildProfileView({
-      anchorIds: anchors,
+      anchorIds: candidate,
       hydraulicModel,
       isUnprojected,
       results,
     });
-
-    if ("error" in built) {
-      setDialogState({ type: "profileNoPath" });
-      setEphemeralState({ type: "none" });
-      setSelection(SELECTION_NONE);
-      return;
-    }
+    if ("error" in built) return;
 
     setProfileView(built.profileView);
-    setEphemeralState({ type: "none" });
+    setEphemeralState({ type: "profileView" });
     setSelection({
       type: "multi",
       ids: [...built.path.nodeIds, ...built.path.linkIds],
     });
-    setMode({ mode: Mode.NONE });
+  };
+
+  const double: Handlers["double"] = (e) => {
+    e.preventDefault();
+    exitMode();
   };
 
   const move: Handlers["move"] = throttle((e) => {
     const hoveredAsset = getClickedAsset(e);
     const hoveredNodeId = resolveNodeId(hoveredAsset, e);
 
+    const currentAnchors = getCurrentAnchors();
     const extendable =
-      hoveredNodeId !== undefined && !draftAnchorIds.includes(hoveredNodeId);
+      hoveredNodeId !== undefined && !currentAnchors.includes(hoveredNodeId);
 
     const previewAnchors = extendable
-      ? [...draftAnchorIds, hoveredNodeId]
-      : draftAnchorIds;
+      ? [...currentAnchors, hoveredNodeId]
+      : currentAnchors;
 
-    let path: DraftPath | undefined;
+    let previewPath: DraftPath | undefined;
     if (previewAnchors.length >= 2) {
       const anchorsKey = previewAnchors.join(",");
-      const cached = draftPathCacheRef.current;
+      const cached = previewPathCacheRef.current;
       if (
         cached &&
         cached.anchorsKey === anchorsKey &&
         cached.assetsVersion === hydraulicModel.assets &&
         cached.resultsVersion === results
       ) {
-        path = cached.path;
+        previewPath = cached.path;
       } else {
         const found = deriveProfilePath(
           hydraulicModel.topology,
@@ -143,27 +127,30 @@ export function useProfileViewHandlers(
           previewAnchors,
           results,
         );
-        path = found
+        previewPath = found
           ? { nodeIds: found.nodeIds, linkIds: found.linkIds }
           : undefined;
-        draftPathCacheRef.current = {
+        previewPathCacheRef.current = {
           anchorsKey,
           assetsVersion: hydraulicModel.assets,
           resultsVersion: results,
-          path,
+          path: previewPath,
         };
       }
     }
 
+    const ephemeral = store.get(ephemeralStateAtom);
+    const stagedAnchorIds =
+      ephemeral.type === "profileView" ? ephemeral.anchorIds : undefined;
     setEphemeralState({
       type: "profileView",
-      anchorIds: draftAnchorIds,
+      anchorIds: stagedAnchorIds,
       hoveredNodeId,
-      path,
+      path: previewPath,
     });
 
     const isExtendForbidden =
-      extendable && draftAnchorIds.length >= 1 && path === undefined;
+      extendable && currentAnchors.length >= 1 && previewPath === undefined;
     setCursor(
       hoveredNodeId === undefined
         ? ""
@@ -181,22 +168,6 @@ export function useProfileViewHandlers(
     double,
     keydown: () => {},
     keyup: () => {},
-    exit: () => {
-      const hasDraft =
-        ephemeralState.type === "profileView" &&
-        (ephemeralState.anchorIds?.length ?? 0) > 0;
-
-      setProfileView(null);
-      setSelection(SELECTION_NONE);
-      setCursor("");
-
-      if (hasDraft) {
-        setEphemeralState({ type: "profileView" });
-        return;
-      }
-
-      setEphemeralState({ type: "none" });
-      setMode({ mode: Mode.NONE });
-    },
+    exit: exitMode,
   };
 }
