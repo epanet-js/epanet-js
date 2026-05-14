@@ -4,6 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom } from "src/state/selection";
 import { tabAtom, TabOption } from "src/state/layout";
 import { Mode, modeAtom } from "src/state/mode";
+import { ephemeralStateAtom } from "src/state/drawing";
 import { USelection } from "src/selection/selection";
 import type { Sel } from "src/selection/types";
 import { ProfileLink, ProfilePoint } from "./chart-data";
@@ -31,7 +32,9 @@ export function useChartClick({
   const selection = useAtomValue(selectionAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setTab = useSetAtom(tabAtom);
+  const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
+  const setEphemeralState = useSetAtom(ephemeralStateAtom);
 
   const depsRef = useRef({
     points,
@@ -39,7 +42,9 @@ export function useChartClick({
     selection,
     setSelection,
     setTab,
+    mode,
     setMode,
+    setEphemeralState,
     sldVisibility,
   });
   depsRef.current = {
@@ -48,7 +53,9 @@ export function useChartClick({
     selection,
     setSelection,
     setTab,
+    mode,
     setMode,
+    setEphemeralState,
     sldVisibility,
   };
 
@@ -108,6 +115,9 @@ export function useChartClick({
           : USelection.toggleSingleSelectionId(deps.selection, id);
         deps.setSelection(next);
         deps.setTab(TabOption.Asset);
+        if (deps.mode === Mode.PROFILE_VIEW) {
+          deps.setEphemeralState({ type: "none" });
+        }
         deps.setMode({ mode: Mode.NONE });
       };
 
