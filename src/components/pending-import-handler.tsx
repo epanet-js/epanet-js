@@ -52,9 +52,7 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
-async function idbGetAndDelete(
-  key: string,
-): Promise<PendingEntry | undefined> {
+async function idbGetAndDelete(key: string): Promise<PendingEntry | undefined> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");

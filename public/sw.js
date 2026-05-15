@@ -14,8 +14,7 @@ self.addEventListener("fetch", (event) => {
 async function handleImport(request) {
   const formData = await request.formData();
   const file = formData.get("model");
-  const name =
-    formData.get("name") || (file && file.name) || "Untitled.inp";
+  const name = formData.get("name") || (file && file.name) || "Untitled.inp";
   const source = formData.get("source") || "unknown";
 
   const content = typeof file === "string" ? file : await file.text();
