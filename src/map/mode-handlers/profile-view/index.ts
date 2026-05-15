@@ -151,13 +151,7 @@ export function useProfileViewHandlers(
 
     const isExtendForbidden =
       extendable && currentAnchors.length >= 1 && previewPath === undefined;
-    setCursor(
-      hoveredNodeId === undefined
-        ? ""
-        : isExtendForbidden
-          ? "not-allowed"
-          : "pointer",
-    );
+    setCursor(isExtendForbidden ? "not-allowed" : "");
   }, 16);
 
   return {
