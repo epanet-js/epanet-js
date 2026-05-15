@@ -24,31 +24,26 @@ export const ExportSimulationResultsProgressDialog = ({
   const displayProgress = highWaterMark.current;
 
   const isSaving = displayProgress >= 100 && !isComplete;
-  const statusText = (() => {
-    if (isComplete) {
-      return translate("exportTimeSeries.complete");
-    }
-
-    if (isSaving) {
-      return translate("exportTimeSeries.savingFiles");
-    }
-
-    if (!currentProperty) {
-      return translate(
-        "exportTimeSeries.inProgress",
-        String(Math.trunc(displayProgress)),
-      );
-    }
-
+  const percentText = translate(
+    "exportTimeSeries.inProgress",
+    String(Math.trunc(displayProgress)),
+  );
+  const propertyText = (() => {
+    if (!currentProperty || isComplete || isSaving) return null;
     return translate(
       "exportTimeSeries.inProgressWithProperty",
-      String(Math.trunc(displayProgress)),
       translate(
         currentProperty === "waterQuality"
           ? "simulationSettings.waterQuality"
           : currentProperty,
       ).toLocaleLowerCase(),
     );
+  })();
+  const statusText = (() => {
+    if (isComplete) return translate("exportTimeSeries.complete");
+    if (isSaving) return translate("exportTimeSeries.savingFiles");
+    if (!propertyText) return percentText;
+    return null;
   })();
 
   return (
@@ -76,7 +71,14 @@ export const ExportSimulationResultsProgressDialog = ({
       <div className="p-4 space-y-2">
         <p className="tabular-nums text-sm text-gray-700 flex items-center gap-1.5">
           {isComplete && <SuccessIcon className="text-green-600 shrink-0" />}
-          {statusText}
+          {propertyText ? (
+            <>
+              <span>{propertyText}</span>
+              <span className="ml-auto">{percentText}</span>
+            </>
+          ) : (
+            statusText
+          )}
         </p>
         {!isComplete && (
           <Progress.Root
