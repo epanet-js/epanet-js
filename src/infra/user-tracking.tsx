@@ -1205,6 +1205,32 @@ export type UserEvent =
   | { name: "profileView.selectionStarted"; source: string }
   | { name: "profileView.closed"; source: string }
   | {
+      name: "profileView.pathCreated";
+      anchorCount: number;
+      nodeCount: number;
+      linkCount: number;
+      totalLength: number;
+      hasSimulationResults: boolean;
+      simulationStatus: SimulationState["status"];
+    }
+  | {
+      name: "profileView.pathExtended";
+      anchorCount: number;
+      nodeCount: number;
+      linkCount: number;
+      totalLength: number;
+      hasSimulationResults: boolean;
+      simulationStatus: SimulationState["status"];
+    }
+  | {
+      name: "profileView.assetSelectedFromChart";
+      kind: "node" | "link";
+      assetType: Asset["type"];
+      grid: "main" | "sld";
+    }
+  | { name: "profileView.selectionCancelled"; anchorCount: number }
+  | { name: "profileView.pathBroken"; anchorCount: number }
+  | {
       name: "simulationSetting.changed";
       settingName: string;
       newValue: number;

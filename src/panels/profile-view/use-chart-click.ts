@@ -7,6 +7,7 @@ import { Mode, modeAtom } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { USelection } from "src/selection/selection";
 import type { Sel } from "src/selection/types";
+import { useUserTracking } from "src/infra/user-tracking";
 import { ProfileLink, ProfilePoint } from "./chart-data";
 import { findLinkAt } from "./tooltip-data";
 import { isNearMainPlotLine, pickSldSnap } from "./snap";
@@ -35,6 +36,7 @@ export function useChartClick({
   const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
+  const userTracking = useUserTracking();
 
   const depsRef = useRef({
     points,
@@ -46,6 +48,7 @@ export function useChartClick({
     setMode,
     setEphemeralState,
     sldVisibility,
+    userTracking,
   });
   depsRef.current = {
     points,
@@ -57,6 +60,7 @@ export function useChartClick({
     setMode,
     setEphemeralState,
     sldVisibility,
+    userTracking,
   };
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export function useChartClick({
       /* eslint-enable */
 
       const shift = e.shiftKey;
+      const grid: "main" | "sld" = inSldGrid ? "sld" : "main";
 
       const selectAsset = (id: number) => {
         const next: Sel = shift
@@ -122,12 +127,25 @@ export function useChartClick({
       };
 
       if (snap?.kind === "link") {
+        deps.userTracking.capture({
+          name: "profileView.assetSelectedFromChart",
+          kind: "link",
+          assetType: snap.link.type,
+          grid,
+        });
         selectAsset(snap.link.linkId);
         return;
       }
 
       if (snap?.kind === "node") {
-        selectAsset(deps.points[snap.index].nodeId);
+        const point = deps.points[snap.index];
+        deps.userTracking.capture({
+          name: "profileView.assetSelectedFromChart",
+          kind: "node",
+          assetType: point.nodeType,
+          grid,
+        });
+        selectAsset(point.nodeId);
         return;
       }
 
@@ -139,6 +157,12 @@ export function useChartClick({
         (inMainGrid && isNearMainPlotLine(chart, cursorX, py, deps.points));
       if (!isOverSelectable) return;
 
+      deps.userTracking.capture({
+        name: "profileView.assetSelectedFromChart",
+        kind: "link",
+        assetType: link.type,
+        grid,
+      });
       selectAsset(link.linkId);
     };
 

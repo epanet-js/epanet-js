@@ -1,14 +1,28 @@
 "use client";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { profileViewAtom } from "src/state/profile-view";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useProfileViewData, ProfileViewData } from "./chart-data";
 import { ChartContainer } from "./chart-container";
 
 export const ProfileViewPanel = memo(function ProfileViewPanel() {
   const data = useProfileViewData();
   const snapshot = useAtomValue(profileViewAtom);
+  const userTracking = useUserTracking();
+  const previousPhaseRef = useRef<ProfileViewData["phase"] | null>(null);
+
+  useEffect(() => {
+    const previousPhase = previousPhaseRef.current;
+    previousPhaseRef.current = data.phase;
+    if (data.phase === "pathBroken" && previousPhase !== "pathBroken") {
+      userTracking.capture({
+        name: "profileView.pathBroken",
+        anchorCount: snapshot?.anchors.length ?? 0,
+      });
+    }
+  }, [data.phase, snapshot, userTracking]);
 
   const showChart = data.phase === "showingProfile" && data.points.length > 0;
 

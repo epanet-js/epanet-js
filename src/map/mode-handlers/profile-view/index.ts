@@ -13,7 +13,11 @@ import { buildProfileView } from "src/panels/profile-view/build-profile-view";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
-import { simulationResultsDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  simulationResultsDerivedAtom,
+} from "src/state/derived-branch-state";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function useProfileViewHandlers(
   handlerContext: HandlerContext,
@@ -29,6 +33,7 @@ export function useProfileViewHandlers(
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
   const setMode = useSetAtom(modeAtom);
+  const userTracking = useUserTracking();
 
   const previewPathCacheRef = useRef<{
     anchorsKey: string;
@@ -56,6 +61,12 @@ export function useProfileViewHandlers(
   };
 
   const exitMode = () => {
+    if (store.get(profileViewAtom) === null) {
+      userTracking.capture({
+        name: "profileView.selectionCancelled",
+        anchorCount: getCurrentAnchors().length,
+      });
+    }
     setCursor("");
     setEphemeralState({ type: "none" });
     setMode({ mode: Mode.NONE });
@@ -83,6 +94,21 @@ export function useProfileViewHandlers(
       results,
     });
     if ("error" in built) return;
+
+    const hadProfileView = store.get(profileViewAtom) !== null;
+    const simulation = store.get(simulationDerivedAtom);
+    userTracking.capture({
+      name: hadProfileView
+        ? "profileView.pathExtended"
+        : "profileView.pathCreated",
+      anchorCount: candidate.length,
+      nodeCount: built.path.nodeIds.length,
+      linkCount: built.path.linkIds.length,
+      totalLength: built.path.totalLength,
+      hasSimulationResults:
+        "epsResultsReader" in simulation && !!simulation.epsResultsReader,
+      simulationStatus: simulation.status,
+    });
 
     setProfileView(built.profileView);
     setEphemeralState({ type: "profileView" });
