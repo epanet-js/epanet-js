@@ -18,7 +18,7 @@ export function DisabledMenuAction({
   return (
     <div className="relative">
       <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
-        <div className="h-10 opacity-60 cursor-not-allowed group bn flex items-stretch py-1 focus:outline-none">
+        <div className="h-8 opacity-60 cursor-not-allowed group bn flex items-stretch  focus:outline-none">
           <Tooltip.Trigger asChild>
             <Button
               variant={"quiet/mode"}
@@ -82,9 +82,9 @@ export default function MenuAction({
     <div className="relative">
       <Tooltip.Root open={open} onOpenChange={setOpen} delayDuration={200}>
         <div
-          className={`h-10 ${expanded ? "" : "w-8"} ${
+          className={`h-8 ${expanded ? "" : "w-8"} ${
             disabled ? "opacity-60 cursor-not-allowed" : ""
-          } group bn flex items-stretch py-1 focus:outline-none`}
+          } group bn flex items-stretch focus:outline-none`}
         >
           <Tooltip.Trigger asChild>
             <Button

@@ -67,8 +67,10 @@ export const DRAWING_MODE_OPTIONS: readonly DrawingModeOption[] = [
 
 export default memo(function Modes({
   disabled = false,
+  vertical = false,
 }: {
   disabled?: boolean;
+  vertical?: boolean;
 }) {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setDrawingMode = useDrawingMode();
@@ -78,7 +80,14 @@ export default memo(function Modes({
   const isLgOrLarger = useBreakpoint("lg");
 
   return (
-    <div className="flex items-center justify-start" role="radiogroup">
+    <div
+      className={
+        vertical
+          ? "flex flex-col items-center"
+          : "flex items-center justify-start"
+      }
+      role="radiogroup"
+    >
       <MenuAction
         role="radio"
         key={Mode.NONE}

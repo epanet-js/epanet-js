@@ -55,7 +55,6 @@ import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { useTranslate } from "src/hooks/use-translate";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
-import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -420,7 +419,6 @@ export const MapCanvas = memo(function MapCanvas({
       <Hints />
       <SatelliteToggle />
       <SatelliteResolutionMessage zoom={currentZoom} />
-      <PipeDrawingFloatingPanel />
     </CM.Root>
   );
 });

@@ -17,7 +17,6 @@ import {
   PanelRightIcon,
   SearchIcon,
 } from "src/icons";
-import Modes from "./modes";
 import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
@@ -173,12 +172,6 @@ export const Toolbar = ({
             >
               <RedoIcon />
             </MenuAction>
-            <Divider />
-          </>
-        )}
-        {isSmOrLarger && (
-          <>
-            <Modes disabled={readonly} />
             <Divider />
           </>
         )}

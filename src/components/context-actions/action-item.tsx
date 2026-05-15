@@ -51,7 +51,7 @@ export function ActionItem({
   ) : (
     <Tooltip.Root>
       <div
-        className="h-10 w-8 py-1
+        className="h-8 w-8 
           group bn
           flex items-stretch justify-center focus:outline-none"
       >

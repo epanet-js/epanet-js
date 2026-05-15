@@ -67,20 +67,12 @@ export const PipeDrawingFloatingPanel = () => {
   const roughnessDisplay = displayValue(currentRoughness, "roughness");
 
   return (
-    <div
-      className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20
-                 bg-white dark:bg-gray-900
-                 shadow-lg rounded-md
-                 p-3
-                 border border-gray-200 dark:border-gray-700
-                 hidden md:flex flex-col lg:flex-row gap-x-6 gap-y-1
-                 "
-    >
+    <div className="hidden md:flex flex-row gap-x-4 items-center p-1">
       <div className="flex gap-x-2 items-center">
         <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {diameterLabel}
         </label>
-        <div className="w-[4.5rem]">
+        <div className="w-[4rem]">
           <NumericField
             key={lastDiameterChange.current + diameterDisplay}
             label={diameterLabel}
@@ -89,7 +81,7 @@ export const PipeDrawingFloatingPanel = () => {
             displayValue={diameterDisplay}
             onChangeValue={handleDiameterChange}
             styleOptions={{
-              padding: "md",
+              padding: "sm",
               textSize: "sm",
             }}
           />
@@ -99,7 +91,7 @@ export const PipeDrawingFloatingPanel = () => {
         <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {roughnessLabel}
         </label>
-        <div className="w-[4.5rem]">
+        <div className="w-[4rem]">
           <NumericField
             key={lastRoughnessChange.current + roughnessDisplay}
             label={roughnessLabel}
@@ -108,7 +100,7 @@ export const PipeDrawingFloatingPanel = () => {
             displayValue={roughnessDisplay}
             onChangeValue={handleRoughnessChange}
             styleOptions={{
-              padding: "md",
+              padding: "sm",
               textSize: "sm",
             }}
           />

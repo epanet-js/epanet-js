@@ -42,6 +42,7 @@ import { Legends } from "./legends";
 import { TimestepSelector } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
+import { MapToolbar } from "src/toolbar/map-toolbar";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
@@ -180,6 +181,7 @@ export function EpanetApp() {
         >
           {layout === "HORIZONTAL" && <LeftSidePanel />}
           <div className="flex-auto flex flex-col relative min-w-0">
+            <MapToolbar disabled={isEditionBlocked} />
             <DndContext
               sensors={sensor}
               modifiers={[restrictToWindowEdges]}
