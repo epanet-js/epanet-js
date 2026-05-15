@@ -226,6 +226,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
       onSelectionChange,
       variant: "spreadsheet" as const,
       readOnly,
+      autoAddNewRows: true,
     };
 
     return (
