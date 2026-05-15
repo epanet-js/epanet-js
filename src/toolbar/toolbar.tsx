@@ -24,6 +24,8 @@ import { commandBarOpenAtom } from "src/state/command-bar";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
+  canRedoDerivedAtom,
+  canUndoDerivedAtom,
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -85,6 +87,8 @@ export const Toolbar = ({
 
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
+  const canUndo = useAtomValue(canUndoDerivedAtom);
+  const canRedo = useAtomValue(canRedoDerivedAtom);
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
 
@@ -150,7 +154,7 @@ export const Toolbar = ({
                 void undo();
               }}
               readOnlyHotkey={"ctrl+z"}
-              disabled={readonly}
+              disabled={readonly || !canUndo}
             >
               <UndoIcon />
             </MenuAction>
@@ -165,7 +169,7 @@ export const Toolbar = ({
                 void redo();
               }}
               readOnlyHotkey={"ctrl+y"}
-              disabled={readonly}
+              disabled={readonly || !canRedo}
             >
               <RedoIcon />
             </MenuAction>
