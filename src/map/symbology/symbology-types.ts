@@ -4,6 +4,8 @@ import { RangeColorRule } from "./range-color-rule";
 export const supportedNodeProperties = [
   "elevation",
   "pressure",
+  "minPressure",
+  "maxPressure",
   "actualDemand",
   "head",
   "waterAge",

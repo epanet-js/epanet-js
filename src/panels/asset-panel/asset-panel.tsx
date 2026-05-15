@@ -109,6 +109,7 @@ import {
 } from "src/hydraulic-model/model-operations";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 import { Unit } from "src/quantity";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
@@ -392,6 +393,7 @@ const JunctionEditor = ({
   } = useAssetComparison(junction);
   const simulation = useSimulation();
   const junctionSimulation = simulation?.getJunction(junction.id);
+  const pressureStatsOn = useFeatureFlag("FLAG_PRESSURE_STATS");
 
   const simPressure = junctionSimulation?.pressure ?? null;
   const simHead = junctionSimulation?.head ?? null;
@@ -572,6 +574,22 @@ const JunctionEditor = ({
           unit={units.pressure}
           readOnly={true}
         />
+        {pressureStatsOn && (
+          <QuantityRow
+            name="minPressure"
+            value={junctionSimulation?.minPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
+        {pressureStatsOn && (
+          <QuantityRow
+            name="maxPressure"
+            value={junctionSimulation?.maxPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
         <QuantityRow
           name="head"
           value={simHead}
@@ -939,6 +957,7 @@ const ReservoirEditor = ({
     useAssetComparison(reservoir);
   const simulation = useSimulation();
   const reservoirSimulation = simulation?.getReservoir(reservoir.id);
+  const pressureStatsOn = useFeatureFlag("FLAG_PRESSURE_STATS");
 
   const simPressure = reservoirSimulation?.pressure ?? null;
   const simHead = reservoirSimulation?.head ?? null;
@@ -1036,6 +1055,22 @@ const ReservoirEditor = ({
           unit={units.pressure}
           readOnly={true}
         />
+        {pressureStatsOn && (
+          <QuantityRow
+            name="minPressure"
+            value={reservoirSimulation?.minPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
+        {pressureStatsOn && (
+          <QuantityRow
+            name="maxPressure"
+            value={reservoirSimulation?.maxPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
         <QuantityRow
           name="head"
           value={simHead}
@@ -1100,6 +1135,7 @@ const TankEditor = ({
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
   const simulation = useSimulation();
   const tankSimulation = simulation?.getTank(tank.id);
+  const pressureStatsOn = useFeatureFlag("FLAG_PRESSURE_STATS");
 
   const mixingModelOptions = useMemo(
     () =>
@@ -1261,6 +1297,22 @@ const TankEditor = ({
           unit={units.pressure}
           readOnly={true}
         />
+        {pressureStatsOn && (
+          <QuantityRow
+            name="minPressure"
+            value={tankSimulation?.minPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
+        {pressureStatsOn && (
+          <QuantityRow
+            name="maxPressure"
+            value={tankSimulation?.maxPressure ?? null}
+            unit={units.pressure}
+            readOnly={true}
+          />
+        )}
         <QuantityRow
           name="head"
           value={simHead}

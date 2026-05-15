@@ -68,6 +68,18 @@ export const defaultPropertyColorConfigs: PropertyColorConfigMap = {
     reversedRamp: false,
     numIntervals: 5,
   },
+  minPressure: {
+    rampName: "Temps",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
+  maxPressure: {
+    rampName: "Temps",
+    mode: "prettyBreaks",
+    reversedRamp: false,
+    numIntervals: 5,
+  },
   actualDemand: {
     rampName: "Emrld",
     mode: "prettyBreaks",

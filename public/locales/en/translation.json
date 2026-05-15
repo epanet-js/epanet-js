@@ -256,6 +256,8 @@
   "stoppingSimulation": "Stopping...",
   "notAvailable": "Not available",
   "pressure": "Pressure",
+  "minPressure": "Min pressure",
+  "maxPressure": "Max pressure",
   "pressures": "Pressures",
   "level": "Level",
   "volume": "Volume",

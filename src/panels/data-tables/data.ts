@@ -71,6 +71,8 @@ function buildSimRow(
       const sim = simulation.getJunction(assetId);
       return {
         sim_pressure: sim?.pressure ?? null,
+        sim_minPressure: sim?.minPressure ?? null,
+        sim_maxPressure: sim?.maxPressure ?? null,
         sim_head: sim?.head ?? null,
         sim_demand: sim?.demand ?? null,
         ...qualityFields(sim),
@@ -118,6 +120,8 @@ function buildSimRow(
       const r = simulation.getReservoir(assetId);
       return {
         sim_pressure: r?.pressure ?? null,
+        sim_minPressure: r?.minPressure ?? null,
+        sim_maxPressure: r?.maxPressure ?? null,
         sim_head: r?.head ?? null,
         sim_netFlow: r?.netFlow ?? null,
         ...qualityFields(r),
@@ -127,6 +131,8 @@ function buildSimRow(
       const sim = simulation.getTank(assetId);
       return {
         sim_pressure: sim?.pressure ?? null,
+        sim_minPressure: sim?.minPressure ?? null,
+        sim_maxPressure: sim?.maxPressure ?? null,
         sim_head: sim?.head ?? null,
         sim_level: sim?.level ?? null,
         sim_volume: sim?.volume ?? null,

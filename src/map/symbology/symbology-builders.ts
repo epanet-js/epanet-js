@@ -40,6 +40,8 @@ type SymbologyBuilders = {
   unitHeadloss: SymbologyBuilderFn<LinkSymbology>;
   velocity: SymbologyBuilderFn<LinkSymbology>;
   pressure: SymbologyBuilderFn<NodeSymbology>;
+  minPressure: SymbologyBuilderFn<NodeSymbology>;
+  maxPressure: SymbologyBuilderFn<NodeSymbology>;
   actualDemand: SymbologyBuilderFn<NodeSymbology>;
   elevation: SymbologyBuilderFn<NodeSymbology>;
   head: SymbologyBuilderFn<NodeSymbology>;
@@ -124,6 +126,28 @@ export const symbologyBuilders: SymbologyBuilders = {
       property: "pressure",
       unit: units.pressure,
       ...defaults.pressure,
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
+
+  minPressure: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "minPressure",
+      unit: units.pressure,
+      ...defaults.minPressure,
+      fallbackEndpoints: [0, 100],
+      sortedData,
+    });
+    return { ...nullSymbologySpec.node, colorRule, labelRule: nullLabelRule };
+  },
+
+  maxPressure: (units, sortedData): NodeSymbology => {
+    const colorRule = initializeColorRule({
+      property: "maxPressure",
+      unit: units.pressure,
+      ...defaults.maxPressure,
       fallbackEndpoints: [0, 100],
       sortedData,
     });
