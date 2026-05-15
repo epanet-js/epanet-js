@@ -103,8 +103,11 @@ export const ExportSimulationResultsDialog = ({
     unitHeadloss: true,
   });
 
-  const nodeCheckedCount = Object.values(nodeFields).filter(Boolean).length;
-  const nodeTotal = Object.keys(nodeFields).length;
+  const enabledNodeFields = Object.entries(nodeFields).filter(
+    ([key]) => key !== "waterQuality" || isWaterQualityEnabled,
+  );
+  const nodeCheckedCount = enabledNodeFields.filter(([, v]) => v).length;
+  const nodeTotal = enabledNodeFields.length;
   const nodeAllChecked = nodeCheckedCount === nodeTotal;
   const nodeIndeterminate = nodeCheckedCount > 0 && !nodeAllChecked;
 
