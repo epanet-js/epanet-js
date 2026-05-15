@@ -107,6 +107,8 @@ export const setInitialState = (
           epsResultsReader: {
             timestepCount: 1,
             getResultsForTimestep: () => Promise.resolve(simulationResults),
+            getHeadRangesForNodes: (ids: unknown[]) =>
+              ids.map(() => [Infinity, -Infinity] as [number, number]),
           },
         } as unknown as SimulationState)
       : simulation;
