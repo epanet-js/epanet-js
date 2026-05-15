@@ -6,13 +6,11 @@ export const STRIP_GRID_TOP = 8;
 export const STRIP_GRID_HEIGHT = 30;
 const STRIP_PROFILE_GAP = 4;
 const SIMULATION_TOP_PADDING = 0;
-const GRID_RIGHT = 24;
-const GRID_LEFT = 36;
-const GRID_BOTTOM = 20;
-const X_AXIS_NAME_GAP = 22;
-const Y_AXIS_LABEL_CHAR_WIDTH = 7;
-const Y_AXIS_LABEL_MARGIN = 8;
-const Y_AXIS_NAME_BUFFER = 8;
+const CHART_PADDING = 18;
+const Y_AXIS_TICK_LENGTH = 14;
+const X_AXIS_TICK_LENGTH = 8;
+export const Y_AXIS_LABEL_MARGIN = 22;
+export const X_AXIS_LABEL_MARGIN = 14;
 const SPLIT_LINE_COLOR = "#e5e7eb";
 const AXIS_POINTER_COLOR = "#9ca3af";
 
@@ -35,8 +33,6 @@ export type ProfileChartOptionParams = {
   profileGridTop: number;
   zoomStart?: number;
   zoomEnd?: number;
-  xAxisName: string;
-  yAxisName: string;
   lengthDecimals: number;
   elevationDecimals: number;
 };
@@ -51,8 +47,6 @@ export function buildProfileChartOption({
   profileGridTop,
   zoomStart = 0,
   zoomEnd = 100,
-  xAxisName,
-  yAxisName,
   lengthDecimals,
   elevationDecimals,
 }: ProfileChartOptionParams): EChartsOption {
@@ -72,17 +66,6 @@ export function buildProfileChartOption({
   const formatElevation = (val: number) =>
     localizeDecimal(val, { decimals: elevationDecimals });
 
-  const yLabelMagnitude = Math.max(
-    Math.abs(Math.round(yMin)),
-    Math.abs(Math.round(yMax)),
-  );
-  const yLabelSample = localizeDecimal(yLabelMagnitude, {
-    decimals: elevationDecimals,
-  });
-  const yLabelWidthEst = yLabelSample.length * Y_AXIS_LABEL_CHAR_WIDTH;
-  const yAxisNameGap =
-    yLabelWidthEst + Y_AXIS_LABEL_MARGIN + Y_AXIS_NAME_BUFFER;
-
   const yMinRounded = Math.round(yMin);
   const yMaxRounded = Math.round(yMax);
   const yIntervalRounded = Math.round(yInterval);
@@ -92,16 +75,16 @@ export function buildProfileChartOption({
     grid: [
       {
         top: profileGridTop,
-        right: GRID_RIGHT,
-        bottom: GRID_BOTTOM,
-        left: GRID_LEFT,
+        right: CHART_PADDING,
+        bottom: CHART_PADDING,
+        left: CHART_PADDING,
         containLabel: true,
       },
       {
         top: STRIP_GRID_TOP,
         height: STRIP_GRID_HEIGHT,
-        right: GRID_RIGHT,
-        left: GRID_LEFT,
+        right: CHART_PADDING,
+        left: CHART_PADDING,
         containLabel: true,
       },
     ],
@@ -110,13 +93,14 @@ export function buildProfileChartOption({
         type: "value",
         min: 0,
         max: xMax,
-        name: xAxisName,
-        nameLocation: "middle",
-        nameGap: X_AXIS_NAME_GAP,
         splitLine: { show: true, lineStyle: { color: SPLIT_LINE_COLOR } },
-        axisTick: { customValues: xTickPositions } as any,
+        axisTick: {
+          length: X_AXIS_TICK_LENGTH,
+          customValues: xTickPositions,
+        } as any,
         axisLabel: {
           hideOverlap: true,
+          margin: X_AXIS_LABEL_MARGIN,
           customValues: xTickPositions,
           formatter: formatLength,
         } as any,
@@ -137,11 +121,12 @@ export function buildProfileChartOption({
         min: yMinRounded,
         max: yMaxRounded,
         interval: yIntervalRounded,
-        name: yAxisName,
-        nameLocation: "middle",
-        nameGap: yAxisNameGap,
-        nameRotate: 90,
-        axisLabel: { fontSize: 12, formatter: formatElevation },
+        axisTick: { length: Y_AXIS_TICK_LENGTH },
+        axisLabel: {
+          fontSize: 12,
+          margin: Y_AXIS_LABEL_MARGIN,
+          formatter: formatElevation,
+        },
       },
       {
         gridIndex: 1,
@@ -155,6 +140,7 @@ export function buildProfileChartOption({
         axisLabel: {
           fontSize: 12,
           color: "transparent",
+          margin: Y_AXIS_LABEL_MARGIN,
           formatter: formatElevation,
         },
       },

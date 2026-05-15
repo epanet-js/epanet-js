@@ -7,7 +7,12 @@ import { useAtomValue, useSetAtom } from "jotai";
 import debounce from "lodash/debounce";
 import { ProfileViewData } from "./chart-data";
 import { ProfileContextMenu } from "./profile-context-menu";
-import { buildProfileChartOption, profileGridTopOffset } from "./chart-options";
+import {
+  X_AXIS_LABEL_MARGIN,
+  Y_AXIS_LABEL_MARGIN,
+  buildProfileChartOption,
+  profileGridTopOffset,
+} from "./chart-options";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
@@ -55,7 +60,6 @@ export const ChartContainer = memo(function ChartContainer({
     hasSimulation,
     pressureFactor,
     elevationUnit,
-    lengthUnit,
     pressureUnit,
     elevationDecimals,
     pressureDecimals,
@@ -162,6 +166,8 @@ export const ChartContainer = memo(function ChartContainer({
     top: number;
     height: number;
     stripWidth: number;
+    mainLeft: number;
+    mainBottom: number;
   } | null>(null);
 
   const sldVisibility = useMemo(
@@ -208,15 +214,9 @@ export const ChartContainer = memo(function ChartContainer({
     ],
   );
 
-  const lengthUnitLabel = translateUnit(lengthUnit);
   const elevationUnitLabel = translateUnit(elevationUnit);
   const pressureUnitLabel = translateUnit(pressureUnit);
-  const xAxisName = lengthUnitLabel
-    ? `${translate("profileView.distance")} (${lengthUnitLabel})`
-    : translate("profileView.distance");
-  const yAxisName = elevationUnitLabel
-    ? `${translate("profileView.elevation")} (${elevationUnitLabel})`
-    : translate("profileView.elevation");
+  const unitLabel = elevationUnitLabel;
 
   const option: EChartsOption = useMemo(
     () =>
@@ -231,8 +231,6 @@ export const ChartContainer = memo(function ChartContainer({
           profileGridTop,
           zoomStart: zoomRef.current.start,
           zoomEnd: zoomRef.current.end,
-          xAxisName,
-          yAxisName,
           lengthDecimals,
           elevationDecimals,
         }),
@@ -244,8 +242,6 @@ export const ChartContainer = memo(function ChartContainer({
       totalLength,
       yAxisRange,
       profileGridTop,
-      xAxisName,
-      yAxisName,
       lengthDecimals,
       elevationDecimals,
     ],
@@ -276,15 +272,19 @@ export const ChartContainer = memo(function ChartContainer({
     const top = stripRect.y;
     const height = mainRect.y + mainRect.height - top;
     const stripWidth = stripRect.width;
+    const mainLeft = mainRect.x;
+    const mainBottom = mainRect.y + mainRect.height;
     setFadeBounds((prev) =>
       prev &&
       prev.left === left &&
       prev.right === right &&
       prev.top === top &&
       prev.height === height &&
-      prev.stripWidth === stripWidth
+      prev.stripWidth === stripWidth &&
+      prev.mainLeft === mainLeft &&
+      prev.mainBottom === mainBottom
         ? prev
-        : { left, right, top, height, stripWidth },
+        : { left, right, top, height, stripWidth, mainLeft, mainBottom },
     );
     /* eslint-enable */
   }, [totalLength]);
@@ -419,6 +419,24 @@ export const ChartContainer = memo(function ChartContainer({
                 height: fadeBounds.height,
               }}
             />
+          )}
+          {fadeBounds && unitLabel && (
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                top: fadeBounds.mainBottom + X_AXIS_LABEL_MARGIN - 2,
+                left: 0,
+                width: fadeBounds.mainLeft - Y_AXIS_LABEL_MARGIN,
+                textAlign: "right",
+                fontSize: 12,
+                lineHeight: 1,
+                color: "#374151",
+                pointerEvents: "none",
+              }}
+            >
+              {unitLabel}
+            </div>
           )}
           <ProfileTooltip
             state={isContextMenuOpen ? null : cursorState}
