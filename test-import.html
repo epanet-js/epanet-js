@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>epanet-js import test</title>
+  <style>
+    body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    label, input, button { display: block; margin: 12px 0; }
+    input[type="file"] { padding: 8px 0; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    .note { color: #666; font-size: 14px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>epanet-js import test</h1>
+  <p>Pick an INP file and POST it to the local epanet-js app.</p>
+
+  <form id="importForm" method="POST" enctype="multipart/form-data" target="_blank">
+    <label>Target URL:
+      <input type="url" id="target" value="http://localhost:3000/import" size="50">
+    </label>
+    <label>INP file:
+      <input type="file" name="model" accept=".inp,.txt" required>
+    </label>
+    <label>Source label:
+      <input type="text" name="source" value="test-page">
+    </label>
+    <button type="submit">Open in epanet-js</button>
+  </form>
+
+  <p class="note">
+    Make sure epanet-js is running at the target URL and you've visited it once
+    so the service worker is registered. The form opens a new tab with the imported model.
+  </p>
+
+  <script>
+    document.getElementById('importForm').addEventListener('submit', (e) => {
+      const target = document.getElementById('target').value;
+      e.target.action = target;
+    });
+  </script>
+</body>
+</html>

@@ -55,6 +55,7 @@ import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
+import { PendingImportHandler } from "./pending-import-handler";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
 import { AppLoader } from "./app-loader";
@@ -222,6 +223,7 @@ export function EpanetApp() {
           <SimulationPlaybackController />
         </Suspense>
         <Notifications />
+        <PendingImportHandler />
         <Footer />
       </MapContext.Provider>
       <TabCloseGuard />

@@ -1,4 +1,5 @@
 import "src/styles/globals.css";
+import { RegisterServiceWorker } from "src/components/register-service-worker";
 
 export default function RootLayout({
   children,
@@ -18,7 +19,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <RegisterServiceWorker />
+        {children}
+      </body>
     </html>
   );
 }
