@@ -86,6 +86,28 @@ export function useChartCursor({
       { leading: false, trailing: true },
     );
 
+    const getActiveZone = (chart: any) => {
+      /* eslint-disable @typescript-eslint/no-unsafe-call,
+         @typescript-eslint/no-unsafe-member-access,
+         @typescript-eslint/no-unsafe-assignment,
+         @typescript-eslint/no-unsafe-return */
+      const model = chart.getModel?.();
+      const stripRect = model
+        ?.getComponent?.("grid", 1)
+        ?.coordinateSystem?.getRect?.();
+      const mainRect = model
+        ?.getComponent?.("grid", 0)
+        ?.coordinateSystem?.getRect?.();
+      if (!stripRect || !mainRect) return null;
+      return {
+        x0: mainRect.x as number,
+        x1: (mainRect.x + mainRect.width) as number,
+        y0: stripRect.y as number,
+        y1: (mainRect.y + mainRect.height) as number,
+      };
+      /* eslint-enable */
+    };
+
     const handleMove = (e: MouseEvent) => {
       const chart = chartRef.current;
       if (!chart) return;
@@ -95,6 +117,23 @@ export function useChartCursor({
       /* eslint-disable @typescript-eslint/no-unsafe-call,
          @typescript-eslint/no-unsafe-member-access,
          @typescript-eslint/no-unsafe-assignment */
+      const zone = getActiveZone(chart);
+      if (
+        !zone ||
+        px < zone.x0 ||
+        px > zone.x1 ||
+        py < zone.y0 ||
+        py > zone.y1
+      ) {
+        chart.dispatchAction({
+          type: "updateAxisPointer",
+          currTrigger: "leave",
+        });
+        chart.getZr().setCursorStyle("default");
+        setCursorState(null);
+        scheduleHover(null);
+        return;
+      }
       const result =
         chart.convertFromPixel({ gridIndex: 0 }, [px, py]) ??
         chart.convertFromPixel({ seriesIndex: 0 }, [px, py]);
