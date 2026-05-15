@@ -287,6 +287,8 @@ export type SimulationData = {
       pressure: number;
       head: number;
       demand: number;
+      minPressure: number;
+      maxPressure: number;
       waterAge: number | null;
       waterTrace: number | null;
       chemicalConcentration: number | null;
@@ -325,6 +327,8 @@ export type SimulationData = {
       netFlow: number;
       level: number;
       volume: number;
+      minPressure: number;
+      maxPressure: number;
       waterAge: number | null;
       waterTrace: number | null;
       chemicalConcentration: number | null;
@@ -336,6 +340,8 @@ export type SimulationData = {
       pressure: number;
       head: number;
       netFlow: number;
+      minPressure: number;
+      maxPressure: number;
       waterAge: number | null;
       waterTrace: number | null;
       chemicalConcentration: number | null;
@@ -364,11 +370,14 @@ export const createMockResultsReader = (
   getJunction: (id) => {
     const sim = data.junctions?.[id];
     if (!sim) return null;
+    const pressure = sim.pressure ?? 0;
     return {
       type: "junction",
-      pressure: sim.pressure ?? 0,
+      pressure,
       head: sim.head ?? 0,
       demand: sim.demand ?? 0,
+      minPressure: sim.minPressure ?? pressure,
+      maxPressure: sim.maxPressure ?? pressure,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
       chemicalConcentration: sim.chemicalConcentration ?? null,
@@ -406,13 +415,16 @@ export const createMockResultsReader = (
   getTank: (id) => {
     const sim = data.tanks?.[id];
     if (!sim) return null;
+    const pressure = sim.pressure ?? 0;
     return {
       type: "tank",
-      pressure: sim.pressure ?? 0,
+      pressure,
       head: sim.head ?? 0,
       netFlow: sim.netFlow ?? 0,
       level: sim.level ?? 0,
       volume: sim.volume ?? 0,
+      minPressure: sim.minPressure ?? pressure,
+      maxPressure: sim.maxPressure ?? pressure,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
       chemicalConcentration: sim.chemicalConcentration ?? null,
@@ -421,11 +433,14 @@ export const createMockResultsReader = (
   getReservoir: (id) => {
     const sim = data.reservoirs?.[id];
     if (!sim) return null;
+    const pressure = sim.pressure ?? 0;
     return {
       type: "reservoir",
-      pressure: sim.pressure ?? 0,
+      pressure,
       head: sim.head ?? 0,
       netFlow: sim.netFlow ?? 0,
+      minPressure: sim.minPressure ?? pressure,
+      maxPressure: sim.maxPressure ?? pressure,
       waterAge: sim.waterAge ?? null,
       waterTrace: sim.waterTrace ?? null,
       chemicalConcentration: sim.chemicalConcentration ?? null,

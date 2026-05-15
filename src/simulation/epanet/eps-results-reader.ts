@@ -14,7 +14,7 @@ import {
   RESULTS_OUT_KEY,
   TANK_VOLUMES_KEY,
   PUMP_STATUS_KEY,
-  HEAD_RANGES_KEY,
+  NODE_STATS_KEY,
 } from "./worker";
 import {
   SimulationMetadata,
@@ -176,6 +176,10 @@ export class EPSResultsReader {
   private metadata: CachedMetadata | null = null;
   private pumpPositionByLinkIndex: Map<number, number> = new Map();
   private pumpEnergy: Float32Array | null = null;
+  private nodeMinHead: Float32Array | null = null;
+  private nodeMaxHead: Float32Array | null = null;
+  private nodeMinPressure: Float32Array | null = null;
+  private nodeMaxPressure: Float32Array | null = null;
 
   constructor(storage: IKeyBufferStore) {
     this.storage = storage;
@@ -190,6 +194,7 @@ export class EPSResultsReader {
       await this.readPumpEnergySection(this.metadata.simulationMetadata);
     this.pumpPositionByLinkIndex = pumpPositionByLinkIndex;
     this.pumpEnergy = pumpEnergy;
+    await this.loadNodeStats(this.metadata.simulationMetadata.nodeCount);
   }
 
   get simulationIds(): SimulationIds {
@@ -409,6 +414,25 @@ export class EPSResultsReader {
     );
   }
 
+  private async loadNodeStats(nodeCount: number): Promise<void> {
+    try {
+      const file = await this.storage.getFile(NODE_STATS_KEY);
+      const blockBytes = nodeCount * FLOAT_SIZE;
+      const [b0, b1, b2, b3] = await Promise.all([
+        file.slice(0, blockBytes).arrayBuffer(),
+        file.slice(blockBytes, blockBytes * 2).arrayBuffer(),
+        file.slice(blockBytes * 2, blockBytes * 3).arrayBuffer(),
+        file.slice(blockBytes * 3, blockBytes * 4).arrayBuffer(),
+      ]);
+      this.nodeMinHead = new Float32Array(b0);
+      this.nodeMaxHead = new Float32Array(b1);
+      this.nodeMinPressure = new Float32Array(b2);
+      this.nodeMaxPressure = new Float32Array(b3);
+    } catch {
+      // File absent for old/single-step simulations — ranges stay null.
+    }
+  }
+
   private _buildTimeSeries(buffer: ArrayBuffer): TimeSeries {
     const { simulationMetadata } = this.metadata!;
     const values = new Float32Array(buffer);
@@ -568,34 +592,22 @@ export class EPSResultsReader {
     return this._buildTimeSeries(values);
   }
 
-  async getHeadRangesForNodes(
-    nodeIds: AssetId[],
-  ): Promise<Array<[number, number]>> {
+  getHeadRangesForNodes(nodeIds: AssetId[]): Array<[number, number]> {
     const empty = (): [number, number] => [Infinity, -Infinity];
 
     if (!this.metadata || nodeIds.length === 0) {
       return nodeIds.map(empty);
     }
 
+    const { nodeMinHead, nodeMaxHead } = this;
+    if (!nodeMinHead || !nodeMaxHead) return nodeIds.map(empty);
+
     const nodeIdToIndex = this.metadata.simulationIds.nodeIdToIndex;
-
-    // The whole file is small (8 bytes per node), so we read it once and
-    // index into it in memory rather than firing one slice read per node.
-    let view: Float32Array;
-    try {
-      const file = await this.storage.getFile(HEAD_RANGES_KEY);
-      const buffer = await file.arrayBuffer();
-      view = new Float32Array(buffer);
-    } catch (err) {
-      captureError(err as Error);
-      return nodeIds.map(empty);
-    }
-
     return nodeIds.map((nodeId) => {
       const nodeIndex = nodeIdToIndex.get(String(nodeId));
       if (nodeIndex === undefined) return empty();
-      const min = view[nodeIndex * 2];
-      const max = view[nodeIndex * 2 + 1];
+      const min = nodeMinHead[nodeIndex];
+      const max = nodeMaxHead[nodeIndex];
       if (min === undefined || max === undefined) return empty();
       return [min, max];
     });
@@ -1023,6 +1035,8 @@ export class EPSResultsReader {
         this.pumpPositionByLinkIndex,
         pumpStatuses,
         this.pumpEnergy,
+        this.nodeMinPressure,
+        this.nodeMaxPressure,
       );
     },
     { name: "SIMULATION:FETCH_STEP_FROM_STORAGE", maxDurationMs: 100 },
@@ -1243,6 +1257,8 @@ class TimestepResultsReader implements ResultsReader {
   private pumpPositionByLinkIndex: Map<number, number>;
   private pumpStatuses: Float32Array | null;
   private pumpEnergy: Float32Array | null;
+  private nodeMinPressure: Float32Array | null;
+  private nodeMaxPressure: Float32Array | null;
 
   constructor(
     view: DataView,
@@ -1253,6 +1269,8 @@ class TimestepResultsReader implements ResultsReader {
     pumpPositionByLinkIndex: Map<number, number>,
     pumpStatuses: Float32Array | null,
     pumpEnergy: Float32Array | null,
+    nodeMinPressure: Float32Array | null,
+    nodeMaxPressure: Float32Array | null,
   ) {
     this.view = view;
     this.simulationMetadata = simulationMetadata;
@@ -1262,6 +1280,8 @@ class TimestepResultsReader implements ResultsReader {
     this.pumpPositionByLinkIndex = pumpPositionByLinkIndex;
     this.pumpStatuses = pumpStatuses;
     this.pumpEnergy = pumpEnergy;
+    this.nodeMinPressure = nodeMinPressure;
+    this.nodeMaxPressure = nodeMaxPressure;
   }
 
   getValve(valveId: number): ValveSimulation | null {
@@ -1331,6 +1351,8 @@ class TimestepResultsReader implements ResultsReader {
       pressure: nodeData.pressure,
       head: nodeData.head,
       demand: nodeData.demand,
+      minPressure: this.nodeMinPressure?.[nodeIndex] ?? nodeData.pressure,
+      maxPressure: this.nodeMaxPressure?.[nodeIndex] ?? nodeData.pressure,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
       chemicalConcentration:
@@ -1391,6 +1413,8 @@ class TimestepResultsReader implements ResultsReader {
       netFlow: nodeData.demand,
       level,
       volume,
+      minPressure: this.nodeMinPressure?.[nodeIndex] ?? nodeData.pressure,
+      maxPressure: this.nodeMaxPressure?.[nodeIndex] ?? nodeData.pressure,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
       chemicalConcentration:
@@ -1410,6 +1434,8 @@ class TimestepResultsReader implements ResultsReader {
       pressure: nodeData.pressure,
       head: nodeData.head,
       netFlow: nodeData.demand,
+      minPressure: this.nodeMinPressure?.[nodeIndex] ?? nodeData.pressure,
+      maxPressure: this.nodeMaxPressure?.[nodeIndex] ?? nodeData.pressure,
       waterAge: qualityType === "age" ? nodeData.quality : null,
       waterTrace: qualityType === "trace" ? nodeData.quality : null,
       chemicalConcentration:
@@ -1516,6 +1542,11 @@ class TimestepResultsReader implements ResultsReader {
   }
 
   getAllValues(property: SimulationProperty): number[] {
+    if (property === "minPressure")
+      return this.nodeMinPressure ? Array.from(this.nodeMinPressure) : [];
+    if (property === "maxPressure")
+      return this.nodeMaxPressure ? Array.from(this.nodeMaxPressure) : [];
+
     const { nodeCount, linkCount } = this.simulationMetadata;
 
     const nodePropertyIndex: Partial<Record<SimulationProperty, number>> = {

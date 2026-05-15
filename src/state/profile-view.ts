@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import { unwrap } from "jotai/utils";
 import { AssetId } from "src/hydraulic-model";
 import { PathData } from "src/hydraulic-model/topology/types";
 import { deriveProfilePath } from "src/panels/profile-view/path-finding";
@@ -9,7 +8,6 @@ import {
   simulationDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
-import { captureError } from "src/infra/error-tracking";
 
 export type { PathData };
 
@@ -45,8 +43,8 @@ export const profilePathAtom = atom<PathData | null>((get) => {
   return deriveProfilePath(model.topology, model.assets, profileView.anchors);
 });
 
-const hglRangesAsyncAtom = atom(
-  async (get): Promise<Map<AssetId, HglRange | null> | null> => {
+export const hglRangesAtom = atom(
+  (get): Map<AssetId, HglRange | null> | null => {
     const path = get(profilePathAtom);
     if (!path) return null;
 
@@ -67,22 +65,15 @@ const hglRangesAsyncAtom = atom(
       nodeIds.push(nodeId);
     }
 
-    try {
-      const rawRanges = await reader.getHeadRangesForNodes(nodeIds);
-      nodeIds.forEach((nodeId, i) => {
-        const [min, max] = rawRanges[i];
-        ranges.set(
-          nodeId,
-          min <= max ? { nodeId, minHead: min, maxHead: max } : null,
-        );
-      });
-    } catch (err) {
-      captureError(err as Error);
-      for (const nodeId of nodeIds) ranges.set(nodeId, null);
-    }
+    const rawRanges = reader.getHeadRangesForNodes(nodeIds);
+    nodeIds.forEach((nodeId, i) => {
+      const [min, max] = rawRanges[i];
+      ranges.set(
+        nodeId,
+        min <= max ? { nodeId, minHead: min, maxHead: max } : null,
+      );
+    });
 
     return ranges;
   },
 );
-
-export const hglRangesAtom = unwrap(hglRangesAsyncAtom, (prev) => prev ?? null);

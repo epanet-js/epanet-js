@@ -38,6 +38,8 @@ export type JunctionSimulation = {
   pressure: number;
   head: number;
   demand: number;
+  minPressure: number;
+  maxPressure: number;
   waterAge: number | null;
   waterTrace: number | null;
   chemicalConcentration: number | null;
@@ -50,6 +52,8 @@ export type TankSimulation = {
   netFlow: number;
   level: number;
   volume: number;
+  minPressure: number;
+  maxPressure: number;
   waterAge: number | null;
   waterTrace: number | null;
   chemicalConcentration: number | null;
@@ -60,6 +64,8 @@ export type ReservoirSimulation = {
   pressure: number;
   head: number;
   netFlow: number;
+  minPressure: number;
+  maxPressure: number;
   waterAge: number | null;
   waterTrace: number | null;
   chemicalConcentration: number | null;
@@ -80,6 +86,8 @@ export const simulationProperties = [
   "velocity",
   "unitHeadloss",
   "pressure",
+  "minPressure",
+  "maxPressure",
   "actualDemand",
   "head",
   "waterAge",

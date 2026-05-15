@@ -1450,9 +1450,7 @@ describe("EPSResultsReader", () => {
         { nodeId: IDS.T1, type: "tank" as const },
         { nodeId: IDS.J1, type: "junction" as const },
       ];
-      const bulk = await reader.getHeadRangesForNodes(
-        cases.map((c) => c.nodeId),
-      );
+      const bulk = reader.getHeadRangesForNodes(cases.map((c) => c.nodeId));
 
       expect(bulk.length).toBe(cases.length);
       for (let i = 0; i < cases.length; i++) {
@@ -1494,7 +1492,7 @@ describe("EPSResultsReader", () => {
       const reader = new EPSResultsReader(storage);
       await reader.initialize();
 
-      const bulk = await reader.getHeadRangesForNodes([IDS.J1]);
+      const bulk = reader.getHeadRangesForNodes([IDS.J1]);
       const [min, max] = bulk[0];
       expect(min).toBeCloseTo(max, 6);
     });
@@ -1519,7 +1517,7 @@ describe("EPSResultsReader", () => {
       const reader = new EPSResultsReader(storage);
       await reader.initialize();
 
-      const bulk = await reader.getHeadRangesForNodes([IDS.J1, 999]);
+      const bulk = reader.getHeadRangesForNodes([IDS.J1, 999]);
       expect(bulk.length).toBe(2);
       expect(bulk[0][0]).toBeLessThanOrEqual(bulk[0][1]);
       expect(bulk[1]).toEqual([Infinity, -Infinity]);
@@ -1544,24 +1542,24 @@ describe("EPSResultsReader", () => {
       const reader = new EPSResultsReader(storage);
       await reader.initialize();
 
-      const bulk = await reader.getHeadRangesForNodes([]);
+      const bulk = reader.getHeadRangesForNodes([]);
       expect(bulk.length).toBe(0);
     });
 
-    it("returns [Infinity, -Infinity] entries when reader is not initialized", async () => {
+    it("returns [Infinity, -Infinity] entries when reader is not initialized", () => {
       const storage = new InMemoryStorage(
         "test-head-ranges-bulk-uninitialized",
       );
       const reader = new EPSResultsReader(storage);
 
-      const bulk = await reader.getHeadRangesForNodes([1, 2]);
+      const bulk = reader.getHeadRangesForNodes([1, 2]);
       expect(bulk).toEqual([
         [Infinity, -Infinity],
         [Infinity, -Infinity],
       ]);
     });
 
-    it("opens the head-ranges file only once for the entire batch", async () => {
+    it("reads node_stats.bin during initialize() and makes no storage calls in getHeadRangesForNodes", async () => {
       const IDS = { R1: 1, T1: 2, J1: 3, P1: 4, P2: 5 } as const;
       const hydraulicModel = HydraulicModelBuilder.with()
         .aReservoir(IDS.R1, { head: 120 })
@@ -1593,13 +1591,16 @@ describe("EPSResultsReader", () => {
       const reader = new EPSResultsReader(storage);
       await reader.initialize();
 
-      getFileSpy.mockClear();
-      await reader.getHeadRangesForNodes([IDS.R1, IDS.T1, IDS.J1]);
-
-      const headRangesOpens = getFileSpy.mock.calls.filter(
-        ([key]) => key === "head-ranges.bin",
+      // node_stats.bin is loaded once during initialize()
+      const nodeStatsOpens = getFileSpy.mock.calls.filter(
+        ([key]) => key === "node_stats.bin",
       );
-      expect(headRangesOpens.length).toBe(1);
+      expect(nodeStatsOpens.length).toBe(1);
+
+      // getHeadRangesForNodes reads from in-memory data — no further storage calls
+      getFileSpy.mockClear();
+      reader.getHeadRangesForNodes([IDS.R1, IDS.T1, IDS.J1]);
+      expect(getFileSpy).not.toHaveBeenCalled();
     });
   });
 

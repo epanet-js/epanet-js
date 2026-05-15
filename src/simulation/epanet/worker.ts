@@ -17,7 +17,7 @@ import { PROLOG_SIZE, EPILOG_SIZE } from "./simulation-metadata";
 export const RESULTS_OUT_KEY = "results.out";
 export const TANK_VOLUMES_KEY = "tank-volumes.bin";
 export const PUMP_STATUS_KEY = "pump-status.bin";
-export const HEAD_RANGES_KEY = "head-ranges.bin";
+export const NODE_STATS_KEY = "node_stats.bin";
 
 export type EPSSimulationResult = {
   status: SimulationStatus;
@@ -128,7 +128,7 @@ export const runSimulation = async (
     await storage.save(RESULTS_OUT_KEY, resultsBuffer);
     await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
     await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
-    await storage.save(HEAD_RANGES_KEY, missingDataAccumulator.headRanges());
+    await storage.save(NODE_STATS_KEY, missingDataAccumulator.nodeStats());
 
     return {
       status: report.includes("WARNING") ? "warning" : "success",
@@ -203,14 +203,22 @@ class MissingSimulationDataAccumulator {
   private pumpIndices: number[] = [];
   private tankVolumesPerTimestep: number[][] = [];
   private pumpStatusPerTimestep: number[][] = [];
-  private nodeHeadMin: Float32Array;
-  private nodeHeadMax: Float32Array;
+  private readonly _nodeStats: {
+    headMin: Float32Array;
+    headMax: Float32Array;
+    pressureMin: Float32Array;
+    pressureMax: Float32Array;
+  };
 
   constructor(model: Project) {
     this.nodeCount = model.getCount(CountType.NodeCount);
     this.linkCount = model.getCount(CountType.LinkCount);
-    this.nodeHeadMin = new Float32Array(this.nodeCount).fill(Infinity);
-    this.nodeHeadMax = new Float32Array(this.nodeCount).fill(-Infinity);
+    this._nodeStats = {
+      headMin: new Float32Array(this.nodeCount).fill(Infinity),
+      headMax: new Float32Array(this.nodeCount).fill(-Infinity),
+      pressureMin: new Float32Array(this.nodeCount).fill(Infinity),
+      pressureMax: new Float32Array(this.nodeCount).fill(-Infinity),
+    };
 
     for (let i = 1; i <= this.nodeCount; i++) {
       const nodeType = model.getNodeType(i);
@@ -233,8 +241,17 @@ class MissingSimulationDataAccumulator {
     const heads = model.getNodeValues(NodeProperty.Head);
     for (let i = 0; i < this.nodeCount; i++) {
       const h = heads[i];
-      if (h < this.nodeHeadMin[i]) this.nodeHeadMin[i] = h;
-      if (h > this.nodeHeadMax[i]) this.nodeHeadMax[i] = h;
+      if (h < this._nodeStats.headMin[i]) this._nodeStats.headMin[i] = h;
+      if (h > this._nodeStats.headMax[i]) this._nodeStats.headMax[i] = h;
+    }
+
+    const pressures = model.getNodeValues(NodeProperty.Pressure);
+    for (let i = 0; i < this.nodeCount; i++) {
+      const p = pressures[i];
+      if (p < this._nodeStats.pressureMin[i])
+        this._nodeStats.pressureMin[i] = p;
+      if (p > this._nodeStats.pressureMax[i])
+        this._nodeStats.pressureMax[i] = p;
     }
 
     if (this.supplySourcesCount > 0) {
@@ -274,12 +291,15 @@ class MissingSimulationDataAccumulator {
     return pumpStatusBinary.buffer as ArrayBuffer;
   }
 
-  headRanges(): ArrayBuffer {
-    const interleaved = new Float32Array(this.nodeCount * 2);
-    for (let i = 0; i < this.nodeCount; i++) {
-      interleaved[i * 2] = this.nodeHeadMin[i];
-      interleaved[i * 2 + 1] = this.nodeHeadMax[i];
+  nodeStats(): ArrayBuffer {
+    const N = this.nodeCount;
+    const out = new Float32Array(N * 4);
+    for (let i = 0; i < N; i++) {
+      out[i] = this._nodeStats.headMin[i]; // block 0: min head
+      out[N + i] = this._nodeStats.headMax[i]; // block 1: max head
+      out[2 * N + i] = this._nodeStats.pressureMin[i]; // block 2: min pressure
+      out[3 * N + i] = this._nodeStats.pressureMax[i]; // block 3: max pressure
     }
-    return interleaved.buffer as ArrayBuffer;
+    return out.buffer as ArrayBuffer;
   }
 }
