@@ -73,6 +73,10 @@ import {
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
 import {
+  toggleBottomPanelShortcut,
+  useToggleBottomPanel,
+} from "src/commands/toggle-bottom-panel";
+import {
   useCycleSelectionMode,
   selectionModeShortcut,
 } from "src/commands/set-area-selection-mode";
@@ -136,6 +140,7 @@ export const CommandShortcuts = () => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const toggleNetworkReview = useToggleNetworkReview();
   const toggleSidePanel = useToggleSidePanel();
+  const toggleBottomPanel = useToggleBottomPanel();
   const cycleSelectionMode = useCycleSelectionMode();
   const cycleTraceSelectMode = useCycleTraceSelectMode();
   const { changeSelectedAssetsActiveTopologyStatus } =
@@ -415,6 +420,16 @@ export const CommandShortcuts = () => {
     },
     [toggleSidePanel],
     "Toggle side panel",
+  );
+
+  useHotkeys(
+    toggleBottomPanelShortcut,
+    (e) => {
+      e.preventDefault();
+      toggleBottomPanel({ source: "shortcut" });
+    },
+    [toggleBottomPanel],
+    "Toggle bottom panel",
   );
 
   useHotkeys(

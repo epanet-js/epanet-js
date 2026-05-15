@@ -18,14 +18,9 @@ import {
   SearchIcon,
 } from "src/icons";
 import Modes from "./modes";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
-import {
-  bottomActiveTabAtom,
-  effectiveBottomTabAtom,
-} from "src/state/panel-layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
-import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
@@ -62,6 +57,10 @@ import {
   toggleSidePanelShortcut,
   useToggleSidePanel,
 } from "src/commands/toggle-side-panel";
+import {
+  toggleBottomPanelShortcut,
+  useToggleBottomPanel,
+} from "src/commands/toggle-bottom-panel";
 
 export const Toolbar = ({
   readonly = false,
@@ -264,14 +263,10 @@ const CommandBarButton = () => {
 
 const LayoutActions = () => {
   const translate = useTranslate();
-  const [splits, setSplits] = useAtom(splitsAtom);
-  const activeBottomTab = useAtomValue(bottomActiveTabAtom);
-  const effectiveBottomTab = useAtomValue(effectiveBottomTabAtom);
-  const exitProfileViewMode = useExitProfileViewMode();
+  const splits = useAtomValue(splitsAtom);
   const toggleNetworkReview = useToggleNetworkReview();
+  const toggleBottomPanel = useToggleBottomPanel();
   const toggleSidePanel = useToggleSidePanel();
-  const isBottomPanelOn = useFeatureFlag("FLAG_DATA_TABLES");
-  const userTracking = useUserTracking();
 
   const leftPanelIcon = splits.leftOpen ? (
     <PanelLeftActiveIcon />
@@ -301,26 +296,18 @@ const LayoutActions = () => {
       >
         {leftPanelIcon}
       </MenuAction>
-      {isBottomPanelOn && (
-        <MenuAction
-          label="Toggle bottom panel"
-          role="button"
-          onClick={() => {
-            if (splits.bottomOpen && activeBottomTab === "profile-view") {
-              exitProfileViewMode();
-            }
-            const newOpen = !splits.bottomOpen;
-            setSplits((s) => ({ ...s, bottomOpen: newOpen }));
-            userTracking.capture({
-              name: "bottomPanel.toggled",
-              open: newOpen,
-              activeTabId: effectiveBottomTab,
-            });
-          }}
-        >
-          {bottomPanelIcon}
-        </MenuAction>
-      )}
+
+      <MenuAction
+        label={translate("toggleBottomPanel")}
+        role="button"
+        onClick={() => {
+          toggleBottomPanel({ source: "toolbar" });
+        }}
+        readOnlyHotkey={toggleBottomPanelShortcut}
+      >
+        {bottomPanelIcon}
+      </MenuAction>
+
       <MenuAction
         label={translate("toggleSidePanel")}
         role="button"

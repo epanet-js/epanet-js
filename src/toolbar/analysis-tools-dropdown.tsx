@@ -8,7 +8,6 @@ import {
   TableIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Button,
   DDContent,
@@ -22,7 +21,6 @@ import { useStartProfileSelection } from "src/commands/start-profile-selection";
 
 export const AnalysisToolsDropdown = () => {
   const translate = useTranslate();
-  const isDataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
   const showDataTables = useShowDataTables();
   const showProfileView = useShowProfileView();
   const startProfileSelection = useStartProfileSelection();
@@ -45,14 +43,12 @@ export const AnalysisToolsDropdown = () => {
               side="bottom"
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              {isDataTablesOn && (
-                <StyledItem
-                  onSelect={() => showDataTables({ source: "toolbar" })}
-                >
-                  <TableIcon />
-                  {translate("dataTables.title")}
-                </StyledItem>
-              )}
+              <StyledItem
+                onSelect={() => showDataTables({ source: "toolbar" })}
+              >
+                <TableIcon />
+                {translate("dataTables.title")}
+              </StyledItem>
 
               <StyledItem
                 onSelect={() => {

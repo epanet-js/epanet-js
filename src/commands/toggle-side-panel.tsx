@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { defaultSplits, splitsAtom } from "src/state/layout";
 
-export const toggleSidePanelShortcut = "alt+ctrl+b";
+export const toggleSidePanelShortcut = "ctrl+shift+b";
 
 export const useToggleSidePanel = () => {
   const setPanelSplits = useSetAtom(splitsAtom);

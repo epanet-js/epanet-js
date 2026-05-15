@@ -9,7 +9,6 @@ import { ProfileViewPanel } from "./profile-view";
 const BOTTOM = { horizontal: "bottom", vertical: "bottom" } as const;
 
 export const PanelRegistrations = () => {
-  const dataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
   const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
   const profileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const hasProfileView = useAtomValue(hasProfileViewAtom);
@@ -18,60 +17,42 @@ export const PanelRegistrations = () => {
     ? AssetDataTableWithFeatures
     : AssetDataTable;
 
-  useRegisterPanel(
-    {
-      id: "junction",
-      labelKey: "junctions",
-      component: () => <AssetDataTableComponent assetType="junction" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
-  useRegisterPanel(
-    {
-      id: "pipe",
-      labelKey: "pipes",
-      component: () => <AssetDataTableComponent assetType="pipe" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
-  useRegisterPanel(
-    {
-      id: "pump",
-      labelKey: "pumps",
-      component: () => <AssetDataTableComponent assetType="pump" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
-  useRegisterPanel(
-    {
-      id: "valve",
-      labelKey: "valves",
-      component: () => <AssetDataTableComponent assetType="valve" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
-  useRegisterPanel(
-    {
-      id: "reservoir",
-      labelKey: "reservoirs",
-      component: () => <AssetDataTableComponent assetType="reservoir" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
-  useRegisterPanel(
-    {
-      id: "tank",
-      labelKey: "tanks",
-      component: () => <AssetDataTableComponent assetType="tank" />,
-      defaultZone: BOTTOM,
-    },
-    dataTablesOn,
-  );
+  useRegisterPanel({
+    id: "junction",
+    labelKey: "junctions",
+    component: () => <AssetDataTableComponent assetType="junction" />,
+    defaultZone: BOTTOM,
+  });
+  useRegisterPanel({
+    id: "pipe",
+    labelKey: "pipes",
+    component: () => <AssetDataTableComponent assetType="pipe" />,
+    defaultZone: BOTTOM,
+  });
+  useRegisterPanel({
+    id: "pump",
+    labelKey: "pumps",
+    component: () => <AssetDataTableComponent assetType="pump" />,
+    defaultZone: BOTTOM,
+  });
+  useRegisterPanel({
+    id: "valve",
+    labelKey: "valves",
+    component: () => <AssetDataTableComponent assetType="valve" />,
+    defaultZone: BOTTOM,
+  });
+  useRegisterPanel({
+    id: "reservoir",
+    labelKey: "reservoirs",
+    component: () => <AssetDataTableComponent assetType="reservoir" />,
+    defaultZone: BOTTOM,
+  });
+  useRegisterPanel({
+    id: "tank",
+    labelKey: "tanks",
+    component: () => <AssetDataTableComponent assetType="tank" />,
+    defaultZone: BOTTOM,
+  });
   useRegisterPanel(
     {
       id: "profile-view",

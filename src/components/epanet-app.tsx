@@ -63,7 +63,6 @@ import { usePrivacySettings } from "src/hooks/use-privacy-settings";
 import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSeedDefaultProjectDb } from "src/hooks/persistence/use-start-new-project";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
@@ -131,9 +130,6 @@ export function EpanetApp() {
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");
-  const isDataTablesOn = useFeatureFlag("FLAG_DATA_TABLES");
-  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
-  const isBottomPanelOn = isDataTablesOn || isProfileViewOn;
 
   const layout: ResolvedLayout = isSmOrLarger ? "HORIZONTAL" : "VERTICAL";
 
@@ -202,7 +198,7 @@ export function EpanetApp() {
                 layout={layout}
               />
             </DndContext>
-            {layout === "HORIZONTAL" && isBottomPanelOn && <BottomPanel />}
+            {layout === "HORIZONTAL" && <BottomPanel />}
             {layout === "VERTICAL" && <RelocatedSidePanel />}
           </div>
           {layout === "HORIZONTAL" && (

@@ -457,6 +457,7 @@
   "updatingMap": "Updating map...",
   "ok": "OK",
   "toggleSatellite": "Toggle satellite basemap",
+  "toggleBottomPanel": "Toggle bottom panel",
   "toggleSidePanel": "Toggle side panel",
   "createScenario": "Create new scenario",
   "cycleScenario": "Cycle through scenarios",

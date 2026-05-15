@@ -9,6 +9,7 @@ import { getIsMac } from "src/infra/i18n/mac";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { toggleNetworkReviewShortcut } from "src/commands/toggle-network-review";
 import { toggleSidePanelShortcut } from "src/commands/toggle-side-panel";
+import { toggleBottomPanelShortcut } from "src/commands/toggle-bottom-panel";
 import { selectionModeShortcut } from "src/commands/set-area-selection-mode";
 import { traceSelectModeShortcut } from "src/commands/set-trace-select-mode";
 import { changeActiveTopologyShortcut } from "src/commands/change-selected-assets-active-topology-status";
@@ -62,12 +63,16 @@ export function CheatsheetDialog() {
       shortcuts: [
         { binding: "B", description: "toggleSatellite" },
         {
-          binding: toggleSidePanelShortcut,
-          description: "toggleSidePanel",
-        },
-        {
           binding: toggleNetworkReviewShortcut,
           description: "networkReview.toggle",
+        },
+        {
+          binding: toggleBottomPanelShortcut,
+          description: "toggleBottomPanel",
+        },
+        {
+          binding: toggleSidePanelShortcut,
+          description: "toggleSidePanel",
         },
         { binding: SEARCH_KEYBINDING, description: "assetSearch.title" },
         { binding: "?", description: "keyboardShortcuts.title" },
