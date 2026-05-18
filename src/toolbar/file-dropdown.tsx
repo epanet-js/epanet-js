@@ -19,6 +19,7 @@ import {
   DownloadIcon,
   SaveIcon,
   SaveAllIcon,
+  FileTextIcon,
 } from "src/icons";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -289,7 +290,7 @@ const ExportSubmenu = ({
                 });
               }}
             >
-              <FileIcon />
+              <FileSpreadsheetIcon />
               {translate("export.epanetInp")}
             </StyledItem>
           )}
@@ -299,7 +300,7 @@ const ExportSubmenu = ({
                 setDialogState({ type: "exportAssetData" });
               }}
             >
-              <FileSpreadsheetIcon />
+              <FileTextIcon />
               {translate("export.assetData")}
             </StyledItem>
           )}
@@ -309,7 +310,7 @@ const ExportSubmenu = ({
                 setDialogState({ type: "exportTimeSeries" });
               }}
             >
-              <FileSpreadsheetIcon />
+              <FileTextIcon />
               {translate("export.simulationResults")}
             </StyledItem>
           )}
