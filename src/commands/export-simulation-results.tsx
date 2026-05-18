@@ -45,14 +45,28 @@ export const useExportSimulationResults = () => {
 
         const epsResultsReader = simulation.epsResultsReader;
 
-        const directory = FileSystemHelpers.isFileSystemAccessSupported()
-          ? await FileSystemHelpers.openDirectoryInFileSystem()
-          : await FileSystemHelpers.openOpfsRootDirectory();
+        const extension = options.format === "xlsx" ? ".xlsx" : ".zip";
+        const mimeType =
+          options.format === "xlsx"
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            : "application/zip";
+        const description =
+          options.format === "xlsx" ? "Excel Workbook" : "ZIP Archive";
+        const fileName = `${networkName}-export${extension}`;
+
+        const fileHandle = FileSystemHelpers.isFileSystemAccessSupported()
+          ? await FileSystemHelpers.openFileInFileSystem(
+              fileName,
+              description,
+              mimeType,
+              extension,
+            )
+          : await FileSystemHelpers.openFileInOpfs(fileName);
 
         await Export.exportSimulationResults(
           options.format,
           networkName,
-          directory,
+          fileHandle,
           hydraulicModel,
           epsResultsReader,
           options,

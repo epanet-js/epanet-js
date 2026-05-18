@@ -1,3 +1,4 @@
+import { Zip, ZipDeflate } from "fflate";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import {
   ALL_METRICS,
@@ -11,7 +12,7 @@ import { NUM_DECIMAL_PLACES } from "../constants";
 
 export const exportCsvSimulationResults = async (
   networkName: string,
-  directory: FileSystemDirectoryHandle,
+  fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
   options?: SimulationResultsOptions,
@@ -27,98 +28,127 @@ export const exportCsvSimulationResults = async (
   const totalProgress = properties.length * hydraulicModel.assets.size;
   let progress = 1;
 
-  const streams = new Map<
-    ExportSimulationResultsProperties,
-    FileSystemWritableFileStream
-  >();
-  const handles = new Map<
-    ExportSimulationResultsProperties,
-    FileSystemFileHandle
-  >();
-  const buffers = new Map<ExportSimulationResultsProperties, Uint8Array>();
-  const offsets = new Map<ExportSimulationResultsProperties, number>();
+  const stream = await fileHandle.createWritable();
+
+  const buffer = new Uint8Array(BATCH_SIZE);
+  let batchOffset = 0;
 
   try {
-    for (const metric of properties) {
-      signal?.throwIfAborted();
-      const fileName = `${networkName}-export-${metric}.csv`;
-      const handle = await directory.getFileHandle(fileName, { create: true });
-      const stream = await handle.createWritable();
-      handles.set(metric, handle);
-      streams.set(metric, stream);
-      buffers.set(metric, new Uint8Array(BATCH_SIZE));
-      offsets.set(metric, 0);
-
-      const offset = encodeHeader(
-        headerBuf,
-        resultsReader.timestepCount,
-        resultsReader.reportingTimeStep,
-        encoder,
-      );
-      await stream.write(headerBuf.subarray(0, offset));
-    }
-
-    await resultsReader.iterateTimeSeries(
-      hydraulicModel.assets,
-      properties,
-      async (property, asset, results) => {
-        if (onProgress)
-          await onProgress(
-            Math.trunc((progress++ / totalProgress) * 100),
-            property as ExportSimulationResultsProperties,
-          );
-
-        const epanetType = asset.isLink ? "link" : "node";
-        if (hasSelection && !selectedAssets.has(asset.id)) return;
-        if (results === null) return;
-        if (!METRICS_BY_TYPE[epanetType].has(property)) return;
-
-        const buffer = buffers.get(property)!;
-        let offset = offsets.get(property)!;
-
-        if (offset + maxRowSize > BATCH_SIZE) {
-          await streams.get(property)!.write(buffer.subarray(0, offset));
-          offset = 0;
+    await new Promise<void>((resolve, reject) => {
+      const zip = new Zip(async (err, data, final) => {
+        if (err) {
+          reject(err);
+          return;
         }
+        await stream.write(data);
+        if (final) resolve();
+      });
 
-        const written = encodeValues(
-          buffer.subarray(offset),
-          asset,
-          results,
-          encoder,
-          property,
-        );
-        offsets.set(property, offset + written);
-      },
-      signal,
-    );
-
-    for (const metric of properties) {
-      const offset = offsets.get(metric)!;
-      if (offset > 0) {
-        await streams
-          .get(metric)!
-          .write(buffers.get(metric)!.subarray(0, offset));
-      }
-    }
-  } catch (err) {
-    for (const stream of streams.values()) {
       try {
-        await stream.abort();
-      } catch {}
-    }
+        let currentMetric: string | null = null;
+        let currentEntry: ZipDeflate | null = null;
+        const writtenMetrics = new Set<string>();
+
+        const flushBatch = (entry: ZipDeflate) => {
+          if (batchOffset > 0) {
+            entry.push(buffer.subarray(0, batchOffset), false);
+            batchOffset = 0;
+          }
+        };
+
+        const iterationPromise = resultsReader.iterateTimeSeries(
+          hydraulicModel.assets,
+          properties,
+          async (property, asset, results) => {
+            if (onProgress)
+              await onProgress(
+                Math.trunc((progress++ / totalProgress) * 100),
+                property as ExportSimulationResultsProperties,
+              );
+
+            if (property !== currentMetric) {
+              if (currentEntry) {
+                flushBatch(currentEntry);
+                currentEntry.push(new Uint8Array(0), true);
+              }
+
+              const fileName = `${networkName}-export-${property}.csv`;
+              currentEntry = new ZipDeflate(fileName, { level: 0 });
+              zip.add(currentEntry);
+
+              const headerOffset = encodeHeader(
+                headerBuf,
+                resultsReader.timestepCount,
+                resultsReader.reportingTimeStep,
+                encoder,
+              );
+              currentEntry.push(headerBuf.subarray(0, headerOffset), false);
+
+              currentMetric = property;
+              writtenMetrics.add(property);
+            }
+
+            const epanetType = asset.isLink ? "link" : "node";
+            if (hasSelection && !selectedAssets.has(asset.id)) return;
+            if (results === null) return;
+            if (!METRICS_BY_TYPE[epanetType].has(property)) return;
+
+            if (batchOffset + maxRowSize > BATCH_SIZE) {
+              flushBatch(currentEntry!);
+            }
+
+            const written = encodeValues(
+              buffer.subarray(batchOffset),
+              asset,
+              results,
+              encoder,
+              property as ExportSimulationResultsProperties,
+            );
+            batchOffset += written;
+          },
+          signal,
+        );
+
+        iterationPromise
+          .then(() => {
+            if (currentEntry) {
+              flushBatch(currentEntry);
+              currentEntry.push(new Uint8Array(0), true);
+            }
+
+            for (const metric of properties) {
+              if (!writtenMetrics.has(metric)) {
+                const fileName = `${networkName}-export-${metric}.csv`;
+                const entry = new ZipDeflate(fileName, { level: 0 });
+                zip.add(entry);
+
+                const headerOffset = encodeHeader(
+                  headerBuf,
+                  resultsReader.timestepCount,
+                  resultsReader.reportingTimeStep,
+                  encoder,
+                );
+                entry.push(headerBuf.subarray(0, headerOffset), true);
+              }
+            }
+
+            zip.end();
+          })
+          .catch(reject);
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    await stream.close();
+  } catch (err) {
+    await stream.abort();
     throw err;
   }
 
-  for (const metric of properties) {
-    const stream = streams.get(metric);
-    if (!stream) continue;
-    await stream.close();
-
-    if (!FileSystemHelpers.isFileSystemAccessSupported()) {
-      const fileName = `${networkName}-export-${metric}.csv`;
-      await FileSystemHelpers.triggerDownload(fileName, handles.get(metric)!);
-    }
+  if (!FileSystemHelpers.isFileSystemAccessSupported()) {
+    const zipFileName = `${networkName}-export.zip`;
+    await FileSystemHelpers.triggerDownload(zipFileName, fileHandle);
   }
 };
 

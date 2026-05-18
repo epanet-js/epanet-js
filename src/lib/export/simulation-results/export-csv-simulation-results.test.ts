@@ -1,3 +1,4 @@
+import { unzipSync } from "fflate";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
@@ -13,17 +14,17 @@ describe("exportTimeSeries", () => {
     vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
   });
 
-  it("creates one file per metric named with network name and metric", async () => {
+  it("creates a ZIP containing one CSV per metric named with network name and metric", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getFileNames } = makeDirectory();
+    const { fileHandle, getZipEntryNames } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults("my-network", dirHandle, model, reader, {
+    await exportCsvSimulationResults("my-network", fileHandle, model, reader, {
       properties: ["pressure", "demand"],
     });
 
-    expect(getFileNames()).toEqual([
+    expect(getZipEntryNames()).toEqual([
       "my-network-export-pressure.csv",
       "my-network-export-demand.csv",
     ]);
@@ -32,10 +33,10 @@ describe("exportTimeSeries", () => {
   it("writes header with id, type, and HH:MM timestep columns", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(2, 5400, {});
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
@@ -49,7 +50,7 @@ describe("exportTimeSeries", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
       .build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
       [`${IDS.P1}:pressure`]: makeTimeSeries([99]),
@@ -57,7 +58,7 @@ describe("exportTimeSeries", () => {
       [`${IDS.P1}:flow`]: makeTimeSeries([5]),
     });
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "flow"],
     });
 
@@ -83,13 +84,13 @@ describe("exportTimeSeries", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
       .aPipe(IDS.P2, { startNodeId: IDS.J1, label: "P2" })
       .build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.P1}:status`]: makeTimeSeries([2]),
       [`${IDS.P2}:status`]: makeTimeSeries([3]),
     });
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["status"],
     });
 
@@ -103,12 +104,12 @@ describe("exportTimeSeries", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { label: "J1" })
       .build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([1.23456]),
     });
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
@@ -124,13 +125,13 @@ describe("exportTimeSeries", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aJunction(IDS.J2, { label: "J2" })
       .build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
       [`${IDS.J2}:pressure`]: makeTimeSeries([20]),
     });
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
       properties: ["pressure"],
     });
@@ -148,12 +149,12 @@ describe("exportTimeSeries", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aJunction(IDS.J2, { label: "J2" })
       .build();
-    const { dirHandle, getText } = makeDirectory();
+    const { fileHandle, getText } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
     });
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
@@ -169,11 +170,11 @@ describe("exportTimeSeries", () => {
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .build();
-    const { dirHandle } = makeDirectory();
+    const { fileHandle } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
     const onProgress = vi.fn();
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "head"],
       onProgress,
     });
@@ -185,38 +186,37 @@ describe("exportTimeSeries", () => {
     expect(onProgress).toHaveBeenNthCalledWith(4, 100, "head");
   });
 
-  it("closes the stream after writing each metric", async () => {
+  it("closes the stream after writing", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getClose } = makeDirectory();
+    const { fileHandle, getClose } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "head"],
     });
 
-    expect(getClose("net-export-pressure.csv")).toHaveBeenCalledOnce();
-    expect(getClose("net-export-head.csv")).toHaveBeenCalledOnce();
+    expect(getClose()).toHaveBeenCalledOnce();
   });
 
   it("triggers download when FileSystem Access API is not supported", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle } = makeDirectory();
+    const { fileHandle } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportCsvSimulationResults("net", dirHandle, model, reader, {
+    await exportCsvSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
-      "net-export-pressure.csv",
-      expect.anything(),
+      "net-export.zip",
+      fileHandle,
     );
   });
 });
 
-const makeStream = () => {
+const makeFileHandle = () => {
   const chunks: Uint8Array[] = [];
   const write = vi.fn((chunk: Uint8Array) => {
     chunks.push(new Uint8Array(chunk));
@@ -224,39 +224,38 @@ const makeStream = () => {
   });
   const close = vi.fn(() => Promise.resolve());
   const abort = vi.fn(() => Promise.resolve());
-  const getText = () => {
-    const decoder = new TextDecoder();
-    return chunks.map((c) => decoder.decode(c)).join("");
+
+  const fileHandle = {
+    createWritable: vi.fn(() =>
+      Promise.resolve({
+        write,
+        close,
+        abort,
+      } as unknown as FileSystemWritableFileStream),
+    ),
+  } as unknown as FileSystemFileHandle;
+
+  const getZipBytes = () => {
+    const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+    const result = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return result;
   };
-  return { write, close, abort, getText };
-};
 
-const makeDirectory = () => {
-  const streams = new Map<string, ReturnType<typeof makeStream>>();
+  const getZipEntries = () => unzipSync(getZipBytes());
 
-  const dirHandle = {
-    getFileHandle: vi.fn((fileName: string) => {
-      const stream = makeStream();
-      streams.set(fileName, stream);
-      const handle = {
-        createWritable: vi.fn(() =>
-          Promise.resolve({
-            write: stream.write,
-            close: stream.close,
-            abort: stream.abort,
-          } as unknown as FileSystemWritableFileStream),
-        ),
-      } as unknown as FileSystemFileHandle;
-      return Promise.resolve(handle);
-    }),
-  } as unknown as FileSystemDirectoryHandle;
+  const getZipEntryNames = () => Object.keys(getZipEntries());
 
-  const getFileNames = () => Array.from(streams.keys());
-  const getText = (fileName: string) => streams.get(fileName)?.getText() ?? "";
-  const getClose = (fileName: string) =>
-    streams.get(fileName)?.close ?? vi.fn();
+  const getText = (fileName: string) =>
+    new TextDecoder().decode(getZipEntries()[fileName]);
 
-  return { dirHandle, getFileNames, getText, getClose };
+  const getClose = () => close;
+
+  return { fileHandle, getZipEntryNames, getText, getClose };
 };
 
 const makeResultsReader = (

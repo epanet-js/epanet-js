@@ -14,44 +14,44 @@ describe("exportXlsxSimulationResults", () => {
     vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
   });
 
-  it("creates a single XLSX file named with the network name", async () => {
+  it("writes data to the provided file handle", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getFileNames } = makeDirectory();
+    const { fileHandle, getBuffer } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults("my-network", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("my-network", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
-    expect(getFileNames()).toEqual(["my-network-export.xlsx"]);
+    expect(getBuffer().length).toBeGreaterThan(0);
   });
 
   it("creates one sheet per metric with display names", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "flow", "status"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     expect(wb.SheetNames).toEqual(["Pressure", "Flow", "Status"]);
   });
 
   it("writes header row with id, type, and HH:MM timestep columns", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(3, 5400, {});
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     const rows = sheetRows(wb, "Pressure");
     expect(rows[0]).toEqual(["id", "type", "00:00", "01:30", "03:00"]);
   });
@@ -62,7 +62,7 @@ describe("exportXlsxSimulationResults", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
       .build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
       [`${IDS.P1}:pressure`]: makeTimeSeries([99]),
@@ -70,11 +70,11 @@ describe("exportXlsxSimulationResults", () => {
       [`${IDS.P1}:flow`]: makeTimeSeries([5]),
     });
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "flow"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
 
     const pressureRows = sheetRows(wb, "Pressure");
     expect(pressureRows).toHaveLength(2);
@@ -92,17 +92,17 @@ describe("exportXlsxSimulationResults", () => {
       .aPipe(IDS.P1, { startNodeId: IDS.J1, label: "P1" })
       .aPipe(IDS.P2, { startNodeId: IDS.J1, label: "P2" })
       .build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.P1}:status`]: makeTimeSeries([2]),
       [`${IDS.P2}:status`]: makeTimeSeries([3]),
     });
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["status"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     const rows = sheetRows(wb, "Status");
     expect(rows[1][2]).toBe("closed");
     expect(rows[2][2]).toBe("open");
@@ -113,16 +113,16 @@ describe("exportXlsxSimulationResults", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { label: "J1" })
       .build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([1.23456]),
     });
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     const rows = sheetRows(wb, "Pressure");
     expect(String(rows[1][2])).toBe(
       (1.2345600128173828).toFixed(NUM_DECIMAL_PLACES),
@@ -135,18 +135,18 @@ describe("exportXlsxSimulationResults", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aJunction(IDS.J2, { label: "J2" })
       .build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
       [`${IDS.J2}:pressure`]: makeTimeSeries([20]),
     });
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       selectedAssets: new Set([IDS.J1]),
       properties: ["pressure"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     const rows = sheetRows(wb, "Pressure");
     expect(rows).toHaveLength(2);
     expect(rows[1][0]).toBe("J1");
@@ -158,16 +158,16 @@ describe("exportXlsxSimulationResults", () => {
       .aJunction(IDS.J1, { label: "J1" })
       .aJunction(IDS.J2, { label: "J2" })
       .build();
-    const { dirHandle, getWorkbook } = makeDirectory();
+    const { fileHandle, getWorkbook } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {
       [`${IDS.J1}:pressure`]: makeTimeSeries([10]),
     });
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
-    const wb = getWorkbook("net-export.xlsx");
+    const wb = getWorkbook();
     const rows = sheetRows(wb, "Pressure");
     expect(rows).toHaveLength(2);
   });
@@ -178,11 +178,11 @@ describe("exportXlsxSimulationResults", () => {
       .aJunction(IDS.J1)
       .aJunction(IDS.J2)
       .build();
-    const { dirHandle } = makeDirectory();
+    const { fileHandle } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
     const onProgress = vi.fn();
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure", "head"],
       onProgress,
     });
@@ -197,29 +197,29 @@ describe("exportXlsxSimulationResults", () => {
   it("closes the stream after writing", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle, getClose } = makeDirectory();
+    const { fileHandle, getClose } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
-    expect(getClose("net-export.xlsx")).toHaveBeenCalledOnce();
+    expect(getClose()).toHaveBeenCalledOnce();
   });
 
   it("triggers download when FileSystem Access API is not supported", async () => {
     const IDS = { J1: 1 } as const;
     const model = HydraulicModelBuilder.with().aJunction(IDS.J1).build();
-    const { dirHandle } = makeDirectory();
+    const { fileHandle } = makeFileHandle();
     const reader = makeResultsReader(1, 3600, {});
 
-    await exportXlsxSimulationResults("net", dirHandle, model, reader, {
+    await exportXlsxSimulationResults("net", fileHandle, model, reader, {
       properties: ["pressure"],
     });
 
     expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
       "net-export.xlsx",
-      expect.anything(),
+      fileHandle,
     );
   });
 });
@@ -230,7 +230,7 @@ function sheetRows(workbook: XLSX.WorkBook, sheetName: string): unknown[][] {
   return XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 });
 }
 
-const makeStream = () => {
+const makeFileHandle = () => {
   const chunks: Uint8Array[] = [];
   const write = vi.fn((chunk: Uint8Array) => {
     chunks.push(new Uint8Array(chunk));
@@ -239,40 +239,35 @@ const makeStream = () => {
   const close = vi.fn(() => Promise.resolve());
   const abort = vi.fn(() => Promise.resolve());
 
-  const getBuffer = () => Buffer.concat(chunks);
+  const fileHandle = {
+    createWritable: vi.fn(() =>
+      Promise.resolve({
+        write,
+        close,
+        abort,
+      } as unknown as FileSystemWritableFileStream),
+    ),
+  } as unknown as FileSystemFileHandle;
 
-  return { write, close, abort, getBuffer };
-};
+  const getBuffer = () => {
+    const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+    const result = Buffer.alloc(totalLen);
+    let offset = 0;
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return result;
+  };
 
-const makeDirectory = () => {
-  const streams = new Map<string, ReturnType<typeof makeStream>>();
-
-  const dirHandle = {
-    getFileHandle: vi.fn((fileName: string) => {
-      const stream = makeStream();
-      streams.set(fileName, stream);
-      const handle = {
-        createWritable: vi.fn(() =>
-          Promise.resolve({
-            write: stream.write,
-            close: stream.close,
-            abort: stream.abort,
-          } as unknown as FileSystemWritableFileStream),
-        ),
-      } as unknown as FileSystemFileHandle;
-      return Promise.resolve(handle);
-    }),
-  } as unknown as FileSystemDirectoryHandle;
-
-  const getFileNames = () => Array.from(streams.keys());
-  const getWorkbook = (fileName: string) => {
-    const buffer = streams.get(fileName)!.getBuffer();
+  const getWorkbook = () => {
+    const buffer = getBuffer();
     return XLSX.read(buffer, { type: "buffer" });
   };
-  const getClose = (fileName: string) =>
-    streams.get(fileName)?.close ?? vi.fn();
 
-  return { dirHandle, getFileNames, getWorkbook, getClose };
+  const getClose = () => close;
+
+  return { fileHandle, getBuffer, getWorkbook, getClose };
 };
 
 const makeResultsReader = (

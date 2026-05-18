@@ -7,7 +7,7 @@ import { exportXlsxSimulationResults } from "./simulation-results";
 export const exportSimulationResults = async (
   format: "csv" | "xlsx",
   networkName: string,
-  directory: FileSystemDirectoryHandle,
+  fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
   options?: SimulationResultsOptions,
@@ -17,5 +17,5 @@ export const exportSimulationResults = async (
       ? exportXlsxSimulationResults
       : exportCsvSimulationResults;
 
-  await fn(networkName, directory, hydraulicModel, resultsReader, options);
+  await fn(networkName, fileHandle, hydraulicModel, resultsReader, options);
 };

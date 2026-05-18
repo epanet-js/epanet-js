@@ -11,7 +11,7 @@ import { NUM_DECIMAL_PLACES } from "../constants";
 
 export const exportXlsxSimulationResults = async (
   networkName: string,
-  directory: FileSystemDirectoryHandle,
+  fileHandle: FileSystemFileHandle,
   hydraulicModel: HydraulicModel,
   resultsReader: EPSResultsReader,
   options?: SimulationResultsOptions,
@@ -24,9 +24,7 @@ export const exportXlsxSimulationResults = async (
   signal?.throwIfAborted();
 
   const sheetNames = properties.map((m) => METRIC_SHEET_NAMES[m]);
-  const fileName = `${networkName}-export.xlsx`;
-  const handle = await directory.getFileHandle(fileName, { create: true });
-  const stream = await handle.createWritable();
+  const stream = await fileHandle.createWritable();
 
   const numTimestepCols = resultsReader.timestepCount;
   const totalCols = 2 + numTimestepCols;
@@ -306,7 +304,8 @@ export const exportXlsxSimulationResults = async (
   }
 
   if (!FileSystemHelpers.isFileSystemAccessSupported()) {
-    await FileSystemHelpers.triggerDownload(fileName, handle);
+    const fileName = `${networkName}-export.xlsx`;
+    await FileSystemHelpers.triggerDownload(fileName, fileHandle);
   }
 };
 
