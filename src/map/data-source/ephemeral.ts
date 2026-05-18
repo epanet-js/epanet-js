@@ -5,7 +5,7 @@ import {
   DraftPath,
   EphemeralEditingState,
   EphemeralConnectCustomerPoints,
-  EphemeralProfileView,
+  EphemeralHglProfile,
 } from "src/state/drawing";
 import { Mode } from "src/state/mode";
 import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
@@ -62,10 +62,10 @@ export const buildEphemeralStateSource = (
     ];
   }
 
-  if (ephemeralState.type === "profileView") {
+  if (ephemeralState.type === "hglProfile") {
     return [
       ...draftPathFeatures,
-      ...buildProfileViewSourceData(ephemeralState, assets),
+      ...buildHglProfileSourceData(ephemeralState, assets),
     ];
   }
 
@@ -127,8 +127,8 @@ const assetIconProps = (asset: Asset) => {
   return { icon: `${asset.type}-highlight` };
 };
 
-const buildProfileViewSourceData = (
-  state: EphemeralProfileView,
+const buildHglProfileSourceData = (
+  state: EphemeralHglProfile,
   assets: AssetsMap,
 ): Feature[] => {
   const features: Feature[] = [];

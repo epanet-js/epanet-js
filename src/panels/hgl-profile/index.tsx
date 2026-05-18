@@ -2,16 +2,16 @@
 import { memo, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
-import { profileViewAtom } from "src/state/profile-view";
+import { hglProfileAtom } from "src/state/hgl-profile";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useProfileViewData, ProfileViewData } from "./chart-data";
+import { useHglProfileData, HglProfileData } from "./chart-data";
 import { ChartContainer } from "./chart-container";
 
-export const ProfileViewPanel = memo(function ProfileViewPanel() {
-  const data = useProfileViewData();
-  const snapshot = useAtomValue(profileViewAtom);
+export const HglProfilePanel = memo(function HglProfilePanel() {
+  const data = useHglProfileData();
+  const snapshot = useAtomValue(hglProfileAtom);
   const userTracking = useUserTracking();
-  const previousPhaseRef = useRef<ProfileViewData["phase"] | null>(null);
+  const previousPhaseRef = useRef<HglProfileData["phase"] | null>(null);
 
   useEffect(() => {
     const previousPhase = previousPhaseRef.current;
@@ -47,17 +47,17 @@ export const ProfileViewPanel = memo(function ProfileViewPanel() {
   );
 });
 
-const ProfileEmptyState = ({ phase }: { phase: ProfileViewData["phase"] }) => {
+const ProfileEmptyState = ({ phase }: { phase: HglProfileData["phase"] }) => {
   const translate = useTranslate();
 
   const message =
     phase === "pathBroken"
-      ? translate("profileView.empty.pathBroken")
+      ? translate("hglProfile.empty.pathBroken")
       : phase === "selectingStart"
-        ? translate("profileView.empty.selectingStart")
+        ? translate("hglProfile.empty.selectingStart")
         : phase === "selectingEnd"
-          ? translate("profileView.empty.selectingEnd")
-          : translate("profileView.empty.noData");
+          ? translate("hglProfile.empty.selectingEnd")
+          : translate("hglProfile.empty.noData");
 
   return (
     <div className="h-full flex items-center justify-center text-gray-400 text-xs px-4 text-center">

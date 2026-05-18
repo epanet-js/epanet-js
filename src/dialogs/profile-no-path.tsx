@@ -7,7 +7,7 @@ export const ProfileNoPathDialog = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseDialog
-      title={translate("profileView.noPath.title")}
+      title={translate("hglProfile.noPath.title")}
       size="sm"
       isOpen={true}
       onClose={onClose}
@@ -16,7 +16,7 @@ export const ProfileNoPathDialog = ({ onClose }: { onClose: () => void }) => {
       }
     >
       <div className="p-4 text-sm">
-        <p>{translate("profileView.noPath.message")}</p>
+        <p>{translate("hglProfile.noPath.message")}</p>
       </div>
     </BaseDialog>
   );

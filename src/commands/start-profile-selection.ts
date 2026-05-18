@@ -1,26 +1,26 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { Mode, modeAtom } from "src/state/mode";
-import { profileViewAtom } from "src/state/profile-view";
+import { hglProfileAtom } from "src/state/hgl-profile";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const useStartProfileSelection = () => {
   const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
-  const setProfileView = useSetAtom(profileViewAtom);
+  const setHglProfile = useSetAtom(hglProfileAtom);
   const setEphemeral = useSetAtom(ephemeralStateAtom);
   const userTracking = useUserTracking();
 
   return useCallback(
     ({ source }: { source: "toolbar" | "panel" | "shortcut" }) => {
-      if (mode === Mode.PROFILE_VIEW) return;
+      if (mode === Mode.HGL_PROFILE) return;
 
       userTracking.capture({ name: "profileView.selectionStarted", source });
-      setProfileView(null);
-      setEphemeral({ type: "profileView" });
-      setMode({ mode: Mode.PROFILE_VIEW });
+      setHglProfile(null);
+      setEphemeral({ type: "hglProfile" });
+      setMode({ mode: Mode.HGL_PROFILE });
     },
-    [mode, setMode, setProfileView, setEphemeral, userTracking],
+    [mode, setMode, setHglProfile, setEphemeral, userTracking],
   );
 };

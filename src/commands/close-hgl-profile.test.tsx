@@ -6,16 +6,16 @@ import {
   setInitialState,
 } from "src/__helpers__/state";
 import {
-  hasProfileViewAtom,
-  profileViewAtom,
-  profileViewOpenAtom,
-} from "src/state/profile-view";
+  hasHglProfileAtom,
+  hglProfileAtom,
+  hglProfileOpenAtom,
+} from "src/state/hgl-profile";
 import { Mode, modeAtom } from "src/state/mode";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { useCloseProfileView } from "./close-profile-view";
-import { buildProfileView } from "src/panels/profile-view/build-profile-view";
+import { useCloseHglProfile } from "./close-hgl-profile";
+import { buildHglProfile } from "src/panels/hgl-profile/build-hgl-profile";
 
 const IDS = {
   J1: 1,
@@ -42,65 +42,65 @@ const buildLinearModel = () =>
     })
     .build();
 
-const seedProfileView = (store: Store) => {
+const seedHglProfile = (store: Store) => {
   const hydraulicModel = store.get(stagingModelDerivedAtom);
-  const built = buildProfileView({
+  const built = buildHglProfile({
     anchorIds: [IDS.J1, IDS.J3],
     hydraulicModel,
     isUnprojected: false,
   });
-  if ("error" in built) throw new Error("expected profileView");
-  store.set(profileViewAtom, built.profileView);
+  if ("error" in built) throw new Error("expected hglProfile");
+  store.set(hglProfileAtom, built.hglProfile);
 };
 
-describe("useCloseProfileView", () => {
-  it("clears the snapshot when a profile view is showing", async () => {
+describe("useCloseHglProfile", () => {
+  it("clears the snapshot when an HGL profile is showing", async () => {
     const store = setInitialState({
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
     });
-    seedProfileView(store);
-    expect(store.get(hasProfileViewAtom)).toBe(true);
+    seedHglProfile(store);
+    expect(store.get(hasHglProfileAtom)).toBe(true);
 
     renderTrigger({ store });
     await userEvent.click(screen.getByRole("button", { name: "close" }));
 
-    expect(store.get(profileViewAtom)).toBeNull();
-    expect(store.get(hasProfileViewAtom)).toBe(false);
+    expect(store.get(hglProfileAtom)).toBeNull();
+    expect(store.get(hasHglProfileAtom)).toBe(false);
   });
 
   it("closes from an empty open tab (no snapshot, no mode)", async () => {
     const store = setInitialState({
       hydraulicModel: buildLinearModel(),
     });
-    store.set(profileViewOpenAtom, true);
-    expect(store.get(hasProfileViewAtom)).toBe(true);
+    store.set(hglProfileOpenAtom, true);
+    expect(store.get(hasHglProfileAtom)).toBe(true);
 
     renderTrigger({ store });
     await userEvent.click(screen.getByRole("button", { name: "close" }));
 
-    expect(store.get(profileViewOpenAtom)).toBe(false);
-    expect(store.get(hasProfileViewAtom)).toBe(false);
+    expect(store.get(hglProfileOpenAtom)).toBe(false);
+    expect(store.get(hasHglProfileAtom)).toBe(false);
   });
 
-  it("exits PROFILE_VIEW mode when mid-selection", async () => {
+  it("exits HGL_PROFILE mode when mid-selection", async () => {
     const store = setInitialState({
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
-      mode: Mode.PROFILE_VIEW,
+      mode: Mode.HGL_PROFILE,
     });
-    expect(store.get(hasProfileViewAtom)).toBe(true);
+    expect(store.get(hasHglProfileAtom)).toBe(true);
 
     renderTrigger({ store });
     await userEvent.click(screen.getByRole("button", { name: "close" }));
 
     expect(store.get(modeAtom).mode).toBe(Mode.NONE);
-    expect(store.get(hasProfileViewAtom)).toBe(false);
+    expect(store.get(hasHglProfileAtom)).toBe(false);
   });
 });
 
 const Trigger = () => {
-  const close = useCloseProfileView();
+  const close = useCloseHglProfile();
   return (
     <button aria-label="close" onClick={() => close({ source: "tab" })}>
       Close

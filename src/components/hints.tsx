@@ -407,19 +407,19 @@ export function Hints() {
         />
       );
     }
-    case Mode.PROFILE_VIEW: {
+    case Mode.HGL_PROFILE: {
       const hasStart =
-        ephemeralState.type === "profileView" &&
+        ephemeralState.type === "hglProfile" &&
         (ephemeralState.anchorIds?.length ?? 0) > 0;
       return hasStart ? (
         <Hint
-          hintId={"PROFILE_VIEW_SELECT_END"}
-          text={translate("profileView.selectEnd")}
+          hintId={"HGL_PROFILE_SELECT_END"}
+          text={translate("hglProfile.selectEnd")}
         />
       ) : (
         <Hint
-          hintId={"PROFILE_VIEW_SELECT_START"}
-          text={translate("profileView.selectStart")}
+          hintId={"HGL_PROFILE_SELECT_START"}
+          text={translate("hglProfile.selectStart")}
         />
       );
     }

@@ -2,22 +2,22 @@ import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { splitsAtom } from "src/state/layout";
 import { bottomActiveTabAtom } from "src/state/panel-layout";
-import { profileViewOpenAtom } from "src/state/profile-view";
+import { hglProfileOpenAtom } from "src/state/hgl-profile";
 import { useUserTracking } from "src/infra/user-tracking";
 
-export const useShowProfileView = () => {
+export const useShowHglProfile = () => {
   const setSplits = useSetAtom(splitsAtom);
   const setBottomTab = useSetAtom(bottomActiveTabAtom);
-  const setProfileViewOpen = useSetAtom(profileViewOpenAtom);
+  const setHglProfileOpen = useSetAtom(hglProfileOpenAtom);
   const userTracking = useUserTracking();
 
   return useCallback(
     ({ source }: { source: "toolbar" | "shortcut" }) => {
       userTracking.capture({ name: "profileView.opened", source });
-      setProfileViewOpen(true);
+      setHglProfileOpen(true);
       setSplits((s) => ({ ...s, bottomOpen: true }));
-      setBottomTab("profile-view");
+      setBottomTab("hgl-profile");
     },
-    [setSplits, setBottomTab, setProfileViewOpen, userTracking],
+    [setSplits, setBottomTab, setHglProfileOpen, userTracking],
   );
 };

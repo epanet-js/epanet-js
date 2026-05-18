@@ -2,14 +2,14 @@ import { useRef } from "react";
 import throttle from "lodash/throttle";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HandlerContext } from "src/types";
-import { profileViewAtom } from "src/state/profile-view";
+import { hglProfileAtom } from "src/state/hgl-profile";
 import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
-import { deriveProfilePath } from "src/panels/profile-view/path-finding";
-import { buildProfileView } from "src/panels/profile-view/build-profile-view";
+import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
+import { buildHglProfile } from "src/panels/hgl-profile/build-hgl-profile";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
 import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
@@ -19,7 +19,7 @@ import {
 } from "src/state/derived-branch-state";
 import { useUserTracking } from "src/infra/user-tracking";
 
-export function useProfileViewHandlers(
+export function useHglProfileHandlers(
   handlerContext: HandlerContext,
 ): Handlers {
   const { hydraulicModel, map } = handlerContext;
@@ -28,7 +28,7 @@ export function useProfileViewHandlers(
   const store = useStore();
   const isUnprojected = useAtomValue(isUnprojectedAtom);
   const results = useAtomValue(simulationResultsDerivedAtom);
-  const setProfileView = useSetAtom(profileViewAtom);
+  const setHglProfile = useSetAtom(hglProfileAtom);
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const setSelection = useSetAtom(selectionAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
@@ -43,10 +43,10 @@ export function useProfileViewHandlers(
   } | null>(null);
 
   const getCurrentAnchors = (): AssetId[] => {
-    const profileView = store.get(profileViewAtom);
-    if (profileView) return profileView.anchors;
+    const hglProfile = store.get(hglProfileAtom);
+    if (hglProfile) return hglProfile.anchors;
     const ephemeral = store.get(ephemeralStateAtom);
-    return (ephemeral.type === "profileView" && ephemeral.anchorIds) || [];
+    return (ephemeral.type === "hglProfile" && ephemeral.anchorIds) || [];
   };
 
   const resolveNodeId = (
@@ -61,7 +61,7 @@ export function useProfileViewHandlers(
   };
 
   const exitMode = () => {
-    if (store.get(profileViewAtom) === null) {
+    if (store.get(hglProfileAtom) === null) {
       userTracking.capture({
         name: "profileView.selectionCancelled",
         anchorCount: getCurrentAnchors().length,
@@ -83,11 +83,11 @@ export function useProfileViewHandlers(
     const candidate = [...anchors, nodeId];
 
     if (candidate.length < 2) {
-      setEphemeralState({ type: "profileView", anchorIds: candidate });
+      setEphemeralState({ type: "hglProfile", anchorIds: candidate });
       return;
     }
 
-    const built = buildProfileView({
+    const built = buildHglProfile({
       anchorIds: candidate,
       hydraulicModel,
       isUnprojected,
@@ -95,10 +95,10 @@ export function useProfileViewHandlers(
     });
     if ("error" in built) return;
 
-    const hadProfileView = store.get(profileViewAtom) !== null;
+    const hadHglProfile = store.get(hglProfileAtom) !== null;
     const simulation = store.get(simulationDerivedAtom);
     userTracking.capture({
-      name: hadProfileView
+      name: hadHglProfile
         ? "profileView.pathExtended"
         : "profileView.pathCreated",
       anchorCount: candidate.length,
@@ -110,8 +110,8 @@ export function useProfileViewHandlers(
       simulationStatus: simulation.status,
     });
 
-    setProfileView(built.profileView);
-    setEphemeralState({ type: "profileView" });
+    setHglProfile(built.hglProfile);
+    setEphemeralState({ type: "hglProfile" });
     setSelection({
       type: "multi",
       ids: [...built.path.nodeIds, ...built.path.linkIds],
@@ -167,9 +167,9 @@ export function useProfileViewHandlers(
 
     const ephemeral = store.get(ephemeralStateAtom);
     const stagedAnchorIds =
-      ephemeral.type === "profileView" ? ephemeral.anchorIds : undefined;
+      ephemeral.type === "hglProfile" ? ephemeral.anchorIds : undefined;
     setEphemeralState({
-      type: "profileView",
+      type: "hglProfile",
       anchorIds: stagedAnchorIds,
       hoveredNodeId,
       path: previewPath,

@@ -120,7 +120,7 @@ export function useChartClick({
           : USelection.toggleSingleSelectionId(deps.selection, id);
         deps.setSelection(next);
         deps.setTab(TabOption.Asset);
-        if (deps.mode === Mode.PROFILE_VIEW) {
+        if (deps.mode === Mode.HGL_PROFILE) {
           deps.setEphemeralState({ type: "none" });
         }
         deps.setMode({ mode: Mode.NONE });

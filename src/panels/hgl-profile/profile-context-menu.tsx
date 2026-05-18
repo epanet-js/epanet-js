@@ -59,7 +59,7 @@ function useActions(pathIds: number[]): Action[] {
   const selectAllAction: Action = {
     icon: <SelectPathIcon />,
     applicable: pathIds.length > 0 && !isAllPathSelected,
-    label: translate("profileView.selectAll"),
+    label: translate("hglProfile.selectAll"),
     onSelect: () => {
       setSelection({ type: "multi", ids: pathIds });
       return Promise.resolve();

@@ -20,7 +20,7 @@ export enum Mode {
   BOUNDARY_TRACE_SELECT = "BOUNDARY_TRACE_SELECT",
   UPSTREAM_TRACE_SELECT = "UPSTREAM_TRACE_SELECT",
   DOWNSTREAM_TRACE_SELECT = "DOWNSTREAM_TRACE_SELECT",
-  PROFILE_VIEW = "PROFILE_VIEW",
+  HGL_PROFILE = "HGL_PROFILE",
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -48,7 +48,7 @@ export const MODE_INFO: Record<
   [Mode.BOUNDARY_TRACE_SELECT]: { name: "boundary trace" },
   [Mode.UPSTREAM_TRACE_SELECT]: { name: "upstream trace" },
   [Mode.DOWNSTREAM_TRACE_SELECT]: { name: "downstream trace" },
-  [Mode.PROFILE_VIEW]: { name: "profileView" },
+  [Mode.HGL_PROFILE]: { name: "hglProfile" },
 };
 
 export type ModeWithOptions = {

@@ -1,26 +1,26 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { Mode, modeAtom } from "src/state/mode";
-import { profileViewAtom, profileViewOpenAtom } from "src/state/profile-view";
+import { hglProfileAtom, hglProfileOpenAtom } from "src/state/hgl-profile";
 import { useUserTracking } from "src/infra/user-tracking";
 
-export const useCloseProfileView = () => {
+export const useCloseHglProfile = () => {
   const { mode } = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
-  const setProfileView = useSetAtom(profileViewAtom);
-  const setProfileViewOpen = useSetAtom(profileViewOpenAtom);
+  const setHglProfile = useSetAtom(hglProfileAtom);
+  const setHglProfileOpen = useSetAtom(hglProfileOpenAtom);
   const userTracking = useUserTracking();
 
   return useCallback(
     ({ source }: { source: "tab" }) => {
       userTracking.capture({ name: "profileView.closed", source });
-      setProfileViewOpen(false);
-      if (mode === Mode.PROFILE_VIEW) {
+      setHglProfileOpen(false);
+      if (mode === Mode.HGL_PROFILE) {
         setMode({ mode: Mode.NONE });
         return;
       }
-      setProfileView(null);
+      setHglProfile(null);
     },
-    [mode, setMode, setProfileView, setProfileViewOpen, userTracking],
+    [mode, setMode, setHglProfile, setHglProfileOpen, userTracking],
   );
 };

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { createMockResultsReader } from "src/__helpers__/state";
-import { buildProfileView } from "./build-profile-view";
+import { buildHglProfile } from "./build-hgl-profile";
 
-describe("buildProfileView", () => {
+describe("buildHglProfile", () => {
   it("stores every path node as an anchor (densification)", () => {
     const IDS = { A: 1, B: 2, C: 3, P1: 4, P2: 5 } as const;
     const model = HydraulicModelBuilder.with()
@@ -14,17 +14,17 @@ describe("buildProfileView", () => {
       .aPipe(IDS.P2, { startNodeId: IDS.B, endNodeId: IDS.C, length: 10 })
       .build();
 
-    const result = buildProfileView({
+    const result = buildHglProfile({
       anchorIds: [IDS.A, IDS.C],
       hydraulicModel: model,
       isUnprojected: false,
     });
 
-    expect("profileView" in result).toBe(true);
-    if (!("profileView" in result)) return;
+    expect("hglProfile" in result).toBe(true);
+    if (!("hglProfile" in result)) return;
 
-    expect(result.profileView.anchors).toEqual([IDS.A, IDS.B, IDS.C]);
-    expect(result.profileView.anchors).toEqual(result.path.nodeIds);
+    expect(result.hglProfile.anchors).toEqual([IDS.A, IDS.B, IDS.C]);
+    expect(result.hglProfile.anchors).toEqual(result.path.nodeIds);
   });
 
   it("uses flow weighting when results are provided", () => {
@@ -75,18 +75,18 @@ describe("buildProfileView", () => {
       },
     });
 
-    const result = buildProfileView({
+    const result = buildHglProfile({
       anchorIds: [IDS.A, IDS.C],
       hydraulicModel: model,
       isUnprojected: false,
       results,
     });
 
-    if (!("profileView" in result)) {
-      throw new Error("expected profileView, got error");
+    if (!("hglProfile" in result)) {
+      throw new Error("expected hglProfile, got error");
     }
 
-    expect(result.profileView.anchors).toEqual([IDS.A, IDS.D, IDS.C]);
+    expect(result.hglProfile.anchors).toEqual([IDS.A, IDS.D, IDS.C]);
     expect(result.path.linkIds).toEqual([IDS.highFlow1, IDS.highFlow2]);
   });
 
@@ -113,17 +113,17 @@ describe("buildProfileView", () => {
       .aPipe(IDS.long2, { startNodeId: IDS.D, endNodeId: IDS.C, length: 100 })
       .build();
 
-    const result = buildProfileView({
+    const result = buildHglProfile({
       anchorIds: [IDS.A, IDS.C],
       hydraulicModel: model,
       isUnprojected: false,
     });
 
-    if (!("profileView" in result)) {
-      throw new Error("expected profileView, got error");
+    if (!("hglProfile" in result)) {
+      throw new Error("expected hglProfile, got error");
     }
 
-    expect(result.profileView.anchors).toEqual([IDS.A, IDS.B, IDS.C]);
+    expect(result.hglProfile.anchors).toEqual([IDS.A, IDS.B, IDS.C]);
     expect(result.path.linkIds).toEqual([IDS.short1, IDS.short2]);
   });
 
@@ -152,17 +152,17 @@ describe("buildProfileView", () => {
       .aPipe(IDS.BC, { startNodeId: IDS.B, endNodeId: IDS.C, length: 10 })
       .build();
 
-    const result = buildProfileView({
+    const result = buildHglProfile({
       anchorIds: [IDS.A, IDS.MID, IDS.C],
       hydraulicModel: model,
       isUnprojected: false,
     });
 
-    if (!("profileView" in result)) {
-      throw new Error("expected profileView, got error");
+    if (!("hglProfile" in result)) {
+      throw new Error("expected hglProfile, got error");
     }
 
-    expect(result.profileView.anchors).toEqual([IDS.A, IDS.MID, IDS.B, IDS.C]);
+    expect(result.hglProfile.anchors).toEqual([IDS.A, IDS.MID, IDS.B, IDS.C]);
   });
 
   it("returns noPath error when no route exists", () => {
@@ -172,7 +172,7 @@ describe("buildProfileView", () => {
       .aJunction(IDS.B, { coordinates: [1, 0] })
       .build();
 
-    const result = buildProfileView({
+    const result = buildHglProfile({
       anchorIds: [IDS.A, IDS.B],
       hydraulicModel: model,
       isUnprojected: false,

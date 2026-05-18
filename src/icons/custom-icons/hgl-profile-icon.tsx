@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CustomIconProps, getPixels } from "../index";
 
-export const CustomProfileViewIcon = React.forwardRef<
+export const CustomHglProfileIcon = React.forwardRef<
   SVGSVGElement,
   CustomIconProps
 >(({ size: rawSize = "md", ...props }, ref) => {
@@ -29,4 +29,4 @@ export const CustomProfileViewIcon = React.forwardRef<
   );
 });
 
-CustomProfileViewIcon.displayName = "CustomProfileViewIcon";
+CustomHglProfileIcon.displayName = "CustomHglProfileIcon";

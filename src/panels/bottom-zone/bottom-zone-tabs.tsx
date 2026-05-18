@@ -10,8 +10,8 @@ import {
   effectiveZone,
   panelRegistryAtom,
 } from "src/state/panel-layout";
-import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
-import { useCloseProfileView } from "src/commands/close-profile-view";
+import { useExitHglProfileMode } from "src/commands/exit-hgl-profile-mode";
+import { useCloseHglProfile } from "src/commands/close-hgl-profile";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
@@ -19,8 +19,8 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
   const { layout } = useAtomValue(splitsAtom);
   const translate = useTranslate();
   const [activeTabId, setActiveTabId] = useAtom(bottomActiveTabAtom);
-  const exitProfileViewMode = useExitProfileViewMode();
-  const closeProfileView = useCloseProfileView();
+  const exitHglProfileMode = useExitHglProfileMode();
+  const closeHglProfile = useCloseHglProfile();
   const userTracking = useUserTracking();
 
   const resolvedLayout = layout === "VERTICAL" ? "vertical" : "horizontal";
@@ -44,8 +44,8 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
 
   const handleTabChange = useCallback(
     (newTabId: string) => {
-      if (effectiveTabId === "profile-view" && newTabId !== "profile-view") {
-        exitProfileViewMode();
+      if (effectiveTabId === "hgl-profile" && newTabId !== "hgl-profile") {
+        exitHglProfileMode();
       }
       if (newTabId !== effectiveTabId) {
         userTracking.capture({
@@ -55,7 +55,7 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
       }
       setActiveTabId(newTabId);
     },
-    [effectiveTabId, exitProfileViewMode, setActiveTabId, userTracking],
+    [effectiveTabId, exitHglProfileMode, setActiveTabId, userTracking],
   );
 
   if (visiblePanels.length === 0 || !ActivePanel) return null;
@@ -71,21 +71,21 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
           <Tab key={p.id} value={p.id}>
             <span className="inline-flex items-center gap-2">
               {translate(p.labelKey)}
-              {p.id === "profile-view" && (
+              {p.id === "hgl-profile" && (
                 <span
                   role="button"
                   tabIndex={0}
-                  aria-label={translate("profileView.close")}
+                  aria-label={translate("hglProfile.close")}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    closeProfileView({ source: "tab" });
+                    closeHglProfile({ source: "tab" });
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       e.stopPropagation();
-                      closeProfileView({ source: "tab" });
+                      closeHglProfile({ source: "tab" });
                     }
                   }}
                   className="inline-flex items-center justify-center rounded

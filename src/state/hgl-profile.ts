@@ -1,8 +1,8 @@
 import { atom } from "jotai";
 import { AssetId } from "src/hydraulic-model";
 import { PathData } from "src/hydraulic-model/topology/types";
-import { deriveProfilePath } from "src/panels/profile-view/path-finding";
-import { HglRange, TerrainPoint } from "src/panels/profile-view/chart-types";
+import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
+import { HglRange, TerrainPoint } from "src/panels/hgl-profile/chart-types";
 import { Mode, modeAtom } from "src/state/mode";
 import {
   simulationDerivedAtom,
@@ -11,36 +11,36 @@ import {
 
 export type { PathData };
 
-export type ProfileView = {
+export type HglProfile = {
   id: string;
   anchors: AssetId[];
   terrain: TerrainPoint[] | null;
   isUnprojected: boolean;
 };
 
-export type ProfileViewUiPhase =
+export type HglProfileUiPhase =
   | "idle"
   | "selectingStart"
   | "selectingEnd"
   | "showingProfile"
   | "pathBroken";
 
-export const profileViewAtom = atom<ProfileView | null>(null);
+export const hglProfileAtom = atom<HglProfile | null>(null);
 
-export const profileViewOpenAtom = atom(false);
+export const hglProfileOpenAtom = atom(false);
 
-export const hasProfileViewAtom = atom(
+export const hasHglProfileAtom = atom(
   (get) =>
-    get(profileViewOpenAtom) ||
-    get(profileViewAtom) !== null ||
-    get(modeAtom).mode === Mode.PROFILE_VIEW,
+    get(hglProfileOpenAtom) ||
+    get(hglProfileAtom) !== null ||
+    get(modeAtom).mode === Mode.HGL_PROFILE,
 );
 
 export const profilePathAtom = atom<PathData | null>((get) => {
-  const profileView = get(profileViewAtom);
-  if (!profileView) return null;
+  const hglProfile = get(hglProfileAtom);
+  if (!hglProfile) return null;
   const model = get(stagingModelDerivedAtom);
-  return deriveProfilePath(model.topology, model.assets, profileView.anchors);
+  return deriveProfilePath(model.topology, model.assets, hglProfile.anchors);
 });
 
 export const hglRangesAtom = atom(

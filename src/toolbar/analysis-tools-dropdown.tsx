@@ -4,7 +4,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   AnalysisToolsIcon,
   ChevronDownIcon,
-  ProfileViewIcon,
+  HglProfileIcon,
   TableIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -16,13 +16,13 @@ import {
   StyledTooltipArrow,
 } from "src/components/elements";
 import { useShowDataTables } from "src/commands/show-data-tables";
-import { useShowProfileView } from "src/commands/show-profile-view";
+import { useShowHglProfile } from "src/commands/show-hgl-profile";
 import { useStartProfileSelection } from "src/commands/start-profile-selection";
 
 export const AnalysisToolsDropdown = () => {
   const translate = useTranslate();
   const showDataTables = useShowDataTables();
-  const showProfileView = useShowProfileView();
+  const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
 
   return (
@@ -52,12 +52,12 @@ export const AnalysisToolsDropdown = () => {
 
               <StyledItem
                 onSelect={() => {
-                  showProfileView({ source: "toolbar" });
+                  showHglProfile({ source: "toolbar" });
                   startProfileSelection({ source: "toolbar" });
                 }}
               >
-                <ProfileViewIcon />
-                {translate("profileView.toolbar")}
+                <HglProfileIcon />
+                {translate("hglProfile.toolbar")}
               </StyledItem>
             </DDContent>
           </DD.Portal>

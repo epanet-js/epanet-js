@@ -2,7 +2,7 @@ import { Position } from "geojson";
 import measureLength from "@turf/length";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { LinkAsset } from "src/hydraulic-model/asset-types";
-import { PathData } from "src/state/profile-view";
+import { PathData } from "src/state/hgl-profile";
 import { traceDuration } from "src/infra/with-instrumentation";
 
 export type PathSegment = {
@@ -16,7 +16,7 @@ export function buildPathSegments(
   path: PathData,
   assets: AssetsMap,
 ): PathSegment[] {
-  return traceDuration("DEBUG PROFILE_VIEW:buildPathSegments", () =>
+  return traceDuration("DEBUG HGL_PROFILE:buildPathSegments", () =>
     buildPathSegmentsImpl(path, assets),
   );
 }

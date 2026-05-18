@@ -80,7 +80,7 @@ export const Toolbar = ({
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-  const isProfileViewOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
 
   const { undo, redo } = useHistoryControl();
@@ -228,7 +228,7 @@ export const Toolbar = ({
         </MenuAction>
         <Divider />
         <OperationalDataDropdown />
-        {isProfileViewOn && <AnalysisToolsDropdown />}
+        {isHglProfileOn && <AnalysisToolsDropdown />}
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
         <CommandBarButton />

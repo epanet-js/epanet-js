@@ -117,7 +117,7 @@ function TooltipBody({
         <strong>{content.label}</strong>
         <Row
           color={elevColor}
-          label={translate("profileView.elevation")}
+          label={translate("hglProfile.elevation")}
           value={content.elevation}
           unit={elevationUnitLabel}
           decimals={elevationDecimals}
@@ -125,7 +125,7 @@ function TooltipBody({
         {content.hgl !== null && (
           <Row
             color={HGL_COLOR}
-            label={translate("profileView.hgl")}
+            label={translate("hglProfile.hgl")}
             value={content.hgl}
             unit={elevationUnitLabel}
             decimals={elevationDecimals}
@@ -145,16 +145,16 @@ function TooltipBody({
 
   return (
     <>
-      <strong>{content.linkLabel ?? translate("profileView.estimated")}</strong>
+      <strong>{content.linkLabel ?? translate("hglProfile.estimated")}</strong>
       {content.linkLabel !== null && (
         <em style={{ opacity: 0.7, fontStyle: "italic", marginLeft: 4 }}>
-          ({translate("profileView.estimated")})
+          ({translate("hglProfile.estimated")})
         </em>
       )}
       {content.elevation !== null && (
         <Row
           color={elevColor}
-          label={translate("profileView.elevation")}
+          label={translate("hglProfile.elevation")}
           value={content.elevation}
           unit={elevationUnitLabel}
           decimals={elevationDecimals}
@@ -163,7 +163,7 @@ function TooltipBody({
       {content.hgl !== null && (
         <Row
           color={HGL_COLOR}
-          label={translate("profileView.hgl")}
+          label={translate("hglProfile.hgl")}
           value={content.hgl}
           unit={elevationUnitLabel}
           decimals={elevationDecimals}

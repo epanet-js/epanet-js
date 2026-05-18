@@ -1326,10 +1326,10 @@
       "includeHeadersAction": "Copy with headers"
     }
   },
-  "profileView": {
-    "title": "Profile view",
-    "toolbar": "Profile view",
-    "close": "Close profile view",
+  "hglProfile": {
+    "title": "HGL profile",
+    "toolbar": "HGL profile",
+    "close": "Close HGL profile",
     "selectStart": "Click a node or pipe to set the start of the profile",
     "selectEnd": "Click to add a waypoint, or double-click to finish the profile",
     "selectAll": "Select all",
@@ -1343,7 +1343,6 @@
     "elevation": "Elevation",
     "hgl": "HGL",
     "distance": "Distance",
-    "close": "Close profile",
     "estimated": "Estimated",
     "empty": {
       "selectingStart": "Click a node or pipe on the map to set the start of the profile.",

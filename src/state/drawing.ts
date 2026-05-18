@@ -30,8 +30,8 @@ export type EphemeralConnectCustomerPoints = {
 
 export type DraftPath = { nodeIds: AssetId[]; linkIds: AssetId[] };
 
-export type EphemeralProfileView = {
-  type: "profileView";
+export type EphemeralHglProfile = {
+  type: "hglProfile";
   anchorIds?: AssetId[];
   hoveredNodeId?: AssetId;
   path?: DraftPath;
@@ -45,7 +45,7 @@ export type EphemeralEditingState =
   | EphemeralCustomerPointsHighlight
   | EphemeralConnectCustomerPoints
   | EphemeralEditingStateAreaSelection
-  | EphemeralProfileView
+  | EphemeralHglProfile
   | { type: "none" };
 
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
@@ -74,7 +74,7 @@ const getMovedAssets = (
     case "customerPointsHighlight":
     case "connectCustomerPoints":
     case "areaSelect":
-    case "profileView":
+    case "hglProfile":
     case "none":
       return noMoved;
   }

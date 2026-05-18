@@ -6,15 +6,15 @@ import {
 } from "src/__helpers__/state";
 import {
   profilePathAtom,
-  profileViewAtom,
-  ProfileView,
-} from "src/state/profile-view";
+  hglProfileAtom,
+  HglProfile,
+} from "src/state/hgl-profile";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { AssetId } from "src/hydraulic-model";
 import { Store } from "src/state";
 import { CommandContainer } from "src/commands/__helpers__/command-container";
-import { ProfileViewPanel } from "./index";
+import { HglProfilePanel } from "./index";
 
 const IDS = {
   J1: 1,
@@ -41,20 +41,20 @@ const buildLinearModel = () =>
     })
     .build();
 
-const aProfileView = ({ anchors }: { anchors: AssetId[] }): ProfileView => ({
-  id: "test-profile-view",
+const anHglProfile = ({ anchors }: { anchors: AssetId[] }): HglProfile => ({
+  id: "test-hgl-profile",
   anchors,
   terrain: null,
   isUnprojected: false,
 });
 
-describe("ProfileViewPanel pathBroken state", () => {
+describe("HglProfilePanel pathBroken state", () => {
   it("shows the broken-path empty state when an anchor is missing", () => {
     const store = setInitialState({
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
     });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, 999] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, 999] }));
 
     renderPanel({ store });
 
@@ -69,7 +69,7 @@ describe("ProfileViewPanel pathBroken state", () => {
         .build(),
       simulationResults: createMockResultsReader(),
     });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, IDS.J3] }));
 
     renderPanel({ store });
 
@@ -89,7 +89,7 @@ describe("ProfileViewPanel pathBroken state", () => {
   });
 });
 
-describe("ProfileViewPanel reactive path", () => {
+describe("HglProfilePanel reactive path", () => {
   const N = 6;
   const P2a = 7;
   const P2b = 8;
@@ -119,7 +119,7 @@ describe("ProfileViewPanel reactive path", () => {
 
   it("re-derives the path through a new junction after splitting a pipe", () => {
     const store = setInitialState({ hydraulicModel: buildLinearModel() });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, IDS.J3] }));
     renderPanel({ store });
 
     store.set(stagingModelDerivedAtom, buildSplitModel());
@@ -133,7 +133,7 @@ describe("ProfileViewPanel reactive path", () => {
 
   it("re-derives the collapsed path after removing an intermediate node", () => {
     const store = setInitialState({ hydraulicModel: buildSplitModel() });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, IDS.J3] }));
     renderPanel({ store });
 
     store.set(stagingModelDerivedAtom, buildLinearModel());
@@ -167,7 +167,7 @@ describe("ProfileViewPanel reactive path", () => {
     const store = setInitialState({
       hydraulicModel: buildLinearWithClosedValve(),
     });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, V, IDS.J3] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, V, IDS.J3] }));
     renderPanel({ store });
 
     const path = store.get(profilePathAtom);
@@ -182,7 +182,7 @@ describe("ProfileViewPanel reactive path", () => {
       hydraulicModel: buildLinearModel(),
       simulationResults: createMockResultsReader(),
     });
-    store.set(profileViewAtom, aProfileView({ anchors: [IDS.J1, IDS.J3] }));
+    store.set(hglProfileAtom, anHglProfile({ anchors: [IDS.J1, IDS.J3] }));
     renderPanel({ store });
 
     const pathBefore = store.get(profilePathAtom);
@@ -200,8 +200,8 @@ describe("ProfileViewPanel reactive path", () => {
   it("honors a waypoint anchor in the middle", () => {
     const store = setInitialState({ hydraulicModel: buildLinearModel() });
     store.set(
-      profileViewAtom,
-      aProfileView({ anchors: [IDS.J1, IDS.J2, IDS.J3] }),
+      hglProfileAtom,
+      anHglProfile({ anchors: [IDS.J1, IDS.J2, IDS.J3] }),
     );
     renderPanel({ store });
 
@@ -216,7 +216,7 @@ describe("ProfileViewPanel reactive path", () => {
 const renderPanel = ({ store }: { store: Store }) => {
   render(
     <CommandContainer store={store}>
-      <ProfileViewPanel />
+      <HglProfilePanel />
     </CommandContainer>,
   );
 };

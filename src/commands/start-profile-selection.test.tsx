@@ -10,7 +10,7 @@ import { CommandContainer } from "./__helpers__/command-container";
 import { useStartProfileSelection } from "./start-profile-selection";
 
 describe("useStartProfileSelection", () => {
-  it("enters profile-view mode when simulation results are available", async () => {
+  it("enters hgl-profile mode when simulation results are available", async () => {
     const store = setInitialState({
       simulationResults: createMockResultsReader(),
     });
@@ -19,17 +19,17 @@ describe("useStartProfileSelection", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "start" }));
 
-    expect(store.get(modeAtom).mode).toBe(Mode.PROFILE_VIEW);
+    expect(store.get(modeAtom).mode).toBe(Mode.HGL_PROFILE);
   });
 
-  it("enters profile-view mode even when no simulation has run", async () => {
+  it("enters hgl-profile mode even when no simulation has run", async () => {
     const store = setInitialState({});
 
     renderComponent({ store });
 
     await userEvent.click(screen.getByRole("button", { name: "start" }));
 
-    expect(store.get(modeAtom).mode).toBe(Mode.PROFILE_VIEW);
+    expect(store.get(modeAtom).mode).toBe(Mode.HGL_PROFILE);
   });
 
   const TestableComponent = () => {

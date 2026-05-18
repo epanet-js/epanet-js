@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { useExitProfileViewMode } from "src/commands/exit-profile-view-mode";
+import { useExitHglProfileMode } from "src/commands/exit-hgl-profile-mode";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   bottomActiveTabAtom,
@@ -15,13 +15,13 @@ export const useToggleBottomPanel = () => {
   const splits = useAtomValue(splitsAtom);
   const activeBottomTab = useAtomValue(bottomActiveTabAtom);
   const effectiveBottomTab = useAtomValue(effectiveBottomTabAtom);
-  const exitProfileViewMode = useExitProfileViewMode();
+  const exitHglProfileMode = useExitHglProfileMode();
   const userTracking = useUserTracking();
 
   const toggleBottomPanel = useCallback(
     (_: { source: "toolbar" | "shortcut" }) => {
-      if (splits.bottomOpen && activeBottomTab === "profile-view") {
-        exitProfileViewMode();
+      if (splits.bottomOpen && activeBottomTab === "hgl-profile") {
+        exitHglProfileMode();
       }
       const newOpen = !splits.bottomOpen;
       setSplits((s) => ({ ...s, bottomOpen: newOpen }));
@@ -35,7 +35,7 @@ export const useToggleBottomPanel = () => {
       splits.bottomOpen,
       activeBottomTab,
       effectiveBottomTab,
-      exitProfileViewMode,
+      exitHglProfileMode,
       setSplits,
       userTracking,
     ],

@@ -5,7 +5,7 @@ import type { EChartsOption } from "echarts";
 import * as CM from "@radix-ui/react-context-menu";
 import { useAtomValue, useSetAtom } from "jotai";
 import debounce from "lodash/debounce";
-import { ProfileViewData } from "./chart-data";
+import { HglProfileData } from "./chart-data";
 import { ProfileContextMenu } from "./profile-context-menu";
 import {
   X_AXIS_LABEL_MARGIN,
@@ -35,7 +35,7 @@ import { computeSldVisibility } from "./sld/visibility";
 const STRIP_FADE_WIDTH = 24;
 
 interface ChartContainerProps {
-  data: ProfileViewData;
+  data: HglProfileData;
   pathIds: number[];
 }
 
@@ -122,8 +122,8 @@ export const ChartContainer = memo(function ChartContainer({
         yAxisMin: yAxisRange.min,
         linkColor,
         nodeColor,
-        elevationLabel: translate("profileView.elevation"),
-        hglLabel: translate("profileView.hgl"),
+        elevationLabel: translate("hglProfile.elevation"),
+        hglLabel: translate("hglProfile.hgl"),
       }),
     [
       points,
