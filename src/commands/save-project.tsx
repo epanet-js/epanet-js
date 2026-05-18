@@ -80,15 +80,11 @@ export const useSaveProject = ({
             };
             set(projectSettingsAtom, updatedSettings);
 
-            try {
-              await db.saveProjectSettings(updatedSettings);
-              const updatedBlob = await db.exportDb();
-              const writable = await newHandle.createWritable();
-              await writable.write(updatedBlob);
-              await writable.close();
-            } catch (error) {
-              captureError(error as Error);
-            }
+            await db.saveProjectSettings(updatedSettings);
+            const updatedBlob = await db.exportDb();
+            const writable = await newHandle.createWritable();
+            await writable.write(updatedBlob);
+            await writable.close();
 
             const isDemo = get(isDemoNetworkAtom);
             set(projectFileInfoAtom, {
@@ -124,13 +120,25 @@ export const useSaveProject = ({
             size: "sm",
           });
           return true;
-        } catch {
+        } catch (error) {
+          if ((error as Error).name === "AbortError") {
+            notify({
+              variant: "warning",
+              title: translate("saveCanceled"),
+              Icon: WarningIcon,
+              id: saveProjectToastId,
+              size: "sm",
+            });
+            return false;
+          }
+          captureError(error as Error);
           notify({
-            variant: "warning",
-            title: translate("saveCanceled"),
+            variant: "error",
+            size: "md",
+            title: translate("projectSaveFailed"),
+            description: translate("unexpectedErrorContactSupport"),
             Icon: WarningIcon,
             id: saveProjectToastId,
-            size: "sm",
           });
           return false;
         }

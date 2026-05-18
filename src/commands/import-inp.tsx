@@ -86,13 +86,31 @@ export const useImportInp = () => {
 
       const projectName = file.name.replace(/\.[^.]+$/, "");
 
-      await startNewProject({
-        hydraulicModel,
-        factories,
-        projectSettings: { ...projectSettings, name: projectName },
-        simulationSettings,
-        autoElevations: options?.autoElevations,
-      });
+      try {
+        await startNewProject({
+          hydraulicModel,
+          factories,
+          projectSettings: { ...projectSettings, name: projectName },
+          simulationSettings,
+          autoElevations: options?.autoElevations,
+        });
+      } catch (error) {
+        captureError(error as Error);
+        setDialogState(null);
+        notify({
+          variant: "error",
+          size: "md",
+          title: translate("projectOpenFailed"),
+          description: translate("unexpectedErrorContactSupport"),
+          Icon: WarningIcon,
+        });
+        userTracking.capture({
+          name: "projectFile.openFailed",
+          source: "inpImport",
+          reason: "exception",
+        });
+        return;
+      }
 
       const features: FeatureCollection = {
         type: "FeatureCollection",
@@ -144,6 +162,9 @@ export const useImportInp = () => {
       setInpFileInfo,
       setProjectFileInfo,
       handleImportComplete,
+      setDialogState,
+      translate,
+      userTracking,
     ],
   );
 

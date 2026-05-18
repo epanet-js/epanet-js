@@ -138,18 +138,23 @@ export const useStartNewProject = () => {
     useCallback(
       async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
         await clearSimulationStorage();
-        resetAppState(set);
-        const mergedProjectSettings = loadModel(set, input);
         if (isOurFileOn) {
-          void db
-            .importProject({
-              newDb: true,
-              projectSettings: mergedProjectSettings,
-              hydraulicModel: input.hydraulicModel,
-              simulationSettings: input.simulationSettings,
-            })
-            .catch(captureError);
+          const mergedProjectSettings: ProjectSettings = {
+            ...input.projectSettings,
+            units: {
+              ...input.projectSettings.units,
+              chemicalConcentration: input.simulationSettings.qualityMassUnit,
+            },
+          };
+          await db.importProject({
+            newDb: true,
+            projectSettings: mergedProjectSettings,
+            hydraulicModel: input.hydraulicModel,
+            simulationSettings: input.simulationSettings,
+          });
         }
+        resetAppState(set);
+        loadModel(set, input);
       },
       [isOurFileOn],
     ),

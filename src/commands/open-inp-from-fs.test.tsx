@@ -28,6 +28,8 @@ import { useOpenInpFromFs } from "./open-inp-from-fs";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { userSettingsAtom } from "src/state/user-settings";
+import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
+import * as db from "src/lib/db";
 
 const aMoment = (name: string) => ({ note: name });
 
@@ -324,6 +326,8 @@ it("shows warning when using unsupported features", async () => {
 });
 
 describe("file format updated dialog", () => {
+  useInProcessDb();
+
   beforeEach(() => {
     localStorage.clear();
   });
@@ -477,6 +481,39 @@ describe("file format updated dialog", () => {
     await waitFor(() => {
       expect(screen.getByText(/file format updated/i)).toBeInTheDocument();
     });
+  });
+
+  it("shows an error notification and rolls back when the db import fails", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileOpen();
+    const previousModel = HydraulicModelBuilder.empty();
+    const store = setInitialState({ hydraulicModel: previousModel });
+    const file = aTestFile({
+      filename: "my-network.inp",
+      content: minimalInp({ junctionId: "J1" }),
+    });
+    const spy = vi
+      .spyOn(db, "importProject")
+      .mockRejectedValueOnce(
+        new Error("Junction 1 (J1): row does not match schema"),
+      );
+
+    renderComponent({ store });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() =>
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+    );
+
+    expect(screen.getByText(/couldn't open project/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/if the error persists, contact support/i),
+    ).toBeInTheDocument();
+    expect(store.get(stagingModelAtom)).toBe(previousModel);
+    expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
+
+    spy.mockRestore();
   });
 });
 

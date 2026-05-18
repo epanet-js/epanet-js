@@ -63,6 +63,12 @@ export const stubFileSaveError = () => {
   (fileSave as Mock).mockRejectedValue(new Error("Something went wrong"));
 };
 
+export const stubFileSaveAbort = () => {
+  (fileSave as Mock).mockRejectedValue(
+    new DOMException("User canceled the save dialog", "AbortError"),
+  );
+};
+
 export const lastSaveCall = () => {
   const [contentBlob, options, handle] = (fileSave as Mock).mock.lastCall as [
     Blob,
@@ -118,5 +124,11 @@ export const buildFileSystemHandleMock = ({
       Promise.resolve(
         new File(["mock content"], fileName, { type: "text/plain" }),
       ),
+    ),
+    createWritable: vi.fn(() =>
+      Promise.resolve({
+        write: vi.fn(() => Promise.resolve()),
+        close: vi.fn(() => Promise.resolve()),
+      } as unknown as FileSystemWritableFileStream),
     ),
   }) as unknown as FileSystemFileHandle;
