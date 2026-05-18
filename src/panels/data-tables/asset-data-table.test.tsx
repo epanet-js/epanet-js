@@ -17,7 +17,7 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import type { Store } from "src/state";
 
-import { AssetDataTableWithFeatures } from "./asset-data-table-with-features";
+import { AssetDataTable } from "./asset-data-table";
 
 vi.mock("src/components/notifications", async (importOriginal) => {
   const original =
@@ -39,7 +39,7 @@ const renderTable = (store: Store) => {
       <JotaiProvider store={store}>
         <PersistenceContext.Provider value={persistence}>
           <TooltipProvider>
-            <AssetDataTableWithFeatures assetType="junction" />
+            <AssetDataTable assetType="junction" />
           </TooltipProvider>
         </PersistenceContext.Provider>
       </JotaiProvider>
@@ -47,7 +47,7 @@ const renderTable = (store: Store) => {
   );
 };
 
-describe("AssetDataTableWithFeatures", () => {
+describe("AssetDataTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     stubUserTracking();

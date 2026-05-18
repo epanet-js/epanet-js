@@ -84,14 +84,4 @@ export type GridColumn = {
   sortingFn?: GridSortingFn;
 };
 
-export type DataGridRef = {
-  selectCells: (options?: {
-    colIndex?: number;
-    rowIndex?: number;
-    extend?: boolean;
-  }) => void;
-  clearSelection: () => void;
-  selection: GridSelection | null;
-};
-
 export type DataGridVariant = "spreadsheet" | "inline";

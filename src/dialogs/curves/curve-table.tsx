@@ -7,9 +7,7 @@ import {
 } from "react";
 import {
   DataGrid,
-  DataGridWithFeatures,
   type DataGridRef,
-  type DataGridWithFeaturesRef,
   type GridSelection,
   type RowAction,
   floatColumn,
@@ -24,7 +22,6 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { getCurveTypeConfig } from "./curve-type-config";
 import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type CurveRow = {
   x: number;
@@ -62,7 +59,6 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
   ) {
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
-    const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
     const gridRef = useRef<DataGridRef>(null);
 
     useImperativeHandle(ref, () => gridRef.current!, []);
@@ -242,13 +238,6 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       autoAddNewRows: true,
     };
 
-    return dataGridRefactorOn ? (
-      <DataGridWithFeatures<CurveRow>
-        ref={gridRef as React.Ref<DataGridWithFeaturesRef>}
-        {...sharedProps}
-      />
-    ) : (
-      <DataGrid<CurveRow> ref={gridRef} {...sharedProps} />
-    );
+    return <DataGrid<CurveRow> ref={gridRef} {...sharedProps} />;
   },
 );

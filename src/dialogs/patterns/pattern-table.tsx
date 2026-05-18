@@ -7,15 +7,12 @@ import {
 } from "react";
 import {
   DataGrid,
-  DataGridWithFeatures,
   type DataGridRef,
-  type DataGridWithFeaturesRef,
   type GridSelection,
   type RowAction,
   floatColumn,
   textColumn,
 } from "src/components/data-grid";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PatternMultipliers } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -81,7 +78,6 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
     ref,
   ) {
     const translate = useTranslate();
-    const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
     const gridRef = useRef<DataGridRef>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -231,14 +227,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
 
     return (
       <div ref={containerRef} className="h-full">
-        {dataGridRefactorOn ? (
-          <DataGridWithFeatures<PatternRow>
-            ref={gridRef as React.Ref<DataGridWithFeaturesRef>}
-            {...sharedProps}
-          />
-        ) : (
-          <DataGrid<PatternRow> ref={gridRef} {...sharedProps} />
-        )}
+        <DataGrid<PatternRow> ref={gridRef} {...sharedProps} />
       </div>
     );
   },

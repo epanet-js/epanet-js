@@ -3,19 +3,15 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRegisterPanel } from "src/state/panel-layout";
 import { hasHglProfileAtom } from "src/state/hgl-profile";
 import { AssetDataTable } from "./data-tables/asset-data-table";
-import { AssetDataTableWithFeatures } from "./data-tables/asset-data-table-with-features";
 import { HglProfilePanel } from "./hgl-profile";
 
 const BOTTOM = { horizontal: "bottom", vertical: "bottom" } as const;
 
 export const PanelRegistrations = () => {
-  const dataGridRefactorOn = useFeatureFlag("FLAG_DATA_GRID_REFACTOR");
   const hglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const hasHglProfile = useAtomValue(hasHglProfileAtom);
 
-  const AssetDataTableComponent = dataGridRefactorOn
-    ? AssetDataTableWithFeatures
-    : AssetDataTable;
+  const AssetDataTableComponent = AssetDataTable;
 
   useRegisterPanel({
     id: "junction",

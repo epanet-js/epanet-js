@@ -12,7 +12,6 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import {
-  DataGridRef,
   DataGridVariant,
   GridColumn,
   RowAction,
@@ -20,15 +19,35 @@ import {
   CellContextAction,
   GutterContextAction,
 } from "./types";
-import { isCellSelected } from "./hooks";
+import { useGridEditing, useMouseSelection } from "./hooks";
 import {
-  useSelection,
-  useGridEditing,
-  useClipboard,
-  useEditMode,
-  useMouseSelection,
-} from "./hooks";
+  CellEditingFeature,
+  CellRangeSelectionFeature,
+  ClipboardFeature,
+  clampActiveCell,
+  clampRange,
+  computeExtendedRange,
+  computeTargetSelection,
+  isActiveCellEqual,
+  isCellSelected,
+  isRangeEqual,
+  type ClipboardCopyInfo,
+  type ClipboardPasteInfo,
+  type CopySelectionOptions,
+} from "./features";
+import type { CellPosition } from "./types";
 import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
+
+export type DataGridRef = {
+  selectCells: (options?: {
+    colIndex?: number;
+    rowIndex?: number;
+    extend?: boolean;
+  }) => void;
+  clearSelection: () => void;
+  copySelection: (options?: CopySelectionOptions) => Promise<void>;
+  selection: GridSelection | null;
+};
 
 type DataGridProps<TData extends Record<string, unknown>> = {
   data: TData[];
@@ -50,22 +69,9 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   autoAddNewRows?: boolean;
   sortable?: boolean;
   onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
-  onCopy?: (info: {
-    rows: number;
-    cols: number;
-    allRows: boolean;
-    allCols: boolean;
-    columnIds: string[];
-    canIncludeHeaders: boolean;
-    copyWithHeaders: () => Promise<void>;
-  }) => void;
-  onPaste?: (info: {
-    rows: number;
-    cols: number;
-    allRows: boolean;
-    allCols: boolean;
-    columnIds: string[];
-  }) => void;
+  includeHeadersOnCopy?: boolean;
+  onCopy?: (info: ClipboardCopyInfo) => void;
+  onPaste?: (info: ClipboardPasteInfo) => void;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -91,8 +97,9 @@ export const DataGrid = forwardRef(function DataGrid<
     autoAddNewRows = false,
     sortable = false,
     onColumnSort,
-    onCopy: onCopyCallback,
-    onPaste: onPasteCallback,
+    includeHeadersOnCopy = false,
+    onCopy,
+    onPaste,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -101,10 +108,28 @@ export const DataGrid = forwardRef(function DataGrid<
   const dataRef = useRef(data);
   dataRef.current = data;
 
-  const table = useReactTable({
+  const table = useReactTable<TData>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    _features: [
+      CellEditingFeature,
+      CellRangeSelectionFeature,
+      ClipboardFeature,
+    ],
+    // Selection feature options
+    rowCount: data.length,
+    colCount: columns.length,
+    onSelectionChange,
+    // Clipboard feature options
+    gridColumns: columns,
+    onDataChange: onChange,
+    createRow,
+    readOnly,
+    includeHeadersOnCopy,
+    autoExtendOnPaste: autoAddNewRows,
+    onClipboardCopy: onCopy,
+    onClipboardPaste: onPaste,
     // Column sizing options
     defaultColumn: {
       minSize: minColumnSizePx,
@@ -120,14 +145,113 @@ export const DataGrid = forwardRef(function DataGrid<
     enableMultiSort: false,
   });
 
-  const { editMode, startEditing, stopEditing } = useEditMode();
+  const editMode = table.getEditMode();
+  const startEditing = table.startEditing;
+  const stopEditing = table.stopEditing;
 
-  const { activeCell, selection, clearSelection, selectCells } = useSelection({
-    rowCount: data.length,
-    colCount: columns.length,
-    stopEditing,
-    onSelectionChange,
-  });
+  const activeCell = table.getActiveCell();
+  const selection = table.getSelection();
+
+  const selectCells = useCallback(
+    (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
+      const { colIndex, rowIndex, extend = false } = options ?? {};
+      const rowCount = data.length;
+      const colCount = columns.length;
+      if (rowCount === 0 || colCount === 0) return;
+
+      const target = computeTargetSelection(
+        colIndex,
+        rowIndex,
+        colCount,
+        rowCount,
+      );
+
+      const currentRange = table.getSelection();
+
+      let nextRange: GridSelection;
+      let nextActiveCell: CellPosition;
+
+      if (extend && currentRange) {
+        const { combined, movingCorner } = computeExtendedRange(
+          currentRange,
+          target,
+        );
+        nextRange = combined;
+        nextActiveCell = {
+          col: colIndex !== undefined ? movingCorner.col : target.min.col,
+          row: rowIndex !== undefined ? movingCorner.row : target.min.row,
+        };
+      } else {
+        nextRange = target;
+        nextActiveCell = target.min;
+      }
+
+      const prevActive = table.getActiveCell();
+      const isSingleCell =
+        nextRange.min.col === nextRange.max.col &&
+        nextRange.min.row === nextRange.max.row;
+      const activeMoved =
+        !prevActive ||
+        prevActive.col !== nextActiveCell.col ||
+        prevActive.row !== nextActiveCell.row;
+      if (activeMoved || !isSingleCell) {
+        table.stopEditing();
+      }
+
+      table.selectRange(nextRange);
+      table.setActiveCell(nextActiveCell);
+    },
+    [data.length, columns.length, table],
+  );
+
+  const clearSelection = useCallback(() => {
+    if (!table.getSelection() && !table.getActiveCell()) return;
+    table.clearSelection();
+    table.setActiveCell(null);
+    stopEditing();
+  }, [table, stopEditing]);
+
+  useEffect(
+    function clampWhenDataSizeChanges() {
+      const rowCount = data.length;
+      const colCount = columns.length;
+
+      if (rowCount === 0 || colCount === 0) {
+        if (table.getActiveCell() || table.getSelection()) {
+          stopEditing();
+          table.clearSelection();
+          table.setActiveCell(null);
+        }
+        return;
+      }
+
+      const prevRange = table.getSelection();
+      if (prevRange) {
+        const clamped = clampRange(prevRange, colCount, rowCount);
+        if (clamped && !isRangeEqual(prevRange, clamped)) {
+          table.selectRange(clamped);
+        }
+      }
+
+      const prevActive = table.getActiveCell();
+      if (prevActive) {
+        const clamped = clampActiveCell(prevActive, colCount, rowCount);
+        if (!isActiveCellEqual(prevActive, clamped)) {
+          table.setActiveCell(clamped);
+        }
+      }
+    },
+    [data.length, columns.length, stopEditing, table],
+  );
+
+  const lastNotifiedRef = useRef<GridSelection | null>(null);
+  useEffect(() => {
+    const prev = lastNotifiedRef.current;
+    if (!isSameSelection(prev, selection)) {
+      lastNotifiedRef.current = selection;
+      onSelectionChange?.(selection);
+    }
+  }, [selection, onSelectionChange]);
 
   const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
     editMode,
@@ -186,37 +310,55 @@ export const DataGrid = forwardRef(function DataGrid<
   );
 
   const wasEditingRef = useRef(false);
-
   useEffect(
     function refocusWhenEditingStops() {
       if (wasEditingRef.current && !editMode) {
-        gridRef.current?.focus();
+        // After exiting edit mode the grid container should reclaim
+        // keyboard focus so arrow navigation works. The only exception
+        // is when focus currently sits on a boolean cell's checkbox —
+        // checkboxes handle their own Space/Enter keys and shouldn't
+        // be re-stolen. Other focusable cell elements (text inputs,
+        // select buttons) don't have intrinsic grid-nav handling, so
+        // the grid div takes over.
+        const active = document.activeElement;
+        const isCheckbox =
+          active instanceof HTMLInputElement && active.type === "checkbox";
+        if (!isCheckbox) {
+          gridRef.current?.focus();
+        }
       }
       wasEditingRef.current = !!editMode;
     },
     [editMode],
   );
 
-  const { handleCopy, handlePaste, copyToClipboard, pasteFromClipboard } =
-    useClipboard({
-      selection,
-      columns,
-      data,
-      onChange,
-      createRow,
-      readOnly,
-      onCopy: onCopyCallback,
-      onPaste: onPasteCallback,
-    });
+  const handleCopy = useCallback(
+    (e: React.ClipboardEvent) => {
+      table.handleCopyEvent(e);
+    },
+    [table],
+  );
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      table.handlePasteEvent(e);
+    },
+    [table],
+  );
+  const copySelectionImperative = useCallback(
+    (options?: CopySelectionOptions) => table.copySelection(options),
+    [table],
+  );
+  const pasteFromClipboard = useCallback(() => table.pasteSelection(), [table]);
 
   useImperativeHandle(
     ref,
     () => ({
       selectCells,
       clearSelection,
+      copySelection: copySelectionImperative,
       selection,
     }),
-    [selectCells, clearSelection, selection],
+    [selectCells, clearSelection, copySelectionImperative, selection],
   );
 
   const handleCellDoubleClick = useCallback(
@@ -276,7 +418,7 @@ export const DataGrid = forwardRef(function DataGrid<
             actions: cellContextActions,
             selection,
             getSortedRows,
-            onCopy: () => void copyToClipboard(),
+            onCopy: () => void copySelectionImperative(),
             onPaste: () => void pasteFromClipboard(),
             readOnly,
           }
@@ -285,7 +427,7 @@ export const DataGrid = forwardRef(function DataGrid<
       cellContextActions,
       selection,
       getSortedRows,
-      copyToClipboard,
+      copySelectionImperative,
       pasteFromClipboard,
       readOnly,
     ],
@@ -316,9 +458,11 @@ export const DataGrid = forwardRef(function DataGrid<
   const handleFocus = useCallback(
     (e: React.FocusEvent) => {
       if (activeCell || data.length === 0) return;
-      const target = e.target as HTMLElement;
-      if (!gridRef.current?.contains(target)) return;
-      if (target.closest('[role="columnheader"]')) return;
+      // Only treat as a tab-into-the-grid when the grid div itself receives
+      // focus. Inner-element focus (cell inputs, checkboxes) is handled by
+      // the cell's own focus management; stealing it back to row 0 would
+      // race with the click that just selected a cell.
+      if (e.target !== gridRef.current) return;
       focusRow(0);
     },
     [activeCell, data.length, focusRow],
@@ -427,3 +571,17 @@ export const DataGrid = forwardRef(function DataGrid<
     ref?: React.Ref<DataGridRef>;
   },
 ) => React.ReactElement;
+
+function isSameSelection(
+  a: GridSelection | null,
+  b: GridSelection | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.min.col === b.min.col &&
+    a.min.row === b.min.row &&
+    a.max.col === b.max.col &&
+    a.max.row === b.max.row
+  );
+}

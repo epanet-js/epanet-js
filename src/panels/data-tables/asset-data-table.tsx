@@ -26,8 +26,11 @@ import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import {
   DataGrid,
+  type DataGridRef,
   type CellContextAction,
   type GutterContextAction,
+  type ClipboardCopyInfo,
+  type ClipboardPasteInfo,
 } from "src/components/data-grid";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useDeleteAssets } from "src/commands/delete-assets";
@@ -60,6 +63,7 @@ interface AssetDataTableProps {
 export const AssetDataTable = memo(function AssetDataTableInner({
   assetType,
 }: AssetDataTableProps) {
+  const dataGridRef = useRef<DataGridRef>(null);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
@@ -113,43 +117,45 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
-  const columns = useMemo(() => {
-    const buildCols = pressureStatsOn
-      ? buildColumnsWithPressureStats
-      : buildColumns;
+  const buildCols = pressureStatsOn
+    ? buildColumnsWithPressureStats
+    : buildColumns;
 
-    return buildCols(
+  const columns = useMemo(
+    () =>
+      buildCols(
+        assetType,
+        translate,
+        hasSimulation,
+        units,
+        translateUnit,
+        formatting,
+        hydraulicModel.patterns,
+        hydraulicModel.curves,
+        simulationSettings,
+        qualityType,
+        (label: string, rowIndex: number) => {
+          const assetId = rowsRef.current?.[rowIndex]?.id;
+          if (assetId === undefined) return true;
+          return labelManager.isLabelAvailable(label, assetType, assetId);
+        },
+        (rowIndex: number) => rowsRef.current?.[rowIndex],
+      ),
+    [
       assetType,
-      translate,
-      hasSimulation,
-      units,
-      translateUnit,
+      buildCols,
       formatting,
-      hydraulicModel.patterns,
+      hasSimulation,
       hydraulicModel.curves,
-      simulationSettings,
+      hydraulicModel.patterns,
+      labelManager,
       qualityType,
-      (label: string, rowIndex: number) => {
-        const assetId = rowsRef.current?.[rowIndex]?.id;
-        if (assetId === undefined) return true;
-        return labelManager.isLabelAvailable(label, assetType, assetId);
-      },
-      (rowIndex: number) => rowsRef.current?.[rowIndex],
-    );
-  }, [
-    pressureStatsOn,
-    assetType,
-    translate,
-    hasSimulation,
-    units,
-    translateUnit,
-    formatting,
-    hydraulicModel.patterns,
-    hydraulicModel.curves,
-    simulationSettings,
-    qualityType,
-    labelManager,
-  ]);
+      simulationSettings,
+      translate,
+      translateUnit,
+      units,
+    ],
+  );
 
   useEffect(
     function computeRows() {
@@ -279,7 +285,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
         if (changes.length > 0) {
           moments.push(
-            changeProperties(hydraulicModel, { assetIds: [assetId], changes }),
+            changeProperties(hydraulicModel, {
+              assetIds: [assetId],
+              changes,
+            }),
           );
         }
       }
@@ -413,24 +422,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   );
 
   const handleCopy = useCallback(
-    (info: {
-      rows: number;
-      cols: number;
-      allRows: boolean;
-      allCols: boolean;
-      columnIds: string[];
-      canIncludeHeaders: boolean;
-      copyWithHeaders: () => Promise<void>;
-    }) => {
-      const {
-        rows,
-        cols,
-        allRows,
-        allCols,
-        columnIds,
-        canIncludeHeaders,
-        copyWithHeaders,
-      } = info;
+    (info: ClipboardCopyInfo) => {
+      const { rows, cols, allRows, allCols, columnIds } = info;
       userTracking.capture({
         name: "dataTables.copied",
         type: assetType,
@@ -442,6 +435,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         columnIds,
       });
 
+      const canIncludeHeaders = allRows;
       if (canIncludeHeaders) {
         notify({
           variant: "default",
@@ -453,7 +447,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             variant: "default",
             align: "inline",
             onClick: () => {
-              void copyWithHeaders();
+              void dataGridRef.current?.copySelection({
+                includeHeaders: true,
+              });
               userTracking.capture({
                 name: "dataTables.copied",
                 type: assetType,
@@ -473,13 +469,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   );
 
   const handlePaste = useCallback(
-    (info: {
-      rows: number;
-      cols: number;
-      allRows: boolean;
-      allCols: boolean;
-      columnIds: string[];
-    }) => {
+    (info: ClipboardPasteInfo) => {
       userTracking.capture({
         name: "dataTables.pasted",
         type: assetType,
@@ -497,6 +487,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         </div>
       ) : (
         <DataGrid
+          ref={dataGridRef}
           key={assetType}
           data={rows}
           columns={columns}

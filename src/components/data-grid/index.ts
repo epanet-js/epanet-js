@@ -1,6 +1,5 @@
 export { DataGrid } from "./data-grid";
-export { DataGridWithFeatures } from "./data-grid-with-features";
-export type { DataGridWithFeaturesRef } from "./data-grid-with-features";
+export type { DataGridRef } from "./data-grid";
 export type {
   ClipboardCopyInfo,
   ClipboardPasteInfo,
@@ -8,7 +7,6 @@ export type {
 } from "./features";
 
 export type {
-  DataGridRef,
   GridSelection,
   GridColumn,
   RowAction,
