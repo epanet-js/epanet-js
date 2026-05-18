@@ -59,6 +59,12 @@ const defaultOptions = {
   UNBALANCED: defaultUnbalanced,
 };
 
+const parseOptionalFloat = (input: string | undefined): number | undefined => {
+  if (input === undefined || input.trim() === "") return undefined;
+  const parsed = parseFloat(input);
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
 export const ignore: RowParser = () => {};
 
 export const parseReport: RowParser = ({ trimmedRow, inpData }) => {
@@ -330,7 +336,7 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, isCommented }) => {
     diameter: parseFloat(diameter),
     kind: kind as ValveKind,
     setting: parseFloat(setting),
-    minorLoss: parseFloat(minorLoss),
+    minorLoss: parseOptionalFloat(minorLoss),
     curveId: valveCurveId,
     isActive: !isCommented,
   });
@@ -462,8 +468,8 @@ export const parsePipe: RowParser = ({ trimmedRow, inpData, isCommented }) => {
     endNodeDirtyId,
     length: parseFloat(length),
     diameter: parseFloat(diameter),
-    roughness: parseFloat(roughness),
-    minorLoss: minorLoss !== undefined ? parseFloat(minorLoss) : 0,
+    roughness: parseOptionalFloat(roughness),
+    minorLoss: parseOptionalFloat(minorLoss),
     initialStatus,
     isActive: !isCommented,
   });

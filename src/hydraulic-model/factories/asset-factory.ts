@@ -121,6 +121,9 @@ import {
 import { CurveId, CurvePoint, defaultCurvePoints } from "../curves";
 import { PatternId } from "../patterns";
 
+const isProvided = (value: number | undefined): value is number =>
+  value !== undefined && !Number.isNaN(value);
+
 export class AssetFactory {
   private defaults: DefaultsSpec;
   private idGenerator: IdGenerator;
@@ -365,31 +368,31 @@ export class AssetFactory {
   }
 
   private getPipeValue(name: PipeQuantity, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.pipe[name] || 0;
   }
 
   private getPumpValue(name: PumpQuantity, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.pump[name] || 0;
   }
 
   private getValveValue(name: ValveQuantity, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.valve[name] || 0;
   }
 
   private getValveSetting(kind: ValveKind, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.valve["tcvSetting"] || 0;
   }
 
   private getJunctionValue(name: JunctionQuantity, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.junction[name] || 0;
   }
@@ -398,13 +401,13 @@ export class AssetFactory {
     name: ReservoirQuantity | "relativeHead",
     candidate?: number,
   ) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.reservoir[name] || 0;
   }
 
   private getTankValue(name: TankQuantity, candidate?: number) {
-    if (candidate !== undefined) return candidate;
+    if (isProvided(candidate)) return candidate;
 
     return this.defaults.tank[name] || 0;
   }

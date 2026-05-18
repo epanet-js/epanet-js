@@ -354,4 +354,51 @@ describe("parse pipes", () => {
     expect(pipe.minorLoss).toEqual(0);
     expect(pipe.initialStatus).toEqual("open");
   });
+
+  it("defaults missing roughness to the H-W formula default", () => {
+    const pipeId = "P1";
+    const inp = `
+    [OPTIONS]
+    Headloss\tH-W
+    [RESERVOIRS]
+    R1\t100
+    [JUNCTIONS]
+    J1\t50
+    [PIPES]
+    ${pipeId}\tR1\tJ1\t1000\t12
+
+    [COORDINATES]
+    R1\t0\t0
+    J1\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.roughness).toEqual(130);
+    expect(pipe.minorLoss).toEqual(0);
+  });
+
+  it("defaults missing roughness to the D-W formula default", () => {
+    const pipeId = "P1";
+    const inp = `
+    [OPTIONS]
+    Headloss\tD-W
+    [RESERVOIRS]
+    R1\t100
+    [JUNCTIONS]
+    J1\t50
+    [PIPES]
+    ${pipeId}\tR1\tJ1\t1000\t12
+
+    [COORDINATES]
+    R1\t0\t0
+    J1\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.roughness).toEqual(0.1);
+  });
 });

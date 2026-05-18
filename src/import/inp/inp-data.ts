@@ -14,8 +14,8 @@ export type PipeData = {
   endNodeDirtyId: string;
   length: number;
   diameter: number;
-  roughness: number;
-  minorLoss: number;
+  roughness?: number;
+  minorLoss?: number;
   initialStatus: PipeStatus;
   isActive: boolean;
 };
@@ -67,7 +67,7 @@ export type ValveData = {
   diameter: number;
   kind: ValveKind;
   setting: number;
-  minorLoss: number;
+  minorLoss?: number;
   curveId?: string;
   isActive: boolean;
 };
