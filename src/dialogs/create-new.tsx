@@ -432,7 +432,7 @@ const ProjectionSelector = ({
           <div className="w-full border-b border-gray-200 h-28 overflow-hidden">
             <NetworkProjectedIllustration preserveAspectRatio="xMidYMid slice" />
           </div>
-          <div className="flex-grow p-2">
+          <div className="grow p-2">
             <p className="text-xs text-gray-700 dark:text-gray-300">
               {translate("inpProjectionChoice.projectedTitle")}
             </p>
@@ -452,7 +452,7 @@ const ProjectionSelector = ({
           <div className="w-full border-b border-gray-200 h-28 overflow-hidden">
             <NetworkUnprojectedIllustration preserveAspectRatio="xMidYMid slice" />
           </div>
-          <div className="flex-grow p-2">
+          <div className="grow p-2">
             <p className="text-xs text-gray-700 dark:text-gray-300">
               {translate("inpProjectionChoice.nonProjectedTitle")}
             </p>

@@ -115,7 +115,7 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
         checkType={CheckType.crossingPipes}
         autoFocus={crossingPipes.length === 0 && !isLoading}
       />
-      <div className="relative flex-grow flex flex-col">
+      <div className="relative grow flex flex-col">
         {isReady ? (
           <>
             {crossingPipes.length > 0 ? (

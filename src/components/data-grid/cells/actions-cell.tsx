@@ -39,7 +39,7 @@ export function ActionsCell({
             return (
               <DD.Item
                 key={index}
-                className={`flex items-center gap-2 px-3 py-2 text-sm outline-none ${
+                className={`flex items-center gap-2 px-3 py-2 text-sm outline-hidden ${
                   isDisabled
                     ? "text-gray-400 cursor-not-allowed"
                     : "cursor-pointer hover:bg-gray-100"

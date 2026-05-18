@@ -10,6 +10,7 @@ export const Checkbox = ({
       type="checkbox"
       className={`
         w-${size} h-${size} text-purple-400 border-gray-300 rounded
+        checked:bg-current checked:border-transparent
         ${
           disabled
             ? "cursor-not-allowed bg-gray-200 opacity-50"
@@ -51,7 +52,7 @@ export const TriStateCheckbox = ({
       aria-label={ariaLabel}
       disabled={disabled}
       onChange={(e) => onChange(e.target.checked)}
-      className={`w-4 h-4 text-purple-400 border-gray-300 rounded ${
+      className={`w-4 h-4 text-purple-400 border-gray-300 rounded checked:bg-current checked:border-transparent ${
         disabled
           ? "cursor-not-allowed bg-gray-200 opacity-50"
           : "cursor-pointer bg-gray-50 focus:ring-purple-500"

@@ -64,7 +64,7 @@ export const GisImportErrorsDialog = ({
             {translate("elevations.errorDetails")}
           </Button>
           {isExpanded && (
-            <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-sm text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
+            <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
               {[...grouped.entries()].map(([error, files]) => (
                 <ErrorGroup
                   key={error}

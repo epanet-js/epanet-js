@@ -9,6 +9,30 @@ import { useTranslate } from "src/hooks/use-translate";
 
 // null = outside any SectionList; 0 = at outermost level; >0 = extra accumulated indentation from nested SectionLists
 export const IndentationContext = createContext<number | null>(null);
+
+const PADDING_CLASS: Record<number, string> = {
+  0: "p-0",
+  1: "p-1",
+  2: "p-2",
+  3: "p-3",
+  4: "p-4",
+};
+const GAP_CLASS: Record<number, string> = {
+  0: "gap-0",
+  1: "gap-1",
+  2: "gap-2",
+  3: "gap-3",
+  4: "gap-4",
+};
+const PL_CLASS: Record<number, string> = {
+  0: "pl-0",
+  1: "pl-1",
+  2: "pl-2",
+  3: "pl-3",
+  4: "pl-4",
+  5: "pl-5",
+  6: "pl-6",
+};
 // Counts NestedSection layers — used to account for border-l-2 (2px per layer) in stripe/label positioning
 export const NestedBlockContext = createContext(0);
 
@@ -107,8 +131,8 @@ export const InlineField = ({
 
   const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
     "grow shrink": layout === "fluid-label",
-    "flex-shrink-0": layout === "fixed-label",
-    "break-words": layout === "fixed-label" && labelSize === "sm",
+    "shrink-0": layout === "fixed-label",
+    "wrap-break-word": layout === "fixed-label" && labelSize === "sm",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
   });
@@ -232,9 +256,9 @@ export const SectionList = ({
       <div
         className={clsx(
           "flex flex-col",
-          `p-${padding}`,
-          `gap-${gap}`,
-          `pl-${indentation + padding}`,
+          PADDING_CLASS[padding],
+          GAP_CLASS[gap],
+          PL_CLASS[indentation + padding],
           className,
         )}
       >
@@ -249,7 +273,7 @@ export const SectionList = ({
       value={(parentIndentation ?? 0) + indentation + padding}
     >
       {header || footer ? (
-        <div className="flex flex-col flex-grow overflow-hidden">
+        <div className="flex flex-col grow overflow-hidden">
           {header && (
             <div className="sticky top-0 z-10 bg-white dark:bg-gray-950">
               {header}
@@ -260,7 +284,7 @@ export const SectionList = ({
             <div
               className={clsx(
                 "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-y border-gray-200 dark:border-gray-800",
-                isResizableFooter ? "flex-shrink-0" : "sticky bottom-0",
+                isResizableFooter ? "shrink-0" : "sticky bottom-0",
               )}
               style={
                 isResizableFooter ? { height: stickyFooterHeight } : undefined
@@ -273,7 +297,10 @@ export const SectionList = ({
                 />
               )}
               <div
-                className={clsx("flex-1 min-h-0 flex flex-col", `p-${padding}`)}
+                className={clsx(
+                  "flex-1 min-h-0 flex flex-col",
+                  PADDING_CLASS[padding],
+                )}
               >
                 {footer}
               </div>
@@ -332,7 +359,7 @@ export const CollapsibleSection = ({
             <div
               className={clsx(
                 "flex gap-1 items-center h-8 cursor-pointer",
-                "px-1 -mx-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
+                "px-1 -mx-1 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800",
                 {
                   "text-sm font-semibold": variant === "primary",
                   "text-sm font-semibold text-gray-500":
@@ -397,7 +424,7 @@ export const NestedSection = ({
         overflow={false}
         gap={1}
         className={clsx(
-          "bg-gray-50 -mr-1 pr-1 border-l-2 border-gray-400 rounded-sm",
+          "bg-gray-50 -mr-1 pr-1 border-l-2 border-gray-400 rounded-xs",
           className,
         )}
       >

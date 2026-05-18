@@ -16,7 +16,7 @@ export const DemandOptionsStep: React.FC<{
 
   return (
     <>
-      <div className="overflow-y-auto flex-grow space-y-4">
+      <div className="overflow-y-auto grow space-y-4">
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.demandOptions.title")}
         </h2>

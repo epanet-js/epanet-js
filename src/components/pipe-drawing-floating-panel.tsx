@@ -77,10 +77,10 @@ export const PipeDrawingFloatingPanel = () => {
                  "
     >
       <div className="flex gap-x-2 items-center">
-        <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        <label className="grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {diameterLabel}
         </label>
-        <div className="w-[4.5rem]">
+        <div className="w-18">
           <NumericField
             key={lastDiameterChange.current + diameterDisplay}
             label={diameterLabel}
@@ -96,10 +96,10 @@ export const PipeDrawingFloatingPanel = () => {
         </div>
       </div>
       <div className="flex gap-x-2 items-center">
-        <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+        <label className="grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {roughnessLabel}
         </label>
-        <div className="w-[4.5rem]">
+        <div className="w-18">
           <NumericField
             key={lastRoughnessChange.current + roughnessDisplay}
             label={roughnessLabel}

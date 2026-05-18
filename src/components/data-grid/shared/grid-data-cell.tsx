@@ -79,7 +79,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
               : isSelected
                 ? "bg-purple-300/10"
                 : "bg-white",
-        { "z-[1]": selectionEdge },
+        { "z-1": selectionEdge },
         selectionEdge?.left
           ? "border-l-purple-500"
           : variant === "spreadsheet"

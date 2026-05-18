@@ -128,14 +128,14 @@ export const ProjectionSearch = ({
     if (option.data.type === "location") {
       return (
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
           <span>{option.data.location.name}</span>
         </div>
       );
     }
     return (
       <div className="flex items-start gap-2">
-        <Sparkles className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+        <Sparkles className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
         <div>
           <span className="block">{option.data.projection.name}</span>
           <span className="block text-xs text-gray-400">

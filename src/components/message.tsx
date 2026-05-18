@@ -28,7 +28,7 @@ export const Message = ({
         },
       )}
     >
-      <div className="flex flex-col flex-grow space-y-1">
+      <div className="flex flex-col grow space-y-1">
         <span
           className={clsx("text-sm font-semibold", {
             "text-green-700": variant === "success",

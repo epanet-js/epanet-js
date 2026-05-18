@@ -53,7 +53,7 @@ export function ActionItem({
       <div
         className="h-10 w-8 py-1
           group bn
-          flex items-stretch justify-center focus:outline-none"
+          flex items-stretch justify-center focus:outline-hidden"
       >
         <Tooltip.Trigger
           onClick={(evt) => onSelect(evt as unknown as Event)}

@@ -264,7 +264,7 @@ export const DataMappingStep: React.FC<{
 
   return (
     <>
-      <div className="overflow-y-auto flex-grow scroll-shadows">
+      <div className="overflow-y-auto grow scroll-shadows">
         <h2 className="text-lg font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
@@ -686,7 +686,7 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
             {features.slice(0, 3).map((feature, index) => (
               <div
                 key={index}
-                className="text-xs font-mono bg-white p-2 rounded border text-gray-800"
+                className="text-xs font-mono bg-white p-2 rounded-sm border text-gray-800"
               >
                 {JSON.stringify(feature)}
               </div>

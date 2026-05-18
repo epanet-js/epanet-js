@@ -16,7 +16,7 @@ export const MapLoading = () => {
       <div
         key={ref.current}
         aria-hidden={isHidden}
-        className={`flex items-center gap-x-2 bg-black bg-opacity-30 text-white
+        className={`flex items-center gap-x-2 bg-black/30 text-white
             px-3 py-1
             rounded
             font-semibold

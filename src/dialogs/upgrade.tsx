@@ -260,7 +260,7 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
         <PlanHeader
@@ -394,7 +394,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   return (
     <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        <div className="absolute top-0 right-0 bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
         <PlanHeader
@@ -630,11 +630,10 @@ const FeaturesList = ({
   return (
     <div className="my-4">
       {title && <p className="text-sm text-gray-500 mb-2">{title}</p>}
-      <ul className="space-y-2 flex-grow">
+      <ul className="space-y-2 grow">
         {items.map(({ feature, Icon, iconColor }, index) => (
           <li key={index} className={`flex items-start text-sm ${textColor}`}>
-            <Icon className={`h-5 w-5 ${iconColor} flex-shrink-0 mr-2`} />{" "}
-            {feature}
+            <Icon className={`h-5 w-5 ${iconColor} shrink-0 mr-2`} /> {feature}
           </li>
         ))}
       </ul>
@@ -652,7 +651,7 @@ const NonCommercialHint = () => {
         viewBox="0 0 48 218"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="rotate-[70deg]  w-8 h-12 ml-2 mr-3"
+        className="rotate-70  w-8 h-12 ml-2 mr-3"
       >
         <path
           fill-rule="evenodd"

@@ -318,7 +318,7 @@ export const ExportSimulationResultsDialog = ({
             onChange={(e) =>
               setFormat(e.target.value as SimulationExportFormat)
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-hidden focus:ring-1 focus:ring-purple-500"
           >
             {exportFormats.map(({ value, labelKey }) => (
               <option key={value} value={value}>
@@ -336,7 +336,7 @@ export const ExportSimulationResultsDialog = ({
             checked={selectedAssetsOnly}
             disabled={!hasSelection}
             onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-            className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+            className="rounded-sm text-purple-600 focus:ring-purple-500 disabled:opacity-50"
           />
           <span className="text-sm text-gray-700">
             {translate("exportSelectedAssetsOnly")}
@@ -350,7 +350,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={nodeAllChecked}
                 indeterminate={nodeIndeterminate}
                 onChange={toggleAllNodes}
-                className="rounded text-purple-600 focus:ring-purple-500"
+                className="rounded-sm text-purple-600 focus:ring-purple-500"
               />
               <span className="text-sm font-medium text-gray-900">
                 {translate("nodes")}
@@ -399,7 +399,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={linkAllChecked}
                 indeterminate={linkIndeterminate}
                 onChange={toggleAllLinks}
-                className="rounded text-purple-600 focus:ring-purple-500"
+                className="rounded-sm text-purple-600 focus:ring-purple-500"
               />
               <span className="text-sm font-medium text-gray-900">
                 {translate("links")}
@@ -427,7 +427,7 @@ export const ExportSimulationResultsDialog = ({
                         [key]: e.target.checked,
                       }))
                     }
-                    className="rounded text-purple-600 focus:ring-purple-500"
+                    className="rounded-sm text-purple-600 focus:ring-purple-500"
                   />
                   <span className="text-sm text-gray-700">
                     {translate(translationKey)}

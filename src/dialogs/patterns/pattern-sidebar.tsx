@@ -315,7 +315,7 @@ export const PatternSidebar = ({
   ];
 
   return (
-    <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
+    <div className="shrink-0 flex flex-col gap-2" style={{ width }}>
       <NavigableList
         ref={listRef}
         navItems={navItems}

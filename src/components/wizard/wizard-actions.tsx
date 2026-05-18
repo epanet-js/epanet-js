@@ -32,7 +32,7 @@ export const WizardActions: React.FC<WizardActionsProps> = ({
     <div
       role="navigation"
       aria-label="wizard actions"
-      className="flex justify-between items-center flex-shrink-0 p-4 border-t border-gray-200"
+      className="flex justify-between items-center shrink-0 p-4 border-t border-gray-200"
     >
       <div className="flex space-x-3">
         {backAction && (

@@ -43,7 +43,7 @@ export const ListItem = <T extends LabelledItem>({
         variant="quiet/list"
         size="sm"
         onClick={() => onSelect(item.id)}
-        className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
+        className="flex-1 min-w-0 justify-start hover:bg-transparent dark:hover:bg-transparent focus-visible:ring-0! focus-visible:ring-offset-0!"
       >
         {icon && icon}
         <span className="truncate">{item.label}</span>

@@ -178,7 +178,7 @@ export function CheatsheetDialog() {
             <div className="space-y-2">
               {section.shortcuts.map((item) => (
                 <div key={item.binding} className="flex items-start gap-4">
-                  <Keycap className="w-28 flex-shrink-0">
+                  <Keycap className="w-28 shrink-0">
                     {localizeKeybinding(item.binding, isMac || getIsMac())}
                   </Keycap>
                   <p className="text-xs pt-1">

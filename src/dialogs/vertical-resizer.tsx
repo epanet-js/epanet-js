@@ -42,7 +42,7 @@ export const VerticalResizer = ({
       aria-label="Resize sidebar"
       tabIndex={-1}
       style={{ cursor: "col-resize" }}
-      className="flex-shrink-0 w-3 z-10
+      className="shrink-0 w-3 z-10
         touch-none
         flex items-center justify-start
         group"

@@ -545,8 +545,8 @@ export const DataGridWithFeatures = forwardRef(function DataGridWithFeatures<
         onPaste={handlePaste}
         className={
           isSpreadsheet
-            ? "relative flex flex-col flex-1 min-h-0 outline-none"
-            : "relative flex flex-col outline-none"
+            ? "relative flex flex-col flex-1 min-h-0 outline-hidden"
+            : "relative flex flex-col outline-hidden"
         }
         data-capture-escape-key
       >

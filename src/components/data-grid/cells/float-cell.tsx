@@ -120,7 +120,7 @@ export function FloatCell({
         "w-full h-full flex items-center",
         hasError &&
           editMode &&
-          "z-[2] bg-orange-100 dark:bg-orange-900/30 ring-1 ring-orange-500 dark:ring-orange-700",
+          "z-2 bg-orange-100 dark:bg-orange-900/30 ring-1 ring-orange-500 dark:ring-orange-700",
       )}
     >
       <input
@@ -134,7 +134,7 @@ export function FloatCell({
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
         className={clsx(
-          "w-full px-2 text-sm tabular-nums outline-none border-none ring-0 focus:outline-none focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400",
+          "w-full px-2 text-sm tabular-nums outline-hidden border-none ring-0 focus:outline-hidden focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400",
           // Mousetrap forces availability of global hot keys when not editing
           // pointer-events-none prevents text selection highlight when not editing
           !editMode && "mousetrap pointer-events-none",

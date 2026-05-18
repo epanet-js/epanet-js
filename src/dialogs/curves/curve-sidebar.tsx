@@ -281,7 +281,7 @@ export const CurveSidebar = ({
   ];
 
   return (
-    <div className="flex-shrink-0 flex flex-col gap-2" style={{ width }}>
+    <div className="shrink-0 flex flex-col gap-2" style={{ width }}>
       <NavigableList
         ref={listRef}
         navItems={navItems}
@@ -387,7 +387,7 @@ const isCreatingInSection = (
 };
 
 const InvalidCurveIcon = () => (
-  <span className="text-orange-500 flex-shrink-0">
+  <span className="text-orange-500 shrink-0">
     <WarningIcon size="sm" />
   </span>
 );

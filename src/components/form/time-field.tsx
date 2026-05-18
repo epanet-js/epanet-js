@@ -116,7 +116,7 @@ export const TimeField = ({
     return (
       <span
         className={clsx(
-          "block w-full p-2 text-xs border rounded-sm",
+          "block w-full p-2 text-xs border rounded-xs",
           "text-gray-500 bg-gray-50 border-gray-300",
           "dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400",
           readonly && "cursor-not-allowed",
@@ -215,6 +215,6 @@ function styledInput({
     },
     "text-xs",
     "placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:italic",
-    "bg-transparent rounded-sm block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
+    "bg-transparent rounded-xs block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }

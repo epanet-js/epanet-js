@@ -199,7 +199,7 @@ export function CustomerPointPanel() {
     : null;
 
   return (
-    <div className="flex flex-col flex-grow overflow-hidden">
+    <div className="flex flex-col grow overflow-hidden">
       <div className="px-3 pt-4 pb-3 relative">
         {isNew && (
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />

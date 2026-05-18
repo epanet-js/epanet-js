@@ -227,7 +227,7 @@ export const PumpLibraryDialog = ({
       }
     >
       <div className="flex-1 flex min-h-0">
-        <div className="flex-shrink-0 flex">
+        <div className="shrink-0 flex">
           <PumpLibrarySidebar
             width={sidebarWidth}
             curves={editedCurves}

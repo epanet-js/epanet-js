@@ -427,7 +427,7 @@ const RecentFileCard = ({
   onRemove: () => void;
 }) => (
   <div
-    className="group flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
+    className="group flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
     onClick={onOpen}
   >
     <div
@@ -494,7 +494,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
 
   return (
     <div
-      className="flex flex-col rounded-lg border shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
+      className="flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
       onClick={handleClick}
     >
       <div
@@ -540,10 +540,10 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   };
   return (
     <div
-      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-white shadow-md rounded-lg border cursor-pointer hover:bg-gray-400 hover:bg-opacity-10"
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-white shadow-md rounded-lg border cursor-pointer hover:bg-gray-400/10"
       onClick={handleOpenDemoModel}
     >
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <Image
           src={demoNetwork.thumbnailUrl}
           alt={demoNetwork.name}

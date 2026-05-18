@@ -168,7 +168,7 @@ export const SelectorWithSearch: FunctionComponent<{
         <Popover.Content
           side="bottom"
           align="start"
-          className="bg-white min-w-[var(--radix-popover-trigger-width)] border text-sm rounded-md shadow-md z-50 mt-1"
+          className="bg-white min-w-(--radix-popover-trigger-width) border text-sm rounded-md shadow-md z-50 mt-1"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
@@ -181,7 +181,7 @@ export const SelectorWithSearch: FunctionComponent<{
           <div
             ref={listContainerRef}
             onKeyDown={handleKeyDown}
-            className="outline-none"
+            className="outline-hidden"
           >
             <div className="p-2 border-b border-gray-200">
               <input
@@ -190,7 +190,7 @@ export const SelectorWithSearch: FunctionComponent<{
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="Search…"
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
               />
             </div>
             <OptionsList
@@ -238,7 +238,7 @@ const OptionsList: FunctionComponent<{
       ref={listRef}
       tabIndex={-1}
       role="listbox"
-      className="outline-none max-h-56 overflow-auto p-1"
+      className="outline-hidden max-h-56 overflow-auto p-1"
     >
       {options.map((option, index) => (
         <li
@@ -246,7 +246,7 @@ const OptionsList: FunctionComponent<{
           role="option"
           aria-selected={option.value === selected}
           className={clsx(
-            "flex items-center justify-between gap-4 px-2 py-2 cursor-pointer text-gray-700 rounded",
+            "flex items-center justify-between gap-4 px-2 py-2 cursor-pointer text-gray-700 rounded-sm",
             index === activeIndex && "bg-purple-300/40",
             index !== activeIndex && "hover:bg-gray-100",
           )}
@@ -256,7 +256,7 @@ const OptionsList: FunctionComponent<{
         >
           <span>{option.label}</span>
           {option.value === selected && (
-            <CheckIcon className="text-purple-700 flex-shrink-0" />
+            <CheckIcon className="text-purple-700 shrink-0" />
           )}
         </li>
       ))}

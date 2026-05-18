@@ -109,7 +109,7 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
         itemsCount={orphanAssets.length}
         autoFocus={orphanAssets.length === 0 && !isLoading}
       />
-      <div className="relative flex-grow flex flex-col">
+      <div className="relative grow flex flex-col">
         {isReady ? (
           <>
             {orphanAssets.length > 0 ? (

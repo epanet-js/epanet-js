@@ -72,7 +72,7 @@ export function DialogHeader({
       {children && children}
       {title && (
         <div className="flex items-center gap-3 flex-auto min-w-0">
-          <Dialog.Title className="text-md font-semibold text-gray-900 break-words sm:truncate">
+          <Dialog.Title className="text-md font-semibold text-gray-900 wrap-break-word sm:truncate">
             {title}
           </Dialog.Title>
           {badge && badge}

@@ -174,7 +174,7 @@ export function EpanetApp() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col h-full",
-            "flex flex-grow relative border-t border-gray-200 dark:border-gray-900",
+            "flex grow relative border-t border-gray-200 dark:border-gray-900",
             "pb-10",
           )}
         >
@@ -248,7 +248,7 @@ function DraggableMap({
     <div
       className={clsx(
         layout === "FLOATING"
-          ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded border border-gray-500 shadow-lg"
+          ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded-sm border border-gray-500 shadow-lg"
           : "relative flex-auto flex flex-col",
       )}
       ref={(elem) => {

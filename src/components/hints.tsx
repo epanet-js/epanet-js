@@ -19,7 +19,7 @@ import { PropsWithChildren } from "react";
 
 export const tipLike = `
     bg-white dark:bg-gray-900
-    rounded-sm
+    rounded-xs
     shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
     ring-1 ring-gray-200 dark:ring-gray-700
     content-layout z-10`;

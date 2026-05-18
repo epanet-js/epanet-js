@@ -345,7 +345,7 @@ const SymbologyEditor = ({
           labelSize="sm"
           layout="fixed-label"
         >
-          <div className="h-7 w-12 rounded overflow-hidden">
+          <div className="h-7 w-12 rounded-sm overflow-hidden">
             <ColorPopover
               color={defaultColor}
               onChange={handleDefaultColorChange}

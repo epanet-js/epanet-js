@@ -173,8 +173,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               autoComplete="off"
               className={clsx(
                 "flex items-center gap-x-2 w-full min-w-[90px]",
-                "border rounded-sm border-gray-200 px-2 py-2 text-sm",
-                "outline-none focus:outline-none focus-visible:outline-none",
+                "border rounded-xs border-gray-200 px-2 py-2 text-sm",
+                "outline-hidden focus:outline-hidden focus-visible:outline-hidden",
                 disabled
                   ? "cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-500"
                   : "text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10 focus:border-transparent",
@@ -193,7 +193,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
           <Popover.Content
             side="bottom"
             align="start"
-            className="bg-white w-[var(--anchor-width,100%)] min-w-[220px] border text-sm rounded-md shadow-md z-50 mt-1 max-h-60 overflow-auto p-1"
+            className="bg-white w-(--anchor-width,100%) min-w-[220px] border text-sm rounded-md shadow-md z-50 mt-1 max-h-60 overflow-auto p-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
             onEscapeKeyDown={() => setOpen(false)}
@@ -211,7 +211,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                 tabIndex={-1}
                 role="listbox"
                 aria-label={label}
-                className="outline-none"
+                className="outline-hidden"
               >
                 {suggestions.map((suggestion, index) => (
                   <li
@@ -219,7 +219,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                     role="option"
                     aria-selected={index === activeIndex}
                     className={clsx(
-                      "px-2 py-2 cursor-pointer w-full text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded",
+                      "px-2 py-2 cursor-pointer w-full text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm",
                       index === activeIndex && "bg-purple-300/40",
                     )}
                     onMouseEnter={() => handleOptionMouseEnter(index)}
