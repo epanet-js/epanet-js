@@ -20,11 +20,15 @@ import {
   ReverseIcon,
   ActivateTopologyIcon,
   DeactivateTopologyIcon,
+  ChartLineIcon,
 } from "src/icons";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { simulationDerivedAtom } from "src/state/derived-branch-state";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -40,6 +44,10 @@ export function useActions(
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
+  const setDialogState = useSetAtom(dialogAtom);
+  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const customGraphApplicable = simulation.status === "success";
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -85,6 +93,16 @@ export function useActions(
     },
   };
 
+  const customGraphAction = {
+    icon: <ChartLineIcon />,
+    applicable: customGraphApplicable,
+    label: translate("customGraph.menuTitle"),
+    onSelect: function openCustomGraph() {
+      setDialogState({ type: "customGraph" });
+      return Promise.resolve();
+    },
+  };
+
   const reverseAction = {
     icon: <ReverseIcon />,
     applicable: Boolean(isOneLinkSelected),
@@ -112,13 +130,22 @@ export function useActions(
     },
   };
 
-  return [
-    zoomToAction,
-    reverseAction,
-    redrawAction,
-    changeActiveTopologyStatusAction,
-    deleteAssetsAction,
-  ];
+  return isCustomGraphsOn
+    ? [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyStatusAction,
+        customGraphAction,
+        deleteAssetsAction,
+      ]
+    : [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyStatusAction,
+        deleteAssetsAction,
+      ];
 }
 
 export function GeometryActions({

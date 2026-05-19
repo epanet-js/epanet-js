@@ -1,5 +1,6 @@
 import { useCallback } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
@@ -12,14 +13,19 @@ import {
   ReverseIcon,
   DeactivateTopologyIcon,
   ActivateTopologyIcon,
+  ChartLineIcon,
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedFeaturesDerivedAtom,
+  simulationDerivedAtom,
+} from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -29,8 +35,12 @@ export function useLinkActions(readonly = false): Action[] {
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const setDialogState = useSetAtom(dialogAtom);
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
+  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const customGraphApplicable = simulation.status === "success";
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -78,6 +88,16 @@ export function useLinkActions(readonly = false): Action[] {
     },
   };
 
+  const customGraphAction = {
+    icon: <ChartLineIcon />,
+    applicable: customGraphApplicable,
+    label: translate("customGraph.menuTitle"),
+    onSelect: function openCustomGraph() {
+      setDialogState({ type: "customGraph" });
+      return Promise.resolve();
+    },
+  };
+
   const onChangeActiveTopology = useCallback(() => {
     changeSelectedAssetsActiveTopologyStatus({ source: "toolbar" });
     return Promise.resolve();
@@ -94,13 +114,22 @@ export function useLinkActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return [
-    zoomToAction,
-    reverseAction,
-    redrawAction,
-    changeActiveTopologyActionItem,
-    deleteAssetsAction,
-  ];
+  return isCustomGraphsOn
+    ? [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyActionItem,
+        customGraphAction,
+        deleteAssetsAction,
+      ]
+    : [
+        zoomToAction,
+        reverseAction,
+        redrawAction,
+        changeActiveTopologyActionItem,
+        deleteAssetsAction,
+      ];
 }
 
 export function LinkActions({ readonly = false }: { readonly?: boolean }) {

@@ -455,6 +455,12 @@ const ProfileNoPathDialog = dynamic<{
   },
 );
 
+const CustomGraphDialog = dynamic<{
+  onClose: () => void;
+}>(() => import("src/dialogs/custom-graph").then((r) => r.CustomGraphDialog), {
+  loading: () => <LoadingDialog />,
+});
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -615,6 +621,10 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "exportTimeSeries") {
     return <ExportTimeSeriesDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "customGraph") {
+    return <CustomGraphDialog onClose={onClose} />;
   }
 
   if (dialog.type === "networkProjection") {

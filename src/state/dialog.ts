@@ -209,6 +209,10 @@ export type ProfileNoPathDialogState = {
   type: "profileNoPath";
 };
 
+export type CustomGraphDialogState = {
+  type: "customGraph";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -252,6 +256,7 @@ export type DialogState =
   | ExportTimeSeriesDialogState
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState
+  | CustomGraphDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
