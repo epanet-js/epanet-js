@@ -32,6 +32,7 @@ interface PropertyOption<T extends string> {
 
 interface CustomGraphChartProps {
   seriesData: AssetTimeSeries[];
+  nodeCount: number;
   decimals: number;
   yAxisLabel: string;
   unitLabels: string[];
@@ -249,6 +250,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           <div className="flex-1 min-h-0 px-4 pb-2">
             <CustomGraphChart
               seriesData={combinedSeriesData}
+              nodeCount={nodeSeriesData.length}
               decimals={decimals}
               yAxisLabel={yAxisLabel}
               unitLabels={unitLabels}
@@ -267,6 +269,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
 const CustomGraphChart = memo(function CustomGraphChart({
   seriesData,
+  nodeCount,
   decimals,
   yAxisLabel,
   unitLabels,
@@ -420,10 +423,12 @@ const CustomGraphChart = memo(function CustomGraphChart({
               const value = localizeDecimal(p.value, { decimals });
               const unit = unitLabels[p.seriesIndex ?? i];
               const unitSuffix = unit ? ` ${unit}` : "";
+              const idx = p.seriesIndex ?? i;
+              const assetType = idx < nodeCount ? "node" : "link";
               const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
               return (
                 `<div style="display:flex;justify-content:space-between;gap:16px;">` +
-                `<span>${colorDot}${p.seriesName ?? ""}</span>` +
+                `<span>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></span>` +
                 `<span style="font-variant-numeric:tabular-nums;text-align:right;">${value}${unitSuffix}</span>` +
                 `</div>`
               );
