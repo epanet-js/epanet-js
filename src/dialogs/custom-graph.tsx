@@ -33,8 +33,10 @@ interface PropertyOption<T extends string> {
 interface CustomGraphChartProps {
   seriesData: AssetTimeSeries[];
   nodeCount: number;
-  decimals: number;
-  yAxisLabel: string;
+  nodeYAxisLabel: string;
+  linkYAxisLabel: string;
+  nodeDecimals: number;
+  linkDecimals: number;
   unitLabels: string[];
 }
 
@@ -104,7 +106,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const nodeDecimals = getDecimals(formatting, nodeQuantityKey) ?? 0;
   const linkDecimals = getDecimals(formatting, linkQuantityKey) ?? 0;
-  const decimals = Math.max(nodeDecimals, linkDecimals);
 
   const nodeUnitLabel = useMemo(() => {
     const unit = units[nodeQuantityKey];
@@ -140,12 +141,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     () => [...nodeSeriesData, ...linkSeriesData],
     [nodeSeriesData, linkSeriesData],
   );
-
-  const yAxisLabel = useMemo(() => {
-    if (hasNodes && hasLinks) return `${nodeYAxisLabel} / ${linkYAxisLabel}`;
-    if (hasNodes) return nodeYAxisLabel;
-    return linkYAxisLabel;
-  }, [hasNodes, hasLinks, nodeYAxisLabel, linkYAxisLabel]);
 
   const unitLabels = useMemo(() => {
     const labels: string[] = [];
@@ -251,8 +246,10 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             <CustomGraphChart
               seriesData={combinedSeriesData}
               nodeCount={nodeSeriesData.length}
-              decimals={decimals}
-              yAxisLabel={yAxisLabel}
+              nodeYAxisLabel={nodeYAxisLabel}
+              linkYAxisLabel={linkYAxisLabel}
+              nodeDecimals={nodeDecimals}
+              linkDecimals={linkDecimals}
               unitLabels={unitLabels}
             />
           </div>
@@ -270,20 +267,34 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 const CustomGraphChart = memo(function CustomGraphChart({
   seriesData,
   nodeCount,
-  decimals,
-  yAxisLabel,
+  nodeYAxisLabel,
+  linkYAxisLabel,
+  nodeDecimals,
+  linkDecimals,
   unitLabels,
 }: CustomGraphChartProps) {
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const hasBothAxes = nodeCount > 0 && nodeCount < seriesData.length;
+
   const firstSeries = seriesData[0]?.timeSeries;
   const intervalsCount = firstSeries?.intervalsCount ?? 0;
   const intervalSeconds = firstSeries?.intervalSeconds ?? 0;
 
-  const allValues = useMemo(
-    () => seriesData.flatMap((s) => Array.from(s.timeSeries.values)),
-    [seriesData],
+  const nodeValues = useMemo(
+    () =>
+      seriesData
+        .slice(0, nodeCount)
+        .flatMap((s) => Array.from(s.timeSeries.values)),
+    [seriesData, nodeCount],
+  );
+  const linkValues = useMemo(
+    () =>
+      seriesData
+        .slice(nodeCount)
+        .flatMap((s) => Array.from(s.timeSeries.values)),
+    [seriesData, nodeCount],
   );
 
   const xAxisInterval = useMemo(
@@ -328,35 +339,70 @@ const CustomGraphChart = memo(function CustomGraphChart({
   );
 
   const yAxis: EChartsOption["yAxis"] = useMemo(() => {
-    const { min, max, interval } = calculateInterval(decimals, allValues, 5);
-    return {
-      type: "value",
-      scale: true,
-      name: yAxisLabel,
-      nameLocation: "middle",
-      nameGap: 50,
-      nameTextStyle: { color: colors.gray500, fontSize: 13 },
-      min,
-      max,
-      interval,
-      splitLine: {
-        show: true,
-        lineStyle: { color: colors.gray300, type: "dashed" },
-      },
-      axisLine: { show: true, lineStyle: { color: colors.gray300 } },
-      axisTick: { show: true, lineStyle: { color: colors.gray300 } },
-      axisLabel: {
-        color: colors.gray500,
-        fontSize: 12,
-        formatter: (value: number) => localizeDecimal(value),
-      },
+    const buildYAxis = (
+      label: string,
+      decimals: number,
+      values: number[],
+      position: "left" | "right",
+      showSplitLine: boolean,
+    ) => {
+      const { min, max, interval } = calculateInterval(decimals, values, 5);
+      return {
+        type: "value" as const,
+        scale: true,
+        position,
+        name: label,
+        nameLocation: "middle" as const,
+        nameGap: 50,
+        nameTextStyle: { color: colors.gray500, fontSize: 13 },
+        min,
+        max,
+        interval,
+        splitLine: {
+          show: showSplitLine,
+          lineStyle: { color: colors.gray300, type: "dashed" as const },
+        },
+        axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+        axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+        axisLabel: {
+          color: colors.gray500,
+          fontSize: 12,
+          formatter: (value: number) => localizeDecimal(value),
+        },
+      };
     };
-  }, [allValues, decimals, yAxisLabel]);
+
+    if (hasBothAxes) {
+      return [
+        buildYAxis(linkYAxisLabel, linkDecimals, linkValues, "left", true),
+        buildYAxis(nodeYAxisLabel, nodeDecimals, nodeValues, "right", false),
+      ];
+    }
+
+    const isNodeOnly = nodeCount > 0;
+    return buildYAxis(
+      isNodeOnly ? nodeYAxisLabel : linkYAxisLabel,
+      isNodeOnly ? nodeDecimals : linkDecimals,
+      isNodeOnly ? nodeValues : linkValues,
+      "left",
+      true,
+    );
+  }, [
+    hasBothAxes,
+    nodeCount,
+    nodeValues,
+    linkValues,
+    nodeDecimals,
+    linkDecimals,
+    nodeYAxisLabel,
+    linkYAxisLabel,
+  ]);
 
   const series: EChartsOption["series"] = useMemo(
     () =>
       seriesData.map((s, i) => {
         const color = SERIES_COLORS[i % SERIES_COLORS.length];
+        const isNode = i < nodeCount;
         return {
           type: "line" as const,
           name: s.label,
@@ -365,9 +411,10 @@ const CustomGraphChart = memo(function CustomGraphChart({
           itemStyle: { color },
           symbol: "none",
           smooth: false,
+          ...(hasBothAxes ? { yAxisIndex: isNode ? 1 : 0 } : {}),
         };
       }),
-    [seriesData],
+    [seriesData, nodeCount, hasBothAxes],
   );
 
   const option: EChartsOption = useMemo(
