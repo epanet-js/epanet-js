@@ -1,6 +1,5 @@
-import { useMemo } from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
-import { loadable } from "jotai/utils";
+import { unwrap } from "jotai/utils";
 import {
   selectedFeaturesDerivedAtom,
   stagingModelDerivedAtom,
@@ -97,7 +96,15 @@ const customGraphSeriesAtom = atom(
   },
 );
 
-const loadableCustomGraphSeriesAtom = loadable(customGraphSeriesAtom);
+const EMPTY_SERIES: CustomGraphSeriesData = {
+  nodeSeriesData: [],
+  linkSeriesData: [],
+};
+
+const unwrappedCustomGraphSeriesAtom = unwrap(
+  customGraphSeriesAtom,
+  (prev) => prev ?? undefined,
+);
 
 export function useCustomGraphData() {
   const { nodeIds, linkIds } = useAtomValue(categorizedAssetIdsAtom);
@@ -105,7 +112,7 @@ export function useCustomGraphData() {
   const setLinkProperty = useSetAtom(linkPropertyAtom);
   const nodeProperty = useAtomValue(nodePropertyAtom);
   const linkProperty = useAtomValue(linkPropertyAtom);
-  const seriesLoadable = useAtomValue(loadableCustomGraphSeriesAtom);
+  const seriesData = useAtomValue(unwrappedCustomGraphSeriesAtom);
 
   const simulation = useAtomValue(simulationDerivedAtom);
   const epsResultsReader =
@@ -115,16 +122,8 @@ export function useCustomGraphData() {
   const hasNodes = nodeIds.size > 0;
   const hasLinks = linkIds.size > 0;
 
-  const isLoading = seriesLoadable.state === "loading";
-  const { nodeSeriesData, linkSeriesData } = useMemo(() => {
-    if (seriesLoadable.state === "hasData") {
-      return seriesLoadable.data;
-    }
-    return {
-      nodeSeriesData: [] as AssetTimeSeries[],
-      linkSeriesData: [] as AssetTimeSeries[],
-    };
-  }, [seriesLoadable]);
+  const isLoading = seriesData === undefined;
+  const { nodeSeriesData, linkSeriesData } = seriesData ?? EMPTY_SERIES;
 
   return {
     hasNodes,
