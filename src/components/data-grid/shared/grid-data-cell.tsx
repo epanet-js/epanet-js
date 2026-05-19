@@ -1,11 +1,6 @@
-import * as CM from "@radix-ui/react-context-menu";
 import { Cell } from "@tanstack/react-table";
 import clsx from "clsx";
 import { DataGridVariant, EditMode, GridColumn } from "../types";
-import {
-  CellContextMenuConfig,
-  CellContextMenuContent,
-} from "./grid-context-menus";
 
 export type SelectionEdge = {
   top: boolean;
@@ -35,7 +30,6 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
   isLastRow: boolean;
   isLastCol: boolean;
   hasWarning?: boolean;
-  cellContextMenu?: CellContextMenuConfig<TData>;
 };
 
 export function GridDataCell<TData extends Record<string, unknown>>({
@@ -59,9 +53,8 @@ export function GridDataCell<TData extends Record<string, unknown>>({
   isLastRow,
   isLastCol,
   hasWarning,
-  cellContextMenu,
 }: GridDataCellProps<TData>) {
-  const cellNode = (
+  return (
     <div
       key={cell.id}
       role="gridcell"
@@ -128,14 +121,5 @@ export function GridDataCell<TData extends Record<string, unknown>>({
         </div>
       )}
     </div>
-  );
-
-  if (!cellContextMenu) return cellNode;
-
-  return (
-    <CM.Root>
-      <CM.Trigger asChild>{cellNode}</CM.Trigger>
-      <CellContextMenuContent {...cellContextMenu} />
-    </CM.Root>
   );
 }

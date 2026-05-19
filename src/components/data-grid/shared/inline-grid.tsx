@@ -1,30 +1,26 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useRef } from "react";
 import clsx from "clsx";
 import { Table } from "@tanstack/react-table";
 import {
-  CellPosition,
+  CellContextAction,
   DataGridVariant,
-  EditMode,
   GridColumn,
-  GridSelection,
+  GutterContextAction,
   RowAction,
 } from "../types";
-import { useFitColumnWidth, useRowsNavigation } from "../hooks";
-import { GridRow } from "./grid-row";
 import {
-  CellContextMenuConfig,
-  GutterContextMenuConfig,
-} from "./grid-context-menus";
+  useContextMenuTarget,
+  useFitColumnWidth,
+  useGridKeyboard,
+} from "../hooks";
+import { GridRow } from "./grid-row";
+import { GridContextMenuWrapper } from "./grid-context-menu-shell";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
 
 export type InlineGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
   columns: GridColumn[];
-  rowCount: number;
-  activeCell: CellPosition | null;
-  selection: GridSelection | null;
-  editMode: EditMode;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -36,8 +32,6 @@ export type InlineGridProps<TData extends Record<string, unknown>> = {
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
   onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
-  stopEditing: () => void;
-  startEditing: () => void;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
@@ -51,8 +45,8 @@ export type InlineGridProps<TData extends Record<string, unknown>> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
-  cellContextMenu?: CellContextMenuConfig<TData>;
-  gutterContextMenu?: GutterContextMenuConfig<TData>;
+  cellContextActions?: CellContextAction<TData>[];
+  gutterContextActions?: GutterContextAction<TData>[];
 };
 
 export const InlineGrid = forwardRef(function InlineGrid<
@@ -61,10 +55,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
   {
     table,
     columns,
-    rowCount,
-    activeCell,
-    selection,
-    editMode,
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
@@ -76,8 +66,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
     onColumnHeaderClick,
     onSelectAll,
     onColumnSort,
-    stopEditing,
-    startEditing,
     selectCells,
     clearSelection,
     blurGrid,
@@ -87,8 +75,8 @@ export const InlineGrid = forwardRef(function InlineGrid<
     readOnly,
     variant,
     cellHasWarning,
-    cellContextMenu,
-    gutterContextMenu,
+    cellContextActions,
+    gutterContextActions,
   }: InlineGridProps<TData>,
   ref: React.ForwardedRef<GridRef>,
 ) {
@@ -97,89 +85,90 @@ export const InlineGrid = forwardRef(function InlineGrid<
   const { fitWidthToContent } = useFitColumnWidth(table, containerRef);
 
   const rows = table.getRowModel().rows;
-  const colCount = columns.length;
-  const visibleRowCount = rows.length;
 
-  const handleKeyDown = useRowsNavigation({
-    activeCell,
-    rowCount,
-    colCount,
-    editMode,
+  useGridKeyboard({
+    ref,
+    table,
     selectCells,
     clearSelection,
     blurGrid,
-    visibleRowCount,
+    visibleRowCount: rows.length,
   });
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      handleKeyDown,
-    }),
-    [handleKeyDown],
-  );
+  const {
+    menuTarget,
+    clearMenuTarget,
+    wrappedCellContextMenu,
+    wrappedGutterContextMenu,
+  } = useContextMenuTarget({ onCellContextMenu, onGutterContextMenu });
+
+  const rowsContent = rows.map((row, rowIndex) => {
+    const isLast = rowIndex === rows.length - 1;
+    return (
+      <div
+        key={row.id}
+        role="row"
+        aria-rowindex={rowIndex + 2}
+        className={clsx(
+          "flex h-8",
+          table.options.enableColumnResizing ? "w-max" : "w-full",
+        )}
+      >
+        <GridRow
+          table={table}
+          row={row}
+          rowIndex={rowIndex}
+          columns={columns}
+          onCellMouseDown={onCellMouseDown}
+          onCellMouseEnter={onCellMouseEnter}
+          onCellDoubleClick={onCellDoubleClick}
+          onCellContextMenu={wrappedCellContextMenu}
+          onGutterClick={onGutterClick}
+          onGutterContextMenu={wrappedGutterContextMenu}
+          onCellChange={onCellChange}
+          gutterColumn={gutterColumn}
+          showRowNumbers={showRowNumbers}
+          gutterIsLastRow={isLast}
+          cellsIsLastRow={isLast}
+          rowActions={rowActions}
+          readOnly={readOnly}
+          variant={variant}
+          cellHasWarning={cellHasWarning}
+        />
+      </div>
+    );
+  });
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col"
-      onMouseDown={onEmptyAreaMouseDown}
+    <GridContextMenuWrapper
+      table={table}
+      cellContextActions={cellContextActions}
+      gutterContextActions={gutterContextActions}
+      readOnly={readOnly}
+      menuTarget={menuTarget}
+      onClose={clearMenuTarget}
     >
-      <GridHeader
-        table={table}
-        showGutterColumn={gutterColumn}
-        showActionsColumn={!readOnly && !!rowActions}
-        onColumnHeaderClick={onColumnHeaderClick}
-        onSelectAll={onSelectAll}
-        variant={variant}
-        selection={selection}
-        fitWidthToContent={fitWidthToContent}
-        onColumnSort={onColumnSort}
-      />
-      {rows.map((row, rowIndex) => {
-        const isLast = rowIndex === rows.length - 1;
-
-        return (
-          <div
-            key={row.id}
-            role="row"
-            aria-rowindex={rowIndex + 2}
-            className={clsx(
-              "flex h-8",
-              table.options.enableColumnResizing ? "w-max" : "w-full",
-            )}
-          >
-            <GridRow
-              row={row}
-              rowIndex={rowIndex}
-              columns={columns}
-              activeCell={activeCell}
-              selection={selection}
-              editMode={editMode}
-              onCellMouseDown={onCellMouseDown}
-              onCellMouseEnter={onCellMouseEnter}
-              onCellDoubleClick={onCellDoubleClick}
-              onCellContextMenu={onCellContextMenu}
-              onGutterClick={onGutterClick}
-              onGutterContextMenu={onGutterContextMenu}
-              onCellChange={onCellChange}
-              stopEditing={stopEditing}
-              startEditing={startEditing}
-              gutterColumn={gutterColumn}
-              showRowNumbers={showRowNumbers}
-              gutterIsLastRow={isLast}
-              cellsIsLastRow={isLast}
-              rowActions={rowActions}
-              readOnly={readOnly}
-              variant={variant}
-              cellHasWarning={cellHasWarning}
-              cellContextMenu={cellContextMenu}
-              gutterContextMenu={gutterContextMenu}
-            />
-          </div>
-        );
-      })}
-    </div>
+      <div
+        ref={containerRef}
+        className="flex flex-col"
+        onMouseDown={onEmptyAreaMouseDown}
+        onContextMenu={(e) => {
+          if (e.target === e.currentTarget) e.preventDefault();
+        }}
+      >
+        <GridHeader
+          table={table}
+          showGutterColumn={gutterColumn}
+          showActionsColumn={!readOnly && !!rowActions}
+          onColumnHeaderClick={onColumnHeaderClick}
+          onSelectAll={onSelectAll}
+          variant={variant}
+          fitWidthToContent={fitWidthToContent}
+          onColumnSort={onColumnSort}
+        />
+        {rowsContent}
+      </div>
+    </GridContextMenuWrapper>
   );
 }) as <TData extends Record<string, unknown>>(
   props: InlineGridProps<TData> & { ref?: React.Ref<GridRef> },

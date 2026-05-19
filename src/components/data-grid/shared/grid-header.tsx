@@ -10,7 +10,7 @@ import {
 } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
-import { DataGridVariant, GridSelection } from "../types";
+import { DataGridVariant } from "../types";
 
 type GridHeaderProps<T> = {
   showGutterColumn: boolean;
@@ -19,7 +19,6 @@ type GridHeaderProps<T> = {
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   onSelectAll: () => void;
   variant: DataGridVariant;
-  selection: GridSelection | null;
   style?: React.CSSProperties;
   className?: string;
   scrollbarGap?: number;
@@ -34,7 +33,6 @@ export function GridHeader<T>({
   onColumnHeaderClick,
   onSelectAll,
   variant,
-  selection,
   style,
   className,
   scrollbarGap,
@@ -43,6 +41,7 @@ export function GridHeader<T>({
 }: GridHeaderProps<T>) {
   const translate = useTranslate();
 
+  const selection = table.getSelection();
   const rowCount = table.getRowModel().rows.length;
   const allRowsSelected =
     variant === "spreadsheet" &&

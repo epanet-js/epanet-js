@@ -21,26 +21,69 @@ import { ResultsReader } from "src/simulation";
 
 export type AssetRow = Record<string, unknown> & { id: AssetId };
 
-export function buildRows(
+const CHUNK_SIZE = 200;
+
+function yieldToMain(): Promise<void> {
+  const scheduler = (globalThis as Record<string, unknown>)["scheduler"] as
+    | {
+        postTask?: (
+          cb: () => void,
+          opts: { priority: string },
+        ) => Promise<void>;
+      }
+    | undefined;
+  if (scheduler?.postTask) {
+    return scheduler.postTask(() => {}, { priority: "user-visible" });
+  }
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function buildRow(
+  assetType: AssetType,
+  id: AssetId,
+  hydraulicModel: HydraulicModel,
+  simulation: ResultsReader | null,
+  translate: TranslateFn,
+): AssetRow | null {
+  const asset = hydraulicModel.assets.get(id);
+  if (!asset) return null;
+  return {
+    ...buildAssetRow(assetType, asset),
+    ...(simulation ? buildSimRow(assetType, id, simulation, translate) : {}),
+    ...buildComputedFields(assetType, id, hydraulicModel),
+  };
+}
+
+export async function buildRowsAsync(
   assetType: AssetType,
   assetIds: AssetId[],
   hydraulicModel: HydraulicModel,
   simulation: ResultsReader | null,
   translate: TranslateFn,
-): AssetRow[] {
+  signal?: AbortSignal,
+): Promise<AssetRow[]> {
   const result: AssetRow[] = [];
-  for (const id of assetIds) {
-    const asset = hydraulicModel.assets.get(id);
-    if (!asset) continue;
-    const simFields = simulation
-      ? buildSimRow(assetType, id, simulation, translate)
-      : {};
-    const computedFields = buildComputedFields(assetType, id, hydraulicModel);
-    result.push({
-      ...buildAssetRow(assetType, asset),
-      ...simFields,
-      ...computedFields,
-    });
+  for (
+    let chunkStart = 0;
+    chunkStart < assetIds.length;
+    chunkStart += CHUNK_SIZE
+  ) {
+    if (chunkStart > 0) await yieldToMain();
+    if (signal?.aborted) return result;
+    for (
+      let rowIndex = chunkStart;
+      rowIndex < Math.min(chunkStart + CHUNK_SIZE, assetIds.length);
+      rowIndex++
+    ) {
+      const row = buildRow(
+        assetType,
+        assetIds[rowIndex],
+        hydraulicModel,
+        simulation,
+        translate,
+      );
+      if (row) result.push(row);
+    }
   }
   return result;
 }

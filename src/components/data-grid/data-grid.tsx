@@ -3,7 +3,6 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
 } from "react";
 import {
@@ -145,18 +144,17 @@ export const DataGrid = forwardRef(function DataGrid<
     enableMultiSort: false,
   });
 
-  const editMode = table.getEditMode();
-  const startEditing = table.startEditing;
-  const stopEditing = table.stopEditing;
-
   const activeCell = table.getActiveCell();
   const selection = table.getSelection();
+  const editMode = table.getEditMode();
+  const visibleRowCount = table.getRowModel().rows.length;
+  const visibleColCount = table.getVisibleLeafColumns().length;
 
   const selectCells = useCallback(
     (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
       const { colIndex, rowIndex, extend = false } = options ?? {};
-      const rowCount = data.length;
-      const colCount = columns.length;
+      const rowCount = table.getRowModel().rows.length;
+      const colCount = table.getVisibleLeafColumns().length;
       if (rowCount === 0 || colCount === 0) return;
 
       const target = computeTargetSelection(
@@ -201,24 +199,21 @@ export const DataGrid = forwardRef(function DataGrid<
       table.selectRange(nextRange);
       table.setActiveCell(nextActiveCell);
     },
-    [data.length, columns.length, table],
+    [table],
   );
 
   const clearSelection = useCallback(() => {
     if (!table.getSelection() && !table.getActiveCell()) return;
     table.clearSelection();
     table.setActiveCell(null);
-    stopEditing();
-  }, [table, stopEditing]);
+    table.stopEditing();
+  }, [table]);
 
   useEffect(
     function clampWhenDataSizeChanges() {
-      const rowCount = data.length;
-      const colCount = columns.length;
-
-      if (rowCount === 0 || colCount === 0) {
+      if (visibleRowCount === 0 || visibleColCount === 0) {
         if (table.getActiveCell() || table.getSelection()) {
-          stopEditing();
+          table.stopEditing();
           table.clearSelection();
           table.setActiveCell(null);
         }
@@ -227,7 +222,7 @@ export const DataGrid = forwardRef(function DataGrid<
 
       const prevRange = table.getSelection();
       if (prevRange) {
-        const clamped = clampRange(prevRange, colCount, rowCount);
+        const clamped = clampRange(prevRange, visibleColCount, visibleRowCount);
         if (clamped && !isRangeEqual(prevRange, clamped)) {
           table.selectRange(clamped);
         }
@@ -235,23 +230,30 @@ export const DataGrid = forwardRef(function DataGrid<
 
       const prevActive = table.getActiveCell();
       if (prevActive) {
-        const clamped = clampActiveCell(prevActive, colCount, rowCount);
+        const clamped = clampActiveCell(
+          prevActive,
+          visibleColCount,
+          visibleRowCount,
+        );
         if (!isActiveCellEqual(prevActive, clamped)) {
           table.setActiveCell(clamped);
         }
       }
     },
-    [data.length, columns.length, stopEditing, table],
+    [visibleRowCount, visibleColCount, table],
   );
 
   const lastNotifiedRef = useRef<GridSelection | null>(null);
-  useEffect(() => {
-    const prev = lastNotifiedRef.current;
-    if (!isSameSelection(prev, selection)) {
-      lastNotifiedRef.current = selection;
-      onSelectionChange?.(selection);
-    }
-  }, [selection, onSelectionChange]);
+  useEffect(
+    function notifySelectionChange() {
+      const prev = lastNotifiedRef.current;
+      if (!isSameSelection(prev, selection)) {
+        lastNotifiedRef.current = selection;
+        onSelectionChange?.(selection);
+      }
+    },
+    [selection, onSelectionChange],
+  );
 
   const { handleCellMouseDown, handleCellMouseEnter } = useMouseSelection({
     editMode,
@@ -264,13 +266,13 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const focusRow = useCallback(
     (rowIndex: number) => {
-      if (columns.length === 0) return;
+      if (table.getVisibleLeafColumns().length === 0) return;
       const firstEditableCol = columns.findIndex((col) => !col.disabled);
       const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
       selectCells({ colIndex, rowIndex });
     },
-    [columns, selectCells],
+    [columns, table, selectCells],
   );
 
   const handleAddRow = useCallback(() => {
@@ -291,8 +293,8 @@ export const DataGrid = forwardRef(function DataGrid<
     rowCount: data.length,
     colCount: columns.length,
     selectCells,
-    startEditing,
-    stopEditing,
+    startEditing: table.startEditing,
+    stopEditing: table.stopEditing,
     clearSelection,
     blurGrid,
     onAddRow: autoAddNewRows ? handleAddRow : undefined,
@@ -332,33 +334,15 @@ export const DataGrid = forwardRef(function DataGrid<
     [editMode],
   );
 
-  const handleCopy = useCallback(
-    (e: React.ClipboardEvent) => {
-      table.handleCopyEvent(e);
-    },
-    [table],
-  );
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      table.handlePasteEvent(e);
-    },
-    [table],
-  );
-  const copySelectionImperative = useCallback(
-    (options?: CopySelectionOptions) => table.copySelection(options),
-    [table],
-  );
-  const pasteFromClipboard = useCallback(() => table.pasteSelection(), [table]);
-
   useImperativeHandle(
     ref,
     () => ({
       selectCells,
       clearSelection,
-      copySelection: copySelectionImperative,
+      copySelection: table.copySelection,
       selection,
     }),
-    [selectCells, clearSelection, copySelectionImperative, selection],
+    [selectCells, clearSelection, table, selection],
   );
 
   const handleCellDoubleClick = useCallback(
@@ -366,10 +350,10 @@ export const DataGrid = forwardRef(function DataGrid<
       if (readOnly) return;
       const column = columns[col] as GridColumn | undefined;
       if (!column?.disabled && !column?.disableKeys) {
-        startEditing("full");
+        table.startEditing("full");
       }
     },
-    [columns, readOnly, startEditing],
+    [columns, readOnly, table],
   );
 
   const handleGutterClick = useCallback(
@@ -401,44 +385,6 @@ export const DataGrid = forwardRef(function DataGrid<
       }
     },
     [selection, selectCells, columns.length],
-  );
-
-  const tableRef = useRef(table);
-  tableRef.current = table;
-
-  const getSortedRows = useCallback(
-    () => tableRef.current.getRowModel().rows.map((r) => r.original),
-    [],
-  );
-
-  const cellContextMenu = useMemo(
-    () =>
-      cellContextActions
-        ? {
-            actions: cellContextActions,
-            selection,
-            getSortedRows,
-            onCopy: () => void copySelectionImperative(),
-            onPaste: () => void pasteFromClipboard(),
-            readOnly,
-          }
-        : undefined,
-    [
-      cellContextActions,
-      selection,
-      getSortedRows,
-      copySelectionImperative,
-      pasteFromClipboard,
-      readOnly,
-    ],
-  );
-
-  const gutterContextMenu = useMemo(
-    () =>
-      gutterContextActions && gutterContextActions.length > 0
-        ? { actions: gutterContextActions, selection, getSortedRows }
-        : undefined,
-    [gutterContextActions, selection, getSortedRows],
   );
 
   const handleCellChange = useCallback(
@@ -491,18 +437,14 @@ export const DataGrid = forwardRef(function DataGrid<
   const rowsProps = {
     table,
     columns,
-    rowCount: data.length,
-    activeCell,
-    selection,
-    editMode,
     onCellMouseDown: handleCellMouseDown,
     onCellMouseEnter: handleCellMouseEnter,
     onCellDoubleClick: handleCellDoubleClick,
-    onCellContextMenu: cellContextMenu
+    onCellContextMenu: cellContextActions
       ? (col: number, row: number) => handleCellContextMenu(col, row)
       : undefined,
     onGutterClick: handleGutterClick,
-    onGutterContextMenu: gutterContextMenu
+    onGutterContextMenu: gutterContextActions
       ? (row: number) => handleGutterContextMenu(row)
       : undefined,
     onCellChange: handleCellChange,
@@ -511,8 +453,6 @@ export const DataGrid = forwardRef(function DataGrid<
       selectCells({ colIndex: col, extend: e.shiftKey }),
     onSelectAll: () => selectCells(),
     onColumnSort,
-    stopEditing,
-    startEditing,
     selectCells,
     clearSelection,
     blurGrid,
@@ -522,8 +462,8 @@ export const DataGrid = forwardRef(function DataGrid<
     readOnly,
     variant,
     cellHasWarning,
-    cellContextMenu,
-    gutterContextMenu,
+    cellContextActions,
+    gutterContextActions,
   };
 
   return (
@@ -541,8 +481,8 @@ export const DataGrid = forwardRef(function DataGrid<
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
-        onCopy={handleCopy}
-        onPaste={handlePaste}
+        onCopy={table.handleCopyEvent}
+        onPaste={table.handlePasteEvent}
         className={
           isSpreadsheet
             ? "relative flex flex-col flex-1 min-h-0 outline-hidden"

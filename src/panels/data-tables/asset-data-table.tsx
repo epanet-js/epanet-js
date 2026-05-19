@@ -46,7 +46,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { type AssetRow, buildRows } from "./data";
+import { type AssetRow, buildRowsAsync } from "./data";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   buildColumns,
@@ -159,26 +159,20 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   useEffect(
     function computeRows() {
-      let cancelled = false;
+      const controller = new AbortController();
 
-      async function compute() {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        if (cancelled) return;
+      void buildRowsAsync(
+        assetType,
+        assetIds,
+        hydraulicModel,
+        simulation,
+        translate,
+        controller.signal,
+      ).then((result) => {
+        if (!controller.signal.aborted) setRows(result);
+      });
 
-        const result = buildRows(
-          assetType,
-          assetIds,
-          hydraulicModel,
-          simulation,
-          translate,
-        );
-        if (!cancelled) setRows(result);
-      }
-
-      void compute();
-      return () => {
-        cancelled = true;
-      };
+      return () => controller.abort();
     },
     [assetType, assetIds, hydraulicModel, simulation, translate],
   );

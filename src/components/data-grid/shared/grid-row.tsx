@@ -1,14 +1,7 @@
-import { Row, Cell } from "@tanstack/react-table";
+import { Row, Cell, Table } from "@tanstack/react-table";
 
 export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
-import {
-  CellPosition,
-  DataGridVariant,
-  EditMode,
-  GridColumn,
-  GridSelection,
-  RowAction,
-} from "../types";
+import { DataGridVariant, GridColumn, RowAction } from "../types";
 import {
   isCellSelected,
   isCellActive,
@@ -18,18 +11,12 @@ import {
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
-import {
-  CellContextMenuConfig,
-  GutterContextMenuConfig,
-} from "./grid-context-menus";
 
 export type GridRowProps<TData extends Record<string, unknown>> = {
+  table: Table<TData>;
   row: Row<TData>;
   rowIndex: number;
   columns: GridColumn[];
-  activeCell: CellPosition | null;
-  selection: GridSelection | null;
-  editMode: EditMode;
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -37,8 +24,6 @@ export type GridRowProps<TData extends Record<string, unknown>> = {
   onGutterClick: (row: number, e: React.MouseEvent) => void;
   onGutterContextMenu?: (row: number, e: React.MouseEvent) => void;
   onCellChange: (rowIndex: number, columnId: string, value: unknown) => void;
-  stopEditing: () => void;
-  startEditing: () => void;
   gutterColumn: boolean;
   showRowNumbers: boolean;
   gutterIsLastRow: boolean;
@@ -47,17 +32,13 @@ export type GridRowProps<TData extends Record<string, unknown>> = {
   readOnly: boolean;
   variant: DataGridVariant;
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
-  cellContextMenu?: CellContextMenuConfig<TData>;
-  gutterContextMenu?: GutterContextMenuConfig<TData>;
 };
 
 export function GridRow<TData extends Record<string, unknown>>({
+  table,
   row,
   rowIndex,
   columns,
-  activeCell,
-  selection,
-  editMode,
   onCellMouseDown,
   onCellMouseEnter,
   onCellDoubleClick,
@@ -65,8 +46,6 @@ export function GridRow<TData extends Record<string, unknown>>({
   onGutterClick,
   onGutterContextMenu,
   onCellChange,
-  stopEditing,
-  startEditing,
   gutterColumn,
   showRowNumbers,
   gutterIsLastRow,
@@ -75,20 +54,18 @@ export function GridRow<TData extends Record<string, unknown>>({
   readOnly,
   variant,
   cellHasWarning,
-  cellContextMenu,
-  gutterContextMenu,
 }: GridRowProps<TData>) {
+  const activeCell = table.getActiveCell();
+  const selection = table.getSelection();
+  const editMode = table.getEditMode();
+
   return (
     <>
       {gutterColumn && (
         <RowGutterCell
           rowIndex={rowIndex}
           onClick={(e) => onGutterClick(rowIndex, e)}
-          onContextMenu={
-            onGutterContextMenu
-              ? (e) => onGutterContextMenu(rowIndex, e)
-              : undefined
-          }
+          onContextMenu={(e) => onGutterContextMenu?.(rowIndex, e)}
           variant={variant}
           isLastRow={gutterIsLastRow}
           showRowNumbers={showRowNumbers}
@@ -96,7 +73,6 @@ export function GridRow<TData extends Record<string, unknown>>({
             isFullRowSelected(selection, columns.length) &&
             isCellSelected(selection, 0, rowIndex)
           }
-          gutterContextMenu={gutterContextMenu}
         />
       )}
 
@@ -133,13 +109,9 @@ export function GridRow<TData extends Record<string, unknown>>({
               onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
               onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
               onDoubleClick={() => onCellDoubleClick(colIndex)}
-              onContextMenu={
-                onCellContextMenu
-                  ? (e) => onCellContextMenu(colIndex, rowIndex, e)
-                  : undefined
-              }
-              onBlur={stopEditing}
-              onStartEditing={startEditing}
+              onContextMenu={(e) => onCellContextMenu?.(colIndex, rowIndex, e)}
+              onBlur={table.stopEditing}
+              onStartEditing={table.startEditing}
               onChange={
                 accessorKey
                   ? (value) => onCellChange(row.index, accessorKey, value)
@@ -154,7 +126,6 @@ export function GridRow<TData extends Record<string, unknown>>({
                   ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
                   : false
               }
-              cellContextMenu={cellContextMenu}
             />
           );
         })}
