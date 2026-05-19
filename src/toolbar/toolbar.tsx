@@ -16,6 +16,8 @@ import {
   PanelRightActiveIcon,
   PanelRightIcon,
   SearchIcon,
+  TableIcon,
+  HglProfileIcon,
 } from "src/icons";
 import Modes from "./modes";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -50,7 +52,10 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
-import { AnalysisToolsDropdown } from "./analysis-tools-dropdown";
+import { Mode, modeAtom } from "src/state/mode";
+import { useShowDataTables } from "src/commands/show-data-tables";
+import { useShowHglProfile } from "src/commands/show-hgl-profile";
+import { useStartProfileSelection } from "src/commands/start-profile-selection";
 import {
   toggleNetworkReviewShortcut,
   useToggleNetworkReview,
@@ -79,9 +84,13 @@ export const Toolbar = ({
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
+  const showDataTables = useShowDataTables();
+  const showHglProfile = useShowHglProfile();
+  const startProfileSelection = useStartProfileSelection();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
+  const { mode: currentMode } = useAtomValue(modeAtom);
 
   const { undo, redo } = useHistoryControl();
 
@@ -228,7 +237,28 @@ export const Toolbar = ({
         </MenuAction>
         <Divider />
         <OperationalDataDropdown />
-        {isHglProfileOn && <AnalysisToolsDropdown />}
+        {isHglProfileOn && (
+          <>
+            <MenuAction
+              label={translate("dataTables.title")}
+              role="button"
+              onClick={() => showDataTables({ source: "toolbar" })}
+            >
+              <TableIcon />
+            </MenuAction>
+            <MenuAction
+              label={translate("hglProfile.toolbar")}
+              role="button"
+              selected={currentMode === Mode.HGL_PROFILE}
+              onClick={() => {
+                showHglProfile({ source: "toolbar" });
+                startProfileSelection({ source: "toolbar" });
+              }}
+            >
+              <HglProfileIcon />
+            </MenuAction>
+          </>
+        )}
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
         <CommandBarButton />
