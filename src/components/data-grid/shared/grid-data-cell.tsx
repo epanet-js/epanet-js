@@ -25,7 +25,7 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   onStartEditing: () => void;
-  CellComponent: GridColumn["cellComponent"];
+  CellComponent: NonNullable<GridColumn["meta"]>["cellComponent"];
   variant: DataGridVariant;
   isLastRow: boolean;
   isLastCol: boolean;

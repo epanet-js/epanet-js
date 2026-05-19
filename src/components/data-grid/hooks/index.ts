@@ -5,17 +5,10 @@ export {
   isCellSelected,
   isCellActive,
 } from "./use-selection";
-export { useClipboard } from "./use-clipboard";
 export { useRowsNavigation } from "./use-rows-navigation";
 export { useGridEditing } from "./use-grid-editing";
 export { useEditMode } from "./use-edit-mode";
 export { useMouseSelection } from "./use-mouse-selection";
-export {
-  useColumnSizing,
-  useFitColumnWidth,
-  getReservedWidth,
-  FIXED_COLUMN_SIZE,
-} from "./use-column-sizing";
 export { useContainerHeight } from "./use-container-height";
 export { useScrollState, type ScrollState } from "./use-scroll-state";
 export { useScrollActiveCellIntoView } from "./use-scroll-active-cell-into-view";

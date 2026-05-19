@@ -4,7 +4,6 @@ import type {
   Table,
   TableFeature,
 } from "@tanstack/react-table";
-import { isColumnReadOnly, type GridColumn } from "../types";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
@@ -34,7 +33,6 @@ declare module "@tanstack/react-table" {
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
     onDataChange?: (data: TData[]) => void;
-    gridColumns?: GridColumn[];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,9 +57,15 @@ declare module "@tanstack/react-table" {
   }
 }
 
+const headerText = <TData extends RowData>(
+  column: Column<TData, unknown> | undefined,
+): string => {
+  const header = column?.columnDef.header;
+  return typeof header === "string" ? header : "";
+};
+
 export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
-    const getColumns = (): GridColumn[] => table.options.gridColumns ?? [];
     const getData = (): TData[] => table.options.data;
 
     // Selection row indices are visual (positions within the sorted row model).
@@ -75,7 +79,7 @@ export const ClipboardFeature: TableFeature = {
       const selection = table.getSelection?.();
       if (!selection) return;
 
-      const columns = getColumns();
+      const columns = table.getVisibleLeafColumns();
       const data = getData();
       const rows: string[] = [];
 
@@ -86,7 +90,7 @@ export const ClipboardFeature: TableFeature = {
           colIndex <= selection.max.col;
           colIndex++
         ) {
-          headers.push(columns[colIndex]?.header ?? "");
+          headers.push(headerText(columns[colIndex]));
         }
         rows.push(headers.join("\t"));
       }
@@ -105,18 +109,13 @@ export const ClipboardFeature: TableFeature = {
           colIndex++
         ) {
           const column = columns[colIndex];
-          const accessorKey = column?.accessorKey;
-          if (!accessorKey) {
+          if (!column) {
             cells.push("");
             continue;
           }
 
-          const value = (row as Record<string, unknown>)[accessorKey];
-          const copyValue = column.copyValue;
-          const stringValue = copyValue
-            ? copyValue(value)
-            : (value?.toString() ?? "");
-          cells.push(stringValue);
+          const value = (row as Record<string, unknown>)[column.id];
+          cells.push(column.getCopyValue(value));
         }
 
         rows.push(cells.join("\t"));
@@ -133,14 +132,14 @@ export const ClipboardFeature: TableFeature = {
     const buildCopyInfo = (): ClipboardCopyInfo | null => {
       const selection = table.getSelection?.();
       if (!selection) return null;
-      const columns = getColumns();
+      const columns = table.getVisibleLeafColumns();
       const data = getData();
       const selRows = selection.max.row - selection.min.row + 1;
       const selCols = selection.max.col - selection.min.col + 1;
       const columnIds: string[] = [];
       for (let c = selection.min.col; c <= selection.max.col; c++) {
-        const key = columns[c]?.accessorKey;
-        if (key) columnIds.push(key);
+        const id = columns[c]?.id;
+        if (id) columnIds.push(id);
       }
       return {
         rows: selRows,
@@ -168,7 +167,7 @@ export const ClipboardFeature: TableFeature = {
       if (table.options.readOnly) return;
       if (!text) return;
 
-      const columns = getColumns();
+      const columns = table.getVisibleLeafColumns();
       const data = getData();
       const createRow = table.options.createRow;
       const onDataChange = table.options.onDataChange;
@@ -228,15 +227,10 @@ export const ClipboardFeature: TableFeature = {
           if (colIndex >= columns.length) break;
 
           const column = columns[colIndex];
-          if (isColumnReadOnly(column, dataIdx)) continue;
-
-          const accessorKey = column?.accessorKey;
-          if (!accessorKey) continue;
+          if (!column || column.isReadOnly(dataIdx)) continue;
 
           const cellText = clipboardRow[j % clipboardRow.length] ?? "";
-          const pasteValue = column.pasteValue;
-          const value = pasteValue ? pasteValue(cellText) : cellText;
-          newRow[accessorKey] = value;
+          newRow[column.id] = column.getPasteValue(cellText);
         }
 
         newData[dataIdx] = newRow as TData;
@@ -254,8 +248,8 @@ export const ClipboardFeature: TableFeature = {
         c < selection.min.col + writtenCols;
         c++
       ) {
-        const key = columns[c]?.accessorKey;
-        if (key) columnIds.push(key);
+        const id = columns[c]?.id;
+        if (id) columnIds.push(id);
       }
 
       table.options.onClipboardPaste?.({

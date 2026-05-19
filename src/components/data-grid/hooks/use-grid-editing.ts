@@ -1,21 +1,15 @@
 import { useCallback } from "react";
-import {
-  CellPosition,
-  EditMode,
-  GridColumn,
-  GridSelection,
-  isColumnReadOnly,
-} from "../types";
+import type { Column, Table } from "@tanstack/react-table";
+import { CellPosition, EditMode, GridSelection } from "../types";
 import { isFullRowSelected } from "./use-selection";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
+  table: Table<TData>;
   activeCell: CellPosition | null;
   selection: GridSelection | null;
   editMode: EditMode;
-  columns: GridColumn[];
   data: TData[];
   onChange: (data: TData[]) => void;
-  readOnly: boolean;
   rowCount: number;
   colCount: number;
   selectCells: (options?: {
@@ -31,13 +25,12 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
 };
 
 export function useGridEditing<TData extends Record<string, unknown>>({
+  table,
   activeCell,
   selection,
   editMode,
-  columns,
   data,
   onChange,
-  readOnly,
   rowCount,
   colCount,
   selectCells,
@@ -48,15 +41,15 @@ export function useGridEditing<TData extends Record<string, unknown>>({
   onAddRow,
 }: UseGridEditingOptions<TData>) {
   const handleDelete = useCallback(() => {
-    if (!selection || readOnly) return;
+    if (!selection || table.options.readOnly) return;
 
     if (isFullRowSelected(selection, colCount)) {
       onChange(deleteRows(data, selection));
       return;
     }
 
-    onChange(clearCells(data, selection, columns));
-  }, [selection, readOnly, colCount, data, columns, onChange]);
+    onChange(clearCells(data, selection, table.getVisibleLeafColumns()));
+  }, [selection, table, colCount, data, onChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -119,9 +112,9 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       switch (e.key) {
         case "Enter":
           e.preventDefault();
-          if (activeCell && !readOnly) {
-            const column = columns[activeCell.col];
-            if (!isColumnReadOnly(column, activeCell.row)) {
+          if (activeCell) {
+            const column = table.getVisibleLeafColumns()[activeCell.col];
+            if (column && !column.isReadOnly(activeCell.row)) {
               startEditing("full");
             }
           }
@@ -157,14 +150,13 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           // Character input starts editing in quick mode
           if (
             activeCell &&
-            !readOnly &&
             e.key.length === 1 &&
             !e.ctrlKey &&
             !e.metaKey &&
             !e.altKey
           ) {
-            const column = columns[activeCell.col];
-            if (!isColumnReadOnly(column, activeCell.row)) {
+            const column = table.getVisibleLeafColumns()[activeCell.col];
+            if (column && !column.isReadOnly(activeCell.row)) {
               startEditing("quick");
             }
           }
@@ -175,10 +167,9 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       editMode,
       activeCell,
       selection,
-      columns,
+      table,
       rowCount,
       colCount,
-      readOnly,
       selectCells,
       startEditing,
       stopEditing,
@@ -204,7 +195,7 @@ function deleteRows<TData extends Record<string, unknown>>(
 function clearCells<TData extends Record<string, unknown>>(
   data: TData[],
   selection: GridSelection,
-  columns: GridColumn[],
+  columns: Column<TData, unknown>[],
 ): TData[] {
   return data.map((row, rowIndex) => {
     if (rowIndex < selection.min.row || rowIndex > selection.max.row) {
@@ -218,12 +209,12 @@ function clearCells<TData extends Record<string, unknown>>(
       colIndex++
     ) {
       const column = columns[colIndex];
-      if (isColumnReadOnly(column, rowIndex)) continue;
+      if (!column || column.isReadOnly(rowIndex)) continue;
 
-      const accessorKey = column?.accessorKey;
+      const accessorKey = column.id;
       if (!accessorKey) continue;
 
-      const deleteValue = column.deleteValue;
+      const deleteValue = column.getDeleteValue();
       const value =
         typeof deleteValue === "function" ? deleteValue() : deleteValue;
       (newRow as Record<string, unknown>)[accessorKey] = value ?? null;

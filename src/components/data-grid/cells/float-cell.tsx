@@ -183,14 +183,16 @@ export function floatColumn(
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: CellComponent,
-    placeholder,
-    copyValue: (v) => {
-      const num = v as number | null;
-      return formatLocaleNumber(num, decimals);
+    meta: {
+      cellComponent: CellComponent,
+      copyValue: (v) => {
+        const num = v as number | null;
+        return formatLocaleNumber(num, decimals);
+      },
+      pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
+      deleteValue: options.deleteValue ?? null,
+      placeholder,
+      isReadOnly: readonly,
     },
-    pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
-    deleteValue: options.deleteValue ?? null,
-    ...(readonly !== undefined ? { isReadOnly: readonly } : {}),
   };
 }

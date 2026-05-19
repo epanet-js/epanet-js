@@ -8,11 +8,7 @@ import {
   GutterContextAction,
   RowAction,
 } from "../types";
-import {
-  useContextMenuTarget,
-  useFitColumnWidth,
-  useGridKeyboard,
-} from "../hooks";
+import { useContextMenuTarget, useGridKeyboard } from "../hooks";
 import { GridRow } from "./grid-row";
 import { GridContextMenuWrapper } from "./grid-context-menu-shell";
 import { GridHeader } from "./grid-header";
@@ -81,8 +77,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
   ref: React.ForwardedRef<GridRef>,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const { fitWidthToContent } = useFitColumnWidth(table, containerRef);
 
   const rows = table.getRowModel().rows;
 
@@ -163,7 +157,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
           onColumnHeaderClick={onColumnHeaderClick}
           onSelectAll={onSelectAll}
           variant={variant}
-          fitWidthToContent={fitWidthToContent}
           onColumnSort={onColumnSort}
         />
         {rowsContent}

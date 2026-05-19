@@ -84,26 +84,28 @@ export function booleanColumn(
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: (props: CellProps<boolean | null>) => (
-      <BooleanCell
-        {...props}
-        readOnly={resolveReadOnly(props.rowIndex) || props.readOnly}
-      />
-    ),
-    autoSizeExtraWidth: 16, // checkbox w-4
-    copyValue: (v) => (v === true ? "TRUE" : v === false ? "FALSE" : ""),
-    pasteValue: (v) => {
-      const lower = v.toLowerCase();
-      if (lower === "true") return true;
-      if (lower === "false") return false;
-      return null;
-    },
-    deleteValue: false,
-    ...(isReadOnly !== undefined ? { isReadOnly } : {}),
     sortingFn: (rowA, rowB, columnId) => {
       const a = rowA.getValue(columnId) ? 1 : 0;
       const b = rowB.getValue(columnId) ? 1 : 0;
       return a - b;
+    },
+    meta: {
+      cellComponent: (props: CellProps<boolean | null>) => (
+        <BooleanCell
+          {...props}
+          readOnly={resolveReadOnly(props.rowIndex) || props.readOnly}
+        />
+      ),
+      copyValue: (v) => (v === true ? "TRUE" : v === false ? "FALSE" : ""),
+      pasteValue: (v) => {
+        const lower = v.toLowerCase();
+        if (lower === "true") return true;
+        if (lower === "false") return false;
+        return null;
+      },
+      deleteValue: false,
+      autoSizeExtraWidth: 16, // checkbox w-4
+      isReadOnly,
     },
   };
 }

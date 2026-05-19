@@ -142,10 +142,12 @@ export function textColumn(
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: CellComponent,
-    copyValue: (v) => (v as string | null) ?? "",
-    pasteValue: (v) => v || null,
-    deleteValue: null,
-    ...(isReadOnly !== undefined ? { isReadOnly } : {}),
+    meta: {
+      cellComponent: CellComponent,
+      copyValue: (v) => (v as string | null) ?? "",
+      pasteValue: (v) => v || null,
+      deleteValue: null,
+      isReadOnly,
+    },
   };
 }

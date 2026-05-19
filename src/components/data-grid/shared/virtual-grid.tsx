@@ -9,16 +9,14 @@ import {
   RowAction,
 } from "../types";
 import {
-  FIXED_COLUMN_SIZE,
   useContainerHeight,
   useContextMenuTarget,
-  useFitColumnWidth,
   useGridKeyboard,
   useHeaderScrollSync,
   useScrollActiveCellIntoView,
   useScrollState,
 } from "../hooks";
-import { ROW_HEIGHT } from "./grid-row";
+import { FIXED_COLUMN_SIZE, ROW_HEIGHT } from "./dimensions";
 import { GridHeader } from "./grid-header";
 import { GridRef } from "./types";
 import { GridContextMenuWrapper } from "./grid-context-menu-shell";
@@ -93,7 +91,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
 
   const rowsHeight = useContainerHeight(containerRef);
   const scrollState = useScrollState(scrollRef);
-  const { fitWidthToContent } = useFitColumnWidth(table, containerRef);
   const onScroll = useHeaderScrollSync(scrollRef, headerScrollRef);
 
   useScrollActiveCellIntoView({
@@ -147,7 +144,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
           onSelectAll={onSelectAll}
           variant={variant}
           scrollbarGap={scrollState.scrollbarWidth}
-          fitWidthToContent={fitWidthToContent}
           onColumnSort={onColumnSort}
         />
       </div>

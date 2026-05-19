@@ -361,7 +361,7 @@ describe("textColumn", () => {
     it("uses null as default deleteValue", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.deleteValue).toBeNull();
+      expect(column.meta?.deleteValue).toBeNull();
     });
   });
 
@@ -369,13 +369,13 @@ describe("textColumn", () => {
     it("returns the string value", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.copyValue?.("pipe-1")).toBe("pipe-1");
+      expect(column.meta?.copyValue?.("pipe-1")).toBe("pipe-1");
     });
 
     it("returns empty string for null", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.copyValue?.(null)).toBe("");
+      expect(column.meta?.copyValue?.(null)).toBe("");
     });
   });
 
@@ -383,27 +383,27 @@ describe("textColumn", () => {
     it("returns the pasted string", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.pasteValue?.("pipe-1")).toBe("pipe-1");
+      expect(column.meta?.pasteValue?.("pipe-1")).toBe("pipe-1");
     });
 
     it("returns null for empty string", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.pasteValue?.("")).toBeNull();
+      expect(column.meta?.pasteValue?.("")).toBeNull();
     });
   });
 
   describe("isReadOnly option", () => {
-    it("sets isReadOnly on the column", () => {
+    it("sets meta.isReadOnly on the column", () => {
       const column = textColumn("name", { header: "Name", isReadOnly: true });
 
-      expect(column.isReadOnly).toBe(true);
+      expect(column.meta?.isReadOnly).toBe(true);
     });
 
-    it("does not set isReadOnly when not readonly", () => {
+    it("does not set meta.isReadOnly when not readonly", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.isReadOnly).toBeFalsy();
+      expect(column.meta?.isReadOnly).toBeFalsy();
     });
   });
 });

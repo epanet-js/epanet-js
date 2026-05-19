@@ -612,43 +612,11 @@ export function filterableSelectColumn<
     typeof options.isReadOnly === "function"
       ? options.isReadOnly(rowIndex)
       : (options.isReadOnly ?? false);
+
   return {
     accessorKey,
     header: options.header,
     size: options.size,
-    cellComponent: (props: CellProps<string | number | boolean | null>) => (
-      <FilterableSelectCell
-        {...props}
-        readOnly={isEmpty || props.readOnly || resolveReadOnly(props.rowIndex)}
-        options={
-          options.options as FilterableSelectOption<string | number | boolean>[]
-        }
-        placeholder={options.placeholder ?? ""}
-        emptyOptionLabel={options.emptyOptionLabel}
-        minOptionsForSearch={options.minOptionsForSearch}
-      />
-    ),
-    autoSizeExtraWidth: 32, // Account for chevron + padding
-    placeholder: options.placeholder,
-    copyValue: (v) => {
-      const match = options.options.find((opt) => opt.value === v);
-      return match?.label ?? "";
-    },
-    pasteValue: (v) => {
-      const match = options.options.find(
-        (opt) =>
-          opt.enabled !== false &&
-          (String(opt.value) === v ||
-            opt.label.toLowerCase() === v.toLowerCase()),
-      );
-      return match ? match.value : null;
-    },
-    deleteValue: options.deleteValue ?? null,
-    ...(isEmpty
-      ? { isReadOnly: true }
-      : options.isReadOnly !== undefined
-        ? { isReadOnly: options.isReadOnly }
-        : {}),
     sortingFn: (rowA, rowB, columnId) => {
       const aVal = rowA.getValue(columnId);
       const bVal = rowB.getValue(columnId);
@@ -659,6 +627,41 @@ export function filterableSelectColumn<
         options.options.find((o) => o.value === bVal)?.label ??
         String(bVal ?? "");
       return aLabel.localeCompare(bLabel);
+    },
+    meta: {
+      autoSizeExtraWidth: 32, // Account for chevron + padding
+      placeholder: options.placeholder,
+      copyValue: (v) => {
+        const match = options.options.find((opt) => opt.value === v);
+        return match?.label ?? "";
+      },
+      pasteValue: (v) => {
+        const match = options.options.find(
+          (opt) =>
+            opt.enabled !== false &&
+            (String(opt.value) === v ||
+              opt.label.toLowerCase() === v.toLowerCase()),
+        );
+        return match ? match.value : null;
+      },
+      deleteValue: options.deleteValue ?? null,
+      isReadOnly: isEmpty ? true : options.isReadOnly,
+      cellComponent: (props: CellProps<string | number | boolean | null>) => (
+        <FilterableSelectCell
+          {...props}
+          readOnly={
+            isEmpty || props.readOnly || resolveReadOnly(props.rowIndex)
+          }
+          options={
+            options.options as FilterableSelectOption<
+              string | number | boolean
+            >[]
+          }
+          placeholder={options.placeholder ?? ""}
+          emptyOptionLabel={options.emptyOptionLabel}
+          minOptionsForSearch={options.minOptionsForSearch}
+        />
+      ),
     },
   };
 }

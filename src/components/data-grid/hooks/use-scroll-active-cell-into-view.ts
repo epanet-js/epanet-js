@@ -1,6 +1,6 @@
 import { RefObject, useEffect } from "react";
 import { Table } from "@tanstack/react-table";
-import { FIXED_COLUMN_SIZE } from "./use-column-sizing";
+import { FIXED_COLUMN_SIZE } from "../shared/dimensions";
 
 type Options<TData extends Record<string, unknown>> = {
   scrollRef: RefObject<HTMLDivElement | null>;

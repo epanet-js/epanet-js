@@ -24,53 +24,53 @@ describe("filterableSelectColumn", () => {
 
   describe("copyValue", () => {
     it("returns the label for a matching value", () => {
-      expect(column.copyValue!(1)).toBe("Pattern A");
-      expect(column.copyValue!(2)).toBe("Pattern B");
-      expect(column.copyValue!(0)).toBe("CONSTANT");
+      expect(column.meta!.copyValue!(1)).toBe("Pattern A");
+      expect(column.meta!.copyValue!(2)).toBe("Pattern B");
+      expect(column.meta!.copyValue!(0)).toBe("CONSTANT");
     });
 
     it("returns empty string for non-matching value", () => {
-      expect(column.copyValue!(999)).toBe("");
+      expect(column.meta!.copyValue!(999)).toBe("");
     });
 
     it("returns empty string for null/undefined", () => {
-      expect(column.copyValue!(null)).toBe("");
-      expect(column.copyValue!(undefined)).toBe("");
+      expect(column.meta!.copyValue!(null)).toBe("");
+      expect(column.meta!.copyValue!(undefined)).toBe("");
     });
   });
 
   describe("pasteValue", () => {
     it("matches by label (case-insensitive)", () => {
-      expect(column.pasteValue!("Pattern A")).toBe(1);
-      expect(column.pasteValue!("pattern a")).toBe(1);
-      expect(column.pasteValue!("PATTERN A")).toBe(1);
-      expect(column.pasteValue!("constant")).toBe(0);
+      expect(column.meta!.pasteValue!("Pattern A")).toBe(1);
+      expect(column.meta!.pasteValue!("pattern a")).toBe(1);
+      expect(column.meta!.pasteValue!("PATTERN A")).toBe(1);
+      expect(column.meta!.pasteValue!("constant")).toBe(0);
     });
 
     it("matches by value string", () => {
-      expect(column.pasteValue!("0")).toBe(0);
-      expect(column.pasteValue!("1")).toBe(1);
-      expect(column.pasteValue!("2")).toBe(2);
+      expect(column.meta!.pasteValue!("0")).toBe(0);
+      expect(column.meta!.pasteValue!("1")).toBe(1);
+      expect(column.meta!.pasteValue!("2")).toBe(2);
     });
 
     it("returns null for non-matching value", () => {
-      expect(column.pasteValue!("nonexistent")).toBe(null);
-      expect(column.pasteValue!("999")).toBe(null);
+      expect(column.meta!.pasteValue!("nonexistent")).toBe(null);
+      expect(column.meta!.pasteValue!("999")).toBe(null);
     });
   });
 
   describe("copy/paste round-trip", () => {
     it("preserves value through copy then paste", () => {
       const originalValue = 1;
-      const copied = column.copyValue!(originalValue);
-      const pasted = column.pasteValue!(copied);
+      const copied = column.meta!.copyValue!(originalValue);
+      const pasted = column.meta!.pasteValue!(copied);
       expect(pasted).toBe(originalValue);
     });
 
     it("preserves all option values through round-trip", () => {
       for (const option of options) {
-        const copied = column.copyValue!(option.value);
-        const pasted = column.pasteValue!(copied);
+        const copied = column.meta!.copyValue!(option.value);
+        const pasted = column.meta!.pasteValue!(copied);
         expect(pasted).toBe(option.value);
       }
     });

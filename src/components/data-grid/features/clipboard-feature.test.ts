@@ -9,13 +9,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import { ClipboardFeature } from "./clipboard-feature";
-import type { GridColumn, GridSelection } from "../types";
+import type { GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };
 
-const createTestColumns = (): GridColumn[] => [
+const defaultColumns: ColumnDef<TestRow>[] = [
   { accessorKey: "id", header: "ID" },
   { accessorKey: "name", header: "Name" },
   { accessorKey: "value", header: "Value" },
@@ -25,7 +26,7 @@ const createTestRow = (): TestRow => ({ id: "", name: "", value: "" });
 
 type TableOptions = {
   data: TestRow[];
-  columns?: GridColumn[];
+  columns?: ColumnDef<TestRow>[];
   onChange?: (data: TestRow[]) => void;
   readOnly?: boolean;
   includeHeadersOnCopy?: boolean;
@@ -35,16 +36,10 @@ type TableOptions = {
   sortable?: boolean;
 };
 
-const columns: ColumnDef<TestRow>[] = [
-  { accessorKey: "id" },
-  { accessorKey: "name" },
-  { accessorKey: "value" },
-];
-
 const useClipboardTable = (options: TableOptions) =>
   useReactTable({
     data: options.data,
-    columns: columns,
+    columns: options.columns ?? defaultColumns,
     getCoreRowModel: getCoreRowModel(),
     ...(options.sortable
       ? {
@@ -52,8 +47,11 @@ const useClipboardTable = (options: TableOptions) =>
           enableSorting: true,
         }
       : {}),
-    _features: [CellRangeSelectionFeature, ClipboardFeature],
-    gridColumns: options.columns ?? createTestColumns(),
+    _features: [
+      CellEditingFeature,
+      CellRangeSelectionFeature,
+      ClipboardFeature,
+    ],
     onDataChange: options.onChange,
     createRow: createTestRow,
     readOnly: options.readOnly,
@@ -205,12 +203,12 @@ describe("ClipboardFeature", () => {
       const clip = stubClipboard();
       const data: TestRow[] = [{ id: "1", name: "alice", value: "100" }];
 
-      const columns: GridColumn[] = [
+      const columns: ColumnDef<TestRow>[] = [
         { accessorKey: "id", header: "ID" },
         {
           accessorKey: "name",
           header: "Name",
-          copyValue: (v) => String(v).toUpperCase(),
+          meta: { copyValue: (v) => String(v).toUpperCase() },
         },
         { accessorKey: "value", header: "Value" },
       ];
@@ -334,6 +332,97 @@ describe("ClipboardFeature", () => {
       ]);
     });
 
+    it("extends the data array when pasting at an offset position", async () => {
+      stubClipboard("Row1\nRow2\nRow3");
+      const onChange = vi.fn();
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onChange, autoExtendOnPaste: true }),
+      );
+      // Start pasting at row 1 (not row 0) — needs rows 1, 2, 3
+      act(() => result.current.selectRange(single(1, 1)));
+
+      await act(async () => {
+        await result.current.pasteSelection();
+      });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Row1", value: "200" },
+        { id: "", name: "Row2", value: "" },
+        { id: "", name: "Row3", value: "" },
+      ]);
+    });
+
+    it("does nothing when the clipboard is empty", async () => {
+      stubClipboard("");
+      const onChange = vi.fn();
+      const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onChange }),
+      );
+      act(() => result.current.selectRange(single(0, 0)));
+
+      await act(async () => {
+        await result.current.pasteSelection();
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when there is no selection", async () => {
+      stubClipboard("X");
+      const onChange = vi.fn();
+      const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onChange }),
+      );
+      // No selectRange — selection remains null
+
+      await act(async () => {
+        await result.current.pasteSelection();
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("tiles with partial repetition when the selection is not a clean multiple", async () => {
+      stubClipboard("A\nB");
+      const onChange = vi.fn();
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+        { id: "3", name: "Carol", value: "300" },
+      ];
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onChange }),
+      );
+      // 3-row selection, 2-row clipboard → A, B, A
+      act(() =>
+        result.current.selectRange({
+          min: { col: 1, row: 0 },
+          max: { col: 1, row: 2 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.pasteSelection();
+      });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { id: "1", name: "A", value: "100" },
+        { id: "2", name: "B", value: "200" },
+        { id: "3", name: "A", value: "300" },
+      ]);
+    });
+
     it("tiles a single-cell clipboard across a multi-cell selection", async () => {
       stubClipboard("X");
       const onChange = vi.fn();
@@ -367,8 +456,8 @@ describe("ClipboardFeature", () => {
       const onChange = vi.fn();
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
 
-      const columns: GridColumn[] = [
-        { accessorKey: "id", header: "ID", isReadOnly: true },
+      const columns: ColumnDef<TestRow>[] = [
+        { accessorKey: "id", header: "ID", meta: { isReadOnly: true } },
         { accessorKey: "name", header: "Name" },
         { accessorKey: "value", header: "Value" },
       ];
@@ -397,12 +486,12 @@ describe("ClipboardFeature", () => {
       const onChange = vi.fn();
       const data: TestRow[] = [{ id: "1", name: "old", value: "100" }];
 
-      const columns: GridColumn[] = [
+      const columns: ColumnDef<TestRow>[] = [
         { accessorKey: "id", header: "ID" },
         {
           accessorKey: "name",
           header: "Name",
-          pasteValue: (v) => v.toUpperCase(),
+          meta: { pasteValue: (v: string) => v.toUpperCase() },
         },
         { accessorKey: "value", header: "Value" },
       ];

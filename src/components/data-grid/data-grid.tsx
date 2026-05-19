@@ -17,7 +17,6 @@ import {
   GridSelection,
   CellContextAction,
   GutterContextAction,
-  isColumnReadOnly,
 } from "./types";
 import { useGridEditing, useMouseSelection } from "./hooks";
 import {
@@ -126,7 +125,6 @@ export const DataGrid = forwardRef(function DataGrid<
     colCount: columns.length,
     onSelectionChange,
     // Clipboard feature options
-    gridColumns: columns,
     onDataChange: onChange,
     createRow,
     readOnly,
@@ -271,15 +269,16 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const focusRow = useCallback(
     (rowIndex: number) => {
-      if (table.getVisibleLeafColumns().length === 0) return;
-      const firstEditableCol = columns.findIndex(
-        (col) => !isColumnReadOnly(col, rowIndex),
+      const leafColumns = table.getVisibleLeafColumns();
+      if (leafColumns.length === 0) return;
+      const firstEditableCol = leafColumns.findIndex(
+        (col) => !col.isReadOnly(rowIndex),
       );
       const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
       selectCells({ colIndex, rowIndex });
     },
-    [columns, table, selectCells],
+    [table, selectCells],
   );
 
   const handleAddRow = useCallback(() => {
@@ -290,13 +289,12 @@ export const DataGrid = forwardRef(function DataGrid<
   }, [createRow, onChange, focusRow]);
 
   const handleEditingKeyDown = useGridEditing({
+    table,
     activeCell,
     selection,
     editMode,
-    columns,
     data,
     onChange,
-    readOnly,
     rowCount: data.length,
     colCount: columns.length,
     selectCells,
@@ -354,14 +352,13 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellDoubleClick = useCallback(
     (col: number) => {
-      if (readOnly) return;
-      const column = columns[col] as GridColumn | undefined;
+      const column = table.getVisibleLeafColumns()[col];
       const rowIndex = table.getActiveCell()?.row ?? 0;
-      if (!isColumnReadOnly(column, rowIndex)) {
+      if (column && !column.isReadOnly(rowIndex)) {
         table.startEditing("full");
       }
     },
-    [columns, readOnly, table],
+    [table],
   );
 
   const handleGutterClick = useCallback(

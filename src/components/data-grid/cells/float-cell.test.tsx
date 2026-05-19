@@ -354,13 +354,13 @@ describe("floatColumn", () => {
       expect(column.accessorKey).toBe("price");
       expect(column.header).toBe("Price");
       expect(column.size).toBe(100);
-      expect(column.deleteValue).toBe(0);
+      expect(column.meta?.deleteValue).toBe(0);
     });
 
     it("uses null as default deleteValue", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.deleteValue).toBeNull();
+      expect(column.meta?.deleteValue).toBeNull();
     });
   });
 
@@ -368,36 +368,36 @@ describe("floatColumn", () => {
     it("converts number to string", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.copyValue?.(123.45)).toBe("123.45");
+      expect(column.meta?.copyValue?.(123.45)).toBe("123.45");
     });
 
     it("returns empty string for null", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.copyValue?.(null)).toBe("");
+      expect(column.meta?.copyValue?.(null)).toBe("");
     });
 
     it("respects decimals option", () => {
       const column = floatColumn("value", { header: "Value", decimals: 2 });
 
-      expect(column.copyValue?.(1.23456)).toBe("1.23");
+      expect(column.meta?.copyValue?.(1.23456)).toBe("1.23");
     });
   });
 
   describe("readonly option", () => {
-    it("sets isReadOnly", () => {
+    it("sets meta.isReadOnly", () => {
       const column = floatColumn("value", {
         header: "Value",
         isReadOnly: true,
       });
 
-      expect(column.isReadOnly).toBe(true);
+      expect(column.meta?.isReadOnly).toBe(true);
     });
 
-    it("does not set isReadOnly when not readonly", () => {
+    it("does not set meta.isReadOnly when not readonly", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.isReadOnly).toBeFalsy();
+      expect(column.meta?.isReadOnly).toBeFalsy();
     });
   });
 
@@ -405,27 +405,27 @@ describe("floatColumn", () => {
     it("parses valid number string", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.pasteValue?.("123.45")).toBe(123.45);
+      expect(column.meta?.pasteValue?.("123.45")).toBe(123.45);
     });
 
     it("parses numbers with thousands separator", () => {
       const column = floatColumn("value", { header: "Value" });
 
       // In English locale, comma is thousands separator
-      expect(column.pasteValue?.("1,234.56")).toBe(1234.56);
+      expect(column.meta?.pasteValue?.("1,234.56")).toBe(1234.56);
     });
 
     it("returns null for invalid string", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.pasteValue?.("abc")).toBeNull();
-      expect(column.pasteValue?.("")).toBeNull();
+      expect(column.meta?.pasteValue?.("abc")).toBeNull();
+      expect(column.meta?.pasteValue?.("")).toBeNull();
     });
 
     it("parses negative numbers", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.pasteValue?.("-42.5")).toBe(-42.5);
+      expect(column.meta?.pasteValue?.("-42.5")).toBe(-42.5);
     });
   });
 });

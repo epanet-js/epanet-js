@@ -55,6 +55,22 @@ export type GridSortingFn =
       columnId: string,
     ) => number);
 
+export type GridColumnMeta = {
+  // Cell behavior — read by CellEditingFeature.column.isReadOnly()
+  isReadOnly?: boolean | ((rowIndex: number) => boolean);
+  // Delete key — read by CellEditingFeature.column.getDeleteValue()
+  deleteValue?: unknown;
+  // Cell rendering — read by CellRenderingFeature.column.getCellComponent()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cellComponent?: React.ComponentType<CellProps<any>>;
+  // Clipboard — read by ClipboardFeature.column.getCopyValue()/getPasteValue()
+  copyValue?: (value: unknown) => string;
+  pasteValue?: (text: string) => unknown;
+  // Auto-sizing — read by ColumnSizingFeature.column.getAutoSizeExtraWidth()/getPlaceholder()
+  autoSizeExtraWidth?: number;
+  placeholder?: string;
+};
+
 export type GridColumn = {
   // Required
   accessorKey: string;
@@ -64,32 +80,14 @@ export type GridColumn = {
   size?: number;
   minSize?: number;
   maxSize?: number;
-  // Extra px to add to canvas-measured text width when auto-sizing. Defaults to 16px
-  autoSizeExtraWidth?: number;
-  // Text shown when the cell value is null/empty; used when auto-sizing the column
-  placeholder?: string;
-
-  // Cell rendering
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cellComponent?: React.ComponentType<CellProps<any>>;
-
-  // Copy/paste/delete behavior
-  copyValue?: (value: unknown) => string;
-  pasteValue?: (value: string) => unknown;
-  deleteValue?: unknown;
 
   // Column behavior
-  isReadOnly?: boolean | ((rowIndex: number) => boolean);
   sortingFn?: GridSortingFn;
-};
 
-export function isColumnReadOnly(
-  column: GridColumn | undefined,
-  rowIndex: number,
-): boolean {
-  const flag = column?.isReadOnly;
-  if (typeof flag === "function") return flag(rowIndex);
-  return !!flag;
-}
+  // Grid-specific behaviour read via Column instance methods (ColumnMeta
+  // augmentations). Being migrated here piecemeal; ultimately replaces the
+  // top-level grid-specific fields above.
+  meta?: GridColumnMeta;
+};
 
 export type DataGridVariant = "spreadsheet" | "inline";
