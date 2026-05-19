@@ -13,7 +13,6 @@ import {
   ChevronRight,
   ChevronUp,
   ChevronsLeft,
-  ChevronsLeftRightEllipsis,
   Circle,
   CircleCheck,
   CircleDotDashed,
@@ -81,6 +80,7 @@ import {
   Search,
   Settings,
   SquareDashed,
+  SquareDashedMousePointer,
   SquareStack,
   Star,
   Sun,
@@ -234,7 +234,7 @@ export const DuplicateIcon = icon(Copy);
 export const CopyIcon = icon(Copy);
 export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
-export const SelectPathIcon = icon(ChevronsLeftRightEllipsis);
+export const SelectPathIcon = icon(SquareDashedMousePointer);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
