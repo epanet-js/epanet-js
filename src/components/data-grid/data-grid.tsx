@@ -17,6 +17,7 @@ import {
   GridSelection,
   CellContextAction,
   GutterContextAction,
+  isColumnReadOnly,
 } from "./types";
 import { useGridEditing, useMouseSelection } from "./hooks";
 import {
@@ -267,7 +268,9 @@ export const DataGrid = forwardRef(function DataGrid<
   const focusRow = useCallback(
     (rowIndex: number) => {
       if (table.getVisibleLeafColumns().length === 0) return;
-      const firstEditableCol = columns.findIndex((col) => !col.disabled);
+      const firstEditableCol = columns.findIndex(
+        (col) => !isColumnReadOnly(col, rowIndex),
+      );
       const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
       selectCells({ colIndex, rowIndex });
@@ -349,7 +352,8 @@ export const DataGrid = forwardRef(function DataGrid<
     (col: number) => {
       if (readOnly) return;
       const column = columns[col] as GridColumn | undefined;
-      if (!column?.disabled && !column?.disableKeys) {
+      const rowIndex = table.getActiveCell()?.row ?? 0;
+      if (!isColumnReadOnly(column, rowIndex)) {
         table.startEditing("full");
       }
     },

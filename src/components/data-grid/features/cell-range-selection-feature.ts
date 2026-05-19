@@ -133,7 +133,7 @@ export function isCellSelected(
   );
 }
 
-// Pure helpers consumed by DataGridWithFeatures to coordinate active cell + range.
+// Pure helpers consumed by DataGrid to coordinate active cell + range.
 
 export function computeTargetSelection(
   colIndex: number | undefined,

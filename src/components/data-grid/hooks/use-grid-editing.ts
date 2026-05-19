@@ -1,5 +1,11 @@
 import { useCallback } from "react";
-import { CellPosition, EditMode, GridColumn, GridSelection } from "../types";
+import {
+  CellPosition,
+  EditMode,
+  GridColumn,
+  GridSelection,
+  isColumnReadOnly,
+} from "../types";
 import { isFullRowSelected } from "./use-selection";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
@@ -115,7 +121,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           e.preventDefault();
           if (activeCell && !readOnly) {
             const column = columns[activeCell.col];
-            if (!column?.disabled && !column?.disableKeys) {
+            if (!isColumnReadOnly(column, activeCell.row)) {
               startEditing("full");
             }
           }
@@ -158,7 +164,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
             !e.altKey
           ) {
             const column = columns[activeCell.col];
-            if (!column?.disabled && !column?.disableKeys) {
+            if (!isColumnReadOnly(column, activeCell.row)) {
               startEditing("quick");
             }
           }
@@ -212,7 +218,7 @@ function clearCells<TData extends Record<string, unknown>>(
       colIndex++
     ) {
       const column = columns[colIndex];
-      if (column?.disabled) continue;
+      if (isColumnReadOnly(column, rowIndex)) continue;
 
       const accessorKey = column?.accessorKey;
       if (!accessorKey) continue;

@@ -191,6 +191,6 @@ export function floatColumn(
     },
     pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
     deleteValue: options.deleteValue ?? null,
-    ...(isStaticReadOnly ? { disabled: true, disableKeys: true } : {}),
+    ...(readonly !== undefined ? { isReadOnly: readonly } : {}),
   };
 }

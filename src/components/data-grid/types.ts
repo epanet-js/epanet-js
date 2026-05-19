@@ -79,9 +79,17 @@ export type GridColumn = {
   deleteValue?: unknown;
 
   // Column behavior
-  disabled?: boolean;
-  disableKeys?: boolean;
+  isReadOnly?: boolean | ((rowIndex: number) => boolean);
   sortingFn?: GridSortingFn;
 };
+
+export function isColumnReadOnly(
+  column: GridColumn | undefined,
+  rowIndex: number,
+): boolean {
+  const flag = column?.isReadOnly;
+  if (typeof flag === "function") return flag(rowIndex);
+  return !!flag;
+}
 
 export type DataGridVariant = "spreadsheet" | "inline";

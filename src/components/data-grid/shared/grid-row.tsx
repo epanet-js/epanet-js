@@ -1,7 +1,12 @@
 import { Row, Cell, Table } from "@tanstack/react-table";
 
 export const ROW_HEIGHT = 32; // h-8, needed for virtualizer estimateSize
-import { DataGridVariant, GridColumn, RowAction } from "../types";
+import {
+  DataGridVariant,
+  GridColumn,
+  RowAction,
+  isColumnReadOnly,
+} from "../types";
 import {
   isCellSelected,
   isCellActive,
@@ -95,7 +100,7 @@ export function GridRow<TData extends Record<string, unknown>>({
               isActive={isActive}
               editMode={isCurrentIteractiveCell ? editMode : false}
               isInteractive={isCurrentIteractiveCell}
-              readOnly={readOnly || !!column.disabled}
+              readOnly={readOnly || isColumnReadOnly(column, rowIndex)}
               selectionEdge={
                 isSelected && selection
                   ? {

@@ -644,9 +644,11 @@ export function filterableSelectColumn<
       return match ? match.value : null;
     },
     deleteValue: options.deleteValue ?? null,
-    ...(isEmpty || options.isReadOnly === true
-      ? { disabled: true, disableKeys: true }
-      : {}),
+    ...(isEmpty
+      ? { isReadOnly: true }
+      : options.isReadOnly !== undefined
+        ? { isReadOnly: options.isReadOnly }
+        : {}),
     sortingFn: (rowA, rowB, columnId) => {
       const aVal = rowA.getValue(columnId);
       const bVal = rowB.getValue(columnId);

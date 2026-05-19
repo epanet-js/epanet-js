@@ -72,16 +72,23 @@ export function booleanColumn(
   options: {
     header: string;
     size?: number;
-    isReadOnly?: boolean;
+    isReadOnly?: boolean | ((rowIndex: number) => boolean);
   },
 ): GridColumn {
   const { isReadOnly } = options;
+  const resolveReadOnly = (rowIndex: number) =>
+    typeof isReadOnly === "function"
+      ? isReadOnly(rowIndex)
+      : (isReadOnly ?? false);
   return {
     accessorKey,
     header: options.header,
     size: options.size,
     cellComponent: (props: CellProps<boolean | null>) => (
-      <BooleanCell {...props} readOnly={isReadOnly || props.readOnly} />
+      <BooleanCell
+        {...props}
+        readOnly={resolveReadOnly(props.rowIndex) || props.readOnly}
+      />
     ),
     autoSizeExtraWidth: 16, // checkbox w-4
     copyValue: (v) => (v === true ? "TRUE" : v === false ? "FALSE" : ""),
@@ -92,7 +99,7 @@ export function booleanColumn(
       return null;
     },
     deleteValue: false,
-    ...(isReadOnly ? { disabled: true, disableKeys: true } : {}),
+    ...(isReadOnly !== undefined ? { isReadOnly } : {}),
     sortingFn: (rowA, rowB, columnId) => {
       const a = rowA.getValue(columnId) ? 1 : 0;
       const b = rowB.getValue(columnId) ? 1 : 0;

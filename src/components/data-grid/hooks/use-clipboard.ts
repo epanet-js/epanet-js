@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { GridColumn, GridSelection } from "../types";
+import { GridColumn, GridSelection, isColumnReadOnly } from "../types";
 
 type UseClipboardOptions<TData extends Record<string, unknown>> = {
   selection: GridSelection | null;
@@ -149,7 +149,7 @@ export function useClipboard<TData extends Record<string, unknown>>({
           if (colIndex >= columns.length) break;
 
           const column = columns[colIndex];
-          if (column?.disabled) continue;
+          if (isColumnReadOnly(column, rowIndex)) continue;
 
           const accessorKey = column?.accessorKey;
           if (!accessorKey) continue;

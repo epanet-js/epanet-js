@@ -385,21 +385,19 @@ describe("floatColumn", () => {
   });
 
   describe("readonly option", () => {
-    it("sets disabled and disableKeys", () => {
+    it("sets isReadOnly", () => {
       const column = floatColumn("value", {
         header: "Value",
         isReadOnly: true,
       });
 
-      expect(column.disabled).toBe(true);
-      expect(column.disableKeys).toBe(true);
+      expect(column.isReadOnly).toBe(true);
     });
 
-    it("does not set disabled when not readonly", () => {
+    it("does not set isReadOnly when not readonly", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.disabled).toBeFalsy();
-      expect(column.disableKeys).toBeFalsy();
+      expect(column.isReadOnly).toBeFalsy();
     });
   });
 

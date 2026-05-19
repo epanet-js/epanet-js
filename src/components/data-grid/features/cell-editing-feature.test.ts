@@ -134,8 +134,8 @@ describe("CellEditingFeature", () => {
 
     it("preserves edit mode when changing the active cell", () => {
       // Note: this is the feature primitive's behavior. The consumer
-      // (DataGridWithFeatures.selectCells) coordinates stopEditing when
-      // the active cell moves.
+      // (DataGrid.selectCells) coordinates stopEditing when the active
+      // cell moves.
       const { result } = renderHook(useFeatureTable);
 
       act(() => {

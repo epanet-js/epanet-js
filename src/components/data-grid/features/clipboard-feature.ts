@@ -1,5 +1,5 @@
 import type { RowData, Table, TableFeature } from "@tanstack/react-table";
-import type { GridColumn } from "../types";
+import { isColumnReadOnly, type GridColumn } from "../types";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
@@ -212,7 +212,7 @@ export const ClipboardFeature: TableFeature = {
           if (colIndex >= columns.length) break;
 
           const column = columns[colIndex];
-          if (column?.disabled) continue;
+          if (isColumnReadOnly(column, dataIdx)) continue;
 
           const accessorKey = column?.accessorKey;
           if (!accessorKey) continue;

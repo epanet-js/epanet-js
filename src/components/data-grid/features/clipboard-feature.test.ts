@@ -368,7 +368,7 @@ describe("ClipboardFeature", () => {
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
 
       const columns: GridColumn[] = [
-        { accessorKey: "id", header: "ID", disabled: true },
+        { accessorKey: "id", header: "ID", isReadOnly: true },
         { accessorKey: "name", header: "Name" },
         { accessorKey: "value", header: "Value" },
       ];

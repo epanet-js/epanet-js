@@ -117,16 +117,24 @@ export function textColumn(
   options: {
     header: string;
     size?: number;
-    isReadOnly?: boolean;
+    isReadOnly?: boolean | ((rowIndex: number) => boolean);
     validate?: (value: string, rowIndex: number) => boolean;
   },
 ): GridColumn {
   const { isReadOnly, validate } = options;
+  const resolveReadOnly = (rowIndex: number) =>
+    typeof isReadOnly === "function"
+      ? isReadOnly(rowIndex)
+      : (isReadOnly ?? false);
 
   const CellComponent =
     isReadOnly || validate
       ? (props: CellProps<string | null>) => (
-          <TextCell {...props} readonly={isReadOnly} validate={validate} />
+          <TextCell
+            {...props}
+            readonly={resolveReadOnly(props.rowIndex)}
+            validate={validate}
+          />
         )
       : TextCell;
 
@@ -138,6 +146,6 @@ export function textColumn(
     copyValue: (v) => (v as string | null) ?? "",
     pasteValue: (v) => v || null,
     deleteValue: null,
-    ...(isReadOnly ? { disabled: true, disableKeys: true } : {}),
+    ...(isReadOnly !== undefined ? { isReadOnly } : {}),
   };
 }
