@@ -10,19 +10,15 @@ import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { captureError } from "src/infra/error-tracking";
 import { colors } from "src/lib/constants";
 import { getDecimals } from "src/lib/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
-import {
-  selectedFeaturesDerivedAtom,
-  stagingModelDerivedAtom,
-  simulationDerivedAtom,
-} from "src/state/derived-branch-state";
-import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
-import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import { ChevronDownIcon } from "src/icons";
+import {
+  useCustomGraphData,
+  type AssetTimeSeries,
+} from "./custom-graph/use-custom-graph-data";
 
 type NodeProperty = "pressure" | "head";
 type LinkProperty = "flow" | "velocity" | "headloss";
@@ -32,12 +28,6 @@ interface PropertyOption<T extends string> {
   value: T;
   labelKey: string;
   quantityKey: QuantityProperty;
-}
-
-interface AssetTimeSeries {
-  assetId: number;
-  label: string;
-  timeSeries: TimeSeries;
 }
 
 interface CustomGraphChartProps {
@@ -50,32 +40,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const { units, formatting } = useAtomValue(projectSettingsAtom);
-  const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const simulation = useAtomValue(simulationDerivedAtom);
-  const epsResultsReader =
-    "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
-  const qualityType = epsResultsReader?.qualityType ?? null;
-
-  const { nodeAssets, linkAssets } = useMemo(() => {
-    const nodes: { id: number; label: string; assetType: AssetType }[] = [];
-    const links: { id: number; label: string; assetType: AssetType }[] = [];
-    for (const wf of selectedFeatures) {
-      const asset = hydraulicModel.assets.get(wf.id);
-      if (!asset) continue;
-      const assetType = asset.type as AssetType;
-      const label = asset.label ?? `${assetType} ${wf.id}`;
-      if (NODE_TYPES.has(assetType)) {
-        nodes.push({ id: wf.id, label, assetType });
-      } else if (LINK_TYPES.has(assetType)) {
-        links.push({ id: wf.id, label, assetType });
-      }
-    }
-    return { nodeAssets: nodes, linkAssets: links };
-  }, [selectedFeatures, hydraulicModel]);
-
-  const hasNodes = nodeAssets.length > 0;
-  const hasLinks = linkAssets.length > 0;
 
   const [nodeProperty, setNodeProperty] = useState<
     NodeProperty | QualityProperty
@@ -83,6 +47,15 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const [linkProperty, setLinkProperty] = useState<
     LinkProperty | QualityProperty
   >("flow");
+
+  const {
+    hasNodes,
+    hasLinks,
+    nodeSeriesData,
+    linkSeriesData,
+    isLoading,
+    qualityType,
+  } = useCustomGraphData(nodeProperty, linkProperty);
 
   const nodePropertyOptions = useMemo(() => {
     const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
@@ -154,92 +127,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     const unit = units[linkQuantityKey];
     return unit ? `${label} (${translateUnit(unit)})` : label;
   }, [translate, translateUnit, units, linkQuantityKey, linkProperty]);
-
-  const [nodeSeriesData, setNodeSeriesData] = useState<AssetTimeSeries[]>([]);
-  const [linkSeriesData, setLinkSeriesData] = useState<AssetTimeSeries[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!epsResultsReader) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsLoading(true);
-
-    const fetchAll = async () => {
-      try {
-        const [nodeResults, linkResults] = await Promise.all([
-          hasNodes
-            ? Promise.all(
-                nodeAssets.map(async (a) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const ts = await epsResultsReader.getTimeSeries(
-                    a.id,
-                    a.assetType as any,
-                    nodeProperty as any,
-                  );
-                  return ts
-                    ? { assetId: a.id, label: a.label, timeSeries: ts }
-                    : null;
-                }),
-              )
-            : Promise.resolve([]),
-          hasLinks
-            ? Promise.all(
-                linkAssets.map(async (a) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const ts = await epsResultsReader.getTimeSeries(
-                    a.id,
-                    a.assetType as any,
-                    linkProperty as any,
-                  );
-                  return ts
-                    ? { assetId: a.id, label: a.label, timeSeries: ts }
-                    : null;
-                }),
-              )
-            : Promise.resolve([]),
-        ]);
-
-        if (controller.signal.aborted) return;
-
-        setNodeSeriesData(
-          (nodeResults as (AssetTimeSeries | null)[]).filter(
-            (r): r is AssetTimeSeries => r !== null,
-          ),
-        );
-        setLinkSeriesData(
-          (linkResults as (AssetTimeSeries | null)[]).filter(
-            (r): r is AssetTimeSeries => r !== null,
-          ),
-        );
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        captureError(err as Error);
-        setNodeSeriesData([]);
-        setLinkSeriesData([]);
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void fetchAll();
-
-    return () => controller.abort();
-  }, [
-    epsResultsReader,
-    nodeAssets,
-    linkAssets,
-    nodeProperty,
-    linkProperty,
-    hasNodes,
-    hasLinks,
-  ]);
 
   const handleNodePropertyChange = useCallback(
     (value: string) => setNodeProperty(value as NodeProperty | QualityProperty),
@@ -570,9 +457,6 @@ const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
     quantityKey: "chemicalConcentration",
   },
 };
-
-const NODE_TYPES: Set<AssetType> = new Set(["junction", "tank", "reservoir"]);
-const LINK_TYPES: Set<AssetType> = new Set(["pipe", "pump", "valve"]);
 
 const SERIES_COLORS = [
   colors.purple500,
