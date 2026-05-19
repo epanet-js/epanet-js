@@ -71,6 +71,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         name: "map.colorBy.changed",
         type: geometryType,
         subtype: property,
+        property,
       });
 
       if (property === "none") {
