@@ -1,17 +1,259 @@
 "use client";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useAtomValue } from "jotai";
+import ReactECharts from "echarts-for-react";
+import type { EChartsOption } from "echarts";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
+import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
+import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { localizeDecimal } from "src/infra/i18n/numbers";
+import { captureError } from "src/infra/error-tracking";
+import { colors } from "src/lib/constants";
+import { getDecimals } from "src/lib/project-settings";
+import { projectSettingsAtom } from "src/state/project-settings";
+import {
+  selectedFeaturesDerivedAtom,
+  stagingModelDerivedAtom,
+  simulationDerivedAtom,
+} from "src/state/derived-branch-state";
+import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
+import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
+import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import { ChevronDownIcon } from "src/icons";
+
+type NodeProperty = "pressure" | "head";
+type LinkProperty = "flow" | "velocity" | "headloss";
+type QualityProperty = "waterAge" | "waterTrace" | "chemicalConcentration";
+
+interface PropertyOption<T extends string> {
+  value: T;
+  labelKey: string;
+  quantityKey: QuantityProperty;
+}
+
+interface AssetTimeSeries {
+  assetId: number;
+  label: string;
+  timeSeries: TimeSeries;
+}
+
+interface CustomGraphChartProps {
+  seriesData: AssetTimeSeries[];
+  decimals: number;
+  yAxisLabel: string;
+}
 
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
+  const translateUnit = useTranslateUnit();
+  const { units, formatting } = useAtomValue(projectSettingsAtom);
+  const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const epsResultsReader =
+    "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+  const qualityType = epsResultsReader?.qualityType ?? null;
+
+  const { nodeAssets, linkAssets } = useMemo(() => {
+    const nodes: { id: number; label: string; assetType: AssetType }[] = [];
+    const links: { id: number; label: string; assetType: AssetType }[] = [];
+    for (const wf of selectedFeatures) {
+      const asset = hydraulicModel.assets.get(wf.id);
+      if (!asset) continue;
+      const assetType = asset.type as AssetType;
+      const label = asset.label ?? `${assetType} ${wf.id}`;
+      if (NODE_TYPES.has(assetType)) {
+        nodes.push({ id: wf.id, label, assetType });
+      } else if (LINK_TYPES.has(assetType)) {
+        links.push({ id: wf.id, label, assetType });
+      }
+    }
+    return { nodeAssets: nodes, linkAssets: links };
+  }, [selectedFeatures, hydraulicModel]);
+
+  const hasNodes = nodeAssets.length > 0;
+  const hasLinks = linkAssets.length > 0;
+
+  const [nodeProperty, setNodeProperty] = useState<
+    NodeProperty | QualityProperty
+  >("pressure");
+  const [linkProperty, setLinkProperty] = useState<
+    LinkProperty | QualityProperty
+  >("flow");
+
+  const nodePropertyOptions = useMemo(() => {
+    const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
+      ...NODE_PROPERTIES,
+    ];
+    if (qualityType && qualityType !== "none" && QUALITY_OPTIONS[qualityType]) {
+      opts.push(QUALITY_OPTIONS[qualityType]);
+    }
+    return opts.map((opt) => {
+      const label = translate(opt.labelKey);
+      const unit = units[opt.quantityKey];
+      return {
+        value: opt.value,
+        label: unit ? `${label} (${translateUnit(unit)})` : label,
+      };
+    });
+  }, [translate, translateUnit, units, qualityType]);
+
+  const linkPropertyOptions = useMemo(() => {
+    const opts: PropertyOption<LinkProperty | QualityProperty>[] = [
+      ...LINK_PROPERTIES,
+    ];
+    if (qualityType && qualityType !== "none" && QUALITY_OPTIONS[qualityType]) {
+      opts.push(QUALITY_OPTIONS[qualityType]);
+    }
+    return opts.map((opt) => {
+      const label = translate(opt.labelKey);
+      const unit = units[opt.quantityKey];
+      return {
+        value: opt.value,
+        label: unit ? `${label} (${translateUnit(unit)})` : label,
+      };
+    });
+  }, [translate, translateUnit, units, qualityType]);
+
+  const nodeQuantityKey = useMemo(() => {
+    const allOpts = [...NODE_PROPERTIES, ...Object.values(QUALITY_OPTIONS)];
+    return (
+      allOpts.find((o) => o.value === nodeProperty)?.quantityKey ?? "pressure"
+    );
+  }, [nodeProperty]);
+
+  const linkQuantityKey = useMemo(() => {
+    const allOpts = [...LINK_PROPERTIES, ...Object.values(QUALITY_OPTIONS)];
+    return allOpts.find((o) => o.value === linkProperty)?.quantityKey ?? "flow";
+  }, [linkProperty]);
+
+  const nodeDecimals = getDecimals(formatting, nodeQuantityKey) ?? 0;
+  const linkDecimals = getDecimals(formatting, linkQuantityKey) ?? 0;
+
+  const nodeYAxisLabel = useMemo(() => {
+    const label = translate(
+      NODE_PROPERTIES.find((p) => p.value === nodeProperty)?.labelKey ??
+        Object.values(QUALITY_OPTIONS).find((p) => p.value === nodeProperty)
+          ?.labelKey ??
+        nodeProperty,
+    );
+    const unit = units[nodeQuantityKey];
+    return unit ? `${label} (${translateUnit(unit)})` : label;
+  }, [translate, translateUnit, units, nodeQuantityKey, nodeProperty]);
+
+  const linkYAxisLabel = useMemo(() => {
+    const label = translate(
+      LINK_PROPERTIES.find((p) => p.value === linkProperty)?.labelKey ??
+        Object.values(QUALITY_OPTIONS).find((p) => p.value === linkProperty)
+          ?.labelKey ??
+        linkProperty,
+    );
+    const unit = units[linkQuantityKey];
+    return unit ? `${label} (${translateUnit(unit)})` : label;
+  }, [translate, translateUnit, units, linkQuantityKey, linkProperty]);
+
+  const [nodeSeriesData, setNodeSeriesData] = useState<AssetTimeSeries[]>([]);
+  const [linkSeriesData, setLinkSeriesData] = useState<AssetTimeSeries[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!epsResultsReader) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setIsLoading(true);
+
+    const fetchAll = async () => {
+      try {
+        const [nodeResults, linkResults] = await Promise.all([
+          hasNodes
+            ? Promise.all(
+                nodeAssets.map(async (a) => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const ts = await epsResultsReader.getTimeSeries(
+                    a.id,
+                    a.assetType as any,
+                    nodeProperty as any,
+                  );
+                  return ts
+                    ? { assetId: a.id, label: a.label, timeSeries: ts }
+                    : null;
+                }),
+              )
+            : Promise.resolve([]),
+          hasLinks
+            ? Promise.all(
+                linkAssets.map(async (a) => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const ts = await epsResultsReader.getTimeSeries(
+                    a.id,
+                    a.assetType as any,
+                    linkProperty as any,
+                  );
+                  return ts
+                    ? { assetId: a.id, label: a.label, timeSeries: ts }
+                    : null;
+                }),
+              )
+            : Promise.resolve([]),
+        ]);
+
+        if (controller.signal.aborted) return;
+
+        setNodeSeriesData(
+          (nodeResults as (AssetTimeSeries | null)[]).filter(
+            (r): r is AssetTimeSeries => r !== null,
+          ),
+        );
+        setLinkSeriesData(
+          (linkResults as (AssetTimeSeries | null)[]).filter(
+            (r): r is AssetTimeSeries => r !== null,
+          ),
+        );
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        captureError(err as Error);
+        setNodeSeriesData([]);
+        setLinkSeriesData([]);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchAll();
+
+    return () => controller.abort();
+  }, [
+    epsResultsReader,
+    nodeAssets,
+    linkAssets,
+    nodeProperty,
+    linkProperty,
+    hasNodes,
+    hasLinks,
+  ]);
+
+  const handleNodePropertyChange = useCallback(
+    (value: string) => setNodeProperty(value as NodeProperty | QualityProperty),
+    [],
+  );
+  const handleLinkPropertyChange = useCallback(
+    (value: string) => setLinkProperty(value as LinkProperty | QualityProperty),
+    [],
+  );
 
   return (
     <BaseDialog
       title={translate("customGraph.title")}
-      size="xl"
+      size="xxl"
       height="xl"
       isOpen={true}
       onClose={onClose}
@@ -42,9 +284,409 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         </footer>
       }
     >
-      <div className="p-4 text-sm">
-        <p>Quick graph dialog placeholder.</p>
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap">
+          {hasNodes && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">
+                {translate("customGraph.nodeProperty")}
+              </span>
+              <Selector
+                options={nodePropertyOptions}
+                selected={nodeProperty}
+                onChange={handleNodePropertyChange}
+                styleOptions={{
+                  border: true,
+                  textSize: "text-sm",
+                  paddingY: 1,
+                }}
+              />
+            </div>
+          )}
+          {hasLinks && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">
+                {translate("customGraph.linkProperty")}
+              </span>
+              <Selector
+                options={linkPropertyOptions}
+                selected={linkProperty}
+                onChange={handleLinkPropertyChange}
+                styleOptions={{
+                  border: true,
+                  textSize: "text-sm",
+                  paddingY: 1,
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {isLoading && (
+          <div className="flex-1 min-h-0 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {!isLoading && (
+          <div
+            className={`flex-1 min-h-0 flex ${hasNodes && hasLinks ? "flex-col" : ""}`}
+          >
+            {hasNodes && nodeSeriesData.length > 0 && (
+              <div
+                className={`flex-1 min-h-0 ${hasLinks ? "border-b border-gray-200" : ""} px-4 pb-2`}
+              >
+                <CustomGraphChart
+                  seriesData={nodeSeriesData}
+                  decimals={nodeDecimals}
+                  yAxisLabel={nodeYAxisLabel}
+                />
+              </div>
+            )}
+            {hasLinks && linkSeriesData.length > 0 && (
+              <div className="flex-1 min-h-0 px-4 pb-2">
+                <CustomGraphChart
+                  seriesData={linkSeriesData}
+                  decimals={linkDecimals}
+                  yAxisLabel={linkYAxisLabel}
+                />
+              </div>
+            )}
+            {!isLoading &&
+              nodeSeriesData.length === 0 &&
+              linkSeriesData.length === 0 && (
+                <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                  {translate("noDataAvailable")}
+                </div>
+              )}
+          </div>
+        )}
       </div>
     </BaseDialog>
   );
+};
+
+const CustomGraphChart = memo(function CustomGraphChart({
+  seriesData,
+  decimals,
+  yAxisLabel,
+}: CustomGraphChartProps) {
+  const chartRef = useRef<ReactECharts>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const firstSeries = seriesData[0]?.timeSeries;
+  const intervalsCount = firstSeries?.intervalsCount ?? 0;
+  const intervalSeconds = firstSeries?.intervalSeconds ?? 0;
+
+  const allValues = useMemo(
+    () => seriesData.flatMap((s) => Array.from(s.timeSeries.values)),
+    [seriesData],
+  );
+
+  const xAxisInterval = useMemo(
+    () => calculateXAxisInterval(intervalsCount, intervalSeconds),
+    [intervalsCount, intervalSeconds],
+  );
+  const xAxisStep = useMemo(
+    () => calculateXAxisStep(intervalsCount, intervalSeconds),
+    [intervalsCount, intervalSeconds],
+  );
+
+  const xAxis: EChartsOption["xAxis"] = useMemo(
+    () => ({
+      type: "category",
+      data: buildTimeLabels(intervalsCount, intervalSeconds),
+      show: true,
+      boundaryGap: false,
+      splitLine: {
+        show: true,
+        lineStyle: { color: colors.gray300, type: "dashed" },
+        interval: (index: number) => {
+          if (index === intervalsCount - 1) return false;
+          return index % xAxisStep === 0;
+        },
+      },
+      axisTick: {
+        show: true,
+        alignWithLabel: true,
+        lineStyle: { color: colors.gray300 },
+        interval: (index: number) => index % xAxisStep === 0,
+      },
+      axisLabel: {
+        show: true,
+        interval: xAxisInterval,
+        color: colors.gray500,
+        fontSize: 12,
+        hideOverlap: true,
+      },
+      axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+    }),
+    [intervalsCount, intervalSeconds, xAxisStep, xAxisInterval],
+  );
+
+  const yAxis: EChartsOption["yAxis"] = useMemo(() => {
+    const { min, max, interval } = calculateInterval(decimals, allValues, 5);
+    return {
+      type: "value",
+      scale: true,
+      name: yAxisLabel,
+      nameLocation: "middle",
+      nameGap: 50,
+      nameTextStyle: { color: colors.gray500, fontSize: 13 },
+      min,
+      max,
+      interval,
+      splitLine: {
+        show: true,
+        lineStyle: { color: colors.gray300, type: "dashed" },
+      },
+      axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+      axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+      axisLabel: {
+        color: colors.gray500,
+        fontSize: 12,
+        formatter: (value: number) => localizeDecimal(value, { decimals }),
+      },
+    };
+  }, [allValues, decimals, yAxisLabel]);
+
+  const series: EChartsOption["series"] = useMemo(
+    () =>
+      seriesData.map((s, i) => {
+        const color = SERIES_COLORS[i % SERIES_COLORS.length];
+        return {
+          type: "line" as const,
+          name: s.label,
+          data: Array.from(s.timeSeries.values),
+          lineStyle: { color, width: 2 },
+          itemStyle: { color },
+          symbol: "none",
+          smooth: false,
+        };
+      }),
+    [seriesData],
+  );
+
+  const option: EChartsOption = useMemo(
+    () => ({
+      animation: false,
+      grid: {
+        top: 24,
+        right: 16,
+        bottom: 8,
+        left: 16,
+        containLabel: true,
+      },
+      legend: {
+        show: true,
+        top: 0,
+        right: 0,
+        itemWidth: 16,
+        itemHeight: 8,
+        textStyle: { fontSize: 12, color: colors.gray600 },
+      },
+      xAxis,
+      yAxis,
+      series,
+      tooltip: {
+        trigger: "axis",
+        appendToBody: true,
+        backgroundColor: "white",
+        borderColor: colors.gray300,
+        textStyle: { color: colors.gray700, fontSize: 14 },
+        formatter: (params: unknown) => {
+          if (!Array.isArray(params) || params.length === 0) return "";
+          const timeLabel = params[0]?.name ?? "";
+          const lines = params.map(
+            (p: { color: string; seriesName?: string; value: number }) => {
+              const value = localizeDecimal(p.value, { decimals });
+              const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
+              return `${colorDot}${p.seriesName ?? ""}: ${value}`;
+            },
+          );
+          return `${timeLabel}<br/>${lines.join("<br/>")}`;
+        },
+      },
+    }),
+    [xAxis, yAxis, series, decimals],
+  );
+
+  useEffect(function resizeChart() {
+    const container = containerRef.current;
+    if (!container) return;
+    const resizeObserver = new ResizeObserver(() => {
+      chartRef.current?.getEchartsInstance()?.resize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  if (intervalsCount === 0 || seriesData.length === 0) {
+    return null;
+  }
+
+  return (
+    <div ref={containerRef} className="h-full w-full">
+      <ReactECharts
+        ref={chartRef}
+        key={`${intervalSeconds}-${intervalsCount}`}
+        option={option}
+        style={{ height: "100%", width: "100%" }}
+        opts={{ renderer: "svg" }}
+      />
+    </div>
+  );
+});
+
+const NODE_PROPERTIES: PropertyOption<NodeProperty>[] = [
+  { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
+  { value: "head", labelKey: "head", quantityKey: "head" },
+];
+
+const LINK_PROPERTIES: PropertyOption<LinkProperty>[] = [
+  { value: "flow", labelKey: "flow", quantityKey: "flow" },
+  { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
+  {
+    value: "headloss",
+    labelKey: "unitHeadloss",
+    quantityKey: "unitHeadloss",
+  },
+];
+
+const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
+  age: {
+    value: "waterAge",
+    labelKey: "waterAge",
+    quantityKey: "waterAge",
+  },
+  trace: {
+    value: "waterTrace",
+    labelKey: "waterTrace",
+    quantityKey: "waterTrace",
+  },
+  chemical: {
+    value: "chemicalConcentration",
+    labelKey: "chemicalConcentration",
+    quantityKey: "chemicalConcentration",
+  },
+};
+
+const NODE_TYPES: Set<AssetType> = new Set(["junction", "tank", "reservoir"]);
+const LINK_TYPES: Set<AssetType> = new Set(["pipe", "pump", "valve"]);
+
+const SERIES_COLORS = [
+  colors.purple500,
+  colors.blue500,
+  colors.orange500,
+  colors.cyan700,
+  colors.fuchsia500,
+  colors.green800,
+  colors.red600,
+  colors.indigo500,
+  colors.amber500,
+  colors.cyan900,
+];
+
+const buildTimeLabels = (
+  intervalsCount: number,
+  intervalSeconds: number,
+): string[] => {
+  const labels: string[] = [];
+  for (let i = 0; i < intervalsCount; i++) {
+    const totalSeconds = i * intervalSeconds;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    labels.push(
+      `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
+    );
+  }
+  return labels;
+};
+
+const calculateXAxisInterval = (
+  intervalCount: number,
+  intervalSeconds: number,
+  targetTickCount = 8,
+) => {
+  const totalSeconds = intervalCount * intervalSeconds;
+  const idealStep = totalSeconds / (targetTickCount - 1 || 1);
+  const logicalSteps = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400];
+  const bestStepSeconds = logicalSteps.reduce((prev, curr) =>
+    Math.abs(curr - idealStep) < Math.abs(prev - idealStep) ? curr : prev,
+  );
+  const indexInterval = Math.max(
+    1,
+    Math.round(bestStepSeconds / intervalSeconds),
+  );
+  return (index: number) => index % indexInterval === 0;
+};
+
+const calculateXAxisStep = (
+  intervalCount: number,
+  intervalSeconds: number,
+  targetTickCount = 8,
+): number => {
+  const totalSeconds = intervalCount * intervalSeconds;
+  const rawStep = totalSeconds / Math.max(targetTickCount - 1, 1);
+  const step = [3600, 7200, 10800, 14400, 21600, 28800, 43200, 86400].reduce(
+    (prev, curr) =>
+      Math.abs(curr - rawStep) < Math.abs(prev - rawStep) ? curr : prev,
+  );
+  return Math.max(1, Math.round(step / intervalSeconds));
+};
+
+const calculateInterval = (
+  decimals: number,
+  values: number[],
+  targetIntervalsCount = 5,
+): { min: number; max: number; interval: number } => {
+  if (values.length === 0) return { min: 0, max: 0, interval: 0 };
+
+  const factor = Math.pow(10, decimals);
+  const minVal = Math.floor(Math.min(...values) * factor) / factor;
+  const maxVal = Math.ceil(Math.max(...values) * factor) / factor;
+  const range = maxVal - minVal;
+
+  const minPrecision = Math.pow(10, -decimals + 1);
+  let niceInterval = minPrecision;
+  if (range > 0) {
+    const roughInterval = range / (targetIntervalsCount - 1);
+    const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
+    const normalizedInterval = roughInterval / magnitude;
+    const niceFactor = [1, 2, 2.5, 5, 10].reduce((prev, curr) =>
+      Math.abs(curr - normalizedInterval) < Math.abs(prev - normalizedInterval)
+        ? curr
+        : prev,
+    );
+    niceInterval = Math.max(
+      Math.round(niceFactor * magnitude * factor) / factor,
+      minPrecision,
+    );
+  }
+  if (niceInterval > minPrecision) {
+    const min = Math.floor(minVal / niceInterval) * niceInterval;
+    const max = Math.ceil(maxVal / niceInterval) * niceInterval;
+    return { min, max, interval: niceInterval };
+  }
+
+  const offset =
+    (targetIntervalsCount - 1) * minPrecision - Math.abs(maxVal - minVal);
+  const halfOffset = offset / 2;
+
+  let min: number;
+  let max: number;
+  if (minVal >= 0 && minVal < halfOffset) {
+    const maxOffset = offset - minVal;
+    min = 0;
+    max = Math.floor((maxVal + maxOffset) / minPrecision) * minPrecision;
+  } else {
+    min = Math.ceil((minVal - halfOffset) / minPrecision) * minPrecision;
+    max = Math.floor((maxVal + halfOffset) / minPrecision) * minPrecision;
+  }
+
+  while (min > minVal) min -= minPrecision;
+  while (max < maxVal) max += minPrecision;
+
+  return { min, max, interval: minPrecision };
 };

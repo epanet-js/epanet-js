@@ -1319,7 +1319,9 @@
     "exportAs": "Export as...",
     "imagePng": "Image (.png)",
     "tabularCsv": "Comma-Separated Values (.csv)",
-    "tabularXlsx": "Microsoft Excel spreadsheet (.xlsx)"
+    "tabularXlsx": "Microsoft Excel spreadsheet (.xlsx)",
+    "nodeProperty": "Node property",
+    "linkProperty": "Link property"
   },
   "dialog": {
     "save": "Save",
