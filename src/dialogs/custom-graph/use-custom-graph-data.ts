@@ -103,7 +103,7 @@ const EMPTY_SERIES: CustomGraphSeriesData = {
 
 const unwrappedCustomGraphSeriesAtom = unwrap(
   customGraphSeriesAtom,
-  (prev) => prev ?? undefined,
+  () => undefined,
 );
 
 export function useCustomGraphData() {
