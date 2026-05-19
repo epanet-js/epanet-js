@@ -410,7 +410,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
           const timeLabel = params[0]?.name ?? "";
           const visible = params.slice(0, MAX_VISIBLE_SERIES);
           const remaining = params.length - MAX_VISIBLE_SERIES;
-          const lines = visible.map(
+          const rows = visible.map(
             (
               p: {
                 color: string;
@@ -421,29 +421,28 @@ const CustomGraphChart = memo(function CustomGraphChart({
               i: number,
             ) => {
               const value = localizeDecimal(p.value, { decimals });
-              const unit = unitLabels[p.seriesIndex ?? i];
-              const unitSuffix = unit ? ` ${unit}` : "";
+              const unit = unitLabels[p.seriesIndex ?? i] ?? "";
               const idx = p.seriesIndex ?? i;
               const assetType = idx < nodeCount ? "node" : "link";
               const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
               return (
-                `<div style="display:flex;justify-content:space-between;gap:16px;">` +
-                `<span>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></span>` +
-                `<span style="font-variant-numeric:tabular-nums;text-align:right;">${value}${unitSuffix}</span>` +
-                `</div>`
+                `<tr>` +
+                `<td>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></td>` +
+                `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${value}</td>` +
+                `<td style="padding-left:4px;">${unit}</td>` +
+                `</tr>`
               );
             },
           );
+          let footer = "";
           if (remaining > 0) {
-            lines.push(
-              `<div style="color:${colors.gray500};font-size:12px;">...other ${remaining} assets</div>`,
-            );
+            footer = `<tr><td colspan="3" style="color:${colors.gray500};font-size:12px;">...other ${remaining} assets</td></tr>`;
           }
-          return `${timeLabel}${lines.join("")}`;
+          return `${timeLabel}<table style="border-spacing:0;">${rows.join("")}${footer}</table>`;
         },
       },
     }),
-    [seriesData, xAxis, yAxis, series, unitLabels, decimals],
+    [seriesData, xAxis, yAxis, series, decimals, unitLabels, nodeCount],
   );
 
   useEffect(function resizeChart() {

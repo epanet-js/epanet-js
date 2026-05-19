@@ -47,7 +47,8 @@ export function useActions(
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const simulation = useAtomValue(simulationDerivedAtom);
-  const customGraphApplicable = simulation.status === "success";
+  const customGraphApplicable =
+    simulation.status === "success" || simulation.status === "warning";
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";

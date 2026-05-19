@@ -40,7 +40,8 @@ export function useLinkActions(readonly = false): Action[] {
     useChangeSelectedAssetsActiveTopologyStatus();
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const simulation = useAtomValue(simulationDerivedAtom);
-  const customGraphApplicable = simulation.status === "success";
+  const customGraphApplicable =
+    simulation.status === "success" || simulation.status === "warning";
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
