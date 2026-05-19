@@ -3,7 +3,7 @@ import {
   multipliersSchema,
   patternRowSchema,
   type PatternRow,
-} from "../../schema/patterns";
+} from "src/lib/ejsdb";
 
 export const toPatternRow = (pattern: Pattern): PatternRow => {
   const multipliersResult = multipliersSchema.safeParse(pattern.multipliers);

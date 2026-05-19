@@ -7,8 +7,7 @@ import {
 } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { getDbWorker } from "../get-db-worker";
-import { timed } from "../perf-log";
+import { getWorker, timed } from "src/lib/ejsdb";
 import { buildAssetsData } from "../mappers/assets/builders";
 import { buildCustomerPointsData } from "../mappers/customer-points/builders";
 import { buildPatternsData } from "../mappers/patterns/builders";
@@ -40,7 +39,7 @@ export const fetchProject = async (
 ): Promise<Project> => {
   const { onProgress } = options;
   return timed("fetchProject", async () => {
-    const worker = getDbWorker();
+    const worker = getWorker();
 
     onProgress?.("reading-assets");
     const [

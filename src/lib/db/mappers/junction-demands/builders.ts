@@ -3,8 +3,7 @@ import type {
   Demand,
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
-import { parseRows } from "../../schema/parse-rows";
-import { junctionDemandRowSchema } from "../../schema/junction-demands";
+import { parseRows, junctionDemandRowSchema } from "src/lib/ejsdb";
 
 export const buildJunctionDemandsData = (
   rawRows: unknown[],

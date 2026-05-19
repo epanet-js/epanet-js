@@ -3,10 +3,7 @@ import type {
   Demand,
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
-import {
-  junctionDemandRowSchema,
-  type JunctionDemandRow,
-} from "../../schema/junction-demands";
+import { junctionDemandRowSchema, type JunctionDemandRow } from "src/lib/ejsdb";
 
 export const toJunctionDemandRow = (
   junctionId: AssetId,

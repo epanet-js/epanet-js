@@ -1,5 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { projectSettingsSchema } from "../../schema/project-settings";
+import { projectSettingsSchema } from "src/lib/ejsdb";
 
 export const buildProjectSettingsData = (
   data: string | null,

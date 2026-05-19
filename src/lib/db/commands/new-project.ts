@@ -1,9 +1,8 @@
-import { getDbWorker } from "../get-db-worker";
-import { timed } from "../perf-log";
+import { getWorker, timed } from "src/lib/ejsdb";
 
 export const newProject = async (): Promise<void> => {
   await timed("newProject", async () => {
-    const worker = getDbWorker();
+    const worker = getWorker();
     await worker.newDb();
   });
 };

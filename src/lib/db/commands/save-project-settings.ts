@@ -1,6 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { getDbWorker } from "../get-db-worker";
-import { timed } from "../perf-log";
+import { getWorker, timed } from "src/lib/ejsdb";
 import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
 
 export const saveProjectSettings = async (
@@ -8,7 +7,7 @@ export const saveProjectSettings = async (
 ): Promise<void> => {
   await timed("saveProjectSettings", async () => {
     const data = serializeProjectSettings(settings);
-    const worker = getDbWorker();
+    const worker = getWorker();
     await worker.saveProjectSettings(data);
   });
 };

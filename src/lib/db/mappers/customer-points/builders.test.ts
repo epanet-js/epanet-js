@@ -7,7 +7,7 @@ import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
-} from "../../schema/customer-points";
+} from "src/lib/ejsdb";
 
 const emptyCpData = (): CustomerPointsData => ({
   customerPoints: [],

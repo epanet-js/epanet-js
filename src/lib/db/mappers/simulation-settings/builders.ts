@@ -2,7 +2,7 @@ import {
   defaultSimulationSettings,
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
-import { simulationSettingsSchema } from "../../schema/simulation-settings";
+import { simulationSettingsSchema } from "src/lib/ejsdb";
 
 export const buildSimulationSettingsData = (
   data: string | null,

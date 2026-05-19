@@ -17,10 +17,17 @@ import type {
 import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
-import type { AssetPatchRow } from "./mappers/assets/patches";
-import type { ApplyMomentPayload } from "./commands/apply-moment";
-import type { OpenDbResult } from "./commands/open-project";
-import { formatErrorDetails } from "src/lib/errors";
+import type { AssetPatchRow } from "./schema/patches";
+import type { ApplyMomentPayload, OpenDbResult } from "./types";
+
+const formatErrorDetails = (e: unknown): string => {
+  if (!(e instanceof Error)) return String(e);
+  const head = e.stack ?? `${e.name}: ${e.message}`;
+  if (e.cause !== undefined) {
+    return `${head}\nCaused by: ${formatErrorDetails(e.cause)}`;
+  }
+  return head;
+};
 
 type Stmt = {
   bind: (values: unknown[]) => Stmt;

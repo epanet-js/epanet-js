@@ -2,8 +2,13 @@ import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import type { Asset } from "src/hydraulic-model/asset-types";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CustomerPointId } from "src/hydraulic-model/customer-points";
-import { getDbWorker } from "../get-db-worker";
-import { timed } from "../perf-log";
+import {
+  getWorker,
+  timed,
+  type ApplyMomentPayload,
+  type CustomerPointDemandUpdate,
+  type JunctionDemandUpdate,
+} from "src/lib/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";
 import {
   toCustomerPointRow,
@@ -16,39 +21,8 @@ import { serializeControls } from "../mappers/controls/to-rows";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,
-  type AssetPatchRows,
 } from "../mappers/assets/patches";
-import type { AssetRows } from "../schema/assets";
-import type {
-  CustomerPointRow,
-  CustomerPointDemandRow,
-} from "../schema/customer-points";
-import type { JunctionDemandRow } from "../schema/junction-demands";
-import type { PatternRow } from "../schema/patterns";
-import type { CurveRow } from "../schema/curves";
-
-export type CustomerPointDemandUpdate = {
-  customerPointId: CustomerPointId;
-  demands: CustomerPointDemandRow[];
-};
-
-export type JunctionDemandUpdate = {
-  junctionId: AssetId;
-  demands: JunctionDemandRow[];
-};
-
-export type ApplyMomentPayload = {
-  assetDeleteIds: AssetId[];
-  assetUpserts: AssetRows;
-  assetPatches: AssetPatchRows;
-  customerPointDeleteIds: CustomerPointId[];
-  customerPointUpserts: CustomerPointRow[];
-  customerPointDemandUpdates: CustomerPointDemandUpdate[];
-  junctionDemandUpdates: JunctionDemandUpdate[];
-  patternsReplacement: PatternRow[] | null;
-  curvesReplacement: CurveRow[] | null;
-  controlsReplacement: string | null;
-};
+import type { CustomerPointRow } from "src/lib/ejsdb";
 
 export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
@@ -150,7 +124,7 @@ export const applyMomentToDb = async (moment: ModelMoment): Promise<void> => {
       return;
     }
 
-    const worker = getDbWorker();
+    const worker = getWorker();
     await worker.applyMoment(payload);
   });
 };

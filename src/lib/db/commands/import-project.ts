@@ -10,8 +10,7 @@ import type {
 import type { Patterns } from "src/hydraulic-model/patterns";
 import type { Curves } from "src/hydraulic-model/curves";
 import type { Controls } from "src/hydraulic-model/controls";
-import { getDbWorker } from "../get-db-worker";
-import { timed } from "../perf-log";
+import { getWorker, timed } from "src/lib/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";
 import { customerPointsToRows } from "../mappers/customer-points/to-rows";
 import { patternsToRows } from "../mappers/patterns/to-rows";
@@ -54,7 +53,7 @@ export const importProject = async (
 
 const writeAllAssets = (assets: AssetsMap) =>
   timed("setAllAssets", async () => {
-    await getDbWorker().setAllAssets(assetsToRows(assets.values()));
+    await getWorker().setAllAssets(assetsToRows(assets.values()));
   });
 
 const writeAllCustomerPoints = (
@@ -62,27 +61,27 @@ const writeAllCustomerPoints = (
   customerDemands: CustomerAssignedDemands,
 ) =>
   timed("setAllCustomerPoints", async () => {
-    await getDbWorker().setAllCustomerPoints(
+    await getWorker().setAllCustomerPoints(
       customerPointsToRows(customerPoints, customerDemands),
     );
   });
 
 const writeAllPatterns = (patterns: Patterns) =>
   timed("setAllPatterns", async () => {
-    await getDbWorker().setAllPatterns(patternsToRows(patterns));
+    await getWorker().setAllPatterns(patternsToRows(patterns));
   });
 
 const writeAllCurves = (curves: Curves) =>
   timed("setAllCurves", async () => {
-    await getDbWorker().setAllCurves(curvesToRows(curves));
+    await getWorker().setAllCurves(curvesToRows(curves));
   });
 
 const writeAllControls = (controls: Controls) =>
   timed("setAllControls", async () => {
-    await getDbWorker().setAllControls(serializeControls(controls));
+    await getWorker().setAllControls(serializeControls(controls));
   });
 
 const writeAllJunctionDemands = (junctions: JunctionAssignedDemands) =>
   timed("setAllJunctionDemands", async () => {
-    await getDbWorker().setAllJunctionDemands(junctionDemandsToRows(junctions));
+    await getWorker().setAllJunctionDemands(junctionDemandsToRows(junctions));
   });

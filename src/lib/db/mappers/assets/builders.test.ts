@@ -6,12 +6,7 @@ import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Junction } from "src/hydraulic-model/asset-types/junction";
 import { buildAssetsData } from "./builders";
-import type {
-  AssetRows,
-  JunctionRow,
-  PipeRow,
-  PumpRow,
-} from "../../schema/assets";
+import type { AssetRows, JunctionRow, PipeRow, PumpRow } from "src/lib/ejsdb";
 
 const emptyRows = (): AssetRows => ({
   junctions: [],

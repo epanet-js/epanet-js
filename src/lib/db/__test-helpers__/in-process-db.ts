@@ -1,14 +1,14 @@
 import { afterEach, beforeEach } from "vitest";
-import { api } from "../db-worker-api";
-import { resetDbWorkerForTest, setDbWorkerForTest } from "../get-db-worker";
+import { api } from "src/lib/ejsdb/worker-api";
+import { resetWorkerForTest, setWorkerForTest } from "src/lib/ejsdb";
 
 export const useInProcessDb = (): void => {
   beforeEach(() => {
-    setDbWorkerForTest(api);
+    setWorkerForTest(api);
   });
 
   afterEach(async () => {
     await api.closeDb();
-    resetDbWorkerForTest();
+    resetWorkerForTest();
   });
 };

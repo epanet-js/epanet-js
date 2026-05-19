@@ -7,8 +7,8 @@ import type { Pump } from "src/hydraulic-model/asset-types/pump";
 import type { Valve } from "src/hydraulic-model/asset-types/valve";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import type { ZodTypeAny } from "zod";
-import { pointsSchema } from "../../schema/curves";
 import {
+  pointsSchema,
   linkCoordinatesSchema,
   junctionRowSchema,
   reservoirRowSchema,
@@ -23,7 +23,7 @@ import {
   type PipeRow,
   type PumpRow,
   type ValveRow,
-} from "../../schema/assets";
+} from "src/lib/ejsdb";
 
 export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
   const rows: AssetRows = {

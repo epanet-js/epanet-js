@@ -13,7 +13,7 @@ import {
   type CustomerPointRow,
   type CustomerPointDemandRow,
   type CustomerPointsData,
-} from "../../schema/customer-points";
+} from "src/lib/ejsdb";
 
 export const toCustomerPointRow = (
   customerPoint: CustomerPoint,

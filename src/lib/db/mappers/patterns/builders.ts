@@ -1,10 +1,10 @@
 import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
-import { parseRows } from "../../schema/parse-rows";
 import {
+  parseRows,
   multipliersSchema,
   patternRowSchema,
   type PatternRow,
-} from "../../schema/patterns";
+} from "src/lib/ejsdb";
 
 export const buildPatternsData = (rawRows: unknown[]): Patterns => {
   const rows = parseRows(patternRowSchema, rawRows, "Patterns");

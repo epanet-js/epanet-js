@@ -1,5 +1,5 @@
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import { simulationSettingsSchema } from "../../schema/simulation-settings";
+import { simulationSettingsSchema } from "src/lib/ejsdb";
 
 export const serializeSimulationSettings = (
   settings: SimulationSettings,
