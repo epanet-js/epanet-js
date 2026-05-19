@@ -138,7 +138,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     <BaseDialog
       title={translate("customGraph.title")}
       size="xxl"
-      height="xl"
+      height="xxl"
       isOpen={true}
       onClose={onClose}
       footer={
@@ -356,9 +356,9 @@ const CustomGraphChart = memo(function CustomGraphChart({
       animation: false,
       grid: {
         top: 24,
-        right: 16,
+        right: 40,
         bottom: 8,
-        left: 16,
+        left: 40,
         containLabel: true,
       },
       legend: {

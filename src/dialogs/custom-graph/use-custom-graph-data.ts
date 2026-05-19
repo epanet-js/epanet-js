@@ -34,9 +34,11 @@ const categorizedAssetIdsAtom = atom<{
   const hydraulicModel = get(stagingModelDerivedAtom);
   const nodeIds = new Set<number>();
   const linkIds = new Set<number>();
+
   for (const feature of selectedFeatures) {
     const asset = hydraulicModel.assets.get(feature.id);
     if (!asset) continue;
+
     const assetType = asset.type as AssetType;
     if (NODE_TYPES.has(assetType)) {
       nodeIds.add(feature.id);
@@ -44,6 +46,7 @@ const categorizedAssetIdsAtom = atom<{
       linkIds.add(feature.id);
     }
   }
+
   return { nodeIds, linkIds };
 });
 
