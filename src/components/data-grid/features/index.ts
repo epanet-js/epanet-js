@@ -28,3 +28,6 @@ export type {
   ClipboardCopyInfo,
   ClipboardPasteInfo,
 } from "./clipboard-feature";
+
+export { CellRenderingFeature } from "./cell-rendering-feature";
+export { ColumnSizingFeature } from "./column-sizing-feature";

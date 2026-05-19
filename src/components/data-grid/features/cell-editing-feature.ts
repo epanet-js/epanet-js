@@ -1,5 +1,6 @@
 import {
   makeStateUpdater,
+  type Column,
   type OnChangeFn,
   type RowData,
   type Table,
@@ -24,6 +25,13 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableOptionsResolved<TData extends RowData> {
     onCellEditingChange?: OnChangeFn<CellEditingInternalState>;
+    readOnly?: boolean;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    isReadOnly?: boolean | ((rowIndex: number) => boolean);
+    deleteValue?: unknown;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,6 +42,12 @@ declare module "@tanstack/react-table" {
     getEditMode: () => EditMode;
     startEditing: (mode?: "quick" | "full") => void;
     stopEditing: () => void;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Column<TData extends RowData, TValue> {
+    isReadOnly: (rowIndex: number) => boolean;
+    getDeleteValue: () => unknown;
   }
 }
 
@@ -74,6 +88,20 @@ export const CellEditingFeature: TableFeature = {
         return { ...prev, editMode: false };
       });
     };
+  },
+
+  createColumn: <TData extends RowData>(
+    column: Column<TData, unknown>,
+    table: Table<TData>,
+  ): void => {
+    column.isReadOnly = (rowIndex: number) => {
+      if (table.options.readOnly) return true;
+      const flag = column.columnDef.meta?.isReadOnly;
+      if (typeof flag === "function") return flag(rowIndex);
+      return !!flag;
+    };
+
+    column.getDeleteValue = () => column.columnDef.meta?.deleteValue;
   },
 };
 

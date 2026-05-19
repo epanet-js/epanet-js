@@ -88,7 +88,7 @@ export function GridRow<TData extends Record<string, unknown>>({
           const accessorKey = column.accessorKey;
           const isSelected = isCellSelected(selection, colIndex, rowIndex);
           const isActive = isCellActive(activeCell, colIndex, rowIndex);
-          const isCurrentIteractiveCell =
+          const isCurrentInteractiveCell =
             isActive && isSingleCellSelection(selection);
 
           return (
@@ -98,8 +98,8 @@ export function GridRow<TData extends Record<string, unknown>>({
               colIndex={colIndex}
               isSelected={isSelected}
               isActive={isActive}
-              editMode={isCurrentIteractiveCell ? editMode : false}
-              isInteractive={isCurrentIteractiveCell}
+              editMode={isCurrentInteractiveCell ? editMode : false}
+              isInteractive={isCurrentInteractiveCell}
               readOnly={readOnly || isColumnReadOnly(column, rowIndex)}
               selectionEdge={
                 isSelected && selection

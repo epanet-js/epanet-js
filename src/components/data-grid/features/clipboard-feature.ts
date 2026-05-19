@@ -1,4 +1,9 @@
-import type { RowData, Table, TableFeature } from "@tanstack/react-table";
+import type {
+  Column,
+  RowData,
+  Table,
+  TableFeature,
+} from "@tanstack/react-table";
 import { isColumnReadOnly, type GridColumn } from "../types";
 
 export type CopySelectionOptions = {
@@ -26,11 +31,16 @@ declare module "@tanstack/react-table" {
     includeHeadersOnCopy?: boolean;
     autoExtendOnPaste?: boolean; // pasting extra content appends fresh rows
     createRow?: () => TData;
-    readOnly?: boolean;
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
     onDataChange?: (data: TData[]) => void;
     gridColumns?: GridColumn[];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    copyValue?: (value: unknown) => string;
+    pasteValue?: (text: string) => unknown;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,6 +50,12 @@ declare module "@tanstack/react-table" {
     handleCopyEvent: (e: React.ClipboardEvent) => void;
     handlePasteEvent: (e: React.ClipboardEvent) => void;
     applyPaste: (text: string) => void;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Column<TData extends RowData, TValue> {
+    getCopyValue: (value: unknown) => string;
+    getPasteValue: (text: string) => unknown;
   }
 }
 
@@ -281,6 +297,21 @@ export const ClipboardFeature: TableFeature = {
       // keyboard shortcuts (undo/redo) until the grid is re-focused.
       const text = e.clipboardData.getData("text/plain");
       table.applyPaste(text);
+    };
+  },
+
+  createColumn: <TData extends RowData>(
+    column: Column<TData, unknown>,
+    _table: Table<TData>,
+  ): void => {
+    column.getCopyValue = (value: unknown) => {
+      const fn = column.columnDef.meta?.copyValue;
+      return fn ? fn(value) : String(value ?? "");
+    };
+
+    column.getPasteValue = (text: string) => {
+      const fn = column.columnDef.meta?.pasteValue;
+      return fn ? fn(text) : text;
     };
   },
 };

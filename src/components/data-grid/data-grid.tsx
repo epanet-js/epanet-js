@@ -23,7 +23,9 @@ import { useGridEditing, useMouseSelection } from "./hooks";
 import {
   CellEditingFeature,
   CellRangeSelectionFeature,
+  CellRenderingFeature,
   ClipboardFeature,
+  ColumnSizingFeature,
   clampActiveCell,
   clampRange,
   computeExtendedRange,
@@ -116,6 +118,8 @@ export const DataGrid = forwardRef(function DataGrid<
       CellEditingFeature,
       CellRangeSelectionFeature,
       ClipboardFeature,
+      CellRenderingFeature,
+      ColumnSizingFeature,
     ],
     // Selection feature options
     rowCount: data.length,
