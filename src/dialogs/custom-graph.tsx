@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { useAtomValue } from "jotai";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
@@ -41,13 +41,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translateUnit = useTranslateUnit();
   const { units, formatting } = useAtomValue(projectSettingsAtom);
 
-  const [nodeProperty, setNodeProperty] = useState<
-    NodeProperty | QualityProperty
-  >("pressure");
-  const [linkProperty, setLinkProperty] = useState<
-    LinkProperty | QualityProperty
-  >("flow");
-
   const {
     hasNodes,
     hasLinks,
@@ -55,7 +48,11 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     linkSeriesData,
     isLoading,
     qualityType,
-  } = useCustomGraphData(nodeProperty, linkProperty);
+    nodeProperty,
+    linkProperty,
+    setNodeProperty,
+    setLinkProperty,
+  } = useCustomGraphData();
 
   const nodePropertyOptions = useMemo(() => {
     const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
@@ -129,12 +126,12 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   }, [translate, translateUnit, units, linkQuantityKey, linkProperty]);
 
   const handleNodePropertyChange = useCallback(
-    (value: string) => setNodeProperty(value as NodeProperty | QualityProperty),
-    [],
+    (value: string) => setNodeProperty(value),
+    [setNodeProperty],
   );
   const handleLinkPropertyChange = useCallback(
-    (value: string) => setLinkProperty(value as LinkProperty | QualityProperty),
-    [],
+    (value: string) => setLinkProperty(value),
+    [setLinkProperty],
   );
 
   return (
