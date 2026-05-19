@@ -355,16 +355,16 @@ const CustomGraphChart = memo(function CustomGraphChart({
     () => ({
       animation: false,
       grid: {
-        top: 24,
+        top: 8,
         right: 40,
-        bottom: 8,
+        bottom: 32,
         left: 40,
         containLabel: true,
       },
       legend: {
         show: true,
-        top: 0,
-        right: 0,
+        bottom: 0,
+        left: "center",
         itemWidth: 16,
         itemHeight: 8,
         textStyle: { fontSize: 12, color: colors.gray600 },
