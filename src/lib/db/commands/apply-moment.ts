@@ -18,14 +18,14 @@ import {
   emptyAssetPatchRows,
   type AssetPatchRows,
 } from "../mappers/assets/patches";
-import type { AssetRows } from "../mappers/assets/schema";
+import type { AssetRows } from "../schema/assets";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
-} from "../mappers/customer-points/schema";
-import type { JunctionDemandRow } from "../mappers/junction-demands/schema";
-import type { PatternRow } from "../mappers/patterns/schema";
-import type { CurveRow } from "../mappers/curves/schema";
+} from "../schema/customer-points";
+import type { JunctionDemandRow } from "../schema/junction-demands";
+import type { PatternRow } from "../schema/patterns";
+import type { CurveRow } from "../schema/curves";
 
 export type CustomerPointDemandUpdate = {
   customerPointId: CustomerPointId;

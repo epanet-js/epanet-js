@@ -1,5 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { projectSettingsSchema } from "./schema";
+import { projectSettingsSchema } from "../../schema/project-settings";
 
 export const serializeProjectSettings = (settings: ProjectSettings): string => {
   const result = projectSettingsSchema.safeParse(settings);

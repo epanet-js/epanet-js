@@ -1,5 +1,9 @@
 import type { Curves, ICurve } from "src/hydraulic-model/curves";
-import { curveRowSchema, pointsSchema, type CurveRow } from "./schema";
+import {
+  curveRowSchema,
+  pointsSchema,
+  type CurveRow,
+} from "../../schema/curves";
 
 export const toCurveRow = (curve: ICurve): CurveRow => {
   const pointsResult = pointsSchema.safeParse(curve.points);

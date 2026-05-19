@@ -7,7 +7,7 @@ import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
-} from "./schema";
+} from "../../schema/customer-points";
 
 const emptyCpData = (): CustomerPointsData => ({
   customerPoints: [],

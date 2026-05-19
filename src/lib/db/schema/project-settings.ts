@@ -1,4 +1,8 @@
 import { z } from "zod";
+// TODO(format-extract): break the structural tie to domain types so the
+// format library is self-contained. Either invert (domain derives from format)
+// or duplicate the type alongside a conformance check, paired with the
+// future JSON-blob schema extraction.
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { Unit } from "src/quantity";
 

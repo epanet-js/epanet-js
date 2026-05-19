@@ -13,7 +13,7 @@ import {
   type CustomerPointRow,
   type CustomerPointDemandRow,
   type CustomerPointsData,
-} from "./schema";
+} from "../../schema/customer-points";
 
 export const toCustomerPointRow = (
   customerPoint: CustomerPoint,

@@ -1,6 +1,6 @@
 import type { Controls } from "src/hydraulic-model/controls";
 import { createEmptyControls } from "src/hydraulic-model/controls";
-import { controlsSchema } from "./schema";
+import { controlsSchema } from "../../schema/controls";
 
 export const buildControlsData = (data: string | null): Controls => {
   if (data === null) return createEmptyControls();

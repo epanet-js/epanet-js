@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
 import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import type { CurvePoint } from "src/hydraulic-model/curves";
-import { pointsSchema } from "../curves/schema";
+import { pointsSchema } from "../../schema/curves";
 import {
   junctionRowSchema,
   reservoirRowSchema,
@@ -10,7 +10,7 @@ import {
   pipeRowSchema,
   pumpRowSchema,
   valveRowSchema,
-} from "./schema";
+} from "../../schema/assets";
 
 const asPatchSchema = <T extends z.ZodObject<z.ZodRawShape>>(rowSchema: T) =>
   rowSchema.partial().required({ id: true });

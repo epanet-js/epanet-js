@@ -3,7 +3,10 @@ import type {
   Demand,
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
-import { junctionDemandRowSchema, type JunctionDemandRow } from "./schema";
+import {
+  junctionDemandRowSchema,
+  type JunctionDemandRow,
+} from "../../schema/junction-demands";
 
 export const toJunctionDemandRow = (
   junctionId: AssetId,

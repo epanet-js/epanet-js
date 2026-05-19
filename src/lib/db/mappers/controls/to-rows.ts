@@ -1,5 +1,5 @@
 import type { Controls } from "src/hydraulic-model/controls";
-import { controlsSchema } from "./schema";
+import { controlsSchema } from "../../schema/controls";
 
 export const serializeControls = (controls: Controls): string => {
   const result = controlsSchema.safeParse(controls);

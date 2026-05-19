@@ -1,5 +1,9 @@
 import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
-import { multipliersSchema, patternRowSchema, type PatternRow } from "./schema";
+import {
+  multipliersSchema,
+  patternRowSchema,
+  type PatternRow,
+} from "../../schema/patterns";
 
 export const toPatternRow = (pattern: Pattern): PatternRow => {
   const multipliersResult = multipliersSchema.safeParse(pattern.multipliers);

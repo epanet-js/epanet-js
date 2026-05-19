@@ -2,7 +2,7 @@ import {
   defaultSimulationSettings,
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
-import { simulationSettingsSchema } from "./schema";
+import { simulationSettingsSchema } from "../../schema/simulation-settings";
 
 export const buildSimulationSettingsData = (
   data: string | null,

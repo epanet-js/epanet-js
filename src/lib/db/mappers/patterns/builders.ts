@@ -1,6 +1,10 @@
 import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
-import { parseRows } from "../parse-rows";
-import { multipliersSchema, patternRowSchema, type PatternRow } from "./schema";
+import { parseRows } from "../../schema/parse-rows";
+import {
+  multipliersSchema,
+  patternRowSchema,
+  type PatternRow,
+} from "../../schema/patterns";
 
 export const buildPatternsData = (rawRows: unknown[]): Patterns => {
   const rows = parseRows(patternRowSchema, rawRows, "Patterns");

@@ -1,15 +1,13 @@
 import { z } from "zod";
-import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
-import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import {
+  chemicalSourceTypes,
+  pipeStatuses,
   pumpDefinitionTypes,
   pumpStatuses,
-} from "src/hydraulic-model/asset-types/pump";
-import {
-  valveStatuses,
+  tankMixingModels,
   valveKinds,
-} from "src/hydraulic-model/asset-types/valve";
-import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
+  valveStatuses,
+} from "./enums";
 
 export const linkCoordinatesSchema = z.array(z.array(z.number().finite()));
 

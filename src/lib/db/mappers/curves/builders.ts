@@ -1,6 +1,10 @@
 import type { Curves, ICurve } from "src/hydraulic-model/curves";
-import { parseRows } from "../parse-rows";
-import { pointsSchema, curveRowSchema, type CurveRow } from "./schema";
+import { parseRows } from "../../schema/parse-rows";
+import {
+  pointsSchema,
+  curveRowSchema,
+  type CurveRow,
+} from "../../schema/curves";
 
 export const buildCurvesData = (rawRows: unknown[]): Curves => {
   const rows = parseRows(curveRowSchema, rawRows, "Curves");

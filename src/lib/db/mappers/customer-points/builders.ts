@@ -6,8 +6,11 @@ import {
 import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import { Demand } from "src/hydraulic-model/demands";
 import { ModelFactories } from "src/hydraulic-model/factories";
-import { parseRows } from "../parse-rows";
-import { customerPointRowSchema, customerPointDemandRowSchema } from "./schema";
+import { parseRows } from "../../schema/parse-rows";
+import {
+  customerPointRowSchema,
+  customerPointDemandRowSchema,
+} from "../../schema/customer-points";
 
 export type RawCustomerPointsData = {
   customerPoints: unknown[];

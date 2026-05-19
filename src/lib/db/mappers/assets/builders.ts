@@ -22,8 +22,8 @@ import type {
 import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import type { CurvePoint } from "src/hydraulic-model/curves";
 import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
-import { pointsSchema } from "../curves/schema";
-import { parseRows } from "../parse-rows";
+import { pointsSchema } from "../../schema/curves";
+import { parseRows } from "../../schema/parse-rows";
 import {
   linkCoordinatesSchema,
   junctionRowSchema,
@@ -38,7 +38,7 @@ import {
   type PipeRow,
   type PumpRow,
   type ValveRow,
-} from "./schema";
+} from "../../schema/assets";
 
 export type RawAssetRows = {
   junctions: unknown[];
