@@ -38,10 +38,9 @@ const categorizedAssetIdsAtom = atom<{
     const asset = hydraulicModel.assets.get(feature.id);
     if (!asset) continue;
 
-    const assetType = asset.type as AssetType;
-    if (NODE_TYPES.has(assetType)) {
+    if (NODE_TYPES.has(asset.type)) {
       nodeIds.add(feature.id);
-    } else if (LINK_TYPES.has(assetType)) {
+    } else if (LINK_TYPES.has(asset.type)) {
       linkIds.add(feature.id);
     }
   }

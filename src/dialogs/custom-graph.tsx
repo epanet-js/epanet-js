@@ -34,7 +34,7 @@ interface CustomGraphChartProps {
   seriesData: AssetTimeSeries[];
   decimals: number;
   yAxisLabel: string;
-  unitLabel: string;
+  unitLabels: string[];
 }
 
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
@@ -146,12 +146,17 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     return linkYAxisLabel;
   }, [hasNodes, hasLinks, nodeYAxisLabel, linkYAxisLabel]);
 
-  const unitLabel = useMemo(() => {
-    if (hasNodes && hasLinks)
-      return nodeUnitLabel === linkUnitLabel ? nodeUnitLabel : "";
-    if (hasNodes) return nodeUnitLabel;
-    return linkUnitLabel;
-  }, [hasNodes, hasLinks, nodeUnitLabel, linkUnitLabel]);
+  const unitLabels = useMemo(() => {
+    const labels: string[] = [];
+    for (let i = 0; i < nodeSeriesData.length; i++) labels.push(nodeUnitLabel);
+    for (let i = 0; i < linkSeriesData.length; i++) labels.push(linkUnitLabel);
+    return labels;
+  }, [
+    nodeSeriesData.length,
+    linkSeriesData.length,
+    nodeUnitLabel,
+    linkUnitLabel,
+  ]);
 
   const handleNodePropertyChange = useCallback(
     (value: string) => setNodeProperty(value),
@@ -246,7 +251,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               seriesData={combinedSeriesData}
               decimals={decimals}
               yAxisLabel={yAxisLabel}
-              unitLabel={unitLabel}
+              unitLabels={unitLabels}
             />
           </div>
         )}
@@ -264,7 +269,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
   seriesData,
   decimals,
   yAxisLabel,
-  unitLabel,
+  unitLabels,
 }: CustomGraphChartProps) {
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -379,6 +384,14 @@ const CustomGraphChart = memo(function CustomGraphChart({
         itemWidth: 16,
         itemHeight: 8,
         textStyle: { fontSize: 12, color: colors.gray600 },
+        data:
+          seriesData.length > MAX_VISIBLE_SERIES
+            ? [
+                ...seriesData.slice(0, MAX_VISIBLE_SERIES).map((s) => s.label),
+                `...other ${seriesData.length - MAX_VISIBLE_SERIES} assets`,
+              ]
+            : undefined,
+        formatter: (name: string) => name,
       },
       xAxis,
       yAxis,
@@ -392,10 +405,21 @@ const CustomGraphChart = memo(function CustomGraphChart({
         formatter: (params: unknown) => {
           if (!Array.isArray(params) || params.length === 0) return "";
           const timeLabel = params[0]?.name ?? "";
-          const unitSuffix = unitLabel ? ` ${unitLabel}` : "";
-          const lines = params.map(
-            (p: { color: string; seriesName?: string; value: number }) => {
+          const visible = params.slice(0, MAX_VISIBLE_SERIES);
+          const remaining = params.length - MAX_VISIBLE_SERIES;
+          const lines = visible.map(
+            (
+              p: {
+                color: string;
+                seriesName?: string;
+                seriesIndex?: number;
+                value: number;
+              },
+              i: number,
+            ) => {
               const value = localizeDecimal(p.value, { decimals });
+              const unit = unitLabels[p.seriesIndex ?? i];
+              const unitSuffix = unit ? ` ${unit}` : "";
               const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
               return (
                 `<div style="display:flex;justify-content:space-between;gap:16px;">` +
@@ -405,11 +429,16 @@ const CustomGraphChart = memo(function CustomGraphChart({
               );
             },
           );
+          if (remaining > 0) {
+            lines.push(
+              `<div style="color:${colors.gray500};font-size:12px;">...other ${remaining} assets</div>`,
+            );
+          }
           return `${timeLabel}${lines.join("")}`;
         },
       },
     }),
-    [xAxis, yAxis, series, decimals, unitLabel],
+    [seriesData, xAxis, yAxis, series, unitLabels, decimals],
   );
 
   useEffect(function resizeChart() {
@@ -471,6 +500,8 @@ const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
     quantityKey: "chemicalConcentration",
   },
 };
+
+const MAX_VISIBLE_SERIES = 6;
 
 const SERIES_COLORS = [
   colors.purple500,
