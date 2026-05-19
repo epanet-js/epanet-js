@@ -8,8 +8,18 @@ import { NumericField } from "./form/numeric-field";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import { useRef } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
+import { mapToolbarDockedAtom } from "src/state/map-toolbar-settings";
+import clsx from "clsx";
 
-export const PipeDrawingFloatingPanel = () => {
+export const PipeDrawingFloatingPanel = ({
+  floating = false,
+  column = false,
+}: {
+  floating?: boolean;
+  column?: boolean;
+}) => {
+  const docked = useAtomValue(mapToolbarDockedAtom);
+  const showFloatingStyle = floating || !docked;
   const { mode: currentMode } = useAtomValue(modeAtom);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -67,7 +77,14 @@ export const PipeDrawingFloatingPanel = () => {
   const roughnessDisplay = displayValue(currentRoughness, "roughness");
 
   return (
-    <div className="hidden md:flex flex-row gap-x-4 items-center p-1">
+    <div
+      className={clsx(
+        "hidden md:flex p-1",
+        column ? "flex-col gap-y-1" : "flex-row gap-x-4 items-center",
+        showFloatingStyle &&
+          "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-900 rounded-lg shadow-md",
+      )}
+    >
       <div className="flex gap-x-2 items-center">
         <label className="flex-grow text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {diameterLabel}

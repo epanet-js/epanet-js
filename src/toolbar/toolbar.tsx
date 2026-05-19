@@ -17,7 +17,12 @@ import {
   PanelRightIcon,
   SearchIcon,
 } from "src/icons";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import {
+  mapToolbarPositionAtom,
+  mapToolbarDockedAtom,
+} from "src/state/map-toolbar-settings";
+import type { MapToolbarPosition } from "src/state/map-toolbar-settings";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -224,6 +229,7 @@ export const Toolbar = ({
         {isProfileViewOn && <AnalysisToolsDropdown />}
       </div>
       <div className="flex flex-row items-center justify-end gap-2">
+        <MapToolbarControls />
         <CommandBarButton />
         {isSmOrLarger && <LayoutActions />}
       </div>
@@ -316,5 +322,43 @@ const LayoutActions = () => {
         {rightPanelIcon}
       </MenuAction>
     </>
+  );
+};
+
+const POSITION_OPTIONS: { value: MapToolbarPosition; label: string }[] = [
+  { value: "top", label: "Top" },
+  { value: "bottom", label: "Bottom" },
+  { value: "left", label: "Left" },
+  { value: "right", label: "Right" },
+];
+
+const MapToolbarControls = () => {
+  const [position, setPosition] = useAtom(mapToolbarPositionAtom);
+  const [docked, setDocked] = useAtom(mapToolbarDockedAtom);
+
+  return (
+    <div className="flex flex-row items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <select
+        value={position}
+        onChange={(e) => setPosition(e.target.value as MapToolbarPosition)}
+        className="text-xs border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5
+                   bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 cursor-pointer"
+      >
+        {POSITION_OPTIONS.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <label className="flex items-center gap-1 cursor-pointer select-none text-xs">
+        <input
+          type="checkbox"
+          checked={docked}
+          onChange={(e) => setDocked(e.target.checked)}
+          className="w-3.5 h-3.5 cursor-pointer accent-purple-500"
+        />
+        Docked
+      </label>
+    </div>
   );
 };

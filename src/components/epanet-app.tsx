@@ -23,7 +23,7 @@ import {
 } from "src/panels";
 import { MapContext } from "src/map";
 import Notifications from "src/components/notifications";
-import { atom, useAtom } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import type { WritableAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import type { DialogState } from "src/state/dialog";
@@ -43,6 +43,10 @@ import { TimestepSelector } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
 import { MapToolbar } from "src/toolbar/map-toolbar";
+import {
+  mapToolbarPositionAtom,
+  mapToolbarDockedAtom,
+} from "src/state/map-toolbar-settings";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
@@ -89,6 +93,8 @@ export function EpanetApp() {
 
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
+  const mapToolbarPosition = useAtomValue(mapToolbarPositionAtom);
+  const mapToolbarDocked = useAtomValue(mapToolbarDockedAtom);
   const seedDefaultProjectDb = useSeedDefaultProjectDb();
   const dbInitializedRef = useRef(false);
 
@@ -180,28 +186,51 @@ export function EpanetApp() {
           )}
         >
           {layout === "HORIZONTAL" && <LeftSidePanel />}
-          <div className="flex-auto flex flex-col relative min-w-0">
-            <MapToolbar disabled={isEditionBlocked} />
-            <DndContext
-              sensors={sensor}
-              modifiers={[restrictToWindowEdges]}
-              onDragEnd={(end) => {
-                setPersistentTransform((transform) => {
-                  return {
-                    x: transform.x + end.delta.x,
-                    y: transform.y + end.delta.y,
-                  };
-                });
-              }}
-            >
-              <DraggableMap
-                persistentTransform={persistentTransform}
-                setMap={setMap}
-                layout={layout}
-              />
-            </DndContext>
-            {layout === "HORIZONTAL" && <BottomPanel />}
-            {layout === "VERTICAL" && <RelocatedSidePanel />}
+          <div
+            className={clsx(
+              "flex-auto relative min-w-0",
+              mapToolbarDocked &&
+                (mapToolbarPosition === "left" ||
+                  mapToolbarPosition === "right")
+                ? "flex flex-row"
+                : "flex flex-col",
+            )}
+          >
+            {mapToolbarDocked && mapToolbarPosition === "top" && (
+              <MapToolbar disabled={isEditionBlocked} />
+            )}
+            {mapToolbarDocked && mapToolbarPosition === "left" && (
+              <MapToolbar disabled={isEditionBlocked} />
+            )}
+            <div className="flex-auto flex flex-col relative min-w-0">
+              {!mapToolbarDocked && <MapToolbar disabled={isEditionBlocked} />}
+              <DndContext
+                sensors={sensor}
+                modifiers={[restrictToWindowEdges]}
+                onDragEnd={(end) => {
+                  setPersistentTransform((transform) => {
+                    return {
+                      x: transform.x + end.delta.x,
+                      y: transform.y + end.delta.y,
+                    };
+                  });
+                }}
+              >
+                <DraggableMap
+                  persistentTransform={persistentTransform}
+                  setMap={setMap}
+                  layout={layout}
+                />
+              </DndContext>
+              {mapToolbarDocked && mapToolbarPosition === "bottom" && (
+                <MapToolbar disabled={isEditionBlocked} />
+              )}
+              {layout === "HORIZONTAL" && <BottomPanel />}
+              {layout === "VERTICAL" && <RelocatedSidePanel />}
+            </div>
+            {mapToolbarDocked && mapToolbarPosition === "right" && (
+              <MapToolbar disabled={isEditionBlocked} />
+            )}
           </div>
           {layout === "HORIZONTAL" && (
             <>
