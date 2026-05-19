@@ -217,6 +217,7 @@ export const useOpenProject = () => {
   const openProjectFile = useOpenProjectFile();
   const importInp = useImportInp();
   const userTracking = useUserTracking();
+  const setDialogState = useSetAtom(dialogAtom);
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const openProject = useCallback(
@@ -234,14 +235,29 @@ export const useOpenProject = () => {
       });
       if (!file) return;
 
-      if (file.name.toLowerCase().endsWith(inpExtension)) {
+      const name = file.name.toLowerCase();
+      if (name.endsWith(inpExtension)) {
         void importInp([file], source);
+        return;
+      }
+
+      if (!name.endsWith(projectExtension)) {
+        setDialogState({ type: "invalidFilesError" });
+        userTracking.capture({ name: "invalidFilesError.seen" });
         return;
       }
 
       await openProjectFile(file, source);
     },
-    [openFile, isReady, openProjectFile, importInp, userTracking, isOurFileOn],
+    [
+      openFile,
+      isReady,
+      openProjectFile,
+      importInp,
+      userTracking,
+      setDialogState,
+      isOurFileOn,
+    ],
   );
 
   return useCallback(
