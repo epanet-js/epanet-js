@@ -84,7 +84,9 @@ export const useOpenProjectFile = () => {
               Icon: WarningIcon,
             });
             captureError(
-              new Error(`openProject corrupt: ${result.errorDetails}`),
+              new Error(
+                `openProject corrupt (${file.name}): ${result.errorDetails}`,
+              ),
             );
             userTracking.capture({
               name: "projectFile.openFailed",
@@ -105,7 +107,7 @@ export const useOpenProjectFile = () => {
             });
             captureError(
               new Error(
-                `openProject migration-failed (v${result.fileVersion}→${result.appVersion}): ${result.errorDetails}`,
+                `openProject migration-failed (${file.name}, v${result.fileVersion}→${result.appVersion}): ${result.errorDetails}`,
               ),
             );
             userTracking.capture({
@@ -126,7 +128,9 @@ export const useOpenProjectFile = () => {
             Icon: WarningIcon,
           });
           captureError(
-            new Error(`openProject internal: ${result.errorDetails}`),
+            new Error(
+              `openProject internal (${file.name}): ${result.errorDetails}`,
+            ),
           );
           userTracking.capture({
             name: "projectFile.openFailed",
@@ -173,7 +177,12 @@ export const useOpenProjectFile = () => {
         });
       } catch (error) {
         setDialogState(null);
-        captureError(error as Error);
+        captureError(
+          new Error(
+            `openProject exception (${file.name}): ${formatErrorDetails(error)}`,
+            { cause: error },
+          ),
+        );
         notify({
           variant: "warning",
           size: "md",
