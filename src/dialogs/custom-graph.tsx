@@ -34,6 +34,7 @@ interface CustomGraphChartProps {
   seriesData: AssetTimeSeries[];
   decimals: number;
   yAxisLabel: string;
+  unitLabel: string;
 }
 
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
@@ -103,6 +104,16 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const nodeDecimals = getDecimals(formatting, nodeQuantityKey) ?? 0;
   const linkDecimals = getDecimals(formatting, linkQuantityKey) ?? 0;
 
+  const nodeUnitLabel = useMemo(() => {
+    const unit = units[nodeQuantityKey];
+    return unit ? translateUnit(unit) : "";
+  }, [translateUnit, units, nodeQuantityKey]);
+
+  const linkUnitLabel = useMemo(() => {
+    const unit = units[linkQuantityKey];
+    return unit ? translateUnit(unit) : "";
+  }, [translateUnit, units, linkQuantityKey]);
+
   const nodeYAxisLabel = useMemo(() => {
     const label = translate(
       NODE_PROPERTIES.find((p) => p.value === nodeProperty)?.labelKey ??
@@ -110,9 +121,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           ?.labelKey ??
         nodeProperty,
     );
-    const unit = units[nodeQuantityKey];
-    return unit ? `${label} (${translateUnit(unit)})` : label;
-  }, [translate, translateUnit, units, nodeQuantityKey, nodeProperty]);
+    return nodeUnitLabel ? `${label} (${nodeUnitLabel})` : label;
+  }, [translate, nodeUnitLabel, nodeProperty]);
 
   const linkYAxisLabel = useMemo(() => {
     const label = translate(
@@ -121,9 +131,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           ?.labelKey ??
         linkProperty,
     );
-    const unit = units[linkQuantityKey];
-    return unit ? `${label} (${translateUnit(unit)})` : label;
-  }, [translate, translateUnit, units, linkQuantityKey, linkProperty]);
+    return linkUnitLabel ? `${label} (${linkUnitLabel})` : label;
+  }, [translate, linkUnitLabel, linkProperty]);
 
   const handleNodePropertyChange = useCallback(
     (value: string) => setNodeProperty(value),
@@ -224,6 +233,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                   seriesData={nodeSeriesData}
                   decimals={nodeDecimals}
                   yAxisLabel={nodeYAxisLabel}
+                  unitLabel={nodeUnitLabel}
                 />
               </div>
             )}
@@ -233,6 +243,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                   seriesData={linkSeriesData}
                   decimals={linkDecimals}
                   yAxisLabel={linkYAxisLabel}
+                  unitLabel={linkUnitLabel}
                 />
               </div>
             )}
@@ -254,6 +265,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
   seriesData,
   decimals,
   yAxisLabel,
+  unitLabel,
 }: CustomGraphChartProps) {
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -381,18 +393,24 @@ const CustomGraphChart = memo(function CustomGraphChart({
         formatter: (params: unknown) => {
           if (!Array.isArray(params) || params.length === 0) return "";
           const timeLabel = params[0]?.name ?? "";
+          const unitSuffix = unitLabel ? ` ${unitLabel}` : "";
           const lines = params.map(
             (p: { color: string; seriesName?: string; value: number }) => {
               const value = localizeDecimal(p.value, { decimals });
-              const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
-              return `${colorDot}${p.seriesName ?? ""}: ${value}`;
+              const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
+              return (
+                `<div style="display:flex;justify-content:space-between;gap:16px;">` +
+                `<span>${colorDot}${p.seriesName ?? ""}</span>` +
+                `<span style="font-variant-numeric:tabular-nums;text-align:right;">${value}${unitSuffix}</span>` +
+                `</div>`
+              );
             },
           );
-          return `${timeLabel}<br/>${lines.join("<br/>")}`;
+          return `${timeLabel}${lines.join("")}`;
         },
       },
     }),
-    [xAxis, yAxis, series, decimals],
+    [xAxis, yAxis, series, decimals, unitLabel],
   );
 
   useEffect(function resizeChart() {
