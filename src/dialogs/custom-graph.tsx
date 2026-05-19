@@ -103,6 +103,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const nodeDecimals = getDecimals(formatting, nodeQuantityKey) ?? 0;
   const linkDecimals = getDecimals(formatting, linkQuantityKey) ?? 0;
+  const decimals = Math.max(nodeDecimals, linkDecimals);
 
   const nodeUnitLabel = useMemo(() => {
     const unit = units[nodeQuantityKey];
@@ -133,6 +134,24 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     );
     return linkUnitLabel ? `${label} (${linkUnitLabel})` : label;
   }, [translate, linkUnitLabel, linkProperty]);
+
+  const combinedSeriesData = useMemo(
+    () => [...nodeSeriesData, ...linkSeriesData],
+    [nodeSeriesData, linkSeriesData],
+  );
+
+  const yAxisLabel = useMemo(() => {
+    if (hasNodes && hasLinks) return `${nodeYAxisLabel} / ${linkYAxisLabel}`;
+    if (hasNodes) return nodeYAxisLabel;
+    return linkYAxisLabel;
+  }, [hasNodes, hasLinks, nodeYAxisLabel, linkYAxisLabel]);
+
+  const unitLabel = useMemo(() => {
+    if (hasNodes && hasLinks)
+      return nodeUnitLabel === linkUnitLabel ? nodeUnitLabel : "";
+    if (hasNodes) return nodeUnitLabel;
+    return linkUnitLabel;
+  }, [hasNodes, hasLinks, nodeUnitLabel, linkUnitLabel]);
 
   const handleNodePropertyChange = useCallback(
     (value: string) => setNodeProperty(value),
@@ -221,39 +240,19 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           </div>
         )}
 
-        {!isLoading && (
-          <div
-            className={`flex-1 min-h-0 flex ${hasNodes && hasLinks ? "flex-col" : ""}`}
-          >
-            {hasNodes && nodeSeriesData.length > 0 && (
-              <div
-                className={`flex-1 min-h-0 ${hasLinks ? "border-b border-gray-200" : ""} px-4 pb-2`}
-              >
-                <CustomGraphChart
-                  seriesData={nodeSeriesData}
-                  decimals={nodeDecimals}
-                  yAxisLabel={nodeYAxisLabel}
-                  unitLabel={nodeUnitLabel}
-                />
-              </div>
-            )}
-            {hasLinks && linkSeriesData.length > 0 && (
-              <div className="flex-1 min-h-0 px-4 pb-2">
-                <CustomGraphChart
-                  seriesData={linkSeriesData}
-                  decimals={linkDecimals}
-                  yAxisLabel={linkYAxisLabel}
-                  unitLabel={linkUnitLabel}
-                />
-              </div>
-            )}
-            {!isLoading &&
-              nodeSeriesData.length === 0 &&
-              linkSeriesData.length === 0 && (
-                <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-                  {translate("noDataAvailable")}
-                </div>
-              )}
+        {!isLoading && combinedSeriesData.length > 0 && (
+          <div className="flex-1 min-h-0 px-4 pb-2">
+            <CustomGraphChart
+              seriesData={combinedSeriesData}
+              decimals={decimals}
+              yAxisLabel={yAxisLabel}
+              unitLabel={unitLabel}
+            />
+          </div>
+        )}
+        {!isLoading && combinedSeriesData.length === 0 && (
+          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+            {translate("noDataAvailable")}
           </div>
         )}
       </div>
