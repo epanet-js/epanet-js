@@ -348,7 +348,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
       axisLabel: {
         color: colors.gray500,
         fontSize: 12,
-        formatter: (value: number) => localizeDecimal(value, { decimals }),
+        formatter: (value: number) => localizeDecimal(value),
       },
     };
   }, [allValues, decimals, yAxisLabel]);
@@ -420,7 +420,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
               },
               i: number,
             ) => {
-              const value = localizeDecimal(p.value, { decimals });
+              const value = p.value.toFixed(TOOLTIP_DECIMALS);
               const unit = unitLabels[p.seriesIndex ?? i] ?? "";
               const idx = p.seriesIndex ?? i;
               const assetType = idx < nodeCount ? "node" : "link";
@@ -442,7 +442,7 @@ const CustomGraphChart = memo(function CustomGraphChart({
         },
       },
     }),
-    [seriesData, xAxis, yAxis, series, decimals, unitLabels, nodeCount],
+    [seriesData, xAxis, yAxis, series, unitLabels, nodeCount],
   );
 
   useEffect(function resizeChart() {
@@ -506,6 +506,7 @@ const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
 };
 
 const MAX_VISIBLE_SERIES = 6;
+const TOOLTIP_DECIMALS = 3;
 
 const SERIES_COLORS = [
   colors.purple500,
