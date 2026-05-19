@@ -60,3 +60,18 @@ When in doubt, ask. Do not assume.
 ## Why this is here
 
 The migration runner lives in `worker-api.ts:openDb` — it reads `PRAGMA user_version`, runs anything in `migrations/` past that point, and reports `status: "migrated"`. The mechanism is in place; what's missing is a loud, agent-facing reminder that this directory is not like the rest of the codebase. Routine refactor instincts will silently break user data here.
+
+## Enums in `schema/enums.ts` are wire-format vocabulary, not domain types
+
+The literal tuples in `schema/enums.ts` (e.g. `pipeStatuses`, `pumpDefinitionTypes`) define **what these columns can contain on disk**. They are intentionally independent of the parallel domain enums in `src/hydraulic-model/asset-types/*`. Neither side imports from the other; the consumer app's mapper in `src/lib/db/mappers/` is the only place that bridges them.
+
+Today the two sides happen to share value names by convention, so the mapper's cast (`row.initial_status as PipeStatus`) compiles trivially. The day they diverge, that cast errors and the mapper writes a real translation.
+
+### Pattern for widening either side
+
+When a column's allowed values need to change, follow the two-step pattern from commits `90e9c58e` + `881b66a1` (pump `definition_type` migration). Format moves first, alone; domain catches up later:
+
+1. **Format-side commit.** Add the new value(s) to `schema/enums.ts`. Write the SQL migration. Update the Zod schema (still references `schema/enums.ts`). In `src/lib/db/mappers/`, add a bridge function that maps the new format value(s) to the still-unchanged domain enum. Production is stable here.
+2. **Domain-side commit.** Widen the domain enum in `src/hydraulic-model/asset-types/*`. Delete the mapper bridge — the cast is identity again.
+
+The Zod schema rejecting unknown values at save time is the runtime safety net for any accidental drift between the two sides.
