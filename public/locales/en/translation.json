@@ -1314,6 +1314,7 @@
   "exportShapefile": "Shapefile (.zip)",
   "exportSelectedAssetsOnly": "Selected assets only",
   "customGraph": {
+    "noDataAvailable": "No data available. Run a simulation to create a graph.",
     "menuTitle": "View graph",
     "title": "Custom graph",
     "exportAs": "Export as...",

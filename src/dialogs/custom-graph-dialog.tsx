@@ -278,18 +278,24 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     trackExport(format);
   };
 
+  const noDataAvailable = combinedSeriesData.length === 0;
+
   return (
     <BaseDialog
       title={translate("customGraph.title")}
-      size="xxl"
-      height="xxl"
+      size="xl"
+      height="xl"
       isOpen={true}
       onClose={onClose}
       footer={
         <footer className="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-200">
           <DD.Root>
             <DD.Trigger asChild>
-              <Button variant="default" type="button" disabled={isLoading}>
+              <Button
+                variant="default"
+                type="button"
+                disabled={isLoading || noDataAvailable}
+              >
                 {translate("customGraph.exportAs")}
                 <ChevronDownIcon />
               </Button>
@@ -322,7 +328,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={nodePropertyOptions}
                 selected={nodeProperty}
-                disabled={isLoading}
+                disabled={isLoading || noDataAvailable}
                 onChange={handleNodePropertyChange}
                 styleOptions={{
                   border: true,
@@ -340,7 +346,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={linkPropertyOptions}
                 selected={linkProperty}
-                disabled={isLoading}
+                disabled={isLoading || noDataAvailable}
                 onChange={handleLinkPropertyChange}
                 styleOptions={{
                   border: true,
@@ -354,6 +360,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             <label className="flex items-center gap-1.5 cursor-pointer">
               <Checkbox
                 checked={combineAxes}
+                disabled={isLoading || noDataAvailable}
                 onChange={(e) => setCombineAxes(e.target.checked)}
               />
               <span className="text-sm text-gray-600">
@@ -391,9 +398,9 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             />
           </div>
         )}
-        {!isLoading && combinedSeriesData.length === 0 && (
+        {!isLoading && noDataAvailable && (
           <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-            {translate("noDataAvailable")}
+            {translate("customGraph.noDataAvailable")}
           </div>
         )}
       </div>
