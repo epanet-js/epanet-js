@@ -342,8 +342,15 @@ const calculateInterval = (
   if (values.length === 0) return { min: 0, max: 0, interval: 0 };
 
   const factor = Math.pow(10, decimals);
-  const minVal = Math.floor(Math.min(...values) * factor) / factor;
-  const maxVal = Math.ceil(Math.max(...values) * factor) / factor;
+  let rawMin = Infinity;
+  let rawMax = -Infinity;
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
+    if (v < rawMin) rawMin = v;
+    if (v > rawMax) rawMax = v;
+  }
+  const minVal = Math.floor(rawMin * factor) / factor;
+  const maxVal = Math.ceil(rawMax * factor) / factor;
   const range = maxVal - minVal;
 
   const minPrecision = Math.pow(10, -decimals + 1);
