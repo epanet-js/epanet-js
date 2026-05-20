@@ -153,11 +153,11 @@ export const parseEnergy: RowParser = ({ trimmedRow, inpData }) => {
       return;
     }
     if (name === "GLOBAL PRICE") {
-      inpData.energy.globalPrice = value as number;
+      if (value !== undefined) inpData.energy.globalPrice = value as number;
       return;
     }
     if (name === "DEMAND CHARGE") {
-      inpData.energy.demandCharge = value as number;
+      if (value !== undefined) inpData.energy.demandCharge = value as number;
       return;
     }
   }
@@ -213,31 +213,33 @@ export const parseReaction: RowParser = ({
   if (setting) {
     const { name, value } = setting;
     if (name === "ORDER BULK") {
-      inpData.reactions.bulkOrder = value as number;
+      if (value !== undefined) inpData.reactions.bulkOrder = value as number;
       return;
     }
     if (name === "ORDER WALL") {
-      inpData.reactions.wallOrder = value as number;
+      if (value !== undefined) inpData.reactions.wallOrder = value as number;
       return;
     }
     if (name === "ORDER TANK") {
-      inpData.reactions.tankOrder = value as number;
+      if (value !== undefined) inpData.reactions.tankOrder = value as number;
       return;
     }
     if (name === "GLOBAL BULK") {
-      inpData.reactions.globalBulk = value as number;
+      if (value !== undefined) inpData.reactions.globalBulk = value as number;
       return;
     }
     if (name === "GLOBAL WALL") {
-      inpData.reactions.globalWall = value as number;
+      if (value !== undefined) inpData.reactions.globalWall = value as number;
       return;
     }
     if (name === "LIMITING POTENTIAL") {
-      inpData.reactions.limitingPotential = value as number;
+      if (value !== undefined)
+        inpData.reactions.limitingPotential = value as number;
       return;
     }
     if (name === "ROUGHNESS CORRELATION") {
-      inpData.reactions.roughnessCorrelation = value as number;
+      if (value !== undefined)
+        inpData.reactions.roughnessCorrelation = value as number;
       return;
     }
   }
@@ -712,7 +714,10 @@ export const parseOption: RowParser = ({
     const mode = parts[0] as "STOP" | "CONTINUE";
     inpData.options.unbalancedMode = mode;
     if (mode === "CONTINUE" && parts.length > 1) {
-      inpData.options.unbalancedExtraTrials = parseInt(parts[1], 10);
+      const extraTrials = parseInt(parts[1], 10);
+      inpData.options.unbalancedExtraTrials = Number.isNaN(extraTrials)
+        ? 0
+        : extraTrials;
     } else if (mode === "CONTINUE") {
       inpData.options.unbalancedExtraTrials = 0;
     }
@@ -720,7 +725,7 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "DEMAND MULTIPLIER") {
-    inpData.options.demandMultiplier = value as number;
+    if (value !== undefined) inpData.options.demandMultiplier = value as number;
     return;
   }
 
@@ -730,22 +735,22 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "MINIMUM PRESSURE") {
-    inpData.options.minimumPressure = value as number;
+    if (value !== undefined) inpData.options.minimumPressure = value as number;
     return;
   }
 
   if (name === "REQUIRED PRESSURE") {
-    inpData.options.requiredPressure = value as number;
+    if (value !== undefined) inpData.options.requiredPressure = value as number;
     return;
   }
 
   if (name === "PRESSURE EXPONENT") {
-    inpData.options.pressureExponent = value as number;
+    if (value !== undefined) inpData.options.pressureExponent = value as number;
     return;
   }
 
   if (name === "EMITTER EXPONENT") {
-    inpData.options.emitterExponent = value as number;
+    if (value !== undefined) inpData.options.emitterExponent = value as number;
     return;
   }
 
@@ -793,47 +798,47 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "TRIALS") {
-    inpData.options.trials = value as number;
+    if (value !== undefined) inpData.options.trials = value as number;
     return;
   }
   if (name === "ACCURACY") {
-    inpData.options.accuracy = value as number;
+    if (value !== undefined) inpData.options.accuracy = value as number;
     return;
   }
   if (name === "HEADERROR") {
-    inpData.options.headError = value as number;
+    if (value !== undefined) inpData.options.headError = value as number;
     return;
   }
   if (name === "FLOWCHANGE") {
-    inpData.options.flowChange = value as number;
+    if (value !== undefined) inpData.options.flowChange = value as number;
     return;
   }
   if (name === "CHECKFREQ") {
-    inpData.options.checkFreq = value as number;
+    if (value !== undefined) inpData.options.checkFreq = value as number;
     return;
   }
   if (name === "MAXCHECK") {
-    inpData.options.maxCheck = value as number;
+    if (value !== undefined) inpData.options.maxCheck = value as number;
     return;
   }
   if (name === "DAMPLIMIT") {
-    inpData.options.dampLimit = value as number;
+    if (value !== undefined) inpData.options.dampLimit = value as number;
     return;
   }
   if (name === "VISCOSITY") {
-    inpData.options.viscosity = value as number;
+    if (value !== undefined) inpData.options.viscosity = value as number;
     return;
   }
   if (name === "SPECIFIC GRAVITY") {
-    inpData.options.specificGravity = value as number;
+    if (value !== undefined) inpData.options.specificGravity = value as number;
     return;
   }
   if (name === "TOLERANCE") {
-    inpData.options.tolerance = value as number;
+    if (value !== undefined) inpData.options.tolerance = value as number;
     return;
   }
   if (name === "DIFFUSIVITY") {
-    inpData.options.diffusivity = value as number;
+    if (value !== undefined) inpData.options.diffusivity = value as number;
     return;
   }
 
@@ -856,7 +861,7 @@ const readSetting = <T extends Record<string, string | number>>(
   trimmedRow: string,
   settings: T,
 ):
-  | { name: string; value: number; defaultValue: number }
+  | { name: string; value: number | undefined; defaultValue: number }
   | { name: string; value: string; defaultValue: string }
   | null => {
   const rowWithoutComments = trimmedRow.split(commentIdentifier)[0];
@@ -870,7 +875,7 @@ const readSetting = <T extends Record<string, string | number>>(
 
   const defaultValue = settings[name];
   if (typeof defaultValue === "number") {
-    return { name, value: parseFloat(value), defaultValue };
+    return { name, value: parseOptionalFloat(value), defaultValue };
   } else {
     return { name, value, defaultValue };
   }

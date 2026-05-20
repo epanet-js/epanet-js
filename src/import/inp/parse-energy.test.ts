@@ -130,6 +130,15 @@ describe("parse energy", () => {
       expect(simulationSettings.energyGlobalPatternId).toBeNull();
       expect(simulationSettings.energyDemandCharge).toBe(0);
     });
+
+    it("falls back to defaults when global price and demand charge are empty", () => {
+      const inp = basePumpInp(["Global Price\t", "Demand Charge\t"].join("\n"));
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.energyGlobalPrice).toBe(0);
+      expect(simulationSettings.energyDemandCharge).toBe(0);
+    });
   });
 
   describe("undefined references", () => {

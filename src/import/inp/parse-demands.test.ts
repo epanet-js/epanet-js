@@ -650,6 +650,34 @@ describe("parse junctions demands", () => {
       expect(simulationSettings.emitterExponent).toEqual(0.5);
     });
 
+    it("falls back to default emitter exponent when value is empty", () => {
+      const inp = `
+      [OPTIONS]
+      Emitter Exponent\t
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.emitterExponent).toEqual(0.5);
+    });
+
+    it("falls back to default pressure options when values are empty", () => {
+      const inp = `
+      [OPTIONS]
+      Minimum Pressure\t
+      Required Pressure\t
+      Pressure Exponent\t
+      Demand Multiplier\t
+      `;
+
+      const { simulationSettings } = parseInp(inp);
+
+      expect(simulationSettings.minimumPressure).toEqual(0);
+      expect(simulationSettings.requiredPressure).toEqual(0.1);
+      expect(simulationSettings.pressureExponent).toEqual(0.5);
+      expect(simulationSettings.globalDemandMultiplier).toEqual(1);
+    });
+
     it("does not report emitter exponent as non-default", () => {
       const inp = `
       [OPTIONS]

@@ -1004,6 +1004,29 @@ describe("reaction options", () => {
 
     expect(issues?.unsupportedSections?.has("[REACTIONS]")).toBeFalsy();
   });
+
+  it("falls back to defaults when reaction settings are empty", () => {
+    const inp = `
+      [REACTIONS]
+      Order Bulk\t
+      Order Wall\t
+      Order Tank\t
+      Global Bulk\t
+      Global Wall\t
+      Limiting Potential\t
+      Roughness Correlation\t
+      `;
+
+    const { simulationSettings } = parseInp(inp);
+
+    expect(simulationSettings.reactionBulkOrder).toEqual(1);
+    expect(simulationSettings.reactionWallOrder).toEqual(1);
+    expect(simulationSettings.reactionTankOrder).toEqual(1);
+    expect(simulationSettings.reactionGlobalBulk).toEqual(0);
+    expect(simulationSettings.reactionGlobalWall).toEqual(0);
+    expect(simulationSettings.reactionLimitingPotential).toEqual(0);
+    expect(simulationSettings.reactionRoughnessCorrelation).toEqual(0);
+  });
 });
 
 describe("quality section", () => {
