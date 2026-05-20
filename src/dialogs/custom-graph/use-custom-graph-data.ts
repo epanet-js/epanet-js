@@ -5,10 +5,11 @@ import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
+import type { Asset } from "src/hydraulic-model";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import { AssetTimeSeries } from "./types";
 
-const BATCH_SIZE = 4;
+const YIELD_INTERVAL = 100;
 const PROGRESS_THROTTLE_MS = 40;
 
 export function useCustomGraphData(onProgress: (progress: number) => void) {
@@ -71,49 +72,55 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
       }
     };
 
-    const yieldToUi = async () => await new Promise((r) => setTimeout(r, 0));
-
     const fetchSeries = async (
       ids: Set<number>,
       property: string,
     ): Promise<AssetTimeSeries[] | null> => {
       if (ids.size === 0) return [];
-      const entries = Array.from(ids);
-      const results = new Array<AssetTimeSeries>(ids.size);
-      let resultCount = 0;
 
-      for (let i = 0; i < entries.length; i += BATCH_SIZE) {
-        if (controller.signal.aborted) return null;
-
-        const batch = entries.slice(i, i + BATCH_SIZE);
-        const batchResults = await Promise.all(
-          batch.map(async (id) => {
-            const asset = hydraulicModel.assets.get(id);
-            if (!asset) return null;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ts = await epsResultsReader.getTimeSeries(
-              id,
-              asset.type as any,
-              property as any,
-            );
-            if (!ts) return null;
-            const label = asset.label ?? `${asset.type} ${id}`;
-            return { assetId: id, label, timeSeries: ts };
-          }),
-        );
-
-        for (const r of batchResults) {
-          if (r) results[resultCount++] = r;
-        }
-
-        fetched += batch.length;
-        reportProgress(Math.trunc((fetched / totalCount) * 100));
-
-        await yieldToUi();
+      const assets = new Map<number, Asset>();
+      for (const id of ids) {
+        const asset = hydraulicModel.assets.get(id);
+        if (asset) assets.set(id, asset);
       }
 
-      results.length = resultCount;
-      return results;
+      const results = new Map<number, AssetTimeSeries>();
+
+      try {
+        await epsResultsReader.iterateTimeSeries(
+          assets,
+          [property],
+          async (_metric, asset, timeSeries) => {
+            if (timeSeries) {
+              results.set(asset.id, {
+                assetId: asset.id,
+                label: asset.label ?? `${asset.type} ${asset.id}`,
+                timeSeries,
+              });
+            }
+
+            fetched++;
+            reportProgress(Math.trunc((fetched / totalCount) * 100));
+
+            if (fetched % YIELD_INTERVAL === 0) {
+              await new Promise((r) => setTimeout(r, 0));
+            }
+          },
+          controller.signal,
+        );
+      } catch {
+        if (controller.signal.aborted) return null;
+      }
+
+      const ordered = new Array<AssetTimeSeries>(results.size);
+
+      let i = 0;
+      for (const id of ids) {
+        const r = results.get(id);
+        if (r) ordered[i++] = r;
+      }
+      ordered.length = i;
+      return ordered;
     };
 
     const completeLoad = async () => {
