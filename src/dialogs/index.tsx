@@ -457,9 +457,13 @@ const ProfileNoPathDialog = dynamic<{
 
 const CustomGraphDialog = dynamic<{
   onClose: () => void;
-}>(() => import("src/dialogs/custom-graph").then((r) => r.CustomGraphDialog), {
-  loading: () => <LoadingDialog />,
-});
+}>(
+  () =>
+    import("src/dialogs/custom-graph-dialog").then((r) => r.CustomGraphDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);

@@ -21,41 +21,20 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { colors } from "src/lib/constants";
 import { getDecimals } from "src/lib/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
-import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { ChevronDownIcon } from "src/icons";
 import {
+  CustomGraphChartProps,
+  GraphDefaultOptions,
+  LinkProperty,
+  NodeProperty,
+  PropertyOption,
+  QualityProperty,
   useCustomGraphData,
-  type AssetTimeSeries,
-} from "./custom-graph/use-custom-graph-data";
+} from "./custom-graph";
 import { currentFileNameAtom } from "src/state";
 import { useExportSimulationResults } from "src/commands/export-simulation-results";
 import { ExportSimulationResultsProperties } from "src/lib/export/types";
 import { useUserTracking } from "src/infra/user-tracking";
-
-type NodeProperty = "pressure" | "head";
-type LinkProperty = "flow" | "velocity" | "headloss";
-type QualityProperty = "waterAge" | "waterTrace" | "chemicalConcentration";
-const WATER_QUALITY_PROPERTIES = [
-  "waterAge",
-  "waterTrace",
-  "chemicalConcentration",
-];
-
-interface PropertyOption<T extends string> {
-  value: T;
-  labelKey: string;
-  quantityKey: QuantityProperty;
-}
-
-interface CustomGraphChartProps {
-  seriesData: AssetTimeSeries[];
-  nodeCount: number;
-  nodeYAxisLabel: string;
-  linkYAxisLabel: string;
-  nodeDecimals: number;
-  linkDecimals: number;
-  unitLabels: string[];
-}
 
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
@@ -87,10 +66,14 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const nodePropertyOptions = useMemo(() => {
     const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
-      ...NODE_PROPERTIES,
+      ...GraphDefaultOptions.NODE_PROPERTIES,
     ];
-    if (qualityType && qualityType !== "none" && QUALITY_OPTIONS[qualityType]) {
-      opts.push(QUALITY_OPTIONS[qualityType]);
+    if (
+      qualityType &&
+      qualityType !== "none" &&
+      GraphDefaultOptions.QUALITY_OPTIONS[qualityType]
+    ) {
+      opts.push(GraphDefaultOptions.QUALITY_OPTIONS[qualityType]);
     }
     return opts.map((opt) => {
       const label = translate(opt.labelKey);
@@ -104,10 +87,14 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const linkPropertyOptions = useMemo(() => {
     const opts: PropertyOption<LinkProperty | QualityProperty>[] = [
-      ...LINK_PROPERTIES,
+      ...GraphDefaultOptions.LINK_PROPERTIES,
     ];
-    if (qualityType && qualityType !== "none" && QUALITY_OPTIONS[qualityType]) {
-      opts.push(QUALITY_OPTIONS[qualityType]);
+    if (
+      qualityType &&
+      qualityType !== "none" &&
+      GraphDefaultOptions.QUALITY_OPTIONS[qualityType]
+    ) {
+      opts.push(GraphDefaultOptions.QUALITY_OPTIONS[qualityType]);
     }
     return opts.map((opt) => {
       const label = translate(opt.labelKey);
@@ -120,14 +107,20 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   }, [translate, translateUnit, units, qualityType]);
 
   const nodeQuantityKey = useMemo(() => {
-    const allOpts = [...NODE_PROPERTIES, ...Object.values(QUALITY_OPTIONS)];
+    const allOpts = [
+      ...GraphDefaultOptions.NODE_PROPERTIES,
+      ...Object.values(GraphDefaultOptions.QUALITY_OPTIONS),
+    ];
     return (
       allOpts.find((o) => o.value === nodeProperty)?.quantityKey ?? "pressure"
     );
   }, [nodeProperty]);
 
   const linkQuantityKey = useMemo(() => {
-    const allOpts = [...LINK_PROPERTIES, ...Object.values(QUALITY_OPTIONS)];
+    const allOpts = [
+      ...GraphDefaultOptions.LINK_PROPERTIES,
+      ...Object.values(GraphDefaultOptions.QUALITY_OPTIONS),
+    ];
     return allOpts.find((o) => o.value === linkProperty)?.quantityKey ?? "flow";
   }, [linkProperty]);
 
@@ -146,9 +139,11 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const nodeYAxisLabel = useMemo(() => {
     const label = translate(
-      NODE_PROPERTIES.find((p) => p.value === nodeProperty)?.labelKey ??
-        Object.values(QUALITY_OPTIONS).find((p) => p.value === nodeProperty)
-          ?.labelKey ??
+      GraphDefaultOptions.NODE_PROPERTIES.find((p) => p.value === nodeProperty)
+        ?.labelKey ??
+        Object.values(GraphDefaultOptions.QUALITY_OPTIONS).find(
+          (p) => p.value === nodeProperty,
+        )?.labelKey ??
         nodeProperty,
     );
     return nodeUnitLabel ? `${label} (${nodeUnitLabel})` : label;
@@ -156,9 +151,11 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const linkYAxisLabel = useMemo(() => {
     const label = translate(
-      LINK_PROPERTIES.find((p) => p.value === linkProperty)?.labelKey ??
-        Object.values(QUALITY_OPTIONS).find((p) => p.value === linkProperty)
-          ?.labelKey ??
+      GraphDefaultOptions.LINK_PROPERTIES.find((p) => p.value === linkProperty)
+        ?.labelKey ??
+        Object.values(GraphDefaultOptions.QUALITY_OPTIONS).find(
+          (p) => p.value === linkProperty,
+        )?.labelKey ??
         linkProperty,
     );
     return linkUnitLabel ? `${label} (${linkUnitLabel})` : label;
@@ -237,7 +234,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     const mappedNodeProperty =
       nodeIds.length > 0
         ? [
-            WATER_QUALITY_PROPERTIES.includes(nodeProperty)
+            GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(nodeProperty)
               ? "waterQuality"
               : nodeProperty,
           ]
@@ -502,7 +499,10 @@ const CustomGraphChart = memo(
     const series: EChartsOption["series"] = useMemo(
       () =>
         seriesData.map((s, i) => {
-          const color = SERIES_COLORS[i % SERIES_COLORS.length];
+          const color =
+            GraphDefaultOptions.SERIES_COLORS[
+              i % GraphDefaultOptions.SERIES_COLORS.length
+            ];
           const isNode = i < nodeCount;
           return {
             type: "line" as const,
@@ -536,12 +536,12 @@ const CustomGraphChart = memo(
           itemHeight: 8,
           textStyle: { fontSize: 12, color: colors.gray600 },
           data:
-            seriesData.length > MAX_VISIBLE_SERIES
+            seriesData.length > GraphDefaultOptions.MAX_VISIBLE_SERIES
               ? [
                   ...seriesData
-                    .slice(0, MAX_VISIBLE_SERIES)
+                    .slice(0, GraphDefaultOptions.MAX_VISIBLE_SERIES)
                     .map((s) => s.label),
-                  `...other ${seriesData.length - MAX_VISIBLE_SERIES} assets`,
+                  `...other ${seriesData.length - GraphDefaultOptions.MAX_VISIBLE_SERIES} assets`,
                 ]
               : undefined,
           formatter: (name: string) => name,
@@ -558,8 +558,12 @@ const CustomGraphChart = memo(
           formatter: (params: unknown) => {
             if (!Array.isArray(params) || params.length === 0) return "";
             const timeLabel = params[0]?.name ?? "";
-            const visible = params.slice(0, MAX_VISIBLE_SERIES);
-            const remaining = params.length - MAX_VISIBLE_SERIES;
+            const visible = params.slice(
+              0,
+              GraphDefaultOptions.MAX_VISIBLE_SERIES,
+            );
+            const remaining =
+              params.length - GraphDefaultOptions.MAX_VISIBLE_SERIES;
             const rows = visible.map(
               (
                 p: {
@@ -570,7 +574,9 @@ const CustomGraphChart = memo(
                 },
                 i: number,
               ) => {
-                const value = p.value.toFixed(TOOLTIP_DECIMALS);
+                const value = p.value.toFixed(
+                  GraphDefaultOptions.TOOLTIP_DECIMALS,
+                );
                 const unit = unitLabels[p.seriesIndex ?? i] ?? "";
                 const idx = p.seriesIndex ?? i;
                 const assetType = idx < nodeCount ? "node" : "link";
@@ -622,55 +628,6 @@ const CustomGraphChart = memo(
     );
   }),
 );
-
-const NODE_PROPERTIES: PropertyOption<NodeProperty>[] = [
-  { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
-  { value: "head", labelKey: "head", quantityKey: "head" },
-];
-
-const LINK_PROPERTIES: PropertyOption<LinkProperty>[] = [
-  { value: "flow", labelKey: "flow", quantityKey: "flow" },
-  { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
-  {
-    value: "headloss",
-    labelKey: "unitHeadloss",
-    quantityKey: "unitHeadloss",
-  },
-];
-
-const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
-  age: {
-    value: "waterAge",
-    labelKey: "waterAge",
-    quantityKey: "waterAge",
-  },
-  trace: {
-    value: "waterTrace",
-    labelKey: "waterTrace",
-    quantityKey: "waterTrace",
-  },
-  chemical: {
-    value: "chemicalConcentration",
-    labelKey: "chemicalConcentration",
-    quantityKey: "chemicalConcentration",
-  },
-};
-
-const MAX_VISIBLE_SERIES = 6;
-const TOOLTIP_DECIMALS = 3;
-
-const SERIES_COLORS = [
-  colors.purple500,
-  colors.blue500,
-  colors.orange500,
-  colors.cyan700,
-  colors.fuchsia500,
-  colors.green800,
-  colors.red600,
-  colors.indigo500,
-  colors.amber500,
-  colors.cyan900,
-];
 
 const buildTimeLabels = (
   intervalsCount: number,

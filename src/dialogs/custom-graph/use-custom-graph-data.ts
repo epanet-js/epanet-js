@@ -5,25 +5,41 @@ import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
-import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
+import { AssetTimeSeries } from "./types";
 
-export interface AssetTimeSeries {
-  assetId: number;
-  label: string;
-  timeSeries: TimeSeries;
+export function useCustomGraphData() {
+  const { nodeIds, linkIds } = useAtomValue(categorizedAssetIdsAtom);
+  const setNodeProperty = useSetAtom(nodePropertyAtom);
+  const setLinkProperty = useSetAtom(linkPropertyAtom);
+  const nodeProperty = useAtomValue(nodePropertyAtom);
+  const linkProperty = useAtomValue(linkPropertyAtom);
+  const seriesData = useAtomValue(unwrappedCustomGraphSeriesAtom);
+
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const epsResultsReader =
+    "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+  const qualityType = epsResultsReader?.qualityType ?? null;
+
+  const hasNodes = nodeIds.size > 0;
+  const hasLinks = linkIds.size > 0;
+
+  const isLoading = seriesData === undefined;
+  const { nodeSeriesData, linkSeriesData } = seriesData ?? EMPTY_SERIES;
+
+  return {
+    hasNodes,
+    hasLinks,
+    nodeSeriesData,
+    linkSeriesData,
+    isLoading,
+    qualityType,
+    nodeProperty,
+    linkProperty,
+    setNodeProperty,
+    setLinkProperty,
+  };
 }
-
-interface CustomGraphSeriesData {
-  nodeSeriesData: AssetTimeSeries[];
-  linkSeriesData: AssetTimeSeries[];
-}
-
-const NODE_TYPES: Set<AssetType> = new Set(["junction", "tank", "reservoir"]);
-const LINK_TYPES: Set<AssetType> = new Set(["pipe", "pump", "valve"]);
-
-const nodePropertyAtom = atom("pressure");
-const linkPropertyAtom = atom("flow");
 
 const categorizedAssetIdsAtom = atom<{
   nodeIds: Set<number>;
@@ -105,35 +121,13 @@ const unwrappedCustomGraphSeriesAtom = unwrap(
   () => undefined,
 );
 
-export function useCustomGraphData() {
-  const { nodeIds, linkIds } = useAtomValue(categorizedAssetIdsAtom);
-  const setNodeProperty = useSetAtom(nodePropertyAtom);
-  const setLinkProperty = useSetAtom(linkPropertyAtom);
-  const nodeProperty = useAtomValue(nodePropertyAtom);
-  const linkProperty = useAtomValue(linkPropertyAtom);
-  const seriesData = useAtomValue(unwrappedCustomGraphSeriesAtom);
-
-  const simulation = useAtomValue(simulationDerivedAtom);
-  const epsResultsReader =
-    "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
-  const qualityType = epsResultsReader?.qualityType ?? null;
-
-  const hasNodes = nodeIds.size > 0;
-  const hasLinks = linkIds.size > 0;
-
-  const isLoading = seriesData === undefined;
-  const { nodeSeriesData, linkSeriesData } = seriesData ?? EMPTY_SERIES;
-
-  return {
-    hasNodes,
-    hasLinks,
-    nodeSeriesData,
-    linkSeriesData,
-    isLoading,
-    qualityType,
-    nodeProperty,
-    linkProperty,
-    setNodeProperty,
-    setLinkProperty,
-  };
+interface CustomGraphSeriesData {
+  nodeSeriesData: AssetTimeSeries[];
+  linkSeriesData: AssetTimeSeries[];
 }
+
+const NODE_TYPES: Set<AssetType> = new Set(["junction", "tank", "reservoir"]);
+const LINK_TYPES: Set<AssetType> = new Set(["pipe", "pump", "valve"]);
+
+const nodePropertyAtom = atom("pressure");
+const linkPropertyAtom = atom("flow");
