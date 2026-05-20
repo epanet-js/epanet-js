@@ -53,6 +53,32 @@
   --color-yellow-100: oklch(97.3% 0.071 103.193);
   --color-yellow-300: oklch(90.5% 0.182 98.111);
   --color-yellow-500: oklch(79.5% 0.184 86.047);
+
+  /* Semantic token colors (dark overrides in .dark below) */
+  --color-accent: var(--color-purple-600);
+  --color-base-hover: var(--color-gray-100);
+  --color-popover: var(--color-white);
+  --color-default: var(--color-gray-900);
+  --color-subtle: var(--color-gray-500);
+  --color-warning: var(--color-orange-600);
+  --color-warning-subtle: var(--color-orange-50);
+  --color-error: var(--color-red-600);
+  --color-error-subtle: var(--color-red-50);
+  --color-success: var(--color-green-600);
+  --color-success-subtle: var(--color-green-50);
+  --color-info: var(--color-blue-600);
+  --color-info-subtle: var(--color-blue-50);
+
+  --color-panel: var(--color-gray-50);
+  --color-base-active: var(--color-gray-200);
+  --color-disabled: var(--color-gray-300);
+
+  /* Semantic font sizes */
+  --text-size-heading-1: 1.5rem;
+  --text-size-heading-2: 1.25rem;
+  --text-size-heading-3: 1.125rem;
+  --text-size-base: 0.875rem;
+  --text-size-small: 0.75rem;
 }
 
 /*
@@ -60,14 +86,28 @@
   This restores the v3 default so existing border utilities keep their appearance.
 */
 
+:root {
+  --color-background-base: var(--color-white);
+  --color-border: var(--color-gray-200);
+  --color-border-strong: var(--color-gray-300);
+}
+
 @layer base {
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200);
+    border-color: var(--color-border);
   }
+}
+
+@utility bg-base {
+  background-color: var(--color-background-base);
+}
+
+@utility border-strong {
+  border-color: var(--color-border-strong);
 }
 
 .mapboxgl-ctrl-bottom-right {
@@ -259,6 +299,28 @@ details summary::-webkit-details-marker {
 }
 
 .dark {
+  /* Semantic token dark overrides */
+  --color-accent: var(--color-purple-400);
+  --color-base-hover: var(--color-gray-700);
+  --color-base-active: var(--color-gray-600);
+  --color-panel: var(--color-gray-800);
+  --color-popover: var(--color-gray-800);
+  --color-default: var(--color-white);
+  --color-subtle: var(--color-gray-400);
+  --color-disabled: var(--color-gray-600);
+  --color-warning: var(--color-orange-400);
+  --color-warning-subtle: var(--color-orange-950);
+  --color-error: var(--color-red-300);
+  --color-error-subtle: var(--color-red-950);
+  --color-success: var(--color-green-400);
+  --color-success-subtle: var(--color-green-950);
+  --color-info: var(--color-blue-400);
+  --color-info-subtle: var(--color-blue-950);
+
+  --color-background-base: var(--color-gray-900);
+  --color-border: var(--color-gray-700);
+  --color-border-strong: var(--color-gray-600);
+
   --highlight-purple: var(--color-purple-300);
   --highlight-dark-purple: var(--color-purple-100);
   --highlight-yellow: var(--color-yellow-100);
