@@ -1320,8 +1320,9 @@
     "imagePng": "Image (.png)",
     "tabularCsv": "Comma-Separated Values (.csv)",
     "tabularXlsx": "Microsoft Excel spreadsheet (.xlsx)",
-    "nodeProperty": "Node property",
-    "linkProperty": "Link property"
+    "nodeProperty": "Node attribute",
+    "linkProperty": "Links attribute",
+    "loading": "Loading data - {{1}}%"
   },
   "dialog": {
     "save": "Save",

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useMemo, useCallback } from "react";
+import { useRef, useMemo, useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
 import ReactECharts from "echarts-for-react";
 import * as DD from "@radix-ui/react-dropdown-menu";
@@ -39,6 +39,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
   const chartRef = useRef<ReactECharts>(null);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
+  const [progress, setProgress] = useState(0);
 
   const {
     hasNodes,
@@ -51,7 +52,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     linkProperty,
     setNodeProperty,
     setLinkProperty,
-  } = useCustomGraphData();
+  } = useCustomGraphData(setProgress);
 
   const nodePropertyOptions = useMemo(() => {
     const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
@@ -255,7 +256,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         <footer className="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-200">
           <DD.Root>
             <DD.Trigger asChild>
-              <Button variant="default" type="button">
+              <Button variant="default" type="button" disabled={isLoading}>
                 {translate("customGraph.exportAs")}
                 <ChevronDownIcon />
               </Button>
@@ -288,6 +289,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={nodePropertyOptions}
                 selected={nodeProperty}
+                disabled={isLoading}
                 onChange={handleNodePropertyChange}
                 styleOptions={{
                   border: true,
@@ -305,6 +307,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={linkPropertyOptions}
                 selected={linkProperty}
+                disabled={isLoading}
                 onChange={handleLinkPropertyChange}
                 styleOptions={{
                   border: true,
@@ -317,8 +320,16 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         </div>
 
         {isLoading && (
-          <div className="flex-1 min-h-0 flex items-center justify-center">
-            <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
+            <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-purple-500 rounded-full transition-[width] duration-150"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-400">
+              {translate("customGraph.loading", progress.toFixed(0))}
+            </span>
           </div>
         )}
 
