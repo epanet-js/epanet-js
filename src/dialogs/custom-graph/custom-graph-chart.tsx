@@ -211,12 +211,11 @@ const SingleChart = memo(
           itemHeight: 8,
           textStyle: { fontSize: 12, color: colors.gray600 },
           data:
-            seriesData.length > GraphDefaultOptions.MAX_VISIBLE_SERIES
+            seriesData.length > GraphDefaultOptions.MAX_VISIBLE_LEGENDS
               ? [
                   ...seriesData
-                    .slice(0, GraphDefaultOptions.MAX_VISIBLE_SERIES)
+                    .slice(0, GraphDefaultOptions.MAX_VISIBLE_LEGENDS)
                     .map((s) => s.label),
-                  `...other ${seriesData.length - GraphDefaultOptions.MAX_VISIBLE_SERIES} assets`,
                 ]
               : undefined,
           formatter: (name: string) => name,
@@ -298,10 +297,10 @@ const SingleChart = memo(
             const timeLabel = params[0]?.name ?? "";
             const visible = params.slice(
               0,
-              GraphDefaultOptions.MAX_VISIBLE_SERIES,
+              GraphDefaultOptions.MAX_VISIBLE_LEGENDS,
             );
             const remaining =
-              params.length - GraphDefaultOptions.MAX_VISIBLE_SERIES;
+              params.length - GraphDefaultOptions.MAX_VISIBLE_LEGENDS;
             const rows = visible.map(
               (p: { color: string; seriesName?: string; value: number }) => {
                 const value = p.value.toFixed(
@@ -574,12 +573,12 @@ const CombinedChart = memo(function CombinedChart({
         itemHeight: 8,
         textStyle: { fontSize: 12, color: colors.gray600 },
         data:
-          seriesData.length > GraphDefaultOptions.MAX_VISIBLE_SERIES
+          seriesData.length > GraphDefaultOptions.MAX_VISIBLE_LEGENDS
             ? [
                 ...seriesData
-                  .slice(0, GraphDefaultOptions.MAX_VISIBLE_SERIES)
+                  .slice(0, GraphDefaultOptions.MAX_VISIBLE_LEGENDS)
                   .map((s) => s.label),
-                `...other ${seriesData.length - GraphDefaultOptions.MAX_VISIBLE_SERIES} assets`,
+                `...other ${seriesData.length - GraphDefaultOptions.MAX_VISIBLE_LEGENDS} assets`,
               ]
             : undefined,
         formatter: (name: string) => name,
@@ -598,10 +597,10 @@ const CombinedChart = memo(function CombinedChart({
           const timeLabel = params[0]?.name ?? "";
           const visible = params.slice(
             0,
-            GraphDefaultOptions.MAX_VISIBLE_SERIES,
+            GraphDefaultOptions.MAX_VISIBLE_LEGENDS,
           );
           const remaining =
-            params.length - GraphDefaultOptions.MAX_VISIBLE_SERIES;
+            params.length - GraphDefaultOptions.MAX_VISIBLE_LEGENDS;
           const rows = visible.map(
             (
               p: {
