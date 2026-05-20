@@ -1322,7 +1322,8 @@
     "tabularXlsx": "Microsoft Excel spreadsheet (.xlsx)",
     "nodeProperty": "Node attribute",
     "linkProperty": "Links attribute",
-    "loading": "Loading data - {{1}}%"
+    "loading": "Loading data - {{1}}%",
+    "combineAxes": "Combine axes"
   },
   "dialog": {
     "save": "Save",

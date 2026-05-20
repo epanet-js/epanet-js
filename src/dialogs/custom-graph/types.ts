@@ -22,6 +22,15 @@ export interface CustomGraphChartProps {
   nodeDecimals: number;
   linkDecimals: number;
   unitLabels: string[];
+  combineAxes: boolean;
+}
+
+export interface SingleGraphChartProps {
+  seriesData: AssetTimeSeries[];
+  yAxisLabel: string;
+  decimals: number;
+  unitLabel: string;
+  showXAxisLabels: boolean;
 }
 
 export interface AssetTimeSeries {

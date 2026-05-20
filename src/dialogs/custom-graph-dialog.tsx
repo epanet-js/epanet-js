@@ -1,10 +1,11 @@
 "use client";
 import { useRef, useMemo, useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
-import ReactECharts from "echarts-for-react";
+import { getInstanceByDom } from "echarts";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
+import { Checkbox } from "src/components/form/Checkbox";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -37,9 +38,10 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     networkNameDot < 0 ? fullNetworkName.length - 1 : networkNameDot,
   );
 
-  const chartRef = useRef<ReactECharts>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const [progress, setProgress] = useState(0);
+  const [combineAxes, setCombineAxes] = useState(false);
 
   const {
     hasNodes,
@@ -185,22 +187,45 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
   const exportAsPng = () => {
-    const instance = chartRef.current?.getEchartsInstance();
-    if (!instance) return;
+    const container = chartContainerRef.current;
+    if (!container) return;
 
-    const svgUrl = instance.getDataURL({ type: "svg" });
-    const img = new Image();
+    const echartsElements = container.querySelectorAll<HTMLDivElement>(
+      "[_echarts_instance_]",
+    );
+    if (echartsElements.length === 0) return;
 
-    img.onload = () => {
+    const svgUrls: string[] = [];
+    for (const el of echartsElements) {
+      const instance = getInstanceByDom(el);
+      if (instance) {
+        svgUrls.push(instance.getDataURL({ type: "svg" }));
+      }
+    }
+
+    if (svgUrls.length === 0) return;
+
+    const ratio = 2;
+    let loaded = 0;
+    const images: HTMLImageElement[] = new Array(svgUrls.length);
+
+    const onAllLoaded = () => {
+      const width = Math.max(...images.map((img) => img.width));
+      const totalHeight = images.reduce((sum, img) => sum + img.height, 0);
+
       const canvas = document.createElement("canvas");
-      const ratio = 2;
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
+      canvas.width = width * ratio;
+      canvas.height = totalHeight * ratio;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.scale(ratio, ratio);
-      ctx.drawImage(img, 0, 0);
+
+      let y = 0;
+      for (const img of images) {
+        ctx.drawImage(img, 0, y);
+        y += img.height;
+      }
 
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
@@ -210,7 +235,15 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       trackExport("png");
     };
 
-    img.src = svgUrl;
+    svgUrls.forEach((url, i) => {
+      const img = new Image();
+      img.onload = () => {
+        images[i] = img;
+        loaded++;
+        if (loaded === svgUrls.length) onAllLoaded();
+      };
+      img.src = url;
+    });
   };
 
   const exportTabular = async (format: "csv" | "xlsx") => {
@@ -317,6 +350,17 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               />
             </div>
           )}
+          {hasNodes && hasLinks && (
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <Checkbox
+                checked={combineAxes}
+                onChange={(e) => setCombineAxes(e.target.checked)}
+              />
+              <span className="text-sm text-gray-600">
+                {translate("customGraph.combineAxes")}
+              </span>
+            </label>
+          )}
         </div>
 
         {isLoading && (
@@ -334,14 +378,14 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         )}
 
         {!isLoading && combinedSeriesData.length > 0 && (
-          <div className="flex-1 min-h-0 px-4 pb-2">
+          <div ref={chartContainerRef} className="flex-1 min-h-0 px-4 pb-2">
             <CustomGraphChart
-              ref={chartRef}
               seriesData={combinedSeriesData}
               nodeCount={nodeSeriesData.length}
               nodeYAxisLabel={nodeYAxisLabel}
               linkYAxisLabel={linkYAxisLabel}
               nodeDecimals={nodeDecimals}
+              combineAxes={combineAxes}
               linkDecimals={linkDecimals}
               unitLabels={unitLabels}
             />
