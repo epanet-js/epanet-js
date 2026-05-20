@@ -1,8 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { GeoTiffTile } from ".";
 import { parseGeoTIFF } from "./parse-geotiff";
-import { fetchGeoTiffTileElevation } from "./fetch-elevation";
+import {
+  fetchGeoTiffTileElevation,
+  fetchGeoTiffTileElevationsForPoints,
+} from "./fetch-elevation";
 import { buildFixture } from "src/__helpers__/geotiff-fixture";
 import { GeoKey, ModelType, RasterType } from "./spec";
 
@@ -203,5 +206,217 @@ describe("fetchGeoTiffTileElevation", () => {
 
     const inFeet = await fetchGeoTiffTileElevation(tile, -3.875, 55.875);
     expect(inFeet).toEqual({ value: 100, unit: "ft" });
+  });
+});
+
+describe("fetchGeoTiffTileElevationsForPoints", () => {
+  it("returns empty array for empty input", async () => {
+    const tile = await loadFixtureTile();
+    const readSpy = vi.spyOn(tile.image, "readRasters");
+
+    const result = await fetchGeoTiffTileElevationsForPoints(tile, []);
+
+    expect(result).toEqual([]);
+    expect(readSpy).not.toHaveBeenCalled();
+  });
+
+  it("returns same values as the single-point function", async () => {
+    const tile = await loadFixtureTile();
+    const points = [
+      { lng: -3.875, lat: 55.875 }, // pixel (0,0) center = 100
+      { lng: -3.625, lat: 55.625 }, // pixel (1,1) center = 115
+      { lng: -3.125, lat: 55.125 }, // pixel (3,3) center = 145
+      { lng: -3.75, lat: 55.75 }, // midpoint = 107.5
+    ];
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, points);
+
+    expect(results).toEqual([
+      { value: 100, unit: "m" },
+      { value: 115, unit: "m" },
+      { value: 145, unit: "m" },
+      { value: 107.5, unit: "m" },
+    ]);
+  });
+
+  it("reads the raster once for many points in the same tile", async () => {
+    const tile = await loadFixtureTile();
+    const readSpy = vi.spyOn(tile.image, "readRasters");
+
+    const points = [
+      { lng: -3.875, lat: 55.875 },
+      { lng: -3.625, lat: 55.625 },
+      { lng: -3.125, lat: 55.125 },
+      { lng: -3.75, lat: 55.75 },
+    ];
+
+    await fetchGeoTiffTileElevationsForPoints(tile, points);
+
+    expect(readSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns null for out-of-bounds points without losing in-bounds results", async () => {
+    const tile = await loadFixtureTile();
+    const points = [
+      { lng: -3.875, lat: 55.875 }, // in bounds → 100
+      { lng: -10, lat: 55.5 }, // out west
+      { lng: -3.5, lat: 60 }, // out north
+      { lng: -3.625, lat: 55.625 }, // in bounds → 115
+    ];
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, points);
+
+    expect(results[0]).toEqual({ value: 100, unit: "m" });
+    expect(results[1]).toBeNull();
+    expect(results[2]).toBeNull();
+    expect(results[3]).toEqual({ value: 115, unit: "m" });
+  });
+
+  it("skips the raster read when all points are out of bounds", async () => {
+    const tile = await loadFixtureTile();
+    const readSpy = vi.spyOn(tile.image, "readRasters");
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: -10, lat: 55.5 },
+      { lng: -3.5, lat: 60 },
+    ]);
+
+    expect(results).toEqual([null, null]);
+    expect(readSpy).not.toHaveBeenCalled();
+  });
+
+  it("returns null at nodata pixel centers", async () => {
+    const tile = await loadFixtureTile();
+    const points = [
+      { lng: -3.375, lat: 55.375 }, // pixel (2,2) center = nodata
+      { lng: -3.875, lat: 55.875 }, // pixel (0,0) center = 100
+    ];
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, points);
+
+    expect(results).toEqual([null, { value: 100, unit: "m" }]);
+  });
+
+  it("applies scaleZ and GDAL scale/offset uniformly", async () => {
+    const tile = await loadFixtureTile({
+      gdalScale: 0.1,
+      gdalOffset: -10,
+      scaleZ: 2,
+    });
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: -3.875, lat: 55.875 }, // 100 * 0.1 + (-10) = 0, * 2 = 0
+      { lng: -3.625, lat: 55.625 }, // 115 * 0.1 + (-10) = 1.5, * 2 = 3
+    ]);
+
+    expect(results).toEqual([
+      { value: 0, unit: "m" },
+      { value: 3, unit: "m" },
+    ]);
+  });
+});
+
+/**
+ * Synthetic tile factory for cell-bucketing tests. crsToPixel is identity, so
+ * lng=lat=k maps to pixel (k, k). Width/height are 2000 to match the user's
+ * real tile size and exercise multi-cell behavior.
+ */
+function aSyntheticTile(width = 2000, height = 2000): GeoTiffTile {
+  return {
+    id: "synth",
+    file: new File([""], "synth.tif"),
+    width,
+    height,
+    bbox: [0, 0, width, height],
+    resolution: [1, 1] as [number, number],
+    crsUnit: "deg",
+    verticalUnit: "m",
+    pixelToCrs: [0, 1, 0, 0, 0, 1],
+    crsToPixel: [0, 1, 0, 0, 0, 1],
+    noDataValue: -9999,
+    image: {
+      readRasters: vi.fn(
+        ({ window }: { window: number[] } = { window: [] }) => {
+          const [x0, y0, x1, y1] = window;
+          const size = Math.max(1, (x1 - x0) * (y1 - y0));
+          // Encode the window's top-left into the value so we can verify which
+          // window each point's elevation came from.
+          return Promise.resolve([
+            Float32Array.from({ length: size }, () => x0 + y0),
+          ]);
+        },
+      ),
+    } as unknown as GeoTiffTile["image"],
+  };
+}
+
+describe("fetchGeoTiffTileElevationsForPoints — cell bucketing", () => {
+  it("issues a single read for points clustered in the same cell", async () => {
+    const tile = aSyntheticTile();
+    const readSpy = vi.mocked(tile.image.readRasters);
+
+    await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 10, lat: 10 },
+      { lng: 12, lat: 14 },
+      { lng: 20, lat: 30 },
+      { lng: 100, lat: 100 },
+    ]);
+
+    expect(readSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("issues separate reads for points in different cells", async () => {
+    const tile = aSyntheticTile();
+    const readSpy = vi.mocked(tile.image.readRasters);
+
+    await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 10, lat: 10 }, // cell (0,0)
+      { lng: 600, lat: 600 }, // cell (2,2)
+      { lng: 1500, lat: 1500 }, // cell (5,5)
+    ]);
+
+    expect(readSpy).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps each read window small even when the points span the raster", async () => {
+    const tile = aSyntheticTile();
+    const readSpy = vi.mocked(tile.image.readRasters);
+
+    // Diagonal path crossing the raster — old union-window code would read
+    // the whole 2000×2000 raster in one go.
+    await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 50, lat: 50 },
+      { lng: 500, lat: 500 },
+      { lng: 1000, lat: 1000 },
+      { lng: 1500, lat: 1500 },
+      { lng: 1950, lat: 1950 },
+    ]);
+
+    const widestRead = readSpy.mock.calls.reduce((max, [arg]) => {
+      const w = (arg as { window: number[] }).window;
+      const width = w[2] - w[0];
+      const height = w[3] - w[1];
+      return Math.max(max, width, height);
+    }, 0);
+
+    // Cell bucket is 256 px; per-bucket union may extend by ~2 px for the
+    // bilinear neighborhood. Stay well under the 2000 px raster size.
+    expect(widestRead).toBeLessThan(300);
+    expect(readSpy).toHaveBeenCalledTimes(5);
+  });
+
+  it("preserves point→bucket association so each result reflects its own pixel", async () => {
+    const tile = aSyntheticTile();
+
+    // Synthetic readRasters returns (x0 + y0) for every pixel in the window,
+    // so the elevation for a point reveals the top-left of the window it was
+    // read from. Verifies points aren't being cross-pollinated by bucket.
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 10, lat: 10 }, // cell (0,0), window starts at (9,9) → 18
+      { lng: 600, lat: 600 }, // cell (2,2), window starts at (599,599) → 1198
+    ]);
+
+    expect(results[0]?.value).toBe(18);
+    expect(results[1]?.value).toBe(1198);
   });
 });

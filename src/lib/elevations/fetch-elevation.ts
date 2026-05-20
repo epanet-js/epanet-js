@@ -7,6 +7,7 @@ import {
 import type { ElevationSource } from "./elevation-source-types";
 import {
   fetchGeoTiffTileElevation,
+  fetchGeoTiffTileElevationsForPoints,
   isPointInBbox,
 } from "./geotiff/fetch-elevation";
 
@@ -86,18 +87,8 @@ async function trySourceBatch(
   unit: Unit,
 ): Promise<(number | null)[]> {
   switch (source.type) {
-    case "geotiff": {
-      const out: (number | null)[] = new Array(points.length).fill(null);
-      for (let i = 0; i < points.length; i++) {
-        out[i] = await tryGeotiffSource(
-          source,
-          points[i].lng,
-          points[i].lat,
-          unit,
-        );
-      }
-      return out;
-    }
+    case "geotiff":
+      return tryGeotiffSourceBatch(source, points, unit);
     case "tile-server":
       try {
         return await fetchElevationsForPoints(points, {
@@ -108,6 +99,47 @@ async function trySourceBatch(
         return points.map(() => null);
       }
   }
+}
+
+/**
+ * For each tile in source order, collects the still-unresolved points whose
+ * bbox contains them and issues a single bulk read against that tile. Within
+ * a source, earlier tiles take priority on overlap (matches single-point
+ * `tryGeotiffSource`).
+ */
+async function tryGeotiffSourceBatch(
+  source: Extract<ElevationSource, { type: "geotiff" }>,
+  points: LngLat[],
+  unit: Unit,
+): Promise<(number | null)[]> {
+  const results: (number | null)[] = new Array(points.length).fill(null);
+
+  for (const tile of source.tiles) {
+    const candidates: { index: number; point: LngLat }[] = [];
+    for (let i = 0; i < points.length; i++) {
+      if (results[i] !== null) continue;
+      const p = points[i];
+      if (isPointInBbox(p.lng, p.lat, tile.bbox)) {
+        candidates.push({ index: i, point: p });
+      }
+    }
+    if (candidates.length === 0) continue;
+
+    const tileResults = await fetchGeoTiffTileElevationsForPoints(
+      tile,
+      candidates.map((c) => c.point),
+    );
+    for (let k = 0; k < candidates.length; k++) {
+      const elevation = tileResults[k];
+      if (elevation !== null) {
+        results[candidates[k].index] = parseFloat(
+          convertTo(elevation, unit).toFixed(2),
+        );
+      }
+    }
+  }
+
+  return results;
 }
 
 async function trySource(
