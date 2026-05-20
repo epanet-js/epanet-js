@@ -1314,7 +1314,7 @@
   "exportShapefile": "Shapefile (.zip)",
   "exportSelectedAssetsOnly": "Selected assets only",
   "customGraph": {
-    "menuTitle": "Open in graph",
+    "menuTitle": "View graph",
     "title": "Custom graph",
     "exportAs": "Export as...",
     "imagePng": "Image (.png)",
