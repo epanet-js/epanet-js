@@ -37,8 +37,8 @@ declare module "@tanstack/react-table" {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
-    copyValue?: (value: unknown) => string;
-    pasteValue?: (text: string) => unknown;
+    copyValue?: (value: TValue) => string;
+    pasteValue?: (text: string) => TValue;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

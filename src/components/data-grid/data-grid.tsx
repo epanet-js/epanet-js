@@ -6,17 +6,18 @@ import {
   useRef,
 } from "react";
 import {
+  type ColumnDef,
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table";
 import {
   DataGridVariant,
-  GridColumn,
   RowAction,
   GridSelection,
   CellContextAction,
   GutterContextAction,
+  GridColumn,
 } from "./types";
 import { useGridEditing, useMouseSelection } from "./hooks";
 import {
@@ -52,7 +53,7 @@ export type DataGridRef = {
 
 type DataGridProps<TData extends Record<string, unknown>> = {
   data: TData[];
-  columns: GridColumn[];
+  columns: GridColumn<TData>[];
   onChange: (data: TData[]) => void;
   createRow: () => TData;
   readOnly?: boolean;
@@ -111,7 +112,7 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const table = useReactTable<TData>({
     data,
-    columns,
+    columns: columns as ColumnDef<TData>[],
     getCoreRowModel: getCoreRowModel(),
     _features: [
       CellEditingFeature,

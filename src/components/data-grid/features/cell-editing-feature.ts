@@ -31,7 +31,7 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
-    deleteValue?: unknown;
+    deleteValue?: TValue;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

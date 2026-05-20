@@ -24,7 +24,8 @@ const categoryOptions = [
   { value: 2, label: "Category C" },
 ];
 
-const columns: GridColumn[] = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const columns: GridColumn<TestRow>[] = [
   textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
   floatColumn("value", { header: "Value", size: 100, deleteValue: null }),
   booleanColumn("active", { header: "Active", size: 80 }),
@@ -1598,7 +1599,7 @@ describe("DataGrid", () => {
         { value: 8, label: "Iota" },
       ];
 
-      const columnsWithSearch: GridColumn[] = [
+      const columnsWithSearch: GridColumn<TestRow>[] = [
         textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
         filterableSelectColumn("category", {
           header: "Category",
@@ -1608,8 +1609,8 @@ describe("DataGrid", () => {
         }),
       ];
 
-      const data: { id: number; label: string; category: number | null }[] = [
-        { id: 1, label: "Row 1", category: 0 },
+      const data: TestRow[] = [
+        { id: 1, label: "Row 1", value: null, category: 0, active: null },
       ];
 
       render(
@@ -1617,7 +1618,7 @@ describe("DataGrid", () => {
           data={data}
           columns={columnsWithSearch}
           onChange={vi.fn()}
-          createRow={() => ({ id: Date.now(), label: "", category: null })}
+          createRow={createRow}
         />,
       );
 

@@ -1,14 +1,13 @@
 import { Table } from "@tanstack/react-table";
 import { Virtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
-import { DataGridVariant, GridColumn, RowAction } from "../types";
+import { DataGridVariant, RowAction } from "../types";
 import { GridRow } from "./grid-row";
 
 export type VirtualRowsProps<TData extends Record<string, unknown>> = {
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   table: Table<TData>;
   hasVerticalScroll: boolean;
-  columns: GridColumn[];
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -28,7 +27,6 @@ export function VirtualRows<TData extends Record<string, unknown>>({
   rowVirtualizer,
   table,
   hasVerticalScroll,
-  columns,
   onCellMouseDown,
   onCellMouseEnter,
   onCellDoubleClick,
@@ -75,7 +73,6 @@ export function VirtualRows<TData extends Record<string, unknown>>({
               table={table}
               row={row}
               rowIndex={visualIndex}
-              columns={columns}
               onCellMouseDown={onCellMouseDown}
               onCellMouseEnter={onCellMouseEnter}
               onCellDoubleClick={onCellDoubleClick}

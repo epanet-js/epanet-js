@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import clsx from "clsx";
+import type { ColumnDef, RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
 
 export function BooleanCell({
@@ -67,20 +68,20 @@ export function BooleanCell({
   );
 }
 
-export function booleanColumn(
-  accessorKey: string,
+export function booleanColumn<TData extends RowData = RowData>(
+  accessorKey: Extract<keyof TData, string> & string,
   options: {
     header: string;
     size?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
   },
-): GridColumn {
+): GridColumn<TData> {
   const { isReadOnly } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
-  return {
+  const column: ColumnDef<TData, boolean | null> = {
     accessorKey,
     header: options.header,
     size: options.size,
@@ -108,4 +109,5 @@ export function booleanColumn(
       isReadOnly,
     },
   };
+  return column as GridColumn<TData>;
 }

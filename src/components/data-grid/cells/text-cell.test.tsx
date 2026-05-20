@@ -353,9 +353,11 @@ describe("textColumn", () => {
     it("creates column with correct properties", () => {
       const column = textColumn("name", { header: "Name", size: 120 });
 
-      expect(column.accessorKey).toBe("name");
-      expect(column.header).toBe("Name");
-      expect(column.size).toBe(120);
+      expect(column).toMatchObject({
+        accessorKey: "name",
+        header: "Name",
+        size: 120,
+      });
     });
 
     it("uses null as default deleteValue", () => {

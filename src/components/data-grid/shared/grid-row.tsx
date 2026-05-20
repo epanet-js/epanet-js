@@ -1,5 +1,5 @@
 import { Row, Cell, Table } from "@tanstack/react-table";
-import { DataGridVariant, GridColumn, RowAction } from "../types";
+import { DataGridVariant, RowAction } from "../types";
 import {
   isCellSelected,
   isCellActive,
@@ -14,7 +14,6 @@ export type GridRowProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
   row: Row<TData>;
   rowIndex: number;
-  columns: GridColumn[];
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -36,7 +35,6 @@ export function GridRow<TData extends Record<string, unknown>>({
   table,
   row,
   rowIndex,
-  columns,
   onCellMouseDown,
   onCellMouseEnter,
   onCellDoubleClick,
@@ -56,6 +54,7 @@ export function GridRow<TData extends Record<string, unknown>>({
   const activeCell = table.getActiveCell();
   const selection = table.getSelection();
   const editMode = table.getEditMode();
+  const cells = row.getVisibleCells();
 
   return (
     <>
@@ -68,65 +67,62 @@ export function GridRow<TData extends Record<string, unknown>>({
           isLastRow={gutterIsLastRow}
           showRowNumbers={showRowNumbers}
           isRowSelected={
-            isFullRowSelected(selection, columns.length) &&
+            isFullRowSelected(selection, cells.length) &&
             isCellSelected(selection, 0, rowIndex)
           }
         />
       )}
 
-      {row
-        .getVisibleCells()
-        .map((cell: Cell<TData, unknown>, colIndex, cells) => {
-          const column = columns[colIndex];
-          const accessorKey = column.accessorKey;
-          const isSelected = isCellSelected(selection, colIndex, rowIndex);
-          const isActive = isCellActive(activeCell, colIndex, rowIndex);
-          const isCurrentInteractiveCell =
-            isActive && isSingleCellSelection(selection);
+      {cells.map((cell: Cell<TData, unknown>, colIndex) => {
+        const accessorKey = cell.column.id;
+        const isSelected = isCellSelected(selection, colIndex, rowIndex);
+        const isActive = isCellActive(activeCell, colIndex, rowIndex);
+        const isCurrentInteractiveCell =
+          isActive && isSingleCellSelection(selection);
 
-          return (
-            <GridDataCell
-              key={cell.id}
-              cell={cell}
-              colIndex={colIndex}
-              isSelected={isSelected}
-              isActive={isActive}
-              editMode={isCurrentInteractiveCell ? editMode : false}
-              isInteractive={isCurrentInteractiveCell}
-              readOnly={cell.column.isReadOnly(rowIndex)}
-              selectionEdge={
-                isSelected && selection
-                  ? {
-                      top: rowIndex === selection.min.row,
-                      bottom: rowIndex === selection.max.row,
-                      left: colIndex === selection.min.col,
-                      right: colIndex === selection.max.col,
-                    }
-                  : undefined
-              }
-              onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
-              onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
-              onDoubleClick={() => onCellDoubleClick(colIndex)}
-              onContextMenu={(e) => onCellContextMenu?.(colIndex, rowIndex, e)}
-              onBlur={table.stopEditing}
-              onStartEditing={table.startEditing}
-              onChange={
-                accessorKey
-                  ? (value) => onCellChange(row.index, accessorKey, value)
-                  : undefined
-              }
-              CellComponent={cell.column.getCellComponent()}
-              variant={variant}
-              isLastRow={cellsIsLastRow}
-              isLastCol={colIndex === cells.length - 1}
-              hasWarning={
-                accessorKey
-                  ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
-                  : false
-              }
-            />
-          );
-        })}
+        return (
+          <GridDataCell
+            key={cell.id}
+            cell={cell}
+            colIndex={colIndex}
+            isSelected={isSelected}
+            isActive={isActive}
+            editMode={isCurrentInteractiveCell ? editMode : false}
+            isInteractive={isCurrentInteractiveCell}
+            readOnly={cell.column.isReadOnly(rowIndex)}
+            selectionEdge={
+              isSelected && selection
+                ? {
+                    top: rowIndex === selection.min.row,
+                    bottom: rowIndex === selection.max.row,
+                    left: colIndex === selection.min.col,
+                    right: colIndex === selection.max.col,
+                  }
+                : undefined
+            }
+            onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
+            onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
+            onDoubleClick={() => onCellDoubleClick(colIndex)}
+            onContextMenu={(e) => onCellContextMenu?.(colIndex, rowIndex, e)}
+            onBlur={table.stopEditing}
+            onStartEditing={table.startEditing}
+            onChange={
+              accessorKey
+                ? (value) => onCellChange(row.index, accessorKey, value)
+                : undefined
+            }
+            CellComponent={cell.column.getCellComponent()}
+            variant={variant}
+            isLastRow={cellsIsLastRow}
+            isLastCol={colIndex === cells.length - 1}
+            hasWarning={
+              accessorKey
+                ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
+                : false
+            }
+          />
+        );
+      })}
 
       <RowActionsCell
         rowActions={rowActions}

@@ -3,13 +3,10 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import {
-  type ColumnDef,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { ClipboardFeature } from "./clipboard-feature";
 import { ColumnSizingFeature } from "./column-sizing-feature";
+import type { GridColumn } from "../types";
 
 type TestRow = { name: string; price: number };
 
@@ -47,14 +44,14 @@ function stubCanvas(opts: { available?: boolean } = { available: true }) {
   };
 }
 
-const defaultColumns = (): ColumnDef<TestRow>[] => [
+const defaultColumns = (): GridColumn<TestRow>[] => [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "price", header: "Price" },
 ];
 
 const useSizingTable = (
   data: TestRow[],
-  columns: ColumnDef<TestRow>[] = defaultColumns(),
+  columns: GridColumn<TestRow>[] = defaultColumns(),
 ) =>
   useReactTable<TestRow>({
     data,
@@ -131,7 +128,7 @@ describe("ColumnSizingFeature", () => {
     it("sizes the column to the header when the header is wider than the cells", () => {
       stubCanvas();
       const data: TestRow[] = [{ name: "a", price: 1 }];
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "name", header: "Very-Long-Header-Label" },
       ];
 
@@ -150,7 +147,7 @@ describe("ColumnSizingFeature", () => {
         { name: "", price: 0 },
         { name: "", price: 0 },
       ];
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         {
           accessorKey: "name",
           header: "X",
@@ -170,7 +167,7 @@ describe("ColumnSizingFeature", () => {
     it("adds meta.autoSizeExtraWidth to the chosen content width", () => {
       stubCanvas();
       const data: TestRow[] = [{ name: "abcdef", price: 0 }];
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "name", header: "x", meta: { autoSizeExtraWidth: 40 } },
       ];
 
@@ -185,7 +182,7 @@ describe("ColumnSizingFeature", () => {
     it("clamps to the header min-width when content is very short", () => {
       stubCanvas();
       const data: TestRow[] = [{ name: "a", price: 0 }];
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "name", header: "a" },
       ];
 
@@ -205,7 +202,7 @@ describe("ColumnSizingFeature", () => {
       stubCanvas();
       const data: TestRow[] = [{ name: "abc", price: 1234567890 }];
       // Provide a copyValue that returns a much longer formatted string.
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         {
           accessorKey: "price",
           header: "p",

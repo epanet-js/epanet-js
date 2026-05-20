@@ -8,6 +8,7 @@ import {
 import {
   DataGrid,
   type DataGridRef,
+  type GridColumn,
   type GridSelection,
   type RowAction,
   floatColumn,
@@ -175,7 +176,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
       ],
     );
 
-    const columns = useMemo(
+    const columns: GridColumn<PatternRow>[] = useMemo(
       () => [
         textColumn("timestep", {
           header: translate("timestep"),

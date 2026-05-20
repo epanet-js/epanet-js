@@ -196,7 +196,7 @@ export const DemandCategoriesEditor = ({
     ],
   );
 
-  const columns: GridColumn[] = useMemo(
+  const columns: GridColumn<DemandCategoryRow>[] = useMemo(
     () => [
       floatColumn("baseDemand", {
         header: translate("demand"),

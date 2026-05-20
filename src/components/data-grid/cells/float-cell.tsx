@@ -5,6 +5,7 @@ import {
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
 import { localizeDecimal } from "src/infra/i18n/numbers";
+import type { ColumnDef, RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
 import { useEditableTextInput } from "./use-editable-text-input";
 
@@ -144,8 +145,8 @@ export function FloatCell({
   );
 }
 
-export function floatColumn(
-  accessorKey: string,
+export function floatColumn<TData extends RowData = RowData>(
+  accessorKey: Extract<keyof TData, string> & string,
   options: {
     header: string;
     size?: number;
@@ -155,7 +156,7 @@ export function floatColumn(
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
   },
-): GridColumn {
+): GridColumn<TData> {
   const { nullValue, decimals, isReadOnly: readonly, placeholder } = options;
   const isStaticReadOnly = readonly === true;
   const isDynamicReadOnly = typeof readonly === "function";
@@ -179,20 +180,18 @@ export function floatColumn(
         )
       : FloatCell;
 
-  return {
+  const column: ColumnDef<TData, number | null> = {
     accessorKey,
     header: options.header,
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v) => {
-        const num = v as number | null;
-        return formatLocaleNumber(num, decimals);
-      },
+      copyValue: (v) => formatLocaleNumber(v, decimals),
       pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
       deleteValue: options.deleteValue ?? null,
       placeholder,
       isReadOnly: readonly,
     },
   };
+  return column as GridColumn<TData>;
 }

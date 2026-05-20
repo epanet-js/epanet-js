@@ -128,7 +128,7 @@ function makeSimColHelpers(
     name: string,
     unit: Parameters<TranslateUnitFn>[0],
     property?: QuantityProperty,
-  ) =>
+  ): GridColumn<AssetRow> =>
     floatColumn(key, {
       header: headerLabel(name, unit),
       decimals:
@@ -137,9 +137,9 @@ function makeSimColHelpers(
           : formatting.defaultDecimals,
       isReadOnly: true,
     });
-  const simTextValue = (key: string, name: string) =>
+  const simTextValue = (key: string, name: string): GridColumn<AssetRow> =>
     textColumn(key, { header: name, isReadOnly: true });
-  const qualityCols = (): GridColumn[] => {
+  const qualityCols = (): GridColumn<AssetRow>[] => {
     if (qualityType === "age")
       return [
         simNumericValue(
@@ -181,7 +181,7 @@ function buildSimColumns(
     formatting,
     qualityType,
   ]: SimColsArgs
-): GridColumn[] {
+): GridColumn<AssetRow>[] {
   const { simNumericValue, simTextValue, qualityCols } = makeSimColHelpers(
     translate,
     units,
@@ -346,7 +346,7 @@ function buildSimColumnsWithPressureStats(
     formatting,
     qualityType,
   ]: SimColsArgs
-): GridColumn[] {
+): GridColumn<AssetRow>[] {
   const { simNumericValue, qualityCols } = makeSimColHelpers(
     translate,
     units,
@@ -355,7 +355,7 @@ function buildSimColumnsWithPressureStats(
     qualityType,
   );
 
-  const pressureStatsCols = (): GridColumn[] => [
+  const pressureStatsCols = (): GridColumn<AssetRow>[] => [
     simNumericValue(
       "sim_minPressure",
       translate("minPressure"),
@@ -460,7 +460,7 @@ type BuildColumnsArgs = [
 ];
 
 function _buildColumns(
-  buildSim: (...args: SimColsArgs) => GridColumn[],
+  buildSim: (...args: SimColsArgs) => GridColumn<AssetRow>[],
   type: AssetType,
   translate: TranslateFn,
   hasSimulation: boolean,
@@ -473,7 +473,7 @@ function _buildColumns(
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
-): GridColumn[] {
+): GridColumn<AssetRow>[] {
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
   const energyGlobalPrice = simulationSettings.energyGlobalPrice;
   const energyGlobalEfficiency = simulationSettings.energyGlobalEfficiency;
@@ -496,7 +496,7 @@ function _buildColumns(
     property?: QuantityProperty,
     isReadOnly?: (rowIndex: number) => boolean,
     placeholder?: string,
-  ) =>
+  ): GridColumn<AssetRow> =>
     floatColumn(key, {
       header: headerLabel(name, unit),
       decimals:
@@ -508,8 +508,11 @@ function _buildColumns(
       ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
     });
 
-  const booleanCol = (key: string, name: string, isReadOnly = false) =>
-    booleanColumn(key, { header: name, isReadOnly });
+  const booleanCol = (
+    key: string,
+    name: string,
+    isReadOnly = false,
+  ): GridColumn<AssetRow> => booleanColumn(key, { header: name, isReadOnly });
 
   const patternOpts = (filterType: PatternType, excludeId?: PatternId) =>
     [...patterns.values()]
@@ -536,7 +539,7 @@ function _buildColumns(
     placeholder = translate("constant"),
     isReadOnly?: (rowIndex: number) => boolean,
     excludeId?: PatternId,
-  ) =>
+  ): GridColumn<AssetRow> =>
     filterableSelectColumn(key, {
       header: name,
       options: patternOpts(filterType, excludeId),
@@ -552,7 +555,7 @@ function _buildColumns(
     filterType: CurveType,
     placeholder?: string,
     isReadOnly?: (rowIndex: number) => boolean,
-  ) =>
+  ): GridColumn<AssetRow> =>
     filterableSelectColumn(key, {
       header: name,
       options: curveOpts(filterType),
@@ -567,7 +570,7 @@ function _buildColumns(
     return row?.chemicalSourceType == null;
   };
 
-  const chemicalSourceTypeCols = () => [
+  const chemicalSourceTypeCols = (): GridColumn<AssetRow>[] => [
     filterableSelectColumn("chemicalSourceType", {
       header: translate("chemicalSourceType"),
       options: chemicalSourceTypes.map((t) => ({
@@ -938,12 +941,14 @@ function _buildColumns(
   }
 }
 
-export function buildColumns(...args: BuildColumnsArgs): GridColumn[] {
+export function buildColumns(
+  ...args: BuildColumnsArgs
+): GridColumn<AssetRow>[] {
   return _buildColumns(buildSimColumns, ...args);
 }
 
 export function buildColumnsWithPressureStats(
   ...args: BuildColumnsArgs
-): GridColumn[] {
+): GridColumn<AssetRow>[] {
   return _buildColumns(buildSimColumnsWithPressureStats, ...args);
 }

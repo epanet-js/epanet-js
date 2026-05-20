@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useRef } from "react";
+import type { ColumnDef, RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
 import { useEditableTextInput } from "./use-editable-text-input";
 
@@ -112,15 +113,15 @@ export function TextCell({
   );
 }
 
-export function textColumn(
-  accessorKey: string,
+export function textColumn<TData extends RowData = RowData>(
+  accessorKey: Extract<keyof TData, string> & string,
   options: {
     header: string;
     size?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     validate?: (value: string, rowIndex: number) => boolean;
   },
-): GridColumn {
+): GridColumn<TData> {
   const { isReadOnly, validate } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
@@ -138,16 +139,17 @@ export function textColumn(
         )
       : TextCell;
 
-  return {
+  const column: ColumnDef<TData, string | null> = {
     accessorKey,
     header: options.header,
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v) => (v as string | null) ?? "",
+      copyValue: (v) => v ?? "",
       pasteValue: (v) => v || null,
       deleteValue: null,
       isReadOnly,
     },
   };
+  return column as GridColumn<TData>;
 }

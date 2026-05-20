@@ -351,10 +351,12 @@ describe("floatColumn", () => {
         deleteValue: 0,
       });
 
-      expect(column.accessorKey).toBe("price");
-      expect(column.header).toBe("Price");
-      expect(column.size).toBe(100);
-      expect(column.meta?.deleteValue).toBe(0);
+      expect(column).toMatchObject({
+        accessorKey: "price",
+        header: "Price",
+        size: 100,
+        meta: { deleteValue: 0 },
+      });
     });
 
     it("uses null as default deleteValue", () => {

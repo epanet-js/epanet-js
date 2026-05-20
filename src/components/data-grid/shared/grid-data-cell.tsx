@@ -1,6 +1,7 @@
 import { Cell } from "@tanstack/react-table";
 import clsx from "clsx";
-import { DataGridVariant, EditMode, GridColumn } from "../types";
+import { DataGridVariant, EditMode } from "../types";
+import type { CellComponent } from "../features";
 
 export type SelectionEdge = {
   top: boolean;
@@ -25,7 +26,7 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   onStartEditing: () => void;
-  CellComponent: NonNullable<GridColumn["meta"]>["cellComponent"];
+  CellComponent: CellComponent | undefined;
   variant: DataGridVariant;
   isLastRow: boolean;
   isLastCol: boolean;

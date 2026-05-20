@@ -7,12 +7,13 @@ import type {
 import type { ComponentType } from "react";
 import type { CellProps } from "../types";
 
-type CellComponent = ComponentType<CellProps<unknown>>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CellComponent = ComponentType<CellProps<any>>;
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
-    cellComponent?: CellComponent;
+    cellComponent?: ComponentType<CellProps<TValue>>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

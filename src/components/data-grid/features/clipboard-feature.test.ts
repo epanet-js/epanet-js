@@ -4,7 +4,6 @@
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
 import {
-  type ColumnDef,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
@@ -12,11 +11,11 @@ import {
 import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import { ClipboardFeature } from "./clipboard-feature";
-import type { GridSelection } from "../types";
+import type { GridColumn, GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };
 
-const defaultColumns: ColumnDef<TestRow>[] = [
+const defaultColumns: GridColumn<TestRow>[] = [
   { accessorKey: "id", header: "ID" },
   { accessorKey: "name", header: "Name" },
   { accessorKey: "value", header: "Value" },
@@ -26,7 +25,7 @@ const createTestRow = (): TestRow => ({ id: "", name: "", value: "" });
 
 type TableOptions = {
   data: TestRow[];
-  columns?: ColumnDef<TestRow>[];
+  columns?: GridColumn<TestRow>[];
   onChange?: (data: TestRow[]) => void;
   readOnly?: boolean;
   includeHeadersOnCopy?: boolean;
@@ -203,7 +202,7 @@ describe("ClipboardFeature", () => {
       const clip = stubClipboard();
       const data: TestRow[] = [{ id: "1", name: "alice", value: "100" }];
 
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "id", header: "ID" },
         {
           accessorKey: "name",
@@ -456,7 +455,7 @@ describe("ClipboardFeature", () => {
       const onChange = vi.fn();
       const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
 
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "id", header: "ID", meta: { isReadOnly: true } },
         { accessorKey: "name", header: "Name" },
         { accessorKey: "value", header: "Value" },
@@ -486,7 +485,7 @@ describe("ClipboardFeature", () => {
       const onChange = vi.fn();
       const data: TestRow[] = [{ id: "1", name: "old", value: "100" }];
 
-      const columns: ColumnDef<TestRow>[] = [
+      const columns: GridColumn<TestRow>[] = [
         { accessorKey: "id", header: "ID" },
         {
           accessorKey: "name",

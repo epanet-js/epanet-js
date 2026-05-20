@@ -8,6 +8,7 @@ import {
 import {
   DataGrid,
   type DataGridRef,
+  type GridColumn,
   type GridSelection,
   type RowAction,
   floatColumn,
@@ -179,7 +180,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       ],
     );
 
-    const columns = useMemo(
+    const columns: GridColumn<CurveRow>[] = useMemo(
       () => [
         floatColumn("x", {
           header: xHeader,

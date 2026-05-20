@@ -30,4 +30,5 @@ export type {
 } from "./clipboard-feature";
 
 export { CellRenderingFeature } from "./cell-rendering-feature";
+export type { CellComponent } from "./cell-rendering-feature";
 export { ColumnSizingFeature } from "./column-sizing-feature";

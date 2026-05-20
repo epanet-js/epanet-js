@@ -4,7 +4,6 @@ import { Table } from "@tanstack/react-table";
 import {
   CellContextAction,
   DataGridVariant,
-  GridColumn,
   GutterContextAction,
   RowAction,
 } from "../types";
@@ -16,7 +15,6 @@ import { GridRef } from "./types";
 
 export type InlineGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
-  columns: GridColumn[];
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -50,7 +48,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
 >(
   {
     table,
-    columns,
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
@@ -112,7 +109,6 @@ export const InlineGrid = forwardRef(function InlineGrid<
           table={table}
           row={row}
           rowIndex={rowIndex}
-          columns={columns}
           onCellMouseDown={onCellMouseDown}
           onCellMouseEnter={onCellMouseEnter}
           onCellDoubleClick={onCellDoubleClick}

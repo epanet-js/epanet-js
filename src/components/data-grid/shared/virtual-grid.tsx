@@ -4,7 +4,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   CellContextAction,
   DataGridVariant,
-  GridColumn,
   GutterContextAction,
   RowAction,
 } from "../types";
@@ -25,7 +24,6 @@ import { VirtualRows } from "./virtual-rows";
 
 export type VirtualGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
-  columns: GridColumn[];
   onCellMouseDown: (col: number, row: number, e: React.MouseEvent) => void;
   onCellMouseEnter: (col: number, row: number) => void;
   onCellDoubleClick: (col: number) => void;
@@ -59,7 +57,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
 >(
   {
     table,
-    columns,
     onCellMouseDown,
     onCellMouseEnter,
     onCellDoubleClick,
@@ -169,7 +166,6 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
             rowVirtualizer={rowVirtualizer}
             table={table}
             hasVerticalScroll={scrollState.hasVerticalScroll}
-            columns={columns}
             onCellMouseDown={onCellMouseDown}
             onCellMouseEnter={onCellMouseEnter}
             onCellDoubleClick={onCellDoubleClick}

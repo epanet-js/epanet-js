@@ -9,6 +9,7 @@ import React, {
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { CheckIcon, ChevronDownIcon } from "src/icons";
+import type { ColumnDef, RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
 
 export type FilterableSelectOption<
@@ -594,8 +595,9 @@ const EmptyOption: FunctionComponent<EmptyOptionProps> = ({
 
 export function filterableSelectColumn<
   T extends string | number | boolean = string,
+  TData extends RowData = RowData,
 >(
-  accessorKey: string,
+  accessorKey: Extract<keyof TData, string> & string,
   options: {
     header: string;
     size?: number;
@@ -606,14 +608,14 @@ export function filterableSelectColumn<
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
   },
-): GridColumn {
+): GridColumn<TData> {
   const isEmpty = options.options.length === 0;
   const resolveReadOnly = (rowIndex: number) =>
     typeof options.isReadOnly === "function"
       ? options.isReadOnly(rowIndex)
       : (options.isReadOnly ?? false);
 
-  return {
+  const column: ColumnDef<TData, T | null> = {
     accessorKey,
     header: options.header,
     size: options.size,
@@ -646,9 +648,9 @@ export function filterableSelectColumn<
       },
       deleteValue: options.deleteValue ?? null,
       isReadOnly: isEmpty ? true : options.isReadOnly,
-      cellComponent: (props: CellProps<string | number | boolean | null>) => (
+      cellComponent: (props: CellProps<T | null>) => (
         <FilterableSelectCell
-          {...props}
+          {...(props as CellProps<string | number | boolean | null>)}
           readOnly={
             isEmpty || props.readOnly || resolveReadOnly(props.rowIndex)
           }
@@ -664,4 +666,5 @@ export function filterableSelectColumn<
       ),
     },
   };
+  return column as GridColumn<TData>;
 }
