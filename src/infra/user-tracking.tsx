@@ -938,6 +938,12 @@ type SimulationResultsExported = {
   hasSelection: boolean;
 };
 
+type CustomGraphExported = {
+  name: "customGraph.exported";
+  format: "png" | "csv" | "xlsx";
+  numAssets: number;
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -1300,7 +1306,8 @@ export type UserEvent =
   | CurveDeleted
   | CurveChanged
   | AssetDataExported
-  | SimulationResultsExported;
+  | SimulationResultsExported
+  | CustomGraphExported;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

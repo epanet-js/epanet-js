@@ -30,6 +30,7 @@ import {
 import { currentFileNameAtom } from "src/state";
 import { useExportSimulationResults } from "src/commands/export-simulation-results";
 import { ExportSimulationResultsProperties } from "src/lib/export/types";
+import { useUserTracking } from "src/infra/user-tracking";
 
 type NodeProperty = "pressure" | "head";
 type LinkProperty = "flow" | "velocity" | "headloss";
@@ -60,6 +61,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const exportSimulationResults = useExportSimulationResults();
+  const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkNameDot = fullNetworkName.lastIndexOf(".");
   const networkName = fullNetworkName.substring(
@@ -188,6 +190,13 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     [setLinkProperty],
   );
 
+  const trackExport = (format: "png" | "csv" | "xlsx") =>
+    capture({
+      name: "customGraph.exported",
+      format,
+      numAssets: nodeSeriesData.length + linkSeriesData.length,
+    });
+
   const exportAsPng = () => {
     const instance = chartRef.current?.getEchartsInstance();
     if (!instance) return;
@@ -210,6 +219,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       a.href = canvas.toDataURL("image/png");
       a.download = `${networkName}-graph.png`;
       a.click();
+
+      trackExport("png");
     };
 
     img.src = svgUrl;
@@ -243,6 +254,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       properties,
       selectedAssets,
     });
+
+    trackExport(format);
   };
 
   return (
