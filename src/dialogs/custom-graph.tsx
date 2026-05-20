@@ -28,10 +28,17 @@ import {
   type AssetTimeSeries,
 } from "./custom-graph/use-custom-graph-data";
 import { currentFileNameAtom } from "src/state";
+import { useExportSimulationResults } from "src/commands/export-simulation-results";
+import { ExportSimulationResultsProperties } from "src/lib/export/types";
 
 type NodeProperty = "pressure" | "head";
 type LinkProperty = "flow" | "velocity" | "headloss";
 type QualityProperty = "waterAge" | "waterTrace" | "chemicalConcentration";
+const WATER_QUALITY_PROPERTIES = [
+  "waterAge",
+  "waterTrace",
+  "chemicalConcentration",
+];
 
 interface PropertyOption<T extends string> {
   value: T;
@@ -52,12 +59,14 @@ interface CustomGraphChartProps {
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const exportSimulationResults = useExportSimulationResults();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkNameDot = fullNetworkName.lastIndexOf(".");
   const networkName = fullNetworkName.substring(
     0,
     networkNameDot < 0 ? fullNetworkName.length - 1 : networkNameDot,
   );
+
   const chartRef = useRef<ReactECharts>(null);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
 
@@ -206,6 +215,36 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     img.src = svgUrl;
   };
 
+  const exportTabular = async (format: "csv" | "xlsx") => {
+    const nodeIds = nodeSeriesData.map((n) => n.assetId);
+    const linkIds = linkSeriesData.map((n) => n.assetId);
+    const selectedAssets = new Set<number>([...nodeIds, ...linkIds]);
+    const mappedLinkProperty =
+      linkIds.length > 0
+        ? [linkProperty === "headloss" ? "unitHeadloss" : linkProperty]
+        : [];
+    const mappedNodeProperty =
+      nodeIds.length > 0
+        ? [
+            WATER_QUALITY_PROPERTIES.includes(nodeProperty)
+              ? "waterQuality"
+              : nodeProperty,
+          ]
+        : [];
+
+    const properties = [
+      ...mappedNodeProperty,
+      ...mappedLinkProperty,
+    ] as ExportSimulationResultsProperties[];
+
+    await exportSimulationResults({
+      format,
+      onProgress: async () => Promise.resolve(),
+      properties,
+      selectedAssets,
+    });
+  };
+
   return (
     <BaseDialog
       title={translate("customGraph.title")}
@@ -226,10 +265,10 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <StyledItem onSelect={exportAsPng}>
                 {translate("customGraph.imagePng")}
               </StyledItem>
-              <StyledItem onSelect={() => {}}>
+              <StyledItem onSelect={() => exportTabular("csv")}>
                 {translate("customGraph.tabularCsv")}
               </StyledItem>
-              <StyledItem onSelect={() => {}}>
+              <StyledItem onSelect={() => exportTabular("xlsx")}>
                 {translate("customGraph.tabularXlsx")}
               </StyledItem>
             </DDContent>
