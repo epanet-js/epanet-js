@@ -16,10 +16,7 @@ import {
   ChartLineIcon,
 } from "src/icons";
 import { Mode, modeAtom } from "src/state/mode";
-import {
-  selectedFeaturesDerivedAtom,
-  simulationDerivedAtom,
-} from "src/state/derived-branch-state";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import {
   changeActiveTopologyShortcut,
@@ -39,9 +36,6 @@ export function useLinkActions(readonly = false): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const simulation = useAtomValue(simulationDerivedAtom);
-  const customGraphApplicable =
-    simulation.status === "success" || simulation.status === "warning";
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -91,7 +85,7 @@ export function useLinkActions(readonly = false): Action[] {
 
   const customGraphAction = {
     icon: <ChartLineIcon />,
-    applicable: customGraphApplicable,
+    applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
       setDialogState({ type: "customGraph" });

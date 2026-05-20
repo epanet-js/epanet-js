@@ -15,10 +15,7 @@ import {
   DeactivateTopologyIcon,
   ChartLineIcon,
 } from "src/icons";
-import {
-  selectedFeaturesDerivedAtom,
-  simulationDerivedAtom,
-} from "src/state/derived-branch-state";
+import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -32,9 +29,6 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const simulation = useAtomValue(simulationDerivedAtom);
-  const customGraphApplicable =
-    simulation.status === "success" || simulation.status === "warning";
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -48,7 +42,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   const customGraphAction = {
     icon: <ChartLineIcon />,
-    applicable: customGraphApplicable,
+    applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
       setDialogState({ type: "customGraph" });

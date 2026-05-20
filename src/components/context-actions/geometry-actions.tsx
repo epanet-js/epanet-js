@@ -28,7 +28,6 @@ import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -46,9 +45,6 @@ export function useActions(
   const reverseLinkAction = useReverseLink();
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const simulation = useAtomValue(simulationDerivedAtom);
-  const customGraphApplicable =
-    simulation.status === "success" || simulation.status === "warning";
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -96,7 +92,7 @@ export function useActions(
 
   const customGraphAction = {
     icon: <ChartLineIcon />,
-    applicable: customGraphApplicable,
+    applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
       setDialogState({ type: "customGraph" });
