@@ -1,5 +1,13 @@
 "use client";
-import { useEffect, useRef, useMemo, useCallback, memo } from "react";
+import {
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  memo,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useAtomValue } from "jotai";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
@@ -19,6 +27,7 @@ import {
   useCustomGraphData,
   type AssetTimeSeries,
 } from "./custom-graph/use-custom-graph-data";
+import { currentFileNameAtom } from "src/state";
 
 type NodeProperty = "pressure" | "head";
 type LinkProperty = "flow" | "velocity" | "headloss";
@@ -43,6 +52,13 @@ interface CustomGraphChartProps {
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
+  const networkNameDot = fullNetworkName.lastIndexOf(".");
+  const networkName = fullNetworkName.substring(
+    0,
+    networkNameDot < 0 ? fullNetworkName.length - 1 : networkNameDot,
+  );
+  const chartRef = useRef<ReactECharts>(null);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
 
   const {
@@ -163,6 +179,33 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     [setLinkProperty],
   );
 
+  const exportAsPng = () => {
+    const instance = chartRef.current?.getEchartsInstance();
+    if (!instance) return;
+
+    const svgUrl = instance.getDataURL({ type: "svg" });
+    const img = new Image();
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ratio = 2;
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(ratio, ratio);
+      ctx.drawImage(img, 0, 0);
+
+      const a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = `${networkName}-graph.png`;
+      a.click();
+    };
+
+    img.src = svgUrl;
+  };
+
   return (
     <BaseDialog
       title={translate("customGraph.title")}
@@ -180,7 +223,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               </Button>
             </DD.Trigger>
             <DDContent align="start" side="top">
-              <StyledItem onSelect={() => {}}>
+              <StyledItem onSelect={exportAsPng}>
                 {translate("customGraph.imagePng")}
               </StyledItem>
               <StyledItem onSelect={() => {}}>
@@ -244,6 +287,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         {!isLoading && combinedSeriesData.length > 0 && (
           <div className="flex-1 min-h-0 px-4 pb-2">
             <CustomGraphChart
+              ref={chartRef}
               seriesData={combinedSeriesData}
               nodeCount={nodeSeriesData.length}
               nodeYAxisLabel={nodeYAxisLabel}
@@ -264,260 +308,268 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-const CustomGraphChart = memo(function CustomGraphChart({
-  seriesData,
-  nodeCount,
-  nodeYAxisLabel,
-  linkYAxisLabel,
-  nodeDecimals,
-  linkDecimals,
-  unitLabels,
-}: CustomGraphChartProps) {
-  const chartRef = useRef<ReactECharts>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+const CustomGraphChart = memo(
+  forwardRef<ReactECharts, CustomGraphChartProps>(function CustomGraphChart(
+    {
+      seriesData,
+      nodeCount,
+      nodeYAxisLabel,
+      linkYAxisLabel,
+      nodeDecimals,
+      linkDecimals,
+      unitLabels,
+    },
+    ref,
+  ) {
+    const chartRef = useRef<ReactECharts>(null);
+    useImperativeHandle(ref, () => chartRef.current!, []);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-  const hasBothAxes = nodeCount > 0 && nodeCount < seriesData.length;
+    const hasBothAxes = nodeCount > 0 && nodeCount < seriesData.length;
 
-  const firstSeries = seriesData[0]?.timeSeries;
-  const intervalsCount = firstSeries?.intervalsCount ?? 0;
-  const intervalSeconds = firstSeries?.intervalSeconds ?? 0;
+    const firstSeries = seriesData[0]?.timeSeries;
+    const intervalsCount = firstSeries?.intervalsCount ?? 0;
+    const intervalSeconds = firstSeries?.intervalSeconds ?? 0;
 
-  const nodeValues = useMemo(
-    () =>
-      seriesData
-        .slice(0, nodeCount)
-        .flatMap((s) => Array.from(s.timeSeries.values)),
-    [seriesData, nodeCount],
-  );
-  const linkValues = useMemo(
-    () =>
-      seriesData
-        .slice(nodeCount)
-        .flatMap((s) => Array.from(s.timeSeries.values)),
-    [seriesData, nodeCount],
-  );
+    const nodeValues = useMemo(
+      () =>
+        seriesData
+          .slice(0, nodeCount)
+          .flatMap((s) => Array.from(s.timeSeries.values)),
+      [seriesData, nodeCount],
+    );
+    const linkValues = useMemo(
+      () =>
+        seriesData
+          .slice(nodeCount)
+          .flatMap((s) => Array.from(s.timeSeries.values)),
+      [seriesData, nodeCount],
+    );
 
-  const xAxisInterval = useMemo(
-    () => calculateXAxisInterval(intervalsCount, intervalSeconds),
-    [intervalsCount, intervalSeconds],
-  );
-  const xAxisStep = useMemo(
-    () => calculateXAxisStep(intervalsCount, intervalSeconds),
-    [intervalsCount, intervalSeconds],
-  );
+    const xAxisInterval = useMemo(
+      () => calculateXAxisInterval(intervalsCount, intervalSeconds),
+      [intervalsCount, intervalSeconds],
+    );
+    const xAxisStep = useMemo(
+      () => calculateXAxisStep(intervalsCount, intervalSeconds),
+      [intervalsCount, intervalSeconds],
+    );
 
-  const xAxis: EChartsOption["xAxis"] = useMemo(
-    () => ({
-      type: "category",
-      data: buildTimeLabels(intervalsCount, intervalSeconds),
-      show: true,
-      boundaryGap: false,
-      splitLine: {
+    const xAxis: EChartsOption["xAxis"] = useMemo(
+      () => ({
+        type: "category",
+        data: buildTimeLabels(intervalsCount, intervalSeconds),
         show: true,
-        lineStyle: { color: colors.gray300, type: "dashed" },
-        interval: (index: number) => {
-          if (index === intervalsCount - 1) return false;
-          return index % xAxisStep === 0;
-        },
-      },
-      axisTick: {
-        show: true,
-        alignWithLabel: true,
-        lineStyle: { color: colors.gray300 },
-        interval: (index: number) => index % xAxisStep === 0,
-      },
-      axisLabel: {
-        show: true,
-        interval: xAxisInterval,
-        color: colors.gray500,
-        fontSize: 12,
-        hideOverlap: true,
-      },
-      axisLine: { show: true, lineStyle: { color: colors.gray300 } },
-    }),
-    [intervalsCount, intervalSeconds, xAxisStep, xAxisInterval],
-  );
-
-  const yAxis: EChartsOption["yAxis"] = useMemo(() => {
-    const buildYAxis = (
-      label: string,
-      decimals: number,
-      values: number[],
-      position: "left" | "right",
-      showSplitLine: boolean,
-    ) => {
-      const { min, max, interval } = calculateInterval(decimals, values, 5);
-      return {
-        type: "value" as const,
-        scale: true,
-        position,
-        name: label,
-        nameLocation: "middle" as const,
-        nameGap: 50,
-        nameTextStyle: { color: colors.gray500, fontSize: 13 },
-        min,
-        max,
-        interval,
+        boundaryGap: false,
         splitLine: {
-          show: showSplitLine,
-          lineStyle: { color: colors.gray300, type: "dashed" as const },
+          show: true,
+          lineStyle: { color: colors.gray300, type: "dashed" },
+          interval: (index: number) => {
+            if (index === intervalsCount - 1) return false;
+            return index % xAxisStep === 0;
+          },
         },
-        axisLine: { show: true, lineStyle: { color: colors.gray300 } },
-        axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+        axisTick: {
+          show: true,
+          alignWithLabel: true,
+          lineStyle: { color: colors.gray300 },
+          interval: (index: number) => index % xAxisStep === 0,
+        },
         axisLabel: {
+          show: true,
+          interval: xAxisInterval,
           color: colors.gray500,
           fontSize: 12,
-          formatter: (value: number) => localizeDecimal(value),
+          hideOverlap: true,
         },
-      };
-    };
+        axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+      }),
+      [intervalsCount, intervalSeconds, xAxisStep, xAxisInterval],
+    );
 
-    if (hasBothAxes) {
-      return [
-        buildYAxis(linkYAxisLabel, linkDecimals, linkValues, "left", true),
-        buildYAxis(nodeYAxisLabel, nodeDecimals, nodeValues, "right", false),
-      ];
+    const yAxis: EChartsOption["yAxis"] = useMemo(() => {
+      const buildYAxis = (
+        label: string,
+        decimals: number,
+        values: number[],
+        position: "left" | "right",
+        showSplitLine: boolean,
+      ) => {
+        const { min, max, interval } = calculateInterval(decimals, values, 5);
+        return {
+          type: "value" as const,
+          scale: true,
+          position,
+          name: label,
+          nameLocation: "middle" as const,
+          nameGap: 50,
+          nameTextStyle: { color: colors.gray500, fontSize: 13 },
+          min,
+          max,
+          interval,
+          splitLine: {
+            show: showSplitLine,
+            lineStyle: { color: colors.gray300, type: "dashed" as const },
+          },
+          axisLine: { show: true, lineStyle: { color: colors.gray300 } },
+          axisTick: { show: true, lineStyle: { color: colors.gray300 } },
+          axisLabel: {
+            color: colors.gray500,
+            fontSize: 12,
+            formatter: (value: number) => localizeDecimal(value),
+          },
+        };
+      };
+
+      if (hasBothAxes) {
+        return [
+          buildYAxis(linkYAxisLabel, linkDecimals, linkValues, "left", true),
+          buildYAxis(nodeYAxisLabel, nodeDecimals, nodeValues, "right", false),
+        ];
+      }
+
+      const isNodeOnly = nodeCount > 0;
+      return buildYAxis(
+        isNodeOnly ? nodeYAxisLabel : linkYAxisLabel,
+        isNodeOnly ? nodeDecimals : linkDecimals,
+        isNodeOnly ? nodeValues : linkValues,
+        "left",
+        true,
+      );
+    }, [
+      hasBothAxes,
+      nodeCount,
+      nodeValues,
+      linkValues,
+      nodeDecimals,
+      linkDecimals,
+      nodeYAxisLabel,
+      linkYAxisLabel,
+    ]);
+
+    const series: EChartsOption["series"] = useMemo(
+      () =>
+        seriesData.map((s, i) => {
+          const color = SERIES_COLORS[i % SERIES_COLORS.length];
+          const isNode = i < nodeCount;
+          return {
+            type: "line" as const,
+            name: s.label,
+            data: Array.from(s.timeSeries.values),
+            lineStyle: { color, width: 2 },
+            itemStyle: { color },
+            symbol: "none",
+            smooth: false,
+            ...(hasBothAxes ? { yAxisIndex: isNode ? 1 : 0 } : {}),
+          };
+        }),
+      [seriesData, nodeCount, hasBothAxes],
+    );
+
+    const option: EChartsOption = useMemo(
+      () => ({
+        animation: false,
+        grid: {
+          top: 8,
+          right: 40,
+          bottom: 32,
+          left: 40,
+          containLabel: true,
+        },
+        legend: {
+          show: true,
+          bottom: 0,
+          left: "center",
+          itemWidth: 16,
+          itemHeight: 8,
+          textStyle: { fontSize: 12, color: colors.gray600 },
+          data:
+            seriesData.length > MAX_VISIBLE_SERIES
+              ? [
+                  ...seriesData
+                    .slice(0, MAX_VISIBLE_SERIES)
+                    .map((s) => s.label),
+                  `...other ${seriesData.length - MAX_VISIBLE_SERIES} assets`,
+                ]
+              : undefined,
+          formatter: (name: string) => name,
+        },
+        xAxis,
+        yAxis,
+        series,
+        tooltip: {
+          trigger: "axis",
+          appendToBody: true,
+          backgroundColor: "white",
+          borderColor: colors.gray300,
+          textStyle: { color: colors.gray700, fontSize: 14 },
+          formatter: (params: unknown) => {
+            if (!Array.isArray(params) || params.length === 0) return "";
+            const timeLabel = params[0]?.name ?? "";
+            const visible = params.slice(0, MAX_VISIBLE_SERIES);
+            const remaining = params.length - MAX_VISIBLE_SERIES;
+            const rows = visible.map(
+              (
+                p: {
+                  color: string;
+                  seriesName?: string;
+                  seriesIndex?: number;
+                  value: number;
+                },
+                i: number,
+              ) => {
+                const value = p.value.toFixed(TOOLTIP_DECIMALS);
+                const unit = unitLabels[p.seriesIndex ?? i] ?? "";
+                const idx = p.seriesIndex ?? i;
+                const assetType = idx < nodeCount ? "node" : "link";
+                const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
+                return (
+                  `<tr>` +
+                  `<td>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></td>` +
+                  `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${value}</td>` +
+                  `<td style="padding-left:4px;">${unit}</td>` +
+                  `</tr>`
+                );
+              },
+            );
+            let footer = "";
+            if (remaining > 0) {
+              footer = `<tr><td colspan="3" style="color:${colors.gray500};font-size:12px;">...other ${remaining} assets</td></tr>`;
+            }
+            return `${timeLabel}<table style="border-spacing:0;">${rows.join("")}${footer}</table>`;
+          },
+        },
+      }),
+      [seriesData, xAxis, yAxis, series, unitLabels, nodeCount],
+    );
+
+    useEffect(function resizeChart() {
+      const container = containerRef.current;
+      if (!container) return;
+      const resizeObserver = new ResizeObserver(() => {
+        chartRef.current?.getEchartsInstance()?.resize();
+      });
+      resizeObserver.observe(container);
+      return () => resizeObserver.disconnect();
+    }, []);
+
+    if (intervalsCount === 0 || seriesData.length === 0) {
+      return null;
     }
 
-    const isNodeOnly = nodeCount > 0;
-    return buildYAxis(
-      isNodeOnly ? nodeYAxisLabel : linkYAxisLabel,
-      isNodeOnly ? nodeDecimals : linkDecimals,
-      isNodeOnly ? nodeValues : linkValues,
-      "left",
-      true,
+    return (
+      <div ref={containerRef} className="h-full w-full">
+        <ReactECharts
+          ref={chartRef}
+          key={`${intervalSeconds}-${intervalsCount}`}
+          option={option}
+          style={{ height: "100%", width: "100%" }}
+          opts={{ renderer: "svg" }}
+        />
+      </div>
     );
-  }, [
-    hasBothAxes,
-    nodeCount,
-    nodeValues,
-    linkValues,
-    nodeDecimals,
-    linkDecimals,
-    nodeYAxisLabel,
-    linkYAxisLabel,
-  ]);
-
-  const series: EChartsOption["series"] = useMemo(
-    () =>
-      seriesData.map((s, i) => {
-        const color = SERIES_COLORS[i % SERIES_COLORS.length];
-        const isNode = i < nodeCount;
-        return {
-          type: "line" as const,
-          name: s.label,
-          data: Array.from(s.timeSeries.values),
-          lineStyle: { color, width: 2 },
-          itemStyle: { color },
-          symbol: "none",
-          smooth: false,
-          ...(hasBothAxes ? { yAxisIndex: isNode ? 1 : 0 } : {}),
-        };
-      }),
-    [seriesData, nodeCount, hasBothAxes],
-  );
-
-  const option: EChartsOption = useMemo(
-    () => ({
-      animation: false,
-      grid: {
-        top: 8,
-        right: 40,
-        bottom: 32,
-        left: 40,
-        containLabel: true,
-      },
-      legend: {
-        show: true,
-        bottom: 0,
-        left: "center",
-        itemWidth: 16,
-        itemHeight: 8,
-        textStyle: { fontSize: 12, color: colors.gray600 },
-        data:
-          seriesData.length > MAX_VISIBLE_SERIES
-            ? [
-                ...seriesData.slice(0, MAX_VISIBLE_SERIES).map((s) => s.label),
-                `...other ${seriesData.length - MAX_VISIBLE_SERIES} assets`,
-              ]
-            : undefined,
-        formatter: (name: string) => name,
-      },
-      xAxis,
-      yAxis,
-      series,
-      tooltip: {
-        trigger: "axis",
-        appendToBody: true,
-        backgroundColor: "white",
-        borderColor: colors.gray300,
-        textStyle: { color: colors.gray700, fontSize: 14 },
-        formatter: (params: unknown) => {
-          if (!Array.isArray(params) || params.length === 0) return "";
-          const timeLabel = params[0]?.name ?? "";
-          const visible = params.slice(0, MAX_VISIBLE_SERIES);
-          const remaining = params.length - MAX_VISIBLE_SERIES;
-          const rows = visible.map(
-            (
-              p: {
-                color: string;
-                seriesName?: string;
-                seriesIndex?: number;
-                value: number;
-              },
-              i: number,
-            ) => {
-              const value = p.value.toFixed(TOOLTIP_DECIMALS);
-              const unit = unitLabels[p.seriesIndex ?? i] ?? "";
-              const idx = p.seriesIndex ?? i;
-              const assetType = idx < nodeCount ? "node" : "link";
-              const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
-              return (
-                `<tr>` +
-                `<td>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></td>` +
-                `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${value}</td>` +
-                `<td style="padding-left:4px;">${unit}</td>` +
-                `</tr>`
-              );
-            },
-          );
-          let footer = "";
-          if (remaining > 0) {
-            footer = `<tr><td colspan="3" style="color:${colors.gray500};font-size:12px;">...other ${remaining} assets</td></tr>`;
-          }
-          return `${timeLabel}<table style="border-spacing:0;">${rows.join("")}${footer}</table>`;
-        },
-      },
-    }),
-    [seriesData, xAxis, yAxis, series, unitLabels, nodeCount],
-  );
-
-  useEffect(function resizeChart() {
-    const container = containerRef.current;
-    if (!container) return;
-    const resizeObserver = new ResizeObserver(() => {
-      chartRef.current?.getEchartsInstance()?.resize();
-    });
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  if (intervalsCount === 0 || seriesData.length === 0) {
-    return null;
-  }
-
-  return (
-    <div ref={containerRef} className="h-full w-full">
-      <ReactECharts
-        ref={chartRef}
-        key={`${intervalSeconds}-${intervalsCount}`}
-        option={option}
-        style={{ height: "100%", width: "100%" }}
-        opts={{ renderer: "svg" }}
-      />
-    </div>
-  );
-});
+  }),
+);
 
 const NODE_PROPERTIES: PropertyOption<NodeProperty>[] = [
   { value: "pressure", labelKey: "pressure", quantityKey: "pressure" },
