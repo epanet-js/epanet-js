@@ -26,13 +26,6 @@ import {
   CellRenderingFeature,
   ClipboardFeature,
   ColumnSizingFeature,
-  clampActiveCell,
-  clampRange,
-  computeExtendedRange,
-  computeTargetSelection,
-  isActiveCellEqual,
-  isCellSelected,
-  isRangeEqual,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
   type CopySelectionOptions,
@@ -121,10 +114,6 @@ export const DataGrid = forwardRef(function DataGrid<
       CellRenderingFeature,
       ColumnSizingFeature,
     ],
-    // Selection feature options
-    rowCount: data.length,
-    colCount: columns.length,
-    onSelectionChange,
     // Clipboard feature options
     onDataChange: onChange,
     createRow,
@@ -151,47 +140,26 @@ export const DataGrid = forwardRef(function DataGrid<
   const activeCell = table.getActiveCell();
   const selection = table.getSelection();
   const editMode = table.getEditMode();
-  const visibleRowCount = table.getRowModel().rows.length;
-  const visibleColCount = table.getVisibleLeafColumns().length;
 
   const selectCells = useCallback(
     (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
       const { colIndex, rowIndex, extend = false } = options ?? {};
-      const rowCount = table.getRowModel().rows.length;
-      const colCount = table.getVisibleLeafColumns().length;
-      if (rowCount === 0 || colCount === 0) return;
+      const result = table.updateSelection({
+        col: colIndex,
+        row: rowIndex,
+        extend,
+      });
+      if (!result) return;
 
-      const target = computeTargetSelection(
-        colIndex,
-        rowIndex,
-        colCount,
-        rowCount,
-      );
-
-      const currentRange = table.getSelection();
-
-      let nextRange: GridSelection;
-      let nextActiveCell: CellPosition;
-
-      if (extend && currentRange) {
-        const { combined, movingCorner } = computeExtendedRange(
-          currentRange,
-          target,
-        );
-        nextRange = combined;
-        nextActiveCell = {
-          col: colIndex !== undefined ? movingCorner.col : target.min.col,
-          row: rowIndex !== undefined ? movingCorner.row : target.min.row,
-        };
-      } else {
-        nextRange = target;
-        nextActiveCell = target.min;
-      }
+      const { range, movingCorner } = result;
+      const nextActiveCell: CellPosition = {
+        col: colIndex !== undefined ? movingCorner.col : range.min.col,
+        row: rowIndex !== undefined ? movingCorner.row : range.min.row,
+      };
 
       const prevActive = table.getActiveCell();
       const isSingleCell =
-        nextRange.min.col === nextRange.max.col &&
-        nextRange.min.row === nextRange.max.row;
+        range.min.col === range.max.col && range.min.row === range.max.row;
       const activeMoved =
         !prevActive ||
         prevActive.col !== nextActiveCell.col ||
@@ -200,7 +168,6 @@ export const DataGrid = forwardRef(function DataGrid<
         table.stopEditing();
       }
 
-      table.selectRange(nextRange);
       table.setActiveCell(nextActiveCell);
     },
     [table],
@@ -212,40 +179,6 @@ export const DataGrid = forwardRef(function DataGrid<
     table.setActiveCell(null);
     table.stopEditing();
   }, [table]);
-
-  useEffect(
-    function clampWhenDataSizeChanges() {
-      if (visibleRowCount === 0 || visibleColCount === 0) {
-        if (table.getActiveCell() || table.getSelection()) {
-          table.stopEditing();
-          table.clearSelection();
-          table.setActiveCell(null);
-        }
-        return;
-      }
-
-      const prevRange = table.getSelection();
-      if (prevRange) {
-        const clamped = clampRange(prevRange, visibleColCount, visibleRowCount);
-        if (clamped && !isRangeEqual(prevRange, clamped)) {
-          table.selectRange(clamped);
-        }
-      }
-
-      const prevActive = table.getActiveCell();
-      if (prevActive) {
-        const clamped = clampActiveCell(
-          prevActive,
-          visibleColCount,
-          visibleRowCount,
-        );
-        if (!isActiveCellEqual(prevActive, clamped)) {
-          table.setActiveCell(clamped);
-        }
-      }
-    },
-    [visibleRowCount, visibleColCount, table],
-  );
 
   const lastNotifiedRef = useRef<GridSelection | null>(null);
   useEffect(
@@ -291,16 +224,7 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleEditingKeyDown = useGridEditing({
     table,
-    activeCell,
-    selection,
-    editMode,
-    data,
-    onChange,
-    rowCount: data.length,
-    colCount: columns.length,
     selectCells,
-    startEditing: table.startEditing,
-    stopEditing: table.stopEditing,
     clearSelection,
     blurGrid,
     onAddRow: autoAddNewRows ? handleAddRow : undefined,
@@ -371,11 +295,11 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellContextMenu = useCallback(
     (col: number, row: number) => {
-      if (!isCellSelected(selection, col, row)) {
+      if (!table.isCellSelected(col, row)) {
         selectCells({ colIndex: col, rowIndex: row });
       }
     },
-    [selection, selectCells],
+    [table, selectCells],
   );
 
   const handleGutterContextMenu = useCallback(

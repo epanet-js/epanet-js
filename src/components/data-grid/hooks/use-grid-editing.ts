@@ -1,24 +1,13 @@
 import { useCallback } from "react";
-import type { Column, Table } from "@tanstack/react-table";
-import { CellPosition, EditMode, GridSelection } from "../types";
-import { isFullRowSelected } from "./use-selection";
+import type { Table } from "@tanstack/react-table";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   table: Table<TData>;
-  activeCell: CellPosition | null;
-  selection: GridSelection | null;
-  editMode: EditMode;
-  data: TData[];
-  onChange: (data: TData[]) => void;
-  rowCount: number;
-  colCount: number;
   selectCells: (options?: {
     colIndex?: number;
     rowIndex?: number;
     extend?: boolean;
   }) => void;
-  startEditing: (mode: "quick" | "full") => void;
-  stopEditing: () => void;
   clearSelection: () => void;
   blurGrid: () => void;
   onAddRow?: () => void;
@@ -26,33 +15,17 @@ type UseGridEditingOptions<TData extends Record<string, unknown>> = {
 
 export function useGridEditing<TData extends Record<string, unknown>>({
   table,
-  activeCell,
-  selection,
-  editMode,
-  data,
-  onChange,
-  rowCount,
-  colCount,
   selectCells,
-  startEditing,
-  stopEditing,
   clearSelection,
   blurGrid,
   onAddRow,
 }: UseGridEditingOptions<TData>) {
-  const handleDelete = useCallback(() => {
-    if (!selection || table.options.readOnly) return;
-
-    if (isFullRowSelected(selection, colCount)) {
-      onChange(deleteRows(data, selection));
-      return;
-    }
-
-    onChange(clearCells(data, selection, table.getVisibleLeafColumns()));
-  }, [selection, table, colCount, data, onChange]);
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      const activeCell = table.getActiveCell();
+      const editMode = table.getEditMode();
+      const colCount = table.getVisibleLeafColumns().length;
+      const rowCount = table.getRowModel().rows.length;
       const atLeftEdge = activeCell?.col === 0;
       const atRightEdge = activeCell?.col === colCount - 1;
       const isTabOut =
@@ -62,7 +35,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
       if (editMode) {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
-          stopEditing();
+          table.stopEditing();
           if (activeCell) {
             if (activeCell.row === rowCount - 1 && onAddRow) {
               onAddRow();
@@ -74,14 +47,14 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           return;
         } else if (e.key === "Tab") {
           if (isTabOut) {
-            stopEditing();
+            table.stopEditing();
             clearSelection();
             blurGrid();
             return; // Let browser handle tab
           }
 
           e.preventDefault();
-          stopEditing();
+          table.stopEditing();
           if (activeCell) {
             const newCol = e.shiftKey
               ? Math.max(0, activeCell.col - 1)
@@ -92,7 +65,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
         } else if (e.key === "Escape") {
           e.preventDefault();
           e.stopPropagation();
-          stopEditing();
+          table.stopEditing();
           return;
         } else if (
           editMode === "quick" &&
@@ -100,7 +73,7 @@ export function useGridEditing<TData extends Record<string, unknown>>({
         ) {
           // In quick mode, commit on arrow keys (navigation handled by use-rows-navigation)
           e.preventDefault();
-          stopEditing();
+          table.stopEditing();
           return;
         }
         // In full mode, arrow keys are handled by the input (cursor movement)
@@ -115,12 +88,13 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           if (activeCell) {
             const column = table.getVisibleLeafColumns()[activeCell.col];
             if (column && !column.isReadOnly(activeCell.row)) {
-              startEditing("full");
+              table.startEditing("full");
             }
           }
           break;
 
-        case "Escape":
+        case "Escape": {
+          const selection = table.getSelection();
           if (selection) {
             e.preventDefault();
             e.stopPropagation();
@@ -139,11 +113,12 @@ export function useGridEditing<TData extends Record<string, unknown>>({
             }
           }
           break;
+        }
 
         case "Delete":
         case "Backspace":
           e.preventDefault();
-          handleDelete();
+          table.deleteSelection();
           break;
 
         default:
@@ -157,68 +132,14 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           ) {
             const column = table.getVisibleLeafColumns()[activeCell.col];
             if (column && !column.isReadOnly(activeCell.row)) {
-              startEditing("quick");
+              table.startEditing("quick");
             }
           }
           break;
       }
     },
-    [
-      editMode,
-      activeCell,
-      selection,
-      table,
-      rowCount,
-      colCount,
-      selectCells,
-      startEditing,
-      stopEditing,
-      clearSelection,
-      blurGrid,
-      handleDelete,
-      onAddRow,
-    ],
+    [table, selectCells, clearSelection, blurGrid, onAddRow],
   );
 
   return handleKeyDown;
-}
-
-function deleteRows<TData extends Record<string, unknown>>(
-  data: TData[],
-  selection: GridSelection,
-): TData[] {
-  const minRow = selection.min.row;
-  const maxRow = selection.max.row;
-  return [...data.slice(0, minRow), ...data.slice(maxRow + 1)];
-}
-
-function clearCells<TData extends Record<string, unknown>>(
-  data: TData[],
-  selection: GridSelection,
-  columns: Column<TData, unknown>[],
-): TData[] {
-  return data.map((row, rowIndex) => {
-    if (rowIndex < selection.min.row || rowIndex > selection.max.row) {
-      return row;
-    }
-
-    const newRow = { ...row };
-    for (
-      let colIndex = selection.min.col;
-      colIndex <= selection.max.col;
-      colIndex++
-    ) {
-      const column = columns[colIndex];
-      if (!column || column.isReadOnly(rowIndex)) continue;
-
-      const accessorKey = column.id;
-      if (!accessorKey) continue;
-
-      const deleteValue = column.getDeleteValue();
-      const value =
-        typeof deleteValue === "function" ? deleteValue() : deleteValue;
-      (newRow as Record<string, unknown>)[accessorKey] = value ?? null;
-    }
-    return newRow;
-  });
 }

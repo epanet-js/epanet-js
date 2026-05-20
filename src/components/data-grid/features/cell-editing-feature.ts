@@ -1,7 +1,10 @@
 import {
   makeStateUpdater,
+  memo,
+  type Cell,
   type Column,
   type OnChangeFn,
+  type Row,
   type RowData,
   type Table,
   type TableFeature,
@@ -42,12 +45,20 @@ declare module "@tanstack/react-table" {
     getEditMode: () => EditMode;
     startEditing: (mode?: "quick" | "full") => void;
     stopEditing: () => void;
+    deleteSelection: () => void;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Column<TData extends RowData, TValue> {
     isReadOnly: (rowIndex: number) => boolean;
     getDeleteValue: () => unknown;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Cell<TData extends RowData, TValue> {
+    isActive: () => boolean;
+    isInteractive: () => boolean;
+    getEditMode: () => EditMode;
   }
 }
 
@@ -70,13 +81,39 @@ export const CellEditingFeature: TableFeature = {
       table.options.onCellEditingChange?.(updater);
     };
 
-    table.getActiveCell = () => table.getState().cellEditing.activeCell;
+    table.getActiveCell = memo(
+      () => [
+        table.getState().cellEditing.activeCell,
+        table.getVisibleLeafColumns().length,
+        table.getRowModel().rows.length,
+      ],
+      (activeCell, colCount, rowCount) => {
+        if (!activeCell) return null;
+        if (colCount === 0 || rowCount === 0) return null;
+        if (activeCell.col < colCount && activeCell.row < rowCount) {
+          return activeCell;
+        }
+        return clampActiveCell(activeCell, colCount, rowCount);
+      },
+      { key: "CellEditingFeature.getActiveCell" },
+    );
 
     table.setActiveCell = (position) => {
       table.setCellEditing((prev) => ({ ...prev, activeCell: position }));
     };
 
-    table.getEditMode = () => table.getState().cellEditing.editMode;
+    table.getEditMode = memo(
+      () => [
+        table.getState().cellEditing.editMode,
+        table.getVisibleLeafColumns().length,
+        table.getRowModel().rows.length,
+      ],
+      (editMode, colCount, rowCount) => {
+        if (colCount === 0 || rowCount === 0) return false;
+        return editMode;
+      },
+      { key: "CellEditingFeature.getEditMode" },
+    );
 
     table.startEditing = (mode = "full") => {
       table.setCellEditing((prev) => ({ ...prev, editMode: mode }));
@@ -87,6 +124,17 @@ export const CellEditingFeature: TableFeature = {
         if (!prev.editMode) return prev;
         return { ...prev, editMode: false };
       });
+    };
+
+    table.deleteSelection = () => {
+      if (table.options.readOnly) return;
+      const onChange = table.options.onDataChange;
+      if (!onChange || !table.getSelection()) return;
+      if (table.isSelectionFullRows()) {
+        onChange(deleteSelectedRows(table));
+      } else {
+        onChange(clearSelectedCells(table));
+      }
     };
   },
 
@@ -103,18 +151,28 @@ export const CellEditingFeature: TableFeature = {
 
     column.getDeleteValue = () => column.columnDef.meta?.deleteValue;
   },
+
+  createCell: <TData extends RowData, TValue>(
+    cell: Cell<TData, TValue>,
+    _column: Column<TData, TValue>,
+    _row: Row<TData>,
+    table: Table<TData>,
+  ): void => {
+    cell.isActive = () =>
+      isCellActive(
+        table.getActiveCell(),
+        cell.column.getIndex(),
+        cell.row.index,
+      );
+
+    cell.isInteractive = () => cell.isActive() && table.isSingleCellSelection();
+
+    cell.getEditMode = () =>
+      cell.isInteractive() ? table.getEditMode() : false;
+  },
 };
 
-export function isActiveCellEqual(
-  a: CellPosition | null,
-  b: CellPosition | null,
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return a.col === b.col && a.row === b.row;
-}
-
-export function clampActiveCell(
+function clampActiveCell(
   position: CellPosition | null,
   colCount: number,
   rowCount: number,
@@ -126,11 +184,66 @@ export function clampActiveCell(
   };
 }
 
-export function isCellActive(
+function isCellActive(
   activeCell: CellPosition | null,
   col: number,
   row: number,
 ): boolean {
   if (!activeCell) return false;
   return activeCell.col === col && activeCell.row === row;
+}
+
+function deleteSelectedRows<TData extends RowData>(
+  table: Table<TData>,
+): TData[] {
+  const selection = table.getSelection();
+  const data = table.options.data ?? [];
+  if (!selection) return data;
+  const visibleRows = table.getRowModel().rows;
+  const toRemove = new Set<TData>();
+  for (let i = selection.min.row; i <= selection.max.row; i++) {
+    const row = visibleRows[i];
+    if (row) toRemove.add(row.original);
+  }
+  return data.filter((row) => !toRemove.has(row));
+}
+
+function clearSelectedCells<TData extends RowData>(
+  table: Table<TData>,
+): TData[] {
+  const selection = table.getSelection();
+  const data = table.options.data ?? [];
+  if (!selection) return data;
+  const visibleRows = table.getRowModel().rows;
+  const columns = table.getVisibleLeafColumns();
+
+  const targetRows = new Map<TData, number>();
+  for (let i = selection.min.row; i <= selection.max.row; i++) {
+    const row = visibleRows[i];
+    if (row) targetRows.set(row.original, i);
+  }
+
+  return data.map((row) => {
+    const visibleIndex = targetRows.get(row);
+    if (visibleIndex === undefined) return row;
+
+    const newRow = { ...(row as object) } as Record<string, unknown>;
+    for (
+      let colIndex = selection.min.col;
+      colIndex <= selection.max.col;
+      colIndex++
+    ) {
+      const column = columns[colIndex];
+      if (!column || column.isReadOnly(visibleIndex)) continue;
+
+      const accessorKey = column.id;
+      if (!accessorKey) continue;
+
+      const deleteValue = column.getDeleteValue();
+      const value =
+        typeof deleteValue === "function" ? deleteValue() : deleteValue;
+      newRow[accessorKey] = value ?? null;
+    }
+    return newRow as TData;
+  });
 }

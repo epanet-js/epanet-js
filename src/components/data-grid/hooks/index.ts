@@ -1,10 +1,3 @@
-export {
-  useSelection,
-  isSingleCellSelection,
-  isFullRowSelected,
-  isCellSelected,
-  isCellActive,
-} from "./use-selection";
 export { useRowsNavigation } from "./use-rows-navigation";
 export { useGridEditing } from "./use-grid-editing";
 export { useEditMode } from "./use-edit-mode";

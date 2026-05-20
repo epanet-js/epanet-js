@@ -1,6 +1,10 @@
 import {
   makeStateUpdater,
+  memo,
+  type Cell,
+  type Column,
   type OnChangeFn,
+  type Row,
   type RowData,
   type Table,
   type TableFeature,
@@ -12,6 +16,13 @@ export type CellRangeSelectionInternalState = {
   range: GridSelection | null;
 };
 
+export type SelectionEdge = {
+  top: boolean;
+  bottom: boolean;
+  left: boolean;
+  right: boolean;
+};
+
 declare module "@tanstack/react-table" {
   interface TableState {
     cellRangeSelection: CellRangeSelectionInternalState;
@@ -20,9 +31,6 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableOptionsResolved<TData extends RowData> {
     onCellRangeSelectionChange?: OnChangeFn<CellRangeSelectionInternalState>;
-    onSelectionChange?: (selection: GridSelection | null) => void;
-    rowCount?: number;
-    colCount?: number;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,6 +41,25 @@ declare module "@tanstack/react-table" {
     getSelection: () => GridSelection | null;
     selectRange: (range: GridSelection) => void;
     clearSelection: () => void;
+    isSelectionFullRows: () => boolean;
+    isCellSelected: (col: number, row: number) => boolean;
+    isSingleCellSelection: () => boolean;
+    updateSelection: (options: {
+      col?: number;
+      row?: number;
+      extend?: boolean;
+    }) => { range: GridSelection; movingCorner: CellPosition } | null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Cell<TData extends RowData, TValue> {
+    isSelected: () => boolean;
+    getSelectionEdge: () => SelectionEdge | undefined;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Row<TData extends RowData> {
+    isFullySelected: () => boolean;
   }
 }
 
@@ -55,7 +82,28 @@ export const CellRangeSelectionFeature: TableFeature = {
       table.options.onCellRangeSelectionChange?.(updater);
     };
 
-    table.getSelection = () => table.getState().cellRangeSelection.range;
+    table.getSelection = memo(
+      () => [
+        table.getState().cellRangeSelection.range,
+        table.getVisibleLeafColumns().length,
+        table.getRowModel().rows.length,
+      ],
+      (range, colCount, rowCount) => {
+        if (!range) return null;
+        if (colCount === 0 || rowCount === 0) return null;
+        // Skip allocation when the range is already within bounds.
+        if (
+          range.max.col < colCount &&
+          range.max.row < rowCount &&
+          range.min.col < colCount &&
+          range.min.row < rowCount
+        ) {
+          return range;
+        }
+        return clampRange(range, colCount, rowCount);
+      },
+      { key: "CellRangeSelectionFeature.getSelection" },
+    );
 
     table.selectRange = (range) => {
       table.setCellRangeSelection({ range });
@@ -66,24 +114,79 @@ export const CellRangeSelectionFeature: TableFeature = {
       if (!prev) return;
       table.setCellRangeSelection(EMPTY);
     };
+
+    table.isSelectionFullRows = () =>
+      isFullRowSelected(
+        table.getSelection(),
+        table.getVisibleLeafColumns().length,
+      );
+
+    table.isCellSelected = (col, row) =>
+      isCellSelected(table.getSelection(), col, row);
+
+    table.isSingleCellSelection = () =>
+      isSingleCellSelection(table.getSelection());
+
+    table.updateSelection = ({ col, row, extend = false }) => {
+      const rowCount = table.getRowModel().rows.length;
+      const colCount = table.getVisibleLeafColumns().length;
+      if (rowCount === 0 || colCount === 0) return null;
+
+      const target = computeTargetSelection(col, row, colCount, rowCount);
+      const current = table.getSelection();
+
+      if (extend && current) {
+        const { combined, movingCorner } = computeExtendedRange(
+          current,
+          target,
+        );
+        table.selectRange(combined);
+        return { range: combined, movingCorner };
+      }
+
+      table.selectRange(target);
+      return { range: target, movingCorner: target.min };
+    };
+  },
+
+  createRow: <TData extends RowData>(
+    row: Row<TData>,
+    table: Table<TData>,
+  ): void => {
+    row.isFullySelected = () =>
+      table.isSelectionFullRows() &&
+      isCellSelected(table.getSelection(), 0, row.index);
+  },
+
+  createCell: <TData extends RowData, TValue>(
+    cell: Cell<TData, TValue>,
+    _column: Column<TData, TValue>,
+    _row: Row<TData>,
+    table: Table<TData>,
+  ): void => {
+    cell.isSelected = () =>
+      isCellSelected(
+        table.getSelection(),
+        cell.column.getIndex(),
+        cell.row.index,
+      );
+
+    cell.getSelectionEdge = () => {
+      const selection = table.getSelection();
+      if (!selection || !cell.isSelected()) return undefined;
+      const colIndex = cell.column.getIndex();
+      const rowIndex = cell.row.index;
+      return {
+        top: rowIndex === selection.min.row,
+        bottom: rowIndex === selection.max.row,
+        left: colIndex === selection.min.col,
+        right: colIndex === selection.max.col,
+      };
+    };
   },
 };
 
-export function isRangeEqual(
-  a: GridSelection | null,
-  b: GridSelection | null,
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.min.col === b.min.col &&
-    a.min.row === b.min.row &&
-    a.max.col === b.max.col &&
-    a.max.row === b.max.row
-  );
-}
-
-export function clampRange(
+function clampRange(
   range: GridSelection | null,
   colCount: number,
   rowCount: number,
@@ -101,9 +204,7 @@ export function clampRange(
   };
 }
 
-export function isSingleCellSelection(
-  selection: GridSelection | null,
-): boolean {
+function isSingleCellSelection(selection: GridSelection | null): boolean {
   if (!selection) return false;
   return (
     selection.min.col === selection.max.col &&
@@ -111,7 +212,7 @@ export function isSingleCellSelection(
   );
 }
 
-export function isFullRowSelected(
+function isFullRowSelected(
   selection: GridSelection | null,
   colCount: number,
 ): boolean {
@@ -119,7 +220,7 @@ export function isFullRowSelected(
   return selection.min.col === 0 && selection.max.col === colCount - 1;
 }
 
-export function isCellSelected(
+function isCellSelected(
   selection: GridSelection | null,
   col: number,
   row: number,
@@ -135,7 +236,7 @@ export function isCellSelected(
 
 // Pure helpers consumed by DataGrid to coordinate active cell + range.
 
-export function computeTargetSelection(
+function computeTargetSelection(
   colIndex: number | undefined,
   rowIndex: number | undefined,
   colCount: number,
@@ -150,7 +251,7 @@ export function computeTargetSelection(
   };
 }
 
-export function computeExtendedRange(
+function computeExtendedRange(
   current: GridSelection,
   target: GridSelection,
 ): { combined: GridSelection; movingCorner: CellPosition } {

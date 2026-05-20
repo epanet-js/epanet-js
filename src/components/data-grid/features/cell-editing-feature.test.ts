@@ -3,26 +3,61 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
-  CellEditingFeature,
-  clampActiveCell,
-  isActiveCellEqual,
-  isCellActive,
-} from "./cell-editing-feature";
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { CellEditingFeature } from "./cell-editing-feature";
+import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 
-const useFeatureTable = () =>
+type Row = { a: string; b: string; c: string };
+
+const useFeatureTable = (data: Row[] = []) =>
   useReactTable({
-    data: [],
-    columns: [],
+    data,
+    columns: [{ accessorKey: "a" }, { accessorKey: "b" }, { accessorKey: "c" }],
     getCoreRowModel: getCoreRowModel(),
-    _features: [CellEditingFeature],
+    _features: [CellEditingFeature, CellRangeSelectionFeature],
+  });
+
+const useGridTable = () =>
+  useFeatureTable([
+    { a: "", b: "", c: "" },
+    { a: "", b: "", c: "" },
+    { a: "", b: "", c: "" },
+    { a: "", b: "", c: "" },
+  ]);
+
+type EditableRow = { id: number; label: string; value: number | null };
+
+const editableData: EditableRow[] = [
+  { id: 1, label: "Row 1", value: 10 },
+  { id: 2, label: "Row 2", value: 20 },
+  { id: 3, label: "Row 3", value: 30 },
+];
+
+const useEditableTable = (
+  onDataChange?: (data: EditableRow[]) => void,
+  data: EditableRow[] = editableData,
+) =>
+  useReactTable<EditableRow>({
+    data,
+    columns: [
+      { accessorKey: "label", meta: { isReadOnly: true } },
+      { accessorKey: "value", meta: { deleteValue: null } },
+    ],
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableSorting: true,
+    onDataChange,
+    _features: [CellEditingFeature, CellRangeSelectionFeature],
   });
 
 describe("CellEditingFeature", () => {
   describe("initial state", () => {
     it("starts with no active cell and no edit mode", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       expect(result.current.getActiveCell()).toBeNull();
       expect(result.current.getEditMode()).toBe(false);
@@ -31,7 +66,7 @@ describe("CellEditingFeature", () => {
 
   describe("active cell", () => {
     it("sets and reads the active cell", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.setActiveCell({ col: 1, row: 2 });
@@ -41,7 +76,7 @@ describe("CellEditingFeature", () => {
     });
 
     it("clears the active cell when set to null", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.setActiveCell({ col: 0, row: 0 });
@@ -54,22 +89,22 @@ describe("CellEditingFeature", () => {
     });
 
     it("replaces the previous active cell", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.setActiveCell({ col: 0, row: 0 });
       });
       act(() => {
-        result.current.setActiveCell({ col: 3, row: 4 });
+        result.current.setActiveCell({ col: 2, row: 3 });
       });
 
-      expect(result.current.getActiveCell()).toEqual({ col: 3, row: 4 });
+      expect(result.current.getActiveCell()).toEqual({ col: 2, row: 3 });
     });
   });
 
   describe("edit mode", () => {
     it("enters full edit mode by default", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.startEditing();
@@ -79,7 +114,7 @@ describe("CellEditingFeature", () => {
     });
 
     it("enters quick edit mode when specified", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.startEditing("quick");
@@ -89,7 +124,7 @@ describe("CellEditingFeature", () => {
     });
 
     it("exits edit mode on stopEditing", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.startEditing("full");
@@ -102,7 +137,7 @@ describe("CellEditingFeature", () => {
     });
 
     it("stopEditing is a no-op when not editing (preserves state identity)", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       const before = result.current.getState().cellEditing;
       act(() => {
@@ -114,7 +149,7 @@ describe("CellEditingFeature", () => {
     });
 
     it("preserves the active cell when toggling edit mode", () => {
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.setActiveCell({ col: 2, row: 3 });
@@ -136,7 +171,7 @@ describe("CellEditingFeature", () => {
       // Note: this is the feature primitive's behavior. The consumer
       // (DataGrid.selectCells) coordinates stopEditing when the active
       // cell moves.
-      const { result } = renderHook(useFeatureTable);
+      const { result } = renderHook(useGridTable);
 
       act(() => {
         result.current.setActiveCell({ col: 0, row: 0 });
@@ -153,67 +188,196 @@ describe("CellEditingFeature", () => {
   });
 });
 
-describe("isActiveCellEqual", () => {
-  it("returns true for two nulls", () => {
-    expect(isActiveCellEqual(null, null)).toBe(true);
+describe("getActiveCell clamping", () => {
+  it("returns null when the grid has no rows even if state has an active cell", () => {
+    const { result } = renderHook(useFeatureTable);
+    act(() => {
+      result.current.setActiveCell({ col: 0, row: 0 });
+    });
+
+    expect(result.current.getActiveCell()).toBeNull();
   });
 
-  it("returns false when only one side is null", () => {
-    expect(isActiveCellEqual(null, { col: 0, row: 0 })).toBe(false);
-    expect(isActiveCellEqual({ col: 0, row: 0 }, null)).toBe(false);
+  it("clamps a position that exceeds the current grid bounds", () => {
+    const { result } = renderHook(useGridTable);
+    act(() => {
+      result.current.setActiveCell({ col: 7, row: 9 });
+    });
+
+    expect(result.current.getActiveCell()).toEqual({ col: 2, row: 3 });
   });
 
-  it("returns true for cells at the same position", () => {
-    expect(isActiveCellEqual({ col: 1, row: 2 }, { col: 1, row: 2 })).toBe(
-      true,
-    );
-  });
+  it("leaves an in-bounds position unchanged", () => {
+    const { result } = renderHook(useGridTable);
+    act(() => {
+      result.current.setActiveCell({ col: 1, row: 2 });
+    });
 
-  it("returns false for cells at different positions", () => {
-    expect(isActiveCellEqual({ col: 1, row: 2 }, { col: 2, row: 1 })).toBe(
-      false,
-    );
+    expect(result.current.getActiveCell()).toEqual({ col: 1, row: 2 });
   });
 });
 
-describe("clampActiveCell", () => {
-  it("returns null for null input", () => {
-    expect(clampActiveCell(null, 5, 5)).toBeNull();
-  });
-
-  it("leaves positions within bounds unchanged", () => {
-    expect(clampActiveCell({ col: 1, row: 2 }, 5, 5)).toEqual({
-      col: 1,
-      row: 2,
+describe("getEditMode clamping", () => {
+  it("returns false when the grid is empty even if state has an edit mode", () => {
+    const { result } = renderHook(useFeatureTable);
+    act(() => {
+      result.current.startEditing("full");
     });
-  });
 
-  it("clamps positions past the new bounds", () => {
-    expect(clampActiveCell({ col: 7, row: 9 }, 3, 4)).toEqual({
-      col: 2,
-      row: 3,
-    });
-  });
-
-  it("clamps column independently of row", () => {
-    expect(clampActiveCell({ col: 7, row: 1 }, 3, 5)).toEqual({
-      col: 2,
-      row: 1,
-    });
+    expect(result.current.getEditMode()).toBe(false);
   });
 });
 
-describe("isCellActive", () => {
-  it("returns false when there is no active cell", () => {
-    expect(isCellActive(null, 0, 0)).toBe(false);
+describe("deleteSelection", () => {
+  it("is a no-op when there is no selection", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    expect(onDataChange).not.toHaveBeenCalled();
   });
 
-  it("returns true when col and row match the active cell", () => {
-    expect(isCellActive({ col: 2, row: 3 }, 2, 3)).toBe(true);
+  it("is a no-op when readOnly is set", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() =>
+      useReactTable<EditableRow>({
+        data: editableData,
+        columns: [
+          { accessorKey: "label" },
+          { accessorKey: "value", meta: { deleteValue: null } },
+        ],
+        getCoreRowModel: getCoreRowModel(),
+        onDataChange,
+        readOnly: true,
+        _features: [CellEditingFeature, CellRangeSelectionFeature],
+      }),
+    );
+
+    act(() => {
+      result.current.selectRange({
+        min: { col: 1, row: 1 },
+        max: { col: 1, row: 1 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    expect(onDataChange).not.toHaveBeenCalled();
   });
 
-  it("returns false when either col or row differs", () => {
-    expect(isCellActive({ col: 2, row: 3 }, 1, 3)).toBe(false);
-    expect(isCellActive({ col: 2, row: 3 }, 2, 4)).toBe(false);
+  it("deletes rows when the selection spans all columns", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 1 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    expect(onDataChange).toHaveBeenCalledWith([
+      { id: 3, label: "Row 3", value: 30 },
+    ]);
+  });
+
+  it("clears cell values on a partial-column selection", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    act(() => {
+      result.current.selectRange({
+        min: { col: 1, row: 1 },
+        max: { col: 1, row: 1 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    expect(onDataChange).toHaveBeenCalledWith([
+      { id: 1, label: "Row 1", value: 10 },
+      { id: 2, label: "Row 2", value: null },
+      { id: 3, label: "Row 3", value: 30 },
+    ]);
+  });
+
+  it("skips read-only columns when clearing", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    // Select both columns of row 1 — label is read-only, value is editable.
+    // To force the clear path (not delete) we need a non-full-row selection,
+    // which spans all columns. Since both cols are selected this IS full
+    // rows, so use a single-column non-full-row selection instead:
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 1 },
+        max: { col: 0, row: 1 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    // label column is read-only, so nothing changes
+    expect(onDataChange).toHaveBeenCalledWith(editableData);
+  });
+
+  it("deletes the visually-selected row when the table is sorted", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    // Sort by label descending → visual order: Row 3, Row 2, Row 1
+    act(() => {
+      result.current.setSorting([{ id: "label", desc: true }]);
+    });
+    // Select the first visual row (originally Row 3) across all columns
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 0 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    const result_data = onDataChange.mock.calls[0][0] as EditableRow[];
+    expect(result_data.map((r) => r.label)).toEqual(["Row 1", "Row 2"]);
+  });
+
+  it("clears the visually-selected cell when the table is sorted", () => {
+    const onDataChange = vi.fn();
+    const { result } = renderHook(() => useEditableTable(onDataChange));
+
+    // Sort descending → visual order: Row 3, Row 2, Row 1
+    act(() => {
+      result.current.setSorting([{ id: "label", desc: true }]);
+    });
+    // Visual row 0 = Row 3. Clear its value.
+    act(() => {
+      result.current.selectRange({
+        min: { col: 1, row: 0 },
+        max: { col: 1, row: 0 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    // Result is in source-data order; Row 3's value is null.
+    expect(onDataChange).toHaveBeenCalledWith([
+      { id: 1, label: "Row 1", value: 10 },
+      { id: 2, label: "Row 2", value: 20 },
+      { id: 3, label: "Row 3", value: null },
+    ]);
   });
 });

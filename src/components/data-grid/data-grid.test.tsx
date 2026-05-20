@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen, waitFor } from "@testing-library/react";
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { DataGrid, type DataGridRef } from "./data-grid";
 import { booleanColumn } from "./cells/boolean-cell";
 import { floatColumn } from "./cells/float-cell";
@@ -172,16 +172,21 @@ describe("DataGrid", () => {
       const user = setupUser();
       const onSelectionChange = vi.fn();
 
-      render(
-        <DataGrid
-          data={defaultData}
-          columns={columns}
-          onChange={vi.fn()}
-          createRow={createRow}
-          addRowLabel="Add row"
-          onSelectionChange={onSelectionChange}
-        />,
-      );
+      function Wrapper() {
+        const [data, setData] = useState<TestRow[]>(defaultData);
+        return (
+          <DataGrid
+            data={data}
+            columns={columns}
+            onChange={setData}
+            createRow={createRow}
+            addRowLabel="Add row"
+            onSelectionChange={onSelectionChange}
+          />
+        );
+      }
+
+      render(<Wrapper />);
 
       // Click add row button (grid is not focused yet)
       await user.click(screen.getByRole("button", { name: /add row/i }));
@@ -435,6 +440,105 @@ describe("DataGrid", () => {
 
       // Should not trigger any changes in readOnly mode
       expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("clears cell values on a partial selection (not full row)", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+        />,
+      );
+
+      // Click the value cell in row 1 (cell index = row*cols + col = 1*4 + 1 = 5)
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[5]);
+
+      // Press Delete
+      await user.keyboard("{Delete}");
+
+      await waitFor(() => {
+        const result = onChange.mock.calls[0][0] as TestRow[];
+        // All three rows still present, only row 1's value got cleared to null
+        expect(result).toHaveLength(3);
+        expect(result[0]).toMatchObject({ label: "Row 1", value: 10.5 });
+        expect(result[1]).toMatchObject({ label: "Row 2", value: null });
+        expect(result[2]).toMatchObject({ label: "Row 3", value: 30.5 });
+      });
+    });
+
+    it("treats Backspace the same as Delete for clearing", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+        />,
+      );
+
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      await user.click(cells[5]);
+
+      await user.keyboard("{Backspace}");
+
+      await waitFor(() => {
+        const result = onChange.mock.calls[0][0] as TestRow[];
+        expect(result[1]).toMatchObject({ value: null });
+      });
+    });
+
+    it("skips read-only columns when clearing a selection that includes them", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={onChange}
+          createRow={createRow}
+          gutterColumn="numbered"
+        />,
+      );
+
+      // Select the full row (covers all cols including the read-only label)
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
+      await user.click(gutterCells[1]);
+
+      // Full-row selection deletes the row entirely, not clears.
+      // To test the clear path with read-only, select all cells of a row by
+      // selecting a non-full-row range: click value then shift-click last col.
+      onChange.mockClear();
+
+      const cells = container.querySelectorAll('[role="gridcell"]');
+      // Click value of row 1 (index 5), then shift-click last col (index 7)
+      await user.click(cells[5]);
+      await user.keyboard("{Shift>}");
+      await user.click(cells[7]);
+      await user.keyboard("{/Shift}");
+
+      await user.keyboard("{Delete}");
+
+      await waitFor(() => {
+        const result = onChange.mock.calls.at(-1)?.[0] as TestRow[];
+        // label is read-only — must be preserved
+        expect(result[1].label).toBe("Row 2");
+        // value, active, category should be cleared
+        expect(result[1]).toMatchObject({
+          value: null,
+          active: false,
+          category: null,
+        });
+      });
     });
   });
 

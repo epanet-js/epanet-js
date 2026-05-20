@@ -1,24 +1,10 @@
 import { Cell } from "@tanstack/react-table";
 import clsx from "clsx";
-import { DataGridVariant, EditMode } from "../types";
-import type { CellComponent } from "../features";
-
-export type SelectionEdge = {
-  top: boolean;
-  bottom: boolean;
-  left: boolean;
-  right: boolean;
-};
+import { DataGridVariant } from "../types";
 
 type GridDataCellProps<TData extends Record<string, unknown>> = {
   cell: Cell<TData, unknown>;
-  colIndex: number;
-  isSelected: boolean;
-  isActive: boolean;
-  editMode: EditMode;
-  isInteractive: boolean;
   readOnly: boolean;
-  selectionEdge?: SelectionEdge;
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseEnter: () => void;
   onDoubleClick: () => void;
@@ -26,7 +12,6 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
   onChange?: (value: unknown) => void;
   onBlur: () => void;
   onStartEditing: () => void;
-  CellComponent: CellComponent | undefined;
   variant: DataGridVariant;
   isLastRow: boolean;
   isLastCol: boolean;
@@ -35,13 +20,7 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
 
 export function GridDataCell<TData extends Record<string, unknown>>({
   cell,
-  colIndex,
-  isSelected,
-  isActive,
-  editMode,
-  isInteractive,
   readOnly,
-  selectionEdge,
   onMouseDown,
   onMouseEnter,
   onDoubleClick,
@@ -49,12 +28,18 @@ export function GridDataCell<TData extends Record<string, unknown>>({
   onBlur,
   onStartEditing,
   onChange,
-  CellComponent,
   variant,
   isLastRow,
   isLastCol,
   hasWarning,
 }: GridDataCellProps<TData>) {
+  const colIndex = cell.column.getIndex();
+  const isSelected = cell.isSelected();
+  const isActive = cell.isActive();
+  const isInteractive = cell.isInteractive();
+  const editMode = cell.getEditMode();
+  const selectionEdge = cell.getSelectionEdge();
+  const CellComponent = cell.column.getCellComponent();
   return (
     <div
       key={cell.id}
