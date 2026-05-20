@@ -426,7 +426,7 @@ export const parseTank: RowParser = ({ trimmedRow, inpData, isCommented }) => {
     minLevel: parseFloat(minLevel),
     maxLevel: parseFloat(maxLevel),
     diameter: parseFloat(diameter),
-    minVolume: parseFloat(minVolume),
+    minVolume: parseOptionalFloat(minVolume),
     isActive: !isCommented,
   };
 

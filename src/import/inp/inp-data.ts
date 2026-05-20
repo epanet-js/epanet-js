@@ -38,7 +38,7 @@ export type TankData = {
   minLevel: number;
   maxLevel: number;
   diameter: number;
-  minVolume: number;
+  minVolume?: number;
   volumeCurveId?: string;
   overflow?: boolean;
   isActive: boolean;
