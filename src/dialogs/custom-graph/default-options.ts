@@ -6,6 +6,7 @@ import {
   QualityProperty,
 } from "./types";
 
+const MAX_ASSETS = 100;
 const MAX_VISIBLE_LEGENDS = 12;
 const TOOLTIP_DECIMALS = 3;
 
@@ -68,6 +69,7 @@ const QUALITY_OPTIONS: Record<string, PropertyOption<QualityProperty>> = {
 };
 
 export const GraphDefaultOptions = {
+  MAX_ASSETS,
   MAX_VISIBLE_LEGENDS,
   TOOLTIP_DECIMALS,
   SERIES_COLORS,

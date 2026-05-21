@@ -8,6 +8,7 @@ import {
 import type { Asset } from "src/hydraulic-model";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import { AssetTimeSeries } from "./types";
+import { GraphDefaultOptions } from "./default-options";
 
 const YIELD_INTERVAL = 100;
 const PROGRESS_THROTTLE_MS = 40;
@@ -194,9 +195,18 @@ const categorizedAssetIdsAtom = atom<{
 
     if (NODE_TYPES.has(asset.type)) {
       nodeIds.add(feature.id);
-    } else if (LINK_TYPES.has(asset.type)) {
+    } else {
       linkIds.add(feature.id);
     }
+  }
+
+  const max = GraphDefaultOptions.MAX_ASSETS;
+  const total = nodeIds.size + linkIds.size;
+  if (total > max) {
+    const nodeLimit = Math.round((nodeIds.size / total) * max);
+    const linkLimit = max - nodeLimit;
+    truncateSet(nodeIds, nodeLimit);
+    truncateSet(linkIds, linkLimit);
   }
 
   return { nodeIds, linkIds };
@@ -213,7 +223,14 @@ interface CustomGraphSeriesData {
 }
 
 const NODE_TYPES: Set<AssetType> = new Set(["junction", "tank", "reservoir"]);
-const LINK_TYPES: Set<AssetType> = new Set(["pipe", "pump", "valve"]);
+
+const truncateSet = (set: Set<number>, limit: number) => {
+  let count = 0;
+  for (const id of set) {
+    if (count >= limit) set.delete(id);
+    else count++;
+  }
+};
 
 const nodePropertyAtom = atom("pressure");
 const linkPropertyAtom = atom("flow");
