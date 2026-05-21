@@ -3,7 +3,7 @@ import { cursorStyleAtom } from "src/state/map";
 import { Mode } from "src/state/mode";
 import { useSetAtom, useAtomValue } from "jotai";
 import { modeAtom } from "src/state/mode";
-import { getMapCoord } from "src/map/map-event";
+import { useGetMapCoord } from "../utils";
 import { useSelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { searchNearbyRenderedFeatures } from "src/map/search";
@@ -12,9 +12,11 @@ import { clickableLayers } from "src/map/layers/layer";
 import { getNode } from "src/hydraulic-model";
 import {
   moveNode,
+  moveNodeWithPrecision,
   mergeNodes,
   moveCustomerPoint,
 } from "src/hydraulic-model/model-operations";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { nodesShareLink } from "src/hydraulic-model/topology";
 import { useMoveState } from "./move-state";
 import { useCustomerPointMoveState } from "./customer-point-move-state";
@@ -52,6 +54,8 @@ export function useNoneHandlers({
 }: HandlerContext): Handlers {
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
+  const getMapCoord = useGetMapCoord();
+  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
 
   const setMode = useSetAtom(modeAtom);
   const {
@@ -271,14 +275,24 @@ export function useNoneHandlers({
           };
         }
 
-        const { putAssets } = moveNode(hydraulicModel, {
-          nodeId: asset.id,
-          newCoordinates,
-          newElevation: noElevation,
-          lengthUnit: units.length,
-          assetFactory,
-          labelManager,
-        });
+        const { putAssets } = withPrecision
+          ? moveNodeWithPrecision(hydraulicModel, {
+              nodeId: asset.id,
+              newCoordinates,
+              newElevation: noElevation,
+              lengthUnit: units.length,
+              assetFactory,
+              labelManager,
+              precision: map.getPrecision(),
+            })
+          : moveNode(hydraulicModel, {
+              nodeId: asset.id,
+              newCoordinates,
+              newElevation: noElevation,
+              lengthUnit: units.length,
+              assetFactory,
+              labelManager,
+            });
 
         if (putAssets) {
           if (!moveActivated) {
@@ -380,16 +394,28 @@ export function useNoneHandlers({
 
         fetchElevation(lngLatForElevation)
           .then((newElevationOrFallback) => {
-            const moment = moveNode(hydraulicModel, {
-              nodeId: assetId,
-              newCoordinates,
-              newElevation: newElevationOrFallback,
-              shouldUpdateCustomerPoints: true,
-              pipeIdToSplit,
-              lengthUnit: units.length,
-              assetFactory,
-              labelManager,
-            });
+            const moment = withPrecision
+              ? moveNodeWithPrecision(hydraulicModel, {
+                  nodeId: assetId,
+                  newCoordinates,
+                  newElevation: newElevationOrFallback,
+                  shouldUpdateCustomerPoints: true,
+                  pipeIdToSplit,
+                  lengthUnit: units.length,
+                  assetFactory,
+                  labelManager,
+                  precision: map.getPrecision(),
+                })
+              : moveNode(hydraulicModel, {
+                  nodeId: assetId,
+                  newCoordinates,
+                  newElevation: newElevationOrFallback,
+                  shouldUpdateCustomerPoints: true,
+                  pipeIdToSplit,
+                  lengthUnit: units.length,
+                  assetFactory,
+                  labelManager,
+                });
             transact(moment);
             resetMove();
             setTimeout(finishCommit, stateUpdateTime);

@@ -10,8 +10,9 @@ import { cursorStyleAtom } from "src/state/map";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { getMapCoord } from "../utils";
+import { useGetMapCoord } from "../utils";
 import { useRef } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
@@ -24,9 +25,14 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import { addLink } from "src/hydraulic-model/model-operations";
+import {
+  addLink,
+  addLinkWithPrecision,
+} from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+
+const MIN_VERTEX_PIXEL_DISTANCE = 8;
 
 export type SnappingCandidate =
   | NodeAsset
@@ -125,6 +131,27 @@ function checkLoopedLinkConditions(
   };
 }
 
+function isNewVertexTooClose(
+  existingCoordinates: Position[],
+  newCoordinates: Position,
+  map: MapEngine,
+): boolean {
+  if (existingCoordinates.length < 2) return false;
+
+  // Caller normalizes the last slot to the click position (the "preview"); the previous committed vertex is at length - 2.
+  const previousCommitted = existingCoordinates[existingCoordinates.length - 2];
+  const previousScreen = map.map.project([
+    previousCommitted[0],
+    previousCommitted[1],
+  ]);
+  const newScreen = map.map.project([newCoordinates[0], newCoordinates[1]]);
+  const pixelDistance = Math.hypot(
+    newScreen.x - previousScreen.x,
+    newScreen.y - previousScreen.y,
+  );
+  return pixelDistance < MIN_VERTEX_PIXEL_DISTANCE;
+}
+
 export function useDrawLinkHandlers({
   hydraulicModel,
   units,
@@ -149,6 +176,8 @@ export function useDrawLinkHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const lengthUnit = units.length;
+  const getMapCoord = useGetMapCoord();
+  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
@@ -281,8 +310,11 @@ export function useDrawLinkHandlers({
     return link.id;
   };
 
-  const addVertex = (coordinates: Position) => {
+  // LEGACY: remove once FLAG_DRAWING_PRECISION is permanently on.
+  const addVertexLegacy = (coordinates: Position) => {
     if (drawing.isNull) return;
+
+    if (isNewVertexTooClose(drawing.link.coordinates, coordinates, map)) return;
 
     const linkCopy = drawing.link.copy();
     linkCopy.addVertex(coordinates);
@@ -293,6 +325,31 @@ export function useDrawLinkHandlers({
       snappingCandidate: null,
     });
   };
+
+  const addVertexWithPrecision = (coordinates: Position) => {
+    if (drawing.isNull) return;
+
+    // In mouse flow, the `move` handler keeps the last coord aligned with the cursor between clicks.
+    // In touch flow no move events fire between taps, so the last slot can still hold the previous tap.
+    // Normalize the last slot to the click position before checking and appending.
+    const normalizedCoords = [
+      ...drawing.link.coordinates.slice(0, -1),
+      coordinates,
+    ];
+
+    if (isNewVertexTooClose(normalizedCoords, coordinates, map)) return;
+
+    const linkCopy = drawing.link.copy();
+    linkCopy.setCoordinates([...normalizedCoords, coordinates]);
+    setDrawing({
+      startNode: drawing.startNode,
+      startPipeId: drawing.startPipeId,
+      link: linkCopy,
+      snappingCandidate: null,
+    });
+  };
+
+  const addVertex = withPrecision ? addVertexWithPrecision : addVertexLegacy;
 
   const submitLink = ({
     startNode,
@@ -312,7 +369,8 @@ export function useDrawLinkHandlers({
       return;
     }
 
-    const moment = addLink(hydraulicModel, {
+    const addLinkOp = withPrecision ? addLinkWithPrecision : addLink;
+    const moment = addLinkOp(hydraulicModel, {
       link: link,
       startNode,
       endNode,

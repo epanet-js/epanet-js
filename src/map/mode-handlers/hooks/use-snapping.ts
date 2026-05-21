@@ -9,6 +9,7 @@ import {
 } from "../../search";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SnappingCandidate } from "../draw-link/draw-link-handlers";
 import { DataSource } from "../../data-source";
 
@@ -32,6 +33,8 @@ export const useSnapping = (
     enablePipeSnapping: true,
   },
 ) => {
+  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
+
   const getNeighborPoint = (
     point: mapboxgl.Point,
     excludeIds?: number[],
@@ -103,7 +106,11 @@ export const useSnapping = (
 
       const pipeLineString = lineString(pipeGeometry.coordinates);
       const mousePoint = point(mouseCoord);
-      const result = findNearestPointOnLine(pipeLineString, mousePoint);
+      const result = withPrecision
+        ? findNearestPointOnLine(pipeLineString, mousePoint, {
+            precision: map.getPrecision(),
+          })
+        : findNearestPointOnLine(pipeLineString, mousePoint);
 
       let snapPosition = result.coordinates;
       let snappedVertexIndex: number | null = null;

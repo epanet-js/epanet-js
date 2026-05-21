@@ -34,6 +34,14 @@ const emptyGeoJSONSource = {
   tolerance: 0,
 } as const;
 
+const emptyGeoJSONSourceWithPrecision = {
+  type: "geojson",
+  data: emptyFeatureCollection,
+  buffer: 4,
+  tolerance: 0,
+  maxzoom: 22,
+} as const;
+
 export async function buildBaseStyle({
   layerConfigs,
   translate,
@@ -72,6 +80,44 @@ export async function buildBaseStyle({
   return style;
 }
 
+export async function buildBaseStyleWithPrecision({
+  layerConfigs,
+  translate,
+}: {
+  layerConfigs: LayerConfigMap;
+  translate: (key: string) => string;
+}): Promise<Style> {
+  let style = getEmptyStyle();
+  let id = 0;
+  const layers = [...layerConfigs.values()].reverse();
+  for (const layer of layers) {
+    id++;
+    switch (layer.type) {
+      case "MAPBOX": {
+        style = await addMapboxStyle(style, layer, translate);
+        break;
+      }
+      case "XYZ": {
+        style = addXYZStyle(style, layer, id);
+        break;
+      }
+      case "TILEJSON": {
+        style = await addTileJSONStyle(style, layer, id, translate);
+        break;
+      }
+      case "GEOJSON": {
+        // GIS data lives outside buildBaseStyle — sources are added after
+        // style.load via addGisLayersToMap in state-updates.ts.
+        break;
+      }
+    }
+  }
+
+  defineEmptySourcesWithPrecision(style);
+
+  return style;
+}
+
 export function defineEmptySources(style: Style) {
   style.sources["main-features"] = emptyGeoJSONSource;
   style.sources["delta-features"] = emptyGeoJSONSource;
@@ -81,6 +127,17 @@ export function defineEmptySources(style: Style) {
   style.sources["map-overlay"] = emptyGeoJSONSource;
   style.sources["highlights"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
+}
+
+export function defineEmptySourcesWithPrecision(style: Style) {
+  style.sources["main-features"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["delta-features"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["icons"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["selected-features"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["ephemeral"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["map-overlay"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["highlights"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["grid"] = emptyGeoJSONSourceWithPrecision;
 }
 
 import type { PreviewProperty } from "src/state/map-symbology";

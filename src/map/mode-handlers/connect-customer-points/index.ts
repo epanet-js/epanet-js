@@ -2,7 +2,7 @@ import type { HandlerContext } from "src/types";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetAtom, useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
-import { getMapCoord } from "../utils";
+import { useGetMapCoord } from "../utils";
 import { useConnectCustomerPointsState } from "./connect-state";
 import { usePipeSnappingForCustomerPoints } from "./pipe-snapping";
 import { connectCustomers } from "src/hydraulic-model/model-operations";
@@ -31,6 +31,7 @@ export function useConnectCustomerPointsHandlers({
   } = useConnectCustomerPointsState();
   const { findNearestPipe, calculateSnapPoints } =
     usePipeSnappingForCustomerPoints(map, hydraulicModel.assets);
+  const getMapCoord = useGetMapCoord();
 
   const hasInitializedRef = useRef(false);
 

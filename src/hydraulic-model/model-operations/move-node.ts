@@ -25,6 +25,10 @@ type InputData = {
   labelManager: LabelManager;
 };
 
+type InputDataWithPrecision = InputData & {
+  precision?: number;
+};
+
 export const moveNode: ModelOperation<InputData> = (
   hydraulicModel,
   {
@@ -49,6 +53,7 @@ export const moveNode: ModelOperation<InputData> = (
       lengthUnit,
       assetFactory,
       labelManager,
+      undefined,
     );
   }
 
@@ -63,7 +68,50 @@ export const moveNode: ModelOperation<InputData> = (
   });
 };
 
-const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
+export const moveNodeWithPrecision: ModelOperation<InputDataWithPrecision> = (
+  hydraulicModel,
+  {
+    nodeId,
+    newCoordinates,
+    newElevation,
+    shouldUpdateCustomerPoints = false,
+    pipeIdToSplit,
+    lengthUnit,
+    assetFactory,
+    labelManager,
+    precision,
+  },
+) => {
+  if (pipeIdToSplit) {
+    return moveNodeWithPipeSplitting(
+      hydraulicModel,
+      nodeId,
+      newCoordinates,
+      newElevation,
+      shouldUpdateCustomerPoints,
+      pipeIdToSplit,
+      lengthUnit,
+      assetFactory,
+      labelManager,
+      precision,
+    );
+  }
+
+  return moveNodeStandard(hydraulicModel, {
+    nodeId,
+    newCoordinates,
+    newElevation,
+    shouldUpdateCustomerPoints,
+    lengthUnit,
+    assetFactory,
+    labelManager,
+    precision,
+  });
+};
+
+const moveNodeStandard: ModelOperation<
+  Omit<InputDataWithPrecision, "pipeIdToSplit">
+> = (
   hydraulicModel,
   {
     nodeId,
@@ -71,6 +119,7 @@ const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
     newElevation,
     shouldUpdateCustomerPoints = false,
     lengthUnit,
+    precision,
   },
 ) => {
   const { assets, topology, customerPointsLookup } = hydraulicModel;
@@ -106,7 +155,11 @@ const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
 
       for (const customerPoint of customerPointsConnectedToPipe) {
         const customerPointCopy = customerPoint.copyDisconnected();
-        const snapPoint = findNearestSnappingPoint(pipeCopy, customerPointCopy);
+        const snapPoint = findNearestSnappingPoint(
+          pipeCopy,
+          customerPointCopy,
+          precision,
+        );
         const junctionId = findJunctionForCustomerPoint(
           startNode,
           endNode,
@@ -147,6 +200,7 @@ const moveNodeWithPipeSplitting = (
   lengthUnit: Unit,
   assetFactory: AssetFactory,
   labelManager: LabelManager,
+  precision?: number,
 ) => {
   const { assets } = hydraulicModel;
 
@@ -169,6 +223,7 @@ const moveNodeWithPipeSplitting = (
     lengthUnit,
     assetFactory,
     labelManager,
+    precision,
   });
 
   const splitResult = splitPipe(hydraulicModel, {
@@ -220,10 +275,13 @@ const updateLinkCoordinates = (
 const findNearestSnappingPoint = (
   pipe: Pipe,
   customerPoint: CustomerPoint,
+  precision?: number,
 ): Position => {
   const pipeLineString = lineString(pipe.coordinates);
   const customerPointGeometry = point(customerPoint.coordinates);
 
-  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry);
+  const result = findNearestPointOnLine(pipeLineString, customerPointGeometry, {
+    precision,
+  });
   return result.coordinates;
 };

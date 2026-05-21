@@ -3,7 +3,7 @@ import { ephemeralStateAtom } from "src/state/drawing";
 import { modeAtom, Mode } from "src/state/mode";
 import noop from "lodash/noop";
 import { useSetAtom, useAtomValue } from "jotai";
-import { getMapCoord } from "../utils";
+import { useGetMapCoord } from "../utils";
 import { addCustomerPoint } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
@@ -22,6 +22,7 @@ export function useDrawCustomerPointHandlers({
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);
+  const getMapCoord = useGetMapCoord();
 
   return {
     click: (e) => {

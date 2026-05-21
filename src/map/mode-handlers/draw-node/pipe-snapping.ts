@@ -5,6 +5,7 @@ import { AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type PipeSnapResult = {
   pipeId: number;
@@ -12,6 +13,8 @@ type PipeSnapResult = {
 };
 
 export const usePipeSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
+  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
+
   const findNearestPipeToSnap = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
@@ -43,7 +46,11 @@ export const usePipeSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
 
       const pipeLineString = lineString(pipeGeometry.coordinates);
       const mousePoint = point(mouseCoord);
-      const result = findNearestPointOnLine(pipeLineString, mousePoint);
+      const result = withPrecision
+        ? findNearestPointOnLine(pipeLineString, mousePoint, {
+            precision: map.getPrecision(),
+          })
+        : findNearestPointOnLine(pipeLineString, mousePoint);
 
       const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {

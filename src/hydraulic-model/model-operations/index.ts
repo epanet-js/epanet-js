@@ -1,4 +1,4 @@
-export { moveNode } from "./move-node";
+export { moveNode, moveNodeWithPrecision } from "./move-node";
 export { changeProperty, changeProperties } from "./change-property";
 export { mergeMoments } from "./merge-moments";
 export type { PropertyChange } from "./change-property";
@@ -8,9 +8,9 @@ export { disconnectCustomers } from "./disconnect-customers";
 export { connectCustomers } from "./connect-customers";
 export { addNode } from "./add-node";
 export { deleteAssets } from "./delete-assets";
-export { addLink } from "./add-link";
+export { addLink, addLinkWithPrecision } from "./add-link";
 export { replaceNode as replaceNode } from "./replace-node";
-export { replaceLink } from "./replace-link";
+export { replaceLink, replaceLinkWithPrecision } from "./replace-link";
 export { mergeNodes } from "./merge-nodes";
 export { changeControls } from "./change-controls";
 export { changeCurves } from "./change-curves";

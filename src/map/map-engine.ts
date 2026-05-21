@@ -6,6 +6,7 @@ import type { Feature, IFeatureCollection } from "src/types";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { LayersList } from "@deck.gl/core";
 import { DataSource } from "./data-source";
+import { precisionForZoom } from "src/lib/geometry";
 import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
@@ -294,6 +295,10 @@ export class MapEngine {
 
   getZoom(): number {
     return this.map.getZoom();
+  }
+
+  getPrecision(): number {
+    return precisionForZoom(this.getZoom());
   }
 
   getBounds(): mapboxgl.LngLatBounds {

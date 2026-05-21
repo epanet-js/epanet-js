@@ -5,7 +5,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { getMapCoord } from "../utils";
+import { useGetMapCoord } from "../utils";
 import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import throttle from "lodash/throttle";
@@ -34,6 +34,7 @@ export function useDrawNodeHandlers({
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
+  const getMapCoord = useGetMapCoord();
 
   const submitNode = (
     nodeType: NodeType,

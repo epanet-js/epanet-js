@@ -12,7 +12,7 @@ import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
 import { buildHglProfile } from "src/panels/hgl-profile/build-hgl-profile";
 import { findClosestEndpointNode } from "src/hydraulic-model/spatial-queries";
 import { isUnprojectedAtom } from "src/state/map-projection";
-import { getMapCoord, useClickedAsset } from "src/map/mode-handlers/utils";
+import { useClickedAsset, useGetMapCoord } from "src/map/mode-handlers/utils";
 import {
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
@@ -24,6 +24,7 @@ export function useHglProfileHandlers(
 ): Handlers {
   const { hydraulicModel, map } = handlerContext;
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
+  const getMapCoord = useGetMapCoord();
 
   const store = useStore();
   const isUnprojected = useAtomValue(isUnprojectedAtom);

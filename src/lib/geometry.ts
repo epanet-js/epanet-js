@@ -334,16 +334,24 @@ export function roundCoordinates(coordinates: Position): Position {
   return e6position(coordinates, 6);
 }
 
+// Picks decimal-degree precision such that the rounding grid is ≲1 pixel at the given zoom, up to ~65° latitude (we don't target polar drawing).
+// Use this anywhere lng/lat coords are stored from a user-driven UI gesture so storage precision matches what the user can see.
+export function precisionForZoom(zoom: number): number {
+  if (zoom < 20) return 6;
+  if (zoom < 23) return 7;
+  return 8;
+}
+
 export function findNearestPointOnLine(
   line: LineString | Feature,
   point: Point | Feature,
-  options?: { units?: string },
-  precision: number = 6,
+  options?: { units?: string; precision?: number },
 ): { coordinates: Position; distance: number | null } {
+  const { units, precision = 6 } = options ?? {};
   const result = turfNearestPointOnLine(
     line as any,
     point as any,
-    options as any,
+    units ? ({ units } as any) : undefined,
   );
   return {
     coordinates: e6position(result.geometry.coordinates, precision),
