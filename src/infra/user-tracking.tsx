@@ -949,11 +949,6 @@ type CustomGraphPropertySelected = {
   property: string;
 };
 
-type CustomGraphResized = {
-  name: "customGraph.resized";
-  operation: "maximize" | "minimize";
-};
-
 type CustomGraphAxesFormatSwitched = {
   name: "customGraph.axesFormatSwitched";
   format: "combined" | "single";
@@ -1324,7 +1319,6 @@ export type UserEvent =
   | SimulationResultsExported
   | CustomGraphExported
   | CustomGraphPropertySelected
-  | CustomGraphResized
   | CustomGraphAxesFormatSwitched;
 
 const debugPostHog = {

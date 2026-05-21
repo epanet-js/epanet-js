@@ -11,7 +11,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
-import { ChevronDownIcon, MaximizeIcon, MinimizeIcon } from "src/icons";
+import { ChevronDownIcon } from "src/icons";
 import {
   CustomGraphChart,
   GraphDefaultOptions,
@@ -39,7 +39,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const [progress, setProgress] = useState(0);
   const [combineAxes, setCombineAxes] = useState(false);
-  const [maximized, setMaximized] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
 
@@ -231,8 +230,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   return (
     <BaseDialog
       title={translate("customGraph.title")}
-      size={maximized ? "xxl" : "xl"}
-      height={maximized ? "xxl" : "xl"}
+      size="xl"
+      height="xl"
       isOpen={true}
       onClose={onClose}
       footer={
@@ -268,23 +267,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     >
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap">
-          <button
-            type="button"
-            className="ml-auto text-gray-500 hover:text-black dark:hover:text-white order-last disabled:opacity-40 disabled:pointer-events-none"
-            disabled={isExporting}
-            onClick={() => {
-              setMaximized((v) => {
-                capture({
-                  name: "customGraph.resized",
-                  operation: v ? "minimize" : "maximize",
-                });
-                return !v;
-              });
-            }}
-            aria-label={maximized ? "Minimize" : "Maximize"}
-          >
-            {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
-          </button>
           {hasNodes && (
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">
