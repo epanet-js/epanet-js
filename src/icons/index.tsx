@@ -100,6 +100,8 @@ import {
   CirclePause,
   Zap,
   ChartLine,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 export const iconSizes = {
@@ -237,6 +239,8 @@ export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
+export const MaximizeIcon = icon(Maximize2);
+export const MinimizeIcon = icon(Minimize2);
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
