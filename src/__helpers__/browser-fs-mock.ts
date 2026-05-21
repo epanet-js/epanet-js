@@ -117,7 +117,7 @@ export const buildFileSystemHandleMock = ({
 }: {
   fileName?: string;
 } = {}): FileSystemFileHandle => {
-  const handle = {
+  const handle: FileSystemFileHandle = {
     name: fileName,
     kind: "file",
     getFile: vi.fn(() =>
@@ -132,8 +132,8 @@ export const buildFileSystemHandleMock = ({
       } as unknown as FileSystemWritableFileStream),
     ),
     isSameEntry: vi.fn((other: FileSystemFileHandle) =>
-      Promise.resolve(other === (handle as unknown as FileSystemFileHandle)),
+      Promise.resolve(other === handle),
     ),
-  };
-  return handle as unknown as FileSystemFileHandle;
+  } as unknown as FileSystemFileHandle;
+  return handle;
 };
