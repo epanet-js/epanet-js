@@ -51,7 +51,10 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     linkProperty,
     setNodeProperty,
     setLinkProperty,
+    totalSelectedCount,
   } = useCustomGraphData(setProgress);
+
+  const assetsTruncated = totalSelectedCount > GraphDefaultOptions.MAX_ASSETS;
 
   const nodePropertyOptions = useMemo(() => {
     const opts: PropertyOption<NodeProperty | QualityProperty>[] = [
@@ -355,6 +358,17 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                 </span>
               </div>
             )}
+          </div>
+        )}
+        {!isLoading && !noDataAvailable && assetsTruncated && (
+          <div className="mx-4 mb-2 p-3 rounded-md bg-yellow-50 border border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              {translate(
+                "customGraph.assetsTruncated",
+                String(GraphDefaultOptions.MAX_ASSETS),
+                String(totalSelectedCount),
+              )}
+            </p>
           </div>
         )}
         {!isLoading && noDataAvailable && (

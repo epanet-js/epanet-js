@@ -14,7 +14,9 @@ const YIELD_INTERVAL = 100;
 const PROGRESS_THROTTLE_MS = 40;
 
 export function useCustomGraphData(onProgress: (progress: number) => void) {
-  const { nodeIds, linkIds } = useAtomValue(categorizedAssetIdsAtom);
+  const { nodeIds, linkIds, totalSelectedCount } = useAtomValue(
+    categorizedAssetIdsAtom,
+  );
   const setNodeProperty = useSetAtom(nodePropertyAtom);
   const setLinkProperty = useSetAtom(linkPropertyAtom);
   const nodeProperty = useAtomValue(nodePropertyAtom);
@@ -177,12 +179,14 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
     linkProperty,
     setNodeProperty,
     setLinkProperty,
+    totalSelectedCount,
   };
 }
 
 const categorizedAssetIdsAtom = atom<{
   nodeIds: Set<number>;
   linkIds: Set<number>;
+  totalSelectedCount: number;
 }>((get) => {
   const selectedFeatures = get(selectedFeaturesDerivedAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
@@ -201,15 +205,15 @@ const categorizedAssetIdsAtom = atom<{
   }
 
   const max = GraphDefaultOptions.MAX_ASSETS;
-  const total = nodeIds.size + linkIds.size;
-  if (total > max) {
-    const nodeLimit = Math.round((nodeIds.size / total) * max);
+  const totalSelectedCount = nodeIds.size + linkIds.size;
+  if (totalSelectedCount > max) {
+    const nodeLimit = Math.round((nodeIds.size / totalSelectedCount) * max);
     const linkLimit = max - nodeLimit;
     truncateSet(nodeIds, nodeLimit);
     truncateSet(linkIds, linkLimit);
   }
 
-  return { nodeIds, linkIds };
+  return { nodeIds, linkIds, totalSelectedCount };
 });
 
 const EMPTY_SERIES: CustomGraphSeriesData = {
