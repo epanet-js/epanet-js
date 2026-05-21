@@ -234,18 +234,27 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       onClose={onClose}
       footer={
         <footer className="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-200">
+          <Button variant="default" type="button" onClick={onClose}>
+            {translate("dialog.close")}
+          </Button>
+        </footer>
+      }
+    >
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap border-b border-gray-200">
           <DD.Root>
             <DD.Trigger asChild>
               <Button
                 variant="default"
                 type="button"
                 disabled={controlsDisabled}
+                className="ml-auto order-last"
               >
                 {translate("customGraph.exportAs")}
                 <ChevronDownIcon />
               </Button>
             </DD.Trigger>
-            <DDContent align="start" side="top">
+            <DDContent align="end" side="bottom">
               <StyledItem onSelect={exportAsPng}>
                 {translate("customGraph.imagePng")}
               </StyledItem>
@@ -257,14 +266,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               </StyledItem>
             </DDContent>
           </DD.Root>
-          <Button variant="default" type="button" onClick={onClose}>
-            {translate("dialog.close")}
-          </Button>
-        </footer>
-      }
-    >
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap border-b border-gray-200">
           {hasNodes && (
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">
