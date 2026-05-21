@@ -264,7 +264,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       }
     >
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap">
+        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap border-b border-gray-200">
           {hasNodes && (
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-600">
