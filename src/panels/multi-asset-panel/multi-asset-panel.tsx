@@ -11,6 +11,8 @@ import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { assetPanelFooterAtom } from "src/state/quick-graph";
+import { useMultiQuickGraph } from "./multi-quick-graph";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
@@ -93,6 +95,14 @@ export function MultiAssetPanel({
     return BATCH_EDITABLE_PROPERTIES.tank;
   }, [assetIdsByType.tank, hydraulicModel.assets]);
 
+  const selectedAssetIds = useMemo(
+    () => (selectedFeatures as Asset[]).map((a) => a.id),
+    [selectedFeatures],
+  );
+
+  const { footer } = useMultiQuickGraph(selectedAssetIds);
+  const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
+
   const showSelectOnly =
     Object.values(assetCounts).filter((c) => c > 0).length > 1;
 
@@ -165,6 +175,12 @@ export function MultiAssetPanel({
     <SectionList
       padding={3}
       header={<Header selectedCount={selectedFeatures.length} />}
+      footer={footer}
+      isStickyFooter={footerState.isPinned}
+      stickyFooterHeight={footerState.height}
+      onStickyFooterHeightChange={(height) =>
+        setFooterState((prev) => ({ ...prev, height }))
+      }
       overflow={true}
     >
       {assetCounts.junction > 0 && (

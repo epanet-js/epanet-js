@@ -197,6 +197,8 @@ interface ChartStepProps {
   linkProperty: string | null;
   chartType: "line" | "variability";
   assetGroup: "nodes" | "links" | "all";
+  className?: string;
+  hideLegend?: boolean;
 }
 
 export function ChartStep({
@@ -205,6 +207,8 @@ export function ChartStep({
   linkProperty,
   chartType,
   assetGroup,
+  className = "relative flex-1 min-h-0 w-full",
+  hideLegend = false,
 }: ChartStepProps) {
   const translate = useTranslate();
   const {
@@ -293,6 +297,8 @@ export function ChartStep({
       );
     }
 
+    const axisName = (label: string) => (hideLegend ? "" : label);
+
     const yAxisLeft = buildYAxisConfig(
       isMixed ? allNodeValues : [...allNodeValues, ...allLinkValues],
       isMixed
@@ -301,10 +307,10 @@ export function ChartStep({
           ? nodeDecimals
           : linkDecimals,
       isMixed
-        ? nodeAxisLabel
+        ? axisName(nodeAxisLabel)
         : nodeSeries.length > 0
-          ? nodeAxisLabel
-          : linkAxisLabel,
+          ? axisName(nodeAxisLabel)
+          : axisName(linkAxisLabel),
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -312,7 +318,11 @@ export function ChartStep({
       ? [
           { ...yAxisLeft, position: "left" },
           {
-            ...buildYAxisConfig(allLinkValues, linkDecimals, linkAxisLabel),
+            ...buildYAxisConfig(
+              allLinkValues,
+              linkDecimals,
+              axisName(linkAxisLabel),
+            ),
             position: "right",
             alignTicks: true,
             splitLine: { show: false },
@@ -325,8 +335,9 @@ export function ChartStep({
         ]
       : { ...yAxisLeft };
 
-    const showLegend = series.length <= 10;
+    const showLegend = !hideLegend && series.length <= 10;
     const useTwoLegends =
+      !hideLegend &&
       isMixed &&
       chartType === "line" &&
       showLegend &&
@@ -371,7 +382,7 @@ export function ChartStep({
             },
           },
         ]
-      : !showLegend
+      : !hideLegend && !showLegend
         ? [
             {
               type: "text",
@@ -387,12 +398,13 @@ export function ChartStep({
           ]
         : undefined;
 
-    const gridBottom = useTwoLegends ? 48 : 32;
+    const gridBottom = useTwoLegends ? 48 : hideLegend ? 8 : 32;
+    const gridTop = hideLegend ? 8 : 28;
 
     return {
       animation: false,
       grid: {
-        top: 28,
+        top: gridTop,
         right: 16,
         bottom: gridBottom,
         left: 16,
@@ -444,6 +456,7 @@ export function ChartStep({
     nodeAxisLabel,
     linkAxisLabel,
     isMixed,
+    hideLegend,
   ]);
 
   const chartRef = useRef<ReactECharts>(null);
@@ -468,7 +481,7 @@ export function ChartStep({
   }
 
   return (
-    <div ref={containerRef} className="relative flex-1 min-h-0 w-full">
+    <div ref={containerRef} className={className}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
           <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
