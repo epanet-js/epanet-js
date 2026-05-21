@@ -187,7 +187,6 @@ describe("useCustomGraphData", () => {
       expect(values).toEqual([0, 0, 1, 1]);
     });
   });
-
 });
 
 const makeSimulation = (reader: EPSResultsReader): SimulationState =>

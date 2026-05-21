@@ -944,6 +944,21 @@ type CustomGraphExported = {
   numAssets: number;
 };
 
+type CustomGraphPropertySelected = {
+  name: "customGraph.propertySelected";
+  property: string;
+};
+
+type CustomGraphResized = {
+  name: "customGraph.resized";
+  operation: "maximize" | "minimize";
+};
+
+type CustomGraphAxesFormatSwitched = {
+  name: "customGraph.axesFormatSwitched";
+  format: "combined" | "single";
+};
+
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -1307,7 +1322,10 @@ export type UserEvent =
   | CurveChanged
   | AssetDataExported
   | SimulationResultsExported
-  | CustomGraphExported;
+  | CustomGraphExported
+  | CustomGraphPropertySelected
+  | CustomGraphResized
+  | CustomGraphAxesFormatSwitched;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

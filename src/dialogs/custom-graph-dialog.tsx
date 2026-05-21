@@ -10,6 +10,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { useUserTracking } from "src/infra/user-tracking";
 import { ChevronDownIcon, MaximizeIcon, MinimizeIcon } from "src/icons";
 import {
   CustomGraphChart,
@@ -26,6 +27,7 @@ import { currentFileNameAtom } from "src/state";
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkNameDot = fullNetworkName.lastIndexOf(".");
   const networkName = fullNetworkName.substring(
@@ -177,12 +179,18 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   }, [linkProperty, translate]);
 
   const handleNodePropertyChange = useCallback(
-    (value: string) => setNodeProperty(value),
-    [setNodeProperty],
+    (value: string) => {
+      setNodeProperty(value);
+      capture({ name: "customGraph.propertySelected", property: value });
+    },
+    [setNodeProperty, capture],
   );
   const handleLinkPropertyChange = useCallback(
-    (value: string) => setLinkProperty(value),
-    [setLinkProperty],
+    (value: string) => {
+      setLinkProperty(value);
+      capture({ name: "customGraph.propertySelected", property: value });
+    },
+    [setLinkProperty, capture],
   );
 
   const { exportAsPng, exportTabular } = useCustomGraphExport({
@@ -239,7 +247,15 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           <button
             type="button"
             className="ml-auto text-gray-500 hover:text-black dark:hover:text-white order-last"
-            onClick={() => setMaximized((v) => !v)}
+            onClick={() => {
+              setMaximized((v) => {
+                capture({
+                  name: "customGraph.resized",
+                  operation: v ? "minimize" : "maximize",
+                });
+                return !v;
+              });
+            }}
             aria-label={maximized ? "Minimize" : "Maximize"}
           >
             {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
@@ -285,7 +301,14 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Checkbox
                 checked={combineAxes}
                 disabled={isLoading || noDataAvailable}
-                onChange={(e) => setCombineAxes(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setCombineAxes(checked);
+                  capture({
+                    name: "customGraph.axesFormatSwitched",
+                    format: checked ? "combined" : "single",
+                  });
+                }}
               />
               <span className="text-sm text-gray-600">
                 {translate("customGraph.combineAxes")}
