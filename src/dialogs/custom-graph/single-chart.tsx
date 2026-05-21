@@ -74,9 +74,8 @@ export const SingleChart = memo(
         grid: {
           top: 8,
           right: 40,
-          bottom: showXAxisLabels ? 32 : 8,
-          left: 40,
-          containLabel: true,
+          bottom: showXAxisLabels ? 52 : 28,
+          left: 80,
         },
         legend: {
           show: seriesData.length <= GraphDefaultOptions.MAX_VISIBLE_LEGENDS,
