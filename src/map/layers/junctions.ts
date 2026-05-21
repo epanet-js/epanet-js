@@ -8,18 +8,48 @@ import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
 import type { NodeDefaults } from "src/map/symbology";
 
-export const junctionCircleSizes = (): Partial<CircleLayer["paint"]> => {
+type CircleSizes = {
+  "circle-radius": mapboxgl.Expression;
+  "circle-stroke-width": mapboxgl.Expression;
+};
+
+export const junctionCircleSizes = (size: number = 50): CircleSizes => {
+  const s = size / 50;
   return {
     "circle-stroke-width": [
       "interpolate",
       ["linear"],
       ["zoom"],
-      13,
-      0.5,
-      16,
-      1,
+      8,
+      0.5 * s,
+      24,
+      2 * s,
     ],
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 5],
+    "circle-radius": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      8,
+      0.5 * s,
+      24,
+      20 * s,
+    ],
+  };
+};
+
+export const junctionResultCircleSizes = (size: number = 50): CircleSizes => {
+  const s = size / 50;
+  return {
+    "circle-stroke-width": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      8,
+      0.1 * s,
+      14,
+      1 * s,
+    ],
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 1 * s, 16, 6 * s],
   };
 };
 
@@ -60,11 +90,11 @@ export const junctionsLayer = ({
     paint: {
       "circle-opacity": opacityExpression(symbology),
       "circle-stroke-color": junctionStrokeColorExpression(nodeDefaults.color),
-      ...junctionCircleSizes(),
+      ...junctionCircleSizes(nodeDefaults.size),
       "circle-stroke-opacity": opacityExpression(symbology),
       "circle-color": junctionFillColorExpression(nodeDefaults.color),
     },
-    minzoom: 13,
+    minzoom: 8,
   };
 };
 
@@ -91,17 +121,8 @@ export const junctionResultsLayer = ({
   paint: {
     "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": junctionStrokeColorExpression(nodeDefaults.color),
-    "circle-stroke-width": [
-      "interpolate",
-      ["linear"],
-      ["zoom"],
-      12,
-      0.1,
-      14,
-      1,
-    ],
+    ...junctionResultCircleSizes(nodeDefaults.size),
     "circle-stroke-opacity": opacityExpression(symbology),
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 16, 6],
     "circle-color": junctionFillColorExpression(nodeDefaults.color),
   },
   maxzoom: 13,

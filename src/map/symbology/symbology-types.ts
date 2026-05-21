@@ -32,6 +32,7 @@ export type LabelRule = string | null;
 
 export type NodeDefaults = {
   color: string;
+  size: number;
 };
 
 export type LinkDefaults = {
@@ -69,7 +70,7 @@ export const nullSymbologySpec: SymbologySpec = {
   node: {
     colorRule: null,
     labelRule: null,
-    defaults: { color: colors.indigo200 },
+    defaults: { color: colors.indigo200, size: 25 },
   },
   customerPoints: { visible: true },
 };

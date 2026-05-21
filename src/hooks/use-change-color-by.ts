@@ -9,6 +9,7 @@ import {
 } from "src/map/symbology/symbology-data-source";
 import {
   SupportedProperty,
+  NodeSymbology,
   nullSymbologySpec,
 } from "src/map/symbology/symbology-types";
 import {
@@ -93,8 +94,10 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         if (!sortedData) return;
 
         if (geometryType === "node") {
-          switchNodeSymbologyTo(property, () =>
-            symbologyBuilders[property](units, sortedData),
+          switchNodeSymbologyTo(
+            property,
+            () =>
+              symbologyBuilders[property](units, sortedData) as NodeSymbology,
           );
         } else {
           switchLinkSymbologyTo(property, () =>

@@ -72,6 +72,8 @@ import {
   junctionsSymbologyFilterExpression,
   junctionFillColorExpression,
   junctionStrokeColorExpression,
+  junctionCircleSizes,
+  junctionResultCircleSizes,
 } from "./layers/junctions";
 import {
   pipeLinkColorExpression,
@@ -255,7 +257,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (hasNewDefaultColors && !hasNewStyles) {
           updateDefaultMapColors(
             map,
-            mapState.symbology.node.defaults.color,
+            mapState.symbology.node.defaults,
             mapState.symbology.link.defaults.color,
           );
         }
@@ -859,14 +861,20 @@ const addEditingLayersToMap = withDebugInstrumentation(
 );
 
 const updateDefaultMapColors = withDebugInstrumentation(
-  (map: MapEngine, nodeColor: string, linkColor: string) => {
-    const junctionLayers = [
+  (map: MapEngine, nodeDefaults: NodeDefaults, linkColor: string) => {
+    const nodeColor = nodeDefaults.color;
+    const nodeSize = nodeDefaults.size ?? 50;
+    const regularJunctionLayers = [
       "main-features-junctions",
       "delta-features-junctions",
+    ];
+    const resultJunctionLayers = [
       "main-features-junction-results",
       "delta-features-junction-results",
     ];
-    for (const layerId of junctionLayers) {
+    const regularSizes = junctionCircleSizes(nodeSize);
+    const resultSizes = junctionResultCircleSizes(nodeSize);
+    for (const layerId of [...regularJunctionLayers, ...resultJunctionLayers]) {
       map.setLayerPaintRule(
         layerId,
         "circle-color",
@@ -876,6 +884,30 @@ const updateDefaultMapColors = withDebugInstrumentation(
         layerId,
         "circle-stroke-color",
         junctionStrokeColorExpression(nodeColor),
+      );
+    }
+    for (const layerId of regularJunctionLayers) {
+      map.setLayerPaintRule(
+        layerId,
+        "circle-radius",
+        regularSizes["circle-radius"],
+      );
+      map.setLayerPaintRule(
+        layerId,
+        "circle-stroke-width",
+        regularSizes["circle-stroke-width"],
+      );
+    }
+    for (const layerId of resultJunctionLayers) {
+      map.setLayerPaintRule(
+        layerId,
+        "circle-radius",
+        resultSizes["circle-radius"],
+      );
+      map.setLayerPaintRule(
+        layerId,
+        "circle-stroke-width",
+        resultSizes["circle-stroke-width"],
       );
     }
 

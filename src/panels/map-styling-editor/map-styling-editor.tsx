@@ -146,6 +146,7 @@ const SymbologyEditor = ({
     updateNodeSymbology,
     updateLinkSymbology,
     updateNodeDefaultColor,
+    updateNodeDefaultSize,
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -238,9 +239,9 @@ const SymbologyEditor = ({
       });
     }
     if (geometryType === "node") {
-      updateNodeSymbology({ ...symbology, labelRule: label });
+      updateNodeSymbology({ ...nodeSymbology, labelRule: label });
     } else {
-      updateLinkSymbology({ ...symbology, labelRule: label });
+      updateLinkSymbology({ ...linkSymbology, labelRule: label });
     }
   };
 
@@ -353,6 +354,24 @@ const SymbologyEditor = ({
               readonly={readonly}
             />
           </div>
+        </InlineField>
+      )}
+      {geometryType === "node" && (
+        <InlineField
+          name={translate("nodeSize")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <input
+            type="range"
+            min={1}
+            max={100}
+            value={nodeSymbology.defaults.size ?? 25}
+            onChange={(e) => updateNodeDefaultSize(Number(e.target.value))}
+            disabled={readonly}
+            className="w-full accent-indigo-500"
+            aria-label="Node size"
+          />
         </InlineField>
       )}
       <InlineField

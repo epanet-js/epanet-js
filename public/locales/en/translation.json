@@ -695,6 +695,7 @@
   "ramp": "Ramp",
   "labels": "Labels",
   "labelBy": "Label by",
+  "nodeSize": "Size",
   "nodeSymbology": "Node symbology",
   "linkSymbology": "Link symbology",
   "ckmeans": "Ckmeans",

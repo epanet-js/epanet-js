@@ -270,6 +270,13 @@ export const useSymbologyState = () => {
     });
   };
 
+  const updateNodeDefaultSize = (size: number) => {
+    setNodesActive({
+      ...nodeSymbology,
+      defaults: { ...nodeSymbology.defaults, size },
+    });
+  };
+
   const updateLinkDefaultColor = (color: string) => {
     setLinksActive({
       ...linkSymbology,
@@ -287,6 +294,7 @@ export const useSymbologyState = () => {
     updateLinkSymbology,
     updateCustomerPointsSymbology,
     updateNodeDefaultColor,
+    updateNodeDefaultSize,
     updateLinkDefaultColor,
   };
 };
