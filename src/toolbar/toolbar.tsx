@@ -76,7 +76,6 @@ export const Toolbar = ({
   const showReport = useShowReport();
   const importCustomerPoints = useImportCustomerPoints();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-  const isChartBuilderOn = useFeatureFlag("FLAG_CHART_BUILDER");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
   const setDialog = useSetAtom(dialogAtom);
   const showQuickGraph = useShowQuickGraph();
@@ -222,21 +221,19 @@ export const Toolbar = ({
         >
           <FileTextIcon />
         </MenuAction>
-        {isChartBuilderOn && (
-          <MenuAction
-            label={translate("chartBuilder.label")}
-            role="button"
-            onClick={() =>
-              setDialog({
-                type: showQuickGraph
-                  ? "chartBuilder"
-                  : "chartBuilderNoSimulation",
-              })
-            }
-          >
-            <ChartLineIcon />
-          </MenuAction>
-        )}
+        <MenuAction
+          label={translate("chartBuilder.label")}
+          role="button"
+          onClick={() =>
+            setDialog({
+              type: showQuickGraph
+                ? "chartBuilder"
+                : "chartBuilderNoSimulation",
+            })
+          }
+        >
+          <ChartLineIcon />
+        </MenuAction>
         <Divider />
         <OperationalDataDropdown />
       </div>
