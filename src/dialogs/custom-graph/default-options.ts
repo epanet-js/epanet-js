@@ -40,6 +40,7 @@ const LINK_PROPERTIES: PropertyOption<LinkProperty>[] = [
     labelKey: "unitHeadloss",
     quantityKey: "unitHeadloss",
   },
+  { value: "status", labelKey: "status" },
 ];
 
 const WATER_QUALITY_PROPERTIES = [

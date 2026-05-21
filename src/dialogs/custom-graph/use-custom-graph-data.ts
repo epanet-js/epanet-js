@@ -132,11 +132,15 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
       const linkSeriesData = await fetchSeries(linkIds, readerProperty);
       if (!linkSeriesData) return;
 
-      if (linkProperty === "flowAbsolute") {
+      if (linkProperty === "flowAbsolute" || linkProperty === "status") {
+        const transform =
+          linkProperty === "flowAbsolute"
+            ? (v: number) => Math.abs(v)
+            : (v: number) => (v < 3 ? 0 : 1);
         for (const series of linkSeriesData) {
           const v = series.timeSeries.values;
           for (let j = 0; j < v.length; j++) {
-            v[j] = Math.abs(v[j]);
+            v[j] = transform(v[j]);
           }
         }
       }

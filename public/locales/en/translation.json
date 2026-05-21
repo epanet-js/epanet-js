@@ -1325,7 +1325,9 @@
     "linkProperty": "Links attribute",
     "loading": "Loading data - {{1}}%",
     "combineAxes": "Combine axes",
-    "flowAbsolute": "Flow (absolute)"
+    "flowAbsolute": "Flow (absolute)",
+    "statusOpen": "Open",
+    "statusClosed": "Closed"
   },
   "dialog": {
     "save": "Save",

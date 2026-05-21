@@ -2,7 +2,13 @@ import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 
 export type NodeProperty = "pressure" | "head";
-export type LinkProperty = "flow" | "flowAbsolute" | "velocity" | "headloss";
+export type LinkProperty =
+  | "flow"
+  | "flowAbsolute"
+  | "velocity"
+  | "headloss"
+  | "status";
+
 export type QualityProperty =
   | "waterAge"
   | "waterTrace"
@@ -11,7 +17,7 @@ export type QualityProperty =
 export interface PropertyOption<T extends string> {
   value: T;
   labelKey: string;
-  quantityKey: QuantityProperty;
+  quantityKey?: QuantityProperty;
 }
 
 export interface CustomGraphChartProps {
@@ -23,6 +29,7 @@ export interface CustomGraphChartProps {
   linkDecimals: number;
   unitLabels: string[];
   combineAxes: boolean;
+  linkValueFormatter?: (value: number) => string;
 }
 
 export interface SingleGraphChartProps {
@@ -31,6 +38,7 @@ export interface SingleGraphChartProps {
   decimals: number;
   unitLabel: string;
   showXAxisLabels: boolean;
+  valueFormatter?: (value: number) => string;
 }
 
 export interface AssetTimeSeries {

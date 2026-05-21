@@ -70,7 +70,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     }
     return opts.map((opt) => {
       const label = translate(opt.labelKey);
-      const unit = units[opt.quantityKey];
+      const unit = opt.quantityKey ? units[opt.quantityKey] : undefined;
       return {
         value: opt.value,
         label: unit ? `${label} (${translateUnit(unit)})` : label,
@@ -91,7 +91,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     }
     return opts.map((opt) => {
       const label = translate(opt.labelKey);
-      const unit = units[opt.quantityKey];
+      const unit = opt.quantityKey ? units[opt.quantityKey] : undefined;
       return {
         value: opt.value,
         label: unit ? `${label} (${translateUnit(unit)})` : label,
@@ -114,11 +114,13 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       ...GraphDefaultOptions.LINK_PROPERTIES,
       ...Object.values(GraphDefaultOptions.QUALITY_OPTIONS),
     ];
-    return allOpts.find((o) => o.value === linkProperty)?.quantityKey ?? "flow";
+    return allOpts.find((o) => o.value === linkProperty)?.quantityKey;
   }, [linkProperty]);
 
   const nodeDecimals = getDecimals(formatting, nodeQuantityKey) ?? 0;
-  const linkDecimals = getDecimals(formatting, linkQuantityKey) ?? 0;
+  const linkDecimals = linkQuantityKey
+    ? (getDecimals(formatting, linkQuantityKey) ?? 0)
+    : 0;
 
   const nodeUnitLabel = useMemo(() => {
     const unit = units[nodeQuantityKey];
@@ -126,6 +128,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   }, [translateUnit, units, nodeQuantityKey]);
 
   const linkUnitLabel = useMemo(() => {
+    if (!linkQuantityKey) return "";
     const unit = units[linkQuantityKey];
     return unit ? translateUnit(unit) : "";
   }, [translateUnit, units, linkQuantityKey]);
@@ -170,6 +173,13 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     nodeUnitLabel,
     linkUnitLabel,
   ]);
+
+  const linkValueFormatter = useMemo(() => {
+    if (linkProperty !== "status") return undefined;
+    const closed = translate("customGraph.statusClosed");
+    const open = translate("customGraph.statusOpen");
+    return (value: number) => (value < 1 ? closed : open);
+  }, [linkProperty, translate]);
 
   const handleNodePropertyChange = useCallback(
     (value: string) => setNodeProperty(value),
@@ -422,6 +432,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               combineAxes={combineAxes}
               linkDecimals={linkDecimals}
               unitLabels={unitLabels}
+              linkValueFormatter={linkValueFormatter}
             />
           </div>
         )}

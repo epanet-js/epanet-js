@@ -27,6 +27,7 @@ export const CustomGraphChart = memo(function CustomGraphChart({
   linkDecimals,
   unitLabels,
   combineAxes,
+  linkValueFormatter,
 }: CustomGraphChartProps) {
   const hasBothTypes = nodeCount > 0 && nodeCount < seriesData.length;
 
@@ -40,6 +41,7 @@ export const CustomGraphChart = memo(function CustomGraphChart({
         nodeDecimals={nodeDecimals}
         linkDecimals={linkDecimals}
         unitLabels={unitLabels}
+        linkValueFormatter={linkValueFormatter}
       />
     );
   }
@@ -53,6 +55,7 @@ export const CustomGraphChart = memo(function CustomGraphChart({
       nodeDecimals={nodeDecimals}
       linkDecimals={linkDecimals}
       unitLabels={unitLabels}
+      linkValueFormatter={linkValueFormatter}
     />
   );
 });
@@ -65,6 +68,7 @@ interface SplitChartsProps {
   nodeDecimals: number;
   linkDecimals: number;
   unitLabels: string[];
+  linkValueFormatter?: (value: number) => string;
 }
 
 const SplitCharts = memo(function SplitCharts({
@@ -75,6 +79,7 @@ const SplitCharts = memo(function SplitCharts({
   nodeDecimals,
   linkDecimals,
   unitLabels,
+  linkValueFormatter,
 }: SplitChartsProps) {
   const nodeData = useMemo(
     () => seriesData.slice(0, nodeCount),
@@ -145,6 +150,7 @@ const SplitCharts = memo(function SplitCharts({
           showXAxisLabels={true}
           onAxisPointer={handleBottomAxisPointer}
           onMouseOut={() => handleHideTooltip("bottom")}
+          valueFormatter={linkValueFormatter}
         />
       </div>
     </div>
@@ -166,6 +172,7 @@ const SingleChart = memo(
       showXAxisLabels,
       onAxisPointer,
       onMouseOut,
+      valueFormatter,
     },
     ref,
   ) {
@@ -192,7 +199,9 @@ const SingleChart = memo(
     );
 
     const option: EChartsOption = useMemo(() => {
-      const { min, max, interval } = calculateInterval(decimals, allValues, 5);
+      const { min, max, interval } = valueFormatter
+        ? { min: 0, max: 1, interval: 1 }
+        : calculateInterval(decimals, allValues, 5);
 
       return {
         animation: false,
@@ -268,7 +277,9 @@ const SingleChart = memo(
           axisLabel: {
             color: colors.gray500,
             fontSize: 12,
-            formatter: (value: number) => localizeDecimal(value),
+            formatter: valueFormatter
+              ? (value: number) => valueFormatter(value)
+              : (value: number) => localizeDecimal(value),
           },
         },
         series: seriesData.map((s, i) => {
@@ -284,6 +295,7 @@ const SingleChart = memo(
             itemStyle: { color },
             symbol: "none",
             smooth: false,
+            step: valueFormatter ? ("end" as const) : undefined,
           };
         }),
         tooltip: {
@@ -303,14 +315,14 @@ const SingleChart = memo(
               params.length - GraphDefaultOptions.MAX_VISIBLE_LEGENDS;
             const rows = visible.map(
               (p: { color: string; seriesName?: string; value: number }) => {
-                const value = p.value.toFixed(
-                  GraphDefaultOptions.TOOLTIP_DECIMALS,
-                );
+                const displayValue = valueFormatter
+                  ? valueFormatter(p.value)
+                  : p.value.toFixed(GraphDefaultOptions.TOOLTIP_DECIMALS);
                 const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
                 return (
                   `<tr>` +
                   `<td>${colorDot}${p.seriesName ?? ""}</td>` +
-                  `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${value}</td>` +
+                  `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${displayValue}</td>` +
                   `<td style="padding-left:4px;">${unitLabel}</td>` +
                   `</tr>`
                 );
@@ -335,6 +347,7 @@ const SingleChart = memo(
       xAxisStep,
       xAxisInterval,
       showXAxisLabels,
+      valueFormatter,
     ]);
 
     useEffect(function resizeChart() {
@@ -397,6 +410,7 @@ interface CombinedChartProps {
   nodeDecimals: number;
   linkDecimals: number;
   unitLabels: string[];
+  linkValueFormatter?: (value: number) => string;
 }
 
 const CombinedChart = memo(function CombinedChart({
@@ -407,6 +421,7 @@ const CombinedChart = memo(function CombinedChart({
   nodeDecimals,
   linkDecimals,
   unitLabels,
+  linkValueFormatter,
 }: CombinedChartProps) {
   const chartRef = useRef<ReactECharts>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -480,8 +495,11 @@ const CombinedChart = memo(function CombinedChart({
       values: number[],
       position: "left" | "right",
       showSplitLine: boolean,
+      formatter?: (value: number) => string,
     ) => {
-      const { min, max, interval } = calculateInterval(decimals, values, 5);
+      const { min, max, interval } = formatter
+        ? { min: 0, max: 1, interval: 1 }
+        : calculateInterval(decimals, values, 5);
       return {
         type: "value" as const,
         scale: true,
@@ -502,14 +520,23 @@ const CombinedChart = memo(function CombinedChart({
         axisLabel: {
           color: colors.gray500,
           fontSize: 12,
-          formatter: (value: number) => localizeDecimal(value),
+          formatter: formatter
+            ? (value: number) => formatter(value)
+            : (value: number) => localizeDecimal(value),
         },
       };
     };
 
     if (hasBothAxes) {
       return [
-        buildYAxis(linkYAxisLabel, linkDecimals, linkValues, "left", true),
+        buildYAxis(
+          linkYAxisLabel,
+          linkDecimals,
+          linkValues,
+          "left",
+          true,
+          linkValueFormatter,
+        ),
         buildYAxis(nodeYAxisLabel, nodeDecimals, nodeValues, "right", false),
       ];
     }
@@ -521,6 +548,7 @@ const CombinedChart = memo(function CombinedChart({
       isNodeOnly ? nodeValues : linkValues,
       "left",
       true,
+      isNodeOnly ? undefined : linkValueFormatter,
     );
   }, [
     hasBothAxes,
@@ -531,6 +559,7 @@ const CombinedChart = memo(function CombinedChart({
     linkDecimals,
     nodeYAxisLabel,
     linkYAxisLabel,
+    linkValueFormatter,
   ]);
 
   const series: EChartsOption["series"] = useMemo(
@@ -550,9 +579,12 @@ const CombinedChart = memo(function CombinedChart({
           symbol: "none",
           smooth: false,
           ...(hasBothAxes ? { yAxisIndex: isNode ? 1 : 0 } : {}),
+          ...(!isNode && linkValueFormatter
+            ? { step: "end" as const }
+            : {}),
         };
       }),
-    [seriesData, nodeCount, hasBothAxes],
+    [seriesData, nodeCount, hasBothAxes, linkValueFormatter],
   );
 
   const option: EChartsOption = useMemo(
@@ -611,17 +643,19 @@ const CombinedChart = memo(function CombinedChart({
               },
               i: number,
             ) => {
-              const value = p.value.toFixed(
-                GraphDefaultOptions.TOOLTIP_DECIMALS,
-              );
-              const unit = unitLabels[p.seriesIndex ?? i] ?? "";
               const idx = p.seriesIndex ?? i;
-              const assetType = idx < nodeCount ? "node" : "link";
+              const isLink = idx >= nodeCount;
+              const displayValue =
+                isLink && linkValueFormatter
+                  ? linkValueFormatter(p.value)
+                  : p.value.toFixed(GraphDefaultOptions.TOOLTIP_DECIMALS);
+              const unit = unitLabels[idx] ?? "";
+              const assetType = isLink ? "link" : "node";
               const colorDot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;vertical-align:middle;"></span>`;
               return (
                 `<tr>` +
                 `<td>${colorDot}${p.seriesName ?? ""} <span style="color:${colors.gray400}">(${assetType})</span></td>` +
-                `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${value}</td>` +
+                `<td style="font-variant-numeric:tabular-nums;text-align:right;padding-left:16px;">${displayValue}</td>` +
                 `<td style="padding-left:4px;">${unit}</td>` +
                 `</tr>`
               );
@@ -635,7 +669,7 @@ const CombinedChart = memo(function CombinedChart({
         },
       },
     }),
-    [seriesData, xAxis, yAxis, series, unitLabels, nodeCount],
+    [seriesData, xAxis, yAxis, series, unitLabels, nodeCount, linkValueFormatter],
   );
 
   useEffect(function resizeChart() {
