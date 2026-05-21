@@ -59,7 +59,6 @@ export type HglProfileData = {
   nodePositions: number[];
   totalLength: number;
   hasSimulation: boolean;
-  pressureFactor: number | null;
   hglDropsData: ([number, number] | null)[];
   terrain: TerrainPoint[] | null;
   terrainData: [number, number][] | null;
@@ -147,8 +146,6 @@ export function useHglProfileData(): HglProfileData {
     [points],
   );
 
-  const pressureFactor = useMemo(() => computePressureFactor(points), [points]);
-
   const hglDropsData = useMemo(
     () => buildHglDropsData(points, hasSimulation),
     [points, hasSimulation],
@@ -193,7 +190,6 @@ export function useHglProfileData(): HglProfileData {
     nodePositions,
     totalLength,
     hasSimulation,
-    pressureFactor,
     hglDropsData,
     terrain: hglProfile.terrain,
     terrainData,
@@ -226,7 +222,6 @@ function buildEmptyData(
     nodePositions: [],
     totalLength: 0,
     hasSimulation: false,
-    pressureFactor: null,
     hglDropsData: [],
     terrain: null,
     terrainData: null,
@@ -241,15 +236,6 @@ function buildEmptyData(
     pressureDecimals: getDecimals(projectSettings.formatting, "pressure") ?? 2,
     isUnprojected: false,
   };
-}
-
-function computePressureFactor(points: ProfilePoint[]): number | null {
-  for (const p of points) {
-    if (p.pressure === null || p.head === null) continue;
-    const headDiff = p.head - p.elevation;
-    if (Math.abs(headDiff) > 1e-6) return p.pressure / headDiff;
-  }
-  return null;
 }
 
 function buildHglDropsData(

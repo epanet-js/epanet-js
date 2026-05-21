@@ -32,7 +32,6 @@ interface UseChartCursorParams {
   points: ProfilePoint[];
   links: ProfileLink[];
   terrain: TerrainPoint[] | null;
-  pressureFactor: number | null;
   pathSegments: PathSegment[];
   setHoverHighlight: (marker: HoverMarker | null) => void;
   allowEstimates: boolean;
@@ -45,7 +44,6 @@ export function useChartCursor({
   points,
   links,
   terrain,
-  pressureFactor,
   pathSegments,
   setHoverHighlight,
   allowEstimates,
@@ -57,7 +55,6 @@ export function useChartCursor({
     points,
     links,
     terrain,
-    pressureFactor,
     pathSegments,
     setHoverHighlight,
     allowEstimates,
@@ -67,7 +64,6 @@ export function useChartCursor({
     points,
     links,
     terrain,
-    pressureFactor,
     pathSegments,
     setHoverHighlight,
     allowEstimates,
@@ -217,7 +213,6 @@ export function useChartCursor({
         deps.points,
         deps.links,
         deps.terrain,
-        deps.pressureFactor,
         deps.allowEstimates,
       );
       if (content.kind === "hidden") {

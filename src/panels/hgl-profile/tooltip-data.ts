@@ -26,7 +26,6 @@ export function getTooltipContent(
   points: ProfilePoint[],
   links: ProfileLink[],
   terrain: TerrainPoint[] | null,
-  pressureFactor: number | null,
   allowEstimates: boolean,
 ): TooltipContent {
   if (snap?.kind === "node") {
@@ -50,10 +49,7 @@ export function getTooltipContent(
 
   const elevation = interpolateTerrain(sampleX, terrain);
   const hgl = isPumpOrValve ? null : interpolateHgl(sampleX, points);
-  const pressure =
-    hgl !== null && elevation !== null && pressureFactor !== null
-      ? pressureFactor * (hgl - elevation)
-      : null;
+  const pressure = isPumpOrValve ? null : interpolatePressure(sampleX, points);
 
   if (
     link === null &&
@@ -135,6 +131,24 @@ export function interpolateElevation(
       if (span <= 0) return a.elevation;
       const t = (x - a.cumulativeLength) / span;
       return a.elevation + (b.elevation - a.elevation) * t;
+    }
+  }
+  return null;
+}
+
+export function interpolatePressure(
+  x: number,
+  points: ProfilePoint[],
+): number | null {
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (x >= a.cumulativeLength && x <= b.cumulativeLength) {
+      if (a.pressure === null || b.pressure === null) return null;
+      const span = b.cumulativeLength - a.cumulativeLength;
+      if (span <= 0) return a.pressure;
+      const t = (x - a.cumulativeLength) / span;
+      return a.pressure + (b.pressure - a.pressure) * t;
     }
   }
   return null;
