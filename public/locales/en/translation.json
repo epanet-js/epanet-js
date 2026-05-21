@@ -1327,7 +1327,9 @@
     "combineAxes": "Combine axes",
     "flowAbsolute": "Flow (absolute)",
     "statusOpen": "Open",
-    "statusClosed": "Closed"
+    "statusClosed": "Closed",
+    "exporting": "Exporting - {{1}}%",
+    "savingFiles": "Saving files"
   },
   "dialog": {
     "save": "Save",

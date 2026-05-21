@@ -13,6 +13,7 @@ interface UseCustomGraphExportOptions {
   linkSeriesData: AssetTimeSeries[];
   nodeProperty: string;
   linkProperty: string;
+  onExportProgress?: (progress: number) => void;
 }
 
 export function useCustomGraphExport({
@@ -22,6 +23,7 @@ export function useCustomGraphExport({
   linkSeriesData,
   nodeProperty,
   linkProperty,
+  onExportProgress,
 }: UseCustomGraphExportOptions) {
   const exportSimulationResults = useExportSimulationResults();
   const { capture } = useUserTracking();
@@ -98,6 +100,7 @@ export function useCustomGraphExport({
 
   const exportTabular = useCallback(
     async (format: "csv" | "xlsx") => {
+      let lastYield = performance.now();
       const nodeIds = nodeSeriesData.map((n) => n.assetId);
       const linkIds = linkSeriesData.map((n) => n.assetId);
       const selectedAssets = new Set<number>([...nodeIds, ...linkIds]);
@@ -139,7 +142,14 @@ export function useCustomGraphExport({
 
       await exportSimulationResults({
         format,
-        onProgress: async () => Promise.resolve(),
+        onProgress: (progress) => {
+          onExportProgress?.(progress);
+          if (performance.now() - lastYield >= 100) {
+            lastYield = performance.now();
+            return new Promise<void>((resolve) => setTimeout(resolve, 0));
+          }
+          return Promise.resolve();
+        },
         properties,
         selectedAssets,
       });
@@ -153,6 +163,7 @@ export function useCustomGraphExport({
       linkProperty,
       exportSimulationResults,
       trackExport,
+      onExportProgress,
     ],
   );
 

@@ -40,6 +40,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const [progress, setProgress] = useState(0);
   const [combineAxes, setCombineAxes] = useState(false);
   const [maximized, setMaximized] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
 
   const {
     hasNodes,
@@ -193,16 +195,38 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     [setLinkProperty, capture],
   );
 
-  const { exportAsPng, exportTabular } = useCustomGraphExport({
-    chartContainerRef,
-    networkName,
-    nodeSeriesData,
-    linkSeriesData,
-    nodeProperty,
-    linkProperty,
-  });
+  const totalAssets = nodeSeriesData.length + linkSeriesData.length;
+  const showExportProgress = totalAssets > 1000;
+
+  const { exportAsPng, exportTabular: rawExportTabular } = useCustomGraphExport(
+    {
+      chartContainerRef,
+      networkName,
+      nodeSeriesData,
+      linkSeriesData,
+      nodeProperty,
+      linkProperty,
+      onExportProgress: showExportProgress ? setExportProgress : undefined,
+    },
+  );
+
+  const exportTabular = useCallback(
+    async (format: "csv" | "xlsx") => {
+      if (showExportProgress) {
+        setExportProgress(0);
+        setIsExporting(true);
+      }
+      try {
+        await rawExportTabular(format);
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [rawExportTabular, showExportProgress],
+  );
 
   const noDataAvailable = combinedSeriesData.length === 0;
+  const controlsDisabled = isLoading || noDataAvailable || isExporting;
 
   return (
     <BaseDialog
@@ -218,7 +242,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Button
                 variant="default"
                 type="button"
-                disabled={isLoading || noDataAvailable}
+                disabled={controlsDisabled}
               >
                 {translate("customGraph.exportAs")}
                 <ChevronDownIcon />
@@ -246,7 +270,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap">
           <button
             type="button"
-            className="ml-auto text-gray-500 hover:text-black dark:hover:text-white order-last"
+            className="ml-auto text-gray-500 hover:text-black dark:hover:text-white order-last disabled:opacity-40 disabled:pointer-events-none"
+            disabled={isExporting}
             onClick={() => {
               setMaximized((v) => {
                 capture({
@@ -268,7 +293,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={nodePropertyOptions}
                 selected={nodeProperty}
-                disabled={isLoading || noDataAvailable}
+                disabled={controlsDisabled}
                 onChange={handleNodePropertyChange}
                 styleOptions={{
                   border: true,
@@ -286,7 +311,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <Selector
                 options={linkPropertyOptions}
                 selected={linkProperty}
-                disabled={isLoading || noDataAvailable}
+                disabled={controlsDisabled}
                 onChange={handleLinkPropertyChange}
                 styleOptions={{
                   border: true,
@@ -300,7 +325,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             <label className="flex items-center gap-1.5 cursor-pointer">
               <Checkbox
                 checked={combineAxes}
-                disabled={isLoading || noDataAvailable}
+                disabled={controlsDisabled}
                 onChange={(e) => {
                   const checked = e.target.checked;
                   setCombineAxes(checked);
@@ -332,7 +357,10 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         )}
 
         {!isLoading && combinedSeriesData.length > 0 && (
-          <div ref={chartContainerRef} className="flex-1 min-h-0 px-4 pb-2">
+          <div
+            ref={chartContainerRef}
+            className="relative flex-1 min-h-0 px-4 pb-2"
+          >
             <CustomGraphChart
               seriesData={combinedSeriesData}
               nodeCount={nodeSeriesData.length}
@@ -344,6 +372,28 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               unitLabels={unitLabels}
               linkValueFormatter={linkValueFormatter}
             />
+            {isExporting && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/40">
+                <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  {Math.trunc(exportProgress) >= 100 ? (
+                    <div className="h-full bg-purple-500 rounded-full progress-indeterminate" />
+                  ) : (
+                    <div
+                      className="h-full bg-purple-500 rounded-full transition-[width] duration-150"
+                      style={{ width: `${exportProgress}%` }}
+                    />
+                  )}
+                </div>
+                <span className="text-xs text-gray-400">
+                  {Math.trunc(exportProgress) >= 100
+                    ? translate("customGraph.savingFiles")
+                    : translate(
+                        "customGraph.exporting",
+                        exportProgress.toFixed(0),
+                      )}
+                </span>
+              </div>
+            )}
           </div>
         )}
         {!isLoading && noDataAvailable && (
