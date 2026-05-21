@@ -9,6 +9,7 @@ import {
 } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts";
+import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { colors } from "src/lib/constants";
 import { SingleGraphChartProps, GraphDefaultOptions } from ".";
@@ -38,9 +39,12 @@ export const SingleChart = memo(
     },
     ref,
   ) {
+    const translate = useTranslate();
     const chartRef = useRef<ReactECharts>(null);
     useImperativeHandle(ref, () => chartRef.current!, []);
     const containerRef = useRef<HTMLDivElement>(null);
+    const hideLegend =
+      seriesData.length > GraphDefaultOptions.MAX_VISIBLE_LEGENDS;
 
     const firstSeries = seriesData[0]?.timeSeries;
     const intervalsCount = firstSeries?.intervalsCount ?? 0;
@@ -75,20 +79,12 @@ export const SingleChart = memo(
           containLabel: true,
         },
         legend: {
-          show: true,
+          show: seriesData.length <= GraphDefaultOptions.MAX_VISIBLE_LEGENDS,
           bottom: 0,
           left: "center",
           itemWidth: 16,
           itemHeight: 8,
           textStyle: { fontSize: 12, color: colors.gray600 },
-          data:
-            seriesData.length > GraphDefaultOptions.MAX_VISIBLE_LEGENDS
-              ? [
-                  ...seriesData
-                    .slice(0, GraphDefaultOptions.MAX_VISIBLE_LEGENDS)
-                    .map((s) => s.label),
-                ]
-              : undefined,
           formatter: (name: string) => name,
         },
         xAxis: {
@@ -249,16 +245,23 @@ export const SingleChart = memo(
     return (
       <div
         ref={containerRef}
-        className="h-full w-full"
+        className="flex flex-col h-full w-full"
         onMouseLeave={onMouseOut}
       >
-        <ReactECharts
-          ref={chartRef}
-          key={`${intervalSeconds}-${intervalsCount}`}
-          option={option}
-          style={{ height: "100%", width: "100%" }}
-          opts={{ renderer: "svg" }}
-        />
+        <div className="flex-1 min-h-0">
+          <ReactECharts
+            ref={chartRef}
+            key={`${intervalSeconds}-${intervalsCount}`}
+            option={option}
+            style={{ height: "100%", width: "100%" }}
+            opts={{ renderer: "svg" }}
+          />
+        </div>
+        {hideLegend && showXAxisLabels && (
+          <p className="text-center text-xs italic text-gray-400 pb-1">
+            {translate("customGraph.legendHidden")}
+          </p>
+        )}
       </div>
     );
   }),

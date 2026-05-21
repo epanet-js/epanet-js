@@ -1329,7 +1329,8 @@
     "statusClosed": "Closed",
     "exporting": "Exporting - {{1}}%",
     "savingFiles": "Saving files",
-    "assetsTruncated": "Only {{1}} of {{2}} selected assets are displayed."
+    "assetsTruncated": "Only {{1}} of {{2}} selected assets are displayed.",
+    "legendHidden": "Too many assets selected to display the legend."
   },
   "dialog": {
     "save": "Save",
