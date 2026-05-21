@@ -126,8 +126,20 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
     const completeLoad = async () => {
       const nodeSeriesData = await fetchSeries(nodeIds, nodeProperty);
       if (!nodeSeriesData) return;
-      const linkSeriesData = await fetchSeries(linkIds, linkProperty);
+
+      const readerProperty =
+        linkProperty === "flowAbsolute" ? "flow" : linkProperty;
+      const linkSeriesData = await fetchSeries(linkIds, readerProperty);
       if (!linkSeriesData) return;
+
+      if (linkProperty === "flowAbsolute") {
+        for (const series of linkSeriesData) {
+          const v = series.timeSeries.values;
+          for (let j = 0; j < v.length; j++) {
+            v[j] = Math.abs(v[j]);
+          }
+        }
+      }
 
       if (!controller.signal.aborted) {
         setSeriesData({ nodeSeriesData, linkSeriesData });

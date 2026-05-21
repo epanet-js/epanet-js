@@ -2,7 +2,7 @@ import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 
 export type NodeProperty = "pressure" | "head";
-export type LinkProperty = "flow" | "velocity" | "headloss";
+export type LinkProperty = "flow" | "flowAbsolute" | "velocity" | "headloss";
 export type QualityProperty =
   | "waterAge"
   | "waterTrace"

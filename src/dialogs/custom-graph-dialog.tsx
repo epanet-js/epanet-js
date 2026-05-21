@@ -251,18 +251,36 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     const nodeIds = nodeSeriesData.map((n) => n.assetId);
     const linkIds = linkSeriesData.map((n) => n.assetId);
     const selectedAssets = new Set<number>([...nodeIds, ...linkIds]);
-    const mappedLinkProperty =
-      linkIds.length > 0
-        ? [linkProperty === "headloss" ? "unitHeadloss" : linkProperty]
-        : [];
-    const mappedNodeProperty =
-      nodeIds.length > 0
-        ? [
-            GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(nodeProperty)
-              ? "waterQuality"
-              : nodeProperty,
-          ]
-        : [];
+
+    const mappedLinkProperty = (() => {
+      if (linkIds.length === 0) {
+        return [];
+      }
+
+      if (linkProperty === "headloss") {
+        return ["unitHeadloss"];
+      }
+
+      if (linkProperty === "flowAbsolute") {
+        return ["flow"];
+      }
+
+      return [linkProperty];
+    })();
+
+    const mappedNodeProperty = (() => {
+      if (nodeIds.length === 0) {
+        return [];
+      }
+
+      const hasWaterQuality =
+        GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(nodeProperty);
+      if (hasWaterQuality) {
+        return ["waterQuality"];
+      }
+
+      return [nodeProperty];
+    })();
 
     const properties = [
       ...mappedNodeProperty,

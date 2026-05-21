@@ -29,6 +29,11 @@ const NODE_PROPERTIES: PropertyOption<NodeProperty>[] = [
 
 const LINK_PROPERTIES: PropertyOption<LinkProperty>[] = [
   { value: "flow", labelKey: "flow", quantityKey: "flow" },
+  {
+    value: "flowAbsolute",
+    labelKey: "customGraph.flowAbsolute",
+    quantityKey: "flow",
+  },
   { value: "velocity", labelKey: "velocity", quantityKey: "velocity" },
   {
     value: "headloss",
