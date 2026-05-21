@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
-import { captureError } from "src/infra/error-tracking";
+import { captureWarning } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelFactories } from "src/hydraulic-model/factories";
@@ -12,6 +12,7 @@ import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
+import { dialogAtom } from "src/state/dialog";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -168,7 +169,7 @@ export const useSeedDefaultProjectDb = () => {
 
   return useAtomCallback(
     useCallback(
-      (get: Getter) => {
+      (get: Getter, set: Setter) => {
         if (!isOurFileOn) return;
         void db
           .importProject({
@@ -177,7 +178,14 @@ export const useSeedDefaultProjectDb = () => {
             hydraulicModel: get(stagingModelAtom),
             simulationSettings: get(simulationSettingsAtom),
           })
-          .catch(captureError);
+          .catch((e: unknown) => {
+            const error = e instanceof Error ? e : new Error(String(e));
+            captureWarning("Failed to seed default project db", error);
+            set(dialogAtom, {
+              type: "appLoadFailed",
+              errorMessage: error.message,
+            });
+          });
       },
       [isOurFileOn],
     ),

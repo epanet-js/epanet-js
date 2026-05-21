@@ -9,6 +9,7 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
+import { AppLoadFailedDialog } from "./app-load-failed";
 
 const SimulationSettingsDialog = dynamic(
   () =>
@@ -475,6 +476,10 @@ export const Dialogs = memo(function Dialogs() {
   const previousDialog = useRef<dialogState.DialogState>(null);
 
   if (dialog === null) return null;
+
+  if (dialog.type === "appLoadFailed") {
+    return <AppLoadFailedDialog modal={dialog} />;
+  }
 
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {

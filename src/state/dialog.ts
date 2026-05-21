@@ -213,6 +213,11 @@ export type CustomGraphDialogState = {
   type: "customGraph";
 };
 
+export type AppLoadFailedDialogState = {
+  type: "appLoadFailed";
+  errorMessage?: string;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -257,6 +262,7 @@ export type DialogState =
   | NetworkProjectionDialogState
   | ProfileNoPathDialogState
   | CustomGraphDialogState
+  | AppLoadFailedDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
