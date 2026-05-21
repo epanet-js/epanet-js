@@ -30,6 +30,7 @@ import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { userSettingsAtom } from "src/state/user-settings";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
+import { recentFilesStoreAtom } from "src/state/file-system";
 
 const aMoment = (name: string) => ({ note: name });
 
@@ -480,6 +481,29 @@ describe("file format updated dialog", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/file format updated/i)).toBeInTheDocument();
+    });
+  });
+
+  it("adds the opened inp to recent files", async () => {
+    const newHandle = stubFileOpen();
+    const store = setInitialState();
+
+    renderComponent({ store });
+
+    const inp = minimalInp({ junctionId: "J1" });
+    const file = aTestFile({ filename: "my-network.inp", content: inp });
+    await triggerCommand();
+    await doFileSelection(file);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    await waitFor(async () => {
+      const entries = await store.get(recentFilesStoreAtom).getAll();
+      expect(entries).toHaveLength(1);
+      expect(entries[0].name).toBe("my-network.inp");
+      expect(entries[0].handle).toBe(newHandle);
     });
   });
 

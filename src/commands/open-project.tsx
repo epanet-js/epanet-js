@@ -17,12 +17,13 @@ import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError } from "src/infra/error-tracking";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
+import { useRecentFiles } from "src/hooks/use-recent-files";
 
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
-import { MapContext } from "src/map";
+import { MapContext, captureThumbnail } from "src/map";
 import { getExtent } from "src/lib/geometry";
 import { projectExtension } from "./save-project";
 import { inpExtension, useImportInp } from "./import-inp";
@@ -37,6 +38,7 @@ export const useOpenProjectFile = () => {
   const map = useContext(MapContext);
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const { addRecent } = useRecentFiles();
 
   return useCallback(
     async (file: FileWithHandle, source: string) => {
@@ -160,6 +162,28 @@ export const useOpenProjectFile = () => {
           });
         });
 
+        if (file.handle) {
+          const handle = file.handle;
+          const name = file.name;
+          if (map) {
+            const captureAndSave = () => {
+              const thumbnail = captureThumbnail(map) ?? undefined;
+              void addRecent(name, handle, thumbnail);
+            };
+            if (map.map.loaded() && !map.map.isMoving()) {
+              captureAndSave();
+            } else {
+              const timeoutId = setTimeout(captureAndSave, 5000);
+              map.map.once("idle", () => {
+                clearTimeout(timeoutId);
+                captureAndSave();
+              });
+            }
+          } else {
+            void addRecent(name, file.handle);
+          }
+        }
+
         setDialogState(null);
         notify({
           variant: "success",
@@ -206,6 +230,7 @@ export const useOpenProjectFile = () => {
       map,
       translate,
       userTracking,
+      addRecent,
     ],
   );
 };

@@ -2,7 +2,13 @@ import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { dataAtom, nullData } from "src/state/data";
-import { FileInfo, inpFileInfoAtom } from "src/state/file-system";
+import {
+  FileInfo,
+  inpFileInfoAtom,
+  recentFilesStoreAtom,
+} from "src/state/file-system";
+import { RecentFilesStore } from "src/lib/recent-files";
+import { InMemoryKeyValueStore } from "src/infra/storage";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { layerConfigAtom } from "src/state/map";
 import { modeAtom } from "src/state/mode";
@@ -75,6 +81,10 @@ export const setInitialState = (
     simulationSettings,
   } = args;
   const simulationStepWasExplicit = "simulationStep" in args;
+  const recentFilesKv = new InMemoryKeyValueStore();
+  recentFilesKv.defineStore("recent-files", "id");
+  store.set(recentFilesStoreAtom, new RecentFilesStore(recentFilesKv));
+
   store.set(stagingModelAtom, hydraulicModel);
   store.set(dataAtom, {
     ...nullData,

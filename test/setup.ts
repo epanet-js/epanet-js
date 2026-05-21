@@ -37,6 +37,8 @@ vi.mock("src/infra/storage", async (importOriginal) => {
   };
 });
 
+vi.stubGlobal("FileSystemFileHandle", class FileSystemFileHandle {});
+
 beforeEach(async () => {
   stubUserTracking();
   // Reset shared in-memory storage between tests
