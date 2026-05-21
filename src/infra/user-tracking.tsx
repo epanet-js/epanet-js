@@ -949,11 +949,6 @@ type CustomGraphPropertySelected = {
   property: string;
 };
 
-type CustomGraphAxesFormatSwitched = {
-  name: "customGraph.axesFormatSwitched";
-  format: "combined" | "single";
-};
-
 export type UserEvent =
   | AssetCreated
   | AssetRedrawed
@@ -1318,8 +1313,7 @@ export type UserEvent =
   | AssetDataExported
   | SimulationResultsExported
   | CustomGraphExported
-  | CustomGraphPropertySelected
-  | CustomGraphAxesFormatSwitched;
+  | CustomGraphPropertySelected;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

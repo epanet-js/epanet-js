@@ -1324,7 +1324,6 @@
     "nodeProperty": "Node attribute",
     "linkProperty": "Links attribute",
     "loading": "Loading data - {{1}}%",
-    "combineAxes": "Combine axes",
     "flowAbsolute": "Flow (absolute)",
     "statusOpen": "Open",
     "statusClosed": "Closed",

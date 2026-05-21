@@ -4,7 +4,6 @@ import { useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
-import { Checkbox } from "src/components/form/Checkbox";
 import { Selector } from "src/components/form/selector";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -38,7 +37,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const [progress, setProgress] = useState(0);
-  const [combineAxes, setCombineAxes] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
 
@@ -303,25 +301,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               />
             </div>
           )}
-          {hasNodes && hasLinks && (
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <Checkbox
-                checked={combineAxes}
-                disabled={controlsDisabled}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setCombineAxes(checked);
-                  capture({
-                    name: "customGraph.axesFormatSwitched",
-                    format: checked ? "combined" : "single",
-                  });
-                }}
-              />
-              <span className="text-sm text-gray-600">
-                {translate("customGraph.combineAxes")}
-              </span>
-            </label>
-          )}
         </div>
 
         {isLoading && (
@@ -349,7 +328,6 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               nodeYAxisLabel={nodeYAxisLabel}
               linkYAxisLabel={linkYAxisLabel}
               nodeDecimals={nodeDecimals}
-              combineAxes={combineAxes}
               linkDecimals={linkDecimals}
               unitLabels={unitLabels}
               linkValueFormatter={linkValueFormatter}

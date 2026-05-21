@@ -3,7 +3,6 @@ import { useRef, useMemo, memo, useCallback } from "react";
 import ReactECharts from "echarts-for-react";
 import { CustomGraphChartProps } from ".";
 import { SingleChart } from "./single-chart";
-import { CombinedChart } from "./combined-chart";
 
 export const CustomGraphChart = memo(function CustomGraphChart({
   seriesData,
@@ -13,22 +12,20 @@ export const CustomGraphChart = memo(function CustomGraphChart({
   nodeDecimals,
   linkDecimals,
   unitLabels,
-  combineAxes,
   linkValueFormatter,
 }: CustomGraphChartProps) {
   const hasBothTypes = nodeCount > 0 && nodeCount < seriesData.length;
 
-  if (!hasBothTypes || combineAxes) {
+  if (!hasBothTypes) {
+    const isNodeOnly = nodeCount > 0;
     return (
-      <CombinedChart
+      <SingleChart
         seriesData={seriesData}
-        nodeCount={nodeCount}
-        nodeYAxisLabel={nodeYAxisLabel}
-        linkYAxisLabel={linkYAxisLabel}
-        nodeDecimals={nodeDecimals}
-        linkDecimals={linkDecimals}
-        unitLabels={unitLabels}
-        linkValueFormatter={linkValueFormatter}
+        yAxisLabel={isNodeOnly ? nodeYAxisLabel : linkYAxisLabel}
+        decimals={isNodeOnly ? nodeDecimals : linkDecimals}
+        unitLabel={unitLabels[0] ?? ""}
+        showXAxisLabels={true}
+        valueFormatter={isNodeOnly ? undefined : linkValueFormatter}
       />
     );
   }

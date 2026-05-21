@@ -28,7 +28,6 @@ export interface CustomGraphChartProps {
   nodeDecimals: number;
   linkDecimals: number;
   unitLabels: string[];
-  combineAxes: boolean;
   linkValueFormatter?: (value: number) => string;
 }
 
