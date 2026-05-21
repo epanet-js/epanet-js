@@ -24,6 +24,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
   canRedoDerivedAtom,
@@ -89,6 +90,7 @@ export const Toolbar = ({
   const startProfileSelection = useStartProfileSelection();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const { canUseHglProfile } = usePermissions();
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
 
@@ -238,26 +240,26 @@ export const Toolbar = ({
         <Divider />
         <OperationalDataDropdown />
         {isHglProfileOn && (
-          <>
-            <MenuAction
-              label={translate("dataTables.title")}
-              role="button"
-              onClick={() => showDataTables({ source: "toolbar" })}
-            >
-              <TableIcon />
-            </MenuAction>
-            <MenuAction
-              label={translate("hglProfile.toolbar")}
-              role="button"
-              selected={currentMode === Mode.HGL_PROFILE}
-              onClick={() => {
-                showHglProfile({ source: "toolbar" });
-                startProfileSelection({ source: "toolbar" });
-              }}
-            >
-              <HglProfileIcon />
-            </MenuAction>
-          </>
+          <MenuAction
+            label={translate("dataTables.title")}
+            role="button"
+            onClick={() => showDataTables({ source: "toolbar" })}
+          >
+            <TableIcon />
+          </MenuAction>
+        )}
+        {isHglProfileOn && canUseHglProfile && (
+          <MenuAction
+            label={translate("hglProfile.toolbar")}
+            role="button"
+            selected={currentMode === Mode.HGL_PROFILE}
+            onClick={() => {
+              showHglProfile({ source: "toolbar" });
+              startProfileSelection({ source: "toolbar" });
+            }}
+          >
+            <HglProfileIcon />
+          </MenuAction>
         )}
       </div>
       <div className="flex flex-row items-center justify-end gap-2">

@@ -8,27 +8,40 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
+    expect(p.canUseHglProfile).toBe(false);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
 
-  it.each(["pro", "personal", "education", "teams"] satisfies Plan[])(
-    "%s plan can use all features but cannot upgrade",
+  it.each(["pro", "personal", "teams"] satisfies Plan[])(
+    "%s plan can use all features (including early access) but cannot upgrade",
     (plan) => {
       const p = resolvePermissions(plan, false, false);
       expect(p.canAddCustomLayers).toBe(true);
       expect(p.canUseScenarios).toBe(true);
       expect(p.canUseElevations).toBe(true);
+      expect(p.canUseHglProfile).toBe(true);
       expect(p.canUpgrade).toBe(false);
       expect(p.canManageOrganization).toBe(false);
     },
   );
+
+  it("education plan has paid features but not early-access features", () => {
+    const p = resolvePermissions("education", false, false);
+    expect(p.canAddCustomLayers).toBe(true);
+    expect(p.canUseScenarios).toBe(true);
+    expect(p.canUseElevations).toBe(true);
+    expect(p.canUseHglProfile).toBe(false);
+    expect(p.canUpgrade).toBe(false);
+    expect(p.canManageOrganization).toBe(false);
+  });
 
   it("free plan with active trial can use paid features but can still upgrade", () => {
     const p = resolvePermissions("free", true, false);
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
+    expect(p.canUseHglProfile).toBe(true);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
