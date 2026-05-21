@@ -27,30 +27,17 @@ const CHART_COLORS = [
   "#C14FD4",
 ];
 
-const EMERALD_SCALE = [
-  "#022c22", // 950
-  "#064e3b", // 900
-  "#065f46", // 800
-  "#047857", // 700
-  "#059669", // 600
-  "#10b981", // 500
-  "#34d399", // 400
-  "#6ee7b7", // 300
-  "#a7f3d0", // 200
-  "#d1fae5", // 100
-];
-
-const ORANGE_SCALE = [
-  "#431407", // 950
-  "#7c2d12", // 900
-  "#9a3412", // 800
-  "#c2410c", // 700
-  "#ea580c", // 600
-  "#f97316", // 500
-  "#fb923c", // 400
-  "#fdba74", // 300
-  "#fed7aa", // 200
-  "#ffedd5", // 100
+const PURPLE_SCALE = [
+  "#2e1065", // 950
+  "#4a1d96", // 900
+  "#5b21b6", // 800
+  "#6d28d9", // 700
+  "#7c3aed", // 600
+  "#8b5cf6", // 500
+  "#a78bfa", // 400
+  "#c4b5fd", // 300
+  "#ddd6fe", // 200
+  "#ede9fe", // 100
 ];
 
 function buildXAxis(
@@ -274,20 +261,23 @@ export function ChartStep({
     const showLinks =
       !mixedVariability || assetGroup === "links" || assetGroup === "all";
 
+    const nodeSeriesStart = series.length;
     if (showNodes) {
       buildGroup(
         nodeSeries,
         0,
-        isMixed ? EMERALD_SCALE : CHART_COLORS,
+        isMixed ? PURPLE_SCALE : CHART_COLORS,
         false,
         nodeSeriesNames,
       );
     }
+    const nodeEChartsCount = series.length - nodeSeriesStart;
+
     if (showLinks) {
       buildGroup(
         linkSeries,
         isMixed ? 1 : 0,
-        isMixed ? ORANGE_SCALE : CHART_COLORS,
+        isMixed ? PURPLE_SCALE : CHART_COLORS,
         isMixed,
         linkSeriesNames,
       );
@@ -413,6 +403,8 @@ export function ChartStep({
         formatter: (params: any) => {
           if (!Array.isArray(params) || params.length === 0) return "";
           const timeLabel = params[0]?.name ?? "";
+          const nodeUnit = nodeAxisLabel.match(/\(([^)]+)\)$/)?.[1] ?? "";
+          const linkUnit = linkAxisLabel.match(/\(([^)]+)\)$/)?.[1] ?? "";
           const lines = params
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .filter(
@@ -421,10 +413,12 @@ export function ChartStep({
             )
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((p: any) => {
-              const dec =
-                p.seriesIndex < nodeSeries.length ? nodeDecimals : linkDecimals;
+              const isNode = p.seriesIndex < nodeEChartsCount;
+              const dec = isNode ? nodeDecimals : linkDecimals;
+              const unit = isNode ? nodeUnit : linkUnit;
               const dot = `<span style="display:inline-block;width:8px;height:8px;background:${p.color};margin-right:4px;border-radius:50%;"></span>`;
-              return `${dot}${p.seriesName}: ${localizeDecimal(p.value, { decimals: dec })}`;
+              const value = localizeDecimal(p.value, { decimals: dec });
+              return `${dot}${p.seriesName}: ${value}${unit ? ` ${unit}` : ""}`;
             });
           return `${timeLabel}<br/>${lines.join("<br/>")}`;
         },

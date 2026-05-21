@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import clsx from "clsx";
 import { selectionAtom } from "src/state/selection";
 import {
   stagingModelDerivedAtom,
@@ -17,8 +16,11 @@ import type { AssetType } from "src/hydraulic-model/asset-types";
 import type { QuickGraphAssetType } from "src/state/quick-graph";
 import { ChartStep } from "./steps/chart-step";
 
-type ChartType = "line" | "variability";
-type AssetGroup = "nodes" | "links" | "all";
+type DisplayType =
+  | "line"
+  | "variability"
+  | "variability-nodes"
+  | "variability-links";
 
 interface ChartBuilderDialogProps {
   isOpen: boolean;
@@ -98,19 +100,65 @@ export function ChartBuilderWizard({
     linkOptions[0]?.value ?? null,
   );
 
-  const isMultiple = selectedAssetIds.length >= 2;
-  const [chartType, setChartType] = useState<ChartType>(
-    isMultiple ? "variability" : "line",
-  );
-  const [assetGroup, setAssetGroup] = useState<AssetGroup>(
-    isMultiple ? "nodes" : "all",
+  const combinedOptions = useMemo(
+    () => [
+      ...nodeOptions.map((o) => ({ value: `node:${o.value}`, label: o.label })),
+      ...linkOptions.map((o) => ({ value: `link:${o.value}`, label: o.label })),
+    ],
+    [nodeOptions, linkOptions],
   );
 
-  const handleChartTypeChange = (type: ChartType) => {
-    setChartType(type);
-    if (type === "line") setAssetGroup("all");
-    else if (assetGroup === "all") setAssetGroup("nodes");
-  };
+  const [combinedProperty, setCombinedProperty] = useState<string | null>(
+    combinedOptions[0]?.value ?? null,
+  );
+
+  const isMultiple = selectedAssetIds.length >= 2;
+
+  const initialDisplayType: DisplayType = !isMultiple
+    ? "line"
+    : isMixed
+      ? "variability-nodes"
+      : "variability";
+
+  const [displayType, setDisplayType] =
+    useState<DisplayType>(initialDisplayType);
+
+  const displayTypeOptions = useMemo(
+    () =>
+      isMixed
+        ? [
+            { value: "line", label: "Line" },
+            { value: "variability-nodes", label: "Variability — Nodes" },
+            { value: "variability-links", label: "Variability — Links" },
+          ]
+        : [
+            { value: "line", label: "Line" },
+            { value: "variability", label: "Variability" },
+          ],
+    [isMixed],
+  );
+
+  const chartType = displayType === "line" ? "line" : "variability";
+  const assetGroup =
+    displayType === "variability-nodes"
+      ? "nodes"
+      : displayType === "variability-links"
+        ? "links"
+        : "all";
+
+  const isVariabilityMixed = isMixed && displayType !== "line";
+
+  const effectiveNodeProperty = isVariabilityMixed
+    ? combinedProperty?.startsWith("node:")
+      ? combinedProperty.slice(5)
+      : null
+    : nodeProperty;
+
+  const effectiveLinkProperty = isVariabilityMixed
+    ? combinedProperty?.startsWith("link:")
+      ? combinedProperty.slice(5)
+      : null
+    : linkProperty;
 
   const selectorStyle = {
     border: true,
@@ -126,18 +174,10 @@ export function ChartBuilderWizard({
       isOpen={isOpen}
       onClose={onClose}
       footer={
-        <footer className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+        <footer className="flex items-center justify-end px-4 py-3 border-t border-gray-200">
           <Button type="button" variant="default" onClick={onClose}>
             Close
           </Button>
-          <div className="flex gap-2">
-            <Button type="button" variant="default" onClick={() => {}}>
-              Save as PNG
-            </Button>
-            <Button type="button" variant="default" onClick={() => {}}>
-              Export CSV
-            </Button>
-          </div>
         </footer>
       }
     >
@@ -149,59 +189,73 @@ export function ChartBuilderWizard({
         ) : (
           <>
             <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-800">
-              <div className="flex items-center gap-4">
-                {classification.hasNodes && nodeOptions.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    {isMixed && (
-                      <span className="text-sm text-gray-500 shrink-0">
-                        Nodes
-                      </span>
+              <div className="flex items-center gap-2">
+                {isVariabilityMixed ? (
+                  <Selector
+                    options={combinedOptions}
+                    selected={
+                      combinedProperty ?? combinedOptions[0]?.value ?? ""
+                    }
+                    onChange={setCombinedProperty}
+                    styleOptions={selectorStyle}
+                  />
+                ) : (
+                  <>
+                    {classification.hasNodes && nodeOptions.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        {isMixed && (
+                          <span className="text-sm text-gray-500 shrink-0">
+                            Nodes
+                          </span>
+                        )}
+                        <Selector
+                          options={nodeOptions}
+                          selected={nodeProperty ?? nodeOptions[0]?.value ?? ""}
+                          onChange={setNodeProperty}
+                          styleOptions={selectorStyle}
+                        />
+                      </div>
                     )}
-                    <Selector
-                      options={nodeOptions}
-                      selected={nodeProperty ?? nodeOptions[0]?.value ?? ""}
-                      onChange={setNodeProperty}
-                      styleOptions={selectorStyle}
-                    />
-                  </div>
+                    {classification.hasLinks && linkOptions.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        {isMixed && (
+                          <span className="text-sm text-gray-500 shrink-0">
+                            Links
+                          </span>
+                        )}
+                        <Selector
+                          options={linkOptions}
+                          selected={linkProperty ?? linkOptions[0]?.value ?? ""}
+                          onChange={setLinkProperty}
+                          styleOptions={selectorStyle}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
-                {classification.hasLinks && linkOptions.length > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    {isMixed && (
-                      <span className="text-sm text-gray-500 shrink-0">
-                        Links
-                      </span>
-                    )}
-                    <Selector
-                      options={linkOptions}
-                      selected={linkProperty ?? linkOptions[0]?.value ?? ""}
-                      onChange={setLinkProperty}
-                      styleOptions={selectorStyle}
-                    />
-                  </div>
+                {isMultiple && (
+                  <Selector
+                    options={displayTypeOptions}
+                    selected={displayType}
+                    onChange={(v) => setDisplayType(v as DisplayType)}
+                    styleOptions={selectorStyle}
+                  />
                 )}
               </div>
-              {isMultiple && (
-                <div className="flex gap-2">
-                  <ChartTypeToggle
-                    value={chartType}
-                    onChange={handleChartTypeChange}
-                  />
-                  {isMixed && (
-                    <AssetGroupToggle
-                      value={assetGroup}
-                      onChange={setAssetGroup}
-                      allDisabled={chartType === "variability"}
-                    />
-                  )}
-                </div>
-              )}
+              <div className="flex gap-2">
+                <Button type="button" variant="default" onClick={() => {}}>
+                  Save as PNG
+                </Button>
+                <Button type="button" variant="default" onClick={() => {}}>
+                  Export CSV
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col flex-1 min-h-0 px-4 py-3">
               <ChartStep
                 selectedAssetIds={selectedAssetIds}
-                nodeProperty={nodeProperty}
-                linkProperty={linkProperty}
+                nodeProperty={effectiveNodeProperty}
+                linkProperty={effectiveLinkProperty}
                 chartType={chartType}
                 assetGroup={assetGroup}
               />
@@ -210,79 +264,5 @@ export function ChartBuilderWizard({
         )}
       </div>
     </BaseDialog>
-  );
-}
-
-function ChartTypeToggle({
-  value,
-  onChange,
-}: {
-  value: ChartType;
-  onChange: (v: ChartType) => void;
-}) {
-  return (
-    <SegmentedToggle
-      options={[
-        { value: "variability", label: "Variability" },
-        { value: "line", label: "Line" },
-      ]}
-      value={value}
-      onChange={onChange}
-    />
-  );
-}
-
-function AssetGroupToggle({
-  value,
-  onChange,
-  allDisabled,
-}: {
-  value: AssetGroup;
-  onChange: (v: AssetGroup) => void;
-  allDisabled: boolean;
-}) {
-  return (
-    <SegmentedToggle
-      options={[
-        { value: "nodes", label: "Nodes" },
-        { value: "links", label: "Links" },
-        { value: "all", label: "All", disabled: allDisabled },
-      ]}
-      value={value}
-      onChange={onChange}
-    />
-  );
-}
-
-function SegmentedToggle<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: T; label: string; disabled?: boolean }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex rounded border border-gray-200 overflow-hidden text-sm">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          disabled={opt.disabled}
-          onClick={() => onChange(opt.value)}
-          className={clsx(
-            "px-3 py-1 transition-colors",
-            opt.disabled
-              ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-              : value === opt.value
-                ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white font-medium"
-                : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200",
-          )}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
   );
 }
