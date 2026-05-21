@@ -579,9 +579,7 @@ const CombinedChart = memo(function CombinedChart({
           symbol: "none",
           smooth: false,
           ...(hasBothAxes ? { yAxisIndex: isNode ? 1 : 0 } : {}),
-          ...(!isNode && linkValueFormatter
-            ? { step: "end" as const }
-            : {}),
+          ...(!isNode && linkValueFormatter ? { step: "end" as const } : {}),
         };
       }),
     [seriesData, nodeCount, hasBothAxes, linkValueFormatter],
@@ -669,7 +667,15 @@ const CombinedChart = memo(function CombinedChart({
         },
       },
     }),
-    [seriesData, xAxis, yAxis, series, unitLabels, nodeCount, linkValueFormatter],
+    [
+      seriesData,
+      xAxis,
+      yAxis,
+      series,
+      unitLabels,
+      nodeCount,
+      linkValueFormatter,
+    ],
   );
 
   useEffect(function resizeChart() {
