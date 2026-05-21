@@ -1,7 +1,6 @@
 "use client";
 import { useRef, useMemo, useCallback, useState } from "react";
 import { useAtomValue } from "jotai";
-import { getInstanceByDom } from "echarts";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
@@ -20,17 +19,13 @@ import {
   PropertyOption,
   QualityProperty,
   useCustomGraphData,
+  useCustomGraphExport,
 } from "./custom-graph";
 import { currentFileNameAtom } from "src/state";
-import { useExportSimulationResults } from "src/commands/export-simulation-results";
-import { ExportSimulationResultsProperties } from "src/lib/export/types";
-import { useUserTracking } from "src/infra/user-tracking";
 
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const exportSimulationResults = useExportSimulationResults();
-  const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkNameDot = fullNetworkName.lastIndexOf(".");
   const networkName = fullNetworkName.substring(
@@ -190,122 +185,14 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     [setLinkProperty],
   );
 
-  const trackExport = (format: "png" | "csv" | "xlsx") =>
-    capture({
-      name: "customGraph.exported",
-      format,
-      numAssets: nodeSeriesData.length + linkSeriesData.length,
-    });
-
-  const exportAsPng = () => {
-    const container = chartContainerRef.current;
-    if (!container) return;
-
-    const echartsElements = container.querySelectorAll<HTMLDivElement>(
-      "[_echarts_instance_]",
-    );
-    if (echartsElements.length === 0) return;
-
-    const svgUrls: string[] = [];
-    for (const el of echartsElements) {
-      const instance = getInstanceByDom(el);
-      if (instance) {
-        svgUrls.push(instance.getDataURL({ type: "svg" }));
-      }
-    }
-
-    if (svgUrls.length === 0) return;
-
-    const ratio = 2;
-    let loaded = 0;
-    const images: HTMLImageElement[] = new Array(svgUrls.length);
-
-    const onAllLoaded = () => {
-      const width = Math.max(...images.map((img) => img.width));
-      const totalHeight = images.reduce((sum, img) => sum + img.height, 0);
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width * ratio;
-      canvas.height = totalHeight * ratio;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.scale(ratio, ratio);
-
-      let y = 0;
-      for (const img of images) {
-        ctx.drawImage(img, 0, y);
-        y += img.height;
-      }
-
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/png");
-      a.download = `${networkName}-graph.png`;
-      a.click();
-
-      trackExport("png");
-    };
-
-    svgUrls.forEach((url, i) => {
-      const img = new Image();
-      img.onload = () => {
-        images[i] = img;
-        loaded++;
-        if (loaded === svgUrls.length) onAllLoaded();
-      };
-      img.src = url;
-    });
-  };
-
-  const exportTabular = async (format: "csv" | "xlsx") => {
-    const nodeIds = nodeSeriesData.map((n) => n.assetId);
-    const linkIds = linkSeriesData.map((n) => n.assetId);
-    const selectedAssets = new Set<number>([...nodeIds, ...linkIds]);
-
-    const mappedLinkProperty = (() => {
-      if (linkIds.length === 0) {
-        return [];
-      }
-
-      if (linkProperty === "headloss") {
-        return ["unitHeadloss"];
-      }
-
-      if (linkProperty === "flowAbsolute") {
-        return ["flow"];
-      }
-
-      return [linkProperty];
-    })();
-
-    const mappedNodeProperty = (() => {
-      if (nodeIds.length === 0) {
-        return [];
-      }
-
-      const hasWaterQuality =
-        GraphDefaultOptions.WATER_QUALITY_PROPERTIES.includes(nodeProperty);
-      if (hasWaterQuality) {
-        return ["waterQuality"];
-      }
-
-      return [nodeProperty];
-    })();
-
-    const properties = [
-      ...mappedNodeProperty,
-      ...mappedLinkProperty,
-    ] as ExportSimulationResultsProperties[];
-
-    await exportSimulationResults({
-      format,
-      onProgress: async () => Promise.resolve(),
-      properties,
-      selectedAssets,
-    });
-
-    trackExport(format);
-  };
+  const { exportAsPng, exportTabular } = useCustomGraphExport({
+    chartContainerRef,
+    networkName,
+    nodeSeriesData,
+    linkSeriesData,
+    nodeProperty,
+    linkProperty,
+  });
 
   const noDataAvailable = combinedSeriesData.length === 0;
 
