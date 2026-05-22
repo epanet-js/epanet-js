@@ -75,8 +75,14 @@ export type ProjectSavedInfoState = {
   onCancel?: () => void;
 };
 
+export type UpgradeSource = {
+  kind: "priorityAccess";
+  featureName: string;
+};
+
 export type UpgradeDialogState = {
   type: "upgrade";
+  source?: UpgradeSource;
 };
 
 export type ImportCustomerPointsWizardState = {
@@ -218,6 +224,11 @@ export type AppLoadFailedDialogState = {
   errorMessage?: string;
 };
 
+export type PriorityAccessDialogState = {
+  type: "priorityAccess";
+  featureName: string;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -263,6 +274,7 @@ export type DialogState =
   | ProfileNoPathDialogState
   | CustomGraphDialogState
   | AppLoadFailedDialogState
+  | PriorityAccessDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

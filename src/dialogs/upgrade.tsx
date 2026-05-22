@@ -33,6 +33,7 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
+import type { UpgradeSource } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -52,7 +53,7 @@ const prices = {
   },
 };
 
-export const UpgradeDialog = () => {
+export const UpgradeDialog = ({ source }: { source?: UpgradeSource } = {}) => {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoading: isLoadingCheckout, startCheckout } = useCheckout();
   const { canUpgrade } = usePermissions();
@@ -81,7 +82,7 @@ export const UpgradeDialog = () => {
     }
   }
 
-  return <PlansDialog />;
+  return <PlansDialog source={source} />;
 };
 
 const ChangesFromSupportDialog = () => {
@@ -104,7 +105,7 @@ const ChangesFromSupportDialog = () => {
   );
 };
 
-const PlansDialog = () => {
+const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
   const translate = useTranslate();
   const [usage, setUsage] = useState<UsageOption>("commercial");
   const [paymentType, setPaymentType] = useState<PaymentType>("yearly");
@@ -182,13 +183,13 @@ const PlansDialog = () => {
           <FreePlan paymentType={paymentType} />
           {usage === "commercial" && (
             <>
-              <ProPlan paymentType={paymentType} />
-              <TeamsPlan paymentType={paymentType} />
+              <ProPlan paymentType={paymentType} source={source} />
+              <TeamsPlan paymentType={paymentType} source={source} />
             </>
           )}
           {usage === "non-commercial" && (
             <>
-              <PersonalPlan paymentType={paymentType} />
+              <PersonalPlan paymentType={paymentType} source={source} />
               <EducationPlan paymentType={paymentType} />
             </>
           )}
@@ -253,7 +254,13 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+const PersonalPlan = ({
+  paymentType,
+  source,
+}: {
+  paymentType: PaymentType;
+  source?: UpgradeSource;
+}) => {
   const translate = useTranslate();
   const price = prices.personal.yearly;
 
@@ -319,7 +326,11 @@ const PersonalPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         </div>
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton plan="personal" paymentType={paymentType}>
+        <CheckoutButton
+          plan="personal"
+          paymentType={paymentType}
+          source={source}
+        >
           {translate("upgradeTo", "Personal")}
         </CheckoutButton>
       </div>
@@ -387,7 +398,13 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+const ProPlan = ({
+  paymentType,
+  source,
+}: {
+  paymentType: PaymentType;
+  source?: UpgradeSource;
+}) => {
   const translate = useTranslate();
   const price = prices.pro[paymentType];
 
@@ -454,7 +471,7 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         </div>
       </div>
       <div className="p-4 w-full">
-        <CheckoutButton plan="pro" paymentType={paymentType}>
+        <CheckoutButton plan="pro" paymentType={paymentType} source={source}>
           {translate("upgradeTo", "Pro")}
         </CheckoutButton>
       </div>
@@ -462,7 +479,13 @@ const ProPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   );
 };
 
-const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
+const TeamsPlan = ({
+  paymentType,
+  source,
+}: {
+  paymentType: PaymentType;
+  source?: UpgradeSource;
+}) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const basePrice =
@@ -480,6 +503,8 @@ const TeamsPlan = ({ paymentType }: { paymentType: PaymentType }) => {
       name: "checkout.started",
       plan: "teams",
       paymentType,
+      source: source?.kind,
+      sourceFeature: source?.featureName,
     });
     window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
   };

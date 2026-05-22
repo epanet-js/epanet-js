@@ -577,6 +577,13 @@
       "cta": "Choose plan"
     }
   },
+  "priorityAccess": {
+    "title": "Priority access",
+    "description1": "{{1}} is currently available to our Founding Partners and those on paid plans. To help keep epanet-js open and sustainable, new features are released to our project backers for the first 30 days.",
+    "description2": "Please consider supporting our work today to get instant access to {{1}}, alongside advanced tools like scenario management and custom layers.",
+    "upgrade": "Upgrade to access",
+    "maybeLater": "Maybe later"
+  },
   "planExplain": "{{1}} plan",
   "plan.pro": "Professional plan",
   "plan.free": "Free plan",

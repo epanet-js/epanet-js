@@ -1165,7 +1165,13 @@ export type UserEvent =
   | { name: "customLayer.added"; type: string }
   | { name: "addCustomLayer.clicked" }
   | { name: "layerType.choosen"; type: string }
-  | { name: "checkout.started"; plan: string; paymentType: string }
+  | {
+      name: "checkout.started";
+      plan: string;
+      paymentType: string;
+      source?: string;
+      sourceFeature?: string;
+    }
   | { name: "studentLogin.clicked" }
   | { name: "planUsage.toggled" }
   | { name: "planPaymentType.toggled" }
@@ -1277,6 +1283,9 @@ export type UserEvent =
   | { name: "paywall.clickedTryDemo"; feature: PaywallFeature }
   | { name: "paywall.clickedExplorePlans"; feature: PaywallFeature }
   | { name: "paywall.dismissed"; feature: PaywallFeature }
+  | { name: "priorityAccess.seen"; featureName: string }
+  | { name: "priorityAccess.clickedUpgrade"; featureName: string }
+  | { name: "priorityAccess.dismissed"; featureName: string }
   | { name: "trial.activated"; feature: PaywallFeature }
   | { name: "firstScenario.dialogEnabled" }
   | { name: "firstScenario.dialogHidden" }

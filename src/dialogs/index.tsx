@@ -23,6 +23,7 @@ const SimulationSettingsDialog = dynamic(
 
 const UpgradeDialog = dynamic<{
   onClose: () => void;
+  source?: dialogState.UpgradeSource;
 }>(() => import("src/dialogs/upgrade").then((r) => r.UpgradeDialog), {
   loading: () => <LoadingDialog />,
 });
@@ -466,6 +467,17 @@ const CustomGraphDialog = dynamic<{
   },
 );
 
+const PriorityAccessDialog = dynamic<{
+  featureName: string;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/priority-access").then((r) => r.PriorityAccessDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -514,6 +526,12 @@ export const Dialogs = memo(function Dialogs() {
       }
       if (dialog.type === "featurePaywall") {
         userTracking.capture({ name: "paywall.seen", feature: dialog.feature });
+      }
+      if (dialog.type === "priorityAccess") {
+        userTracking.capture({
+          name: "priorityAccess.seen",
+          featureName: dialog.featureName,
+        });
       }
     }
     previousDialog.current = dialog;
@@ -581,7 +599,7 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "upgrade") {
-    return <UpgradeDialog onClose={onClose} />;
+    return <UpgradeDialog onClose={onClose} source={dialog.source} />;
   }
 
   if (dialog.type === "featurePaywall") {
@@ -634,6 +652,15 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "customGraph") {
     return <CustomGraphDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "priorityAccess") {
+    return (
+      <PriorityAccessDialog
+        featureName={dialog.featureName}
+        onClose={onClose}
+      />
+    );
   }
 
   if (dialog.type === "networkProjection") {

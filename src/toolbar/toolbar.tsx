@@ -25,6 +25,7 @@ import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
   canRedoDerivedAtom,
@@ -91,6 +92,7 @@ export const Toolbar = ({
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const { canUseHglProfile } = usePermissions();
+  const showPriorityAccess = useShowPriorityAccessDialog();
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
 
@@ -248,12 +250,18 @@ export const Toolbar = ({
             <TableIcon />
           </MenuAction>
         )}
-        {isHglProfileOn && canUseHglProfile && (
+        {isHglProfileOn && (
           <MenuAction
             label={translate("hglProfile.toolbar")}
             role="button"
             selected={currentMode === Mode.HGL_PROFILE}
             onClick={() => {
+              if (!canUseHglProfile) {
+                showPriorityAccess({
+                  featureName: translate("hglProfile.toolbar"),
+                });
+                return;
+              }
               showHglProfile({ source: "toolbar" });
               startProfileSelection({ source: "toolbar" });
             }}
