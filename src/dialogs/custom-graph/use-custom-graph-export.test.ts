@@ -9,7 +9,14 @@ vi.mock("src/commands/export-simulation-results", () => ({
   useExportSimulationResults: vi.fn(() => vi.fn().mockResolvedValue(undefined)),
 }));
 
+vi.mock("src/components/notifications", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("src/components/notifications")>();
+  return { ...original, notify: vi.fn() };
+});
+
 import { useExportSimulationResults } from "src/commands/export-simulation-results";
+import { notify } from "src/components/notifications";
 
 const makeSeriesData = (assetId: number, label: string): AssetTimeSeries => ({
   assetId,
@@ -37,6 +44,7 @@ describe("useCustomGraphExport", () => {
 
   beforeEach(() => {
     tracking = stubUserTracking();
+    vi.mocked(notify).mockClear();
   });
 
   describe("exportTabular", () => {
@@ -52,6 +60,7 @@ describe("useCustomGraphExport", () => {
 
       expect(mockExport).toHaveBeenCalledWith({
         format: "csv",
+        fileName: "test-network-J1-pressure",
         onProgress: expect.any(Function),
         properties: ["pressure", "flow"],
         selectedAssets: new Set([1, 2]),
@@ -176,6 +185,10 @@ describe("useCustomGraphExport", () => {
         format: "xlsx",
         numAssets: 2,
       });
+
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: "success" }),
+      );
     });
   });
 

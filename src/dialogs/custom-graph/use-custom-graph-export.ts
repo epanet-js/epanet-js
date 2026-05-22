@@ -42,6 +42,22 @@ export function useCustomGraphExport({
     [capture, nodeSeriesData.length, linkSeriesData.length],
   );
 
+  const fileName = (() => {
+    if (nodeSeriesData.length === 0 && linkSeriesData.length === 0) {
+      return "";
+    }
+
+    if (nodeSeriesData.length > 1 || linkSeriesData.length > 1) {
+      return `${networkName}-${linkProperty}-${nodeProperty}`;
+    }
+
+    if (nodeSeriesData.length === 0) {
+      return `${networkName}-${linkSeriesData[0].label}-${linkProperty}`;
+    }
+
+    return `${networkName}-${nodeSeriesData[0].label}-${nodeProperty}`;
+  })();
+
   const notifyExportSucceeded = useCallback(
     () =>
       notify({
@@ -96,7 +112,7 @@ export function useCustomGraphExport({
 
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
-      a.download = `${networkName}-graph.png`;
+      a.download = `${fileName}.png`;
       a.click();
 
       trackExport("png");
@@ -112,7 +128,7 @@ export function useCustomGraphExport({
       };
       img.src = url;
     });
-  }, [chartContainerRef, networkName, notifyExportSucceeded, trackExport]);
+  }, [chartContainerRef, fileName, notifyExportSucceeded, trackExport]);
 
   const exportTabular = useCallback(
     async (format: "csv" | "xlsx") => {
@@ -158,6 +174,7 @@ export function useCustomGraphExport({
 
       await exportSimulationResults({
         format,
+        fileName,
         onProgress: (progress) => {
           onExportProgress?.(progress);
           if (performance.now() - lastYield >= 100) {
@@ -177,6 +194,7 @@ export function useCustomGraphExport({
       nodeSeriesData,
       linkSeriesData,
       exportSimulationResults,
+      fileName,
       trackExport,
       notifyExportSucceeded,
       linkProperty,

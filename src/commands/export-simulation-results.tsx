@@ -19,6 +19,7 @@ export type ExportSimulationResultsOptions = {
     property: ExportSimulationResultsProperties,
   ) => Promise<void>;
   signal?: AbortSignal;
+  fileName?: string;
 };
 
 export const useExportSimulationResults = () => {
@@ -52,7 +53,9 @@ export const useExportSimulationResults = () => {
             : "application/zip";
         const description =
           options.format === "xlsx" ? "Excel Workbook" : "ZIP Archive";
-        const fileName = `${networkName}-export${extension}`;
+        const fileName = options.fileName
+          ? `${options.fileName}${extension}`
+          : `${networkName}-export${extension}`;
 
         const fileHandle = FileSystemHelpers.isFileSystemAccessSupported()
           ? await FileSystemHelpers.openFileInFileSystem(
@@ -65,7 +68,7 @@ export const useExportSimulationResults = () => {
 
         await Export.exportSimulationResults(
           options.format,
-          networkName,
+          options.fileName ?? networkName,
           fileHandle,
           hydraulicModel,
           epsResultsReader,
