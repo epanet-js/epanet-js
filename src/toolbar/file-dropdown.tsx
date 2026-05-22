@@ -119,7 +119,7 @@ export const FileDropdown = () => {
                   }}
                 >
                   <FolderOpenIcon />
-                  {translate("open")}
+                  {translate("openFile")}
                 </StyledItem>
               )}
 

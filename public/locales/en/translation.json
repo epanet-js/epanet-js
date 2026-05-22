@@ -417,6 +417,7 @@
   "startBlankProject": "Start project",
   "startFromExample": "Start from example",
   "importFromINP": "Import from INP file",
+  "openFile": "Open",
   "openINP": "Open INP",
   "openProject": "Open project",
   "openModel": "Open model",
