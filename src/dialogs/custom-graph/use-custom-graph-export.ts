@@ -5,6 +5,9 @@ import { ExportSimulationResultsProperties } from "src/lib/export/types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { GraphDefaultOptions } from "./default-options";
 import { AssetTimeSeries } from "./types";
+import { notify } from "src/components/notifications";
+import { useTranslate } from "src/hooks/use-translate";
+import { SuccessIcon } from "src/icons";
 
 interface UseCustomGraphExportOptions {
   chartContainerRef: RefObject<HTMLDivElement | null>;
@@ -26,6 +29,7 @@ export function useCustomGraphExport({
   onExportProgress,
 }: UseCustomGraphExportOptions) {
   const exportSimulationResults = useExportSimulationResults();
+  const translate = useTranslate();
   const { capture } = useUserTracking();
 
   const trackExport = useCallback(
@@ -36,6 +40,17 @@ export function useCustomGraphExport({
         numAssets: nodeSeriesData.length + linkSeriesData.length,
       }),
     [capture, nodeSeriesData.length, linkSeriesData.length],
+  );
+
+  const notifyExportSucceeded = useCallback(
+    () =>
+      notify({
+        variant: "success",
+        size: "sm",
+        title: translate("customGraph.exportSucceeded"),
+        Icon: SuccessIcon,
+      }),
+    [translate],
   );
 
   const exportAsPng = useCallback(() => {
@@ -85,6 +100,7 @@ export function useCustomGraphExport({
       a.click();
 
       trackExport("png");
+      notifyExportSucceeded();
     };
 
     svgUrls.forEach((url, i) => {
@@ -96,7 +112,7 @@ export function useCustomGraphExport({
       };
       img.src = url;
     });
-  }, [chartContainerRef, networkName, trackExport]);
+  }, [chartContainerRef, networkName, notifyExportSucceeded, trackExport]);
 
   const exportTabular = useCallback(
     async (format: "csv" | "xlsx") => {
@@ -155,14 +171,16 @@ export function useCustomGraphExport({
       });
 
       trackExport(format);
+      notifyExportSucceeded();
     },
     [
       nodeSeriesData,
       linkSeriesData,
-      nodeProperty,
-      linkProperty,
       exportSimulationResults,
       trackExport,
+      notifyExportSucceeded,
+      linkProperty,
+      nodeProperty,
       onExportProgress,
     ],
   );
