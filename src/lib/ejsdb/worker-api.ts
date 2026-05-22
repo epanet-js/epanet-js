@@ -202,7 +202,7 @@ const BULK_CHUNK_SIZES = {
   junctions: 2700, // 11 cols × 2700 = 29700 params
   reservoirs: 2500, // 12 cols × 2500 = 30000 params
   tanks: 1500, // 20 cols × 1500 = 30000 params
-  pipes: 2300, // 13 cols × 2300 = 29900 params
+  pipes: 2000, // 15 cols × 2000 = 30000 params
   pumps: 1700, // 17 cols × 1700 = 28900 params
   valves: 2300, // 13 cols × 2300 = 29900 params
   customer_points: 3700, //  8 cols × 3700 = 29600 params
@@ -529,6 +529,8 @@ const bulkInsertPipes = (rows: readonly PipeRow[]) => {
       "minor_loss",
       "bulk_reaction_coeff",
       "wall_reaction_coeff",
+      "material",
+      "year",
     ],
     rows,
     (row, params) => {
@@ -546,6 +548,8 @@ const bulkInsertPipes = (rows: readonly PipeRow[]) => {
         row.minor_loss,
         row.bulk_reaction_coeff,
         row.wall_reaction_coeff,
+        row.material,
+        row.year,
       );
     },
     BULK_CHUNK_SIZES.pipes,

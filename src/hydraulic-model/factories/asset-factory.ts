@@ -32,6 +32,8 @@ export type PipeBuildData = {
   length?: number;
   bulkReactionCoeff?: number;
   wallReactionCoeff?: number;
+  material?: string;
+  year?: number;
   isActive?: boolean;
 };
 
@@ -154,6 +156,8 @@ export class AssetFactory {
     roughness,
     bulkReactionCoeff,
     wallReactionCoeff,
+    material,
+    year,
     isActive = true,
   }: PipeBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
@@ -168,6 +172,8 @@ export class AssetFactory {
       roughness: this.getPipeValue("roughness", roughness),
       bulkReactionCoeff,
       wallReactionCoeff,
+      material,
+      year,
       isActive,
     });
   }

@@ -11,6 +11,8 @@ export type PipeProperties = {
   initialStatus: PipeStatus;
   bulkReactionCoeff?: number;
   wallReactionCoeff?: number;
+  material?: string;
+  year?: number;
 } & LinkProperties;
 
 export const pipeQuantities = [
@@ -68,6 +70,14 @@ export class Pipe extends Link<PipeProperties> {
 
   get wallReactionCoeff() {
     return this.properties.wallReactionCoeff;
+  }
+
+  get material() {
+    return this.properties.material;
+  }
+
+  get year() {
+    return this.properties.year;
   }
 
   copy() {

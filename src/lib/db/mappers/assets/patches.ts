@@ -197,6 +197,8 @@ const pipeMap: ColumnMap = {
   minorLoss: { col: "minor_loss", transform: toNullable },
   bulkReactionCoeff: { col: "bulk_reaction_coeff", transform: toNullable },
   wallReactionCoeff: { col: "wall_reaction_coeff", transform: toNullable },
+  material: { col: "material", transform: toNullable },
+  year: { col: "year", transform: toNullable },
 };
 
 const pumpMap: ColumnMap = {

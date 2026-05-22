@@ -30,23 +30,52 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(false);
   });
 
+  const validPipe = {
+    id: 1,
+    label: "P1",
+    is_active: 1 as const,
+    start_node_id: 1,
+    end_node_id: 2,
+    coords: "[[0,0],[1,1]]",
+    length: null,
+    initial_status: "open" as const,
+    diameter: null,
+    roughness: null,
+    minor_loss: null,
+    bulk_reaction_coeff: null,
+    wall_reaction_coeff: null,
+    material: null,
+    year: null,
+  };
+
   it("rejects pipe rows with an unknown initial_status", () => {
     const result = pipeRowSchema.safeParse({
-      id: 1,
-      type: "pipe",
-      label: "P1",
-      is_active: 1,
-      start_node_id: 1,
-      end_node_id: 2,
-      coords: "[[0,0],[1,1]]",
-      length: null,
+      ...validPipe,
       initial_status: "??",
-      diameter: null,
-      roughness: null,
-      minor_loss: null,
-      bulk_reaction_coeff: null,
-      wall_reaction_coeff: null,
     });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts pipe rows with material and year set", () => {
+    const result = pipeRowSchema.safeParse({
+      ...validPipe,
+      material: "PVC",
+      year: 1995,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects pipe rows with non-positive year", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
+      false,
+    );
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: -1 }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects pipe rows with non-integer year", () => {
+    const result = pipeRowSchema.safeParse({ ...validPipe, year: 1995.5 });
     expect(result.success).toBe(false);
   });
 

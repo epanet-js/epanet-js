@@ -192,6 +192,8 @@ const buildPipe = (row: PipeRow, assetFactory: AssetFactory): Pipe =>
     minorLoss: nullable(row.minor_loss),
     bulkReactionCoeff: nullable(row.bulk_reaction_coeff),
     wallReactionCoeff: nullable(row.wall_reaction_coeff),
+    material: nullable(row.material),
+    year: nullable(row.year),
     isActive: toBool(row.is_active),
   });
 

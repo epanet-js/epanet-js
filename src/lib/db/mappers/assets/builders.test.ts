@@ -53,6 +53,8 @@ const makePipe = (overrides: Partial<PipeRow>): PipeRow => ({
   minor_loss: null,
   bulk_reaction_coeff: null,
   wall_reaction_coeff: null,
+  material: null,
+  year: null,
   ...overrides,
 });
 

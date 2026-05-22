@@ -167,6 +167,8 @@ const toPipeRow = (pipe: Pipe): PipeRow =>
       minor_loss: pipe.minorLoss,
       bulk_reaction_coeff: pipe.bulkReactionCoeff ?? null,
       wall_reaction_coeff: pipe.wallReactionCoeff ?? null,
+      material: pipe.material ?? null,
+      year: pipe.year ?? null,
     },
     "Pipe",
     pipe.id,
