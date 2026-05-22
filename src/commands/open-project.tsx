@@ -201,6 +201,10 @@ export const useOpenProjectFile = () => {
         });
       } catch (error) {
         setDialogState(null);
+        const err = error as Error;
+        if (err.name === "NotFoundError" || err.name === "NotAllowedError") {
+          throw err;
+        }
         captureError(
           new Error(
             `openProject exception (${file.name}): ${formatErrorDetails(error)}`,
@@ -253,6 +257,7 @@ export const useOpenProject = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const translate = useTranslate();
 
   const openProject = useCallback(
     async ({ source }: { source: string }) => {
@@ -281,7 +286,26 @@ export const useOpenProject = () => {
         return;
       }
 
-      await openProjectFile(file, source);
+      try {
+        await openProjectFile(file, source);
+      } catch (error) {
+        const err = error as Error;
+        if (err.name === "NotAllowedError") {
+          notify({
+            variant: "warning",
+            title: translate("recentFilePermissionDenied"),
+          });
+          return;
+        }
+        if (err.name === "NotFoundError") {
+          notify({
+            variant: "warning",
+            title: translate("recentFileNotFound"),
+          });
+          return;
+        }
+        throw err;
+      }
     },
     [
       openFile,
@@ -291,6 +315,7 @@ export const useOpenProject = () => {
       userTracking,
       setDialogState,
       isOurFileOn,
+      translate,
     ],
   );
 

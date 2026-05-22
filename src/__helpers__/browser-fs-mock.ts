@@ -69,6 +69,15 @@ export const stubFileSaveAbort = () => {
   );
 };
 
+export const stubFileSavePermissionDenied = () => {
+  (fileSave as Mock).mockRejectedValue(
+    new DOMException(
+      "Failed to execute 'createWritable' on 'FileSystemFileHandle': The request is not allowed by the user agent or the platform in the current context.",
+      "NotAllowedError",
+    ),
+  );
+};
+
 export const lastSaveCall = () => {
   const [contentBlob, options, handle] = (fileSave as Mock).mock.lastCall as [
     Blob,

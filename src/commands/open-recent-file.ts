@@ -42,7 +42,7 @@ export const useOpenRecentFile = () => {
           if (isProject) {
             await openProjectFile(fileWithHandle, source);
           } else {
-            void importInp([fileWithHandle], source);
+            await importInp([fileWithHandle], source);
           }
           userTracking.capture({
             name: "recentFile.opened",
@@ -51,11 +51,27 @@ export const useOpenRecentFile = () => {
             kind: isProject ? "project" : "inp",
           });
         } catch (error) {
+          const err = error as Error;
+          if (err.name === "NotAllowedError") {
+            notify({
+              variant: "warning",
+              title: translate("recentFilePermissionDenied"),
+            });
+            return;
+          }
+          if (err.name === "NotFoundError") {
+            notify({
+              variant: "warning",
+              title: translate("recentFileNotFound"),
+            });
+            void removeRecent(entry.id);
+            return;
+          }
           notify({
             variant: "error",
             title: translate("couldNotOpenRecentFile"),
           });
-          captureWarning("Could not open recent file", error);
+          captureWarning("Could not open recent file", err);
           void removeRecent(entry.id);
         }
       });

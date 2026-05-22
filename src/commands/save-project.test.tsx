@@ -10,7 +10,9 @@ import {
   stubFileSave,
   stubFileSaveAbort,
   stubFileSaveError,
+  stubFileSavePermissionDenied,
 } from "src/__helpers__/browser-fs-mock";
+import * as errorTracking from "src/infra/error-tracking";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
@@ -89,6 +91,30 @@ describe("save project", () => {
     expect(store.get(projectFileInfoAtom)).toBeNull();
 
     spy.mockRestore();
+  });
+
+  it("notifies and does not report to Sentry when write permission is denied", async () => {
+    stubFeatureOn("FLAG_OUR_FILE");
+    stubFileSavePermissionDenied();
+    const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
+    const store = setInitialState({ hydraulicModel });
+    skipProjectSavedInfo(store);
+    await seedDb(hydraulicModel);
+    const captureSpy = vi
+      .spyOn(errorTracking, "captureError")
+      .mockImplementation(() => {});
+
+    renderComponent({ store });
+    await triggerSave();
+
+    expect(screen.getByText(/permission to write/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/couldn't save project/i),
+    ).not.toBeInTheDocument();
+    expect(captureSpy).not.toHaveBeenCalled();
+    expect(store.get(projectFileInfoAtom)).toBeNull();
+
+    captureSpy.mockRestore();
   });
 
   it("treats a non-abort fileSave rejection as an error, not a cancel", async () => {

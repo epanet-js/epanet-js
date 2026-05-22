@@ -121,7 +121,8 @@ export const useSaveProject = ({
           });
           return true;
         } catch (error) {
-          if ((error as Error).name === "AbortError") {
+          const err = error as Error;
+          if (err.name === "AbortError") {
             notify({
               variant: "warning",
               title: translate("saveCanceled"),
@@ -131,7 +132,17 @@ export const useSaveProject = ({
             });
             return false;
           }
-          captureError(error as Error);
+          if (err.name === "NotAllowedError") {
+            notify({
+              variant: "warning",
+              title: translate("savePermissionDenied"),
+              Icon: WarningIcon,
+              id: saveProjectToastId,
+              size: "sm",
+            });
+            return false;
+          }
+          captureError(err);
           notify({
             variant: "error",
             size: "md",
