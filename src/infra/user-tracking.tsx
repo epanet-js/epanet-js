@@ -1188,7 +1188,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.copied";
-      type: Asset["type"];
+      type: Asset["type"] | "customerPoint";
       rows: number;
       cols: number;
       allRows: boolean;
@@ -1198,7 +1198,7 @@ export type UserEvent =
     }
   | {
       name: "dataTables.pasted";
-      type: Asset["type"];
+      type: Asset["type"] | "customerPoint";
       rows: number;
       cols: number;
       allRows: boolean;
@@ -1207,13 +1207,13 @@ export type UserEvent =
     }
   | {
       name: "dataTables.sorted";
-      type: Asset["type"];
+      type: Asset["type"] | "customerPoint";
       property: string;
       direction: "asc" | "desc";
     }
   | {
       name: "dataTables.selectedInMap";
-      type: Asset["type"];
+      type: Asset["type"] | "customerPoint";
       source: "cell-context" | "gutter-context";
       count: number;
     }
