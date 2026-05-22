@@ -24,7 +24,7 @@ const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
 const assetReferenceRegExp =
   /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\s+(\d+)/gi;
 
-const skipRegexp = [/Error 213/, /Error 211/];
+const skipRegexp = [/Error 213/, /Error 211/, /Error 202/];
 
 const sectionRowRegExps = [
   valvesSectionRowRegExp,

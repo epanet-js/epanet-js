@@ -233,6 +233,24 @@ Node 19 and Pipe 56`;
     });
   });
 
+  it("does not flag literal numeric values in error messages as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 202: illegal numeric value 0 in [PIPES] section:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 202: illegal numeric value 0 in [PIPES] section:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
   it("handles error messages with missing tank node correctly", () => {
     const assets = HydraulicModelBuilder.with().build().assets;
 
