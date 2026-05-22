@@ -3,6 +3,7 @@ import { Position } from "geojson";
 export const METERS_PER_DEGREE = 111_320;
 
 export const computeCentroid = (points: Position[]): Position => {
+  if (points.length === 0) return [0, 0];
   let sumX = 0;
   let sumY = 0;
   for (const p of points) {

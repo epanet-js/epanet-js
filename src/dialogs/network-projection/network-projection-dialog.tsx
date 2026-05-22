@@ -303,6 +303,10 @@ export const NetworkProjectionDialog = ({
   ]);
 
   const handleLoadWithoutBasemap = useCallback(() => {
+    if (source === "map-panel" && !initialProjection) {
+      closeDialog();
+      return;
+    }
     userTracking.capture({
       name: "networkProjection.skipped",
       source,
@@ -345,6 +349,8 @@ export const NetworkProjectionDialog = ({
     previewGeoJson,
     source,
     suggestedXyScale,
+    initialProjection,
+    closeDialog,
   ]);
 
   const handleClose = useCallback(() => {

@@ -19,6 +19,11 @@ describe("xy-grid-transform", () => {
       const centroid = computeCentroid([[42, 99]]);
       expect(centroid).toEqual([42, 99]);
     });
+
+    it("falls back to [0, 0] for an empty array", () => {
+      const centroid = computeCentroid([]);
+      expect(centroid).toEqual([0, 0]);
+    });
   });
 
   describe("transformPoint", () => {
