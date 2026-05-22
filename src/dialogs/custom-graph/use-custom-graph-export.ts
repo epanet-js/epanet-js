@@ -93,20 +93,21 @@ export function useCustomGraphExport({
     const images: HTMLImageElement[] = new Array(svgUrls.length);
 
     const onAllLoaded = () => {
+      const padding = 16;
       const width = Math.max(...images.map((img) => img.width));
       const totalHeight = images.reduce((sum, img) => sum + img.height, 0);
 
       const canvas = document.createElement("canvas");
-      canvas.width = width * ratio;
-      canvas.height = totalHeight * ratio;
+      canvas.width = (width + padding * 2) * ratio;
+      canvas.height = (totalHeight + padding * 2) * ratio;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.scale(ratio, ratio);
 
-      let y = 0;
+      let y = padding;
       for (const img of images) {
-        ctx.drawImage(img, 0, y);
+        ctx.drawImage(img, padding, y);
         y += img.height;
       }
 
