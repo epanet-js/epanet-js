@@ -11,6 +11,7 @@ import { CurveType } from "src/hydraulic-model/curves";
 import { PatternType } from "src/hydraulic-model/patterns";
 import { ValveKind } from "src/hydraulic-model/asset-types/valve";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
+import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
 import { ParseInpOptions } from "./parse-inp";
 
 export type RowParser = (params: {
@@ -174,8 +175,12 @@ export const parseEmitter: RowParser = ({ trimmedRow, inpData }) => {
 export const parseMixing: RowParser = ({ trimmedRow, inpData }) => {
   const [id, model, fraction] = readValues(trimmedRow);
   if (!id || !model) return;
+  const normalizedModel = model.toLowerCase();
+  const isValidModel = (tankMixingModels as readonly string[]).includes(
+    normalizedModel,
+  );
   const mixingData: { model: string; fraction?: number } = {
-    model: model.toLowerCase(),
+    model: isValidModel ? normalizedModel : "mixed",
   };
   if (fraction) {
     const value = parseFloat(fraction);

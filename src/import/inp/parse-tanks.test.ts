@@ -189,6 +189,24 @@ describe("parse tanks", () => {
     expect(tank.mixingFraction).toEqual(0.3);
   });
 
+  it("falls back to default mixing model when value is not a valid enum", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [MIXING]
+    T1    NO
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingModel).toEqual("mixed");
+  });
+
   it("defaults missing min volume to zero", () => {
     const inp = `
     [TANKS]
