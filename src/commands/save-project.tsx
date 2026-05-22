@@ -18,7 +18,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { MapContext, captureThumbnail } from "src/map";
 
 export const saveProjectShortcut = "ctrl+s";
@@ -140,6 +140,7 @@ export const useSaveProject = ({
               id: saveProjectToastId,
               size: "sm",
             });
+            captureWarning("Save project: permission denied", err);
             return false;
           }
           captureError(err);

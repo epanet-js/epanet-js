@@ -57,6 +57,7 @@ export const useOpenRecentFile = () => {
               variant: "warning",
               title: translate("recentFilePermissionDenied"),
             });
+            captureWarning("Recent file: permission denied", err);
             return;
           }
           if (err.name === "NotFoundError") {
@@ -64,6 +65,7 @@ export const useOpenRecentFile = () => {
               variant: "warning",
               title: translate("recentFileNotFound"),
             });
+            captureWarning("Recent file: not found", err);
             void removeRecent(entry.id);
             return;
           }

@@ -14,7 +14,7 @@ import { chooseUnitSystem } from "src/simulation/build-inp";
 import type { Asset } from "src/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -295,6 +295,7 @@ export const useOpenProject = () => {
             variant: "warning",
             title: translate("recentFilePermissionDenied"),
           });
+          captureWarning("Open project: permission denied", err);
           return;
         }
         if (err.name === "NotFoundError") {
@@ -302,6 +303,7 @@ export const useOpenProject = () => {
             variant: "warning",
             title: translate("recentFileNotFound"),
           });
+          captureWarning("Open project: file not found", err);
           return;
         }
         throw err;
