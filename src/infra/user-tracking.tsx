@@ -302,6 +302,7 @@ export type ImportInpCompleted = {
     | "unbalancedDiff"
     | "hasInvalidPumpCurves"
     | "hasUndefinedPumpCurve"
+    | "invalidValveKinds"
     | "hasWaterAge"
     | "hasWaterChemical"
     | "hasWaterTrace"

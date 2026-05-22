@@ -261,6 +261,20 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               </div>
             </div>
           )}
+          {issues.invalidValveKinds && issues.invalidValveKinds.size > 0 && (
+            <div>
+              <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
+              <div className="flex flex-col gap-y-1 items-start">
+                <span>
+                  -{" "}
+                  {translate(
+                    "invalidValveKinds",
+                    String(issues.invalidValveKinds.size),
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

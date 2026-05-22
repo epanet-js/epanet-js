@@ -9,6 +9,7 @@ export type ParserIssues = {
   nonDefaultTimes?: Map<string, string | number>;
   hasInvalidPumpCurves?: number;
   hasUndefinedPumpCurve?: number;
+  invalidValveKinds?: Map<string, string>;
 };
 
 export class IssuesAccumulator {
@@ -68,6 +69,13 @@ export class IssuesAccumulator {
   addUndefinedPumpCurve() {
     this.issues.hasUndefinedPumpCurve =
       (this.issues.hasUndefinedPumpCurve || 0) + 1;
+  }
+
+  addInvalidValveKind(valveId: string, rawKind: string) {
+    if (!this.issues.invalidValveKinds)
+      this.issues.invalidValveKinds = new Map<string, string>();
+
+    this.issues.invalidValveKinds.set(valveId, rawKind);
   }
 
   buildResult(): ParserIssues | null {

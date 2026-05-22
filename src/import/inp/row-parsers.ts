@@ -9,7 +9,7 @@ import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
 import { CurveType } from "src/hydraulic-model/curves";
 import { PatternType } from "src/hydraulic-model/patterns";
-import { ValveKind } from "src/hydraulic-model/asset-types/valve";
+import { ValveKind, valveKinds } from "src/hydraulic-model/asset-types/valve";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
 import { ParseInpOptions } from "./parse-inp";
@@ -314,7 +314,12 @@ export const parseJunction: RowParser = ({
   inpData.nodeIds.add(id);
 };
 
-export const parseValve: RowParser = ({ trimmedRow, inpData, isCommented }) => {
+export const parseValve: RowParser = ({
+  trimmedRow,
+  inpData,
+  issues,
+  isCommented,
+}) => {
   const [
     id,
     startNodeDirtyId,
@@ -326,7 +331,13 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, isCommented }) => {
     curveId,
   ] = readValues(trimmedRow);
 
-  const kind = type.toLowerCase();
+  const rawKind = type.toLowerCase();
+  const isValidKind = (valveKinds as readonly string[]).includes(rawKind);
+  if (!isValidKind) {
+    issues.addInvalidValveKind(id, type);
+  }
+  const kind: ValveKind = isValidKind ? (rawKind as ValveKind) : "tcv";
+
   let valveCurveId: string | undefined;
   if (kind === "gpv") {
     valveCurveId = setting;
@@ -341,7 +352,7 @@ export const parseValve: RowParser = ({ trimmedRow, inpData, isCommented }) => {
     startNodeDirtyId,
     endNodeDirtyId,
     diameter: parseFloat(diameter),
-    kind: kind as ValveKind,
+    kind,
     setting: parseFloat(setting),
     minorLoss: parseOptionalFloat(minorLoss),
     curveId: valveCurveId,

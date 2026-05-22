@@ -510,6 +510,7 @@
   "tankCurves": "Tanks with volume curves ({{1}} tanks using fixed diameter)",
   "pumpPatterns": "Pumps with time patterns ({{1}} pumps using constant speed)",
   "undefinedPumpCurves": "Pumps referencing undefined curves ({{1}} pumps)",
+  "invalidValveKinds": "Valves with unsupported type ({{1}} valves using TCV)",
   "pcvCurves": "PCV valves with characteristic curves ({{1}} valves using setting value only)",
   "andXMore": "and {{1}} more...",
   "alertInpOutput": "Some data may be lost",
