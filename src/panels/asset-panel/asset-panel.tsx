@@ -76,8 +76,10 @@ import {
   SwitchRow,
   ConnectedCustomersRow,
   SectionWrapper,
+  IntegerRow,
   type TankDefinitionMode,
 } from "./ui-components";
+import { PipeMaterialRow } from "./pipe-material-row";
 import {
   NestedSection,
   BlockComparisonField,
@@ -662,6 +664,7 @@ const PipeEditor = ({
 }) => {
   const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
+  const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
     getComparison,
@@ -725,13 +728,20 @@ const PipeEditor = ({
   };
 
   const activeTopologyComparison = getComparison("isActive", pipe.isActive);
-  const hasModelAttributesChanges = [
-    "initialStatus",
-    "diameter",
-    "length",
-    "roughness",
-    "minorLoss",
-  ].some((p) => getComparison(p, pipe.getProperty(p)).hasChanged);
+  const modelAttributeProperties = pipeAttributesOn
+    ? [
+        "initialStatus",
+        "diameter",
+        "length",
+        "roughness",
+        "minorLoss",
+        "material",
+        "year",
+      ]
+    : ["initialStatus", "diameter", "length", "roughness", "minorLoss"];
+  const hasModelAttributesChanges = modelAttributeProperties.some(
+    (p) => getComparison(p, pipe.getProperty(p)).hasChanged,
+  );
   const hasDemandChanges =
     getCustomerCountComparison(customerCount).hasChanged ||
     getCustomerDemandComparison(totalDemand).hasChanged;
@@ -797,6 +807,26 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
         />
+        {pipeAttributesOn && (
+          <PipeMaterialRow
+            pipe={pipe}
+            hydraulicModel={hydraulicModel}
+            comparison={getComparison("material", pipe.material ?? null)}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
+        {pipeAttributesOn && (
+          <IntegerRow
+            name="year"
+            displayName={translate("yearOfInstallation")}
+            value={pipe.year ?? null}
+            positiveOnly={true}
+            comparison={getComparison("year", pipe.year ?? null)}
+            onChange={onPropertyChange}
+            readOnly={readonly}
+          />
+        )}
         <QuantityRow
           name="roughness"
           value={pipe.roughness}

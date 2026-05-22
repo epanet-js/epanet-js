@@ -15,6 +15,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { Selector, SelectorOption } from "src/components/form/selector";
+import { CreatableSelector } from "src/components/form/creatable-selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
@@ -277,6 +278,154 @@ export const QuantityRow = <P extends string>({
             ghostBorder: readOnly,
             textSize: "sm",
           }}
+        />
+      )}
+    </InlineField>
+  );
+};
+
+export const IntegerRow = <P extends string>({
+  name,
+  value,
+  positiveOnly = false,
+  readOnly = false,
+  isNullable = true,
+  placeholder = "",
+  comparison,
+  onChange,
+  displayName,
+}: {
+  name: P;
+  value: number | null;
+  positiveOnly?: boolean;
+  isNullable?: boolean;
+  readOnly?: boolean;
+  placeholder?: string;
+  comparison?: PropertyComparison;
+  onChange?: (
+    name: P,
+    newValue: number | null,
+    oldValue: number | null,
+  ) => void;
+  displayName?: string;
+}) => {
+  const translate = useTranslate();
+  const lastChange = useRef<number>(0);
+
+  const displayValue = value === null ? "" : String(value);
+  const label = displayName ?? translate(name);
+
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? String(comparison.baseValue)
+      : undefined;
+
+  const handleChange = (newValue: number, isEmpty: boolean) => {
+    lastChange.current = Date.now();
+    if (isEmpty) {
+      if (isNullable) onChange && onChange(name, null, value);
+      return;
+    }
+    if (!Number.isFinite(newValue)) return;
+    const truncated = Math.trunc(newValue);
+    if (positiveOnly && truncated <= 0) return;
+    onChange && onChange(name, truncated, value);
+  };
+
+  return (
+    <InlineField
+      name={label}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      {readOnly ? (
+        <TextField padding="md">{displayValue}</TextField>
+      ) : (
+        <NumericField
+          key={lastChange.current + displayValue}
+          label={label}
+          positiveOnly={positiveOnly}
+          isNullable={isNullable}
+          readOnly={readOnly}
+          displayValue={displayValue}
+          placeholder={placeholder}
+          onChangeValue={handleChange}
+          styleOptions={{
+            padding: "md",
+            ghostBorder: readOnly,
+            textSize: "sm",
+          }}
+        />
+      )}
+    </InlineField>
+  );
+};
+
+export const CreatableTextRow = <P extends string>({
+  name,
+  value,
+  options,
+  readOnly = false,
+  placeholder,
+  comparison,
+  onChange,
+}: {
+  name: P;
+  value: string | null;
+  options: string[];
+  readOnly?: boolean;
+  placeholder?: string;
+  comparison?: PropertyComparison;
+  onChange?: (
+    name: P,
+    newValue: string | null,
+    oldValue: string | null,
+  ) => void;
+}) => {
+  const translate = useTranslate();
+  const label = translate(name);
+  const resolvedPlaceholder = placeholder ?? translate("notSet");
+
+  const baseDisplayValue =
+    comparison?.hasChanged && comparison.baseValue != null
+      ? String(comparison.baseValue)
+      : undefined;
+
+  const handleChange = useCallback(
+    (newValue: string | null) => {
+      const normalized = newValue === null ? null : newValue.trim() || null;
+      const canonical =
+        normalized === null
+          ? null
+          : (options.find(
+              (o) => o.toLowerCase() === normalized.toLowerCase(),
+            ) ?? normalized);
+      if (canonical === value) return;
+      onChange && onChange(name, canonical, value);
+    },
+    [name, onChange, options, value],
+  );
+
+  return (
+    <InlineField
+      name={label}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      {readOnly ? (
+        <TextField padding="md">{value ?? ""}</TextField>
+      ) : (
+        <CreatableSelector
+          options={options}
+          selected={value}
+          onChange={handleChange}
+          placeholder={resolvedPlaceholder}
+          ariaLabel={label}
+          searchPlaceholder={translate("searchOrTypeNew")}
+          createLabel={(query) => translate("addNewValue", query)}
+          clearLabel={translate("clear")}
         />
       )}
     </InlineField>

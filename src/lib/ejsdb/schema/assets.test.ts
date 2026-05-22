@@ -65,10 +65,13 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects pipe rows with non-positive year", () => {
+  it("accepts pipe rows with year 0", () => {
     expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
-      false,
+      true,
     );
+  });
+
+  it("rejects pipe rows with a negative year", () => {
     expect(pipeRowSchema.safeParse({ ...validPipe, year: -1 }).success).toBe(
       false,
     );
