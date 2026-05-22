@@ -257,7 +257,7 @@ export const SingleChart = memo(
           />
         </div>
         {hideLegend && showXAxisLabels && (
-          <p className="text-center text-xs italic text-gray-400 pb-1">
+          <p className="text-center text-gray-400 pb-1">
             {translate("customGraph.legendHidden")}
           </p>
         )}

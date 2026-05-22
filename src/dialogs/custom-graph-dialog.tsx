@@ -244,7 +244,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       }
     >
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="flex items-center gap-4 px-4 pt-3 pb-2 shrink-0 flex-wrap border-b border-gray-200">
+        <div className="flex items-center gap-4 px-4 pt-3 pb-3 shrink-0 flex-wrap border-b border-gray-200">
           <DD.Root>
             <DD.Trigger asChild>
               <Button
@@ -307,6 +307,18 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           )}
         </div>
 
+        {!isLoading && !noDataAvailable && assetsTruncated && (
+          <div className="mx-4 mb-3 mt-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              {translate(
+                "customGraph.assetsTruncated",
+                String(GraphDefaultOptions.MAX_ASSETS),
+                String(totalSelectedCount),
+              )}
+            </p>
+          </div>
+        )}
+
         {isLoading && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
             <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -324,7 +336,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
         {!isLoading && combinedSeriesData.length > 0 && (
           <div
             ref={chartContainerRef}
-            className="relative flex-1 min-h-0 px-4 pb-2"
+            className="relative flex-1 min-h-0 px-4 mt-3 pb-2"
           >
             <CustomGraphChart
               seriesData={combinedSeriesData}
@@ -360,19 +372,8 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             )}
           </div>
         )}
-        {!isLoading && !noDataAvailable && assetsTruncated && (
-          <div className="mx-4 mb-2 p-3 rounded-md bg-yellow-50 border border-yellow-200">
-            <p className="text-sm text-yellow-800">
-              {translate(
-                "customGraph.assetsTruncated",
-                String(GraphDefaultOptions.MAX_ASSETS),
-                String(totalSelectedCount),
-              )}
-            </p>
-          </div>
-        )}
         {!isLoading && noDataAvailable && (
-          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+          <div className="flex-1 flex items-center justify-center text-gray-400">
             {translate("customGraph.noDataAvailable")}
           </div>
         )}
