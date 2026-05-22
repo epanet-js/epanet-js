@@ -33,7 +33,7 @@ import {
 import { usePermissions } from "src/hooks/use-permissions";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
-import type { UpgradeSource } from "src/state/dialog";
+import { type UpgradeSource, getSourceFeature } from "src/state/dialog";
 
 type UsageOption = "commercial" | "non-commercial";
 
@@ -504,7 +504,7 @@ const TeamsPlan = ({
       plan: "teams",
       paymentType,
       source: source?.kind,
-      sourceFeature: source?.featureName,
+      sourceFeature: getSourceFeature(source),
     });
     window.open(teamsPlanRequestFormUrl, "_blank", "noopener,noreferrer");
   };

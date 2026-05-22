@@ -75,9 +75,19 @@ export type ProjectSavedInfoState = {
   onCancel?: () => void;
 };
 
-export type UpgradeSource = {
-  kind: "priorityAccess";
-  featureName: string;
+export type UpgradeSource =
+  | { kind: "priorityAccess"; featureName: string }
+  | { kind: "paywall"; feature: PaywallFeature }
+  | { kind: "menu" }
+  | { kind: "customLayers" };
+
+export const getSourceFeature = (
+  source?: UpgradeSource,
+): string | undefined => {
+  if (!source) return undefined;
+  if (source.kind === "priorityAccess") return source.featureName;
+  if (source.kind === "paywall") return source.feature;
+  return undefined;
 };
 
 export type UpgradeDialogState = {

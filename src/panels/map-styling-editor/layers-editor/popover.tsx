@@ -456,7 +456,10 @@ function AddLayer({ onClose }: { onClose: () => void }) {
     });
     setOpen(false);
     onClose();
-    setDialogState({ type: "upgrade" });
+    setDialogState({
+      type: "upgrade",
+      source: { kind: "customLayers" },
+    });
   };
 
   const handleModeChange = (mode: Mode, type: string) => {

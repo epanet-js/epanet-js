@@ -8,7 +8,7 @@ import {
   buildCheckoutUrl,
   useCheckout,
 } from "src/hooks/use-checkout";
-import type { UpgradeSource } from "src/state/dialog";
+import { type UpgradeSource, getSourceFeature } from "src/state/dialog";
 
 export const CheckoutButton = ({
   variant = "primary",
@@ -33,7 +33,7 @@ export const CheckoutButton = ({
       plan,
       paymentType,
       source: source?.kind,
-      sourceFeature: source?.featureName,
+      sourceFeature: getSourceFeature(source),
     });
   };
 

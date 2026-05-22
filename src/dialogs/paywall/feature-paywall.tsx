@@ -71,7 +71,10 @@ export const FeaturePaywall = ({
       name: "paywall.clickedChoosePlan",
       feature: config.feature,
     });
-    setDialog({ type: "upgrade" });
+    setDialog({
+      type: "upgrade",
+      source: { kind: "paywall", feature: config.feature },
+    });
   };
 
   const handlePersonalCheckout = () => {

@@ -598,7 +598,10 @@ export function AddLayer() {
         name: "upgradeButton.clicked",
         source: "customLayers",
       });
-      setDialogState({ type: "upgrade" });
+      setDialogState({
+        type: "upgrade",
+        source: { kind: "customLayers" },
+      });
     }
   };
 

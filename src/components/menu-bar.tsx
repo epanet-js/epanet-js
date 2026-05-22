@@ -119,7 +119,10 @@ export const MenuBarPlay = memo(function MenuBar() {
                       name: "upgradeButton.clicked",
                       source: "menu",
                     });
-                    setDialogState({ type: "upgrade" });
+                    setDialogState({
+                      type: "upgrade",
+                      source: { kind: "menu" },
+                    });
                   }}
                 />
               ) : (
@@ -379,7 +382,10 @@ export const SideMenu = () => {
                         source: "menu",
                       });
                       setIsOpen(false);
-                      setDialogState({ type: "upgrade" });
+                      setDialogState({
+                        type: "upgrade",
+                        source: { kind: "menu" },
+                      });
                     }}
                   />
                 )}
