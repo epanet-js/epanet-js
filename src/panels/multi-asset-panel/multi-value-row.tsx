@@ -5,6 +5,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
+import { CreatableSelector } from "src/components/form/creatable-selector";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
 import {
@@ -324,6 +325,36 @@ const EditableField = ({
           );
         }}
         disabled={readonly}
+      />
+    );
+  }
+
+  if (config.fieldType === "openCategory") {
+    const options = Array.from(propertyStats.values.keys() as Iterable<string>);
+    const currentValue = isMixed ? null : (options[0] ?? null);
+    const placeholder = isMixed
+      ? mixedPlaceholder
+      : config.nullLabelKey
+        ? translate(config.nullLabelKey)
+        : translate("none");
+
+    return (
+      <CreatableSelector
+        options={options}
+        selected={currentValue}
+        onChange={(newValue) => {
+          if (newValue === null) return;
+          const normalized = newValue.trim();
+          if (!normalized) return;
+          const canonical =
+            options.find((o) => o.toLowerCase() === normalized.toLowerCase()) ??
+            normalized;
+          onPropertyChange(config.modelProperty, canonical);
+        }}
+        placeholder={placeholder}
+        ariaLabel={label}
+        searchPlaceholder={translate("searchOrTypeNew")}
+        createLabel={(query) => translate("addNewValue", query)}
       />
     );
   }

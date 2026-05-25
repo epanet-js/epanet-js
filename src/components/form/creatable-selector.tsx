@@ -32,7 +32,7 @@ export const CreatableSelector: FunctionComponent<CreatableSelectorProps> = ({
   ariaLabel,
   searchPlaceholder = "Search…",
   createLabel = (query) => `Add "${query}"`,
-  clearLabel = "Clear",
+  clearLabel,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -230,11 +230,11 @@ export const CreatableSelector: FunctionComponent<CreatableSelectorProps> = ({
             {selected !== null && (
               <button
                 type="button"
-                className="block w-full text-left px-3 py-2 text-xs text-gray-500 border-t border-gray-100 hover:bg-gray-50"
+                className="block w-full text-left px-3 py-2 text-sm italic text-gray-500 border-t border-gray-100 hover:bg-gray-50"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => commit(null)}
               >
-                {clearLabel}
+                {clearLabel ?? placeholder}
               </button>
             )}
           </div>

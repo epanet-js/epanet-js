@@ -385,7 +385,7 @@ export const CreatableTextRow = <P extends string>({
 }) => {
   const translate = useTranslate();
   const label = translate(name);
-  const resolvedPlaceholder = placeholder ?? translate("notSet");
+  const resolvedPlaceholder = placeholder ?? translate("none");
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
@@ -425,7 +425,6 @@ export const CreatableTextRow = <P extends string>({
           ariaLabel={label}
           searchPlaceholder={translate("searchOrTypeNew")}
           createLabel={(query) => translate("addNewValue", query)}
-          clearLabel={translate("clear")}
         />
       )}
     </InlineField>

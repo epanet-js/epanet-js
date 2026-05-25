@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { CreatableTextRow } from "./ui-components";
 
@@ -23,19 +24,10 @@ export const PipeMaterialRow = ({
   onChange?: OnMaterialChange;
   readOnly?: boolean;
 }) => {
-  const existingMaterials = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const asset of hydraulicModel.assets.values()) {
-      if (asset.type !== "pipe") continue;
-      const m = (asset as Pipe).material;
-      if (!m) continue;
-      const key = m.toLowerCase();
-      if (!seen.has(key)) seen.set(key, m);
-    }
-    return Array.from(seen.values()).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" }),
-    );
-  }, [hydraulicModel.assets]);
+  const existingMaterials = useMemo(
+    () => listPipeMaterials(hydraulicModel.assets),
+    [hydraulicModel.assets],
+  );
 
   return (
     <CreatableTextRow
