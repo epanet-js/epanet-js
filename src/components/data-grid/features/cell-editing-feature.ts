@@ -29,6 +29,7 @@ declare module "@tanstack/react-table" {
   interface TableOptionsResolved<TData extends RowData> {
     onCellEditingChange?: OnChangeFn<CellEditingInternalState>;
     readOnly?: boolean;
+    onDelete?: (rowsToDelete: TData[]) => void;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,13 +129,15 @@ export const CellEditingFeature: TableFeature = {
 
     table.deleteSelection = () => {
       if (table.options.readOnly) return;
-      const onChange = table.options.onDataChange;
-      if (!onChange || !table.getSelection()) return;
-      if (table.isSelectionFullRows()) {
-        onChange(deleteSelectedRows(table));
-      } else {
-        onChange(clearSelectedCells(table));
+      if (!table.getSelection()) return;
+      const onDelete = table.options.onDelete;
+      if (table.isSelectionFullRows() && onDelete) {
+        const rowsToDelete = collectSelectedRows(table);
+        if (rowsToDelete.length) onDelete(rowsToDelete);
+        return;
       }
+      const onChange = table.options.onDataChange;
+      if (onChange) onChange(clearSelectedCells(table));
     };
   },
 
@@ -193,19 +196,18 @@ function isCellActive(
   return activeCell.col === col && activeCell.row === row;
 }
 
-function deleteSelectedRows<TData extends RowData>(
+function collectSelectedRows<TData extends RowData>(
   table: Table<TData>,
 ): TData[] {
   const selection = table.getSelection();
-  const data = table.options.data ?? [];
-  if (!selection) return data;
+  if (!selection) return [];
   const visibleRows = table.getRowModel().rows;
-  const toRemove = new Set<TData>();
+  const rows: TData[] = [];
   for (let i = selection.min.row; i <= selection.max.row; i++) {
     const row = visibleRows[i];
-    if (row) toRemove.add(row.original);
+    if (row) rows.push(row.original);
   }
-  return data.filter((row) => !toRemove.has(row));
+  return rows;
 }
 
 function clearSelectedCells<TData extends RowData>(

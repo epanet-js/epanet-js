@@ -250,6 +250,14 @@ export const DemandCategoriesEditor = ({
     [onDemandsChange, demands],
   );
 
+  const handleDelete = useCallback(
+    (rowsToDelete: DemandCategoryRow[]) => {
+      const toRemove = new Set(rowsToDelete);
+      handleChange(rowData.filter((row) => !toRemove.has(row)));
+    },
+    [handleChange, rowData],
+  );
+
   if (demands.length === 0 && !showEmptyGrid) {
     if (readOnly) {
       return null;
@@ -272,6 +280,7 @@ export const DemandCategoriesEditor = ({
     data: rowData,
     columns,
     onChange: handleChange,
+    onDelete: handleDelete,
     createRow,
     rowActions,
     addRowLabel: translate("addDemandCategory"),

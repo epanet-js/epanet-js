@@ -212,10 +212,19 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
       [onChange, recalculateTimesteps],
     );
 
+    const handleDelete = useCallback(
+      (rowsToDelete: PatternRow[]) => {
+        const toRemove = new Set(rowsToDelete);
+        handleChange(rowData.filter((row) => !toRemove.has(row)));
+      },
+      [handleChange, rowData],
+    );
+
     const sharedProps = {
       data: rowData,
       columns,
       onChange: handleChange,
+      onDelete: handleDelete,
       createRow,
       rowActions,
       addRowLabel: translate("addTimestep"),

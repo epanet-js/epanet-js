@@ -40,6 +40,7 @@ const editableData: EditableRow[] = [
 const useEditableTable = (
   onDataChange?: (data: EditableRow[]) => void,
   data: EditableRow[] = editableData,
+  onDelete?: (rows: EditableRow[]) => void,
 ) =>
   useReactTable<EditableRow>({
     data,
@@ -51,6 +52,7 @@ const useEditableTable = (
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
     onDataChange,
+    onDelete,
     _features: [CellEditingFeature, CellRangeSelectionFeature],
   });
 
@@ -269,7 +271,31 @@ describe("deleteSelection", () => {
     expect(onDataChange).not.toHaveBeenCalled();
   });
 
-  it("deletes rows when the selection spans all columns", () => {
+  it("calls onDelete with the selected rows when the selection spans all columns", () => {
+    const onDataChange = vi.fn();
+    const onDelete = vi.fn();
+    const { result } = renderHook(() =>
+      useEditableTable(onDataChange, editableData, onDelete),
+    );
+
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 1 },
+      });
+    });
+    act(() => {
+      result.current.deleteSelection();
+    });
+
+    expect(onDelete).toHaveBeenCalledWith([
+      { id: 1, label: "Row 1", value: 10 },
+      { id: 2, label: "Row 2", value: 20 },
+    ]);
+    expect(onDataChange).not.toHaveBeenCalled();
+  });
+
+  it("falls back to clearing cells on full-row selection when onDelete is not provided", () => {
     const onDataChange = vi.fn();
     const { result } = renderHook(() => useEditableTable(onDataChange));
 
@@ -284,6 +310,8 @@ describe("deleteSelection", () => {
     });
 
     expect(onDataChange).toHaveBeenCalledWith([
+      { id: 1, label: "Row 1", value: null },
+      { id: 2, label: "Row 2", value: null },
       { id: 3, label: "Row 3", value: 30 },
     ]);
   });
@@ -313,10 +341,6 @@ describe("deleteSelection", () => {
     const onDataChange = vi.fn();
     const { result } = renderHook(() => useEditableTable(onDataChange));
 
-    // Select both columns of row 1 — label is read-only, value is editable.
-    // To force the clear path (not delete) we need a non-full-row selection,
-    // which spans all columns. Since both cols are selected this IS full
-    // rows, so use a single-column non-full-row selection instead:
     act(() => {
       result.current.selectRange({
         min: { col: 0, row: 1 },
@@ -327,19 +351,19 @@ describe("deleteSelection", () => {
       result.current.deleteSelection();
     });
 
-    // label column is read-only, so nothing changes
     expect(onDataChange).toHaveBeenCalledWith(editableData);
   });
 
-  it("deletes the visually-selected row when the table is sorted", () => {
+  it("passes the visually-selected row to onDelete when the table is sorted", () => {
     const onDataChange = vi.fn();
-    const { result } = renderHook(() => useEditableTable(onDataChange));
+    const onDelete = vi.fn();
+    const { result } = renderHook(() =>
+      useEditableTable(onDataChange, editableData, onDelete),
+    );
 
-    // Sort by label descending → visual order: Row 3, Row 2, Row 1
     act(() => {
       result.current.setSorting([{ id: "label", desc: true }]);
     });
-    // Select the first visual row (originally Row 3) across all columns
     act(() => {
       result.current.selectRange({
         min: { col: 0, row: 0 },
@@ -350,8 +374,9 @@ describe("deleteSelection", () => {
       result.current.deleteSelection();
     });
 
-    const result_data = onDataChange.mock.calls[0][0] as EditableRow[];
-    expect(result_data.map((r) => r.label)).toEqual(["Row 1", "Row 2"]);
+    expect(onDelete).toHaveBeenCalledWith([
+      { id: 3, label: "Row 3", value: 30 },
+    ]);
   });
 
   it("clears the visually-selected cell when the table is sorted", () => {

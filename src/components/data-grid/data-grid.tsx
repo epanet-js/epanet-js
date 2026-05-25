@@ -67,6 +67,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   includeHeadersOnCopy?: boolean;
   onCopy?: (info: ClipboardCopyInfo) => void;
   onPaste?: (info: ClipboardPasteInfo) => void;
+  onDelete?: (rowsToDelete: TData[]) => void;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -95,6 +96,7 @@ export const DataGrid = forwardRef(function DataGrid<
     includeHeadersOnCopy = false,
     onCopy,
     onPaste,
+    onDelete,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -118,6 +120,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onDataChange: onChange,
     createRow,
     readOnly,
+    onDelete,
     includeHeadersOnCopy,
     autoExtendOnPaste: autoAddNewRows,
     onClipboardCopy: onCopy,

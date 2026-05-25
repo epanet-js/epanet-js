@@ -224,10 +224,19 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
       [onChange],
     );
 
+    const handleDelete = useCallback(
+      (rowsToDelete: CurveRow[]) => {
+        const toRemove = new Set(rowsToDelete);
+        handleChange(rowData.filter((row) => !toRemove.has(row)));
+      },
+      [handleChange, rowData],
+    );
+
     const sharedProps = {
       data: rowData,
       columns,
       onChange: handleChange,
+      onDelete: handleDelete,
       createRow,
       rowActions,
       addRowLabel: translate("addPoint"),

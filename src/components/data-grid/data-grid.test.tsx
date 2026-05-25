@@ -387,33 +387,34 @@ describe("DataGrid", () => {
   });
 
   describe("row deletion", () => {
-    it("deletes selected rows when pressing Delete with full row selected", async () => {
+    it("calls onDelete with the selected rows when pressing Delete with full row selected", async () => {
       const user = setupUser();
       const onChange = vi.fn();
+      const onDelete = vi.fn();
 
       const { container } = render(
         <DataGrid
           data={defaultData}
           columns={columns}
           onChange={onChange}
+          onDelete={onDelete}
           createRow={createRow}
           gutterColumn="numbered"
         />,
       );
 
-      // Select full row by clicking the gutter
       const gutterCells = container.querySelectorAll('[role="rowheader"]');
       await user.click(gutterCells[0]);
 
-      // Press Delete
       await user.keyboard("{Delete}");
 
       await waitFor(() => {
-        const result = onChange.mock.calls[0][0] as TestRow[];
-        expect(result).toHaveLength(2);
-        expect(result[0]).toMatchObject({ label: "Row 2", value: 20.5 });
-        expect(result[1]).toMatchObject({ label: "Row 3", value: 30.5 });
+        expect(onDelete).toHaveBeenCalledTimes(1);
       });
+      const rows = onDelete.mock.calls[0][0] as TestRow[];
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ label: "Row 1", value: 10.5 });
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it("does not delete rows or clear values when readOnly is true", async () => {
