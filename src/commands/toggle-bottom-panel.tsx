@@ -19,7 +19,7 @@ export const useToggleBottomPanel = () => {
   const userTracking = useUserTracking();
 
   const toggleBottomPanel = useCallback(
-    (_: { source: "toolbar" | "shortcut" }) => {
+    ({ source }: { source: "toolbar" | "shortcut" }) => {
       if (splits.bottomOpen && activeBottomTab === "hgl-profile") {
         exitHglProfileMode();
       }
@@ -29,6 +29,7 @@ export const useToggleBottomPanel = () => {
         name: "bottomPanel.toggled",
         open: newOpen,
         activeTabId: effectiveBottomTab,
+        source,
       });
     },
     [

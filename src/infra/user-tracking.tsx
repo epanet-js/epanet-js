@@ -1193,7 +1193,12 @@ export type UserEvent =
   | { name: "assetControls.opened"; source: string }
   | { name: "dataTables.opened"; source: string }
   | { name: "bottomPanel.tabSwitched"; tabId: string }
-  | { name: "bottomPanel.toggled"; open: boolean; activeTabId: string | null }
+  | {
+      name: "bottomPanel.toggled";
+      open: boolean;
+      activeTabId: string | null;
+      source: "toolbar" | "shortcut";
+    }
   | {
       name: "dataTables.cellEdited";
       type: Asset["type"];
