@@ -47,8 +47,11 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { type AssetRow, buildRowsAsync } from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import {
   buildColumns,
+  buildColumnsWithPipeAttributes,
   EDITABLE_NUMERIC_KEYS,
   EDITABLE_SELECT_KEYS,
   type QualityAnalysisType,
@@ -114,9 +117,24 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
-  const columns = useMemo(
+  const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
+  const pipeMaterials = useMemo(
     () =>
-      buildColumns(
+      pipeAttributesOn && assetType === "pipe"
+        ? listPipeMaterials(hydraulicModel.assets)
+        : [],
+    [pipeAttributesOn, assetType, hydraulicModel.assets],
+  );
+  const columns = useMemo(() => {
+    const validateLabel = (label: string, rowIndex: number) => {
+      const assetId = rowsRef.current?.[rowIndex]?.id;
+      if (assetId === undefined) return true;
+      return labelManager.isLabelAvailable(label, assetType, assetId);
+    };
+    const getRow = (rowIndex: number) => rowsRef.current?.[rowIndex];
+    if (pipeAttributesOn) {
+      return buildColumnsWithPipeAttributes(
+        pipeMaterials,
         assetType,
         translate,
         hasSimulation,
@@ -127,27 +145,39 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         hydraulicModel.curves,
         simulationSettings,
         qualityType,
-        (label: string, rowIndex: number) => {
-          const assetId = rowsRef.current?.[rowIndex]?.id;
-          if (assetId === undefined) return true;
-          return labelManager.isLabelAvailable(label, assetType, assetId);
-        },
-        (rowIndex: number) => rowsRef.current?.[rowIndex],
-      ),
-    [
+        validateLabel,
+        getRow,
+      );
+    }
+    return buildColumns(
       assetType,
-      formatting,
-      hasSimulation,
-      hydraulicModel.curves,
-      hydraulicModel.patterns,
-      labelManager,
-      qualityType,
-      simulationSettings,
       translate,
-      translateUnit,
+      hasSimulation,
       units,
-    ],
-  );
+      translateUnit,
+      formatting,
+      hydraulicModel.patterns,
+      hydraulicModel.curves,
+      simulationSettings,
+      qualityType,
+      validateLabel,
+      getRow,
+    );
+  }, [
+    assetType,
+    pipeAttributesOn,
+    pipeMaterials,
+    formatting,
+    hasSimulation,
+    hydraulicModel.curves,
+    hydraulicModel.patterns,
+    labelManager,
+    qualityType,
+    simulationSettings,
+    translate,
+    translateUnit,
+    units,
+  ]);
 
   useEffect(
     function computeRows() {

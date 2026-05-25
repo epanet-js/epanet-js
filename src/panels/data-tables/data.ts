@@ -303,6 +303,8 @@ function buildAssetRow(
         minorLoss: a.minorLoss,
         bulkReactionCoeff: a.bulkReactionCoeff,
         wallReactionCoeff: a.wallReactionCoeff,
+        material: a.material,
+        year: a.year,
       };
     }
     case "pump": {

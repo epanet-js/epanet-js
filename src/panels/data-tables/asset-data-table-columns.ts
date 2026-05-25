@@ -37,7 +37,7 @@ import type { AssetRow } from "./data";
 
 export const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
   junction: ["chemicalSourceType", "chemicalSourcePatternId"],
-  pipe: ["initialStatus"],
+  pipe: ["initialStatus", "material"],
   pump: [
     "initialStatus",
     "definitionType",
@@ -71,6 +71,7 @@ export const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
     "minorLoss",
     "bulkReactionCoeff",
     "wallReactionCoeff",
+    "year",
   ],
   pump: ["speed", "power", "energyPrice"],
   valve: ["setting", "diameter", "minorLoss"],
@@ -355,7 +356,50 @@ function buildSimColumns(
   }
 }
 
-export function buildColumns(
+type BuildColumnsArgs = [
+  type: AssetType,
+  translate: TranslateFn,
+  hasSimulation: boolean,
+  units: UnitsSpec,
+  translateUnit: TranslateUnitFn,
+  formatting: FormattingSpec,
+  patterns: Patterns,
+  curves: Curves,
+  simulationSettings: SimulationSettings,
+  qualityType: QualityAnalysisType,
+  validateLabel?: (label: string, rowIndex: number) => boolean,
+  getRow?: (rowIndex: number) => AssetRow | undefined,
+];
+
+type ExtraPipeColsFn = (
+  translate: TranslateFn,
+  formatting: FormattingSpec,
+) => GridColumn<AssetRow>[];
+
+const noExtraPipeCols: ExtraPipeColsFn = () => [];
+
+function pipeAttributeColsFor(materials: string[]): ExtraPipeColsFn {
+  return (translate): GridColumn<AssetRow>[] => [
+    filterableSelectColumn("material", {
+      header: translate("material"),
+      options: materials.map((m) => ({ value: m, label: m })),
+      placeholder: translate("none"),
+      emptyOptionLabel: translate("none"),
+      deleteValue: null,
+    }),
+    floatColumn("year", {
+      header: translate("yearOfInstallation"),
+      decimals: 0,
+      nullValue: null,
+      deleteValue: null,
+      placeholder: "",
+      isReadOnly: false,
+    }),
+  ];
+}
+
+function _buildColumns(
+  buildExtraPipeCols: ExtraPipeColsFn,
   type: AssetType,
   translate: TranslateFn,
   hasSimulation: boolean,
@@ -578,6 +622,7 @@ export function buildColumns(
           units.minorLoss,
           "minorLoss",
         ),
+        ...buildExtraPipeCols(translate, formatting),
         floatColumn("customerDemand", {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
@@ -841,4 +886,17 @@ export function buildColumns(
         ...simCols,
       ];
   }
+}
+
+export function buildColumns(
+  ...args: BuildColumnsArgs
+): GridColumn<AssetRow>[] {
+  return _buildColumns(noExtraPipeCols, ...args);
+}
+
+export function buildColumnsWithPipeAttributes(
+  materials: string[],
+  ...args: BuildColumnsArgs
+): GridColumn<AssetRow>[] {
+  return _buildColumns(pipeAttributeColsFor(materials), ...args);
 }
