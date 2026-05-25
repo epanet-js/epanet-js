@@ -28,6 +28,7 @@ import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -36,6 +37,7 @@ export function useActions(
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
+  const userTracking = useUserTracking();
   const {
     changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
     allActive,
@@ -65,6 +67,11 @@ export function useActions(
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doAddInnerRing() {
+      userTracking.capture({
+        name: "selection.zoomedTo",
+        source: source === "context-item" ? "map-context-menu" : "asset-panel",
+        count: selectedWrappedFeatures.length,
+      });
       return Promise.resolve(zoomTo(selectedWrappedFeatures));
     },
   };

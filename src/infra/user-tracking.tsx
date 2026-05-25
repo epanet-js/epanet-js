@@ -160,6 +160,12 @@ type SelectionCleared = {
   name: "selection.cleared";
 };
 
+type SelectionZoomedTo = {
+  name: "selection.zoomedTo";
+  source: "asset-panel" | "map-context-menu";
+  count: number;
+};
+
 type AssetDeselected = {
   name: "asset.deselected";
   type: Asset["type"];
@@ -1009,6 +1015,7 @@ export type UserEvent =
   | SelectionNarrowedToPropertyValue
   | FullSelectionEnabled
   | SelectionCleared
+  | SelectionZoomedTo
   | InpIssuesSeen
   | InpIssuesExpanded
   | CoordinatesIssuesExpanded
