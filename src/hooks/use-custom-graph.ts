@@ -24,7 +24,7 @@ export const useCustomGraph = () => {
 
     if (!canUseCustomGraphs) {
       showPriorityAccess({
-        featureName: translate("customGraph.title"),
+        featureName: translate("customGraph.titlePlural"),
       });
       return Promise.resolve();
     }
