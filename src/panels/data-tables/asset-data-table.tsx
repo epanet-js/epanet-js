@@ -47,10 +47,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { type AssetRow, buildRowsAsync } from "./data";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   buildColumns,
-  buildColumnsWithPressureStats,
   EDITABLE_NUMERIC_KEYS,
   EDITABLE_SELECT_KEYS,
   type QualityAnalysisType,
@@ -86,7 +84,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   }, [hydraulicModel.assets, assetType]);
 
   const hasSimulation = simulation !== null;
-  const pressureStatsOn = useFeatureFlag("FLAG_PRESSURE_STATS");
 
   const qualityType = useMemo((): QualityAnalysisType => {
     if (!simulation) return "none";
@@ -117,13 +114,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
-  const buildCols = pressureStatsOn
-    ? buildColumnsWithPressureStats
-    : buildColumns;
-
   const columns = useMemo(
     () =>
-      buildCols(
+      buildColumns(
         assetType,
         translate,
         hasSimulation,
@@ -143,7 +136,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       ),
     [
       assetType,
-      buildCols,
       formatting,
       hasSimulation,
       hydraulicModel.curves,

@@ -190,6 +190,21 @@ function buildSimColumns(
     qualityType,
   );
 
+  const pressureStatsCols = (): GridColumn<AssetRow>[] => [
+    simNumericValue(
+      "sim_minPressure",
+      translate("minPressure"),
+      units.pressure,
+      "pressure",
+    ),
+    simNumericValue(
+      "sim_maxPressure",
+      translate("maxPressure"),
+      units.pressure,
+      "pressure",
+    ),
+  ];
+
   switch (type) {
     case "junction":
       return [
@@ -199,6 +214,7 @@ function buildSimColumns(
           units.pressure,
           "pressure",
         ),
+        ...pressureStatsCols(),
         simNumericValue("sim_head", translate("head"), units.head, "head"),
         simNumericValue(
           "sim_demand",
@@ -301,102 +317,6 @@ function buildSimColumns(
           units.pressure,
           "pressure",
         ),
-        simNumericValue("sim_head", translate("head"), units.head, "head"),
-        simNumericValue(
-          "sim_netFlow",
-          translate("netFlow"),
-          units.netFlow,
-          "netFlow",
-        ),
-        ...qualityCols(),
-      ];
-    case "tank":
-      return [
-        simNumericValue(
-          "sim_pressure",
-          translate("pressure"),
-          units.pressure,
-          "pressure",
-        ),
-        simNumericValue("sim_head", translate("head"), units.head, "head"),
-        simNumericValue("sim_level", translate("level"), units.level, "level"),
-        simNumericValue(
-          "sim_volume",
-          translate("volume"),
-          units.volume,
-          "volume",
-        ),
-        simNumericValue(
-          "sim_netFlow",
-          translate("netFlow"),
-          units.netFlow,
-          "netFlow",
-        ),
-        ...qualityCols(),
-      ];
-  }
-}
-
-function buildSimColumnsWithPressureStats(
-  ...[
-    type,
-    translate,
-    units,
-    translateUnit,
-    formatting,
-    qualityType,
-  ]: SimColsArgs
-): GridColumn<AssetRow>[] {
-  const { simNumericValue, qualityCols } = makeSimColHelpers(
-    translate,
-    units,
-    translateUnit,
-    formatting,
-    qualityType,
-  );
-
-  const pressureStatsCols = (): GridColumn<AssetRow>[] => [
-    simNumericValue(
-      "sim_minPressure",
-      translate("minPressure"),
-      units.pressure,
-      "pressure",
-    ),
-    simNumericValue(
-      "sim_maxPressure",
-      translate("maxPressure"),
-      units.pressure,
-      "pressure",
-    ),
-  ];
-
-  switch (type) {
-    case "junction":
-      return [
-        simNumericValue(
-          "sim_pressure",
-          translate("pressure"),
-          units.pressure,
-          "pressure",
-        ),
-        ...pressureStatsCols(),
-        simNumericValue("sim_head", translate("head"), units.head, "head"),
-        simNumericValue(
-          "sim_demand",
-          translate("actualDemand"),
-          units.actualDemand,
-          "actualDemand",
-        ),
-        ...qualityCols(),
-      ];
-    case "reservoir":
-      return [
-        simNumericValue(
-          "sim_pressure",
-          translate("pressure"),
-          units.pressure,
-          "pressure",
-        ),
         ...pressureStatsCols(),
         simNumericValue("sim_head", translate("head"), units.head, "head"),
         simNumericValue(
@@ -432,35 +352,10 @@ function buildSimColumnsWithPressureStats(
         ),
         ...qualityCols(),
       ];
-    default:
-      return buildSimColumns(
-        type,
-        translate,
-        units,
-        translateUnit,
-        formatting,
-        qualityType,
-      );
   }
 }
 
-type BuildColumnsArgs = [
-  type: AssetType,
-  translate: TranslateFn,
-  hasSimulation: boolean,
-  units: UnitsSpec,
-  translateUnit: TranslateUnitFn,
-  formatting: FormattingSpec,
-  patterns: Patterns,
-  curves: Curves,
-  simulationSettings: SimulationSettings,
-  qualityType: QualityAnalysisType,
-  validateLabel?: (label: string, rowIndex: number) => boolean,
-  getRow?: (rowIndex: number) => AssetRow | undefined,
-];
-
-function _buildColumns(
-  buildSim: (...args: SimColsArgs) => GridColumn<AssetRow>[],
+export function buildColumns(
   type: AssetType,
   translate: TranslateFn,
   hasSimulation: boolean,
@@ -598,7 +493,14 @@ function _buildColumns(
   ];
 
   const simCols = hasSimulation
-    ? buildSim(type, translate, units, translateUnit, formatting, qualityType)
+    ? buildSimColumns(
+        type,
+        translate,
+        units,
+        translateUnit,
+        formatting,
+        qualityType,
+      )
     : [];
 
   switch (type) {
@@ -939,16 +841,4 @@ function _buildColumns(
         ...simCols,
       ];
   }
-}
-
-export function buildColumns(
-  ...args: BuildColumnsArgs
-): GridColumn<AssetRow>[] {
-  return _buildColumns(buildSimColumns, ...args);
-}
-
-export function buildColumnsWithPressureStats(
-  ...args: BuildColumnsArgs
-): GridColumn<AssetRow>[] {
-  return _buildColumns(buildSimColumnsWithPressureStats, ...args);
 }

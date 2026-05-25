@@ -160,10 +160,9 @@ describe("Map Styling Editor", () => {
     );
     await user.keyboard("{Escape}");
     await user.click(screen.getByRole("combobox", { name: /node color by/i }));
-    expect(screen.getByRole("option", { name: /pressure/i })).toHaveAttribute(
-      "aria-disabled",
-      "true",
-    );
+    expect(
+      screen.getByRole("option", { name: /^pressure \(/i }),
+    ).toHaveAttribute("aria-disabled", "true");
   });
 
   describe("layers", () => {

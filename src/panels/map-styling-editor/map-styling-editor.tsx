@@ -42,7 +42,6 @@ import { USelection } from "src/selection/selection";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -84,18 +83,14 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
-  const pressureStatsOn = useFeatureFlag("FLAG_PRESSURE_STATS");
-
-  const nodeProperties = pressureStatsOn
-    ? supportedNodeProperties
-    : supportedNodeProperties.filter(
-        (p) => p !== "minPressure" && p !== "maxPressure",
-      );
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
       <SectionList gap={1} padding={3}>
-        <SymbologyEditor geometryType="node" properties={nodeProperties} />
+        <SymbologyEditor
+          geometryType="node"
+          properties={supportedNodeProperties}
+        />
         <SymbologyEditor
           geometryType="link"
           properties={supportedLinkProperties}
