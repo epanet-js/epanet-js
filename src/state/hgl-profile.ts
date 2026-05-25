@@ -8,6 +8,7 @@ import {
   simulationDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
+import { EPSResultsReader } from "src/simulation";
 
 export type { PathData };
 
@@ -49,11 +50,13 @@ export const hglRangesAtom = atom(
     if (!path) return null;
 
     const simulation = get(simulationDerivedAtom);
-    const reader =
+    const source =
       "epsResultsReader" in simulation && simulation.epsResultsReader
         ? simulation.epsResultsReader
         : null;
-    if (!reader) return null;
+    // HGL profile ranges require the EPANET extended-period reader.
+    if (!source || !("getHeadRangesForNodes" in source)) return null;
+    const reader = source as unknown as EPSResultsReader;
 
     const model = get(stagingModelDerivedAtom);
     const ranges = new Map<AssetId, HglRange | null>();

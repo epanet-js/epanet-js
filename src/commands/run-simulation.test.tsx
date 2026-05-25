@@ -5,38 +5,65 @@ import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import type { HydraulicModel } from "src/hydraulic-model";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
-import { lib } from "src/lib/worker";
+import { runPtsnetSimulation } from "src/simulation/ptsnet";
+import type { PtsnetWorkerResult } from "src/simulation/ptsnet";
 import { Mock } from "vitest";
-import { runSimulation as workerRunSimulation } from "src/simulation/epanet/worker";
-import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
 
-vi.mock("src/lib/worker", () => ({
-  lib: {
-    runSimulation: vi.fn(),
-  },
+// The simulate button runs ptsnet in a worker; mock the worker wrapper so the
+// command (and the real TransientResultsReader) can be exercised in jsdom.
+vi.mock("src/simulation/ptsnet", () => ({
+  runPtsnetSimulation: vi.fn(),
 }));
 
-describe("Run simulation", () => {
-  beforeAll(() => patchEpanetLoader());
+const IDS = { r1: 1, j1: 2, v1: 3 } as const;
 
-  beforeEach(() => {
-    wireWebWorker();
-  });
+const aModelWithValve = (): HydraulicModel =>
+  HydraulicModelBuilder.with()
+    .aReservoir(IDS.r1)
+    .aJunction(IDS.j1)
+    .aValve(IDS.v1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
+    .build();
+
+const fakeResult = (): PtsnetWorkerResult => ({
+  serialized: {
+    time: [0, 0.01, 0.02],
+    node: {
+      head: { labels: ["2"], cols: 3, data: [10, 11, 12] },
+      leakFlow: { labels: [], cols: 3, data: [] },
+      demandFlow: { labels: [], cols: 3, data: [] },
+    },
+    pipeStart: { flowrate: { labels: ["3"], cols: 3, data: [1, 0.5, 0] } },
+    pipeEnd: { flowrate: { labels: ["3"], cols: 3, data: [1, 0.5, 0] } },
+  },
+  nodeLabels: ["1", "2"],
+  nodeElevation: [0, 0],
+  nodeType: [1, 0],
+});
+
+describe("Run simulation (transient)", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it("persists state the simulation when passes", async () => {
-    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1)
-      .aJunction(IDS.j1)
-      .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
-      .build();
-    const store = setInitialState({ hydraulicModel });
+  it("runs ptsnet and attaches a transient reader on success", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockResolvedValue(fakeResult());
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientsEnabled: true,
+        transientValveId: valveLabel,
+      },
+    });
     renderComponent({ store });
 
     await triggerRun();
@@ -44,16 +71,27 @@ describe("Run simulation", () => {
     await waitFor(() => {
       const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
       expect(simulation.status).toEqual("success");
-      expect(simulation.report).not.toContain(/error/i);
-      expect(
-        "epsResultsReader" in simulation && simulation.epsResultsReader,
-      ).toBeTruthy();
+      const reader =
+        "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+      expect(reader).toBeTruthy();
+      expect(reader?.isTransient).toBe(true);
+      expect(reader?.timestepCount).toEqual(3);
     });
+    expect(runPtsnetSimulation).toHaveBeenCalledTimes(1);
   });
 
-  it("persists the state when the simulation fails", async () => {
-    const hydraulicModel = aNonSimulableModel();
-    const store = setInitialState({ hydraulicModel });
+  it("fails with a readable message when not cross-origin isolated", async () => {
+    vi.stubGlobal("crossOriginIsolated", false);
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientValveId: valveLabel,
+      },
+    });
     renderComponent({ store });
 
     await triggerRun();
@@ -61,98 +99,56 @@ describe("Run simulation", () => {
     await waitFor(() => {
       const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
       expect(simulation.status).toEqual("failure");
-      expect(simulation.report).toContain("not enough");
-      expect(simulation.modelVersion).toEqual(hydraulicModel.version);
+      expect(simulation.report).toMatch(/cross-origin/i);
     });
+    expect(runPtsnetSimulation).not.toHaveBeenCalled();
   });
 
-  it("can show the report after a failure", async () => {
-    const hydraulicModel = aNonSimulableModel();
-    const store = setInitialState({ hydraulicModel });
+  it("fails when the configured valve does not exist", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+
+    const store = setInitialState({
+      hydraulicModel: aModelWithValve(),
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientValveId: "does-not-exist",
+      },
+    });
     renderComponent({ store });
 
     await triggerRun();
 
     await waitFor(() => {
-      expect(screen.getByText(/with error/i)).toBeInTheDocument();
+      const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
+      expect(simulation.status).toEqual("failure");
+      expect(simulation.report).toMatch(/not found/i);
     });
-
-    await userEvent.click(screen.getByRole("button", { name: /view report/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/not enough/)).toBeInTheDocument();
-    });
+    expect(runPtsnetSimulation).not.toHaveBeenCalled();
   });
 
-  it("can show the report with warnings", async () => {
-    const hydraulicModel = aSimulableModelWithWarnings();
-    const store = setInitialState({ hydraulicModel });
+  it("fails with a readable message when ptsnet throws", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockRejectedValue(
+      new Error("boom"),
+    );
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientValveId: valveLabel,
+      },
+    });
     renderComponent({ store });
 
     await triggerRun();
 
     await waitFor(() => {
-      expect(screen.getByText(/simulation with warnings/i)).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByRole("button", { name: /view report/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/negative pressures/i)).toBeInTheDocument();
-    });
-  });
-
-  it("can show the report after a success", async () => {
-    const hydraulicModel = aSimulableModel();
-    const store = setInitialState({ hydraulicModel });
-    renderComponent({ store });
-
-    await triggerRun();
-
-    await waitFor(() => {
-      expect(screen.getByText(/success/i)).toBeInTheDocument();
-    });
-
-    await userEvent.click(screen.getByRole("button", { name: /view report/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/Page 1/)).toBeInTheDocument();
-    });
-  });
-
-  it("can skip close with keyboard after success", async () => {
-    const hydraulicModel = aSimulableModel();
-    const store = setInitialState({ hydraulicModel });
-    renderComponent({ store });
-
-    await triggerRun();
-
-    await waitFor(() => {
-      expect(screen.getByText(/success/i)).toBeInTheDocument();
-    });
-
-    await userEvent.keyboard("{Enter}");
-
-    await waitFor(() => {
-      expect(screen.queryByText(/success/i)).not.toBeInTheDocument();
-    });
-  });
-
-  it("by default opens report on enter when failure", async () => {
-    const hydraulicModel = aNonSimulableModel();
-    const store = setInitialState({ hydraulicModel });
-    renderComponent({ store });
-
-    await triggerRun();
-
-    await waitFor(() => {
-      expect(screen.getByText(/with error/i)).toBeInTheDocument();
-    });
-
-    await userEvent.keyboard("{Enter}");
-
-    await waitFor(() => {
-      expect(screen.getByText(/not enough/i)).toBeInTheDocument();
+      const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
+      expect(simulation.status).toEqual("failure");
+      expect(simulation.report).toMatch(/boom/i);
     });
   });
 
@@ -178,36 +174,5 @@ describe("Run simulation", () => {
         <TestableComponent />
       </CommandContainer>,
     );
-  };
-
-  const wireWebWorker = () => {
-    (lib.runSimulation as unknown as Mock).mockImplementation(
-      workerRunSimulation,
-    );
-  };
-
-  const aNonSimulableModel = () => {
-    const IDS = { r1: 1 } as const;
-    return HydraulicModelBuilder.with().aReservoir(IDS.r1).build();
-  };
-
-  const aSimulableModel = () => {
-    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
-    return HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1)
-      .aJunction(IDS.j1)
-      .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
-      .build();
-  };
-
-  const aSimulableModelWithWarnings = () => {
-    const IDS = { r1: 1, j1: 2, p1: 3 } as const;
-    return HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1, { head: 0 })
-      .aJunction(IDS.j1)
-      .aJunctionDemand(IDS.j1, [{ baseDemand: 10 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
-      .build();
   };
 });

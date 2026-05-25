@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { EPSResultsReader } from "src/simulation";
+import type { ResultsReaderSource } from "src/simulation";
 
 export const simulationStepAtom = atom<number | null>(null);
 
@@ -9,7 +9,8 @@ type ExecutionResult = {
   report: string;
   modelVersion: string;
   settingsVersion: string;
-  epsResultsReader?: EPSResultsReader;
+  // Either the EPANET extended-period reader or the ptsnet transient reader.
+  epsResultsReader?: ResultsReaderSource;
 };
 type PreviousExecutionResult = ExecutionResult;
 

@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import {
   defaultTiming,
   defaultSimulationSettings,
+  defaultTransientValues,
   type Timing,
   type SimulationSettings,
   type DemandModel,
@@ -322,6 +323,7 @@ export class SimulationSettingsBuilder {
       energyGlobalPatternId: this.energyGlobalPatternIdValue,
       energyDemandCharge: this.energyDemandChargeValue,
       statusReport: this.statusReportValue,
+      ...defaultTransientValues,
     };
   }
 }

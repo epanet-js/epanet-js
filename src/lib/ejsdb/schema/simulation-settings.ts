@@ -52,4 +52,14 @@ export const simulationSettingsSchema = z.object({
   energyGlobalPatternId: finiteInt.nullable(),
   energyDemandCharge: finiteNumber,
   statusReport: z.enum(["YES", "NO", "FULL"]),
+  // Transient analysis (ptsnet). Defaulted so settings saved before this
+  // feature still parse.
+  transientsEnabled: z.boolean().default(false),
+  transientValveId: z.string().default(""),
+  transientFinalSetting: finiteNumber.default(0),
+  transientStartTime: finiteNumber.default(0),
+  transientEndTime: finiteNumber.default(2),
+  transientDuration: finiteNumber.default(20),
+  transientTimeStep: finiteNumber.default(0.01),
+  transientWaveSpeed: finiteNumber.default(1200),
 });

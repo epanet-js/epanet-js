@@ -42,6 +42,7 @@
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.2",
+    "@epanet-js/ptsnet": "0.2.1",
     "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",
     "@lezer/highlight": "^1.2.0",

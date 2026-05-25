@@ -56,6 +56,9 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@18.3.1)
+      '@epanet-js/ptsnet':
+        specifier: 0.2.1
+        version: 0.2.1
       '@google-cloud/storage':
         specifier: ^7.13.0
         version: 7.15.2
@@ -999,6 +1002,10 @@ packages:
   '@emotion/memoize@0.8.1':
     resolution: {integrity: sha512-W2P2c/VRW1/1tLox0mVUalvnWXxavmv/Oum2aPsRcoDJuob75FC3Y8FbpfLwUegRcxINtGUMPq0tFCvYNTBXNA==}
 
+  '@epanet-js/ptsnet@0.2.1':
+    resolution: {integrity: sha512-JoTXTT0LaCOASs11VHi5NvAc2+JVgV3+OhKDnwrzNCyxsiaB8d+KisxZR4Y+CcZMvy2p/EPiKt0PD3SHfWzPTQ==}
+    engines: {node: '>=18'}
+
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
     engines: {node: '>=12'}
@@ -1381,6 +1388,9 @@ packages:
 
   '@math.gl/web-mercator@4.1.0':
     resolution: {integrity: sha512-HZo3vO5GCMkXJThxRJ5/QYUYRr3XumfT8CzNNCwoJfinxy5NtKUd7dusNTXn7yJ40UoB8FMIwkVwNlqaiRZZAw==}
+
+  '@model-create/epanet-engine@0.8.0':
+    resolution: {integrity: sha512-rqIwVLvdUDW1Q1gDUOl3tJouQwjcZDru27hUcIjGHzwLxY2oiTkSL0I0UzslE6lBPqCtzKedMB9YukXnxYROdg==}
 
   '@msgpack/msgpack@2.8.0':
     resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
@@ -4386,6 +4396,9 @@ packages:
   envsafe@2.0.3:
     resolution: {integrity: sha512-51lek8h5btjXhXUDW//Pno7HPydM1WQzltOb1/ONRKdwB2QkfAURnN4Qn0cJ5LzGvX2Km1ReR2O3K3Bqq9sBMg==}
     engines: {node: '>=10'}
+
+  epanet-js@0.8.0:
+    resolution: {integrity: sha512-Qx6Lr6sSdxaRYWM4GZ9jkJfvVJDUJgso35D+25ZeHl1NfVddH3kE/gj86Q+K7U543SoxQnMBWPmrJ4/CKQjpHQ==}
 
   epanet-js@0.9.0-alpha.4:
     resolution: {integrity: sha512-2brbBCTI/9hjQlAi9081P8Luo44VBNTaTnpvriimEfMnUtB4zaG9JvYhymUcc6kFWEiqQWx6t18ZqslKdYdoSg==}
@@ -8098,6 +8111,10 @@ snapshots:
 
   '@emotion/memoize@0.8.1': {}
 
+  '@epanet-js/ptsnet@0.2.1':
+    dependencies:
+      epanet-js: 0.8.0
+
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
@@ -8490,6 +8507,8 @@ snapshots:
   '@math.gl/web-mercator@4.1.0':
     dependencies:
       '@math.gl/core': 4.1.0
+
+  '@model-create/epanet-engine@0.8.0': {}
 
   '@msgpack/msgpack@2.8.0': {}
 
@@ -11824,6 +11843,10 @@ snapshots:
 
   envsafe@2.0.3: {}
 
+  epanet-js@0.8.0:
+    dependencies:
+      '@model-create/epanet-engine': 0.8.0
+
   epanet-js@0.9.0-alpha.4: {}
 
   es-abstract@1.23.3:
@@ -12026,7 +12049,7 @@ snapshots:
       debug: 4.3.4
       enhanced-resolve: 5.16.1
       eslint: 8.57.0
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.5
@@ -12038,7 +12061,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -12059,7 +12082,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.57.0))(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3

@@ -1,6 +1,6 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { getSortedValues } from "src/hydraulic-model/assets-map";
-import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
+import type { ResultsReaderSource } from "src/simulation/results-reader-source";
 import {
   type ResultsReader,
   type SimulationProperty,
@@ -31,12 +31,12 @@ export type SimulationDataSource =
   | { mode: "currentStep"; resultsReader: ResultsReader }
   | {
       mode: "initial";
-      epsReader: EPSResultsReader;
+      epsReader: ResultsReaderSource;
       resultsReader?: ResultsReader | null;
     }
   | {
       mode: "allSteps";
-      epsReader: EPSResultsReader;
+      epsReader: ResultsReaderSource;
       resultsReader?: ResultsReader | null;
     };
 
@@ -74,7 +74,7 @@ export const getSortedSimulationDataForBreaks = async (
 };
 
 const getAllStepsSortedValues = async (
-  epsReader: EPSResultsReader,
+  epsReader: ResultsReaderSource,
   property: SimulationProperty,
   options?: { absValues?: boolean },
 ): Promise<number[] | null> => {
@@ -105,7 +105,7 @@ const getAllStepsSortedValues = async (
 };
 
 const getInitialSortedValues = async (
-  epsReader: EPSResultsReader,
+  epsReader: ResultsReaderSource,
   property: SimulationProperty,
   options?: { absValues?: boolean },
 ): Promise<number[] | null> => {

@@ -12,18 +12,27 @@ import {
 import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationStepAtom } from "src/state/simulation";
-import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
-import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
-import {
-  ProgressCallback,
-  runSimulation as runSimulationWorker,
-  EPSResultsReader,
-} from "src/simulation";
-import { getAppId } from "src/infra/app-instance";
-import { OPFSStorage } from "src/infra/storage";
+import { runPtsnetSimulation } from "src/simulation/ptsnet";
+import { TransientResultsReader } from "src/simulation/ptsnet/transient-results-reader";
+import { captureError } from "src/infra/error-tracking";
 import { worktreeAtom } from "src/state/scenarios";
-import { nanoid } from "src/lib/id";
+import type { HydraulicModel } from "src/hydraulic-model";
+
 export const runSimulationShortcut = "shift+enter";
+
+const findValveId = (
+  hydraulicModel: HydraulicModel,
+  label: string,
+): number | undefined => {
+  const wanted = label.trim().toLowerCase();
+  if (!wanted) return undefined;
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "valve" && asset.label.trim().toLowerCase() === wanted) {
+      return asset.id;
+    }
+  }
+  return undefined;
+};
 
 export const useRunSimulation = () => {
   const setSimulationState = useSetAtom(simulationDerivedAtom);
@@ -47,96 +56,124 @@ export const useRunSimulation = () => {
         const projectSettings = get(projectSettingsAtom);
 
         const currentSimulation = get(simulationDerivedAtom);
-        setSimulationState({ ...currentSimulation, status: "running" });
-        const inp = buildInp(hydraulicModel, {
-          customerDemands: true,
-          usedPatterns: true,
-          usedCurves: true,
-          includeQuality:
-            simulationSettings.qualitySimulationType === "age" ||
-            simulationSettings.qualitySimulationType === "chemical",
-          simulationSettings,
-          units: projectSettings.units,
-          headlossFormula: projectSettings.headlossFormula,
-        });
-        const start = performance.now();
-
-        let isCompleted = false;
-
-        setDialogState({
-          type: "simulationProgress",
-          currentTime: 0,
-          totalDuration: 0,
-          phase: "hydraulic",
-        });
-
-        const reportProgress: ProgressCallback = (progress) => {
-          if (isCompleted) return;
-          setDialogState({
-            type: "simulationProgress",
-            ...progress,
-          });
-        };
-
-        const appId = getAppId();
         const scenarioKey = worktree.activeBranchId;
-        const runId = nanoid();
         const previousReader =
           "epsResultsReader" in currentSimulation
             ? currentSimulation.epsResultsReader
             : undefined;
         const previousSourceId = get(simulationSourceIdDerivedAtom);
-        const runQuality = simulationSettings.qualitySimulationType !== "none";
-        const { report, status, metadata } = await runSimulationWorker(
-          inp,
-          appId,
-          reportProgress,
-          { runQuality },
-          scenarioKey,
-          runId,
+
+        const fail = (message: string) => {
+          setSimulationStep(null);
+          setSimulationState({
+            status: "failure",
+            report: message,
+            modelVersion: hydraulicModel.version,
+            settingsVersion: simulationSettings.version,
+            epsResultsReader: undefined,
+          });
+          setDialogState({
+            type: "simulationSummary",
+            status: "failure",
+            qualityType: "none",
+            onContinue: options?.onContinue,
+            onIgnore: options?.onIgnore,
+            ignoreLabel: options?.ignoreLabel,
+          });
+        };
+
+        if (!globalThis.crossOriginIsolated) {
+          fail(
+            "Transient simulation needs cross-origin isolation (SharedArrayBuffer), which isn't available in this browser.",
+          );
+          return;
+        }
+
+        const valveId = findValveId(
+          hydraulicModel,
+          simulationSettings.transientValveId,
         );
+        if (valveId === undefined) {
+          fail(
+            `Valve "${simulationSettings.transientValveId}" was not found. Set a valid valve id in Simulation Settings → Transients.`,
+          );
+          return;
+        }
+
+        setSimulationState({ ...currentSimulation, status: "running" });
+
+        const inp = buildInp(hydraulicModel, {
+          customerDemands: true,
+          usedPatterns: true,
+          usedCurves: true,
+          simulationSettings,
+          units: projectSettings.units,
+          headlossFormula: projectSettings.headlossFormula,
+        });
+
+        const duration = simulationSettings.transientDuration;
+        const start = performance.now();
+        let isCompleted = false;
+
+        setDialogState({
+          type: "simulationProgress",
+          currentTime: 0,
+          totalDuration: duration,
+          phase: "hydraulic",
+        });
+
+        let raw;
+        try {
+          raw = await runPtsnetSimulation(
+            {
+              inp,
+              valveName: String(valveId),
+              settings: {
+                duration,
+                timeStep: simulationSettings.transientTimeStep,
+                defaultWaveSpeed: simulationSettings.transientWaveSpeed,
+              },
+              operation: {
+                finalSetting: simulationSettings.transientFinalSetting,
+                startTime: simulationSettings.transientStartTime,
+                endTime: simulationSettings.transientEndTime,
+              },
+            },
+            ({ fraction }) => {
+              if (isCompleted) return;
+              setDialogState({
+                type: "simulationProgress",
+                currentTime: fraction * duration,
+                totalDuration: duration,
+                phase: "hydraulic",
+              });
+            },
+          );
+        } catch (error) {
+          captureError(error as Error);
+          fail(
+            `Transient simulation failed: ${(error as Error).message ?? error}`,
+          );
+          return;
+        }
 
         isCompleted = true;
 
-        let epsReader: EPSResultsReader | undefined = undefined;
+        const reader = new TransientResultsReader(raw, projectSettings.units);
+        setSimulationStep(0);
 
-        if (status === "success" || status === "warning") {
-          const storage = new OPFSStorage(appId, scenarioKey, runId);
-          epsReader = new EPSResultsReader(storage);
-          await epsReader.initialize(metadata);
-          setSimulationStep(0);
-        } else {
-          setSimulationStep(0);
-        }
-
-        if (status === "success" || status === "warning") {
-          if (simulationSettings.qualitySimulationType !== "age") {
-            set(clearQuickGraphPropertyAtom, "waterAge");
-            set(clearSymbologyForPropertyAtom, "waterAge");
-          }
-          if (simulationSettings.qualitySimulationType !== "trace") {
-            set(clearQuickGraphPropertyAtom, "waterTrace");
-            set(clearSymbologyForPropertyAtom, "waterTrace");
-          }
-          if (simulationSettings.qualitySimulationType !== "chemical") {
-            set(clearQuickGraphPropertyAtom, "chemicalConcentration");
-            set(clearSymbologyForPropertyAtom, "chemicalConcentration");
-          }
-        }
-
-        const simulationState = {
-          status,
-          report,
+        setSimulationState({
+          status: "success",
+          report: "",
           modelVersion: hydraulicModel.version,
           settingsVersion: simulationSettings.version,
-          epsResultsReader: epsReader,
-        };
-        setSimulationState(simulationState);
+          epsResultsReader: reader,
+        });
         set(simulationSourceIdDerivedAtom, scenarioKey);
 
         if (
           previousReader &&
-          previousReader !== epsReader &&
+          previousReader !== reader &&
           previousSourceId === scenarioKey
         ) {
           const branchStates = get(branchStateAtom);
@@ -149,10 +186,9 @@ export const useRunSimulation = () => {
           }
         }
 
-        const end = performance.now();
-        const duration = end - start;
+        const duration_ms = performance.now() - start;
 
-        if (options?.onContinue && status === "success") {
+        if (options?.onContinue) {
           setDialogState(null);
           options.onContinue();
           return;
@@ -160,9 +196,9 @@ export const useRunSimulation = () => {
 
         setDialogState({
           type: "simulationSummary",
-          status: status,
-          duration,
-          qualityType: epsReader?.qualityType ?? "none",
+          status: "success",
+          duration: duration_ms,
+          qualityType: "none",
           onContinue: options?.onContinue,
           onIgnore: options?.onIgnore,
           ignoreLabel: options?.ignoreLabel,

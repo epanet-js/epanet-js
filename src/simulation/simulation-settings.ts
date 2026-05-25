@@ -63,6 +63,15 @@ export type SimulationSettings = {
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
   statusReport: StatusReport;
+  // Transient analysis (ptsnet) — PoC: a single valve-closure event.
+  transientsEnabled: boolean;
+  transientValveId: string;
+  transientFinalSetting: number;
+  transientStartTime: number;
+  transientEndTime: number;
+  transientDuration: number;
+  transientTimeStep: number;
+  transientWaveSpeed: number;
 };
 
 export const defaultHydraulicsValues = {
@@ -107,6 +116,17 @@ export const defaultReportValues = {
   statusReport: "FULL" as StatusReport,
 };
 
+export const defaultTransientValues = {
+  transientsEnabled: false,
+  transientValveId: "",
+  transientFinalSetting: 0,
+  transientStartTime: 0,
+  transientEndTime: 2,
+  transientDuration: 20,
+  transientTimeStep: 0.01,
+  transientWaveSpeed: 1200,
+};
+
 export const defaultSimulationSettings: SimulationSettings = {
   version: nanoid(),
   timing: defaultTiming,
@@ -120,4 +140,5 @@ export const defaultSimulationSettings: SimulationSettings = {
   ...defaultWaterQualityValues,
   ...defaultEnergyValues,
   ...defaultReportValues,
+  ...defaultTransientValues,
 };

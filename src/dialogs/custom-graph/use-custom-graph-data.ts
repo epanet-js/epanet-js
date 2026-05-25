@@ -7,6 +7,7 @@ import {
 } from "src/state/derived-branch-state";
 import type { Asset } from "src/hydraulic-model";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
+import { EPSResultsReader } from "src/simulation";
 import { AssetTimeSeries } from "./types";
 import { GraphDefaultOptions } from "./default-options";
 
@@ -24,8 +25,13 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
 
   const simulation = useAtomValue(simulationDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const epsResultsReader =
+  // The custom graph iterates EPANET time series; not supported for transient.
+  const reader =
     "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+  const epsResultsReader =
+    reader && "iterateTimeSeries" in reader
+      ? (reader as unknown as EPSResultsReader)
+      : null;
   const qualityType = epsResultsReader?.qualityType ?? null;
 
   const hasNodes = nodeIds.size > 0;

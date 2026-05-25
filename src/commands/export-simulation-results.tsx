@@ -9,6 +9,7 @@ import {
 import type { ExportSimulationResultsProperties } from "src/lib/export/types";
 import { currentFileNameAtom } from "src/state";
 import { useUserTracking } from "src/infra/user-tracking";
+import { EPSResultsReader } from "src/simulation";
 
 export type ExportSimulationResultsOptions = {
   format: "csv" | "xlsx";
@@ -44,7 +45,12 @@ export const useExportSimulationResults = () => {
           return;
         }
 
-        const epsResultsReader = simulation.epsResultsReader;
+        const reader = simulation.epsResultsReader;
+        // Result export is only supported for EPANET extended-period results.
+        if (!("iterateTimeSeries" in reader)) {
+          return;
+        }
+        const epsResultsReader = reader as unknown as EPSResultsReader;
 
         const extension = options.format === "xlsx" ? ".xlsx" : ".zip";
         const mimeType =

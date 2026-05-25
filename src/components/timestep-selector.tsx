@@ -45,14 +45,21 @@ export const TimestepSelector = () => {
   if (!("epsResultsReader" in simulation) || !simulation.epsResultsReader)
     return null;
 
-  const { timestepCount, reportingTimeStep } = simulation.epsResultsReader;
+  const reader = simulation.epsResultsReader;
+  const { timestepCount, reportingTimeStep } = reader;
   if (timestepCount <= 1) return null;
+
+  // Transient readers format sub-second timestamps (ms/s); EPS uses HH:MM.
+  const formatTime = reader.formatTime
+    ? (index: number) => reader.formatTime!(index)
+    : undefined;
 
   return (
     <TimestepSelectorUI
       currentTimestepIndex={simulationStep}
       timestepCount={timestepCount}
       reportTimestep={reportingTimeStep}
+      formatTime={formatTime}
       onChangeTimestep={changeTimestep}
     />
   );
@@ -62,6 +69,7 @@ type TimestepSelectorUIProps = {
   currentTimestepIndex: number;
   timestepCount: number;
   reportTimestep: number;
+  formatTime?: (index: number) => string;
   onChangeTimestep: (index: number, source: ChangeTimestepSource) => void;
 };
 
@@ -69,6 +77,7 @@ export const TimestepSelectorUI = ({
   currentTimestepIndex,
   timestepCount,
   reportTimestep,
+  formatTime,
   onChangeTimestep,
 }: TimestepSelectorUIProps) => {
   const translate = useTranslate();
@@ -107,6 +116,7 @@ export const TimestepSelectorUI = ({
           currentTimestepIndex={currentTimestepIndex}
           timestepCount={timestepCount}
           reportTimestep={reportTimestep}
+          formatTime={formatTime}
           onOpen={() => stopPlayback("dropdown")}
           onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
         />
@@ -220,6 +230,7 @@ type TimestepDropdownProps = {
   currentTimestepIndex: number;
   timestepCount: number;
   reportTimestep: number;
+  formatTime?: (index: number) => string;
   onOpen?: () => void;
   onChangeTimestep: (index: number) => void;
 };
@@ -228,9 +239,12 @@ const TimestepDropdown = ({
   currentTimestepIndex,
   timestepCount,
   reportTimestep,
+  formatTime,
   onOpen,
   onChangeTimestep,
 }: TimestepDropdownProps) => {
+  const labelFor = (index: number) =>
+    formatTime ? formatTime(index) : formatTimestepTime(index, reportTimestep);
   const [isOpen, setIsOpen] = useState(false);
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
@@ -263,7 +277,7 @@ const TimestepDropdown = ({
         tabIndex={1}
       >
         <div className="text-nowrap overflow-hidden text-ellipsis">
-          {formatTimestepTime(currentTimestepIndex, reportTimestep)}
+          {labelFor(currentTimestepIndex)}
         </div>
         <div className="px-1">
           <ChevronDownIcon />
@@ -313,7 +327,7 @@ const TimestepDropdown = ({
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
                   >
-                    <span>{formatTimestepTime(index, reportTimestep)}</span>
+                    <span>{labelFor(index)}</span>
                     {isSelected && (
                       <CheckIcon className="text-purple-700 ml-auto" />
                     )}

@@ -18,6 +18,7 @@ import {
   defaultWaterQualityValues,
   defaultEnergyValues,
   defaultReportValues,
+  defaultTransientValues,
 } from "src/simulation/simulation-settings";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { isUsUnitSystem } from "src/simulation/build-inp";
@@ -478,4 +479,5 @@ const buildSimulationSettings = (
   energyDemandCharge:
     inpData.energy.demandCharge ?? defaultEnergyValues.energyDemandCharge,
   statusReport: inpData.report.statusReport ?? defaultReportValues.statusReport,
+  ...defaultTransientValues,
 });

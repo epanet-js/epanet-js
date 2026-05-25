@@ -7,6 +7,7 @@ import {
   type QualityMassUnit,
   type StatusReport,
   defaultHydraulicsValues,
+  defaultTransientValues,
 } from "src/simulation/simulation-settings";
 import type { PatternId } from "src/hydraulic-model/patterns";
 
@@ -84,6 +85,10 @@ export const simulationSettingsCategories: OptionCategory[] = [
     id: "energy",
     translationKey: "simulationSettings.energy",
   },
+  {
+    id: "transients",
+    translationKey: "simulationSettings.transients",
+  },
 ];
 
 export const buildSectionIds = (): string[] => {
@@ -140,6 +145,14 @@ export type FormValues = {
   energyGlobalPatternId: PatternId | null;
   energyDemandCharge: number;
   statusReport: StatusReport;
+  transientsEnabled: boolean;
+  transientValveId: string;
+  transientFinalSetting: number;
+  transientStartTime: number;
+  transientEndTime: number;
+  transientDuration: number;
+  transientTimeStep: number;
+  transientWaveSpeed: number;
 };
 
 export const buildInitialValues = (
@@ -195,6 +208,23 @@ export const buildInitialValues = (
     energyGlobalPatternId: settings.energyGlobalPatternId,
     energyDemandCharge: settings.energyDemandCharge,
     statusReport: settings.statusReport,
+    transientsEnabled:
+      settings.transientsEnabled ?? defaultTransientValues.transientsEnabled,
+    transientValveId:
+      settings.transientValveId ?? defaultTransientValues.transientValveId,
+    transientFinalSetting:
+      settings.transientFinalSetting ??
+      defaultTransientValues.transientFinalSetting,
+    transientStartTime:
+      settings.transientStartTime ?? defaultTransientValues.transientStartTime,
+    transientEndTime:
+      settings.transientEndTime ?? defaultTransientValues.transientEndTime,
+    transientDuration:
+      settings.transientDuration ?? defaultTransientValues.transientDuration,
+    transientTimeStep:
+      settings.transientTimeStep ?? defaultTransientValues.transientTimeStep,
+    transientWaveSpeed:
+      settings.transientWaveSpeed ?? defaultTransientValues.transientWaveSpeed,
   };
 };
 
@@ -260,7 +290,15 @@ export const hasChanges = (
     values.energyGlobalPrice !== settings.energyGlobalPrice ||
     values.energyGlobalPatternId !== settings.energyGlobalPatternId ||
     values.energyDemandCharge !== settings.energyDemandCharge ||
-    values.statusReport !== settings.statusReport
+    values.statusReport !== settings.statusReport ||
+    values.transientsEnabled !== settings.transientsEnabled ||
+    values.transientValveId !== settings.transientValveId ||
+    values.transientFinalSetting !== settings.transientFinalSetting ||
+    values.transientStartTime !== settings.transientStartTime ||
+    values.transientEndTime !== settings.transientEndTime ||
+    values.transientDuration !== settings.transientDuration ||
+    values.transientTimeStep !== settings.transientTimeStep ||
+    values.transientWaveSpeed !== settings.transientWaveSpeed
   );
 };
 
@@ -308,6 +346,14 @@ export const buildUpdatedSettings = (
     energyGlobalPatternId: values.energyGlobalPatternId,
     energyDemandCharge: values.energyDemandCharge,
     statusReport: values.statusReport,
+    transientsEnabled: values.transientsEnabled,
+    transientValveId: values.transientValveId,
+    transientFinalSetting: values.transientFinalSetting,
+    transientStartTime: values.transientStartTime,
+    transientEndTime: values.transientEndTime,
+    transientDuration: values.transientDuration,
+    transientTimeStep: values.transientTimeStep,
+    transientWaveSpeed: values.transientWaveSpeed,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),

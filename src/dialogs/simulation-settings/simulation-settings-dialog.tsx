@@ -24,6 +24,7 @@ import {
   HydraulicsSection,
   WaterQualitySection,
   EnergySection,
+  TransientsSection,
   useTimeSettingsValidation,
   useQualitySettingsValidation,
 } from "./simulation-settings-content";
@@ -133,6 +134,9 @@ export const SimulationSettingsDialog = () => {
                   </SettingsSection>
                   <SettingsSection sectionId="energy">
                     <EnergySection />
+                  </SettingsSection>
+                  <SettingsSection sectionId="transients">
+                    <TransientsSection />
                   </SettingsSection>
                 </SimulationSettingsContent>
               </div>

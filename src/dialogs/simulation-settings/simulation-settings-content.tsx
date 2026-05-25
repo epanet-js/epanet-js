@@ -844,6 +844,120 @@ export const EnergySection = () => {
   );
 };
 
+export const TransientsSection = () => {
+  const translate = useTranslate();
+  const readonly = useAtomValue(hasScenariosAtom);
+  const { values, setFieldValue } = useFormikContext<FormValues>();
+
+  const enabled = values.transientsEnabled;
+  const fieldsDisabled = !enabled || readonly;
+
+  const enabledOptions: { label: string; value: "YES" | "NO" }[] = [
+    {
+      label: translate("simulationSettings.transientsEnabledYes"),
+      value: "YES",
+    },
+    { label: translate("simulationSettings.transientsEnabledNo"), value: "NO" },
+  ];
+
+  const eventTypeOptions: { label: string; value: "valveClosure" }[] = [
+    {
+      label: translate("simulationSettings.transientValveClosure"),
+      value: "valveClosure",
+    },
+  ];
+
+  return (
+    <div>
+      <SectionHeader>
+        {translate("simulationSettings.transients")}
+      </SectionHeader>
+
+      <div className="flex flex-col gap-4 mb-4">
+        <SelectorSetting
+          label={translate("simulationSettings.transientsEnabled")}
+          description={translate("simulationSettings.transientsEnabledDesc")}
+          options={enabledOptions}
+          selected={enabled ? "YES" : "NO"}
+          onChange={(v) => setFieldValue("transientsEnabled", v === "YES")}
+          disabled={readonly}
+        />
+
+        <SelectorSetting
+          label={translate("simulationSettings.transientEventType")}
+          description={translate("simulationSettings.transientEventTypeDesc")}
+          options={eventTypeOptions}
+          selected={"valveClosure"}
+          onChange={() => {}}
+          disabled={fieldsDisabled}
+        />
+
+        <TextSetting
+          label={translate("simulationSettings.transientValveId")}
+          description={translate("simulationSettings.transientValveIdDesc")}
+          value={values.transientValveId}
+          onChange={(v) => setFieldValue("transientValveId", v)}
+          disabled={fieldsDisabled}
+          allowEmpty
+          placeholder={translate(
+            "simulationSettings.transientValveIdPlaceholder",
+          )}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientFinalSetting")}
+          description={translate(
+            "simulationSettings.transientFinalSettingDesc",
+          )}
+          value={values.transientFinalSetting}
+          onChange={(v) => setFieldValue("transientFinalSetting", v)}
+          disabled={fieldsDisabled}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientStartTime")}
+          description={translate("simulationSettings.transientStartTimeDesc")}
+          value={values.transientStartTime}
+          onChange={(v) => setFieldValue("transientStartTime", v)}
+          disabled={fieldsDisabled}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientEndTime")}
+          description={translate("simulationSettings.transientEndTimeDesc")}
+          value={values.transientEndTime}
+          onChange={(v) => setFieldValue("transientEndTime", v)}
+          disabled={fieldsDisabled}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientDuration")}
+          description={translate("simulationSettings.transientDurationDesc")}
+          value={values.transientDuration}
+          onChange={(v) => setFieldValue("transientDuration", v)}
+          disabled={fieldsDisabled}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientTimeStep")}
+          description={translate("simulationSettings.transientTimeStepDesc")}
+          value={values.transientTimeStep}
+          onChange={(v) => setFieldValue("transientTimeStep", v)}
+          disabled={fieldsDisabled}
+        />
+
+        <ValueSetting
+          label={translate("simulationSettings.transientWaveSpeed")}
+          description={translate("simulationSettings.transientWaveSpeedDesc")}
+          value={values.transientWaveSpeed}
+          onChange={(v) => setFieldValue("transientWaveSpeed", v)}
+          disabled={fieldsDisabled}
+        />
+      </div>
+    </div>
+  );
+};
+
 export const SettingsRow = ({
   label,
   description,

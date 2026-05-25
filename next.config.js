@@ -22,8 +22,21 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  webpack(config) {
-    config.resolve.fallback = { ...config.resolve.fallback, fs: false };
+  webpack(config, { webpack }) {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      // ptsnet has a dynamic `import("node:worker_threads")` for its Node worker
+      // backend. The browser never hits that branch (it uses blob workers), but
+      // webpack still tries to resolve it. Strip the `node:` scheme (below) and
+      // resolve the bare module to an empty one here.
+      worker_threads: false,
+    };
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, "");
+      }),
+    );
     config.module.rules.push({
       test: /\.sql$/,
       resourceQuery: /raw/,
@@ -41,6 +54,20 @@ const nextConfig = {
     return config;
   },
   /* eslint-disable require-await */
+  // Cross-origin isolation is required for ptsnet (SharedArrayBuffer).
+  // `credentialless` minimises breakage of third-party content (map tiles,
+  // PostHog, Sentry, fonts) compared to `require-corp`.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return process.env.NEXT_PUBLIC_POSTHOG_HOST !== undefined
       ? [
