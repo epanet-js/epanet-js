@@ -270,10 +270,17 @@ export const useSymbologyState = () => {
     });
   };
 
-  const updateNodeDefaultSize = (size: number) => {
+  const updateNodeMinVisibility = (minVisibility: number) => {
     setNodesActive({
       ...nodeSymbology,
-      defaults: { ...nodeSymbology.defaults, size },
+      defaults: { ...nodeSymbology.defaults, minVisibility },
+    });
+  };
+
+  const updateNodeSizing = (minSize: number, maxSize: number) => {
+    setNodesActive({
+      ...nodeSymbology,
+      defaults: { ...nodeSymbology.defaults, minSize, maxSize },
     });
   };
 
@@ -294,7 +301,8 @@ export const useSymbologyState = () => {
     updateLinkSymbology,
     updateCustomerPointsSymbology,
     updateNodeDefaultColor,
-    updateNodeDefaultSize,
+    updateNodeMinVisibility,
+    updateNodeSizing,
     updateLinkDefaultColor,
   };
 };

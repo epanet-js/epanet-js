@@ -245,6 +245,12 @@ export class MapEngine {
     this.map.setPaintProperty(layerId, name, rule);
   }
 
+  setLayerZoomRange(layerId: string, minZoom: number, maxZoom: number): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    this.map.setLayerZoomRange(layerId, minZoom, maxZoom);
+  }
+
   setOverlay(layers: LayersList) {
     this.overlay.setProps({ layers });
   }

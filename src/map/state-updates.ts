@@ -52,6 +52,7 @@ import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
 import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
+import { NODE_LAYER_MAX_ZOOM } from "src/map/symbology/symbology-types";
 import {
   FormattingSpec,
   UnitsSpec,
@@ -863,7 +864,7 @@ const addEditingLayersToMap = withDebugInstrumentation(
 const updateDefaultMapColors = withDebugInstrumentation(
   (map: MapEngine, nodeDefaults: NodeDefaults, linkColor: string) => {
     const nodeColor = nodeDefaults.color;
-    const nodeSize = nodeDefaults.size ?? 50;
+    const { minSize, maxSize, minVisibility } = nodeDefaults;
     const regularJunctionLayers = [
       "main-features-junctions",
       "delta-features-junctions",
@@ -872,8 +873,12 @@ const updateDefaultMapColors = withDebugInstrumentation(
       "main-features-junction-results",
       "delta-features-junction-results",
     ];
-    const regularSizes = junctionCircleSizes(nodeSize);
-    const resultSizes = junctionResultCircleSizes(nodeSize);
+    const regularSizes = junctionCircleSizes(minSize, maxSize);
+    const resultSizes = junctionResultCircleSizes(minSize, maxSize);
+
+    for (const layerId of regularJunctionLayers) {
+      map.setLayerZoomRange(layerId, minVisibility, NODE_LAYER_MAX_ZOOM);
+    }
     for (const layerId of [...regularJunctionLayers, ...resultJunctionLayers]) {
       map.setLayerPaintRule(
         layerId,

@@ -7,49 +7,65 @@ import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
 import type { NodeDefaults } from "src/map/symbology";
+import {
+  NODE_SIZE_RAMP_MIN_ZOOM,
+  NODE_SIZE_RAMP_MAX_ZOOM,
+  NODE_RESULT_LAYER_MAX_ZOOM,
+} from "src/map/symbology/symbology-types";
 
 type CircleSizes = {
   "circle-radius": mapboxgl.Expression;
   "circle-stroke-width": mapboxgl.Expression;
 };
 
-export const junctionCircleSizes = (size: number = 50): CircleSizes => {
-  const s = size / 50;
+export const junctionCircleSizes = (
+  minSize: number = 4,
+  maxSize: number = 10,
+): CircleSizes => ({
+  "circle-radius": [
+    "interpolate",
+    ["exponential", 2],
+    ["zoom"],
+    NODE_SIZE_RAMP_MIN_ZOOM,
+    minSize,
+    NODE_SIZE_RAMP_MAX_ZOOM,
+    maxSize,
+  ],
+  "circle-stroke-width": [
+    "interpolate",
+    ["exponential", 2],
+    ["zoom"],
+    NODE_SIZE_RAMP_MIN_ZOOM,
+    1,
+    NODE_SIZE_RAMP_MAX_ZOOM,
+    Math.max(2, maxSize * 0.15),
+  ],
+});
+
+export const junctionResultCircleSizes = (
+  minSize: number = 4,
+  maxSize: number = 10,
+): CircleSizes => {
+  const resultMax = maxSize * 0.3;
   return {
-    "circle-stroke-width": [
-      "interpolate",
-      ["linear"],
-      ["zoom"],
-      8,
-      0.5 * s,
-      24,
-      2 * s,
-    ],
     "circle-radius": [
       "interpolate",
-      ["linear"],
+      ["exponential", 2],
       ["zoom"],
-      8,
-      0.5 * s,
-      24,
-      20 * s,
+      NODE_SIZE_RAMP_MIN_ZOOM,
+      minSize,
+      NODE_RESULT_LAYER_MAX_ZOOM,
+      resultMax,
     ],
-  };
-};
-
-export const junctionResultCircleSizes = (size: number = 50): CircleSizes => {
-  const s = size / 50;
-  return {
     "circle-stroke-width": [
       "interpolate",
-      ["linear"],
+      ["exponential", 2],
       ["zoom"],
-      8,
-      0.1 * s,
-      14,
-      1 * s,
+      NODE_SIZE_RAMP_MIN_ZOOM,
+      0.5,
+      NODE_RESULT_LAYER_MAX_ZOOM,
+      Math.max(1, resultMax * 0.15),
     ],
-    "circle-radius": ["interpolate", ["linear"], ["zoom"], 8, 1 * s, 16, 6 * s],
   };
 };
 
@@ -90,11 +106,11 @@ export const junctionsLayer = ({
     paint: {
       "circle-opacity": opacityExpression(symbology),
       "circle-stroke-color": junctionStrokeColorExpression(nodeDefaults.color),
-      ...junctionCircleSizes(nodeDefaults.size),
+      ...junctionCircleSizes(nodeDefaults.minSize, nodeDefaults.maxSize),
       "circle-stroke-opacity": opacityExpression(symbology),
       "circle-color": junctionFillColorExpression(nodeDefaults.color),
     },
-    minzoom: 8,
+    minzoom: nodeDefaults.minVisibility,
   };
 };
 
@@ -121,11 +137,11 @@ export const junctionResultsLayer = ({
   paint: {
     "circle-opacity": opacityExpression(symbology),
     "circle-stroke-color": junctionStrokeColorExpression(nodeDefaults.color),
-    ...junctionResultCircleSizes(nodeDefaults.size),
+    ...junctionResultCircleSizes(nodeDefaults.minSize, nodeDefaults.maxSize),
     "circle-stroke-opacity": opacityExpression(symbology),
     "circle-color": junctionFillColorExpression(nodeDefaults.color),
   },
-  maxzoom: 13,
+  maxzoom: NODE_RESULT_LAYER_MAX_ZOOM,
 });
 
 const opacityExpression = (symbology: ISymbology): mapboxgl.Expression => [

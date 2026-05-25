@@ -146,7 +146,8 @@ const SymbologyEditor = ({
     updateNodeSymbology,
     updateLinkSymbology,
     updateNodeDefaultColor,
-    updateNodeDefaultSize,
+    updateNodeMinVisibility,
+    updateNodeSizing,
     updateLinkDefaultColor,
   } = useSymbologyState();
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
@@ -357,22 +358,71 @@ const SymbologyEditor = ({
         </InlineField>
       )}
       {geometryType === "node" && (
-        <InlineField
-          name={translate("nodeSize")}
-          labelSize="sm"
-          layout="fixed-label"
-        >
-          <input
-            type="range"
-            min={1}
-            max={100}
-            value={nodeSymbology.defaults.size ?? 25}
-            onChange={(e) => updateNodeDefaultSize(Number(e.target.value))}
-            disabled={readonly}
-            className="w-full accent-indigo-500"
-            aria-label="Node size"
-          />
-        </InlineField>
+        <>
+          <InlineField
+            name={`${translate("nodeMinVisibility")} (${nodeSymbology.defaults.minVisibility ?? 14})`}
+            labelSize="sm"
+            layout="fixed-label"
+          >
+            <input
+              type="range"
+              min={10}
+              max={20}
+              value={nodeSymbology.defaults.minVisibility ?? 13}
+              onChange={(e) => updateNodeMinVisibility(Number(e.target.value))}
+              disabled={readonly}
+              className="w-full accent-indigo-500"
+              aria-label="Node minimum visibility"
+            />
+          </InlineField>
+          <InlineField
+            name={`${translate("nodeSizeMin")} (${nodeSymbology.defaults.minSize ?? 3})`}
+            labelSize="sm"
+            layout="fixed-label"
+          >
+            <input
+              type="range"
+              min={1}
+              max={30}
+              value={nodeSymbology.defaults.minSize ?? 3}
+              onChange={(e) => {
+                const minSize = Number(e.target.value);
+                const maxSize = Math.max(
+                  minSize,
+                  nodeSymbology.defaults.maxSize ?? 10,
+                );
+                updateNodeSizing(minSize, maxSize);
+              }}
+              disabled={readonly}
+              className="w-full accent-indigo-500"
+              aria-label="Node minimum size"
+            />
+          </InlineField>
+          <InlineField
+            name={`${translate("nodeSizeMax")} (${nodeSymbology.defaults.maxSize ?? 10})`}
+            labelSize="sm"
+            layout="fixed-label"
+          >
+            <input
+              type="range"
+              min={1}
+              max={30}
+              value={nodeSymbology.defaults.maxSize ?? 10}
+              onChange={(e) =>
+                updateNodeSizing(
+                  nodeSymbology.defaults.minSize ?? 3,
+                  Math.max(
+                    nodeSymbology.defaults.minSize ?? 3,
+                    Number(e.target.value),
+                  ),
+                )
+              }
+              disabled={readonly}
+              className="w-full accent-indigo-500"
+              aria-label="Node maximum size"
+            />
+          </InlineField>
+        </>
       )}
       <InlineField
         name={translate("labelBy")}
