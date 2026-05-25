@@ -68,6 +68,7 @@ export const CustomerPointDataTable = memo(
 
         void buildCustomerPointRowsAsync(
           hydraulicModel,
+          units,
           controller.signal,
         ).then((result) => {
           if (!controller.signal.aborted) setRows(result);
@@ -75,7 +76,7 @@ export const CustomerPointDataTable = memo(
 
         return () => controller.abort();
       },
-      [hydraulicModel],
+      [hydraulicModel, units],
     );
 
     const onChange = useCallback(

@@ -43,8 +43,11 @@ export function buildCustomerPointColumns(
       isReadOnly: true,
     }),
     floatColumn<CustomerPointRow>("avgDemand", {
-      header: headerLabel(translate("customerDemand"), units.baseDemand),
-      decimals: getDecimals(formatting, "baseDemand"),
+      header: headerLabel(
+        translate("customerDemand"),
+        units.customerDemandPerDay,
+      ),
+      decimals: getDecimals(formatting, "customerDemandPerDay"),
       isReadOnly: true,
     }),
   ];

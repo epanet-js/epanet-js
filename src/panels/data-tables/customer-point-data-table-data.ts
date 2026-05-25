@@ -4,6 +4,8 @@ import {
   getCustomerPointDemands,
   type HydraulicModel,
 } from "src/hydraulic-model";
+import { convertTo } from "src/quantity";
+import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 
 export type CustomerPointRow = {
   id: CustomerPointId;
@@ -33,6 +35,7 @@ function yieldToMain(): Promise<void> {
 function buildCustomerPointRow(
   id: CustomerPointId,
   hydraulicModel: HydraulicModel,
+  units: UnitsSpec,
 ): CustomerPointRow | null {
   const cp = hydraulicModel.customerPoints.get(id);
   if (!cp) return null;
@@ -45,9 +48,15 @@ function buildCustomerPointRow(
     ? (hydraulicModel.assets.get(connection.junctionId)?.label ?? null)
     : null;
 
-  const avgDemand = calculateAverageDemand(
-    getCustomerPointDemands(hydraulicModel.demands, id),
-    hydraulicModel.patterns,
+  const avgDemand = convertTo(
+    {
+      value: calculateAverageDemand(
+        getCustomerPointDemands(hydraulicModel.demands, id),
+        hydraulicModel.patterns,
+      ),
+      unit: units.customerDemand,
+    },
+    units.customerDemandPerDay,
   );
 
   return {
@@ -61,6 +70,7 @@ function buildCustomerPointRow(
 
 export async function buildCustomerPointRowsAsync(
   hydraulicModel: HydraulicModel,
+  units: UnitsSpec,
   signal?: AbortSignal,
 ): Promise<CustomerPointRow[]> {
   const ids = Array.from(hydraulicModel.customerPoints.keys());
@@ -73,7 +83,7 @@ export async function buildCustomerPointRowsAsync(
       i < Math.min(chunkStart + CHUNK_SIZE, ids.length);
       i++
     ) {
-      const row = buildCustomerPointRow(ids[i], hydraulicModel);
+      const row = buildCustomerPointRow(ids[i], hydraulicModel, units);
       if (row) result.push(row);
     }
   }
