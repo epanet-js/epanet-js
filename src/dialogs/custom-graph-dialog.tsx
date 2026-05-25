@@ -52,6 +52,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
     setNodeProperty,
     setLinkProperty,
     totalSelectedCount,
+    timestepCount,
   } = useCustomGraphData(setProgress);
 
   const assetsTruncated = totalSelectedCount > GraphDefaultOptions.MAX_ASSETS;
@@ -234,7 +235,16 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   );
 
   const noDataAvailable = combinedSeriesData.length === 0;
-  const controlsDisabled = isLoading || noDataAvailable || isExporting;
+  const isSingleTimestep = !noDataAvailable && timestepCount <= 1;
+  const controlsDisabled =
+    isLoading ||
+    noDataAvailable ||
+    isSingleTimestep ||
+    isExporting ||
+    isSingleTimestep;
+
+  const isGraphVisible =
+    !isLoading && !isSingleTimestep && combinedSeriesData.length > 0;
 
   return (
     <BaseDialog
@@ -341,7 +351,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           </div>
         )}
 
-        {!isLoading && combinedSeriesData.length > 0 && (
+        {isGraphVisible && (
           <div
             ref={chartContainerRef}
             className="relative flex-1 min-h-0 px-4 mt-3 pb-2"
@@ -378,6 +388,11 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                 </span>
               </div>
             )}
+          </div>
+        )}
+        {!isLoading && isSingleTimestep && (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            {translate("customGraph.epsOnly")}
           </div>
         )}
         {!isLoading && noDataAvailable && (

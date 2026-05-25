@@ -30,6 +30,7 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
 
   const hasNodes = nodeIds.size > 0;
   const hasLinks = linkIds.size > 0;
+  const timestepCount = epsResultsReader?.timestepCount ?? 0;
 
   const [seriesData, setSeriesData] = useState<CustomGraphSeriesData | null>(
     null,
@@ -180,6 +181,7 @@ export function useCustomGraphData(onProgress: (progress: number) => void) {
     setNodeProperty,
     setLinkProperty,
     totalSelectedCount,
+    timestepCount,
   };
 }
 

@@ -1332,6 +1332,7 @@
   "exportSelectedAssetsOnly": "Selected assets only",
   "customGraph": {
     "noDataAvailable": "No data available. Run a simulation to create a graph.",
+    "epsOnly": "Graphs are only available in extended period simulations (EPS).",
     "menuTitle": "View graph",
     "title": "Custom graph",
     "exportAs": "Export as...",
