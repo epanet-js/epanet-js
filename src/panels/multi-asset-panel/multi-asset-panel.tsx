@@ -18,8 +18,15 @@ import {
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { computeMultiAssetData } from "./data";
-import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
+import {
+  computeMultiAssetData,
+  computeMultiAssetDataWithPipeAttributes,
+} from "./data";
+import {
+  BATCH_EDITABLE_PROPERTIES,
+  PIPE_BATCH_EDITABLE_PROPERTIES_WITH_ATTRIBUTES,
+} from "./batch-edit-property-config";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -53,16 +60,30 @@ export function MultiAssetPanel({
   const userTracking = useUserTracking();
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
+  const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
+  const computeData = pipeAttributesOn
+    ? computeMultiAssetDataWithPipeAttributes
+    : computeMultiAssetData;
+  const pipeEditableProperties = pipeAttributesOn
+    ? PIPE_BATCH_EDITABLE_PROPERTIES_WITH_ATTRIBUTES
+    : BATCH_EDITABLE_PROPERTIES.pipe;
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     const assets = selectedFeatures as Asset[];
-    return computeMultiAssetData(
+    return computeData(
       assets,
       units,
       formatting,
       hydraulicModel,
       simulationResults,
     );
-  }, [selectedFeatures, units, formatting, hydraulicModel, simulationResults]);
+  }, [
+    selectedFeatures,
+    units,
+    formatting,
+    hydraulicModel,
+    simulationResults,
+    computeData,
+  ]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -214,7 +235,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.pipe}
+            editableProperties={pipeEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}

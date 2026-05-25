@@ -48,6 +48,13 @@ export type BatchEditPropertyConfig =
 
 export type EditableProperties = Record<string, BatchEditPropertyConfig>;
 
+export const PIPE_YEAR_EDITABLE_CONFIG: BatchEditPropertyConfig = {
+  fieldType: "quantity",
+  modelProperty: "year",
+  positiveOnly: true,
+  isNullable: true,
+};
+
 export const BATCH_EDITABLE_PROPERTIES: Record<
   Asset["type"],
   Record<string, BatchEditPropertyConfig>
@@ -284,4 +291,14 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       libraryLabelKey: "openPatternsLibrary",
     },
   },
+};
+
+// Parallel to BATCH_EDITABLE_PROPERTIES.pipe with the year quantity attached.
+// The consumer picks this version when FLAG_PIPE_ATTRIBUTES is on.
+export const PIPE_BATCH_EDITABLE_PROPERTIES_WITH_ATTRIBUTES: Record<
+  string,
+  BatchEditPropertyConfig
+> = {
+  ...BATCH_EDITABLE_PROPERTIES.pipe,
+  year: PIPE_YEAR_EDITABLE_CONFIG,
 };
