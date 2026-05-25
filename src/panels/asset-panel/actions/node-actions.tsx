@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog";
+import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
@@ -8,18 +7,15 @@ import { ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { usePermissions } from "src/hooks/use-permissions";
-import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
+import { useCustomGraph } from "src/hooks/use-custom-graph";
 
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const showPriorityAccess = useShowPriorityAccessDialog();
-  const { canUseCustomGraphs } = usePermissions();
+  const { openCustomGraph } = useCustomGraph();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -48,16 +44,7 @@ export function useNodeActions(readonly = false): Action[] {
     icon: <ChartLineIcon />,
     applicable: true,
     label: translate("customGraph.menuTitle"),
-    onSelect: function openCustomGraph() {
-      if (!canUseCustomGraphs) {
-        showPriorityAccess({
-          featureName: translate("customGraph.title"),
-        });
-        return Promise.resolve();
-      }
-      setDialogState({ type: "customGraph" });
-      return Promise.resolve();
-    },
+    onSelect: openCustomGraph,
   };
 
   return isCustomGraphsOn

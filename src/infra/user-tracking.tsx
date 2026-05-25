@@ -945,9 +945,16 @@ type CustomGraphExported = {
   numAssets: number;
 };
 
+type CustomGraphOpened = {
+  name: "customGraph.opened";
+  numAssets: number;
+  canUseCustomGraphs: boolean;
+};
+
 type CustomGraphPropertySelected = {
   name: "customGraph.propertySelected";
   property: string;
+  numAssets: number;
 };
 
 export type UserEvent =
@@ -1323,6 +1330,7 @@ export type UserEvent =
   | AssetDataExported
   | SimulationResultsExported
   | CustomGraphExported
+  | CustomGraphOpened
   | CustomGraphPropertySelected;
 
 const debugPostHog = {

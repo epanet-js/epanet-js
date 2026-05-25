@@ -22,14 +22,12 @@ import {
   DeactivateTopologyIcon,
   ChartLineIcon,
 } from "src/icons";
-import { useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog";
+import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
-import { usePermissions } from "src/hooks/use-permissions";
+import { useCustomGraph } from "src/hooks/use-custom-graph";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -45,10 +43,8 @@ export function useActions(
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
-  const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const showPriorityAccess = useShowPriorityAccessDialog();
-  const { canUseCustomGraphs } = usePermissions();
+  const { openCustomGraph } = useCustomGraph();
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -98,16 +94,7 @@ export function useActions(
     icon: <ChartLineIcon />,
     applicable: true,
     label: translate("customGraph.menuTitle"),
-    onSelect: function openCustomGraph() {
-      if (!canUseCustomGraphs) {
-        showPriorityAccess({
-          featureName: translate("customGraph.title"),
-        });
-        return Promise.resolve();
-      }
-      setDialogState({ type: "customGraph" });
-      return Promise.resolve();
-    },
+    onSelect: openCustomGraph,
   };
 
   const reverseAction = {

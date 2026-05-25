@@ -1,6 +1,5 @@
 import { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { dialogAtom } from "src/state/dialog";
+import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useDeleteSelection } from "src/commands/delete-selection";
@@ -19,8 +18,7 @@ import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
-import { usePermissions } from "src/hooks/use-permissions";
+import { useCustomGraph } from "src/hooks/use-custom-graph";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -29,10 +27,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
-  const showPriorityAccess = useShowPriorityAccessDialog();
-  const { canUseCustomGraphs } = usePermissions();
+  const { openCustomGraph } = useCustomGraph();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -48,16 +44,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
     icon: <ChartLineIcon />,
     applicable: true,
     label: translate("customGraph.menuTitle"),
-    onSelect: function openCustomGraph() {
-      if (!canUseCustomGraphs) {
-        showPriorityAccess({
-          featureName: translate("customGraph.title"),
-        });
-        return Promise.resolve();
-      }
-      setDialogState({ type: "customGraph" });
-      return Promise.resolve();
-    },
+    onSelect: openCustomGraph,
   };
 
   const deleteAssetsAction = {

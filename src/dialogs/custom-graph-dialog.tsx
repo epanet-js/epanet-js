@@ -183,16 +183,24 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const handleNodePropertyChange = useCallback(
     (value: string) => {
       setNodeProperty(value);
-      capture({ name: "customGraph.propertySelected", property: value });
+      capture({
+        name: "customGraph.propertySelected",
+        property: value,
+        numAssets: totalSelectedCount,
+      });
     },
-    [setNodeProperty, capture],
+    [setNodeProperty, capture, totalSelectedCount],
   );
   const handleLinkPropertyChange = useCallback(
     (value: string) => {
       setLinkProperty(value);
-      capture({ name: "customGraph.propertySelected", property: value });
+      capture({
+        name: "customGraph.propertySelected",
+        property: value,
+        numAssets: totalSelectedCount,
+      });
     },
-    [setLinkProperty, capture],
+    [setLinkProperty, capture, totalSelectedCount],
   );
 
   const totalAssets = nodeSeriesData.length + linkSeriesData.length;
