@@ -3,6 +3,7 @@ import { Asset } from "./asset-types";
 import type { AssetPropertiesMap } from "./asset-types";
 import { Demand, Demands } from "./demands";
 import { CustomerPoint, CustomerPointId } from "./customer-points";
+import { Zone, ZoneId } from "./zones";
 import { Curves } from "./curves";
 import { Controls } from "./controls";
 import type { AssetId } from "./assets-map";
@@ -51,6 +52,8 @@ export type OptionalMomentFields = {
   putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
   deleteCustomerPoints?: CustomerPointId[];
+  putZones?: Zone[];
+  deleteZones?: ZoneId[];
   putCurves?: Curves;
   putPatterns?: Patterns;
 };
@@ -68,6 +71,7 @@ export type ReverseMoment = OptionalMomentFields & {
   putAssets: Asset[];
   patchAssetsAttributes: AssetPatch[];
   putCustomerPoints: CustomerPoint[];
+  putZones: Zone[];
 };
 
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;

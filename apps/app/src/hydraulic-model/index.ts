@@ -64,3 +64,6 @@ export {
   getTotalCustomerDemand,
 } from "./demands";
 export { applyMomentToModel } from "./mutations/apply-moment";
+export { Zone } from "./zones";
+export type { ZoneId, Zones } from "./zones";
+export { ZoneFactory } from "./factories/zone-factory";

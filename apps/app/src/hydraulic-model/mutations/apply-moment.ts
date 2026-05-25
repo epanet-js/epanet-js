@@ -4,6 +4,7 @@ import type { AssetPatch, DemandAssignment } from "../model-operation";
 import { Asset, LinkAsset } from "../asset-types";
 import { AssetId } from "../assets-map";
 import { CustomerPoint, CustomerPointId } from "../customer-points";
+import { Zone, ZoneId } from "../zones";
 import { Curves } from "../curves";
 import { Patterns } from "../patterns";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -30,6 +31,7 @@ export const applyMomentToModel = (
     deleteAssets: [],
     patchAssetsAttributes: [],
     putCustomerPoints: [],
+    putZones: [],
   };
 
   if (moment.putDemands) {
@@ -94,6 +96,25 @@ export const applyMomentToModel = (
     const deletedCp = deleteCustomerPoint(hydraulicModel, cpId, labelManager);
     if (deletedCp) {
       reverseMoment.putCustomerPoints.push(deletedCp);
+    }
+  }
+
+  for (const zone of moment.putZones || []) {
+    const oldZone = putZone(hydraulicModel, zone, labelManager);
+    if (oldZone) {
+      reverseMoment.putZones.push(oldZone);
+    } else {
+      if (!reverseMoment.deleteZones) {
+        reverseMoment.deleteZones = [];
+      }
+      reverseMoment.deleteZones.push(zone.id);
+    }
+  }
+
+  for (const zoneId of moment.deleteZones || []) {
+    const deletedZone = deleteZone(hydraulicModel, zoneId, labelManager);
+    if (deletedZone) {
+      reverseMoment.putZones.push(deletedZone);
     }
   }
 
@@ -201,6 +222,35 @@ const deleteCustomerPoint = (
   labelManager.remove(cp.label, "customerPoint", cp.id);
 
   return cp;
+};
+
+const putZone = (
+  hydraulicModel: HydraulicModel,
+  zone: Zone,
+  labelManager: LabelManager,
+): Zone | undefined => {
+  const oldVersion = hydraulicModel.zones.get(zone.id);
+  if (oldVersion) {
+    labelManager.remove(oldVersion.label, "zone", oldVersion.id);
+  }
+  hydraulicModel.zones.set(zone.id, zone);
+  labelManager.register(zone.label, "zone", zone.id);
+
+  return oldVersion;
+};
+
+const deleteZone = (
+  hydraulicModel: HydraulicModel,
+  id: ZoneId,
+  labelManager: LabelManager,
+): Zone | undefined => {
+  const zone = hydraulicModel.zones.get(id);
+  if (!zone) return undefined;
+
+  hydraulicModel.zones.delete(id);
+  labelManager.remove(zone.label, "zone", zone.id);
+
+  return zone;
 };
 
 const putCurves = (

@@ -467,6 +467,7 @@ export class HydraulicModelBuilder {
       curves: this.curves,
       patterns: this.patterns,
       controls: this.controlsValue,
+      zones: new Map(),
     };
   }
 
