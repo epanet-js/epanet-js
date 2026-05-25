@@ -1,4 +1,5 @@
 import { useSetAtom } from "jotai";
+import { Trans } from "react-i18next";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { dialogAtom } from "src/state/dialog";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -52,8 +53,20 @@ export const PriorityAccessDialog = ({
       }
     >
       <div className="p-4 space-y-4 text-sm text-gray-700 dark:text-gray-300">
-        <p>{translate("priorityAccess.description1", featureName)}</p>
-        <p>{translate("priorityAccess.description2", featureName)}</p>
+        <p>
+          <Trans
+            i18nKey="priorityAccess.description1"
+            values={{ 1: featureName }}
+            components={{ bold: <strong /> }}
+          />
+        </p>
+        <p>
+          <Trans
+            i18nKey="priorityAccess.description2"
+            values={{ 1: featureName }}
+            components={{ bold: <strong />, italic: <em /> }}
+          />
+        </p>
       </div>
     </BaseDialog>
   );

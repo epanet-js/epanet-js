@@ -586,8 +586,8 @@
   },
   "priorityAccess": {
     "title": "Priority access",
-    "description1": "{{1}} is currently available to our Founding Partners and those on paid plans. To help keep epanet-js open and sustainable, new features are released to our project backers for the first 30 days.",
-    "description2": "Please consider supporting our work today to get instant access to {{1}}, alongside advanced tools like scenario management and custom layers.",
+    "description1": "<bold>{{1}}</bold> is now available on our paid tiers and for our Founding Partners.",
+    "description2": "To keep epanet-js sustainable, we debut new features to <italic>users with paid plans</italic> for the first 30 days. <bold>Upgrade your plan today</bold> for instant access to the {{1}}, scenario management, and custom layers.",
     "upgrade": "Upgrade",
     "maybeLater": "Maybe later"
   },
