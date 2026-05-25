@@ -8,6 +8,7 @@ import {
   updateHydraulicModelAssets,
   applyMomentToModel,
 } from "src/hydraulic-model";
+import { CustomerPoints } from "src/hydraulic-model/customer-points";
 import { type Data, dataAtom } from "src/state/data";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -85,7 +86,9 @@ export function applyMoment(
   const updatedCustomerPoints =
     (forwardMoment.putCustomerPoints || []).length > 0 ||
     (forwardMoment.deleteCustomerPoints || []).length > 0
-      ? new Map(hydraulicModel.customerPoints)
+      ? new CustomerPoints(
+          [...hydraulicModel.customerPoints].sort(([a], [b]) => a - b),
+        )
       : hydraulicModel.customerPoints;
 
   const updatedCurves =

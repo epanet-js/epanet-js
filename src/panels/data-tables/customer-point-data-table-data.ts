@@ -60,10 +60,10 @@ function buildCustomerPointRow(
 }
 
 export async function buildCustomerPointRowsAsync(
-  ids: CustomerPointId[],
   hydraulicModel: HydraulicModel,
   signal?: AbortSignal,
 ): Promise<CustomerPointRow[]> {
+  const ids = Array.from(hydraulicModel.customerPoints.keys());
   const result: CustomerPointRow[] = [];
   for (let chunkStart = 0; chunkStart < ids.length; chunkStart += CHUNK_SIZE) {
     if (chunkStart > 0) await yieldToMain();

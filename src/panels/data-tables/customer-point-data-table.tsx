@@ -42,10 +42,6 @@ export const CustomerPointDataTable = memo(
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
 
-    const customerPointIds = useMemo(() => {
-      return Array.from(hydraulicModel.customerPoints.keys());
-    }, [hydraulicModel.customerPoints]);
-
     const [rows, setRows] = useState<CustomerPointRow[] | null>(null);
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
@@ -71,7 +67,6 @@ export const CustomerPointDataTable = memo(
         const controller = new AbortController();
 
         void buildCustomerPointRowsAsync(
-          customerPointIds,
           hydraulicModel,
           controller.signal,
         ).then((result) => {
@@ -80,7 +75,7 @@ export const CustomerPointDataTable = memo(
 
         return () => controller.abort();
       },
-      [customerPointIds, hydraulicModel],
+      [hydraulicModel],
     );
 
     const onChange = useCallback(
