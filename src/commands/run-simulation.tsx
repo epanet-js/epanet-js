@@ -13,6 +13,7 @@ import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationStepAtom } from "src/state/simulation";
 import { runPtsnetSimulation } from "src/simulation/ptsnet";
+import { clampTransientThreads } from "src/simulation/simulation-settings";
 import { TransientResultsReader } from "src/simulation/ptsnet/transient-results-reader";
 import { captureError } from "src/infra/error-tracking";
 import { worktreeAtom } from "src/state/scenarios";
@@ -120,6 +121,7 @@ export const useRunSimulation = () => {
           currentTime: 0,
           totalDuration: duration,
           phase: "hydraulic",
+          timeFormat: "seconds",
         });
 
         let raw;
@@ -132,6 +134,11 @@ export const useRunSimulation = () => {
                 duration,
                 timeStep: simulationSettings.transientTimeStep,
                 defaultWaveSpeed: simulationSettings.transientWaveSpeed,
+                waveSpeedMethod: simulationSettings.transientWaveSpeedMethod,
+                workers: clampTransientThreads(
+                  simulationSettings.transientThreads,
+                ),
+                saveResults: simulationSettings.transientSaveResults,
               },
               operation: {
                 finalSetting: simulationSettings.transientFinalSetting,
@@ -146,6 +153,7 @@ export const useRunSimulation = () => {
                 currentTime: fraction * duration,
                 totalDuration: duration,
                 phase: "hydraulic",
+                timeFormat: "seconds",
               });
             },
           );
@@ -159,17 +167,25 @@ export const useRunSimulation = () => {
 
         isCompleted = true;
 
-        const reader = new TransientResultsReader(raw, projectSettings.units);
-        setSimulationStep(0);
+        // When results aren't saved (timing-only runs), there is nothing to read
+        // back — skip the reader and timeline so big networks don't pay the cost.
+        const reader = simulationSettings.transientSaveResults
+          ? new TransientResultsReader(raw, projectSettings.units)
+          : undefined;
+        setSimulationStep(reader ? 0 : null);
 
         setSimulationState({
           status: "success",
-          report: "",
+          report: reader
+            ? ""
+            : "Results were not saved (saving disabled in Simulation Settings → Transients).",
           modelVersion: hydraulicModel.version,
           settingsVersion: simulationSettings.version,
           epsResultsReader: reader,
         });
-        set(simulationSourceIdDerivedAtom, scenarioKey);
+        if (reader) {
+          set(simulationSourceIdDerivedAtom, scenarioKey);
+        }
 
         if (
           previousReader &&

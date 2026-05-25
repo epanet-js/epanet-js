@@ -3,10 +3,11 @@ import { useState } from "react";
 import { SimulationProgressDialogState } from "src/state/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { cancelSimulation } from "src/simulation/epanet/main";
+import { formatTransientTime } from "src/simulation/ptsnet/units";
 import { Button } from "src/components/elements";
 import { BaseDialog } from "../components/dialog";
 
-const formatTime = (seconds: number): string => {
+const formatClock = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
@@ -16,11 +17,13 @@ const ProgressBar = ({
   label,
   currentTime,
   totalDuration,
+  formatTime,
   isIndeterminate = false,
 }: {
   label: string;
   currentTime: number;
   totalDuration: number;
+  formatTime: (seconds: number) => string;
   isIndeterminate?: boolean;
 }) => {
   const progressPercent =
@@ -63,7 +66,10 @@ export const SimulationProgressDialog = ({
 }) => {
   const translate = useTranslate();
   const [stopping, setStopping] = useState(false);
-  const { currentTime, totalDuration, phase } = modal;
+  const { currentTime, totalDuration, phase, timeFormat } = modal;
+
+  const formatTime =
+    timeFormat === "seconds" ? formatTransientTime : formatClock;
 
   const label =
     phase === "finalizing"
@@ -84,6 +90,7 @@ export const SimulationProgressDialog = ({
           label={label}
           currentTime={currentTime}
           totalDuration={totalDuration}
+          formatTime={formatTime}
           isIndeterminate={phase === "finalizing"}
         />
         <div className="flex justify-center">

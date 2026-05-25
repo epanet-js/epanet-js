@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { defaultTransientThreads } from "src/simulation/simulation-settings";
 
 const finiteNumber = z.number().finite();
 const finiteInt = z.number().int();
@@ -62,4 +63,7 @@ export const simulationSettingsSchema = z.object({
   transientDuration: finiteNumber.default(20),
   transientTimeStep: finiteNumber.default(0.01),
   transientWaveSpeed: finiteNumber.default(1200),
+  transientWaveSpeedMethod: z.enum(["optimal", "user"]).default("optimal"),
+  transientThreads: finiteNumber.default(() => defaultTransientThreads()),
+  transientSaveResults: z.boolean().default(true),
 });

@@ -124,6 +124,9 @@ export type SimulationProgressDialogState = {
   currentTime: number;
   totalDuration: number;
   phase: "hydraulic" | "quality" | "finalizing";
+  // How to render `currentTime`: "clock" (HH:MM, for EPS) or "seconds" (for
+  // transient runs, which are seconds-scale). Defaults to "clock".
+  timeFormat?: "clock" | "seconds";
 };
 
 export type OpenProjectPhase =

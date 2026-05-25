@@ -3,6 +3,36 @@ import type { PatternId } from "src/hydraulic-model/patterns";
 
 export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";
+// ptsnet wave-speed / discretization strategy. "optimal" auto-fits the solver
+// time step to the shortest pipe (accurate, but blows up the MOC mesh on
+// networks with sub-metre pipes); "user" keeps the requested time step and
+// adjusts each pipe's wave speed to fit (always runs, but distorts the wave
+// speed of very short pipes).
+export type TransientWaveSpeedMethod = "optimal" | "user";
+
+// Transient solver parallelism. The engine runs on Web Workers; leave a couple
+// of cores free for the UI / main thread so the browser stays responsive, and
+// never request more workers than the device reports.
+export const transientThreadHeadroom = 2;
+export const minTransientThreads = 1;
+
+/** Cores the current device reports (the upper bound for the thread setting). */
+export const maxTransientThreads = (): number =>
+  Math.max(minTransientThreads, globalThis.navigator?.hardwareConcurrency ?? 4);
+
+/** Recommended default: device cores minus a sensible headroom. */
+export const defaultTransientThreads = (): number =>
+  Math.max(
+    minTransientThreads,
+    maxTransientThreads() - transientThreadHeadroom,
+  );
+
+/** Clamp any requested thread count to [1, device cores]. */
+export const clampTransientThreads = (value: number): number =>
+  Math.min(
+    maxTransientThreads(),
+    Math.max(minTransientThreads, Math.round(value)),
+  );
 export type QualitySimulationType = "none" | "chemical" | "age" | "trace";
 export type QualityMassUnit = "mg/L" | "ug/L";
 export type StatusReport = "YES" | "NO" | "FULL";
@@ -72,6 +102,9 @@ export type SimulationSettings = {
   transientDuration: number;
   transientTimeStep: number;
   transientWaveSpeed: number;
+  transientWaveSpeedMethod: TransientWaveSpeedMethod;
+  transientThreads: number;
+  transientSaveResults: boolean;
 };
 
 export const defaultHydraulicsValues = {
@@ -125,6 +158,9 @@ export const defaultTransientValues = {
   transientDuration: 20,
   transientTimeStep: 0.01,
   transientWaveSpeed: 1200,
+  transientWaveSpeedMethod: "optimal" as TransientWaveSpeedMethod,
+  transientThreads: defaultTransientThreads(),
+  transientSaveResults: true,
 };
 
 export const defaultSimulationSettings: SimulationSettings = {

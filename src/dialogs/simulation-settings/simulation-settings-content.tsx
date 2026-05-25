@@ -10,6 +10,7 @@ import {
   formatSecondsToDisplay,
 } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
+import { Checkbox } from "src/components/form/Checkbox";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -25,6 +26,11 @@ import type {
   QualitySimulationType,
   QualityMassUnit,
   StatusReport,
+  TransientWaveSpeedMethod,
+} from "src/simulation/simulation-settings";
+import {
+  maxTransientThreads,
+  defaultTransientThreads,
 } from "src/simulation/simulation-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -867,6 +873,29 @@ export const TransientsSection = () => {
     },
   ];
 
+  const waveSpeedMethodOptions: {
+    label: string;
+    value: TransientWaveSpeedMethod;
+  }[] = [
+    {
+      label: translate("simulationSettings.transientWaveSpeedMethodOptimal"),
+      value: "optimal",
+    },
+    {
+      label: translate("simulationSettings.transientWaveSpeedMethodUser"),
+      value: "user",
+    },
+  ];
+
+  // Both methods carry a trade-off, so warn whichever one is picked.
+  const waveSpeedMethodWarning =
+    values.transientWaveSpeedMethod === "user"
+      ? translate("simulationSettings.transientWaveSpeedMethodUserWarning")
+      : translate("simulationSettings.transientWaveSpeedMethodOptimalWarning");
+
+  const maxThreads = maxTransientThreads();
+  const defaultThreads = defaultTransientThreads();
+
   return (
     <div>
       <SectionHeader>
@@ -881,6 +910,20 @@ export const TransientsSection = () => {
           selected={enabled ? "YES" : "NO"}
           onChange={(v) => setFieldValue("transientsEnabled", v === "YES")}
           disabled={readonly}
+        />
+
+        <ThreadsSetting
+          label={translate("simulationSettings.transientThreads")}
+          description={translate(
+            "simulationSettings.transientThreadsDesc",
+            String(maxThreads),
+            String(defaultThreads),
+          )}
+          value={values.transientThreads}
+          max={maxThreads}
+          fallback={defaultThreads}
+          disabled={fieldsDisabled}
+          onChange={(v) => setFieldValue("transientThreads", v)}
         />
 
         <SelectorSetting
@@ -952,6 +995,30 @@ export const TransientsSection = () => {
           value={values.transientWaveSpeed}
           onChange={(v) => setFieldValue("transientWaveSpeed", v)}
           disabled={fieldsDisabled}
+        />
+
+        <SelectorSetting
+          label={translate("simulationSettings.transientWaveSpeedMethod")}
+          description={translate(
+            "simulationSettings.transientWaveSpeedMethodDesc",
+          )}
+          options={waveSpeedMethodOptions}
+          selected={values.transientWaveSpeedMethod}
+          onChange={(v) => setFieldValue("transientWaveSpeedMethod", v)}
+          disabled={fieldsDisabled}
+          warning={fieldsDisabled ? undefined : waveSpeedMethodWarning}
+        />
+
+        <CheckboxSetting
+          label={translate("simulationSettings.transientDisableSaveResults")}
+          description={translate(
+            "simulationSettings.transientDisableSaveResultsDesc",
+          )}
+          checked={!values.transientSaveResults}
+          disabled={fieldsDisabled}
+          onChange={(checked) =>
+            setFieldValue("transientSaveResults", !checked)
+          }
         />
       </div>
     </div>
@@ -1066,6 +1133,79 @@ const ValueSetting = ({
       />
     </div>
   </SettingsRow>
+);
+
+const ThreadsSetting = ({
+  label,
+  description,
+  value,
+  max,
+  fallback,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: number;
+  max: number;
+  fallback: number;
+  disabled?: boolean;
+  onChange: (value: number) => void;
+}) => (
+  <SettingsRow label={label} description={description}>
+    <div className="w-24">
+      <NumericField
+        label={label}
+        displayValue={String(value)}
+        positiveOnly
+        disabled={disabled}
+        placeholder={String(fallback)}
+        onChangeValue={(newValue, isEmpty) => {
+          // Cleared field falls back to the recommended default; any entered
+          // value is clamped to [1, device cores].
+          if (isEmpty) {
+            onChange(fallback);
+            return;
+          }
+          onChange(Math.min(max, Math.max(1, Math.round(newValue))));
+        }}
+        styleOptions={{ textSize: "xs" }}
+      />
+    </div>
+  </SettingsRow>
+);
+
+const CheckboxSetting = ({
+  label,
+  description,
+  checked,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+}) => (
+  <label className="flex items-start gap-2 cursor-pointer">
+    <span className="mt-0.5">
+      <Checkbox
+        checked={checked}
+        disabled={disabled}
+        aria-label={label}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </span>
+    <div className="flex flex-col gap-1">
+      <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
+      {description && (
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {description}
+        </span>
+      )}
+    </div>
+  </label>
 );
 
 type SelectorSettingPropsBase<T extends string | number> = {

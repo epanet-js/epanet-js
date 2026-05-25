@@ -5,7 +5,10 @@ import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import {
+  defaultSimulationSettings,
+  maxTransientThreads,
+} from "src/simulation/simulation-settings";
 import type { HydraulicModel } from "src/hydraulic-model";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
@@ -78,6 +81,116 @@ describe("Run simulation (transient)", () => {
       expect(reader?.timestepCount).toEqual(3);
     });
     expect(runPtsnetSimulation).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes the configured wave speed method through to ptsnet", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockResolvedValue(fakeResult());
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientsEnabled: true,
+        transientValveId: valveLabel,
+        transientWaveSpeedMethod: "user",
+      },
+    });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      expect(runPtsnetSimulation).toHaveBeenCalledTimes(1);
+    });
+    const [input] = (runPtsnetSimulation as unknown as Mock).mock.calls[0];
+    expect(input.settings.waveSpeedMethod).toEqual("user");
+  });
+
+  it("defaults to the optimal wave speed method", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockResolvedValue(fakeResult());
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientsEnabled: true,
+        transientValveId: valveLabel,
+      },
+    });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      expect(runPtsnetSimulation).toHaveBeenCalledTimes(1);
+    });
+    const [input] = (runPtsnetSimulation as unknown as Mock).mock.calls[0];
+    expect(input.settings.waveSpeedMethod).toEqual("optimal");
+  });
+
+  it("passes the configured thread count through to ptsnet, clamped to the device max", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockResolvedValue(fakeResult());
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientsEnabled: true,
+        transientValveId: valveLabel,
+        // Above any real core count: must be clamped down to the device max.
+        transientThreads: 9999,
+      },
+    });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      expect(runPtsnetSimulation).toHaveBeenCalledTimes(1);
+    });
+    const [input] = (runPtsnetSimulation as unknown as Mock).mock.calls[0];
+    expect(input.settings.workers).toEqual(maxTransientThreads());
+  });
+
+  it("skips the results reader when saving is disabled but still succeeds", async () => {
+    vi.stubGlobal("crossOriginIsolated", true);
+    (runPtsnetSimulation as unknown as Mock).mockResolvedValue(fakeResult());
+
+    const hydraulicModel = aModelWithValve();
+    const valveLabel = hydraulicModel.assets.get(IDS.v1)!.label;
+    const store = setInitialState({
+      hydraulicModel,
+      simulationSettings: {
+        ...defaultSimulationSettings,
+        transientsEnabled: true,
+        transientValveId: valveLabel,
+        transientSaveResults: false,
+      },
+    });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
+      expect(simulation.status).toEqual("success");
+    });
+    const [input] = (runPtsnetSimulation as unknown as Mock).mock.calls[0];
+    expect(input.settings.saveResults).toBe(false);
+
+    const simulation = store.get(simulationDerivedAtom) as SimulationFinished;
+    const reader =
+      "epsResultsReader" in simulation ? simulation.epsResultsReader : null;
+    expect(reader).toBeFalsy();
   });
 
   it("fails with a readable message when not cross-origin isolated", async () => {

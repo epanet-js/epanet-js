@@ -2,6 +2,7 @@ import {
   PtsnetSimulation,
   serializeResults,
   type SerializedResults,
+  type WaveSpeedMethod,
 } from "@epanet-js/ptsnet";
 
 export type PtsnetWorkerInput = {
@@ -13,6 +14,15 @@ export type PtsnetWorkerInput = {
     duration: number;
     timeStep: number;
     defaultWaveSpeed: number;
+    waveSpeedMethod: WaveSpeedMethod;
+    /** Worker-pool size for the MOC engine. 1 keeps it inline (no nested workers). */
+    workers: number;
+    /**
+     * When false, the engine records nothing (no head/flow series), so there is
+     * nothing to serialize or transfer back — used to time the solve on large
+     * networks without paying the save cost. `serialized` comes back empty.
+     */
+    saveResults: boolean;
   };
   operation: {
     finalSetting: number;
@@ -36,9 +46,10 @@ export type PtsnetWorkerResult = {
 };
 
 /**
- * Runs a single valve-closure transient with ptsnet. `parallel.workers: 1`
- * keeps the engine inline (no nested worker spawn), so this is safe to call
- * from inside our own web worker. Requires the page to be cross-origin isolated.
+ * Runs a single valve-closure transient with ptsnet. The MOC engine spawns
+ * `settings.workers` nested Web Workers (Blob + SharedArrayBuffer) from inside
+ * our own worker; `workers: 1` keeps it inline (no nested spawn). Requires the
+ * page to be cross-origin isolated.
  */
 export async function runPtsnet(
   input: PtsnetWorkerInput,
@@ -50,11 +61,13 @@ export async function runPtsnet(
       duration: input.settings.duration,
       timeStep: input.settings.timeStep,
       defaultWaveSpeed: input.settings.defaultWaveSpeed,
-      waveSpeedMethod: "optimal",
+      waveSpeedMethod: input.settings.waveSpeedMethod,
       skipCompatibilityCheck: true,
     },
-    recording: { nodes: "all", pipes: "all" },
-    parallel: { workers: 1 },
+    recording: input.settings.saveResults
+      ? { nodes: "all", pipes: "all" }
+      : { nodes: "none", pipes: "none" },
+    parallel: { workers: input.settings.workers },
     cavitation: false,
   });
 

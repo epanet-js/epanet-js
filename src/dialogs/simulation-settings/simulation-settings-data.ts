@@ -6,8 +6,10 @@ import {
   type QualitySimulationType,
   type QualityMassUnit,
   type StatusReport,
+  type TransientWaveSpeedMethod,
   defaultHydraulicsValues,
   defaultTransientValues,
+  clampTransientThreads,
 } from "src/simulation/simulation-settings";
 import type { PatternId } from "src/hydraulic-model/patterns";
 
@@ -153,6 +155,9 @@ export type FormValues = {
   transientDuration: number;
   transientTimeStep: number;
   transientWaveSpeed: number;
+  transientWaveSpeedMethod: TransientWaveSpeedMethod;
+  transientThreads: number;
+  transientSaveResults: boolean;
 };
 
 export const buildInitialValues = (
@@ -225,6 +230,15 @@ export const buildInitialValues = (
       settings.transientTimeStep ?? defaultTransientValues.transientTimeStep,
     transientWaveSpeed:
       settings.transientWaveSpeed ?? defaultTransientValues.transientWaveSpeed,
+    transientWaveSpeedMethod:
+      settings.transientWaveSpeedMethod ??
+      defaultTransientValues.transientWaveSpeedMethod,
+    transientThreads: clampTransientThreads(
+      settings.transientThreads ?? defaultTransientValues.transientThreads,
+    ),
+    transientSaveResults:
+      settings.transientSaveResults ??
+      defaultTransientValues.transientSaveResults,
   };
 };
 
@@ -298,7 +312,10 @@ export const hasChanges = (
     values.transientEndTime !== settings.transientEndTime ||
     values.transientDuration !== settings.transientDuration ||
     values.transientTimeStep !== settings.transientTimeStep ||
-    values.transientWaveSpeed !== settings.transientWaveSpeed
+    values.transientWaveSpeed !== settings.transientWaveSpeed ||
+    values.transientWaveSpeedMethod !== settings.transientWaveSpeedMethod ||
+    values.transientThreads !== settings.transientThreads ||
+    values.transientSaveResults !== settings.transientSaveResults
   );
 };
 
@@ -354,6 +371,9 @@ export const buildUpdatedSettings = (
     transientDuration: values.transientDuration,
     transientTimeStep: values.transientTimeStep,
     transientWaveSpeed: values.transientWaveSpeed,
+    transientWaveSpeedMethod: values.transientWaveSpeedMethod,
+    transientThreads: clampTransientThreads(values.transientThreads),
+    transientSaveResults: values.transientSaveResults,
     timing: {
       duration:
         values.simulationMode === "steadyState" ? 0 : (values.duration ?? 0),
