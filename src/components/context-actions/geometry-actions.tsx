@@ -28,6 +28,8 @@ import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
+import { usePermissions } from "src/hooks/use-permissions";
 
 export function useActions(
   selectedWrappedFeatures: IWrappedFeature[],
@@ -45,6 +47,8 @@ export function useActions(
   const reverseLinkAction = useReverseLink();
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const showPriorityAccess = useShowPriorityAccessDialog();
+  const { canUseCustomGraphs } = usePermissions();
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -95,6 +99,12 @@ export function useActions(
     applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
+      if (!canUseCustomGraphs) {
+        showPriorityAccess({
+          featureName: translate("customGraph.title"),
+        });
+        return Promise.resolve();
+      }
       setDialogState({ type: "customGraph" });
       return Promise.resolve();
     },

@@ -23,6 +23,8 @@ import {
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
+import { usePermissions } from "src/hooks/use-permissions";
 
 export function useLinkActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -36,6 +38,8 @@ export function useLinkActions(readonly = false): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const showPriorityAccess = useShowPriorityAccessDialog();
+  const { canUseCustomGraphs } = usePermissions();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -88,6 +92,12 @@ export function useLinkActions(readonly = false): Action[] {
     applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
+      if (!canUseCustomGraphs) {
+        showPriorityAccess({
+          featureName: translate("customGraph.title"),
+        });
+        return Promise.resolve();
+      }
       setDialogState({ type: "customGraph" });
       return Promise.resolve();
     },

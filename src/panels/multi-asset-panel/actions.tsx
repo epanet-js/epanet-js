@@ -19,6 +19,8 @@ import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
+import { usePermissions } from "src/hooks/use-permissions";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -29,6 +31,8 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const showPriorityAccess = useShowPriorityAccessDialog();
+  const { canUseCustomGraphs } = usePermissions();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -45,6 +49,12 @@ export function useMultiAssetActions(readonly = false): Action[] {
     applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
+      if (!canUseCustomGraphs) {
+        showPriorityAccess({
+          featureName: translate("customGraph.title"),
+        });
+        return Promise.resolve();
+      }
       setDialogState({ type: "customGraph" });
       return Promise.resolve();
     },

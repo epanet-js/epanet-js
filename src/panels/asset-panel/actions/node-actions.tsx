@@ -8,6 +8,8 @@ import { ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -16,6 +18,8 @@ export function useNodeActions(readonly = false): Action[] {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
+  const showPriorityAccess = useShowPriorityAccessDialog();
+  const { canUseCustomGraphs } = usePermissions();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -45,6 +49,12 @@ export function useNodeActions(readonly = false): Action[] {
     applicable: true,
     label: translate("customGraph.menuTitle"),
     onSelect: function openCustomGraph() {
+      if (!canUseCustomGraphs) {
+        showPriorityAccess({
+          featureName: translate("customGraph.title"),
+        });
+        return Promise.resolve();
+      }
       setDialogState({ type: "customGraph" });
       return Promise.resolve();
     },
