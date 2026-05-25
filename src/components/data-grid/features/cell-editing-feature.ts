@@ -165,7 +165,7 @@ export const CellEditingFeature: TableFeature = {
       isCellActive(
         table.getActiveCell(),
         cell.column.getIndex(),
-        cell.row.index,
+        cell.row.getVisualIndex(),
       );
 
     cell.isInteractive = () => cell.isActive() && table.isSingleCellSelection();

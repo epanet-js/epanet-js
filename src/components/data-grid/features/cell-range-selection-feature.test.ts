@@ -3,7 +3,11 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import type { CellPosition, GridSelection } from "../types";
 
@@ -340,6 +344,146 @@ describe("isSelectionFullRows", () => {
       });
     });
     expect(result.current.isSelectionFullRows()).toBe(false);
+  });
+});
+
+describe("sort-aware indexing", () => {
+  type SortRow = { name: string; value: string };
+
+  const useSortableTable = (data: SortRow[]) =>
+    useReactTable({
+      data,
+      columns: [{ accessorKey: "name" }, { accessorKey: "value" }],
+      getCoreRowModel: getCoreRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      enableSorting: true,
+      _features: [CellRangeSelectionFeature],
+    });
+
+  // Data is [Bob, Alice, Carol] but sorted asc → [Alice, Bob, Carol].
+  // Original row indices: Bob=0, Alice=1, Carol=2.
+  // Visual row indices after sort:        Alice=0, Bob=1, Carol=2.
+  const useSortedTable = () => {
+    const data: SortRow[] = [
+      { name: "Bob", value: "200" },
+      { name: "Alice", value: "100" },
+      { name: "Carol", value: "300" },
+    ];
+    return useSortableTable(data);
+  };
+
+  it("row.getVisualIndex returns the displayed position, not the data-array position", () => {
+    const { result } = renderHook(useSortedTable);
+    act(() => {
+      result.current.setSorting([{ id: "name", desc: false }]);
+    });
+
+    const rows = result.current.getRowModel().rows;
+    const aliceRow = rows.find((r) => r.original.name === "Alice")!;
+    const bobRow = rows.find((r) => r.original.name === "Bob")!;
+    const carolRow = rows.find((r) => r.original.name === "Carol")!;
+
+    expect(aliceRow.index).toBe(1); // data-array position
+    expect(bobRow.index).toBe(0);
+    expect(carolRow.index).toBe(2);
+
+    expect(aliceRow.getVisualIndex()).toBe(0);
+    expect(bobRow.getVisualIndex()).toBe(1);
+    expect(carolRow.getVisualIndex()).toBe(2);
+  });
+
+  it("table.getVisualIndexLookup exposes the id → position map", () => {
+    const { result } = renderHook(useSortedTable);
+    act(() => {
+      result.current.setSorting([{ id: "name", desc: false }]);
+    });
+
+    const lookup = result.current.getVisualIndexLookup();
+    const rows = result.current.getRowModel().rows;
+    expect(lookup.get(rows[0].id)).toBe(0); // Alice
+    expect(lookup.get(rows[1].id)).toBe(1); // Bob
+    expect(lookup.get(rows[2].id)).toBe(2); // Carol
+  });
+
+  it("highlights the visually-selected range when the table is sorted", () => {
+    const { result } = renderHook(useSortedTable);
+    act(() => {
+      result.current.setSorting([{ id: "name", desc: false }]);
+    });
+
+    // Select visual rows 0..1 (Alice, Bob).
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 1 },
+      });
+    });
+
+    const rows = result.current.getRowModel().rows;
+    const cellAt = (rowIdx: number, colIdx: number) =>
+      rows[rowIdx].getVisibleCells()[colIdx];
+
+    // Visual rows 0 and 1 (Alice, Bob) should be selected.
+    expect(cellAt(0, 0).isSelected()).toBe(true); // Alice
+    expect(cellAt(1, 0).isSelected()).toBe(true); // Bob
+    expect(cellAt(2, 0).isSelected()).toBe(false); // Carol
+
+    // Carol (visual row 2 / data index 2) must not be selected even though
+    // her data index falls inside the range when interpreted as data indices.
+    expect(cellAt(2, 1).isSelected()).toBe(false);
+  });
+
+  it("marks the full row at the visual position as fully selected", () => {
+    const { result } = renderHook(useSortedTable);
+    act(() => {
+      result.current.setSorting([{ id: "name", desc: false }]);
+    });
+
+    // Full-row select on visual row 0 (Alice).
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 0 },
+      });
+    });
+
+    const rows = result.current.getRowModel().rows;
+    expect(rows[0].isFullySelected()).toBe(true); // Alice
+    expect(rows[1].isFullySelected()).toBe(false); // Bob
+    expect(rows[2].isFullySelected()).toBe(false); // Carol
+  });
+
+  it("places selection edges at the visual range boundaries", () => {
+    const { result } = renderHook(useSortedTable);
+    act(() => {
+      result.current.setSorting([{ id: "name", desc: false }]);
+    });
+
+    act(() => {
+      result.current.selectRange({
+        min: { col: 0, row: 0 },
+        max: { col: 1, row: 1 },
+      });
+    });
+
+    const rows = result.current.getRowModel().rows;
+    // Top-left of the selection: visual row 0, col 0 (Alice's name cell).
+    const topLeft = rows[0].getVisibleCells()[0].getSelectionEdge();
+    expect(topLeft).toEqual({
+      top: true,
+      bottom: false,
+      left: true,
+      right: false,
+    });
+
+    // Bottom-right: visual row 1, col 1 (Bob's value cell).
+    const bottomRight = rows[1].getVisibleCells()[1].getSelectionEdge();
+    expect(bottomRight).toEqual({
+      top: false,
+      bottom: true,
+      left: false,
+      right: true,
+    });
   });
 });
 

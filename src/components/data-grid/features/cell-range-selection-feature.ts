@@ -49,6 +49,11 @@ declare module "@tanstack/react-table" {
       row?: number;
       extend?: boolean;
     }) => { range: GridSelection; movingCorner: CellPosition } | null;
+    /**
+     * Memoized lookup from row id → visual (displayed) row position.
+     * Rebuilt only when the sorted/filtered row model changes.
+     */
+    getVisualIndexLookup: () => Map<string, number>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -60,6 +65,12 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Row<TData extends RowData> {
     isFullySelected: () => boolean;
+    /**
+     * Position of this row in the currently displayed row model
+     * (after sorting/filtering). Distinct from `row.index`, which is
+     * the row's position in the original data array.
+     */
+    getVisualIndex: () => number;
   }
 }
 
@@ -127,6 +138,18 @@ export const CellRangeSelectionFeature: TableFeature = {
     table.isSingleCellSelection = () =>
       isSingleCellSelection(table.getSelection());
 
+    table.getVisualIndexLookup = memo(
+      () => [table.getRowModel().rows],
+      (rows) => {
+        const map = new Map<string, number>();
+        for (let i = 0; i < rows.length; i++) {
+          map.set(rows[i].id, i);
+        }
+        return map;
+      },
+      { key: "CellRangeSelectionFeature.getVisualIndexLookup" },
+    );
+
     table.updateSelection = ({ col, row, extend = false }) => {
       const rowCount = table.getRowModel().rows.length;
       const colCount = table.getVisibleLeafColumns().length;
@@ -153,9 +176,12 @@ export const CellRangeSelectionFeature: TableFeature = {
     row: Row<TData>,
     table: Table<TData>,
   ): void => {
+    row.getVisualIndex = () =>
+      table.getVisualIndexLookup().get(row.id) ?? row.index;
+
     row.isFullySelected = () =>
       table.isSelectionFullRows() &&
-      isCellSelected(table.getSelection(), 0, row.index);
+      isCellSelected(table.getSelection(), 0, row.getVisualIndex());
   },
 
   createCell: <TData extends RowData, TValue>(
@@ -168,14 +194,14 @@ export const CellRangeSelectionFeature: TableFeature = {
       isCellSelected(
         table.getSelection(),
         cell.column.getIndex(),
-        cell.row.index,
+        cell.row.getVisualIndex(),
       );
 
     cell.getSelectionEdge = () => {
       const selection = table.getSelection();
       if (!selection || !cell.isSelected()) return undefined;
       const colIndex = cell.column.getIndex();
-      const rowIndex = cell.row.index;
+      const rowIndex = cell.row.getVisualIndex();
       return {
         top: rowIndex === selection.min.row,
         bottom: rowIndex === selection.max.row,

@@ -71,7 +71,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
             : "border-r-transparent",
         selectionEdge?.top
           ? "border-t-purple-500"
-          : variant === "inline" && cell.row.index === 0
+          : variant === "inline" && cell.row.getVisualIndex() === 0
             ? "border-t-gray-200"
             : "border-t-transparent",
         selectionEdge?.bottom
