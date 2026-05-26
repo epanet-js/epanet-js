@@ -121,6 +121,7 @@ const detectChanges = (
   hasNewSymbologyRules: boolean;
   hasNewCustomerPointsSymbology: boolean;
   hasNewDefaultColors: boolean;
+  hasNewZoneDefaults: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
@@ -154,6 +155,8 @@ const detectChanges = (
     hasNewDefaultColors:
       state.symbology.node.defaults !== prev.symbology.node.defaults ||
       state.symbology.link.defaults !== prev.symbology.link.defaults,
+    hasNewZoneDefaults:
+      state.symbology.zone.defaults !== prev.symbology.zone.defaults,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
@@ -209,6 +212,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSymbologyRules,
       hasNewCustomerPointsSymbology,
       hasNewDefaultColors,
+      hasNewZoneDefaults,
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
@@ -267,6 +271,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.symbology.node.defaults.color,
             mapState.symbology.link.defaults.color,
           );
+        }
+
+        if (hasNewZoneDefaults && !hasNewStyles) {
+          updateZoneColors(map, mapState.symbology.zone.defaults.color);
         }
 
         if (
@@ -962,6 +970,31 @@ const updateMapOverlaySource = async (
   await map.setSource(
     "map-overlay",
     features as unknown as import("src/types").Feature[],
+  );
+};
+
+const updateZoneColors = (map: MapEngine, color: string) => {
+  const outlineColor = color;
+  map.setLayerPaintRule(
+    "zones-fill",
+    "fill-color",
+    color as unknown as mapboxgl.Expression,
+  );
+  map.setLayerPaintRule(
+    "zones-fill",
+    "fill-opacity",
+    0.2 as unknown as mapboxgl.Expression,
+  );
+
+  map.setLayerPaintRule(
+    "zones-outline",
+    "line-color",
+    outlineColor as unknown as mapboxgl.Expression,
+  );
+  map.setLayerPaintRule(
+    "zones-outline",
+    "line-opacity",
+    0.6 as unknown as mapboxgl.Expression,
   );
 };
 

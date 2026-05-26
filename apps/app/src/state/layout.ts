@@ -94,6 +94,7 @@ export type MapStylingPanelSectionExpanded = {
   nodeSymbology: boolean;
   linkSymbology: boolean;
   customerPoints: boolean;
+  zoneSymbology: boolean;
   elevations: boolean;
   layers: boolean;
   projection: boolean;
@@ -106,6 +107,7 @@ export const mapStylingPanelSectionsExpandedAtom =
       nodeSymbology: true,
       linkSymbology: true,
       customerPoints: true,
+      zoneSymbology: true,
       elevations: true,
       layers: true,
       projection: true,

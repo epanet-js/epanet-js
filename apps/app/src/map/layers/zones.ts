@@ -24,7 +24,8 @@ export const zoneOutlineLayer = ({
   type: "line",
   source,
   paint: {
-    "line-color": "#93c5fd",
+    "line-color": "#678ab1",
     "line-width": 1.5,
+    "line-opacity": 0.6,
   },
 });

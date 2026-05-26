@@ -43,6 +43,7 @@ import { USelection } from "src/selection/selection";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const colorPropertyLabelFor = (
   property: string,
@@ -84,6 +85,7 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
+  const zonesEnabled = useFeatureFlag("FLAG_ZONES");
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
@@ -96,6 +98,7 @@ export const MapStylingEditor = () => {
           geometryType="link"
           properties={supportedLinkProperties}
         />
+        {zonesEnabled && <ZoneSymbologySection />}
         <CustomerPointsSection readonly={isPlaying} />
         {!isGridOn && <ElevationsEditor />}
         {!isGridOn && (
@@ -423,6 +426,32 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
           onChange={handleVisibilityChange}
           disabled={readonly}
         />
+      </InlineField>
+    </MapStylingSectionWrapper>
+  );
+};
+
+const ZoneSymbologySection = () => {
+  const translate = useTranslate();
+  const { zoneSymbology, updateZoneDefaultColor } = useSymbologyState();
+
+  return (
+    <MapStylingSectionWrapper
+      title={translate("zoneSymbology")}
+      section="zoneSymbology"
+    >
+      <InlineField
+        name={translate("defaultColor")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <div className="h-7 w-12 rounded-sm overflow-hidden">
+          <ColorPopover
+            color={zoneSymbology.defaults.color}
+            onChange={updateZoneDefaultColor}
+            ariaLabel="Default zone color"
+          />
+        </div>
       </InlineField>
     </MapStylingSectionWrapper>
   );

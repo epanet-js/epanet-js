@@ -54,10 +54,19 @@ export type CustomerPointsSymbology = {
   visible: boolean;
 };
 
+export type ZoneDefaults = {
+  color: string;
+};
+
+export type ZoneSymbology = {
+  defaults: ZoneDefaults;
+};
+
 export type SymbologySpec = {
   node: NodeSymbology;
   link: LinkSymbology;
   customerPoints: CustomerPointsSymbology;
+  zone: ZoneSymbology;
 };
 
 export const nullSymbologySpec: SymbologySpec = {
@@ -72,4 +81,5 @@ export const nullSymbologySpec: SymbologySpec = {
     defaults: { color: colors.indigo200 },
   },
   customerPoints: { visible: true },
+  zone: { defaults: { color: "#93c5fd" } },
 };

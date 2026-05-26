@@ -712,6 +712,7 @@
   "labelBy": "Label by",
   "nodeSymbology": "Node symbology",
   "linkSymbology": "Link symbology",
+  "zoneSymbology": "Zone symbology",
   "ckmeans": "Ckmeans",
   "simulationSettings": {
     "title": "Simulation settings",

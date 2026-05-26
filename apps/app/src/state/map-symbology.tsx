@@ -6,6 +6,7 @@ import {
   LinkSymbology,
   NodeSymbology,
   CustomerPointsSymbology,
+  ZoneSymbology,
 } from "src/map/symbology";
 import {
   SupportedProperty,
@@ -126,6 +127,8 @@ const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
   nullSymbologySpec.customerPoints,
 );
 
+const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
+
 /**
  * Write-only atom: clears the active node/link symbology when its color rule
  * references the given property, and removes the entry from the saved
@@ -168,8 +171,9 @@ export const symbologyAtom = atom((get) => {
   const node = get(nodeSymbologyAtom);
   const link = get(linkSymbologyAtom);
   const customerPoints = get(customerPointsSymbologyAtom);
+  const zone = get(zoneSymbologyAtom);
 
-  return { node, link, customerPoints };
+  return { node, link, customerPoints, zone };
 });
 
 export const useSymbologyState = () => {
@@ -179,6 +183,7 @@ export const useSymbologyState = () => {
   const [customerPointsSymbology, setCustomerPointsSymbology] = useAtom(
     customerPointsSymbologyAtom,
   );
+  const [zoneSymbology, setZoneSymbology] = useAtom(zoneSymbologyAtom);
   const switchNodeSymbologyTo = (
     property: SupportedProperty | null,
     initializeFn: () => NodeSymbology,
@@ -277,6 +282,13 @@ export const useSymbologyState = () => {
     });
   };
 
+  const updateZoneDefaultColor = (color: string) => {
+    setZoneSymbology({
+      ...zoneSymbology,
+      defaults: { ...zoneSymbology.defaults, color },
+    });
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
@@ -286,7 +298,9 @@ export const useSymbologyState = () => {
     updateNodeSymbology,
     updateLinkSymbology,
     updateCustomerPointsSymbology,
+    zoneSymbology,
     updateNodeDefaultColor,
     updateLinkDefaultColor,
+    updateZoneDefaultColor,
   };
 };
