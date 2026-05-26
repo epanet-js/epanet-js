@@ -496,4 +496,162 @@ describe("EnhancedSelector", () => {
       expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     });
   });
+
+  describe("keyboard interaction", () => {
+    it("triggers the action on Enter when no options exist", async () => {
+      const onActionClick = vi.fn();
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          actionLabel="Open library"
+          onActionClick={onActionClick}
+        />,
+      );
+      const user = setupUser();
+      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      await user.keyboard("{Enter}");
+
+      expect(onActionClick).toHaveBeenCalled();
+    });
+
+    it("Tab from the list jumps the active highlight to the clear button", async () => {
+      const onChange = vi.fn();
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={onChange}
+          nullable
+          placeholder="Choose…"
+          clearLabel="None"
+        />,
+      );
+      const user = await openSelector();
+      await user.keyboard("{Tab}{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith(null, "Apple");
+    });
+
+    it("Tab cycles through search when present", async () => {
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[
+            opt("A"),
+            opt("B"),
+            opt("C"),
+            opt("D"),
+            opt("E"),
+            opt("F"),
+            opt("G"),
+            opt("H"),
+          ]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          actionLabel="Open library"
+          onActionClick={vi.fn()}
+        />,
+      );
+      const user = await openSelector();
+      // Open with search focused. Tab → options. Tab → action. Tab → back to search.
+      const search = screen.getByPlaceholderText("Search…");
+      expect(search).toHaveFocus();
+      await user.keyboard("{Tab}{Tab}{Tab}");
+      expect(search).toHaveFocus();
+    });
+
+    it("Shift+Tab from a button goes back to the last option", async () => {
+      const onChange = vi.fn();
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={onChange}
+          nullable
+          placeholder="Choose…"
+          clearLabel="None"
+        />,
+      );
+      const user = await openSelector();
+      // Tab → clear button. Shift+Tab → last option (Banana). Enter → commit Banana.
+      await user.keyboard("{Tab}{Shift>}{Tab}{/Shift}{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith("Banana", "Apple");
+    });
+
+    it("navigates into the action button via Arrow keys and Enter triggers it", async () => {
+      const onActionClick = vi.fn();
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={vi.fn()}
+          actionLabel="Open library"
+          onActionClick={onActionClick}
+        />,
+      );
+      const user = setupUser();
+      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      // Active starts on "Apple" (index 0). ArrowDown twice → action row.
+      await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+      expect(onActionClick).toHaveBeenCalled();
+    });
+
+    it("type-ahead jumps the active row to the first matching option (no search)", async () => {
+      const onChange = vi.fn();
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana"), opt("Cherry")]}
+          selected="Apple"
+          onChange={onChange}
+        />,
+      );
+      const user = setupUser();
+      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      await user.keyboard("c{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith("Cherry", "Apple");
+    });
+
+    it("type-ahead focuses the search input and appends the typed character", async () => {
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[
+            opt("A"),
+            opt("B"),
+            opt("C"),
+            opt("D"),
+            opt("E"),
+            opt("F"),
+            opt("G"),
+            opt("H"),
+          ]}
+          selected="A"
+          onChange={vi.fn()}
+        />,
+      );
+      const user = setupUser();
+      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      // Search input exists (>= minOptionsForSearch). Focus is initially on it; tab to listbox first.
+      const list = screen.getByRole("listbox");
+      list.focus();
+      await user.keyboard("d");
+
+      const search = screen.getByPlaceholderText("Search…");
+      expect(search).toHaveValue("d");
+    });
+  });
 });

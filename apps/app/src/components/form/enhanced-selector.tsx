@@ -99,7 +99,24 @@ export function EnhancedSelector<T extends string | number>({
 
   const showCreateOption =
     allowNew && trimmedQuery.length > 0 && !hasExactMatch;
-  const totalEntries = filtered.length + (showCreateOption ? 1 : 0);
+  const showClearRow =
+    nullable && selected !== null && clearLabel !== undefined;
+  const showActionRow =
+    actionLabel !== undefined && onActionClick !== undefined;
+  const showList = filtered.length > 0 || showCreateOption;
+
+  const createIdx = showCreateOption ? filtered.length : -1;
+  const clearIdx = showClearRow
+    ? filtered.length + (showCreateOption ? 1 : 0)
+    : -1;
+  const actionIdx = showActionRow
+    ? filtered.length + (showCreateOption ? 1 : 0) + (showClearRow ? 1 : 0)
+    : -1;
+  const totalEntries =
+    filtered.length +
+    (showCreateOption ? 1 : 0) +
+    (showClearRow ? 1 : 0) +
+    (showActionRow ? 1 : 0);
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === selected) ?? null,
@@ -126,6 +143,18 @@ export function EnhancedSelector<T extends string | number>({
     [open, options, selected, showSearch],
   );
 
+  useEffect(
+    function scrollActiveIntoView() {
+      if (!open || activeIndex < 0) return;
+      const list =
+        listContainerRef.current?.querySelector("ul[role='listbox']");
+      if (!list) return;
+      const items = list.querySelectorAll<HTMLElement>("li[role='option']");
+      items[activeIndex]?.scrollIntoView({ block: "nearest" });
+    },
+    [open, activeIndex],
+  );
+
   const commit = useCallback(
     (value: T | null) => {
       if (value !== selected) {
@@ -136,6 +165,11 @@ export function EnhancedSelector<T extends string | number>({
     [onChange, selected],
   );
 
+  const triggerAction = useCallback(() => {
+    onActionClick?.();
+    setOpen(false);
+  }, [onActionClick]);
+
   const commitActive = useCallback(() => {
     if (activeIndex >= 0 && activeIndex < filtered.length) {
       const opt = filtered[activeIndex];
@@ -143,14 +177,44 @@ export function EnhancedSelector<T extends string | number>({
       commit(opt.value);
       return;
     }
-    if (showCreateOption) {
+    if (activeIndex === createIdx && showCreateOption) {
       commit(trimmedQuery as T);
       return;
     }
-    if (!trimmedQuery && filtered.length > 0 && !filtered[0].disabled) {
-      commit(filtered[0].value);
+    if (activeIndex === clearIdx && showClearRow) {
+      commit(null);
+      return;
     }
-  }, [activeIndex, filtered, showCreateOption, trimmedQuery, commit]);
+    if (activeIndex === actionIdx && showActionRow) {
+      triggerAction();
+      return;
+    }
+    // No active selection — fall back to the most meaningful single action.
+    if (filtered.length === 1 && !filtered[0].disabled) {
+      commit(filtered[0].value);
+      return;
+    }
+    if (
+      filtered.length === 0 &&
+      !showCreateOption &&
+      !showClearRow &&
+      showActionRow
+    ) {
+      triggerAction();
+    }
+  }, [
+    activeIndex,
+    filtered,
+    showCreateOption,
+    showClearRow,
+    showActionRow,
+    createIdx,
+    clearIdx,
+    actionIdx,
+    trimmedQuery,
+    commit,
+    triggerAction,
+  ]);
 
   const findNextEnabled = useCallback(
     (start: number, direction: 1 | -1): number => {
@@ -166,6 +230,35 @@ export function EnhancedSelector<T extends string | number>({
       return NO_INDEX;
     },
     [filtered, showCreateOption, totalEntries],
+  );
+
+  const typedPrefixRef = useRef("");
+  const typedPrefixTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const handleTypeAhead = useCallback(
+    (char: string) => {
+      if (showSearch) {
+        setQuery((prev) => prev + char);
+        setActiveIndex(0);
+        requestAnimationFrame(() => inputRef.current?.focus());
+        return;
+      }
+      if (typedPrefixTimerRef.current) {
+        clearTimeout(typedPrefixTimerRef.current);
+      }
+      typedPrefixRef.current += char.toLowerCase();
+      const prefix = typedPrefixRef.current;
+      const matchIdx = filtered.findIndex(
+        (o) => !o.disabled && o.label.toLowerCase().startsWith(prefix),
+      );
+      if (matchIdx >= 0) setActiveIndex(matchIdx);
+      typedPrefixTimerRef.current = setTimeout(() => {
+        typedPrefixRef.current = "";
+      }, 500);
+    },
+    [showSearch, filtered],
   );
 
   const handleKeyDown = useCallback(
@@ -187,6 +280,72 @@ export function EnhancedSelector<T extends string | number>({
         );
         return;
       }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        type Region = "search" | "options" | "clear" | "action";
+        const regions: Region[] = [];
+        if (showSearch) regions.push("search");
+        if (showList) regions.push("options");
+        if (showClearRow) regions.push("clear");
+        if (showActionRow) regions.push("action");
+        if (regions.length === 0) return;
+
+        // If only the options region exists, Tab cycles options like ArrowDown.
+        if (regions.length === 1 && regions[0] === "options") {
+          setActiveIndex((prev) =>
+            e.shiftKey
+              ? findNextEnabled(prev <= 0 ? totalEntries - 1 : prev - 1, -1)
+              : findNextEnabled(
+                  prev < 0 ? 0 : Math.min(prev + 1, totalEntries - 1),
+                  1,
+                ),
+          );
+          return;
+        }
+
+        const currentRegion: Region | null =
+          showSearch && activeIndex === NO_INDEX
+            ? "search"
+            : activeIndex === clearIdx
+              ? "clear"
+              : activeIndex === actionIdx
+                ? "action"
+                : activeIndex >= 0
+                  ? "options"
+                  : null;
+
+        const direction = e.shiftKey ? -1 : 1;
+        const currentIdx =
+          currentRegion === null ? -1 : regions.indexOf(currentRegion);
+        const targetIdx =
+          currentRegion === null
+            ? direction === 1
+              ? 0
+              : regions.length - 1
+            : (currentIdx + direction + regions.length) % regions.length;
+        const target = regions[targetIdx];
+
+        switch (target) {
+          case "search":
+            setActiveIndex(NO_INDEX);
+            inputRef.current?.focus();
+            break;
+          case "options":
+            setActiveIndex(
+              direction === 1
+                ? findNextEnabled(0, 1)
+                : findNextEnabled(filtered.length - 1, -1),
+            );
+            break;
+          case "clear":
+            setActiveIndex(clearIdx);
+            break;
+          case "action":
+            setActiveIndex(actionIdx);
+            break;
+        }
+        return;
+      }
       if (e.key === "Enter") {
         e.preventDefault();
         commitActive();
@@ -196,9 +355,33 @@ export function EnhancedSelector<T extends string | number>({
         e.preventDefault();
         e.stopPropagation();
         setOpen(false);
+        return;
+      }
+      if (
+        e.key.length === 1 &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        e.key !== " "
+      ) {
+        e.preventDefault();
+        handleTypeAhead(e.key);
       }
     },
-    [totalEntries, commitActive, findNextEnabled],
+    [
+      totalEntries,
+      commitActive,
+      findNextEnabled,
+      handleTypeAhead,
+      showSearch,
+      showList,
+      showClearRow,
+      showActionRow,
+      activeIndex,
+      clearIdx,
+      actionIdx,
+      filtered.length,
+    ],
   );
 
   const triggerStyles = useMemo(
@@ -226,12 +409,6 @@ export function EnhancedSelector<T extends string | number>({
     },
     [disabled],
   );
-
-  const showClearRow =
-    nullable && selected !== null && clearLabel !== undefined;
-  const showActionRow =
-    actionLabel !== undefined && onActionClick !== undefined;
-  const showList = filtered.length > 0 || showCreateOption;
 
   return (
     <Popover.Root open={open} onOpenChange={disabled ? undefined : setOpen}>
@@ -270,13 +447,11 @@ export function EnhancedSelector<T extends string | number>({
           align="start"
           className="bg-white min-w-(--radix-popover-trigger-width) border text-sm rounded-md shadow-md z-50 mt-1"
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
             if (buttonRef.current?.contains(e.target as Node)) {
               e.preventDefault();
             }
           }}
-          onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <div
             ref={listContainerRef}
@@ -302,7 +477,7 @@ export function EnhancedSelector<T extends string | number>({
                     setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
                   }}
                   placeholder={searchPlaceholder}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  className="w-full h-8 px-2 text-sm border border-gray-300 rounded-sm outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                 />
               </div>
             )}
@@ -318,7 +493,7 @@ export function EnhancedSelector<T extends string | number>({
                         aria-selected={option.value === selected}
                         aria-disabled={isOptionDisabled}
                         className={clsx(
-                          "flex items-center justify-between gap-4 px-2 py-2 rounded-sm",
+                          "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
                           isOptionDisabled
                             ? "cursor-default text-gray-400"
                             : "cursor-pointer text-gray-700",
@@ -351,9 +526,8 @@ export function EnhancedSelector<T extends string | number>({
                     <li
                       role="option"
                       className={clsx(
-                        "flex items-center px-2 py-2 cursor-pointer text-purple-700 rounded-sm",
-                        filtered.length > 0 &&
-                          "border-t border-gray-100 mt-1 pt-2",
+                        "flex items-center h-8 px-2 cursor-pointer text-purple-700 rounded-sm",
+                        filtered.length > 0 && "border-t border-gray-100 mt-1",
                         activeIndex === filtered.length && "bg-purple-300/40",
                         activeIndex !== filtered.length && "hover:bg-gray-100",
                       )}
@@ -376,8 +550,13 @@ export function EnhancedSelector<T extends string | number>({
               >
                 <button
                   type="button"
-                  className="flex items-center justify-between gap-4 w-full px-2 py-2 italic cursor-pointer text-gray-700 hover:bg-purple-300/40 rounded-sm"
-                  onMouseEnter={() => setActiveIndex(NO_INDEX)}
+                  className={clsx(
+                    "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-gray-700 rounded-sm",
+                    activeIndex === clearIdx
+                      ? "bg-purple-300/40"
+                      : "hover:bg-purple-300/40",
+                  )}
+                  onMouseEnter={() => setActiveIndex(clearIdx)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => commit(null)}
                 >
@@ -395,13 +574,15 @@ export function EnhancedSelector<T extends string | number>({
               >
                 <button
                   type="button"
-                  className="flex items-center justify-between gap-4 w-full px-2 py-2 cursor-pointer text-gray-700 hover:bg-purple-300/40 rounded-sm"
-                  onMouseEnter={() => setActiveIndex(NO_INDEX)}
+                  className={clsx(
+                    "flex items-center justify-between gap-4 w-full h-8 px-2 cursor-pointer text-gray-700 rounded-sm",
+                    activeIndex === actionIdx
+                      ? "bg-purple-300/40"
+                      : "hover:bg-purple-300/40",
+                  )}
+                  onMouseEnter={() => setActiveIndex(actionIdx)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onActionClick();
-                    setOpen(false);
-                  }}
+                  onClick={triggerAction}
                 >
                   {actionLabel}
                 </button>
