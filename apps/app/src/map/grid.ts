@@ -198,7 +198,9 @@ export class Grid {
       });
     }
 
-    const source = this.map.getSource("grid");
+    const source = this.map.getSource("grid") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
     if (source) {
       source.setData({
         type: "FeatureCollection",
@@ -208,7 +210,9 @@ export class Grid {
   }
 
   private clearSource() {
-    const source = this.map.getSource("grid");
+    const source = this.map.getSource("grid") as
+      | mapboxgl.GeoJSONSource
+      | undefined;
     if (source) {
       source.setData({ type: "FeatureCollection", features: [] });
     }
