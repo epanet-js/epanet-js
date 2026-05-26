@@ -554,6 +554,12 @@ type ImportCustomerPointsStarted = {
   source: string;
 };
 
+type ImportZonesStarted = {
+  name: "importZones.started";
+  source: string;
+  canUseZones: boolean;
+};
+
 type ImportCustomerPointsCompleted = {
   name: "importCustomerPoints.completed";
   count: number;
@@ -1065,6 +1071,7 @@ export type UserEvent =
   | ImportCustomerPointsWizardCancel
   | ImportCustomerPointsWarningDialogProceed
   | ImportCustomerPointsWarningDialogCancel
+  | ImportZonesStarted
   | EarlyAccessClickedGet
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted

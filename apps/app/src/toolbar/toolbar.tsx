@@ -18,6 +18,7 @@ import {
   SearchIcon,
   TableIcon,
   HglProfileIcon,
+  ZonesIcon,
 } from "src/icons";
 import Modes from "./modes";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -52,6 +53,7 @@ import {
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
+import { useImportZones } from "src/commands/import-zones";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
 import { Mode, modeAtom } from "src/state/mode";
@@ -89,8 +91,10 @@ export const Toolbar = ({
   const showDataTables = useShowDataTables();
   const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
+  const importZones = useImportZones();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
+  const isZonesOn = useFeatureFlag("FLAG_ZONES");
   const { canUseHglProfile } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
@@ -150,6 +154,17 @@ export const Toolbar = ({
             >
               <ImportCustomerPointsIcon />
             </MenuAction>
+            {isZonesOn && (
+              <MenuAction
+                label={translate("importZones.title")}
+                role="button"
+                onClick={() => {
+                  importZones({ source: "toolbar" });
+                }}
+              >
+                <ZonesIcon />
+              </MenuAction>
+            )}
           </>
         )}
         <Divider />

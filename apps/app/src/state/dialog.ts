@@ -239,6 +239,10 @@ export type PriorityAccessDialogState = {
   featureName: string;
 };
 
+export type ImportZonesDialogState = {
+  type: "importZones";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -285,6 +289,7 @@ export type DialogState =
   | CustomGraphDialogState
   | AppLoadFailedDialogState
   | PriorityAccessDialogState
+  | ImportZonesDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

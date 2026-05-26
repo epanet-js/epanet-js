@@ -1390,5 +1390,8 @@
       "noData": "No data.",
       "pathBroken": "Some assets in this profile no longer exist. Create a new profile to continue."
     }
+  },
+  "importZones": {
+    "title": "Import zones"
   }
 }

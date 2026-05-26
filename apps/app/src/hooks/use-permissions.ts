@@ -11,6 +11,7 @@ export type Permissions = {
   canUseElevations: boolean;
   canUseHglProfile: boolean;
   canUseCustomGraphs: boolean;
+  canUseZones: boolean;
   canUpgrade: boolean;
   canManageOrganization: boolean;
 };
@@ -30,6 +31,7 @@ export const resolvePermissions = (
     canUseElevations: hasPaidAccess,
     canUseHglProfile: hasEarlyAccess,
     canUseCustomGraphs: hasEarlyAccess,
+    canUseZones: hasEarlyAccess,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };

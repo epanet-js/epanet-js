@@ -10,6 +10,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseElevations).toBe(false);
     expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseCustomGraphs).toBe(false);
+    expect(p.canUseZones).toBe(false);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -23,6 +24,7 @@ describe("resolvePermissions", () => {
       expect(p.canUseElevations).toBe(true);
       expect(p.canUseHglProfile).toBe(true);
       expect(p.canUseCustomGraphs).toBe(true);
+      expect(p.canUseZones).toBe(true);
       expect(p.canUpgrade).toBe(false);
       expect(p.canManageOrganization).toBe(false);
     },
@@ -35,6 +37,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseElevations).toBe(true);
     expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseCustomGraphs).toBe(false);
+    expect(p.canUseZones).toBe(false);
     expect(p.canUpgrade).toBe(false);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -46,6 +49,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseElevations).toBe(true);
     expect(p.canUseHglProfile).toBe(true);
     expect(p.canUseCustomGraphs).toBe(true);
+    expect(p.canUseZones).toBe(true);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });

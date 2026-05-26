@@ -478,6 +478,12 @@ const PriorityAccessDialog = dynamic<{
   },
 );
 
+const ImportZonesDialog = dynamic<{
+  onClose: () => void;
+}>(() => import("src/dialogs/import-zones").then((r) => r.ImportZonesDialog), {
+  loading: () => <LoadingDialog />,
+});
+
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const userTracking = useUserTracking();
@@ -661,6 +667,10 @@ export const Dialogs = memo(function Dialogs() {
         onClose={onClose}
       />
     );
+  }
+
+  if (dialog.type === "importZones") {
+    return <ImportZonesDialog onClose={onClose} />;
   }
 
   if (dialog.type === "networkProjection") {
