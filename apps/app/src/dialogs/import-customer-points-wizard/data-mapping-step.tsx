@@ -31,6 +31,8 @@ import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "src/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 const CONSTANT_PATTERN_ID = 0;
 
 export const DataMappingStep: React.FC<{
@@ -41,6 +43,7 @@ export const DataMappingStep: React.FC<{
 }> = ({ onNext, onBack, renderActions = true, wizardState }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
@@ -312,33 +315,56 @@ export const DataMappingStep: React.FC<{
                       "importCustomerPoints.wizard.dataMapping.labelSelector.label",
                     )} (${translate("optional")})`}
                   </label>
-                  <Selector
-                    nullable={true}
-                    placeholder={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
-                    )}
-                    options={[
-                      {
-                        label: translate(
-                          "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
-                        ),
-                        value: "__NONE__",
-                      },
-                      ...Array.from(inputData.properties).map((prop) => ({
+                  {isNewSelectorOn ? (
+                    <EnhancedSelector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                      )}
+                      options={Array.from(inputData.properties).map((prop) => ({
                         label: prop,
                         value: prop,
-                      })),
-                    ]}
-                    selected={selectedLabelProperty || "__NONE__"}
-                    onChange={(value) =>
-                      handleLabelPropertyChange(
-                        value === "__NONE__" ? "" : value || "",
-                      )
-                    }
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                    )}
-                  />
+                      }))}
+                      selected={selectedLabelProperty || null}
+                      clearLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                      )}
+                      onChange={(value) =>
+                        handleLabelPropertyChange(value ?? "")
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                      )}
+                    />
+                  ) : (
+                    <Selector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                      )}
+                      options={[
+                        {
+                          label: translate(
+                            "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                          ),
+                          value: "__NONE__",
+                        },
+                        ...Array.from(inputData.properties).map((prop) => ({
+                          label: prop,
+                          value: prop,
+                        })),
+                      ]}
+                      selected={selectedLabelProperty || "__NONE__"}
+                      onChange={(value) =>
+                        handleLabelPropertyChange(
+                          value === "__NONE__" ? "" : value || "",
+                        )
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                      )}
+                    />
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     {translate(
                       "importCustomerPoints.wizard.dataMapping.labelSelector.description",

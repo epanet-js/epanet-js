@@ -5,7 +5,8 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
-import { CreatableSelector } from "src/components/form/creatable-selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
 import {
@@ -188,6 +189,7 @@ const EditableField = ({
   ) => void;
 }) => {
   const translate = useTranslate();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const mixedPlaceholder = `${propertyStats.values.size} ${translate("values").toLowerCase()}`;
 
@@ -272,23 +274,14 @@ const EditableField = ({
   if (config.fieldType === "librarySelect") {
     const collection = config.library === "patterns" ? patterns : curves;
     const labelType = config.library === "patterns" ? "pattern" : "curve";
-    const LIBRARY_SENTINEL = "-1";
 
-    const itemGroup: SelectorOption<string>[] = [];
+    const items: SelectorOption<string>[] = [];
     if (collection) {
       for (const [id, item] of collection) {
         if (config.filterByType && item.type !== config.filterByType) continue;
-        itemGroup.push({ label: item.label, value: String(id) });
+        items.push({ label: item.label, value: String(id) });
       }
     }
-
-    const options: SelectorOption<string>[][] = [];
-    if (config.libraryLabelKey && onOpenLibrary) {
-      options.push([
-        { label: translate(config.libraryLabelKey), value: LIBRARY_SENTINEL },
-      ]);
-    }
-    options.push(itemGroup);
 
     // Stats store labels; resolve to ID via labelManager
     const firstLabel = propertyStats.values.keys().next().value as string;
@@ -299,20 +292,57 @@ const EditableField = ({
         ? String(resolvedId)
         : null;
 
+    const showLibraryAction = !!config.libraryLabelKey && !!onOpenLibrary;
+    const resolvedPlaceholder = isMixed
+      ? mixedPlaceholder
+      : config.nullLabelKey
+        ? translate(config.nullLabelKey)
+        : translate("none");
+
+    if (isNewSelectorOn) {
+      return (
+        <EnhancedSelector<string>
+          selected={currentId}
+          options={items}
+          nullable={true}
+          actionLabel={
+            showLibraryAction ? translate(config.libraryLabelKey!) : undefined
+          }
+          onActionClick={
+            showLibraryAction
+              ? () => onOpenLibrary(config.library, config.filterByType)
+              : undefined
+          }
+          placeholder={resolvedPlaceholder}
+          ariaLabel={label}
+          onChange={(newValue) => {
+            onPropertyChange(
+              config.modelProperty,
+              newValue === null ? (undefined as never) : Number(newValue),
+            );
+          }}
+          disabled={readonly}
+        />
+      );
+    }
+
+    const LIBRARY_SENTINEL = "-1";
+    const legacyOptions: SelectorOption<string>[][] = [];
+    if (showLibraryAction) {
+      legacyOptions.push([
+        { label: translate(config.libraryLabelKey!), value: LIBRARY_SENTINEL },
+      ]);
+    }
+    legacyOptions.push(items);
+
     return (
       <Selector<string>
         selected={currentId}
-        options={options}
+        options={legacyOptions}
         nullable={true}
-        stickyFirstGroup={!!config.libraryLabelKey && !!onOpenLibrary}
+        stickyFirstGroup={showLibraryAction}
         stickyGroupClassName="italic"
-        placeholder={
-          isMixed
-            ? mixedPlaceholder
-            : config.nullLabelKey
-              ? translate(config.nullLabelKey)
-              : translate("none")
-        }
+        placeholder={resolvedPlaceholder}
         ariaLabel={label}
         onChange={(newValue) => {
           if (newValue === LIBRARY_SENTINEL) {
@@ -339,9 +369,11 @@ const EditableField = ({
         : translate("none");
 
     return (
-      <CreatableSelector
-        options={options}
+      <EnhancedSelector
+        options={options.map((o) => ({ value: o, label: o }))}
         selected={currentValue}
+        nullable
+        allowNew
         onChange={(newValue) => {
           if (newValue === null) return;
           const normalized = newValue.trim();

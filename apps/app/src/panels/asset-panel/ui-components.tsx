@@ -15,7 +15,8 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { Selector, SelectorOption } from "src/components/form/selector";
-import { CreatableSelector } from "src/components/form/creatable-selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
@@ -417,9 +418,11 @@ export const CreatableTextRow = <P extends string>({
       {readOnly ? (
         <TextField padding="md">{value ?? ""}</TextField>
       ) : (
-        <CreatableSelector
-          options={options}
+        <EnhancedSelector
+          options={options.map((o) => ({ value: o, label: o }))}
           selected={value}
+          nullable
+          allowNew
           onChange={handleChange}
           placeholder={resolvedPlaceholder}
           ariaLabel={label}
@@ -501,7 +504,11 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
-  const flatOptions = options.flat();
+  const flatOptions = (
+    Array.isArray(options[0])
+      ? (options as SelectorOption<T>[][]).flat()
+      : options
+  ) as SelectorOption<T>[];
 
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
@@ -532,10 +539,10 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
               onChange?.(name, newValue as T, oldValue as T)
             }
             placeholder={placeholder as string}
+            disableFocusOnClose
             listClassName={listClassName}
             stickyGroupClassName={stickyGroupClassName}
             stickyFirstGroup={stickyFirstGroup}
-            disableFocusOnClose={true}
             styleOptions={{
               border: true,
               textSize: "text-sm",
@@ -547,8 +554,6 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
     </InlineField>
   );
 }
-
-const LIBRARY_SENTINEL = -1;
 
 type LibrarySelectRowProps<P extends string> = {
   name: P;
@@ -569,6 +574,108 @@ type LibrarySelectRowProps<P extends string> = {
   comparison?: PropertyComparison;
 };
 
+type EnhancedSelectRowPropsBase<P extends string, T extends SelectRowValue> = {
+  name: P;
+  label?: string;
+  options: SelectorOption<T>[];
+  listClassName?: string;
+  actionLabel?: string;
+  onActionClick?: () => void;
+  comparison?: PropertyComparison;
+  readOnly?: boolean;
+};
+
+type EnhancedSelectRowPropsNonNullable<
+  P extends string,
+  T extends SelectRowValue,
+> = EnhancedSelectRowPropsBase<P, T> & {
+  selected: T;
+  nullable?: false;
+  onChange?: (name: P, newValue: T, oldValue: T) => void;
+  placeholder?: undefined;
+  clearLabel?: never;
+};
+
+type EnhancedSelectRowPropsNullable<
+  P extends string,
+  T extends SelectRowValue,
+> = EnhancedSelectRowPropsBase<P, T> & {
+  selected: T | null;
+  nullable: true;
+  placeholder: string;
+  clearLabel?: string;
+  onChange?: (name: P, newValue: T | null, oldValue: T | null) => void;
+};
+
+type EnhancedSelectorRowProps<P extends string, T extends SelectRowValue> =
+  | EnhancedSelectRowPropsNullable<P, T>
+  | EnhancedSelectRowPropsNonNullable<P, T>;
+
+export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
+  name,
+  label,
+  selected,
+  options,
+  listClassName,
+  actionLabel,
+  onActionClick,
+  comparison,
+  readOnly,
+  nullable = false,
+  placeholder = undefined,
+  clearLabel,
+  onChange,
+}: EnhancedSelectorRowProps<P, T>) {
+  const translate = useTranslate();
+  const actualLabel = label || translate(name);
+
+  const baseDisplayValue = comparison?.hasChanged
+    ? comparison.baseValue != null
+      ? (options.find((o) => o.value === comparison.baseValue)?.label ??
+        String(comparison.baseValue))
+      : `(${translate("none").toLocaleLowerCase()})`
+    : undefined;
+
+  const selectedOption = options.find((o) => o.value === selected);
+
+  return (
+    <InlineField
+      name={actualLabel}
+      labelSize="md"
+      hasChanged={comparison?.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
+      {readOnly ? (
+        <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
+      ) : (
+        <div className="w-full">
+          <EnhancedSelector
+            ariaLabel={actualLabel}
+            options={options}
+            selected={selected}
+            nullable={nullable as true}
+            onChange={(newValue, oldValue) =>
+              onChange?.(name, newValue as T, oldValue as T)
+            }
+            placeholder={placeholder as string}
+            clearLabel={clearLabel}
+            listClassName={listClassName}
+            actionLabel={actionLabel}
+            onActionClick={onActionClick}
+            styleOptions={{
+              border: true,
+              textSize: "text-sm",
+              paddingY: 2,
+            }}
+          />
+        </div>
+      )}
+    </InlineField>
+  );
+}
+
+const LIBRARY_SENTINEL = -1;
+
 export function LibrarySelectRow<P extends string>({
   name,
   collection,
@@ -584,54 +691,73 @@ export function LibrarySelectRow<P extends string>({
   comparison,
 }: LibrarySelectRowProps<P>) {
   const translate = useTranslate();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
-  const options = useMemo(() => {
-    const libraryGroup: SelectorOption<number>[] = [
-      { label: libraryLabel, value: LIBRARY_SENTINEL },
-    ];
-    const itemGroup: SelectorOption<number>[] = [];
+  const items = useMemo(() => {
+    const out: SelectorOption<number>[] = [];
     for (const item of collection.values()) {
       if (item.type !== filterByType) continue;
       if (item.id === excludeId) continue;
-      itemGroup.push({ value: item.id, label: item.label });
+      out.push({ value: item.id, label: item.label });
     }
-    const emptyGroup: SelectorOption<number>[] = emptyOptionLabel
-      ? [{ value: 0, label: emptyOptionLabel }]
-      : [];
+    return out;
+  }, [collection, filterByType, excludeId]);
 
-    const selectableOptions = itemGroup.length
-      ? [...emptyGroup, ...itemGroup]
-      : [];
-    return [libraryGroup, selectableOptions];
-  }, [collection, filterByType, libraryLabel, emptyOptionLabel, excludeId]);
+  const resolvedPlaceholder = readOnly
+    ? (placeholder ?? emptyOptionLabel ?? "")
+    : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`);
 
-  const handleChange = useCallback(
-    (_name: P, newValue: number | null, oldValue: number | null) => {
-      if (newValue === null) return;
-      if (newValue === LIBRARY_SENTINEL) {
-        onOpenLibrary();
-        return;
-      }
-      onChange?.(_name, newValue === 0 ? null : newValue, oldValue);
-    },
-    [onOpenLibrary, onChange],
-  );
+  if (isNewSelectorOn) {
+    return (
+      <EnhancedSelectRow
+        name={name}
+        selected={selected}
+        options={items}
+        nullable={true}
+        placeholder={resolvedPlaceholder}
+        clearLabel={emptyOptionLabel}
+        actionLabel={libraryLabel}
+        onActionClick={onOpenLibrary}
+        onChange={onChange}
+        readOnly={readOnly}
+        comparison={comparison}
+      />
+    );
+  }
+
+  const libraryGroup: SelectorOption<number>[] = [
+    { label: libraryLabel, value: LIBRARY_SENTINEL },
+  ];
+  const emptyGroup: SelectorOption<number>[] = emptyOptionLabel
+    ? [{ value: 0, label: emptyOptionLabel }]
+    : [];
+  const selectableOptions = items.length ? [...emptyGroup, ...items] : [];
+  const groupedOptions = [libraryGroup, selectableOptions];
+
+  const handleLegacyChange = (
+    _name: P,
+    newValue: number | null,
+    oldValue: number | null,
+  ) => {
+    if (newValue === null) return;
+    if (newValue === LIBRARY_SENTINEL) {
+      onOpenLibrary();
+      return;
+    }
+    onChange?.(_name, newValue === 0 ? null : newValue, oldValue);
+  };
 
   return (
     <SelectRow
       name={name}
       selected={selected}
-      options={options}
+      options={groupedOptions}
       stickyGroupClassName="italic"
       stickyFirstGroup
       listClassName={emptyOptionLabel ? "first:italic" : ""}
       nullable={true}
-      placeholder={
-        readOnly
-          ? (placeholder ?? emptyOptionLabel ?? "")
-          : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`)
-      }
-      onChange={handleChange}
+      placeholder={resolvedPlaceholder}
+      onChange={handleLegacyChange}
       readOnly={readOnly}
       comparison={comparison}
     />

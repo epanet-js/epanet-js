@@ -9,7 +9,7 @@ import {
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { CheckIcon, ChevronDownIcon } from "src/icons";
-import { triggerStylesFor } from "./selector";
+import { triggerStylesFor } from "./selector-trigger";
 
 export type SelectorWithSearchOption = {
   value: string;

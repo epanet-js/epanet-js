@@ -47,6 +47,7 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { Selector } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
 import { SelectorWithSearch } from "src/components/form/selector-with-search";
 import { useUserTracking } from "src/infra/user-tracking";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -1239,6 +1240,7 @@ const VectorFileItem = ({
   const availableProperties = gisProperties.get(layerConfig.id) ?? [];
   const [isEditing, setEditing] = useState(false);
   const [editName, setEditName] = useState(layerConfig.name);
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const handleOpenChange = (open: boolean) => {
     if (open) setEditName(layerConfig.name);
@@ -1408,6 +1410,18 @@ const VectorFileItem = ({
                 <TextField padding="sm">
                   {layerConfig.labelProperty ?? translate("none")}{" "}
                 </TextField>
+              ) : isNewSelectorOn ? (
+                <EnhancedSelector
+                  nullable
+                  placeholder={translate("none")}
+                  options={availableProperties.map((p) => ({
+                    value: p,
+                    label: p,
+                  }))}
+                  selected={layerConfig.labelProperty ?? null}
+                  minOptionsForSearch={1}
+                  onChange={handleLabelPropertyChange}
+                />
               ) : (
                 <SelectorWithSearch
                   placeholder={translate("none")}

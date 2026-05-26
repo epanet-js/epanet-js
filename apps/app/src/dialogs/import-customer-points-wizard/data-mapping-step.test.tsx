@@ -4,6 +4,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { waitFor } from "@testing-library/react";
 import { renderWizard } from "./__helpers__/render-wizard";
@@ -359,6 +360,7 @@ describe("DataMappingStep", () => {
     });
 
     it("does not advance the auto-generated label counter when switching label property and back", async () => {
+      stubFeatureOn("FLAG_SELECTOR");
       const user = userEvent.setup();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -395,7 +397,7 @@ describe("DataMappingStep", () => {
 
       await user.click(labelSelector);
       await user.click(
-        await screen.findByRole("option", {
+        await screen.findByRole("button", {
           name: /none.*auto.*generate/i,
         }),
       );

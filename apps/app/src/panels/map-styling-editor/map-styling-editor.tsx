@@ -7,7 +7,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
-import { Selector, SelectorLikeButton } from "src/components/form/selector";
+import { Selector } from "src/components/form/selector";
+import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   SupportedProperty,
