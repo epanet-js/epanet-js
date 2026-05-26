@@ -16,7 +16,11 @@ type ZoneImportResetInput = {
 export const useZoneImportReset = () => {
   const zoneImportReset = useAtomCallback(
     useCallback(
-      (_get: unknown, set: Setter, { hydraulicModel }: ZoneImportResetInput) => {
+      (
+        _get: unknown,
+        set: Setter,
+        { hydraulicModel }: ZoneImportResetInput,
+      ) => {
         const momentLog = new MomentLog(hydraulicModel.version);
 
         set(stagingModelDerivedAtom, hydraulicModel);
