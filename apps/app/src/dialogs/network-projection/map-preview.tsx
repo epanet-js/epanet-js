@@ -209,9 +209,7 @@ export const MapPreview = ({
       return;
     }
 
-    const source = map.getSource("network") as
-      | mapboxgl.GeoJSONSource
-      | undefined;
+    const source = map.getSource("network");
     if (source) {
       source.setData(geoJSON ?? emptyFeatureCollection);
     }

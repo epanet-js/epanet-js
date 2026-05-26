@@ -543,7 +543,7 @@ export function removeDegenerates(geometry: Geometry): Geometry | null {
       if (components.every((c) => c.type === "Polygon")) {
         return {
           type: "MultiPolygon",
-          coordinates: components.map((c) => (c as Polygon).coordinates),
+          coordinates: components.map((c) => c.coordinates),
         };
       } else {
         return {
