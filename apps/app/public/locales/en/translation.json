@@ -1400,7 +1400,9 @@
     "dataMappingStep": {
       "title": "Data input",
       "description": "Choose a property to use as zone label, or auto-generate labels.",
-      "none": "None (auto-generate labels)"
+      "none": "None (auto-generate labels)",
+      "previewHeader": "Label",
+      "previewMore": "... and {{0}} more"
     },
     "completeStep": {
       "title": "Complete",

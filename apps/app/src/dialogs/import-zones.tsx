@@ -12,11 +12,15 @@ import { SuccessIcon, ErrorIcon } from "src/icons";
 import {
   readZoneFeatures,
   type ReadZoneFeaturesResult,
+  type ZoneFeature,
 } from "src/commands/read-zone-features";
+import { LabelManager } from "src/hydraulic-model/label-manager";
+import { useMemo } from "react";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
 const COMPLETE_STEP_NUMBER = 3;
+const PREVIEW_LIMIT = 10;
 
 export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
@@ -85,7 +89,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   }, [closeDialog]);
 
   const availableProperties = readResult
-    ? Array.from(readResult.uniqueProperties).sort()
+    ? Array.from(readResult.uniqueProperties)
     : [];
   const numZones = readResult?.features.length ?? 0;
 
@@ -127,6 +131,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
           <DataMappingStep
             selectedLabel={selectedLabel}
             availableProperties={availableProperties}
+            features={readResult?.features ?? []}
             onSelectLabel={setSelectedLabel}
           />
         )}
@@ -173,10 +178,12 @@ const DataInputStep = ({
 const DataMappingStep = ({
   selectedLabel,
   availableProperties,
+  features,
   onSelectLabel,
 }: {
   selectedLabel: string;
   availableProperties: string[];
+  features: ZoneFeature[];
   onSelectLabel: (value: string) => void;
 }) => {
   const translate = useTranslate();
@@ -192,6 +199,11 @@ const DataMappingStep = ({
     })),
   ];
 
+  const previewLabels = useMemo(
+    () => buildPreviewLabels(features, selectedLabel),
+    [features, selectedLabel],
+  );
+
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-gray-700 mb-2">
@@ -203,6 +215,48 @@ const DataMappingStep = ({
         onChange={(value) => onSelectLabel(value)}
         ariaLabel={translate("importZones.dataMappingStep.description")}
       />
+      <LabelPreviewTable labels={previewLabels} totalCount={features.length} />
+    </div>
+  );
+};
+
+const LabelPreviewTable = ({
+  labels,
+  totalCount,
+}: {
+  labels: string[];
+  totalCount: number;
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="text-left px-3 py-2 font-medium text-gray-600">
+              {translate("importZones.dataMappingStep.previewHeader")}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {labels.map((label, i) => (
+            <tr key={i} className="border-t border-gray-100">
+              <td className="px-3 py-1.5 text-gray-700">{label}</td>
+            </tr>
+          ))}
+          {totalCount > PREVIEW_LIMIT && (
+            <tr className="border-t border-gray-100">
+              <td className="px-3 py-1.5 text-gray-400 italic">
+                {translate(
+                  "importZones.dataMappingStep.previewMore",
+                  String(totalCount - PREVIEW_LIMIT),
+                )}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -218,4 +272,18 @@ const CompleteStep = ({ numZones }: { numZones: number }) => {
       </p>
     </div>
   );
+};
+
+const buildPreviewLabels = (
+  features: ZoneFeature[],
+  selectedLabel: string,
+): string[] => {
+  const preview = features.slice(0, PREVIEW_LIMIT);
+
+  if (selectedLabel === "none") {
+    const labelManager = new LabelManager();
+    return preview.map((_, i) => labelManager.generateFor("zone", i + 1));
+  }
+
+  return preview.map((f) => String(f.properties?.[selectedLabel] ?? ""));
 };

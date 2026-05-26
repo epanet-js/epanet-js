@@ -5,7 +5,7 @@ import type {
   MultiPolygon,
 } from "geojson";
 
-type ZoneFeature = Feature<Polygon | MultiPolygon>;
+export type ZoneFeature = Feature<Polygon | MultiPolygon>;
 
 type ReadZoneFeaturesError = "invalidFile" | "noPolygons";
 
