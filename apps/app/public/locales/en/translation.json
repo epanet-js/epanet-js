@@ -1392,6 +1392,18 @@
     }
   },
   "importZones": {
-    "title": "Import zones"
+    "title": "Import zones",
+    "dataInputStep": {
+      "title": "Data mapping"
+    },
+    "dataMappingStep": {
+      "title": "Data input",
+      "description": "Choose a property to use as zone label, or auto-generate labels.",
+      "none": "None (auto-generate labels)"
+    },
+    "completeStep": {
+      "title": "Complete",
+      "summary": "Imported {{count}} zones from GeoJSON."
+    }
   }
 }
