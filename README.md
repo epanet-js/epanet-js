@@ -10,7 +10,7 @@ The project is a NextJS application built ontop of [Placemark](https://github.co
 
 ## Before you use or view this code
 
-This project is licensed under the **[Functional Source License (FSL-1.1-MIT)](/LICENSE)**. That means:
+This project is licensed under the **[Functional Source License (FSL-1.1-MIT)](./LICENSE)**. That means:
 
 ✅ **What you _can_ do right now**
 
@@ -79,7 +79,7 @@ Copy the contents from `.env.example` to `.env` and edit with the values from yo
 You can start the dev server with the following command.
 
 ```sh
-pnpm dev
+pnpm --filter @epanet-js/app dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000).
@@ -89,31 +89,31 @@ _Notice: if you see a ChunkLoadError, try refreshing the page._
 #### Run tests
 
 ```sh
-pnpm test
+pnpm --filter @epanet-js/app test
 ```
 
 Or in watch mode:
 
 ```sh
-pnpm test:watch
+pnpm --filter @epanet-js/app test:watch
 ```
 
 #### Check types
 
 ```sh
-pnpm check-types
+pnpm --filter @epanet-js/app check-types
 ```
 
 Or in watch mode:
 
 ```sh
-pnpm check-types:watch
+pnpm --filter @epanet-js/app check-types:watch
 ```
 
 #### Run linter
 
 ```sh
-pnpm lint
+pnpm --filter @epanet-js/app lint
 ```
 
 #### Pre-commit hook
@@ -123,10 +123,10 @@ To prevent pushing code that has linter or types errors you can add to `.git/hoo
 ```
 #!/bin/sh
 echo "Running type check..."
-pnpm run check-types || exit 1
+pnpm --filter @epanet-js/app run check-types || exit 1
 
 echo "Running lint..."
-pnpm run lint || exit 1
+pnpm --filter @epanet-js/app run lint || exit 1
 
 echo "✅ All checks passed!"
 ```
@@ -140,7 +140,7 @@ To deploy you will need to run the `next build`.
 In Vercel you can use this command:
 
 ```sh
-pnpm lint && NODE_ENV=test pnpm test && NODE_ENV=production next build
+pnpm --filter @epanet-js/app lint && NODE_ENV=test pnpm --filter @epanet-js/app test && NODE_ENV=production pnpm --filter @epanet-js/app build
 ```
 
 ## License
