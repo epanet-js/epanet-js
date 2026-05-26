@@ -16,6 +16,7 @@ import {
 } from "src/commands/read-zone-features";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { useMemo } from "react";
+import { useApplyZoneImport } from "src/commands/apply-zone-import";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -33,6 +34,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const [readResult, setReadResult] = useState<ReadZoneFeaturesResult | null>(
     null,
   );
+  const applyZoneImport = useApplyZoneImport();
 
   const steps = [
     {
@@ -76,9 +78,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     setCurrentStep(DATA_MAPPING_STEP_NUMBER);
   }, [selectedFile]);
 
-  const goNext = useCallback(() => {
-    setCurrentStep((s) => Math.min(s + 1, COMPLETE_STEP_NUMBER));
-  }, []);
+  const handleImport = useCallback(() => {
+    if (!readResult) return;
+
+    const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
+    applyZoneImport(readResult.features, labelProperty);
+
+    setCurrentStep(COMPLETE_STEP_NUMBER);
+  }, [readResult, selectedLabel, applyZoneImport]);
 
   const goBack = useCallback(() => {
     setCurrentStep((s) => Math.max(s - 1, 1));
@@ -105,7 +112,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     ) : currentStep === DATA_MAPPING_STEP_NUMBER ? (
       <WizardActions
         backAction={{ onClick: goBack }}
-        nextAction={{ onClick: goNext }}
+        nextAction={{ onClick: handleImport }}
       />
     ) : (
       <WizardActions finishAction={{ onClick: handleFinish }} />
