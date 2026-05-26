@@ -109,13 +109,20 @@ const DataInputStep = ({
   selectedFile: File | null;
   onFileDrop: (file: File) => void;
 }) => {
+  const translate = useTranslate();
+
   return (
-    <DropZone
-      onFileDrop={onFileDrop}
-      accept=".geojson"
-      supportedFormats="GeoJSON"
-      selectedFile={selectedFile}
-    />
+    <>
+      <h2 className="text-lg font-semibold text-slate-900 pt-3 pb-3 dark:text-white">
+        {translate("importZones.dataInputStep.addFromFile")}
+      </h2>
+      <DropZone
+        onFileDrop={onFileDrop}
+        accept=".geojson"
+        supportedFormats="GeoJSON"
+        selectedFile={selectedFile}
+      />
+    </>
   );
 };
 

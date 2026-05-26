@@ -1394,7 +1394,8 @@
   "importZones": {
     "title": "Import zones",
     "dataInputStep": {
-      "title": "Data mapping"
+      "title": "Data mapping",
+      "addFromFile": "Add from file"
     },
     "dataMappingStep": {
       "title": "Data input",
