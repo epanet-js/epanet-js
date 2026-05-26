@@ -1405,6 +1405,10 @@
     "completeStep": {
       "title": "Complete",
       "summary": "Imported {{count}} zones from GeoJSON."
+    },
+    "errors": {
+      "invalidFile": "The selected file is not a valid GeoJSON file.",
+      "noPolygons": "The file does not contain any Polygon or MultiPolygon geometries."
     }
   }
 }

@@ -8,7 +8,11 @@ import { WizardActions } from "src/components/wizard/wizard-actions";
 import { DropZone } from "src/components/drop-zone";
 import { useDialogState } from "src/components/dialog";
 import { Selector, type SelectorOption } from "src/components/form/selector";
-import { SuccessIcon } from "src/icons";
+import { SuccessIcon, ErrorIcon } from "src/icons";
+import {
+  readZoneFeatures,
+  type ReadZoneFeaturesResult,
+} from "src/commands/read-zone-features";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -20,6 +24,11 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [readResult, setReadResult] = useState<ReadZoneFeaturesResult | null>(
+    null,
+  );
 
   const steps = [
     {
@@ -41,7 +50,27 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 
   const handleFileDrop = useCallback((file: File) => {
     setSelectedFile(file);
+    setFileError(null);
   }, []);
+
+  const handleNextFromDataInput = useCallback(async () => {
+    if (!selectedFile) return;
+
+    setIsProcessing(true);
+    setFileError(null);
+
+    const result = await readZoneFeatures(selectedFile);
+
+    setIsProcessing(false);
+
+    if (result.error) {
+      setFileError(result.error);
+      return;
+    }
+
+    setReadResult(result);
+    setCurrentStep(DATA_MAPPING_STEP_NUMBER);
+  }, [selectedFile]);
 
   const goNext = useCallback(() => {
     setCurrentStep((s) => Math.min(s + 1, COMPLETE_STEP_NUMBER));
@@ -55,13 +84,19 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     closeDialog();
   }, [closeDialog]);
 
-  const availableProperties = ["mock1", "label", "zid"];
-  const numZones = 5;
+  const availableProperties = readResult
+    ? Array.from(readResult.uniqueProperties).sort()
+    : [];
+  const numZones = readResult?.features.length ?? 0;
 
   const footer =
     currentStep === DATA_INPUT_STEP_NUMBER ? (
       <WizardActions
-        nextAction={{ onClick: goNext, disabled: !selectedFile }}
+        nextAction={{
+          onClick: handleNextFromDataInput,
+          disabled: !selectedFile,
+          loading: isProcessing,
+        }}
       />
     ) : currentStep === DATA_MAPPING_STEP_NUMBER ? (
       <WizardActions
@@ -85,6 +120,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
           <DataInputStep
             selectedFile={selectedFile}
             onFileDrop={handleFileDrop}
+            error={fileError}
           />
         )}
         {currentStep === DATA_MAPPING_STEP_NUMBER && (
@@ -105,9 +141,11 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 const DataInputStep = ({
   selectedFile,
   onFileDrop,
+  error,
 }: {
   selectedFile: File | null;
   onFileDrop: (file: File) => void;
+  error: string | null;
 }) => {
   const translate = useTranslate();
 
@@ -122,6 +160,12 @@ const DataInputStep = ({
         supportedFormats="GeoJSON"
         selectedFile={selectedFile}
       />
+      {error && (
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-red-50 text-red-700 text-sm">
+          <ErrorIcon className="shrink-0" />
+          {translate(`importZones.errors.${error}`)}
+        </div>
+      )}
     </>
   );
 };
