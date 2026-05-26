@@ -16,7 +16,14 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { Pump, PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
-import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
+import {
+  SelectRow,
+  EnhancedSelectRow,
+  LibrarySelectRow,
+  EnhancedLibrarySelectRow,
+  QuantityRow,
+} from "./ui-components";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -115,6 +122,7 @@ const PumpDefinitionDetailsInner = ({
   ) => PumpCurveComparison;
 }) => {
   const translate = useTranslate();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const [localDefinitionType, setLocalDefinitionType] =
     useState<PumpDefinitionType>(() => pump.definitionType);
@@ -207,13 +215,23 @@ const PumpDefinitionDetailsInner = ({
         ) : undefined
       }
     >
-      <SelectRow
-        name="pumpType"
-        selected={localDefinitionType}
-        options={definitionModeOptions}
-        readOnly={readonly}
-        onChange={handleDefinitionTypeChange}
-      />
+      {isNewSelectorOn ? (
+        <EnhancedSelectRow
+          name="pumpType"
+          selected={localDefinitionType}
+          options={definitionModeOptions}
+          readOnly={readonly}
+          onChange={handleDefinitionTypeChange}
+        />
+      ) : (
+        <SelectRow
+          name="pumpType"
+          selected={localDefinitionType}
+          options={definitionModeOptions}
+          readOnly={readonly}
+          onChange={handleDefinitionTypeChange}
+        />
+      )}
       <NestedSection className="pb-2">
         {localDefinitionType === "power" && (
           <PowerDefinition
@@ -436,6 +454,7 @@ const CurveIdSelector = ({
 }) => {
   const translate = useTranslate();
   const showPumpLibrary = useShowPumpLibrary();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const selectedCurve = curveId === undefined ? null : curveId;
   const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
@@ -454,22 +473,41 @@ const CurveIdSelector = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <LibrarySelectRow
-        name="pumpName"
-        collection={curves}
-        filterByType="pump"
-        libraryLabel={translate("openPumpLibrary")}
-        onOpenLibrary={() =>
-          showPumpLibrary({
-            source: "pump",
-            curveId,
-            initialSection: "pump",
-          })
-        }
-        selected={selectedCurve}
-        readOnly={readOnly}
-        onChange={handleChange}
-      />
+      {isNewSelectorOn ? (
+        <EnhancedLibrarySelectRow
+          name="pumpName"
+          collection={curves}
+          filterByType="pump"
+          libraryLabel={translate("openPumpLibrary")}
+          onOpenLibrary={() =>
+            showPumpLibrary({
+              source: "pump",
+              curveId,
+              initialSection: "pump",
+            })
+          }
+          selected={selectedCurve}
+          readOnly={readOnly}
+          onChange={handleChange}
+        />
+      ) : (
+        <LibrarySelectRow
+          name="pumpName"
+          collection={curves}
+          filterByType="pump"
+          libraryLabel={translate("openPumpLibrary")}
+          onOpenLibrary={() =>
+            showPumpLibrary({
+              source: "pump",
+              curveId,
+              initialSection: "pump",
+            })
+          }
+          selected={selectedCurve}
+          readOnly={readOnly}
+          onChange={handleChange}
+        />
+      )}
       {curveType && (
         <InlineField name={translate("curveType")} labelSize="md">
           <TextField padding="md">{translate(curveType)}</TextField>

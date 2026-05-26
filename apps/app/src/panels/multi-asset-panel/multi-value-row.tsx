@@ -314,6 +314,9 @@ const EditableField = ({
               : undefined
           }
           placeholder={resolvedPlaceholder}
+          clearLabel={
+            config.nullLabelKey ? translate(config.nullLabelKey) : undefined
+          }
           ariaLabel={label}
           onChange={(newValue) => {
             onPropertyChange(

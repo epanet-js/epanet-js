@@ -227,8 +227,8 @@ export function EnhancedSelector<T extends string | number>({
     [disabled],
   );
 
-  const effectiveClearLabel = clearLabel ?? placeholder;
-  const showClearRow = nullable && selected !== null;
+  const showClearRow =
+    nullable && selected !== null && clearLabel !== undefined;
   const showActionRow =
     actionLabel !== undefined && onActionClick !== undefined;
   const showList = filtered.length > 0 || showCreateOption;
@@ -381,7 +381,7 @@ export function EnhancedSelector<T extends string | number>({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => commit(null)}
                 >
-                  {effectiveClearLabel}
+                  {clearLabel}
                 </button>
               </div>
             )}
@@ -395,7 +395,7 @@ export function EnhancedSelector<T extends string | number>({
               >
                 <button
                   type="button"
-                  className="flex items-center justify-between gap-4 w-full px-2 py-2 italic cursor-pointer text-gray-700 hover:bg-purple-300/40 rounded-sm"
+                  className="flex items-center justify-between gap-4 w-full px-2 py-2 cursor-pointer text-gray-700 hover:bg-purple-300/40 rounded-sm"
                   onMouseEnter={() => setActiveIndex(NO_INDEX)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {

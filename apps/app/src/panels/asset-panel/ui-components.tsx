@@ -16,7 +16,6 @@ import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { Selector, SelectorOption } from "src/components/form/selector";
 import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
@@ -425,6 +424,7 @@ export const CreatableTextRow = <P extends string>({
           allowNew
           onChange={handleChange}
           placeholder={resolvedPlaceholder}
+          clearLabel={resolvedPlaceholder}
           ariaLabel={label}
           searchPlaceholder={translate("searchOrTypeNew")}
           createLabel={(query) => translate("addNewValue", query)}
@@ -676,6 +676,21 @@ export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
 
 const LIBRARY_SENTINEL = -1;
 
+const useLibraryItems = (
+  collection: LibrarySelectRowProps<string>["collection"],
+  filterByType: string,
+  excludeId: number | undefined,
+) =>
+  useMemo(() => {
+    const out: SelectorOption<number>[] = [];
+    for (const item of collection.values()) {
+      if (item.type !== filterByType) continue;
+      if (item.id === excludeId) continue;
+      out.push({ value: item.id, label: item.label });
+    }
+    return out;
+  }, [collection, filterByType, excludeId]);
+
 export function LibrarySelectRow<P extends string>({
   name,
   collection,
@@ -691,39 +706,11 @@ export function LibrarySelectRow<P extends string>({
   comparison,
 }: LibrarySelectRowProps<P>) {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
-
-  const items = useMemo(() => {
-    const out: SelectorOption<number>[] = [];
-    for (const item of collection.values()) {
-      if (item.type !== filterByType) continue;
-      if (item.id === excludeId) continue;
-      out.push({ value: item.id, label: item.label });
-    }
-    return out;
-  }, [collection, filterByType, excludeId]);
+  const items = useLibraryItems(collection, filterByType, excludeId);
 
   const resolvedPlaceholder = readOnly
     ? (placeholder ?? emptyOptionLabel ?? "")
     : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`);
-
-  if (isNewSelectorOn) {
-    return (
-      <EnhancedSelectRow
-        name={name}
-        selected={selected}
-        options={items}
-        nullable={true}
-        placeholder={resolvedPlaceholder}
-        clearLabel={emptyOptionLabel}
-        actionLabel={libraryLabel}
-        onActionClick={onOpenLibrary}
-        onChange={onChange}
-        readOnly={readOnly}
-        comparison={comparison}
-      />
-    );
-  }
 
   const libraryGroup: SelectorOption<number>[] = [
     { label: libraryLabel, value: LIBRARY_SENTINEL },
@@ -758,6 +745,44 @@ export function LibrarySelectRow<P extends string>({
       nullable={true}
       placeholder={resolvedPlaceholder}
       onChange={handleLegacyChange}
+      readOnly={readOnly}
+      comparison={comparison}
+    />
+  );
+}
+
+export function EnhancedLibrarySelectRow<P extends string>({
+  name,
+  collection,
+  filterByType,
+  libraryLabel,
+  onOpenLibrary,
+  selected,
+  onChange,
+  emptyOptionLabel,
+  placeholder,
+  excludeId,
+  readOnly,
+  comparison,
+}: LibrarySelectRowProps<P>) {
+  const translate = useTranslate();
+  const items = useLibraryItems(collection, filterByType, excludeId);
+
+  const resolvedPlaceholder = readOnly
+    ? (placeholder ?? emptyOptionLabel ?? "")
+    : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`);
+
+  return (
+    <EnhancedSelectRow
+      name={name}
+      selected={selected}
+      options={items}
+      nullable={true}
+      placeholder={resolvedPlaceholder}
+      clearLabel={emptyOptionLabel}
+      actionLabel={libraryLabel}
+      onActionClick={onOpenLibrary}
+      onChange={onChange}
       readOnly={readOnly}
       comparison={comparison}
     />
