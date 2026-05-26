@@ -100,7 +100,6 @@ import {
   CirclePause,
   Zap,
   ChartLine,
-  Hexagon,
 } from "lucide-react";
 
 export const iconSizes = {
@@ -238,7 +237,7 @@ export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
-export const ZonesIcon = icon(Hexagon);
+export { CustomZonesIcon as ZonesIcon } from "./custom-icons/zones-icon";
 
 export const ReverseIcon: React.FC<IconProps> = ({
   size: rawSize = "md",
