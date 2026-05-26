@@ -126,6 +126,7 @@ const detectChanges = (
   hasSyncMomentChanged: boolean;
   hasNewResults: boolean;
   hasNewMapOverlay: boolean;
+  hasNewZoneFeatures: boolean;
   hasNewHighlights: boolean;
 } => {
   return {
@@ -158,6 +159,7 @@ const detectChanges = (
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
     hasNewResults: state.resultsReader !== prev.resultsReader,
     hasNewMapOverlay: state.mapOverlayFeatures !== prev.mapOverlayFeatures,
+    hasNewZoneFeatures: state.zoneFeatures !== prev.zoneFeatures,
     hasNewHighlights: state.highlights !== prev.highlights,
   };
 };
@@ -186,6 +188,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
+  const zonesEnabled = useFeatureFlag("FLAG_ZONES");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -212,6 +215,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasSyncMomentChanged,
       hasNewResults,
       hasNewMapOverlay,
+      hasNewZoneFeatures,
       hasNewHighlights,
     } = changes;
 
@@ -430,6 +434,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           await updateMapOverlaySource(map, mapState.mapOverlayFeatures);
         }
 
+        if (zonesEnabled) {
+          if (hasNewZoneFeatures || hasNewStyles) {
+            await updateZonesSource(map, mapState.zoneFeatures);
+          }
+        }
+
         const hasAssetHighlights = mapState.highlights.some(
           (h) => h.type === "asset",
         );
@@ -531,6 +541,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     isGridOn,
     isGridPreview,
     withPrecision,
+    zonesEnabled,
   ]);
 
   doUpdates();
@@ -950,6 +961,16 @@ const updateMapOverlaySource = async (
 ): Promise<void> => {
   await map.setSource(
     "map-overlay",
+    features as unknown as import("src/types").Feature[],
+  );
+};
+
+const updateZonesSource = async (
+  map: MapEngine,
+  features: GeoJSON.Feature[],
+): Promise<void> => {
+  await map.setSource(
+    "zones",
     features as unknown as import("src/types").Feature[],
   );
 };

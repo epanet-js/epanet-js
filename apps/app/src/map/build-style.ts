@@ -127,6 +127,7 @@ export function defineEmptySources(style: Style) {
   style.sources["map-overlay"] = emptyGeoJSONSource;
   style.sources["highlights"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
+  style.sources["zones"] = emptyGeoJSONSource;
 }
 
 export function defineEmptySourcesWithPrecision(style: Style) {
@@ -138,6 +139,7 @@ export function defineEmptySourcesWithPrecision(style: Style) {
   style.sources["map-overlay"] = emptyGeoJSONSourceWithPrecision;
   style.sources["highlights"] = emptyGeoJSONSourceWithPrecision;
   style.sources["grid"] = emptyGeoJSONSourceWithPrecision;
+  style.sources["zones"] = emptyGeoJSONSourceWithPrecision;
 }
 
 import type { PreviewProperty } from "src/state/map-symbology";
@@ -155,6 +157,7 @@ import {
   mapOverlayOutlineLayer,
   mapOverlayLabelLayer,
 } from "src/map/layers/map-overlay";
+import { zoneFillLayer, zoneOutlineLayer } from "src/map/layers/zones";
 import {
   ephemeralDraftLineLayer,
   ephemeralDraftPathLineLayer,
@@ -251,6 +254,8 @@ export function makeLayers({
   return [
     gridMinorLayer(),
     gridMajorLayer(),
+    zoneFillLayer({ source: "zones" }),
+    zoneOutlineLayer({ source: "zones" }),
     mapOverlayFillLayer({ source: "map-overlay" }),
     mapOverlayOutlineLayer({ source: "map-overlay" }),
     mapOverlayLabelLayer({ source: "map-overlay" }),

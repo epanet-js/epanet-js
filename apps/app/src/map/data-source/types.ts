@@ -6,7 +6,8 @@ export type DataSource =
   | "ephemeral"
   | "map-overlay"
   | "highlights"
-  | "grid";
+  | "grid"
+  | "zones";
 
 export const FeatureSources = {
   MAIN: "main-features" as const,

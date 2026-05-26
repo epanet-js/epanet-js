@@ -5,3 +5,4 @@ export { buildIconPointsSource } from "./icons";
 export { buildEphemeralStateSource } from "./ephemeral";
 export { buildHighlightsSource } from "./highlights";
 export { buildSelectionSource } from "./selection";
+export { buildZoneFeatures } from "./zones";
