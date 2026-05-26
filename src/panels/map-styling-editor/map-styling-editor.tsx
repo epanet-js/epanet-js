@@ -146,6 +146,9 @@ const SymbologyEditor = ({
   const symbology = geometryType === "node" ? nodeSymbology : linkSymbology;
   const hasCompletedSimulation =
     "epsResultsReader" in simulation && !!simulation.epsResultsReader;
+  const isEpsSimulation =
+    "epsResultsReader" in simulation &&
+    (simulation.epsResultsReader?.timestepCount ?? 0) > 1;
   const hasWaterAge =
     hasCompletedSimulation &&
     simulation.epsResultsReader?.qualityType === "age";
@@ -173,6 +176,8 @@ const SymbologyEditor = ({
         label,
         disabled:
           (!hasCompletedSimulation && isSimProp) ||
+          ((type === "minPressure" || type === "maxPressure") &&
+            !isEpsSimulation) ||
           (type === "waterAge" && !hasWaterAge) ||
           (type === "waterTrace" && !hasWaterTrace) ||
           (type === "chemicalConcentration" && !hasChemical),
@@ -190,6 +195,7 @@ const SymbologyEditor = ({
     translate,
     translateUnit,
     hasCompletedSimulation,
+    isEpsSimulation,
     hasWaterAge,
     hasWaterTrace,
     hasChemical,
