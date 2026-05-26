@@ -1,5 +1,5 @@
 {
-  "name": "@epanet-js/epanet-js",
+  "name": "@epanet-js/app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
