@@ -129,6 +129,18 @@ const projectionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+const zonesSchema = z.record(
+  z.string(),
+  z.object({
+    id: z.number(),
+    label: z.string(),
+    geometry: z.object({
+      type: z.literal("MultiPolygon"),
+      coordinates: z.array(z.array(z.array(z.array(z.number())))),
+    }),
+  }),
+);
+
 export const projectSettingsSchema: z.ZodType<ProjectSettings> = z.object({
   name: z.string(),
   units: unitsSpecSchema,
@@ -136,4 +148,5 @@ export const projectSettingsSchema: z.ZodType<ProjectSettings> = z.object({
   headlossFormula: headlossFormulaSchema,
   formatting: formattingSpecSchema,
   projection: projectionSchema,
+  zones: zonesSchema,
 });

@@ -13,12 +13,12 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SuccessIcon, ErrorIcon } from "src/icons";
 import {
   readZoneFeatures,
+  ZoneLabelGenerator,
   type ReadZoneFeaturesResult,
   type ZoneFeature,
-} from "src/commands/read-zone-features";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+} from "src/lib/zones";
+import { useImportZoneFeatures } from "src/commands/import-zone-features";
 import { useMemo } from "react";
-import { useApplyZoneImport } from "src/commands/apply-zone-import";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
@@ -28,6 +28,7 @@ const PREVIEW_LIMIT = 10;
 export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
+  const importZoneFeatures = useImportZoneFeatures();
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
@@ -36,7 +37,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const [readResult, setReadResult] = useState<ReadZoneFeaturesResult | null>(
     null,
   );
-  const applyZoneImport = useApplyZoneImport();
 
   const steps = [
     {
@@ -80,14 +80,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     setCurrentStep(DATA_MAPPING_STEP_NUMBER);
   }, [selectedFile]);
 
-  const handleImport = useCallback(() => {
+  const handleImport = useCallback(async () => {
     if (!readResult) return;
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
-    applyZoneImport(readResult.features, labelProperty);
+    await importZoneFeatures(readResult.features, labelProperty);
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, applyZoneImport]);
+  }, [readResult, selectedLabel, importZoneFeatures]);
 
   const goBack = useCallback(() => {
     setCurrentStep((s) => Math.max(s - 1, 1));
@@ -302,8 +302,8 @@ const buildPreviewLabels = (
   const preview = features.slice(0, PREVIEW_LIMIT);
 
   if (selectedLabel === "none") {
-    const labelManager = new LabelManager();
-    return preview.map((_, i) => labelManager.generateFor("zone", i + 1));
+    const generator = new ZoneLabelGenerator();
+    return preview.map(() => generator.next());
   }
 
   return preview.map((f) => String(f.properties?.[selectedLabel] ?? ""));

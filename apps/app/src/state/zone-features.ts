@@ -1,8 +1,8 @@
 import { atom } from "jotai";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildZoneFeatures } from "src/map/data-source/zones";
+import { projectSettingsAtom } from "./project-settings";
 
 export const zoneFeaturesAtom = atom((get) => {
-  const model = get(stagingModelDerivedAtom);
-  return buildZoneFeatures(model.zones);
+  const projectSettings = get(projectSettingsAtom);
+  return buildZoneFeatures(projectSettings.zones);
 });

@@ -33,6 +33,7 @@ import {
 } from "src/lib/projections";
 import { createProjectionTransformer } from "src/lib/geojson-utils/coordinate-transform";
 import { computeCentroid } from "src/lib/projections/xy-grid-transform";
+import { initializeZones } from "src/lib/zones";
 
 type SourceProjection = { id: string; name: string; code?: string };
 
@@ -103,6 +104,7 @@ export const parseInp = (
       projectSettings: {
         ...projectSettings,
         name: defaultProjectName,
+        zones: initializeZones(),
         projection,
       },
       simulationSettings: buildSimulationSettings(
@@ -129,6 +131,7 @@ export const parseInp = (
     projectSettings: {
       ...projectSettings,
       name: defaultProjectName,
+      zones: initializeZones(),
       projection,
     },
     simulationSettings: buildSimulationSettings(

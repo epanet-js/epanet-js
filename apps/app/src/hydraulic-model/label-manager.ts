@@ -1,11 +1,6 @@
 import { Asset } from "./asset-types";
 
-export type LabelType =
-  | Asset["type"]
-  | "pattern"
-  | "curve"
-  | "customerPoint"
-  | "zone";
+export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
 
 type LabelEntry = {
   id: number;
@@ -22,16 +17,9 @@ const labelPrefixes: Record<LabelType, string> = {
   pattern: "PAT",
   curve: "C",
   customerPoint: "CP",
-  zone: "Z",
 };
 
-type LabelGroup =
-  | "pattern"
-  | "curve"
-  | "node"
-  | "link"
-  | "customerPoint"
-  | "zone";
+type LabelGroup = "pattern" | "curve" | "node" | "link" | "customerPoint";
 
 export class LabelManager {
   private indexPerType: Map<LabelType, number>;
@@ -235,12 +223,7 @@ const isNodeType = (t: LabelType) =>
   t === "junction" || t === "reservoir" || t === "tank";
 
 const getLabelUniqueGroup = (type: LabelType): LabelGroup => {
-  if (
-    type === "pattern" ||
-    type === "curve" ||
-    type === "customerPoint" ||
-    type === "zone"
-  ) {
+  if (type === "pattern" || type === "curve" || type === "customerPoint") {
     return type;
   }
   return isNodeType(type) ? "node" : "link";
