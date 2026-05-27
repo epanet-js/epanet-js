@@ -5,6 +5,8 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
@@ -26,6 +28,7 @@ import { currentFileNameAtom } from "src/state";
 export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { capture } = useUserTracking();
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
   const networkNameDot = fullNetworkName.lastIndexOf(".");
@@ -292,17 +295,31 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <span className="text-sm font-medium text-gray-600">
                 {translate("customGraph.nodeProperty")}
               </span>
-              <Selector
-                options={nodePropertyOptions}
-                selected={nodeProperty}
-                disabled={controlsDisabled}
-                onChange={handleNodePropertyChange}
-                styleOptions={{
-                  border: true,
-                  textSize: "text-sm",
-                  paddingY: 1,
-                }}
-              />
+              {isNewSelectorOn ? (
+                <EnhancedSelector
+                  options={nodePropertyOptions}
+                  selected={nodeProperty}
+                  disabled={controlsDisabled}
+                  onChange={handleNodePropertyChange}
+                  styleOptions={{
+                    border: true,
+                    textSize: "text-sm",
+                    paddingY: 1,
+                  }}
+                />
+              ) : (
+                <Selector
+                  options={nodePropertyOptions}
+                  selected={nodeProperty}
+                  disabled={controlsDisabled}
+                  onChange={handleNodePropertyChange}
+                  styleOptions={{
+                    border: true,
+                    textSize: "text-sm",
+                    paddingY: 1,
+                  }}
+                />
+              )}
             </div>
           )}
           {hasLinks && (
@@ -310,17 +327,31 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               <span className="text-sm font-medium text-gray-600">
                 {translate("customGraph.linkProperty")}
               </span>
-              <Selector
-                options={linkPropertyOptions}
-                selected={linkProperty}
-                disabled={controlsDisabled}
-                onChange={handleLinkPropertyChange}
-                styleOptions={{
-                  border: true,
-                  textSize: "text-sm",
-                  paddingY: 1,
-                }}
-              />
+              {isNewSelectorOn ? (
+                <EnhancedSelector
+                  options={linkPropertyOptions}
+                  selected={linkProperty}
+                  disabled={controlsDisabled}
+                  onChange={handleLinkPropertyChange}
+                  styleOptions={{
+                    border: true,
+                    textSize: "text-sm",
+                    paddingY: 1,
+                  }}
+                />
+              ) : (
+                <Selector
+                  options={linkPropertyOptions}
+                  selected={linkProperty}
+                  disabled={controlsDisabled}
+                  onChange={handleLinkPropertyChange}
+                  styleOptions={{
+                    border: true,
+                    textSize: "text-sm",
+                    paddingY: 1,
+                  }}
+                />
+              )}
             </div>
           )}
         </div>

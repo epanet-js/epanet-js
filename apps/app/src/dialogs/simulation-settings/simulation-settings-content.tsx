@@ -11,6 +11,8 @@ import {
 } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector, SelectorOption } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
@@ -758,26 +760,31 @@ export const EnergySection = () => {
 
   const EMPTY_PATTERN_ID = 0;
 
-  const energyPricePatternOptions = useMemo(() => {
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
+
+  const realEnergyPricePatterns = useMemo(() => {
     const patternGroup: SelectorOption<number>[] = [];
     for (const [, pattern] of patterns) {
       if (pattern.type === "energyPrice") {
         patternGroup.push({ label: pattern.label, value: pattern.id });
       }
     }
+    return patternGroup;
+  }, [patterns]);
 
-    const constantGroup: SelectorOption<number>[] = [
-      {
-        label:
-          patternGroup.length === 0
-            ? translate("simulationSettings.noPatternsYet")
-            : translate("constant"),
-        value: EMPTY_PATTERN_ID,
-      },
+  const energyPricePatternClearLabel =
+    realEnergyPricePatterns.length === 0
+      ? translate("simulationSettings.noPatternsYet")
+      : translate("constant");
+
+  const energyPricePatternOptions = useMemo(() => {
+    if (realEnergyPricePatterns.length === 0) return [];
+    if (isNewSelectorOn) return realEnergyPricePatterns;
+    return [
+      { label: energyPricePatternClearLabel, value: EMPTY_PATTERN_ID },
+      ...realEnergyPricePatterns,
     ];
-
-    return patternGroup.length ? [...constantGroup, ...patternGroup] : [];
-  }, [patterns, translate]);
+  }, [realEnergyPricePatterns, energyPricePatternClearLabel, isNewSelectorOn]);
 
   return (
     <div>
@@ -817,11 +824,8 @@ export const EnergySection = () => {
           options={energyPricePatternOptions}
           selected={values.energyGlobalPatternId}
           nullable
-          placeholder={
-            energyPricePatternOptions.length === 0
-              ? translate("simulationSettings.noPatternsYet")
-              : translate("constant")
-          }
+          placeholder={energyPricePatternClearLabel}
+          clearLabel={energyPricePatternClearLabel}
           listClassName="first:italic"
           onChange={(v) =>
             setFieldValue(
@@ -978,6 +982,7 @@ type SelectorSettingPropsNullable<T extends string | number> =
     selected: T | null;
     nullable: true;
     placeholder: string;
+    clearLabel?: string;
     onChange: (value: T | null) => void;
   };
 
@@ -998,34 +1003,64 @@ const SelectorSetting = <T extends string | number>({
   listClassName,
   warning,
   onChange,
-}: SelectorSettingProps<T>) => (
-  <SettingsRow label={label} description={description} badge={badge}>
-    <div className="flex items-center gap-2">
-      <div className="w-56">
-        <Selector
-          ariaLabel={label}
-          options={options}
-          selected={selected}
-          onChange={(v: T | null) => (onChange as (value: T | null) => void)(v)}
-          disabled={disabled}
-          nullable={nullable as true}
-          placeholder={placeholder as string}
-          stickyFirstGroup={stickyFirstGroup}
-          listClassName={listClassName}
-          styleOptions={{
-            border: true,
-            textSize: "text-sm",
-            paddingY: 2,
-            variant: warning ? "warning" : undefined,
-          }}
-        />
+  ...rest
+}: SelectorSettingProps<T>) => {
+  const clearLabel = (rest as { clearLabel?: string }).clearLabel;
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
+  const styleOptions = {
+    border: true,
+    textSize: "text-sm" as const,
+    paddingY: 2,
+    variant: warning ? ("warning" as const) : undefined,
+  };
+  return (
+    <SettingsRow label={label} description={description} badge={badge}>
+      <div className="flex items-center gap-2">
+        <div className="w-56">
+          {isNewSelectorOn ? (
+            <EnhancedSelector
+              ariaLabel={label}
+              options={
+                (Array.isArray(options[0])
+                  ? options.flat()
+                  : options) as SelectorOption<T>[]
+              }
+              selected={selected}
+              onChange={(v: T | null) =>
+                (onChange as (value: T | null) => void)(v)
+              }
+              disabled={disabled}
+              nullable={nullable as true}
+              placeholder={placeholder as string}
+              clearLabel={clearLabel}
+              styleOptions={styleOptions}
+            />
+          ) : (
+            <Selector
+              ariaLabel={label}
+              options={options}
+              selected={selected}
+              onChange={(v: T | null) =>
+                (onChange as (value: T | null) => void)(v)
+              }
+              disabled={disabled}
+              nullable={nullable as true}
+              placeholder={placeholder as string}
+              stickyFirstGroup={stickyFirstGroup}
+              listClassName={listClassName}
+              styleOptions={styleOptions}
+            />
+          )}
+        </div>
+        {warning && (
+          <span className="text-xs font-semibold text-orange-800">
+            {warning}
+          </span>
+        )}
       </div>
-      {warning && (
-        <span className="text-xs font-semibold text-orange-800">{warning}</span>
-      )}
-    </div>
-  </SettingsRow>
-);
+    </SettingsRow>
+  );
+};
 
 const TextSetting = ({
   label,

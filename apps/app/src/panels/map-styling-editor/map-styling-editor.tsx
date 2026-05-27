@@ -8,6 +8,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Selector } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
 import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -126,8 +127,7 @@ const simulationProperties = [
   "waterAge",
 ];
 
-type SelectOption = SupportedProperty | "none";
-type LabelSelectOption = SupportedProperty | "none" | "label";
+type LabelSelectOption = SupportedProperty | null | "label";
 
 const SymbologyEditor = ({
   geometryType,
@@ -141,6 +141,7 @@ const SymbologyEditor = ({
   const readonly = useAtomValue(isPlayingAtom);
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationDerivedAtom);
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const {
     linkSymbology,
     nodeSymbology,
@@ -169,33 +170,39 @@ const SymbologyEditor = ({
   const { changeColorBy } = useChangeColorBy(geometryType);
 
   const colorByOptions = useMemo(() => {
-    const unitKeyFor = (type: string): keyof typeof units => {
+    const unitKeyFor = (type: SupportedProperty): keyof typeof units => {
       if (type === "minPressure" || type === "maxPressure") return "pressure";
       return type as keyof typeof units;
     };
-    const options = (["none", ...properties] as SelectOption[]).map((type) => {
-      const unit = type !== "none" ? (units[unitKeyFor(type)] ?? null) : null;
-      const isSimProp = simulationProperties.includes(type);
-      const label = `${colorPropertyLabelFor(type, translate)} ${!!unit ? `(${translateUnit(unit)})` : ""}`;
-      return {
-        value: type,
-        label,
-        disabled:
-          (!hasCompletedSimulation && isSimProp) ||
-          ((type === "minPressure" || type === "maxPressure") &&
-            !isEpsSimulation) ||
-          (type === "waterAge" && !hasWaterAge) ||
-          (type === "waterTrace" && !hasWaterTrace) ||
-          (type === "chemicalConcentration" && !hasChemical),
-      };
-    });
-    // Sort enabled options before disabled ones, keeping "none" always first
-    return options.sort((a, b) => {
-      if (a.value === "none") return -1;
-      if (b.value === "none") return 1;
-      return Number(a.disabled) - Number(b.disabled);
-    });
+    const propertyOptions = properties
+      .map((type) => {
+        const unit = units[unitKeyFor(type)] ?? null;
+        const isSimProp = simulationProperties.includes(type);
+        const label = `${colorPropertyLabelFor(type, translate)} ${unit ? `(${translateUnit(unit)})` : ""}`;
+        return {
+          value: type,
+          label,
+          disabled:
+            (!hasCompletedSimulation && isSimProp) ||
+            ((type === "minPressure" || type === "maxPressure") &&
+              !isEpsSimulation) ||
+            (type === "waterAge" && !hasWaterAge) ||
+            (type === "waterTrace" && !hasWaterTrace) ||
+            (type === "chemicalConcentration" && !hasChemical),
+        };
+      })
+      .sort((a, b) => Number(a.disabled) - Number(b.disabled));
+
+    if (isNewSelectorOn) return propertyOptions;
+
+    const noneOption = {
+      value: null,
+      label: colorPropertyLabelFor("none", translate),
+      disabled: false,
+    };
+    return [noneOption, ...propertyOptions];
   }, [
+    isNewSelectorOn,
     properties,
     units,
     translate,
@@ -209,7 +216,7 @@ const SymbologyEditor = ({
 
   const labelByOptions = useMemo(() => {
     const noneOption = {
-      value: "none" as LabelSelectOption,
+      value: null as LabelSelectOption,
       label: translate("none"),
       disabled: false,
     };
@@ -219,14 +226,16 @@ const SymbologyEditor = ({
       disabled: false,
     };
     const propertyOptions = colorByOptions
-      .filter((o) => o.value !== "none")
+      .filter((o) => o.value !== null)
       .map((o) => ({
         ...o,
         value: o.value as LabelSelectOption,
       }));
 
-    return [noneOption, labelOption, ...propertyOptions];
-  }, [colorByOptions, translate]);
+    return isNewSelectorOn
+      ? [labelOption, ...propertyOptions]
+      : [noneOption, labelOption, ...propertyOptions];
+  }, [colorByOptions, translate, isNewSelectorOn]);
 
   const userTracking = useUserTracking();
 
@@ -249,10 +258,6 @@ const SymbologyEditor = ({
     } else {
       updateLinkSymbology({ ...symbology, labelRule: label });
     }
-  };
-
-  const handleLabelByChange = (value: LabelSelectOption) => {
-    handleLabelRuleChange(value === "none" ? null : value);
   };
 
   const title =
@@ -291,16 +296,41 @@ const SymbologyEditor = ({
                 )?.label ?? translate("none"))
               : translate("none")}
           </TextField>
+        ) : isNewSelectorOn ? (
+          <EnhancedSelector
+            ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
+            options={
+              colorByOptions as {
+                value: SupportedProperty;
+                label: string;
+                disabled: boolean;
+              }[]
+            }
+            selected={symbology.colorRule?.property ?? null}
+            nullable
+            placeholder={translate("none")}
+            clearLabel={translate("none")}
+            onChange={(v) => {
+              void changeColorBy(v as SupportedProperty | null);
+            }}
+            disabled={readonly}
+          />
         ) : (
           <Selector
             ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-            options={colorByOptions}
-            selected={
-              (symbology.colorRule
-                ? symbology.colorRule.property
-                : "none") as SelectOption
+            options={
+              colorByOptions as {
+                value: string;
+                label: string;
+                disabled: boolean;
+              }[]
             }
-            onChange={changeColorBy}
+            selected={symbology.colorRule?.property ?? null}
+            nullable
+            placeholder={translate("none")}
+            onChange={(v) => {
+              void changeColorBy(v as SupportedProperty | null);
+            }}
             disabled={readonly}
           />
         )}
@@ -384,12 +414,36 @@ const SymbologyEditor = ({
                 )?.label ?? translate("none"))
               : translate("none")}
           </TextField>
+        ) : isNewSelectorOn ? (
+          <EnhancedSelector
+            ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
+            options={
+              labelByOptions as {
+                value: string;
+                label: string;
+                disabled: boolean;
+              }[]
+            }
+            selected={symbology.labelRule ?? null}
+            nullable
+            placeholder={translate("none")}
+            clearLabel={translate("none")}
+            onChange={handleLabelRuleChange}
+          />
         ) : (
           <Selector
             ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
-            options={labelByOptions}
-            selected={(symbology.labelRule ?? "none") as LabelSelectOption}
-            onChange={handleLabelByChange}
+            options={
+              labelByOptions as {
+                value: string;
+                label: string;
+                disabled: boolean;
+              }[]
+            }
+            selected={symbology.labelRule ?? null}
+            nullable
+            placeholder={translate("none")}
+            onChange={handleLabelRuleChange}
           />
         )}
       </InlineField>

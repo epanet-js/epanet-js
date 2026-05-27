@@ -8,6 +8,8 @@ import { WizardActions } from "src/components/wizard/wizard-actions";
 import { DropZone } from "src/components/drop-zone";
 import { useDialogState } from "src/components/dialog";
 import { Selector, type SelectorOption } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { SuccessIcon, ErrorIcon } from "src/icons";
 import {
   readZoneFeatures,
@@ -194,16 +196,16 @@ const DataMappingStep = ({
   onSelectLabel: (value: string) => void;
 }) => {
   const translate = useTranslate();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
-  const options: SelectorOption<string>[] = [
-    {
-      label: translate("importZones.dataMappingStep.none"),
-      value: "none",
-    },
-    ...availableProperties.map((property) => ({
-      label: property,
-      value: property,
-    })),
+  const noneLabel = translate("importZones.dataMappingStep.none");
+  const propertyOptions = availableProperties.map((property) => ({
+    label: property,
+    value: property,
+  }));
+  const legacyOptions: SelectorOption<string>[] = [
+    { label: noneLabel, value: "none" },
+    ...propertyOptions,
   ];
 
   const previewLabels = useMemo(
@@ -216,12 +218,24 @@ const DataMappingStep = ({
       <p className="text-sm text-gray-700 mb-2">
         {translate("importZones.dataMappingStep.description")}
       </p>
-      <Selector
-        options={options}
-        selected={selectedLabel}
-        onChange={(value) => onSelectLabel(value)}
-        ariaLabel={translate("importZones.dataMappingStep.description")}
-      />
+      {isNewSelectorOn ? (
+        <EnhancedSelector
+          nullable
+          placeholder={noneLabel}
+          clearLabel={noneLabel}
+          options={propertyOptions}
+          selected={selectedLabel === "none" ? null : selectedLabel}
+          onChange={(value) => onSelectLabel(value ?? "none")}
+          ariaLabel={translate("importZones.dataMappingStep.description")}
+        />
+      ) : (
+        <Selector
+          options={legacyOptions}
+          selected={selectedLabel}
+          onChange={(value) => onSelectLabel(value)}
+          ariaLabel={translate("importZones.dataMappingStep.description")}
+        />
+      )}
       <LabelPreviewTable labels={previewLabels} totalCount={features.length} />
     </div>
   );

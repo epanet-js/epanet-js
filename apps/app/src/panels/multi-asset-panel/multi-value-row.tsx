@@ -241,7 +241,21 @@ const EditableField = ({
         }));
 
     if (isMixed) {
-      return (
+      return isNewSelectorOn ? (
+        <EnhancedSelector<string>
+          selected={currentValue}
+          options={options}
+          nullable={true}
+          placeholder={mixedPlaceholder}
+          ariaLabel={label}
+          onChange={(newValue) => {
+            if (newValue !== null) {
+              onPropertyChange(config.modelProperty, newValue);
+            }
+          }}
+          disabled={readonly}
+        />
+      ) : (
         <Selector<string>
           selected={currentValue}
           options={options}
@@ -258,7 +272,17 @@ const EditableField = ({
       );
     }
 
-    return (
+    return isNewSelectorOn ? (
+      <EnhancedSelector<string>
+        selected={currentValue!}
+        options={options}
+        ariaLabel={label}
+        onChange={(newValue) => {
+          onPropertyChange(config.modelProperty, newValue);
+        }}
+        disabled={readonly}
+      />
+    ) : (
       <Selector<string>
         selected={currentValue!}
         options={options}

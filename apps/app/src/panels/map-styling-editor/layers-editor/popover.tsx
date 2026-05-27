@@ -45,6 +45,8 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { Selector } from "src/components/form/selector";
+import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -755,6 +757,7 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const translate = useTranslate();
   const isRaster = layerConfig.name.includes("Satellite");
   const { applyChanges } = useLayerConfigState();
@@ -763,54 +766,63 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const nextAt = getNextAt(items);
   const userTracking = useUserTracking();
 
+  const basemapOptions = Object.entries(basemaps).map(([, mapboxLayer]) => ({
+    value: mapboxLayer.name,
+    label: mapboxLayer.name,
+  }));
+  const handleBasemapChange = (name: string) => {
+    const newMapboxLayer = Object.values(basemaps).find((l) => l.name === name);
+    if (!newMapboxLayer) return;
+
+    const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
+      maybeDeleteOldMapboxLayer(items);
+    userTracking.capture({
+      name: "baseMap.changed",
+      newBasemap: name,
+      oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
+      source: "dropdown",
+    });
+    applyChanges({
+      deleteLayerConfigs,
+      putLayerConfigs: [
+        {
+          ...newMapboxLayer,
+          visibility: true,
+          tms: false,
+          opacity: newMapboxLayer.opacity,
+          at: oldAt || nextAt,
+          id: newFeatureId(),
+          labelVisibility: layerConfig ? layerConfig.labelVisibility : true,
+        },
+      ],
+    });
+  };
+  const basemapStyleOptions = {
+    border: false,
+    paddingX: 0 as const,
+    paddingY: 0 as const,
+    textSize: "text-sm" as const,
+  };
   const namePopover = (
     <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
       <span className="select-none truncate text-sm w-auto">
-        <Selector
-          ariaLabel="basemaps"
-          options={Object.entries(basemaps).map(([, mapboxLayer]) => ({
-            value: mapboxLayer.name,
-            label: mapboxLayer.name,
-          }))}
-          selected={layerConfig.name}
-          onChange={(name) => {
-            const newMapboxLayer = Object.values(basemaps).find(
-              (l) => l.name === name,
-            );
-            if (!newMapboxLayer) return;
-
-            const { deleteLayerConfigs, oldAt, oldMapboxLayer } =
-              maybeDeleteOldMapboxLayer(items);
-            userTracking.capture({
-              name: "baseMap.changed",
-              newBasemap: name,
-              oldBasemap: oldMapboxLayer ? oldMapboxLayer.name : "",
-              source: "dropdown",
-            });
-            applyChanges({
-              deleteLayerConfigs,
-              putLayerConfigs: [
-                {
-                  ...newMapboxLayer,
-                  visibility: true,
-                  tms: false,
-                  opacity: newMapboxLayer.opacity,
-                  at: oldAt || nextAt,
-                  id: newFeatureId(),
-                  labelVisibility: layerConfig
-                    ? layerConfig.labelVisibility
-                    : true,
-                },
-              ],
-            });
-          }}
-          styleOptions={{
-            border: false,
-            paddingX: 0,
-            paddingY: 0,
-            textSize: "text-sm",
-          }}
-        />
+        {isNewSelectorOn ? (
+          <EnhancedSelector
+            ariaLabel="basemaps"
+            options={basemapOptions}
+            selected={layerConfig.name}
+            onChange={handleBasemapChange}
+            styleOptions={basemapStyleOptions}
+          />
+        ) : (
+          <Selector
+            ariaLabel="basemaps"
+            options={basemapOptions}
+            selected={layerConfig.name}
+            onChange={handleBasemapChange}
+            styleOptions={basemapStyleOptions}
+          />
+        )}
       </span>
     </div>
   );

@@ -65,18 +65,21 @@ export const DataMappingStep: React.FC<{
     isLoading,
   } = wizardState;
 
-  const patternOptions = useMemo(() => {
-    const options: { value: number; label: string }[] = [
-      {
-        value: CONSTANT_PATTERN_ID,
-        label: translate("constant").toUpperCase(),
-      },
-    ];
+  const constantLabel = translate("constant").toUpperCase();
+  const realPatternOptions = useMemo(() => {
+    const options: { value: number; label: string }[] = [];
     for (const [patternId, { label }] of patterns.entries()) {
       options.push({ value: patternId, label });
     }
     return options;
-  }, [patterns, translate]);
+  }, [patterns]);
+  const patternOptions = useMemo(
+    () => [
+      { value: CONSTANT_PATTERN_ID, label: constantLabel },
+      ...realPatternOptions,
+    ],
+    [constantLabel, realPatternOptions],
+  );
 
   const parseInputDataToCustomerPoints = useCallback(
     (
@@ -291,23 +294,43 @@ export const DataMappingStep: React.FC<{
                       "importCustomerPoints.wizard.dataMapping.demandSelector.label",
                     )}
                   </label>
-                  <Selector
-                    nullable={true}
-                    placeholder={translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
-                    )}
-                    options={Array.from(inputData.properties).map((prop) => ({
-                      label: prop,
-                      value: prop,
-                    }))}
-                    selected={selectedDemandProperty}
-                    onChange={(value) =>
-                      handleDemandPropertyChange(value || "")
-                    }
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.label",
-                    )}
-                  />
+                  {isNewSelectorOn ? (
+                    <EnhancedSelector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                      )}
+                      options={Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      }))}
+                      selected={selectedDemandProperty}
+                      onChange={(value) =>
+                        handleDemandPropertyChange(value || "")
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                      )}
+                    />
+                  ) : (
+                    <Selector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                      )}
+                      options={Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      }))}
+                      selected={selectedDemandProperty}
+                      onChange={(value) =>
+                        handleDemandPropertyChange(value || "")
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                      )}
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
@@ -379,14 +402,30 @@ export const DataMappingStep: React.FC<{
                         "importCustomerPoints.wizard.demandOptions.timePattern.title",
                       )} (${translate("optional")})`}
                     </label>
-                    <Selector
-                      options={patternOptions}
-                      selected={selectedPatternId ?? CONSTANT_PATTERN_ID}
-                      onChange={handlePatternChange}
-                      ariaLabel={translate(
-                        "importCustomerPoints.wizard.demandOptions.timePattern.title",
-                      )}
-                    />
+                    {isNewSelectorOn ? (
+                      <EnhancedSelector
+                        nullable
+                        placeholder={constantLabel}
+                        clearLabel={constantLabel}
+                        options={realPatternOptions}
+                        selected={selectedPatternId ?? null}
+                        onChange={(value) =>
+                          handlePatternChange(value ?? CONSTANT_PATTERN_ID)
+                        }
+                        ariaLabel={translate(
+                          "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                        )}
+                      />
+                    ) : (
+                      <Selector
+                        options={patternOptions}
+                        selected={selectedPatternId ?? CONSTANT_PATTERN_ID}
+                        onChange={handlePatternChange}
+                        ariaLabel={translate(
+                          "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                        )}
+                      />
+                    )}
                     <p className="text-xs text-gray-500 mt-1">
                       {translate(
                         "importCustomerPoints.wizard.demandOptions.timePattern.description",

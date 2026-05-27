@@ -21,7 +21,7 @@ import {
 
 type DemandCategoryRow = {
   baseDemand: number | null;
-  patternId: PatternId;
+  patternId: PatternId | null;
 };
 
 type Props = {
@@ -31,8 +31,6 @@ type Props = {
   comparison?: PropertyComparison;
   readOnly?: boolean;
 };
-
-const CONSTANT_PATTERN_ID = 0;
 
 const toRow = (demand: Demand, patterns: Patterns): DemandCategoryRow => {
   if (demand.patternId) {
@@ -46,21 +44,20 @@ const toRow = (demand: Demand, patterns: Patterns): DemandCategoryRow => {
   }
   return {
     baseDemand: demand.baseDemand,
-    patternId: CONSTANT_PATTERN_ID,
+    patternId: null,
   };
 };
 
 const fromRow = (row: DemandCategoryRow): Demand => {
   return {
     baseDemand: row.baseDemand ?? 0,
-    patternId:
-      row.patternId === CONSTANT_PATTERN_ID ? undefined : row.patternId,
+    patternId: row.patternId ?? undefined,
   };
 };
 
 const createDefaultRow = (): DemandCategoryRow => ({
   baseDemand: 0,
-  patternId: CONSTANT_PATTERN_ID,
+  patternId: null,
 });
 
 export const DemandCategoriesEditor = ({
@@ -108,19 +105,14 @@ export const DemandCategoriesEditor = ({
   }, []);
 
   const patternOptions = useMemo(() => {
-    const options: { value: number; label: string }[] = [
-      {
-        value: CONSTANT_PATTERN_ID,
-        label: translate("constant"),
-      },
-    ];
+    const options: { value: number; label: string }[] = [];
     for (const [patternId, { label, type }] of patterns.entries()) {
       if (type === "demand") {
         options.push({ value: patternId, label });
       }
     }
     return options;
-  }, [patterns, translate]);
+  }, [patterns]);
 
   const handleDeleteRow = useCallback(
     (rowIndex: number) => {
@@ -163,7 +155,7 @@ export const DemandCategoriesEditor = ({
     (rowIndex: number) => {
       if (rowData.length > 1) return false;
       const row = rowData[rowIndex];
-      return row?.baseDemand === 0 && row?.patternId === CONSTANT_PATTERN_ID;
+      return row?.baseDemand === 0 && row?.patternId === null;
     },
     [rowData],
   );
@@ -208,7 +200,9 @@ export const DemandCategoriesEditor = ({
         header: translate("timePattern"),
         size: 80,
         options: patternOptions,
-        deleteValue: CONSTANT_PATTERN_ID,
+        placeholder: translate("constant"),
+        emptyOptionLabel: translate("constant"),
+        deleteValue: null,
       }),
     ],
     [translate, patternOptions],

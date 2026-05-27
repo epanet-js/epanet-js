@@ -19,7 +19,7 @@ import {
 import { useSymbologyState } from "src/state/map-symbology";
 import { projectSettingsAtom } from "src/state/project-settings";
 
-export type ColorBySelection = SupportedProperty | "none";
+export type ColorBySelection = SupportedProperty | null;
 
 const absValuesFor = (property: SupportedProperty): boolean =>
   property === "flow";
@@ -70,11 +70,11 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
       userTracking.capture({
         name: "map.colorBy.changed",
         type: geometryType,
-        subtype: property,
-        property,
+        subtype: property ?? "none",
+        property: property ?? "none",
       });
 
-      if (property === "none") {
+      if (property === null) {
         if (geometryType === "node") {
           switchNodeSymbologyTo(null, () => nullSymbologySpec.node);
         } else {
