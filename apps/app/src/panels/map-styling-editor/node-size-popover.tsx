@@ -54,7 +54,7 @@ const PreviewCircle = ({
   return (
     <div
       aria-hidden
-      className="absolute bottom-0 rounded-full border"
+      className="absolute top-0 rounded-full border"
       style={{
         width: diameter,
         height: diameter,
@@ -77,9 +77,9 @@ const SizeSlider = ({
   ariaLabel: string;
   disabled?: boolean;
 }) => (
-  <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2 h-8">
     <Slider.Root
-      className="relative flex items-center grow h-4 select-none touch-none"
+      className="relative flex items-center grow h-8 select-none touch-none"
       min={SIZE_SLIDER_MIN}
       max={SIZE_SLIDER_MAX}
       step={SIZE_SLIDER_STEP}
@@ -95,7 +95,7 @@ const SizeSlider = ({
         className="block w-3.5 h-3.5 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
       />
     </Slider.Root>
-    <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums w-10 text-right shrink-0">
+    <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums w-12 text-right shrink-0">
       {value}px
     </span>
   </div>
@@ -132,37 +132,70 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
         sideOffset={94}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="space-y-4">
-          {/* Zoom range block */}
+        <div className="space-y-1">
+          <div className="font-semibold text-sm">
+            {translate("nodeSize.label")}
+          </div>
+
+          <InlineField
+            name={translate("nodeSize.minSize")}
+            layout="fixed-label"
+            labelSize="sm"
+          >
+            <SizeSlider
+              value={minSize}
+              onChange={setMinSize}
+              ariaLabel={translate("nodeSize.minSizeAriaLabel")}
+              disabled={readonly}
+            />
+          </InlineField>
+
+          <InlineField
+            name={translate("nodeSize.maxSize")}
+            layout="fixed-label"
+            labelSize="sm"
+          >
+            <SizeSlider
+              value={maxSize}
+              onChange={setMaxSize}
+              ariaLabel={translate("nodeSize.maxSizeAriaLabel")}
+              disabled={readonly}
+            />
+          </InlineField>
+
+          {/* Zoom range block: current-zoom arrow above the track, the min-zoom
+              thumb and max marker inline on the track, size-preview circles below. */}
           <div>
-            {/* Size-preview circles above the track. Inset so left:0%–100% maps
-                onto the thumb-center travel (keeping circles aligned with the
-                thumbs/markers below) and a max-size circle stays in the popover. */}
+            {/* Current-map-zoom indicator above the track, pointing down */}
             <div
-              className="relative h-12"
+              className="relative h-3"
               style={{
                 marginLeft: PREVIEW_EDGE_INSET,
                 marginRight: PREVIEW_EDGE_INSET,
               }}
             >
-              <PreviewCircle
-                radiusPx={minSize}
-                color={nodeColor}
-                strokeColor={strokeColor}
+              <div
+                role="img"
+                aria-label={translate("nodeSize.currentZoomAriaLabel")}
+                className="absolute bottom-0"
                 style={{
-                  left: `${minThumbPct}%`,
+                  left: `${currentZoomPct}%`,
                   transform: "translateX(-50%)",
                 }}
-              />
-              <PreviewCircle
-                radiusPx={maxSize}
-                color={nodeColor}
-                strokeColor={strokeColor}
-                style={{ left: "100%", transform: "translateX(-50%)" }}
-              />
+              >
+                <div
+                  style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: "4px solid transparent",
+                    borderRight: "4px solid transparent",
+                    borderTop: "5px solid #64748b",
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Track + draggable min-zoom thumb + pinned max marker */}
+            {/* Track with the min-zoom thumb and pinned max marker inline */}
             <div
               className="relative"
               style={{
@@ -203,61 +236,32 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
               />
             </div>
 
-            {/* Current-map-zoom indicator below the track (same inset as previews) */}
+            {/* Size-preview circles below the track. Inset so left:0%–100% maps
+                onto the thumb-center travel and a max-size circle stays inside. */}
             <div
-              className="relative h-3 mt-0.5"
+              className="relative h-10 mt-1"
               style={{
                 marginLeft: PREVIEW_EDGE_INSET,
                 marginRight: PREVIEW_EDGE_INSET,
               }}
             >
-              <div
-                role="img"
-                aria-label={translate("nodeSize.currentZoomAriaLabel")}
-                className="absolute top-0"
+              <PreviewCircle
+                radiusPx={minSize}
+                color={nodeColor}
+                strokeColor={strokeColor}
                 style={{
-                  left: `${currentZoomPct}%`,
+                  left: `${minThumbPct}%`,
                   transform: "translateX(-50%)",
                 }}
-              >
-                <div
-                  style={{
-                    width: 0,
-                    height: 0,
-                    borderLeft: "4px solid transparent",
-                    borderRight: "4px solid transparent",
-                    borderBottom: "5px solid #64748b",
-                  }}
-                />
-              </div>
+              />
+              <PreviewCircle
+                radiusPx={maxSize}
+                color={nodeColor}
+                strokeColor={strokeColor}
+                style={{ left: "100%", transform: "translateX(-50%)" }}
+              />
             </div>
           </div>
-
-          <InlineField
-            name={translate("nodeSize.minSize")}
-            layout="fixed-label"
-            labelSize="sm"
-          >
-            <SizeSlider
-              value={minSize}
-              onChange={setMinSize}
-              ariaLabel={translate("nodeSize.minSizeAriaLabel")}
-              disabled={readonly}
-            />
-          </InlineField>
-
-          <InlineField
-            name={translate("nodeSize.maxSize")}
-            layout="fixed-label"
-            labelSize="sm"
-          >
-            <SizeSlider
-              value={maxSize}
-              onChange={setMaxSize}
-              ariaLabel={translate("nodeSize.maxSizeAriaLabel")}
-              disabled={readonly}
-            />
-          </InlineField>
         </div>
       </E.PopoverContent2>
     </Popover.Root>

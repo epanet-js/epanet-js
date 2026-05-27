@@ -713,13 +713,13 @@
   "nodeSize": {
     "label": "Size",
     "summary": "{{1}}px → {{2}}px",
-    "minSize": "Min size",
-    "maxSize": "Max size",
+    "minSize": "Min",
+    "maxSize": "Max",
     "minZoomAriaLabel": "Minimum visible zoom",
     "currentZoomAriaLabel": "Current map zoom",
     "maxZoomAriaLabel": "Maximum zoom",
-    "minSizeAriaLabel": "Minimum junction size",
-    "maxSizeAriaLabel": "Maximum junction size"
+    "minSizeAriaLabel": "Minimum node size",
+    "maxSizeAriaLabel": "Maximum node size"
   },
   "nodeSymbology": "Node symbology",
   "linkSymbology": "Link symbology",
