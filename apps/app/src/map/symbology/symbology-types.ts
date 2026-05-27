@@ -44,6 +44,23 @@ export type NodeSymbology = {
   defaults: NodeDefaults;
 };
 
+export type NodeSizeConfig = {
+  // Zoom at which junctions reach minSize; below it the radius clamps to minSize.
+  minVisibleZoom: number;
+  // Radius (px) at minVisibleZoom.
+  minSize: number;
+  // Radius (px) at the maximum map zoom.
+  maxSize: number;
+};
+
+// Matches today's hardcoded junctionCircleSizes() starting point
+// (src/map/layers/junctions.ts): 0.5px at zoom 12 → 5px at the max zoom.
+export const defaultNodeSizeConfig: NodeSizeConfig = {
+  minVisibleZoom: 12,
+  minSize: 0.5,
+  maxSize: 5,
+};
+
 export type LinkSymbology = {
   colorRule: RangeColorRule | null;
   labelRule: LabelRule | null;

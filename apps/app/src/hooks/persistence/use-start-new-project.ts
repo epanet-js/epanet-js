@@ -28,8 +28,9 @@ import {
   savedSymbologiesAtom,
   propertyColorConfigAtom,
   defaultPropertyColorConfigs,
+  nodeSizeAtom,
 } from "src/state/map-symbology";
-import { nullSymbologySpec } from "src/map/symbology";
+import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
 import { modeAtom, Mode } from "src/state/mode";
 import {
   ephemeralStateAtom,
@@ -63,6 +64,7 @@ export const resetAppState = (set: Setter) => {
   set(linkSymbologyAtom, nullSymbologySpec.link);
   set(savedSymbologiesAtom, new Map());
   set(propertyColorConfigAtom, defaultPropertyColorConfigs);
+  set(nodeSizeAtom, defaultNodeSizeConfig);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, { type: "none" });

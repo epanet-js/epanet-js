@@ -11,6 +11,8 @@ import {
 import {
   SupportedProperty,
   nullSymbologySpec,
+  defaultNodeSizeConfig,
+  type NodeSizeConfig,
 } from "src/map/symbology/symbology-types";
 import { type ColorRuleConfig } from "src/map/symbology/range-color-rule";
 
@@ -122,6 +124,7 @@ export const savedSymbologiesAtom = atom<SymbologiesMap>(new Map());
 
 export const nodeSymbologyAtom = atom<NodeSymbology>(nullSymbologySpec.node);
 export const linkSymbologyAtom = atom<LinkSymbology>(nullSymbologySpec.link);
+export const nodeSizeAtom = atom<NodeSizeConfig>(defaultNodeSizeConfig);
 
 const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
   nullSymbologySpec.customerPoints,

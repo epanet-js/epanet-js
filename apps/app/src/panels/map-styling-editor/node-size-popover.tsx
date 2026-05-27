@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useAtomValue } from "jotai";
 import * as Popover from "@radix-ui/react-popover";
 import * as Slider from "@radix-ui/react-slider";
@@ -9,17 +8,8 @@ import { strokeColorFor } from "src/lib/color";
 import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
-
-// Mirrors the map's zoom range (see MAP_OPTIONS.maxZoom in src/map/map-engine.ts).
-// Kept local while this component is UI-only; lifts to shared config when wired.
-const MAP_MIN_ZOOM = 0;
-const MAP_MAX_ZOOM = 26;
-
-// Defaults match today's hardcoded junctionCircleSizes() interpolation
-// (src/map/layers/junctions.ts): 0.5px at zoom 12 → 5px at the max zoom.
-const DEFAULT_MIN_VISIBLE_ZOOM = 12;
-const DEFAULT_MIN_SIZE = 0.5;
-const DEFAULT_MAX_SIZE = 5;
+import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
+import { MAP_MIN_ZOOM, MAP_MAX_ZOOM } from "./node-size";
 
 const SIZE_SLIDER_MIN = 0.5;
 const SIZE_SLIDER_MAX = 20;
@@ -101,7 +91,15 @@ const SizeSlider = ({
   </div>
 );
 
-export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
+export function NodeSizePopover({
+  value,
+  onChange,
+  readonly = false,
+}: {
+  value: NodeSizeConfig;
+  onChange: (value: NodeSizeConfig) => void;
+  readonly?: boolean;
+}) {
   const translate = useTranslate();
   const nodeColor = useAtomValue(nodeSymbologyAtom).defaults.color;
   const strokeColor = strokeColorFor(nodeColor);
@@ -109,11 +107,7 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
   // atom → map does not yet, so dragging it back is deferred (UI-only scope).
   const currentZoom = useAtomValue(currentZoomAtom);
 
-  const [minVisibleZoom, setMinVisibleZoom] = useState(
-    DEFAULT_MIN_VISIBLE_ZOOM,
-  );
-  const [minSize, setMinSize] = useState(DEFAULT_MIN_SIZE);
-  const [maxSize, setMaxSize] = useState(DEFAULT_MAX_SIZE);
+  const { minVisibleZoom, minSize, maxSize } = value;
 
   const minThumbPct = clampPct(toPct(minVisibleZoom));
   const currentZoomPct = clampPct(toPct(currentZoom));
@@ -144,7 +138,7 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
           >
             <SizeSlider
               value={minSize}
-              onChange={setMinSize}
+              onChange={(next) => onChange({ ...value, minSize: next })}
               ariaLabel={translate("nodeSize.minSizeAriaLabel")}
               disabled={readonly}
             />
@@ -157,7 +151,7 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
           >
             <SizeSlider
               value={maxSize}
-              onChange={setMaxSize}
+              onChange={(next) => onChange({ ...value, maxSize: next })}
               ariaLabel={translate("nodeSize.maxSizeAriaLabel")}
               disabled={readonly}
             />
@@ -209,7 +203,9 @@ export function NodeSizePopover({ readonly = false }: { readonly?: boolean }) {
                 max={MAP_MAX_ZOOM}
                 step={0.5}
                 value={[minVisibleZoom]}
-                onValueChange={([next]) => setMinVisibleZoom(next)}
+                onValueChange={([next]) =>
+                  onChange({ ...value, minVisibleZoom: next })
+                }
                 disabled={readonly}
               >
                 {/* Track background = visible zooms (solid) */}
