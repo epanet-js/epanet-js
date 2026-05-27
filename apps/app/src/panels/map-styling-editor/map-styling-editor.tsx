@@ -20,6 +20,7 @@ import { useChangeColorBy } from "src/hooks/use-change-color-by";
 import { Checkbox } from "src/components/form/Checkbox";
 import { ColorRampSelector } from "src/components/color-ramp-selector";
 import { RangeColorRuleEditor } from "./range-color-rule-editor";
+import { NodeSizePopover } from "./node-size-popover";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
@@ -135,6 +136,7 @@ const SymbologyEditor = ({
   geometryType: "node" | "link";
   properties: readonly SupportedProperty[];
 }) => {
+  const isNodeSizingOn = useFeatureFlag("FLAG_NODE_SIZING");
   const translate = useTranslate();
   const readonly = useAtomValue(isPlayingAtom);
   const translateUnit = useTranslateUnit();
@@ -358,6 +360,15 @@ const SymbologyEditor = ({
               readonly={readonly}
             />
           </div>
+        </InlineField>
+      )}
+      {geometryType === "node" && isNodeSizingOn && (
+        <InlineField
+          name={translate("nodeSize.label")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <NodeSizePopover readonly={readonly} />
         </InlineField>
       )}
       <InlineField

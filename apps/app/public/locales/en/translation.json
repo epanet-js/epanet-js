@@ -710,6 +710,17 @@
   "ramp": "Ramp",
   "labels": "Labels",
   "labelBy": "Label by",
+  "nodeSize": {
+    "label": "Size",
+    "summary": "{{1}}px → {{2}}px",
+    "minSize": "Min size",
+    "maxSize": "Max size",
+    "minZoomAriaLabel": "Minimum visible zoom",
+    "currentZoomAriaLabel": "Current map zoom",
+    "maxZoomAriaLabel": "Maximum zoom",
+    "minSizeAriaLabel": "Minimum junction size",
+    "maxSizeAriaLabel": "Maximum junction size"
+  },
   "nodeSymbology": "Node symbology",
   "linkSymbology": "Link symbology",
   "zoneSymbology": "Zone symbology",
