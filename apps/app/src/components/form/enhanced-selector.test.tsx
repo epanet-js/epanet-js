@@ -234,7 +234,7 @@ describe("EnhancedSelector", () => {
       expect(onChange).toHaveBeenCalledWith(null, "Apple");
     });
 
-    it("does not render the clear button when nothing is selected", async () => {
+    it("renders the clear button even when nothing is selected", async () => {
       render(
         <EnhancedSelector
           ariaLabel="Pick one"
@@ -247,6 +247,28 @@ describe("EnhancedSelector", () => {
         />,
       );
       await openSelector();
+
+      expect(
+        screen.getByRole("button", { name: "Clear selection" }),
+      ).toBeInTheDocument();
+    });
+
+    it("does not render the clear button when there are no options at all", async () => {
+      render(
+        <EnhancedSelector
+          ariaLabel="Pick one"
+          options={[]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          clearLabel="Clear selection"
+        />,
+      );
+      // No options → trigger should still be present; activate it and check
+      // the popover content does not render the clear button.
+      const user = setupUser();
+      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
 
       expect(
         screen.queryByRole("button", { name: "Clear selection" }),

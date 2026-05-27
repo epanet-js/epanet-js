@@ -10,6 +10,11 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { CheckIcon, ChevronDownIcon } from "src/icons";
 import type { ColumnDef, RowData } from "@tanstack/react-table";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  SelectorList,
+  SelectorListOption,
+} from "src/components/form/selector-list";
 import { CellProps, GridColumn } from "../types";
 
 export type FilterableSelectOption<
@@ -27,6 +32,12 @@ type FilterableSelectCellProps<
   placeholder: string;
   emptyOptionLabel?: string;
   minOptionsForSearch?: number;
+  /** New-cell-only: bottom sticky button that runs onActionClick and closes. */
+  actionLabel?: string;
+  onActionClick?: () => void;
+  /** New-cell-only: allow committing values not in the options list. */
+  allowNew?: boolean;
+  createLabel?: (query: string) => string;
 };
 
 const PAGE_SIZE = 5;
@@ -104,7 +115,7 @@ function skipDisabled(
   return index;
 }
 
-export function FilterableSelectCell({
+function LegacyFilterableSelectCell({
   value,
   onChange,
   stopEditing: onClose,
@@ -593,6 +604,180 @@ const EmptyOption: FunctionComponent<EmptyOptionProps> = ({
   );
 };
 
+function FilterableSelectCellNext({
+  value,
+  onChange,
+  stopEditing,
+  startEditing,
+  isActive,
+  editMode,
+  readOnly,
+  options,
+  placeholder,
+  emptyOptionLabel,
+  minOptionsForSearch,
+  actionLabel,
+  onActionClick,
+  allowNew,
+  createLabel,
+}: CellProps<string | number | boolean | null> &
+  FilterableSelectCellProps<string | number | boolean>) {
+  const isOpen = !!editMode;
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [initialQuery, setInitialQuery] = useState("");
+
+  // Map FilterableSelectOption (enabled?) → SelectorListOption (disabled?).
+  const listOptions: SelectorListOption<string | number | boolean>[] = useMemo(
+    () =>
+      options.map((o) => ({
+        value: o.value,
+        label: o.label,
+        disabled: o.enabled === false,
+      })),
+    [options],
+  );
+
+  const selectedOption = useMemo(
+    () => options.find((opt) => opt.value === value),
+    [options, value],
+  );
+
+  useEffect(
+    function syncCellIsActive() {
+      if (isActive) {
+        buttonRef.current?.focus();
+      }
+    },
+    [isActive],
+  );
+
+  useEffect(
+    function clearInitialQueryOnClose() {
+      if (!isOpen) setInitialQuery("");
+    },
+    [isOpen],
+  );
+
+  const handleTriggerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const EXCLUDED_KEYS = [
+        "ArrowUp",
+        "ArrowLeft",
+        "ArrowDown",
+        "Esc",
+        "Delete",
+        "Backspace",
+        "Tab",
+      ];
+      if (EXCLUDED_KEYS.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+      }
+      if (e.key.length === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        setInitialQuery(e.key);
+        startEditing();
+      }
+    },
+    [startEditing],
+  );
+
+  if (readOnly) {
+    return (
+      <div className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm bg-gray-50">
+        <span
+          className={clsx(
+            "truncate",
+            !selectedOption ? "text-gray-400" : "text-gray-700",
+          )}
+        >
+          {selectedOption?.label ?? placeholder}
+        </span>
+        <div className="pl-1 text-gray-400">
+          <ChevronDownIcon />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full">
+      <Popover.Root
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (open) startEditing();
+          else stopEditing();
+        }}
+      >
+        <Popover.Trigger asChild>
+          <button
+            ref={buttonRef}
+            type="button"
+            tabIndex={-1}
+            onKeyDown={handleTriggerKeyDown}
+            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-hidden text-left min-w-0"
+          >
+            <span
+              className={clsx("truncate", !selectedOption && "text-gray-400")}
+            >
+              {selectedOption?.label ?? placeholder}
+            </span>
+            <div className="pl-1">
+              <ChevronDownIcon />
+            </div>
+          </button>
+        </Popover.Trigger>
+
+        <Popover.Portal>
+          <Popover.Content
+            side="bottom"
+            align="start"
+            className="bg-white min-w-[180px] border text-sm rounded-md shadow-md z-50 mt-1"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => {
+              if (buttonRef.current?.contains(e.target as Node)) {
+                e.preventDefault();
+              }
+            }}
+          >
+            {isOpen && (
+              <SelectorList<string | number | boolean>
+                options={listOptions}
+                selected={value}
+                nullable
+                onCommit={(v) => {
+                  onChange(v);
+                  stopEditing();
+                }}
+                onClose={stopEditing}
+                clearLabel={emptyOptionLabel}
+                actionLabel={actionLabel}
+                onActionClick={onActionClick}
+                allowNew={allowNew}
+                createLabel={createLabel}
+                minOptionsForSearch={minOptionsForSearch}
+                initialQuery={initialQuery}
+              />
+            )}
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
+    </div>
+  );
+}
+
+export function FilterableSelectCell(
+  props: CellProps<string | number | boolean | null> &
+    FilterableSelectCellProps<string | number | boolean>,
+) {
+  const isNewOn = useFeatureFlag("FLAG_SELECTOR");
+  return isNewOn ? (
+    <FilterableSelectCellNext {...props} />
+  ) : (
+    <LegacyFilterableSelectCell {...props} />
+  );
+}
+
 export function filterableSelectColumn<
   T extends string | number | boolean = string,
   TData extends RowData = RowData,
@@ -607,6 +792,12 @@ export function filterableSelectColumn<
     deleteValue?: T | null;
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
+    /** New-cell-only (FLAG_SELECTOR on): sticky bottom action button. */
+    actionLabel?: string;
+    onActionClick?: () => void;
+    /** New-cell-only (FLAG_SELECTOR on): allow committing values not in options. */
+    allowNew?: boolean;
+    createLabel?: (query: string) => string;
   },
 ): GridColumn<TData> {
   const isEmpty = options.options.length === 0;
@@ -662,6 +853,10 @@ export function filterableSelectColumn<
           placeholder={options.placeholder ?? ""}
           emptyOptionLabel={options.emptyOptionLabel}
           minOptionsForSearch={options.minOptionsForSearch}
+          actionLabel={options.actionLabel}
+          onActionClick={options.onActionClick}
+          allowNew={options.allowNew}
+          createLabel={options.createLabel}
         />
       ),
     },

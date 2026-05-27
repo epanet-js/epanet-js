@@ -3,6 +3,7 @@
  */
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   FilterableSelectCell,
   filterableSelectColumn,
@@ -861,6 +862,227 @@ describe("FilterableSelectCell", () => {
       await user.click(container.firstChild as HTMLElement);
 
       expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("FilterableSelectCell (FLAG_SELECTOR on — SelectorList-backed)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    stubFeatureOn("FLAG_SELECTOR");
+  });
+
+  const options = [
+    { value: 0, label: "CONSTANT" },
+    { value: 1, label: "Pattern A" },
+    { value: 2, label: "Pattern B" },
+  ];
+
+  const defaultProps = {
+    value: 1 as string | number | boolean | null,
+    editMode: false as const,
+    onChange: vi.fn(),
+    stopEditing: vi.fn(),
+    startEditing: vi.fn(),
+    rowIndex: 0,
+    columnIndex: 0,
+    isActive: true,
+    readOnly: false,
+    options,
+    placeholder: "Select...",
+    minOptionsForSearch: 8,
+  };
+
+  it("renders the selected option label", () => {
+    render(<FilterableSelectCell {...defaultProps} />);
+    expect(screen.getByText("Pattern A")).toBeInTheDocument();
+  });
+
+  it("renders the clear button at the bottom when emptyOptionLabel is set", async () => {
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        emptyOptionLabel="None"
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+    // The clear button is a <button>, not a <li role="option">.
+    expect(screen.getByRole("button", { name: "None" })).toBeInTheDocument();
+  });
+
+  it("does not render a clear button at the top of the list", async () => {
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        emptyOptionLabel="None"
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+    const firstOption = screen.getAllByRole("option")[0];
+    expect(firstOption).toHaveTextContent("CONSTANT");
+  });
+
+  it("commits when clicking the clear button", async () => {
+    const user = setupUser();
+    const onChange = vi.fn();
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        emptyOptionLabel="None"
+        onChange={onChange}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "None" }));
+
+    expect(onChange).toHaveBeenCalledWith(null);
+  });
+
+  it("renders an action button when actionLabel is set", async () => {
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        actionLabel="Open library"
+        onActionClick={vi.fn()}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("button", { name: "Open library" }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls onActionClick and stopEditing when the action button is clicked", async () => {
+    const user = setupUser();
+    const onActionClick = vi.fn();
+    const stopEditing = vi.fn();
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        actionLabel="Open library"
+        onActionClick={onActionClick}
+        stopEditing={stopEditing}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Open library" }));
+
+    expect(onActionClick).toHaveBeenCalled();
+    expect(stopEditing).toHaveBeenCalled();
+  });
+
+  it("shows a create row when allowNew and the query has no exact match", async () => {
+    const user = setupUser();
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        allowNew
+        minOptionsForSearch={1}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    const search = screen.getByPlaceholderText("Search…");
+    await user.type(search, "Brand new");
+
+    expect(screen.getByText(/^Add "Brand new"$/)).toBeInTheDocument();
+  });
+
+  it("commits the typed value when Enter is pressed on the create row", async () => {
+    const user = setupUser();
+    const onChange = vi.fn();
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        allowNew
+        minOptionsForSearch={1}
+        onChange={onChange}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    const search = screen.getByPlaceholderText("Search…");
+    await user.type(search, "Brand new");
+    // After typing, activeIndex is set to 0 (first option). ArrowDown to reach the create row.
+    // 3 options match nothing, so filtered is empty + create row is the only entry.
+    await user.keyboard("{Enter}");
+
+    expect(onChange).toHaveBeenCalledWith("Brand new");
+  });
+
+  it("Tab does not commit (cycles regions instead)", async () => {
+    const user = setupUser();
+    const onChange = vi.fn();
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        editMode="full"
+        onChange={onChange}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    await user.keyboard("{Tab}");
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("type-to-open seeds the search query from the typed character", async () => {
+    const user = setupUser();
+    const startEditing = vi.fn();
+    // Render with editMode=false; the trigger should capture a char keystroke
+    // and call startEditing. We then re-render with editMode=full and verify the
+    // search input has the typed char as initial value.
+    const { rerender } = render(
+      <FilterableSelectCell
+        {...defaultProps}
+        startEditing={startEditing}
+        minOptionsForSearch={1}
+      />,
+    );
+
+    const button = screen.getByRole("button");
+    button.focus();
+    await user.keyboard("p");
+
+    expect(startEditing).toHaveBeenCalled();
+
+    rerender(
+      <FilterableSelectCell
+        {...defaultProps}
+        startEditing={startEditing}
+        minOptionsForSearch={1}
+        editMode="full"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Search…")).toHaveValue("p");
     });
   });
 });
