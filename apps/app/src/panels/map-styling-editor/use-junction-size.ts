@@ -4,7 +4,11 @@ import debounce from "lodash/debounce";
 import { MapContext } from "src/map";
 import { nodeSizeAtom } from "src/state/map-symbology";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
-import { junctionCircleRadiusExpression } from "./node-size";
+import {
+  junctionCircleRadius,
+  junctionLayerMinZoom,
+  JUNCTION_MAX_ZOOM,
+} from "./node-size";
 
 // Every junction layer built from junctionCircleSizes(): the main/delta feature
 // layers plus the ephemeral (draft), highlight, and selection overlays. We drive
@@ -15,6 +19,16 @@ const JUNCTION_SIZE_LAYERS: string[] = [
   "delta-features-junctions",
   "ephemeral-junction-highlight",
   "highlights-marker",
+  "selected-junctions",
+];
+
+// Layers whose minzoom tracks the user's min visible zoom (the "real" junction
+// display + selection). The ephemeral/draft and hover-highlight layers keep
+// their own lower minzoom so editing/hover feedback stays visible when zoomed
+// further out than the display threshold.
+const JUNCTION_VISIBILITY_LAYERS: string[] = [
+  "main-features-junctions",
+  "delta-features-junctions",
   "selected-junctions",
 ];
 
@@ -35,10 +49,15 @@ export function useJunctionSize() {
     () =>
       debounce((next: NodeSizeConfig) => {
         if (!map || !map.map.isStyleLoaded()) return;
-        const radius = junctionCircleRadiusExpression(next);
+        const radius = junctionCircleRadius(next);
         for (const layerId of JUNCTION_SIZE_LAYERS) {
           if (!map.map.getLayer(layerId)) continue;
           map.setLayerPaintRule(layerId, "circle-radius", radius);
+        }
+        const minzoom = junctionLayerMinZoom(next);
+        for (const layerId of JUNCTION_VISIBILITY_LAYERS) {
+          if (!map.map.getLayer(layerId)) continue;
+          map.setLayerZoomRange(layerId, minzoom, JUNCTION_MAX_ZOOM);
         }
       }, APPLY_DEBOUNCE_MS),
     [map],

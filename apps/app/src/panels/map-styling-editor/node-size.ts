@@ -5,22 +5,32 @@ import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
 export const MAP_MIN_ZOOM = 0;
 export const MAP_MAX_ZOOM = 26;
 
-// Builds the circle-radius interpolation: minSize at minVisibleZoom → maxSize at
-// the max map zoom. The upper stop is guarded to stay strictly above the lower
-// one, since mapbox requires strictly ascending interpolation input stops.
-export const junctionCircleRadiusExpression = ({
+// Junction layers' maxzoom — one above the map's max so they are never hidden at
+// the top zoom (mapbox hides a layer when zoom >= maxzoom).
+export const JUNCTION_MAX_ZOOM = MAP_MAX_ZOOM + 1;
+
+// The mapbox style spec caps a layer's zoom range at 24
+export const LAYER_MAX_ZOOM = 24;
+
+export const junctionLayerMinZoom = ({
+  minVisibleZoom,
+}: NodeSizeConfig): number =>
+  Math.min(Math.max(minVisibleZoom, MAP_MIN_ZOOM), LAYER_MAX_ZOOM);
+
+export const junctionCircleRadius = ({
   minVisibleZoom,
   minSize,
   maxSize,
-}: NodeSizeConfig): mapboxgl.Expression => {
-  const upperZoom = Math.max(MAP_MAX_ZOOM, minVisibleZoom + 0.5);
+}: NodeSizeConfig): number | mapboxgl.Expression => {
+  if (minSize === maxSize) return minSize;
+
   return [
     "interpolate",
     ["linear"],
     ["zoom"],
     minVisibleZoom,
     minSize,
-    upperZoom,
+    MAP_MAX_ZOOM,
     maxSize,
   ];
 };

@@ -1,10 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { junctionCircleRadiusExpression, MAP_MAX_ZOOM } from "./node-size";
+import {
+  junctionCircleRadius,
+  junctionLayerMinZoom,
+  MAP_MAX_ZOOM,
+  LAYER_MAX_ZOOM,
+} from "./node-size";
 import { defaultNodeSizeConfig } from "src/map/symbology/symbology-types";
 
-describe("junctionCircleRadiusExpression", () => {
+describe("junctionCircleRadius", () => {
   it("interpolates minSize at minVisibleZoom up to maxSize at the max map zoom", () => {
-    expect(junctionCircleRadiusExpression(defaultNodeSizeConfig)).toEqual([
+    expect(junctionCircleRadius(defaultNodeSizeConfig)).toEqual([
       "interpolate",
       ["linear"],
       ["zoom"],
@@ -17,7 +22,7 @@ describe("junctionCircleRadiusExpression", () => {
 
   it("uses the configured min zoom and sizes as the interpolation stops", () => {
     expect(
-      junctionCircleRadiusExpression({
+      junctionCircleRadius({
         minVisibleZoom: 14,
         minSize: 2,
         maxSize: 12,
@@ -25,26 +30,23 @@ describe("junctionCircleRadiusExpression", () => {
     ).toEqual(["interpolate", ["linear"], ["zoom"], 14, 2, MAP_MAX_ZOOM, 12]);
   });
 
-  it("keeps stops strictly ascending when minVisibleZoom reaches the max zoom", () => {
-    const expr = junctionCircleRadiusExpression({
-      minVisibleZoom: MAP_MAX_ZOOM,
-      minSize: 1,
-      maxSize: 8,
-    });
+  it("returns a flat radius (no interpolation) when min and max size are equal", () => {
+    expect(
+      junctionCircleRadius({ minVisibleZoom: 12, minSize: 4, maxSize: 4 }),
+    ).toBe(4);
+  });
+});
 
-    const lowerZoom = expr[3] as number;
-    const upperZoom = expr[5] as number;
-    expect(lowerZoom).toBe(MAP_MAX_ZOOM);
-    expect(upperZoom).toBeGreaterThan(lowerZoom);
+describe("junctionLayerMinZoom", () => {
+  it("uses the configured min visible zoom", () => {
+    expect(
+      junctionLayerMinZoom({ minVisibleZoom: 12, minSize: 1, maxSize: 5 }),
+    ).toBe(12);
   });
 
-  it("guards the upper stop above minVisibleZoom even beyond the max zoom", () => {
-    const expr = junctionCircleRadiusExpression({
-      minVisibleZoom: 30,
-      minSize: 1,
-      maxSize: 8,
-    });
-
-    expect(expr[5]).toBe(30.5);
+  it("clamps to the style-spec layer max (24) above it", () => {
+    expect(
+      junctionLayerMinZoom({ minVisibleZoom: 26, minSize: 1, maxSize: 5 }),
+    ).toBe(LAYER_MAX_ZOOM);
   });
 });

@@ -18,6 +18,13 @@ const JUNCTION_LAYERS = [
   "selected-junctions",
 ];
 
+// minzoom only tracks the "real" junction display + selection.
+const VISIBILITY_LAYERS = [
+  "main-features-junctions",
+  "delta-features-junctions",
+  "selected-junctions",
+];
+
 const createFakeMap = (opts?: {
   styleLoaded?: boolean;
   existingLayers?: string[];
@@ -25,14 +32,19 @@ const createFakeMap = (opts?: {
   const styleLoaded = opts?.styleLoaded ?? true;
   const existing = opts?.existingLayers ?? JUNCTION_LAYERS;
   const setLayerPaintRule = vi.fn();
+  const setLayerZoomRange = vi.fn();
   const map = {
     isStyleLoaded: vi.fn().mockReturnValue(styleLoaded),
     getLayer: vi.fn((id: string) =>
       existing.includes(id) ? ({ id } as unknown) : undefined,
     ),
   };
-  const engine = { map, setLayerPaintRule } as unknown as MapEngine;
-  return { engine, setLayerPaintRule };
+  const engine = {
+    map,
+    setLayerPaintRule,
+    setLayerZoomRange,
+  } as unknown as MapEngine;
+  return { engine, setLayerPaintRule, setLayerZoomRange };
 };
 
 const renderUseJunctionSize = (engine: MapEngine) => {
@@ -99,6 +111,54 @@ describe("useJunctionSize", () => {
     }
   });
 
+  it("applies min visible zoom as minzoom to the feature/selection layers only", () => {
+    const { engine, setLayerZoomRange } = createFakeMap();
+    const { result } = renderUseJunctionSize(engine);
+
+    act(() =>
+      result.current.onChange({ minVisibleZoom: 9, minSize: 2, maxSize: 12 }),
+    );
+    act(() => {
+      vi.advanceTimersByTime(80);
+    });
+
+    expect(setLayerZoomRange).toHaveBeenCalledTimes(VISIBILITY_LAYERS.length);
+    for (const layerId of VISIBILITY_LAYERS) {
+      // minzoom = min visible zoom; maxzoom = one above the map max so junctions
+      // stay visible at the top zoom.
+      expect(setLayerZoomRange).toHaveBeenCalledWith(layerId, 9, 27);
+    }
+    // The draft + hover-highlight layers keep their own lower minzoom.
+    expect(setLayerZoomRange).not.toHaveBeenCalledWith(
+      "ephemeral-junction-highlight",
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(setLayerZoomRange).not.toHaveBeenCalledWith(
+      "highlights-marker",
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it("clamps minzoom to the max selectable zoom (24) when min visible zoom exceeds it", () => {
+    const { engine, setLayerZoomRange } = createFakeMap();
+    const { result } = renderUseJunctionSize(engine);
+
+    act(() =>
+      result.current.onChange({ minVisibleZoom: 26, minSize: 2, maxSize: 12 }),
+    );
+    act(() => {
+      vi.advanceTimersByTime(80);
+    });
+
+    expect(setLayerZoomRange).toHaveBeenCalledWith(
+      "main-features-junctions",
+      24,
+      27,
+    );
+  });
+
   it("coalesces rapid changes into a single paint per layer", () => {
     const { engine, setLayerPaintRule } = createFakeMap();
     const { result } = renderUseJunctionSize(engine);
@@ -141,7 +201,9 @@ describe("useJunctionSize", () => {
   });
 
   it("does not touch the map until the style is loaded", () => {
-    const { engine, setLayerPaintRule } = createFakeMap({ styleLoaded: false });
+    const { engine, setLayerPaintRule, setLayerZoomRange } = createFakeMap({
+      styleLoaded: false,
+    });
     const { result } = renderUseJunctionSize(engine);
 
     act(() =>
@@ -152,5 +214,6 @@ describe("useJunctionSize", () => {
     });
 
     expect(setLayerPaintRule).not.toHaveBeenCalled();
+    expect(setLayerZoomRange).not.toHaveBeenCalled();
   });
 });

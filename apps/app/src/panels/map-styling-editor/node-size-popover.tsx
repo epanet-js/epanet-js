@@ -9,7 +9,7 @@ import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
-import { MAP_MIN_ZOOM, MAP_MAX_ZOOM } from "./node-size";
+import { MAP_MIN_ZOOM, MAP_MAX_ZOOM, LAYER_MAX_ZOOM } from "./node-size";
 
 const SIZE_SLIDER_MIN = 0.5;
 const SIZE_SLIDER_MAX = 20;
@@ -204,7 +204,10 @@ export function NodeSizePopover({
                 step={0.5}
                 value={[minVisibleZoom]}
                 onValueChange={([next]) =>
-                  onChange({ ...value, minVisibleZoom: next })
+                  onChange({
+                    ...value,
+                    minVisibleZoom: Math.min(next, LAYER_MAX_ZOOM),
+                  })
                 }
                 disabled={readonly}
               >

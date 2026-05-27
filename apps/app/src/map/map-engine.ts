@@ -239,11 +239,17 @@ export class MapEngine {
   setLayerPaintRule(
     layerId: string,
     name: string,
-    rule: mapboxgl.Expression,
+    rule: mapboxgl.Expression | number,
   ): void {
     if (!this.map || !(this.map as any).style) return;
 
     this.map.setPaintProperty(layerId, name, rule);
+  }
+
+  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): void {
+    if (!this.map || !(this.map as any).style) return;
+
+    this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
   }
 
   setOverlay(layers: LayersList) {
