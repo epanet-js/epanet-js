@@ -386,6 +386,8 @@ function pipeAttributeColsFor(materials: string[]): ExtraPipeColsFn {
       placeholder: translate("none"),
       emptyOptionLabel: translate("none"),
       deleteValue: null,
+      allowNew: true,
+      createLabel: (query) => translate("addNewValue", query),
     }),
     floatColumn("year", {
       header: translate("yearOfInstallation"),

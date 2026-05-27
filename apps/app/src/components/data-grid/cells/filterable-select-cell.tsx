@@ -800,7 +800,7 @@ export function filterableSelectColumn<
     createLabel?: (query: string) => string;
   },
 ): GridColumn<TData> {
-  const isEmpty = options.options.length === 0;
+  const isEmpty = options.options.length === 0 && !options.allowNew;
   const resolveReadOnly = (rowIndex: number) =>
     typeof options.isReadOnly === "function"
       ? options.isReadOnly(rowIndex)
