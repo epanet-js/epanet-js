@@ -55,7 +55,12 @@ import { captureError } from "src/infra/error-tracking";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
-import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
+import type {
+  NodeDefaults,
+  LinkDefaults,
+  ZoneSymbology,
+} from "src/map/symbology";
+import { buildZoneColorByLabelExpression } from "src/map/layers/zone-colors";
 import {
   FormattingSpec,
   UnitsSpec,
@@ -272,8 +277,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoneSymbology || hasNewStyles) {
-          updateZoneColors(map, mapState.symbology.zone.defaults.color);
+        if (hasNewZoneSymbology || hasNewZoneFeatures || hasNewStyles) {
+          updateZoneColors(map, mapState.symbology.zone, mapState.zoneFeatures);
           toggleZoneLayers(map, mapState.symbology.zone);
         }
 
@@ -973,12 +978,24 @@ const updateMapOverlaySource = async (
   );
 };
 
-const updateZoneColors = (map: MapEngine, color: string) => {
-  const outlineColor = color;
+const updateZoneColors = (
+  map: MapEngine,
+  zone: ZoneSymbology,
+  zoneFeatures: GeoJSON.Feature[],
+) => {
+  let fillColor: mapboxgl.Expression | string = zone.defaults.color;
+
+  if (zone.colorRule === "label") {
+    const zoneIds = zoneFeatures
+      .map((f) => f.properties?.id as number)
+      .filter((id) => id != null);
+    fillColor = buildZoneColorByLabelExpression(zoneIds, zone.defaults.color);
+  }
+
   map.setLayerPaintRule(
     "zones-fill",
     "fill-color",
-    color as unknown as mapboxgl.Expression,
+    fillColor as unknown as mapboxgl.Expression,
   );
   map.setLayerPaintRule(
     "zones-fill",
@@ -986,6 +1003,7 @@ const updateZoneColors = (map: MapEngine, color: string) => {
     0.2 as unknown as mapboxgl.Expression,
   );
 
+  const outlineColor = zone.defaults.color;
   map.setLayerPaintRule(
     "zones-outline",
     "line-color",

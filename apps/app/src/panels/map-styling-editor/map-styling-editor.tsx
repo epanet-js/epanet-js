@@ -16,6 +16,7 @@ import {
   supportedLinkProperties,
   supportedNodeProperties,
   type ZoneLabelRule,
+  type ZoneColorRule,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/map-symbology";
 import { useChangeColorBy } from "src/hooks/use-change-color-by";
@@ -491,6 +492,8 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   );
 };
 
+const zoneRuleOptions = [{ label: "Label", value: "label" }];
+
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
   const {
@@ -498,6 +501,7 @@ const ZoneSymbologySection = () => {
     updateZoneDefaultColor,
     updateZoneLabelRule,
     updateZoneVisible,
+    updateZoneColorRule,
   } = useSymbologyState();
   const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
@@ -505,13 +509,15 @@ const ZoneSymbologySection = () => {
     const mapped = value === "none" ? null : value;
     updateZoneLabelRule(mapped as ZoneLabelRule);
   };
-  const zoneLabelByOptions = [{ label: "Label", value: "label" }];
-  const zoneLabelByLegacyOptions = [
-    ...zoneLabelByOptions,
+  const handleColorRuleChange = (value: string | null) => {
+    const mapped = value === "none" ? null : value;
+    updateZoneColorRule(mapped as ZoneColorRule);
+  };
+
+  const legacyOptions = [
+    ...zoneRuleOptions,
     { label: translate("none"), value: "none" },
   ];
-  const zoneLabelByLegacySelection =
-    zoneSymbology.labelRule === null ? "none" : zoneSymbology.labelRule;
 
   return (
     <MapStylingSectionWrapper
@@ -528,6 +534,30 @@ const ZoneSymbologySection = () => {
           aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
           onChange={() => updateZoneVisible(!zoneSymbology.visible)}
         />
+      </InlineField>
+      <InlineField
+        name={translate("colorBy")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        {isNewSelectorOn ? (
+          <EnhancedSelector
+            ariaLabel={`${translate("zoneSymbology")} ${translate("colorBy")}`}
+            options={zoneRuleOptions}
+            selected={zoneSymbology.colorRule ?? null}
+            nullable
+            placeholder={translate("none")}
+            clearLabel={translate("none")}
+            onChange={handleColorRuleChange}
+          />
+        ) : (
+          <Selector
+            options={legacyOptions}
+            selected={zoneSymbology.colorRule ?? "none"}
+            onChange={handleColorRuleChange}
+            ariaLabel={`${translate("zoneSymbology")} ${translate("colorBy")}`}
+          />
+        )}
       </InlineField>
       <InlineField
         name={translate("defaultColor")}
@@ -550,7 +580,7 @@ const ZoneSymbologySection = () => {
         {isNewSelectorOn ? (
           <EnhancedSelector
             ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
-            options={zoneLabelByOptions}
+            options={zoneRuleOptions}
             selected={zoneSymbology.labelRule ?? null}
             nullable
             placeholder={translate("none")}
@@ -559,8 +589,8 @@ const ZoneSymbologySection = () => {
           />
         ) : (
           <Selector
-            options={zoneLabelByLegacyOptions}
-            selected={zoneLabelByLegacySelection}
+            options={legacyOptions}
+            selected={zoneSymbology.labelRule ?? "none"}
             onChange={handleLabelRuleChange}
             ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
           />

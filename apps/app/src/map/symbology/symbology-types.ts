@@ -74,11 +74,13 @@ export type ZoneDefaults = {
 };
 
 export type ZoneLabelRule = "label" | null;
+export type ZoneColorRule = "label" | null;
 
 export type ZoneSymbology = {
   visible: boolean;
   defaults: ZoneDefaults;
   labelRule: ZoneLabelRule;
+  colorRule: ZoneColorRule;
 };
 
 export type SymbologySpec = {
@@ -100,5 +102,10 @@ export const nullSymbologySpec: SymbologySpec = {
     defaults: { color: colors.indigo200 },
   },
   customerPoints: { visible: true },
-  zone: { visible: true, defaults: { color: "#93c5fd" }, labelRule: null },
+  zone: {
+    visible: true,
+    defaults: { color: "#93c5fd" },
+    labelRule: null,
+    colorRule: null,
+  },
 };
