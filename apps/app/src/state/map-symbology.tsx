@@ -8,6 +8,7 @@ import {
   CustomerPointsSymbology,
   ZoneSymbology,
 } from "src/map/symbology";
+import type { ZoneLabelRule } from "src/map/symbology/symbology-types";
 import {
   SupportedProperty,
   nullSymbologySpec,
@@ -292,6 +293,13 @@ export const useSymbologyState = () => {
     });
   };
 
+  const updateZoneLabelRule = (labelRule: ZoneLabelRule) => {
+    setZoneSymbology({
+      ...zoneSymbology,
+      labelRule,
+    });
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
@@ -305,5 +313,6 @@ export const useSymbologyState = () => {
     updateNodeDefaultColor,
     updateLinkDefaultColor,
     updateZoneDefaultColor,
+    updateZoneLabelRule,
   };
 };

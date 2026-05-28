@@ -22,7 +22,8 @@ export type LayerId =
   | "selected-icons"
   | "selected-icons-halo"
   | "icons-tanks"
-  | "icons-reservoirs";
+  | "icons-reservoirs"
+  | "zones-labels";
 
 export const assetLayers: LayerId[] = [
   "delta-features-pipes",

@@ -157,7 +157,11 @@ import {
   mapOverlayOutlineLayer,
   mapOverlayLabelLayer,
 } from "src/map/layers/map-overlay";
-import { zoneFillLayer, zoneOutlineLayer } from "src/map/layers/zones";
+import {
+  zoneFillLayer,
+  zoneOutlineLayer,
+  zoneLabelsLayer,
+} from "src/map/layers/zones";
 import {
   ephemeralDraftLineLayer,
   ephemeralDraftPathLineLayer,
@@ -256,6 +260,7 @@ export function makeLayers({
     gridMajorLayer(),
     zoneFillLayer({ source: "zones" }),
     zoneOutlineLayer({ source: "zones" }),
+    zoneLabelsLayer({ source: "zones" }),
     mapOverlayFillLayer({ source: "map-overlay" }),
     mapOverlayOutlineLayer({ source: "map-overlay" }),
     mapOverlayLabelLayer({ source: "map-overlay" }),

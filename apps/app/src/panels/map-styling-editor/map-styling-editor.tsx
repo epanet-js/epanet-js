@@ -15,6 +15,7 @@ import {
   SupportedProperty,
   supportedLinkProperties,
   supportedNodeProperties,
+  type ZoneLabelRule,
 } from "src/map/symbology/symbology-types";
 import { useSymbologyState } from "src/state/map-symbology";
 import { useChangeColorBy } from "src/hooks/use-change-color-by";
@@ -490,9 +491,17 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   );
 };
 
+const zoneLabelByOptions = [{ label: "Label", value: "label" }];
+
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
-  const { zoneSymbology, updateZoneDefaultColor } = useSymbologyState();
+  const { zoneSymbology, updateZoneDefaultColor, updateZoneLabelRule } =
+    useSymbologyState();
+  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
+
+  const handleLabelRuleChange = (value: string | null) => {
+    updateZoneLabelRule(value as ZoneLabelRule);
+  };
 
   return (
     <MapStylingSectionWrapper
@@ -511,6 +520,32 @@ const ZoneSymbologySection = () => {
             ariaLabel="Default zone color"
           />
         </div>
+      </InlineField>
+      <InlineField
+        name={translate("labelBy")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        {isNewSelectorOn ? (
+          <EnhancedSelector
+            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
+            options={zoneLabelByOptions}
+            selected={zoneSymbology.labelRule ?? null}
+            nullable
+            placeholder={translate("none")}
+            clearLabel={translate("none")}
+            onChange={handleLabelRuleChange}
+          />
+        ) : (
+          <Selector
+            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
+            options={zoneLabelByOptions}
+            selected={zoneSymbology.labelRule ?? null}
+            nullable
+            placeholder={translate("none")}
+            onChange={handleLabelRuleChange}
+          />
+        )}
       </InlineField>
     </MapStylingSectionWrapper>
   );

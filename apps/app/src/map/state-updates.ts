@@ -122,6 +122,7 @@ const detectChanges = (
   hasNewCustomerPointsSymbology: boolean;
   hasNewDefaultColors: boolean;
   hasNewZoneDefaults: boolean;
+  hasNewZoneLabelRule: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
@@ -157,6 +158,8 @@ const detectChanges = (
       state.symbology.link.defaults !== prev.symbology.link.defaults,
     hasNewZoneDefaults:
       state.symbology.zone.defaults !== prev.symbology.zone.defaults,
+    hasNewZoneLabelRule:
+      state.symbology.zone.labelRule !== prev.symbology.zone.labelRule,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
@@ -213,6 +216,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewCustomerPointsSymbology,
       hasNewDefaultColors,
       hasNewZoneDefaults,
+      hasNewZoneLabelRule,
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
@@ -275,6 +279,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (hasNewZoneDefaults && !hasNewStyles) {
           updateZoneColors(map, mapState.symbology.zone.defaults.color);
+        }
+
+        if (hasNewZoneLabelRule || hasNewStyles) {
+          toggleZoneLabels(map, mapState.symbology.zone.labelRule);
         }
 
         if (
@@ -996,6 +1004,14 @@ const updateZoneColors = (map: MapEngine, color: string) => {
     "line-opacity",
     0.6 as unknown as mapboxgl.Expression,
   );
+};
+
+const toggleZoneLabels = (map: MapEngine, labelRule: string | null) => {
+  if (labelRule) {
+    map.showLayers(["zones-labels"]);
+  } else {
+    map.hideLayers(["zones-labels"]);
+  }
 };
 
 const updateZonesSource = async (
