@@ -53,11 +53,9 @@ export type NodeSizeConfig = {
   maxSize: number;
 };
 
-// Matches today's hardcoded junctionCircleSizes() starting point
-// (src/map/layers/junctions.ts): 0.5px at zoom 12 → 5px at the max zoom.
 export const defaultNodeSizeConfig: NodeSizeConfig = {
   minVisibleZoom: 12,
-  minSize: 0.5,
+  minSize: 1,
   maxSize: 5,
 };
 

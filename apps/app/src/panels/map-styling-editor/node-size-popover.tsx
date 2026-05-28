@@ -11,9 +11,9 @@ import * as E from "src/components/elements";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
 import { MAP_MIN_ZOOM, MAP_MAX_ZOOM, LAYER_MAX_ZOOM } from "./node-size";
 
-const SIZE_SLIDER_MIN = 0.5;
+const SIZE_SLIDER_MIN = 1;
 const SIZE_SLIDER_MAX = 20;
-const SIZE_SLIDER_STEP = 0.5;
+const SIZE_SLIDER_STEP = 1;
 
 // Radix insets each thumb by half its width (w-2.5 → 5px) so it never overflows
 // the track; the thumb center therefore travels 5px in from each track edge.
@@ -86,7 +86,7 @@ const SizeSlider = ({
       />
     </Slider.Root>
     <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums w-12 text-right shrink-0">
-      {value}px
+      {value}
     </span>
   </div>
 );
@@ -156,7 +156,6 @@ export function NodeSizePopover({
               disabled={readonly}
             />
           </InlineField>
-
           {/* Zoom range block: current-zoom arrow above the track, the min-zoom
               thumb and max marker inline on the track, size-preview circles below. */}
           <div>

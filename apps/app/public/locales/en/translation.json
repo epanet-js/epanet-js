@@ -711,10 +711,11 @@
   "labels": "Labels",
   "labelBy": "Label by",
   "nodeSize": {
-    "label": "Size",
+    "label": "Size (px)",
     "summary": "{{1}}px → {{2}}px",
     "minSize": "Min",
     "maxSize": "Max",
+    "zoom": "Zoom",
     "minZoomAriaLabel": "Minimum visible zoom",
     "currentZoomAriaLabel": "Current map zoom",
     "maxZoomAriaLabel": "Maximum zoom",
