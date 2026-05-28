@@ -43,6 +43,7 @@ export type QuantityStats = {
   times: number;
   decimals: number;
   unit: Unit;
+  isInteger?: boolean;
 };
 
 export type CategoryStats = {
@@ -1387,7 +1388,7 @@ const updateQuantityStats = (
   units: UnitsSpec,
   formatting: FormattingSpec,
   assetId: AssetId,
-  overrides?: { unit?: Unit; decimals?: number },
+  overrides?: { unit?: Unit; decimals?: number; isInteger?: boolean },
 ) => {
   if (value === null) return;
 
@@ -1412,6 +1413,7 @@ const updateQuantityStats = (
       times: 0,
       decimals,
       unit,
+      isInteger: overrides?.isInteger,
     });
   }
 
@@ -1698,7 +1700,7 @@ const appendPipeStatsWithAttributes = (
       units,
       formatting,
       pipe.id,
-      { unit: null, decimals: 0 },
+      { unit: null, decimals: 0, isInteger: true },
     );
   }
 };

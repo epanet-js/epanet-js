@@ -61,10 +61,14 @@ export function MultiValueRow({
   const translateUnit = useTranslateUnit();
 
   const isMixed = propertyStats.values.size > 1;
+  const labelKey =
+    "labelKey" in config && config.labelKey
+      ? config.labelKey
+      : propertyStats.property;
   const label =
     propertyStats.type === "quantity" && propertyStats.unit
-      ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
-      : translate(propertyStats.property);
+      ? `${translate(labelKey)} (${translateUnit(propertyStats.unit)})`
+      : translate(labelKey);
   const nullLabel =
     "nullLabelKey" in config && config.nullLabelKey
       ? translate(config.nullLabelKey)
@@ -145,6 +149,11 @@ const StatsPopoverButton = ({
                 ? propertyStats.decimals
                 : undefined
             }
+            isInteger={
+              propertyStats.type === "quantity"
+                ? propertyStats.isInteger
+                : undefined
+            }
             type={propertyStats.type}
             onSelectAssets={
               onSelectAssets
@@ -198,7 +207,9 @@ const EditableField = ({
     const firstValue = stats.values.keys().next().value as number;
     const displayValue = isMixed
       ? ""
-      : localizeDecimal(firstValue, { decimals: stats.decimals });
+      : stats.isInteger
+        ? String(firstValue)
+        : localizeDecimal(firstValue, { decimals: stats.decimals });
 
     return (
       <NumericField
@@ -443,6 +454,7 @@ export const QuantityStatsBaseFields = ({
   quantityStats: QuantityStats;
 }) => {
   const decimals = quantityStats.decimals;
+  const isInteger = quantityStats.isInteger;
   const translate = useTranslate();
   const [tabIndex, setTabIndex] = useState(-1);
   const handleFocus = () => {
@@ -472,7 +484,11 @@ export const QuantityStatsBaseFields = ({
               readOnly
               tabIndex={tabIndex}
               onFocus={handleFocus}
-              value={localizeDecimal(quantityStats[metric], { decimals })}
+              value={
+                isInteger
+                  ? String(quantityStats[metric])
+                  : localizeDecimal(quantityStats[metric], { decimals })
+              }
             />
           </div>
         );
@@ -487,12 +503,14 @@ type SortDirection = "asc" | "desc";
 export const SortableValuesList = ({
   values,
   decimals,
+  isInteger,
   type,
   onSelectAssets,
   nullLabel,
 }: {
   values: Map<JsonValue, AssetId[]>;
   decimals?: number;
+  isInteger?: boolean;
   type: "quantity" | "category" | "boolean" | "literalCategory";
   onSelectAssets?: (assetIds: AssetId[]) => void;
   nullLabel?: string;
@@ -580,7 +598,13 @@ export const SortableValuesList = ({
       <div className="max-h-32 overflow-y-auto" role="rowgroup">
         <div className="w-full">
           {valueEntries.map(([value, assetIds], index) => {
-            const label = formatValue(value, translate, decimals, type);
+            const label = formatValue(
+              value,
+              translate,
+              decimals,
+              type,
+              isInteger,
+            );
             const emptyLabel = nullLabel ?? translate("none");
             return (
               <div
@@ -622,10 +646,11 @@ export const formatValue = (
   translate: (key: string) => string,
   decimals?: number,
   type?: string,
+  isInteger?: boolean,
 ): string => {
   if (value === undefined) return "";
   if (typeof value === "number") {
-    return localizeDecimal(value, { decimals });
+    return isInteger ? String(value) : localizeDecimal(value, { decimals });
   }
   if (typeof value === "object") return JSON.stringify(value);
   if (typeof value === "boolean") return String(value);

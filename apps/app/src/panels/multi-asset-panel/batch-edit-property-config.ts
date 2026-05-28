@@ -16,6 +16,7 @@ type QuantityConfig = {
   modelProperty: ChangeableProperty;
   positiveOnly?: boolean;
   isNullable?: boolean;
+  labelKey?: string;
 };
 
 type CategoryConfig = {
@@ -60,6 +61,7 @@ export const PIPE_YEAR_EDITABLE_CONFIG: BatchEditPropertyConfig = {
   modelProperty: "year",
   positiveOnly: true,
   isNullable: true,
+  labelKey: "yearOfInstallation",
 };
 
 export const PIPE_MATERIAL_EDITABLE_CONFIG: BatchEditPropertyConfig = {

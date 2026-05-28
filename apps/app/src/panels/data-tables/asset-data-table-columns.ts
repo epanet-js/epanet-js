@@ -1,6 +1,7 @@
 import {
   booleanColumn,
   floatColumn,
+  integerColumn,
   filterableSelectColumn,
   textColumn,
   type GridColumn,
@@ -389,9 +390,8 @@ function pipeAttributeColsFor(materials: string[]): ExtraPipeColsFn {
       allowNew: true,
       createLabel: (query) => translate("addNewValue", query),
     }),
-    floatColumn("year", {
+    integerColumn("year", {
       header: translate("yearOfInstallation"),
-      decimals: 0,
       nullValue: null,
       deleteValue: null,
       placeholder: "",
