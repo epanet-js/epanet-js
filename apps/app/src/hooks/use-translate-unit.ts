@@ -43,6 +43,7 @@ const UNITS_MAP: Record<Exclude<Unit, null>, string> = {
   h: "h",
   "mg/L": "mg/L",
   "ug/L": "μg/L",
+  px: "px",
 };
 
 export const useTranslateUnit = () => {

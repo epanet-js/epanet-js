@@ -41,6 +41,7 @@ export type Unit =
   | "h"
   | "mg/L"
   | "ug/L"
+  | "px"
   | null;
 
 export type Quantity = {

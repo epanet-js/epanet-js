@@ -711,8 +711,8 @@
   "labels": "Labels",
   "labelBy": "Label by",
   "nodeSize": {
-    "label": "Size (px)",
-    "summary": "{{1}}px → {{2}}px",
+    "label": "Size",
+    "summary": "{{1}} → {{2}}",
     "minSize": "Min",
     "maxSize": "Max",
     "zoom": "Zoom",
