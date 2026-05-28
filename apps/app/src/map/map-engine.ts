@@ -46,6 +46,53 @@ const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
   return 10000;
 };
 
+/**
+ * Memoizes a value across calls. The compute function only re-runs when one of
+ * its declared dependencies changes (compared with `Object.is`). Inspired by
+ * TanStack Table's `memo`.
+ */
+const memo = <const TDeps extends readonly unknown[], TResult>(
+  getDeps: () => TDeps,
+  compute: (...deps: TDeps) => TResult,
+): (() => TResult) => {
+  let last: { deps: readonly unknown[]; result: TResult } | undefined;
+  return () => {
+    const deps = getDeps();
+    if (
+      last &&
+      last.deps.length === deps.length &&
+      last.deps.every((d, i) => Object.is(d, deps[i]))
+    ) {
+      return last.result;
+    }
+    const result = compute(...deps);
+    last = { deps, result };
+    return result;
+  };
+};
+
+/**
+ * Lowest zoom that keeps the map's center inside the Mercator projection's
+ * vertical bounds.
+ */
+export const computeSameCenterMinZoom = (
+  containerHeight: number,
+  latitude: number,
+  maxZoom: number,
+): number => {
+  const TILE_SIZE_AT_ZOOM_0 = 512;
+  // Web Mercator Y for the latitude, normalized to [0, 1] (0 ≈ 85°N, 1 ≈ 85°S).
+  const phi = (latitude * Math.PI) / 180;
+  const mercY = 0.5 - Math.log(Math.tan(Math.PI / 4 + phi / 2)) / (2 * Math.PI);
+
+  const distanceFromBound = Math.min(mercY, 1 - mercY);
+  if (distanceFromBound <= 0) return maxZoom;
+  return Math.min(
+    maxZoom,
+    Math.log2(containerHeight / (2 * TILE_SIZE_AT_ZOOM_0 * distanceFromBound)),
+  );
+};
+
 export class MapEngine {
   map: mapboxgl.Map;
   handlers: React.MutableRefObject<MapHandlers>;
@@ -250,6 +297,22 @@ export class MapEngine {
     if (!this.map || !(this.map as any).style) return;
 
     this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
+  }
+
+  private memoizedNavigableMinZoom = memo(
+    () =>
+      [
+        this.map.getCenter().lat,
+        this.map.getContainer()?.clientHeight ?? 0,
+        this.map.getMaxZoom(),
+      ] as const,
+    (lat, height, maxZoom) => computeSameCenterMinZoom(height, lat, maxZoom),
+  );
+
+  /* Lowest zoom that preserves the current map center position. */
+  getNavigableMinZoom(): number {
+    if (!this.map.getContainer()) return this.map.getMinZoom();
+    return this.memoizedNavigableMinZoom();
   }
 
   setOverlay(layers: LayersList) {
