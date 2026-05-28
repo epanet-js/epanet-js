@@ -95,11 +95,12 @@ function convertGeometry(
 
   const transformCoords = (coords: any[]): any[] => {
     if (
-      coords.length === 2 &&
+      coords.length >= 2 &&
       typeof coords[0] === "number" &&
       typeof coords[1] === "number"
     ) {
-      return transformer.forward(coords as [number, number]);
+      const [x, y] = transformer.forward([coords[0], coords[1]]);
+      return [x, y];
     }
     return coords.map(transformCoords);
   };

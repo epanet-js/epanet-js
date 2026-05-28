@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
+import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { WizardContainer } from "src/components/wizard/wizard-container";
 import { WizardHeader } from "src/components/wizard/wizard-header";
@@ -10,6 +11,8 @@ import { useDialogState } from "src/components/dialog";
 import { Selector, type SelectorOption } from "src/components/form/selector";
 import { EnhancedSelector } from "src/components/form/enhanced-selector";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useProjections } from "src/hooks/use-projections";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { SuccessIcon, ErrorIcon } from "src/icons";
 import {
   readZoneFeatures,
@@ -23,12 +26,14 @@ import { useMemo } from "react";
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
 const COMPLETE_STEP_NUMBER = 3;
-const PREVIEW_LIMIT = 10;
+const PREVIEW_LIMIT = 7;
 
 export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const { closeDialog } = useDialogState();
   const importZoneFeatures = useImportZoneFeatures();
+  const { projections } = useProjections();
+  const networkProjection = useAtomValue(projectSettingsAtom).projection;
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
@@ -56,29 +61,31 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     },
   ];
 
-  const handleFileDrop = useCallback((file: File) => {
-    setSelectedFile(file);
-    setFileError(null);
-  }, []);
+  const handleFileDrop = useCallback(
+    async (file: File) => {
+      setSelectedFile(file);
+      setFileError(null);
+      setReadResult(null);
+      setIsProcessing(true);
 
-  const handleNextFromDataInput = useCallback(async () => {
-    if (!selectedFile) return;
+      const result = await readZoneFeatures(file, projections);
 
-    setIsProcessing(true);
-    setFileError(null);
+      setIsProcessing(false);
 
-    const result = await readZoneFeatures(selectedFile);
+      if (result.error) {
+        setFileError(result.error);
+        return;
+      }
 
-    setIsProcessing(false);
+      setReadResult(result);
+    },
+    [projections],
+  );
 
-    if (result.error) {
-      setFileError(result.error);
-      return;
-    }
-
-    setReadResult(result);
+  const handleNextFromDataInput = useCallback(() => {
+    if (!readResult) return;
     setCurrentStep(DATA_MAPPING_STEP_NUMBER);
-  }, [selectedFile]);
+  }, [readResult]);
 
   const handleImport = useCallback(async () => {
     if (!readResult) return;
@@ -107,7 +114,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       <WizardActions
         nextAction={{
           onClick: handleNextFromDataInput,
-          disabled: !selectedFile,
+          disabled: !readResult,
           loading: isProcessing,
         }}
       />
@@ -134,6 +141,10 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             selectedFile={selectedFile}
             onFileDrop={handleFileDrop}
             error={fileError}
+            showNoProjectionWarning={
+              readResult !== null && !readResult.coordinateConversion
+            }
+            networkProjectionName={networkProjection.name}
           />
         )}
         {currentStep === DATA_MAPPING_STEP_NUMBER && (
@@ -156,10 +167,14 @@ const DataInputStep = ({
   selectedFile,
   onFileDrop,
   error,
+  showNoProjectionWarning,
+  networkProjectionName,
 }: {
   selectedFile: File | null;
   onFileDrop: (file: File) => void;
   error: string | null;
+  showNoProjectionWarning: boolean;
+  networkProjectionName: string;
 }) => {
   const translate = useTranslate();
 
@@ -175,9 +190,17 @@ const DataInputStep = ({
         selectedFile={selectedFile}
       />
       {error && (
-        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-red-50 text-red-700 text-sm">
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-red-50 text-red-700 text-sm dark:bg-red-950 dark:text-red-300">
           <ErrorIcon className="shrink-0" />
           {translate(`importZones.errors.${error}`)}
+        </div>
+      )}
+      {showNoProjectionWarning && (
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-blue-50 text-blue-700 text-sm dark:bg-blue-950 dark:text-blue-300">
+          {translate(
+            "importZones.dataInputStep.noProjectionWarning",
+            networkProjectionName,
+          )}
         </div>
       )}
     </>
@@ -289,7 +312,7 @@ const CompleteStep = ({ numZones }: { numZones: number }) => {
     <div className="flex flex-col items-center justify-center gap-4 py-8">
       <SuccessIcon size="xl" className="text-green-600" />
       <p className="text-sm text-gray-700">
-        {translate("importZones.completeStep.summary", numZones)}
+        {translate("importZones.completeStep.summary", numZones.toString())}
       </p>
     </div>
   );

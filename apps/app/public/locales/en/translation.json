@@ -1408,22 +1408,25 @@
     "title": "Import zones",
     "dataInputStep": {
       "title": "Data mapping",
-      "addFromFile": "Add from file"
+      "addFromFile": "Add from file",
+      "noProjectionWarning": "The selected GeoJSON file does not contain projection data. Assuming {{1}} as default."
     },
     "dataMappingStep": {
       "title": "Data input",
       "description": "Choose a property to use as zone label, or auto-generate labels.",
       "none": "None (auto-generate labels)",
       "previewHeader": "Label",
-      "previewMore": "... and {{0}} more"
+      "previewMore": "... and {{1}} more"
     },
     "completeStep": {
       "title": "Complete",
-      "summary": "Imported {{count}} zones from GeoJSON."
+      "summary": "Imported {{1}} zones from GeoJSON."
     },
     "errors": {
       "invalidFile": "The selected file is not a valid GeoJSON file.",
-      "noPolygons": "The file does not contain any Polygon or MultiPolygon geometries."
+      "noPolygons": "The file does not contain any Polygon or MultiPolygon geometries.",
+      "unsupportedProjection": "The file contains an unsupported coordinate projection.",
+      "invalidProjection": "The file contains coordinates that are not in a recognized projection."
     }
   }
 }
