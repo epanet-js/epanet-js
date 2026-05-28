@@ -2,21 +2,20 @@ import { describe, it, expect } from "vitest";
 import {
   junctionCircleRadius,
   junctionLayerMinZoom,
-  MAP_MAX_ZOOM,
   LAYER_MAX_ZOOM,
 } from "./node-size";
 import { defaultNodeSizeConfig } from "src/map/symbology/symbology-types";
 
 describe("junctionCircleRadius", () => {
-  it("interpolates minSize at minVisibleZoom up to maxSize at the max map zoom", () => {
+  it("interpolates minSize at minVisibleZoom up to maxSize at LAYER_MAX_ZOOM", () => {
     expect(junctionCircleRadius(defaultNodeSizeConfig)).toEqual([
       "interpolate",
       ["linear"],
       ["zoom"],
-      12,
-      0.5,
-      MAP_MAX_ZOOM,
-      5,
+      defaultNodeSizeConfig.minVisibleZoom,
+      defaultNodeSizeConfig.minSize,
+      LAYER_MAX_ZOOM,
+      defaultNodeSizeConfig.maxSize,
     ]);
   });
 
@@ -27,13 +26,23 @@ describe("junctionCircleRadius", () => {
         minSize: 2,
         maxSize: 12,
       }),
-    ).toEqual(["interpolate", ["linear"], ["zoom"], 14, 2, MAP_MAX_ZOOM, 12]);
+    ).toEqual(["interpolate", ["linear"], ["zoom"], 14, 2, LAYER_MAX_ZOOM, 12]);
   });
 
   it("returns a flat radius (no interpolation) when min and max size are equal", () => {
     expect(
       junctionCircleRadius({ minVisibleZoom: 12, minSize: 4, maxSize: 4 }),
     ).toBe(4);
+  });
+
+  it("returns a flat maxSize when minVisibleZoom is at the upper stop", () => {
+    expect(
+      junctionCircleRadius({
+        minVisibleZoom: LAYER_MAX_ZOOM,
+        minSize: 2,
+        maxSize: 12,
+      }),
+    ).toBe(12);
   });
 });
 

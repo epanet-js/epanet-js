@@ -8,7 +8,12 @@ import { strokeColorFor } from "src/lib/color";
 import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import * as E from "src/components/elements";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
-import { MAP_MIN_ZOOM, MAP_MAX_ZOOM, LAYER_MAX_ZOOM } from "./node-size";
+import {
+  MAP_MIN_ZOOM,
+  MAP_MAX_ZOOM,
+  LAYER_MAX_ZOOM,
+  MAX_MIN_VISIBLE_ZOOM,
+} from "./node-size";
 
 const SIZE_SLIDER_MIN = 1;
 const SIZE_SLIDER_MAX = 20;
@@ -28,6 +33,14 @@ const toPct = (value: number) =>
   ((value - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM)) * 100;
 
 const clampPct = (pct: number) => Math.min(100, Math.max(0, pct));
+
+// CSS `left` that places an element so its center sits where a Radix slider
+// thumb at the given zoom value would sit on the zoom track (accounting for
+// Radix's half-thumb inset at each end).
+const thumbCenterLeft = (zoom: number): string => {
+  const fraction = (zoom - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM);
+  return `calc(${THUMB_HALF_WIDTH}px + ${fraction * 100}% - ${fraction * 2 * THUMB_HALF_WIDTH}px)`;
+};
 
 const PreviewCircle = ({
   radiusPx,
@@ -207,7 +220,7 @@ export function NodeSizePopover({
                   onValueChange={([next]) =>
                     onChange({
                       ...value,
-                      minVisibleZoom: Math.min(next, LAYER_MAX_ZOOM),
+                      minVisibleZoom: Math.min(next, MAX_MIN_VISIBLE_ZOOM),
                     })
                   }
                   disabled={readonly}
@@ -228,11 +241,17 @@ export function NodeSizePopover({
                     className="block w-3.5 h-3.5 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
                 </Slider.Root>
-                {/* Non-interactive max-zoom marker pinned at the right edge */}
+                {/* Non-interactive max-zoom marker at the zoom where maxSize
+                    is reached (LAYER_MAX_ZOOM = 24), aligned with where a Radix
+                    thumb at that value would sit. */}
                 <div
                   role="img"
                   aria-label={translate("nodeSize.maxZoomAriaLabel")}
-                  className="absolute top-1/2 right-0 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
+                  className="absolute top-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
+                  style={{
+                    left: thumbCenterLeft(LAYER_MAX_ZOOM),
+                    transform: "translate(-50%, -50%)",
+                  }}
                 />
               </div>
 

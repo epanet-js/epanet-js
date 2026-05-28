@@ -105,7 +105,7 @@ describe("useJunctionSize", () => {
         ["zoom"],
         10,
         2,
-        26,
+        24,
         12,
       ]);
     }
@@ -175,7 +175,7 @@ describe("useJunctionSize", () => {
     expect(setLayerPaintRule).toHaveBeenCalledWith(
       "main-features-junctions",
       "circle-radius",
-      ["interpolate", ["linear"], ["zoom"], 11, 3, 26, 9],
+      ["interpolate", ["linear"], ["zoom"], 11, 3, 24, 9],
     );
   });
 
