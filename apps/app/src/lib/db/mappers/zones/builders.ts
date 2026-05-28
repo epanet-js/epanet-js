@@ -1,0 +1,15 @@
+import type { Zones } from "src/lib/zones";
+import { zoneRowSchema, parseRows } from "src/lib/ejsdb";
+
+export const buildZonesData = (rawRows: unknown[]): Zones => {
+  const rows = parseRows(zoneRowSchema, rawRows, "Zone");
+  const zones: Zones = {};
+  for (const row of rows) {
+    zones[row.id] = {
+      id: row.id,
+      label: row.label,
+      geometry: JSON.parse(row.geometry),
+    };
+  }
+  return zones;
+};

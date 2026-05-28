@@ -1,5 +1,6 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { AssetsMap } from "src/hydraulic-model/assets-map";
 import type { CustomerPoints } from "src/hydraulic-model/customer-points";
@@ -19,11 +20,13 @@ import { serializeControls } from "../mappers/controls/to-rows";
 import { junctionDemandsToRows } from "../mappers/junction-demands/to-rows";
 import { newProject } from "./new-project";
 import { saveProjectSettings } from "./save-project-settings";
+import { saveZones } from "./save-zones";
 import { setAllSimulationSettings } from "./set-all-simulation-settings";
 
 export type ImportProjectInput = {
   newDb?: boolean;
   projectSettings?: ProjectSettings;
+  zones?: Zones;
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
 };
@@ -37,6 +40,9 @@ export const importProject = async (
     }
     if (input.projectSettings) {
       await saveProjectSettings(input.projectSettings);
+    }
+    if (input.zones) {
+      await saveZones(input.zones);
     }
     await writeAllAssets(input.hydraulicModel.assets);
     await writeAllCustomerPoints(

@@ -1,4 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
@@ -16,9 +17,11 @@ import { buildControlsData } from "../mappers/controls/builders";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
+import { buildZonesData } from "../mappers/zones/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
+  zones: Zones;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   simulationSettings: SimulationSettings;
@@ -73,6 +76,7 @@ export const fetchProject = async (
     onProgress?.("reading-settings");
     const [
       settingsJson,
+      zonesRaw,
       patternsRaw,
       junctionDemandsRaw,
       curvesRaw,
@@ -82,6 +86,7 @@ export const fetchProject = async (
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
+        worker.getZones(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
         worker.getCurves(),
@@ -99,6 +104,7 @@ export const fetchProject = async (
       "fetchProject.build",
       () => {
         const projectSettings = buildProjectSettingsData(settingsJson);
+        const zones = buildZonesData(zonesRaw);
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
         const factories = initializeModelFactories({
@@ -152,6 +158,7 @@ export const fetchProject = async (
 
         return {
           projectSettings,
+          zones,
           hydraulicModel,
           factories,
           simulationSettings,

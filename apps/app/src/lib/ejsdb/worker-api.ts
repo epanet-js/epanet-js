@@ -17,6 +17,7 @@ import type {
 import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
+import type { ZoneRow } from "./schema/zones";
 import type { AssetPatchRow } from "./schema/patches";
 import type { ApplyMomentPayload, OpenDbResult } from "./types";
 
@@ -196,6 +197,7 @@ const BULK_TABLES = [
   "customer_points",
   "customer_point_demands",
   "junction_demands",
+  "zones",
 ] as const;
 
 const BULK_CHUNK_SIZES = {
@@ -208,6 +210,7 @@ const BULK_CHUNK_SIZES = {
   customer_points: 3700, //  8 cols × 3700 = 29600 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
+  zones: 10000, // 3 cols × 10000 = 30000 params
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -710,6 +713,18 @@ const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
   );
 };
 
+const bulkInsertZones = (rows: readonly ZoneRow[]) => {
+  bulkInsert(
+    "zones",
+    ["id", "label", "geometry"],
+    rows,
+    (row, params) => {
+      params.push(row.id, row.label, row.geometry);
+    },
+    BULK_CHUNK_SIZES.zones,
+  );
+};
+
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
   delAssets: payload.assetDeleteIds.length,
   upJ: payload.assetUpserts.junctions.length,
@@ -911,6 +926,30 @@ export const api = {
     );
   },
 
+  async getZones(): Promise<unknown[]> {
+    return timed("getZones", () => readAll("SELECT * FROM zones"));
+  },
+
+  async setAllZones(rows: ZoneRow[]): Promise<void> {
+    return timed(
+      "setAllZones",
+      async () => {
+        await ready;
+        if (!db) throw new Error("No database open");
+        db.exec("BEGIN IMMEDIATE");
+        try {
+          db.exec("DELETE FROM zones");
+          bulkInsertZones(rows);
+          db.exec("COMMIT");
+        } catch (e) {
+          db.exec("ROLLBACK");
+          throw e;
+        }
+      },
+      { rows: rows.length },
+    );
+  },
+
   async getMaxId(): Promise<number> {
     return timed("getMaxId", async () => {
       await ready;
@@ -925,7 +964,8 @@ export const api = {
            SELECT MAX(id) FROM valves UNION ALL
            SELECT MAX(id) FROM customer_points UNION ALL
            SELECT MAX(id) FROM patterns UNION ALL
-           SELECT MAX(id) FROM curves
+           SELECT MAX(id) FROM curves UNION ALL
+           SELECT MAX(id) FROM zones
          )`,
         { returnValue: "resultRows" },
       ) as Array<Array<number | null>>;
