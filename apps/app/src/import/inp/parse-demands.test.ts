@@ -89,6 +89,29 @@ describe("parse junctions demands", () => {
     expect(hydraulicModel.patterns.get(3)?.label).toBe("otherUnusedPattern");
   });
 
+  it("ignores trailing whitespace and inline comments in PATTERNS rows", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100    50    pattern1
+
+    [PATTERNS]
+    pattern1    1.0    1.2    ;trailing comment
+    pattern1    0.8   \t
+    pattern1    ;label-only row with comment
+    pattern1    0.9    1.1
+
+    [COORDINATES]
+    J1    0    0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+    const pattern = hydraulicModel.patterns.get(1)!;
+    expect(pattern.multipliers).toEqual([1.0, 1.2, 0.8, 0.9, 1.1]);
+    expect(pattern.multipliers.every((n) => Number.isFinite(n))).toBe(true);
+  });
+
   it("parses multi-line patterns", () => {
     const inp = `
     [JUNCTIONS]

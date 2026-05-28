@@ -526,7 +526,9 @@ export const parsePattern: RowParser = ({
   const normalizedLabel = patternId.toUpperCase();
   const existing = inpData.patterns.get(normalizedLabel);
   const multipliers = existing?.multipliers || [];
-  multipliers.push(...values.map((v) => parseFloat(v)));
+  multipliers.push(
+    ...values.map((v) => parseFloat(v)).filter((n) => Number.isFinite(n)),
+  );
   const fallbackType = existing
     ? existing.fallbackType
     : detectPatternTypeFromComment(previousComment);
