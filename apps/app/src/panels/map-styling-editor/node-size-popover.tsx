@@ -8,62 +8,46 @@ import { strokeColorFor } from "src/lib/color";
 import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import * as E from "src/components/elements";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
-import {
-  MAP_MIN_ZOOM,
-  MAP_MAX_ZOOM,
-  LAYER_MAX_ZOOM,
-  MAX_MIN_VISIBLE_ZOOM,
-} from "./node-size";
+import { MAP_MIN_ZOOM, MAP_MAX_ZOOM, MAX_MIN_VISIBLE_ZOOM } from "./node-size";
 
 const SIZE_SLIDER_MIN = 1;
 const SIZE_SLIDER_MAX = 20;
 const SIZE_SLIDER_STEP = 1;
 
-// Radix insets each thumb by half its width (w-3.5 → 7px) so it never overflows
-// the track; the thumb center therefore travels 7px in from each track edge.
-const THUMB_HALF_WIDTH = 7;
-// Inset the preview/caret rows by the largest possible circle radius (plus a
-// little whitespace) so a max-size circle stays inside the popover, and inset
-// the track 5px less so its thumb-center travel lines up with those rows.
-const PREVIEW_EDGE_INSET = SIZE_SLIDER_MAX + 4;
-const TRACK_EDGE_INSET = PREVIEW_EDGE_INSET - THUMB_HALF_WIDTH;
-const PREVIEW_LEFT_INSET = SIZE_SLIDER_MIN + THUMB_HALF_WIDTH;
+// Layout: all slider thumbs are w-4 (16px), so Radix insets each thumb by 8px
+// (half its width). The size sliders reserve gap-2 + w-4 = 24px on the right
+// for their numeric readout, matched by mr-6 on the zoom slider track so all
+// three tracks end at the same x. Preview/caret rows then add another 8px on
+// each side (ml-2 / mr-8) so left: 0%–100% lines up with the thumb-center
+// travel, and elements positioned by percentage align with the thumbs.
 
 const toPct = (value: number) =>
   ((value - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM)) * 100;
 
 const clampPct = (pct: number) => Math.min(100, Math.max(0, pct));
 
-// CSS `left` that places an element so its center sits where a Radix slider
-// thumb at the given zoom value would sit on the zoom track (accounting for
-// Radix's half-thumb inset at each end).
-const thumbCenterLeft = (zoom: number): string => {
-  const fraction = (zoom - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM);
-  return `calc(${THUMB_HALF_WIDTH}px + ${fraction * 100}% - ${fraction * 2 * THUMB_HALF_WIDTH}px)`;
-};
-
 const PreviewCircle = ({
   radiusPx,
   color,
   strokeColor,
-  style,
+  sliderPct,
 }: {
   radiusPx: number;
   color: string;
   strokeColor: string;
-  style: React.CSSProperties;
+  sliderPct: number;
 }) => {
   const diameter = Math.max(2, radiusPx * 2);
   return (
     <div
       aria-hidden
-      className="absolute top-0 rounded-full border"
+      className="absolute top-0 -translate-x-1/2 rounded-full border"
       style={{
         width: diameter,
         height: diameter,
         backgroundColor: color,
         borderColor: strokeColor,
-        ...style,
+        left: `${sliderPct}%`,
       }}
     />
   );
@@ -95,7 +79,7 @@ const SizeSlider = ({
       </Slider.Track>
       <Slider.Thumb
         aria-label={ariaLabel}
-        className="block w-3.5 h-3.5 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+        className="block w-4 h-4 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
       />
     </Slider.Root>
     <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums w-4 text-right shrink-0">
@@ -175,42 +159,19 @@ export function NodeSizePopover({
                 thumb and max marker inline on the track, size-preview circles below. */}
             <div className="flex-1">
               {/* Current-map-zoom indicator above the track, pointing down */}
-              <div
-                className="relative h-2"
-                style={{
-                  marginLeft: PREVIEW_EDGE_INSET,
-                  marginRight: PREVIEW_EDGE_INSET,
-                }}
-              >
+              <div className="relative h-2 ml-2 mr-8">
                 <div
                   role="img"
                   aria-label={translate("nodeSize.currentZoomAriaLabel")}
-                  className="absolute bottom-0"
-                  style={{
-                    left: `${currentZoomPct}%`,
-                    transform: "translateX(-50%)",
-                  }}
+                  className="absolute bottom-0 -translate-x-1/2"
+                  style={{ left: `${currentZoomPct}%` }}
                 >
-                  <div
-                    style={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: "4px solid transparent",
-                      borderRight: "4px solid transparent",
-                      borderTop: "5px solid #64748b",
-                    }}
-                  />
+                  <div className="w-0 h-0 border-x-4 border-x-transparent border-t-[5px] border-t-slate-500" />
                 </div>
               </div>
 
               {/* Track with the min-zoom thumb and pinned max marker inline */}
-              <div
-                className="relative"
-                style={{
-                  marginLeft: 0,
-                  marginRight: TRACK_EDGE_INSET,
-                }}
-              >
+              <div className="relative mr-6">
                 <Slider.Root
                   className="relative flex items-center w-full h-4 select-none touch-none"
                   min={MAP_MIN_ZOOM}
@@ -238,46 +199,30 @@ export function NodeSizePopover({
                   </Slider.Track>
                   <Slider.Thumb
                     aria-label={translate("nodeSize.minZoomAriaLabel")}
-                    className="block w-3.5 h-3.5 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                    className="block w-4 h-4 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
                 </Slider.Root>
-                {/* Non-interactive max-zoom marker at the zoom where maxSize
-                    is reached (LAYER_MAX_ZOOM = 24), aligned with where a Radix
-                    thumb at that value would sit. */}
                 <div
                   role="img"
                   aria-label={translate("nodeSize.maxZoomAriaLabel")}
-                  className="absolute top-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
-                  style={{
-                    left: thumbCenterLeft(LAYER_MAX_ZOOM),
-                    transform: "translate(-50%, -50%)",
-                  }}
+                  className="absolute top-1/2 right-0 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
                 />
               </div>
 
               {/* Size-preview circles below the track. Inset so left:0%–100% maps
                   onto the thumb-center travel and a max-size circle stays inside. */}
-              <div
-                className="relative h-10 mt-1"
-                style={{
-                  marginLeft: PREVIEW_LEFT_INSET,
-                  marginRight: PREVIEW_EDGE_INSET,
-                }}
-              >
+              <div className="relative h-10 mt-1 ml-2 mr-8">
                 <PreviewCircle
                   radiusPx={minSize}
                   color={nodeColor}
                   strokeColor={strokeColor}
-                  style={{
-                    left: `${minThumbPct}%`,
-                    transform: "translateX(-50%)",
-                  }}
+                  sliderPct={minThumbPct}
                 />
                 <PreviewCircle
                   radiusPx={maxSize}
                   color={nodeColor}
                   strokeColor={strokeColor}
-                  style={{ left: "100%", transform: "translateX(-50%)" }}
+                  sliderPct={100}
                 />
               </div>
             </div>
