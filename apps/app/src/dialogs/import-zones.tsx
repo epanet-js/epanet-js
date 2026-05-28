@@ -17,6 +17,7 @@ import { SuccessIcon, ErrorIcon } from "src/icons";
 import {
   readZoneFeatures,
   ZoneLabelGenerator,
+  getLabelProperties,
   type ReadZoneFeaturesResult,
   type ZoneFeature,
 } from "src/lib/zones";
@@ -105,7 +106,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   }, [closeDialog]);
 
   const availableProperties = readResult
-    ? Array.from(readResult.uniqueProperties)
+    ? getLabelProperties(readResult.features)
     : [];
   const numZones = readResult?.features.length ?? 0;
 
