@@ -54,7 +54,6 @@ import {
   LocationSearch,
   type LocationData,
 } from "../components/form/location-search";
-import { initializeZones } from "src/lib/zones";
 
 type ProjectionOption = { id: string; name: string };
 const XY_GRID_OPTION: ProjectionOption = { id: "xy-grid", name: "XY Grid" };
@@ -120,7 +119,6 @@ export const CreateNew = () => {
         headlossFormula,
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
         projection: buildNewProjection(projection),
-        zones: initializeZones(),
       };
       const idGenerator = new ConsecutiveIdsGenerator();
       const hydraulicModel = initializeHydraulicModel({

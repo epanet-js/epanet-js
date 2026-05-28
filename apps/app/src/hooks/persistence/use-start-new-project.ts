@@ -7,6 +7,8 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ModelFactories } from "src/hydraulic-model/factories";
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { Zones } from "src/lib/zones";
+import { initializeZones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
@@ -47,11 +49,13 @@ import {
   initialPlaybackState,
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
+import { zonesAtom } from "src/state/zones";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
   projectSettings: ProjectSettings;
+  zones?: Zones;
   simulationSettings: SimulationSettings;
   autoElevations?: boolean;
 };
@@ -73,6 +77,7 @@ export const resetAppState = (set: Setter) => {
   set(sourceRebuildDurationsAtom, []);
   set(resultsFetchDurationsAtom, []);
   set(simulationPlaybackAtom, initialPlaybackState);
+  set(zonesAtom, initializeZones());
 };
 
 export const loadModel = (
@@ -83,6 +88,7 @@ export const loadModel = (
     hydraulicModel,
     factories,
     projectSettings,
+    zones,
     simulationSettings,
     autoElevations,
   } = input;
@@ -99,6 +105,7 @@ export const loadModel = (
     },
   };
   set(projectSettingsAtom, mergedProjectSettings);
+  set(zonesAtom, zones ?? initializeZones());
   set(momentLogAtom, momentLog);
   set(simulationSettingsAtom, simulationSettings);
   if (autoElevations !== undefined) {

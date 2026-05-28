@@ -5,7 +5,6 @@ import {
   presets,
 } from "./quantities-spec";
 import { Projection, WGS84 } from "src/lib/projections";
-import { initializeZones, Zones } from "src/lib/zones";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
 
 export const defaultProjectName = "";
@@ -17,7 +16,6 @@ export type ProjectSettings = {
   headlossFormula: HeadlossFormula;
   formatting: FormattingSpec;
   projection: Projection;
-  zones: Zones;
 };
 
 export const defaultProjectSettings: ProjectSettings = {
@@ -27,5 +25,4 @@ export const defaultProjectSettings: ProjectSettings = {
   headlossFormula: "H-W",
   formatting: { decimals: presets.LPS.decimals, defaultDecimals: 3 },
   projection: WGS84,
-  zones: initializeZones(),
 };
