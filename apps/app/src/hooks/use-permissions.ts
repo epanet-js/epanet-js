@@ -31,7 +31,7 @@ export const resolvePermissions = (
     canUseElevations: hasPaidAccess,
     canUseHglProfile: hasEarlyAccess,
     canUseCustomGraphs: hasEarlyAccess,
-    canUseZones: true,
+    canUseZones: hasEarlyAccess,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };
