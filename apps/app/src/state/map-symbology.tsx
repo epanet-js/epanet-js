@@ -300,6 +300,13 @@ export const useSymbologyState = () => {
     });
   };
 
+  const updateZoneVisible = (visible: boolean) => {
+    setZoneSymbology({
+      ...zoneSymbology,
+      visible,
+    });
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
@@ -314,5 +321,6 @@ export const useSymbologyState = () => {
     updateLinkDefaultColor,
     updateZoneDefaultColor,
     updateZoneLabelRule,
+    updateZoneVisible,
   };
 };

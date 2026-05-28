@@ -491,23 +491,44 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
   );
 };
 
-const zoneLabelByOptions = [{ label: "Label", value: "label" }];
-
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
-  const { zoneSymbology, updateZoneDefaultColor, updateZoneLabelRule } =
-    useSymbologyState();
+  const {
+    zoneSymbology,
+    updateZoneDefaultColor,
+    updateZoneLabelRule,
+    updateZoneVisible,
+  } = useSymbologyState();
   const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const handleLabelRuleChange = (value: string | null) => {
-    updateZoneLabelRule(value as ZoneLabelRule);
+    const mapped = value === "none" ? null : value;
+    updateZoneLabelRule(mapped as ZoneLabelRule);
   };
+  const zoneLabelByOptions = [{ label: "Label", value: "label" }];
+  const zoneLabelByLegacyOptions = [
+    ...zoneLabelByOptions,
+    { label: translate("none"), value: "none" },
+  ];
+  const zoneLabelByLegacySelection =
+    zoneSymbology.labelRule === null ? "none" : zoneSymbology.labelRule;
 
   return (
     <MapStylingSectionWrapper
       title={translate("zoneSymbology")}
       section="zoneSymbology"
     >
+      <InlineField
+        name={translate("visible")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <Checkbox
+          checked={zoneSymbology.visible}
+          aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
+          onChange={() => updateZoneVisible(!zoneSymbology.visible)}
+        />
+      </InlineField>
       <InlineField
         name={translate("defaultColor")}
         labelSize="sm"
@@ -538,12 +559,10 @@ const ZoneSymbologySection = () => {
           />
         ) : (
           <Selector
-            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
-            options={zoneLabelByOptions}
-            selected={zoneSymbology.labelRule ?? null}
-            nullable
-            placeholder={translate("none")}
+            options={zoneLabelByLegacyOptions}
+            selected={zoneLabelByLegacySelection}
             onChange={handleLabelRuleChange}
+            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
           />
         )}
       </InlineField>

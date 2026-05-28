@@ -121,14 +121,13 @@ const detectChanges = (
   hasNewSymbologyRules: boolean;
   hasNewCustomerPointsSymbology: boolean;
   hasNewDefaultColors: boolean;
-  hasNewZoneDefaults: boolean;
-  hasNewZoneLabelRule: boolean;
+  hasNewZoneSymbology: boolean;
+  hasNewZoneFeatures: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
   hasNewResults: boolean;
   hasNewMapOverlay: boolean;
-  hasNewZoneFeatures: boolean;
   hasNewHighlights: boolean;
 } => {
   return {
@@ -156,10 +155,7 @@ const detectChanges = (
     hasNewDefaultColors:
       state.symbology.node.defaults !== prev.symbology.node.defaults ||
       state.symbology.link.defaults !== prev.symbology.link.defaults,
-    hasNewZoneDefaults:
-      state.symbology.zone.defaults !== prev.symbology.zone.defaults,
-    hasNewZoneLabelRule:
-      state.symbology.zone.labelRule !== prev.symbology.zone.labelRule,
+    hasNewZoneSymbology: state.symbology.zone !== prev.symbology.zone,
     hasNewCustomerPoints: state.customerPoints !== prev.customerPoints,
     hasNewZoom: state.currentZoom !== prev.currentZoom,
     hasSyncMomentChanged: state.syncMomentVersion !== prev.syncMomentVersion,
@@ -215,15 +211,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewSymbologyRules,
       hasNewCustomerPointsSymbology,
       hasNewDefaultColors,
-      hasNewZoneDefaults,
-      hasNewZoneLabelRule,
+      hasNewZoneSymbology,
+      hasNewZoneFeatures,
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
       hasSyncMomentChanged,
       hasNewResults,
       hasNewMapOverlay,
-      hasNewZoneFeatures,
       hasNewHighlights,
     } = changes;
 
@@ -277,12 +272,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoneDefaults && !hasNewStyles) {
+        if (hasNewZoneSymbology || hasNewStyles) {
           updateZoneColors(map, mapState.symbology.zone.defaults.color);
-        }
-
-        if (hasNewZoneLabelRule || hasNewStyles) {
-          toggleZoneLabels(map, mapState.symbology.zone.labelRule);
+          toggleZoneLayers(map, mapState.symbology.zone);
         }
 
         if (
@@ -1006,8 +998,20 @@ const updateZoneColors = (map: MapEngine, color: string) => {
   );
 };
 
-const toggleZoneLabels = (map: MapEngine, labelRule: string | null) => {
-  if (labelRule) {
+const ZONE_LAYERS = ["zones-fill", "zones-outline", "zones-labels"] as const;
+
+const toggleZoneLayers = (
+  map: MapEngine,
+  zone: { visible: boolean; labelRule: string | null },
+) => {
+  if (!zone.visible) {
+    map.hideLayers([...ZONE_LAYERS]);
+    return;
+  }
+
+  map.showLayers(["zones-fill", "zones-outline"]);
+
+  if (zone.labelRule) {
     map.showLayers(["zones-labels"]);
   } else {
     map.hideLayers(["zones-labels"]);

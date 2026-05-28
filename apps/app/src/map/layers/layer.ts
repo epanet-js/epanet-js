@@ -23,6 +23,8 @@ export type LayerId =
   | "selected-icons-halo"
   | "icons-tanks"
   | "icons-reservoirs"
+  | "zones-fill"
+  | "zones-outline"
   | "zones-labels";
 
 export const assetLayers: LayerId[] = [
