@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import type { ZoneFeature } from "./read-zone-features";
 import { importZoneFeatures } from "./import-zone-features";
 
-
 describe("importZoneFeatures", () => {
   it("generates auto labels when no label property is provided", () => {
     const features = [polygonFeature(), polygonFeature()];
