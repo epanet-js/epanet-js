@@ -14,9 +14,9 @@ const SIZE_SLIDER_MIN = 1;
 const SIZE_SLIDER_MAX = 20;
 const SIZE_SLIDER_STEP = 1;
 
-// Radix insets each thumb by half its width (w-2.5 → 5px) so it never overflows
-// the track; the thumb center therefore travels 5px in from each track edge.
-const THUMB_HALF_WIDTH = 5;
+// Radix insets each thumb by half its width (w-3.5 → 7px) so it never overflows
+// the track; the thumb center therefore travels 7px in from each track edge.
+const THUMB_HALF_WIDTH = 7;
 // Inset the preview/caret rows by the largest possible circle radius (plus a
 // little whitespace) so a max-size circle stays inside the popover, and inset
 // the track 5px less so its thumb-center travel lines up with those rows.
@@ -77,7 +77,7 @@ const SizeSlider = ({
       onValueChange={([next]) => onChange(next)}
       disabled={disabled}
     >
-      <Slider.Track className="relative grow rounded-full h-1.5 bg-gray-200 dark:bg-gray-700">
+      <Slider.Track className="relative grow rounded-full h-2 bg-gray-200 dark:bg-gray-700">
         <Slider.Range className="absolute h-full rounded-full bg-purple-400 dark:bg-purple-500" />
       </Slider.Track>
       <Slider.Thumb
@@ -127,7 +127,7 @@ export function NodeSizePopover({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="space-y-1">
-          <div className="font-semibold text-sm">
+          <div className="pb-1 font-semibold text-sm">
             {translate("nodeSize.label")}
           </div>
 
@@ -155,7 +155,7 @@ export function NodeSizePopover({
             />
           </div>
           <div className="flex gap-2">
-            <span className="w-10 pt-2.5 text-sm text-gray-500 min-w-0 shrink-0 wrap-break-word">
+            <span className="w-10 pt-1.5 text-sm text-gray-500 min-w-0 shrink-0 wrap-break-word">
               {translate("nodeSize.zoom")}
             </span>
             {/* Zoom range block: current-zoom arrow above the track, the min-zoom
@@ -163,7 +163,7 @@ export function NodeSizePopover({
             <div className="flex-1">
               {/* Current-map-zoom indicator above the track, pointing down */}
               <div
-                className="relative h-3"
+                className="relative h-2"
                 style={{
                   marginLeft: PREVIEW_EDGE_INSET,
                   marginRight: PREVIEW_EDGE_INSET,
@@ -225,14 +225,14 @@ export function NodeSizePopover({
                   </Slider.Track>
                   <Slider.Thumb
                     aria-label={translate("nodeSize.minZoomAriaLabel")}
-                    className="block w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                    className="block w-3.5 h-3.5 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
                 </Slider.Root>
                 {/* Non-interactive max-zoom marker pinned at the right edge */}
                 <div
                   role="img"
                   aria-label={translate("nodeSize.maxZoomAriaLabel")}
-                  className="absolute top-1/2 right-0 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-gray-400 dark:bg-gray-500 pointer-events-none"
+                  className="absolute top-1/2 right-0 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
                 />
               </div>
 
