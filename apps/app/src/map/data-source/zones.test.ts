@@ -20,7 +20,9 @@ describe("buildZoneFeatures", () => {
 
     const features = buildZoneFeatures(zones);
 
-    expect(features).toHaveLength(3);
+    expect(features).toHaveLength(2);
+    expect(features[0].properties?.label).toEqual("Z1");
+    expect(features[1].properties?.label).toEqual("Z2");
   });
 });
 

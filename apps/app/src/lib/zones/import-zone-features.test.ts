@@ -2,43 +2,6 @@ import { describe, it, expect } from "vitest";
 import type { ZoneFeature } from "./read-zone-features";
 import { importZoneFeatures } from "./import-zone-features";
 
-const polygonFeature = (
-  properties: Record<string, unknown> = {},
-): ZoneFeature => ({
-  type: "Feature",
-  geometry: {
-    type: "Polygon",
-    coordinates: [
-      [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 0],
-      ],
-    ],
-  },
-  properties,
-});
-
-const multiPolygonFeature = (
-  properties: Record<string, unknown> = {},
-): ZoneFeature => ({
-  type: "Feature",
-  geometry: {
-    type: "MultiPolygon",
-    coordinates: [
-      [
-        [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-          [0, 0],
-        ],
-      ],
-    ],
-  },
-  properties,
-});
 
 describe("importZoneFeatures", () => {
   it("generates auto labels when no label property is provided", () => {
@@ -63,10 +26,7 @@ describe("importZoneFeatures", () => {
   });
 
   it("falls back to auto label when property is missing on a feature", () => {
-    const features = [
-      polygonFeature({ name: "Zone A" }),
-      polygonFeature({}),
-    ];
+    const features = [polygonFeature({ name: "Zone A" }), polygonFeature({})];
 
     const zones = importZoneFeatures(features, "name");
 
@@ -110,4 +70,42 @@ describe("importZoneFeatures", () => {
     expect(zones[2].id).toBe(2);
     expect(zones[3].id).toBe(3);
   });
+});
+
+const polygonFeature = (
+  properties: Record<string, unknown> = {},
+): ZoneFeature => ({
+  type: "Feature",
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ],
+    ],
+  },
+  properties,
+});
+
+const multiPolygonFeature = (
+  properties: Record<string, unknown> = {},
+): ZoneFeature => ({
+  type: "Feature",
+  geometry: {
+    type: "MultiPolygon",
+    coordinates: [
+      [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    ],
+  },
+  properties,
 });
