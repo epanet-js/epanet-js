@@ -129,7 +129,7 @@ export const InlineField = ({
       : undefined;
   const inputStyle = layout === "fluid-label" ? { flexBasis: 150 } : undefined;
 
-  const labelClasses = clsx("text-sm text-gray-500 min-w-0", {
+  const labelClasses = clsx("text-size-base text-subtle min-w-0", {
     "grow shrink": layout === "fluid-label",
     "shrink-0": layout === "fixed-label",
     "wrap-break-word": layout === "fixed-label" && labelSize === "sm",
@@ -178,7 +178,7 @@ export const VerticalField = ({
   children: React.ReactNode;
 }) => (
   <div className="flex flex-col gap-y-2 w-full">
-    <span className="text-sm text-gray-500">{name}</span>
+    <span className="text-size-base text-subtle">{name}</span>
     {children}
   </div>
 );
@@ -198,9 +198,9 @@ export const Section = ({
     <div className="flex flex-col gap-1">
       <div
         className={clsx(
-          "flex items-center justify-between text-sm font-semibold h-8",
+          "flex items-center justify-between text-size-base font-semibold h-8",
           {
-            "text-gray-500": variant === "secondary",
+            "text-subtle": variant === "secondary",
           },
         )}
       >
@@ -283,7 +283,7 @@ export const SectionList = ({
           {isStickyFooter && footer && (
             <div
               className={clsx(
-                "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-y border-gray-200 dark:border-gray-800",
+                "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-y",
                 isResizableFooter ? "shrink-0" : "sticky bottom-0",
               )}
               style={
@@ -359,10 +359,10 @@ export const CollapsibleSection = ({
             <div
               className={clsx(
                 "flex gap-1 items-center h-8 cursor-pointer",
-                "px-1 -mx-1 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-800",
+                "px-1 -mx-1 rounded-sm hover:bg-base-hover",
                 {
-                  "text-sm font-semibold": variant === "primary",
-                  "text-sm font-semibold text-gray-500":
+                  "text-size-base font-semibold": variant === "primary",
+                  "text-size-base font-semibold text-subtle":
                     variant === "secondary",
                 },
                 className,
@@ -379,9 +379,7 @@ export const CollapsibleSection = ({
               ) : null}
 
               <span>{title}</span>
-              {showSeparator && (
-                <div className="flex-1 border-b border-gray-200 ml-2" />
-              )}
+              {showSeparator && <div className="flex-1 border-b ml-2" />}
               {!showSeparator && <div className="flex-1" />}
               {action && <div className="h-8 w-8 -my-1">{action}</div>}
               {indicatorPosition === "right" ? (
@@ -424,7 +422,7 @@ export const NestedSection = ({
         overflow={false}
         gap={1}
         className={clsx(
-          "bg-gray-50 -mr-1 pr-1 border-l-2 border-gray-400 rounded-xs",
+          "bg-panel -mr-1 pr-1 border-l-2 border-gray-400 rounded-xs",
           className,
         )}
       >

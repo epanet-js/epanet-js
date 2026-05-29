@@ -178,14 +178,14 @@ function styledReadOnlyText({
   fontWeight = "normal",
 }: Partial<StyleOptions> = {}) {
   return clsx(
-    "text-gray-700 dark:text-gray-100",
+    "text-default",
     {
       "p-1": padding === "sm",
       "p-2": padding === "md",
     },
     {
-      "text-xs": textSize === "xs",
-      "text-sm": textSize === "sm",
+      "text-size-small": textSize === "xs",
+      "text-size-base": textSize === "sm",
       "text-md": textSize === "md",
     },
     {
@@ -211,7 +211,7 @@ function styledInput({
   return clsx(
     disabled
       ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
-      : "text-gray-700 dark:text-gray-100",
+      : "text-default",
     readOnly && "cursor-default",
     {
       "p-1": padding === "sm",
@@ -228,18 +228,18 @@ function styledInput({
       : variant === "warning"
         ? "border-orange-500 dark:border-orange-700"
         : isInteractive
-          ? "border-gray-300 hover:border-gray-200"
+          ? "border-strong hover:border"
           : "border-transparent",
-    !ghostBorder && variant !== "warning" && "bg-white dark:bg-gray-800",
+    !ghostBorder && variant !== "warning" && "bg-popover",
     isInteractive && {
-      "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
+      "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-accent":
         variant === "default",
       "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
         variant === "warning",
     },
     {
-      "text-xs": textSize === "xs",
-      "text-sm": textSize === "sm",
+      "text-size-small": textSize === "xs",
+      "text-size-base": textSize === "sm",
       "text-md": textSize === "md",
     },
     {

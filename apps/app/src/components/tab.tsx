@@ -9,10 +9,7 @@ export function TabList({
 }: React.ComponentPropsWithoutRef<typeof Tabs.List>) {
   return (
     <Tabs.List
-      className={clsx(
-        "flex-none flex border-b bg-popover border",
-        className,
-      )}
+      className={clsx("flex-none flex border-b bg-popover border", className)}
       {...props}
     />
   );

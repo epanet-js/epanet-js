@@ -166,8 +166,8 @@ function styledInput({
 }: StyleOptions = {}) {
   return clsx(
     disabled
-      ? "text-gray-500 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-      : "text-gray-700 dark:text-gray-100",
+      ? "text-subtle cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      : "text-default",
     {
       "p-1": padding === "sm",
       "p-2": padding === "md",
@@ -180,20 +180,20 @@ function styledInput({
       ? "border-transparent bg-transparent"
       : variant === "warning"
         ? "border-orange-500 dark:border-orange-700"
-        : "border-gray-300 hover:border-gray-200",
-    !disabled && !ghostBorder && variant !== "warning" && "bg-white",
+        : "border-strong hover:border",
+    !disabled && !ghostBorder && variant !== "warning" && "bg-base",
     !disabled && {
-      "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500":
+      "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-accent":
         variant === "default",
       "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
         variant === "warning",
     },
     {
-      "text-xs": textSize === "xs",
-      "text-sm": textSize === "sm",
+      "text-size-small": textSize === "xs",
+      "text-size-base": textSize === "sm",
       "text-md": textSize === "md",
     },
 
-    "rounded-xs block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-gray-500",
+    "rounded-xs block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full placeholder:italic placeholder:text-subtle",
   );
 }

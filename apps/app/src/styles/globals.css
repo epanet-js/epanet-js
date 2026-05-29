@@ -111,6 +111,10 @@
   background-color: var(--color-background-base);
 }
 
+@utility border-base {
+  border-color: var(--color-border);
+}
+
 @utility border-strong {
   border-color: var(--color-border-strong);
 }

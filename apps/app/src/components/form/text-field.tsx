@@ -11,8 +11,8 @@ export const TextField = ({
 }) => (
   <span
     className={clsx(
-      "block w-full text-sm border border-transparent tabular-nums",
-      !className && "text-gray-700",
+      "block w-full text-size-base border border-transparent tabular-nums",
+      !className && "text-default",
       {
         "p-1": padding === "sm",
         "p-2": padding === "md",

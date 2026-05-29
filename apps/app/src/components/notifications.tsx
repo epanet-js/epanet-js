@@ -53,14 +53,11 @@ export const NotificationBanner = ({
     >
       {Icon && (
         <Icon
-          className={clsx(
-            "h-5 w-5 mr-3 shrink-0",
-            {
-              "text-success": variant === "success",
-              "text-error": variant === "error",
-              "text-warning": variant === "warning",
-            },
-          )}
+          className={clsx("h-5 w-5 mr-3 shrink-0", {
+            "text-success": variant === "success",
+            "text-error": variant === "error",
+            "text-warning": variant === "warning",
+          })}
           aria-hidden="true"
         />
       )}
@@ -98,14 +95,10 @@ export const NotificationBanner = ({
             </div>
           ) : (
             title && (
-              <span className="text-size-base font-semibold">
-                {title}
-              </span>
+              <span className="text-size-base font-semibold">{title}</span>
             )
           ))}
-        {description && (
-          <span className="text-size-base">{description}</span>
-        )}
+        {description && <span className="text-size-base">{description}</span>}
         {details && (
           <details className="text-size-small">
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">

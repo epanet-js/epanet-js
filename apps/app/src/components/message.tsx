@@ -52,23 +52,10 @@ export const Message = ({
       )}
     >
       <div className="flex flex-col grow space-y-1">
-        <span
-          className={clsx(
-            "text-size-base",
-            "font-semibold",
-            color.title,
-          )}
-        >
+        <span className={clsx("text-size-base", "font-semibold", color.title)}>
           {title}
         </span>
-        <div
-          className={clsx(
-            "text-size-base",
-            color.body,
-          )}
-        >
-          {children}
-        </div>
+        <div className={clsx("text-size-base", color.body)}>{children}</div>
       </div>
     </div>
   );

@@ -394,8 +394,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         <div
           className={clsx(
             "p-2",
-            (showList || showClearRow || showActionRow) &&
-              "border-b border-gray-200",
+            (showList || showClearRow || showActionRow) && "border-b",
           )}
         >
           <input
@@ -407,7 +406,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
               setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
             }}
             placeholder={searchPlaceholder}
-            className="w-full h-8 px-2 text-sm border border-gray-300 rounded-sm outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            className="w-full h-8 px-2 text-size-base border border-strong rounded-sm outline-hidden focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
       )}
@@ -426,13 +425,13 @@ export function BaseSelectorList<T extends string | number | boolean>({
                     "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
                     isOptionDisabled
                       ? "cursor-default text-gray-400"
-                      : "cursor-pointer text-gray-700",
+                      : "cursor-pointer text-default",
                     !isOptionDisabled &&
                       i === activeIndex &&
                       "bg-purple-300/40",
                     !isOptionDisabled &&
                       i !== activeIndex &&
-                      "hover:bg-gray-100",
+                      "hover:bg-base-hover",
                     listClassName,
                   )}
                   onMouseEnter={
@@ -445,7 +444,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
                 >
                   <span>{option.description ?? option.label}</span>
                   {option.value === selected && (
-                    <CheckIcon className="text-purple-700 shrink-0" />
+                    <CheckIcon className="text-accent shrink-0" />
                   )}
                 </li>
               );
@@ -454,10 +453,10 @@ export function BaseSelectorList<T extends string | number | boolean>({
               <li
                 role="option"
                 className={clsx(
-                  "flex items-center h-8 px-2 cursor-pointer text-purple-700 rounded-sm",
+                  "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
                   filtered.length > 0 && "border-t border-gray-100 mt-1",
                   activeIndex === filtered.length && "bg-purple-300/40",
-                  activeIndex !== filtered.length && "hover:bg-gray-100",
+                  activeIndex !== filtered.length && "hover:bg-base-hover",
                 )}
                 onMouseEnter={() => setActiveIndex(filtered.length)}
                 onMouseDown={(e) => e.preventDefault()}
@@ -479,7 +478,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
           <button
             type="button"
             className={clsx(
-              "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-gray-700 rounded-sm",
+              "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-default rounded-sm",
               activeIndex === clearIdx
                 ? "bg-purple-300/40"
                 : "hover:bg-purple-300/40",
@@ -503,7 +502,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
           <button
             type="button"
             className={clsx(
-              "flex items-center justify-between gap-4 w-full h-8 px-2 cursor-pointer text-gray-700 rounded-sm",
+              "flex items-center justify-between gap-4 w-full h-8 px-2 cursor-pointer text-default rounded-sm",
               activeIndex === actionIdx
                 ? "bg-purple-300/40"
                 : "hover:bg-purple-300/40",

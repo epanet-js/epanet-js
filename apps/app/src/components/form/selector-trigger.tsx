@@ -4,7 +4,7 @@ import { ChevronDownIcon } from "src/icons";
 
 export type StyleOptions = {
   border?: boolean;
-  textSize?: "text-xs" | "text-sm";
+  textSize?: "text-xs" | "text-sm" | "text-size-small" | "text-size-base";
   paddingX?: number;
   paddingY?: number;
   disableHoverEffects?: boolean;
@@ -13,7 +13,7 @@ export type StyleOptions = {
 
 const defaultStyleOptions: StyleOptions = {
   border: true,
-  textSize: "text-sm",
+  textSize: "text-size-base",
   paddingX: 2,
   paddingY: 2,
 };
@@ -27,18 +27,15 @@ export const triggerStylesFor = (
   return clsx(
     "flex items-center gap-x-2 w-full",
     disabled
-      ? "text-gray-500 dark:text-gray-500 cursor-not-allowed bg-gray-100 dark:bg-gray-800"
-      : "text-gray-700 bg-white dark:bg-gray-900",
+      ? "text-subtle cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      : "text-default bg-base",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
-      "focus:justify-between hover:border hover:rounded-xs hover:border-gray-200 hover:justify-between min-w-[90px]",
+      "focus:justify-between hover:border hover:rounded-xs hover:justify-between min-w-[90px]",
     "border rounded-xs justify-between",
     isWarning
       ? "border-orange-500 dark:border-orange-700"
-      : {
-          "border-gray-200": effectiveStyleOptions.border,
-          "border-transparent": !effectiveStyleOptions.border,
-        },
+      : !effectiveStyleOptions.border && "border-transparent",
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
     "pl-min-2",
@@ -46,7 +43,7 @@ export const triggerStylesFor = (
       !effectiveStyleOptions.disableHoverEffects &&
       (isWarning
         ? "focus:ring-inset focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
-        : "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10"),
+        : "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10"),
   );
 };
 

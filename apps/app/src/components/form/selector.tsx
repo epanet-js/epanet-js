@@ -152,7 +152,7 @@ export function BaseSelector<T extends string | number>({
           <div
             className={clsx(
               "text-nowrap overflow-hidden text-ellipsis w-full text-left",
-              selectedOption === null && nullable && "italic text-gray-500",
+              selectedOption === null && nullable && "italic text-subtle",
             )}
           >
             {selectedOption
@@ -168,7 +168,7 @@ export function BaseSelector<T extends string | number>({
         <Popover.Content
           side="bottom"
           align="start"
-          className="bg-white min-w-(--radix-popover-trigger-width) border text-sm rounded-md shadow-md z-50 mt-1"
+          className="bg-popover min-w-(--radix-popover-trigger-width) border text-size-base rounded-md shadow-md z-50 mt-1"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
