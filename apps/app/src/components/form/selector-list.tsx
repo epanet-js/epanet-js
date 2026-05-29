@@ -360,6 +360,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         !e.altKey &&
         e.key !== " "
       ) {
+        if (e.target === inputRef.current) return;
         e.preventDefault();
         handleTypeAhead(e.key);
       }
