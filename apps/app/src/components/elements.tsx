@@ -717,7 +717,8 @@ export function sharedOutline(
     dark:focus-visible:ring-offset-gray-900`,
 
     {
-      [`border border-purple-500`]: variant === "primary",
+      [`border border-accent`]: variant === "primary",
+      [`hover:border-accent-hover`]: variant === "primary" && !disabled,
       [`border border-blue-500`]: variant === "blue",
       [`border
     border-gray-300               dark:border-gray-500
@@ -751,7 +752,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
       return [
         `bg-purple-500`,
         !disabled &&
-          `hover:bg-purple-600 dark:hover:bg-purple-400 hover:shadow-sm`,
+          `hover:bg-accent-hover hover:shadow-sm`,
       ];
     case "blue":
       return [
@@ -840,12 +841,11 @@ export const styledButton = ({
     transition-colors
     `
       : variant === "quiet/mode"
-        ? `aria-expanded:bg-purple-400 aria-expanded:text-white
-      dark:aria-expanded:bg-purple-600
-    data-[state=on]:bg-purple-400 dark:data-[state=on]:bg-gray-900`
+        ? `aria-expanded:bg-accent aria-expanded:text-white
+    data-[state=on]:bg-accent dark:data-[state=on]:bg-gray-900`
         : variant === "primary"
-          ? `aria-expanded:bg-purple-600
-    data-[state=on]:bg-purple-600`
+          ? `aria-expanded:bg-accent-hover
+    data-[state=on]:bg-accent-hover`
           : variant === "blue"
             ? `aria-expanded:bg-blue-700
     data-[state=on]:bg-blue-700`

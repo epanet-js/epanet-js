@@ -55,7 +55,8 @@
   --color-yellow-500: oklch(79.5% 0.184 86.047);
 
   /* Semantic token colors (dark overrides in .dark below) */
-  --color-accent: var(--color-purple-600);
+  --color-accent: var(--color-purple-500);
+  --color-accent-hover: var(--color-purple-600);
   --color-base-hover: var(--color-gray-100);
   --color-popover: var(--color-white);
   --color-default: var(--color-gray-900);
@@ -309,7 +310,8 @@ details summary::-webkit-details-marker {
 
 .dark {
   /* Semantic token dark overrides */
-  --color-accent: var(--color-purple-400);
+  --color-accent: var(--color-purple-500);
+  --color-accent-hover: var(--color-purple-400);
   --color-base-hover: var(--color-gray-700);
   --color-base-active: var(--color-gray-600);
   --color-panel: var(--color-gray-800);
