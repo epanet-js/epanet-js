@@ -13,7 +13,7 @@ import {
   type CustomerPointRow,
   type CustomerPointDemandRow,
   type CustomerPointsData,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 export const toCustomerPointRow = (
   customerPoint: CustomerPoint,

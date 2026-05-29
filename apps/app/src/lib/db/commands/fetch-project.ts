@@ -8,7 +8,7 @@ import {
 } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
-import { getWorker, timed } from "src/lib/ejsdb";
+import { getWorker, timed } from "@epanet-js/ejsdb";
 import { buildAssetsData } from "../mappers/assets/builders";
 import { buildCustomerPointsData } from "../mappers/customer-points/builders";
 import { buildPatternsData } from "../mappers/patterns/builders";

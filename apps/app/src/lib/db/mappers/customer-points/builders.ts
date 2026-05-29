@@ -10,7 +10,7 @@ import {
   parseRows,
   customerPointRowSchema,
   customerPointDemandRowSchema,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 export type RawCustomerPointsData = {
   customerPoints: unknown[];

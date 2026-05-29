@@ -4,7 +4,7 @@ import {
   multipliersSchema,
   patternRowSchema,
   type PatternRow,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 export const buildPatternsData = (rawRows: unknown[]): Patterns => {
   const rows = parseRows(patternRowSchema, rawRows, "Patterns");

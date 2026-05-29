@@ -1,6 +1,6 @@
 import type { Controls } from "src/hydraulic-model/controls";
 import { createEmptyControls } from "src/hydraulic-model/controls";
-import { controlsSchema } from "src/lib/ejsdb";
+import { controlsSchema } from "@epanet-js/ejsdb";
 
 export const buildControlsData = (data: string | null): Controls => {
   if (data === null) return createEmptyControls();

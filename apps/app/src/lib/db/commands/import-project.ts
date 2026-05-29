@@ -11,7 +11,7 @@ import type {
 import type { Patterns } from "src/hydraulic-model/patterns";
 import type { Curves } from "src/hydraulic-model/curves";
 import type { Controls } from "src/hydraulic-model/controls";
-import { getWorker, timed } from "src/lib/ejsdb";
+import { getWorker, timed } from "@epanet-js/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";
 import { customerPointsToRows } from "../mappers/customer-points/to-rows";
 import { patternsToRows } from "../mappers/patterns/to-rows";

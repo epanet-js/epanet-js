@@ -1,4 +1,4 @@
-import { getWorker, timed } from "src/lib/ejsdb";
+import { getWorker, timed } from "@epanet-js/ejsdb";
 
 export const newProject = async (): Promise<void> => {
   await timed("newProject", async () => {

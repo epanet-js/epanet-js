@@ -11,7 +11,7 @@ const nextConfig = {
   compress: false,
   swcMinify: true,
   poweredByHeader: false,
-  transpilePackages: ["echarts", "zrender"],
+  transpilePackages: ["echarts", "zrender", "@epanet-js/ejsdb"],
 
   typescript: {
     ignoreBuildErrors: false,

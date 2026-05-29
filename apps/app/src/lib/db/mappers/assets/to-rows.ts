@@ -23,7 +23,7 @@ import {
   type PipeRow,
   type PumpRow,
   type ValveRow,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
   const rows: AssetRows = {

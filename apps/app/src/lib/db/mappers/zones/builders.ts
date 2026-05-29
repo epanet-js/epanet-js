@@ -1,5 +1,5 @@
 import type { Zones } from "src/lib/zones";
-import { zoneRowSchema, parseRows } from "src/lib/ejsdb";
+import { zoneRowSchema, parseRows } from "@epanet-js/ejsdb";
 
 export const buildZonesData = (rawRows: unknown[]): Zones => {
   const rows = parseRows(zoneRowSchema, rawRows, "Zone");

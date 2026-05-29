@@ -12,9 +12,9 @@ import {
   valvePatchRowSchema,
   emptyAssetPatchRows,
   type AssetPatchRows,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
-export { emptyAssetPatchRows, type AssetPatchRows } from "src/lib/ejsdb";
+export { emptyAssetPatchRows, type AssetPatchRows } from "@epanet-js/ejsdb";
 
 export const assetPatchesToRows = (
   patches: readonly AssetPatch[],

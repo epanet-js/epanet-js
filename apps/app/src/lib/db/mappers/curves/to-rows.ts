@@ -1,5 +1,5 @@
 import type { Curves, ICurve } from "src/hydraulic-model/curves";
-import { curveRowSchema, pointsSchema, type CurveRow } from "src/lib/ejsdb";
+import { curveRowSchema, pointsSchema, type CurveRow } from "@epanet-js/ejsdb";
 
 export const toCurveRow = (curve: ICurve): CurveRow => {
   const pointsResult = pointsSchema.safeParse(curve.points);

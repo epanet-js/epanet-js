@@ -1,4 +1,4 @@
-import { getWorker, timed, type OpenDbResult } from "src/lib/ejsdb";
+import { getWorker, timed, type OpenDbResult } from "@epanet-js/ejsdb";
 
 export type OpenProjectResult = OpenDbResult;
 

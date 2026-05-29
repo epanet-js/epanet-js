@@ -1,5 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import { projectSettingsSchema } from "src/lib/ejsdb";
+import { projectSettingsSchema } from "@epanet-js/ejsdb";
 
 export const serializeProjectSettings = (settings: ProjectSettings): string => {
   const result = projectSettingsSchema.safeParse(settings);

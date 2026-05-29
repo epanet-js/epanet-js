@@ -4,7 +4,7 @@ import {
   pointsSchema,
   curveRowSchema,
   type CurveRow,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 export const buildCurvesData = (rawRows: unknown[]): Curves => {
   const rows = parseRows(curveRowSchema, rawRows, "Curves");

@@ -7,7 +7,7 @@ import type {
   CustomerPointRow,
   CustomerPointDemandRow,
   CustomerPointsData,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 
 const emptyCpData = (): CustomerPointsData => ({
   customerPoints: [],

@@ -8,7 +8,7 @@ import {
   type ApplyMomentPayload,
   type CustomerPointDemandUpdate,
   type JunctionDemandUpdate,
-} from "src/lib/ejsdb";
+} from "@epanet-js/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";
 import {
   toCustomerPointRow,
@@ -22,7 +22,7 @@ import {
   assetPatchesToRows,
   emptyAssetPatchRows,
 } from "../mappers/assets/patches";
-import type { CustomerPointRow } from "src/lib/ejsdb";
+import type { CustomerPointRow } from "@epanet-js/ejsdb";
 
 export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];

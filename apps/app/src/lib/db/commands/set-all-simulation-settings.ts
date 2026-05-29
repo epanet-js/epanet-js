@@ -1,5 +1,5 @@
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import { getWorker, timed } from "src/lib/ejsdb";
+import { getWorker, timed } from "@epanet-js/ejsdb";
 import { serializeSimulationSettings } from "../mappers/simulation-settings/to-rows";
 
 export const setAllSimulationSettings = async (

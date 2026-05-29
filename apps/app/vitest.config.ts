@@ -23,6 +23,13 @@ export default defineConfig({
     deps: {
       interopDefault: true,
     },
+    // @epanet-js/ejsdb is a workspace package that ships raw .ts (with `?raw`
+    // SQL imports), so it must be transformed by Vite rather than externalized.
+    server: {
+      deps: {
+        inline: [/@epanet-js\//],
+      },
+    },
     globals: true,
     setupFiles: [
       "./test/setup.ts",

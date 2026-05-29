@@ -1,4 +1,4 @@
-import { getWorker, timedWith } from "src/lib/ejsdb";
+import { getWorker, timedWith } from "@epanet-js/ejsdb";
 
 export const exportDb = async (): Promise<Blob> => {
   return timedWith(

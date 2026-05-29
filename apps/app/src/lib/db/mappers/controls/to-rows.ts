@@ -1,5 +1,5 @@
 import type { Controls } from "src/hydraulic-model/controls";
-import { controlsSchema } from "src/lib/ejsdb";
+import { controlsSchema } from "@epanet-js/ejsdb";
 
 export const serializeControls = (controls: Controls): string => {
   const result = controlsSchema.safeParse(controls);
