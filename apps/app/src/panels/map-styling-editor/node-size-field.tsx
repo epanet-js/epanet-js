@@ -1,13 +1,5 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-} from "react";
+import { useCallback, useContext, useId, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import debounce from "lodash/debounce";
 import type mapboxgl from "mapbox-gl";
 import * as Popover from "@radix-ui/react-popover";
 import * as Slider from "@radix-ui/react-slider";
@@ -101,31 +93,26 @@ const JUNCTION_VISIBILITY_LAYERS: string[] = [
   "selected-junctions",
 ];
 
-const APPLY_DEBOUNCE_MS = 80;
-
 export function useJunctionSize() {
   const map = useContext(MapContext);
   const [config, setConfig] = useAtom(nodeSizeAtom);
 
-  const applyToMap = useMemo(
-    () =>
-      debounce((next: NodeSizeConfig) => {
-        if (!map || !map.map.isStyleLoaded()) return;
-        const radius = junctionCircleRadius(next);
-        for (const layerId of JUNCTION_SIZE_LAYERS) {
-          if (!map.map.getLayer(layerId)) continue;
-          map.setLayerPaintRule(layerId, "circle-radius", radius);
-        }
-        const minzoom = junctionLayerMinZoom(next);
-        for (const layerId of JUNCTION_VISIBILITY_LAYERS) {
-          if (!map.map.getLayer(layerId)) continue;
-          map.setLayerZoomRange(layerId, minzoom, JUNCTION_MAX_ZOOM);
-        }
-      }, APPLY_DEBOUNCE_MS),
+  const applyToMap = useCallback(
+    (next: NodeSizeConfig) => {
+      if (!map || !map.map.isStyleLoaded()) return;
+      const radius = junctionCircleRadius(next);
+      for (const layerId of JUNCTION_SIZE_LAYERS) {
+        if (!map.map.getLayer(layerId)) continue;
+        map.setLayerPaintRule(layerId, "circle-radius", radius);
+      }
+      const minzoom = junctionLayerMinZoom(next);
+      for (const layerId of JUNCTION_VISIBILITY_LAYERS) {
+        if (!map.map.getLayer(layerId)) continue;
+        map.setLayerZoomRange(layerId, minzoom, JUNCTION_MAX_ZOOM);
+      }
+    },
     [map],
   );
-
-  useEffect(() => () => applyToMap.cancel(), [applyToMap]);
 
   const onChange = useCallback(
     (next: NodeSizeConfig) => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { ReactNode } from "react";
 import { renderHook, act } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
@@ -116,9 +116,6 @@ const renderUseJunctionSize = (engine: MapEngine) => {
 };
 
 describe("useJunctionSize", () => {
-  beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
-
   it("starts from the default config", () => {
     const { engine } = createFakeMap();
     const { result } = renderUseJunctionSize(engine);
@@ -140,7 +137,7 @@ describe("useJunctionSize", () => {
     expect(result.current.config).toEqual(next);
   });
 
-  it("applies the debounced circle-radius to every junction layer", () => {
+  it("applies the circle-radius to every junction layer", () => {
     const { engine, setLayerPaintRule } = createFakeMap();
     const { result } = renderUseJunctionSize(engine);
     const next: NodeSizeConfig = {
@@ -150,11 +147,6 @@ describe("useJunctionSize", () => {
     };
 
     act(() => result.current.onChange(next));
-    expect(setLayerPaintRule).not.toHaveBeenCalled();
-
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
 
     expect(setLayerPaintRule).toHaveBeenCalledTimes(JUNCTION_LAYERS.length);
     for (const layerId of JUNCTION_LAYERS) {
@@ -177,9 +169,6 @@ describe("useJunctionSize", () => {
     act(() =>
       result.current.onChange({ minVisibleZoom: 9, minSize: 2, maxSize: 12 }),
     );
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
 
     expect(setLayerZoomRange).toHaveBeenCalledTimes(VISIBILITY_LAYERS.length);
     for (const layerId of VISIBILITY_LAYERS) {
@@ -207,34 +196,11 @@ describe("useJunctionSize", () => {
     act(() =>
       result.current.onChange({ minVisibleZoom: 26, minSize: 2, maxSize: 12 }),
     );
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
 
     expect(setLayerZoomRange).toHaveBeenCalledWith(
       "main-features-junctions",
       24,
       27,
-    );
-  });
-
-  it("coalesces rapid changes into a single paint per layer", () => {
-    const { engine, setLayerPaintRule } = createFakeMap();
-    const { result } = renderUseJunctionSize(engine);
-
-    act(() => {
-      result.current.onChange({ minVisibleZoom: 10, minSize: 1, maxSize: 6 });
-      result.current.onChange({ minVisibleZoom: 11, minSize: 3, maxSize: 9 });
-    });
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
-
-    expect(setLayerPaintRule).toHaveBeenCalledTimes(JUNCTION_LAYERS.length);
-    expect(setLayerPaintRule).toHaveBeenCalledWith(
-      "main-features-junctions",
-      "circle-radius",
-      ["interpolate", ["linear"], ["zoom"], 11, 3, 24, 9],
     );
   });
 
@@ -247,9 +213,6 @@ describe("useJunctionSize", () => {
     act(() =>
       result.current.onChange({ minVisibleZoom: 10, minSize: 2, maxSize: 12 }),
     );
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
 
     expect(setLayerPaintRule).toHaveBeenCalledTimes(1);
     expect(setLayerPaintRule).toHaveBeenCalledWith(
@@ -268,9 +231,6 @@ describe("useJunctionSize", () => {
     act(() =>
       result.current.onChange({ minVisibleZoom: 10, minSize: 2, maxSize: 12 }),
     );
-    act(() => {
-      vi.advanceTimersByTime(80);
-    });
 
     expect(setLayerPaintRule).not.toHaveBeenCalled();
     expect(setLayerZoomRange).not.toHaveBeenCalled();
