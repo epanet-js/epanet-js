@@ -1,37 +1,9 @@
 "use client";
 import clsx from "clsx";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type Variant = "success" | "warning" | "error" | "info";
 
-const rawColors: Record<Variant, { bg: string; title: string; body: string }> =
-  {
-    success: {
-      bg: "bg-green-50 border-green-200",
-      title: "text-green-700",
-      body: "text-green-600",
-    },
-    warning: {
-      bg: "bg-orange-50 border-orange-200",
-      title: "text-orange-700",
-      body: "text-orange-600",
-    },
-    error: {
-      bg: "bg-red-50 border-red-200",
-      title: "text-red-700",
-      body: "text-red-600",
-    },
-    info: {
-      bg: "bg-blue-50 border-blue-200",
-      title: "text-blue-700",
-      body: "text-blue-600",
-    },
-  };
-
-const tokenColors: Record<
-  Variant,
-  { bg: string; title: string; body: string }
-> = {
+const colors: Record<Variant, { bg: string; title: string; body: string }> = {
   success: {
     bg: "bg-success-subtle border-success",
     title: "text-success",
@@ -65,8 +37,7 @@ export const Message = ({
   size?: "auto" | "sm" | "md";
   children: React.ReactNode;
 }) => {
-  const isThemeTokensOn = useFeatureFlag("FLAG_THEME_TOKENS");
-  const color = isThemeTokensOn ? tokenColors[variant] : rawColors[variant];
+  const color = colors[variant];
 
   return (
     <div
@@ -83,7 +54,7 @@ export const Message = ({
       <div className="flex flex-col grow space-y-1">
         <span
           className={clsx(
-            isThemeTokensOn ? "text-size-base" : "text-sm",
+            "text-size-base",
             "font-semibold",
             color.title,
           )}
@@ -92,7 +63,7 @@ export const Message = ({
         </span>
         <div
           className={clsx(
-            isThemeTokensOn ? "text-size-base" : "text-sm",
+            "text-size-base",
             color.body,
           )}
         >

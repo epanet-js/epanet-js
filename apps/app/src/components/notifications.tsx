@@ -3,7 +3,6 @@ import clsx from "clsx";
 import { CloseIcon } from "src/icons";
 import toast, { Toaster } from "react-hot-toast";
 import { Button, type B3Variant } from "src/components/elements";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type NotificationVariant = "success" | "warning" | "error" | "default";
 
@@ -37,26 +36,18 @@ export const NotificationBanner = ({
   onActionClick,
   onDismiss,
 }: NotificationBannerProps) => {
-  const isThemeTokensOn = useFeatureFlag("FLAG_THEME_TOKENS");
   const isInlineAction = action?.align === "inline";
   const hasTitleRowExtras = isInlineAction || !!onDismiss;
   return (
     <div
       className={clsx(
         "flex items-start p-3",
-        isThemeTokensOn
-          ? {
-              "bg-success-subtle border-success": variant === "success",
-              "bg-warning-subtle border-warning": variant === "warning",
-              "bg-error-subtle border-error": variant === "error",
-              "bg-white border-gray-400": variant === "default",
-            }
-          : {
-              "bg-green-50 border-green-200": variant === "success",
-              "bg-orange-50 border-orange-200": variant === "warning",
-              "bg-red-50 border-red-200": variant === "error",
-              "bg-white border-gray-400": variant === "default",
-            },
+        {
+          "bg-success-subtle border-success": variant === "success",
+          "bg-warning-subtle border-warning": variant === "warning",
+          "bg-error-subtle border-error": variant === "error",
+          "bg-white border-gray-400": variant === "default",
+        },
         className,
       )}
     >
@@ -64,17 +55,11 @@ export const NotificationBanner = ({
         <Icon
           className={clsx(
             "h-5 w-5 mr-3 shrink-0",
-            isThemeTokensOn
-              ? {
-                  "text-success": variant === "success",
-                  "text-error": variant === "error",
-                  "text-warning": variant === "warning",
-                }
-              : {
-                  "text-green-500": variant === "success",
-                  "text-red-500": variant === "error",
-                  "text-orange-500": variant === "warning",
-                },
+            {
+              "text-success": variant === "success",
+              "text-error": variant === "error",
+              "text-warning": variant === "warning",
+            },
           )}
           aria-hidden="true"
         />
@@ -84,12 +69,7 @@ export const NotificationBanner = ({
           (hasTitleRowExtras ? (
             <div className="flex items-center gap-2">
               {title && (
-                <span
-                  className={clsx(
-                    isThemeTokensOn ? "text-size-base" : "text-sm",
-                    "font-semibold grow min-w-0",
-                  )}
-                >
+                <span className="text-size-base font-semibold grow min-w-0">
                   {title}
                 </span>
               )}
@@ -118,23 +98,16 @@ export const NotificationBanner = ({
             </div>
           ) : (
             title && (
-              <span
-                className={clsx(
-                  isThemeTokensOn ? "text-size-base" : "text-sm",
-                  "font-semibold",
-                )}
-              >
+              <span className="text-size-base font-semibold">
                 {title}
               </span>
             )
           ))}
         {description && (
-          <span className={isThemeTokensOn ? "text-size-base" : "text-sm"}>
-            {description}
-          </span>
+          <span className="text-size-base">{description}</span>
         )}
         {details && (
-          <details className={isThemeTokensOn ? "text-size-small" : "text-xs"}>
+          <details className="text-size-small">
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
               Show details
             </summary>

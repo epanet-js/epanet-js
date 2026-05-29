@@ -75,10 +75,15 @@
 
   /* Semantic font sizes */
   --text-size-heading-1: 1.5rem;
+  --text-size-heading-1--line-height: 2rem;
   --text-size-heading-2: 1.25rem;
+  --text-size-heading-2--line-height: 1.75rem;
   --text-size-heading-3: 1.125rem;
+  --text-size-heading-3--line-height: 1.75rem;
   --text-size-base: 0.875rem;
+  --text-size-base--line-height: 1.25rem;
   --text-size-small: 0.75rem;
+  --text-size-small--line-height: 1rem;
 }
 
 /*
