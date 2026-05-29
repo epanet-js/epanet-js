@@ -41,9 +41,9 @@ export const DialogCloseX = () => {
   return (
     <Dialog.Close
       aria-label="Close"
-      className="text-gray-500 shrink-0
-                  focus:bg-gray-200 dark:focus:bg-black
-                  hover:text-black dark:hover:text-white"
+      className="text-subtle shrink-0
+                  focus:bg-base-active
+                  hover:text-default"
     >
       <CloseIcon />
     </Dialog.Close>
@@ -65,14 +65,14 @@ export function DialogHeader({
         flex items-center gap-x-2
         px-4 py-3
         text-base
-        text-black dark:text-white
-        border-b border-gray-200
+        text-default
+        border-b border
       "
     >
       {children && children}
       {title && (
         <div className="flex items-center gap-3 flex-auto min-w-0">
-          <Dialog.Title className="text-md font-semibold text-gray-900 wrap-break-word sm:truncate">
+          <Dialog.Title className="text-md font-semibold text-default wrap-break-word sm:truncate">
             {title}
           </Dialog.Title>
           {badge && badge}
@@ -154,7 +154,7 @@ export const AckDialogAction = ({
     <div
       className={clsx(
         "relative",
-        "px-4 py-3 border-t border-gray-200",
+        "px-4 py-3 border-t border",
         "flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3",
       )}
     >
@@ -205,7 +205,7 @@ export function SimpleDialogActions({
         "relative",
         fullWidthSubmit
           ? "flex items-stretch justify-stretch"
-          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border-gray-200`,
+          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border`,
       )}
     >
       {action ? (
