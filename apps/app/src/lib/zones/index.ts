@@ -1,5 +1,5 @@
 export { initializeZones } from "./zones";
-export type { Zone, Zones } from "./zones";
+export type { Zone, ZoneId, Zones } from "./zones";
 
 export { ZoneLabelGenerator } from "./zone-label-generator";
 

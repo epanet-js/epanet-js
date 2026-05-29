@@ -1,5 +1,5 @@
 import { FillLayer, LineLayer, SymbolLayer } from "mapbox-gl";
-import { DataSource } from "../data-source";
+import { DataSource } from "../../data-source";
 import { colors } from "src/lib/constants";
 
 export const zoneFillLayer = ({

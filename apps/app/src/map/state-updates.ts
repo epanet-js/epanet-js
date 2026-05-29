@@ -60,7 +60,7 @@ import type {
   LinkDefaults,
   ZoneSymbology,
 } from "src/map/symbology";
-import { buildZoneColorByLabelExpression } from "src/map/layers/zone-colors";
+import { buildZoneColorExpression } from "src/map/layers/zones";
 import {
   FormattingSpec,
   UnitsSpec,
@@ -128,6 +128,7 @@ const detectChanges = (
   hasNewDefaultColors: boolean;
   hasNewZoneSymbology: boolean;
   hasNewZoneFeatures: boolean;
+  hasNewZoneColorAssignments: boolean;
   hasNewCustomerPoints: boolean;
   hasNewZoom: boolean;
   hasSyncMomentChanged: boolean;
@@ -167,6 +168,8 @@ const detectChanges = (
     hasNewResults: state.resultsReader !== prev.resultsReader,
     hasNewMapOverlay: state.mapOverlayFeatures !== prev.mapOverlayFeatures,
     hasNewZoneFeatures: state.zoneFeatures !== prev.zoneFeatures,
+    hasNewZoneColorAssignments:
+      state.zoneColorAssignments !== prev.zoneColorAssignments,
     hasNewHighlights: state.highlights !== prev.highlights,
   };
 };
@@ -218,6 +221,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewDefaultColors,
       hasNewZoneSymbology,
       hasNewZoneFeatures,
+      hasNewZoneColorAssignments,
       hasNewSimulation,
       hasNewCustomerPoints,
       hasNewZoom,
@@ -277,8 +281,17 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewZoneSymbology || hasNewZoneFeatures || hasNewStyles) {
-          updateZoneColors(map, mapState.symbology.zone, mapState.zoneFeatures);
+        if (
+          hasNewZoneSymbology ||
+          hasNewZoneFeatures ||
+          hasNewZoneColorAssignments ||
+          hasNewStyles
+        ) {
+          updateZoneColors(
+            map,
+            mapState.symbology.zone,
+            mapState.zoneColorAssignments,
+          );
           toggleZoneLayers(map, mapState.symbology.zone);
         }
 
@@ -981,15 +994,15 @@ const updateMapOverlaySource = async (
 const updateZoneColors = (
   map: MapEngine,
   zone: ZoneSymbology,
-  zoneFeatures: GeoJSON.Feature[],
+  zoneColorAssignments: Record<number, string>,
 ) => {
   let fillColor: mapboxgl.Expression | string = zone.defaults.color;
 
   if (zone.colorRule === "label") {
-    const zoneIds = zoneFeatures
-      .map((f) => f.properties?.id as number)
-      .filter((id) => id != null);
-    fillColor = buildZoneColorByLabelExpression(zoneIds, zone.defaults.color);
+    fillColor = buildZoneColorExpression(
+      zoneColorAssignments,
+      zone.defaults.color,
+    );
   }
 
   map.setLayerPaintRule(

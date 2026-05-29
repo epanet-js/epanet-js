@@ -35,6 +35,7 @@ import {
 import { offlineAtom } from "src/state/offline";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";
 import { zoneFeaturesAtom } from "src/state/zone-features";
+import { zoneColorAssignmentsAtom } from "src/state/zone-color-assignments";
 import { highlightsAtom, type Highlight } from "src/state/highlights";
 import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
@@ -123,6 +124,7 @@ export type MapState = {
   currentZoom: number;
   mapOverlayFeatures: GeoJSON.Feature[];
   zoneFeatures: GeoJSON.Feature[];
+  zoneColorAssignments: Record<number, string>;
   highlights: Highlight[];
 };
 
@@ -149,6 +151,7 @@ export const nullMapState: MapState = {
   currentZoom: DEFAULT_ZOOM,
   mapOverlayFeatures: [],
   zoneFeatures: [],
+  zoneColorAssignments: {},
   highlights: [],
 } as const;
 
@@ -182,6 +185,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const isOffline = get(offlineAtom);
   const mapOverlayFeatures = get(mapOverlayFeaturesAtom);
   const zoneFeatures = get(zoneFeaturesAtom);
+  const zoneColorAssignments = get(zoneColorAssignmentsAtom);
   const highlights = get(highlightsAtom);
 
   return {
@@ -203,6 +207,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     currentZoom,
     mapOverlayFeatures,
     zoneFeatures,
+    zoneColorAssignments,
     highlights,
   };
 });

@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { buildZoneFeatures } from "./zones";
 import type { MultiPolygon } from "geojson";
+import type { Zone } from "src/lib/zones";
 
 describe("buildZoneFeatures", () => {
   it("builds a feature from a MultiPolygon zone", () => {
-    const zones = { 1: { label: "Z1", id: 1, geometry: multiPolygon } };
+    const zones = { 1: makeZone(1, "Z1") };
 
     const features = buildZoneFeatures(zones);
 
@@ -14,8 +15,8 @@ describe("buildZoneFeatures", () => {
 
   it("builds features for multiple zones", () => {
     const zones = {
-      1: { label: "Z1", id: 1, geometry: multiPolygon },
-      2: { label: "Z2", id: 2, geometry: multiPolygon },
+      1: makeZone(1, "Z1"),
+      2: makeZone(2, "Z2"),
     };
 
     const features = buildZoneFeatures(zones);
@@ -39,3 +40,11 @@ const multiPolygon: MultiPolygon = {
     ],
   ],
 };
+
+const makeZone = (id: number, label: string): Zone => ({
+  id,
+  label,
+  geometry: multiPolygon,
+  bbox: [0, 0, 1, 1],
+  adjacentZones: [],
+});
