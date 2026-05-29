@@ -447,6 +447,156 @@ describe("computeMultiAssetData", () => {
     expect(wallStat.emptyBucket?.ids).toEqual([IDS.P1, IDS.P2]);
   });
 
+  it("groups reservoirs by head pattern with constant for those without one", () => {
+    const IDS = { PAT: 1, R1: 2, R2: 3, R3: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPattern(IDS.PAT, "Daily Demand", [1, 1.2], "demand")
+      .aReservoir(IDS.R1, { headPatternId: IDS.PAT })
+      .aReservoir(IDS.R2, { headPatternId: IDS.PAT })
+      .aReservoir(IDS.R3)
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const headPatternStat = findLiteralCategoryStat(
+      result.data.reservoir.modelAttributes,
+      "headPattern",
+    );
+    expect(headPatternStat.values.get("Daily Demand")).toEqual([
+      IDS.R1,
+      IDS.R2,
+    ]);
+    expect(headPatternStat.emptyBucket?.label).toBe("constant");
+    expect(headPatternStat.emptyBucket?.ids).toEqual([IDS.R3]);
+  });
+
+  it("surfaces speedPattern only for pumps with a speedPatternId", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      PAT: 3,
+      PU1: 4,
+      PU2: 5,
+      PU3: 6,
+    } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPattern(IDS.PAT, "Daytime", [1, 1.5], "demand")
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        speedPatternId: IDS.PAT,
+      })
+      .aPump(IDS.PU2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        speedPatternId: IDS.PAT,
+      })
+      .aPump(IDS.PU3, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const speedPatternStat = findLiteralCategoryStat(
+      result.data.pump.modelAttributes,
+      "speedPattern",
+    );
+    expect(speedPatternStat.values.get("Daytime")).toEqual([IDS.PU1, IDS.PU2]);
+    expect(speedPatternStat.emptyBucket?.label).toBe("constant");
+    expect(speedPatternStat.emptyBucket?.ids).toEqual([IDS.PU3]);
+  });
+
+  it("includes speed for all pumps regardless of speed pattern", () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      PAT: 3,
+      PU1: 4,
+      PU2: 5,
+      PU3: 6,
+    } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPattern(IDS.PAT, "Daytime", [1, 1.5], "demand")
+      .aPump(IDS.PU1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        speed: 1.2,
+      })
+      .aPump(IDS.PU2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        speed: 0.8,
+      })
+      .aPump(IDS.PU3, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        speed: 1,
+        speedPatternId: IDS.PAT,
+      })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const speedStat = findQuantityStat(
+      result.data.pump.modelAttributes,
+      "speed",
+    );
+    expect(speedStat.values.get(1.2)).toEqual([IDS.PU1]);
+    expect(speedStat.values.get(0.8)).toEqual([IDS.PU2]);
+    expect(speedStat.values.get(1)).toEqual([IDS.PU3]);
+    expect(speedStat.min).toBe(0.8);
+    expect(speedStat.max).toBe(1.2);
+    expect(speedStat.times).toBe(3);
+    expect(speedStat.emptyBucket).toBeUndefined();
+  });
+
+  it("shows speedPattern with all pumps in constant bucket when none use a speed pattern", () => {
+    const IDS = { J1: 1, J2: 2, PU1: 3, PU2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPump(IDS.PU1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPump(IDS.PU2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const speedPatternStat = findLiteralCategoryStat(
+      result.data.pump.modelAttributes,
+      "speedPattern",
+    );
+    expect(speedPatternStat.values.size).toBe(0);
+    expect(speedPatternStat.emptyBucket?.label).toBe("constant");
+    expect(speedPatternStat.emptyBucket?.ids).toEqual([IDS.PU1, IDS.PU2]);
+  });
+
   it("computes category stats for status properties", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, P1: 4, P2: 5, P3: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()

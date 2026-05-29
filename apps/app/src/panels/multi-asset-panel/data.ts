@@ -654,6 +654,19 @@ const appendPumpStats = (
     id,
   );
 
+  updateQuantityStats(statsMap, "speed", pump.speed, units, formatting, id);
+  const speedPattern =
+    pump.speedPatternId !== undefined
+      ? patterns.get(pump.speedPatternId)
+      : undefined;
+  updateLinkStats(
+    statsMap,
+    "speedPattern",
+    speedPattern?.label,
+    id,
+    "constant",
+  );
+
   // Energy settings
   const efficiencyCurve = pump.efficiencyCurveId
     ? curves.get(pump.efficiencyCurveId)
@@ -841,6 +854,8 @@ const buildPumpSections = (
       "pumpType",
       "pumpName",
       "initialStatus",
+      "speed",
+      "speedPattern",
     ]),
     quality: [],
     energy: getStatsForProperties(statsMap, [
@@ -1046,6 +1061,17 @@ const appendReservoirStats = (
 
   const averageHead = calculateAverageHead(reservoir, patterns);
   updateQuantityStats(statsMap, "head", averageHead, units, formatting, id);
+  const reservoirHeadPattern =
+    reservoir.headPatternId !== undefined
+      ? patterns.get(reservoir.headPatternId)
+      : undefined;
+  updateLinkStats(
+    statsMap,
+    "headPattern",
+    reservoirHeadPattern?.label,
+    id,
+    "constant",
+  );
 
   const reservoirSim = simulationResults?.getReservoir(reservoir.id);
   const pressure = reservoirSim?.pressure ?? null;
@@ -1093,7 +1119,11 @@ const buildReservoirSections = (
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
-    modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
+    modelAttributes: getStatsForProperties(statsMap, [
+      "elevation",
+      "head",
+      "headPattern",
+    ]),
     quality: getStatsForProperties(statsMap, [
       "initialQuality",
       "chemicalSourceType",

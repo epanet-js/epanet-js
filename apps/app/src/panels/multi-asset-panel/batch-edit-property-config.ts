@@ -157,7 +157,19 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       statsPrefix: "pump.",
       values: pumpStatuses,
     },
-    speed: { fieldType: "quantity", modelProperty: "speed" },
+    speed: {
+      fieldType: "quantity",
+      modelProperty: "speed",
+      labelKey: "initialSpeed",
+    },
+    speedPattern: {
+      fieldType: "librarySelect",
+      modelProperty: "speedPatternId",
+      library: "patterns",
+      filterByType: "pumpSpeed",
+      nullLabelKey: "constant",
+      libraryLabelKey: "openPatternsLibrary",
+    },
     efficiencyCurve: {
       fieldType: "librarySelect",
       modelProperty: "efficiencyCurveId",
@@ -210,6 +222,13 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
   },
   reservoir: {
     elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    headPattern: {
+      fieldType: "librarySelect",
+      modelProperty: "headPatternId",
+      library: "patterns",
+      nullLabelKey: "constant",
+      libraryLabelKey: "openPatternsLibrary",
+    },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
