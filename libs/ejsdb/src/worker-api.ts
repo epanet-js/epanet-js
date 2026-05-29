@@ -210,7 +210,7 @@ const BULK_CHUNK_SIZES = {
   customer_points: 3700, //  8 cols × 3700 = 29600 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
-  zones: 10000, // 3 cols × 10000 = 30000 params
+  zones: 6000, // 5 cols × 6000 = 30000 params
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -716,10 +716,16 @@ const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
 const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   bulkInsert(
     "zones",
-    ["id", "label", "geometry"],
+    ["id", "label", "geometry", "bbox", "adjacent_zones"],
     rows,
     (row, params) => {
-      params.push(row.id, row.label, row.geometry);
+      params.push(
+        row.id,
+        row.label,
+        row.geometry,
+        row.bbox,
+        row.adjacent_zones,
+      );
     },
     BULK_CHUNK_SIZES.zones,
   );

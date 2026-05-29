@@ -6,4 +6,6 @@ export const zonesToRows = (zones: Zones): ZoneRow[] =>
     id: zone.id,
     label: zone.label,
     geometry: JSON.stringify(zone.geometry),
+    bbox: JSON.stringify(zone.bbox),
+    adjacent_zones: JSON.stringify(zone.adjacentZones),
   }));
