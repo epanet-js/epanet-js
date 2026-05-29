@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { BBox } from "@turf/helpers";
-import {
-  assignZoneColors,
-  ZONE_QUALITATIVE_PALETTE,
-} from "./color-assignment";
+import { assignZoneColors, ZONE_QUALITATIVE_PALETTE } from "./color-assignment";
+import { hexToRgb, rgbToHue, hueDistance } from "./hue-distance";
 import type { Zones } from "src/lib/zones";
 
 describe("assignZoneColors", () => {
@@ -124,22 +122,8 @@ function populateAdjacency(zones: Zones) {
   }
 }
 
-function hexToHue(hex: string): number {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  if (d === 0) return 0;
-  let h: number;
-  if (max === r) h = ((g - b) / d + 6) % 6;
-  else if (max === g) h = (b - r) / d + 2;
-  else h = (r - g) / d + 4;
-  return h * 60;
-}
-
 function sameHueGroup(colorA: string, colorB: string): boolean {
-  const d = Math.abs(hexToHue(colorA) - hexToHue(colorB));
-  return Math.min(d, 360 - d) < 40;
+  return (
+    hueDistance(rgbToHue(hexToRgb(colorA)), rgbToHue(hexToRgb(colorB))) < 40
+  );
 }
