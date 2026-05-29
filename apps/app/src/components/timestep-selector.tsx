@@ -82,7 +82,7 @@ export const TimestepSelectorUI = ({
 
   return (
     <div className="grid grid-cols-[min-content] gap-1">
-      <div className="flex items-center gap-1 p-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-black rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
+      <div className="flex items-center gap-1 p-1 bg-base border rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
         <PlayButton />
         <SpeedButton />
         <Button
@@ -112,7 +112,7 @@ export const TimestepSelectorUI = ({
         />
       </div>
       {isPlaying && speedWarning && (
-        <div className="flex items-start gap-1.5 text-xs bg-gray-100 dark:bg-gray-900/80 px-2 py-1 rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
+        <div className="flex items-start gap-1.5 text-size-small bg-base-hover/80 px-2 py-1 rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
           <WarningIcon className="shrink-0 mt-px text-orange-500" />
           <span className="wrap-break-word min-w-0">
             {translate(
@@ -201,7 +201,7 @@ const SpeedButton = () => {
                 {warning && <WarningIcon className="text-orange-500" />}
                 <span className="w-4 flex items-center justify-center">
                   <DD.ItemIndicator>
-                    <CheckIcon className="text-purple-700" />
+                    <CheckIcon className="text-accent" />
                   </DD.ItemIndicator>
                 </span>
               </StyledRadioItem>
@@ -273,7 +273,7 @@ const TimestepDropdown = ({
         <Popover.Content
           align="end"
           sideOffset={4}
-          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-black text-sm rounded-md shadow-md z-50 overflow-hidden min-w-(--radix-popover-trigger-width)"
+          className="bg-base border text-size-base rounded-md shadow-md z-50 overflow-hidden min-w-(--radix-popover-trigger-width)"
           onKeyDown={(event) => {
             if (event.code === "Escape" || event.code === "Enter") {
               event.stopPropagation();
@@ -315,7 +315,7 @@ const TimestepDropdown = ({
                   >
                     <span>{formatTimestepTime(index, reportTimestep)}</span>
                     {isSelected && (
-                      <CheckIcon className="text-purple-700 ml-auto" />
+                      <CheckIcon className="text-accent ml-auto" />
                     )}
                   </button>
                 );

@@ -36,10 +36,10 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
               {step.number}
             </div>
             <span
-              className={`ml-2 text-sm hidden lg:inline ${
+              className={`ml-2 text-size-base hidden lg:inline ${
                 currentStep >= step.number
-                  ? "text-purple-600 font-medium"
-                  : "text-gray-500"
+                  ? "text-accent font-medium"
+                  : "text-subtle"
               }`}
             >
               {step.label}

@@ -246,7 +246,7 @@ const AssetColorRampSelector = ({
 
   if (readonly) {
     return (
-      <div className="flex items-center w-full min-w-[90px] border rounded-xs border-gray-200 p-2 min-h-9">
+      <div className="flex items-center w-full min-w-[90px] border rounded-xs p-2 min-h-9">
         {rampPreview}
       </div>
     );
@@ -254,13 +254,13 @@ const AssetColorRampSelector = ({
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
-    "border rounded-xs border-gray-200",
-    "text-sm text-gray-700",
-    "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+    "border rounded-xs",
+    "text-size-base text-default",
+    "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
     "p-2 min-h-9 w-full",
   );
 
-  const contentStyles = `bg-white w-(--radix-select-trigger-width) border text-sm rounded-xs shadow-md z-50`;
+  const contentStyles = `bg-base w-(--radix-select-trigger-width) border text-size-base rounded-xs shadow-md z-50`;
 
   return (
     <Select.Root>
@@ -326,7 +326,7 @@ export function RampChoices({
 }) {
   return (
     <div className="flex flex-col gap-y-2 p-2">
-      <span className="text-xs font-semibold text-gray-600 select-none">
+      <span className="text-size-small font-semibold text-subtle select-none">
         {label.toUpperCase()}
       </span>
       <div className="flex flex-col gap-y-2">

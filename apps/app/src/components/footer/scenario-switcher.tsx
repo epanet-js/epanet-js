@@ -116,7 +116,7 @@ export const ScenarioSwitcher = () => {
           <Tooltip.Trigger asChild>
             <button
               onClick={handleCreateScenario}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
             >
               <ScenarioIcon size="sm" />
               <span>{translate("scenarios.enableScenarios")}</span>
@@ -154,7 +154,9 @@ export const ScenarioSwitcher = () => {
                   ) : (
                     <ScenarioIcon size="sm" />
                   )}
-                  <span className="truncate text-sm">{activeDisplayName}</span>
+                  <span className="truncate text-size-base">
+                    {activeDisplayName}
+                  </span>
                 </div>
                 <ChevronDownIcon size="sm" />
               </Button>
@@ -164,7 +166,7 @@ export const ScenarioSwitcher = () => {
             <DDContent align="start" side="top" className="min-w-64">
               <StyledItem onSelect={handleSelectMain}>
                 <div
-                  className={`flex items-center w-full gap-2 ${isMainActive ? "text-purple-600" : ""}`}
+                  className={`flex items-center w-full gap-2 ${isMainActive ? "text-accent-hover" : ""}`}
                 >
                   <MainModelIcon size="sm" />
                   <div className="flex-1">{translate("scenarios.main")}</div>
@@ -178,10 +180,10 @@ export const ScenarioSwitcher = () => {
                   className="group/scenario"
                 >
                   <div
-                    className={`flex items-center w-full gap-2 ${activeBranchId === scenario.id ? "text-purple-600" : ""}`}
+                    className={`flex items-center w-full gap-2 ${activeBranchId === scenario.id ? "text-accent-hover" : ""}`}
                   >
                     <span
-                      className={`font-mono text-sm pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-gray-400"}`}
+                      className={`font-mono text-size-base pl-1 ${activeBranchId === scenario.id ? "text-purple-400" : "text-subtle"}`}
                     >
                       {index === scenariosList.length - 1 ? "└──" : "├──"}
                     </span>
@@ -189,7 +191,7 @@ export const ScenarioSwitcher = () => {
                     <DD.Root>
                       <DD.Trigger asChild>
                         <button
-                          className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400"
+                          className="opacity-0 group-hover/scenario:opacity-100 data-[state=open]:opacity-100 p-1 rounded-sm hover:bg-gray-300 dark:hover:bg-gray-500 text-subtle"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreActionsIcon size="sm" />
@@ -210,7 +212,7 @@ export const ScenarioSwitcher = () => {
                             onSelect={() =>
                               openDeleteConfirmation(scenario.id, scenario.name)
                             }
-                            className="text-red-500 dark:text-red-300"
+                            className="text-error"
                           >
                             <DeleteIcon size="sm" />
                             <span>{translate("scenarios.delete")}</span>

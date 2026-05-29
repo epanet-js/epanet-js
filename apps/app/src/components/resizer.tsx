@@ -251,8 +251,7 @@ function PanelToggle({
             : "border-r rounded-l-none",
           `
           absolute px-0.5 py-2 top-1/2 border-t border-b
-          bg-white hover:bg-purple-100 border-gray-300
-          dark:bg-gray-900 dark:text-white dark:hover:bg-purple-700 dark:border-white
+          bg-base text-default hover:bg-purple-100 border-strong dark:hover:bg-purple-700 dark:border-white
           rounded
         `,
         )}

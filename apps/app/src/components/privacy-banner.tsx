@@ -34,7 +34,7 @@ export const PrivacyBanner = () => {
     <div className="fixed bottom-10 left-0 w-full z-50 pointer-events-none">
       <div className="max-w-4xl mx-auto px-4 pointer-events-auto">
         <div
-          className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg p-6"
+          className="bg-popover border border-strong rounded-md shadow-lg p-6"
           data-privacy-banner
           onPointerDownCapture={(e) => {
             e.stopPropagation();
@@ -68,10 +68,10 @@ const BannerView = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+      <h2 className="text-size-heading-3 font-bold text-default">
         {translate("privacyBanner.title")}
       </h2>
-      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
+      <div className="text-size-base text-default space-y-3">
         <p>{translate("privacyBanner.description")}</p>
         <p>
           {translate("privacyBanner.seePrivacyPolicy")}{" "}
@@ -128,11 +128,11 @@ const PreferencesView = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+      <h2 className="text-size-heading-3 font-bold text-default">
         {translate("privacyBanner.preferencesTitle")}
       </h2>
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
-        <p className="text-sm text-gray-700 dark:text-gray-300">
+        <p className="text-size-base text-default">
           {translate("privacyBanner.essentialDataNotice")}
         </p>
       </div>
@@ -144,11 +144,11 @@ const PreferencesView = ({
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+            <h3 className="text-size-base font-semibold text-default mb-1">
               {translate("privacyBanner.productAnalyticsTitle")}
             </h3>
             <p
-              className="text-sm text-gray-700 dark:text-gray-300"
+              className="text-size-base text-default"
               dangerouslySetInnerHTML={{
                 __html: translate("privacyBanner.productAnalyticsDescription"),
               }}
@@ -168,10 +168,10 @@ const PreferencesView = ({
 
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+            <h3 className="text-size-base font-semibold text-default mb-1">
               {translate("privacyBanner.errorReportingTitle")}
             </h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
+            <p className="text-size-base text-default">
               {translate("privacyBanner.errorReportingDescription")}
             </p>
           </div>

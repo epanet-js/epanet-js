@@ -46,7 +46,7 @@ export function FileInfo() {
     <div className="pl-3 flex-initial hidden sm:flex items-center gap-x-1">
       <TypeIcon />
       <div
-        className="text-xs font-mono whitespace-nowrap truncate"
+        className="text-size-small font-mono whitespace-nowrap truncate"
         title={name}
       >
         {truncate(name, 50)}{" "}

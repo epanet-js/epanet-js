@@ -36,7 +36,7 @@ export const PlanLabel = ({
       return (
         <button
           onClick={onOrgClick}
-          className="mr-1 flex items-center gap-x-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 cursor-pointer"
+          className="mr-1 flex items-center gap-x-1.5 text-size-base font-semibold text-subtle hover:text-default dark:text-gray-300 dark:hover:text-gray-100 cursor-pointer"
         >
           {content}
         </button>
@@ -44,14 +44,14 @@ export const PlanLabel = ({
     }
 
     return (
-      <span className="mr-1 flex items-center gap-x-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300">
+      <span className="mr-1 flex items-center gap-x-1.5 text-size-base font-semibold text-subtle">
         {content}
       </span>
     );
   }
 
   return (
-    <span className="text-xs font-semibold tracking-wide text-gray-600 dark:text-gray-300">
+    <span className="text-size-small font-semibold tracking-wide text-subtle">
       {planLabelText[plan]}
     </span>
   );

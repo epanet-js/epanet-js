@@ -158,11 +158,7 @@ export function EpanetApp() {
   }
 
   return (
-    <main
-      className={
-        "custom-cursor-family h-dvh flex flex-col bg-white dark:bg-gray-800"
-      }
-    >
+    <main className={"custom-cursor-family h-dvh flex flex-col bg-popover"}>
       <MapContext.Provider value={map}>
         <div className="h-24">
           <MenuBarPlay />
@@ -174,7 +170,7 @@ export function EpanetApp() {
         <div
           className={clsx(
             layout === "VERTICAL" && "flex-col h-full",
-            "flex grow relative border-t border-gray-200 dark:border-gray-900",
+            "flex grow relative border-t dark:border-gray-900",
             "pb-10",
           )}
         >

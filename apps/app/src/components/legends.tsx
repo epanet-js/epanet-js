@@ -49,7 +49,7 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
       <div
         className={clsx(
           "block w-full p-2 flex flex-col justify-between items-start gap-2",
-          "cursor-pointer hover:bg-gray-100",
+          "cursor-pointer hover:bg-base-hover",
         )}
         onClick={() => {
           setExpanded(!isExpanded);
@@ -60,7 +60,7 @@ const Legend = ({ symbology }: { symbology: RangeColorRule }) => {
         }}
       >
         <div className="flex w-full items-center justify-between">
-          <div className="text-xs text-wrap select-none">{title}</div>
+          <div className="text-size-small text-wrap select-none">{title}</div>
           <span className="shrink-0">
             {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
           </span>
@@ -80,7 +80,7 @@ const LegendContainer = ({
 }) => {
   return (
     <div
-      className="space-y-1 text-xs bg-white dark:bg-gray-900 dark:text-white border border-gray-300 dark:border-black w-32 rounded-xs"
+      className="space-y-1 text-size-small bg-base border border-strong dark:border-black w-32 rounded-xs"
       onClick={onClick}
     >
       {children}
@@ -106,7 +106,7 @@ export const LegendRamp = ({ colorRule }: { colorRule: RangeColorRule }) => {
         return (
           <div
             key={breaks[i] + "_" + i}
-            className="absolute left-full ml-2 text-xs whitespace-nowrap select-none"
+            className="absolute left-full ml-2 text-size-small whitespace-nowrap select-none"
             style={{
               top: `${topPct}%`,
               transform: "translateY(-50%)",

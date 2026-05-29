@@ -5,7 +5,7 @@ const planStyles: Record<string, string> = {
   free: "bg-linear-to-r from-purple-100 via-purple-200 to-purple-300 text-purple-800",
   pro: "bg-linear-to-r from-yellow-200 via-yellow-300 to-yellow-400 font-bold text-yellow-700",
   personal:
-    "bg-linear-to-r from-blue-200 via-blue-300 to-blue-400 text-gray-700 font-bold shadow-md",
+    "bg-linear-to-r from-blue-200 via-blue-300 to-blue-400 text-default font-bold shadow-md",
   education:
     "bg-linear-to-r from-green-300 via-green-400 to-green-600 text-gray-100 font-bold shadow-md",
   teams:
@@ -27,7 +27,7 @@ export const PlanBadge = ({ plan }: { plan: Plan }) => {
   return (
     <span
       title={`${translate("planExplain", translate(`plan.${plan}`))}`}
-      className={`absolute right-[4.8px] top-[23.5px] -mr-2 h-3 flex items-center justify-center rounded-full px-[6px] py-[6px] text-[8px]  font-bold z-10 tracking-[1px] ${planStyles[plan] || "bg-gray-200 text-gray-800"}`}
+      className={`absolute right-[4.8px] top-[23.5px] -mr-2 h-3 flex items-center justify-center rounded-full px-[6px] py-[6px] text-[8px] font-bold z-10 tracking-[1px] ${planStyles[plan] || "bg-base-active text-default"}`}
     >
       {planBadgeText[plan]}
     </span>

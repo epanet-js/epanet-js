@@ -19,14 +19,14 @@ export const NothingSelected = memo(function NothingSelected() {
 
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
-      <div className="text-gray-400">
+      <div className="text-subtle">
         <PointerClickIcon size={96} />
       </div>
-      <p className="text-sm font-semibold py-4 text-gray-600">
+      <p className="text-size-base font-semibold py-4 text-subtle">
         {translate("nothingSelectedTitle")}
       </p>
       <div
-        className="grid gap-x-2 gap-y-4 items-start text-sm text-gray-600 max-w-64"
+        className="grid gap-x-2 gap-y-4 items-start text-size-base text-subtle max-w-64"
         style={{ gridTemplateColumns: "min-content 1fr" }}
       >
         <div className="flex items-center gap-1">

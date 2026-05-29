@@ -75,7 +75,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const { canManageOrganization } = usePermissions();
 
   return (
-    <div className="flex justify-between h-12 pr-2 text-black dark:text-white">
+    <div className="flex justify-between h-12 pr-2 text-black">
       <div className="flex items-center">
         <div
           className="py-1 pl-2 pr-2 inline-flex cursor-pointer"
@@ -280,7 +280,7 @@ export const SideMenu = () => {
       <div
         ref={menuRef}
         tabIndex={isOpen ? 0 : -1}
-        className={`fixed inset-y-0 right-0 w-full bg-white transform ${
+        className={`fixed inset-y-0 right-0 w-full bg-base transform ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } transition-transform duration-300 ease-in-out md:hidden z-40`}
       >
@@ -300,8 +300,8 @@ export const SideMenu = () => {
                 </Button>
               </li>
             </ul>
-            <hr className="my-4 border-gray-200" />
-            <ul className="flex flex-col items-start gap-2  text-gray-200">
+            <hr className="my-4" />
+            <ul className="flex flex-col items-start gap-2 text-gray-200">
               <li>
                 <a
                   href={sourceCodeUrl}
@@ -357,7 +357,7 @@ export const SideMenu = () => {
                 </a>
               </li>
             </ul>
-            <hr className="my-4 border-gray-200" />
+            <hr className="my-4" />
             <SignedIn>
               <AccountSection layout="sidebar">
                 {effectivePlan !== "free" && (
@@ -466,7 +466,7 @@ const TrialOrUpgradeButton = ({
   if (trial) {
     const colorClass = trial.isUrgent
       ? "text-orange-600 dark:text-orange-400"
-      : "text-purple-600 dark:text-purple-400";
+      : "text-accent-hover";
 
     return (
       <Button variant="quiet" size={size} onClick={onUpgrade}>

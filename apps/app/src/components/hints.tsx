@@ -18,7 +18,7 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { PropsWithChildren } from "react";
 
 export const tipLike = `
-    bg-white dark:bg-gray-900
+    bg-base
     rounded-xs
     shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
     ring-1 ring-gray-200 dark:ring-gray-700
@@ -39,7 +39,7 @@ function HintWrapper({
   return (
     <div
       className={clsx(
-        "absolute max-w-[600px] top-2 left-3 text-sm flex gap-x-2  dark:text-white rounded-md",
+        "absolute max-w-[600px] top-2 left-3 text-size-base flex gap-x-2 rounded-md",
         "p-2 items-start",
         tipLike,
       )}
@@ -77,7 +77,7 @@ function Hint({
       {!!secondaryText && (
         <div>
           <div>{text}</div>
-          <div className="text-gray-500 text-sm">{secondaryText}</div>
+          <div className="text-subtle text-size-base">{secondaryText}</div>
         </div>
       )}
       {!secondaryText && <div>{text}</div>}

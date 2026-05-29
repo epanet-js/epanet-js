@@ -65,7 +65,7 @@ export const LanguageSelector = ({
                     </div>
                     <div className="w-4 h-4 flex items-center justify-center">
                       {locale === language.code && (
-                        <CheckIcon className="text-purple-700" />
+                        <CheckIcon className="text-accent" />
                       )}
                     </div>
                   </div>
@@ -74,7 +74,7 @@ export const LanguageSelector = ({
               {language.experimental && (
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="bg-gray-900 text-white text-xs px-2 py-1 rounded-sm shadow-lg max-w-48 z-50"
+                    className="bg-gray-900 text-white text-size-small px-2 py-1 rounded-sm shadow-lg max-w-48 z-50"
                     sideOffset={5}
                   >
                     {translate("experimentalLanguage")}

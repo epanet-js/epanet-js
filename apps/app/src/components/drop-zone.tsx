@@ -44,7 +44,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
         relative min-h-[200px] border-2 border-dashed rounded-lg
         flex flex-col items-center justify-center p-8 cursor-pointer
         transition-all duration-200 ease-in-out
-        ${dragState === "idle" ? "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100" : ""}
+        ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
         ${dragState === "dragging" ? "border-purple-400 bg-purple-50" : ""}
         ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
@@ -57,20 +57,20 @@ export const DropZone: React.FC<DropZoneProps> = ({
         <div
           className={`
           p-3 rounded-full
-          ${dragState === "over" ? "bg-purple-200" : "bg-gray-200"}
+          ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
         `}
         >
           <UploadIcon
             className={`h-8 w-8 ${
-              dragState === "over" ? "text-purple-600" : "text-gray-400"
+              dragState === "over" ? "text-accent-hover" : "text-subtle"
             }`}
           />
         </div>
 
         <div className="text-center">
           <p
-            className={`text-lg font-medium ${
-              dragState === "over" ? "text-purple-700" : "text-gray-700"
+            className={`text-size-heading-3 font-medium ${
+              dragState === "over" ? "text-accent" : "text-default"
             }`}
           >
             {dragState === "over"
@@ -79,7 +79,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
           </p>
 
           {supportedFormats && (
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-size-base text-subtle mt-2">
               {translate("dropZone.supportedFormats", supportedFormats)}
             </p>
           )}
@@ -88,8 +88,8 @@ export const DropZone: React.FC<DropZoneProps> = ({
 
       {selectedFile && (
         <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-white rounded-md px-3 py-2 border border-gray-200 shadow-xs">
-            <p className="text-sm text-gray-600 truncate">
+          <div className="bg-base rounded-md px-3 py-2 border shadow-xs">
+            <p className="text-size-base text-subtle truncate">
               {translate("dropZone.selectedFile", selectedFile.name)}
             </p>
           </div>
