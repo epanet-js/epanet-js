@@ -274,6 +274,7 @@
   "asset": "Asset",
   "assets": "Assets",
   "none": "None",
+  "globalDefault": "Global default",
   "empty": "Empty",
   "type": "Type",
   "delete": "Delete",

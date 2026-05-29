@@ -213,6 +213,9 @@ export function MultiAssetPanel({
             }
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "junction")}
+            patterns={hydraulicModel.patterns}
+            labelManager={labelManager}
+            onOpenLibrary={handleOpenLibrary}
           />
         </CollapsibleSection>
       )}
@@ -328,6 +331,9 @@ export function MultiAssetPanel({
             }
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "reservoir")}
+            patterns={hydraulicModel.patterns}
+            labelManager={labelManager}
+            onOpenLibrary={handleOpenLibrary}
           />
         </CollapsibleSection>
       )}
@@ -355,6 +361,10 @@ export function MultiAssetPanel({
             onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "tank")}
+            curves={hydraulicModel.curves}
+            patterns={hydraulicModel.patterns}
+            labelManager={labelManager}
+            onOpenLibrary={handleOpenLibrary}
           />
         </CollapsibleSection>
       )}

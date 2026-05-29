@@ -272,11 +272,179 @@ describe("computeMultiAssetData", () => {
     );
     expect(materialStat.values.get("PVC")).toHaveLength(1);
     expect(materialStat.values.get("Steel")).toHaveLength(1);
+    expect(materialStat.emptyBucket).toBeUndefined();
     const yearStat = findQuantityStat(result.data.pipe.modelAttributes, "year");
     expect(yearStat.min).toBe(1995);
     expect(yearStat.max).toBe(2005);
     expect(yearStat.decimals).toBe(0);
     expect(yearStat.unit).toBeNull();
+    expect(yearStat.emptyBucket).toBeUndefined();
+  });
+
+  it("counts pipes with unset material under an emptyBucket", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        material: "PVC",
+      })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetDataWithPipeAttributes(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const materialStat = findCategoryStat(
+      result.data.pipe.modelAttributes,
+      "material",
+    );
+    expect(materialStat.values.get("PVC")).toHaveLength(1);
+    expect(materialStat.emptyBucket?.label).toBe("none");
+    expect(materialStat.emptyBucket?.ids).toEqual([IDS.P2, IDS.P3]);
+  });
+
+  it("counts pipes with unset year in emptyBucket and excludes them from min/max/mean", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        year: 1995,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        year: 2005,
+      })
+      .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetDataWithPipeAttributes(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const yearStat = findQuantityStat(result.data.pipe.modelAttributes, "year");
+    expect(yearStat.min).toBe(1995);
+    expect(yearStat.max).toBe(2005);
+    expect(yearStat.mean).toBe(2000);
+    expect(yearStat.times).toBe(2);
+    expect(yearStat.emptyBucket?.label).toBe("none");
+    expect(yearStat.emptyBucket?.ids).toEqual([IDS.P3]);
+  });
+
+  it("surfaces material stat with only emptyBucket when no pipe has a material", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetDataWithPipeAttributes(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const materialStat = findCategoryStat(
+      result.data.pipe.modelAttributes,
+      "material",
+    );
+    expect(materialStat.values.size).toBe(0);
+    expect(materialStat.emptyBucket?.ids).toEqual([IDS.P1, IDS.P2]);
+  });
+
+  it("includes unset chemicalSourceType in emptyBucket and skips strength/pattern for those assets", () => {
+    const IDS = { J1: 1, J2: 2, J3: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, {
+        chemicalSourceType: "CONCEN",
+        chemicalSourceStrength: 5,
+      })
+      .aJunction(IDS.J2, { chemicalSourceType: "MASS" })
+      .aJunction(IDS.J3)
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const typeStat = findCategoryStat(
+      result.data.junction.quality,
+      "chemicalSourceType",
+    );
+    expect(typeStat.values.get("source.CONCEN")).toHaveLength(1);
+    expect(typeStat.values.get("source.MASS")).toHaveLength(1);
+    expect(typeStat.emptyBucket?.label).toBe("none");
+    expect(typeStat.emptyBucket?.ids).toEqual([IDS.J3]);
+
+    const strengthStat = findQuantityStat(
+      result.data.junction.quality,
+      "chemicalSourceStrength",
+    );
+    expect(strengthStat.values.get(5)).toEqual([IDS.J1]);
+    expect(strengthStat.times).toBe(1);
+    expect(strengthStat.emptyBucket?.label).toBe("none");
+    expect(strengthStat.emptyBucket?.ids).toEqual([IDS.J2]);
+  });
+
+  it("groups pipes with unset bulk/wall reaction coefficients under globalDefault", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        bulkReactionCoeff: -0.5,
+      })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeMultiAssetData(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const bulkStat = findQuantityStat(
+      result.data.pipe.quality,
+      "bulkReactionCoeff",
+    );
+    expect(bulkStat.values.get(-0.5)).toEqual([IDS.P1]);
+    expect(bulkStat.emptyBucket?.label).toBe("globalDefault");
+    expect(bulkStat.emptyBucket?.ids).toEqual([IDS.P2]);
+
+    const wallStat = findQuantityStat(
+      result.data.pipe.quality,
+      "wallReactionCoeff",
+    );
+    expect(wallStat.emptyBucket?.label).toBe("globalDefault");
+    expect(wallStat.emptyBucket?.ids).toEqual([IDS.P1, IDS.P2]);
   });
 
   it("computes category stats for status properties", () => {
@@ -567,9 +735,10 @@ describe("computeMultiAssetData", () => {
       result.data.pump.modelAttributes,
       "pumpName",
     );
-    expect(curveStat.values.size).toBe(2);
+    expect(curveStat.values.size).toBe(1);
     expect(curveStat.values.get("Shared Curve")).toHaveLength(2);
-    expect(curveStat.values.get("")).toHaveLength(1);
+    expect(curveStat.emptyBucket?.label).toBe("none");
+    expect(curveStat.emptyBucket?.ids).toHaveLength(1);
   });
 
   it("handles partial simulation results", () => {

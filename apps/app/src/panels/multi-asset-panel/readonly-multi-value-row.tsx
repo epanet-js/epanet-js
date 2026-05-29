@@ -10,7 +10,12 @@ import {
 } from "src/components/elements";
 import { MultipleValuesIcon } from "src/icons";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
-import { AssetPropertyStats } from "./data";
+import {
+  AssetPropertyStats,
+  EmptyBucket,
+  getDistinctBucketCount,
+  getEmptyBucket,
+} from "./data";
 import {
   QuantityStatsBaseFields,
   SortableValuesList,
@@ -35,8 +40,12 @@ export function ReadOnlyMultiValueRow({
       ? `${translate(propertyStats.property)} (${translateUnit(propertyStats.unit)})`
       : translate(propertyStats.property);
 
-  const hasMultipleValues = propertyStats.values.size > 1;
+  const distinctBuckets = getDistinctBucketCount(propertyStats);
+  const emptyBucket = getEmptyBucket(propertyStats);
+  const hasMultipleValues = distinctBuckets > 1;
   const isBooleanField = propertyStats.type === "boolean";
+  const isOnlyEmpty =
+    !hasMultipleValues && propertyStats.values.size === 0 && !!emptyBucket;
   const firstValue = propertyStats.values.keys().next().value;
 
   if (isBooleanField) {
@@ -55,6 +64,7 @@ export function ReadOnlyMultiValueRow({
                   ? (ids) => onSelectAssets(ids, propertyStats.property)
                   : undefined
               }
+              emptyBucket={emptyBucket}
             />
           ) : (
             <div className="shrink-0 w-7" />
@@ -78,7 +88,9 @@ export function ReadOnlyMultiValueRow({
 
   const displayValue = hasMultipleValues
     ? null
-    : formatValue(firstValue, translate, decimals);
+    : isOnlyEmpty
+      ? translate(emptyBucket.label)
+      : formatValue(firstValue, translate, decimals);
 
   return (
     <InlineField name={label} labelSize="md">
@@ -93,6 +105,7 @@ export function ReadOnlyMultiValueRow({
                 ? (ids) => onSelectAssets(ids, propertyStats.property)
                 : undefined
             }
+            emptyBucket={emptyBucket}
           />
         ) : (
           <div className="shrink-0 w-7" />
@@ -103,10 +116,17 @@ export function ReadOnlyMultiValueRow({
               padding="md"
               className="italic text-gray-500 dark:text-gray-400"
             >
-              {propertyStats.values.size} {translate("values").toLowerCase()}
+              {distinctBuckets} {translate("values").toLowerCase()}
             </TextField>
           ) : (
-            <TextField padding="md">{displayValue}</TextField>
+            <TextField
+              padding="md"
+              className={
+                isOnlyEmpty ? "italic text-gray-500 dark:text-gray-400" : ""
+              }
+            >
+              {displayValue}
+            </TextField>
           )}
         </div>
       </div>
@@ -119,11 +139,13 @@ const StatsPopoverButton = ({
   label,
   decimals,
   onSelectAssets,
+  emptyBucket,
 }: {
   propertyStats: AssetPropertyStats;
   label: string;
   decimals?: number;
   onSelectAssets?: (assetIds: AssetId[]) => void;
+  emptyBucket?: EmptyBucket;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -157,6 +179,7 @@ const StatsPopoverButton = ({
             onSelectAssets={
               onSelectAssets ? (ids) => onSelectAssets(ids) : undefined
             }
+            emptyBucket={emptyBucket}
           />
         </StyledPopoverContent>
       </P.Portal>

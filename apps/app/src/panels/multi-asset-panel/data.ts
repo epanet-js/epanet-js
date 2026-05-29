@@ -32,6 +32,11 @@ import {
 } from "src/hydraulic-model";
 import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
 
+export type EmptyBucket = {
+  label: string;
+  ids: AssetId[];
+};
+
 export type QuantityStats = {
   type: "quantity";
   property: string;
@@ -44,18 +49,21 @@ export type QuantityStats = {
   decimals: number;
   unit: Unit;
   isInteger?: boolean;
+  emptyBucket?: EmptyBucket;
 };
 
 export type CategoryStats = {
   type: "category";
   property: string;
   values: Map<string, AssetId[]>;
+  emptyBucket?: EmptyBucket;
 };
 
 export type LiteralCategoryStats = {
   type: "literalCategory";
   property: string;
   values: Map<string, AssetId[]>;
+  emptyBucket?: EmptyBucket;
 };
 
 export type BooleanStats = {
@@ -78,6 +86,23 @@ export type AssetPropertyStats =
   | CategoryStats
   | BooleanStats
   | LiteralCategoryStats;
+
+export const getEmptyBucket = (
+  stats: AssetPropertyStats,
+): EmptyBucket | undefined => {
+  if (
+    stats.type === "quantity" ||
+    stats.type === "category" ||
+    stats.type === "literalCategory"
+  ) {
+    return stats.emptyBucket;
+  }
+  return undefined;
+};
+
+export const getDistinctBucketCount = (stats: AssetPropertyStats): number => {
+  return stats.values.size + (getEmptyBucket(stats) ? 1 : 0);
+};
 
 export type AssetPropertySections = {
   [section in Section]: AssetPropertyStats[];
@@ -248,15 +273,16 @@ const appendJunctionStats = (
     formatting,
     id,
   );
+  updateCategoryStats(
+    statsMap,
+    "chemicalSourceType",
+    junction.chemicalSourceType
+      ? "source." + junction.chemicalSourceType
+      : undefined,
+    id,
+    "none",
+  );
   if (junction.chemicalSourceType) {
-    updateCategoryStats(
-      statsMap,
-      "chemicalSourceType",
-      "source." + junction.chemicalSourceType,
-      id,
-    );
-  }
-  if (junction.chemicalSourceStrength !== undefined) {
     updateQuantityStats(
       statsMap,
       "chemicalSourceStrength",
@@ -264,18 +290,19 @@ const appendJunctionStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
-  }
-  if (junction.chemicalSourcePatternId !== undefined) {
-    const pattern = patterns.get(junction.chemicalSourcePatternId);
+    const junctionPattern =
+      junction.chemicalSourcePatternId !== undefined
+        ? patterns.get(junction.chemicalSourcePatternId)
+        : undefined;
     updateLinkStats(
       statsMap,
       "chemicalSourcePattern",
-      pattern?.label ?? "",
+      junctionPattern?.label,
       id,
+      "none",
     );
-  } else {
-    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
   }
 
   const averageDemand = calculateAverageDemand(
@@ -387,17 +414,6 @@ const calculateCustomerPointsDemand = (
 const buildJunctionSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  const patternStats = statsMap.get("chemicalSourcePattern") as
-    | LiteralCategoryStats
-    | undefined;
-  if (
-    patternStats &&
-    patternStats.values.size === 1 &&
-    patternStats.values.has("")
-  ) {
-    statsMap.delete("chemicalSourcePattern");
-  }
-
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, [
@@ -471,26 +487,24 @@ const appendPipeStats = (
     formatting,
     id,
   );
-  if (pipe.bulkReactionCoeff !== undefined) {
-    updateQuantityStats(
-      statsMap,
-      "bulkReactionCoeff",
-      pipe.bulkReactionCoeff,
-      units,
-      formatting,
-      id,
-    );
-  }
-  if (pipe.wallReactionCoeff !== undefined) {
-    updateQuantityStats(
-      statsMap,
-      "wallReactionCoeff",
-      pipe.wallReactionCoeff,
-      units,
-      formatting,
-      id,
-    );
-  }
+  updateQuantityStats(
+    statsMap,
+    "bulkReactionCoeff",
+    pipe.bulkReactionCoeff,
+    units,
+    formatting,
+    id,
+    { emptyLabel: "globalDefault" },
+  );
+  updateQuantityStats(
+    statsMap,
+    "wallReactionCoeff",
+    pipe.wallReactionCoeff,
+    units,
+    formatting,
+    id,
+    { emptyLabel: "globalDefault" },
+  );
 
   const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
   if (customerPoints.size > 0) {
@@ -627,12 +641,11 @@ const appendPumpStats = (
     pump.definitionType === "curveId" ? "namedCurve" : pump.definitionType;
   updateCategoryStats(statsMap, "pumpType", pumpType, id);
 
-  if (pump.definitionType === "curveId" && pump.curveId) {
-    const curve = curves.get(pump.curveId);
-    updateLinkStats(statsMap, "pumpName", curve?.label ?? "", id);
-  } else {
-    updateLinkStats(statsMap, "pumpName", "", id);
-  }
+  const pumpCurve =
+    pump.definitionType === "curveId" && pump.curveId
+      ? curves.get(pump.curveId)
+      : undefined;
+  updateLinkStats(statsMap, "pumpName", pumpCurve?.label, id, "none");
 
   updateCategoryStats(
     statsMap,
@@ -642,29 +655,37 @@ const appendPumpStats = (
   );
 
   // Energy settings
-  if (pump.efficiencyCurveId) {
-    const curve = curves.get(pump.efficiencyCurveId);
-    updateLinkStats(statsMap, "efficiencyCurve", curve?.label ?? "", id);
-  } else {
-    updateLinkStats(statsMap, "efficiencyCurve", "", id);
-  }
+  const efficiencyCurve = pump.efficiencyCurveId
+    ? curves.get(pump.efficiencyCurveId)
+    : undefined;
+  updateLinkStats(
+    statsMap,
+    "efficiencyCurve",
+    efficiencyCurve?.label,
+    id,
+    "none",
+  );
 
   updateQuantityStats(
     statsMap,
     "energyPrice",
-    pump.energyPrice ?? null,
+    pump.energyPrice,
     units,
     formatting,
     id,
-    { decimals: 4, unit: null as Unit },
+    { decimals: 4, unit: null as Unit, emptyLabel: "globalDefault" },
   );
 
-  if (pump.energyPricePatternId) {
-    const pattern = patterns.get(pump.energyPricePatternId);
-    updateLinkStats(statsMap, "energyPricePattern", pattern?.label ?? "", id);
-  } else {
-    updateLinkStats(statsMap, "energyPricePattern", "", id);
-  }
+  const energyPattern = pump.energyPricePatternId
+    ? patterns.get(pump.energyPricePatternId)
+    : undefined;
+  updateLinkStats(
+    statsMap,
+    "energyPricePattern",
+    energyPattern?.label,
+    id,
+    "constant",
+  );
 
   // Simulation results - read from ResultsReader
   const pumpSim = simulationResults?.getPump(pump.id);
@@ -791,23 +812,27 @@ const buildPumpSections = (
     | undefined;
   if (
     pumpNameStats &&
-    pumpNameStats.values.size === 1 &&
-    pumpNameStats.values.has("")
+    pumpNameStats.values.size === 0 &&
+    !!pumpNameStats.emptyBucket
   ) {
     statsMap.delete("pumpName");
   }
 
-  // Keep all energy fields if any one has a value set;
-  // remove them all if none do
-  const hasAnyEnergy =
-    ["efficiencyCurve", "energyPricePattern"].some((key) => {
-      const stats = statsMap.get(key) as LiteralCategoryStats | undefined;
-      return stats && !(stats.values.size === 1 && stats.values.has(""));
-    }) || statsMap.has("energyPrice");
+  // Keep all energy fields if any pump has a non-empty value;
+  // remove them all if every pump is unset across all three fields
+  const hasAnyEnergy = [
+    "efficiencyCurve",
+    "energyPricePattern",
+    "energyPrice",
+  ].some((key) => {
+    const stats = statsMap.get(key);
+    return !!stats && stats.values.size > 0;
+  });
 
   if (!hasAnyEnergy) {
     statsMap.delete("efficiencyCurve");
     statsMap.delete("energyPricePattern");
+    statsMap.delete("energyPrice");
   }
 
   return {
@@ -987,15 +1012,16 @@ const appendReservoirStats = (
     formatting,
     id,
   );
+  updateCategoryStats(
+    statsMap,
+    "chemicalSourceType",
+    reservoir.chemicalSourceType
+      ? "source." + reservoir.chemicalSourceType
+      : undefined,
+    id,
+    "none",
+  );
   if (reservoir.chemicalSourceType) {
-    updateCategoryStats(
-      statsMap,
-      "chemicalSourceType",
-      "source." + reservoir.chemicalSourceType,
-      id,
-    );
-  }
-  if (reservoir.chemicalSourceStrength !== undefined) {
     updateQuantityStats(
       statsMap,
       "chemicalSourceStrength",
@@ -1003,18 +1029,19 @@ const appendReservoirStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
-  }
-  if (reservoir.chemicalSourcePatternId !== undefined) {
-    const pattern = patterns.get(reservoir.chemicalSourcePatternId);
+    const reservoirPattern =
+      reservoir.chemicalSourcePatternId !== undefined
+        ? patterns.get(reservoir.chemicalSourcePatternId)
+        : undefined;
     updateLinkStats(
       statsMap,
       "chemicalSourcePattern",
-      pattern?.label ?? "",
+      reservoirPattern?.label,
       id,
+      "none",
     );
-  } else {
-    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
   }
 
   const averageHead = calculateAverageHead(reservoir, patterns);
@@ -1064,17 +1091,6 @@ const appendReservoirStats = (
 const buildReservoirSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  const patternStats = statsMap.get("chemicalSourcePattern") as
-    | LiteralCategoryStats
-    | undefined;
-  if (
-    patternStats &&
-    patternStats.values.size === 1 &&
-    patternStats.values.has("")
-  ) {
-    statsMap.delete("chemicalSourcePattern");
-  }
-
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
     modelAttributes: getStatsForProperties(statsMap, ["elevation", "head"]),
@@ -1166,11 +1182,11 @@ const appendTankStats = (
       formatting,
       id,
     );
-    updateLinkStats(statsMap, "volumeCurve", "", id);
+    updateLinkStats(statsMap, "volumeCurve", null, id, "none");
   } else {
     const curve = curves.get(tank.volumeCurveId);
     if (curve) {
-      updateLinkStats(statsMap, "volumeCurve", curve.label, id);
+      updateLinkStats(statsMap, "volumeCurve", curve.label, id, "none");
       const range = tankVolumeCurveRange(curve);
       updateQuantityStats(
         statsMap,
@@ -1219,25 +1235,23 @@ const appendTankStats = (
     formatting,
     id,
   );
-  if (tank.bulkReactionCoeff !== undefined) {
-    updateQuantityStats(
-      statsMap,
-      "bulkReactionCoeff",
-      tank.bulkReactionCoeff,
-      units,
-      formatting,
-      id,
-    );
-  }
+  updateQuantityStats(
+    statsMap,
+    "bulkReactionCoeff",
+    tank.bulkReactionCoeff,
+    units,
+    formatting,
+    id,
+    { emptyLabel: "globalDefault" },
+  );
+  updateCategoryStats(
+    statsMap,
+    "chemicalSourceType",
+    tank.chemicalSourceType ? "source." + tank.chemicalSourceType : undefined,
+    id,
+    "none",
+  );
   if (tank.chemicalSourceType) {
-    updateCategoryStats(
-      statsMap,
-      "chemicalSourceType",
-      "source." + tank.chemicalSourceType,
-      id,
-    );
-  }
-  if (tank.chemicalSourceStrength !== undefined) {
     updateQuantityStats(
       statsMap,
       "chemicalSourceStrength",
@@ -1245,18 +1259,19 @@ const appendTankStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
-  }
-  if (tank.chemicalSourcePatternId !== undefined) {
-    const pattern = patterns.get(tank.chemicalSourcePatternId);
+    const tankPattern =
+      tank.chemicalSourcePatternId !== undefined
+        ? patterns.get(tank.chemicalSourcePatternId)
+        : undefined;
     updateLinkStats(
       statsMap,
       "chemicalSourcePattern",
-      pattern?.label ?? "",
+      tankPattern?.label,
       id,
+      "none",
     );
-  } else {
-    updateLinkStats(statsMap, "chemicalSourcePattern", "", id);
   }
 
   const mixingLabel = "tank." + tank.mixingModel;
@@ -1324,22 +1339,11 @@ const appendTankStats = (
 const buildTankSections = (
   statsMap: Map<string, AssetPropertyStats>,
 ): AssetPropertySections => {
-  const patternStats = statsMap.get("chemicalSourcePattern") as
-    | LiteralCategoryStats
-    | undefined;
-  if (
-    patternStats &&
-    patternStats.values.size === 1 &&
-    patternStats.values.has("")
-  ) {
-    statsMap.delete("chemicalSourcePattern");
-  }
-
   // Remove volumeCurve row if no tanks actually have curves
   const curveStats = statsMap.get("volumeCurve") as
     | LiteralCategoryStats
     | undefined;
-  if (curveStats && curveStats.values.size === 1 && curveStats.values.has("")) {
+  if (curveStats && curveStats.values.size === 0 && !!curveStats.emptyBucket) {
     statsMap.delete("volumeCurve");
   }
 
@@ -1384,13 +1388,19 @@ const buildTankSections = (
 const updateQuantityStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
-  value: number | null,
+  value: number | null | undefined,
   units: UnitsSpec,
   formatting: FormattingSpec,
   assetId: AssetId,
-  overrides?: { unit?: Unit; decimals?: number; isInteger?: boolean },
+  overrides?: {
+    unit?: Unit;
+    decimals?: number;
+    isInteger?: boolean;
+    emptyLabel?: string;
+  },
 ) => {
-  if (value === null) return;
+  const isEmpty = value === null || value === undefined;
+  if (isEmpty && !overrides?.emptyLabel) return;
 
   if (!statsMap.has(property)) {
     const decimals =
@@ -1418,6 +1428,15 @@ const updateQuantityStats = (
   }
 
   const stats = statsMap.get(property) as QuantityStats;
+
+  if (isEmpty) {
+    if (!stats.emptyBucket) {
+      stats.emptyBucket = { label: overrides!.emptyLabel!, ids: [] };
+    }
+    stats.emptyBucket.ids.push(assetId);
+    return;
+  }
+
   const roundedValue = roundToDecimal(value, stats.decimals);
 
   if (roundedValue < stats.min) stats.min = roundedValue;
@@ -1472,9 +1491,13 @@ const updateCustomerCountStats = (
 const updateCategoryStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
-  value: string,
+  value: string | null | undefined,
   assetId: AssetId,
+  emptyLabel?: string,
 ) => {
+  const isEmpty = value === null || value === undefined || value === "";
+  if (isEmpty && !emptyLabel) return;
+
   if (!statsMap.has(property)) {
     statsMap.set(property, {
       type: "category",
@@ -1484,6 +1507,15 @@ const updateCategoryStats = (
   }
 
   const stats = statsMap.get(property) as CategoryStats;
+
+  if (isEmpty) {
+    if (!stats.emptyBucket) {
+      stats.emptyBucket = { label: emptyLabel!, ids: [] };
+    }
+    stats.emptyBucket.ids.push(assetId);
+    return;
+  }
+
   const ids = stats.values.get(value) || [];
   ids.push(assetId);
   stats.values.set(value, ids);
@@ -1492,9 +1524,14 @@ const updateCategoryStats = (
 const updateLinkStats = (
   statsMap: Map<string, AssetPropertyStats>,
   property: string,
-  linkLabel: string,
+  linkLabel: string | null | undefined,
   assetId: AssetId,
+  emptyLabel?: string,
 ) => {
+  const isEmpty =
+    linkLabel === null || linkLabel === undefined || linkLabel === "";
+  if (isEmpty && !emptyLabel) return;
+
   if (!statsMap.has(property)) {
     statsMap.set(property, {
       type: "literalCategory",
@@ -1504,6 +1541,15 @@ const updateLinkStats = (
   }
 
   const stats = statsMap.get(property) as LiteralCategoryStats;
+
+  if (isEmpty) {
+    if (!stats.emptyBucket) {
+      stats.emptyBucket = { label: emptyLabel!, ids: [] };
+    }
+    stats.emptyBucket.ids.push(assetId);
+    return;
+  }
+
   const ids = stats.values.get(linkLabel) || [];
   ids.push(assetId);
   stats.values.set(linkLabel, ids);
@@ -1689,20 +1735,13 @@ const appendPipeStatsWithAttributes = (
     patterns,
     simulationResults,
   );
-  if (pipe.material) {
-    updateCategoryStats(statsMap, "material", pipe.material, pipe.id);
-  }
-  if (pipe.year !== undefined) {
-    updateQuantityStats(
-      statsMap,
-      "year",
-      pipe.year,
-      units,
-      formatting,
-      pipe.id,
-      { unit: null, decimals: 0, isInteger: true },
-    );
-  }
+  updateCategoryStats(statsMap, "material", pipe.material, pipe.id, "none");
+  updateQuantityStats(statsMap, "year", pipe.year, units, formatting, pipe.id, {
+    unit: null,
+    decimals: 0,
+    isInteger: true,
+    emptyLabel: "none",
+  });
 };
 
 const buildPipeSectionsWithAttributes = (

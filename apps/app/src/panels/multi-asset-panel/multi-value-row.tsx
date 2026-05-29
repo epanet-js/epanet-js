@@ -18,7 +18,13 @@ import {
   SortAscendingIcon,
   SortDescendingIcon,
 } from "src/icons";
-import { AssetPropertyStats, QuantityStats } from "./data";
+import {
+  AssetPropertyStats,
+  EmptyBucket,
+  QuantityStats,
+  getDistinctBucketCount,
+  getEmptyBucket,
+} from "./data";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import type { Curves, CurveType } from "src/hydraulic-model/curves";
@@ -26,7 +32,6 @@ import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { LabelManager } from "src/hydraulic-model/label-manager";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
-import clsx from "clsx";
 
 type MultiValueRowProps = {
   propertyStats: AssetPropertyStats;
@@ -60,7 +65,9 @@ export function MultiValueRow({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
-  const isMixed = propertyStats.values.size > 1;
+  const distinctBuckets = getDistinctBucketCount(propertyStats);
+  const emptyBucket = getEmptyBucket(propertyStats);
+  const isMixed = distinctBuckets > 1;
   const labelKey =
     "labelKey" in config && config.labelKey
       ? config.labelKey
@@ -69,10 +76,6 @@ export function MultiValueRow({
     propertyStats.type === "quantity" && propertyStats.unit
       ? `${translate(labelKey)} (${translateUnit(propertyStats.unit)})`
       : translate(labelKey);
-  const nullLabel =
-    "nullLabelKey" in config && config.nullLabelKey
-      ? translate(config.nullLabelKey)
-      : undefined;
 
   return (
     <InlineField name={label} labelSize="md">
@@ -82,7 +85,7 @@ export function MultiValueRow({
             propertyStats={propertyStats}
             label={label}
             onSelectAssets={onSelectAssets}
-            nullLabel={nullLabel}
+            emptyBucket={emptyBucket}
           />
         ) : (
           <div className="shrink-0 w-7" />
@@ -92,6 +95,8 @@ export function MultiValueRow({
             propertyStats={propertyStats}
             config={config}
             isMixed={isMixed}
+            distinctBuckets={distinctBuckets}
+            emptyBucket={emptyBucket}
             onPropertyChange={onPropertyChange}
             label={label}
             readonly={readonly}
@@ -110,12 +115,12 @@ const StatsPopoverButton = ({
   propertyStats,
   label,
   onSelectAssets,
-  nullLabel,
+  emptyBucket,
 }: {
   propertyStats: AssetPropertyStats;
   label: string;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
-  nullLabel?: string;
+  emptyBucket?: EmptyBucket;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -160,7 +165,7 @@ const StatsPopoverButton = ({
                 ? (ids) => onSelectAssets(ids, propertyStats.property)
                 : undefined
             }
-            nullLabel={nullLabel}
+            emptyBucket={emptyBucket}
           />
         </StyledPopoverContent>
       </P.Portal>
@@ -172,6 +177,8 @@ const EditableField = ({
   propertyStats,
   config,
   isMixed,
+  distinctBuckets,
+  emptyBucket,
   onPropertyChange,
   label,
   readonly,
@@ -183,6 +190,8 @@ const EditableField = ({
   propertyStats: AssetPropertyStats;
   config: BatchEditPropertyConfig;
   isMixed: boolean;
+  distinctBuckets: number;
+  emptyBucket?: EmptyBucket;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
     value: number | string | boolean,
@@ -200,16 +209,21 @@ const EditableField = ({
   const translate = useTranslate();
   const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
-  const mixedPlaceholder = `${propertyStats.values.size} ${translate("values").toLowerCase()}`;
+  const isOnlyEmpty =
+    !isMixed && propertyStats.values.size === 0 && !!emptyBucket;
+  const mixedPlaceholder = isOnlyEmpty
+    ? translate(emptyBucket.label)
+    : `${distinctBuckets} ${translate("values").toLowerCase()}`;
 
   if (config.fieldType === "quantity") {
     const stats = propertyStats as QuantityStats;
-    const firstValue = stats.values.keys().next().value as number;
-    const displayValue = isMixed
-      ? ""
-      : stats.isInteger
-        ? String(firstValue)
-        : localizeDecimal(firstValue, { decimals: stats.decimals });
+    const firstValue = stats.values.keys().next().value as number | undefined;
+    const displayValue =
+      isMixed || firstValue === undefined
+        ? ""
+        : stats.isInteger
+          ? String(firstValue)
+          : localizeDecimal(firstValue, { decimals: stats.decimals });
 
     return (
       <NumericField
@@ -228,10 +242,13 @@ const EditableField = ({
   }
 
   if (config.fieldType === "category") {
-    const firstKey = propertyStats.values.keys().next().value as string;
-    const currentValue = isMixed
-      ? null
-      : firstKey.replace(config.statsPrefix, "");
+    const firstKey = propertyStats.values.keys().next().value as
+      | string
+      | undefined;
+    const currentValue =
+      isMixed || firstKey === undefined
+        ? null
+        : firstKey.replace(config.statsPrefix, "");
 
     const options: SelectorOption<string>[] = readonly
       ? currentValue != null
@@ -251,19 +268,30 @@ const EditableField = ({
           value: v,
         }));
 
-    if (isMixed) {
+    const isClearable = !!config.nullLabelKey;
+    const isNullable = isMixed || isClearable;
+    const clearLabel = isClearable ? translate(config.nullLabelKey!) : "";
+    const categoryPlaceholder = isMixed ? mixedPlaceholder : clearLabel;
+    const handleCategoryChange = (newValue: string | null) => {
+      if (newValue === null) {
+        if (isClearable) {
+          onPropertyChange(config.modelProperty, undefined as never);
+        }
+        return;
+      }
+      onPropertyChange(config.modelProperty, newValue);
+    };
+
+    if (isNullable) {
       return isNewSelectorOn ? (
         <EnhancedSelector<string>
           selected={currentValue}
           options={options}
           nullable={true}
-          placeholder={mixedPlaceholder}
+          placeholder={categoryPlaceholder}
+          clearLabel={isClearable ? clearLabel : undefined}
           ariaLabel={label}
-          onChange={(newValue) => {
-            if (newValue !== null) {
-              onPropertyChange(config.modelProperty, newValue);
-            }
-          }}
+          onChange={handleCategoryChange}
           disabled={readonly}
         />
       ) : (
@@ -271,13 +299,9 @@ const EditableField = ({
           selected={currentValue}
           options={options}
           nullable={true}
-          placeholder={mixedPlaceholder}
+          placeholder={categoryPlaceholder}
           ariaLabel={label}
-          onChange={(newValue) => {
-            if (newValue !== null) {
-              onPropertyChange(config.modelProperty, newValue);
-            }
-          }}
+          onChange={handleCategoryChange}
           disabled={readonly}
         />
       );
@@ -319,13 +343,13 @@ const EditableField = ({
     }
 
     // Stats store labels; resolve to ID via labelManager
-    const firstLabel = propertyStats.values.keys().next().value as string;
-    const resolvedId = labelManager?.getIdByLabel(firstLabel, labelType);
-    const currentId = isMixed
-      ? null
-      : resolvedId != null
-        ? String(resolvedId)
-        : null;
+    const firstLabel = propertyStats.values.keys().next().value as
+      | string
+      | undefined;
+    const resolvedId = firstLabel
+      ? labelManager?.getIdByLabel(firstLabel, labelType)
+      : undefined;
+    const currentId = isMixed || resolvedId == null ? null : String(resolvedId);
 
     const showLibraryAction = !!config.libraryLabelKey && !!onOpenLibrary;
     const resolvedPlaceholder = isMixed
@@ -506,14 +530,14 @@ export const SortableValuesList = ({
   isInteger,
   type,
   onSelectAssets,
-  nullLabel,
+  emptyBucket,
 }: {
   values: Map<JsonValue, AssetId[]>;
   decimals?: number;
   isInteger?: boolean;
   type: "quantity" | "category" | "boolean" | "literalCategory";
   onSelectAssets?: (assetIds: AssetId[]) => void;
-  nullLabel?: string;
+  emptyBucket?: EmptyBucket;
 }) => {
   const translate = useTranslate();
 
@@ -605,7 +629,6 @@ export const SortableValuesList = ({
               type,
               isInteger,
             );
-            const emptyLabel = nullLabel ?? translate("none");
             return (
               <div
                 key={index}
@@ -616,14 +639,11 @@ export const SortableValuesList = ({
                 }
               >
                 <div
-                  title={label || emptyLabel}
-                  className={clsx(
-                    "flex-auto font-mono text-xs truncate",
-                    !label && "italic text-gray-600",
-                  )}
+                  title={label}
+                  className="flex-auto font-mono text-xs truncate"
                   role="cell"
                 >
-                  {label || emptyLabel}
+                  {label}
                 </div>
                 <div
                   className="text-xs font-mono"
@@ -635,6 +655,30 @@ export const SortableValuesList = ({
               </div>
             );
           })}
+          {emptyBucket && (
+            <div
+              className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
+              role="row"
+              onClick={
+                isClickable ? () => onSelectAssets(emptyBucket.ids) : undefined
+              }
+            >
+              <div
+                title={translate(emptyBucket.label)}
+                className="flex-auto font-mono text-xs truncate italic text-gray-600"
+                role="cell"
+              >
+                {translate(emptyBucket.label)}
+              </div>
+              <div
+                className="text-xs font-mono"
+                title={translate("assets")}
+                role="cell"
+              >
+                ({localizeDecimal(emptyBucket.ids.length)})
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -25,6 +25,7 @@ type CategoryConfig = {
   statsPrefix: string;
   values: readonly string[];
   useUppercaseLabel?: boolean;
+  nullLabelKey?: string;
 };
 
 type BooleanConfig = {
@@ -90,6 +91,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       modelProperty: "chemicalSourceType",
       statsPrefix: "source.",
       values: chemicalSourceTypes,
+      nullLabelKey: "none",
     },
     chemicalSourceStrength: {
       fieldType: "quantity",
@@ -218,6 +220,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       modelProperty: "chemicalSourceType",
       statsPrefix: "source.",
       values: chemicalSourceTypes,
+      nullLabelKey: "none",
     },
     chemicalSourceStrength: {
       fieldType: "quantity",
@@ -289,6 +292,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       modelProperty: "chemicalSourceType",
       statsPrefix: "source.",
       values: chemicalSourceTypes,
+      nullLabelKey: "none",
     },
     chemicalSourceStrength: {
       fieldType: "quantity",
