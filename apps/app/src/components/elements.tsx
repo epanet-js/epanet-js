@@ -148,7 +148,7 @@ export function Loading({
           "h-32": size === "sm",
           "h-16": size === "xs",
         },
-        `text-gray-500 flex items-center justify-center`,
+        `text-subtle flex items-center justify-center`,
       )}
     >
       <RefreshIcon className="animate-spin" />
@@ -263,7 +263,7 @@ export const styledDialogContent = ({
   height?: "md" | "lg" | "xl" | "xxl";
 }) => {
   if (size === "fullscreen") {
-    return "fixed inset-0 z-100 w-screen h-dvh flex flex-col text-left bg-white dark:bg-gray-900 shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
+    return "fixed inset-0 z-100 w-screen h-dvh flex flex-col text-left bg-base shadow-md dark:text-white dark:shadow-none dark:border dark:border-black";
   }
 
   const widthClass =
@@ -290,7 +290,7 @@ export const styledDialogContent = ({
   return clsx(
     size === "auto" ? "w-fit" : "w-full",
     "flex flex-col rounded-lg",
-    "text-left bg-white dark:bg-gray-900 shadow-md",
+    "text-left bg-base shadow-md",
     "dark:text-white dark:shadow-none dark:border dark:border-black",
     widthClass,
     heightClass,
@@ -307,7 +307,7 @@ const customWelcomeDialogContent = () => {
       w-full
       text-left
       align-bottom
-      bg-white dark:bg-gray-900
+      bg-base
       dark:text-white
       shadow-md dark:shadow-none dark:border dark:border-black
       sm:rounded-sm sm:align-middle w-full
@@ -344,7 +344,7 @@ export const styledCheckbox = ({
   clsx([
     sharedOutline("primary"),
     {
-      "text-purple-500 focus:ring-purple-500": variant === "primary",
+      "text-accent focus:ring-accent": variant === "primary",
       "text-gray-500 border-gray-500 hover:border-gray-700 dark:hover:border-gray-300 focus:ring-gray-500":
         variant === "default",
     },
@@ -356,7 +356,7 @@ export const FieldCheckbox = classed(Field)(styledCheckbox);
 export const StyledDialogClose = () => (
   <Dialog.Close
     aria-label="Close"
-    className="absolute top-4 right-4 text-gray-500"
+    className="absolute top-4 right-4 text-subtle"
     style={{ outline: "2px solid red" }}
   >
     <CloseIcon />
@@ -483,9 +483,9 @@ export const StyledPopoverContent = classed(Popover.Content)(
       `shadow-lg
       placemark-appear
       z-20
-      bg-white dark:bg-gray-900
+      bg-base
       dark:text-white
-      border border-gray-200 dark:border-gray-700 rounded-md`,
+      border rounded-md`,
     ),
 );
 
@@ -504,7 +504,7 @@ export function PopoverContent2({
 }
 
 export const styledTextarea =
-  "block w-full mt-1 text-sm font-mono border-gray-300 dark:bg-transparent dark:text-white rounded-xs focus-visible:border-gray-300 overflow-auto focus:ring-purple-500";
+  "block w-full mt-1 text-sm font-mono border-strong dark:bg-transparent dark:text-white rounded-xs focus-visible:border-strong overflow-auto focus:ring-accent";
 
 export const StyledFieldTextareaCode = classed(Field)(styledTextarea);
 
@@ -537,7 +537,7 @@ export const StyledFieldTextareaProse = classed(Field)(
 );
 
 export const contentLike = `py-1
-    bg-white dark:bg-gray-900
+    bg-base
     rounded-xs
     shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
     ring-1 ring-gray-200 dark:ring-gray-700
@@ -571,13 +571,13 @@ export const menuItemLike = ({
 }) =>
   clsx([
     {
-      "text-black dark:text-gray-300": variant === "default",
+      "text-default": variant === "default",
       "text-red-500 dark:text-red-300":
         variant === "destructive" || variant === "danger-quiet",
     },
     `cursor-pointer
-    hover:bg-gray-200 dark:hover:bg-gray-700
-    focus-visible:bg-gray-100 dark:focus-visible:bg-gray-700
+    hover:bg-base-active
+    focus-visible:bg-base-hover
     flex items-center
     w-full
     py-1 pl-3 pr-3
@@ -680,7 +680,7 @@ export const sharedEqualPadding = (size: B3Size): ClassValue => ({
 });
 
 export const styledRadio = clsx(
-  "text-purple-500 dark:bg-transparent dark:checked:bg-purple-500 focus:ring-purple-500",
+  "text-accent dark:bg-transparent dark:checked:bg-accent focus:ring-accent",
   sharedOutline("primary"),
 );
 
@@ -712,8 +712,7 @@ export function sharedOutline(
     dark:focus-visible:ring-offset-gray-900`
           : `focus-visible:ring-1
     focus-visible:ring-offset-1
-    focus-visible:ring-purple-500
-    dark:focus-visible:ring-purple-500
+    focus-visible:ring-accent
     dark:focus-visible:ring-offset-gray-900`,
 
     {
@@ -750,7 +749,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
     case "primary":
     case "code":
       return [
-        `bg-purple-500`,
+        `bg-accent`,
         !disabled && `hover:bg-accent-hover hover:shadow-sm`,
       ];
     case "blue":
@@ -759,10 +758,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
         !disabled && `hover:bg-blue-700 dark:hover:bg-blue-500 hover:shadow-sm`,
       ];
     case "default":
-      return [
-        `bg-white dark:bg-gray-900`,
-        !disabled && `hover:bg-gray-100 dark:hover:bg-gray-800`,
-      ];
+      return [`bg-base`, !disabled && `hover:bg-base-hover`];
     case "quiet":
       return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
     case "ultra-quiet":
@@ -796,7 +792,7 @@ const sharedText = (variant: B3Variant): ClassValue => {
     case "quiet/list":
     case "danger-quiet":
     case "default": {
-      return "font-medium text-gray-700 dark:text-white";
+      return "font-medium text-default";
     }
     case "ultra-quiet":
       return "text-gray-500 hover:text-gray-700";
@@ -964,8 +960,7 @@ export const TextWell = classed.div(
       "text-gray-700 dark:text-gray-300": variant === "default",
       "text-red-700 dark:text-red-100 bg-red-50 dark:bg-red-900 rounded-sm":
         variant === "destructive",
-      "bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-sm":
-        variant === "primary",
+      "bg-panel border dark:bg-gray-900 rounded-sm": variant === "primary",
     }),
 );
 
@@ -1046,7 +1041,7 @@ export const Td = classed.td(({ first = false }: { first?: boolean }) => {
 });
 
 export const Tbody = classed.tbody(
-  "divide-y divide-gray-200 dark:divide-gray-500 bg-white dark:bg-gray-800",
+  "divide-y divide-gray-200 dark:divide-gray-500 bg-popover",
 );
 
 export const VisibilityToggleIcon = ({

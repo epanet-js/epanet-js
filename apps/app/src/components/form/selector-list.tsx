@@ -424,7 +424,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
                   className={clsx(
                     "flex items-center justify-between gap-4 h-8 px-2 rounded-sm",
                     isOptionDisabled
-                      ? "cursor-default text-gray-400"
+                      ? "cursor-default text-disabled"
                       : "cursor-pointer text-default",
                     !isOptionDisabled &&
                       i === activeIndex &&
@@ -454,7 +454,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
                 role="option"
                 className={clsx(
                   "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
-                  filtered.length > 0 && "border-t border-gray-100 mt-1",
+                  filtered.length > 0 && "border-t border mt-1",
                   activeIndex === filtered.length && "bg-purple-300/40",
                   activeIndex !== filtered.length && "hover:bg-base-hover",
                 )}
@@ -470,10 +470,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
       )}
       {showClearRow && (
         <div
-          className={clsx(
-            "p-1",
-            (showSearch || showList) && "border-t border-gray-100",
-          )}
+          className={clsx("p-1", (showSearch || showList) && "border-t border")}
         >
           <button
             type="button"
@@ -495,8 +492,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         <div
           className={clsx(
             "p-1",
-            (showSearch || showList || showClearRow) &&
-              "border-t border-gray-100",
+            (showSearch || showList || showClearRow) && "border-t border",
           )}
         >
           <button

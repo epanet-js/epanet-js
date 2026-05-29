@@ -23,15 +23,12 @@ export function RowActionsCell({
       onFocus={(e) => e.stopPropagation()}
       className={clsx(
         "sticky right-0 shrink-0 w-8 h-8 bg-base z-10",
-        "border border-transparent",
-        {
-          "border-t-[--color-border]": variant === "inline" && rowIndex === 0,
-        },
-        {
-          "border-b-[--color-border]":
-            variant === "inline" || (variant === "spreadsheet" && !isLastRow),
-        },
-        { "border-l-[--color-border]": variant === "spreadsheet" },
+        "border-r-0",
+        variant === "spreadsheet" ? "border-l" : "border-l-0",
+        variant === "inline" && rowIndex === 0 ? "border-t" : "border-t-0",
+        variant === "inline" || (variant === "spreadsheet" && !isLastRow)
+          ? "border-b"
+          : "border-b-0",
       )}
     >
       <ActionsCell

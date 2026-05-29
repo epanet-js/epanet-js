@@ -183,7 +183,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
 
             {isSearching && (
               <div className="absolute right-3 top-2.5">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent"></div>
               </div>
             )}
           </div>
@@ -204,7 +204,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
             }}
           >
             {suggestions.length === 0 && !isSearching ? (
-              <div className="px-2 py-2 text-gray-400">No results</div>
+              <div className="px-2 py-2 text-subtle">No results</div>
             ) : (
               <ul
                 ref={listRef}

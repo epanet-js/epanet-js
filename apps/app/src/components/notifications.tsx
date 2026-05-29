@@ -46,7 +46,7 @@ export const NotificationBanner = ({
           "bg-success-subtle border-success": variant === "success",
           "bg-warning-subtle border-warning": variant === "warning",
           "bg-error-subtle border-error": variant === "error",
-          "bg-white border-gray-400": variant === "default",
+          "bg-popover border-strong": variant === "default",
         },
         className,
       )}
@@ -86,7 +86,7 @@ export const NotificationBanner = ({
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-gray-700 hover:text-gray-500 hover:cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                  className="shrink-0 p-1 rounded-md inline-flex items-center justify-center text-default hover:text-subtle hover:cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-accent"
                 >
                   <span className="sr-only">Dismiss</span>
                   <CloseIcon />
@@ -104,7 +104,7 @@ export const NotificationBanner = ({
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
               Show details
             </summary>
-            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-gray-700 bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
+            <pre className="mt-1 whitespace-pre-wrap wrap-break-word font-mono text-default bg-white/60 rounded-sm p-2 max-h-40 overflow-auto">
               {details}
             </pre>
           </details>

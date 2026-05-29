@@ -130,10 +130,7 @@ const TabBar = ({
   const translate = useTranslate();
 
   return (
-    <div
-      role="tablist"
-      className="flex h-8 border-b dark:border-black px-4 -mx-4"
-    >
+    <div role="tablist" className="flex h-8 border-b px-4 -mx-4">
       <TabButton
         label={translate("controls.simpleTab")}
         isActive={activeTab === "simple"}
@@ -166,7 +163,7 @@ const TabButton = ({
       className={clsx(
         "text-size-base py-1 px-3 focus:outline-hidden border-t border-l border-b last:border-r",
         isActive
-          ? "text-black dark:text-white border-b-white -mb-px"
+          ? "text-default border-b-white -mb-px"
           : "text-subtle border-b-transparent hover:text-black dark:hover:text-gray-200 bg-base-hover",
       )}
     >
@@ -197,7 +194,7 @@ const ControlsTextArea = ({
       onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
       readOnly={readOnly}
-      className="w-full h-64 p-3 font-mono text-size-base bg-base border border-strong dark:border-gray-700 rounded-xs resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-accent dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
+      className="w-full h-64 p-3 font-mono text-size-base bg-base border border-strong rounded-xs resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-accent focus-visible:ring-inset"
     />
   );
 };
