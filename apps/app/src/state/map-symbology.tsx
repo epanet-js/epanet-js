@@ -317,6 +317,13 @@ export const useSymbologyState = () => {
     });
   };
 
+  const updateZonePaletteName = (paletteName: string) => {
+    setZoneSymbology({
+      ...zoneSymbology,
+      paletteName,
+    });
+  };
+
   return {
     linkSymbology,
     nodeSymbology,
@@ -333,5 +340,6 @@ export const useSymbologyState = () => {
     updateZoneLabelRule,
     updateZoneVisible,
     updateZoneColorRule,
+    updateZonePaletteName,
   };
 };

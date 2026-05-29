@@ -1155,6 +1155,7 @@ export type UserEvent =
     }
   | { name: "map.colorRamp.changed"; rampName: string; property: string }
   | { name: "map.colorRamp.reversed"; rampName: string; property: string }
+  | { name: "map.zonePalette.changed"; paletteName: string }
   | { name: "colorRange.rangeMode.changed"; mode: string; property: string }
   | {
       name: "colorRange.classes.changed";

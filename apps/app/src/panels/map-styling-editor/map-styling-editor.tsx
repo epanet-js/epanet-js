@@ -485,6 +485,15 @@ const ZoneSymbologySection = () => {
           onChange={handleColorRuleChange}
         />
       </InlineField>
+      {zoneSymbology.colorRule === "label" && (
+        <InlineField
+          name={translate("palette")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <ColorRampSelector geometryType="zone" />
+        </InlineField>
+      )}
       <InlineField
         name={translate("defaultColor")}
         labelSize="sm"

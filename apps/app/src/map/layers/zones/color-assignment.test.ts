@@ -1,20 +1,23 @@
 import { describe, it, expect } from "vitest";
 import type { BBox } from "@turf/helpers";
-import { assignZoneColors, ZONE_QUALITATIVE_PALETTE } from "./color-assignment";
+import { assignZoneColors } from "./color-assignment";
 import { hexToRgb, rgbToHue, hueDistance } from "./hue-distance";
+import { getQualitativePaletteColors } from "./palette-lookup";
 import type { Zones } from "src/lib/zones";
+
+const TEST_PALETTE = getQualitativePaletteColors("Bold");
 
 describe("assignZoneColors", () => {
   it("assigns a color to a single zone", () => {
     const zones = makeZones([[0, 0, 1, 1]]);
-    const result = assignZoneColors(zones);
-    expect(ZONE_QUALITATIVE_PALETTE).toContain(result[1]);
+    const result = assignZoneColors(zones, TEST_PALETTE);
+    expect(TEST_PALETTE).toContain(result[1]);
   });
 
   it("adjacent zones never share the same color", () => {
     const zones = makeAdjacentGrid(3, 3);
     populateAdjacency(zones);
-    const result = assignZoneColors(zones);
+    const result = assignZoneColors(zones, TEST_PALETTE);
 
     for (const zone of Object.values(zones)) {
       for (const nid of zone.adjacentZones) {
@@ -26,7 +29,7 @@ describe("assignZoneColors", () => {
   it("adjacent zones avoid hue-group similar colors when palette has room", () => {
     const zones = makeAdjacentGrid(2, 2);
     populateAdjacency(zones);
-    const result = assignZoneColors(zones);
+    const result = assignZoneColors(zones, TEST_PALETTE);
 
     for (const zone of Object.values(zones)) {
       for (const nid of zone.adjacentZones) {
@@ -42,7 +45,7 @@ describe("assignZoneColors", () => {
       [10, 10, 11, 11],
     ]);
     populateAdjacency(zones);
-    const result = assignZoneColors(zones);
+    const result = assignZoneColors(zones, TEST_PALETTE);
     const colors = Object.values(result);
     const unique = new Set(colors);
     expect(unique.size).toBeLessThanOrEqual(colors.length);
@@ -59,11 +62,22 @@ describe("assignZoneColors", () => {
     }
     const zones = makeZones(bboxes);
     populateAdjacency(zones);
-    const result = assignZoneColors(zones);
+    const result = assignZoneColors(zones, TEST_PALETTE);
 
     for (const zone of Object.values(zones)) {
-      expect(ZONE_QUALITATIVE_PALETTE).toContain(result[zone.id]);
+      expect(TEST_PALETTE).toContain(result[zone.id]);
     }
+  });
+
+  it("works with different palettes", () => {
+    const palette = ["#FF0000", "#00FF00", "#0000FF"];
+    const zones = makeAdjacentGrid(2, 1);
+    populateAdjacency(zones);
+    const result = assignZoneColors(zones, palette);
+
+    expect(palette).toContain(result[1]);
+    expect(palette).toContain(result[2]);
+    expect(result[1]).not.toBe(result[2]);
   });
 });
 

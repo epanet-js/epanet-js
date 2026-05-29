@@ -1,6 +1,7 @@
 import {
   CARTO_COLOR_DIVERGING,
   CARTO_COLOR_SEQUENTIAL,
+  CARTO_COLOR_QUALITATIVE,
   CBColors,
   COLORBREWER_ALL,
   COLORBREWER_DIVERGING,
@@ -26,6 +27,7 @@ import {
 } from "src/map/symbology/symbology-types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { ChevronDownIcon, RefreshIcon } from "src/icons";
+import { getQualitativePaletteColors } from "src/map/layers/zones";
 
 type ColorRampSettingsHook = {
   rampColors: string[];
@@ -107,7 +109,113 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
   };
 };
 
+const useZoneColorRule = () => {
+  const { zoneSymbology, updateZonePaletteName } = useSymbologyState();
+  const userTracking = useUserTracking();
+  const paletteColors = getQualitativePaletteColors(zoneSymbology.paletteName);
+
+  const setRampName = useCallback(
+    (name: string) => {
+      userTracking.capture({
+        name: "map.zonePalette.changed",
+        paletteName: name,
+      });
+      updateZonePaletteName(name);
+    },
+    [updateZonePaletteName, userTracking],
+  );
+
+  return {
+    rampName: zoneSymbology.paletteName,
+    rampColors: paletteColors,
+    setRampName,
+  };
+};
+
+const QUALITATIVE_MAX_SIZE = 11 as keyof CBColors["colors"];
+
 export const ColorRampSelector = ({
+  geometryType,
+  readonly = false,
+}: {
+  geometryType: "node" | "link" | "zone";
+  readonly?: boolean;
+}) =>
+  geometryType === "zone" ? (
+    <ZoneColorRampSelector readonly={readonly} />
+  ) : (
+    <AssetColorRampSelector geometryType={geometryType} readonly={readonly} />
+  );
+
+const ZoneColorRampSelector = ({
+  readonly = false,
+}: {
+  readonly?: boolean;
+}) => {
+  const translate = useTranslate();
+  const { rampName, rampColors, setRampName } = useZoneColorRule();
+
+  const rampPreview = (
+    <span
+      className="w-full h-5 border rounded-md"
+      style={{
+        background: linearGradient({
+          colors: rampColors,
+          interpolate: "step",
+        }),
+      }}
+    />
+  );
+
+  if (readonly) {
+    return (
+      <div className="flex items-center w-full min-w-[90px] border rounded-xs border-gray-200 p-2 min-h-9">
+        {rampPreview}
+      </div>
+    );
+  }
+
+  const triggerStyles = clsx(
+    "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
+    "border rounded-xs border-gray-200",
+    "text-sm text-gray-700",
+    "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+    "p-2 min-h-9 w-full",
+  );
+
+  const contentStyles = `bg-white w-(--radix-select-trigger-width) border text-sm rounded-xs shadow-md z-50`;
+
+  return (
+    <Select.Root>
+      <Select.Trigger
+        tabIndex={1}
+        aria-label={`${translate("zoneSymbology")} ${translate("palette")}`}
+        className={triggerStyles}
+        title={rampName}
+      >
+        {rampPreview}
+        <span className="px-1">
+          <ChevronDownIcon />
+        </span>
+      </Select.Trigger>
+      <Select.Content position="popper" className={contentStyles}>
+        <Select.Viewport className="p-1">
+          <div className="py-2 flex flex-col gap-y-3 overflow-y-auto max-h-[320px]">
+            <RampChoices
+              label={translate("qualitativeRamp")}
+              colors={CARTO_COLOR_QUALITATIVE}
+              onSelect={setRampName}
+              size={QUALITATIVE_MAX_SIZE}
+              reverse={false}
+            />
+          </div>
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Root>
+  );
+};
+
+const AssetColorRampSelector = ({
   geometryType,
   readonly = false,
 }: {

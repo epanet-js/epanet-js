@@ -695,6 +695,7 @@
   "colorRamp": "Color ramp",
   "continuousRamp": "Continuous",
   "divergingRamp": "Diverging",
+  "qualitativeRamp": "Qualitative",
   "reverseColors": "Reverse colors",
   "addBreak": "Add break",
   "equalIntervals": "Equal intervals",
@@ -709,6 +710,7 @@
   "defaultColor": "Default color",
   "range": "Range",
   "ramp": "Ramp",
+  "palette": "Palette",
   "labels": "Labels",
   "labelBy": "Label by",
   "nodeSize": {
