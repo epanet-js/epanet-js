@@ -115,11 +115,11 @@ export function FilterableSelectCell({
 
   if (readOnly) {
     return (
-      <div className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm bg-gray-50">
+      <div className="w-full h-full pl-2 flex items-center justify-between gap-1 text-size-base bg-panel">
         <span
           className={clsx(
             "truncate",
-            !selectedOption ? "text-gray-400" : "text-gray-700",
+            !selectedOption ? "text-gray-400" : "text-default",
           )}
         >
           {selectedOption?.label ?? placeholder}
@@ -146,7 +146,7 @@ export function FilterableSelectCell({
             type="button"
             tabIndex={-1}
             onKeyDown={handleTriggerKeyDown}
-            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-sm text-gray-700 bg-transparent border-none outline-hidden text-left min-w-0"
+            className="w-full h-full pl-2 flex items-center justify-between gap-1 text-size-base text-default bg-transparent border-none outline-hidden text-left min-w-0"
           >
             <span
               className={clsx("truncate", !selectedOption && "text-gray-400")}
@@ -163,7 +163,7 @@ export function FilterableSelectCell({
           <Popover.Content
             side="bottom"
             align="start"
-            className="bg-white min-w-[180px] border text-sm rounded-md shadow-md z-50 mt-1"
+            className="bg-popover min-w-[180px] border text-size-base rounded-md shadow-md z-50 mt-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onPointerDownOutside={(e) => {
               if (buttonRef.current?.contains(e.target as Node)) {

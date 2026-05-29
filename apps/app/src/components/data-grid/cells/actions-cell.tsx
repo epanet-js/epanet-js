@@ -30,7 +30,7 @@ export function ActionsCell({
       </DD.Trigger>
       <DD.Portal>
         <DD.Content
-          className="bg-white border rounded-md shadow-md z-50 min-w-[160px]"
+          className="bg-popover border rounded-md shadow-md z-50 min-w-[160px]"
           align="end"
           onClick={(e) => e.stopPropagation()}
         >
@@ -39,10 +39,10 @@ export function ActionsCell({
             return (
               <DD.Item
                 key={index}
-                className={`flex items-center gap-2 px-3 py-2 text-sm outline-hidden ${
+                className={`flex items-center gap-2 px-3 py-2 text-size-base outline-hidden ${
                   isDisabled
                     ? "text-gray-400 cursor-not-allowed"
-                    : "cursor-pointer hover:bg-gray-100"
+                    : "cursor-pointer hover:bg-base-hover"
                 }`}
                 onSelect={() => !isDisabled && action.onSelect(rowIndex)}
                 disabled={isDisabled}

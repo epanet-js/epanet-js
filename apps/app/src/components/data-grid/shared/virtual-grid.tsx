@@ -160,7 +160,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
             if (e.target === e.currentTarget) e.preventDefault();
           }}
           onScroll={onScroll}
-          className="outline-hidden overflow-auto overscroll-none flex-1 border border-gray-200 datagrid-scroll-area"
+          className="outline-hidden overflow-auto overscroll-none flex-1 border border-base datagrid-scroll-area"
         >
           <VirtualRows
             rowVirtualizer={rowVirtualizer}

@@ -79,7 +79,7 @@ export function TextCell({
 
   if (readonly) {
     return (
-      <div className="w-full h-full flex items-center px-2 text-sm tabular-nums text-gray-500 bg-gray-50 overflow-hidden">
+      <div className="w-full h-full flex items-center px-2 text-size-base tabular-nums text-subtle bg-panel overflow-hidden">
         <span className="truncate">{value ?? ""}</span>
       </div>
     );
@@ -103,7 +103,7 @@ export function TextCell({
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
         className={clsx(
-          "w-full px-2 text-sm tabular-nums outline-hidden border-none ring-0 focus:outline-hidden focus:ring-0 bg-transparent truncate",
+          "w-full px-2 text-size-base tabular-nums outline-hidden border-none ring-0 focus:outline-hidden focus:ring-0 bg-transparent truncate",
           // Mousetrap forces availability of global hot keys when not editing
           // pointer-events-none prevents text selection highlight when not editing
           !editMode && "mousetrap pointer-events-none",

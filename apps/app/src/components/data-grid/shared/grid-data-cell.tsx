@@ -50,34 +50,34 @@ export function GridDataCell<TData extends Record<string, unknown>>({
         "relative h-8 shrink-0 select-none border cursor-cell",
         { grow: !cell.column.getCanResize() },
         hasWarning
-          ? "bg-orange-50"
+          ? "bg-warning-subtle"
           : readOnly
-            ? "bg-gray-50"
+            ? "bg-panel"
             : isActive
-              ? "bg-white"
+              ? "bg-base"
               : isSelected
                 ? "bg-purple-300/10"
-                : "bg-white",
+                : "bg-base",
         { "z-1": selectionEdge },
         selectionEdge?.left
-          ? "border-l-purple-500"
+          ? "border-l-accent"
           : variant === "spreadsheet"
-            ? "border-l-gray-200"
+            ? "border-l-[--color-border]"
             : "border-l-transparent",
         selectionEdge?.right
-          ? "border-r-purple-500"
+          ? "border-r-accent"
           : isLastCol && cell.column.getCanResize()
-            ? "border-r-gray-200"
+            ? "border-r-[--color-border]"
             : "border-r-transparent",
         selectionEdge?.top
-          ? "border-t-purple-500"
+          ? "border-t-accent"
           : variant === "inline" && cell.row.getVisualIndex() === 0
-            ? "border-t-gray-200"
+            ? "border-t-[--color-border]"
             : "border-t-transparent",
         selectionEdge?.bottom
           ? "border-b-purple-500"
           : variant === "inline" || (variant === "spreadsheet" && !isLastRow)
-            ? "border-b-gray-200"
+            ? "border-b-[--color-border]"
             : "border-b-transparent",
       )}
       style={{
@@ -102,7 +102,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
           startEditing={onStartEditing}
         />
       ) : (
-        <div className="w-full h-full flex items-center px-2 text-sm">
+        <div className="w-full h-full flex items-center px-2 text-size-base">
           {String(cell.getValue() ?? "")}
         </div>
       )}

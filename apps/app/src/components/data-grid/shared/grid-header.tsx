@@ -61,9 +61,9 @@ export function GridHeader<T>({
         "border border-transparent",
         className,
         {
-          "bg-gray-100 border-t-gray-200 border-x-gray-200":
+          "bg-base-hover border-t-[--color-border] border-x-[--color-border]":
             variant === "spreadsheet",
-          "bg-gray-50": variant === "inline",
+          "bg-panel": variant === "inline",
         },
       )}
       style={style}
@@ -72,10 +72,10 @@ export function GridHeader<T>({
         <div
           role="columnheader"
           className={clsx(
-            "relative flex items-center justify-center font-semibold text-sm shrink-0 cursor-pointer select-none h-8 sticky left-0 z-10",
+            "relative flex items-center justify-center font-semibold text-size-base shrink-0 cursor-pointer select-none h-8 sticky left-0 z-10",
             "border border-transparent w-8",
-            "text-gray-600",
-            variant === "spreadsheet" ? "bg-gray-100" : "bg-gray-50",
+            "text-subtle",
+            variant === "spreadsheet" ? "bg-base-hover" : "bg-panel",
           )}
           onClick={onSelectAll}
         >
@@ -139,9 +139,9 @@ function HeaderCell<T>({
       ref={cellRef}
       role="columnheader"
       className={clsx(
-        "group relative flex items-center px-2 font-semibold text-sm cursor-pointer select-none h-8 border border-transparent overflow-visible",
+        "group relative flex items-center px-2 font-semibold text-size-base cursor-pointer select-none h-8 border border-transparent overflow-visible",
         { grow: !header.column.getCanResize() },
-        isSelected ? "bg-purple-500 text-white" : "text-gray-600",
+        isSelected ? "bg-accent text-white" : "text-subtle",
       )}
       style={{
         width: header.getSize(),
@@ -219,7 +219,7 @@ function ColumnResizer({
       className={clsx(
         "absolute right-[-3px] top-0 h-full w-1 cursor-col-resize select-none touch-none z-10",
         isResizing
-          ? "bg-purple-500"
+          ? "bg-accent"
           : "bg-gray-300 opacity-0 group-hover:opacity-100",
       )}
     />
@@ -250,7 +250,7 @@ function HeaderActionsButton({
             "ml-auto -mr-1 h-6 w-6 shrink-0",
             isSelected
               ? "text-white hover:bg-white/20 data-[state=open]:bg-white/20"
-              : "hover:bg-gray-200",
+              : "hover:bg-base-active",
           )}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
