@@ -136,7 +136,7 @@ const StatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={setIsOpen}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-active dark:hover:text-gray-200 dark:hover:bg-gray-700"
       >
         <MultipleValuesIcon />
       </P.Trigger>
@@ -434,14 +434,14 @@ export const QuantityStatsBaseFields = ({
             <span
               role="textbox"
               aria-label={`Key: ${label}`}
-              className="pb-1 text-xs text-gray-500 font-bold"
+              className="pb-1 text-size-small text-subtle font-bold"
             >
               {label}
             </span>
             <input
               role="textbox"
               aria-label={`Value for: ${label}`}
-              className="text-xs font-mono px-2 py-2 bg-gray-100 border-none focus-visible:ring-inset focus-visible:ring-purple-500 focus-visible:bg-purple-300/10"
+              className="text-size-small font-mono px-2 py-2 bg-base-hover border-none focus-visible:ring-inset focus-visible:ring-accent focus-visible:bg-purple-300/10"
               readOnly
               tabIndex={tabIndex}
               onFocus={handleFocus}
@@ -539,7 +539,7 @@ export const SortableValuesList = ({
       <div className="flex justify-between pb-2" role="row">
         <button
           onClick={() => handleSort("value")}
-          className="text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+          className="text-size-small text-subtle font-bold hover:text-default dark:hover:text-gray-300 cursor-pointer"
           role="columnheader"
           aria-sort={getAriaSort("value")}
         >
@@ -548,7 +548,7 @@ export const SortableValuesList = ({
         </button>
         <button
           onClick={() => handleSort("count")}
-          className="text-xs text-gray-500 font-bold hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
+          className="text-size-small text-subtle font-bold hover:text-default dark:hover:text-gray-300 cursor-pointer"
           role="columnheader"
           aria-sort={getAriaSort("count")}
         >
@@ -569,7 +569,7 @@ export const SortableValuesList = ({
             return (
               <div
                 key={index}
-                className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
+                className={`py-2 px-2 flex items-center hover:bg-base-active gap-x-2 even:bg-base-hover ${isClickable ? "cursor-pointer" : ""}`}
                 role="row"
                 onClick={
                   isClickable ? () => onSelectAssets(assetIds) : undefined
@@ -577,13 +577,13 @@ export const SortableValuesList = ({
               >
                 <div
                   title={label}
-                  className="flex-auto font-mono text-xs truncate"
+                  className="flex-auto font-mono text-size-small truncate"
                   role="cell"
                 >
                   {label}
                 </div>
                 <div
-                  className="text-xs font-mono"
+                  className="text-size-small font-mono"
                   title={translate("assets")}
                   role="cell"
                 >
@@ -594,7 +594,7 @@ export const SortableValuesList = ({
           })}
           {emptyBucket && (
             <div
-              className={`py-2 px-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 gap-x-2 even:bg-gray-100 ${isClickable ? "cursor-pointer" : ""}`}
+              className={`py-2 px-2 flex items-center hover:bg-base-active gap-x-2 even:bg-base-hover ${isClickable ? "cursor-pointer" : ""}`}
               role="row"
               onClick={
                 isClickable ? () => onSelectAssets(emptyBucket.ids) : undefined
@@ -602,13 +602,13 @@ export const SortableValuesList = ({
             >
               <div
                 title={translate(emptyBucket.label)}
-                className="flex-auto font-mono text-xs truncate italic text-gray-600"
+                className="flex-auto font-mono text-size-small truncate italic text-subtle"
                 role="cell"
               >
                 {translate(emptyBucket.label)}
               </div>
               <div
-                className="text-xs font-mono"
+                className="text-size-small font-mono"
                 title={translate("assets")}
                 role="cell"
               >

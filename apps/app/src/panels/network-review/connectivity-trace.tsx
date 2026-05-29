@@ -210,14 +210,14 @@ const SubnetworkItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div className="flex flex-col items-start p-1 pr-0 text-sm w-full text-left">
+      <div className="flex flex-col items-start p-1 pr-0 text-size-base w-full text-left">
         <div className="truncate">
           {translate(
             "networkReview.connectivityTrace.subnetwork",
             String(index),
           )}
         </div>
-        <div className="text-gray-500 truncate">
+        <div className="text-subtle truncate">
           {supplySourceText} · {pipesText}
         </div>
       </div>

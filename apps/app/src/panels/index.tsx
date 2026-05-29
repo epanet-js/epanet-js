@@ -28,14 +28,13 @@ function Tab({
       onClick={onClick}
       aria-selected={active}
       className={clsx(
-        "text-left text-sm py-1 px-3 focus:outline-hidden",
+        "text-left text-size-base py-1 px-3 focus:outline-hidden",
         active
-          ? "text-black dark:text-white"
+          ? "text-black"
           : `
-          bg-gray-100 dark:bg-gray-900
-          border-b
-          border-gray-200 dark:border-black
-          text-gray-500 dark:text-gray-400
+          bg-base-hover
+          border-b dark:border-black
+          text-subtle
           hover:text-black dark:hover:text-gray-200
           focus:text-black`,
       )}
@@ -75,7 +74,7 @@ const TabList = memo(function TabList({
       }}
       className="flex-0 grid h-8 flex-none
       sticky top-0 z-10
-      bg-white dark:bg-gray-800
+      bg-popover
       divide-x divide-gray-200 dark:divide-black"
     >
       <Tab
@@ -100,7 +99,7 @@ export const SidePanel = memo(function SidePanelInner() {
       style={{
         width: splits.right,
       }}
-      className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-900 relative"
+      className="bg-popover border-l relative"
     >
       <Panel />
     </div>
@@ -109,7 +108,7 @@ export const SidePanel = memo(function SidePanelInner() {
 
 export const RelocatedSidePanel = memo(function RelocatedSidePanelInner() {
   return (
-    <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 relative flex-auto min-h-0">
+    <div className="bg-popover border-t relative flex-auto min-h-0">
       <Panel />
     </div>
   );
@@ -123,7 +122,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
   return (
     <div
       style={{ height: splits.bottom }}
-      className="relative shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-900 flex flex-col"
+      className="relative shrink-0 bg-popover border-t flex flex-col"
     >
       <BottomResizer />
       <div className="flex-1 min-h-0 relative">
@@ -135,7 +134,7 @@ export const BottomPanel = memo(function BottomPanelInner() {
 
 export const FullPanel = memo(function FullPanelInner() {
   return (
-    <div className="flex flex-auto bg-white dark:bg-gray-800 relative">
+    <div className="flex flex-auto bg-popover relative">
       <Panel />
     </div>
   );
@@ -165,7 +164,7 @@ export const LeftSidePanel = memo(function LeftSidePanelInner() {
       style={{
         width: splits.left,
       }}
-      className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-900 relative"
+      className="bg-popover border-r relative"
     >
       <NetworkReview />
     </div>

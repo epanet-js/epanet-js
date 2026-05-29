@@ -35,7 +35,7 @@ export const HglProfilePanel = memo(function HglProfilePanel() {
   );
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-white dark:bg-gray-800">
+    <div className="absolute inset-0 flex flex-col bg-popover">
       <div className="flex-1 min-h-0">
         {showChart ? (
           <ChartContainer key={snapshot?.id} data={data} pathIds={pathIds} />
@@ -60,7 +60,7 @@ const ProfileEmptyState = ({ phase }: { phase: HglProfileData["phase"] }) => {
           : translate("hglProfile.empty.noData");
 
   return (
-    <div className="h-full flex items-center justify-center text-gray-400 text-xs px-4 text-center">
+    <div className="h-full flex items-center justify-center text-subtle text-size-small px-4 text-center">
       {message}
     </div>
   );

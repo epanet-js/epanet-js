@@ -206,14 +206,14 @@ const ElevationSourceRowShell = ({
       <div className="flex-auto min-w-0">
         <div className="flex items-center min-w-0">
           <div
-            className={`block select-none truncate flex-auto min-w-0 text-sm ${disabled ? "opacity-50" : ""}`}
+            className={`block select-none truncate flex-auto min-w-0 text-size-base ${disabled ? "opacity-50" : ""}`}
           >
             {name}
           </div>
           {children}
         </div>
         <div
-          className={`font-semibold text-xs text-gray-500 ${disabled ? "opacity-50" : ""}`}
+          className={`font-semibold text-size-small text-subtle ${disabled ? "opacity-50" : ""}`}
         >
           {description}
         </div>
@@ -290,7 +290,7 @@ const GeoTiffElevationSourceRow = ({
       {!readonly && (
         <Button
           variant="quiet/mode"
-          className="h-8 text-red-500"
+          className="h-8 text-error"
           aria-label={translate("delete")}
           onClick={() => actions.deleteSource(source.id)}
         >
@@ -325,7 +325,7 @@ const GeoTiffTilesPopover = ({
 
   return (
     <div className="flex flex-col gap-y-2">
-      <div className="font-semibold text-sm">
+      <div className="font-semibold text-size-base">
         {translate("elevations.userElevationData")}
       </div>
       <ElevationOffsetField
@@ -346,13 +346,13 @@ const GeoTiffTilesPopover = ({
               onMouseEnter={() => overlay.highlightTile(source.id, tile.id)}
               onMouseLeave={() => overlay.highlightTile(source.id, null)}
               onClick={() => handleTileClick(tile)}
-              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-base-hover dark:hover:bg-gray-800"
             >
-              <span className="text-sm">{tile.file.name}</span>
+              <span className="text-size-base">{tile.file.name}</span>
               {!readonly && (
                 <Button
                   variant="quiet/mode"
-                  className="h-8 text-red-500"
+                  className="h-8 text-error"
                   onClick={(e) => {
                     e.stopPropagation();
                     actions.deleteTile(source.id, tile.id);
@@ -469,7 +469,7 @@ const TileServerPopover = ({
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-y-2">
-      <div className="font-semibold text-sm">
+      <div className="font-semibold text-size-base">
         {translate("elevations.mapboxDefaultData")}
       </div>
       <ElevationOffsetField
@@ -549,7 +549,11 @@ const ElevationUnitField = ({
           selected={currentUnit}
           onChange={(value) => actions.updateVerticalUnit(source.id, value)}
           ariaLabel={translate("elevations.verticalUnit")}
-          styleOptions={{ paddingX: 2, paddingY: 2, textSize: "text-sm" }}
+          styleOptions={{
+            paddingX: 2,
+            paddingY: 2,
+            textSize: "text-size-base",
+          }}
         />
       )}
     </InlineField>

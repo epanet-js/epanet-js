@@ -382,7 +382,7 @@ export const PumpCurveTable = ({
         cells={cells}
       />
       {(hasMissingValues || pumpErrors.length > 0) && (
-        <p className="text-sm font-semibold text-orange-800">
+        <p className="text-size-base font-semibold text-orange-800">
           <PumpCurveWarning
             hasMissingValues={hasMissingValues}
             pumpErrors={pumpErrors}

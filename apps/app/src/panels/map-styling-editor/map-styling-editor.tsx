@@ -91,7 +91,7 @@ export const MapStylingEditor = () => {
   const zonesEnabled = useFeatureFlag("FLAG_ZONES");
 
   return (
-    <div className="flex-auto overflow-y-auto placemark-scrollbar border-gray-200 dark:border-gray-900">
+    <div className="flex-auto overflow-y-auto placemark-scrollbar ">
       <SectionList gap={1} padding={3}>
         <SymbologyEditor
           geometryType="node"

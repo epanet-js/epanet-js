@@ -196,7 +196,7 @@ const CurrentZoomIndicator = ({
       aria-valuenow={zoom}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : 0}
-      className="relative h-2 ml-2 mr-8 cursor-ew-resize touch-none rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+      className="relative h-2 ml-2 mr-8 cursor-ew-resize touch-none rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       onPointerDown={(e) => {
         if (disabled) return;
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -286,12 +286,12 @@ const ZoomRangeSlider = ({
           </Slider.Track>
           <Slider.Thumb
             aria-label={translate("nodeSize.minZoomAriaLabel")}
-            className="block w-4 h-4 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+            className="block w-4 h-4 rounded-full bg-base border-2 border-accent shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
           />
         </Slider.Root>
         <div
           aria-hidden
-          className="absolute top-1/2 right-0 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-gray-300 dark:border-gray-500 pointer-events-none"
+          className="absolute top-1/2 right-0 -translate-y-1/2 w-4 h-4 rounded-full bg-base border-2 border-strong dark:border-gray-500 pointer-events-none"
         />
       </div>
 
@@ -337,15 +337,15 @@ const SizeSlider = ({
       disabled={disabled}
     >
       <Slider.Track className="relative grow rounded-full h-2 bg-gray-200 dark:bg-gray-700">
-        <Slider.Range className="absolute h-full rounded-full bg-purple-400 dark:bg-purple-500" />
+        <Slider.Range className="absolute h-full rounded-full bg-purple-400 dark:bg-accent" />
       </Slider.Track>
       <Slider.Thumb
         id={id}
         aria-label={ariaLabel}
-        className="block w-4 h-4 rounded-full bg-white border-2 border-purple-500 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+        className="block w-4 h-4 rounded-full bg-base border-2 border-accent shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
       />
     </Slider.Root>
-    <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums w-4 text-right shrink-0">
+    <span className="text-size-base text-subtle tabular-nums w-4 text-right shrink-0">
       {value}
     </span>
   </div>
@@ -420,9 +420,9 @@ function NodeSizeEditor({
         aria-label={translate("nodeSize.label")}
       >
         <div className="space-y-1">
-          <h3 className="pb-1 font-semibold text-sm">
+          <h3 className="pb-1 font-semibold text-size-base">
             {translate("nodeSize.label")}{" "}
-            <span className="font-normal text-gray-500">
+            <span className="font-normal text-subtle">
               ({translateUnit("px")})
             </span>
           </h3>
@@ -430,7 +430,7 @@ function NodeSizeEditor({
           <div className="flex items-center gap-2">
             <label
               htmlFor={minSizeId}
-              className="w-10 text-sm text-gray-500 min-w-0 shrink-0 wrap-break-word"
+              className="w-10 text-size-base text-subtle min-w-0 shrink-0 wrap-break-word"
             >
               {translate("nodeSize.minSize")}
             </label>
@@ -446,7 +446,7 @@ function NodeSizeEditor({
           <div className="flex items-center gap-2">
             <label
               htmlFor={maxSizeId}
-              className="w-10 text-sm text-gray-500 min-w-0 shrink-0 wrap-break-word"
+              className="w-10 text-size-base text-subtle min-w-0 shrink-0 wrap-break-word"
             >
               {translate("nodeSize.maxSize")}
             </label>
@@ -461,7 +461,7 @@ function NodeSizeEditor({
           <div className="flex gap-2">
             <label
               htmlFor={zoomId}
-              className="w-10 pt-[6px] text-sm text-gray-500 min-w-0 shrink-0 wrap-break-word"
+              className="w-10 pt-[6px] text-size-base text-subtle min-w-0 shrink-0 wrap-break-word"
             >
               {translate("nodeSize.zoom")}
             </label>

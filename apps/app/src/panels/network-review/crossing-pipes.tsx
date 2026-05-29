@@ -224,11 +224,11 @@ const CrossingPipeItem = ({
     >
       <div className="grid grid-cols-[1fr_auto] w-full items-start">
         <div className="min-w-0 truncate text-left">{pipe1Asset.label}</div>
-        <span className="whitespace-nowrap text-gray-500 text-right">
+        <span className="whitespace-nowrap text-subtle text-right">
           ⌀ {diameter1Formatted}
         </span>
         <div className="min-w-0 truncate text-left">{pipe2Asset.label}</div>
-        <span className="whitespace-nowrap text-gray-500 text-right">
+        <span className="whitespace-nowrap text-subtle text-right">
           ⌀ {diameter2Formatted}
         </span>
       </div>

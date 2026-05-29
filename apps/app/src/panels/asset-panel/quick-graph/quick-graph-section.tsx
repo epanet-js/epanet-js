@@ -282,7 +282,7 @@ const QuickGraphSection = ({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 pl-5">
-      <div className="flex items-center justify-between text-sm font-semibold h-8">
+      <div className="flex items-center justify-between text-size-base font-semibold h-8">
         {translate("quickGraph")}
         {pinButton}
       </div>
@@ -294,12 +294,12 @@ const QuickGraphSection = ({
             onChange={handlePropertyChange}
             styleOptions={{
               border: true,
-              textSize: "text-sm",
+              textSize: "text-size-base",
               paddingY: 1,
             }}
           />
         ) : (
-          <span className="text-sm text-gray-700 py-1">
+          <span className="text-size-base text-default py-1">
             {propertyOptions[0]?.label}
           </span>
         )}
@@ -307,8 +307,8 @@ const QuickGraphSection = ({
 
       <div className="relative flex-1 min-h-[120px]">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-900/50 z-10">
-            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center bg-base/50/50 z-10">
+            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         {data !== null ? (
@@ -326,7 +326,7 @@ const QuickGraphSection = ({
             />
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+          <div className="h-full flex items-center justify-center text-subtle text-size-small">
             {translate("errorLoadingData")}
           </div>
         )}

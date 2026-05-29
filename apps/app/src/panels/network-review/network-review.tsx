@@ -108,13 +108,13 @@ function NetworkReviewSummary({
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      <div className="py-3 px-4 text-sm font-bold text-gray-900 dark:text-white border-b border-gray-200 w-full">
+      <div className="py-3 px-4 text-size-base font-bold text-default border-b w-full">
         <span>{translate("networkReview.title")}</span>
       </div>
       <div className="px-4 pt-3">
         <EarlyAccessBadge />
       </div>
-      <div className="px-4 py-2 text-sm">
+      <div className="px-4 py-2 text-size-base">
         {translate("networkReview.description")}
       </div>
       <div className="flex-auto px-1">
@@ -183,10 +183,10 @@ const ReviewCheck = ({
       className="group w-full"
       disabled={!isEnabled}
     >
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-sm w-full">
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full">
         <div className="pt-[.125rem]">{iconsByCheckType[checkType]}</div>
         <div className="flex flex-row gap-2 flex-wrap items-center">
-          <div className="text-sm font-bold text-left">{label}</div>
+          <div className="text-size-base font-bold text-left">{label}</div>
         </div>
         {isEnabled && (
           <div

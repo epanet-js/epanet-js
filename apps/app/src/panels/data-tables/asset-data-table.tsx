@@ -498,7 +498,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   return (
     <div className="flex-1 min-h-0 relative">
       {rows === null ? (
-        <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-600">
+        <div className="absolute inset-0 flex items-center justify-center text-subtle">
           <SpinnerIcon />
         </div>
       ) : (

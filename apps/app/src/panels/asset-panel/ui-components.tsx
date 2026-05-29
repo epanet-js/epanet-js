@@ -135,7 +135,7 @@ const Header = ({
   return (
     <div className={clsx("px-3 pt-4 pb-3 relative")}>
       {isNew && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-full" />
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -160,11 +160,11 @@ const Header = ({
         <PanelActions />
       </div>
       {error && (
-        <span className="text-xs text-orange-600 dark:text-orange-400 block mt-1 pl-1">
+        <span className="text-size-small text-orange-600 dark:text-orange-400 block mt-1 pl-1">
           {error}
         </span>
       )}
-      <span className="text-sm text-gray-500 pl-1">{type}</span>
+      <span className="text-size-base text-subtle pl-1">{type}</span>
     </div>
   );
 };
@@ -559,7 +559,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             onActionClick={onActionClick}
             styleOptions={{
               border: true,
-              textSize: "text-sm",
+              textSize: "text-size-base",
               paddingY: 2,
             }}
           />
@@ -734,7 +734,7 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-sm p-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-xs hover:bg-gray-200 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-purple-500 aria-expanded:ring-1 aria-expanded:ring-purple-500 w-full flex items-center gap-x-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 tabular-nums"
+          className="text-left text-size-base p-2 text-default bg-base-hover border border-strong rounded-xs hover:bg-base-active focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent aria-expanded:ring-1 aria-expanded:ring-accent w-full flex items-center gap-x-2 tabular-nums"
         >
           <MultipleValuesIcon />
           {customerCount}
@@ -820,7 +820,7 @@ const CustomerPointsPopover = ({
 
   return (
     <div onKeyDown={handleContentKeyDown}>
-      <div className="font-sans text-gray-500 dark:text-gray-100 text-xs text-left py-2 flex font-bold border-b border-gray-200 dark:border-gray-700 rounded-t">
+      <div className="font-sans text-subtle dark:text-gray-100 text-size-small text-left py-2 flex font-bold border-b rounded-t">
         <div className="flex-auto px-2">{translate("customer")}</div>
         <div className="px-2">
           {translate("demand")} ({translateUnit(customerUnit)})
@@ -856,8 +856,8 @@ const CustomerPointsPopover = ({
                 role="listitem"
                 aria-label={`Customer point ${displayValue}: ${demandValue}`}
                 className="top-0 left-0 block w-full absolute py-2 px-2 flex items-center
-                hover:bg-gray-200 dark:hover:bg-gray-700
-                gap-x-2 even:bg-gray-100 dark:even:bg-gray-800"
+                  hover:bg-base-active
+                  gap-x-2 even:bg-base-hover dark:even:bg-gray-800"
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
@@ -867,12 +867,12 @@ const CustomerPointsPopover = ({
               >
                 <div
                   title={displayValue}
-                  className="flex-auto font-mono text-xs truncate"
+                  className="flex-auto font-mono text-size-small truncate"
                 >
                   {displayValue}
                 </div>
                 <div
-                  className="text-xs font-mono text-gray-600 dark:text-gray-300"
+                  className="text-size-small font-mono text-subtle dark:text-gray-300"
                   title={`${translate("demand")}: ${demandValue}`}
                 >
                   {demandValue}

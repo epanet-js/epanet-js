@@ -258,14 +258,18 @@ export const RangeColorRuleEditor = ({
     <div className="space-y-4">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-y-2 w-full">
-          <span className="text-sm text-gray-500">{translate("mode")}</span>
+          <span className="text-size-base text-subtle">
+            {translate("mode")}
+          </span>
           <ModeSelector
             rangeMode={colorRule.mode}
             onModeChange={handleModeChange}
           />
         </div>
         <div className="flex flex-col gap-y-2 w-full">
-          <span className="text-sm text-gray-500">{translate("classes")}</span>
+          <span className="text-size-base text-subtle">
+            {translate("classes")}
+          </span>
           <ClassesSelector
             numIntervals={numIntervals}
             onChange={handleRangeSizeChange}
@@ -274,7 +278,7 @@ export const RangeColorRuleEditor = ({
       </div>
 
       {error === "notEnoughData" && (
-        <p className="py-2 text-sm font-semibold text-orange-800">
+        <p className="py-2 text-size-base font-semibold text-orange-800">
           {translate(error)}
         </p>
       )}
@@ -282,7 +286,7 @@ export const RangeColorRuleEditor = ({
       {error !== "notEnoughData" && (
         <>
           <div className="max-h-[400px] overflow-y-auto">
-            <div className="w-full flex flex-row gap-x-4 items-center dark:text-white p-4 bg-gray-50 rounded-xs ">
+            <div className="w-full flex flex-row gap-x-4 items-center p-4 bg-panel rounded-xs ">
               <IntervalsEditor
                 numIntervals={numIntervals}
                 breaks={colorRule.breaks}
@@ -298,7 +302,7 @@ export const RangeColorRuleEditor = ({
           </div>
           <div>
             {error && (
-              <p className="py-2 text-sm font-semibold text-orange-800">
+              <p className="py-2 text-size-base font-semibold text-orange-800">
                 {translate(error)}
               </p>
             )}
@@ -312,7 +316,7 @@ export const RangeColorRuleEditor = ({
               >
                 <div className="flex w-full">
                   <Button
-                    className="text-center text-sm flex-1 rounded-r-none border-r-0"
+                    className="text-center text-size-base flex-1 rounded-r-none border-r-0"
                     size="full-width"
                     disabled={isWorking}
                     onClick={() => void handleRegenerate()}
@@ -324,7 +328,7 @@ export const RangeColorRuleEditor = ({
                   </Button>
                   <DD.Trigger asChild>
                     <Button
-                      className="text-sm px-2 rounded-l-none border-l"
+                      className="text-size-base px-2 rounded-l-none border-l"
                       disabled={isWorking}
                     >
                       <ChevronDownIcon />
@@ -344,7 +348,7 @@ export const RangeColorRuleEditor = ({
               </DD.Root>
             ) : (
               <Button
-                className="text-center text-sm"
+                className="text-center text-size-base"
                 size="full-width"
                 onClick={handleRegenerate}
                 disabled={isWorking}
@@ -388,7 +392,7 @@ const IntervalsEditor = ({
   const canDelete = numIntervals > minIntervals;
 
   return (
-    <div className="w-full flex flex-row gap-2 items-start dark:text-white">
+    <div className="w-full flex flex-row gap-2 items-start">
       <div className="flex flex-col gap-1">
         {colors.map((color, i) => (
           <div

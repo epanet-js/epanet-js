@@ -1628,7 +1628,7 @@ const TankDefinitionField = ({
               isNullable={false}
               readOnly={readOnly}
             />
-            <hr className="border-gray-200 dark:border-gray-600 my-1" />
+            <hr className=" my-1" />
             <NumericTable
               labels={tableLabels}
               cells={[
@@ -1679,7 +1679,7 @@ const TankDefinitionField = ({
               positiveOnly={true}
               readOnly={readOnly}
             />
-            <hr className="border-gray-200 dark:border-gray-600 my-1" />
+            <hr className=" my-1" />
             <NumericTable
               labels={tableLabels}
               cells={[
@@ -1785,7 +1785,7 @@ const TankDefinitionField = ({
                 tankVolumeCurveRange(curve);
               return (
                 <>
-                  <hr className="border-gray-200 dark:border-gray-600 my-1" />
+                  <hr className=" my-1" />
                   <NumericTable
                     labels={tableLabels}
                     cells={[

@@ -89,8 +89,8 @@ export const BottomZoneTabs = memo(function BottomZoneTabsInner() {
                     }
                   }}
                   className="inline-flex items-center justify-center rounded
-                    text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
-                    focus:outline-hidden focus-visible:ring-1 focus-visible:ring-purple-500"
+                    text-subtle hover:text-default dark:hover:text-gray-200
+                    focus:outline-hidden focus-visible:ring-1 focus-visible:ring-accent"
                 >
                   <CloseIcon size="sm" />
                 </span>

@@ -14,7 +14,7 @@ export function Thumbnail({
         "w-32 aspect-video",
         "group-hover:ring-3 group-hover:ring-2 group-hover:ring-purple-300",
         "focus:ring-3 focus:ring-2 focus:ring-purple-300",
-        "data-[state=on]:ring-3 data-[state=on]:ring-2 data-[state=on]:ring-purple-500",
+        "data-[state=on]:ring-3 data-[state=on]:ring-2 data-[state=on]:ring-accent",
         mapboxLayer.thumbnailClass,
       )}
     />

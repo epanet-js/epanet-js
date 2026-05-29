@@ -434,7 +434,7 @@ function XYZLayer({
         placeholder="https://…"
       />
       <TextWell>{translate("customLayers.xyzURLContain")}</TextWell>
-      <label className="flex items-center gap-x-2 text-sm py-2">
+      <label className="flex items-center gap-x-2 text-size-base py-2">
         <E.FieldCheckbox name="tms" type="checkbox" /> TMS
       </label>
     </Form>
@@ -661,14 +661,13 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
         type="number"
         min="0"
         step="1"
-        className="text-xs
+        className="text-size-small
           px-1 py-0.5
-          border-gray-300
+          border-strong
           rounded-xs
-          dark:text-white
           dark:bg-transparent
-        opacity-50 hover:opacity-100 focus:opacity-100
-        w-12"
+          opacity-50 hover:opacity-100 focus:opacity-100
+          w-12"
         max="100"
         value={value}
         onChange={(e) => {
@@ -682,7 +681,7 @@ const OpacitySetting = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
           debouncedSubmit(opacity);
         }}
       />
-      <div className="text-gray-500 text-xs">%</div>
+      <div className="text-subtle text-size-small">%</div>
     </div>
   );
 };
@@ -798,11 +797,11 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
     border: false,
     paddingX: 0 as const,
     paddingY: 0 as const,
-    textSize: "text-sm" as const,
+    textSize: "text-size-base" as const,
   };
   const namePopover = (
-    <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
-      <span className="select-none truncate text-sm w-auto">
+    <div className="flex items-center justify-start gap-x-2 cursor-pointer">
+      <span className="select-none truncate text-size-base w-auto">
         <Selector
           ariaLabel="basemaps"
           options={basemapOptions}
@@ -850,7 +849,7 @@ const MapboxItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <div className="flex-auto">
       <div className="flex gap-x-2 items-center">
-        <span className="block select-none truncate flex-auto text-sm">
+        <span className="block select-none truncate flex-auto text-size-base">
           {layerConfig.name}
         </span>
         {editPopover}
@@ -911,7 +910,7 @@ const XYZItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
   return (
     <LayerConfigItem typeLabel="XYZ">
-      <span className="block select-none truncate flex-auto text-sm">
+      <span className="block select-none truncate flex-auto text-size-base">
         {layerConfig.name}
       </span>
 
@@ -952,13 +951,13 @@ const TileJSONItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 
   return (
     <LayerConfigItem typeLabel="TILEJSON">
-      <span className="block select-none truncate flex-auto text-sm">
+      <span className="block select-none truncate flex-auto text-size-base">
         {layerConfig.name}
       </span>
       {isError ? (
         <T.Root delayDuration={0}>
           <T.Trigger>
-            <WarningIcon className="text-red-500 dark:text-red-300" />
+            <WarningIcon className="text-error" />
           </T.Trigger>
           <E.TContent>This TileJSON source failed to load</E.TContent>
         </T.Root>
@@ -1096,10 +1095,7 @@ export function LayersPopover({ onClose }: { onClose: () => void }) {
             restrictToFirstScrollableAncestor,
           ]}
         >
-          <div
-            className="pt-3 border-t
-            border-gray-100 dark:border-gray-700 "
-          >
+          <div className="pt-3 border-t border-gray-100">
             <SortableContext
               items={items}
               strategy={verticalListSortingStrategy}
@@ -1158,7 +1154,7 @@ const LayerTypeButton = ({
 const UpgradeTag = () => {
   const translate = useTranslate();
   return (
-    <span className="bg-purple-100 text-purple-500 text-xs px-1 rounded-md">
+    <span className="bg-purple-100 text-accent text-size-small px-1 rounded-md">
       {translate("upgrade").toUpperCase()}
     </span>
   );

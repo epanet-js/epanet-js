@@ -469,7 +469,7 @@ function XYZLayer({
         readOnly={readonly}
       />
       <TextWell>{translate("customLayers.xyzURLContain")}</TextWell>
-      <label className="flex items-center gap-x-2 text-sm py-2">
+      <label className="flex items-center gap-x-2 text-size-base py-2">
         <E.FieldCheckbox name="tms" type="checkbox" disabled={readonly} /> TMS
       </label>
     </Form>
@@ -651,7 +651,7 @@ export function AddLayer() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1">
+                    <div className="text-size-small font-semibold text-subtle uppercase tracking-wide pb-1">
                       {translate("customLayers.webServices")}
                     </div>
                     <div className="space-y-2 grid grid-cols-1">
@@ -692,7 +692,7 @@ export function AddLayer() {
                         TileJSON
                       </LayerTypeButton>
                     </div>
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide pb-1 pt-3">
+                    <div className="text-size-small font-semibold text-subtle uppercase tracking-wide pb-1 pt-3">
                       {translate("customLayers.localData")}
                     </div>
                     <div className="space-y-2 grid grid-cols-1">
@@ -845,20 +845,21 @@ const OpacitySetting = ({
   return (
     <div className="flex items-center gap-x-1">
       {readonly ? (
-        <div className="text-xs px-1 py-0.5 w-12 opacity-50">{value}</div>
+        <div className="text-size-small px-1 py-0.5 w-12 opacity-50">
+          {value}
+        </div>
       ) : (
         <input
           type="number"
           min="0"
           step="1"
-          className="text-xs
-          px-1 py-0.5
-          border-gray-300
-          rounded-xs
-          dark:text-white
-          dark:bg-transparent
-        opacity-50 hover:opacity-100 focus:opacity-100
-        w-12"
+          className="text-size-small
+ px-1 py-0.5
+ border-strong
+ rounded-xs
+ dark:bg-transparent
+ opacity-50 hover:opacity-100 focus:opacity-100
+ w-12"
           max="100"
           disabled={readonly}
           value={value}
@@ -874,7 +875,7 @@ const OpacitySetting = ({
           }}
         />
       )}
-      <div className="text-gray-500 text-xs">%</div>
+      <div className="text-subtle text-size-small">%</div>
     </div>
   );
 };
@@ -1008,12 +1009,12 @@ const BaseMapItem = ({
     border: false,
     paddingX: 0 as const,
     paddingY: 0 as const,
-    textSize: "text-sm" as const,
+    textSize: "text-size-base" as const,
   };
 
   const namePopover = (
-    <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
-      <span className="select-none truncate text-sm w-auto">
+    <div className="flex items-center justify-start gap-x-2 cursor-pointer">
+      <span className="select-none truncate text-size-base w-auto">
         {readonly ? (
           layerConfig.name
         ) : (
@@ -1074,7 +1075,7 @@ const MapboxItem = ({
   return (
     <div className="flex-auto min-w-0">
       <div className="flex items-center min-w-0">
-        <span className="block select-none truncate flex-auto min-w-0 text-sm">
+        <span className="block select-none truncate flex-auto min-w-0 text-size-base">
           {layerConfig.name}
         </span>
         {editPopover}
@@ -1085,7 +1086,7 @@ const MapboxItem = ({
         <LabelsToggle layerConfig={layerConfig} disabled={readonly} />
         {!readonly && <DeleteLayerButton layerConfig={layerConfig} />}
       </div>
-      <div className="font-semibold text-xs text-gray-500">MAPBOX</div>
+      <div className="font-semibold text-size-small text-subtle">MAPBOX</div>
     </div>
   );
 };
@@ -1098,7 +1099,7 @@ const DeleteLayerButton = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   return (
     <Button
       variant="quiet/mode"
-      className="h-8 text-red-500"
+      className="h-8 text-error"
       aria-label={translate("delete")}
       onClick={() => {
         userTracking.capture({ name: "layer.removed", type: layerConfig.type });
@@ -1141,7 +1142,7 @@ const XYZItem = ({
 
   return (
     <LayerConfigItem typeLabel="XYZ">
-      <span className="block select-none truncate flex-auto text-sm">
+      <span className="block select-none truncate flex-auto text-size-base">
         {layerConfig.name}
       </span>
 
@@ -1189,13 +1190,13 @@ const TileJSONItem = ({
 
   return (
     <LayerConfigItem typeLabel="TILEJSON">
-      <span className="block select-none truncate flex-auto text-sm">
+      <span className="block select-none truncate flex-auto text-size-base">
         {layerConfig.name}
       </span>
       {isError ? (
         <T.Root delayDuration={0}>
           <T.Trigger>
-            <WarningIcon className="text-red-500 dark:text-red-300" />
+            <WarningIcon className="text-error" />
           </T.Trigger>
           <E.TContent>This TileJSON source failed to load</E.TContent>
         </T.Root>
@@ -1218,7 +1219,9 @@ const LayerConfigItem = ({
   return (
     <div className="flex-auto min-w-0">
       <div className="flex items-center min-w-0">{children}</div>
-      <div className="font-semibold text-xs text-gray-500">{typeLabel}</div>
+      <div className="font-semibold text-size-small text-subtle">
+        {typeLabel}
+      </div>
     </div>
   );
 };
@@ -1295,7 +1298,7 @@ const VectorFileItem = ({
       <E.StyledPopoverContent>
         <E.StyledPopoverArrow />
         <div className="space-y-2 min-w-[200px]">
-          <div className="font-bold text-sm pb-1">
+          <div className="font-bold text-size-base pb-1">
             {translate("customLayers.vectorFile")}
           </div>
           <InlineField
@@ -1429,7 +1432,7 @@ const VectorFileItem = ({
 
   return (
     <LayerConfigItem typeLabel="Vector file">
-      <span className="block select-none truncate flex-auto text-sm">
+      <span className="block select-none truncate flex-auto text-size-base">
         {layerConfig.name}
       </span>
       {settingsPopover}
@@ -1437,7 +1440,7 @@ const VectorFileItem = ({
       {!readonly && (
         <Button
           variant="quiet/mode"
-          className="h-8 text-red-500"
+          className="h-8 text-error"
           aria-label={translate("delete")}
           onClick={handleDelete}
         >
@@ -1632,7 +1635,7 @@ const LayerTypeButton = ({
 const UpgradeTag = () => {
   const translate = useTranslate();
   return (
-    <span className="bg-purple-100 text-purple-500 text-xs px-1 rounded-md">
+    <span className="bg-purple-100 text-accent text-size-small px-1 rounded-md">
       {translate("upgrade").toUpperCase()}
     </span>
   );

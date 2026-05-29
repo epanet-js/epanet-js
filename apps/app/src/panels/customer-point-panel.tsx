@@ -202,7 +202,7 @@ export function CustomerPointPanel() {
     <div className="flex flex-col grow overflow-hidden">
       <div className="px-3 pt-4 pb-3 relative">
         {isNew && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-full" />
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-full" />
         )}
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
@@ -246,11 +246,11 @@ export function CustomerPointPanel() {
           </div>
         </div>
         {labelError && (
-          <span className="text-xs text-orange-600 dark:text-orange-400 block mt-1 pl-1">
+          <span className="text-size-small text-orange-600 dark:text-orange-400 block mt-1 pl-1">
             {labelError}
           </span>
         )}
-        <span className="text-sm text-gray-500 pl-1">
+        <span className="text-size-base text-subtle pl-1">
           {translate("customer")}
         </span>
       </div>

@@ -230,7 +230,7 @@ function QuickGraphChartECharts({
 
   if (intervalsCount === 0 || values.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-400 text-xs">
+      <div className="h-full flex items-center justify-center text-subtle text-size-small">
         {translate("noDataAvailable")}
       </div>
     );

@@ -189,7 +189,7 @@ const DistanceInput = ({
   return (
     <div
       ref={inputRef}
-      className="flex gap-2 p-3 border-b border-gray-200 items-center flex-wrap"
+      className="flex gap-2 p-3 border-b items-center flex-wrap"
     >
       <InlineField layout="label-flex-none" name={label}>
         <NumericField
@@ -352,9 +352,9 @@ const ProximityAnomalyItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div className="grid grid-cols-[1fr_auto] gap-x-2 items-center p-1 pr-0 text-sm w-full justify-between">
+      <div className="grid grid-cols-[1fr_auto] gap-x-2 items-center p-1 pr-0 text-size-base w-full justify-between">
         <div className="truncate text-left">{nodeAsset.label}</div>
-        <div className="text-gray-500 min-w-0">
+        <div className="text-subtle min-w-0">
           {distanceFormatted} {lengthUnit}
         </div>
       </div>

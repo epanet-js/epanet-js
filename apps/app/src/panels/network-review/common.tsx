@@ -59,7 +59,7 @@ export const ToolHeader = ({
   return (
     <div
       ref={headerRef}
-      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b border-gray-200 pl-1 py-3"
+      className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b pl-1 py-3"
       tabIndex={autoFocus ? 0 : undefined}
       onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
@@ -74,7 +74,7 @@ export const ToolHeader = ({
         <ChevronLeftIcon size={16} />
       </Button>
       <div className="w-full flex-col">
-        <p className="text-sm font-bold text-gray-900 dark:text-white">
+        <p className="text-size-base font-bold text-default">
           {translate(`networkReview.${checkType}.title`)}
         </p>
         <Summary checkType={checkType} count={itemsCount} />
@@ -92,13 +92,13 @@ const Summary = ({
 }) => {
   const translate = useTranslate();
   const message = translate(`networkReview.${checkType}.summary`, count);
-  return <p className="text-gray-500 text-sm">{message}</p>;
+  return <p className="text-subtle text-size-base">{message}</p>;
 };
 
 export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
-    <p className="text-sm w-full p-3">
+    <p className="text-size-base w-full p-3">
       {translate(`networkReview.${checkType}.description`)}
     </p>
   );
@@ -108,10 +108,10 @@ export const EmptyState = ({ checkType }: { checkType: CheckType }) => {
   const translate = useTranslate();
   return (
     <div className="grow flex flex-col items-center justify-center px-4 pb-4">
-      <div className="text-gray-400">
+      <div className="text-subtle">
         <NoIssuesIcon size={96} />
       </div>
-      <p className="text-sm text-center py-4 text-gray-600 max-w-48">
+      <p className="text-size-base text-center py-4 text-subtle max-w-48">
         {translate(`networkReview.${checkType}.emptyMessage`)}
       </p>
     </div>
@@ -134,7 +134,7 @@ export const useLoadingStatus = () => {
 export const LoadingState = ({ overlay = false }: { overlay?: boolean }) => {
   if (overlay) {
     return (
-      <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-xs z-10">
+      <div className="absolute bottom-px inset-0 flex flex-col items-center justify-center bg-base/80/80 backdrop-blur-xs z-10">
         <Loading />
       </div>
     );
