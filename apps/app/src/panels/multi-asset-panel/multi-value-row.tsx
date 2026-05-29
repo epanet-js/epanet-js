@@ -4,9 +4,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
-import { Selector, SelectorOption } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Selector } from "src/components/form/selector";
+import { SelectorListOption } from "src/components/form/selector-list";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
 import {
@@ -207,7 +206,6 @@ const EditableField = ({
   ) => void;
 }) => {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const isOnlyEmpty =
     !isMixed && propertyStats.values.size === 0 && !!emptyBucket;
@@ -250,23 +248,18 @@ const EditableField = ({
         ? null
         : firstKey.replace(config.statsPrefix, "");
 
-    const options: SelectorOption<string>[] = readonly
-      ? currentValue != null
-        ? [
-            {
-              label: config.useUppercaseLabel
-                ? currentValue.toUpperCase()
-                : translate(config.statsPrefix + currentValue),
-              value: currentValue,
-            },
-          ]
-        : []
-      : config.values.map((v) => ({
-          label: config.useUppercaseLabel
-            ? v.toUpperCase()
-            : translate(config.statsPrefix + v),
-          value: v,
-        }));
+    const toOption = (value: string): SelectorListOption<string> => ({
+      value,
+      label: config.useUppercaseLabel
+        ? value.toUpperCase()
+        : translate(config.statsPrefix + value),
+    });
+
+    const options: SelectorListOption<string>[] = !readonly
+      ? config.values.map(toOption)
+      : currentValue != null
+        ? [toOption(currentValue)]
+        : [];
 
     const isClearable = !!config.nullLabelKey;
     const isNullable = isMixed || isClearable;
@@ -283,8 +276,8 @@ const EditableField = ({
     };
 
     if (isNullable) {
-      return isNewSelectorOn ? (
-        <EnhancedSelector<string>
+      return (
+        <Selector<string>
           selected={currentValue}
           options={options}
           nullable={true}
@@ -294,30 +287,10 @@ const EditableField = ({
           onChange={handleCategoryChange}
           disabled={readonly}
         />
-      ) : (
-        <Selector<string>
-          selected={currentValue}
-          options={options}
-          nullable={true}
-          placeholder={categoryPlaceholder}
-          ariaLabel={label}
-          onChange={handleCategoryChange}
-          disabled={readonly}
-        />
       );
     }
 
-    return isNewSelectorOn ? (
-      <EnhancedSelector<string>
-        selected={currentValue!}
-        options={options}
-        ariaLabel={label}
-        onChange={(newValue) => {
-          onPropertyChange(config.modelProperty, newValue);
-        }}
-        disabled={readonly}
-      />
-    ) : (
+    return (
       <Selector<string>
         selected={currentValue!}
         options={options}
@@ -334,7 +307,7 @@ const EditableField = ({
     const collection = config.library === "patterns" ? patterns : curves;
     const labelType = config.library === "patterns" ? "pattern" : "curve";
 
-    const items: SelectorOption<string>[] = [];
+    const items: SelectorListOption<string>[] = [];
     if (collection) {
       for (const [id, item] of collection) {
         if (config.filterByType && item.type !== config.filterByType) continue;
@@ -358,59 +331,25 @@ const EditableField = ({
         ? translate(config.nullLabelKey)
         : translate("none");
 
-    if (isNewSelectorOn) {
-      return (
-        <EnhancedSelector<string>
-          selected={currentId}
-          options={items}
-          nullable={true}
-          actionLabel={
-            showLibraryAction ? translate(config.libraryLabelKey!) : undefined
-          }
-          onActionClick={
-            showLibraryAction
-              ? () => onOpenLibrary(config.library, config.filterByType)
-              : undefined
-          }
-          placeholder={resolvedPlaceholder}
-          clearLabel={
-            config.nullLabelKey ? translate(config.nullLabelKey) : undefined
-          }
-          ariaLabel={label}
-          onChange={(newValue) => {
-            onPropertyChange(
-              config.modelProperty,
-              newValue === null ? (undefined as never) : Number(newValue),
-            );
-          }}
-          disabled={readonly}
-        />
-      );
-    }
-
-    const LIBRARY_SENTINEL = "-1";
-    const legacyOptions: SelectorOption<string>[][] = [];
-    if (showLibraryAction) {
-      legacyOptions.push([
-        { label: translate(config.libraryLabelKey!), value: LIBRARY_SENTINEL },
-      ]);
-    }
-    legacyOptions.push(items);
-
     return (
       <Selector<string>
         selected={currentId}
-        options={legacyOptions}
+        options={items}
         nullable={true}
-        stickyFirstGroup={showLibraryAction}
-        stickyGroupClassName="italic"
+        actionLabel={
+          showLibraryAction ? translate(config.libraryLabelKey!) : undefined
+        }
+        onActionClick={
+          showLibraryAction
+            ? () => onOpenLibrary(config.library, config.filterByType)
+            : undefined
+        }
         placeholder={resolvedPlaceholder}
+        clearLabel={
+          config.nullLabelKey ? translate(config.nullLabelKey) : undefined
+        }
         ariaLabel={label}
         onChange={(newValue) => {
-          if (newValue === LIBRARY_SENTINEL) {
-            onOpenLibrary?.(config.library, config.filterByType);
-            return;
-          }
           onPropertyChange(
             config.modelProperty,
             newValue === null ? (undefined as never) : Number(newValue),
@@ -431,7 +370,7 @@ const EditableField = ({
         : translate("none");
 
     return (
-      <EnhancedSelector
+      <Selector
         options={options.map((o) => ({ value: o, label: o }))}
         selected={currentValue}
         nullable
@@ -447,8 +386,6 @@ const EditableField = ({
         }}
         placeholder={placeholder}
         ariaLabel={label}
-        searchPlaceholder={translate("searchOrTypeNew")}
-        createLabel={(query) => translate("addNewValue", query)}
       />
     );
   }

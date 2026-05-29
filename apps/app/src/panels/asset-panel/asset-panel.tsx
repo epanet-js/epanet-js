@@ -71,9 +71,7 @@ import {
   AssetEditorContent,
   QuantityRow,
   SelectRow,
-  EnhancedSelectRow,
   LibrarySelectRow,
-  EnhancedLibrarySelectRow,
   TextRow,
   SwitchRow,
   ConnectedCustomersRow,
@@ -662,7 +660,6 @@ const PipeEditor = ({
   const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
     getComparison,
@@ -777,25 +774,14 @@ const PipeEditor = ({
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
       >
-        {isNewSelectorOn ? (
-          <EnhancedSelectRow
-            name="initialStatus"
-            selected={pipe.initialStatus}
-            options={pipeStatusOptions}
-            comparison={getComparison("initialStatus", pipe.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <SelectRow
-            name="initialStatus"
-            selected={pipe.initialStatus}
-            options={pipeStatusOptions}
-            comparison={getComparison("initialStatus", pipe.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        )}
+        <SelectRow
+          name="initialStatus"
+          selected={pipe.initialStatus}
+          options={pipeStatusOptions}
+          comparison={getComparison("initialStatus", pipe.initialStatus)}
+          onChange={handleStatusChange}
+          readOnly={readonly}
+        />
         <QuantityRow
           name="diameter"
           value={pipe.diameter}
@@ -1165,7 +1151,6 @@ const TankEditor = ({
 }) => {
   const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
   const simulation = useSimulation();
@@ -1301,23 +1286,13 @@ const TankEditor = ({
           unit={units.chemicalConcentration}
           readOnly={readonly}
         />
-        {isNewSelectorOn ? (
-          <EnhancedSelectRow
-            name="mixingModel"
-            selected={tank.mixingModel}
-            options={mixingModelOptions}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <SelectRow
-            name="mixingModel"
-            selected={tank.mixingModel}
-            options={mixingModelOptions}
-            onChange={onPropertyChange}
-            readOnly={readonly}
-          />
-        )}
+        <SelectRow
+          name="mixingModel"
+          selected={tank.mixingModel}
+          options={mixingModelOptions}
+          onChange={onPropertyChange}
+          readOnly={readonly}
+        />
         {tank.mixingModel === "2comp" && (
           <NestedSection>
             <QuantityRow
@@ -1424,7 +1399,6 @@ const TankDefinitionField = ({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const showCurveLibrary = useShowCurveLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { getComparison, getCurveComparison } = useAssetComparison(tank);
 
   const [definitionMode, setDefinitionMode] = useState<TankDefinitionMode>(
@@ -1635,23 +1609,13 @@ const TankDefinitionField = ({
         ) : undefined
       }
     >
-      {isNewSelectorOn ? (
-        <EnhancedSelectRow
-          name="tankDefinition"
-          selected={definitionMode}
-          options={definitionOptions}
-          readOnly={readOnly}
-          onChange={handleDefinitionModeChange}
-        />
-      ) : (
-        <SelectRow
-          name="tankDefinition"
-          selected={definitionMode}
-          options={definitionOptions}
-          readOnly={readOnly}
-          onChange={handleDefinitionModeChange}
-        />
-      )}
+      <SelectRow
+        name="tankDefinition"
+        selected={definitionMode}
+        options={definitionOptions}
+        readOnly={readOnly}
+        onChange={handleDefinitionModeChange}
+      />
       <NestedSection className="pb-2">
         {definitionMode === "diameterBased" && (
           <>
@@ -1797,41 +1761,22 @@ const TankDefinitionField = ({
         )}
         {definitionMode === "curveBased" && (
           <>
-            {isNewSelectorOn ? (
-              <EnhancedLibrarySelectRow
-                name="volumeCurve"
-                collection={curves}
-                filterByType="volume"
-                libraryLabel={translate("openCurvesLibrary")}
-                onOpenLibrary={() =>
-                  showCurveLibrary({
-                    source: "tank",
-                    curveId: tank.volumeCurveId,
-                    initialSection: "volume",
-                  })
-                }
-                selected={tank.volumeCurveId ?? null}
-                onChange={handleCurveChange}
-                readOnly={readOnly}
-              />
-            ) : (
-              <LibrarySelectRow
-                name="volumeCurve"
-                collection={curves}
-                filterByType="volume"
-                libraryLabel={translate("openCurvesLibrary")}
-                onOpenLibrary={() =>
-                  showCurveLibrary({
-                    source: "tank",
-                    curveId: tank.volumeCurveId,
-                    initialSection: "volume",
-                  })
-                }
-                selected={tank.volumeCurveId ?? null}
-                onChange={handleCurveChange}
-                readOnly={readOnly}
-              />
-            )}
+            <LibrarySelectRow
+              name="volumeCurve"
+              collection={curves}
+              filterByType="volume"
+              libraryLabel={translate("openCurvesLibrary")}
+              onOpenLibrary={() =>
+                showCurveLibrary({
+                  source: "tank",
+                  curveId: tank.volumeCurveId,
+                  initialSection: "volume",
+                })
+              }
+              selected={tank.volumeCurveId ?? null}
+              onChange={handleCurveChange}
+              readOnly={readOnly}
+            />
             {(() => {
               if (!tank.volumeCurveId) return null;
               const curve = curves.get(tank.volumeCurveId);
@@ -1910,7 +1855,6 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2013,25 +1957,14 @@ const ValveEditor = ({
         section="modelAttributes"
         hasChanged={hasModelAttributesChanges}
       >
-        {isNewSelectorOn ? (
-          <EnhancedSelectRow
-            name="valveType"
-            selected={valve.kind}
-            options={kindOptions}
-            comparison={getComparison("kind", valve.kind)}
-            onChange={handleKindChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <SelectRow
-            name="valveType"
-            selected={valve.kind}
-            options={kindOptions}
-            comparison={getComparison("kind", valve.kind)}
-            onChange={handleKindChange}
-            readOnly={readonly}
-          />
-        )}
+        <SelectRow
+          name="valveType"
+          selected={valve.kind}
+          options={kindOptions}
+          comparison={getComparison("kind", valve.kind)}
+          onChange={handleKindChange}
+          readOnly={readonly}
+        />
         {valve.kind !== "gpv" && (
           <QuantityRow
             name="setting"
@@ -2060,25 +1993,14 @@ const ValveEditor = ({
             readOnly={readonly}
           />
         )}
-        {isNewSelectorOn ? (
-          <EnhancedSelectRow
-            name="initialStatus"
-            selected={valve.initialStatus}
-            options={statusOptions}
-            comparison={getComparison("initialStatus", valve.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <SelectRow
-            name="initialStatus"
-            selected={valve.initialStatus}
-            options={statusOptions}
-            comparison={getComparison("initialStatus", valve.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        )}
+        <SelectRow
+          name="initialStatus"
+          selected={valve.initialStatus}
+          options={statusOptions}
+          comparison={getComparison("initialStatus", valve.initialStatus)}
+          onChange={handleStatusChange}
+          readOnly={readonly}
+        />
         <QuantityRow
           name="diameter"
           value={valve.diameter}
@@ -2181,7 +2103,6 @@ const PumpEditor = ({
 }) => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
     getComparison,
@@ -2291,25 +2212,14 @@ const PumpEditor = ({
           }
           readOnly={readonly}
         />
-        {isNewSelectorOn ? (
-          <EnhancedSelectRow
-            name="initialStatus"
-            selected={pump.initialStatus}
-            options={statusOptions}
-            comparison={getComparison("initialStatus", pump.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        ) : (
-          <SelectRow
-            name="initialStatus"
-            selected={pump.initialStatus}
-            options={statusOptions}
-            comparison={getComparison("initialStatus", pump.initialStatus)}
-            onChange={handleStatusChange}
-            readOnly={readonly}
-          />
-        )}
+        <SelectRow
+          name="initialStatus"
+          selected={pump.initialStatus}
+          options={statusOptions}
+          comparison={getComparison("initialStatus", pump.initialStatus)}
+          onChange={handleStatusChange}
+          readOnly={readonly}
+        />
         <VariableSpeedField
           pump={pump}
           patterns={hydraulicModel.patterns}
@@ -2472,7 +2382,6 @@ export const valveStatusLabel = (
   return "valve." + sim.status;
 };
 
-const VARIABLE_SPEED_NONE = 0;
 const VARIABLE_SPEED_PATTERN_BASED = 1;
 
 const VariableSpeedField = ({
@@ -2488,26 +2397,12 @@ const VariableSpeedField = ({
 }) => {
   const translate = useTranslate();
   const showPatternsLibrary = useShowPatternsLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { getPatternComparison } = useAssetComparison(pump);
 
   const comparison = getPatternComparison(
     "speedPatternId",
     pump.speedPatternId,
     patterns,
-  );
-
-  const variableSpeedOptions = useMemo(
-    () => [
-      [{ label: translate("none"), value: VARIABLE_SPEED_NONE }],
-      [
-        {
-          label: translate("patternBased"),
-          value: VARIABLE_SPEED_PATTERN_BASED,
-        },
-      ],
-    ],
-    [translate],
   );
 
   const enhancedVariableSpeedOptions = useMemo(
@@ -2536,9 +2431,8 @@ const VariableSpeedField = ({
   const handleVariableSpeedChange = useCallback(
     (_: string, newValue: number | null, oldValue: number | null) => {
       if (newValue === oldValue) return;
-      const resolved = newValue === VARIABLE_SPEED_NONE ? null : newValue;
-      setSelectedVariableSpeed(resolved);
-      if (resolved === null && pump.speedPatternId) {
+      setSelectedVariableSpeed(newValue);
+      if (newValue === null && pump.speedPatternId) {
         onPropertyChange("speedPatternId", undefined, pump.speedPatternId);
       }
     },
@@ -2584,68 +2478,35 @@ const VariableSpeedField = ({
       hasChanged={comparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {isNewSelectorOn ? (
-        <EnhancedSelectRow
-          name="variableSpeed"
-          selected={selectedVariableSpeed}
-          options={enhancedVariableSpeedOptions}
-          nullable={true}
-          placeholder={translate("none")}
-          clearLabel={translate("none")}
-          onChange={handleVariableSpeedChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <SelectRow
-          name="variableSpeed"
-          selected={selectedVariableSpeed}
-          options={variableSpeedOptions}
-          listClassName="first:italic"
-          nullable={true}
-          placeholder={translate("none")}
-          onChange={handleVariableSpeedChange}
-          readOnly={readOnly}
-        />
-      )}
+      <SelectRow
+        name="variableSpeed"
+        selected={selectedVariableSpeed}
+        options={enhancedVariableSpeedOptions}
+        nullable={true}
+        placeholder={translate("none")}
+        clearLabel={translate("none")}
+        onChange={handleVariableSpeedChange}
+        readOnly={readOnly}
+      />
       {selectedVariableSpeed === VARIABLE_SPEED_PATTERN_BASED && (
         <NestedSection>
-          {isNewSelectorOn ? (
-            <EnhancedLibrarySelectRow
-              name="speedPattern"
-              collection={patterns}
-              filterByType="pumpSpeed"
-              libraryLabel={translate("openPatternsLibrary")}
-              onOpenLibrary={() =>
-                showPatternsLibrary({
-                  source: "pump",
-                  initialPatternId: pump.speedPatternId,
-                  initialSection: "pumpSpeed",
-                })
-              }
-              selected={pump.speedPatternId ?? null}
-              emptyOptionLabel={translate("constant")}
-              onChange={handleSpeedPatternChange}
-              readOnly={readOnly}
-            />
-          ) : (
-            <LibrarySelectRow
-              name="speedPattern"
-              collection={patterns}
-              filterByType="pumpSpeed"
-              libraryLabel={translate("openPatternsLibrary")}
-              onOpenLibrary={() =>
-                showPatternsLibrary({
-                  source: "pump",
-                  initialPatternId: pump.speedPatternId,
-                  initialSection: "pumpSpeed",
-                })
-              }
-              selected={pump.speedPatternId ?? null}
-              emptyOptionLabel={translate("constant")}
-              onChange={handleSpeedPatternChange}
-              readOnly={readOnly}
-            />
-          )}
+          <LibrarySelectRow
+            name="speedPattern"
+            collection={patterns}
+            filterByType="pumpSpeed"
+            libraryLabel={translate("openPatternsLibrary")}
+            onOpenLibrary={() =>
+              showPatternsLibrary({
+                source: "pump",
+                initialPatternId: pump.speedPatternId,
+                initialSection: "pumpSpeed",
+              })
+            }
+            selected={pump.speedPatternId ?? null}
+            emptyOptionLabel={translate("constant")}
+            onChange={handleSpeedPatternChange}
+            readOnly={readOnly}
+          />
         </NestedSection>
       )}
     </BlockComparisonField>
@@ -2667,7 +2528,6 @@ const PumpEfficiencyCurveField = ({
 }) => {
   const translate = useTranslate();
   const showPumpLibrary = useShowPumpLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { getCurveComparison } = useAssetComparison(pump);
 
   const curveComparison = getCurveComparison(
@@ -2712,49 +2572,26 @@ const PumpEfficiencyCurveField = ({
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {isNewSelectorOn ? (
-        <EnhancedLibrarySelectRow
-          name="efficiencyCurve"
-          collection={curves}
-          filterByType="efficiency"
-          libraryLabel={translate("openPumpLibrary")}
-          onOpenLibrary={() =>
-            showPumpLibrary({
-              source: "pump",
-              curveId: pump.efficiencyCurveId,
-              initialSection: "efficiency",
-            })
-          }
-          selected={pump.efficiencyCurveId ?? null}
-          emptyOptionLabel={translate(
-            "constantPercent",
-            localizeDecimal(globalEfficiency),
-          )}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <LibrarySelectRow
-          name="efficiencyCurve"
-          collection={curves}
-          filterByType="efficiency"
-          libraryLabel={translate("openPumpLibrary")}
-          onOpenLibrary={() =>
-            showPumpLibrary({
-              source: "pump",
-              curveId: pump.efficiencyCurveId,
-              initialSection: "efficiency",
-            })
-          }
-          selected={pump.efficiencyCurveId ?? null}
-          emptyOptionLabel={translate(
-            "constantPercent",
-            localizeDecimal(globalEfficiency),
-          )}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      )}
+      <LibrarySelectRow
+        name="efficiencyCurve"
+        collection={curves}
+        filterByType="efficiency"
+        libraryLabel={translate("openPumpLibrary")}
+        onOpenLibrary={() =>
+          showPumpLibrary({
+            source: "pump",
+            curveId: pump.efficiencyCurveId,
+            initialSection: "efficiency",
+          })
+        }
+        selected={pump.efficiencyCurveId ?? null}
+        emptyOptionLabel={translate(
+          "constantPercent",
+          localizeDecimal(globalEfficiency),
+        )}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };
@@ -2779,25 +2616,13 @@ const ChemicalSourceEditor = ({
   const showPatternsLibrary = useShowPatternsLibrary();
   const { getComparison, getPatternComparison } = useAssetComparison(node);
   const typedNode = node as Junction | Tank | Reservoir;
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const strengthUnit =
     typedNode.chemicalSourceType === "MASS"
       ? `${translateUnit(unit)}/min`
       : translateUnit(unit);
 
-  const translatedSourceTypeOptions = useMemo(
-    () => [
-      { label: translate("none"), value: "none" as const },
-      ...chemicalSourceTypes.map((t) => ({
-        label: translate(`source.${t}`),
-        value: t,
-      })),
-    ],
-    [translate],
-  );
-
-  const enhancedSourceTypeOptions = useMemo(
+  const sourceTypeOptions = useMemo(
     () =>
       chemicalSourceTypes.map((t) => ({
         label: translate(`source.${t}`),
@@ -2884,41 +2709,22 @@ const ChemicalSourceEditor = ({
         <div className="whitespace-pre-line">{baseDisplayValue.join("\n")}</div>
       }
     >
-      {isNewSelectorOn ? (
-        <EnhancedSelectRow
-          name="chemicalSourceType"
-          selected={typedNode.chemicalSourceType ?? null}
-          options={enhancedSourceTypeOptions}
-          nullable={true}
-          placeholder={translate("none")}
-          clearLabel={translate("none")}
-          onChange={(_name, value) => {
-            onBatchPropertyChange(
-              chemicalSourceTypeChanges(
-                value === null ? null : (value as ChemicalSourceType),
-              ),
-            );
-          }}
-          readOnly={readOnly}
-        />
-      ) : (
-        <SelectRow
-          name="chemicalSourceType"
-          selected={typedNode.chemicalSourceType ?? null}
-          options={translatedSourceTypeOptions}
-          nullable={true}
-          placeholder={translate("none")}
-          listClassName="first:italic"
-          onChange={(_name, value) => {
-            onBatchPropertyChange(
-              chemicalSourceTypeChanges(
-                value === "none" ? null : (value as ChemicalSourceType),
-              ),
-            );
-          }}
-          readOnly={readOnly}
-        />
-      )}
+      <SelectRow
+        name="chemicalSourceType"
+        selected={typedNode.chemicalSourceType ?? null}
+        options={sourceTypeOptions}
+        nullable={true}
+        placeholder={translate("none")}
+        clearLabel={translate("none")}
+        onChange={(_name, value) => {
+          onBatchPropertyChange(
+            chemicalSourceTypeChanges(
+              value === null ? null : (value as ChemicalSourceType),
+            ),
+          );
+        }}
+        readOnly={readOnly}
+      />
       {typedNode.chemicalSourceType && (
         <NestedSection>
           <QuantityRow
@@ -2929,45 +2735,24 @@ const ChemicalSourceEditor = ({
             onChange={onPropertyChange}
             readOnly={readOnly}
           />
-          {isNewSelectorOn ? (
-            <EnhancedLibrarySelectRow
-              name="chemicalSourcePattern"
-              collection={patterns}
-              filterByType="qualitySourceStrength"
-              libraryLabel={translate("openPatternsLibrary")}
-              onOpenLibrary={() =>
-                showPatternsLibrary({
-                  source: "quality",
-                  initialPatternId: node.chemicalSourcePatternId,
-                  initialSection: "qualitySourceStrength",
-                })
-              }
-              selected={node.chemicalSourcePatternId ?? null}
-              emptyOptionLabel={translate("none")}
-              placeholder={translate("none")}
-              onChange={handlePatternChange}
-              readOnly={readOnly}
-            />
-          ) : (
-            <LibrarySelectRow
-              name="chemicalSourcePattern"
-              collection={patterns}
-              filterByType="qualitySourceStrength"
-              libraryLabel={translate("openPatternsLibrary")}
-              onOpenLibrary={() =>
-                showPatternsLibrary({
-                  source: "quality",
-                  initialPatternId: node.chemicalSourcePatternId,
-                  initialSection: "qualitySourceStrength",
-                })
-              }
-              selected={node.chemicalSourcePatternId ?? null}
-              emptyOptionLabel={translate("none")}
-              placeholder={translate("none")}
-              onChange={handlePatternChange}
-              readOnly={readOnly}
-            />
-          )}
+          <LibrarySelectRow
+            name="chemicalSourcePattern"
+            collection={patterns}
+            filterByType="qualitySourceStrength"
+            libraryLabel={translate("openPatternsLibrary")}
+            onOpenLibrary={() =>
+              showPatternsLibrary({
+                source: "quality",
+                initialPatternId: node.chemicalSourcePatternId,
+                initialSection: "qualitySourceStrength",
+              })
+            }
+            selected={node.chemicalSourcePatternId ?? null}
+            emptyOptionLabel={translate("none")}
+            placeholder={translate("none")}
+            onChange={handlePatternChange}
+            readOnly={readOnly}
+          />
         </NestedSection>
       )}
     </BlockComparisonField>
@@ -2989,7 +2774,6 @@ const PumpEnergyPricePatternField = ({
 }) => {
   const translate = useTranslate();
   const showPatternsLibrary = useShowPatternsLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { getPatternComparison } = useAssetComparison(pump);
 
   const patternComparison = getPatternComparison(
@@ -3040,47 +2824,25 @@ const PumpEnergyPricePatternField = ({
       hasChanged={patternComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {isNewSelectorOn ? (
-        <EnhancedLibrarySelectRow
-          name="energyPricePattern"
-          collection={patterns}
-          filterByType="energyPrice"
-          libraryLabel={translate("openPatternsLibrary")}
-          onOpenLibrary={() =>
-            showPatternsLibrary({
-              source: "pump",
-              initialPatternId: pump.energyPricePatternId,
-              initialSection: "energyPrice",
-            })
-          }
-          selected={pump.energyPricePatternId ?? null}
-          emptyOptionLabel={placeholder}
-          placeholder={placeholder}
-          excludeId={globalPatternId ?? undefined}
-          onChange={handleChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <LibrarySelectRow
-          name="energyPricePattern"
-          collection={patterns}
-          filterByType="energyPrice"
-          libraryLabel={translate("openPatternsLibrary")}
-          onOpenLibrary={() =>
-            showPatternsLibrary({
-              source: "pump",
-              initialPatternId: pump.energyPricePatternId,
-              initialSection: "energyPrice",
-            })
-          }
-          selected={pump.energyPricePatternId ?? null}
-          emptyOptionLabel={placeholder}
-          placeholder={placeholder}
-          excludeId={globalPatternId ?? undefined}
-          onChange={handleChange}
-          readOnly={readOnly}
-        />
-      )}
+      <LibrarySelectRow
+        name="energyPricePattern"
+        collection={patterns}
+        filterByType="energyPrice"
+        libraryLabel={translate("openPatternsLibrary")}
+        onOpenLibrary={() =>
+          showPatternsLibrary({
+            source: "pump",
+            initialPatternId: pump.energyPricePatternId,
+            initialSection: "energyPrice",
+          })
+        }
+        selected={pump.energyPricePatternId ?? null}
+        emptyOptionLabel={placeholder}
+        placeholder={placeholder}
+        excludeId={globalPatternId ?? undefined}
+        onChange={handleChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };
@@ -3101,7 +2863,6 @@ const ReservoirHeadField = ({
   const showPatternsLibrary = useShowPatternsLibrary();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
 
   const averageHead = useMemo(
@@ -3197,43 +2958,23 @@ const ReservoirHeadField = ({
           readOnly={readOnly}
         />
 
-        {isNewSelectorOn ? (
-          <EnhancedLibrarySelectRow
-            name="headPattern"
-            collection={patterns}
-            filterByType="reservoirHead"
-            libraryLabel={translate("openPatternsLibrary")}
-            onOpenLibrary={() =>
-              showPatternsLibrary({
-                source: "reservoir",
-                initialPatternId: reservoir.headPatternId,
-                initialSection: "reservoirHead",
-              })
-            }
-            selected={selectedPatternId}
-            emptyOptionLabel={translate("constant")}
-            onChange={handleHeadPatternChange}
-            readOnly={readOnly}
-          />
-        ) : (
-          <LibrarySelectRow
-            name="headPattern"
-            collection={patterns}
-            filterByType="reservoirHead"
-            libraryLabel={translate("openPatternsLibrary")}
-            onOpenLibrary={() =>
-              showPatternsLibrary({
-                source: "reservoir",
-                initialPatternId: reservoir.headPatternId,
-                initialSection: "reservoirHead",
-              })
-            }
-            selected={selectedPatternId}
-            emptyOptionLabel={translate("constant")}
-            onChange={handleHeadPatternChange}
-            readOnly={readOnly}
-          />
-        )}
+        <LibrarySelectRow
+          name="headPattern"
+          collection={patterns}
+          filterByType="reservoirHead"
+          libraryLabel={translate("openPatternsLibrary")}
+          onOpenLibrary={() =>
+            showPatternsLibrary({
+              source: "reservoir",
+              initialPatternId: reservoir.headPatternId,
+              initialSection: "reservoirHead",
+            })
+          }
+          selected={selectedPatternId}
+          emptyOptionLabel={translate("constant")}
+          onChange={handleHeadPatternChange}
+          readOnly={readOnly}
+        />
         {!!selectedPatternId && (
           <QuantityRow
             name="headAverage"
@@ -3266,7 +3007,6 @@ const HeadlossCurveField = ({
 }) => {
   const translate = useTranslate();
   const showCurveLibrary = useShowCurveLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const curveComparison = getCurveComparison("curveId", valve.curveId, curves);
 
@@ -3308,41 +3048,22 @@ const HeadlossCurveField = ({
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {isNewSelectorOn ? (
-        <EnhancedLibrarySelectRow
-          name="headlossCurve"
-          collection={curves}
-          filterByType="headloss"
-          libraryLabel={translate("openCurvesLibrary")}
-          onOpenLibrary={() =>
-            showCurveLibrary({
-              source: "valve",
-              curveId: valve.curveId,
-              initialSection: "headloss",
-            })
-          }
-          selected={selectedCurveId}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <LibrarySelectRow
-          name="headlossCurve"
-          collection={curves}
-          filterByType="headloss"
-          libraryLabel={translate("openCurvesLibrary")}
-          onOpenLibrary={() =>
-            showCurveLibrary({
-              source: "valve",
-              curveId: valve.curveId,
-              initialSection: "headloss",
-            })
-          }
-          selected={selectedCurveId}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      )}
+      <LibrarySelectRow
+        name="headlossCurve"
+        collection={curves}
+        filterByType="headloss"
+        libraryLabel={translate("openCurvesLibrary")}
+        onOpenLibrary={() =>
+          showCurveLibrary({
+            source: "valve",
+            curveId: valve.curveId,
+            initialSection: "headloss",
+          })
+        }
+        selected={selectedCurveId}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };
@@ -3366,7 +3087,6 @@ const ValveCurveField = ({
 }) => {
   const translate = useTranslate();
   const showCurveLibrary = useShowCurveLibrary();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const curveComparison = getCurveComparison("curveId", valve.curveId, curves);
 
@@ -3411,43 +3131,23 @@ const ValveCurveField = ({
       hasChanged={curveComparison.hasChanged}
       baseDisplayValue={baseDisplayValue}
     >
-      {isNewSelectorOn ? (
-        <EnhancedLibrarySelectRow
-          name="valveCurve"
-          collection={curves}
-          filterByType="valve"
-          libraryLabel={translate("openCurvesLibrary")}
-          onOpenLibrary={() =>
-            showCurveLibrary({
-              source: "valve",
-              curveId: valve.curveId,
-              initialSection: "valve",
-            })
-          }
-          selected={selectedCurveId}
-          emptyOptionLabel={translate("none")}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      ) : (
-        <LibrarySelectRow
-          name="valveCurve"
-          collection={curves}
-          filterByType="valve"
-          libraryLabel={translate("openCurvesLibrary")}
-          onOpenLibrary={() =>
-            showCurveLibrary({
-              source: "valve",
-              curveId: valve.curveId,
-              initialSection: "valve",
-            })
-          }
-          selected={selectedCurveId}
-          emptyOptionLabel={translate("none")}
-          onChange={handleOnChange}
-          readOnly={readOnly}
-        />
-      )}
+      <LibrarySelectRow
+        name="valveCurve"
+        collection={curves}
+        filterByType="valve"
+        libraryLabel={translate("openCurvesLibrary")}
+        onOpenLibrary={() =>
+          showCurveLibrary({
+            source: "valve",
+            curveId: valve.curveId,
+            initialSection: "valve",
+          })
+        }
+        selected={selectedCurveId}
+        emptyOptionLabel={translate("none")}
+        onChange={handleOnChange}
+        readOnly={readOnly}
+      />
     </BlockComparisonField>
   );
 };

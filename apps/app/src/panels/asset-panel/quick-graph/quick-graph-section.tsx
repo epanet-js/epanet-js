@@ -3,8 +3,6 @@ import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { Selector } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -130,7 +128,6 @@ const QuickGraphSection = ({
 }: QuickGraphSectionProps) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const [footerState, setFooterState] = useAtom(assetPanelFooterAtom);
   const [propertyByType, setPropertyByType] = useAtom(quickGraphPropertyAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
@@ -291,29 +288,16 @@ const QuickGraphSection = ({
       </div>
       <div className="w-max pb-2">
         {propertyOptions.length > 1 ? (
-          isNewSelectorOn ? (
-            <EnhancedSelector
-              options={propertyOptions}
-              selected={selectedProperty}
-              onChange={handlePropertyChange}
-              styleOptions={{
-                border: true,
-                textSize: "text-sm",
-                paddingY: 1,
-              }}
-            />
-          ) : (
-            <Selector
-              options={propertyOptions}
-              selected={selectedProperty}
-              onChange={handlePropertyChange}
-              styleOptions={{
-                border: true,
-                textSize: "text-sm",
-                paddingY: 1,
-              }}
-            />
-          )
+          <Selector
+            options={propertyOptions}
+            selected={selectedProperty}
+            onChange={handlePropertyChange}
+            styleOptions={{
+              border: true,
+              textSize: "text-sm",
+              paddingY: 1,
+            }}
+          />
         ) : (
           <span className="text-sm text-gray-700 py-1">
             {propertyOptions[0]?.label}

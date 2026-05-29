@@ -208,8 +208,11 @@ describe("DemandCategoriesEditor", () => {
       await user.click(within(patternCell).getByRole("button"));
 
       // Wait for dropdown to open and options to appear
+      const listbox = await screen.findByRole("listbox");
       expect(
-        await screen.findByRole("option", { name: /constant/i }),
+        within(listbox.parentElement!.parentElement!).getByRole("button", {
+          name: /constant/i,
+        }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("option", { name: "Pattern1" }),
@@ -297,9 +300,10 @@ describe("DemandCategoriesEditor", () => {
       await user.click(within(patternCell).getByRole("button"));
 
       // Wait for dropdown to open and select CONSTANT
-      const constantOption = await screen.findByRole("option", {
-        name: /constant/i,
-      });
+      const listbox = await screen.findByRole("listbox");
+      const constantOption = within(
+        listbox.parentElement!.parentElement!,
+      ).getByRole("button", { name: /constant/i });
       await user.click(constantOption);
 
       expect(onDemandsChange).toHaveBeenCalledWith([{ baseDemand: 100 }]);

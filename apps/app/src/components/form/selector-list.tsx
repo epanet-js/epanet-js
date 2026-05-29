@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import clsx from "clsx";
 import { CheckIcon } from "src/icons";
+import { useTranslate } from "src/hooks/use-translate";
 
 export type SelectorListOption<T extends string | number | boolean> = {
   label: string;
@@ -33,7 +34,22 @@ const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
 
-export function SelectorList<T extends string | number | boolean>({
+export function SelectorList<T extends string | number | boolean>(
+  props: SelectorListProps<T>,
+) {
+  const translate = useTranslate();
+  return (
+    <BaseSelectorList
+      {...props}
+      searchPlaceholder={props.searchPlaceholder ?? translate("search")}
+      createLabel={
+        props.createLabel ?? ((query) => translate("addNewValue", query))
+      }
+    />
+  );
+}
+
+export function BaseSelectorList<T extends string | number | boolean>({
   options,
   selected,
   onCommit,
@@ -43,9 +59,9 @@ export function SelectorList<T extends string | number | boolean>({
   clearLabel,
   nullable = false,
   allowNew = false,
-  createLabel = (query) => `Add "${query}"`,
+  createLabel,
   minOptionsForSearch = 8,
-  searchPlaceholder = "Search…",
+  searchPlaceholder,
   listClassName,
   initialQuery = "",
 }: SelectorListProps<T>) {
@@ -446,7 +462,7 @@ export function SelectorList<T extends string | number | boolean>({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onCommit(trimmedQuery as T)}
               >
-                {createLabel(trimmedQuery)}
+                {createLabel?.(trimmedQuery) ?? trimmedQuery}
               </li>
             )}
           </ul>

@@ -55,7 +55,7 @@
   "length": "Length",
   "material": "Material",
   "yearOfInstallation": "Year of installation",
-  "searchOrTypeNew": "Search or type a new value…",
+  "search": "Search…",
   "addNewValue": "Add \"{{1}}\"",
   "demand": "Demand",
   "baseDemand": "Base demand",

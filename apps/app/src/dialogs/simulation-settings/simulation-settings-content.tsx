@@ -10,9 +10,8 @@ import {
   formatSecondsToDisplay,
 } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
-import { Selector, SelectorOption } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { Selector } from "src/components/form/selector";
+import { SelectorListOption } from "src/components/form/selector-list";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
@@ -758,12 +757,8 @@ export const EnergySection = () => {
     { label: translate("simulationSettings.reportEnergyNo"), value: "NO" },
   ];
 
-  const EMPTY_PATTERN_ID = 0;
-
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
-
-  const realEnergyPricePatterns = useMemo(() => {
-    const patternGroup: SelectorOption<number>[] = [];
+  const energyPricePatterns = useMemo(() => {
+    const patternGroup: SelectorListOption<number>[] = [];
     for (const [, pattern] of patterns) {
       if (pattern.type === "energyPrice") {
         patternGroup.push({ label: pattern.label, value: pattern.id });
@@ -773,18 +768,9 @@ export const EnergySection = () => {
   }, [patterns]);
 
   const energyPricePatternClearLabel =
-    realEnergyPricePatterns.length === 0
+    energyPricePatterns.length === 0
       ? translate("simulationSettings.noPatternsYet")
       : translate("constant");
-
-  const energyPricePatternOptions = useMemo(() => {
-    if (realEnergyPricePatterns.length === 0) return [];
-    if (isNewSelectorOn) return realEnergyPricePatterns;
-    return [
-      { label: energyPricePatternClearLabel, value: EMPTY_PATTERN_ID },
-      ...realEnergyPricePatterns,
-    ];
-  }, [realEnergyPricePatterns, energyPricePatternClearLabel, isNewSelectorOn]);
 
   return (
     <div>
@@ -821,19 +807,13 @@ export const EnergySection = () => {
         <SelectorSetting
           label={translate("simulationSettings.energyGlobalPattern")}
           description={translate("simulationSettings.energyGlobalPatternDesc")}
-          options={energyPricePatternOptions}
+          options={energyPricePatterns}
           selected={values.energyGlobalPatternId}
           nullable
           placeholder={energyPricePatternClearLabel}
           clearLabel={energyPricePatternClearLabel}
-          listClassName="first:italic"
-          onChange={(v) =>
-            setFieldValue(
-              "energyGlobalPatternId",
-              v === EMPTY_PATTERN_ID ? null : v,
-            )
-          }
-          disabled={readonly || energyPricePatternOptions.length === 0}
+          onChange={(v) => setFieldValue("energyGlobalPatternId", v)}
+          disabled={readonly || energyPricePatterns.length === 0}
         />
 
         <ValueSetting
@@ -962,10 +942,8 @@ type SelectorSettingPropsBase<T extends string | number> = {
   label: string;
   description?: string;
   badge?: string;
-  options: SelectorOption<T>[] | SelectorOption<T>[][];
-  listClassName?: string;
+  options: SelectorListOption<T>[];
   disabled?: boolean;
-  stickyFirstGroup?: boolean;
   warning?: string;
 };
 
@@ -999,14 +977,11 @@ const SelectorSetting = <T extends string | number>({
   nullable = false,
   placeholder,
   disabled = false,
-  stickyFirstGroup,
-  listClassName,
   warning,
   onChange,
   ...rest
 }: SelectorSettingProps<T>) => {
   const clearLabel = (rest as { clearLabel?: string }).clearLabel;
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const styleOptions = {
     border: true,
     textSize: "text-sm" as const,
@@ -1017,40 +992,19 @@ const SelectorSetting = <T extends string | number>({
     <SettingsRow label={label} description={description} badge={badge}>
       <div className="flex items-center gap-2">
         <div className="w-56">
-          {isNewSelectorOn ? (
-            <EnhancedSelector
-              ariaLabel={label}
-              options={
-                (Array.isArray(options[0])
-                  ? options.flat()
-                  : options) as SelectorOption<T>[]
-              }
-              selected={selected}
-              onChange={(v: T | null) =>
-                (onChange as (value: T | null) => void)(v)
-              }
-              disabled={disabled}
-              nullable={nullable as true}
-              placeholder={placeholder as string}
-              clearLabel={clearLabel}
-              styleOptions={styleOptions}
-            />
-          ) : (
-            <Selector
-              ariaLabel={label}
-              options={options}
-              selected={selected}
-              onChange={(v: T | null) =>
-                (onChange as (value: T | null) => void)(v)
-              }
-              disabled={disabled}
-              nullable={nullable as true}
-              placeholder={placeholder as string}
-              stickyFirstGroup={stickyFirstGroup}
-              listClassName={listClassName}
-              styleOptions={styleOptions}
-            />
-          )}
+          <Selector
+            ariaLabel={label}
+            options={options}
+            selected={selected}
+            onChange={(v: T | null) =>
+              (onChange as (value: T | null) => void)(v)
+            }
+            disabled={disabled}
+            nullable={nullable as true}
+            placeholder={placeholder as string}
+            clearLabel={clearLabel}
+            styleOptions={styleOptions}
+          />
         </div>
         {warning && (
           <span className="text-xs font-semibold text-orange-800">

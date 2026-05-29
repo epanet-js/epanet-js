@@ -49,8 +49,6 @@ import {
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
 import { convertTo } from "src/quantity";
@@ -535,7 +533,6 @@ const ElevationUnitField = ({
   readonly: boolean;
 }) => {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const currentUnit = source.tiles[0]?.verticalUnit ?? "m";
 
   return (
@@ -546,14 +543,6 @@ const ElevationUnitField = ({
     >
       {readonly ? (
         <TextField padding="md">{currentUnit}</TextField>
-      ) : isNewSelectorOn ? (
-        <EnhancedSelector
-          options={elevationUnitOptions}
-          selected={currentUnit}
-          onChange={(value) => actions.updateVerticalUnit(source.id, value)}
-          ariaLabel={translate("elevations.verticalUnit")}
-          styleOptions={{ paddingX: 2, paddingY: 2, textSize: "text-sm" }}
-        />
       ) : (
         <Selector
           options={elevationUnitOptions}

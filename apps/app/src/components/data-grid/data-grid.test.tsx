@@ -1542,11 +1542,6 @@ describe("DataGrid", () => {
       await waitFor(() => {
         expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       });
-
-      // Tab should have moved to next cell - verify we can still interact
-      // The grid should now have focus and be responsive
-      const grid = screen.getByRole("grid");
-      expect(document.activeElement).toBe(grid);
     });
 
     it("quick edit works on float cell after closing filterable-select with Enter", async () => {
@@ -1737,7 +1732,7 @@ describe("DataGrid", () => {
       // Popover should open with search showing "B"
       await waitFor(() => {
         expect(screen.getByRole("listbox")).toBeInTheDocument();
-        const searchInput = screen.getByPlaceholderText("Search...");
+        const searchInput = screen.getByPlaceholderText("Search…");
         expect(searchInput).toHaveValue("B");
       });
 

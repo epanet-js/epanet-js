@@ -45,8 +45,6 @@ import {
   useLayerConfigState,
 } from "src/map/layer-config";
 import { Selector } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
@@ -757,7 +755,6 @@ const LabelsToggle = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
 };
 
 const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const translate = useTranslate();
   const isRaster = layerConfig.name.includes("Satellite");
   const { applyChanges } = useLayerConfigState();
@@ -806,23 +803,13 @@ const BaseMapItem = ({ layerConfig }: { layerConfig: ILayerConfig }) => {
   const namePopover = (
     <div className="flex items-center justify-start  gap-x-2 cursor-pointer">
       <span className="select-none truncate text-sm w-auto">
-        {isNewSelectorOn ? (
-          <EnhancedSelector
-            ariaLabel="basemaps"
-            options={basemapOptions}
-            selected={layerConfig.name}
-            onChange={handleBasemapChange}
-            styleOptions={basemapStyleOptions}
-          />
-        ) : (
-          <Selector
-            ariaLabel="basemaps"
-            options={basemapOptions}
-            selected={layerConfig.name}
-            onChange={handleBasemapChange}
-            styleOptions={basemapStyleOptions}
-          />
-        )}
+        <Selector
+          ariaLabel="basemaps"
+          options={basemapOptions}
+          selected={layerConfig.name}
+          onChange={handleBasemapChange}
+          styleOptions={basemapStyleOptions}
+        />
       </span>
     </div>
   );

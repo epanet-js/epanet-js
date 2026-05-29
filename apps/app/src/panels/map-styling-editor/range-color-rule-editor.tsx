@@ -31,7 +31,6 @@ import {
 } from "src/state/derived-branch-state";
 
 import { Selector } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/map-symbology";
@@ -482,7 +481,6 @@ const ClassesSelector = ({
   onChange: (numIntervals: number) => void;
 }) => {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const options = useMemo(() => {
     return d3.range(3, maxIntervals + 1).map((count) => ({
       label: String(count),
@@ -490,16 +488,7 @@ const ClassesSelector = ({
     }));
   }, []);
 
-  return isNewSelectorOn ? (
-    <EnhancedSelector
-      options={options}
-      selected={String(numIntervals)}
-      ariaLabel={translate("classes")}
-      onChange={(newValue) => {
-        onChange(Number(newValue));
-      }}
-    />
-  ) : (
+  return (
     <Selector
       options={options}
       selected={String(numIntervals)}
@@ -527,7 +516,6 @@ const ModeSelector = ({
   onModeChange: (newMode: RangeMode) => void;
 }) => {
   const translate = useTranslate();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const modeOptions = useMemo(() => {
     return rangeModesInOrder.map((mode) => ({
       label: translate(modeLabels[mode]),
@@ -535,16 +523,7 @@ const ModeSelector = ({
     }));
   }, [translate]);
 
-  return isNewSelectorOn ? (
-    <EnhancedSelector
-      options={modeOptions}
-      selected={rangeMode}
-      ariaLabel={translate("mode")}
-      onChange={(newMode) => {
-        onModeChange(newMode);
-      }}
-    />
-  ) : (
+  return (
     <Selector
       options={modeOptions}
       selected={rangeMode}

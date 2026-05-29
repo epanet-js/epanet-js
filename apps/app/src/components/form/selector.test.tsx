@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { EnhancedSelector, EnhancedSelectorOption } from "./enhanced-selector";
+import { Selector, SelectorOption } from "./selector";
 
 const setupUser = () => userEvent.setup();
 
-const opt = (label: string): EnhancedSelectorOption<string> => ({
+const opt = (label: string): SelectorOption<string> => ({
   value: label,
   label,
 });
@@ -18,11 +18,11 @@ const openSelector = async (label = "Pick one") => {
   return user;
 };
 
-describe("EnhancedSelector", () => {
+describe("Selector", () => {
   describe("rendering (nullable)", () => {
     it("shows the selected option label on the trigger", () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Banana"
@@ -38,7 +38,7 @@ describe("EnhancedSelector", () => {
 
     it("shows the placeholder when nothing is selected", () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -54,7 +54,7 @@ describe("EnhancedSelector", () => {
 
     it("renders the option's description in preference to its label", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[{ value: "a", label: "A", description: "Apple (desc)" }]}
           selected="a"
@@ -77,7 +77,7 @@ describe("EnhancedSelector", () => {
   describe("rendering (non-nullable)", () => {
     it("shows the selected option label without italic placeholder styling", () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected="Apple"
@@ -92,7 +92,7 @@ describe("EnhancedSelector", () => {
     it("supports numeric option values", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector<number>
+        <Selector<number>
           ariaLabel="Pick one"
           options={[
             { value: 1, label: "One" },
@@ -112,7 +112,7 @@ describe("EnhancedSelector", () => {
     it("commits the clicked option with (newValue, oldValue)", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Apple"
@@ -130,7 +130,7 @@ describe("EnhancedSelector", () => {
 
     it("filters options by search query (allowNew)", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Apricot"), opt("Banana")]}
           selected={null}
@@ -153,7 +153,7 @@ describe("EnhancedSelector", () => {
     it("commits the highlighted option on Enter", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected={null}
@@ -174,7 +174,7 @@ describe("EnhancedSelector", () => {
     it("does not commit when a disabled option is clicked", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("Apple"),
@@ -193,7 +193,7 @@ describe("EnhancedSelector", () => {
     it("skips disabled options during keyboard navigation", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("Apple"),
@@ -215,7 +215,7 @@ describe("EnhancedSelector", () => {
     it("renders the clear button when a value is selected", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected="Apple"
@@ -236,7 +236,7 @@ describe("EnhancedSelector", () => {
 
     it("renders the clear button even when nothing is selected", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -255,7 +255,7 @@ describe("EnhancedSelector", () => {
 
     it("does not render the clear button when there are no options at all", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[]}
           selected={null}
@@ -280,7 +280,7 @@ describe("EnhancedSelector", () => {
     it("renders an action row and fires onActionClick", async () => {
       const onActionClick = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected="Apple"
@@ -300,7 +300,7 @@ describe("EnhancedSelector", () => {
 
     it("renders the action row regardless of selection state", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -322,7 +322,7 @@ describe("EnhancedSelector", () => {
   describe("allowNew (default: false)", () => {
     it('does not show "Add X" by default', async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("A"),
@@ -349,7 +349,7 @@ describe("EnhancedSelector", () => {
 
     it('shows "Add X" when allowNew=true and the query has no exact match', async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -368,7 +368,7 @@ describe("EnhancedSelector", () => {
     it("commits the typed value when clicking the create option", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -387,7 +387,7 @@ describe("EnhancedSelector", () => {
 
     it('does not show "Add X" when the query exactly matches an existing option', async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -407,7 +407,7 @@ describe("EnhancedSelector", () => {
   describe("minOptionsForSearch (default: 8)", () => {
     it("hides the search input when allowNew=false and options below threshold", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana"), opt("Cherry")]}
           selected={null}
@@ -423,7 +423,7 @@ describe("EnhancedSelector", () => {
 
     it("shows the search input when options meet the threshold", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("A"),
@@ -448,7 +448,7 @@ describe("EnhancedSelector", () => {
 
     it("respects a custom minOptionsForSearch threshold", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("A"), opt("B"), opt("C")]}
           selected={null}
@@ -465,7 +465,7 @@ describe("EnhancedSelector", () => {
 
     it("always shows the search input when allowNew=true", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected={null}
@@ -483,7 +483,7 @@ describe("EnhancedSelector", () => {
     it("supports arrow-key navigation and Enter when the search input is hidden", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected={null}
@@ -505,7 +505,7 @@ describe("EnhancedSelector", () => {
     it("does not open the popover when the trigger is clicked", async () => {
       const user = setupUser();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple")]}
           selected="Apple"
@@ -523,7 +523,7 @@ describe("EnhancedSelector", () => {
     it("triggers the action on Enter when no options exist", async () => {
       const onActionClick = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[]}
           selected={null}
@@ -544,7 +544,7 @@ describe("EnhancedSelector", () => {
     it("Tab from the list jumps the active highlight to the clear button", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Apple"
@@ -562,7 +562,7 @@ describe("EnhancedSelector", () => {
 
     it("Tab cycles through search when present", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("A"),
@@ -593,7 +593,7 @@ describe("EnhancedSelector", () => {
     it("Shift+Tab from a button goes back to the last option", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Apple"
@@ -613,7 +613,7 @@ describe("EnhancedSelector", () => {
     it("navigates into the action button via Arrow keys and Enter triggers it", async () => {
       const onActionClick = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana")]}
           selected="Apple"
@@ -633,7 +633,7 @@ describe("EnhancedSelector", () => {
     it("type-ahead jumps the active row to the first matching option (no search)", async () => {
       const onChange = vi.fn();
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[opt("Apple"), opt("Banana"), opt("Cherry")]}
           selected="Apple"
@@ -649,7 +649,7 @@ describe("EnhancedSelector", () => {
 
     it("type-ahead focuses the search input and appends the typed character", async () => {
       render(
-        <EnhancedSelector
+        <Selector
           ariaLabel="Pick one"
           options={[
             opt("A"),

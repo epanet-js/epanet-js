@@ -14,8 +14,8 @@ import { Unit, convertTo } from "src/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
-import { Selector, SelectorOption } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
+import { SelectorListOption } from "src/components/form/selector-list";
+import { Selector } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
 import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
@@ -417,7 +417,7 @@ export const CreatableTextRow = <P extends string>({
       {readOnly ? (
         <TextField padding="md">{value ?? ""}</TextField>
       ) : (
-        <EnhancedSelector
+        <Selector
           options={options.map((o) => ({ value: o, label: o }))}
           selected={value}
           nullable
@@ -426,8 +426,6 @@ export const CreatableTextRow = <P extends string>({
           placeholder={resolvedPlaceholder}
           clearLabel={resolvedPlaceholder}
           ariaLabel={label}
-          searchPlaceholder={translate("searchOrTypeNew")}
-          createLabel={(query) => translate("addNewValue", query)}
         />
       )}
     </InlineField>
@@ -452,109 +450,6 @@ type SelectRowValue =
   | "none"
   | number;
 
-type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
-  name: P;
-  label?: string;
-  options: SelectorOption<T>[] | SelectorOption<T>[][];
-  listClassName?: string;
-  stickyGroupClassName?: string;
-  stickyFirstGroup?: boolean;
-  comparison?: PropertyComparison;
-  readOnly?: boolean;
-};
-
-type SelectRowPropsNonNullable<
-  P extends string,
-  T extends SelectRowValue,
-> = SelectRowPropsBase<P, T> & {
-  selected: T;
-  nullable?: false;
-  onChange?: (name: P, newValue: T, oldValue: T) => void;
-  placeholder?: undefined;
-};
-
-type SelectRowPropsNullable<
-  P extends string,
-  T extends SelectRowValue,
-> = SelectRowPropsBase<P, T> & {
-  selected: T | null;
-  nullable: true;
-  placeholder: string;
-  onChange?: (name: P, newValue: T | null, oldValue: T | null) => void;
-};
-
-type SelectorRowProps<P extends string, T extends SelectRowValue> =
-  | SelectRowPropsNullable<P, T>
-  | SelectRowPropsNonNullable<P, T>;
-
-export function SelectRow<P extends string, T extends SelectRowValue>({
-  name,
-  label,
-  selected,
-  options,
-  listClassName,
-  stickyGroupClassName,
-  stickyFirstGroup,
-  comparison,
-  readOnly,
-  nullable = false,
-  placeholder = undefined,
-  onChange,
-}: SelectorRowProps<P, T>) {
-  const translate = useTranslate();
-  const actualLabel = label || translate(name);
-
-  const flatOptions = (
-    Array.isArray(options[0])
-      ? (options as SelectorOption<T>[][]).flat()
-      : options
-  ) as SelectorOption<T>[];
-
-  const baseDisplayValue = comparison?.hasChanged
-    ? comparison.baseValue != null
-      ? (flatOptions.find((o) => o.value === comparison.baseValue)?.label ??
-        String(comparison.baseValue))
-      : `(${translate("none").toLocaleLowerCase()})`
-    : undefined;
-
-  const selectedOption = flatOptions.find((o) => o.value === selected);
-
-  return (
-    <InlineField
-      name={actualLabel}
-      labelSize="md"
-      hasChanged={comparison?.hasChanged}
-      baseDisplayValue={baseDisplayValue}
-    >
-      {readOnly ? (
-        <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
-      ) : (
-        <div className="w-full">
-          <Selector
-            ariaLabel={actualLabel}
-            options={options}
-            selected={selected}
-            nullable={nullable as true}
-            onChange={(newValue, oldValue) =>
-              onChange?.(name, newValue as T, oldValue as T)
-            }
-            placeholder={placeholder as string}
-            disableFocusOnClose
-            listClassName={listClassName}
-            stickyGroupClassName={stickyGroupClassName}
-            stickyFirstGroup={stickyFirstGroup}
-            styleOptions={{
-              border: true,
-              textSize: "text-sm",
-              paddingY: 2,
-            }}
-          />
-        </div>
-      )}
-    </InlineField>
-  );
-}
-
 type LibrarySelectRowProps<P extends string> = {
   name: P;
   collection: Map<number, { id: number; label: string; type?: string }>;
@@ -574,10 +469,10 @@ type LibrarySelectRowProps<P extends string> = {
   comparison?: PropertyComparison;
 };
 
-type EnhancedSelectRowPropsBase<P extends string, T extends SelectRowValue> = {
+type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   name: P;
   label?: string;
-  options: SelectorOption<T>[];
+  options: SelectorListOption<T>[];
   listClassName?: string;
   actionLabel?: string;
   onActionClick?: () => void;
@@ -585,10 +480,10 @@ type EnhancedSelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   readOnly?: boolean;
 };
 
-type EnhancedSelectRowPropsNonNullable<
+type SelectRowPropsNonNullable<
   P extends string,
   T extends SelectRowValue,
-> = EnhancedSelectRowPropsBase<P, T> & {
+> = SelectRowPropsBase<P, T> & {
   selected: T;
   nullable?: false;
   onChange?: (name: P, newValue: T, oldValue: T) => void;
@@ -596,10 +491,10 @@ type EnhancedSelectRowPropsNonNullable<
   clearLabel?: never;
 };
 
-type EnhancedSelectRowPropsNullable<
+type SelectRowPropsNullable<
   P extends string,
   T extends SelectRowValue,
-> = EnhancedSelectRowPropsBase<P, T> & {
+> = SelectRowPropsBase<P, T> & {
   selected: T | null;
   nullable: true;
   placeholder: string;
@@ -607,11 +502,11 @@ type EnhancedSelectRowPropsNullable<
   onChange?: (name: P, newValue: T | null, oldValue: T | null) => void;
 };
 
-type EnhancedSelectorRowProps<P extends string, T extends SelectRowValue> =
-  | EnhancedSelectRowPropsNullable<P, T>
-  | EnhancedSelectRowPropsNonNullable<P, T>;
+type SelectorRowProps<P extends string, T extends SelectRowValue> =
+  | SelectRowPropsNullable<P, T>
+  | SelectRowPropsNonNullable<P, T>;
 
-export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
+export function SelectRow<P extends string, T extends SelectRowValue>({
   name,
   label,
   selected,
@@ -625,7 +520,7 @@ export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
   placeholder = undefined,
   clearLabel,
   onChange,
-}: EnhancedSelectorRowProps<P, T>) {
+}: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
 
@@ -649,7 +544,7 @@ export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
         <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
       ) : (
         <div className="w-full">
-          <EnhancedSelector
+          <Selector
             ariaLabel={actualLabel}
             options={options}
             selected={selected}
@@ -674,15 +569,13 @@ export function EnhancedSelectRow<P extends string, T extends SelectRowValue>({
   );
 }
 
-const LIBRARY_SENTINEL = -1;
-
 const useLibraryItems = (
   collection: LibrarySelectRowProps<string>["collection"],
   filterByType: string,
   excludeId: number | undefined,
 ) =>
   useMemo(() => {
-    const out: SelectorOption<number>[] = [];
+    const out: SelectorListOption<number>[] = [];
     for (const item of collection.values()) {
       if (item.type !== filterByType) continue;
       if (item.id === excludeId) continue;
@@ -712,68 +605,8 @@ export function LibrarySelectRow<P extends string>({
     ? (placeholder ?? emptyOptionLabel ?? "")
     : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`);
 
-  const libraryGroup: SelectorOption<number>[] = [
-    { label: libraryLabel, value: LIBRARY_SENTINEL },
-  ];
-  const emptyGroup: SelectorOption<number>[] = emptyOptionLabel
-    ? [{ value: 0, label: emptyOptionLabel }]
-    : [];
-  const selectableOptions = items.length ? [...emptyGroup, ...items] : [];
-  const groupedOptions = [libraryGroup, selectableOptions];
-
-  const handleLegacyChange = (
-    _name: P,
-    newValue: number | null,
-    oldValue: number | null,
-  ) => {
-    if (newValue === null) return;
-    if (newValue === LIBRARY_SENTINEL) {
-      onOpenLibrary();
-      return;
-    }
-    onChange?.(_name, newValue === 0 ? null : newValue, oldValue);
-  };
-
   return (
     <SelectRow
-      name={name}
-      selected={selected}
-      options={groupedOptions}
-      stickyGroupClassName="italic"
-      stickyFirstGroup
-      listClassName={emptyOptionLabel ? "first:italic" : ""}
-      nullable={true}
-      placeholder={resolvedPlaceholder}
-      onChange={handleLegacyChange}
-      readOnly={readOnly}
-      comparison={comparison}
-    />
-  );
-}
-
-export function EnhancedLibrarySelectRow<P extends string>({
-  name,
-  collection,
-  filterByType,
-  libraryLabel,
-  onOpenLibrary,
-  selected,
-  onChange,
-  emptyOptionLabel,
-  placeholder,
-  excludeId,
-  readOnly,
-  comparison,
-}: LibrarySelectRowProps<P>) {
-  const translate = useTranslate();
-  const items = useLibraryItems(collection, filterByType, excludeId);
-
-  const resolvedPlaceholder = readOnly
-    ? (placeholder ?? emptyOptionLabel ?? "")
-    : (placeholder ?? emptyOptionLabel ?? `${translate("select")}...`);
-
-  return (
-    <EnhancedSelectRow
       name={name}
       selected={selected}
       options={items}

@@ -8,7 +8,6 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { showGridAtom } from "src/state/map-projection";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Selector } from "src/components/form/selector";
-import { EnhancedSelector } from "src/components/form/enhanced-selector";
 import { SelectorLikeButton } from "src/components/form/selector-trigger";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
@@ -143,7 +142,6 @@ const SymbologyEditor = ({
   const readonly = useAtomValue(isPlayingAtom);
   const translateUnit = useTranslateUnit();
   const simulation = useAtomValue(simulationDerivedAtom);
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
   const {
     linkSymbology,
     nodeSymbology,
@@ -176,7 +174,7 @@ const SymbologyEditor = ({
       if (type === "minPressure" || type === "maxPressure") return "pressure";
       return type as keyof typeof units;
     };
-    const propertyOptions = properties
+    return properties
       .map((type) => {
         const unit = units[unitKeyFor(type)] ?? null;
         const isSimProp = simulationProperties.includes(type);
@@ -194,17 +192,7 @@ const SymbologyEditor = ({
         };
       })
       .sort((a, b) => Number(a.disabled) - Number(b.disabled));
-
-    if (isNewSelectorOn) return propertyOptions;
-
-    const noneOption = {
-      value: null,
-      label: colorPropertyLabelFor("none", translate),
-      disabled: false,
-    };
-    return [noneOption, ...propertyOptions];
   }, [
-    isNewSelectorOn,
     properties,
     units,
     translate,
@@ -217,27 +205,13 @@ const SymbologyEditor = ({
   ]);
 
   const labelByOptions = useMemo(() => {
-    const noneOption = {
-      value: null as LabelSelectOption,
-      label: translate("none"),
-      disabled: false,
-    };
     const labelOption = {
       value: "label" as LabelSelectOption,
       label: translate("label"),
       disabled: false,
     };
-    const propertyOptions = colorByOptions
-      .filter((o) => o.value !== null)
-      .map((o) => ({
-        ...o,
-        value: o.value as LabelSelectOption,
-      }));
-
-    return isNewSelectorOn
-      ? [labelOption, ...propertyOptions]
-      : [noneOption, labelOption, ...propertyOptions];
-  }, [colorByOptions, translate, isNewSelectorOn]);
+    return [labelOption, ...colorByOptions];
+  }, [colorByOptions, translate]);
 
   const userTracking = useUserTracking();
 
@@ -298,8 +272,8 @@ const SymbologyEditor = ({
                 )?.label ?? translate("none"))
               : translate("none")}
           </TextField>
-        ) : isNewSelectorOn ? (
-          <EnhancedSelector
+        ) : (
+          <Selector
             ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
             options={
               colorByOptions as {
@@ -312,24 +286,6 @@ const SymbologyEditor = ({
             nullable
             placeholder={translate("none")}
             clearLabel={translate("none")}
-            onChange={(v) => {
-              void changeColorBy(v as SupportedProperty | null);
-            }}
-            disabled={readonly}
-          />
-        ) : (
-          <Selector
-            ariaLabel={`${translate(geometryType)} ${translate("colorBy")}`}
-            options={
-              colorByOptions as {
-                value: string;
-                label: string;
-                disabled: boolean;
-              }[]
-            }
-            selected={symbology.colorRule?.property ?? null}
-            nullable
-            placeholder={translate("none")}
             onChange={(v) => {
               void changeColorBy(v as SupportedProperty | null);
             }}
@@ -410,22 +366,6 @@ const SymbologyEditor = ({
                 )?.label ?? translate("none"))
               : translate("none")}
           </TextField>
-        ) : isNewSelectorOn ? (
-          <EnhancedSelector
-            ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
-            options={
-              labelByOptions as {
-                value: string;
-                label: string;
-                disabled: boolean;
-              }[]
-            }
-            selected={symbology.labelRule ?? null}
-            nullable
-            placeholder={translate("none")}
-            clearLabel={translate("none")}
-            onChange={handleLabelRuleChange}
-          />
         ) : (
           <Selector
             ariaLabel={`${translate(geometryType)} ${translate("labelBy")}`}
@@ -439,6 +379,7 @@ const SymbologyEditor = ({
             selected={symbology.labelRule ?? null}
             nullable
             placeholder={translate("none")}
+            clearLabel={translate("none")}
             onChange={handleLabelRuleChange}
           />
         )}
@@ -503,7 +444,6 @@ const ZoneSymbologySection = () => {
     updateZoneVisible,
     updateZoneColorRule,
   } = useSymbologyState();
-  const isNewSelectorOn = useFeatureFlag("FLAG_SELECTOR");
 
   const handleLabelRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
@@ -513,11 +453,6 @@ const ZoneSymbologySection = () => {
     const mapped = value === "none" ? null : value;
     updateZoneColorRule(mapped as ZoneColorRule);
   };
-
-  const legacyOptions = [
-    ...zoneRuleOptions,
-    { label: translate("none"), value: "none" },
-  ];
 
   return (
     <MapStylingSectionWrapper
@@ -540,24 +475,15 @@ const ZoneSymbologySection = () => {
         labelSize="sm"
         layout="fixed-label"
       >
-        {isNewSelectorOn ? (
-          <EnhancedSelector
-            ariaLabel={`${translate("zoneSymbology")} ${translate("colorBy")}`}
-            options={zoneRuleOptions}
-            selected={zoneSymbology.colorRule ?? null}
-            nullable
-            placeholder={translate("none")}
-            clearLabel={translate("none")}
-            onChange={handleColorRuleChange}
-          />
-        ) : (
-          <Selector
-            options={legacyOptions}
-            selected={zoneSymbology.colorRule ?? "none"}
-            onChange={handleColorRuleChange}
-            ariaLabel={`${translate("zoneSymbology")} ${translate("colorBy")}`}
-          />
-        )}
+        <Selector
+          ariaLabel={`${translate("zoneSymbology")} ${translate("colorBy")}`}
+          options={zoneRuleOptions}
+          selected={zoneSymbology.colorRule ?? null}
+          nullable
+          placeholder={translate("none")}
+          clearLabel={translate("none")}
+          onChange={handleColorRuleChange}
+        />
       </InlineField>
       <InlineField
         name={translate("defaultColor")}
@@ -577,24 +503,15 @@ const ZoneSymbologySection = () => {
         labelSize="sm"
         layout="fixed-label"
       >
-        {isNewSelectorOn ? (
-          <EnhancedSelector
-            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
-            options={zoneRuleOptions}
-            selected={zoneSymbology.labelRule ?? null}
-            nullable
-            placeholder={translate("none")}
-            clearLabel={translate("none")}
-            onChange={handleLabelRuleChange}
-          />
-        ) : (
-          <Selector
-            options={legacyOptions}
-            selected={zoneSymbology.labelRule ?? "none"}
-            onChange={handleLabelRuleChange}
-            ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
-          />
-        )}
+        <Selector
+          ariaLabel={`${translate("zoneSymbology")} ${translate("labelBy")}`}
+          options={zoneRuleOptions}
+          selected={zoneSymbology.labelRule ?? null}
+          nullable
+          placeholder={translate("none")}
+          clearLabel={translate("none")}
+          onChange={handleLabelRuleChange}
+        />
       </InlineField>
     </MapStylingSectionWrapper>
   );
