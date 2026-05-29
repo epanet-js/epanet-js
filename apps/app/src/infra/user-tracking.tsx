@@ -1142,6 +1142,12 @@ export type UserEvent =
   | { name: "map.customerPoints.hidden" }
   | { name: "map.defaultColor.changed"; type: string }
   | {
+      name: "map.nodeSize.changed";
+      property: "minSize" | "maxSize" | "minVisibleZoom";
+      oldValue: number;
+      newValue: number;
+    }
+  | {
       name: "map.colorBy.changed";
       type: string;
       subtype: string;

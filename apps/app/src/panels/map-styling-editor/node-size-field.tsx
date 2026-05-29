@@ -13,6 +13,7 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Slider from "@radix-ui/react-slider";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map";
 import { currentZoomAtom } from "src/state/map";
 import { nodeSizeAtom, nodeSymbologyAtom } from "src/state/map-symbology";
@@ -374,6 +375,7 @@ function NodeSizeEditor({
 }) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const userTracking = useUserTracking();
   const nodeColor = useAtomValue(nodeSymbologyAtom).defaults.color;
   const strokeColor = strokeColorFor(nodeColor);
 
@@ -383,8 +385,30 @@ function NodeSizeEditor({
 
   const { minVisibleZoom, minSize, maxSize } = value;
 
+  const initialRef = useRef<NodeSizeConfig | null>(null);
+
+  const trackChanges = (open: boolean) => {
+    if (open) {
+      initialRef.current = value;
+      return;
+    }
+    const initial = initialRef.current;
+    initialRef.current = null;
+    if (!initial) return;
+    for (const property of ["minSize", "maxSize", "minVisibleZoom"] as const) {
+      if (initial[property] !== value[property]) {
+        userTracking.capture({
+          name: "map.nodeSize.changed",
+          property,
+          oldValue: initial[property],
+          newValue: value[property],
+        });
+      }
+    }
+  };
+
   return (
-    <Popover.Root>
+    <Popover.Root onOpenChange={trackChanges}>
       <Popover.Trigger asChild disabled={readonly}>
         <SelectorLikeButton
           ariaLabel={`${translate("nodeSize.label")}: ${translate(
