@@ -399,7 +399,7 @@ export const NetworkProjectionDialog = ({
       }
     >
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        <div className="shrink-0 w-[300px] border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col min-h-0">
+        <div className="shrink-0 w-[300px] border-r p-4 flex flex-col min-h-0">
           <ProjectionSearch
             projections={projections}
             onLocationSelect={handleLocationSelect}
@@ -421,7 +421,7 @@ export const NetworkProjectionDialog = ({
                 showEmptyState={!!selectedLocation || !!initialProjection}
               />
               {projectionError && (
-                <p className="mt-2 text-sm text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-950 shrink-0">
+                <p className="mt-2 text-size-base text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-error-subtle dark:bg-red-950 shrink-0">
                   {projectionError}
                 </p>
               )}
@@ -524,13 +524,13 @@ const ProjectionEmptyState = () => {
   const t = useTranslate();
   return (
     <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 text-center">
-      <div className="text-gray-400">
+      <div className="text-subtle">
         <MapPinnedIcon size={96} />
       </div>
-      <p className="text-sm font-semibold py-4 text-gray-600 dark:text-gray-300 max-w-48">
+      <p className="text-size-base font-semibold py-4 text-subtle dark:text-gray-300 max-w-48">
         {t("networkProjection.addBasemap")}
       </p>
-      <div className="text-sm text-gray-600 dark:text-gray-400 max-w-48 space-y-2">
+      <div className="text-size-base text-subtle max-w-48 space-y-2">
         <p>{t("networkProjection.searchHint")}</p>
         <p>{t("networkProjection.noProjectionHint")}</p>
       </div>

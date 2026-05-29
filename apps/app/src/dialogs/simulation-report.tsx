@@ -50,7 +50,7 @@ export const SimulationReportDialog = () => {
   const renderRowWithSlots = useCallback(
     (reportRow: ReportRow, index: number) => {
       const trimmedText = reportRow.text.slice(2);
-      const finalText = trimmedText.startsWith("  Error")
+      const finalText = trimmedText.startsWith(" Error")
         ? trimmedText.slice(2)
         : trimmedText;
 
@@ -124,7 +124,7 @@ export const SimulationReportDialog = () => {
         <AckDialogAction label={translate("understood")} onAck={closeDialog} />
       }
     >
-      <div className="flex-1 p-4 text-sm bg-gray-100 text-gray-700 font-mono leading-loose">
+      <div className="flex-1 p-4 text-size-base bg-base-hover text-default font-mono leading-loose">
         {processedReport.map(renderRowWithSlots)}
       </div>
     </BaseDialog>

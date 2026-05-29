@@ -49,7 +49,7 @@ export const UnsavedChangesDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p>{translate("unsavedChangesQuestion")}</p>
       </div>
     </BaseDialog>

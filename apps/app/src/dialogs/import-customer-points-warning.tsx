@@ -42,7 +42,7 @@ export const ImportCustomerPointsWarningDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p>{translate("importCustomerPointsWarning.explain")}</p>
         <p className="mt-2">
           {translate("importCustomerPointsWarning.question")}

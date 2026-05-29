@@ -17,13 +17,13 @@ export const DemandOptionsStep: React.FC<{
   return (
     <>
       <div className="overflow-y-auto grow space-y-4">
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-size-heading-3 font-semibold">
           {translate("importCustomerPoints.wizard.demandOptions.title")}
         </h2>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+            <p className="text-red-700 text-size-base">{error}</p>
           </div>
         )}
 
@@ -32,8 +32,8 @@ export const DemandOptionsStep: React.FC<{
             <label
               className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
                 !keepDemands
-                  ? "border-purple-500 bg-purple-50"
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                  ? "border-accent bg-purple-50"
+                  : " bg-base hover:border-strong hover:bg-panel"
               }`}
             >
               <input
@@ -47,15 +47,15 @@ export const DemandOptionsStep: React.FC<{
                     option: "replace",
                   });
                 }}
-                className="mt-1 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                className="mt-1 h-4 w-4 text-purple-600 border-strong focus:ring-accent"
               />
               <div className="flex-1">
-                <div className="font-medium text-gray-900">
+                <div className="font-medium text-default">
                   {translate(
                     "importCustomerPoints.wizard.demandOptions.replaceOption.title",
                   )}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-size-base text-subtle mt-1">
                   {translate(
                     "importCustomerPoints.wizard.demandOptions.replaceOption.description",
                   )}
@@ -66,8 +66,8 @@ export const DemandOptionsStep: React.FC<{
             <label
               className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
                 keepDemands
-                  ? "border-purple-500 bg-purple-50"
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                  ? "border-accent bg-purple-50"
+                  : " bg-base hover:border-strong hover:bg-panel"
               }`}
             >
               <input
@@ -81,15 +81,15 @@ export const DemandOptionsStep: React.FC<{
                     option: "addOnTop",
                   });
                 }}
-                className="mt-1 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                className="mt-1 h-4 w-4 text-purple-600 border-strong focus:ring-accent"
               />
               <div className="flex-1">
-                <div className="font-medium text-gray-900">
+                <div className="font-medium text-default">
                   {translate(
                     "importCustomerPoints.wizard.demandOptions.addOnTopOption.title",
                   )}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-size-base text-subtle mt-1">
                   {translate(
                     "importCustomerPoints.wizard.demandOptions.addOnTopOption.description",
                   )}

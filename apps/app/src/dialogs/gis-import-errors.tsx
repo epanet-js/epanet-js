@@ -42,7 +42,7 @@ export const GisImportErrorsDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p className="flex items-center gap-x-2 pb-3">
           {translate(
             "customLayers.gisImportSummary",
@@ -64,7 +64,7 @@ export const GisImportErrorsDialog = ({
             {translate("elevations.errorDetails")}
           </Button>
           {isExpanded && (
-            <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
+            <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-base-hover dark:bg-gray-800 text-default max-h-[300px] overflow-y-auto">
               {[...grouped.entries()].map(([error, files]) => (
                 <ErrorGroup
                   key={error}
@@ -104,7 +104,7 @@ const ErrorGroup = ({
         {!showAll && remaining > 0 && (
           <Button
             variant="quiet"
-            className="text-xs text-gray-500 cursor-pointer self-start"
+            className="text-size-small text-subtle cursor-pointer self-start"
             onClick={(e) => {
               e.preventDefault();
               setShowAll(true);

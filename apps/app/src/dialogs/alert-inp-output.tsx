@@ -26,7 +26,7 @@ export const AlertInpOutputDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p className="text-base font-semibold pb-4">
           {translate("alertInpOutputSubtitle")}
         </p>

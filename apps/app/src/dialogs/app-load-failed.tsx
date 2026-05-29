@@ -20,17 +20,17 @@ export const AppLoadFailedDialog = ({
       footer={<SimpleDialogActions action="Reload" onAction={handleReload} />}
     >
       <div className="p-4 space-y-3">
-        <p className="text-sm text-gray-700">
+        <p className="text-size-base text-default">
           A required component failed to download. This may be due to a network
           issue or a firewall blocking access. Please check your connection and
           reload the page.
         </p>
         {modal.errorMessage && (
-          <details className="text-xs">
-            <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+          <details className="text-size-small">
+            <summary className="cursor-pointer text-subtle hover:text-default">
               Show details
             </summary>
-            <pre className="mt-2 whitespace-pre-wrap wrap-break-word font-mono text-gray-700 bg-gray-50 border border-gray-200 rounded-sm p-2 max-h-40 overflow-auto">
+            <pre className="mt-2 whitespace-pre-wrap wrap-break-word font-mono text-default bg-panel border rounded-sm p-2 max-h-40 overflow-auto">
               {modal.errorMessage}
             </pre>
           </details>

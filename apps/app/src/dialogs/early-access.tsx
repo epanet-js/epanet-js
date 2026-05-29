@@ -33,7 +33,7 @@ export const EarlyAccessDialog = ({
       onClose={closeDialog}
       footer={
         isAuthEnabled ? (
-          <div className="flex gap-3 justify-end px-4 py-3 border-t border-gray-200">
+          <div className="flex gap-3 justify-end px-4 py-3 border-t">
             <Button variant="default" onClick={closeDialog}>
               {translate("dialog.cancel")}
             </Button>
@@ -60,7 +60,7 @@ export const EarlyAccessDialog = ({
       }
     >
       <div className="p-4">
-        <p className="text-sm text-gray">
+        <p className="text-size-base text-gray">
           {translate("earlyAccessDialog.description")}
         </p>
       </div>

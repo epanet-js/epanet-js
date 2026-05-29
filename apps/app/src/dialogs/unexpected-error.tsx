@@ -36,7 +36,7 @@ export const UnexpectedErrorDialog = ({
       }
     >
       <div className="p-4">
-        <p className="text-sm text-gray">
+        <p className="text-size-base text-gray">
           {translate("somethingWentWrongMessage")}
         </p>
       </div>

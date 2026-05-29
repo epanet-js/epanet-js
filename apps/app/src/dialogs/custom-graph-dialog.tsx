@@ -254,7 +254,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       isOpen={true}
       onClose={onClose}
       footer={
-        <footer className="flex items-center justify-end gap-3 px-4 py-3 border-t border-gray-200">
+        <footer className="flex items-center justify-end gap-3 px-4 py-3 border-t">
           <Button variant="default" type="button" onClick={onClose}>
             {translate("dialog.close")}
           </Button>
@@ -262,7 +262,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
       }
     >
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="flex items-center gap-4 px-4 pt-3 pb-3 shrink-0 flex-wrap border-b border-gray-200">
+        <div className="flex items-center gap-4 px-4 pt-3 pb-3 shrink-0 flex-wrap border-b">
           <DD.Root>
             <DD.Trigger asChild>
               <Button
@@ -289,7 +289,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           </DD.Root>
           {hasNodes && (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-size-base font-medium text-subtle">
                 {translate("customGraph.nodeProperty")}
               </span>
               <Selector
@@ -299,7 +299,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                 onChange={handleNodePropertyChange}
                 styleOptions={{
                   border: true,
-                  textSize: "text-sm",
+                  textSize: "text-size-base",
                   paddingY: 1,
                 }}
               />
@@ -307,7 +307,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           )}
           {hasLinks && (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-size-base font-medium text-subtle">
                 {translate("customGraph.linkProperty")}
               </span>
               <Selector
@@ -317,7 +317,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
                 onChange={handleLinkPropertyChange}
                 styleOptions={{
                   border: true,
-                  textSize: "text-sm",
+                  textSize: "text-size-base",
                   paddingY: 1,
                 }}
               />
@@ -327,7 +327,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
         {!isLoading && !noDataAvailable && assetsTruncated && (
           <div className="mx-4 mb-3 mt-3 p-3 rounded-md bg-yellow-50 border border-yellow-200">
-            <p className="text-sm text-yellow-800">
+            <p className="text-size-base text-yellow-800">
               {translate(
                 "customGraph.assetsTruncated",
                 String(GraphDefaultOptions.MAX_ASSETS),
@@ -339,13 +339,13 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
         {isLoading && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
-            <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-48 h-1.5 bg-base-active rounded-full overflow-hidden">
               <div
-                className="h-full bg-purple-500 rounded-full transition-[width] duration-150"
+                className="h-full bg-accent rounded-full transition-[width] duration-150"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-xs text-gray-400">
+            <span className="text-size-small text-subtle">
               {translate("customGraph.loading", progress.toFixed(0))}
             </span>
           </div>
@@ -367,18 +367,18 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
               linkValueFormatter={linkValueFormatter}
             />
             {isExporting && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/40">
-                <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-base/40">
+                <div className="w-48 h-1.5 bg-base-active rounded-full overflow-hidden">
                   {Math.trunc(exportProgress) >= 100 ? (
-                    <div className="h-full bg-purple-500 rounded-full progress-indeterminate" />
+                    <div className="h-full bg-accent rounded-full progress-indeterminate" />
                   ) : (
                     <div
-                      className="h-full bg-purple-500 rounded-full transition-[width] duration-150"
+                      className="h-full bg-accent rounded-full transition-[width] duration-150"
                       style={{ width: `${exportProgress}%` }}
                     />
                   )}
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-size-small text-subtle">
                   {Math.trunc(exportProgress) >= 100
                     ? translate("customGraph.savingFiles")
                     : translate(
@@ -391,12 +391,12 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
           </div>
         )}
         {!isLoading && isSingleTimestep && (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
+          <div className="flex-1 flex items-center justify-center text-subtle">
             {translate("customGraph.epsOnly")}
           </div>
         )}
         {!isLoading && noDataAvailable && (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
+          <div className="flex-1 flex items-center justify-center text-subtle">
             {translate("customGraph.noDataAvailable")}
           </div>
         )}

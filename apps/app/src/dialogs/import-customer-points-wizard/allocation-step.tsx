@@ -322,10 +322,10 @@ export const AllocationStep: React.FC<{
     <>
       <div className="overflow-y-auto grow space-y-4 scroll-shadows">
         <div>
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="text-size-heading-3 font-semibold mb-2">
             {translate("importCustomerPoints.wizard.allocationStep.title")}
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-size-base text-subtle">
             {translate(
               "importCustomerPoints.wizard.allocationStep.description",
             )}
@@ -333,8 +333,8 @@ export const AllocationStep: React.FC<{
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+            <p className="text-red-700 text-size-base">{error}</p>
           </div>
         )}
 
@@ -403,8 +403,8 @@ export const AllocationStep: React.FC<{
 
         {isAllocating && (
           <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-            <span className="ml-2 text-sm text-gray-600">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+            <span className="ml-2 text-size-base text-subtle">
               {translate(
                 "importCustomerPoints.wizard.allocationStep.computingMessage",
               )}
@@ -447,8 +447,8 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       : 0;
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-      <h4 className="text-sm font-medium text-gray-800 mb-2">
+    <div className="bg-panel border rounded-lg p-4">
+      <h4 className="text-size-base font-medium text-default mb-2">
         {translate(
           "importCustomerPoints.wizard.allocationStep.summaryTitle",
           localizeDecimal(totalCustomerPoints),
@@ -456,8 +456,8 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       </h4>
       <div className="space-y-2">
         <div className="flex items-center">
-          <SuccessIcon className="text-green-500 mr-2" />
-          <span className="text-sm text-gray-700">
+          <SuccessIcon className="text-success mr-2" />
+          <span className="text-size-base text-default">
             {translate(
               "importCustomerPoints.wizard.allocationStep.allocatedPoints",
               localizeDecimal(totalAllocated),
@@ -468,7 +468,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         {unallocatedCount > 0 && (
           <div className="flex items-center">
             <WarningIcon className="text-orange-500 mr-2" />
-            <span className="text-sm text-orange-700">
+            <span className="text-size-base text-orange-700">
               {translate(
                 "importCustomerPoints.wizard.allocationStep.unallocatedPoints",
                 localizeDecimal(unallocatedCount),

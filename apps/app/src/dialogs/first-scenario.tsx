@@ -38,7 +38,7 @@ export const FirstScenarioDialog = ({
 
   const content = (
     <>
-      <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+      <div className="space-y-4 text-size-base text-default">
         <p>{translate("scenarios.firstScenario.earlyAccess")}</p>
 
         <div>
@@ -72,7 +72,7 @@ export const FirstScenarioDialog = ({
           checked={!userSettings.showFirstScenarioDialog}
           onChange={handleCheckboxChange}
         />
-        <span className="text-sm text-gray-600 dark:text-gray-400">
+        <span className="text-size-base text-subtle">
           {translate("scenarios.firstScenario.dontShowAgain")}
         </span>
       </div>

@@ -751,8 +751,7 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
     case "code":
       return [
         `bg-purple-500`,
-        !disabled &&
-          `hover:bg-accent-hover hover:shadow-sm`,
+        !disabled && `hover:bg-accent-hover hover:shadow-sm`,
       ];
     case "blue":
       return [

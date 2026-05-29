@@ -66,7 +66,7 @@ export const WelcomeDialog = () => {
           <div className="absolute top-6 right-6 z-10">
             <DialogCloseX />
           </div>
-          <div className="bg-gray-50 sm:border-r border-b sm:border-b-0 border-gray-200 rounded-t-lg sm:rounded-t-none sm:rounded-tl-lg sm:rounded-bl-lg col-span-1 md:w-max flex flex-col p-6 gap-6">
+          <div className="bg-panel sm:border-r border-b sm:border-b-0 rounded-t-lg sm:rounded-t-none sm:rounded-tl-lg sm:rounded-bl-lg col-span-1 md:w-max flex flex-col p-6 gap-6">
             <div className="pl-1">
               <LogoIconAndWordmarkIcon size={147} />
             </div>
@@ -171,7 +171,7 @@ export const WelcomeDialog = () => {
                 </a>
               </div>
 
-              <div className="flex flex-col gap-2 mt-auto text-xs">
+              <div className="flex flex-col gap-2 mt-auto text-size-small">
                 <a href={termsAndConditionsUrl} target="_blank">
                   {translate("termsAndConditions")}
                 </a>
@@ -179,7 +179,7 @@ export const WelcomeDialog = () => {
                   {translate("privacyPolicy")}
                 </a>
               </div>
-              <div className="flex items-center mt-2 text-xs text-gray-500">
+              <div className="flex items-center mt-2 text-size-small text-subtle">
                 By
                 <a href="https://iterating.ca" target="_blank">
                   <img src={iteratingLogoUrl.src} className="h-8" />
@@ -216,8 +216,8 @@ const FoundingPartners = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   return (
-    <div className="bg-gray-50 rounded-lg p-4 mt-6 text-xs text-center shrink-0">
-      <h3 className="text-gray-600 font-bold">
+    <div className="bg-panel rounded-lg p-4 mt-6 text-size-small text-center shrink-0">
+      <h3 className="text-subtle font-bold">
         {translate("foundersPartnerTitle")}
       </h3>
       <div className="flex gap-4 justify-center">
@@ -273,8 +273,9 @@ const FoundingPartners = () => {
           />
         </a>
       </div>
-      <p className="text-gray-600">
-        {translate("foundersPartnerDescription")}{" "}
+      <p className="text-subtle">
+        {translate("foundersPartnerDescription")}
+        {""}
         <a
           href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
           target="_blank"
@@ -303,7 +304,7 @@ const SmallDeviceWarning = () => {
       <p className="pb-2">{translate("hereYourOptions")}:</p>
       <div className="ml-2 space-y-2">
         <ul>
-          <strong>{translate("continueAnyway")}</strong>:{" "}
+          <strong>{translate("continueAnyway")}</strong>:{""}
           {translate("continueAnywayExplain")}
         </ul>
         <ul>
@@ -343,7 +344,7 @@ const DemoNetworks = () => {
 
   return (
     <div>
-      <h2 className="pt-2 pb-2 font-bold text-gray-500">
+      <h2 className="pt-2 pb-2 font-bold text-subtle">
         {translate("demoNetworksTitle")}
       </h2>
 
@@ -395,7 +396,7 @@ const RecentNetworks = () => {
 
   return (
     <>
-      <h2 className="pt-2 pb-2 font-bold text-gray-500">
+      <h2 className="pt-2 pb-2 font-bold text-subtle">
         {translate("recentNetworks")}
       </h2>
       <div className="overflow-y-auto min-h-0 scroll-shadows h-[270px]">
@@ -427,11 +428,11 @@ const RecentFileCard = ({
   onRemove: () => void;
 }) => (
   <div
-    className="group flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
+    className="group flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
     onClick={onOpen}
   >
     <div
-      className="relative bg-gray-100 shrink-0"
+      className="relative bg-base-hover shrink-0"
       style={{ aspectRatio: "5/4" }}
     >
       <Button
@@ -460,12 +461,12 @@ const RecentFileCard = ({
     </div>
     <div className="p-2 flex flex-col gap-0.5 overflow-hidden">
       <span
-        className="text-xs font-medium text-gray-700 truncate"
+        className="text-size-small font-medium text-default truncate"
         title={entry.name}
       >
         {entry.name}
       </span>
-      <span className="text-xs text-gray-500">
+      <span className="text-size-small text-subtle">
         {`${new Date(entry.openedAt).toLocaleDateString()} ${new Date(entry.openedAt).toLocaleTimeString()}`}
       </span>
     </div>
@@ -494,11 +495,11 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
 
   return (
     <div
-      className="flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-gray-50 overflow-hidden min-w-0"
+      className="flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
       onClick={handleClick}
     >
       <div
-        className="relative bg-gray-100 shrink-0 overflow-hidden"
+        className="relative bg-base-hover shrink-0 overflow-hidden"
         style={{ aspectRatio: "5/4" }}
       >
         <img
@@ -510,7 +511,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
       <div className="p-2 flex flex-col gap-0.5 overflow-hidden">
         <div className="flex items-center gap-1">
           <span
-            className="text-xs font-medium text-gray-700 truncate"
+            className="text-size-small font-medium text-default truncate"
             title={demoNetwork.name}
           >
             {demoNetwork.name}
@@ -519,7 +520,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
             {translate("demoShort")}
           </span>
         </div>
-        <span className="text-xs text-gray-500 line-clamp-2">
+        <span className="text-size-small text-subtle line-clamp-2">
           {demoNetwork.description}
         </span>
       </div>
@@ -540,7 +541,7 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   };
   return (
     <div
-      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-white shadow-md rounded-lg border cursor-pointer hover:bg-gray-400/10"
+      className="flex flex-col max-w-[250px] items-center gap-x-2 bg-base shadow-md rounded-lg border cursor-pointer hover:bg-gray-400/10"
       onClick={handleOpenDemoModel}
     >
       <div className="shrink-0">
@@ -554,10 +555,10 @@ const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
         />
       </div>
       <div className="flex flex-col p-3">
-        <span className="text-gray-600 font-bold text-sm">
+        <span className="text-subtle font-bold text-size-base">
           {demoNetwork.name}
         </span>
-        <span className="text-xs">{demoNetwork.description}</span>
+        <span className="text-size-small">{demoNetwork.description}</span>
       </div>
     </div>
   );

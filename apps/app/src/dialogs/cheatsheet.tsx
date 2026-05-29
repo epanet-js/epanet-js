@@ -172,7 +172,7 @@ export function CheatsheetDialog() {
       <div className="p-4 columns-1 md:columns-2">
         {BINDINGS.map((section) => (
           <div key={section.group} className="break-inside-avoid mb-6">
-            <h2 className="text-sm font-bold mb-2 text-gray-700">
+            <h2 className="text-size-base font-bold mb-2 text-default">
               {translate(section.group)}
             </h2>
             <div className="space-y-2">
@@ -181,9 +181,9 @@ export function CheatsheetDialog() {
                   <Keycap className="w-28 shrink-0">
                     {localizeKeybinding(item.binding, isMac || getIsMac())}
                   </Keycap>
-                  <p className="text-xs pt-1">
+                  <p className="text-size-small pt-1">
                     {Array.isArray(item.description)
-                      ? item.description.map((k) => translate(k)).join(" / ")
+                      ? item.description.map((k) => translate(k)).join(" /")
                       : translate(item.description)}
                   </p>
                 </div>

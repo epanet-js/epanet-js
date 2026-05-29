@@ -29,23 +29,23 @@ const ProgressBar = ({
   return (
     <div>
       <div className="flex flex-row items-baseline gap-1 mb-2">
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-size-base text-subtle">{label}</p>
         {!isIndeterminate && (
-          <p className="text-sm font-bold text-gray-900 tabular-nums">
+          <p className="text-size-base font-bold text-default tabular-nums">
             {formatTime(currentTime)}
           </p>
         )}
       </div>
       <Progress.Root
-        className="relative overflow-hidden bg-gray-200 rounded-full w-full h-2"
+        className="relative overflow-hidden bg-base-active rounded-full w-full h-2"
         value={isIndeterminate ? null : currentTime}
         max={totalDuration}
       >
         {isIndeterminate ? (
-          <Progress.Indicator className="bg-purple-500 h-full w-1/4 rounded-full progress-indeterminate" />
+          <Progress.Indicator className="bg-accent h-full w-1/4 rounded-full progress-indeterminate" />
         ) : (
           <Progress.Indicator
-            className="bg-purple-500 w-full h-full"
+            className="bg-accent w-full h-full"
             style={{
               transform: `translateX(-${100 - progressPercent}%)`,
             }}

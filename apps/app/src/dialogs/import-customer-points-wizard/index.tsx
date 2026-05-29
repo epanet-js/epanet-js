@@ -267,15 +267,15 @@ export const ImportCustomerPointsWizard: React.FC<
         {projectionsLoading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-600">
+            <span className="ml-3 text-subtle">
               {translate("importCustomerPoints.wizard.loading")}
             </span>
           </div>
         )}
 
         {projectionsError && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-            <p className="text-red-700 text-sm">
+          <div className="bg-error-subtle border border-red-200 rounded-md p-4 mb-6">
+            <p className="text-red-700 text-size-base">
               {translate("importCustomerPoints.wizard.somethingWentWrong")}
             </p>
           </div>

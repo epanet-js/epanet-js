@@ -69,7 +69,7 @@ export const ExportSimulationResultsProgressDialog = ({
       }
     >
       <div className="p-4 space-y-2">
-        <p className="tabular-nums text-sm text-gray-700 flex items-center gap-1.5">
+        <p className="tabular-nums text-size-base text-default flex items-center gap-1.5">
           {isComplete && <SuccessIcon className="text-green-600 shrink-0" />}
           {propertyText ? (
             <>
@@ -82,15 +82,15 @@ export const ExportSimulationResultsProgressDialog = ({
         </p>
         {!isComplete && (
           <Progress.Root
-            className="relative overflow-hidden bg-gray-200 rounded-full w-full h-2"
+            className="relative overflow-hidden bg-base-active rounded-full w-full h-2"
             value={isSaving ? undefined : displayProgress}
             max={100}
           >
             {isSaving ? (
-              <Progress.Indicator className="bg-purple-600 h-full w-1/4 rounded-full progress-indeterminate" />
+              <Progress.Indicator className="bg-accent-hover h-full w-1/4 rounded-full progress-indeterminate" />
             ) : (
               <Progress.Indicator
-                className="bg-purple-600 w-full h-full transition-all duration-150"
+                className="bg-accent-hover w-full h-full transition-all duration-150"
                 style={{
                   transform: `translateX(-${100 - displayProgress}%)`,
                 }}

@@ -28,7 +28,7 @@ export const AlertNetworkRequiredDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p>{translate("alertNetworkRequiredDetail")}</p>
       </div>
     </BaseDialog>

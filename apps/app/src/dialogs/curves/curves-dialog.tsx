@@ -290,10 +290,10 @@ const NoSelectionState = () => {
 
   return (
     <div className="flex flex-col items-center justify-center px-4">
-      <div className="text-gray-400">
+      <div className="text-subtle">
         <CurveLibraryIcon size={96} />
       </div>
-      <p className="text-sm text-gray-600 text-center max-w-64 py-4">
+      <p className="text-size-base text-subtle text-center max-w-64 py-4">
         {translate("curves.noSelection")}
       </p>
     </div>
@@ -305,14 +305,14 @@ const EmptyState = ({ readOnly }: { readOnly: boolean }) => {
 
   return (
     <div className="flex flex-col items-center justify-center px-4">
-      <div className="text-gray-400">
+      <div className="text-subtle">
         <CurveLibraryIcon size={96} />
       </div>
-      <p className="text-sm font-semibold py-4 text-gray-600">
+      <p className="text-size-base font-semibold py-4 text-subtle">
         {translate("curves.emptyTitle")}
       </p>
       {!readOnly && (
-        <p className="text-sm text-gray-600 text-center max-w-64">
+        <p className="text-size-base text-subtle text-center max-w-64">
           {translate("curves.emptyDescription")}
         </p>
       )}

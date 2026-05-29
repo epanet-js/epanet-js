@@ -93,13 +93,13 @@ export const SettingsSection = ({
 );
 
 const SectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="sticky top-0 bg-white dark:bg-gray-800 -mt-3 -mx-3 pt-4 px-3 pb-2 z-5 text-base font-semibold text-gray-900 dark:text-white">
+  <h3 className="sticky top-0 bg-popover -mt-3 -mx-3 pt-4 px-3 pb-2 z-5 text-base font-semibold text-default dark:text-white">
     {children}
   </h3>
 );
 
 const SubsectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <div className="sticky top-12 z-3 px-3 py-2 -mx-3 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-900 dark:text-white">
+  <div className="sticky top-12 z-3 px-3 py-2 -mx-3 bg-popover text-size-base font-semibold text-default dark:text-white">
     {children}
   </div>
 );
@@ -840,18 +840,16 @@ export const SettingsRow = ({
   children: React.ReactNode;
 }) => (
   <div className="flex flex-col gap-1">
-    <span className="text-sm text-gray-700 dark:text-gray-200">
+    <span className="text-size-base text-default dark:text-gray-200">
       {label}
       {badge && (
-        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-sm bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-sm bg-base-hover text-subtle dark:bg-gray-800 dark:text-subtle">
           {badge}
         </span>
       )}
     </span>
     {description && (
-      <span className="text-xs text-gray-400 dark:text-gray-500">
-        {description}
-      </span>
+      <span className="text-size-small text-subtle">{description}</span>
     )}
     {children}
   </div>
@@ -903,7 +901,7 @@ const TimeSetting = ({
           />
         </div>
         {errorMessage && (
-          <span className="text-xs font-semibold text-orange-800">
+          <span className="text-size-small font-semibold text-orange-800">
             {errorMessage}
           </span>
         )}
@@ -984,7 +982,7 @@ const SelectorSetting = <T extends string | number>({
   const clearLabel = (rest as { clearLabel?: string }).clearLabel;
   const styleOptions = {
     border: true,
-    textSize: "text-sm" as const,
+    textSize: "text-size-base" as const,
     paddingY: 2,
     variant: warning ? ("warning" as const) : undefined,
   };
@@ -1007,7 +1005,7 @@ const SelectorSetting = <T extends string | number>({
           />
         </div>
         {warning && (
-          <span className="text-xs font-semibold text-orange-800">
+          <span className="text-size-small font-semibold text-orange-800">
             {warning}
           </span>
         )}
@@ -1041,7 +1039,7 @@ const TextSetting = ({
         className={clsx(
           "w-56",
           disabled &&
-            "[&>input]:border-gray-300 [&>input]:bg-gray-100 dark:[&>input]:bg-gray-800",
+            "[&>input]:border-strong [&>input]:bg-base-hover dark:[&>input]:bg-gray-800",
         )}
       >
         <EditableTextField
@@ -1062,7 +1060,7 @@ const TextSetting = ({
         />
       </div>
       {errorMessage && (
-        <span className="text-xs font-semibold text-orange-800">
+        <span className="text-size-small font-semibold text-orange-800">
           {errorMessage}
         </span>
       )}

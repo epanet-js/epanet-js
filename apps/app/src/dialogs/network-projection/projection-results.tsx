@@ -35,10 +35,10 @@ export const ProjectionResults = ({
   if (isLoading) {
     return (
       <div className="mt-3">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <p className="text-size-small text-subtle mb-2">
           {t("networkProjection.matchingProjections")}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 p-3 border border-gray-200 dark:border-gray-700 rounded-md animate-pulse">
+        <p className="text-size-base text-subtle p-3 border rounded-md animate-pulse">
           {t("networkProjection.searchingProjections")}
         </p>
       </div>
@@ -48,13 +48,13 @@ export const ProjectionResults = ({
   if (results.length === 0 && showEmptyState) {
     return (
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 text-center">
-        <div className="text-gray-400">
+        <div className="text-subtle">
           <MapPinXInsideIcon size={96} />
         </div>
-        <p className="text-sm font-semibold py-4 text-gray-600 dark:text-gray-300 max-w-48">
+        <p className="text-size-base font-semibold py-4 text-subtle dark:text-gray-300 max-w-48">
           {t("networkProjection.noResultsTitle")}
         </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 max-w-48">
+        <p className="text-size-base text-subtle max-w-48">
           {t("networkProjection.noResultsDescription")}
         </p>
       </div>
@@ -65,7 +65,7 @@ export const ProjectionResults = ({
 
   return (
     <div className="mt-3 flex flex-col min-h-0">
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 shrink-0">
+      <p className="text-size-small text-subtle mb-2 shrink-0">
         {t("networkProjection.matchingProjections")} ({results.length})
       </p>
       <ul className="space-y-0.5 min-h-0 overflow-y-auto scroll-shadows">
@@ -80,15 +80,15 @@ export const ProjectionResults = ({
                 type="button"
                 onClick={() => onSelect(p)}
                 className={clsx(
-                  "w-full text-left px-2 py-1.5 text-sm rounded-sm",
+                  "w-full text-left px-2 py-1.5 text-size-base rounded-sm",
                   isSelected
                     ? "bg-purple-100 dark:bg-purple-900/30"
                     : "hover:bg-purple-50 dark:hover:bg-gray-700",
-                  "text-gray-800 dark:text-gray-200",
+                  "text-default dark:text-gray-200",
                 )}
               >
                 <span className="block">{p.name}</span>
-                <span className="block text-xs text-gray-400 dark:text-gray-500">
+                <span className="block text-size-small text-subtle">
                   {p.id}
                 </span>
               </button>

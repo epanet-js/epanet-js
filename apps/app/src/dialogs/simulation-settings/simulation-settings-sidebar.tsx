@@ -38,10 +38,10 @@ export const SimulationSettingsSidebar = ({
                 type="button"
                 onClick={() => onSelectSection(category.id)}
                 className={clsx(
-                  "w-full text-left px-3 py-1.5 rounded-sm text-sm transition-colors",
+                  "w-full text-left px-3 py-1.5 rounded-sm text-size-base transition-colors",
                   isCategoryActive && !subcategoryIds.includes(activeSection)
                     ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+                    : "text-subtle hover:bg-base-hover dark:hover:bg-gray-800",
                 )}
               >
                 {translate(category.translationKey)}
@@ -54,10 +54,10 @@ export const SimulationSettingsSidebar = ({
                         type="button"
                         onClick={() => onSelectSection(sub.id)}
                         className={clsx(
-                          "w-full text-left pl-6 pr-3 py-1.5 rounded-sm text-sm transition-colors",
+                          "w-full text-left pl-6 pr-3 py-1.5 rounded-sm text-size-base transition-colors",
                           activeSection === sub.id
                             ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                            : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+                            : "text-subtle hover:bg-base-hover dark:hover:bg-gray-800",
                         )}
                       >
                         {translate(sub.translationKey)}

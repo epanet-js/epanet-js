@@ -402,7 +402,9 @@ export const DataGrid = forwardRef(function DataGrid<
   return (
     <div
       className={
-        isSpreadsheet ? "flex flex-col h-full text-size-base" : "flex flex-col text-size-base"
+        isSpreadsheet
+          ? "flex flex-col h-full text-size-base"
+          : "flex flex-col text-size-base"
       }
     >
       <div

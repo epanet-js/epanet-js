@@ -84,7 +84,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
         }
       >
         <div className="p-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-size-base text-default">
             {translate("exportAssetData.noAssets")}
           </p>
         </div>
@@ -111,13 +111,13 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
     >
       <div className="p-4 space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-size-base font-medium text-default">
             {translate("exportFormat")}
           </label>
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-hidden focus:ring-1 focus:ring-purple-500"
+            className="w-full px-3 py-2 border border-strong rounded-sm text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
           >
             {exportFormats.map(({ value, labelKey }) => (
               <option key={value} value={value}>
@@ -127,7 +127,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
           </select>
         </div>
 
-        <div className="border-t border-gray-200 pt-4 space-y-3">
+        <div className="border-t pt-4 space-y-3">
           <label
             className={`flex items-center gap-x-2 w-max ${hasSimulationResults ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
           >
@@ -136,9 +136,9 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={includeSimulationResults}
               disabled={!hasSimulationResults}
               onChange={(e) => setIncludeSimulationResults(e.target.checked)}
-              className="rounded-sm text-purple-600 focus:ring-purple-500"
+              className="rounded-sm text-purple-600 focus:ring-accent"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-size-base text-default">
               {includeSimulationResultsLabelText}
             </span>
           </label>
@@ -150,9 +150,9 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={selectedAssetsOnly}
               disabled={!hasSelection}
               onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-              className="rounded-sm text-purple-600 focus:ring-purple-500"
+              className="rounded-sm text-purple-600 focus:ring-accent"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-size-base text-default">
               {translate("exportSelectedAssetsOnly")}
             </span>
           </label>

@@ -25,7 +25,7 @@ export function InvalidFilesErrorDialog({ onClose }: { onClose: () => void }) {
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p>{translate("failedToOpenModelDetail")}</p>
       </div>
     </BaseDialog>

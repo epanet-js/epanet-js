@@ -9,7 +9,7 @@ export interface DialogActionsHandle {
 }
 
 const FooterWrapper = ({ children }: { children: React.ReactNode }) => (
-  <footer className="relative flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border-gray-200">
+  <footer className="relative flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t">
     {children}
   </footer>
 );
@@ -108,7 +108,7 @@ export const DialogActions = forwardRef<
           >
             {translate("dialog.keepEditing")}
           </Button>
-          <span className="text-sm text-gray-600 self-center">
+          <span className="text-size-base text-subtle self-center">
             {translate("dialog.discardWithunsavedChangesHint")}
           </span>
         </FooterWrapper>
@@ -132,7 +132,7 @@ export const DialogActions = forwardRef<
           >
             {translate("dialog.keepEditing")}
           </Button>
-          <span className="text-sm text-gray-600 self-center">
+          <span className="text-size-base text-subtle self-center">
             {translate("dialog.saveWithWarningsHint")}
           </span>
         </FooterWrapper>

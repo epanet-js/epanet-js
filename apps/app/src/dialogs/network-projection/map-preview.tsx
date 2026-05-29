@@ -221,8 +221,8 @@ export const MapPreview = ({
     <div className="relative flex-1 flex flex-col min-h-0">
       <div ref={mapContainerRef} className="flex-1 w-full" />
       {isLoading && (
-        <div className="absolute inset-0 bg-white/50 dark:bg-black/30 flex items-center justify-center">
-          <div className="h-6 w-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <div className="absolute inset-0 bg-base/50 dark:bg-black/30 flex items-center justify-center">
+          <div className="h-6 w-6 border-2 border-strong border-t-gray-600 rounded-full animate-spin" />
         </div>
       )}
     </div>

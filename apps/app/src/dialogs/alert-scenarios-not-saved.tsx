@@ -28,7 +28,7 @@ export const AlertScenariosNotSavedDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p>{translate("alertScenariosNotSavedDetail")}</p>
       </div>
     </BaseDialog>

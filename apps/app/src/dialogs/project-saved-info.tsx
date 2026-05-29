@@ -47,9 +47,9 @@ export const ProjectSavedInfoDialog = ({
         />
       }
     >
-      <div className="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+      <div className="p-4 space-y-3 text-size-base text-default">
         <p>{translate("projectSavedInfoBody")}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-size-small text-subtle">
           {translate("projectSavedInfoFootnote")}
         </p>
         <div className="flex items-center gap-2 pt-2">
@@ -57,7 +57,7 @@ export const ProjectSavedInfoDialog = ({
             checked={skipFuture}
             onChange={() => setSkipFuture((v) => !v)}
           />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-size-base text-subtle">
             {translate("projectSavedInfoDontShowAgain")}
           </span>
         </div>

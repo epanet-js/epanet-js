@@ -179,7 +179,7 @@ const DataInputStep = ({
 
   return (
     <>
-      <h2 className="text-lg font-semibold text-slate-900 pt-3 pb-3 dark:text-white">
+      <h2 className="text-size-heading-3 font-semibold text-slate-900 pt-3 pb-3 dark:text-white">
         {translate("importZones.dataInputStep.addFromFile")}
       </h2>
       <DropZone
@@ -189,13 +189,13 @@ const DataInputStep = ({
         selectedFile={selectedFile}
       />
       {error && (
-        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-red-50 text-red-700 text-sm dark:bg-red-950 dark:text-red-300">
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-error-subtle text-red-700 text-size-base dark:bg-red-950 dark:text-red-300">
           <ErrorIcon className="shrink-0" />
           {translate(`importZones.errors.${error}`)}
         </div>
       )}
       {showNoProjectionWarning && (
-        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-blue-50 text-blue-700 text-sm dark:bg-blue-950 dark:text-blue-300">
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-blue-50 text-blue-700 text-size-base dark:bg-blue-950 dark:text-blue-300">
           {translate(
             "importZones.dataInputStep.noProjectionWarning",
             networkProjectionName,
@@ -232,7 +232,7 @@ const DataMappingStep = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm text-gray-700 mb-2">
+      <p className="text-size-base text-default mb-2">
         {translate("importZones.dataMappingStep.description")}
       </p>
       <Selector
@@ -259,11 +259,11 @@ const LabelPreviewTable = ({
   const translate = useTranslate();
 
   return (
-    <div className="mt-4 border border-gray-200 rounded-md overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="mt-4 border rounded-md overflow-hidden">
+      <table className="w-full text-size-base">
         <thead>
-          <tr className="bg-gray-50">
-            <th className="text-left px-3 py-2 font-medium text-gray-600">
+          <tr className="bg-panel">
+            <th className="text-left px-3 py-2 font-medium text-subtle">
               {translate("importZones.dataMappingStep.previewHeader")}
             </th>
           </tr>
@@ -271,12 +271,12 @@ const LabelPreviewTable = ({
         <tbody>
           {labels.map((label, i) => (
             <tr key={i} className="border-t border-gray-100">
-              <td className="px-3 py-1.5 text-gray-700">{label}</td>
+              <td className="px-3 py-1.5 text-default">{label}</td>
             </tr>
           ))}
           {totalCount > PREVIEW_LIMIT && (
             <tr className="border-t border-gray-100">
-              <td className="px-3 py-1.5 text-gray-400 italic">
+              <td className="px-3 py-1.5 text-subtle italic">
                 {translate(
                   "importZones.dataMappingStep.previewMore",
                   String(totalCount - PREVIEW_LIMIT),
@@ -296,7 +296,7 @@ const CompleteStep = ({ numZones }: { numZones: number }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-8">
       <SuccessIcon size="xl" className="text-green-600" />
-      <p className="text-sm text-gray-700">
+      <p className="text-size-base text-default">
         {translate("importZones.completeStep.summary", numZones.toString())}
       </p>
     </div>

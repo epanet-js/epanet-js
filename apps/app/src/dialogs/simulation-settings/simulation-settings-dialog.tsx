@@ -114,7 +114,7 @@ export const SimulationSettingsDialog = () => {
                 activeSection={activeSection}
                 onSelectSection={scrollToSection}
               />
-              <div className="border-l border-gray-200 flex-1 flex flex-col min-h-0">
+              <div className="border-l flex-1 flex flex-col min-h-0">
                 <SimulationSettingsContent ref={scrollContainerRef}>
                   <SettingsSection sectionId="general">
                     <GeneralSection />

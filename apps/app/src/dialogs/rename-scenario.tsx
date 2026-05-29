@@ -124,18 +124,16 @@ function RenameField({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm text-gray-700 dark:text-gray-300">
-        {label}
-      </label>
+      <label className="block text-size-base text-default">{label}</label>
       <input
         {...field}
         ref={inputRef}
         type="text"
         className={clsx(
-          "w-full px-3 py-2 border rounded-sm text-sm",
+          "w-full px-3 py-2 border rounded-sm text-size-base",
           meta.error && meta.touched
             ? "border-orange-500 dark:border-orange-700 focus-visible:ring-orange-500"
-            : "border-gray-300 focus-visible:ring-purple-500",
+            : "border-strong focus-visible:ring-accent",
         )}
         placeholder={placeholder}
       />

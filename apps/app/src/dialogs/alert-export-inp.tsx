@@ -35,7 +35,7 @@ export const AlertExportInpDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>

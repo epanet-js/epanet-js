@@ -173,14 +173,14 @@ export const DataInputStep: React.FC<{
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto grow">
         {/* Left Column - File Input */}
-        <div className="bg-white dark:bg-slate-800 space-y-6 h-full md:p-6 p-2">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+        <div className="bg-base dark:bg-slate-800 space-y-6 h-full md:p-6 p-2">
+          <h2 className="text-size-heading-3 font-semibold text-slate-900 dark:text-white">
             {translate("importCustomerPoints.dataSource.title")}
           </h2>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-red-700 text-sm">{error}</p>
+            <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+              <p className="text-red-700 text-size-base">{error}</p>
             </div>
           )}
 
@@ -199,7 +199,7 @@ export const DataInputStep: React.FC<{
           {isLoading && (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-              <span className="ml-2 text-sm text-gray-600">
+              <span className="ml-2 text-size-base text-subtle">
                 {translate("importCustomerPoints.dataSource.parsingFile")}
               </span>
             </div>
@@ -207,8 +207,8 @@ export const DataInputStep: React.FC<{
         </div>
 
         {/* Right Column - Video Tutorial */}
-        <div className="bg-white dark:bg-slate-800 h-full space-y-6 md:p-6 p-2">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+        <div className="bg-base dark:bg-slate-800 h-full space-y-6 md:p-6 p-2">
+          <h2 className="text-size-heading-3 font-semibold text-slate-900 dark:text-white">
             {translate("importCustomerPoints.wizard.videoTutorial.title")}
           </h2>
           <div
@@ -234,7 +234,7 @@ export const DataInputStep: React.FC<{
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
                 {/* Outer glow effect */}
-                <div className="absolute inset-0 bg-white/20 rounded-full blur-md group-hover:blur-lg transition-all duration-300"></div>
+                <div className="absolute inset-0 bg-base/20 rounded-full blur-md group-hover:blur-lg transition-all duration-300"></div>
 
                 {/* Main play button */}
                 <span className="relative inline-flex items-center justify-center rounded-full bg-black/60 group-hover:bg-black/80 text-white h-16 w-16 group-hover:scale-110 transition-all duration-300 shadow-lg">
@@ -249,20 +249,20 @@ export const DataInputStep: React.FC<{
               </div>
 
               {/* Video duration indicator */}
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">
+              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-size-small px-2 py-1 rounded-sm">
                 5:23
               </div>
 
               {/* Video title overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4">
-                <p className="text-white text-sm font-medium">
+                <p className="text-white text-size-base font-medium">
                   epanet-js Customer Points Import Tutorial
                 </p>
               </div>
             </div>
           </div>
 
-          <p className="text-slate-700 dark:text-slate-300 text-sm">
+          <p className="text-slate-700 dark:text-slate-300 text-size-base">
             <Trans
               i18nKey="importCustomerPoints.wizard.videoTutorial.description"
               components={{

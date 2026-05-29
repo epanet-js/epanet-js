@@ -259,7 +259,7 @@ export const ExportSimulationResultsDialog = ({
         }
       >
         <div className="p-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-size-base text-default">
             {translate("exportAssetData.noAssets")}
           </p>
         </div>
@@ -282,7 +282,7 @@ export const ExportSimulationResultsDialog = ({
         }
       >
         <div className="p-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-size-base text-default">
             {translate("exportTimeSeries.noSimulation")}
           </p>
         </div>
@@ -310,7 +310,7 @@ export const ExportSimulationResultsDialog = ({
     >
       <div className="p-4 space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-size-base font-medium text-default">
             {translate("exportFormat")}
           </label>
           <select
@@ -318,7 +318,7 @@ export const ExportSimulationResultsDialog = ({
             onChange={(e) =>
               setFormat(e.target.value as SimulationExportFormat)
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-hidden focus:ring-1 focus:ring-purple-500"
+            className="w-full px-3 py-2 border border-strong rounded-sm text-size-base focus:outline-hidden focus:ring-1 focus:ring-accent"
           >
             {exportFormats.map(({ value, labelKey }) => (
               <option key={value} value={value}>
@@ -336,23 +336,23 @@ export const ExportSimulationResultsDialog = ({
             checked={selectedAssetsOnly}
             disabled={!hasSelection}
             onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-            className="rounded-sm text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+            className="rounded-sm text-purple-600 focus:ring-accent disabled:opacity-50"
           />
-          <span className="text-sm text-gray-700">
+          <span className="text-size-base text-default">
             {translate("exportSelectedAssetsOnly")}
           </span>
         </label>
 
-        <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4">
+        <div className="grid grid-cols-2 gap-4 border-t pt-4">
           <div className="space-y-2">
             <label className="flex items-center gap-x-2 cursor-pointer">
               <IndeterminateCheckbox
                 checked={nodeAllChecked}
                 indeterminate={nodeIndeterminate}
                 onChange={toggleAllNodes}
-                className="rounded-sm text-purple-600 focus:ring-purple-500"
+                className="rounded-sm text-purple-600 focus:ring-accent"
               />
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-size-base font-medium text-default">
                 {translate("nodes")}
               </span>
             </label>
@@ -382,9 +382,9 @@ export const ExportSimulationResultsDialog = ({
                           [key]: e.target.checked,
                         }))
                       }
-                      className="rounded text-purple-600 focus:ring-purple-500 disabled:opacity-50"
+                      className="rounded text-purple-600 focus:ring-accent disabled:opacity-50"
                     />
-                    <span className="text-sm text-gray-700">
+                    <span className="text-size-base text-default">
                       {translate(translationKey)}
                     </span>
                   </label>
@@ -399,9 +399,9 @@ export const ExportSimulationResultsDialog = ({
                 checked={linkAllChecked}
                 indeterminate={linkIndeterminate}
                 onChange={toggleAllLinks}
-                className="rounded-sm text-purple-600 focus:ring-purple-500"
+                className="rounded-sm text-purple-600 focus:ring-accent"
               />
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-size-base font-medium text-default">
                 {translate("links")}
               </span>
             </label>
@@ -427,9 +427,9 @@ export const ExportSimulationResultsDialog = ({
                         [key]: e.target.checked,
                       }))
                     }
-                    className="rounded-sm text-purple-600 focus:ring-purple-500"
+                    className="rounded-sm text-purple-600 focus:ring-accent"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-size-base text-default">
                     {translate(translationKey)}
                   </span>
                 </label>
@@ -442,12 +442,12 @@ export const ExportSimulationResultsDialog = ({
           <div
             className={`p-3 rounded-md space-y-1 ${
               exceedsLimit
-                ? "bg-red-50 border border-red-200"
+                ? "bg-error-subtle border border-red-200"
                 : "bg-yellow-50 border border-yellow-200"
             }`}
           >
             <p
-              className={`text-sm font-medium ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
+              className={`text-size-base font-medium ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
             >
               {translate(
                 exceedsLimit
@@ -457,7 +457,7 @@ export const ExportSimulationResultsDialog = ({
               )}
             </p>
             <p
-              className={`text-sm ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
+              className={`text-size-base ${exceedsLimit ? "text-red-800" : "text-yellow-800"}`}
             >
               {translate(
                 exceedsLimit

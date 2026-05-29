@@ -42,8 +42,8 @@ export const ActivatingTrialDialog = () => {
       preventClose={true}
     >
       <div className="flex flex-col items-center gap-3 p-6">
-        <RefreshIcon className="animate-spin w-6 h-6 text-gray-500" />
-        <p className="text-sm text-gray-700 dark:text-gray-300">
+        <RefreshIcon className="animate-spin w-6 h-6 text-subtle" />
+        <p className="text-size-base text-default">
           {translate("trial.activating")}
         </p>
       </div>

@@ -131,7 +131,7 @@ export const FeaturePaywall = ({
       onClose={handleClose}
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 p-4">
-        <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 rounded-lg shadow-md overflow-hidden">
+        <div className="relative aspect-square bg-base-hover dark:bg-gray-800 border rounded-lg shadow-md overflow-hidden">
           <VideoPlayer
             src={config.videoSrc}
             captions={captions}
@@ -147,14 +147,11 @@ export const FeaturePaywall = ({
             <>
               <div className="space-y-3 pb-6">
                 {config.descriptionKeys.map((key) => (
-                  <p
-                    key={key}
-                    className="text-sm text-gray-700 dark:text-gray-300"
-                  >
+                  <p key={key} className="text-size-base text-default">
                     {translate(key)}
                   </p>
                 ))}
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-size-base text-default">
                   {translate(config.actionDescriptionKeys.trial)}
                 </p>
               </div>
@@ -189,11 +186,11 @@ export const FeaturePaywall = ({
                   </ClerkSignInButton>
                 )}
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                  <div className="flex-1 border-t" />
+                  <span className="text-size-small text-subtle">
                     {translate("paywall.or")}
                   </span>
-                  <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                  <div className="flex-1 border-t" />
                 </div>
                 {config.onTryDemo ? (
                   <Button
@@ -223,7 +220,7 @@ export const FeaturePaywall = ({
           ) : showPlans ? (
             <>
               <button
-                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pb-2"
+                className="flex items-center gap-1 text-size-base text-subtle hover:text-default dark:hover:text-gray-200 pb-2"
                 onClick={() => setShowPlans(false)}
               >
                 <ChevronLeftIcon className="w-4 h-4" />
@@ -231,10 +228,10 @@ export const FeaturePaywall = ({
               </button>
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
                     {translate("paywall.nonCommercial.title")}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-size-base text-subtle">
                     {translate("paywall.nonCommercial.description")}
                   </p>
                   <div className="pt-2" onClick={handlePersonalCheckout}>
@@ -249,10 +246,10 @@ export const FeaturePaywall = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <h3 className="text-size-base font-medium text-default dark:text-gray-100">
                     {translate("paywall.commercial.title")}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-size-base text-subtle">
                     {translate("paywall.commercial.description")}
                   </p>
                   <div className="pt-2">
@@ -271,14 +268,11 @@ export const FeaturePaywall = ({
             <>
               <div className="space-y-3 pb-6">
                 {config.descriptionKeys.map((key) => (
-                  <p
-                    key={key}
-                    className="text-sm text-gray-700 dark:text-gray-300"
-                  >
+                  <p key={key} className="text-size-base text-default">
                     {translate(key)}
                   </p>
                 ))}
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-size-base text-default">
                   {translate(
                     config.onTryDemo && config.actionDescriptionKeys.demo
                       ? config.actionDescriptionKeys.demo
@@ -302,11 +296,11 @@ export const FeaturePaywall = ({
                       )}
                     </Button>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                      <div className="flex-1 border-t" />
+                      <span className="text-size-small text-subtle">
                         {translate("paywall.or")}
                       </span>
-                      <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+                      <div className="flex-1 border-t" />
                     </div>
                     <Button
                       variant="primary"

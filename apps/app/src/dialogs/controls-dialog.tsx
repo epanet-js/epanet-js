@@ -132,7 +132,7 @@ const TabBar = ({
   return (
     <div
       role="tablist"
-      className="flex h-8 border-b border-gray-200 dark:border-black px-4 -mx-4"
+      className="flex h-8 border-b dark:border-black px-4 -mx-4"
     >
       <TabButton
         label={translate("controls.simpleTab")}
@@ -164,10 +164,10 @@ const TabButton = ({
       aria-selected={isActive}
       onClick={onClick}
       className={clsx(
-        "text-sm py-1 px-3 focus:outline-hidden border-t border-l border-b last:border-r border-gray-200",
+        "text-size-base py-1 px-3 focus:outline-hidden border-t border-l border-b last:border-r",
         isActive
           ? "text-black dark:text-white border-b-white -mb-px"
-          : "text-gray-500 dark:text-gray-400 border-b-transparent hover:text-black dark:hover:text-gray-200 bg-gray-100",
+          : "text-subtle border-b-transparent hover:text-black dark:hover:text-gray-200 bg-base-hover",
       )}
     >
       {label}
@@ -197,7 +197,7 @@ const ControlsTextArea = ({
       onChange={(e) => setFieldValue(name, e.target.value)}
       placeholder={placeholder}
       readOnly={readOnly}
-      className="w-full h-64 p-3 font-mono text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xs resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-purple-500 dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
+      className="w-full h-64 p-3 font-mono text-size-base bg-base border border-strong dark:border-gray-700 rounded-xs resize-none focus-visible:outline-hidden focus-visible:border-transparent focus-visible:ring-accent dark:focus-visible:ring-purple-700 focus-visible:ring-inset"
     />
   );
 };

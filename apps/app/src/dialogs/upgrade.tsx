@@ -98,7 +98,7 @@ const ChangesFromSupportDialog = () => {
         <AckDialogAction label={translate("understood")} onAck={closeDialog} />
       }
     >
-      <p className="p-4 text text-sm">
+      <p className="p-4 text text-size-base">
         {translate("planChangesFromSupportExplain")}
       </p>
     </BaseDialog>
@@ -148,7 +148,7 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
       <div className="p-4">
         <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">
           <div className="flex items-center gap-2">
-            <div className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="text-size-base text-default">
               {translate("for")}:
             </div>
             <Selector
@@ -163,9 +163,9 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
             )}
           </div>
           <div
-            className={`flex items-center gap-2 text-gray-700 ${usage === "non-commercial" ? "opacity-25" : ""}`}
+            className={`flex items-center gap-2 text-default ${usage === "non-commercial" ? "opacity-25" : ""}`}
           >
-            <div className="text-sm ">{translate("monthly")}</div>
+            <div className="text-size-base">{translate("monthly")}</div>
             <StyledSwitch
               checked={paymentType === "yearly"}
               disabled={usage === "non-commercial"}
@@ -173,7 +173,7 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
             >
               <StyledThumb />
             </StyledSwitch>
-            <div className="text-sm ">
+            <div className="text-size-base">
               {translate("yearlyWithDiscount", "16")}
             </div>
           </div>
@@ -202,7 +202,7 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
 const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   return (
-    <div className="bg-white border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
+    <div className="bg-base border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Free"
@@ -215,27 +215,27 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
             {
               feature: translate("free.webBasedEpanet"),
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-success",
             },
             {
               feature: translate("free.backgroundMap"),
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-success",
             },
             {
               feature: translate("free.elevations"),
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-success",
             },
             {
               feature: translate("free.noLimits"),
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-success",
             },
             {
               feature: translate("free.communitySupport"),
               Icon: CheckIcon,
-              iconColor: "text-green-500",
+              iconColor: "text-success",
             },
           ]}
         />
@@ -243,7 +243,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
       <div className="p-4 w-full">
         <Button
           size="full-width"
-          className="default-pointer bg-gray-300 text-gray-700"
+          className="default-pointer bg-gray-300 text-default"
           disabled={true}
         >
           <CheckIcon />
@@ -265,9 +265,9 @@ const PersonalPlan = ({
   const price = prices.personal.yearly;
 
   return (
-    <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
         <PlanHeader
@@ -283,7 +283,7 @@ const PersonalPlan = ({
               {
                 feature: translate("scenariosItem"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("professionalSupport"),
@@ -293,33 +293,33 @@ const PersonalPlan = ({
               {
                 feature: translate("customMapLayers"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("customElevations"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
             ]}
           />
           <FeaturesList
             title={`${translate("comingSoon")}:`}
-            textColor="text-gray-500"
+            textColor="text-subtle"
             items={[
               {
                 feature: translate("cloudStorage"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("pointInTimeRestore", "30"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("demandsAnalysis"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
             ]}
           />
@@ -345,7 +345,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const userTracking = useUserTracking();
 
   return (
-    <div className="relative bg-white border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
+    <div className="relative bg-base border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Education"
@@ -362,7 +362,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         <div className="w-full">
           <Button
             size="full-width"
-            className="default-pointer bg-gray-100 text-gray-700"
+            className="default-pointer bg-base-hover text-default"
             onClick={() => {
               userTracking.capture({ name: "studentLogin.clicked" });
               checkUnsavedChanges(() => {
@@ -377,7 +377,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
             {translate("useStudentEmail")}
           </Button>
         </div>
-        <div className="text-xs text-center text-gray-500">
+        <div className="text-size-small text-center text-subtle">
           <p>{translate("havingIssuesWithStudentEmail")}</p>
           <a
             className="text-blue-600"
@@ -409,9 +409,9 @@ const ProPlan = ({
   const price = prices.pro[paymentType];
 
   return (
-    <div className="relative bg-white border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
+    <div className="relative bg-base border border-purple-100 rounded-lg shadow-md shadow-purple-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
-        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-xs font-semibold py-1 px-2 rounded-bl-lg">
+        <div className="absolute top-0 right-0 bg-linear-to-br from-purple-300 via-purple-400 to-purple-500 text-white text-size-small font-semibold py-1 px-2 rounded-bl-lg">
           {translate("mostPopular")}
         </div>
         <PlanHeader
@@ -428,43 +428,43 @@ const ProPlan = ({
               {
                 feature: translate("scenariosItem"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("professionalSupport"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("customMapLayers"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("customElevations"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
             ]}
           />
           <FeaturesList
             title={`${translate("comingSoon")}:`}
-            textColor="text-gray-500"
+            textColor="text-subtle"
             items={[
               {
                 feature: translate("cloudStorage"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("pointInTimeRestore", "30"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("demandsAnalysis"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
             ]}
           />
@@ -510,7 +510,7 @@ const TeamsPlan = ({
   };
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
+    <div className="relative bg-base border rounded-md shadow-md shadow-gray-300 overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Teams"
@@ -526,38 +526,38 @@ const TeamsPlan = ({
               {
                 feature: translate("prioritySupport"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("selfServiceSeatManagement"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
               {
                 feature: translate("payByInvoice"),
                 Icon: CheckIcon,
-                iconColor: "text-green-500",
+                iconColor: "text-success",
               },
             ]}
           />
           <FeaturesList
             title={`${translate("comingSoon")}:`}
-            textColor="text-gray-500"
+            textColor="text-subtle"
             items={[
               {
                 feature: translate("teamStorage"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("pointInTimeRestore", "90"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
               {
                 feature: translate("sharingModels"),
                 Icon: CheckIcon,
-                iconColor: "text-gray-400",
+                iconColor: "text-subtle",
               },
             ]}
           />
@@ -599,28 +599,34 @@ const PlanHeader = ({
 
   return (
     <div className="flex flex-col">
-      <h2 className="text-xl font-semibold mb-2">{name}</h2>
-      <p className="text-gray-600 text-sm mb-4">{claim}</p>
+      <h2 className="text-size-heading-2 font-semibold mb-2">{name}</h2>
+      <p className="text-subtle text-size-base mb-4">{claim}</p>
       {"basePrice" in props ? (
         <div className="flex items-baseline gap-4">
           <div>
             <div className="mb-1">
               <strong className="text-3xl font-bold">{props.basePrice}</strong>
-              <span className="text-sm text-gray-500">{recurrency}</span>
+              <span className="text-size-base text-subtle">{recurrency}</span>
             </div>
-            <p className="text-gray-500 text-sm">{translate("baseCost")}</p>
+            <p className="text-subtle text-size-base">
+              {translate("baseCost")}
+            </p>
           </div>
           <div className="flex gap-1">
-            <span className="text-xl font-bold text-gray-700 self-start">
+            <span className="text-size-heading-2 font-bold text-default self-start">
               +
             </span>
             <div>
               <div className="mb-1">
-                <strong className="text-xl font-bold">{props.userPrice}</strong>
-                <span className="text-sm text-gray-500">{recurrency}</span>
+                <strong className="text-size-heading-2 font-bold">
+                  {props.userPrice}
+                </strong>
+                <span className="text-size-base text-subtle">{recurrency}</span>
               </div>
               <div className="flex items-center gap-1">
-                <p className="text-gray-500 text-sm">{translate("perUser")}</p>
+                <p className="text-subtle text-size-base">
+                  {translate("perUser")}
+                </p>
                 <InfoTooltip text={translate("minimumTwoLicenses")} />
               </div>
             </div>
@@ -630,9 +636,11 @@ const PlanHeader = ({
         <>
           <div className="mb-1">
             <strong className="text-3xl font-bold">{props.price}</strong>
-            <span className="text-sm text-gray-500">{recurrency}</span>
+            <span className="text-size-base text-subtle">{recurrency}</span>
           </div>
-          <p className="text-gray-500 text-sm">{props.subtitle ?? "\u00A0"}</p>
+          <p className="text-subtle text-size-base">
+            {props.subtitle ?? "\u00A0"}
+          </p>
         </>
       )}
     </div>
@@ -645,7 +653,7 @@ type SlottableIcon =
 
 const FeaturesList = ({
   title,
-  textColor = "text-gray-700",
+  textColor = "text-default",
   items,
 }: {
   title?: string;
@@ -654,10 +662,13 @@ const FeaturesList = ({
 }) => {
   return (
     <div className="my-4">
-      {title && <p className="text-sm text-gray-500 mb-2">{title}</p>}
+      {title && <p className="text-size-base text-subtle mb-2">{title}</p>}
       <ul className="space-y-2 grow">
         {items.map(({ feature, Icon, iconColor }, index) => (
-          <li key={index} className={`flex items-start text-sm ${textColor}`}>
+          <li
+            key={index}
+            className={`flex items-start text-size-base ${textColor}`}
+          >
             <Icon className={`h-5 w-5 ${iconColor} shrink-0 mr-2`} /> {feature}
           </li>
         ))}
@@ -669,14 +680,14 @@ const FeaturesList = ({
 const NonCommercialHint = () => {
   const translate = useTranslate();
   return (
-    <div className="hidden sm:flex relative items-center ml-4 lg:ml-6 text-gray-400 font-handwritten text-xl whitespace-nowrap">
+    <div className="hidden sm:flex relative items-center ml-4 lg:ml-6 text-subtle font-handwritten text-size-heading-2 whitespace-nowrap">
       <svg
         width="48"
         height="218"
         viewBox="0 0 48 218"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="rotate-70  w-8 h-12 ml-2 mr-3"
+        className="rotate-70 w-8 h-12 ml-2 mr-3"
       >
         <path
           fill-rule="evenodd"
@@ -694,13 +705,13 @@ const InfoTooltip = ({ text }: { text: string }) => {
   return (
     <Tooltip.Root delayDuration={100}>
       <Tooltip.Trigger asChild>
-        <button className="rounded-full hover:bg-gray-200">
-          <InfoIcon className="w-5 h-5 text-gray-500" />
+        <button className="rounded-full hover:bg-base-active">
+          <InfoIcon className="w-5 h-5 text-subtle" />
         </button>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content
-          className="bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg z-50"
+          className="bg-gray-900 text-white text-size-base px-3 py-2 rounded-lg shadow-lg z-50"
           side="top"
           align="start"
         >

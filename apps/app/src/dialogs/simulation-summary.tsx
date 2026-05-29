@@ -35,7 +35,7 @@ const SimulationSummaryDialogNew = ({
   const config = {
     success: {
       title: translate("simulationSuccess"),
-      iconClass: "text-green-500",
+      iconClass: "text-success",
     },
     warning: {
       title: translate("simulationWarning"),
@@ -86,7 +86,7 @@ const SimulationSummaryDialogNew = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p className="flex items-start gap-2">
           <div className={`m-width-0 mt-0.5 ${config.iconClass}`}>
             {modal.status === "success" && <SuccessIcon />}

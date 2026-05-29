@@ -76,8 +76,8 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
   if (rules.length === 0) {
     return (
-      <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <p className="text-gray-500 text-sm">
+      <div className="text-center py-8 bg-panel rounded-lg border-2 border-dashed border-strong">
+        <p className="text-subtle text-size-base">
           {translate(
             "importCustomerPoints.wizard.allocationStep.table.noRulesMessage",
           )}
@@ -88,36 +88,36 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
 
   return (
     <>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-base border rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-panel border-b">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-16">
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-16">
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.table.orderHeader",
                 )}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
-                )}{" "}
-                ({translateUnit(units.diameter)})
+                )}
+                {""}({translateUnit(units.diameter)})
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
-                )}{" "}
-                ({translateUnit(units.length)})
+                )}
+                {""}({translateUnit(units.length)})
               </th>
               {!isEditing && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-32">
+                <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-32">
                   {translate(
                     "importCustomerPoints.wizard.allocationStep.table.allocationsHeader",
                   )}
                 </th>
               )}
               {isEditing && (
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider w-24">
+                <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-24">
                   {translate(
                     "importCustomerPoints.wizard.allocationStep.table.actionsHeader",
                   )}
@@ -125,13 +125,13 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-base divide-y divide-gray-200">
             {rules.map((rule, index) => (
               <tr
                 key={index}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                className={index % 2 === 0 ? "bg-base" : "bg-panel"}
               >
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                <td className="px-4 py-3 text-size-base font-medium text-default">
                   {index + 1}
                 </td>
                 <td className="px-4 py-3">
@@ -179,11 +179,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                   )}
                 </td>
                 {!isEditing && (
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-size-base text-subtle">
                     {isAllocating ? (
                       <div className="flex justify-center">
                         <RefreshIcon
-                          className="animate-spin text-gray-500"
+                          className="animate-spin text-subtle"
                           data-testid="allocation-loading"
                         />
                       </div>
@@ -199,7 +199,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         type="button"
                         onClick={() => handleMoveRule(index, "up")}
                         disabled={index === 0}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 text-default hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                         title={translate(
                           "importCustomerPoints.wizard.allocationStep.table.moveUpTooltip",
                         )}
@@ -210,7 +210,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         type="button"
                         onClick={() => handleMoveRule(index, "down")}
                         disabled={index === rules.length - 1}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-1 text-default hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                         title={translate(
                           "importCustomerPoints.wizard.allocationStep.table.moveDownTooltip",
                         )}

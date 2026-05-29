@@ -51,7 +51,7 @@ export const DeleteScenarioConfirmationDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm text-gray-700">
+      <div className="p-4 text-size-base text-default">
         <p>{translate("scenarios.deleteConfirmation.message", scenarioName)}</p>
       </div>
     </BaseDialog>

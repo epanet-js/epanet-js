@@ -261,14 +261,14 @@ export const DataMappingStep: React.FC<{
   return (
     <>
       <div className="overflow-y-auto grow scroll-shadows">
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-size-heading-3 font-semibold">
           {translate("importCustomerPoints.wizard.dataMapping.title")}
         </h2>
 
         {showAttributesMapping && (
           <div className="space-y-2">
             <div>
-              <p className="text-sm text-gray-600 mt-2 mb-4">
+              <p className="text-size-base text-subtle mt-2 mb-4">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
                 )}
@@ -279,7 +279,7 @@ export const DataMappingStep: React.FC<{
                 }`}
               >
                 <div>
-                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-size-base text-default mb-2">
                     {translate(
                       "importCustomerPoints.wizard.dataMapping.demandSelector.label",
                     )}
@@ -303,7 +303,7 @@ export const DataMappingStep: React.FC<{
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-size-base text-default mb-2">
                     {`${translate(
                       "importCustomerPoints.wizard.dataMapping.labelSelector.label",
                     )} (${translate("optional")})`}
@@ -326,7 +326,7 @@ export const DataMappingStep: React.FC<{
                       "importCustomerPoints.wizard.dataMapping.labelSelector.label",
                     )}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-size-small text-subtle mt-1">
                     {translate(
                       "importCustomerPoints.wizard.dataMapping.labelSelector.description",
                       String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
@@ -335,7 +335,7 @@ export const DataMappingStep: React.FC<{
                 </div>
                 {hasDemandPatterns && (
                   <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-size-base text-default mb-2">
                       {`${translate(
                         "importCustomerPoints.wizard.demandOptions.timePattern.title",
                       )} (${translate("optional")})`}
@@ -353,7 +353,7 @@ export const DataMappingStep: React.FC<{
                         "importCustomerPoints.wizard.demandOptions.timePattern.title",
                       )}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-size-small text-subtle mt-1">
                       {translate(
                         "importCustomerPoints.wizard.demandOptions.timePattern.description",
                       )}
@@ -367,7 +367,7 @@ export const DataMappingStep: React.FC<{
               <div>
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  <span className="ml-3 text-gray-600">
+                  <span className="ml-3 text-subtle">
                     {translate(
                       "importCustomerPoints.wizard.dataMapping.loading",
                     )}
@@ -378,12 +378,12 @@ export const DataMappingStep: React.FC<{
 
             {selectedDemandProperty && !parsedDataSummary && !showLoading && (
               <div>
-                <h4 className="text-md font-medium text-gray-900">
+                <h4 className="text-md font-medium text-default">
                   {translate(
                     "importCustomerPoints.wizard.dataMapping.dataPreview.title",
                   )}
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-size-base text-subtle">
                   {translate(
                     "importCustomerPoints.wizard.dataMapping.dataPreview.selectPrompt",
                   )}
@@ -394,7 +394,7 @@ export const DataMappingStep: React.FC<{
         )}
 
         {showNoDataMessage && (
-          <p className="text-gray-600">
+          <p className="text-subtle">
             {translate(
               "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
             )}
@@ -402,8 +402,8 @@ export const DataMappingStep: React.FC<{
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+            <p className="text-red-700 text-size-base">{error}</p>
           </div>
         )}
 
@@ -475,7 +475,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
 
   if (validCount === 0) {
     return (
-      <p className="text-gray-500 text-sm">
+      <p className="text-subtle text-size-base">
         {translate(
           "importCustomerPoints.wizard.dataMapping.messages.noValidCustomerPoints",
         )}
@@ -485,32 +485,32 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
 
   return (
     <div className="mt-6">
-      <h4 className="text-md font-medium text-gray-900">
+      <h4 className="text-md font-medium text-default">
         {translate(
           "importCustomerPoints.wizard.dataMapping.table.title",
           localizeDecimal(validCount),
         )}
       </h4>
-      <div className="overflow-x-auto mt-2 border border-gray-200 rounded-lg">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 sticky top-0">
+      <div className="overflow-x-auto mt-2 border rounded-lg">
+        <table className="min-w-full text-size-base">
+          <thead className="bg-panel sticky top-0">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+              <th className="px-3 py-2 text-left text-size-small font-medium text-subtle tracking-wider border-b">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.table.label",
                 )}
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+              <th className="px-3 py-2 text-left text-size-small font-medium text-subtle tracking-wider border-b">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.table.latitude",
                 )}
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500  tracking-wider border-b">
+              <th className="px-3 py-2 text-left text-size-small font-medium text-subtle tracking-wider border-b">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.table.longitude",
                 )}
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 tracking-wider border-b">
+              <th className="px-3 py-2 text-left text-size-small font-medium text-subtle tracking-wider border-b">
                 {`${translate(
                   "importCustomerPoints.wizard.dataMapping.table.demand",
                 )} (${translateUnit(customerDemandPerDayUnit)})`}
@@ -521,7 +521,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
             {validPreview.map((point, index) => (
               <tr
                 key={point.id}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                className={index % 2 === 0 ? "bg-base" : "bg-panel"}
               >
                 <td className="px-3 py-2 border-b">
                   <div className="truncate" title={point.label}>
@@ -553,7 +553,7 @@ const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
           </tbody>
         </table>
         {validHasMore && (
-          <p className="text-sm text-gray-500 text-center py-2">
+          <p className="text-size-base text-subtle text-center py-2">
             {translate(
               "importCustomerPoints.wizard.dataMapping.messages.andXMore",
               localizeDecimal(validCount - maxPreviewRows, { decimals: 0 }),
@@ -579,7 +579,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
 
   return (
     <div className="space-y-2 mt-6">
-      <h2 className="text-md font-medium text-gray-900">
+      <h2 className="text-md font-medium text-default">
         {translate(
           "importCustomerPoints.wizard.dataMapping.issues.title",
           localizeDecimal(errorCount),
@@ -587,7 +587,7 @@ const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
       </h2>
       <div className="space-y-4">
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-sm text-yellow-800">
+          <p className="text-size-base text-yellow-800">
             {translate(
               "importCustomerPoints.wizard.dataMapping.messages.skippedRowsWarning",
             )}
@@ -662,29 +662,29 @@ const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
   const translate = useTranslate();
 
   return (
-    <div className="border border-gray-200 rounded-md">
+    <div className="border rounded-md">
       <button
-        className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+        className="w-full px-3 py-2 text-left text-size-base text-default hover:bg-panel flex items-center justify-between"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <span>{title}</span>
-        <span className="text-sm text-gray-500">
+        <span className="text-size-base text-subtle">
           {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
         </span>
       </button>
       {isExpanded && (
-        <div className="border-t border-gray-200 p-3 bg-gray-50">
+        <div className="border-t p-3 bg-panel">
           <div className="space-y-2">
             {features.slice(0, 3).map((feature, index) => (
               <div
                 key={index}
-                className="text-xs font-mono bg-white p-2 rounded-sm border text-gray-800"
+                className="text-size-small font-mono bg-base p-2 rounded-sm border text-default"
               >
                 {JSON.stringify(feature)}
               </div>
             ))}
             {features.length > 3 && (
-              <p className="text-xs text-gray-500 text-center pt-2">
+              <p className="text-size-small text-subtle text-center pt-2">
                 {translate(
                   "importCustomerPoints.wizard.dataMapping.messages.andXMoreIssues",
                   (features.length - 3).toString(),

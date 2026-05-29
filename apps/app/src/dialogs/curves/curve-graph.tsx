@@ -84,7 +84,9 @@ export const CurveGraph = forwardRef<HTMLDivElement, CurveGraphProps>(
         {curveType === "pump" && (
           <div className="mb-[.25rem] w-full">
             <InlineField name={translate("curveType")} layout="label-flex-none">
-              <span className="text-sm">{translate(curvePointsType)}</span>
+              <span className="text-size-base">
+                {translate(curvePointsType)}
+              </span>
             </InlineField>
           </div>
         )}

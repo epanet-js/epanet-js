@@ -41,7 +41,7 @@ export const MissingCoordinatesDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
         <CoordinatesIssues issues={issues} />
       </div>
@@ -80,7 +80,7 @@ export const InpIssuesDialog = ({
         />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p className="pb-2">{translate("inpNotFullySupportedDetail")}</p>
         <IssuesSummary issues={issues} />
         <SubscribeCTA source="inpIssues" />
@@ -140,10 +140,11 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
         className="cursor-pointer text-md inline-flex items-center"
       >
         {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        {translate("issuesSummary")}{" "}
+        {translate("issuesSummary")}
+        {""}
       </Button>
       {isExpaned && (
-        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-xs text-sm bg-gray-100 text-gray-700 max-h-[300px] overflow-y-auto">
+        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-base-hover text-default max-h-[300px] overflow-y-auto">
           {issues.nodesMissingCoordinates && (
             <div>
               <p>{translate("nodesMissingCoordinates")}:</p>
@@ -155,7 +156,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
                   ))}
                 {issues.nodesMissingCoordinates.size > maxDisplayed && (
                   <span>
-                    {" "}
+                    {""}
                     {translate(
                       "andXMore",
                       String(
@@ -194,10 +195,11 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         className="cursor-pointer text-md inline-flex items-center"
       >
         {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        {translate("issuesSummary")}{" "}
+        {translate("issuesSummary")}
+        {""}
       </Button>
       {isExpaned && (
-        <div className="p-2 flex flex-col gap-y-4  ml-3 mt-2 border font-mono rounded-xs text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 max-h-[300px] overflow-y-auto">
+        <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-base-hover dark:bg-gray-800 text-default max-h-[300px] overflow-y-auto">
           {issues.unsupportedSections && (
             <div>
               <p>{translate("useOfUnsupported")}:</p>
@@ -216,7 +218,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                 {[...issues.nonDefaultTimes.entries()].map(
                   ([name, defaultValue]) => (
                     <span key={name}>
-                      -{" "}
+                      -{""}
                       {translate(
                         "customValueNotSupport",
                         name.toUpperCase(),
@@ -235,7 +237,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                 {[...issues.nonDefaultOptions.entries()].map(
                   ([optionName, defaultValue]) => (
                     <span key={optionName}>
-                      -{" "}
+                      -{""}
                       {translate(
                         "customValueNotSupport",
                         optionName.toUpperCase(),
@@ -252,7 +254,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 <span>
-                  -{" "}
+                  -{""}
                   {translate(
                     "undefinedPumpCurves",
                     String(issues.hasUndefinedPumpCurve),
@@ -266,7 +268,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 <span>
-                  -{" "}
+                  -{""}
                   {translate(
                     "invalidValveKinds",
                     String(issues.invalidValveKinds.size),

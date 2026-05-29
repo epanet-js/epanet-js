@@ -36,9 +36,9 @@ export const FileFormatUpdatedDialog = ({
         />
       }
     >
-      <div className="p-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+      <div className="p-4 space-y-3 text-size-base text-default">
         <p>{translate("fileFormatUpdatedBody")}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-size-small text-subtle">
           {translate("fileFormatUpdatedFootnote")}
         </p>
         <div className="flex items-center gap-2 pt-2">
@@ -46,7 +46,7 @@ export const FileFormatUpdatedDialog = ({
             checked={skipFuture}
             onChange={() => setSkipFuture((v) => !v)}
           />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-size-base text-subtle">
             {translate("fileFormatUpdatedDontShowAgain")}
           </span>
         </div>

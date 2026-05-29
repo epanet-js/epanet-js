@@ -15,7 +15,7 @@ export const ProfileNoPathDialog = ({ onClose }: { onClose: () => void }) => {
         <AckDialogAction onAck={onClose} label={translate("dialog.ok")} />
       }
     >
-      <div className="p-4 text-sm">
+      <div className="p-4 text-size-base">
         <p>{translate("hglProfile.noPath.message")}</p>
       </div>
     </BaseDialog>

@@ -49,7 +49,7 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
       parts.push(translate("curveValidation.needsNonZeroValue", xLabel));
     if (hasYError)
       parts.push(translate("curveValidation.needsNonZeroValue", yLabel));
-    description = parts.join(" ");
+    description = parts.join("");
   } else {
     const parts: string[] = [];
     if (hasXError)
@@ -61,7 +61,7 @@ export function CurveErrorBanner({ points, curveType }: CurveErrorBannerProps) {
           : "curveValidation.valueAscendingOrder";
       parts.push(translate(yKey, yLabel));
     }
-    description = parts.join(" ");
+    description = parts.join("");
   }
 
   return (
