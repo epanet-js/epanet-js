@@ -400,7 +400,7 @@ const PressureUnitSelector = ({
 };
 
 const projectionCardBase =
-  "flex flex-col text-left cursor-pointer rounded-lg border bg-base hover:border-accent hover:bg-purple-50 dark:bg-transparent dark:hover:border-accent dark:hover:bg-purple-950 transition-colors overflow-hidden";
+  "flex flex-col text-left cursor-pointer rounded-lg border bg-base hover:border-accent hover:bg-accent-tint dark:bg-transparent dark:hover:border-accent transition-colors overflow-hidden";
 const projectionCardUnselected = "";
 const projectionCardSelected = "border-accent ring-1 ring-accent";
 

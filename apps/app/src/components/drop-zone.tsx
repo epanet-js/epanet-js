@@ -45,7 +45,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
         flex flex-col items-center justify-center p-8 cursor-pointer
         transition-all duration-200 ease-in-out
         ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
-        ${dragState === "dragging" ? "border-purple-400 bg-purple-50" : ""}
+        ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
         ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}
       `}

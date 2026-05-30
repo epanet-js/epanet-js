@@ -116,7 +116,7 @@ export const ScenarioSwitcher = () => {
           <Tooltip.Trigger asChild>
             <button
               onClick={handleCreateScenario}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-size-base text-accent-hover bg-accent-tint hover:bg-purple-100 border border-purple-200 rounded-md transition-colors"
             >
               <ScenarioIcon size="sm" />
               <span>{translate("scenarios.enableScenarios")}</span>

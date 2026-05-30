@@ -32,7 +32,7 @@ export const DemandOptionsStep: React.FC<{
             <label
               className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
                 !keepDemands
-                  ? "border-accent bg-purple-50"
+                  ? "border-accent bg-accent-tint"
                   : " bg-base hover:border-strong hover:bg-panel"
               }`}
             >
@@ -66,7 +66,7 @@ export const DemandOptionsStep: React.FC<{
             <label
               className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
                 keepDemands
-                  ? "border-accent bg-purple-50"
+                  ? "border-accent bg-accent-tint"
                   : " bg-base hover:border-strong hover:bg-panel"
               }`}
             >
