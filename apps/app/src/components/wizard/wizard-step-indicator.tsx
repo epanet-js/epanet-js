@@ -29,8 +29,8 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
               aria-current={currentStep === step.number ? "step" : undefined}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentStep >= step.number
-                  ? "bg-purple-500 text-white"
-                  : "bg-gray-200 text-gray-600"
+                  ? "bg-accent text-white"
+                  : "bg-base-active text-gray-600"
               }`}
             >
               {step.number}
@@ -50,7 +50,7 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
             <div className="flex-1">
               <div
                 className={`h-px ${
-                  currentStep > step.number ? "bg-purple-500" : "bg-gray-300"
+                  currentStep > step.number ? "bg-accent" : "bg-gray-300"
                 }`}
               />
             </div>

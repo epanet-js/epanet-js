@@ -28,7 +28,7 @@ export const SignInButton = ({
       {!children && (
         <Button
           variant="quiet"
-          className="text-purple-500 font-semibold"
+          className="text-accent font-semibold"
           autoFocus={autoFocus}
           onClick={onClick}
         >

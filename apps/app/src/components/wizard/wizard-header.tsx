@@ -18,18 +18,18 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
 }) => {
   return (
     <div className="mb-2">
-      <div className="flex items-center justify-between mb-4 px-4 py-3 border-b border-gray-200">
+      <div className="flex items-center justify-between mb-4 px-4 py-3 border-b">
         <div className="flex items-center gap-3">
-          <h1 className="font-semibold text-gray-900">{title}</h1>
+          <h1 className="font-semibold text-default">{title}</h1>
           {badge}
         </div>
         {onClose && (
           <button
             onClick={onClose}
             aria-label="Close wizard"
-            className="text-gray-500 shrink-0
-                      focus:bg-gray-200 dark:focus:bg-black
-                      hover:text-black dark:hover:text-white"
+            className="text-subtle shrink-0
+                      focus:bg-base-active
+                      hover:text-default"
           >
             <CloseIcon />
           </button>

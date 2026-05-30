@@ -263,8 +263,8 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
         className="absolute inset-0 bg-black/30 dark:bg-black/50"
         onClick={() => finish("dismissed")}
       />
-      <div className="relative z-10 w-[560px] max-w-[90vw] bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-600 overflow-hidden">
-        <div className="flex items-center px-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="relative z-10 w-[560px] max-w-[90vw] bg-popover rounded-lg shadow-2xl border border-gray-200 dark:border-gray-600 overflow-hidden">
+        <div className="flex items-center px-3 border-b">
           <span className="text-gray-400 dark:text-gray-500" aria-hidden>
             <SearchIcon size="lg" />
           </span>
@@ -312,11 +312,11 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                     "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-gray-900 dark:text-gray-100",
                     index === activeIndex
                       ? "bg-purple-300/40"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700",
+                      : "hover:bg-base-hover",
                   )}
                 >
                   <span className="truncate">{option.label}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+                  <span className="text-xs text-subtle shrink-0">
                     {option.data.kind === "asset"
                       ? typeLabel(option.data.type)
                       : "Customer Point"}

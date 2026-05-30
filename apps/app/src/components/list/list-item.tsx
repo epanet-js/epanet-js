@@ -33,10 +33,10 @@ export const ListItem = <T extends LabelledItem>({
       data-item-id={item.id}
       className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
         isSelected
-          ? "bg-gray-200 dark:hover:bg-gray-700"
+          ? "bg-base-active"
           : isMenuOpen
-            ? "bg-gray-100 dark:bg-gray-800"
-            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            ? "bg-base-hover"
+            : "hover:bg-base-hover"
       }`}
     >
       <Button

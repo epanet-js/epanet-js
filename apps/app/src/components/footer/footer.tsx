@@ -52,7 +52,7 @@ export const Footer = () => {
             />
           </div>
         )}
-        <div className="border-r-2 border-gray-100 h-10"></div>
+        <div className="border-r-2 h-10"></div>
         <ScenarioSwitcher />
         <div className="border-r-2 border-base h-10"></div>
         {isLgOrLarger && (
@@ -179,21 +179,21 @@ const buildSimulationStatusStyles = (
       if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
-          colorClass: "text-orange-500",
+          colorClass: "text-warning",
           text: translate("simulationOutdated"),
         };
       }
 
       return {
         Icon: SuccessIcon,
-        colorClass: "text-green-500",
+        colorClass: "text-success",
         text: translate("simulationSuccess"),
       };
     case "failure":
       if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
-          colorClass: "text-orange-500",
+          colorClass: "text-warning",
           text: translate("simulationOutdated"),
         };
       }
@@ -207,7 +207,7 @@ const buildSimulationStatusStyles = (
       if (isOutdated(simulation, hydraulicModel, settingsVersion)) {
         return {
           Icon: OutdatedSimulationIcon,
-          colorClass: "text-orange-500",
+          colorClass: "text-warning",
           text: translate("simulationOutdated"),
         };
       }
@@ -220,7 +220,7 @@ const buildSimulationStatusStyles = (
     case "stopped":
       return {
         Icon: StopSimulationIcon,
-        colorClass: "text-blue-500",
+        colorClass: "text-info",
         text: translate("simulationStopped"),
       };
   }

@@ -42,8 +42,8 @@ export const ItemActions = ({
               isSelected
                 ? "hover:bg-white/30 dark:hover:bg-white/10"
                 : isOpen
-                  ? "hover:bg-gray-200 dark:hover:bg-gray-700"
-                  : "invisible group-hover:visible hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "hover:bg-base-active"
+                  : "invisible group-hover:visible hover:bg-base-active"
             }`}
           >
             <MoreActionsIcon size="sm" />
