@@ -387,7 +387,7 @@ const isCreatingInSection = (
 };
 
 const InvalidCurveIcon = () => (
-  <span className="text-orange-500 shrink-0">
+  <span className="text-warning shrink-0">
     <WarningIcon size="sm" />
   </span>
 );

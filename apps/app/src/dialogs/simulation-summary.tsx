@@ -47,7 +47,7 @@ const SimulationSummaryDialogNew = ({
     },
     stopped: {
       title: translate("simulationStopped"),
-      iconClass: "text-blue-500",
+      iconClass: "text-info",
     },
   }[modal.status];
 

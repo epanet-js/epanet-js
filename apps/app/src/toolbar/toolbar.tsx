@@ -294,7 +294,7 @@ export const Toolbar = ({
 };
 
 const Divider = () => {
-  return <div className="border-r-2 border-gray-100 h-8 mx-1"></div>;
+  return <div className="border-r-2 h-8 mx-1"></div>;
 };
 
 const CommandBarButton = () => {

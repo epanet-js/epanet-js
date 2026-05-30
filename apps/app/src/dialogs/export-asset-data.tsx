@@ -136,7 +136,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={includeSimulationResults}
               disabled={!hasSimulationResults}
               onChange={(e) => setIncludeSimulationResults(e.target.checked)}
-              className="rounded-sm text-purple-600 focus:ring-accent"
+              className="rounded-sm text-accent-hover focus:ring-accent"
             />
             <span className="text-size-base text-default">
               {includeSimulationResultsLabelText}
@@ -150,7 +150,7 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
               checked={selectedAssetsOnly}
               disabled={!hasSelection}
               onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-              className="rounded-sm text-purple-600 focus:ring-accent"
+              className="rounded-sm text-accent-hover focus:ring-accent"
             />
             <span className="text-size-base text-default">
               {translate("exportSelectedAssetsOnly")}

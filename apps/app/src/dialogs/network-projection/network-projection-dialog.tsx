@@ -421,7 +421,7 @@ export const NetworkProjectionDialog = ({
                 showEmptyState={!!selectedLocation || !!initialProjection}
               />
               {projectionError && (
-                <p className="mt-2 text-size-base text-red-600 dark:text-red-400 p-2 border border-red-200 dark:border-red-800 rounded-md bg-error-subtle dark:bg-red-950 shrink-0">
+                <p className="mt-2 text-size-base text-error p-2 border border-red-200 dark:border-red-800 rounded-md bg-error-subtle dark:bg-red-950 shrink-0">
                   {projectionError}
                 </p>
               )}

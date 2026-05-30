@@ -195,7 +195,7 @@ const DataInputStep = ({
         </div>
       )}
       {showNoProjectionWarning && (
-        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-blue-50 text-blue-700 text-size-base dark:bg-blue-950 dark:text-blue-300">
+        <div className="flex items-center gap-2 mt-3 p-3 rounded-md bg-info-subtle text-blue-700 text-size-base dark:text-blue-300">
           {translate(
             "importZones.dataInputStep.noProjectionWarning",
             networkProjectionName,
@@ -270,12 +270,12 @@ const LabelPreviewTable = ({
         </thead>
         <tbody>
           {labels.map((label, i) => (
-            <tr key={i} className="border-t border-gray-100">
+            <tr key={i} className="border-t border">
               <td className="px-3 py-1.5 text-default">{label}</td>
             </tr>
           ))}
           {totalCount > PREVIEW_LIMIT && (
-            <tr className="border-t border-gray-100">
+            <tr className="border-t border">
               <td className="px-3 py-1.5 text-subtle italic">
                 {translate(
                   "importZones.dataMappingStep.previewMore",
@@ -295,7 +295,7 @@ const CompleteStep = ({ numZones }: { numZones: number }) => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-8">
-      <SuccessIcon size="xl" className="text-green-600" />
+      <SuccessIcon size="xl" className="text-success" />
       <p className="text-size-base text-default">
         {translate("importZones.completeStep.summary", numZones.toString())}
       </p>

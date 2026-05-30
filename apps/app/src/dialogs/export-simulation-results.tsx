@@ -336,7 +336,7 @@ export const ExportSimulationResultsDialog = ({
             checked={selectedAssetsOnly}
             disabled={!hasSelection}
             onChange={(e) => setSelectedAssetsOnly(e.target.checked)}
-            className="rounded-sm text-purple-600 focus:ring-accent disabled:opacity-50"
+            className="rounded-sm text-accent-hover focus:ring-accent disabled:opacity-50"
           />
           <span className="text-size-base text-default">
             {translate("exportSelectedAssetsOnly")}
@@ -350,7 +350,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={nodeAllChecked}
                 indeterminate={nodeIndeterminate}
                 onChange={toggleAllNodes}
-                className="rounded-sm text-purple-600 focus:ring-accent"
+                className="rounded-sm text-accent-hover focus:ring-accent"
               />
               <span className="text-size-base font-medium text-default">
                 {translate("nodes")}
@@ -382,7 +382,7 @@ export const ExportSimulationResultsDialog = ({
                           [key]: e.target.checked,
                         }))
                       }
-                      className="rounded text-purple-600 focus:ring-accent disabled:opacity-50"
+                      className="rounded text-accent-hover focus:ring-accent disabled:opacity-50"
                     />
                     <span className="text-size-base text-default">
                       {translate(translationKey)}
@@ -399,7 +399,7 @@ export const ExportSimulationResultsDialog = ({
                 checked={linkAllChecked}
                 indeterminate={linkIndeterminate}
                 onChange={toggleAllLinks}
-                className="rounded-sm text-purple-600 focus:ring-accent"
+                className="rounded-sm text-accent-hover focus:ring-accent"
               />
               <span className="text-size-base font-medium text-default">
                 {translate("links")}
@@ -427,7 +427,7 @@ export const ExportSimulationResultsDialog = ({
                         [key]: e.target.checked,
                       }))
                     }
-                    className="rounded-sm text-purple-600 focus:ring-accent"
+                    className="rounded-sm text-accent-hover focus:ring-accent"
                   />
                   <span className="text-size-base text-default">
                     {translate(translationKey)}

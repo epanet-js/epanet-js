@@ -41,7 +41,7 @@ export const SimulationSettingsSidebar = ({
                   "w-full text-left px-3 py-1.5 rounded-sm text-size-base transition-colors",
                   isCategoryActive && !subcategoryIds.includes(activeSection)
                     ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                    : "text-subtle hover:bg-base-hover dark:hover:bg-gray-800",
+                    : "text-subtle hover:bg-base-hover",
                 )}
               >
                 {translate(category.translationKey)}
@@ -57,7 +57,7 @@ export const SimulationSettingsSidebar = ({
                           "w-full text-left pl-6 pr-3 py-1.5 rounded-sm text-size-base transition-colors",
                           activeSection === sub.id
                             ? "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-200 font-medium"
-                            : "text-subtle hover:bg-base-hover dark:hover:bg-gray-800",
+                            : "text-subtle hover:bg-base-hover",
                         )}
                       >
                         {translate(sub.translationKey)}
