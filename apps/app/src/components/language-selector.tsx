@@ -60,7 +60,7 @@ export const LanguageSelector = ({
                     <div className="flex items-center gap-2 flex-1">
                       <span>{language.name}</span>
                       {language.experimental && (
-                        <WarningIcon className="text-orange-500" />
+                        <WarningIcon className="text-warning" />
                       )}
                     </div>
                     <div className="w-4 h-4 flex items-center justify-center">

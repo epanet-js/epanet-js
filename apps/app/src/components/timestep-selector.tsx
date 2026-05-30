@@ -113,7 +113,7 @@ export const TimestepSelectorUI = ({
       </div>
       {isPlaying && speedWarning && (
         <div className="flex items-start gap-1.5 text-size-small bg-base-hover/80 px-2 py-1 rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
-          <WarningIcon className="shrink-0 mt-px text-orange-500" />
+          <WarningIcon className="shrink-0 mt-px text-warning" />
           <span className="wrap-break-word min-w-0">
             {translate(
               speedWarning === "slow"
@@ -198,7 +198,7 @@ const SpeedButton = () => {
             {speedOptions.map(({ translationKey, value, warning }) => (
               <StyledRadioItem key={value} value={value}>
                 <span className="flex-1">{translate(translationKey)}</span>
-                {warning && <WarningIcon className="text-orange-500" />}
+                {warning && <WarningIcon className="text-warning" />}
                 <span className="w-4 flex items-center justify-center">
                   <DD.ItemIndicator>
                     <CheckIcon className="text-accent" />

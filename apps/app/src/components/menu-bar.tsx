@@ -250,7 +250,7 @@ export function HelpDot() {
 }
 
 export const Divider = () => {
-  return <div className="border-r-2 border-gray-100 h-8 mr-1"></div>;
+  return <div className="border-r-2 h-8 mr-1"></div>;
 };
 
 export const SideMenu = () => {
@@ -465,7 +465,7 @@ const TrialOrUpgradeButton = ({
 
   if (trial) {
     const colorClass = trial.isUrgent
-      ? "text-orange-600 dark:text-orange-400"
+      ? "text-warning"
       : "text-accent-hover";
 
     return (
