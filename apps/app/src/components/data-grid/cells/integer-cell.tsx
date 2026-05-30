@@ -118,7 +118,7 @@ export function IntegerCell({
         onKeyDown={handleKeyDown}
         readOnly={!editMode}
         className={clsx(
-          "w-full px-2 text-size-base tabular-nums outline-hidden border-none ring-0 focus:outline-hidden focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-gray-400",
+          "w-full px-2 text-size-base tabular-nums outline-hidden border-none ring-0 focus:outline-hidden focus:ring-0 bg-transparent truncate placeholder:italic placeholder:text-subtle",
           !editMode && "mousetrap pointer-events-none",
         )}
       />

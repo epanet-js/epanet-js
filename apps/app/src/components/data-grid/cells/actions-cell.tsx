@@ -41,7 +41,7 @@ export function ActionsCell({
                 key={index}
                 className={`flex items-center gap-2 px-3 py-2 text-size-base outline-hidden ${
                   isDisabled
-                    ? "text-gray-400 cursor-not-allowed"
+                    ? "text-disabled cursor-not-allowed"
                     : "cursor-pointer hover:bg-base-hover"
                 }`}
                 onSelect={() => !isDisabled && action.onSelect(rowIndex)}

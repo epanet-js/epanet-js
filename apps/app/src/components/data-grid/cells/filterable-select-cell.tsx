@@ -119,12 +119,12 @@ export function FilterableSelectCell({
         <span
           className={clsx(
             "truncate",
-            !selectedOption ? "text-gray-400" : "text-default",
+            !selectedOption ? "text-subtle" : "text-default",
           )}
         >
           {selectedOption?.label ?? placeholder}
         </span>
-        <div className="pl-1 text-gray-400">
+        <div className="pl-1 text-subtle">
           <ChevronDownIcon />
         </div>
       </div>
@@ -149,7 +149,7 @@ export function FilterableSelectCell({
             className="w-full h-full pl-2 flex items-center justify-between gap-1 text-size-base text-default bg-transparent border-none outline-hidden text-left min-w-0"
           >
             <span
-              className={clsx("truncate", !selectedOption && "text-gray-400")}
+              className={clsx("truncate", !selectedOption && "text-subtle")}
             >
               {selectedOption?.label ?? placeholder}
             </span>

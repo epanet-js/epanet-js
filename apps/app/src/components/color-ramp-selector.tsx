@@ -169,7 +169,7 @@ const ZoneColorRampSelector = ({
 
   if (readonly) {
     return (
-      <div className="flex items-center w-full min-w-[90px] border rounded-xs border-gray-200 p-2 min-h-9">
+      <div className="flex items-center w-full min-w-[90px] border rounded-xs p-2 min-h-9">
         {rampPreview}
       </div>
     );
@@ -177,9 +177,9 @@ const ZoneColorRampSelector = ({
 
   const triggerStyles = clsx(
     "flex items-center gap-x-2 justify-between w-full min-w-[90px]",
-    "border rounded-xs border-gray-200",
+    "border rounded-xs",
     "text-sm text-gray-700",
-    "focus:ring-inset focus:ring-1 focus:ring-purple-500 focus:bg-purple-300/10",
+    "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10",
     "p-2 min-h-9 w-full",
   );
 

@@ -467,7 +467,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         </div>
         {unallocatedCount > 0 && (
           <div className="flex items-center">
-            <WarningIcon className="text-orange-500 mr-2" />
+            <WarningIcon className="text-warning mr-2" />
             <span className="text-size-base text-orange-700">
               {translate(
                 "importCustomerPoints.wizard.allocationStep.unallocatedPoints",
