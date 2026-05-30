@@ -213,7 +213,7 @@ function styledInput({
         variant === "warning",
     },
     "text-size-small",
-    "placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:italic",
+    "placeholder:text-subtle placeholder:italic",
     "bg-transparent rounded-xs block tabular-nums overflow-hidden whitespace-nowrap text-ellipsis focus-visible:ring-inset w-full",
   );
 }
