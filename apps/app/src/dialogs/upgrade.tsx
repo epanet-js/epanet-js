@@ -202,7 +202,7 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
 const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
   return (
-    <div className="bg-base border border-gray-100 rounded-md shadow-md overflow-hidden flex flex-col justify-between">
+    <div className="bg-base border rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Free"
@@ -345,7 +345,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const userTracking = useUserTracking();
 
   return (
-    <div className="relative bg-base border border-gray-100 rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
+    <div className="relative bg-base border rounded-lg shadow-md shadow-gray-300 overflow-hidden flex flex-col h-fit">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
         <PlanHeader
           name="Education"
@@ -380,7 +380,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         <div className="text-size-small text-center text-subtle">
           <p>{translate("havingIssuesWithStudentEmail")}</p>
           <a
-            className="text-blue-600"
+            className="text-info"
             target="_blank"
             href={studentAccountActiviationHelpUrl}
             onClick={() => {

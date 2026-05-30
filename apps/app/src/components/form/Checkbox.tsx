@@ -13,7 +13,7 @@ export const Checkbox = ({
         checked:bg-current checked:border-transparent
         ${
           disabled
-            ? "cursor-not-allowed bg-gray-200 opacity-50"
+            ? "cursor-not-allowed bg-base-disabled opacity-50"
             : "cursor-pointer bg-panel focus:ring-accent"
         }
       `}
@@ -54,7 +54,7 @@ export const TriStateCheckbox = ({
       onChange={(e) => onChange(e.target.checked)}
       className={`w-4 h-4 text-accent border-strong rounded checked:bg-current checked:border-transparent ${
         disabled
-          ? "cursor-not-allowed bg-gray-200 opacity-50"
+          ? "cursor-not-allowed bg-base-disabled opacity-50"
           : "cursor-pointer bg-panel focus:ring-accent"
       }`}
     />

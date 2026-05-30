@@ -27,7 +27,7 @@ export const triggerStylesFor = (
   return clsx(
     "flex items-center gap-x-2 w-full",
     disabled
-      ? "text-subtle cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      ? "text-subtle cursor-not-allowed bg-base-disabled"
       : "text-default bg-base",
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&

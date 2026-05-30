@@ -85,7 +85,7 @@ export const BlockComparisonField = ({
       <div className="relative">
         {hasChanged && (
           <div
-            className="absolute top-0 bottom-0 w-1 bg-purple-500 rounded-full"
+            className="absolute top-0 bottom-0 w-1 bg-accent rounded-full"
             style={{ left: `-${leftOffset}px` }}
           />
         )}
@@ -274,16 +274,12 @@ export const SectionList = ({
     >
       {header || footer ? (
         <div className="flex flex-col grow overflow-hidden">
-          {header && (
-            <div className="sticky top-0 z-10 bg-white dark:bg-gray-950">
-              {header}
-            </div>
-          )}
+          {header && <div className="sticky top-0 z-10 bg-base">{header}</div>}
           {content}
           {isStickyFooter && footer && (
             <div
               className={clsx(
-                "z-10 bg-white dark:bg-gray-950 flex flex-col relative border-y",
+                "z-10 bg-base flex flex-col relative border-y",
                 isResizableFooter ? "shrink-0" : "sticky bottom-0",
               )}
               style={

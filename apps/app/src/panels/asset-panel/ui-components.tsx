@@ -160,7 +160,7 @@ const Header = ({
         <PanelActions />
       </div>
       {error && (
-        <span className="text-size-small text-orange-600 dark:text-orange-400 block mt-1 pl-1">
+        <span className="text-size-small text-warning block mt-1 pl-1">
           {error}
         </span>
       )}

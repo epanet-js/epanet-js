@@ -166,7 +166,7 @@ function styledInput({
 }: StyleOptions = {}) {
   return clsx(
     disabled
-      ? "text-subtle cursor-not-allowed bg-gray-100 dark:bg-gray-800"
+      ? "text-subtle cursor-not-allowed bg-base-disabled"
       : "text-default",
     {
       "p-1": padding === "sm",

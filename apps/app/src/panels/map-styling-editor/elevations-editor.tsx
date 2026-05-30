@@ -346,7 +346,7 @@ const GeoTiffTilesPopover = ({
               onMouseEnter={() => overlay.highlightTile(source.id, tile.id)}
               onMouseLeave={() => overlay.highlightTile(source.id, null)}
               onClick={() => handleTileClick(tile)}
-              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-base-hover dark:hover:bg-gray-800"
+              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-base-hover"
             >
               <span className="text-size-base">{tile.file.name}</span>
               {!readonly && (

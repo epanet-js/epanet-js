@@ -47,7 +47,7 @@ export const DemandOptionsStep: React.FC<{
                     option: "replace",
                   });
                 }}
-                className="mt-1 h-4 w-4 text-purple-600 border-strong focus:ring-accent"
+                className="mt-1 h-4 w-4 text-accent-hover border-strong focus:ring-accent"
               />
               <div className="flex-1">
                 <div className="font-medium text-default">
@@ -81,7 +81,7 @@ export const DemandOptionsStep: React.FC<{
                     option: "addOnTop",
                   });
                 }}
-                className="mt-1 h-4 w-4 text-purple-600 border-strong focus:ring-accent"
+                className="mt-1 h-4 w-4 text-accent-hover border-strong focus:ring-accent"
               />
               <div className="flex-1">
                 <div className="font-medium text-default">

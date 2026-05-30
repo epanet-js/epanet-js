@@ -176,7 +176,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                 "border rounded-xs border-base px-2 py-2 text-size-base",
                 "outline-hidden focus:outline-hidden focus-visible:outline-hidden",
                 disabled
-                  ? "cursor-not-allowed bg-gray-100 border-strong text-gray-400 dark:bg-gray-800 dark:text-gray-500"
+                  ? "cursor-not-allowed bg-base-disabled border-strong text-disabled"
                   : "text-default bg-popover focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10 focus:border-transparent",
               )}
             />

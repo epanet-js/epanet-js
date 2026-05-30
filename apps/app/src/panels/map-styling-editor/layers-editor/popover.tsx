@@ -1095,7 +1095,7 @@ export function LayersPopover({ onClose }: { onClose: () => void }) {
             restrictToFirstScrollableAncestor,
           ]}
         >
-          <div className="pt-3 border-t border-gray-100">
+          <div className="pt-3 border-t border">
             <SortableContext
               items={items}
               strategy={verticalListSortingStrategy}

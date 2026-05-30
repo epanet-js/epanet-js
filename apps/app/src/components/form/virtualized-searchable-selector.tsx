@@ -189,7 +189,7 @@ export const VirtualizedSearchableSelector = <
                 leadingIcon ? "pl-8 pr-2" : "px-2",
                 "outline-hidden focus:outline-hidden focus-visible:outline-hidden",
                 disabled
-                  ? "cursor-not-allowed bg-base-hover border-strong text-subtle dark:text-subtle"
+                  ? "cursor-not-allowed bg-base-disabled border-strong text-subtle"
                   : "text-default bg-popover dark:text-gray-100 focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10 focus:border-transparent",
               )}
             />

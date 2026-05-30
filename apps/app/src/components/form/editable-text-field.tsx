@@ -209,9 +209,7 @@ function styledInput({
   const isInteractive = !disabled && !readOnly;
 
   return clsx(
-    disabled
-      ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
-      : "text-default",
+    disabled ? "text-disabled cursor-not-allowed" : "text-default",
     readOnly && "cursor-default",
     {
       "p-1": padding === "sm",

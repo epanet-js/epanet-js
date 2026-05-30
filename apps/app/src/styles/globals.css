@@ -72,6 +72,7 @@
 
   --color-panel: var(--color-gray-50);
   --color-base-active: var(--color-gray-200);
+  --color-base-disabled: var(--color-gray-100);
   --color-disabled: var(--color-gray-300);
 
   /* Semantic font sizes */
@@ -314,6 +315,7 @@ details summary::-webkit-details-marker {
   --color-accent-hover: var(--color-purple-400);
   --color-base-hover: var(--color-gray-700);
   --color-base-active: var(--color-gray-600);
+  --color-base-disabled: var(--color-gray-800);
   --color-panel: var(--color-gray-800);
   --color-popover: var(--color-gray-800);
   --color-default: var(--color-white);

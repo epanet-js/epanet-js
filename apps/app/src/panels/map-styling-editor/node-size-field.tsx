@@ -291,7 +291,7 @@ const ZoomRangeSlider = ({
         </Slider.Root>
         <div
           aria-hidden
-          className="absolute top-1/2 right-0 -translate-y-1/2 w-4 h-4 rounded-full bg-base border-2 border-strong dark:border-gray-500 pointer-events-none"
+          className="absolute top-1/2 right-0 -translate-y-1/2 w-4 h-4 rounded-full bg-base border-2 border-strong pointer-events-none"
         />
       </div>
 
@@ -337,7 +337,7 @@ const SizeSlider = ({
       disabled={disabled}
     >
       <Slider.Track className="relative grow rounded-full h-2 bg-gray-200 dark:bg-gray-700">
-        <Slider.Range className="absolute h-full rounded-full bg-purple-400 dark:bg-accent" />
+        <Slider.Range className="absolute h-full rounded-full bg-accent" />
       </Slider.Track>
       <Slider.Thumb
         id={id}

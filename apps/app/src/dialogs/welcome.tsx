@@ -455,7 +455,7 @@ const RecentFileCard = ({
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <FileSpreadsheetIcon className="text-gray-300" />
+          <FileSpreadsheetIcon className="text-disabled" />
         </div>
       )}
     </div>
