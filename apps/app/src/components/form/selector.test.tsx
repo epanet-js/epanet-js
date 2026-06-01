@@ -536,6 +536,11 @@ describe("Selector", () => {
       );
       const user = setupUser();
       await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: "Open library" }),
+        ).toBeInTheDocument();
+      });
       await user.keyboard("{Enter}");
 
       expect(onActionClick).toHaveBeenCalled();
@@ -622,8 +627,7 @@ describe("Selector", () => {
           onActionClick={onActionClick}
         />,
       );
-      const user = setupUser();
-      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      const user = await openSelector();
       // Active starts on "Apple" (index 0). ArrowDown twice → action row.
       await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
@@ -640,8 +644,7 @@ describe("Selector", () => {
           onChange={onChange}
         />,
       );
-      const user = setupUser();
-      await user.click(screen.getByRole("combobox", { name: "Pick one" }));
+      const user = await openSelector();
       await user.keyboard("c{Enter}");
 
       expect(onChange).toHaveBeenCalledWith("Cherry", "Apple");
