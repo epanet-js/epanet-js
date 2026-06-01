@@ -130,6 +130,7 @@ export const tankDiameterFor = (
     minVolume > 0
       ? (maxVolume - minVolume) / (maxLevel - minLevel)
       : maxVolume / maxLevel;
+  if (!Number.isFinite(area)) return 0;
   return tankDiameterFromArea(area);
 };
 
