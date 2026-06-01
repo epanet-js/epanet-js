@@ -6,7 +6,6 @@ import { searchNearbyRenderedFeatures } from "src/map/search";
 import { lineString, point } from "@turf/helpers";
 import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import { findNearestPointOnLine } from "src/lib/geometry";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type SnapStrategy = "nearest-to-point" | "cursor";
 
@@ -18,8 +17,6 @@ export const usePipeSnappingForCustomerPoints = (
   map: MapEngine,
   assetsMap: AssetsMap,
 ) => {
-  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
-
   const findNearestPipe = (
     screenPoint: mapboxgl.Point,
     mouseCoord: Position,
@@ -51,11 +48,9 @@ export const usePipeSnappingForCustomerPoints = (
 
       const pipeLineString = lineString(pipeGeometry.coordinates);
       const mousePoint = point(mouseCoord);
-      const result = withPrecision
-        ? findNearestPointOnLine(pipeLineString, mousePoint, {
-            precision: map.getPrecision(),
-          })
-        : findNearestPointOnLine(pipeLineString, mousePoint);
+      const result = findNearestPointOnLine(pipeLineString, mousePoint, {
+        precision: map.getPrecision(),
+      });
 
       const distance = result.distance ?? Number.MAX_VALUE;
       if (!closestPipe || distance < closestPipe.distance) {
@@ -87,7 +82,7 @@ export const usePipeSnappingForCustomerPoints = (
 
     const pipeLineString = lineString(pipeGeometry.coordinates);
 
-    const precision = withPrecision ? map.getPrecision() : undefined;
+    const precision = map.getPrecision();
 
     switch (strategy) {
       case "cursor": {

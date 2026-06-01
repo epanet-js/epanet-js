@@ -107,8 +107,7 @@ describe("addLink", () => {
           [20, 20],
           [20, 20],
           [25, 25],
-          [25, 25 + 1e-10],
-          [25 + 1e-10, 25],
+          [25, 25],
           [30, 30],
           [30, 30],
         ],
@@ -134,7 +133,6 @@ describe("addLink", () => {
     });
 
     it("ensures at least it has two points", () => {
-      const epsilon = 1e-10;
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({
         labelManager,
@@ -147,14 +145,14 @@ describe("addLink", () => {
         coordinates: [0, 1],
       });
       const endNode = assetFactory.createJunction({
-        coordinates: [0, 1 + epsilon],
+        coordinates: [0, 2],
       });
 
       const link = assetFactory.createPump({
         coordinates: [
           [0, 1],
-          [0, 1 + 2 * epsilon],
-          [0, 1 + 3 * epsilon],
+          [0, 1],
+          [0, 1],
         ],
       });
 
@@ -171,7 +169,7 @@ describe("addLink", () => {
       expect(pumpToCreate.id).toEqual(link.id);
       expect(pumpToCreate.coordinates).toEqual([
         [0, 1],
-        [0, 1 + epsilon],
+        [0, 2],
       ]);
     });
 

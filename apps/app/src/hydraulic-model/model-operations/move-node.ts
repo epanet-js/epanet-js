@@ -23,52 +23,10 @@ type InputData = {
   lengthUnit: Unit;
   assetFactory: AssetFactory;
   labelManager: LabelManager;
-};
-
-type InputDataWithPrecision = InputData & {
   precision?: number;
 };
 
 export const moveNode: ModelOperation<InputData> = (
-  hydraulicModel,
-  {
-    nodeId,
-    newCoordinates,
-    newElevation,
-    shouldUpdateCustomerPoints = false,
-    pipeIdToSplit,
-    lengthUnit,
-    assetFactory,
-    labelManager,
-  },
-) => {
-  if (pipeIdToSplit) {
-    return moveNodeWithPipeSplitting(
-      hydraulicModel,
-      nodeId,
-      newCoordinates,
-      newElevation,
-      shouldUpdateCustomerPoints,
-      pipeIdToSplit,
-      lengthUnit,
-      assetFactory,
-      labelManager,
-      undefined,
-    );
-  }
-
-  return moveNodeStandard(hydraulicModel, {
-    nodeId,
-    newCoordinates,
-    newElevation,
-    shouldUpdateCustomerPoints,
-    lengthUnit,
-    assetFactory,
-    labelManager,
-  });
-};
-
-export const moveNodeWithPrecision: ModelOperation<InputDataWithPrecision> = (
   hydraulicModel,
   {
     nodeId,
@@ -109,9 +67,7 @@ export const moveNodeWithPrecision: ModelOperation<InputDataWithPrecision> = (
   });
 };
 
-const moveNodeStandard: ModelOperation<
-  Omit<InputDataWithPrecision, "pipeIdToSplit">
-> = (
+const moveNodeStandard: ModelOperation<Omit<InputData, "pipeIdToSplit">> = (
   hydraulicModel,
   {
     nodeId,

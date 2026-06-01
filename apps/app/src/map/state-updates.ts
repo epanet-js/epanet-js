@@ -36,11 +36,7 @@ import {
 import type { Highlight } from "src/state/highlights";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
-import {
-  buildBaseStyle,
-  buildBaseStyleWithPrecision,
-  makeLayers,
-} from "./build-style";
+import { buildBaseStyle, makeLayers } from "./build-style";
 import { gisDataAtom } from "src/state/gis-data";
 import {
   gisLayerFill,
@@ -197,7 +193,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
   const zonesEnabled = useFeatureFlag("FLAG_ZONES");
 
   const doUpdates = useCallback(() => {
@@ -257,10 +252,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         if (hasNewStyles) {
           map.suspendOverlayStyleReactions();
           resetMapState(map);
-          const buildAndSetStyle = withPrecision
-            ? buildBaseStyleWithPrecisionAndSetOnMap
-            : buildBaseStyleAndSetOnMap;
-          await buildAndSetStyle(map, mapState.stylesConfig, translate);
+          await buildBaseStyleAndSetOnMap(
+            map,
+            mapState.stylesConfig,
+            translate,
+          );
           addGisLayersToMap(map, mapState.stylesConfig, gisData);
           addEditingLayersToMap(
             map,
@@ -566,7 +562,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel.assets,
     isGridOn,
     isGridPreview,
-    withPrecision,
     zonesEnabled,
   ]);
 
@@ -581,7 +576,6 @@ const resetMapState = withDebugInstrumentation(
   { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
 );
 
-// LEGACY: remove once FLAG_DRAWING_PRECISION is permanently on.
 const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
   async (
     map: MapEngine,
@@ -595,24 +589,6 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
     await map.setStyle(style);
   },
   { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
-);
-
-const buildBaseStyleWithPrecisionAndSetOnMap = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    styles: StylesConfig,
-    translate: (key: string) => string,
-  ) => {
-    const style = await buildBaseStyleWithPrecision({
-      layerConfigs: styles.layerConfigs,
-      translate,
-    });
-    await map.setStyle(style);
-  },
-  {
-    name: "MAP_STATE:BUILD_BASE_STYLE",
-    maxDurationMs: 1000,
-  },
 );
 
 const toggleAnalysisLayers = withDebugInstrumentation(

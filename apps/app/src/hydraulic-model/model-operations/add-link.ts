@@ -1,6 +1,5 @@
 import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
 import { Pipe } from "../asset-types/pipe";
-import distance from "@turf/distance";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
 import { LabelManager } from "../label-manager";
@@ -44,86 +43,6 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
   linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
   forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
   removeRedundantVertices(linkCopy);
-  linkCopy.setProperty("length", computeLinkLength(linkCopy, lengthUnit));
-
-  linkCopy.setProperty(
-    "isActive",
-    inferLinkActiveTopologyStatus(hydraulicModel, data),
-  );
-
-  startNodeCopy.setProperty(
-    "isActive",
-    inferNodeActiveTopologyStatus(
-      hydraulicModel,
-      startNodeCopy,
-      linkCopy,
-      startPipeId,
-    ),
-  );
-
-  endNodeCopy.setProperty(
-    "isActive",
-    inferNodeActiveTopologyStatus(
-      hydraulicModel,
-      endNodeCopy,
-      linkCopy,
-      endPipeId,
-    ),
-  );
-
-  if (linkCopy.type === "pump") {
-    (linkCopy.feature.properties as Record<string, unknown>).curve = [
-      { x: 1, y: 1 },
-    ];
-  }
-
-  const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
-    link: linkCopy,
-    startNode: startNodeCopy,
-    endNode: endNodeCopy,
-    startPipeId,
-    endPipeId,
-    hydraulicModel,
-    lengthUnit,
-    assetFactory,
-    labelManager,
-  });
-
-  return {
-    note: `Add ${link.type}`,
-    deleteAssets: deleteAssets.length > 0 ? deleteAssets : undefined,
-    ...removeOverlappingPipes({
-      link: linkCopy,
-      startNode: startNodeCopy,
-      endNode: endNodeCopy,
-      putAssets,
-      putCustomerPoints,
-    }),
-  };
-};
-
-export const addLinkWithPrecision: ModelOperation<InputData> = (
-  hydraulicModel,
-  data,
-) => {
-  const {
-    link,
-    startNode,
-    endNode,
-    startPipeId,
-    endPipeId,
-    lengthUnit,
-    assetFactory,
-    labelManager,
-  } = data;
-  const linkCopy = link.copy();
-  const startNodeCopy = startNode.copy();
-  const endNodeCopy = endNode.copy();
-
-  addMissingLabels(labelManager, linkCopy, startNodeCopy, endNodeCopy);
-  linkCopy.setConnections(startNodeCopy.id, endNodeCopy.id);
-  forceSpatialConnectivity(linkCopy, startNodeCopy, endNodeCopy);
-  removeRedundantVerticesExact(linkCopy);
   linkCopy.setProperty("length", computeLinkLength(linkCopy, lengthUnit));
 
   linkCopy.setProperty(
@@ -459,34 +378,6 @@ const updateCustomerPoints = ({
 
 const removeRedundantVertices = (link: LinkAsset) => {
   const vertices = link.coordinates;
-  if (vertices.length <= 2) {
-    return;
-  }
-  const start = vertices[0];
-  const end = vertices[vertices.length - 1];
-
-  const result = [start];
-
-  for (let i = 1; i < vertices.length - 1; i++) {
-    const prev = result[result.length - 1];
-    const current = vertices[i];
-    if (!isAlmostTheSamePoint(prev, current)) {
-      result.push(current);
-    }
-  }
-
-  const lastInResult = result[result.length - 1];
-  if (isAlmostTheSamePoint(lastInResult, end) && result.length >= 2) {
-    result[result.length - 1] = end;
-  } else {
-    result.push(end);
-  }
-
-  link.setCoordinates(result);
-};
-
-const removeRedundantVerticesExact = (link: LinkAsset) => {
-  const vertices = link.coordinates;
   if (vertices.length <= 2) return;
 
   const result: Position[] = [vertices[0]];
@@ -512,12 +403,6 @@ const forceSpatialConnectivity = (
   newCoordinates[newCoordinates.length - 1] = endNode.coordinates;
 
   link.setCoordinates(newCoordinates);
-};
-
-const isAlmostTheSamePoint = (a: Position, b: Position) => {
-  const minResolutionInMeters = 1;
-  const distanceInMeters = distance(a, b) * 1000;
-  return distanceInMeters <= minResolutionInMeters;
 };
 
 const validatePipeOrThrow = (

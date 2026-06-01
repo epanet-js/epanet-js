@@ -5,15 +5,11 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
-import {
-  replaceLink,
-  replaceLinkWithPrecision,
-} from "src/hydraulic-model/model-operations";
+import { replaceLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,
@@ -26,7 +22,6 @@ export function useRedrawLinkHandlers(
   const { assets } = hydraulicModel;
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { selectAsset } = useSelection(selection);
-  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
 
   const selectedIds = USelection.toIds(selection);
   const selectedAssets = selectedIds
@@ -48,30 +43,18 @@ export function useRedrawLinkHandlers(
       return;
     }
 
-    const moment = withPrecision
-      ? replaceLinkWithPrecision(hydraulicModel, {
-          sourceLinkId: sourceLink.id,
-          startNode,
-          endNode,
-          startPipeId,
-          endPipeId,
-          newLink: link,
-          lengthUnit: handlerContext.units.length,
-          assetFactory,
-          labelManager,
-          precision: handlerContext.map.getPrecision(),
-        })
-      : replaceLink(hydraulicModel, {
-          sourceLinkId: sourceLink.id,
-          startNode,
-          endNode,
-          startPipeId,
-          endPipeId,
-          newLink: link,
-          lengthUnit: handlerContext.units.length,
-          assetFactory,
-          labelManager,
-        });
+    const moment = replaceLink(hydraulicModel, {
+      sourceLinkId: sourceLink.id,
+      startNode,
+      endNode,
+      startPipeId,
+      endPipeId,
+      newLink: link,
+      lengthUnit: handlerContext.units.length,
+      assetFactory,
+      labelManager,
+      precision: handlerContext.map.getPrecision(),
+    });
 
     userTracking.capture({ name: "asset.redrawed", type: link.type });
     transact(moment);

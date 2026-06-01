@@ -10,9 +10,8 @@ import { cursorStyleAtom } from "src/state/map";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
-import { useGetMapCoord } from "../utils";
+import { getMapCoord } from "../utils";
 import { useRef } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
@@ -25,10 +24,7 @@ import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
-import {
-  addLink,
-  addLinkWithPrecision,
-} from "src/hydraulic-model/model-operations";
+import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
@@ -176,8 +172,6 @@ export function useDrawLinkHandlers({
   const usingTouchEvents = useRef<boolean>(false);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const lengthUnit = units.length;
-  const getMapCoord = useGetMapCoord();
-  const withPrecision = useFeatureFlag("FLAG_DRAWING_PRECISION");
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
 
   const { isShiftHeld, isControlHeld } = useKeyboardState();
@@ -310,23 +304,7 @@ export function useDrawLinkHandlers({
     return link.id;
   };
 
-  // LEGACY: remove once FLAG_DRAWING_PRECISION is permanently on.
-  const addVertexLegacy = (coordinates: Position) => {
-    if (drawing.isNull) return;
-
-    if (isNewVertexTooClose(drawing.link.coordinates, coordinates, map)) return;
-
-    const linkCopy = drawing.link.copy();
-    linkCopy.addVertex(coordinates);
-    setDrawing({
-      startNode: drawing.startNode,
-      startPipeId: drawing.startPipeId,
-      link: linkCopy,
-      snappingCandidate: null,
-    });
-  };
-
-  const addVertexWithPrecision = (coordinates: Position) => {
+  const addVertex = (coordinates: Position) => {
     if (drawing.isNull) return;
 
     // In mouse flow, the `move` handler keeps the last coord aligned with the cursor between clicks.
@@ -349,8 +327,6 @@ export function useDrawLinkHandlers({
     });
   };
 
-  const addVertex = withPrecision ? addVertexWithPrecision : addVertexLegacy;
-
   const submitLink = ({
     startNode,
     link,
@@ -369,8 +345,7 @@ export function useDrawLinkHandlers({
       return;
     }
 
-    const addLinkOp = withPrecision ? addLinkWithPrecision : addLink;
-    const moment = addLinkOp(hydraulicModel, {
+    const moment = addLink(hydraulicModel, {
       link: link,
       startNode,
       endNode,
