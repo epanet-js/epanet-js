@@ -26,7 +26,7 @@ export const zoneOutlineLayer = ({
   source,
   paint: {
     "line-color": "#678ab1",
-    "line-width": 1.5,
+    "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.25, 16, 2],
     "line-opacity": 0.6,
   },
 });
