@@ -1,11 +1,22 @@
 {
   "name": "monorepo",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "check-types": "turbo run check-types",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
   "engines": {
     "node": "20.x || 21.x",
     "pnpm": ">=9.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["canvas"]
+    "onlyBuiltDependencies": [
+      "canvas"
+    ]
+  },
+  "devDependencies": {
+    "turbo": "^2.9.16"
   }
 }
