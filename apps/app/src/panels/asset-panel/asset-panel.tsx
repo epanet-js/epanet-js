@@ -820,6 +820,7 @@ const PipeEditor = ({
             comparison={getComparison("year", pipe.year ?? null)}
             onChange={onPropertyChange}
             readOnly={readonly}
+            paywall="pipeAttributes"
           />
         )}
         <QuantityRow

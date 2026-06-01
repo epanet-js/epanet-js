@@ -26,6 +26,7 @@ import {
   CellRenderingFeature,
   ClipboardFeature,
   ColumnSizingFeature,
+  CustomHeaderActionsFeature,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
   type CopySelectionOptions,
@@ -115,6 +116,7 @@ export const DataGrid = forwardRef(function DataGrid<
       ClipboardFeature,
       CellRenderingFeature,
       ColumnSizingFeature,
+      CustomHeaderActionsFeature,
     ],
     // Clipboard feature options
     onDataChange: onChange,

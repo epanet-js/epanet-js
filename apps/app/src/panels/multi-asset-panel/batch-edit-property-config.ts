@@ -10,8 +10,13 @@ import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { CurveType } from "src/hydraulic-model/curves";
 import type { PatternType } from "src/hydraulic-model/patterns";
+import type { PaywallFeature } from "src/state/dialog";
 
-type QuantityConfig = {
+type CommonConfig = {
+  paywall?: PaywallFeature;
+};
+
+type QuantityConfig = CommonConfig & {
   fieldType: "quantity";
   modelProperty: ChangeableProperty;
   positiveOnly?: boolean;
@@ -19,7 +24,7 @@ type QuantityConfig = {
   labelKey?: string;
 };
 
-type CategoryConfig = {
+type CategoryConfig = CommonConfig & {
   fieldType: "category";
   modelProperty: ChangeableProperty;
   statsPrefix: string;
@@ -28,12 +33,12 @@ type CategoryConfig = {
   nullLabelKey?: string;
 };
 
-type BooleanConfig = {
+type BooleanConfig = CommonConfig & {
   fieldType: "boolean";
   modelProperty: ChangeableProperty;
 };
 
-type LibrarySelectConfig = {
+type LibrarySelectConfig = CommonConfig & {
   fieldType: "librarySelect";
   modelProperty: ChangeableProperty;
   library: "curves" | "patterns" | "pumps";
@@ -42,7 +47,7 @@ type LibrarySelectConfig = {
   libraryLabelKey?: string;
 };
 
-type OpenCategoryConfig = {
+type OpenCategoryConfig = CommonConfig & {
   fieldType: "openCategory";
   modelProperty: ChangeableProperty;
   nullLabelKey?: string;
@@ -63,11 +68,13 @@ export const PIPE_YEAR_EDITABLE_CONFIG: BatchEditPropertyConfig = {
   positiveOnly: true,
   isNullable: true,
   labelKey: "yearOfInstallation",
+  paywall: "pipeAttributes",
 };
 
 export const PIPE_MATERIAL_EDITABLE_CONFIG: BatchEditPropertyConfig = {
   fieldType: "openCategory",
   modelProperty: "material",
+  paywall: "pipeAttributes",
 };
 
 export const BATCH_EDITABLE_PROPERTIES: Record<

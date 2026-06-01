@@ -106,6 +106,7 @@ export const InlineField = ({
   align = "center",
   hasChanged = false,
   baseDisplayValue,
+  labelAction,
   children,
 }: {
   name: string;
@@ -114,6 +115,7 @@ export const InlineField = ({
   align?: "start" | "center";
   hasChanged?: boolean;
   baseDisplayValue?: React.ReactNode;
+  labelAction?: React.ReactNode;
   children: React.ReactNode;
 }) => {
   const indentation = useContext(IndentationContext) ?? 0;
@@ -135,6 +137,7 @@ export const InlineField = ({
     "wrap-break-word": layout === "fixed-label" && labelSize === "sm",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
+    "flex items-center justify-between gap-1": !!labelAction,
   });
   const inputWrapperClasses = clsx("min-w-0", {
     "grow shrink": layout === "fluid-label",
@@ -160,7 +163,12 @@ export const InlineField = ({
           style={labelStyle}
           aria-label={`label: ${name}`}
         >
-          {name}
+          {labelAction ? (
+            <span className="min-w-0 break-words">{name}</span>
+          ) : (
+            name
+          )}
+          {labelAction}
         </label>
         <div className={inputWrapperClasses} style={inputStyle}>
           {children}

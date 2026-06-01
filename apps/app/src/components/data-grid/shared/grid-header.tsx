@@ -11,6 +11,7 @@ import {
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { DataGridVariant } from "../types";
+import { resolveVisibleHeaderActions } from "../features";
 
 type GridHeaderProps<T> = {
   showGutterColumn: boolean;
@@ -132,7 +133,14 @@ function HeaderCell<T>({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hasActions = header.column.getCanSort();
   const sortDirection = header.column.getIsSorted();
-  const showActionsMenu = (isHovered || isMenuOpen) && hasActions;
+  const customHeaderActions = header.column.getCustomHeaderActions?.();
+  const visibleCustomActions = resolveVisibleHeaderActions(
+    customHeaderActions,
+    isHovered,
+  );
+  const hasCustomActions = visibleCustomActions.length > 0;
+  const showActionsMenu =
+    !hasCustomActions && (isHovered || isMenuOpen) && hasActions;
 
   return (
     <div
@@ -154,13 +162,37 @@ function HeaderCell<T>({
       <span className="truncate">
         {flexRender(header.column.columnDef.header, header.getContext())}
       </span>
-      {sortDirection && !showActionsMenu && (
+      {sortDirection && !showActionsMenu && !hasCustomActions && (
         <span className="ml-auto shrink-0 -mr-1 h-6 w-6 flex items-center justify-center">
           {sortDirection === "asc" ? (
             <SortAscendingIcon size="md" />
           ) : (
             <SortDescendingIcon size="md" />
           )}
+        </span>
+      )}
+      {hasCustomActions && (
+        <span className="ml-auto shrink-0 -mr-1 flex items-center">
+          {visibleCustomActions.map((action, idx) => (
+            <button
+              key={idx}
+              type="button"
+              aria-label={action.ariaLabel}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                action.onClick();
+              }}
+              className={clsx(
+                "h-6 w-6 flex items-center justify-center rounded-xs",
+                isSelected
+                  ? "text-white hover:bg-white/20"
+                  : "text-gray-600 hover:bg-gray-200",
+              )}
+            >
+              {action.icon}
+            </button>
+          ))}
         </span>
       )}
       {showActionsMenu && (

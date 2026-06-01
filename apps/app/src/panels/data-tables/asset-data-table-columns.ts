@@ -6,6 +6,8 @@ import {
   textColumn,
   type GridColumn,
 } from "src/components/data-grid";
+import type { ReactNode } from "react";
+import type { CustomHeaderAction } from "src/components/data-grid/features";
 import type { AssetType } from "src/hydraulic-model/asset-types/types";
 import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
 import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
@@ -379,25 +381,53 @@ type ExtraPipeColsFn = (
 
 const noExtraPipeCols: ExtraPipeColsFn = () => [];
 
-function pipeAttributeColsFor(materials: string[]): ExtraPipeColsFn {
-  return (translate): GridColumn<AssetRow>[] => [
-    filterableSelectColumn("material", {
-      header: translate("material"),
-      options: materials.map((m) => ({ value: m, label: m })),
-      placeholder: translate("none"),
-      emptyOptionLabel: translate("none"),
-      deleteValue: null,
-      allowNew: true,
-      createLabel: (query) => translate("addNewValue", query),
-    }),
-    integerColumn("year", {
-      header: translate("yearOfInstallation"),
-      nullValue: null,
-      deleteValue: null,
-      placeholder: "",
-      isReadOnly: false,
-    }),
-  ];
+type PipeAttributesLock = {
+  openPaywall: () => void;
+  icon: ReactNode;
+};
+
+function pipeAttributeColsFor(
+  materials: string[],
+  lock?: PipeAttributesLock,
+): ExtraPipeColsFn {
+  return (translate): GridColumn<AssetRow>[] => {
+    const cols: GridColumn<AssetRow>[] = [
+      filterableSelectColumn("material", {
+        header: translate("material"),
+        options: materials.map((m) => ({ value: m, label: m })),
+        placeholder: translate("none"),
+        emptyOptionLabel: translate("none"),
+        deleteValue: null,
+        allowNew: true,
+        createLabel: (query) => translate("addNewValue", query),
+        isReadOnly: !!lock,
+      }),
+      integerColumn("year", {
+        header: translate("yearOfInstallation"),
+        nullValue: null,
+        deleteValue: null,
+        placeholder: "",
+        isReadOnly: !!lock,
+      }),
+    ];
+
+    if (lock) {
+      const action: CustomHeaderAction = {
+        icon: lock.icon,
+        ariaLabel: translate("paywall.tooltip"),
+        onClick: lock.openPaywall,
+        alwaysVisible: true,
+      };
+      for (const col of cols) {
+        col.meta = {
+          ...col.meta,
+          customHeaderActions: [action],
+        };
+      }
+    }
+
+    return cols;
+  };
 }
 
 function _buildColumns(
@@ -898,7 +928,8 @@ export function buildColumns(
 
 export function buildColumnsWithPipeAttributes(
   materials: string[],
+  lock: PipeAttributesLock | undefined,
   ...args: BuildColumnsArgs
 ): GridColumn<AssetRow>[] {
-  return _buildColumns(pipeAttributeColsFor(materials), ...args);
+  return _buildColumns(pipeAttributeColsFor(materials, lock), ...args);
 }

@@ -31,6 +31,11 @@ import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
 import type { LabelManager } from "src/hydraulic-model/label-manager";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
+import {
+  PaywallLockButton,
+  PaywallOverlay,
+  useFeatureLock,
+} from "src/components/form/paywall";
 
 type MultiValueRowProps = {
   propertyStats: AssetPropertyStats;
@@ -76,8 +81,38 @@ export function MultiValueRow({
       ? `${translate(labelKey)} (${translateUnit(propertyStats.unit)})`
       : translate(labelKey);
 
+  const paywallFeature = config.paywall;
+  const { isLocked } = useFeatureLock(paywallFeature ?? "scenarios");
+  const paywall =
+    paywallFeature !== undefined && isLocked ? paywallFeature : undefined;
+
+  const editable = (
+    <EditableField
+      propertyStats={propertyStats}
+      config={config}
+      isMixed={isMixed}
+      distinctBuckets={distinctBuckets}
+      emptyBucket={emptyBucket}
+      onPropertyChange={onPropertyChange}
+      label={label}
+      readonly={readonly}
+      curves={curves}
+      patterns={patterns}
+      labelManager={labelManager}
+      onOpenLibrary={onOpenLibrary}
+    />
+  );
+
   return (
-    <InlineField name={label} labelSize="md">
+    <InlineField
+      name={label}
+      labelSize="md"
+      labelAction={
+        paywall ? (
+          <PaywallLockButton feature={paywall} label={label} />
+        ) : undefined
+      }
+    >
       <div className="flex items-center gap-1">
         {isMixed ? (
           <StatsPopoverButton
@@ -90,20 +125,13 @@ export function MultiValueRow({
           <div className="shrink-0 w-7" />
         )}
         <div className="flex-1 min-w-0">
-          <EditableField
-            propertyStats={propertyStats}
-            config={config}
-            isMixed={isMixed}
-            distinctBuckets={distinctBuckets}
-            emptyBucket={emptyBucket}
-            onPropertyChange={onPropertyChange}
-            label={label}
-            readonly={readonly}
-            curves={curves}
-            patterns={patterns}
-            labelManager={labelManager}
-            onOpenLibrary={onOpenLibrary}
-          />
+          {paywall ? (
+            <PaywallOverlay feature={paywall} ariaLabel={label}>
+              {editable}
+            </PaywallOverlay>
+          ) : (
+            editable
+          )}
         </div>
       </div>
     </InlineField>

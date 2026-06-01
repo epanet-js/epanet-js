@@ -1311,6 +1311,7 @@ export type UserEvent =
       simpleControlsCount: number;
       rulesCount: number;
     }
+  | { name: "paywallLock.clicked"; feature: PaywallFeature }
   | { name: "paywall.seen"; feature: PaywallFeature }
   | { name: "paywall.clickedChoosePlan"; feature: PaywallFeature }
   | { name: "paywall.clickedPersonal"; feature: PaywallFeature }

@@ -37,6 +37,7 @@ export const PipeMaterialRow = ({
       comparison={comparison}
       onChange={onChange}
       readOnly={readOnly}
+      paywall="pipeAttributes"
     />
   );
 };

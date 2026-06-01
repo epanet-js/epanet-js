@@ -570,6 +570,7 @@
   "trial.activateFree": "Activate free trial",
   "trial.tryWithDemo": "Try with a demo network",
   "paywall": {
+    "tooltip": "Paid feature",
     "explorePlans": "Explore plans",
     "or": "or",
     "nonCommercial": {

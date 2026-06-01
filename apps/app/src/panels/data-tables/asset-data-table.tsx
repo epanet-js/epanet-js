@@ -35,7 +35,8 @@ import {
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useDeleteAssets } from "src/commands/delete-assets";
 import { useUserTracking } from "src/infra/user-tracking";
-import { DeleteIcon, PointerClickIcon } from "src/icons";
+import { DeleteIcon, PaywallLockIcon, PointerClickIcon } from "src/icons";
+import { useFeatureLock } from "src/components/form/paywall";
 import { type PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
 import { type ValveKind } from "src/hydraulic-model/asset-types/valve";
 import { type ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
@@ -118,6 +119,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   rowsRef.current = rows;
 
   const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
+  const {
+    isLocked: pipeAttributesLocked,
+    openPaywall: openPipeAttributesPaywall,
+  } = useFeatureLock("pipeAttributes");
   const pipeMaterials = useMemo(
     () =>
       pipeAttributesOn && assetType === "pipe"
@@ -133,8 +138,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     };
     const getRow = (rowIndex: number) => rowsRef.current?.[rowIndex];
     if (pipeAttributesOn) {
+      const lock = pipeAttributesLocked
+        ? {
+            openPaywall: openPipeAttributesPaywall,
+            icon: <PaywallLockIcon />,
+          }
+        : undefined;
       return buildColumnsWithPipeAttributes(
         pipeMaterials,
+        lock,
         assetType,
         translate,
         hasSimulation,
@@ -166,6 +178,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   }, [
     assetType,
     pipeAttributesOn,
+    pipeAttributesLocked,
+    openPipeAttributesPaywall,
     pipeMaterials,
     formatting,
     hasSimulation,
