@@ -43,9 +43,7 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
           <ClipboardPasteIcon />
           {translate("paste")}
         </CMItem>
-        {actions.length > 0 && (
-          <CM.Separator className="border-t my-1" />
-        )}
+        {actions.length > 0 && <CM.Separator className="border-t my-1" />}
         {actions.map((action, index) => {
           const { disabled, onSelect } = action;
           const isDisabled = disabled ? disabled(selection) : false;

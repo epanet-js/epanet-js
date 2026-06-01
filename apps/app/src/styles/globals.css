@@ -73,6 +73,7 @@
   --color-panel: var(--color-gray-50);
   --color-base-active: var(--color-gray-200);
   --color-base-disabled: var(--color-gray-100);
+  --color-track: var(--color-gray-200);
   --color-disabled: var(--color-gray-300);
   --color-accent-tint: var(--color-purple-50);
 
@@ -112,6 +113,10 @@
 
 @utility bg-base {
   background-color: var(--color-background-base);
+}
+
+@utility bg-track {
+  background-color: var(--color-track);
 }
 
 @utility border-base {
@@ -317,6 +322,7 @@ details summary::-webkit-details-marker {
   --color-base-hover: var(--color-gray-700);
   --color-base-active: var(--color-gray-600);
   --color-base-disabled: var(--color-gray-800);
+  --color-track: var(--color-gray-600);
   --color-accent-tint: var(--color-purple-950);
   --color-panel: var(--color-gray-800);
   --color-popover: var(--color-gray-800);

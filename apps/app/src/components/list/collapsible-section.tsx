@@ -38,9 +38,7 @@ export const CollapsibleListSection = ({
       <div
         data-section-type={sectionType}
         className={`group/section flex items-center justify-between h-8 px-1 ${
-          isFocused
-            ? "bg-base-active"
-            : "hover:bg-base-hover"
+          isFocused ? "bg-base-active" : "hover:bg-base-hover"
         }`}
       >
         <C.Trigger asChild>

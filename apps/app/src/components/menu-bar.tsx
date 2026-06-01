@@ -464,9 +464,7 @@ const TrialOrUpgradeButton = ({
   const { canUpgrade } = usePermissions();
 
   if (trial) {
-    const colorClass = trial.isUrgent
-      ? "text-warning"
-      : "text-accent-hover";
+    const colorClass = trial.isUrgent ? "text-warning" : "text-accent-hover";
 
     return (
       <Button variant="quiet" size={size} onClick={onUpgrade}>

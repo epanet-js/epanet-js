@@ -339,7 +339,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
 
         {isLoading && (
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3">
-            <div className="w-48 h-1.5 bg-base-active rounded-full overflow-hidden">
+            <div className="w-48 h-1.5 bg-track rounded-full overflow-hidden">
               <div
                 className="h-full bg-accent rounded-full transition-[width] duration-150"
                 style={{ width: `${progress}%` }}
@@ -368,7 +368,7 @@ export const CustomGraphDialog = ({ onClose }: { onClose: () => void }) => {
             />
             {isExporting && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-base/40">
-                <div className="w-48 h-1.5 bg-base-active rounded-full overflow-hidden">
+                <div className="w-48 h-1.5 bg-track rounded-full overflow-hidden">
                   {Math.trunc(exportProgress) >= 100 ? (
                     <div className="h-full bg-accent rounded-full progress-indeterminate" />
                   ) : (

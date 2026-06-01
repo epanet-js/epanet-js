@@ -37,7 +37,7 @@ const ProgressBar = ({
         )}
       </div>
       <Progress.Root
-        className="relative overflow-hidden bg-base-active rounded-full w-full h-2"
+        className="relative overflow-hidden bg-track rounded-full w-full h-2"
         value={isIndeterminate ? null : currentTime}
         max={totalDuration}
       >

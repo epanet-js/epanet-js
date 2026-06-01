@@ -82,7 +82,7 @@ export const ExportSimulationResultsProgressDialog = ({
         </p>
         {!isComplete && (
           <Progress.Root
-            className="relative overflow-hidden bg-base-active rounded-full w-full h-2"
+            className="relative overflow-hidden bg-track rounded-full w-full h-2"
             value={isSaving ? undefined : displayProgress}
             max={100}
           >

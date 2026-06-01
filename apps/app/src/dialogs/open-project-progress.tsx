@@ -55,7 +55,7 @@ export const OpenProjectProgressDialog = ({
         <div>
           <p className="text-size-base text-subtle mb-2">{label}</p>
           <Progress.Root
-            className="relative overflow-hidden bg-base-active rounded-full w-full h-2"
+            className="relative overflow-hidden bg-track rounded-full w-full h-2"
             value={percent}
             max={100}
           >
