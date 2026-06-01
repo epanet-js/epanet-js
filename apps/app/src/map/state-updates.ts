@@ -1001,7 +1001,7 @@ const updateZoneColors = (
   map.setLayerPaintRule(
     "zones-outline",
     "line-opacity",
-    0.6 as unknown as mapboxgl.Expression,
+    (zone.opacity + 0.25) as unknown as mapboxgl.Expression,
   );
 };
 

@@ -106,7 +106,7 @@ export const nullSymbologySpec: SymbologySpec = {
   customerPoints: { visible: true },
   zone: {
     visible: true,
-    defaults: { color: "#93c5fd" },
+    defaults: { color: "#ea580c" },
     labelRule: null,
     colorRule: null,
     paletteName: "Bold",
