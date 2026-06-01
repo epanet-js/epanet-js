@@ -82,6 +82,7 @@ export type ZoneSymbology = {
   labelRule: ZoneLabelRule;
   colorRule: ZoneColorRule;
   paletteName: string;
+  opacity: number;
 };
 
 export type SymbologySpec = {
@@ -109,5 +110,6 @@ export const nullSymbologySpec: SymbologySpec = {
     labelRule: null,
     colorRule: null,
     paletteName: "Bold",
+    opacity: 0.15,
   },
 };

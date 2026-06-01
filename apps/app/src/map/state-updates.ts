@@ -989,7 +989,7 @@ const updateZoneColors = (
   map.setLayerPaintRule(
     "zones-fill",
     "fill-opacity",
-    0.2 as unknown as mapboxgl.Expression,
+    zone.opacity as unknown as mapboxgl.Expression,
   );
 
   const outlineColor = zone.defaults.color;

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import * as Slider from "@radix-ui/react-slider";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import * as Popover from "@radix-ui/react-popover";
@@ -449,6 +450,7 @@ const ZoneSymbologySection = () => {
     updateZoneLabelRule,
     updateZoneVisible,
     updateZoneColorRule,
+    updateZoneOpacity,
   } = useSymbologyState();
 
   const handleLabelRuleChange = (value: string | null) => {
@@ -515,6 +517,16 @@ const ZoneSymbologySection = () => {
         </InlineField>
       )}
       <InlineField
+        name={translate("customLayers.opacity")}
+        labelSize="sm"
+        layout="fixed-label"
+      >
+        <ZoneOpacityInput
+          value={zoneSymbology.opacity}
+          onChange={updateZoneOpacity}
+        />
+      </InlineField>
+      <InlineField
         name={translate("labelBy")}
         labelSize="sm"
         layout="fixed-label"
@@ -530,6 +542,41 @@ const ZoneSymbologySection = () => {
         />
       </InlineField>
     </MapStylingSectionWrapper>
+  );
+};
+
+const ZoneOpacityInput = ({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (opacity: number) => void;
+}) => {
+  const translate = useTranslate();
+  const pct = Math.round(value * 100);
+
+  return (
+    <div className="flex flex-1 items-center gap-2 h-8">
+      <Slider.Root
+        className="relative flex items-center grow h-8 select-none touch-none"
+        min={0}
+        max={100}
+        step={1}
+        value={[pct]}
+        onValueChange={([next]) => onChange(next / 100)}
+      >
+        <Slider.Track className="relative grow rounded-full h-2 bg-gray-200 dark:bg-gray-700">
+          <Slider.Range className="absolute h-full rounded-full bg-accent" />
+        </Slider.Track>
+        <Slider.Thumb
+          aria-label={translate("customLayers.opacity")}
+          className="block w-4 h-4 rounded-full bg-base border-2 border-accent shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+        />
+      </Slider.Root>
+      <span className="text-size-base text-subtle tabular-nums w-8 text-right shrink-0">
+        {pct}%
+      </span>
+    </div>
   );
 };
 
