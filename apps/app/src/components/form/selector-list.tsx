@@ -1,4 +1,11 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import clsx from "clsx";
 import { CheckIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
@@ -110,16 +117,13 @@ export function BaseSelectorList<T extends string | number | boolean>({
     (showClearRow ? 1 : 0) +
     (showActionRow ? 1 : 0);
 
-  useEffect(
+  useLayoutEffect(
     function focusOnMount() {
-      const id = requestAnimationFrame(() => {
-        if (showSearch) {
-          inputRef.current?.focus();
-        } else {
-          listContainerRef.current?.focus();
-        }
-      });
-      return () => cancelAnimationFrame(id);
+      if (showSearch) {
+        inputRef.current?.focus();
+      } else {
+        listContainerRef.current?.focus();
+      }
     },
     [showSearch],
   );
