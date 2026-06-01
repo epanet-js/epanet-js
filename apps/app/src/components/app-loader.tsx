@@ -13,7 +13,7 @@ export const AppLoader = ({ progress }: AppLoaderProps) => {
           <LogoWordmarkIcon size={88} />
         </div>
         <div className="w-full mt-6">
-          <div className="w-full bg-base-active dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-track rounded-full h-2">
             <div
               className="bg-purple-400 h-2 rounded-full transition-all duration-200 ease-in-out"
               style={{ width: `${progress}%` }}
