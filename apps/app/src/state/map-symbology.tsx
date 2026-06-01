@@ -8,10 +8,6 @@ import {
   CustomerPointsSymbology,
   ZoneSymbology,
 } from "src/map/symbology";
-import type {
-  ZoneLabelRule,
-  ZoneColorRule,
-} from "src/map/symbology/symbology-types";
 import {
   SupportedProperty,
   nullSymbologySpec,
@@ -289,46 +285,8 @@ export const useSymbologyState = () => {
     });
   };
 
-  const updateZoneDefaultColor = (color: string) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      defaults: { ...zoneSymbology.defaults, color },
-    });
-  };
-
-  const updateZoneLabelRule = (labelRule: ZoneLabelRule) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      labelRule,
-    });
-  };
-
-  const updateZoneVisible = (visible: boolean) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      visible,
-    });
-  };
-
-  const updateZoneColorRule = (colorRule: ZoneColorRule) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      colorRule,
-    });
-  };
-
-  const updateZonePaletteName = (paletteName: string) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      paletteName,
-    });
-  };
-
-  const updateZoneOpacity = (opacity: number) => {
-    setZoneSymbology({
-      ...zoneSymbology,
-      opacity,
-    });
+  const updateZoneSymbology = (updates: Partial<ZoneSymbology>) => {
+    setZoneSymbology({ ...zoneSymbology, ...updates });
   };
 
   return {
@@ -343,11 +301,6 @@ export const useSymbologyState = () => {
     zoneSymbology,
     updateNodeDefaultColor,
     updateLinkDefaultColor,
-    updateZoneDefaultColor,
-    updateZoneLabelRule,
-    updateZoneVisible,
-    updateZoneColorRule,
-    updateZonePaletteName,
-    updateZoneOpacity,
+    updateZoneSymbology,
   };
 };

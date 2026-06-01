@@ -110,7 +110,7 @@ const useColorRule = (geometryType: "node" | "link"): ColorRampSettingsHook => {
 };
 
 const useZoneColorRule = () => {
-  const { zoneSymbology, updateZonePaletteName } = useSymbologyState();
+  const { zoneSymbology, updateZoneSymbology } = useSymbologyState();
   const userTracking = useUserTracking();
   const paletteColors = getQualitativePaletteColors(zoneSymbology.paletteName);
 
@@ -120,9 +120,9 @@ const useZoneColorRule = () => {
         name: "map.zonePalette.changed",
         paletteName: name,
       });
-      updateZonePaletteName(name);
+      updateZoneSymbology({ paletteName: name });
     },
-    [updateZonePaletteName, userTracking],
+    [updateZoneSymbology, userTracking],
   );
 
   return {

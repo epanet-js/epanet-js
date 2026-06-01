@@ -444,22 +444,15 @@ const zoneRuleOptions = [{ label: "Label", value: "label" }];
 
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
-  const {
-    zoneSymbology,
-    updateZoneDefaultColor,
-    updateZoneLabelRule,
-    updateZoneVisible,
-    updateZoneColorRule,
-    updateZoneOpacity,
-  } = useSymbologyState();
+  const { zoneSymbology, updateZoneSymbology } = useSymbologyState();
 
   const handleLabelRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
-    updateZoneLabelRule(mapped as ZoneLabelRule);
+    updateZoneSymbology({ labelRule: mapped as ZoneLabelRule });
   };
   const handleColorRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
-    updateZoneColorRule(mapped as ZoneColorRule);
+    updateZoneSymbology({ colorRule: mapped as ZoneColorRule });
   };
 
   return (
@@ -475,7 +468,9 @@ const ZoneSymbologySection = () => {
         <Checkbox
           checked={zoneSymbology.visible}
           aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
-          onChange={() => updateZoneVisible(!zoneSymbology.visible)}
+          onChange={() =>
+            updateZoneSymbology({ visible: !zoneSymbology.visible })
+          }
         />
       </InlineField>
       <InlineField
@@ -510,7 +505,11 @@ const ZoneSymbologySection = () => {
           <div className="h-7 w-12 rounded-sm overflow-hidden">
             <ColorPopover
               color={zoneSymbology.defaults.color}
-              onChange={updateZoneDefaultColor}
+              onChange={(color) =>
+                updateZoneSymbology({
+                  defaults: { ...zoneSymbology.defaults, color },
+                })
+              }
               ariaLabel="Default zone color"
             />
           </div>
@@ -523,7 +522,7 @@ const ZoneSymbologySection = () => {
       >
         <ZoneOpacityInput
           value={zoneSymbology.opacity}
-          onChange={updateZoneOpacity}
+          onChange={(opacity) => updateZoneSymbology({ opacity })}
         />
       </InlineField>
       <InlineField
