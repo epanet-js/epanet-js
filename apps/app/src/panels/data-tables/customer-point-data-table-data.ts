@@ -3,6 +3,7 @@ import {
   calculateAverageDemand,
   getCustomerPointDemands,
   type HydraulicModel,
+  type PatternId,
 } from "src/hydraulic-model";
 import { convertTo } from "src/quantity";
 import type { UnitsSpec } from "src/lib/project-settings/quantities-spec";
@@ -12,6 +13,9 @@ export type CustomerPointRow = {
   label: string;
   connectedPipeLabel: string | null;
   connectedJunctionLabel: string | null;
+  baseDemand: number;
+  patternId: PatternId | null;
+  demandsCount: number;
   avgDemand: number;
 };
 
@@ -48,12 +52,19 @@ function buildCustomerPointRow(
     ? (hydraulicModel.assets.get(connection.junctionId)?.label ?? null)
     : null;
 
+  const cpDemands = getCustomerPointDemands(hydraulicModel.demands, id);
+  const firstDemand = cpDemands[0];
+
+  const baseDemand = firstDemand
+    ? convertTo(
+        { value: firstDemand.baseDemand, unit: units.customerDemand },
+        units.customerDemandPerDay,
+      )
+    : 0;
+
   const avgDemand = convertTo(
     {
-      value: calculateAverageDemand(
-        getCustomerPointDemands(hydraulicModel.demands, id),
-        hydraulicModel.patterns,
-      ),
+      value: calculateAverageDemand(cpDemands, hydraulicModel.patterns),
       unit: units.customerDemand,
     },
     units.customerDemandPerDay,
@@ -64,6 +75,9 @@ function buildCustomerPointRow(
     label: cp.label,
     connectedPipeLabel,
     connectedJunctionLabel,
+    baseDemand,
+    patternId: firstDemand?.patternId ?? null,
+    demandsCount: cpDemands.length,
     avgDemand,
   };
 }

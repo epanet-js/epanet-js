@@ -2,7 +2,13 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeCustomerPointLabel } from "src/hydraulic-model/model-operations";
+import {
+  changeCustomerPointLabel,
+  changeDemandAssignment,
+} from "src/hydraulic-model/model-operations";
+import { getCustomerPointDemands } from "src/hydraulic-model";
+import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
+import { convertTo } from "src/quantity";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   DataGrid,
@@ -32,6 +38,7 @@ export const CustomerPointDataTable = memo(
   function CustomerPointDataTableInner() {
     const dataGridRef = useRef<DataGridRef>(null);
     const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+    const { patterns } = hydraulicModel;
     const { units, formatting } = useAtomValue(projectSettingsAtom);
     const { labelManager } = useAtomValue(modelFactoriesAtom);
     const { transact } = useModelTransaction();
@@ -46,6 +53,16 @@ export const CustomerPointDataTable = memo(
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
 
+    const patternOptions = useMemo(() => {
+      const options: { value: number; label: string }[] = [];
+      for (const [patternId, { label, type }] of patterns.entries()) {
+        if (type === "demand") {
+          options.push({ value: patternId, label });
+        }
+      }
+      return options;
+    }, [patterns]);
+
     const columns = useMemo(
       () =>
         buildCustomerPointColumns(
@@ -53,13 +70,21 @@ export const CustomerPointDataTable = memo(
           translateUnit,
           units,
           formatting,
+          patternOptions,
           (label: string, rowIndex: number) => {
             const cpId = rowsRef.current?.[rowIndex]?.id;
             if (cpId === undefined) return true;
             return labelManager.isLabelAvailable(label, "customerPoint", cpId);
           },
         ),
-      [translate, translateUnit, units, formatting, labelManager],
+      [
+        translate,
+        translateUnit,
+        units,
+        formatting,
+        patternOptions,
+        labelManager,
+      ],
     );
 
     useEffect(
@@ -81,6 +106,10 @@ export const CustomerPointDataTable = memo(
 
     const onChange = useCallback(
       (newRows: CustomerPointRow[]) => {
+        const demandAssignments: CustomerDemandAssignment[] = [];
+        let oldDemandsTotal = 0;
+        let newDemandsTotal = 0;
+
         for (let i = 0; i < newRows.length; i++) {
           const newRow = newRows[i];
           const oldRow = rowsRef.current?.[i];
@@ -106,9 +135,53 @@ export const CustomerPointDataTable = memo(
               newLabel: newRow.label,
             });
           }
+
+          const baseDemandChanged = newRow.baseDemand !== oldRow.baseDemand;
+          const patternIdChanged = newRow.patternId !== oldRow.patternId;
+          if (baseDemandChanged || patternIdChanged) {
+            const existing = getCustomerPointDemands(
+              hydraulicModel.demands,
+              newRow.id,
+            );
+            const rest = existing.slice(1);
+            const nextBaseDemandPerDay = newRow.baseDemand ?? 0;
+            const nextBaseDemand = convertTo(
+              {
+                value: nextBaseDemandPerDay,
+                unit: units.customerDemandPerDay,
+              },
+              units.customerDemand,
+            );
+            const nextPatternId = newRow.patternId ?? undefined;
+            const firstDemand =
+              nextBaseDemand === 0 && nextPatternId === undefined
+                ? null
+                : { baseDemand: nextBaseDemand, patternId: nextPatternId };
+            const newDemands = firstDemand ? [firstDemand, ...rest] : rest;
+
+            demandAssignments.push({
+              customerPointId: newRow.id,
+              demands: newDemands,
+            });
+            oldDemandsTotal += existing.length;
+            newDemandsTotal += newDemands.length;
+          }
+        }
+
+        if (demandAssignments.length > 0) {
+          const moment = changeDemandAssignment(
+            hydraulicModel,
+            demandAssignments,
+          );
+          transact(moment);
+          userTracking.capture({
+            name: "customerPointDemands.edited",
+            oldCount: oldDemandsTotal,
+            newCount: newDemandsTotal,
+          });
         }
       },
-      [hydraulicModel, labelManager, transact, userTracking],
+      [hydraulicModel, units, labelManager, transact, userTracking],
     );
 
     const getCpIdFromRow = useCallback(

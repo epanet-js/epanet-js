@@ -356,6 +356,7 @@
   "averageCostPerDay": "Average cost/day",
   "demandCharge": "Demand charge",
   "demands": "Demands",
+  "demandsCount": "Demands",
   "connectedCustomers": "Connected customers",
   "onboardingStartPumpEmpty": "Click anywhere to start drawing a pump.",
   "onboardingCtrlPump": "Hold {{1}} and click to end and start a new pump immediately.",
