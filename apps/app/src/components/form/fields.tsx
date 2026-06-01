@@ -131,14 +131,14 @@ export const InlineField = ({
       : undefined;
   const inputStyle = layout === "fluid-label" ? { flexBasis: 150 } : undefined;
 
-  const labelClasses = clsx("text-size-base text-subtle min-w-0", {
+  const labelSlotClasses = clsx("min-w-0", {
     "grow shrink": layout === "fluid-label",
     "shrink-0": layout === "fixed-label",
-    "wrap-break-word": layout === "fixed-label" && labelSize === "sm",
     "w-1/2": layout === "half-split",
     "flex-none": layout === "label-flex-none",
     "flex items-center justify-between gap-1": !!labelAction,
   });
+  const labelClasses = "text-size-base text-subtle min-w-0 break-words";
   const inputWrapperClasses = clsx("min-w-0", {
     "grow shrink": layout === "fluid-label",
     "flex-1": layout === "fixed-label",
@@ -158,18 +158,12 @@ export const InlineField = ({
           "items-center": align === "center",
         })}
       >
-        <label
-          className={labelClasses}
-          style={labelStyle}
-          aria-label={`label: ${name}`}
-        >
-          {labelAction ? (
-            <span className="min-w-0 break-words">{name}</span>
-          ) : (
-            name
-          )}
+        <div className={labelSlotClasses} style={labelStyle}>
+          <label className={labelClasses} aria-label={`label: ${name}`}>
+            {name}
+          </label>
           {labelAction}
-        </label>
+        </div>
         <div className={inputWrapperClasses} style={inputStyle}>
           {children}
         </div>

@@ -3,7 +3,8 @@ import {
   useState,
   useMemo,
   useCallback,
-  KeyboardEventHandler,
+  type ComponentProps,
+  type KeyboardEventHandler,
 } from "react";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { EditableTextField } from "src/components/form/editable-text-field";
@@ -60,26 +61,6 @@ import {
   PaywallOverlay,
   useFeatureLock,
 } from "src/components/form/paywall";
-
-const useRowPaywall = (paywall: PaywallFeature | undefined, label: string) => {
-  const enabled = paywall !== undefined;
-  const { isLocked } = useFeatureLock(paywall ?? "scenarios");
-  const active = enabled && isLocked;
-  return {
-    active,
-    labelAction: active ? (
-      <PaywallLockButton feature={paywall} label={label} />
-    ) : undefined,
-    wrap: (input: React.ReactNode) =>
-      active ? (
-        <PaywallOverlay feature={paywall} ariaLabel={label}>
-          {input}
-        </PaywallOverlay>
-      ) : (
-        input
-      ),
-  };
-};
 
 export const AssetEditorContent = ({
   label,
@@ -195,6 +176,40 @@ const Header = ({
   );
 };
 
+type PaywalledInlineFieldProps = Omit<
+  ComponentProps<typeof InlineField>,
+  "labelAction"
+> & {
+  paywall?: PaywallFeature;
+};
+
+const PaywalledInlineField = ({
+  paywall,
+  children,
+  ...inlineFieldProps
+}: PaywalledInlineFieldProps) => {
+  const { isLocked } = useFeatureLock(paywall);
+  const { name } = inlineFieldProps;
+  return (
+    <InlineField
+      {...inlineFieldProps}
+      labelAction={
+        isLocked ? (
+          <PaywallLockButton feature={paywall!} label={name} />
+        ) : undefined
+      }
+    >
+      {isLocked ? (
+        <PaywallOverlay feature={paywall!} ariaLabel={name}>
+          {children}
+        </PaywallOverlay>
+      ) : (
+        children
+      )}
+    </InlineField>
+  );
+};
+
 export const TextRow = ({
   name,
   value,
@@ -208,7 +223,6 @@ export const TextRow = ({
 }) => {
   const translate = useTranslate();
   const label = translate(name);
-  const { labelAction, wrap } = useRowPaywall(paywall, label);
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
@@ -216,15 +230,15 @@ export const TextRow = ({
       : undefined;
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(<TextField>{value}</TextField>)}
-    </InlineField>
+      <TextField>{value}</TextField>
+    </PaywalledInlineField>
   );
 };
 
@@ -274,8 +288,6 @@ export const QuantityRow = <P extends string>({
     ? `${translatedName} (${translateUnit(unit)})`
     : `${translatedName}`;
 
-  const { labelAction, wrap } = useRowPaywall(paywall, label);
-
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
       ? formatValue(comparison.baseValue as number, name as QuantityProperty)
@@ -289,35 +301,33 @@ export const QuantityRow = <P extends string>({
   };
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(
-        readOnly ? (
-          <TextField padding="md">{displayValue}</TextField>
-        ) : (
-          <NumericField
-            key={lastChange.current + displayValue}
-            label={label}
-            positiveOnly={positiveOnly}
-            isNullable={isNullable}
-            readOnly={readOnly}
-            displayValue={displayValue}
-            placeholder={placeholder}
-            onChangeValue={handleChange}
-            styleOptions={{
-              padding: "md",
-              ghostBorder: readOnly,
-              textSize: "sm",
-            }}
-          />
-        ),
+      {readOnly ? (
+        <TextField padding="md">{displayValue}</TextField>
+      ) : (
+        <NumericField
+          key={lastChange.current + displayValue}
+          label={label}
+          positiveOnly={positiveOnly}
+          isNullable={isNullable}
+          readOnly={readOnly}
+          displayValue={displayValue}
+          placeholder={placeholder}
+          onChangeValue={handleChange}
+          styleOptions={{
+            padding: "md",
+            ghostBorder: readOnly,
+            textSize: "sm",
+          }}
+        />
       )}
-    </InlineField>
+    </PaywalledInlineField>
   );
 };
 
@@ -353,7 +363,6 @@ export const IntegerRow = <P extends string>({
 
   const displayValue = value === null ? "" : String(value);
   const label = displayName ?? translate(name);
-  const { labelAction, wrap } = useRowPaywall(paywall, label);
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
@@ -373,35 +382,33 @@ export const IntegerRow = <P extends string>({
   };
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(
-        readOnly ? (
-          <TextField padding="md">{displayValue}</TextField>
-        ) : (
-          <NumericField
-            key={lastChange.current + displayValue}
-            label={label}
-            positiveOnly={positiveOnly}
-            isNullable={isNullable}
-            readOnly={readOnly}
-            displayValue={displayValue}
-            placeholder={placeholder}
-            onChangeValue={handleChange}
-            styleOptions={{
-              padding: "md",
-              ghostBorder: readOnly,
-              textSize: "sm",
-            }}
-          />
-        ),
+      {readOnly ? (
+        <TextField padding="md">{displayValue}</TextField>
+      ) : (
+        <NumericField
+          key={lastChange.current + displayValue}
+          label={label}
+          positiveOnly={positiveOnly}
+          isNullable={isNullable}
+          readOnly={readOnly}
+          displayValue={displayValue}
+          placeholder={placeholder}
+          onChangeValue={handleChange}
+          styleOptions={{
+            padding: "md",
+            ghostBorder: readOnly,
+            textSize: "sm",
+          }}
+        />
       )}
-    </InlineField>
+    </PaywalledInlineField>
   );
 };
 
@@ -430,7 +437,6 @@ export const CreatableTextRow = <P extends string>({
 }) => {
   const translate = useTranslate();
   const label = translate(name);
-  const { labelAction, wrap } = useRowPaywall(paywall, label);
   const resolvedPlaceholder = placeholder ?? translate("none");
 
   const baseDisplayValue =
@@ -454,30 +460,28 @@ export const CreatableTextRow = <P extends string>({
   );
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={label}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(
-        readOnly ? (
-          <TextField padding="md">{value ?? ""}</TextField>
-        ) : (
-          <Selector
-            options={options.map((o) => ({ value: o, label: o }))}
-            selected={value}
-            nullable
-            allowNew
-            onChange={handleChange}
-            placeholder={resolvedPlaceholder}
-            clearLabel={resolvedPlaceholder}
-            ariaLabel={label}
-          />
-        ),
+      {readOnly ? (
+        <TextField padding="md">{value ?? ""}</TextField>
+      ) : (
+        <Selector
+          options={options.map((o) => ({ value: o, label: o }))}
+          selected={value}
+          nullable
+          allowNew
+          onChange={handleChange}
+          placeholder={resolvedPlaceholder}
+          clearLabel={resolvedPlaceholder}
+          ariaLabel={label}
+        />
       )}
-    </InlineField>
+    </PaywalledInlineField>
   );
 };
 
@@ -575,7 +579,6 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
 }: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
-  const { labelAction, wrap } = useRowPaywall(paywall, actualLabel);
 
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
@@ -587,41 +590,39 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   const selectedOption = options.find((o) => o.value === selected);
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(
-        readOnly ? (
-          <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
-        ) : (
-          <div className="w-full">
-            <Selector
-              ariaLabel={actualLabel}
-              options={options}
-              selected={selected}
-              nullable={nullable as true}
-              onChange={(newValue, oldValue) =>
-                onChange?.(name, newValue as T, oldValue as T)
-              }
-              placeholder={placeholder as string}
-              clearLabel={clearLabel}
-              listClassName={listClassName}
-              actionLabel={actionLabel}
-              onActionClick={onActionClick}
-              styleOptions={{
-                border: true,
-                textSize: "text-size-base",
-                paddingY: 2,
-              }}
-            />
-          </div>
-        ),
+      {readOnly ? (
+        <TextField padding="md">{selectedOption?.label ?? ""}</TextField>
+      ) : (
+        <div className="w-full">
+          <Selector
+            ariaLabel={actualLabel}
+            options={options}
+            selected={selected}
+            nullable={nullable as true}
+            onChange={(newValue, oldValue) =>
+              onChange?.(name, newValue as T, oldValue as T)
+            }
+            placeholder={placeholder as string}
+            clearLabel={clearLabel}
+            listClassName={listClassName}
+            actionLabel={actionLabel}
+            onActionClick={onActionClick}
+            styleOptions={{
+              border: true,
+              textSize: "text-size-base",
+              paddingY: 2,
+            }}
+          />
+        </div>
       )}
-    </InlineField>
+    </PaywalledInlineField>
   );
 }
 
@@ -699,7 +700,6 @@ export const SwitchRow = <P extends string>({
 }) => {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
-  const { labelAction, wrap } = useRowPaywall(paywall, actualLabel);
 
   const baseDisplayValue =
     comparison?.hasChanged && comparison.baseValue != null
@@ -713,24 +713,22 @@ export const SwitchRow = <P extends string>({
   };
 
   return (
-    <InlineField
+    <PaywalledInlineField
       name={actualLabel}
       labelSize="md"
       hasChanged={comparison?.hasChanged}
       baseDisplayValue={baseDisplayValue}
-      labelAction={labelAction}
+      paywall={paywall}
     >
-      {wrap(
-        <div className="p-2 flex items-center h-[38px]">
-          <Checkbox
-            checked={enabled}
-            aria-label={actualLabel}
-            onChange={(e) => handleToggle(e.target.checked)}
-            disabled={readOnly || !onChange}
-          />
-        </div>,
-      )}
-    </InlineField>
+      <div className="p-2 flex items-center h-[38px]">
+        <Checkbox
+          checked={enabled}
+          aria-label={actualLabel}
+          onChange={(e) => handleToggle(e.target.checked)}
+          disabled={readOnly || !onChange}
+        />
+      </div>
+    </PaywalledInlineField>
   );
 };
 

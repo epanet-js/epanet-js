@@ -82,7 +82,7 @@ export function MultiValueRow({
       : translate(labelKey);
 
   const paywallFeature = config.paywall;
-  const { isLocked } = useFeatureLock(paywallFeature ?? "scenarios");
+  const { isLocked } = useFeatureLock(paywallFeature);
   const paywall =
     paywallFeature !== undefined && isLocked ? paywallFeature : undefined;
 

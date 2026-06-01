@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Table, flexRender, Header } from "@tanstack/react-table";
 import * as DD from "@radix-ui/react-dropdown-menu";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import clsx from "clsx";
 import {
   MoreActionsIcon,
@@ -8,7 +9,13 @@ import {
   SortDescendingIcon,
   TableSelectAllIcon,
 } from "src/icons";
-import { Button, DDContent, StyledItem } from "src/components/elements";
+import {
+  Button,
+  DDContent,
+  StyledItem,
+  TContent,
+  StyledTooltipArrow,
+} from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { DataGridVariant } from "../types";
 import { resolveVisibleHeaderActions } from "../features";
@@ -173,26 +180,40 @@ function HeaderCell<T>({
       )}
       {hasCustomActions && (
         <span className="ml-auto shrink-0 -mr-1 flex items-center">
-          {visibleCustomActions.map((action, idx) => (
-            <button
-              key={idx}
-              type="button"
-              aria-label={action.ariaLabel}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                action.onClick();
-              }}
-              className={clsx(
-                "h-6 w-6 flex items-center justify-center rounded-xs",
-                isSelected
-                  ? "text-white hover:bg-white/20"
-                  : "text-gray-600 hover:bg-gray-200",
-              )}
-            >
-              {action.icon}
-            </button>
-          ))}
+          {visibleCustomActions.map((action, idx) => {
+            const button = (
+              <button
+                type="button"
+                aria-label={action.ariaLabel}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  action.onClick();
+                }}
+                className={clsx(
+                  "h-6 w-6 flex items-center justify-center rounded-xs",
+                  isSelected
+                    ? "text-white hover:bg-white/20"
+                    : "text-gray-600 hover:bg-gray-200",
+                )}
+              >
+                {action.icon}
+              </button>
+            );
+            return action.tooltip ? (
+              <Tooltip.Root key={idx} delayDuration={200}>
+                <Tooltip.Trigger asChild>{button}</Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <TContent side="top">
+                    <StyledTooltipArrow />
+                    {action.tooltip}
+                  </TContent>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            ) : (
+              <span key={idx}>{button}</span>
+            );
+          })}
         </span>
       )}
       {showActionsMenu && (

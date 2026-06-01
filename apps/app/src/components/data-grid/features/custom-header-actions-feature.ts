@@ -10,6 +10,7 @@ export type CustomHeaderAction = {
   ariaLabel: string;
   onClick: () => void;
   alwaysVisible?: boolean;
+  tooltip?: string;
 };
 
 declare module "@tanstack/react-table" {

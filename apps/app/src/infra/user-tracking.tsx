@@ -1208,6 +1208,16 @@ export type UserEvent =
       name: "upgradeButton.clicked";
       source: "menu" | "customLayers" | "customElevations";
     }
+  | {
+      name: "upgradeDialog.seen";
+      source?: string;
+      sourceFeature?: string;
+    }
+  | {
+      name: "upgradeDialog.dismissed";
+      source?: string;
+      sourceFeature?: string;
+    }
   | { name: "simulationSettings.opened"; source: string }
   | { name: "controls.opened"; source: string }
   | { name: "patternsLibrary.opened"; source: string }

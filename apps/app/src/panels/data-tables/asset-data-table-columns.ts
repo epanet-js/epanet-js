@@ -415,6 +415,7 @@ function pipeAttributeColsFor(
       const action: CustomHeaderAction = {
         icon: lock.icon,
         ariaLabel: translate("paywall.tooltip"),
+        tooltip: translate("paywall.tooltip"),
         onClick: lock.openPaywall,
         alwaysVisible: true,
       };

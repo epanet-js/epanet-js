@@ -137,13 +137,21 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
   };
 
   const { closeDialog } = useDialogState();
+  const handleClose = () => {
+    userTracking.capture({
+      name: "upgradeDialog.dismissed",
+      source: source?.kind,
+      sourceFeature: getSourceFeature(source),
+    });
+    closeDialog();
+  };
 
   return (
     <BaseDialog
       title={translate("upgradeYourAccount")}
       size="xl"
       isOpen={true}
-      onClose={closeDialog}
+      onClose={handleClose}
     >
       <div className="p-4">
         <div className="flex gap-4 flex-col flex-wrap md:flex-row items-start md:items-center justify-between pb-4">

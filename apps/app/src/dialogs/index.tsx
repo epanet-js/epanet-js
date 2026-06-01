@@ -533,6 +533,13 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "featurePaywall") {
         userTracking.capture({ name: "paywall.seen", feature: dialog.feature });
       }
+      if (dialog.type === "upgrade") {
+        userTracking.capture({
+          name: "upgradeDialog.seen",
+          source: dialog.source?.kind,
+          sourceFeature: dialogState.getSourceFeature(dialog.source),
+        });
+      }
       if (dialog.type === "priorityAccess") {
         userTracking.capture({
           name: "priorityAccess.seen",
