@@ -491,7 +491,7 @@ const ZoneSymbologySection = () => {
           onChange={handleColorRuleChange}
         />
       </InlineField>
-      {zoneSymbology.colorRule === "label" && (
+      {zoneSymbology.colorRule === "label" ? (
         <InlineField
           name={translate("palette")}
           labelSize="sm"
@@ -499,20 +499,21 @@ const ZoneSymbologySection = () => {
         >
           <ColorRampSelector geometryType="zone" />
         </InlineField>
+      ) : (
+        <InlineField
+          name={translate("defaultColor")}
+          labelSize="sm"
+          layout="fixed-label"
+        >
+          <div className="h-7 w-12 rounded-sm overflow-hidden">
+            <ColorPopover
+              color={zoneSymbology.defaults.color}
+              onChange={updateZoneDefaultColor}
+              ariaLabel="Default zone color"
+            />
+          </div>
+        </InlineField>
       )}
-      <InlineField
-        name={translate("defaultColor")}
-        labelSize="sm"
-        layout="fixed-label"
-      >
-        <div className="h-7 w-12 rounded-sm overflow-hidden">
-          <ColorPopover
-            color={zoneSymbology.defaults.color}
-            onChange={updateZoneDefaultColor}
-            ariaLabel="Default zone color"
-          />
-        </div>
-      </InlineField>
       <InlineField
         name={translate("labelBy")}
         labelSize="sm"
