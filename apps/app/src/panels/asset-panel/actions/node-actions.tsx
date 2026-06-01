@@ -6,7 +6,6 @@ import { useDeleteSelection } from "src/commands/delete-selection";
 import { ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -15,7 +14,6 @@ export function useNodeActions(readonly = false): Action[] {
   const zoomTo = useZoomTo();
   const deleteSelection = useDeleteSelection();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const { openCustomGraph } = useCustomGraph();
   const userTracking = useUserTracking();
 
@@ -54,9 +52,7 @@ export function useNodeActions(readonly = false): Action[] {
     onSelect: openCustomGraph,
   };
 
-  return isCustomGraphsOn
-    ? [zoomToAction, customGraphAction, deleteAssetsAction]
-    : [zoomToAction, deleteAssetsAction];
+  return [zoomToAction, customGraphAction, deleteAssetsAction];
 }
 
 export function NodeActions({ readonly = false }: { readonly?: boolean }) {

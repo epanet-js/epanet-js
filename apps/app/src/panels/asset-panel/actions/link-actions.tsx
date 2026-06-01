@@ -21,7 +21,6 @@ import {
   changeActiveTopologyShortcut,
   useChangeSelectedAssetsActiveTopologyStatus,
 } from "src/commands/change-selected-assets-active-topology-status";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -35,7 +34,6 @@ export function useLinkActions(readonly = false): Action[] {
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
-  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const { openCustomGraph } = useCustomGraph();
   const userTracking = useUserTracking();
 
@@ -113,22 +111,14 @@ export function useLinkActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return isCustomGraphsOn
-    ? [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyActionItem,
-        customGraphAction,
-        deleteAssetsAction,
-      ]
-    : [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyActionItem,
-        deleteAssetsAction,
-      ];
+  return [
+    zoomToAction,
+    reverseAction,
+    redrawAction,
+    changeActiveTopologyActionItem,
+    customGraphAction,
+    deleteAssetsAction,
+  ];
 }
 
 export function LinkActions({ readonly = false }: { readonly?: boolean }) {

@@ -17,7 +17,6 @@ import {
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -28,7 +27,6 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
-  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const { openCustomGraph } = useCustomGraph();
   const userTracking = useUserTracking();
 
@@ -83,14 +81,12 @@ export function useMultiAssetActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return isCustomGraphsOn
-    ? [
-        zoomToAction,
-        changeActiveTopologyActionItem,
-        customGraphAction,
-        deleteAssetsAction,
-      ]
-    : [zoomToAction, changeActiveTopologyActionItem, deleteAssetsAction];
+  return [
+    zoomToAction,
+    changeActiveTopologyActionItem,
+    customGraphAction,
+    deleteAssetsAction,
+  ];
 }
 
 export function MultiAssetActions() {

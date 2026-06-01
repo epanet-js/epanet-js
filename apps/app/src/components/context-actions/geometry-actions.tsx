@@ -26,7 +26,6 @@ import { useAtomValue } from "jotai";
 import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { useUserTracking } from "src/infra/user-tracking";
 
@@ -45,7 +44,6 @@ export function useActions(
   const { mode: currentMode } = useAtomValue(modeAtom);
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
-  const isCustomGraphsOn = useFeatureFlag("FLAG_CUSTOM_GRAPHS");
   const { openCustomGraph } = useCustomGraph();
 
   const onDelete = useCallback(() => {
@@ -131,22 +129,14 @@ export function useActions(
     },
   };
 
-  return isCustomGraphsOn
-    ? [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyStatusAction,
-        customGraphAction,
-        deleteAssetsAction,
-      ]
-    : [
-        zoomToAction,
-        reverseAction,
-        redrawAction,
-        changeActiveTopologyStatusAction,
-        deleteAssetsAction,
-      ];
+  return [
+    zoomToAction,
+    reverseAction,
+    redrawAction,
+    changeActiveTopologyStatusAction,
+    customGraphAction,
+    deleteAssetsAction,
+  ];
 }
 
 export function GeometryActions({
