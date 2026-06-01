@@ -274,7 +274,7 @@ const ZoomRangeSlider = ({
           }
           disabled={disabled}
         >
-          <Slider.Track className="relative grow rounded-full h-2 bg-purple-200 dark:bg-purple-900">
+          <Slider.Track className="relative grow rounded-full h-2 bg-accent">
             {/* Range (0 → thumb) = hidden zooms (hatched) */}
             <Slider.Range
               className="absolute h-full rounded-l-full bg-gray-200 dark:bg-gray-700"
