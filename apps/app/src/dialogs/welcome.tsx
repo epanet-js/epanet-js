@@ -274,8 +274,7 @@ const FoundingPartners = () => {
         </a>
       </div>
       <p className="text-subtle">
-        {translate("foundersPartnerDescription")}
-        {""}
+        {translate("foundersPartnerDescription")}{" "}
         <a
           href="https://help.epanetjs.com/Founding-Partner-program-2f6e18c9f0f680d8be27c05c0b5844bb"
           target="_blank"
@@ -304,7 +303,7 @@ const SmallDeviceWarning = () => {
       <p className="pb-2">{translate("hereYourOptions")}:</p>
       <div className="ml-2 space-y-2">
         <ul>
-          <strong>{translate("continueAnyway")}</strong>:{""}
+          <strong>{translate("continueAnyway")}</strong>:{" "}
           {translate("continueAnywayExplain")}
         </ul>
         <ul>

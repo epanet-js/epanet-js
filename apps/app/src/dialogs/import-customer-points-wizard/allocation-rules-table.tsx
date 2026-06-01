@@ -100,14 +100,14 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
               <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
-                )}
-                {""}({translateUnit(units.diameter)})
+                )}{" "}
+                ({translateUnit(units.diameter)})
               </th>
               <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
                 {translate(
                   "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
-                )}
-                {""}({translateUnit(units.length)})
+                )}{" "}
+                ({translateUnit(units.length)})
               </th>
               {!isEditing && (
                 <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-32">

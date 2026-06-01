@@ -275,11 +275,9 @@ describe("ElevationsEditor", () => {
 
     await user.click(getGeotiffPopoverTrigger());
 
-    const tile1DeleteButton = screen
-      .getByText("o41078a1.tif")
-      .closest("div")!
-      .querySelector(".text-red-500")!;
-    await user.click(tile1DeleteButton);
+    await user.click(
+      screen.getByRole("button", { name: "Delete o41078a1.tif" }),
+    );
 
     const sources = store.get(elevationSourcesAtom);
     const geotiffSource = sources.find(
@@ -301,11 +299,9 @@ describe("ElevationsEditor", () => {
 
     await user.click(getGeotiffPopoverTrigger());
 
-    const tileDeleteButton = screen
-      .getByText("o41078a1.tif")
-      .closest("div")!
-      .querySelector(".text-red-500")!;
-    await user.click(tileDeleteButton);
+    await user.click(
+      screen.getByRole("button", { name: "Delete o41078a1.tif" }),
+    );
 
     const sources = store.get(elevationSourcesAtom);
     expect(sources).toHaveLength(1);

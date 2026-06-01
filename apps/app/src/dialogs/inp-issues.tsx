@@ -140,8 +140,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
         className="cursor-pointer text-md inline-flex items-center"
       >
         {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        {translate("issuesSummary")}
-        {""}
+        {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
         <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-base-hover text-default max-h-[300px] overflow-y-auto">
@@ -156,7 +155,7 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
                   ))}
                 {issues.nodesMissingCoordinates.size > maxDisplayed && (
                   <span>
-                    {""}
+                    {" "}
                     {translate(
                       "andXMore",
                       String(
@@ -195,8 +194,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
         className="cursor-pointer text-md inline-flex items-center"
       >
         {isExpaned ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        {translate("issuesSummary")}
-        {""}
+        {translate("issuesSummary")}{" "}
       </Button>
       {isExpaned && (
         <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-base-hover dark:bg-gray-800 text-default max-h-[300px] overflow-y-auto">
@@ -218,7 +216,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                 {[...issues.nonDefaultTimes.entries()].map(
                   ([name, defaultValue]) => (
                     <span key={name}>
-                      -{""}
+                      -{" "}
                       {translate(
                         "customValueNotSupport",
                         name.toUpperCase(),
@@ -237,7 +235,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
                 {[...issues.nonDefaultOptions.entries()].map(
                   ([optionName, defaultValue]) => (
                     <span key={optionName}>
-                      -{""}
+                      -{" "}
                       {translate(
                         "customValueNotSupport",
                         optionName.toUpperCase(),
@@ -254,7 +252,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("ignoredValuesDetected", "[PUMPS]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 <span>
-                  -{""}
+                  -{" "}
                   {translate(
                     "undefinedPumpCurves",
                     String(issues.hasUndefinedPumpCurve),
@@ -268,7 +266,7 @@ const IssuesSummary = ({ issues }: { issues: ParserIssues }) => {
               <p>{translate("ignoredValuesDetected", "[VALVES]")}:</p>
               <div className="flex flex-col gap-y-1 items-start">
                 <span>
-                  -{""}
+                  -{" "}
                   {translate(
                     "invalidValveKinds",
                     String(issues.invalidValveKinds.size),

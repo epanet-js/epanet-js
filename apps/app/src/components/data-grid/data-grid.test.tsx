@@ -115,8 +115,7 @@ describe("DataGrid", () => {
         />,
       );
 
-      // Gutter cells have text-xs class
-      const gutterCells = container.querySelectorAll(".text-xs");
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
       const gutterTexts = Array.from(gutterCells).map((el) => el.textContent);
       expect(gutterTexts).toContain("1");
       expect(gutterTexts).toContain("2");
@@ -559,8 +558,7 @@ describe("DataGrid", () => {
         />,
       );
 
-      // Find gutter cells by their class (text-xs and cursor-pointer)
-      const gutterCells = container.querySelectorAll(".text-xs.cursor-pointer");
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
       const firstGutter = gutterCells[0];
       await user.click(firstGutter);
 
@@ -701,7 +699,7 @@ describe("DataGrid", () => {
         />,
       );
 
-      const gutterCells = container.querySelectorAll(".text-xs.cursor-pointer");
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
 
       // Click first gutter row
       await user.click(gutterCells[0]);
@@ -742,7 +740,7 @@ describe("DataGrid", () => {
         />,
       );
 
-      const gutterCells = container.querySelectorAll(".text-xs.cursor-pointer");
+      const gutterCells = container.querySelectorAll('[role="rowheader"]');
       await user.click(gutterCells[0]);
       await user.keyboard("[ShiftLeft>]");
       await user.click(gutterCells[2]);
