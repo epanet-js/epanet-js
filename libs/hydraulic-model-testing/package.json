@@ -1,5 +1,5 @@
 {
-  "name": "@epanet-js/hydraulic-model",
+  "name": "@epanet-js/hydraulic-model-testing",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,13 +14,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@epanet-js/geometry": "workspace:*",
-    "@epanet-js/id-generator": "workspace:*",
-    "@epanet-js/quantity": "workspace:*",
-    "@turf/length": "^6.5.0"
+    "@epanet-js/hydraulic-model": "workspace:*",
+    "@epanet-js/id-generator": "workspace:*"
   },
   "devDependencies": {
-    "@epanet-js/hydraulic-model-testing": "workspace:*",
     "@types/geojson": "^7946.0.14",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
