@@ -229,13 +229,17 @@ export const CustomerPointDataTable = memo(
         {
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
-          onSelect: (selection, sortedRows) => {
+          onSelect: (_selection, sortedRows, originCell) => {
             const id = getCpIdFromRow(
               sortedRows as CustomerPointRow[],
-              selection.min.row,
+              originCell.row,
             );
             if (id === undefined) return;
             selectCustomerPointInApp(id);
+            dataGridRef.current?.selectCells({
+              colIndex: originCell.col,
+              rowIndex: originCell.row,
+            });
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",
@@ -261,13 +265,14 @@ export const CustomerPointDataTable = memo(
         {
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
-          onSelect: (selection, sortedRows) => {
+          onSelect: (_selection, sortedRows, originRowIndex) => {
             const id = getCpIdFromRow(
               sortedRows as CustomerPointRow[],
-              selection.min.row,
+              originRowIndex,
             );
             if (id === undefined) return;
             selectCustomerPointInApp(id);
+            dataGridRef.current?.selectCells({ rowIndex: originRowIndex });
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",

@@ -13,12 +13,16 @@ type CellContextMenuContentProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
   actions: CellContextAction<TData>[];
   readOnly: boolean;
+  rowIndex: number;
+  colIndex: number;
 };
 
 export function CellContextMenuContent<TData extends Record<string, unknown>>({
   table,
   actions,
   readOnly,
+  rowIndex,
+  colIndex,
 }: CellContextMenuContentProps<TData>) {
   const translate = useTranslate();
   const selection = table.getSelection();
@@ -57,7 +61,10 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
               variant={variant}
               onSelect={() => {
                 if (isDisabled) return;
-                onSelect(selection, sortedRows);
+                onSelect(selection, sortedRows, {
+                  col: colIndex,
+                  row: rowIndex,
+                });
               }}
             >
               {action.icon}
@@ -70,10 +77,9 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
   );
 }
 
-export type GridContextMenuTarget = {
-  type: "cell" | "gutter";
-  rowIndex: number;
-};
+export type GridContextMenuTarget =
+  | { type: "cell"; rowIndex: number; colIndex: number }
+  | { type: "gutter"; rowIndex: number };
 
 type GridContextMenuContentProps<TData extends Record<string, unknown>> = {
   target: GridContextMenuTarget | null;
@@ -97,6 +103,8 @@ export function GridContextMenuContent<TData extends Record<string, unknown>>({
         table={table}
         actions={cellContextActions}
         readOnly={readOnly}
+        rowIndex={target.rowIndex}
+        colIndex={target.colIndex}
       />
     );
   }
@@ -141,7 +149,7 @@ export function GutterContextMenuContent<
               variant={variant}
               onSelect={() => {
                 if (isDisabled) return;
-                action.onSelect(selection, sortedRows);
+                action.onSelect(selection, sortedRows, rowIndex);
               }}
             >
               {action.icon}

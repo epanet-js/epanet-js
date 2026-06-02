@@ -26,7 +26,11 @@ export type ContextActionVariant = "default" | "destructive";
 export type CellContextAction<TData = unknown> = {
   label: string;
   icon: React.ReactNode;
-  onSelect: (selection: GridSelection, sortedRows: TData[]) => void;
+  onSelect: (
+    selection: GridSelection,
+    sortedRows: TData[],
+    originCell: CellPosition,
+  ) => void;
   disabled?: (selection: GridSelection) => boolean;
   variant?: ContextActionVariant;
 };
@@ -34,7 +38,11 @@ export type CellContextAction<TData = unknown> = {
 export type GutterContextAction<TData = unknown> = {
   label: string;
   icon: React.ReactNode;
-  onSelect: (selection: GridSelection, sortedRows: TData[]) => void;
+  onSelect: (
+    selection: GridSelection,
+    sortedRows: TData[],
+    originRowIndex: number,
+  ) => void;
   disabled?: (rowIndex: number) => boolean;
   variant?: ContextActionVariant;
 };

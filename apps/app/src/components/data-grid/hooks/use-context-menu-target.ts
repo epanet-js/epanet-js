@@ -18,7 +18,7 @@ export function useContextMenuTarget({
 
   const handleCellContextMenu = onCellContextMenu
     ? (col: number, row: number, e: React.MouseEvent) => {
-        setMenuTarget({ type: "cell", rowIndex: row });
+        setMenuTarget({ type: "cell", rowIndex: row, colIndex: col });
         onCellContextMenu(col, row, e);
       }
     : undefined;
