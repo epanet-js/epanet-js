@@ -1,4 +1,4 @@
-import { convertTo } from "./quantity";
+import { convertTo } from "./index";
 
 describe("custom quantities", () => {
   it("can convert from and to mwc", () => {
