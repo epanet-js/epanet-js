@@ -1,4 +1,10 @@
-import { useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 import clsx from "clsx";
 import {
   Button,
@@ -13,6 +19,15 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
+
+const DialogContentContext = createContext<HTMLElement | null>(null);
+
+/**
+ * Returns the dialog content element when called inside a BaseDialog, or null
+ * otherwise. Use as the `container` for nested Radix portals (Popover, etc.)
+ * so they live inside the dialog's scroll-lock and focus scopes.
+ */
+export const useDialogContentContainer = () => useContext(DialogContentContext);
 
 export const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -108,6 +123,7 @@ export const BaseDialog = ({
   badge,
   preventClose = false,
 }: BaseDialogProps) => {
+  const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
   return (
     <Dialog.Root
       open={isOpen}
@@ -117,6 +133,7 @@ export const BaseDialog = ({
         <StyledDialogOverlay />
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
           <StyledDialogContent
+            ref={setContentEl}
             size={size}
             height={height}
             onOpenAutoFocus={(e) => e.preventDefault()}
@@ -125,16 +142,18 @@ export const BaseDialog = ({
             }
             aria-describedby={undefined}
           >
-            <DefaultErrorBoundary>
-              <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
-                {!title && <Dialog.Title className="sr-only" />}
-                {title && <DialogHeader title={title} badge={badge} />}
-                <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">
-                  {children}
+            <DialogContentContext.Provider value={contentEl}>
+              <DefaultErrorBoundary>
+                <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
+                  {!title && <Dialog.Title className="sr-only" />}
+                  {title && <DialogHeader title={title} badge={badge} />}
+                  <div className="modal-content flex flex-col flex-1 overflow-y-auto min-h-0">
+                    {children}
+                  </div>
+                  {footer && <DialogFooter>{footer}</DialogFooter>}
                 </div>
-                {footer && <DialogFooter>{footer}</DialogFooter>}
-              </div>
-            </DefaultErrorBoundary>
+              </DefaultErrorBoundary>
+            </DialogContentContext.Provider>
           </StyledDialogContent>
         </div>
       </Dialog.Portal>

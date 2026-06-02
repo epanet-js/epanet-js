@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
+import { useDialogContentContainer } from "src/components/dialog";
 
 export type SearchableSelectorOption = {
   id: string;
@@ -37,6 +38,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const dialogContainer = useDialogContentContainer();
 
   useEffect(
     function keepActiveItemVisible() {
@@ -189,7 +191,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
           </div>
         </Popover.Anchor>
 
-        <Popover.Portal>
+        <Popover.Portal container={dialogContainer ?? undefined}>
           <Popover.Content
             side="bottom"
             align="start"

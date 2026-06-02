@@ -3,6 +3,7 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { useDialogContentContainer } from "src/components/dialog";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import { BaseSelectorList, SelectorListOption } from "./selector-list";
 
@@ -90,6 +91,7 @@ export function BaseSelector<T extends string | number>({
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dialogContainer = useDialogContentContainer();
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === selected) ?? null,
@@ -164,7 +166,7 @@ export function BaseSelector<T extends string | number>({
           </div>
         </button>
       </Popover.Trigger>
-      <Popover.Portal>
+      <Popover.Portal container={dialogContainer ?? undefined}>
         <Popover.Content
           side="bottom"
           align="start"
