@@ -54,6 +54,7 @@ import {
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useImportZones } from "src/commands/import-zones";
+import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
 import { Mode, modeAtom } from "src/state/mode";
@@ -92,6 +93,7 @@ export const Toolbar = ({
   const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
   const importZones = useImportZones();
+  const importZonesDisabled = useImportZonesDisabled();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const isZonesOn = useFeatureFlag("FLAG_ZONES");
@@ -161,6 +163,7 @@ export const Toolbar = ({
                 onClick={() => {
                   importZones({ source: "toolbar" });
                 }}
+                disabled={importZonesDisabled}
               >
                 <ZonesIcon />
               </MenuAction>

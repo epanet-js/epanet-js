@@ -1411,7 +1411,6 @@
   },
   "importZones": {
     "title": "Import zones",
-    "unprojectedError": "Zones cannot be imported into an unprojected network. Please set a coordinate projection for the network first.",
     "dataInputStep": {
       "title": "Data mapping",
       "addFromFile": "Add from file",
