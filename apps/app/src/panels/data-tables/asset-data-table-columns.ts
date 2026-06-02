@@ -602,14 +602,25 @@ function _buildColumns(
           decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
         }),
-        floatColumn("avgCustomerDemand", {
-          header: headerLabel(translate("customerDemand"), units.baseDemand),
-          decimals: getDecimals(formatting, "baseDemand"),
+        integerColumn("demandsCount", {
+          header: translate("demandsCount"),
           isReadOnly: true,
         }),
+        floatColumn("baseDemand", {
+          header: headerLabel(translate("baseDemand"), units.baseDemand),
+          decimals: getDecimals(formatting, "baseDemand"),
+          nullValue: 0,
+          deleteValue: 0,
+        }),
+        patternCol("patternId", translate("timePattern"), "demand"),
         floatColumn("customerPointCount", {
           header: translate("connectedCustomers"),
           decimals: 0,
+          isReadOnly: true,
+        }),
+        floatColumn("avgCustomerDemand", {
+          header: headerLabel(translate("customerDemand"), units.baseDemand),
+          decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
         }),
         numericCol("initialQuality", translate("initialQuality")),

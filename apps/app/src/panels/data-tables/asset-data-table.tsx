@@ -9,8 +9,11 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import {
   changeProperties,
   changeLabel,
+  changeDemandAssignment,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
+import { getJunctionDemands } from "src/hydraulic-model";
+import type { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
 import type { ModelMoment } from "src/hydraulic-model";
 import {
   tankVolumeCurveChanges,
@@ -223,11 +226,52 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       ];
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();
+      const demandAssignments: JunctionDemandAssignment[] = [];
       for (let i = 0; i < newRows.length; i++) {
         const newRow = newRows[i];
         const oldRow = rowsRef.current?.[i];
         if (!oldRow) continue;
         const assetId = newRow.id;
+
+        if (assetType === "junction") {
+          const baseDemandChanged = newRow.baseDemand !== oldRow.baseDemand;
+          const patternIdChanged = newRow.patternId !== oldRow.patternId;
+          if (baseDemandChanged || patternIdChanged) {
+            const existing = getJunctionDemands(
+              hydraulicModel.demands,
+              assetId,
+            );
+            const rest = existing.slice(1);
+            const nextBaseDemand = (newRow.baseDemand as number | null) ?? 0;
+            const nextPatternId =
+              (newRow.patternId as number | null) ?? undefined;
+            const isEmptyDefault =
+              nextBaseDemand === 0 && nextPatternId === undefined;
+            const newDemands =
+              isEmptyDefault && rest.length === 0
+                ? []
+                : [
+                    { baseDemand: nextBaseDemand, patternId: nextPatternId },
+                    ...rest,
+                  ];
+            demandAssignments.push({
+              junctionId: assetId,
+              demands: newDemands,
+            });
+            if (baseDemandChanged) {
+              editedProperties.set(
+                "baseDemand",
+                (editedProperties.get("baseDemand") ?? 0) + 1,
+              );
+            }
+            if (patternIdChanged) {
+              editedProperties.set(
+                "patternId",
+                (editedProperties.get("patternId") ?? 0) + 1,
+              );
+            }
+          }
+        }
 
         if (
           typeof newRow.label === "string" &&
@@ -323,6 +367,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             }),
           );
         }
+      }
+
+      if (demandAssignments.length > 0) {
+        moments.push(changeDemandAssignment(hydraulicModel, demandAssignments));
       }
 
       const merged = mergeMoments(moments, "Edit asset table");

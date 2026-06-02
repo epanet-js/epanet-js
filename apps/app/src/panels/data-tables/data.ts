@@ -205,6 +205,7 @@ function buildComputedFields(
 ): Record<string, unknown> {
   if (assetType === "junction") {
     const junctionDemands = getJunctionDemands(hydraulicModel.demands, assetId);
+    const firstDemand = junctionDemands[0];
     const avgDemand = calculateAverageDemand(
       junctionDemands,
       hydraulicModel.patterns,
@@ -224,6 +225,9 @@ function buildComputedFields(
       0,
     );
     return {
+      baseDemand: firstDemand?.baseDemand ?? 0,
+      patternId: firstDemand?.patternId ?? null,
+      demandsCount: junctionDemands.length,
       avgDemand,
       avgCustomerDemand,
       customerPointCount: customerPoints.length,
