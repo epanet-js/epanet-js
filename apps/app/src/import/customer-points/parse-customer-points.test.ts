@@ -1,6 +1,6 @@
 import { parseCustomerPoints } from "./parse-customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 

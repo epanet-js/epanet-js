@@ -26,7 +26,7 @@ import {
 } from "src/hydraulic-model";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";

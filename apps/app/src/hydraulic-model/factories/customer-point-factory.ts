@@ -1,5 +1,5 @@
 import { Position } from "geojson";
-import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import {
   CustomerPoint,
   CustomerPointId,

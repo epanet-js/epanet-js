@@ -2,7 +2,7 @@ import { Topology } from "./topology";
 import { AssetsMap } from "./assets-map";
 import { nanoid } from "nanoid";
 
-import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { Demands, createEmptyDemands } from "./demands";
 import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
 import { CustomerPointsLookup } from "./customer-points-lookup";

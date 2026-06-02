@@ -1,4 +1,4 @@
-import { IdGenerator } from "src/lib/id-generator";
+import { IdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import {
   LabelManager,

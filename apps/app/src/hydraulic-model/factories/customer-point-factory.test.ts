@@ -3,7 +3,7 @@ import {
   buildCustomerPointPreviewFactory,
 } from "./customer-point-factory";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 
 describe("CustomerPointFactory", () => {
   it("generates CP-prefixed labels with label manager", () => {

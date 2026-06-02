@@ -1,6 +1,6 @@
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { AssetFactory } from "./asset-factory";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { LabelManager } from "../label-manager";
 
 describe("asset factory", () => {

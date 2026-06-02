@@ -36,7 +36,7 @@ import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
 import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
 import { Pump } from "src/hydraulic-model/asset-types/pump";
-import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import {
   CurveId,
   CurvePoint,

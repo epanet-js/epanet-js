@@ -10,7 +10,7 @@ import {
 } from "src/hydraulic-model";
 import { ModelFactories } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import type { IdGenerator } from "src/lib/id-generator";
+import type { IdGenerator } from "@epanet-js/id-generator";
 import { nanoid } from "nanoid";
 import {
   defaultTiming,

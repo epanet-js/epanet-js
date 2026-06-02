@@ -4,7 +4,7 @@ import {
   initializeModelFactories,
 } from "src/hydraulic-model/factories";
 import { LabelManager } from "src/hydraulic-model/label-manager";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
 
 export type { ModelFactories };

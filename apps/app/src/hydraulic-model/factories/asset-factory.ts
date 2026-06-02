@@ -106,7 +106,7 @@ export type TankBuildData = {
   volumeCurveId?: CurveId;
 };
 
-import { IdGenerator } from "src/lib/id-generator";
+import { IdGenerator } from "@epanet-js/id-generator";
 import { LabelManager, LabelType } from "../label-manager";
 import {
   PumpDefinitionType,

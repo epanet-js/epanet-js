@@ -1,4 +1,4 @@
-import { ConsecutiveIdsGenerator, IdGenerator } from "../id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 
 export class ZoneLabelGenerator {
   private idGenerator: IdGenerator;

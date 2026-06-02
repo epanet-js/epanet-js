@@ -28,7 +28,7 @@ import {
   TankBuildData,
   ValveBuildData,
 } from "src/hydraulic-model/factories/asset-factory";
-import { ConsecutiveIdsGenerator, IdGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,

@@ -13,7 +13,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { commandBarOpenAtom } from "src/state/command-bar";
 import { initializeModelFactories } from "src/hydraulic-model/factories";
-import { ConsecutiveIdsGenerator } from "src/lib/id-generator";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { Store } from "src/state";
 

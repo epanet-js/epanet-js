@@ -7,7 +7,7 @@ import {
 import { Pump, Pipe, Junction, Valve } from "../asset-types";
 import { AssetFactory } from "../factories/asset-factory";
 import { presets } from "src/lib/project-settings/quantities-spec";
-import { IdGenerator } from "src/lib/id-generator";
+import { IdGenerator } from "@epanet-js/id-generator";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 import { HydraulicModel } from "../hydraulic-model";
 
