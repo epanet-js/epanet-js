@@ -14,6 +14,32 @@ their junction, junctions don't know their customer points). Read the
 This file inlines three areas: the hydraulic model itself, the lookup patterns,
 and the customer-points system.
 
+## ⚠️ Part of this module now lives in a workspace package
+
+The **asset/value layer has been extracted** to `@epanet-js/hydraulic-model`
+(`public/libs/hydraulic-model/`): `asset-types/*` (the asset classes + their
+property/quantity types, `DefaultsSpec`), `factories/*` (`AssetFactory`,
+`CustomerPointFactory`, `initializeModelFactories`), `label-manager`, `curves`,
+`patterns`, `customer-points`, and `customer-points-lookup`. Import these from
+the **bare package name** `@epanet-js/hydraulic-model` (single root barrel — no
+subpaths; that's how every `@epanet-js/*` lib is consumed here). The guidelines
+below still describe how these pieces work; only their home has changed.
+
+Test builders (`buildJunction/Pipe/Pump/Reservoir/CustomerPoint`, `testDefaults`)
+live in `@epanet-js/hydraulic-model-testing` — a **devDependency, test-only**
+package; import them only from test files.
+
+**Still in this directory** (the app side, not yet extracted): `hydraulic-model.ts`
+(the `HydraulicModel` container), `model-operations/`, `mutations/`, `topology/`,
+`asset-index`, `assets-geo`, `assets-map`, `demands`, `controls/`, `spatial-*`,
+`curve-fitting`, and the `index.ts` barrel (which re-exports the moved symbols
+from the package, so `src/hydraulic-model` imports keep working). The full
+`HydraulicModelBuilder` test helper also stays here (`src/__helpers__/`) until the
+remaining layers move.
+
+When changing the asset classes, factories, curves, patterns, label manager, or
+customer-point types, edit them in `public/libs/hydraulic-model/` — not here.
+
 ---
 
 # Hydraulic Model Guidelines
