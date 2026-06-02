@@ -107,7 +107,7 @@ export const nullSymbologySpec: SymbologySpec = {
     visible: true,
     defaults: { color: "#ea580c" },
     labelRule: null,
-    colorRule: null,
+    colorRule: "label",
     paletteName: "Bold",
   },
 };
