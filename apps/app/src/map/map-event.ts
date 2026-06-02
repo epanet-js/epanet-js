@@ -1,4 +1,4 @@
-import { e6position } from "src/lib/geometry";
+import { e6position } from "@epanet-js/geometry";
 
 export function getMapCoord(
   e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,

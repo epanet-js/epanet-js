@@ -1,5 +1,5 @@
 import { lineString, point } from "@turf/helpers";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { Position } from "src/types";
 import { NodeAsset, Pipe } from "../asset-types";
 import { CustomerPoint, CustomerPoints } from "../customer-points";

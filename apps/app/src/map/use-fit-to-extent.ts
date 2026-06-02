@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Map as MapboxMap, LngLatBoundsLike } from "mapbox-gl";
 import { assetsDerivedAtom } from "src/state/derived-branch-state";
-import { getExtent, isBBoxEmpty } from "src/lib/geometry";
+import { getExtent, isBBoxEmpty } from "@epanet-js/geometry";
 import { useUserTracking } from "src/infra/user-tracking";
 
 export function useFitToExtent() {

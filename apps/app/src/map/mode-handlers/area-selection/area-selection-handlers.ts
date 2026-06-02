@@ -9,7 +9,7 @@ import { getMapCoord } from "../utils";
 import {
   isLastPolygonSegmentIntersecting,
   polygonCoordinatesFromPositions,
-} from "src/lib/geometry";
+} from "@epanet-js/geometry";
 import { useAreaSelection } from "./use-area-selection";
 import type { EphemeralEditingStateAreaSelection } from "./ephemeral-area-selection-state";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";

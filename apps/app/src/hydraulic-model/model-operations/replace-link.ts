@@ -6,7 +6,7 @@ import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
 import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "@epanet-js/quantity";
 import { AssetFactory } from "../factories/asset-factory";

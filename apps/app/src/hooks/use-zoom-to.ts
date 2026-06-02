@@ -1,6 +1,6 @@
 import { MapContext } from "src/map";
 import { useAtomCallback } from "jotai/utils";
-import { getExtent, isBBoxEmpty } from "src/lib/geometry";
+import { getExtent, isBBoxEmpty } from "@epanet-js/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";

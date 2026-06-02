@@ -6,7 +6,7 @@ import type {
   FolderMap,
 } from "src/types";
 import type { Map as MapboxMap } from "mapbox-gl";
-import { bufferPoint } from "src/lib/geometry";
+import { bufferPoint } from "@epanet-js/geometry";
 import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
 import { isFeatureLocked } from "./folder";

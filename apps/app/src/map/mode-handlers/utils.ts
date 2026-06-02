@@ -1,5 +1,5 @@
 import { Asset, AssetsMap } from "src/hydraulic-model";
-import { e6position, precisionForZoom } from "src/lib/geometry";
+import { e6position, precisionForZoom } from "@epanet-js/geometry";
 import { decodeId } from "src/lib/id";
 import { QueryProvider, getClickedFeature } from "src/map/fuzzy-click";
 import { MapEngine } from "../map-engine";

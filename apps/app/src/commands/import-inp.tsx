@@ -14,7 +14,7 @@ import {
 } from "src/import/inp";
 import type { ParseInpResult } from "src/import/inp";
 import { FeatureCollection } from "geojson";
-import { getExtent } from "src/lib/geometry";
+import { getExtent } from "@epanet-js/geometry";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { MapContext, captureThumbnail } from "src/map";
 import { ImportInpCompleted, useUserTracking } from "src/infra/user-tracking";

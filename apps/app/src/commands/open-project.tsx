@@ -24,7 +24,7 @@ import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { MapContext, captureThumbnail } from "src/map";
-import { getExtent } from "src/lib/geometry";
+import { getExtent } from "@epanet-js/geometry";
 import { projectExtension } from "./save-project";
 import { inpExtension, useImportInp } from "./import-inp";
 

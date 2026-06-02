@@ -4,7 +4,7 @@ import turfBbox from "@turf/bbox";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
 import { findJunctionForCustomerPoint } from "../../utilities/junction-assignment";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 
 import { CustomerPointConnection } from "../../customer-points";
 import { AllocationRule } from "./types";

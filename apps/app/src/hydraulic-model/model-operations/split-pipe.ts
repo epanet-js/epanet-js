@@ -7,7 +7,7 @@ import { LabelManager } from "../label-manager";
 import { CustomerPoint } from "../customer-points";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { Position } from "src/types";
 import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "@epanet-js/quantity";

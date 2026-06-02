@@ -14,7 +14,7 @@ import type {
 } from "src/types";
 import { encodeVertex, encodeMidpoint } from "src/lib/id";
 import { match } from "ts-pattern";
-import { midpoint } from "src/lib/geometry";
+import { midpoint } from "@epanet-js/geometry";
 import memoize from "memoize-one";
 
 // fp = FromPoint

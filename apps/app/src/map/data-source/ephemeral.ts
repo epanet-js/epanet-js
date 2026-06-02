@@ -12,7 +12,7 @@ import { EphemeralMoveAssets } from "../mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "../mode-handlers/draw-node/ephemeral-draw-node-state";
 import { EphemeralDrawLink } from "../mode-handlers/draw-link/ephemeral-link-state";
 import { EphemeralEditingStateAreaSelection } from "../mode-handlers/area-selection/ephemeral-area-selection-state";
-import { polygonCoordinatesFromPositions } from "src/lib/geometry";
+import { polygonCoordinatesFromPositions } from "@epanet-js/geometry";
 
 export const buildEphemeralStateSource = (
   ephemeralState: EphemeralEditingState,

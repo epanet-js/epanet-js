@@ -1,7 +1,7 @@
 import Flatbush from "flatbush";
 import type { IFeature, IWrappedFeature, Point } from "src/types";
 import { generateSyntheticPoints } from "src/lib/pmap/generate-synthetic-points";
-import { getExtents } from "src/lib/geometry";
+import { getExtents } from "@epanet-js/geometry";
 import uniq from "lodash/uniq";
 import { USelection } from "src/selection";
 import { decodeId } from "./id";

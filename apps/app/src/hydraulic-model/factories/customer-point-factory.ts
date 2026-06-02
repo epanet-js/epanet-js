@@ -4,7 +4,7 @@ import {
   CustomerPoint,
   CustomerPointId,
 } from "src/hydraulic-model/customer-points";
-import { roundCoordinates } from "src/lib/geometry";
+import { roundCoordinates } from "@epanet-js/geometry";
 import { LabelManager } from "src/hydraulic-model/label-manager";
 
 export const buildCustomerPointPreviewFactory = (

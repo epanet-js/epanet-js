@@ -4,7 +4,7 @@ import { decodeId } from "src/lib/id";
 import { AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { lineString, point } from "@turf/helpers";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 
 type PipeSnapResult = {
   pipeId: number;

@@ -20,7 +20,7 @@ import {
 import { projectGeoJson } from "./project-geojson";
 import { approximateToNullIsland } from "./approximate-to-null-island";
 import type { Proj4Projection, Projection } from "src/lib/projections";
-import { getExtent } from "src/lib/geometry";
+import { getExtent } from "@epanet-js/geometry";
 import {
   computeCentroid,
   transformPoint,

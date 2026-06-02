@@ -8,7 +8,7 @@ import {
   DEFAULT_SNAP_DISTANCE_PIXELS,
 } from "../../search";
 import { lineString, point } from "@turf/helpers";
-import { findNearestPointOnLine } from "src/lib/geometry";
+import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { SnappingCandidate } from "../draw-link/draw-link-handlers";
 import { DataSource } from "../../data-source";
 
