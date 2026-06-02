@@ -252,6 +252,10 @@ export type ImportZonesWarningDialogState = {
   onContinue: () => void;
 };
 
+export type ImportZonesUnprojectedDialogState = {
+  type: "importZonesUnprojected";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -300,6 +304,7 @@ export type DialogState =
   | PriorityAccessDialogState
   | ImportZonesDialogState
   | ImportZonesWarningDialogState
+  | ImportZonesUnprojectedDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {

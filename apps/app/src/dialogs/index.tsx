@@ -269,6 +269,18 @@ const ImportZonesWarningDialog = dynamic<{
   },
 );
 
+const ImportZonesUnprojectedDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/import-zones-unprojected").then(
+      (r) => r.ImportZonesUnprojectedDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const SimulationProgressDialog = dynamic<{
   modal: dialogState.SimulationProgressDialogState;
 }>(
@@ -704,6 +716,10 @@ export const Dialogs = memo(function Dialogs() {
         onClose={onClose}
       />
     );
+  }
+
+  if (dialog.type === "importZonesUnprojected") {
+    return <ImportZonesUnprojectedDialog onClose={onClose} />;
   }
 
   if (dialog.type === "networkProjection") {

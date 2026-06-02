@@ -7,10 +7,12 @@ import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { useTranslate } from "src/hooks/use-translate";
 import { zonesAtom } from "src/state/zones";
+import { isUnprojectedAtom } from "src/state/map-projection";
 
 export const useImportZones = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const zones = useAtomValue(zonesAtom);
+  const isUnprojected = useAtomValue(isUnprojectedAtom);
   const userTracking = useUserTracking();
   const onlyEarlyAccess = useEarlyAccess();
   const { canUseZones } = usePermissions();
@@ -37,6 +39,11 @@ export const useImportZones = () => {
           return;
         }
 
+        if (isUnprojected) {
+          setDialogState({ type: "importZonesUnprojected" });
+          return;
+        }
+
         const hasExistingZones = Object.keys(zones).length > 0;
 
         if (hasExistingZones) {
@@ -52,6 +59,7 @@ export const useImportZones = () => {
     [
       setDialogState,
       zones,
+      isUnprojected,
       userTracking,
       onlyEarlyAccess,
       canUseZones,
