@@ -153,11 +153,15 @@ export const CustomerPointDataTable = memo(
               units.customerDemand,
             );
             const nextPatternId = newRow.patternId ?? undefined;
-            const firstDemand =
-              nextBaseDemand === 0 && nextPatternId === undefined
-                ? null
-                : { baseDemand: nextBaseDemand, patternId: nextPatternId };
-            const newDemands = firstDemand ? [firstDemand, ...rest] : rest;
+            const isEmptyDefault =
+              nextBaseDemand === 0 && nextPatternId === undefined;
+            const newDemands =
+              isEmptyDefault && rest.length === 0
+                ? []
+                : [
+                    { baseDemand: nextBaseDemand, patternId: nextPatternId },
+                    ...rest,
+                  ];
 
             demandAssignments.push({
               customerPointId: newRow.id,
