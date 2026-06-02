@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+import { useAtomValue } from "jotai";
 import { useAuth } from "src/hooks/use-auth";
 import { useOrganization } from "src/hooks/use-organization";
 import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Plan, isTrialActive } from "src/lib/account-plans";
+import { isDemoNetworkAtom } from "src/state/file-system";
 
 export type Permissions = {
   canAddCustomLayers: boolean;
@@ -21,6 +23,7 @@ export const resolvePermissions = (
   plan: Plan,
   trialActive: boolean,
   isOrgAdmin: boolean,
+  isDemoNetwork: boolean,
 ): Permissions => {
   const hasPaidAccess =
     ["pro", "education", "personal", "teams"].includes(plan) || trialActive;
@@ -33,7 +36,7 @@ export const resolvePermissions = (
     canUseHglProfile: hasEarlyAccess,
     canUseCustomGraphs: hasEarlyAccess,
     canUseZones: hasEarlyAccess,
-    canUsePipeAttributes: hasPaidAccess,
+    canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };
@@ -47,8 +50,10 @@ export const usePermissions = (): Permissions => {
   const org = useOrganization();
   const membership = "membership" in org ? org.membership : null;
   const isOrgAdmin = membership?.role === "org:admin";
+  const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
   return useMemo(
-    () => resolvePermissions(effectivePlan, trialActive, isOrgAdmin),
-    [effectivePlan, trialActive, isOrgAdmin],
+    () =>
+      resolvePermissions(effectivePlan, trialActive, isOrgAdmin, isDemoNetwork),
+    [effectivePlan, trialActive, isOrgAdmin, isDemoNetwork],
   );
 };

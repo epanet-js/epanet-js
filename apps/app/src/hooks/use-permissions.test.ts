@@ -4,7 +4,7 @@ import { Plan } from "src/lib/account-plans";
 
 describe("resolvePermissions", () => {
   it("free plan cannot use paid features but can upgrade", () => {
-    const p = resolvePermissions("free", false, false);
+    const p = resolvePermissions("free", false, false, false);
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
@@ -19,7 +19,7 @@ describe("resolvePermissions", () => {
   it.each(["pro", "personal", "teams"] satisfies Plan[])(
     "%s plan can use all features (including early access) but cannot upgrade",
     (plan) => {
-      const p = resolvePermissions(plan, false, false);
+      const p = resolvePermissions(plan, false, false, false);
       expect(p.canAddCustomLayers).toBe(true);
       expect(p.canUseScenarios).toBe(true);
       expect(p.canUseElevations).toBe(true);
@@ -33,7 +33,7 @@ describe("resolvePermissions", () => {
   );
 
   it("education plan has paid features but not early-access features", () => {
-    const p = resolvePermissions("education", false, false);
+    const p = resolvePermissions("education", false, false, false);
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
@@ -46,7 +46,7 @@ describe("resolvePermissions", () => {
   });
 
   it("free plan with active trial can use paid features but can still upgrade", () => {
-    const p = resolvePermissions("free", true, false);
+    const p = resolvePermissions("free", true, false, false);
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
@@ -58,13 +58,22 @@ describe("resolvePermissions", () => {
     expect(p.canManageOrganization).toBe(false);
   });
 
+  it("free plan on a demo network can use pipe attributes but no other paid features", () => {
+    const p = resolvePermissions("free", false, false, true);
+    expect(p.canUsePipeAttributes).toBe(true);
+    expect(p.canAddCustomLayers).toBe(false);
+    expect(p.canUseScenarios).toBe(false);
+    expect(p.canUseElevations).toBe(false);
+    expect(p.canUpgrade).toBe(true);
+  });
+
   it("org admin can manage organization", () => {
-    const p = resolvePermissions("teams", false, true);
+    const p = resolvePermissions("teams", false, true, false);
     expect(p.canManageOrganization).toBe(true);
   });
 
   it("non-admin cannot manage organization", () => {
-    const p = resolvePermissions("teams", false, false);
+    const p = resolvePermissions("teams", false, false, false);
     expect(p.canManageOrganization).toBe(false);
   });
 });
