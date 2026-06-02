@@ -11,7 +11,7 @@ import { isNodeAsset } from "../asset-types/type-guards";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "../demands";
 import { computeLinkLength } from "../asset-types/link";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 
 type InputData = {
   sourceNodeId: AssetId;

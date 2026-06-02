@@ -51,7 +51,7 @@ import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "src/components/form/selector";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useUserTracking } from "src/infra/user-tracking";
-import { convertTo } from "src/quantity";
+import { convertTo } from "@epanet-js/quantity";
 import { offlineAtom } from "src/state/offline";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import { mapOverlayFeaturesAtom } from "src/state/map-overlay";

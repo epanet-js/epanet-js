@@ -30,7 +30,7 @@ import {
   changeCustomerPointLabel,
 } from "src/hydraulic-model/model-operations";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
-import { convertTo } from "src/quantity";
+import { convertTo } from "@epanet-js/quantity";
 
 export function CustomerPointPanel() {
   const selection = useAtomValue(selectionAtom);

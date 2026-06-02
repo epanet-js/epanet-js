@@ -29,7 +29,7 @@ import {
   withPressureUnit,
   withHeadlossDefaults,
 } from "src/lib/project-settings/quantities-spec";
-import type { Unit } from "src/quantity";
+import type { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
 import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
 import { ValveStatus } from "src/hydraulic-model/asset-types/valve";

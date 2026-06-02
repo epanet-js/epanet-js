@@ -1,6 +1,6 @@
 import { CBColors, COLORBREWER_ALL } from "src/lib/colorbrewer";
 import { calculatePrettyBreaks, checkValidData } from "./range-modes";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import { calculateEqualIntervalRange } from "./range-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./range-modes/equal-quantiles";
 import { calculateCkmeansRange } from "./range-modes/ckmeans";

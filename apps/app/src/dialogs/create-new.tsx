@@ -16,7 +16,7 @@ import {
   flowUnitTranslationKeys,
   pressureUnitTranslationKeys,
 } from "src/lib/project-settings/quantities-spec";
-import type { Unit } from "src/quantity";
+import type { Unit } from "@epanet-js/quantity";
 import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
 import { type Projection, WGS84 } from "src/lib/projections";
 import {

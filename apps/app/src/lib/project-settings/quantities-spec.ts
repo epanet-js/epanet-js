@@ -1,4 +1,4 @@
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import {
   HeadlossFormula,
   PipeQuantity,

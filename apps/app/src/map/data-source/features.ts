@@ -1,6 +1,6 @@
 import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
-import { Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "@epanet-js/quantity";
 import { Feature } from "src/types";
 import { Asset, AssetId, Valve } from "src/hydraulic-model/asset-types";
 import { colorFor } from "src/map/symbology/range-color-rule";

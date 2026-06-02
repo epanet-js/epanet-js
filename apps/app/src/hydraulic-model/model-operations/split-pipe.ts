@@ -10,7 +10,7 @@ import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { Position } from "src/types";
 import { computeLinkLength } from "../asset-types/link";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,

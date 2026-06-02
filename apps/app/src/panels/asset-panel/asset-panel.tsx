@@ -110,7 +110,7 @@ import {
   valveKindChanges,
 } from "src/hydraulic-model/model-operations";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 type OnPropertyChange = <P extends ChangeableProperty>(

@@ -25,7 +25,7 @@ import { checksum } from "src/infra/checksum";
 import { InpData, InpStats } from "./inp-data";
 import { Position } from "geojson";
 import turfDistance from "@turf/distance";
-import { convertTo, type Unit } from "src/quantity";
+import { convertTo, type Unit } from "@epanet-js/quantity";
 import {
   type Projection,
   WGS84,

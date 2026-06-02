@@ -1,4 +1,4 @@
-import { Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "@epanet-js/quantity";
 import {
   fetchElevationForPoint,
   fetchElevationsForPoints,

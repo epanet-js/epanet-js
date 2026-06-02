@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/query-core";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
-import { Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "@epanet-js/quantity";
 
 const staleTime = 5 * 60 * 1000;
 export const queryClient = new QueryClient({

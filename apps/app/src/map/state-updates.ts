@@ -1,7 +1,7 @@
 import type { Sel } from "src/selection/types";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";

@@ -1,4 +1,4 @@
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
 import { AssetId } from "./asset-types/base-asset";
 import { CustomerPointsLookup } from "./customer-points-lookup";

@@ -16,7 +16,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
 import { useTranslate } from "src/hooks/use-translate";
-import { convertTo, Quantity } from "src/quantity";
+import { convertTo, Quantity } from "@epanet-js/quantity";
 import {
   ProximityAnomaly,
   findProximityAnomalies,

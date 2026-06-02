@@ -8,7 +8,7 @@ import { lineString, point } from "@turf/helpers";
 import { Position } from "geojson";
 import { findNearestPointOnLine } from "src/lib/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import { AssetFactory } from "../factories/asset-factory";
 import { LabelManager } from "../label-manager";
 

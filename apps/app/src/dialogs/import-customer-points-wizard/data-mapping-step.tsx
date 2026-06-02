@@ -28,7 +28,7 @@ import {
 } from "./types";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
-import { convertTo } from "src/quantity";
+import { convertTo } from "@epanet-js/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 import { Selector } from "src/components/form/selector";
 const CONSTANT_PATTERN_ID = 0;

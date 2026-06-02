@@ -1,7 +1,7 @@
 import { Feature, FeatureCollection, Position } from "geojson";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
-import { convertTo, Unit } from "src/quantity";
+import { convertTo, Unit } from "@epanet-js/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
 import { CustomerPointFactory } from "src/hydraulic-model/factories";
 

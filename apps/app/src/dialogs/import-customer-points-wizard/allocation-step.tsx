@@ -16,7 +16,7 @@ import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { WizardState, WizardActions } from "./types";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";

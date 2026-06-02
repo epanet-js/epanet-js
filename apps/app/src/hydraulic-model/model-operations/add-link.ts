@@ -11,7 +11,7 @@ import { CustomerPoint } from "../customer-points";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
 import { computeLinkLength } from "../asset-types/link";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 
 type InputData = {
   link: LinkAsset;

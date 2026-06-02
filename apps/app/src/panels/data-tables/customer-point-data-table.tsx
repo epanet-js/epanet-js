@@ -8,7 +8,7 @@ import {
 } from "src/hydraulic-model/model-operations";
 import { getCustomerPointDemands } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
-import { convertTo } from "src/quantity";
+import { convertTo } from "@epanet-js/quantity";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   DataGrid,

@@ -23,7 +23,7 @@ import { ResultsReader } from "src/simulation/results-reader";
 import { Highlight } from "src/state/highlights";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 import {
   buildPathSegments,
   PathSegment,

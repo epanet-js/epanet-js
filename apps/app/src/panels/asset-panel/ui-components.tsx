@@ -11,7 +11,7 @@ import { EditableTextField } from "src/components/form/editable-text-field";
 import { TextField } from "src/components/form/text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
-import { Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "@epanet-js/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";

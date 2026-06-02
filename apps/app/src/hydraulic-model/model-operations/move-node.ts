@@ -12,7 +12,7 @@ import { HydraulicModel } from "../hydraulic-model";
 import { AssetFactory } from "../factories/asset-factory";
 import { LabelManager } from "../label-manager";
 import { computeLinkLength } from "../asset-types/link";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 
 type InputData = {
   nodeId: AssetId;

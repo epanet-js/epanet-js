@@ -2,7 +2,7 @@ import { Feature, Position } from "geojson";
 import { BaseAsset, AssetId, AssetProperties, NO_ASSET_ID } from "./base-asset";
 import measureLength from "@turf/length";
 import { isSamePosition } from "src/lib/geometry";
-import { Unit, convertTo } from "src/quantity";
+import { Unit, convertTo } from "@epanet-js/quantity";
 
 export type LinkConnections = [start: AssetId, end: AssetId];
 

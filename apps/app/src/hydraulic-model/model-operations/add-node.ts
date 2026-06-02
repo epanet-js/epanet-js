@@ -6,7 +6,7 @@ import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetFactory } from "../factories/asset-factory";
 import { splitPipe } from "./split-pipe";
-import { Unit } from "src/quantity";
+import { Unit } from "@epanet-js/quantity";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
