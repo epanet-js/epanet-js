@@ -701,6 +701,14 @@ type ImportCustomerPointsWarningDialogCancel = {
   name: "importCustomerPoints.warningDialog.cancel";
 };
 
+type ImportZonesWarningDialogProceed = {
+  name: "importZones.warningDialog.proceed";
+};
+
+type ImportZonesWarningDialogCancel = {
+  name: "importZones.warningDialog.cancel";
+};
+
 type EarlyAccessClickedGet = {
   name: "earlyAccess.clickedGet";
   source: "earlyAccessDialog";
@@ -1071,6 +1079,8 @@ export type UserEvent =
   | ImportCustomerPointsWizardCancel
   | ImportCustomerPointsWarningDialogProceed
   | ImportCustomerPointsWarningDialogCancel
+  | ImportZonesWarningDialogProceed
+  | ImportZonesWarningDialogCancel
   | ImportZonesStarted
   | EarlyAccessClickedGet
   | CustomerPointsConnectStarted

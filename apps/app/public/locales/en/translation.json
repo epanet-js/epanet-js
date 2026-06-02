@@ -1432,6 +1432,11 @@
       "noPolygons": "The file does not contain any Polygon or MultiPolygon geometries.",
       "unsupportedProjection": "The file contains an unsupported coordinate projection.",
       "invalidProjection": "The file contains coordinates that are not in a recognized projection."
+    },
+    "warningDialog": {
+      "explain": "Your current zones will be permanently deleted and replaced with the zones from your new import.",
+      "question": "Are you sure you want to proceed?",
+      "deleteAndImport": "Delete and import"
     }
   }
 }

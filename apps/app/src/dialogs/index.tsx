@@ -256,6 +256,19 @@ const ImportCustomerPointsWarningDialog = dynamic<{
   },
 );
 
+const ImportZonesWarningDialog = dynamic<{
+  onContinue: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/import-zones-warning").then(
+      (r) => r.ImportZonesWarningDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const SimulationProgressDialog = dynamic<{
   modal: dialogState.SimulationProgressDialogState;
 }>(
@@ -678,6 +691,15 @@ export const Dialogs = memo(function Dialogs() {
 
   if (dialog.type === "importZones") {
     return <ImportZonesDialog onClose={onClose} />;
+  }
+
+  if (dialog.type === "importZonesWarning") {
+    return (
+      <ImportZonesWarningDialog
+        onContinue={dialog.onContinue}
+        onClose={onClose}
+      />
+    );
   }
 
   if (dialog.type === "networkProjection") {
