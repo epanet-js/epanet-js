@@ -152,4 +152,91 @@ describe("parseCustomerPoints", () => {
       expect(customerPoint!.demands[0].patternId).toBeUndefined();
     });
   });
+
+  describe("default demand", () => {
+    it("applies the default demand to every point when no property is given", () => {
+      const geoJson = JSON.stringify({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.001, 0.001] },
+            properties: { name: "A" },
+          },
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.002, 0.002] },
+            properties: { name: "B" },
+          },
+        ],
+      });
+
+      const issues = new CustomerPointsIssuesAccumulator();
+      const results = Array.from(
+        parseCustomerPoints(
+          geoJson,
+          issues,
+          "l/d",
+          "l/d",
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
+          null,
+          null,
+          null,
+          42,
+        ),
+      );
+
+      expect(results).toHaveLength(2);
+      results.forEach((parsed) => {
+        expect(parsed).not.toBeNull();
+        expect(parsed!.demands[0].baseDemand).toBe(42);
+      });
+    });
+
+    it("ignores missing/invalid demand attribute values when no property is given", () => {
+      const geoJson = JSON.stringify({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.001, 0.001] },
+            properties: { demand: "not-a-number" },
+          },
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.002, 0.002] },
+            properties: {},
+          },
+        ],
+      });
+
+      const issues = new CustomerPointsIssuesAccumulator();
+      const results = Array.from(
+        parseCustomerPoints(
+          geoJson,
+          issues,
+          "l/d",
+          "l/d",
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
+          null,
+          null,
+          null,
+          7,
+        ),
+      );
+
+      expect(results).toHaveLength(2);
+      results.forEach((parsed) => {
+        expect(parsed).not.toBeNull();
+        expect(parsed!.demands[0].baseDemand).toBe(7);
+      });
+      expect(issues.buildResult()?.skippedInvalidDemands).toBeUndefined();
+    });
+  });
 });

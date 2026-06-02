@@ -10,8 +10,10 @@ import {
 import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
+import { DataMappingStepFlexible } from "./data-mapping-step-flexible";
 import { DemandOptionsStep } from "./demand-options-step";
 import { AllocationStep } from "./allocation-step";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
@@ -39,6 +41,10 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const isFlexibleDemandOn = useFeatureFlag("FLAG_CP_OPTIONAL_DEMAND");
+  const DataMappingStepComponent = isFlexibleDemandOn
+    ? DataMappingStepFlexible
+    : DataMappingStep;
   const {
     projections,
     loading: projectionsLoading,
@@ -207,12 +213,16 @@ export const ImportCustomerPointsWizard: React.FC<
             backAction={{ onClick: handleBack, disabled: isLoading }}
             nextAction={{
               onClick: handleNext,
-              disabled:
-                isLoading ||
-                !selectedDemandProperty ||
-                (parsedDataSummary
-                  ? parsedDataSummary.validCustomerPoints.length === 0
-                  : false),
+              disabled: isFlexibleDemandOn
+                ? isLoading ||
+                  (parsedDataSummary
+                    ? parsedDataSummary.validCustomerPoints.length === 0
+                    : !inputData)
+                : isLoading ||
+                  !selectedDemandProperty ||
+                  (parsedDataSummary
+                    ? parsedDataSummary.validCustomerPoints.length === 0
+                    : false),
             }}
           />
         );
@@ -292,7 +302,7 @@ export const ImportCustomerPointsWizard: React.FC<
               />
             )}
             {currentStep === 2 && (
-              <DataMappingStep
+              <DataMappingStepComponent
                 onNext={handleNext}
                 onBack={handleBack}
                 renderActions={false}

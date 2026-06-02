@@ -35,6 +35,7 @@ const initialState: WizardState = {
   lastAllocatedRules: null,
   isEditingRules: false,
   selectedPatternId: null,
+  defaultDemand: 0,
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
@@ -154,6 +155,10 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, selectedPatternId: patternId }));
   };
 
+  const setDefaultDemand = (value: number) => {
+    setWizardState((prev) => ({ ...prev, defaultDemand: value }));
+  };
+
   const reset = () => {
     setWizardState(initialState);
   };
@@ -183,6 +188,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setLastAllocatedRules,
     setIsEditingRules,
     setSelectedPatternId,
+    setDefaultDemand,
     reset,
   };
 };

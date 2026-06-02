@@ -966,7 +966,12 @@
         },
         "demandSelector": {
           "label": "Demand",
-          "placeholder": "Select demand property..."
+          "placeholder": "Select demand property...",
+          "noneUseDefault": "None (use default value)"
+        },
+        "defaultDemand": {
+          "label": "Default demand value",
+          "description": "Used when no demand attribute is selected."
         },
         "labelSelector": {
           "label": "Label",

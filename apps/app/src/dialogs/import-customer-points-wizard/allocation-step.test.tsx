@@ -381,6 +381,7 @@ const setWizardState = (store: Store, overrides: Partial<WizardState> = {}) => {
     lastAllocatedRules: null,
     isEditingRules: false,
     selectedPatternId: null,
+    defaultDemand: 0,
   };
 
   act(() => {

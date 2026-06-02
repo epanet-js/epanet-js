@@ -459,7 +459,7 @@ type CustomerPointsTableProps = {
   wizardState: WizardState & WizardActions & { units: UnitsSpec };
 };
 
-const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
+export const CustomerPointsTable: React.FC<CustomerPointsTableProps> = ({
   customerPoints,
   maxPreviewRows,
   parsedDataSummary,
@@ -569,7 +569,7 @@ type IssuesSummaryProps = {
   issues: CustomerPointsParserIssues | null;
 };
 
-const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
+export const IssuesSummary: React.FC<IssuesSummaryProps> = ({ issues }) => {
   const translate = useTranslate();
   const errorCount = getTotalErrorCount(issues);
 

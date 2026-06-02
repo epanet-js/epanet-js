@@ -43,6 +43,7 @@ export type WizardState = {
   lastAllocatedRules: AllocationRule[] | null;
   isEditingRules: boolean;
   selectedPatternId: number | null;
+  defaultDemand: number;
 };
 
 export type WizardActions = {
@@ -67,5 +68,6 @@ export type WizardActions = {
   setLastAllocatedRules: (rules: AllocationRule[] | null) => void;
   setIsEditingRules: (isEditingRules: boolean) => void;
   setSelectedPatternId: (patternId: number | null) => void;
+  setDefaultDemand: (value: number) => void;
   reset: () => void;
 };
