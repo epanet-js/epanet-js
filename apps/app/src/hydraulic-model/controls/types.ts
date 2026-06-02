@@ -1,4 +1,4 @@
-import { AssetId } from "../asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 
 export type AssetReference = {
   assetId: AssetId;

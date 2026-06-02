@@ -4,7 +4,8 @@ import {
   AllocationRule,
   CustomerPoint,
   CustomerPointId,
-} from "src/hydraulic-model/customer-points";
+  initializeCustomerPoints,
+} from "@epanet-js/hydraulic-model";
 import { Demand } from "src/hydraulic-model/demands";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
@@ -12,7 +13,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
-import { initializeCustomerPoints } from "src/hydraulic-model/customer-points";
 import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { WizardState, WizardActions } from "./types";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";

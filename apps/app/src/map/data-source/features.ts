@@ -2,7 +2,7 @@ import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { Unit, convertTo } from "@epanet-js/quantity";
 import { Feature } from "src/types";
-import { Asset, AssetId, Valve } from "src/hydraulic-model/asset-types";
+import { Asset, AssetId, Valve } from "@epanet-js/hydraulic-model";
 import { colorFor } from "src/map/symbology/range-color-rule";
 import { strokeColorFor } from "src/lib/color";
 import { localizeDecimal } from "src/infra/i18n/numbers";

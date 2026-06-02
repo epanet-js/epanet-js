@@ -7,12 +7,12 @@ export {
 } from "./hydraulic-model";
 export type { Controls } from "./controls";
 export { createEmptyControls } from "./controls";
-export { AssetFactory } from "./factories/asset-factory";
+export { AssetFactory } from "@epanet-js/hydraulic-model";
 export type {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
-} from "./factories/asset-factory";
+} from "@epanet-js/hydraulic-model";
 export type { AssetId } from "./assets-map";
 export { filterAssets, getNode, AssetsMap } from "./assets-map";
 export type {
@@ -22,7 +22,7 @@ export type {
   ReverseMoment,
   AssetPatch,
 } from "./model-operation";
-export { BaseAsset } from "./asset-types";
+export { BaseAsset } from "@epanet-js/hydraulic-model";
 export type {
   AssetStatus,
   AssetPropertiesMap,
@@ -36,26 +36,26 @@ export type {
   Pump,
   Tank,
   Valve,
-} from "./asset-types";
-export { calculateAverageHead } from "./asset-types";
-export type { DefaultsSpec } from "./asset-types";
+} from "@epanet-js/hydraulic-model";
+export { calculateAverageHead } from "@epanet-js/hydraulic-model";
+export type { DefaultsSpec } from "@epanet-js/hydraulic-model";
 export { Topology } from "./topology";
 
-export type { HeadlossFormula } from "./asset-types/pipe";
-export { headlossFormulas } from "./asset-types/pipe";
-export type { LinkType, NodeType, AssetType } from "./asset-types/types";
+export type { HeadlossFormula } from "@epanet-js/hydraulic-model";
+export { headlossFormulas } from "@epanet-js/hydraulic-model";
+export type { LinkType, NodeType, AssetType } from "@epanet-js/hydraulic-model";
 export type {
   PatternMultipliers,
   PatternId,
   PatternType,
   Pattern,
   Patterns,
-} from "./patterns";
+} from "@epanet-js/hydraulic-model";
 export {
   getNextPatternId,
   deepClonePatterns,
   differentPatternsCount,
-} from "./patterns";
+} from "@epanet-js/hydraulic-model";
 export type { Demands, Demand } from "./demands";
 export {
   createEmptyDemands,

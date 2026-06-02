@@ -4,7 +4,7 @@ import { applyMomentToModel } from "src/hydraulic-model/mutations/apply-moment";
 import { changeProperties } from "src/hydraulic-model/model-operations/change-property";
 import { tankVolumeCurveChanges } from "src/hydraulic-model/model-operations/property-changes/tank-volume-curve-changes";
 import { buildTestFactories } from "src/__helpers__/test-factories";
-import { Tank } from "src/hydraulic-model/asset-types";
+import { Tank } from "@epanet-js/hydraulic-model";
 
 describe("tank volume curve changes", () => {
   it("sets minLevel, maxLevel, minVolume from curve points when volumeCurveId changes", () => {

@@ -5,7 +5,7 @@ import { buildInp, chooseUnitSystem } from "src/simulation/build-inp";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { Valve } from "@epanet-js/hydraulic-model";
 
 describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {

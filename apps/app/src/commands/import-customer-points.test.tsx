@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { Store } from "src/state";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { Junction } from "@epanet-js/hydraulic-model";
 import {
   getCustomerPointDemands,
   getJunctionDemands,

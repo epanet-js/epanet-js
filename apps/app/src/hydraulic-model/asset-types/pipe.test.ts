@@ -1,5 +1,5 @@
 import { buildPipe } from "../../__helpers__/hydraulic-model-builder";
-import { computeLinkLength } from "./link";
+import { computeLinkLength } from "@epanet-js/hydraulic-model";
 
 describe("Pipe", () => {
   it("setting coordinates does not update its length", () => {

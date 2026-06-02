@@ -8,11 +8,13 @@ import Mousetrap from "mousetrap";
 import { Maybe } from "purify-ts/Maybe";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { commandBarOpenAtom } from "src/state/command-bar";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { Store } from "src/state";

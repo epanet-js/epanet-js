@@ -1,5 +1,7 @@
-import { LabelManager } from "src/hydraulic-model/label-manager";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { WritableIdGenerator } from "./hydraulic-model-builder";
 

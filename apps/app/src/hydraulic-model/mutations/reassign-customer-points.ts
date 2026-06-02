@@ -1,8 +1,12 @@
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { Position } from "src/types";
-import { NodeAsset, Pipe } from "../asset-types";
-import { CustomerPoint, CustomerPoints } from "../customer-points";
+import {
+  NodeAsset,
+  Pipe,
+  CustomerPoint,
+  CustomerPoints,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 

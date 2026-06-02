@@ -1,5 +1,5 @@
 import { Feature, Polygon, Position } from "geojson";
-import { AssetId, LinkAsset } from "./asset-types";
+import { AssetId, LinkAsset } from "@epanet-js/hydraulic-model";
 import { AssetsGeoQueries } from "./assets-geo";
 import bbox from "@turf/bbox";
 import { polygon } from "@turf/helpers";

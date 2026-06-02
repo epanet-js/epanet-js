@@ -6,7 +6,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import type { CustomerPointId } from "src/hydraulic-model/customer-points";
+import { type CustomerPointId } from "@epanet-js/hydraulic-model";
 
 export const useDeleteCustomerPoints = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);

@@ -4,7 +4,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { Demand } from "src/hydraulic-model/demands";
 
 describe("addCustomerPoints", () => {

@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { Position } from "src/types";
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import {
   AssetsGeoIndex,

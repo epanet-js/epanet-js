@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { CurveSidebar } from "./curve-sidebar";
-import { Curves, ICurve } from "src/hydraulic-model/curves";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { Curves, ICurve, LabelManager } from "@epanet-js/hydraulic-model";
 
 const buildCurve = (
   id: number,

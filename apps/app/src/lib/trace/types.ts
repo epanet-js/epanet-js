@@ -1,4 +1,4 @@
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 
 export type TraceMode = "boundary" | "upstream" | "downstream";
 

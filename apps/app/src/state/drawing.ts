@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { AssetId } from "src/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { Position } from "src/types";
 import { EphemeralMoveAssets } from "src/map/mode-handlers/none/move-state";
 import { EphemeralDrawNode } from "src/map/mode-handlers/draw-node/ephemeral-draw-node-state";

@@ -1,5 +1,4 @@
-import { LinkAsset } from "../../asset-types";
-import { Pipe, PipeProperties } from "../../asset-types/pipe";
+import { LinkAsset, Pipe, PipeProperties } from "@epanet-js/hydraulic-model";
 
 type CopyablePipeProperties = Pick<
   PipeProperties,

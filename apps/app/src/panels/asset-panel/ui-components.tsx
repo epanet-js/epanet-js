@@ -19,14 +19,16 @@ import { SelectorListOption } from "src/components/form/selector-list";
 import { Selector } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
 import { Checkbox } from "src/components/form/Checkbox";
-import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
 import {
+  PipeStatus,
   PumpDefinitionType,
   PumpStatus,
-} from "src/hydraulic-model/asset-types/pump";
-import { ValveKind, ValveStatus } from "src/hydraulic-model/asset-types/valve";
-import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
-import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
+  ValveKind,
+  ValveStatus,
+  type TankMixingModel,
+  type ChemicalSourceType,
+  CustomerPoint,
+} from "@epanet-js/hydraulic-model";
 import { PanelActions } from "./actions";
 import {
   InlineField,
@@ -43,7 +45,6 @@ import {
   StyledPopoverArrow,
   StyledPopoverContent,
 } from "src/components/elements";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
 import {
   Patterns,
   calculateAverageDemand,

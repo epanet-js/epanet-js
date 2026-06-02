@@ -22,8 +22,14 @@ import { activateAssets } from "src/hydraulic-model/model-operations/activate-as
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import type { AssetType } from "src/hydraulic-model/asset-types/types";
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import {
+  type AssetType,
+  type AssetId,
+  type PumpDefinitionType,
+  type ValveKind,
+  type ChemicalSourceType,
+  type CurveId,
+} from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
   type DataGridRef,
@@ -37,10 +43,6 @@ import { useDeleteAssets } from "src/commands/delete-assets";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PaywallLockIcon, PointerClickIcon } from "src/icons";
 import { useFeatureLock } from "src/components/form/paywall";
-import { type PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
-import { type ValveKind } from "src/hydraulic-model/asset-types/valve";
-import { type ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
-import type { CurveId } from "src/hydraulic-model/curves";
 import { SpinnerIcon } from "src/icons";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";

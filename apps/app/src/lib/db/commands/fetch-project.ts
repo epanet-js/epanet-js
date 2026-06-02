@@ -5,8 +5,8 @@ import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
   initializeModelFactories,
-} from "src/hydraulic-model/factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { buildAssetsData } from "../mappers/assets/builders";

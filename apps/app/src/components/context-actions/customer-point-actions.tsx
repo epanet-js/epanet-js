@@ -4,7 +4,7 @@ import type {
 } from "src/components/context-actions/action-item";
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";

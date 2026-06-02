@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { EphemeralEditingState, ephemeralStateAtom } from "src/state/drawing";
 import { Position } from "src/types";
 

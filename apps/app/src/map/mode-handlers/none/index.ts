@@ -20,7 +20,7 @@ import { useMoveState } from "./move-state";
 import { useCustomerPointMoveState } from "./customer-point-move-state";
 import noop from "lodash/noop";
 import { useElevations } from "src/map/elevations/use-elevations";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";

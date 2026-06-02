@@ -29,7 +29,7 @@ import {
   changeDemandAssignment,
   changeCustomerPointLabel,
 } from "src/hydraulic-model/model-operations";
-import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "@epanet-js/hydraulic-model";
 import { convertTo } from "@epanet-js/quantity";
 
 export function CustomerPointPanel() {

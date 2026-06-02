@@ -1,4 +1,4 @@
-import { CustomerPointId } from "../customer-points";
+import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ModelOperation, DemandAssignment } from "../model-operation";
 import { getCustomerPointDemands } from "../demands";
 

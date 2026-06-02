@@ -1,5 +1,9 @@
 import { forwardRef } from "react";
-import { CurvePoint, CurvePointsType } from "src/hydraulic-model/curves";
+import {
+  CurvePoint,
+  CurvePointsType,
+  CurveType,
+} from "@epanet-js/hydraulic-model";
 import {
   fitCurve,
   synthesizeThreePoints,
@@ -7,7 +11,6 @@ import {
 } from "src/hydraulic-model/curve-fitting";
 import { LineGraph, StyledPointValue } from "src/components/graphs/line-graph";
 import { colors } from "src/lib/constants";
-import { CurveType } from "src/hydraulic-model/curves";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";

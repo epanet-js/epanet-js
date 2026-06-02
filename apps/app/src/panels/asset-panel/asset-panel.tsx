@@ -21,17 +21,26 @@ import {
 import {
   chemicalSourceTypes,
   type ChemicalSourceType,
-} from "src/hydraulic-model/asset-types/node";
-import {
   tankDiameterFor,
   tankDiameterFromArea,
   tankVolumeCurveRange,
   tankVolumeFor,
-} from "src/hydraulic-model/asset-types/tank";
-import {
   CustomerPoint,
   getActiveCustomerPoints,
-} from "src/hydraulic-model/customer-points";
+  HeadlossFormula,
+  PipeStatus,
+  pipeStatuses,
+  PumpStatus,
+  pumpStatuses,
+  tankMixingModels,
+  ValveKind,
+  ValveStatus,
+  valveKinds,
+  PatternId,
+  CurveId,
+  Curves,
+  ICurve,
+} from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getMinorLossUnit } from "src/lib/project-settings";
 import { useTranslate } from "src/hooks/use-translate";
@@ -55,18 +64,6 @@ import type {
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import { getLinkNodes } from "src/hydraulic-model/assets-map";
-import {
-  HeadlossFormula,
-  PipeStatus,
-  pipeStatuses,
-} from "src/hydraulic-model/asset-types/pipe";
-import { PumpStatus, pumpStatuses } from "src/hydraulic-model/asset-types/pump";
-import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
-import {
-  ValveKind,
-  ValveStatus,
-  valveKinds,
-} from "src/hydraulic-model/asset-types/valve";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -102,8 +99,6 @@ import { PumpDefinitionDetails } from "./pump-definition-details";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
-import { PatternId } from "src/hydraulic-model/patterns";
-import { CurveId, Curves, ICurve } from "src/hydraulic-model/curves";
 import {
   tankVolumeCurveChanges,
   chemicalSourceTypeChanges,

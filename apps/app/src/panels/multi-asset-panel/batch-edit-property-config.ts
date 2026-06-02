@@ -1,15 +1,15 @@
 import { Asset } from "src/hydraulic-model";
-import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
-import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
-import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
 import {
+  pipeStatuses,
+  pumpStatuses,
+  tankMixingModels,
   valveStatuses,
   valveKinds,
-} from "src/hydraulic-model/asset-types/valve";
-import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
+  chemicalSourceTypes,
+  type CurveType,
+  type PatternType,
+} from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
-import type { CurveType } from "src/hydraulic-model/curves";
-import type { PatternType } from "src/hydraulic-model/patterns";
 import type { PaywallFeature } from "src/state/dialog";
 
 type CommonConfig = {

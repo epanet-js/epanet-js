@@ -1,4 +1,4 @@
-import type { Pattern, Patterns } from "src/hydraulic-model/patterns";
+import { type Pattern, type Patterns } from "@epanet-js/hydraulic-model";
 import {
   multipliersSchema,
   patternRowSchema,

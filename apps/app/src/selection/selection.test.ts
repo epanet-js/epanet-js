@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { USelection } from "./selection";
 import { AssetsMap } from "src/hydraulic-model";
-import { CustomerPoints } from "src/hydraulic-model/customer-points";
+import { CustomerPoints, type CustomerPoint } from "@epanet-js/hydraulic-model";
 import type { Asset } from "src/hydraulic-model";
-import type { CustomerPoint } from "src/hydraulic-model/customer-points";
 
 const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 

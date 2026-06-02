@@ -29,7 +29,7 @@ import {
   parseReport,
   parseSource,
 } from "./row-parsers";
-import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "src/hydraulic-model/customer-points";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "@epanet-js/hydraulic-model";
 
 const commentIdentifier = ";";
 

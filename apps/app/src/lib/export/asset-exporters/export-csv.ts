@@ -1,7 +1,7 @@
 import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";

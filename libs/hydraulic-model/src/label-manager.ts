@@ -26,7 +26,7 @@ export class LabelManager {
   private labelToEntries: Map<string, LabelEntry[]>;
 
   constructor(sharedCounters?: Map<LabelType, number>) {
-    this.indexPerType = sharedCounters ?? new Map();
+    this.indexPerType = sharedCounters ?? new Map<LabelType, number>();
     this.labelToEntries = new Map();
   }
 

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { copyModel } from "src/hydraulic-model";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";

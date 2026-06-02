@@ -39,7 +39,7 @@ import { zoneColorAssignmentsAtom } from "src/state/zone-color-assignments";
 import { highlightsAtom, type Highlight } from "src/state/highlights";
 import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
-import type { CustomerPoints } from "src/hydraulic-model/customer-points";
+import { type CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { PreviewProperty } from "src/state/map-symbology";
 import type { ResultsReader } from "src/simulation/results-reader";
 

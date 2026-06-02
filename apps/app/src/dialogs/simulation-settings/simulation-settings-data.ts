@@ -8,7 +8,7 @@ import {
   type StatusReport,
   defaultHydraulicsValues,
 } from "src/simulation/simulation-settings";
-import type { PatternId } from "src/hydraulic-model/patterns";
+import { type PatternId } from "@epanet-js/hydraulic-model";
 
 export type OptionSubcategory = {
   id: string;

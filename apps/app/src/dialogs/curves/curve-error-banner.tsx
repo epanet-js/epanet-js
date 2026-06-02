@@ -1,4 +1,4 @@
-import { CurvePoint, CurveType } from "src/hydraulic-model/curves";
+import { CurvePoint, CurveType } from "@epanet-js/hydraulic-model";
 import { getCurveTypeConfig } from "./curve-type-config";
 import { useTranslate } from "src/hooks/use-translate";
 import { NotificationBanner } from "src/components/notifications";

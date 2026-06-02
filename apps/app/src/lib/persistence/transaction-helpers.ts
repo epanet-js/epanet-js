@@ -8,7 +8,7 @@ import {
   updateHydraulicModelAssets,
   applyMomentToModel,
 } from "src/hydraulic-model";
-import { CustomerPoints } from "src/hydraulic-model/customer-points";
+import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import { type Data, dataAtom } from "src/state/data";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";

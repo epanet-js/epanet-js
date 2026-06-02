@@ -7,7 +7,23 @@ import {
   CustomerPointFactory,
   ModelFactories,
   initializeModelFactories,
-} from "src/hydraulic-model/factories";
+  type TankMixingModel,
+  PumpStatus,
+  ValveStatus,
+  AssetId,
+  Pump,
+  CurveId,
+  CurvePoint,
+  CurveType,
+  Curves,
+  defaultCurvePoints,
+  ICurve,
+  isValidCurve,
+  getCurvePointsType,
+  LabelManager,
+  AssetFactory,
+  PumpBuildData,
+} from "@epanet-js/hydraulic-model";
 import {
   InpData,
   ItemData,
@@ -22,7 +38,6 @@ import {
   CurveData,
 } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
-import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
 import { ProjectSettings } from "src/lib/project-settings";
 import {
   presets,
@@ -31,28 +46,13 @@ import {
 } from "src/lib/project-settings/quantities-spec";
 import type { Unit } from "@epanet-js/quantity";
 import { Position } from "geojson";
-import { PumpStatus } from "src/hydraulic-model/asset-types/pump";
-import { ValveStatus } from "src/hydraulic-model/asset-types/valve";
 import { ParseInpOptions } from "./parse-inp";
-import { AssetId } from "src/hydraulic-model/asset-types/base-asset";
-import { Pump } from "src/hydraulic-model/asset-types/pump";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import {
-  CurveId,
-  CurvePoint,
-  CurveType,
-  Curves,
-  defaultCurvePoints,
-  ICurve,
-  isValidCurve,
-  getCurvePointsType,
-} from "src/hydraulic-model/curves";
 import {
   LabelResolver,
   parseSimpleControlsFromText,
   parseRulesFromText,
 } from "src/hydraulic-model/controls";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   createEmptyDemands,
   Pattern,
@@ -61,10 +61,6 @@ import {
   PatternMultipliers,
   PatternType,
 } from "src/hydraulic-model";
-import {
-  AssetFactory,
-  PumpBuildData,
-} from "src/hydraulic-model/factories/asset-factory";
 
 type PatternsContext = {
   patterns: Patterns;

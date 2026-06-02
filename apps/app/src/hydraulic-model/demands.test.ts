@@ -5,7 +5,7 @@ import {
   calculateAverageDemand,
   createEmptyDemands,
 } from "./demands";
-import { getNextPatternId, Patterns } from "./patterns";
+import { getNextPatternId, Patterns } from "@epanet-js/hydraulic-model";
 
 const createPatterns = (
   entries: Array<{ id: number; label: string; multipliers: number[] }>,

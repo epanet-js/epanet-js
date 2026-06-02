@@ -1,4 +1,4 @@
-import type { CustomerPointId } from "src/hydraulic-model/customer-points";
+import { type CustomerPointId } from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
   getCustomerPointDemands,

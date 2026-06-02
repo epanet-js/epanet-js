@@ -1,6 +1,9 @@
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import type { PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
-import type { CurveId, CurvePoint } from "src/hydraulic-model/curves";
+import {
+  type PumpDefinitionType,
+  type CurveId,
+  type CurvePoint,
+} from "@epanet-js/hydraulic-model";
 
 export type PumpDefinitionOptions = {
   power?: number;

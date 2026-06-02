@@ -1,21 +1,21 @@
-import type {
-  Junction,
-  Pipe,
-  Pump,
-  Valve,
-  Reservoir,
-  Tank,
-} from "src/hydraulic-model/asset-types";
-import type { AssetType } from "src/hydraulic-model/asset-types/types";
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import {
+  type Junction,
+  type Pipe,
+  type Pump,
+  type Valve,
+  type Reservoir,
+  type Tank,
+  type AssetType,
+  type AssetId,
+  tankVolumeCurveRange,
+  getActiveCustomerPoints,
+} from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
   getJunctionDemands,
   getCustomerPointDemands,
   HydraulicModel,
 } from "src/hydraulic-model";
-import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
-import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { ResultsReader } from "src/simulation";
 

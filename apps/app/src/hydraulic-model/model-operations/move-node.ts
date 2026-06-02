@@ -1,17 +1,22 @@
 import { Position } from "geojson";
-import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import {
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+  CustomerPoint,
+  CustomerPoints,
+  Pipe,
+  AssetFactory,
+  LabelManager,
+  computeLinkLength,
+} from "@epanet-js/hydraulic-model";
 import { AssetsMap, getNode } from "../assets-map";
 import { ModelOperation } from "../model-operation";
-import { CustomerPoint, CustomerPoints } from "../customer-points";
-import { Pipe } from "../asset-types/pipe";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { splitPipe } from "./split-pipe";
 import { HydraulicModel } from "../hydraulic-model";
-import { AssetFactory } from "../factories/asset-factory";
-import { LabelManager } from "../label-manager";
-import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "@epanet-js/quantity";
 
 type InputData = {

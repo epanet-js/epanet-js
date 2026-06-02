@@ -6,9 +6,11 @@ import {
   type SimulationSettings,
 } from "src/simulation/simulation-settings";
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { Junction } from "src/hydraulic-model/asset-types/junction";
-import type { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
-import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import {
+  type Junction,
+  type Reservoir,
+  type Pipe,
+} from "@epanet-js/hydraulic-model";
 import { exportDb } from "./export-db";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";

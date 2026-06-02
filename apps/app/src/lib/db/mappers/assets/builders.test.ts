@@ -1,10 +1,12 @@
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { LabelManager } from "src/hydraulic-model/label-manager";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
-import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import type { Pump } from "src/hydraulic-model/asset-types/pump";
-import type { Junction } from "src/hydraulic-model/asset-types/junction";
+import {
+  LabelManager,
+  initializeModelFactories,
+  type Pipe,
+  type Pump,
+  type Junction,
+} from "@epanet-js/hydraulic-model";
 import { buildAssetsData } from "./builders";
 import type {
   AssetRows,

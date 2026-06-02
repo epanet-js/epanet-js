@@ -1,6 +1,6 @@
 import { EventedType } from "ngraph.events";
 import createGraph, { Graph, Link, Node } from "ngraph.graph";
-import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
+import { AssetId, NO_ASSET_ID } from "@epanet-js/hydraulic-model";
 import { PathData, TopologyQueries } from "./types";
 
 type GraphChange = {

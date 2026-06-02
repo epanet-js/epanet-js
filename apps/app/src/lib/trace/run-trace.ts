@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";

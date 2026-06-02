@@ -1,12 +1,18 @@
-import { AssetId, Asset, Pipe, NodeAsset, LinkAsset } from "../asset-types";
+import {
+  AssetId,
+  Asset,
+  Pipe,
+  NodeAsset,
+  LinkAsset,
+  CustomerPoint,
+  CustomerPointsLookup,
+} from "@epanet-js/hydraulic-model";
 import type {
   AssetPatch,
   DemandAssignment,
   DemandSettingsChange,
 } from "../model-operation";
 import { ModelOperation } from "../model-operation";
-import { CustomerPoint } from "../customer-points";
-import { CustomerPointsLookup } from "../customer-points-lookup";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Demands, getJunctionDemands } from "../demands";

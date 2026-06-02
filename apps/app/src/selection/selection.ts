@@ -6,7 +6,7 @@ import type {
 } from "./types";
 import type { FolderMap, IFolder, IWrappedFeature } from "src/types";
 import type { HydraulicModel, AssetsMap } from "src/hydraulic-model";
-import type { CustomerPoints } from "src/hydraulic-model/customer-points";
+import { type CustomerPoints } from "@epanet-js/hydraulic-model";
 import { toggle } from "src/lib/utils";
 import { EMPTY_ARRAY } from "src/lib/constants";
 import { getFoldersInTree } from "src/lib/folder";

@@ -8,8 +8,7 @@ import {
   type NodeAsset,
   type LinkAsset,
 } from "src/hydraulic-model";
-import { ModelFactories } from "src/hydraulic-model/factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { ModelFactories, LabelManager } from "@epanet-js/hydraulic-model";
 import type { IdGenerator } from "@epanet-js/id-generator";
 import { nanoid } from "nanoid";
 import {

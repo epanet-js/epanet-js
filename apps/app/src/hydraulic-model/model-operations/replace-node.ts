@@ -1,11 +1,15 @@
-import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import {
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+  AssetFactory,
+  CustomerPoints,
+  Pipe,
+  isNodeAsset,
+} from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
-import { AssetFactory } from "../factories/asset-factory";
-import { CustomerPoints } from "../customer-points";
-import { Pipe } from "../asset-types/pipe";
 import { Position } from "src/types";
 import { updateLinkConnections } from "../mutations/update-link-connections";
-import { isNodeAsset } from "../asset-types/type-guards";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "../demands";
 

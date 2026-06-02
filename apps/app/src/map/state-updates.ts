@@ -73,7 +73,7 @@ import {
   buildMovingCustomerPointOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
-import { CustomerPoints } from "src/hydraulic-model/customer-points";
+import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import {
   junctionsSymbologyFilterExpression,
   junctionFillColorExpression,

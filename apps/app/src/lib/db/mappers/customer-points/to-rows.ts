@@ -1,8 +1,8 @@
-import type {
-  CustomerPoint,
-  CustomerPointId,
-  CustomerPoints,
-} from "src/hydraulic-model/customer-points";
+import {
+  type CustomerPoint,
+  type CustomerPointId,
+  type CustomerPoints,
+} from "@epanet-js/hydraulic-model";
 import type {
   CustomerAssignedDemands,
   Demand,

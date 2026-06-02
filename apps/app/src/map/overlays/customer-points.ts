@@ -3,12 +3,12 @@ import { PathStyleExtension } from "@deck.gl/extensions";
 import {
   CustomerPoint,
   CustomerPoints,
-} from "src/hydraulic-model/customer-points";
+  Pipe,
+} from "@epanet-js/hydraulic-model";
 import { hexToArray, strokeColorFor } from "src/lib/color";
 import { colors } from "src/lib/constants";
 import { Position } from "src/types";
 import { AssetsMap } from "src/hydraulic-model";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
 import { EphemeralMoveCustomerPoint } from "src/state/drawing";
 
 interface ConnectionLineData {

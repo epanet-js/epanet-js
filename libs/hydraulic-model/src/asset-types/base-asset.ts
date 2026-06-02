@@ -1,4 +1,4 @@
-import { IFeature } from "src/types";
+import type { Feature as IFeature } from "geojson";
 import { LineString, Point } from "geojson";
 import { AssetType } from "./types";
 

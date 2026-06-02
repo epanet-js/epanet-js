@@ -17,7 +17,7 @@ import {
   CurvePoint,
   CurveType,
   stripTrailingEmptyPoints,
-} from "src/hydraulic-model/curves";
+} from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { DeleteIcon, AddIcon } from "src/icons";

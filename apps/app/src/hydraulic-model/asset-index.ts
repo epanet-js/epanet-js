@@ -9,7 +9,12 @@ import {
   FixedSizeBufferView,
   FixedSizeBufferBuilder,
 } from "src/lib/buffers";
-import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
+import {
+  AssetId,
+  AssetType,
+  LinkType,
+  NodeType,
+} from "@epanet-js/hydraulic-model";
 import { IdGenerator } from "@epanet-js/id-generator";
 import { AssetsMap } from "./assets-map";
 import { captureWarning } from "src/infra/error-tracking";

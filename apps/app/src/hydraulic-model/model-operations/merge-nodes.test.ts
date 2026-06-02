@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { mergeNodes } from "./merge-nodes";
-import { NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
+import { NodeAsset, LinkAsset } from "@epanet-js/hydraulic-model";
 import { JunctionDemandAssignment } from "src/hydraulic-model/model-operation";
 
 describe("mergeNodes", () => {

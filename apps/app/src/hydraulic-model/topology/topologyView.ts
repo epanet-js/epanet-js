@@ -1,5 +1,5 @@
 import { FixedSizeBufferView, VariableSizeBufferView } from "src/lib/buffers";
-import { AssetId, NO_ASSET_ID } from "../asset-types/base-asset";
+import { AssetId, NO_ASSET_ID } from "@epanet-js/hydraulic-model";
 import { TopologyQueries, TopologyBuffers } from "./types";
 import { AssetIndexView } from "../asset-index";
 import {

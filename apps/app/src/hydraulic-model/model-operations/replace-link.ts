@@ -1,6 +1,13 @@
-import { Asset, AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import {
+  Asset,
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+  CustomerPoint,
+  AssetFactory,
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { ModelOperation, ModelMoment } from "../model-operation";
-import { CustomerPoint } from "../customer-points";
 import { addLink } from "./add-link";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { HydraulicModel } from "../hydraulic-model";
@@ -9,8 +16,6 @@ import { Position } from "geojson";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { Unit } from "@epanet-js/quantity";
-import { AssetFactory } from "../factories/asset-factory";
-import { LabelManager } from "../label-manager";
 
 type InputData = {
   sourceLinkId: AssetId;

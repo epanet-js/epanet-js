@@ -3,7 +3,7 @@ import type { MomentLog } from "src/lib/persistence/moment-log";
 import type { SimulationState } from "src/state/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel } from "src/hydraulic-model";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 
 export type BranchState = {
   version: string;

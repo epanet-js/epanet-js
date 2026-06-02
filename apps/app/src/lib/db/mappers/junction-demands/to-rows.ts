@@ -1,4 +1,4 @@
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
+import { type AssetId } from "@epanet-js/hydraulic-model";
 import type {
   Demand,
   JunctionAssignedDemands,

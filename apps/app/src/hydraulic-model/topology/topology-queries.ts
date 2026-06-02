@@ -1,5 +1,5 @@
 import { Topology } from "./topology";
-import { AssetId } from "../asset-types/base-asset";
+import { AssetId } from "@epanet-js/hydraulic-model";
 
 export const nodesShareLink = (
   topology: Topology,

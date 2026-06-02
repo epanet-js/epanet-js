@@ -2,8 +2,8 @@ import { atom } from "jotai";
 import {
   ModelFactories,
   initializeModelFactories,
-} from "src/hydraulic-model/factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { presets } from "src/lib/project-settings/quantities-spec";
 

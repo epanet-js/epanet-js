@@ -5,7 +5,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { CustomerPoints } from "../../customer-points";
+import { CustomerPoints } from "@epanet-js/hydraulic-model";
 
 describe("allocateCustomerPoints", () => {
   it("allocates customer points based on single rule", async () => {

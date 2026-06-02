@@ -6,7 +6,7 @@ import { SearchIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { Asset, AssetId } from "src/hydraulic-model";
-import { LabelType } from "src/hydraulic-model/label-manager";
+import { LabelType } from "@epanet-js/hydraulic-model";
 import { USelection } from "src/selection";
 import { useSelection } from "src/selection/use-selection";
 import { customerPointsAtom } from "src/state/hydraulic-model";

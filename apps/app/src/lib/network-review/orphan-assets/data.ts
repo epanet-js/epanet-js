@@ -1,4 +1,4 @@
-import { AssetType, AssetId } from "src/hydraulic-model/asset-types";
+import { AssetType, AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { TopologyBuffers } from "src/hydraulic-model/topology/types";
 import { BufferType } from "src/lib/buffers";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { Pipe } from "@epanet-js/hydraulic-model";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { CreatableTextRow } from "./ui-components";

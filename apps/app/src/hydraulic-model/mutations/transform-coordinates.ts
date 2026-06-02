@@ -1,7 +1,7 @@
 import { Position } from "geojson";
 import { type NodeAsset, type LinkAsset } from "src/hydraulic-model";
 import { AssetsMap } from "../assets-map";
-import { CustomerPoints } from "../customer-points";
+import { CustomerPoints } from "@epanet-js/hydraulic-model";
 
 type TransformCoordinatesData = Pick<
   { assets: AssetsMap; customerPoints: CustomerPoints },

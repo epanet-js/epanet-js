@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { PatternId } from "src/hydraulic-model/patterns";
+import { type PatternId } from "@epanet-js/hydraulic-model";
 
 export type DemandModel = "DDA" | "PDA";
 export type UnbalancedMode = "STOP" | "CONTINUE";

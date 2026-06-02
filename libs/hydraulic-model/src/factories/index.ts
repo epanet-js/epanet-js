@@ -1,9 +1,6 @@
 import { IdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
-import {
-  LabelManager,
-  type LabelType,
-} from "src/hydraulic-model/label-manager";
+import { LabelManager, type LabelType } from "../label-manager";
 import { AssetFactory } from "./asset-factory";
 import type { DefaultsSpec } from "../asset-types";
 
@@ -27,7 +24,7 @@ export const initializeModelFactories = (options: {
   defaults: DefaultsSpec;
   labelCounters?: Map<LabelType, number>;
 }): ModelFactories => {
-  const labelCounters = options.labelCounters ?? new Map();
+  const labelCounters = options.labelCounters ?? new Map<LabelType, number>();
   options.labelManager.adoptCounters(labelCounters);
 
   return {

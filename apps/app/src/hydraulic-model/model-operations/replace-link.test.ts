@@ -4,8 +4,12 @@ import {
   HydraulicModelBuilder,
   buildPipe,
 } from "src/__helpers__/hydraulic-model-builder";
-import { Pipe, NodeAsset, Valve } from "../asset-types";
-import { CustomerPoint } from "../customer-points";
+import {
+  Pipe,
+  NodeAsset,
+  Valve,
+  CustomerPoint,
+} from "@epanet-js/hydraulic-model";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("replaceLink", () => {

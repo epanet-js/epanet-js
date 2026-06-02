@@ -1,5 +1,5 @@
 import { Feature, Position } from "src/types";
-import { Asset, NodeAsset, LinkAsset } from "src/hydraulic-model/asset-types";
+import { Asset, NodeAsset, LinkAsset } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "src/hydraulic-model";
 import {
   DraftPath,

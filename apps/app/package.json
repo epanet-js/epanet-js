@@ -44,6 +44,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@epanet-js/ejsdb": "workspace:*",
     "@epanet-js/geometry": "workspace:*",
+    "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
     "@google-cloud/storage": "^7.13.0",

@@ -4,19 +4,20 @@ import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
 import type { Asset, Patterns, Pump } from "src/hydraulic-model";
-import type { Pattern, PatternId } from "src/hydraulic-model/patterns";
+import {
+  type Pattern,
+  type PatternId,
+  getActiveCustomerPoints,
+  CurveId,
+  CurvePoint,
+  Curves,
+  ICurve,
+} from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model/demands";
-import { getActiveCustomerPoints } from "src/hydraulic-model/customer-points";
-import {
-  CurveId,
-  CurvePoint,
-  Curves,
-  ICurve,
-} from "src/hydraulic-model/curves";
 
 export type PropertyComparison<T = unknown> = {
   hasChanged: boolean;

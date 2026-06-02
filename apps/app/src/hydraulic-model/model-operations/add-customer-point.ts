@@ -1,5 +1,5 @@
 import { Position } from "src/types";
-import { CustomerPointFactory } from "src/hydraulic-model/factories";
+import { CustomerPointFactory } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

@@ -102,7 +102,7 @@ describe("parse pattern types", () => {
     const { hydraulicModel } = parseInp(inp);
     const reservoir = [...hydraulicModel.assets.values()].find(
       (a) => a.type === "reservoir",
-    ) as import("src/hydraulic-model/asset-types/reservoir").Reservoir;
+    ) as import("@epanet-js/hydraulic-model").Reservoir;
     expect(reservoir).toBeDefined();
     expect(reservoir.headPatternId).toBeDefined();
     const pattern = hydraulicModel.patterns.get(reservoir.headPatternId!);
@@ -457,12 +457,12 @@ describe("pattern duplication for multi-type usage", () => {
     // assets reference the correct duplicate
     const pump = [...hydraulicModel.assets.values()].find(
       (a) => a.type === "pump",
-    ) as import("src/hydraulic-model/asset-types/pump").Pump;
+    ) as import("@epanet-js/hydraulic-model").Pump;
     expect(pump.speedPatternId).toBe(speedPattern!.id);
 
     const reservoir = [...hydraulicModel.assets.values()].find(
       (a) => a.type === "reservoir",
-    ) as import("src/hydraulic-model/asset-types/reservoir").Reservoir;
+    ) as import("@epanet-js/hydraulic-model").Reservoir;
     expect(reservoir.headPatternId).toBe(headPattern!.id);
   });
 
@@ -499,7 +499,7 @@ describe("pattern duplication for multi-type usage", () => {
 
     const pumps = [...hydraulicModel.assets.values()].filter(
       (a) => a.type === "pump",
-    ) as import("src/hydraulic-model/asset-types/pump").Pump[];
+    ) as import("@epanet-js/hydraulic-model").Pump[];
     expect(pumps[0].speedPatternId).toBe(pumps[1].speedPatternId);
   });
 });

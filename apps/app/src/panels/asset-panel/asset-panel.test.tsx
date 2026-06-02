@@ -8,7 +8,7 @@ import {
   simulationStepAtom,
 } from "src/state/simulation";
 import { branchStateAtom } from "src/state/branch-state";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager, Valve } from "@epanet-js/hydraulic-model";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { Store } from "src/state";
@@ -31,7 +31,6 @@ import userEvent from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Valve } from "src/hydraulic-model/asset-types";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 describe("AssetPanel", () => {

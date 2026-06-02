@@ -1,4 +1,4 @@
-import { AssetId } from "../asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetReference, SimpleControl, RuleBasedControl } from "./types";
 
 export type IdResolver = (assetId: AssetId) => string;

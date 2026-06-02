@@ -14,7 +14,7 @@ import {
   DuplicateIcon,
   RenameIcon,
 } from "src/icons";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import {
   CollapsibleListSection,

@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
 import type { PropertyComparison } from "./use-asset-comparison";
-import type { CustomerPointId } from "src/hydraulic-model/customer-points";
+import { type CustomerPointId } from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
   getCustomerPointDemands,

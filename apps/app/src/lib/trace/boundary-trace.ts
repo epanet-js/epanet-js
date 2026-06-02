@@ -1,4 +1,4 @@
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetIndexQueries } from "src/hydraulic-model/asset-index";
 import { TopologyQueries } from "src/hydraulic-model/topology/types";
 import {

@@ -1,4 +1,9 @@
-import { Asset, AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import {
+  Asset,
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+} from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "../hydraulic-model";
 import { TopologyQueries } from "../topology/types";
 

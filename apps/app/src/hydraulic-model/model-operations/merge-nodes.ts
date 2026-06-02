@@ -1,16 +1,20 @@
-import { AssetId, LinkAsset, NodeAsset } from "../asset-types";
+import {
+  AssetId,
+  LinkAsset,
+  NodeAsset,
+  CustomerPoints,
+  Pipe,
+  CustomerPointsLookup,
+  isNodeAsset,
+  computeLinkLength,
+} from "@epanet-js/hydraulic-model";
 import { DemandAssignment, ModelOperation } from "../model-operation";
-import { CustomerPoints } from "../customer-points";
-import { Pipe } from "../asset-types/pipe";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "../assets-map";
 import { Topology } from "../topology";
-import { CustomerPointsLookup } from "../customer-points-lookup";
 import { updateLinkConnections } from "../mutations/update-link-connections";
-import { isNodeAsset } from "../asset-types/type-guards";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
 import { getJunctionDemands } from "../demands";
-import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "@epanet-js/quantity";
 
 type InputData = {

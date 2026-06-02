@@ -2,10 +2,10 @@ import {
   CustomerPoint,
   CustomerPointId,
   CustomerPoints,
-} from "src/hydraulic-model/customer-points";
-import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
+  CustomerPointsLookup,
+  ModelFactories,
+} from "@epanet-js/hydraulic-model";
 import { Demand } from "src/hydraulic-model/demands";
-import { ModelFactories } from "src/hydraulic-model/factories";
 import {
   parseRows,
   customerPointRowSchema,

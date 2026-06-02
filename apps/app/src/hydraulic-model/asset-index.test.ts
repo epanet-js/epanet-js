@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { AssetIndex, AssetIndexEncoder, AssetIndexView } from "./asset-index";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { AssetsMap } from "./assets-map";
-import { AssetId } from "./asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import {
   buildJunction,
   buildPipe,

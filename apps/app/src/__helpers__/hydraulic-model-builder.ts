@@ -22,26 +22,25 @@ import {
 } from "src/hydraulic-model";
 import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
-import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
+  CustomerPointsLookup,
   PumpBuildData,
   TankBuildData,
   ValveBuildData,
-} from "src/hydraulic-model/factories/asset-factory";
+  LabelManager,
+  AllocationRule,
+  CustomerPoint,
+  CustomerPoints,
+  initializeCustomerPoints,
+  Curves,
+  ICurve,
+} from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   AssetQuantitiesSpec,
   UnitsSpec,
   presets,
 } from "src/lib/project-settings/quantities-spec";
-import {
-  AllocationRule,
-  CustomerPoint,
-  CustomerPoints,
-  initializeCustomerPoints,
-} from "src/hydraulic-model/customer-points";
-import { Curves, ICurve } from "src/hydraulic-model/curves";
 
 export const buildPipe = (
   data: PipeBuildData = {},

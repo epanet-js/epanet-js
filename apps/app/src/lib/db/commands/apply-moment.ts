@@ -1,7 +1,9 @@
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
-import type { Asset } from "src/hydraulic-model/asset-types";
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
-import type { CustomerPointId } from "src/hydraulic-model/customer-points";
+import {
+  type Asset,
+  type AssetId,
+  type CustomerPointId,
+} from "@epanet-js/hydraulic-model";
 import {
   getWorker,
   timed,

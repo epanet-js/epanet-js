@@ -11,11 +11,12 @@ import {
   CurvePointsType,
   getPumpCurveErrors,
   CurveErrorPoint,
-} from "src/hydraulic-model/curves";
+  Pump,
+  PumpDefinitionType,
+} from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { Pump, PumpDefinitionType } from "src/hydraulic-model/asset-types/pump";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import type {
   PropertyComparison,

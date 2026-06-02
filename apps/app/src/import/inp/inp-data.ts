@@ -2,10 +2,10 @@ import { Position } from "geojson";
 import {
   HeadlossFormula,
   PipeStatus,
-} from "src/hydraulic-model/asset-types/pipe";
-import { ValveKind } from "src/hydraulic-model/asset-types/valve";
-import { CurveType } from "src/hydraulic-model/curves";
-import { PatternType } from "src/hydraulic-model/patterns";
+  ValveKind,
+  CurveType,
+  PatternType,
+} from "@epanet-js/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type PipeData = {

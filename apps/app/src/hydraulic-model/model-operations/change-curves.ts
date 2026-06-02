@@ -1,4 +1,4 @@
-import { Curves } from "../curves";
+import { Curves } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

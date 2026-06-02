@@ -7,7 +7,8 @@ import {
   CurvePoint,
   CurveType,
   defaultCurvePoints,
-} from "src/hydraulic-model/curves";
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import {
   AddIcon,
   ChevronRightIcon,
@@ -16,7 +17,6 @@ import {
   RenameIcon,
   WarningIcon,
 } from "src/icons";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 import {
   ListItem,
   ItemAction,

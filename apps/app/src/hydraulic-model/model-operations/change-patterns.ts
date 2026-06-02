@@ -1,4 +1,4 @@
-import { Patterns } from "../patterns";
+import { Patterns } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type InputData = Patterns;

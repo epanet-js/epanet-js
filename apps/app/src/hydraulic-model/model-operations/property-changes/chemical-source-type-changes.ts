@@ -1,5 +1,5 @@
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
+import { type ChemicalSourceType } from "@epanet-js/hydraulic-model";
 
 export function chemicalSourceTypeChanges(
   sourceType: ChemicalSourceType | null,

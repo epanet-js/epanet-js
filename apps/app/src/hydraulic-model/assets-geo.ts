@@ -14,7 +14,7 @@ import {
   VariableSizeBufferView,
 } from "src/lib/buffers";
 import { AssetIndex, AssetIndexQueries } from "./asset-index";
-import { AssetId, LinkAsset, NodeAsset } from "./asset-types";
+import { AssetId, LinkAsset, NodeAsset } from "@epanet-js/hydraulic-model";
 import { LineString, Position } from "geojson";
 import Flatbush from "flatbush";
 import bbox from "@turf/bbox";

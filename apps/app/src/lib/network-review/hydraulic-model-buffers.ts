@@ -5,7 +5,7 @@ import {
   LinkType,
   NodeType,
   Pipe,
-} from "src/hydraulic-model/asset-types";
+} from "@epanet-js/hydraulic-model";
 import { Position } from "geojson";
 import bbox from "@turf/bbox";
 import lineSegment from "@turf/line-segment";

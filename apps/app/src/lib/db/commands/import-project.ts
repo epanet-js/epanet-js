@@ -3,13 +3,15 @@ import type { ProjectSettings } from "src/lib/project-settings";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { AssetsMap } from "src/hydraulic-model/assets-map";
-import type { CustomerPoints } from "src/hydraulic-model/customer-points";
+import {
+  type CustomerPoints,
+  type Patterns,
+  type Curves,
+} from "@epanet-js/hydraulic-model";
 import type {
   CustomerAssignedDemands,
   JunctionAssignedDemands,
 } from "src/hydraulic-model/demands";
-import type { Patterns } from "src/hydraulic-model/patterns";
-import type { Curves } from "src/hydraulic-model/curves";
 import type { Controls } from "src/hydraulic-model/controls";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";

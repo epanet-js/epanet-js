@@ -3,7 +3,7 @@ import {
   AllocationRule,
   CustomerPoint,
   CustomerPointId,
-} from "src/hydraulic-model/customer-points";
+} from "@epanet-js/hydraulic-model";
 import { Demand } from "src/hydraulic-model/demands";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";

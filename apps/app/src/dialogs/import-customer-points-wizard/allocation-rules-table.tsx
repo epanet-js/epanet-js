@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import {
   AllocationRule,
   defaultAllocationRules,
-} from "src/hydraulic-model/customer-points";
+} from "@epanet-js/hydraulic-model";
 
 import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";

@@ -43,7 +43,7 @@ import { LabelRule } from "src/map/symbology/symbology-types";
 import { Locale } from "src/infra/i18n/locale";
 import { localeAtom } from "src/state/locale";
 import { branchStateAtom } from "src/state/branch-state";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
 export const setInitialState = (

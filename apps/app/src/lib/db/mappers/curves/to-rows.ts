@@ -1,4 +1,4 @@
-import type { Curves, ICurve } from "src/hydraulic-model/curves";
+import { type Curves, type ICurve } from "@epanet-js/hydraulic-model";
 import { curveRowSchema, pointsSchema, type CurveRow } from "@epanet-js/ejsdb";
 
 export const toCurveRow = (curve: ICurve): CurveRow => {

@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { CurveId } from "src/hydraulic-model/curves";
+import { CurveId } from "@epanet-js/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dialogAtom } from "src/state/dialog";
 

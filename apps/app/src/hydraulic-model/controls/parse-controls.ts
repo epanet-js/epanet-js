@@ -1,4 +1,4 @@
-import { AssetId } from "../asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "../assets-map";
 import {
   SimpleControl,

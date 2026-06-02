@@ -8,7 +8,7 @@ import {
   getHeadlossCurveErrors,
   getValveCurveErrors,
   getEfficiencyCurveErrors,
-} from "src/hydraulic-model/curves";
+} from "@epanet-js/hydraulic-model";
 import { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 
 export interface CurveTypeConfig {

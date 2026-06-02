@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { applyMomentToModel } from "./apply-moment";
-import { Pipe, Junction } from "../asset-types";
+import { Pipe, Junction } from "@epanet-js/hydraulic-model";
 import { ModelMoment } from "../model-operation";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 

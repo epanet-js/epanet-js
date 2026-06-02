@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createSpatialIndex } from "./spatial-index";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
-import { Pipe } from "./asset-types/pipe";
+import { Pipe } from "@epanet-js/hydraulic-model";
 
 describe("createSpatialIndex", () => {
   it("creates spatial index from pipes", () => {

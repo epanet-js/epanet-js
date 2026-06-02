@@ -1,5 +1,5 @@
 import { Asset, AssetsMap } from "src/hydraulic-model";
-import { AssetType } from "src/hydraulic-model/asset-types";
+import { AssetType } from "@epanet-js/hydraulic-model";
 
 export const getByLabel = (
   assets: AssetsMap,

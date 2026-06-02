@@ -5,7 +5,7 @@ import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { ModelFactories } from "src/hydraulic-model/factories";
+import { type ModelFactories } from "@epanet-js/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";

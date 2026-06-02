@@ -5,7 +5,7 @@ import { Mode } from "src/state/mode";
 import { renderMap } from "./__helpers__/map";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { selectionAtom } from "src/state/selection";
-import { Junction } from "src/hydraulic-model/asset-types/junction";
+import { Junction } from "@epanet-js/hydraulic-model";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { vi } from "vitest";
 import { waitFor } from "@testing-library/react";

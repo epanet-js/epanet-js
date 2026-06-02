@@ -23,9 +23,12 @@ import {
 import {
   CustomerPoint,
   getActiveCustomerPoints,
-} from "src/hydraulic-model/customer-points";
-import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
-import { Valve, AssetId } from "src/hydraulic-model/asset-types";
+  CustomerPointsLookup,
+  Valve,
+  AssetId,
+  CurveId,
+  ICurve,
+} from "@epanet-js/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import {
   type Projection,
@@ -46,7 +49,6 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
-import { CurveId, ICurve } from "src/hydraulic-model/curves";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";

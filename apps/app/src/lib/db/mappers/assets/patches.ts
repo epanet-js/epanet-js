@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
-import type { AssetId } from "src/hydraulic-model/asset-types/base-asset";
-import type { CurvePoint } from "src/hydraulic-model/curves";
+import { type AssetId, type CurvePoint } from "@epanet-js/hydraulic-model";
 import {
   pointsSchema,
   junctionPatchRowSchema,

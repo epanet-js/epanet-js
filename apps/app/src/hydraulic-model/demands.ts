@@ -1,7 +1,10 @@
-import { AssetId } from "./asset-types";
-import { CustomerPointId } from "./customer-points";
-import { CustomerPointsLookup } from "./customer-points-lookup";
-import { PatternId, Patterns } from "./patterns";
+import {
+  AssetId,
+  CustomerPointId,
+  CustomerPointsLookup,
+  PatternId,
+  Patterns,
+} from "@epanet-js/hydraulic-model";
 
 export type Demand = {
   baseDemand: number;

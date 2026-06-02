@@ -1,4 +1,4 @@
-import type { Patterns } from "src/hydraulic-model/patterns";
+import { type Patterns } from "@epanet-js/hydraulic-model";
 import { patternsToRows, toPatternRow } from "./to-rows";
 
 describe("toPatternRow", () => {

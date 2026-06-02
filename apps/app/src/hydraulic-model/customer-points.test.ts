@@ -2,7 +2,7 @@ import {
   buildCustomerPoint,
   HydraulicModelBuilder,
 } from "src/__helpers__/hydraulic-model-builder";
-import { getActiveCustomerPoints } from "./customer-points";
+import { getActiveCustomerPoints } from "@epanet-js/hydraulic-model";
 
 describe("CustomerPoint", () => {
   it("creates customer point with provided ID", () => {

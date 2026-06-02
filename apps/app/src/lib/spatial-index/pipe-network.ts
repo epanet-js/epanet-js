@@ -1,6 +1,6 @@
 import { FeatureCollection, LineString, feature } from "@turf/helpers";
 import { AssetsMap } from "src/hydraulic-model";
-import { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { Pipe } from "@epanet-js/hydraulic-model";
 
 export function extractPipeNetwork(
   assets: AssetsMap,

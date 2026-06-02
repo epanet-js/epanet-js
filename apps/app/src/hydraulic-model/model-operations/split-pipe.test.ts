@@ -3,7 +3,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { Pipe } from "../asset-types/pipe";
+import { Pipe } from "@epanet-js/hydraulic-model";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("splitPipe", () => {

@@ -1,4 +1,4 @@
-import { CustomerPoints } from "../../customer-points";
+import { CustomerPoints } from "@epanet-js/hydraulic-model";
 
 export type AllocationRule = {
   maxDistance: number;

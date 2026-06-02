@@ -9,8 +9,7 @@ import {
 import { defaultProjectSettings } from "src/lib/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
-import type { Junction } from "src/hydraulic-model/asset-types/junction";
-import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
+import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { applyMomentToDb } from "./apply-moment";
 import { fetchProject } from "./fetch-project";

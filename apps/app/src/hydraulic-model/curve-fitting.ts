@@ -1,4 +1,4 @@
-import { CurvePoint, CurvePointsType } from "./curves";
+import { CurvePoint, CurvePointsType } from "@epanet-js/hydraulic-model";
 
 const TINY = 1e-6;
 const MAX_ITER = 5;

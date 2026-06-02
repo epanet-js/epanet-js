@@ -1,14 +1,18 @@
 import { HydraulicModel } from "../hydraulic-model";
 import { ModelMoment, ReverseMoment } from "../model-operation";
 import type { AssetPatch, DemandAssignment } from "../model-operation";
-import { Asset, LinkAsset } from "../asset-types";
+import {
+  Asset,
+  LinkAsset,
+  CustomerPoint,
+  CustomerPointId,
+  Curves,
+  Patterns,
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { AssetId } from "../assets-map";
-import { CustomerPoint, CustomerPointId } from "../customer-points";
-import { Curves } from "../curves";
-import { Patterns } from "../patterns";
 import { isDebugOn } from "src/infra/debug-mode";
 import { CustomerAssignedDemands, JunctionAssignedDemands } from "../demands";
-import { LabelManager } from "../label-manager";
 
 type PutAssetResult = {
   oldAsset: Asset | undefined;

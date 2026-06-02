@@ -6,7 +6,7 @@ import {
 } from "./pump-definition-details";
 import { presets, UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
-import type { Curves } from "src/hydraulic-model/curves";
+import { type Curves } from "@epanet-js/hydraulic-model";
 
 const spec = presets.LPS;
 const units: UnitsSpec = spec.units;

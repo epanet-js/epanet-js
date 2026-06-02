@@ -1,7 +1,9 @@
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { LabelManager } from "src/hydraulic-model/label-manager";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
+import {
+  LabelManager,
+  initializeModelFactories,
+} from "@epanet-js/hydraulic-model";
 import { buildCustomerPointsData } from "./builders";
 import type {
   CustomerPointRow,

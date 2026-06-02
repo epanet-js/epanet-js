@@ -2,11 +2,15 @@ import { LineString, Feature, Position } from "@turf/helpers";
 import lineSegment from "@turf/line-segment";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
-import { Pipe } from "../../asset-types/pipe";
+import {
+  Pipe,
+  Asset,
+  NodeAsset,
+  NodeType,
+  CustomerPoint,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../../hydraulic-model";
 import { AllocationRule } from "./types";
-import { Asset, NodeAsset, NodeType } from "src/hydraulic-model/asset-types";
-import { CustomerPoint } from "../../customer-points";
 
 export interface LinkSegmentProperties {
   linkId: number;

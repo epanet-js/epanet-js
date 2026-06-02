@@ -4,7 +4,7 @@ import {
   AllocationRule,
   CustomerPoint,
   getDefaultAllocationRules,
-} from "src/hydraulic-model/customer-points";
+} from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {

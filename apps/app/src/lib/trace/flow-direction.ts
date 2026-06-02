@@ -1,4 +1,4 @@
-import { AssetId, Asset, Pipe, Valve } from "src/hydraulic-model/asset-types";
+import { AssetId, Asset, Pipe, Valve } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "src/hydraulic-model/assets-map";
 import { ResultsReader } from "src/simulation/results-reader";
 import {

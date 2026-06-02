@@ -22,7 +22,7 @@ import {
 import type { QuantityProperty } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import type { TimeSeries } from "src/simulation/epanet/eps-results-reader";
-import type { AssetId, Valve } from "src/hydraulic-model/asset-types";
+import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";

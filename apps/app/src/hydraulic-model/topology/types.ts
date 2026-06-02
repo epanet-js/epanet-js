@@ -1,4 +1,4 @@
-import { AssetId } from "../asset-types/base-asset";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { BinaryData, BufferWithIndex } from "src/lib/buffers";
 
 export interface TopologyQueries {

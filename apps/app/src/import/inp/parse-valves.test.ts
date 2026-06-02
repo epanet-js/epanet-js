@@ -1,7 +1,7 @@
 import { Junction } from "src/hydraulic-model";
 import { parseInp } from "./parse-inp";
 import { getByLabel } from "src/__helpers__/asset-queries";
-import { Valve } from "src/hydraulic-model/asset-types";
+import { Valve } from "@epanet-js/hydraulic-model";
 
 describe("parse valves", () => {
   it("parses a valve", () => {

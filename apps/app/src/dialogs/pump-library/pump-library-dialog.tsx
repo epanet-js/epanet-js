@@ -16,7 +16,8 @@ import {
   stripTrailingEmptyPoints,
   deepCloneCurves,
   differentCurvesCount,
-} from "src/hydraulic-model/curves";
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { PumpLibraryIcon } from "src/icons";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -24,7 +25,6 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import { changeCurves } from "src/hydraulic-model/model-operations/change-curves";
 import { notify } from "src/components/notifications";
 import { useUserTracking } from "src/infra/user-tracking";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 import { getCurveTypeConfig } from "../curves/curve-type-config";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { HydraulicModel, Pump } from "src/hydraulic-model";

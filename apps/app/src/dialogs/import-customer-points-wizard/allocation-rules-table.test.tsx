@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { AllocationRule } from "src/hydraulic-model/customer-points";
+import { AllocationRule } from "@epanet-js/hydraulic-model";
 import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { vi } from "vitest";
 

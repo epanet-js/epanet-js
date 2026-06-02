@@ -1,4 +1,4 @@
-import type { Curves } from "src/hydraulic-model/curves";
+import { type Curves } from "@epanet-js/hydraulic-model";
 import { curvesToRows, toCurveRow } from "./to-rows";
 
 describe("toCurveRow", () => {

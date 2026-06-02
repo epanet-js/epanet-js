@@ -24,8 +24,11 @@ import {
   headlossFormulas,
   initializeHydraulicModel,
 } from "src/hydraulic-model";
-import { initializeModelFactories } from "src/hydraulic-model/factories";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import {
+  initializeModelFactories,
+  LabelManager,
+  headlossFormulasFullNames,
+} from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
@@ -39,7 +42,6 @@ import {
   gridPreviewAtom,
   isUnprojectedAtom,
 } from "src/state/map-projection";
-import { headlossFormulasFullNames } from "src/hydraulic-model/asset-types/pipe";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
 import { MapEngine } from "src/map/map-engine";

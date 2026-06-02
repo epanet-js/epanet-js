@@ -2,8 +2,10 @@ import {
   HydraulicModel,
   updateHydraulicModelAssets,
 } from "src/hydraulic-model/hydraulic-model";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
-import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
+import {
+  CustomerPoint,
+  CustomerPointsLookup,
+} from "@epanet-js/hydraulic-model";
 import { Demand } from "src/hydraulic-model/demands";
 
 type AddCustomerPointsOptions = {

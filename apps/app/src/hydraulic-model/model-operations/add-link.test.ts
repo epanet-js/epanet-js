@@ -4,11 +4,16 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "../../__helpers__/hydraulic-model-builder";
-import { Pump, Pipe, Junction, Valve } from "../asset-types";
-import { AssetFactory } from "../factories/asset-factory";
+import {
+  Pump,
+  Pipe,
+  Junction,
+  Valve,
+  AssetFactory,
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { IdGenerator } from "@epanet-js/id-generator";
-import { LabelManager } from "src/hydraulic-model/label-manager";
 import { HydraulicModel } from "../hydraulic-model";
 
 class TestIdGenerator implements IdGenerator {

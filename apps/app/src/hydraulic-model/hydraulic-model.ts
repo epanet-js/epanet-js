@@ -4,13 +4,16 @@ import { nanoid } from "nanoid";
 
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import { Demands, createEmptyDemands } from "./demands";
-import { CustomerPoints, initializeCustomerPoints } from "./customer-points";
-import { CustomerPointsLookup } from "./customer-points-lookup";
+import {
+  CustomerPoints,
+  initializeCustomerPoints,
+  CustomerPointsLookup,
+  Asset,
+  Curves,
+  Patterns,
+} from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "./asset-index";
-import { Asset } from "./asset-types";
-import { Curves } from "./curves";
 import { Controls, createEmptyControls } from "./controls";
-import { Patterns } from "./patterns";
 
 export type HydraulicModel = {
   version: string;

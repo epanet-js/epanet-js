@@ -6,7 +6,7 @@ import { Position } from "geojson";
 import { findJunctionForCustomerPoint } from "../../utilities/junction-assignment";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 
-import { CustomerPointConnection } from "../../customer-points";
+import { CustomerPointConnection } from "@epanet-js/hydraulic-model";
 import { AllocationRule } from "./types";
 import {
   RunData,

@@ -1,4 +1,4 @@
-import { CustomerPoint } from "../customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {

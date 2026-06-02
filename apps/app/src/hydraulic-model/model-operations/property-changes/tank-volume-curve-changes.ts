@@ -1,5 +1,5 @@
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import type { Curves, CurveId } from "src/hydraulic-model/curves";
+import { type Curves, type CurveId } from "@epanet-js/hydraulic-model";
 
 export function tankVolumeCurveChanges(
   curves: Curves,

@@ -1,15 +1,18 @@
-import { NodeAsset } from "../asset-types";
-import { Pipe, PipeProperties } from "../asset-types/pipe";
+import {
+  NodeAsset,
+  Pipe,
+  PipeProperties,
+  AssetFactory,
+  LabelManager,
+  CustomerPoint,
+  computeLinkLength,
+} from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
-import { AssetFactory } from "../factories/asset-factory";
-import { LabelManager } from "../label-manager";
-import { CustomerPoint } from "../customer-points";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 import { Position } from "src/types";
-import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "@epanet-js/quantity";
 
 type CopyablePipeProperties = Pick<

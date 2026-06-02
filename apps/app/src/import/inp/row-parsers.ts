@@ -7,11 +7,14 @@ import {
 import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
-import { CurveType } from "src/hydraulic-model/curves";
-import { PatternType } from "src/hydraulic-model/patterns";
-import { ValveKind, valveKinds } from "src/hydraulic-model/asset-types/valve";
-import { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
-import { tankMixingModels } from "src/hydraulic-model/asset-types/tank";
+import {
+  CurveType,
+  PatternType,
+  ValveKind,
+  valveKinds,
+  PipeStatus,
+  tankMixingModels,
+} from "@epanet-js/hydraulic-model";
 import { ParseInpOptions } from "./parse-inp";
 
 export type RowParser = (params: {

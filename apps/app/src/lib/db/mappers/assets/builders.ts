@@ -1,27 +1,25 @@
 import { AssetsMap } from "src/hydraulic-model/assets-map";
 import { AssetIndex } from "src/hydraulic-model/asset-index";
 import { Topology } from "src/hydraulic-model/topology";
-import { ModelFactories } from "src/hydraulic-model/factories";
+import {
+  ModelFactories,
+  type Junction,
+  type Reservoir,
+  type Tank,
+  type Pipe,
+  type Pump,
+  type Valve,
+  type ChemicalSourceType,
+  type PipeStatus,
+  type PumpStatus,
+  type PumpDefinitionType,
+  type ValveStatus,
+  type ValveKind,
+  type TankMixingModel,
+  type CurvePoint,
+  type AssetFactory,
+} from "@epanet-js/hydraulic-model";
 import type { Position } from "geojson";
-import type { Junction } from "src/hydraulic-model/asset-types/junction";
-import type { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
-import type { Tank } from "src/hydraulic-model/asset-types/tank";
-import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import type { Pump } from "src/hydraulic-model/asset-types/pump";
-import type { Valve } from "src/hydraulic-model/asset-types/valve";
-import type { ChemicalSourceType } from "src/hydraulic-model/asset-types/node";
-import type { PipeStatus } from "src/hydraulic-model/asset-types/pipe";
-import type {
-  PumpStatus,
-  PumpDefinitionType,
-} from "src/hydraulic-model/asset-types/pump";
-import type {
-  ValveStatus,
-  ValveKind,
-} from "src/hydraulic-model/asset-types/valve";
-import type { TankMixingModel } from "src/hydraulic-model/asset-types/tank";
-import type { CurvePoint } from "src/hydraulic-model/curves";
-import type { AssetFactory } from "src/hydraulic-model/factories/asset-factory";
 import {
   parseRows,
   pointsSchema,

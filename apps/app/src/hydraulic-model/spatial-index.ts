@@ -2,9 +2,8 @@ import { LineString, Feature } from "@turf/helpers";
 import lineSegment from "@turf/line-segment";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
-import { Link } from "./asset-types/link";
+import { Link, AssetId } from "@epanet-js/hydraulic-model";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
-import { AssetId } from "./asset-types/base-asset";
 
 export interface LinkSegmentProperties {
   linkId: AssetId;

@@ -3,7 +3,7 @@ import {
   AssetIndexBuffers,
   AssetIndexEncoder,
 } from "src/hydraulic-model/asset-index";
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import {
   AssetsGeoBuffers,
   AssetsGeoEncoder,

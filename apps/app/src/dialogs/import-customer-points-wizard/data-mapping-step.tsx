@@ -7,17 +7,17 @@ import { useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { buildCustomerPointPreviewFactory } from "src/hydraulic-model/factories";
+import {
+  buildCustomerPointPreviewFactory,
+  CustomerPoint,
+  CustomerPointId,
+  MAX_CUSTOMER_POINT_LABEL_LENGTH,
+} from "@epanet-js/hydraulic-model";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
 import {
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
 } from "src/import/customer-points/parse-customer-points-issues";
-import {
-  CustomerPoint,
-  CustomerPointId,
-  MAX_CUSTOMER_POINT_LABEL_LENGTH,
-} from "src/hydraulic-model/customer-points";
 import { Demand } from "src/hydraulic-model/demands";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {

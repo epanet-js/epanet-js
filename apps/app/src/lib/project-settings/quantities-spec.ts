@@ -1,6 +1,5 @@
 import { Unit } from "@epanet-js/quantity";
-import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
-import { DefaultsSpec } from "src/hydraulic-model/asset-types";
+import { HeadlossFormula, DefaultsSpec } from "@epanet-js/hydraulic-model";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
 
 export type QuantityProperty =

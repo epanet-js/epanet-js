@@ -1,7 +1,7 @@
 import { Position } from "geojson";
 import measureLength from "@turf/length";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
-import { LinkAsset } from "src/hydraulic-model/asset-types";
+import { LinkAsset } from "@epanet-js/hydraulic-model";
 import { PathData } from "src/state/hgl-profile";
 import { traceDuration } from "src/infra/with-instrumentation";
 

@@ -1,4 +1,10 @@
-import { Asset, AssetId, NodeAsset, LinkAsset, Pipe } from "./asset-types";
+import {
+  Asset,
+  AssetId,
+  NodeAsset,
+  LinkAsset,
+  Pipe,
+} from "@epanet-js/hydraulic-model";
 
 export type { AssetId };
 export class AssetsMap extends Map<AssetId, Asset> {}

@@ -6,7 +6,7 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import type { Asset } from "src/hydraulic-model";
-import type { AssetType } from "src/hydraulic-model/asset-types/types";
+import { type AssetType } from "@epanet-js/hydraulic-model";
 import { AssetTimeSeries } from "./types";
 import { GraphDefaultOptions } from "./default-options";
 

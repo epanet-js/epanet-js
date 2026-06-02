@@ -1,6 +1,6 @@
 import { createStore } from "jotai";
 import { describe, expect, it } from "vitest";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { branchStateAtom, type BranchState } from "src/state/branch-state";

@@ -1,4 +1,4 @@
-import { AssetId, AssetPropertiesMap } from "../asset-types";
+import { AssetId, AssetPropertiesMap } from "@epanet-js/hydraulic-model";
 import type { AssetPatch, ModelMoment } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "../assets-map";

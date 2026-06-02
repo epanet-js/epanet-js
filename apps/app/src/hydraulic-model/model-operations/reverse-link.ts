@@ -1,4 +1,4 @@
-import { AssetId, LinkAsset } from "../asset-types";
+import { AssetId, LinkAsset } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type ReverseLinkData = {

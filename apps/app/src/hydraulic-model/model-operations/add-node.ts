@@ -1,10 +1,13 @@
-import { NodeAsset, AssetId } from "../asset-types";
-import { Pipe } from "../asset-types/pipe";
+import {
+  NodeAsset,
+  AssetId,
+  Pipe,
+  LabelManager,
+  AssetFactory,
+} from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
-import { LabelManager } from "../label-manager";
 import { Position } from "src/types";
 import { HydraulicModel } from "../hydraulic-model";
-import { AssetFactory } from "../factories/asset-factory";
 import { splitPipe } from "./split-pipe";
 import { Unit } from "@epanet-js/quantity";
 

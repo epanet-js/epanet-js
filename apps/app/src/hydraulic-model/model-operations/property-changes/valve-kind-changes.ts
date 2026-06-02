@@ -1,8 +1,5 @@
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import {
-  type ValveKind,
-  valveCurveTypeFrom,
-} from "src/hydraulic-model/asset-types/valve";
+import { type ValveKind, valveCurveTypeFrom } from "@epanet-js/hydraulic-model";
 
 export function valveKindChanges(
   newKind: ValveKind,

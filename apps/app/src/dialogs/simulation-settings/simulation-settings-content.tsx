@@ -36,7 +36,7 @@ import {
 import {
   headlossFormulas,
   headlossFormulasFullNames,
-} from "src/hydraulic-model/asset-types/pipe";
+} from "@epanet-js/hydraulic-model";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import type {
   FormValues,

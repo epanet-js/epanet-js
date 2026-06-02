@@ -1,16 +1,21 @@
-import { NodeAsset, LinkAsset, AssetId, Asset } from "../asset-types";
-import { Pipe } from "../asset-types/pipe";
+import {
+  NodeAsset,
+  LinkAsset,
+  AssetId,
+  Asset,
+  Pipe,
+  LabelManager,
+  AssetFactory,
+  CustomerPoint,
+  computeLinkLength,
+} from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 import { Position } from "geojson";
-import { LabelManager } from "../label-manager";
 import { splitPipe } from "./split-pipe";
 import { AssetsMap } from "../assets-map";
 import { HydraulicModel } from "../hydraulic-model";
-import { AssetFactory } from "../factories/asset-factory";
-import { CustomerPoint } from "../customer-points";
 import { inferNodeIsActive } from "../utilities/active-topology";
 import { copyPipePropertiesToLink } from "./mutations/copy-link-properties";
-import { computeLinkLength } from "../asset-types/link";
 import { Unit } from "@epanet-js/quantity";
 
 type InputData = {

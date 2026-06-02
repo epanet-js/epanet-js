@@ -8,24 +8,21 @@ import {
 } from "src/components/data-grid";
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
-import type { AssetType } from "src/hydraulic-model/asset-types/types";
-import { pipeStatuses } from "src/hydraulic-model/asset-types/pipe";
-import { pumpStatuses } from "src/hydraulic-model/asset-types/pump";
 import {
+  type AssetType,
+  pipeStatuses,
+  pumpStatuses,
   valveKinds,
   valveStatuses,
-} from "src/hydraulic-model/asset-types/valve";
-import { chemicalSourceTypes } from "src/hydraulic-model/asset-types/node";
-import {
+  chemicalSourceTypes,
   tankMixingModels,
   TANK_TWO_COMPARTMENT_MIXING,
-} from "src/hydraulic-model/asset-types/tank";
-import type {
-  Patterns,
-  PatternId,
-  PatternType,
-} from "src/hydraulic-model/patterns";
-import type { Curves, CurveType } from "src/hydraulic-model/curves";
+  type Patterns,
+  type PatternId,
+  type PatternType,
+  type Curves,
+  type CurveType,
+} from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";

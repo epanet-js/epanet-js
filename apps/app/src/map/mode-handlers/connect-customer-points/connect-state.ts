@@ -5,7 +5,7 @@ import {
 } from "src/state/drawing";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { Position } from "src/types";
 import { useMemo } from "react";
 

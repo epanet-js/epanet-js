@@ -1,11 +1,13 @@
-import { Asset } from "src/hydraulic-model/asset-types";
-import type { Junction } from "src/hydraulic-model/asset-types/junction";
-import type { Reservoir } from "src/hydraulic-model/asset-types/reservoir";
-import type { Tank } from "src/hydraulic-model/asset-types/tank";
-import type { Pipe } from "src/hydraulic-model/asset-types/pipe";
-import type { Pump } from "src/hydraulic-model/asset-types/pump";
-import type { Valve } from "src/hydraulic-model/asset-types/valve";
-import type { CurvePoint } from "src/hydraulic-model/curves";
+import {
+  Asset,
+  type Junction,
+  type Reservoir,
+  type Tank,
+  type Pipe,
+  type Pump,
+  type Valve,
+  type CurvePoint,
+} from "@epanet-js/hydraulic-model";
 import type { ZodTypeAny } from "zod";
 import {
   pointsSchema,

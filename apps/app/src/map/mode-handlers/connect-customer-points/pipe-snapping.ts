@@ -4,7 +4,7 @@ import { decodeId } from "src/lib/id";
 import { AssetsMap, LinkAsset } from "src/hydraulic-model";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { lineString, point } from "@turf/helpers";
-import { CustomerPoint } from "src/hydraulic-model/customer-points";
+import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 
 type SnapStrategy = "nearest-to-point" | "cursor";

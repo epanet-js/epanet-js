@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { moveNode } from "./move-node";
 
-import { NodeAsset, LinkAsset } from "../asset-types";
+import { NodeAsset, LinkAsset } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "../../__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 

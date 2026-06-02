@@ -1,12 +1,15 @@
 import { HydraulicModel } from "./hydraulic-model";
-import { Asset } from "./asset-types";
-import type { AssetPropertiesMap } from "./asset-types";
+import {
+  Asset,
+  type AssetPropertiesMap,
+  CustomerPoint,
+  CustomerPointId,
+  Curves,
+  Patterns,
+} from "@epanet-js/hydraulic-model";
 import { Demand, Demands } from "./demands";
-import { CustomerPoint, CustomerPointId } from "./customer-points";
-import { Curves } from "./curves";
 import { Controls } from "./controls";
 import type { AssetId } from "./assets-map";
-import { Patterns } from "./patterns";
 
 type NonPatchableKeys = "type" | "connections";
 

@@ -26,9 +26,13 @@ import {
 } from "./data";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
-import type { Curves, CurveType } from "src/hydraulic-model/curves";
-import type { Patterns, PatternType } from "src/hydraulic-model/patterns";
-import type { LabelManager } from "src/hydraulic-model/label-manager";
+import {
+  type Curves,
+  type CurveType,
+  type Patterns,
+  type PatternType,
+  type LabelManager,
+} from "@epanet-js/hydraulic-model";
 import { JsonValue } from "type-fest";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import {

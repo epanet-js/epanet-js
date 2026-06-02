@@ -15,13 +15,14 @@ import {
   Tank,
   HydraulicModel,
 } from "src/hydraulic-model";
-import { Valve } from "src/hydraulic-model/asset-types";
-import { Curves } from "src/hydraulic-model/curves";
-import { CustomerPointsLookup } from "src/hydraulic-model/customer-points-lookup";
 import {
+  Valve,
+  Curves,
+  CustomerPointsLookup,
   CustomerPoint,
   getActiveCustomerPoints,
-} from "src/hydraulic-model/customer-points";
+  tankVolumeCurveRange,
+} from "@epanet-js/hydraulic-model";
 import {
   Patterns,
   Demands,
@@ -30,7 +31,6 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
-import { tankVolumeCurveRange } from "src/hydraulic-model/asset-types/tank";
 
 export type EmptyBucket = {
   label: string;

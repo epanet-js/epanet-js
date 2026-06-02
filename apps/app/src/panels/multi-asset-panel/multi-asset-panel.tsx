@@ -5,7 +5,11 @@ import { IWrappedFeature } from "src/types";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
-import { Tank } from "src/hydraulic-model/asset-types/tank";
+import {
+  Tank,
+  type CurveType,
+  type PatternType,
+} from "@epanet-js/hydraulic-model";
 import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -36,8 +40,6 @@ import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivat
 import { useSelection } from "src/selection/use-selection";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
-import type { CurveType } from "src/hydraulic-model/curves";
-import type { PatternType } from "src/hydraulic-model/patterns";
 
 export function MultiAssetPanel({
   selectedFeatures,

@@ -1,5 +1,5 @@
 import { BinaryData } from "src/lib/buffers";
-import { AssetId } from "src/hydraulic-model/asset-types";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetIndexView } from "src/hydraulic-model/asset-index";
 import {
   FlowDirectionQueries,

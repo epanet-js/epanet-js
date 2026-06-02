@@ -13,7 +13,7 @@ import { useClickedAsset } from "../utils";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
 import { notify } from "src/components/notifications";
-import { Asset, Pipe, Valve } from "src/hydraulic-model/asset-types";
+import { Asset, Pipe, Valve } from "@epanet-js/hydraulic-model";
 import { runTrace } from "src/lib/trace";
 import { useTranslate } from "src/hooks/use-translate";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";

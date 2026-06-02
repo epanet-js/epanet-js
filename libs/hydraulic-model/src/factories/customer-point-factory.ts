@@ -1,11 +1,8 @@
 import { Position } from "geojson";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import {
-  CustomerPoint,
-  CustomerPointId,
-} from "src/hydraulic-model/customer-points";
+import { CustomerPoint, CustomerPointId } from "../customer-points";
 import { roundCoordinates } from "@epanet-js/geometry";
-import { LabelManager } from "src/hydraulic-model/label-manager";
+import { LabelManager } from "../label-manager";
 
 export const buildCustomerPointPreviewFactory = (
   labelManager: LabelManager,

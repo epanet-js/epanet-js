@@ -1,7 +1,6 @@
 import { presets } from "src/lib/project-settings/quantities-spec";
-import { AssetFactory } from "./asset-factory";
+import { AssetFactory, LabelManager } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { LabelManager } from "../label-manager";
 
 describe("asset factory", () => {
   it("assigns an id when not provided", () => {
