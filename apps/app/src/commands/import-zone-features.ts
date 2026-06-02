@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { zonesAtom } from "src/state/zones";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { importZoneFeatures } from "src/lib/zones";
-import type { ZoneFeature } from "src/lib/zones";
+import type { ZoneFeature, ImportZoneFeaturesResult } from "src/lib/zones";
 import * as db from "src/lib/db";
 
 export const useImportZoneFeatures = () => {
@@ -11,13 +11,18 @@ export const useImportZoneFeatures = () => {
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const importFeatures = useCallback(
-    async (features: ZoneFeature[], labelProperty?: string) => {
-      const zones = importZoneFeatures(features, labelProperty);
-      setZones(zones);
+    async (
+      features: ZoneFeature[],
+      labelProperty?: string,
+    ): Promise<ImportZoneFeaturesResult> => {
+      const result = importZoneFeatures(features, labelProperty);
+      setZones(result.zones);
 
       if (isOurFileOn) {
-        await db.saveZones(zones);
+        await db.saveZones(result.zones);
       }
+
+      return result;
     },
     [setZones, isOurFileOn],
   );

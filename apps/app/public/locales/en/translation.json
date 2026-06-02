@@ -1425,7 +1425,10 @@
     },
     "completeStep": {
       "title": "Complete",
-      "summary": "Imported {{1}} zones from GeoJSON."
+      "summary": "Imported {{1}} zones from GeoJSON.",
+      "mergedSummary": "Merged {{1}} zones from multiple features:",
+      "mergedLabelHeader": "Zone",
+      "mergedFeaturesHeader": "Number of merged features"
     },
     "errors": {
       "invalidFile": "The selected file is not a valid GeoJSON file.",

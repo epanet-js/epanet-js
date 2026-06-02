@@ -3,7 +3,7 @@ import { getLabelProperties } from "./get-label-properties";
 import type { ZoneFeature } from "./read-zone-features";
 
 describe("getLabelProperties", () => {
-  it("returns properties present in all features with unique values", () => {
+  it("returns properties present in all features with non-null values", () => {
     const features = [
       aZone({ name: "Zone A", region: "north", id: 1, owner: "someone" }),
       aZone({ name: "Zone B", region: "north", id: 2, owner: null, a: 123 }),
@@ -13,12 +13,12 @@ describe("getLabelProperties", () => {
 
     expect(result).toContain("name");
     expect(result).toContain("id");
-    expect(result).not.toContain("region");
+    expect(result).toContain("region");
     expect(result).not.toContain("owner");
     expect(result).not.toContain("a");
   });
 
-  it("treats numeric values as unique by their string representation", () => {
+  it("allows properties with duplicate values", () => {
     const features = [
       aZone({ id: 1, value: 100 }),
       aZone({ id: 2, value: 100 }),
@@ -27,7 +27,7 @@ describe("getLabelProperties", () => {
     const result = getLabelProperties(features);
 
     expect(result).toContain("id");
-    expect(result).not.toContain("value");
+    expect(result).toContain("value");
   });
 });
 

@@ -7,5 +7,9 @@ export { readZoneFeatures } from "./read-zone-features";
 export type { ZoneFeature, ReadZoneFeaturesResult } from "./read-zone-features";
 
 export { importZoneFeatures } from "./import-zone-features";
+export type {
+  ImportZoneFeaturesResult,
+  MergedZoneInfo,
+} from "./import-zone-features";
 
 export { getLabelProperties } from "./get-label-properties";
