@@ -366,6 +366,7 @@ export const CustomerPointDataTable = memo(
             columns={columns}
             onChange={onChange}
             createRow={() => ({}) as CustomerPointRow}
+            getRowId={(row) => String(row.id)}
             gutterColumn="selection"
             resizable
             sortable

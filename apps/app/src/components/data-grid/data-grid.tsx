@@ -9,8 +9,8 @@ import {
   type ColumnDef,
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
 } from "@tanstack/react-table";
+import { getStickySortedRowModel } from "./utils/get-sticky-sorted-row-model";
 import {
   DataGridVariant,
   RowAction,
@@ -64,6 +64,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   cellHasWarning?: (rowIndex: number, columnId: string) => boolean;
   autoAddNewRows?: boolean;
   sortable?: boolean;
+  getRowId?: (row: TData, index: number) => string;
   onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
   includeHeadersOnCopy?: boolean;
   onCopy?: (info: ClipboardCopyInfo) => void;
@@ -93,6 +94,7 @@ export const DataGrid = forwardRef(function DataGrid<
     cellHasWarning,
     autoAddNewRows = false,
     sortable = false,
+    getRowId,
     onColumnSort,
     includeHeadersOnCopy = false,
     onCopy,
@@ -109,6 +111,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const table = useReactTable<TData>({
     data,
     columns: columns as ColumnDef<TData>[],
+    getRowId,
     getCoreRowModel: getCoreRowModel(),
     _features: [
       CellEditingFeature,
@@ -136,7 +139,7 @@ export const DataGrid = forwardRef(function DataGrid<
     columnResizeMode: "onChange",
     enableColumnResizing: resizable,
     // Data sorting options
-    getSortedRowModel: getSortedRowModel(),
+    getSortedRowModel: getStickySortedRowModel(),
     enableSorting: sortable,
     enableSortingRemoval: true,
     enableMultiSort: false,

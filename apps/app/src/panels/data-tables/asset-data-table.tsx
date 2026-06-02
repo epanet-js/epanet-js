@@ -523,6 +523,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           columns={columns}
           onChange={onChange}
           createRow={() => ({}) as AssetRow}
+          getRowId={(row) => String(row.id)}
           gutterColumn="selection"
           resizable
           sortable
