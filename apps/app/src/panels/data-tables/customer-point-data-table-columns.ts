@@ -47,6 +47,18 @@ export function buildCustomerPointColumns(
       header: translate("junction"),
       isReadOnly: true,
     }),
+    floatColumn<CustomerPointRow>("avgDemand", {
+      header: headerLabel(
+        translate("customerDemand"),
+        units.customerDemandPerDay,
+      ),
+      decimals: getDecimals(formatting, "customerDemandPerDay"),
+      isReadOnly: true,
+    }),
+    integerColumn<CustomerPointRow>("demandsCount", {
+      header: translate("demandsCount"),
+      isReadOnly: true,
+    }),
     floatColumn<CustomerPointRow>("baseDemand", {
       header: headerLabel(translate("baseDemand"), units.customerDemandPerDay),
       decimals: getDecimals(formatting, "customerDemandPerDay"),
@@ -59,18 +71,6 @@ export function buildCustomerPointColumns(
       placeholder: translate("constant"),
       emptyOptionLabel: translate("constant"),
       deleteValue: null,
-    }),
-    integerColumn<CustomerPointRow>("demandsCount", {
-      header: translate("demandsCount"),
-      isReadOnly: true,
-    }),
-    floatColumn<CustomerPointRow>("avgDemand", {
-      header: headerLabel(
-        translate("customerDemand"),
-        units.customerDemandPerDay,
-      ),
-      decimals: getDecimals(formatting, "customerDemandPerDay"),
-      isReadOnly: true,
     }),
   ];
 }
