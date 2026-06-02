@@ -6,8 +6,8 @@ This is the epanet-js application. The guidance is split in two:
 - **Module-specific rules** live in an `AGENTS.md` next to the code they govern.
   When you edit a folder, read its `AGENTS.md` first if one is present — several
   modules have one (the hydraulic model, the data-grid, the map, panels, styles,
-  the import wizard, and others), and some carry constraints that routine
-  instincts will violate.
+  components, the import wizard, and others), and some carry constraints that
+  routine instincts will violate.
 
 ## App-wide conventions (`guidelines/`)
 
