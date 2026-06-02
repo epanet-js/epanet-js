@@ -43,6 +43,7 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.2",
     "@epanet-js/ejsdb": "workspace:*",
+    "@epanet-js/geometry": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
     "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",

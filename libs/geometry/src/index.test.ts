@@ -1,5 +1,5 @@
-import { arePointsInLine } from "./geometry";
-import type { Position } from "src/types";
+import { arePointsInLine } from "./index";
+import type { Position } from "geojson";
 
 describe("arePointsInLine", () => {
   it("returns false for vertex not on straight pipe", () => {
