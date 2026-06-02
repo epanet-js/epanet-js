@@ -1,38 +1,6 @@
-import { Position } from "geojson";
-
-export const METERS_PER_DEGREE = 111_320;
-
-export const computeCentroid = (points: Position[]): Position => {
-  if (points.length === 0) return [0, 0];
-  let sumX = 0;
-  let sumY = 0;
-  for (const p of points) {
-    sumX += p[0];
-    sumY += p[1];
-  }
-  return [sumX / points.length, sumY / points.length];
-};
-
-export const transformPoint = (
-  point: Position,
-  centroid: Position,
-  scale: number = 1,
-): Position => [
-  Math.max(
-    -180,
-    Math.min(180, ((point[0] - centroid[0]) * scale) / METERS_PER_DEGREE),
-  ),
-  Math.max(
-    -90,
-    Math.min(90, ((point[1] - centroid[1]) * scale) / METERS_PER_DEGREE),
-  ),
-];
-
-export const inverseTransformPoint = (
-  wgs84Point: Position,
-  centroid: Position,
-  scale: number = 1,
-): Position => [
-  (wgs84Point[0] * METERS_PER_DEGREE) / scale + centroid[0],
-  (wgs84Point[1] * METERS_PER_DEGREE) / scale + centroid[1],
-];
+export {
+  METERS_PER_DEGREE,
+  computeCentroid,
+  transformPoint,
+  inverseTransformPoint,
+} from "@epanet-js/projections";

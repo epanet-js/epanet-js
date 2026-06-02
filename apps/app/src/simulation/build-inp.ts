@@ -55,17 +55,8 @@ type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV" | "GPV" | "PCV";
 
-export type EpanetUnitSystem =
-  | "LPS"
-  | "GPM"
-  | "CFS"
-  | "LPM"
-  | "MGD"
-  | "MLD"
-  | "IMGD"
-  | "CMH"
-  | "AFD"
-  | "CMD";
+import type { EpanetUnitSystem } from "@epanet-js/project-settings";
+export type { EpanetUnitSystem };
 
 export const defaultAccuracy = 0.001;
 export const defaultUnbalanced = "CONTINUE 10";

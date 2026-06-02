@@ -4,7 +4,7 @@ import { transformPoint, inverseTransformPoint } from "./xy-grid-transform";
 import {
   createProjectionTransformer,
   createInverseProjectionTransformer,
-} from "src/lib/geojson-utils/coordinate-transform";
+} from "./coordinate-transform";
 
 export type ProjectionMapper = {
   projection: Projection;

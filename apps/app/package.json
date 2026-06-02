@@ -46,6 +46,8 @@
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
+    "@epanet-js/project-settings": "workspace:*",
+    "@epanet-js/projections": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
     "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",
