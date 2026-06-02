@@ -1,4 +1,3 @@
-"use client";
 import { useState, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
@@ -16,11 +15,9 @@ import {
   type MergedZoneInfo,
 } from "src/lib/zones";
 import { useImportZoneFeatures } from "src/commands/import-zone-features";
-import {
-  DataInputStep,
-  DataMappingStep,
-  CompleteStep,
-} from "./import-zones-wizard";
+import { DataInputStep } from "./data-input-step";
+import { DataMappingStep } from "./data-mapping-step";
+import { CompleteStep } from "./complete-step";
 
 const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
