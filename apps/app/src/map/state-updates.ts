@@ -986,22 +986,12 @@ const updateZoneColors = (
     "fill-color",
     fillColor as unknown as mapboxgl.Expression,
   );
-  map.setLayerPaintRule(
-    "zones-fill",
-    "fill-opacity",
-    zone.opacity as unknown as mapboxgl.Expression,
-  );
 
   const outlineColor = zone.defaults.color;
   map.setLayerPaintRule(
     "zones-outline",
     "line-color",
     outlineColor as unknown as mapboxgl.Expression,
-  );
-  map.setLayerPaintRule(
-    "zones-outline",
-    "line-opacity",
-    (zone.opacity + 0.25) as unknown as mapboxgl.Expression,
   );
 };
 

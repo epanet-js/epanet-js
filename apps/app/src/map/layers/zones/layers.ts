@@ -11,8 +11,8 @@ export const zoneFillLayer = ({
   type: "fill",
   source,
   paint: {
-    "fill-color": "#93c5fd",
-    "fill-opacity": 0.2,
+    "fill-color": "#ea580c",
+    "fill-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.15, 15, 0.03],
   },
 });
 
@@ -25,9 +25,9 @@ export const zoneOutlineLayer = ({
   type: "line",
   source,
   paint: {
-    "line-color": "#678ab1",
+    "line-color": "#ea580c",
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.25, 16, 2],
-    "line-opacity": 0.6,
+    "line-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.3, 15, 0.15],
   },
 });
 
