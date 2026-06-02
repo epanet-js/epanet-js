@@ -143,7 +143,6 @@ const SymbologyEditor = ({
   geometryType: "node" | "link";
   properties: readonly SupportedProperty[];
 }) => {
-  const isNodeSizingOn = useFeatureFlag("FLAG_NODE_SIZING");
   const translate = useTranslate();
   const readonly = useAtomValue(isPlayingAtom);
   const translateUnit = useTranslateUnit();
@@ -356,9 +355,7 @@ const SymbologyEditor = ({
           </div>
         </InlineField>
       )}
-      {geometryType === "node" && isNodeSizingOn && (
-        <NodeSizeField readonly={readonly} />
-      )}
+      {geometryType === "node" && <NodeSizeField readonly={readonly} />}
       <InlineField
         name={translate("labelBy")}
         labelSize="sm"
