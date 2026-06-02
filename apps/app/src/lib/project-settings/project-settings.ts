@@ -1,11 +1,7 @@
-import {
-  UnitsSpec,
-  DefaultsSpec,
-  FormattingSpec,
-  presets,
-} from "./quantities-spec";
+import { UnitsSpec, FormattingSpec, presets } from "./quantities-spec";
 import { Projection, WGS84 } from "src/lib/projections";
 import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
+import type { DefaultsSpec } from "src/hydraulic-model/asset-types";
 
 export const defaultProjectName = "";
 

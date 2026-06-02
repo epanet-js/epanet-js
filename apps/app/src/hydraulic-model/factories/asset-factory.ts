@@ -1,4 +1,4 @@
-import { AssetId, Junction, Pump } from "../asset-types";
+import { AssetId, DefaultsSpec, Junction, Pump } from "../asset-types";
 import { JunctionQuantity } from "../asset-types/junction";
 import { Pipe, PipeQuantity, PipeStatus } from "../asset-types/pipe";
 import { ChemicalSourceType } from "../asset-types/node";
@@ -108,7 +108,6 @@ export type TankBuildData = {
 
 import { IdGenerator } from "src/lib/id-generator";
 import { LabelManager, LabelType } from "../label-manager";
-import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
 import {
   PumpDefinitionType,
   PumpQuantity,

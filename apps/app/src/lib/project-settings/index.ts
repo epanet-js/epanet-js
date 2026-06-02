@@ -1,10 +1,7 @@
 export type { ProjectSettings } from "./project-settings";
 export { defaultProjectSettings, defaultProjectName } from "./project-settings";
-export type {
-  UnitsSpec,
-  DefaultsSpec,
-  FormattingSpec,
-} from "./quantities-spec";
+export type { UnitsSpec, FormattingSpec } from "./quantities-spec";
+export type { DefaultsSpec } from "src/hydraulic-model/asset-types";
 export {
   getDecimals,
   getMinorLossUnit,

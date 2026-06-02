@@ -38,6 +38,7 @@ export type {
   Valve,
 } from "./asset-types";
 export { calculateAverageHead } from "./asset-types";
+export type { DefaultsSpec } from "./asset-types";
 export { Topology } from "./topology";
 
 export type { HeadlossFormula } from "./asset-types/pipe";

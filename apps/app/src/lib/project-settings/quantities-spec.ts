@@ -1,14 +1,7 @@
 import { Unit } from "@epanet-js/quantity";
-import {
-  HeadlossFormula,
-  PipeQuantity,
-} from "src/hydraulic-model/asset-types/pipe";
-import { JunctionQuantity } from "src/hydraulic-model/asset-types/junction";
-import { ReservoirQuantity } from "src/hydraulic-model/asset-types/reservoir";
+import { HeadlossFormula } from "src/hydraulic-model/asset-types/pipe";
+import { DefaultsSpec } from "src/hydraulic-model/asset-types";
 import { EpanetUnitSystem } from "src/simulation/build-inp";
-import { PumpQuantity } from "src/hydraulic-model/asset-types/pump";
-import { ValveQuantity } from "src/hydraulic-model/asset-types/valve";
-import { TankQuantity } from "src/hydraulic-model/asset-types/tank";
 
 export type QuantityProperty =
   | "diameter"
@@ -50,14 +43,6 @@ export type QuantityProperty =
 
 export type UnitsSpec = Record<QuantityProperty, Unit>;
 export type DecimalsSpec = Partial<Record<keyof UnitsSpec, number>>;
-export type DefaultsSpec = {
-  pipe: Partial<Record<PipeQuantity, number>>;
-  junction: Partial<Record<JunctionQuantity, number>>;
-  reservoir: Partial<Record<ReservoirQuantity | "relativeHead", number>>;
-  pump: Partial<Record<PumpQuantity, number>>;
-  valve: Partial<Record<ValveQuantity, number>>;
-  tank: Partial<Record<TankQuantity, number>>;
-};
 
 export type FormattingSpec = {
   decimals: DecimalsSpec;

@@ -30,3 +30,4 @@ export type { AssetId } from "./base-asset";
 export { BaseAsset } from "./base-asset";
 export type { PipeProperties } from "./pipe";
 export type { NodeType, LinkType, AssetType } from "./types";
+export type { DefaultsSpec } from "./defaults-spec";

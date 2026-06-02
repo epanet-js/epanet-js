@@ -5,7 +5,7 @@ import {
   type LabelType,
 } from "src/hydraulic-model/label-manager";
 import { AssetFactory } from "./asset-factory";
-import { DefaultsSpec } from "src/lib/project-settings/quantities-spec";
+import type { DefaultsSpec } from "../asset-types";
 
 export {
   CustomerPointFactory,
