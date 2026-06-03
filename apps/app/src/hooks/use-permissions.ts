@@ -35,7 +35,7 @@ export const resolvePermissions = (
     canUseElevations: hasPaidAccess,
     canUseHglProfile: hasEarlyAccess,
     canUseCustomGraphs: hasEarlyAccess,
-    canUseZones: hasEarlyAccess,
+    canUseZones: hasPaidAccess,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
