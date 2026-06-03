@@ -747,22 +747,22 @@ type ImportZonesCompleted = {
 };
 
 type ZoneVisibilityChanged = {
-  name: "importZones.visibility.changed";
+  name: "map.zonesVisibility.changed";
   visible: boolean;
 };
 
 type ZoneColorRuleChanged = {
-  name: "importZones.colorRule.changed";
+  name: "map.zonesColorRule.changed";
   colorRule: string | null;
 };
 
 type ZoneDefaultColorChanged = {
-  name: "importZones.defaultColor.changed";
+  name: "map.zonesDefaultColor.changed";
   color: string;
 };
 
 type ZoneLabelRuleChanged = {
-  name: "importZones.labelRule.changed";
+  name: "map.zonesLabelRule.changed";
   labelRule: string | null;
 };
 

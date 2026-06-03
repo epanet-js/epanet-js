@@ -446,7 +446,7 @@ const ZoneSymbologySection = () => {
   const handleLabelRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
     userTracking.capture({
-      name: "importZones.labelRule.changed",
+      name: "map.zonesLabelRule.changed",
       labelRule: mapped,
     });
     updateZoneSymbology({ labelRule: mapped as ZoneLabelRule });
@@ -454,7 +454,7 @@ const ZoneSymbologySection = () => {
   const handleColorRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
     userTracking.capture({
-      name: "importZones.colorRule.changed",
+      name: "map.zonesColorRule.changed",
       colorRule: mapped,
     });
     updateZoneSymbology({ colorRule: mapped as ZoneColorRule });
@@ -463,14 +463,14 @@ const ZoneSymbologySection = () => {
   const handleVisibilityChange = () => {
     const newVisible = !zoneSymbology.visible;
     userTracking.capture({
-      name: "importZones.visibility.changed",
+      name: "map.zonesVisibility.changed",
       visible: newVisible,
     });
     updateZoneSymbology({ visible: newVisible });
   };
 
   const handleDefaultColorChange = (color: string) => {
-    userTracking.capture({ name: "importZones.defaultColor.changed", color });
+    userTracking.capture({ name: "map.zonesDefaultColor.changed", color });
     updateZoneSymbology({
       defaults: { ...zoneSymbology.defaults, color },
     });
