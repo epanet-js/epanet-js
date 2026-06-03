@@ -415,6 +415,7 @@ export const DataMappingStepFlexible: React.FC<{
                       clearLabel={constantLabel}
                       options={realPatternOptions}
                       selected={selectedPatternId ?? null}
+                      disabled={patterns.size === 0}
                       onChange={(value) =>
                         handlePatternChange(value ?? CONSTANT_PATTERN_ID)
                       }
