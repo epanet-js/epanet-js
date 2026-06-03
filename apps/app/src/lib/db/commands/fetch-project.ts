@@ -9,14 +9,16 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import { buildAssetsData } from "../mappers/assets/builders";
-import { buildCustomerPointsData } from "../mappers/customer-points/builders";
-import { buildPatternsData } from "../mappers/patterns/builders";
-import { buildCurvesData } from "../mappers/curves/builders";
-import { buildControlsData } from "../mappers/controls/builders";
+import {
+  buildAssetsData,
+  buildCustomerPointsData,
+  buildPatternsData,
+  buildCurvesData,
+  buildControlsData,
+  buildJunctionDemandsData,
+} from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
-import { buildJunctionDemandsData } from "../mappers/junction-demands/builders";
 import { buildZonesData } from "../mappers/zones/builders";
 
 export type Project = {

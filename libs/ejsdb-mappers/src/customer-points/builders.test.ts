@@ -1,4 +1,4 @@
-import { presets } from "src/lib/project-settings/quantities-spec";
+import { presets } from "@epanet-js/project-settings";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   LabelManager,

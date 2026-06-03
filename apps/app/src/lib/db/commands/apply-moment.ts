@@ -11,15 +11,15 @@ import {
   type CustomerPointDemandUpdate,
   type JunctionDemandUpdate,
 } from "@epanet-js/ejsdb";
-import { assetsToRows } from "../mappers/assets/to-rows";
 import {
+  assetsToRows,
   toCustomerPointRow,
   toCustomerPointDemandRow,
-} from "../mappers/customer-points/to-rows";
-import { toJunctionDemandRow } from "../mappers/junction-demands/to-rows";
-import { patternsToRows } from "../mappers/patterns/to-rows";
-import { curvesToRows } from "../mappers/curves/to-rows";
-import { serializeControls } from "../mappers/controls/to-rows";
+  toJunctionDemandRow,
+  patternsToRows,
+  curvesToRows,
+  serializeControls,
+} from "@epanet-js/ejsdb-mappers";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,

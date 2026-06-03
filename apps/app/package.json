@@ -43,6 +43,7 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.2",
     "@epanet-js/ejsdb": "workspace:*",
+    "@epanet-js/ejsdb-mappers": "workspace:*",
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",

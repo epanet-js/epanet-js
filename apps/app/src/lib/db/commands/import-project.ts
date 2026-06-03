@@ -14,12 +14,14 @@ import type {
 } from "@epanet-js/hydraulic-model";
 import type { Controls } from "@epanet-js/hydraulic-model";
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import { assetsToRows } from "../mappers/assets/to-rows";
-import { customerPointsToRows } from "../mappers/customer-points/to-rows";
-import { patternsToRows } from "../mappers/patterns/to-rows";
-import { curvesToRows } from "../mappers/curves/to-rows";
-import { serializeControls } from "../mappers/controls/to-rows";
-import { junctionDemandsToRows } from "../mappers/junction-demands/to-rows";
+import {
+  assetsToRows,
+  customerPointsToRows,
+  patternsToRows,
+  curvesToRows,
+  serializeControls,
+  junctionDemandsToRows,
+} from "@epanet-js/ejsdb-mappers";
 import { newProject } from "./new-project";
 import { saveProjectSettings } from "./save-project-settings";
 import { saveZones } from "./save-zones";
