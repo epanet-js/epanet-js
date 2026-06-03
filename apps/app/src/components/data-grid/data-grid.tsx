@@ -70,6 +70,7 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onCopy?: (info: ClipboardCopyInfo) => void;
   onPaste?: (info: ClipboardPasteInfo) => void;
   onDelete?: (rowsToDelete: TData[]) => void;
+  pinnedColumns?: { left?: string[] };
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -100,6 +101,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onCopy,
     onPaste,
     onDelete,
+    pinnedColumns,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -138,6 +140,9 @@ export const DataGrid = forwardRef(function DataGrid<
     },
     columnResizeMode: "onChange",
     enableColumnResizing: resizable,
+    initialState: {
+      columnPinning: { left: pinnedColumns?.left ?? [] },
+    },
     // Data sorting options
     getSortedRowModel: getStickySortedRowModel(),
     enableSorting: sortable,

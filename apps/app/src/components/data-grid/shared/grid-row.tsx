@@ -3,6 +3,7 @@ import { DataGridVariant, RowAction } from "../types";
 import { GridDataCell } from "./grid-data-cell";
 import { RowGutterCell } from "./row-gutter-cell";
 import { RowActionsCell } from "./row-actions-cell";
+import { FIXED_COLUMN_SIZE } from "./dimensions";
 
 export type GridRowProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
@@ -46,6 +47,8 @@ export function GridRow<TData extends Record<string, unknown>>({
   cellHasWarning,
 }: GridRowProps<TData>) {
   const cells = row.getVisibleCells();
+  const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
+  let pinnedLeftCursor = gutterWidth;
 
   return (
     <>
@@ -63,6 +66,9 @@ export function GridRow<TData extends Record<string, unknown>>({
 
       {cells.map((cell: Cell<TData, unknown>, colIndex) => {
         const accessorKey = cell.column.id;
+        const isPinnedLeft = cell.column.getIsPinned() === "left";
+        const pinnedLeftOffset = isPinnedLeft ? pinnedLeftCursor : undefined;
+        if (isPinnedLeft) pinnedLeftCursor += cell.column.getSize();
         return (
           <GridDataCell
             key={cell.id}
@@ -87,6 +93,7 @@ export function GridRow<TData extends Record<string, unknown>>({
                 ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
                 : false
             }
+            pinnedLeftOffset={pinnedLeftOffset}
           />
         );
       })}

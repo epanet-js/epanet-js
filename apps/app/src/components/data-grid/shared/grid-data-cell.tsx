@@ -16,6 +16,7 @@ type GridDataCellProps<TData extends Record<string, unknown>> = {
   isLastRow: boolean;
   isLastCol: boolean;
   hasWarning?: boolean;
+  pinnedLeftOffset?: number;
 };
 
 export function GridDataCell<TData extends Record<string, unknown>>({
@@ -32,6 +33,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
   isLastRow,
   isLastCol,
   hasWarning,
+  pinnedLeftOffset,
 }: GridDataCellProps<TData>) {
   const colIndex = cell.column.getIndex();
   const isSelected = cell.isSelected();
@@ -40,6 +42,10 @@ export function GridDataCell<TData extends Record<string, unknown>>({
   const editMode = cell.getEditMode();
   const selectionEdge = cell.getSelectionEdge();
   const CellComponent = cell.column.getCellComponent();
+  // Pinned cells need solid backgrounds so non-pinned cells don't bleed
+  // through when scrolled under; the selection tint is layered on top via
+  // ::after so it matches the /10 alpha used elsewhere.
+  const isPinnedLeft = cell.column.getIsPinned() === "left";
   return (
     <div
       key={cell.id}
@@ -49,6 +55,11 @@ export function GridDataCell<TData extends Record<string, unknown>>({
       className={clsx(
         "relative h-8 shrink-0 select-none border cursor-cell",
         { grow: !cell.column.getCanResize() },
+        isPinnedLeft && "sticky z-5",
+        isPinnedLeft &&
+          isSelected &&
+          !isActive &&
+          "after:absolute after:inset-0 after:bg-purple-300/10 after:pointer-events-none",
         hasWarning
           ? "bg-warning-subtle"
           : readOnly
@@ -56,9 +67,11 @@ export function GridDataCell<TData extends Record<string, unknown>>({
             : isActive
               ? "bg-base"
               : isSelected
-                ? "bg-purple-300/10"
+                ? isPinnedLeft
+                  ? "bg-base"
+                  : "bg-purple-300/10"
                 : "bg-base",
-        { "z-1": selectionEdge },
+        { "z-1": selectionEdge && !isPinnedLeft },
         selectionEdge?.left
           ? "border-l-accent"
           : variant === "spreadsheet"
@@ -66,9 +79,11 @@ export function GridDataCell<TData extends Record<string, unknown>>({
             : "border-l-transparent",
         selectionEdge?.right
           ? "border-r-accent"
-          : isLastCol && cell.column.getCanResize()
+          : isPinnedLeft
             ? "border-r-[--color-border]"
-            : "border-r-transparent",
+            : isLastCol && cell.column.getCanResize()
+              ? "border-r-[--color-border]"
+              : "border-r-transparent",
         selectionEdge?.top
           ? "border-t-accent"
           : variant === "inline" && cell.row.getVisualIndex() === 0
@@ -83,6 +98,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
       style={{
         width: cell.column.getSize(),
         minWidth: cell.column.getSize(),
+        ...(isPinnedLeft ? { left: pinnedLeftOffset ?? 0 } : undefined),
       }}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}

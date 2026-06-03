@@ -19,6 +19,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { DataGridVariant } from "../types";
 import { resolveVisibleHeaderActions } from "../features";
+import { FIXED_COLUMN_SIZE } from "./dimensions";
 
 type GridHeaderProps<T> = {
   showGutterColumn: boolean;
@@ -64,16 +65,10 @@ export function GridHeader<T>({
   return (
     <div
       role="row"
-      className={clsx(
-        "flex shrink-0 min-w-full w-max",
-        "border border-transparent",
-        className,
-        {
-          "bg-base-hover border-t-[--color-border] border-x-[--color-border]":
-            variant === "spreadsheet",
-          "bg-panel": variant === "inline",
-        },
-      )}
+      className={clsx("flex shrink-0 min-w-full w-max", className, {
+        "bg-base-hover": variant === "spreadsheet",
+        "bg-panel": variant === "inline",
+      })}
       style={style}
     >
       {showGutterColumn && (
@@ -90,10 +85,13 @@ export function GridHeader<T>({
           <TableSelectAllIcon className="absolute bottom-1 right-1" />
         </div>
       )}
-      {table
-        .getHeaderGroups()
-        .map((headerGroup) =>
-          headerGroup.headers.map((header, colIndex) => (
+      {table.getHeaderGroups().map((headerGroup) => {
+        let pinnedLeftCursor = showGutterColumn ? FIXED_COLUMN_SIZE : 0;
+        return headerGroup.headers.map((header, colIndex) => {
+          const isPinnedLeft = header.column.getIsPinned() === "left";
+          const pinnedLeftOffset = isPinnedLeft ? pinnedLeftCursor : undefined;
+          if (isPinnedLeft) pinnedLeftCursor += header.getSize();
+          return (
             <HeaderCell
               key={header.id}
               header={header}
@@ -102,9 +100,11 @@ export function GridHeader<T>({
               onColumnHeaderClick={onColumnHeaderClick}
               translate={translate}
               onColumnSort={onColumnSort}
+              pinnedLeftOffset={pinnedLeftOffset}
             />
-          )),
-        )}
+          );
+        });
+      })}
       {showActionsColumn && (
         <div
           role="columnheader"
@@ -127,6 +127,7 @@ function HeaderCell<T>({
   onColumnHeaderClick,
   translate,
   onColumnSort,
+  pinnedLeftOffset,
 }: {
   header: Header<T, unknown>;
   colIndex: number;
@@ -134,6 +135,7 @@ function HeaderCell<T>({
   onColumnHeaderClick: (colIndex: number, e: React.MouseEvent) => void;
   translate: (key: string) => string;
   onColumnSort?: (columnId: string, direction: "asc" | "desc") => void;
+  pinnedLeftOffset?: number;
 }) {
   const cellRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -148,6 +150,9 @@ function HeaderCell<T>({
   const hasCustomActions = visibleCustomActions.length > 0;
   const showActionsMenu =
     !hasCustomActions && (isHovered || isMenuOpen) && hasActions;
+  // Mirror the pinned-left treatment from grid-data-cell so the header
+  // sticks at the same offset as its column.
+  const isPinnedLeft = header.column.getIsPinned() === "left";
 
   return (
     <div
@@ -156,11 +161,21 @@ function HeaderCell<T>({
       className={clsx(
         "group relative flex items-center px-2 font-semibold text-size-base cursor-pointer select-none h-8 border border-transparent overflow-visible",
         { grow: !header.column.getCanResize() },
+        isPinnedLeft && "sticky z-5",
+        isPinnedLeft && !isSelected && "bg-base-hover",
         isSelected ? "bg-accent text-white" : "text-subtle",
       )}
       style={{
         width: header.getSize(),
         minWidth: header.getSize(),
+        ...(isPinnedLeft
+          ? {
+              left: pinnedLeftOffset ?? 0,
+              ...(isSelected
+                ? undefined
+                : { borderRightColor: "var(--color-border)" }),
+            }
+          : undefined),
       }}
       onClick={(e) => onColumnHeaderClick(colIndex, e)}
       onMouseEnter={() => setIsHovered(true)}

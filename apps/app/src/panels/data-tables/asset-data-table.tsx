@@ -584,6 +584,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           onColumnSort={handleSort}
           onCopy={handleCopy}
           onPaste={handlePaste}
+          pinnedColumns={{ left: ["label"] }}
         />
       )}
     </div>

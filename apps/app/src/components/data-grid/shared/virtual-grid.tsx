@@ -124,6 +124,11 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
 
   const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
   const actionsWidth = rowActions ? FIXED_COLUMN_SIZE : 0;
+  // Sum widths of all left-pinned columns so the left scroll shadow lands
+  // at the pinned block's right edge.
+  const pinnedLeftWidth = table
+    .getLeftLeafColumns()
+    .reduce((sum, col) => sum + col.getSize(), 0);
   const isReady = rowsHeight !== undefined;
 
   return (
@@ -132,7 +137,10 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
       className="flex-1 min-h-0 flex flex-col datagrid-scroll-container"
       style={{ visibility: isReady ? "visible" : "hidden" }}
     >
-      <div ref={headerScrollRef} className="shrink-0 overflow-hidden">
+      <div
+        ref={headerScrollRef}
+        className="shrink-0 overflow-hidden border-t border-x border-base"
+      >
         <GridHeader
           table={table}
           showGutterColumn={gutterColumn}
@@ -188,6 +196,7 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
         gutterWidth={gutterWidth}
         actionsWidth={actionsWidth}
         rowHeight={ROW_HEIGHT}
+        pinnedLeftWidth={pinnedLeftWidth}
       />
     </div>
   );

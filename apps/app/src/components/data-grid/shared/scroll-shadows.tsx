@@ -5,6 +5,7 @@ type Props = {
   gutterWidth: number;
   actionsWidth: number;
   rowHeight: number;
+  pinnedLeftWidth?: number;
 };
 
 export function ScrollShadows({
@@ -12,7 +13,9 @@ export function ScrollShadows({
   gutterWidth,
   actionsWidth,
   rowHeight,
+  pinnedLeftWidth = 0,
 }: Props) {
+  const leftShadowOffset = gutterWidth + pinnedLeftWidth;
   return (
     <>
       {scrollState.hasVerticalScroll && (
@@ -36,7 +39,7 @@ export function ScrollShadows({
           <ScrollShadow
             position="left"
             topOffset={rowHeight}
-            offset={gutterWidth}
+            offset={leftShadowOffset}
             endEdge={scrollState.scrollbarHeight}
           />
           <ScrollShadow
