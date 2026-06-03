@@ -5,23 +5,6 @@ import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
 import { ErrorIcon } from "src/icons";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
-const GIS_FILE_EXTENSIONS: Record<string, keyof GisFiles> = {
-  ".geojson": "geojson",
-  ".shp": "shp",
-  ".shx": "shx",
-  ".prj": "prj",
-  ".cpg": "cpg",
-  ".dbf": "dbf",
-};
-
-const getGisFileKey = (file: File): keyof GisFiles | null => {
-  const name = file.name.toLowerCase();
-  for (const [ext, key] of Object.entries(GIS_FILE_EXTENSIONS)) {
-    if (name.endsWith(ext)) return key;
-  }
-  return null;
-};
-
 type DataInputStepProps = {
   error: string | null;
   showNoProjectionWarning: boolean;
@@ -39,12 +22,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
   const translate = useTranslate();
 
   const handleGisFilesDrop = useCallback(
-    (files: File[]) => {
-      const updated = { ...gisFiles };
-      for (const file of files) {
-        const key = getGisFileKey(file);
-        if (key) updated[key] = file;
-      }
+    (updated: GisFiles) => {
       props.onGisFilesDrop(updated);
 
       const primaryFile = updated.geojson ?? updated.shp;
@@ -52,7 +30,7 @@ export const DataInputStep = (props: DataInputStepProps) => {
         props.onFileDrop(primaryFile);
       }
     },
-    [gisFiles, props],
+    [props],
   );
 
   return (

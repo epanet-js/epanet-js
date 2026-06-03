@@ -16,7 +16,7 @@ export interface GisFiles {
 }
 
 interface GisDropZoneProps {
-  onFileDrop: (files: File[]) => void;
+  onFileDrop: (gisFiles: GisFiles) => void;
   onFileRejected?: (file: File, reason: string) => void;
   disabled?: boolean;
   supportedFormats?: GisFormat[];
@@ -45,6 +45,24 @@ const getFormatLabel = (formats: GisFormat[]): string =>
       return "Shapefile";
     })
     .join(", ");
+
+const GIS_FILE_EXTENSIONS: Record<string, keyof GisFiles> = {
+  ".geojson": "geojson",
+  ".geojsonl": "geojsonl",
+  ".shp": "shp",
+  ".shx": "shx",
+  ".prj": "prj",
+  ".cpg": "cpg",
+  ".dbf": "dbf",
+};
+
+const getGisFileKey = (file: File): keyof GisFiles | null => {
+  const name = file.name.toLowerCase();
+  for (const [ext, key] of Object.entries(GIS_FILE_EXTENSIONS)) {
+    if (name.endsWith(ext)) return key;
+  }
+  return null;
+};
 
 const isFileAcceptedByFormats = (file: File, formats: GisFormat[]): boolean => {
   const name = file.name.toLowerCase();
@@ -104,19 +122,26 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
 
   const handleFiles = useCallback(
     (incomingFiles: File[]) => {
-      const accepted: File[] = [];
+      const updated: GisFiles = { ...selectedFiles };
+      let hasNew = false;
+
       for (const file of incomingFiles) {
-        if (isFileAcceptedByFormats(file, supportedFormats)) {
-          accepted.push(file);
-        } else {
+        if (!isFileAcceptedByFormats(file, supportedFormats)) {
           onFileRejected?.(file, "format");
+          continue;
+        }
+        const key = getGisFileKey(file);
+        if (key) {
+          updated[key] = file;
+          hasNew = true;
         }
       }
-      if (accepted.length > 0) {
-        onFileDrop(accepted);
+
+      if (hasNew) {
+        onFileDrop(updated);
       }
     },
-    [supportedFormats, onFileDrop, onFileRejected],
+    [supportedFormats, selectedFiles, onFileDrop, onFileRejected],
   );
 
   const handleSingleFile = useCallback(
