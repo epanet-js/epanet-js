@@ -11,8 +11,7 @@
   "scripts": {
     "lint": "eslint --cache --ext .ts src",
     "check-types": "tsc --noEmit",
-    "check-types:watch": "tsc --noEmit --watch",
-    "test": "vitest run"
+    "check-types:watch": "tsc --noEmit --watch"
   },
   "dependencies": {
     "@epanet-js/hydraulic-model": "workspace:*",
