@@ -1,0 +1,242 @@
+import React, { useCallback, useMemo, useRef } from "react";
+import { useDropZone } from "src/hooks/use-drop-zone";
+import { useTranslate } from "src/hooks/use-translate";
+import { UploadIcon } from "src/icons";
+
+export type GisFormat = "geojson" | "geojsonl" | "shapefile";
+
+export interface GisFiles {
+  shp?: File;
+  shx?: File;
+  prj?: File;
+  cpg?: File;
+  dbf?: File;
+  geojson?: File;
+  geojsonl?: File;
+}
+
+interface GisDropZoneProps {
+  onFileDrop: (files: File[]) => void;
+  onFileRejected?: (file: File, reason: string) => void;
+  disabled?: boolean;
+  supportedFormats?: GisFormat[];
+  selectedFiles?: GisFiles;
+  testId?: string;
+}
+
+const DEFAULT_FORMATS: GisFormat[] = ["geojson", "geojsonl", "shapefile"];
+
+const SHAPEFILE_EXTENSIONS = [".shp", ".shx", ".prj", ".cpg", ".dbf"];
+
+const FORMAT_EXTENSIONS: Record<GisFormat, string[]> = {
+  geojson: [".geojson"],
+  geojsonl: [".geojsonl"],
+  shapefile: SHAPEFILE_EXTENSIONS,
+};
+
+const getAcceptString = (formats: GisFormat[]): string =>
+  formats.flatMap((f) => FORMAT_EXTENSIONS[f]).join(",");
+
+const getFormatLabel = (formats: GisFormat[]): string =>
+  formats
+    .map((f) => {
+      if (f === "geojson") return "GeoJSON";
+      if (f === "geojsonl") return "GeoJSONL";
+      return "Shapefile";
+    })
+    .join(", ");
+
+const isFileAcceptedByFormats = (file: File, formats: GisFormat[]): boolean => {
+  const name = file.name.toLowerCase();
+  const allExtensions = formats.flatMap((f) => FORMAT_EXTENSIONS[f]);
+  return allExtensions.some((ext) => name.endsWith(ext));
+};
+
+const getSelectedFileName = (files: GisFiles): string | null => {
+  if (files.geojson) return files.geojson.name;
+  if (files.geojsonl) return files.geojsonl.name;
+  if (files.shp) return files.shp.name.replace(/\.shp$/i, ".*");
+  return null;
+};
+
+const hasShapefileFiles = (files: GisFiles): boolean =>
+  !!(files.shp || files.shx || files.prj || files.cpg || files.dbf);
+
+type ShapefilePartKey = "shp" | "dbf" | "prj";
+
+const SHAPEFILE_REQUIRED_PARTS: { key: ShapefilePartKey; label: string }[] = [
+  { key: "shp", label: "SHP" },
+  { key: "dbf", label: "DBF" },
+  { key: "prj", label: "PRJ" },
+];
+
+const ShapefilePartChips = ({ files }: { files: GisFiles }) => (
+  <div className="flex gap-1.5">
+    {SHAPEFILE_REQUIRED_PARTS.map(({ key, label }) => (
+      <span
+        key={key}
+        className={`px-2 py-0.5 rounded text-xs font-medium ${
+          files[key]
+            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+            : "bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-slate-400"
+        }`}
+      >
+        {label}
+      </span>
+    ))}
+  </div>
+);
+
+export const GisDropZone: React.FC<GisDropZoneProps> = ({
+  onFileDrop,
+  onFileRejected,
+  disabled = false,
+  supportedFormats = DEFAULT_FORMATS,
+  selectedFiles,
+  testId = "gis-drop-zone",
+}) => {
+  const translate = useTranslate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const accept = useMemo(
+    () => getAcceptString(supportedFormats),
+    [supportedFormats],
+  );
+
+  const handleFiles = useCallback(
+    (incomingFiles: File[]) => {
+      const accepted: File[] = [];
+      for (const file of incomingFiles) {
+        if (isFileAcceptedByFormats(file, supportedFormats)) {
+          accepted.push(file);
+        } else {
+          onFileRejected?.(file, "format");
+        }
+      }
+      if (accepted.length > 0) {
+        onFileDrop(accepted);
+      }
+    },
+    [supportedFormats, onFileDrop, onFileRejected],
+  );
+
+  const handleSingleFile = useCallback(
+    (file: File) => handleFiles([file]),
+    [handleFiles],
+  );
+
+  const { dragState, dropZoneProps } = useDropZone({
+    onFileDrop: handleSingleFile,
+    onFileRejected,
+    accept,
+    disabled,
+    multiple: true,
+  });
+
+  const handleDropZoneClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (disabled || !e.target.files) return;
+      handleFiles(Array.from(e.target.files));
+      e.target.value = "";
+    },
+    [disabled, handleFiles],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      if (disabled) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = e.dataTransfer?.files
+        ? Array.from(e.dataTransfer.files)
+        : [];
+      if (files.length > 0) {
+        handleFiles(files);
+      }
+    },
+    [disabled, handleFiles],
+  );
+
+  const selectedFileName = selectedFiles
+    ? getSelectedFileName(selectedFiles)
+    : null;
+  const showShapefileChips = selectedFiles && hasShapefileFiles(selectedFiles);
+  const formatLabel = getFormatLabel(supportedFormats);
+
+  return (
+    <div
+      {...dropZoneProps}
+      onDrop={handleDrop}
+      onClick={handleDropZoneClick}
+      className={`
+        relative min-h-[200px] border-2 border-dashed rounded-lg
+        flex flex-col items-center justify-center p-8 cursor-pointer
+        transition-all duration-200 ease-in-out
+        ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
+        ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
+        ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
+        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+      `}
+      data-testid={testId}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        multiple
+        disabled={disabled}
+        onChange={handleInputChange}
+        className="sr-only"
+        id="gis-file-input"
+      />
+
+      <div className="flex flex-col items-center space-y-4">
+        <div
+          className={`
+          p-3 rounded-full
+          ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
+        `}
+        >
+          <UploadIcon
+            className={`h-8 w-8 ${
+              dragState === "over" ? "text-accent-hover" : "text-subtle"
+            }`}
+          />
+        </div>
+
+        <div className="text-center">
+          <p
+            className={`text-size-heading-3 font-medium ${
+              dragState === "over" ? "text-accent" : "text-default"
+            }`}
+          >
+            {dragState === "over"
+              ? translate("dropZone.activeText")
+              : translate("dropZone.defaultText")}
+          </p>
+
+          <p className="text-size-base text-subtle mt-2">
+            {translate("dropZone.supportedFormats", formatLabel)}
+          </p>
+        </div>
+      </div>
+
+      {(selectedFileName || showShapefileChips) && (
+        <div className="absolute bottom-4 left-4 right-4">
+          <div className="bg-base rounded-md px-3 py-2 border shadow-xs flex items-center justify-between gap-2">
+            {selectedFileName && (
+              <p className="text-size-base text-subtle truncate">
+                {translate("dropZone.selectedFile", selectedFileName)}
+              </p>
+            )}
+            {showShapefileChips && <ShapefilePartChips files={selectedFiles} />}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
