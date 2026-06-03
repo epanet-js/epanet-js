@@ -7,7 +7,7 @@ import {
   PipeBuildData,
   PumpBuildData,
   ReservoirBuildData,
-} from "@epanet-js/hydraulic-model";
+} from "..";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { testDefaults } from "./defaults";
 

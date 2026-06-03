@@ -26,8 +26,9 @@ subpaths; that's how every `@epanet-js/*` lib is consumed here). The guidelines
 below still describe how these pieces work; only their home has changed.
 
 Test builders (`buildJunction/Pipe/Pump/Reservoir/CustomerPoint`, `testDefaults`)
-live in `@epanet-js/hydraulic-model-testing` — a **devDependency, test-only**
-package; import them only from test files.
+live in `@epanet-js/hydraulic-model`'s internal `src/test-helpers/` — **test-only**,
+not exported from the package barrel; import them only from test files inside that
+package via a relative path.
 
 **Still in this directory** (the app side, not yet extracted): `hydraulic-model.ts`
 (the `HydraulicModel` container), `model-operations/`, `mutations/`, `topology/`,

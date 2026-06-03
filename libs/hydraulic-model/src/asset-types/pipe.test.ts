@@ -1,4 +1,4 @@
-import { buildPipe } from "@epanet-js/hydraulic-model-testing";
+import { buildPipe } from "../test-helpers";
 import { computeLinkLength } from "./link";
 
 describe("Pipe", () => {

@@ -1,4 +1,4 @@
-import { buildJunction } from "@epanet-js/hydraulic-model-testing";
+import { buildJunction } from "../test-helpers";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {

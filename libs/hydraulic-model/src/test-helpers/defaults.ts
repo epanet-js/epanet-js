@@ -1,4 +1,4 @@
-import type { DefaultsSpec } from "@epanet-js/hydraulic-model";
+import type { DefaultsSpec } from "..";
 
 // Fixed defaults for building assets in tests. Mirrors the production
 // `presets.LPS.defaults` values so existing default-value assertions hold,

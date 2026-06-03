@@ -11,6 +11,7 @@
   "scripts": {
     "lint": "eslint --cache --ext .ts src",
     "check-types": "tsc --noEmit",
+    "check-types:watch": "tsc --noEmit --watch",
     "test": "vitest run"
   },
   "dependencies": {

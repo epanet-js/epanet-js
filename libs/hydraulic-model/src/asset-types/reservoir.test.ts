@@ -1,4 +1,4 @@
-import { buildReservoir } from "@epanet-js/hydraulic-model-testing";
+import { buildReservoir } from "../test-helpers";
 
 describe("Reservoir", () => {
   it("stores the headPatternId", () => {
