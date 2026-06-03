@@ -17,8 +17,9 @@ import { notify } from "src/components/notifications";
 
 export type FeaturePaywallConfig = {
   feature: PaywallFeature;
-  videoSrc: string;
-  captions: readonly { start: number; end: number; captionKey: string }[];
+  imageSrc?: string;
+  videoSrc?: string;
+  captions?: readonly { start: number; end: number; captionKey: string }[];
   titleKey: string;
   descriptionKeys: string[];
   actionDescriptionKeys: {
@@ -51,7 +52,7 @@ export const FeaturePaywall = ({
 
   const captions = useMemo(
     () =>
-      config.captions.map(({ captionKey, ...timing }) => ({
+      (config.captions ?? []).map(({ captionKey, ...timing }) => ({
         ...timing,
         text: translate(captionKey),
       })),
@@ -132,14 +133,22 @@ export const FeaturePaywall = ({
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 p-4">
         <div className="relative aspect-square bg-base-hover dark:bg-gray-800 border rounded-lg shadow-md overflow-hidden">
-          <VideoPlayer
-            src={config.videoSrc}
-            captions={captions}
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
+          {config.videoSrc && config.captions ? (
+            <VideoPlayer
+              src={config.videoSrc}
+              captions={captions}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              src={config.imageSrc}
+              alt={translate(config.titleKey)}
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
 
         <div className="flex flex-col">
