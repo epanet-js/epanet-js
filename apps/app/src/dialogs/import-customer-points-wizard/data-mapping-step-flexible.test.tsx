@@ -165,9 +165,7 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
       renderWizard(store);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Invalid demands \(2\)/i),
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Invalid demands \(2\)/i)).toBeInTheDocument();
       });
     });
 
@@ -209,9 +207,7 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
         expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
       });
 
-      expect(
-        screen.queryByText(/Invalid demands/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Invalid demands/i)).not.toBeInTheDocument();
     });
 
     it("does not show the notice when every point has a valid attribute value", async () => {
@@ -249,9 +245,7 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
         expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
       });
 
-      expect(
-        screen.queryByText(/Invalid demands/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/Invalid demands/i)).not.toBeInTheDocument();
     });
   });
 

@@ -328,7 +328,7 @@ export const DataMappingStepFlexible: React.FC<{
                     <Selector
                       nullable={true}
                       placeholder={translate(
-                        "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
                       )}
                       options={Array.from(inputData.properties).map((prop) => ({
                         label: prop,
@@ -364,7 +364,7 @@ export const DataMappingStepFlexible: React.FC<{
                     <Selector
                       nullable={true}
                       placeholder={translate(
-                        "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.noneUseDefault",
                       )}
                       options={Array.from(inputData.properties).map((prop) => ({
                         label: prop,
