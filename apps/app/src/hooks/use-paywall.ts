@@ -26,6 +26,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
       source: { kind: "paywall", feature: "pipeAttributes" },
     },
   },
+  zones: {
+    permission: "canUseZones",
+    dialog: { type: "featurePaywall", feature: "zones" },
+  },
 };
 
 export const usePaywall = (

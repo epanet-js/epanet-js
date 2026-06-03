@@ -402,6 +402,18 @@ const CustomLayersPaywallConnector = dynamic<{
   },
 );
 
+const ZonesPaywallConnector = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/paywall/zones-connector").then(
+      (r) => r.ZonesPaywallConnector,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ElevationTileErrorsDialog = dynamic<{
   totalCount: number;
   errors: { fileName: string; error: string }[];
@@ -653,6 +665,9 @@ export const Dialogs = memo(function Dialogs() {
     }
     if (dialog.feature === "customLayers") {
       return <CustomLayersPaywallConnector onClose={onClose} />;
+    }
+    if (dialog.feature === "zones") {
+      return <ZonesPaywallConnector onClose={onClose} />;
     }
     return <ElevationsPaywallConnector onClose={onClose} />;
   }

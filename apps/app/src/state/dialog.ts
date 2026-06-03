@@ -184,7 +184,8 @@ export type PaywallFeature =
   | "scenarios"
   | "elevations"
   | "customLayers"
-  | "pipeAttributes";
+  | "pipeAttributes"
+  | "zones";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";
