@@ -236,6 +236,18 @@ const ModelBuilderIframeDialog = dynamic<{
   },
 );
 
+const ModelBuilderV2IframeDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/model-builder-v2-iframe").then(
+      (r) => r.ModelBuilderV2IframeDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const EarlyAccessDialog = dynamic<{
   onContinue: () => void;
   afterSignupDialog?: string;
@@ -584,6 +596,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "modelBuilderIframe") {
     return <ModelBuilderIframeDialog onClose={onClose} />;
+  }
+  if (dialog.type === "modelBuilderV2Iframe") {
+    return <ModelBuilderV2IframeDialog onClose={onClose} />;
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
