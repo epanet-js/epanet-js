@@ -8,7 +8,8 @@ import {
 } from "src/lib/buffers";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetIndexQueries } from "../asset-index";
-import { TopologyQueries, TopologyBuffers } from "./types";
+import { TopologyQueries } from "./types";
+import type { TopologyBuffers } from "./topology-transferable";
 
 function encodeLinkConnections(
   connections: [number, number],

@@ -1,5 +1,4 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
-import { BinaryData, BufferWithIndex } from "src/lib/buffers";
 
 export interface TopologyQueries {
   hasLink(linkId: AssetId): boolean;
@@ -13,16 +12,3 @@ export type PathData = {
   linkIds: AssetId[];
   totalLength: number;
 };
-
-export interface TopologyBuffers {
-  linkConnections: BinaryData;
-  nodeConnections: BufferWithIndex;
-}
-
-export function topologyTransferables(b: TopologyBuffers): ArrayBuffer[] {
-  return [
-    b.linkConnections,
-    b.nodeConnections.data,
-    b.nodeConnections.index,
-  ].filter((buf): buf is ArrayBuffer => buf instanceof ArrayBuffer);
-}

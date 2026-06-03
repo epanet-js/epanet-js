@@ -4,10 +4,12 @@ import { BufferType, createBuffer } from "src/lib/buffers";
 import {
   AssetIndexEncoder,
   AssetIndexBuffers,
-  type AssetIndexQueries,
-} from "src/hydraulic-model/asset-index";
-import { TopologyEncoder } from "src/hydraulic-model/topology/topologyEncoder";
-import { TopologyBuffers } from "src/hydraulic-model/topology/types";
+} from "src/hydraulic-model/asset-index-transferable";
+import { type AssetIndexQueries } from "src/hydraulic-model/asset-index";
+import {
+  TopologyEncoder,
+  TopologyBuffers,
+} from "src/hydraulic-model/topology/topology-transferable";
 import {
   FlowDirectionBuffers,
   AllowedFlowDirectionBuffers,

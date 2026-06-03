@@ -7,7 +7,7 @@ import {
 import {
   AssetIndexBuffers,
   AssetIndexView,
-} from "src/hydraulic-model/asset-index";
+} from "src/hydraulic-model/asset-index-transferable";
 import { EncodedContainedAssets } from "./data";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 

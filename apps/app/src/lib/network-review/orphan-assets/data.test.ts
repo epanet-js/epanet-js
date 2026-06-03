@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildOrphanAssets, encodeData } from "./data";
-import { AssetIndexView } from "src/hydraulic-model/asset-index";
-import { TopologyView } from "src/hydraulic-model/topology/topologyView";
+import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
+import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
 
 describe("buildOrphanAssets", () => {
   it("returns results sorted by type and asset label", () => {

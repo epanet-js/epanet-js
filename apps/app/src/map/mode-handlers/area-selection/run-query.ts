@@ -10,7 +10,7 @@ import {
 import {
   AssetIndexBuffers,
   assetIndexTransferables,
-} from "src/hydraulic-model/asset-index";
+} from "src/hydraulic-model/asset-index-transferable";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import type { SpatialQueryWorkerAPI } from "./worker-api";

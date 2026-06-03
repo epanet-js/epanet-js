@@ -1,7 +1,7 @@
 import { OrphanAssets, RunData } from "./data";
 import { findOrphanAssets } from "./find-orphan-assets";
-import { AssetIndexView } from "src/hydraulic-model/asset-index";
-import { TopologyView } from "src/hydraulic-model/topology/topologyView";
+import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
+import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
 
 export interface OrphanAssetsWorkerAPI {
   findOrphanAssets: (data: RunData) => OrphanAssets;

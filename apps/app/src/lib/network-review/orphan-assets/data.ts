@@ -1,12 +1,14 @@
 import { AssetType, AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import { TopologyBuffers } from "src/hydraulic-model/topology/types";
 import { BufferType } from "src/lib/buffers";
-import { TopologyEncoder } from "src/hydraulic-model/topology/topologyEncoder";
+import {
+  TopologyEncoder,
+  TopologyBuffers,
+} from "src/hydraulic-model/topology/topology-transferable";
 import {
   AssetIndexEncoder,
   AssetIndexBuffers,
-} from "src/hydraulic-model/asset-index";
+} from "src/hydraulic-model/asset-index-transferable";
 
 export type OrphanAssets = {
   orphanNodes: number[];

@@ -1,5 +1,5 @@
-import { AssetIndexView } from "src/hydraulic-model/asset-index";
-import { TopologyView } from "src/hydraulic-model/topology/topologyView";
+import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
+import { TopologyView } from "src/hydraulic-model/topology/topology-transferable";
 import { TraceRunData } from "./encode-trace-buffers";
 import { FlowDirectionView, AllowedFlowDirectionView } from "./trace-buffers";
 import { TraceMode, TraceStart, TraceResult } from "./types";

@@ -7,8 +7,8 @@ import {
   buildOrphanAssets,
   encodeData,
 } from "./data";
-import { topologyTransferables } from "src/hydraulic-model/topology/types";
-import { assetIndexTransferables } from "src/hydraulic-model/asset-index";
+import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
+import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker-api";
 import { BufferType } from "src/lib/buffers";

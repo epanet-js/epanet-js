@@ -9,8 +9,8 @@ import {
   flowDirectionTransferables,
   allowedFlowDirectionTransferables,
 } from "./trace-buffers";
-import { topologyTransferables } from "src/hydraulic-model/topology/types";
-import { assetIndexTransferables } from "src/hydraulic-model/asset-index";
+import { topologyTransferables } from "src/hydraulic-model/topology/topology-transferable";
+import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { FlowDirection } from "./flow-direction";
 import { AllowedFlowDirection } from "./allowed-flow-direction";
 import { TraceMode, TraceStart, TraceResult } from "./types";
