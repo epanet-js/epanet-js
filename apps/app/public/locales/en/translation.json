@@ -1459,10 +1459,10 @@
     },
     "paywall": {
       "title": "Upgrade to import zones",
-      "description1": "Import zone boundaries from GIS data to define service areas in your network.",
-      "description2": "Visualize and analyze your network by geographic zones with custom colors and labels.",
-      "plans": "Zone imports are available on paid plans.",
-      "trial": "Zone imports are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
+      "description1": "Bring your zones into epanet-js and use them directly in your model.",
+      "description2": "Overlay pressure zones or metered areas to easily map your network’s footprint and understand your network at a glance.",
+      "plans": "Zone overlays are available on paid plans.",
+      "trial": "Zone overlays are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
   }
 }

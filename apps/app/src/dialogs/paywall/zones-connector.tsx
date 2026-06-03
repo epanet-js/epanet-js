@@ -3,8 +3,7 @@ import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 export const ZonesPaywallConnector = ({ onClose }: { onClose: () => void }) => {
   const config: FeaturePaywallConfig = {
     feature: "zones",
-    videoSrc: "",
-    captions: [],
+    imageSrc: "/images/zone-overlay-paywall.webp",
     titleKey: "importZones.paywall.title",
     descriptionKeys: [
       "importZones.paywall.description1",
