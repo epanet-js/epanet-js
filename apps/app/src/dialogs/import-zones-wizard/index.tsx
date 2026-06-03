@@ -65,9 +65,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     },
   ];
 
-  const handleFileDrop = useCallback(
+  const processFile = useCallback(
     async (file: File) => {
-      setSelectedFile(file);
       setFileError(null);
       setReadResult(null);
       setIsProcessing(true);
@@ -97,6 +96,14 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       setReadResult(result);
     },
     [projections, userTracking],
+  );
+
+  const handleFileDrop = useCallback(
+    (file: File) => {
+      setSelectedFile(file);
+      void processFile(file);
+    },
+    [processFile],
   );
 
   const handleNextFromDataInput = useCallback(() => {
