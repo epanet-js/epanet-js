@@ -90,34 +90,6 @@ const FILE_LIST_ORDER: (keyof GisFiles)[] = [
   "prj",
 ];
 
-const hasShapefileFiles = (files: GisFiles): boolean =>
-  !!(files.shp || files.shx || files.prj || files.cpg || files.dbf);
-
-type ShapefilePartKey = "shp" | "dbf" | "prj";
-
-const SHAPEFILE_REQUIRED_PARTS: { key: ShapefilePartKey; label: string }[] = [
-  { key: "shp", label: "SHP" },
-  { key: "dbf", label: "DBF" },
-  { key: "prj", label: "PRJ" },
-];
-
-const ShapefilePartChips = ({ files }: { files: GisFiles }) => (
-  <div className="flex gap-1.5">
-    {SHAPEFILE_REQUIRED_PARTS.map(({ key, label }) => (
-      <span
-        key={key}
-        className={`px-2 py-0.5 rounded text-xs font-medium ${
-          files[key]
-            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-            : "bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-slate-400"
-        }`}
-      >
-        {label}
-      </span>
-    ))}
-  </div>
-);
-
 const getFileEntries = (
   files: GisFiles,
 ): { key: keyof GisFiles; file: File; description: string }[] =>
@@ -260,7 +232,6 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
   const hasFiles = selectedFiles
     ? Object.values(selectedFiles).some(Boolean)
     : false;
-  const showShapefileChips = selectedFiles && hasShapefileFiles(selectedFiles);
   const formatLabel = getFormatLabel(supportedFormats);
 
   return (
@@ -323,17 +294,7 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
       </div>
 
       {hasFiles && selectedFiles && (
-        <div className="flex flex-col gap-2">
-          <SelectedFileList
-            files={selectedFiles}
-            onRemove={handleRemoveFile}
-          />
-          {showShapefileChips && (
-            <div className="flex justify-center">
-              <ShapefilePartChips files={selectedFiles} />
-            </div>
-          )}
-        </div>
+        <SelectedFileList files={selectedFiles} onRemove={handleRemoveFile} />
       )}
     </div>
   );
