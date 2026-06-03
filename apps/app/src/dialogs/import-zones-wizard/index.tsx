@@ -16,6 +16,7 @@ import {
 } from "src/lib/zones";
 import { useImportZoneFeatures } from "src/commands/import-zone-features";
 import { useUserTracking } from "src/infra/user-tracking";
+import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
@@ -38,6 +39,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const networkProjection = useAtomValue(projectSettingsAtom).projection;
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedGisFiles, setSelectedGisFiles] = useState<GisFiles>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
   const [isProcessing, setIsProcessing] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -198,6 +200,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
           <DataInputStep
             selectedFile={selectedFile}
             onFileDrop={handleFileDrop}
+            gisFiles={selectedGisFiles}
+            onGisFilesDrop={setSelectedGisFiles}
             error={fileError}
             showNoProjectionWarning={
               readResult !== null && !readResult.coordinateConversion
