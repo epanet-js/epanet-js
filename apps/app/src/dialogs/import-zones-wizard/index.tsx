@@ -15,6 +15,7 @@ import {
   type MergedZoneInfo,
 } from "src/lib/zones";
 import { useImportZoneFeatures } from "src/commands/import-zone-features";
+import { useUserTracking } from "src/infra/user-tracking";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { CompleteStep } from "./complete-step";
@@ -23,8 +24,14 @@ const DATA_INPUT_STEP_NUMBER = 1;
 const DATA_MAPPING_STEP_NUMBER = 2;
 const COMPLETE_STEP_NUMBER = 3;
 
+const stepNames = {
+  [DATA_INPUT_STEP_NUMBER]: "dataInput",
+  [DATA_MAPPING_STEP_NUMBER]: "dataMapping",
+} as const;
+
 export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const { closeDialog } = useDialogState();
   const importZoneFeatures = useImportZoneFeatures();
   const { projections } = useProjections();
@@ -70,38 +77,84 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       setIsProcessing(false);
 
       if (result.error) {
+        userTracking.capture({
+          name: "importZones.dataInput.parseError",
+          fileName: file.name,
+          errorCode: result.error,
+        });
         setFileError(result.error);
         return;
       }
 
+      userTracking.capture({
+        name: "importZones.dataInput.fileLoaded",
+        fileName: file.name,
+        featuresCount: result.features.length,
+        propertiesCount: result.uniqueProperties.size,
+        coordinateConversion: !!result.coordinateConversion,
+      });
+
       setReadResult(result);
     },
-    [projections],
+    [projections, userTracking],
   );
 
   const handleNextFromDataInput = useCallback(() => {
     if (!readResult) return;
+    userTracking.capture({ name: "importZones.dataInput.next" });
     setCurrentStep(DATA_MAPPING_STEP_NUMBER);
-  }, [readResult]);
+  }, [readResult, userTracking]);
 
   const handleImport = useCallback(async () => {
     if (!readResult) return;
 
+    userTracking.capture({ name: "importZones.dataMapping.next" });
+
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
     const result = await importZoneFeatures(readResult.features, labelProperty);
     setMergedZones(result.mergedZones);
-    setImportedZoneCount(Object.keys(result.zones).length);
+    const zonesCount = Object.keys(result.zones).length;
+    setImportedZoneCount(zonesCount);
+
+    userTracking.capture({
+      name: "importZones.completed",
+      zonesCount,
+      mergedCount: result.mergedZones.length,
+    });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZoneFeatures]);
+  }, [readResult, selectedLabel, importZoneFeatures, userTracking]);
 
   const goBack = useCallback(() => {
+    userTracking.capture({ name: "importZones.dataMapping.back" });
     setCurrentStep((s) => Math.max(s - 1, 1));
-  }, []);
+  }, [userTracking]);
+
+  const handleCancel = useCallback(() => {
+    const stepName =
+      stepNames[currentStep as keyof typeof stepNames] ?? "dataInput";
+    userTracking.capture({
+      name: `importZones.${stepName}.cancel` as
+        | "importZones.dataInput.cancel"
+        | "importZones.dataMapping.cancel",
+    });
+    onClose();
+  }, [currentStep, userTracking, onClose]);
 
   const handleFinish = useCallback(() => {
     closeDialog();
   }, [closeDialog]);
+
+  const handleSelectLabel = useCallback(
+    (value: string) => {
+      userTracking.capture({
+        name: "importZones.dataMapping.selectLabel",
+        property: value,
+      });
+      setSelectedLabel(value);
+    },
+    [userTracking],
+  );
 
   const availableProperties = readResult
     ? getLabelProperties(readResult.features)
@@ -131,7 +184,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
         title={translate("importZones.title")}
         steps={steps}
         currentStep={currentStep}
-        onClose={onClose}
+        onClose={handleCancel}
       />
       <WizardContent>
         {currentStep === DATA_INPUT_STEP_NUMBER && (
@@ -150,7 +203,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
             selectedLabel={selectedLabel}
             availableProperties={availableProperties}
             features={readResult?.features ?? []}
-            onSelectLabel={setSelectedLabel}
+            onSelectLabel={handleSelectLabel}
           />
         )}
         {currentStep === COMPLETE_STEP_NUMBER && (

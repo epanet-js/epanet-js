@@ -440,15 +440,40 @@ const zoneRuleOptions = [{ label: "Label", value: "label" }];
 
 const ZoneSymbologySection = () => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const { zoneSymbology, updateZoneSymbology } = useSymbologyState();
 
   const handleLabelRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
+    userTracking.capture({
+      name: "importZones.labelRule.changed",
+      labelRule: mapped,
+    });
     updateZoneSymbology({ labelRule: mapped as ZoneLabelRule });
   };
   const handleColorRuleChange = (value: string | null) => {
     const mapped = value === "none" ? null : value;
+    userTracking.capture({
+      name: "importZones.colorRule.changed",
+      colorRule: mapped,
+    });
     updateZoneSymbology({ colorRule: mapped as ZoneColorRule });
+  };
+
+  const handleVisibilityChange = () => {
+    const newVisible = !zoneSymbology.visible;
+    userTracking.capture({
+      name: "importZones.visibility.changed",
+      visible: newVisible,
+    });
+    updateZoneSymbology({ visible: newVisible });
+  };
+
+  const handleDefaultColorChange = (color: string) => {
+    userTracking.capture({ name: "importZones.defaultColor.changed", color });
+    updateZoneSymbology({
+      defaults: { ...zoneSymbology.defaults, color },
+    });
   };
 
   return (
@@ -464,9 +489,7 @@ const ZoneSymbologySection = () => {
         <Checkbox
           checked={zoneSymbology.visible}
           aria-label={`${translate("zoneSymbology")} ${translate("visible")}`}
-          onChange={() =>
-            updateZoneSymbology({ visible: !zoneSymbology.visible })
-          }
+          onChange={handleVisibilityChange}
         />
       </InlineField>
       <InlineField
@@ -501,11 +524,7 @@ const ZoneSymbologySection = () => {
           <div className="h-7 w-12 rounded-sm overflow-hidden">
             <ColorPopover
               color={zoneSymbology.defaults.color}
-              onChange={(color) =>
-                updateZoneSymbology({
-                  defaults: { ...zoneSymbology.defaults, color },
-                })
-              }
+              onChange={handleDefaultColorChange}
               ariaLabel="Default zone color"
             />
           </div>

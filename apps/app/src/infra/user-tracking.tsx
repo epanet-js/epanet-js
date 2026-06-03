@@ -709,6 +709,63 @@ type ImportZonesWarningDialogCancel = {
   name: "importZones.warningDialog.cancel";
 };
 
+type ImportZonesWizardNext = {
+  name: "importZones.dataInput.next" | "importZones.dataMapping.next";
+};
+
+type ImportZonesWizardBack = {
+  name: "importZones.dataMapping.back";
+};
+
+type ImportZonesWizardCancel = {
+  name: "importZones.dataInput.cancel" | "importZones.dataMapping.cancel";
+};
+
+type ImportZonesFileLoaded = {
+  name: "importZones.dataInput.fileLoaded";
+  fileName: string;
+  featuresCount: number;
+  propertiesCount: number;
+  coordinateConversion: boolean;
+};
+
+type ImportZonesParseError = {
+  name: "importZones.dataInput.parseError";
+  fileName: string;
+  errorCode: string;
+};
+
+type ImportZonesSelectLabel = {
+  name: "importZones.dataMapping.selectLabel";
+  property: string;
+};
+
+type ImportZonesCompleted = {
+  name: "importZones.completed";
+  zonesCount: number;
+  mergedCount: number;
+};
+
+type ZoneVisibilityChanged = {
+  name: "importZones.visibility.changed";
+  visible: boolean;
+};
+
+type ZoneColorRuleChanged = {
+  name: "importZones.colorRule.changed";
+  colorRule: string | null;
+};
+
+type ZoneDefaultColorChanged = {
+  name: "importZones.defaultColor.changed";
+  color: string;
+};
+
+type ZoneLabelRuleChanged = {
+  name: "importZones.labelRule.changed";
+  labelRule: string | null;
+};
+
 type EarlyAccessClickedGet = {
   name: "earlyAccess.clickedGet";
   source: "earlyAccessDialog";
@@ -1082,6 +1139,17 @@ export type UserEvent =
   | ImportZonesWarningDialogProceed
   | ImportZonesWarningDialogCancel
   | ImportZonesStarted
+  | ImportZonesWizardNext
+  | ImportZonesWizardBack
+  | ImportZonesWizardCancel
+  | ImportZonesFileLoaded
+  | ImportZonesParseError
+  | ImportZonesSelectLabel
+  | ImportZonesCompleted
+  | ZoneVisibilityChanged
+  | ZoneColorRuleChanged
+  | ZoneDefaultColorChanged
+  | ZoneLabelRuleChanged
   | EarlyAccessClickedGet
   | CustomerPointsConnectStarted
   | CustomerPointsReconnectStarted
