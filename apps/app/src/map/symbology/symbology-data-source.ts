@@ -1,5 +1,5 @@
 import { HydraulicModel } from "src/hydraulic-model";
-import { getSortedValues } from "src/hydraulic-model/assets-map";
+import { getSortedValues } from "@epanet-js/hydraulic-model";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import {
   type ResultsReader,

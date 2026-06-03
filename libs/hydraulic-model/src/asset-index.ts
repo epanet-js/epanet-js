@@ -1,9 +1,4 @@
-import {
-  AssetId,
-  AssetType,
-  LinkType,
-  NodeType,
-} from "@epanet-js/hydraulic-model";
+import { AssetId, AssetType, LinkType, NodeType } from "./asset-types";
 import { IdGenerator } from "@epanet-js/id-generator";
 import { AssetsMap } from "./assets-map";
 

@@ -11,7 +11,7 @@ import { ModelOperation } from "../model-operation";
 import { Position } from "src/types";
 import { updateLinkConnections } from "../mutations/update-link-connections";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
-import { getJunctionDemands } from "../demands";
+import { getJunctionDemands } from "@epanet-js/hydraulic-model";
 
 type NodeType = "junction" | "reservoir" | "tank";
 

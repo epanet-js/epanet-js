@@ -6,7 +6,7 @@ import {
   CustomerPoint,
   CustomerPointsLookup,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 
 type AddCustomerPointsOptions = {
   preserveJunctionDemands?: boolean;

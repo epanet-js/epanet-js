@@ -6,7 +6,7 @@ import { type CustomerPointId } from "@epanet-js/hydraulic-model";
 import {
   calculateAverageDemand,
   getCustomerPointDemands,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 
 export function useCustomerPointComparison(
   customerPointId: CustomerPointId | undefined,

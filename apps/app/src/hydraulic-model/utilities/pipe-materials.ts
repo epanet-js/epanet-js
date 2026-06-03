@@ -1,4 +1,4 @@
-import type { AssetsMap } from "../assets-map";
+import type { AssetsMap } from "@epanet-js/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
 
 // Returns distinct pipe materials across the model, case-insensitive-deduped

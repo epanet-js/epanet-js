@@ -17,7 +17,9 @@
     "@epanet-js/geometry": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
-    "@turf/length": "^6.5.0"
+    "@turf/length": "^6.5.0",
+    "ngraph.events": "^1.2.2",
+    "ngraph.graph": "^20.0.1"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.14",

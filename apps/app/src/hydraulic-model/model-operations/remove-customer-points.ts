@@ -1,6 +1,6 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ModelOperation, DemandAssignment } from "../model-operation";
-import { getCustomerPointDemands } from "../demands";
+import { getCustomerPointDemands } from "@epanet-js/hydraulic-model";
 
 type InputData = {
   customerPointIds: readonly CustomerPointId[];

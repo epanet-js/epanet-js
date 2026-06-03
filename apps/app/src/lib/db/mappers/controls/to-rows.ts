@@ -1,4 +1,4 @@
-import type { Controls } from "src/hydraulic-model/controls";
+import type { Controls } from "@epanet-js/hydraulic-model";
 import { controlsSchema } from "@epanet-js/ejsdb";
 
 export const serializeControls = (controls: Controls): string => {

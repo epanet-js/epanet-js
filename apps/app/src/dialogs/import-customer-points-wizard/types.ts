@@ -4,7 +4,7 @@ import {
   CustomerPoint,
   CustomerPointId,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { Unit } from "@epanet-js/quantity";

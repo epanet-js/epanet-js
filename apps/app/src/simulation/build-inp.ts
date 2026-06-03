@@ -42,7 +42,7 @@ import {
   formatSimpleControl,
   formatRuleBasedControl,
   IdResolver,
-} from "src/hydraulic-model/controls";
+} from "@epanet-js/hydraulic-model";
 import {
   Pattern,
   Patterns,

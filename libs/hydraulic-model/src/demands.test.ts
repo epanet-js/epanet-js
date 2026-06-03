@@ -5,7 +5,7 @@ import {
   calculateAverageDemand,
   createEmptyDemands,
 } from "./demands";
-import { getNextPatternId, Patterns } from "@epanet-js/hydraulic-model";
+import { getNextPatternId, Patterns } from "./patterns";
 
 const createPatterns = (
   entries: Array<{ id: number; label: string; multipliers: number[] }>,
@@ -130,14 +130,14 @@ describe("getJunctionDemands", () => {
 describe("calculateAverageDemand", () => {
   it("calculates average demand without patterns", () => {
     const demands: Demand[] = [{ baseDemand: 25 }];
-    const patterns = new Map();
+    const patterns: Patterns = new Map();
 
     expect(calculateAverageDemand(demands, patterns)).toEqual(25);
   });
 
   it("calculates average demand of zero for empty demands", () => {
     const demands: Demand[] = [];
-    const patterns = new Map();
+    const patterns: Patterns = new Map();
 
     expect(calculateAverageDemand(demands, patterns)).toEqual(0);
   });

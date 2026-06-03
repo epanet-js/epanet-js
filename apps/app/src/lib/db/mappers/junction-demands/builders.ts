@@ -1,8 +1,8 @@
-import type { AssetId } from "src/hydraulic-model/assets-map";
+import type { AssetId } from "@epanet-js/hydraulic-model";
 import type {
   Demand,
   JunctionAssignedDemands,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 import { parseRows, junctionDemandRowSchema } from "@epanet-js/ejsdb";
 
 export const buildJunctionDemandsData = (

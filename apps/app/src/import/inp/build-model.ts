@@ -52,7 +52,7 @@ import {
   LabelResolver,
   parseSimpleControlsFromText,
   parseRulesFromText,
-} from "src/hydraulic-model/controls";
+} from "@epanet-js/hydraulic-model";
 import {
   createEmptyDemands,
   Pattern,

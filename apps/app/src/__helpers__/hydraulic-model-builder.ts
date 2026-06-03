@@ -20,8 +20,8 @@ import {
   Patterns,
   PatternType,
 } from "src/hydraulic-model";
-import { SimpleControl, RuleBasedControl } from "src/hydraulic-model/controls";
-import { AssetIndex } from "src/hydraulic-model/asset-index";
+import { SimpleControl, RuleBasedControl } from "@epanet-js/hydraulic-model";
+import { AssetIndex } from "@epanet-js/hydraulic-model";
 import {
   CustomerPointsLookup,
   PumpBuildData,

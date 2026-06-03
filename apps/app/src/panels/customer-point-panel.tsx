@@ -24,7 +24,7 @@ import {
   getCustomerPointDemands,
   calculateAverageDemand,
   Demand,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 import {
   changeDemandAssignment,
   changeCustomerPointLabel,

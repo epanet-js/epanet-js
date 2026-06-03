@@ -7,8 +7,8 @@ import {
   VariableSizeBufferBuilder,
 } from "src/lib/buffers";
 import { AssetId } from "@epanet-js/hydraulic-model";
-import { AssetIndexQueries } from "../asset-index";
-import { TopologyQueries } from "./types";
+import { AssetIndexQueries } from "@epanet-js/hydraulic-model";
+import { TopologyQueries } from "@epanet-js/hydraulic-model";
 import type { TopologyBuffers } from "./topology-transferable";
 
 function encodeLinkConnections(

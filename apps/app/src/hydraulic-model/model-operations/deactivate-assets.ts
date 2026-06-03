@@ -1,8 +1,8 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
-import { AssetsMap } from "../assets-map";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
 import type { AssetPatch } from "../model-operation";
 import { ModelOperation } from "../model-operation";
-import { TopologyQueries } from "../topology/types";
+import { TopologyQueries } from "@epanet-js/hydraulic-model";
 
 type InputData = {
   assetIds: AssetId[];

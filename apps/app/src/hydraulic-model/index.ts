@@ -5,16 +5,16 @@ export {
   updateHydraulicModelAssets,
   copyModel,
 } from "./hydraulic-model";
-export type { Controls } from "./controls";
-export { createEmptyControls } from "./controls";
+export type { Controls } from "@epanet-js/hydraulic-model";
+export { createEmptyControls } from "@epanet-js/hydraulic-model";
 export { AssetFactory } from "@epanet-js/hydraulic-model";
 export type {
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
 } from "@epanet-js/hydraulic-model";
-export type { AssetId } from "./assets-map";
-export { filterAssets, getNode, AssetsMap } from "./assets-map";
+export type { AssetId } from "@epanet-js/hydraulic-model";
+export { filterAssets, getNode, AssetsMap } from "@epanet-js/hydraulic-model";
 export type {
   ModelOperation,
   OptionalMomentFields,
@@ -39,7 +39,7 @@ export type {
 } from "@epanet-js/hydraulic-model";
 export { calculateAverageHead } from "@epanet-js/hydraulic-model";
 export type { DefaultsSpec } from "@epanet-js/hydraulic-model";
-export { Topology } from "./topology";
+export { Topology } from "@epanet-js/hydraulic-model";
 
 export type { HeadlossFormula } from "@epanet-js/hydraulic-model";
 export { headlossFormulas } from "@epanet-js/hydraulic-model";
@@ -56,12 +56,12 @@ export {
   deepClonePatterns,
   differentPatternsCount,
 } from "@epanet-js/hydraulic-model";
-export type { Demands, Demand } from "./demands";
+export type { Demands, Demand } from "@epanet-js/hydraulic-model";
 export {
   createEmptyDemands,
   getJunctionDemands,
   getCustomerPointDemands,
   calculateAverageDemand,
   getTotalCustomerDemand,
-} from "./demands";
+} from "@epanet-js/hydraulic-model";
 export { applyMomentToModel } from "./mutations/apply-moment";

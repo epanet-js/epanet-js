@@ -15,7 +15,7 @@ import type {
 import { ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { inferNodeIsActive } from "../utilities/active-topology";
-import { Demands, getJunctionDemands } from "../demands";
+import { Demands, getJunctionDemands } from "@epanet-js/hydraulic-model";
 
 type InputData = {
   assetIds: readonly AssetId[];

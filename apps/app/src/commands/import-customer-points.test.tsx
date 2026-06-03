@@ -7,7 +7,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
   getTotalCustomerDemand,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
 import { setInitialState } from "src/__helpers__/state";

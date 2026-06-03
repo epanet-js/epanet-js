@@ -15,7 +15,7 @@ import {
   mergeNodes,
   moveCustomerPoint,
 } from "src/hydraulic-model/model-operations";
-import { nodesShareLink } from "src/hydraulic-model/topology";
+import { nodesShareLink } from "@epanet-js/hydraulic-model";
 import { useMoveState } from "./move-state";
 import { useCustomerPointMoveState } from "./customer-point-move-state";
 import noop from "lodash/noop";

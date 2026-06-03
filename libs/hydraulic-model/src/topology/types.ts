@@ -1,4 +1,4 @@
-import { AssetId } from "@epanet-js/hydraulic-model";
+import { AssetId } from "../asset-types";
 
 export interface TopologyQueries {
   hasLink(linkId: AssetId): boolean;

@@ -1,4 +1,4 @@
-import { createEmptyControls } from "src/hydraulic-model/controls";
+import { createEmptyControls } from "@epanet-js/hydraulic-model";
 import { serializeControls } from "./to-rows";
 
 describe("serializeControls", () => {

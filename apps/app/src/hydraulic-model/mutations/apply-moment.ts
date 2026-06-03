@@ -10,9 +10,12 @@ import {
   Patterns,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { AssetId } from "../assets-map";
+import { AssetId } from "@epanet-js/hydraulic-model";
 import { isDebugOn } from "src/infra/debug-mode";
-import { CustomerAssignedDemands, JunctionAssignedDemands } from "../demands";
+import {
+  CustomerAssignedDemands,
+  JunctionAssignedDemands,
+} from "@epanet-js/hydraulic-model";
 
 type PutAssetResult = {
   oldAsset: Asset | undefined;

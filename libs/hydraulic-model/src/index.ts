@@ -19,3 +19,8 @@ export * from "./customer-points-lookup";
 export * from "./factories";
 export * from "./factories/asset-factory";
 export * from "./factories/customer-point-factory";
+export * from "./assets-map";
+export * from "./asset-index";
+export * from "./demands";
+export * from "./controls";
+export * from "./topology";

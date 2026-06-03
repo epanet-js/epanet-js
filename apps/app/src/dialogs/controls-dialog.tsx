@@ -16,7 +16,7 @@ import {
   formatRuleBasedControl,
   IdResolver,
   parseControlsFromText,
-} from "src/hydraulic-model/controls";
+} from "@epanet-js/hydraulic-model";
 import { changeControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";

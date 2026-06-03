@@ -5,7 +5,7 @@ import {
   CustomerPointsLookup,
   ModelFactories,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 import {
   parseRows,
   customerPointRowSchema,

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { AssetIndex } from "./asset-index";
+import { AssetIndex } from "@epanet-js/hydraulic-model";
 import { AssetIndexEncoder, AssetIndexView } from "./asset-index-transferable";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { AssetsMap } from "./assets-map";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import {
   buildJunction,

@@ -1,6 +1,6 @@
-import { AssetsMap } from "src/hydraulic-model/assets-map";
-import { AssetIndex } from "src/hydraulic-model/asset-index";
-import { Topology } from "src/hydraulic-model/topology";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
+import { AssetIndex } from "@epanet-js/hydraulic-model";
+import { Topology } from "@epanet-js/hydraulic-model";
 import {
   ModelFactories,
   type Junction,

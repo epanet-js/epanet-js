@@ -2,11 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { AssetIndex } from "./asset-index";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { AssetsMap } from "./assets-map";
-import { AssetId } from "@epanet-js/hydraulic-model";
-import {
-  buildJunction,
-  buildPipe,
-} from "src/__helpers__/hydraulic-model-builder";
+import { AssetId } from "./asset-types";
+import { buildJunction, buildPipe } from "./test-helpers";
 
 function createAssetsMap(linkIds: AssetId[], nodeIds: AssetId[]): AssetsMap {
   const map: AssetsMap = new Map();

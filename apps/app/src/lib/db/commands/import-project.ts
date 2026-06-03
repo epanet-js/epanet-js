@@ -2,7 +2,7 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
-import type { AssetsMap } from "src/hydraulic-model/assets-map";
+import type { AssetsMap } from "@epanet-js/hydraulic-model";
 import {
   type CustomerPoints,
   type Patterns,
@@ -11,8 +11,8 @@ import {
 import type {
   CustomerAssignedDemands,
   JunctionAssignedDemands,
-} from "src/hydraulic-model/demands";
-import type { Controls } from "src/hydraulic-model/controls";
+} from "@epanet-js/hydraulic-model";
+import type { Controls } from "@epanet-js/hydraulic-model";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { assetsToRows } from "../mappers/assets/to-rows";
 import { customerPointsToRows } from "../mappers/customer-points/to-rows";

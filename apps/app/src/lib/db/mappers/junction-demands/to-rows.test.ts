@@ -1,4 +1,4 @@
-import type { JunctionAssignedDemands } from "src/hydraulic-model/demands";
+import type { JunctionAssignedDemands } from "@epanet-js/hydraulic-model";
 import { junctionDemandsToRows, toJunctionDemandRow } from "./to-rows";
 
 describe("toJunctionDemandRow", () => {

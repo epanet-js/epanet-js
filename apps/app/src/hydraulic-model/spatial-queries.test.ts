@@ -4,7 +4,7 @@ import {
   queryContainedAssets,
 } from "./spatial-queries";
 import { AssetsGeoIndex } from "./assets-geo";
-import { getPipe } from "./assets-map";
+import { getPipe } from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 
 describe("queryContainedAssets", () => {

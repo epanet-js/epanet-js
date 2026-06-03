@@ -1,5 +1,5 @@
 import { AssetId } from "@epanet-js/hydraulic-model";
-import { TopologyQueries } from "src/hydraulic-model/topology/types";
+import { TopologyQueries } from "@epanet-js/hydraulic-model";
 import {
   FlowDirectionQueries,
   TraceStart,

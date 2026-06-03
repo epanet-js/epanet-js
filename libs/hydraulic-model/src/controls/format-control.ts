@@ -1,4 +1,4 @@
-import { AssetId } from "@epanet-js/hydraulic-model";
+import { AssetId } from "../asset-types";
 import { AssetReference, SimpleControl, RuleBasedControl } from "./types";
 
 export type IdResolver = (assetId: AssetId) => string;
@@ -8,7 +8,7 @@ const replaceAssetPlaceholders = (
   assetReferences: AssetReference[],
   idResolver: IdResolver,
 ): string => {
-  return template.replace(/\{\{(\d+)\}\}/g, (_, indexStr) => {
+  return template.replace(/\{\{(\d+)\}\}/g, (_, indexStr: string) => {
     const index = parseInt(indexStr, 10);
     const ref = assetReferences[index];
     if (!ref) return `{{${index}}}`;

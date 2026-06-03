@@ -1,9 +1,9 @@
-import { Topology } from "./topology";
-import { AssetsMap } from "./assets-map";
+import { Topology } from "@epanet-js/hydraulic-model";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { nanoid } from "nanoid";
 
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import { Demands, createEmptyDemands } from "./demands";
+import { Demands, createEmptyDemands } from "@epanet-js/hydraulic-model";
 import {
   CustomerPoints,
   initializeCustomerPoints,
@@ -12,8 +12,8 @@ import {
   Curves,
   Patterns,
 } from "@epanet-js/hydraulic-model";
-import { AssetIndex } from "./asset-index";
-import { Controls, createEmptyControls } from "./controls";
+import { AssetIndex } from "@epanet-js/hydraulic-model";
+import { Controls, createEmptyControls } from "@epanet-js/hydraulic-model";
 
 export type HydraulicModel = {
   version: string;

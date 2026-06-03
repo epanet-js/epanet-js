@@ -2,7 +2,7 @@ import { type AssetId } from "@epanet-js/hydraulic-model";
 import type {
   Demand,
   JunctionAssignedDemands,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 import {
   junctionDemandRowSchema,
   type JunctionDemandRow,

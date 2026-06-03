@@ -5,7 +5,7 @@ import {
   AssetIndexEncoder,
   AssetIndexBuffers,
 } from "src/hydraulic-model/asset-index-transferable";
-import { type AssetIndexQueries } from "src/hydraulic-model/asset-index";
+import { type AssetIndexQueries } from "@epanet-js/hydraulic-model";
 import {
   TopologyEncoder,
   TopologyBuffers,

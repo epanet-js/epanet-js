@@ -18,7 +18,7 @@ import {
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
 } from "src/import/customer-points/parse-customer-points-issues";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   WizardState,

@@ -5,7 +5,7 @@ import {
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 
 describe("addCustomerPoints", () => {
   it("connects multiple customer points to their assigned junctions", () => {

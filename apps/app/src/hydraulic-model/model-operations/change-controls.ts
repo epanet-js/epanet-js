@@ -1,4 +1,4 @@
-import { Controls } from "../controls";
+import { Controls } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 export const changeControls: ModelOperation<Controls> = (_, controls) => {

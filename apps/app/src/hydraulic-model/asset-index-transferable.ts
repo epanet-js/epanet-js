@@ -20,7 +20,7 @@ import {
   AssetIndexQueries,
   type LinkIndex,
   type NodeIndex,
-} from "./asset-index";
+} from "@epanet-js/hydraulic-model";
 
 const ASSET_TYPE_LINK = 0;
 const ASSET_TYPE_NODE = 1;

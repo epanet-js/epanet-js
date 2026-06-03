@@ -10,11 +10,11 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { DemandAssignment, ModelOperation } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
-import { AssetsMap } from "../assets-map";
-import { Topology } from "../topology";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
+import { Topology } from "@epanet-js/hydraulic-model";
 import { updateLinkConnections } from "../mutations/update-link-connections";
 import { reassignCustomerPoints } from "../mutations/reassign-customer-points";
-import { getJunctionDemands } from "../demands";
+import { getJunctionDemands } from "@epanet-js/hydraulic-model";
 import { Unit } from "@epanet-js/quantity";
 
 type InputData = {

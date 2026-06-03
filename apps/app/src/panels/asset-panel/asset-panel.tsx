@@ -63,7 +63,7 @@ import type {
 } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
-import { getLinkNodes } from "src/hydraulic-model/assets-map";
+import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import {
   AssetEditorContent,
   QuantityRow,

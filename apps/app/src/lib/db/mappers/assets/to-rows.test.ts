@@ -7,7 +7,7 @@ import {
   type Pipe,
   type Pump,
 } from "@epanet-js/hydraulic-model";
-import { AssetsMap } from "src/hydraulic-model/assets-map";
+import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { assetsToRows } from "./to-rows";
 import { buildAssetsData } from "./builders";
 

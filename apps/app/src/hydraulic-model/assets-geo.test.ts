@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  AssetIndexEncoder,
-  AssetIndexView,
-} from "./asset-index-transferable";
+import { AssetIndexEncoder, AssetIndexView } from "./asset-index-transferable";
 import {
   AssetsGeoIndex,
   AssetsGeoEncoder,

@@ -28,7 +28,7 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import userEvent from "@testing-library/user-event";
-import { AssetId, getLink, getPipe } from "src/hydraulic-model/assets-map";
+import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";

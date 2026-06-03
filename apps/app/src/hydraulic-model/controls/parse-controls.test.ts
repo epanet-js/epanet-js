@@ -4,7 +4,7 @@ import {
   parseControlsFromText,
   createLabelResolverFromAssets,
   LabelResolver,
-} from "./parse-controls";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 
 describe("parseSimpleControlsFromText", () => {

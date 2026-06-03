@@ -5,7 +5,7 @@ import {
   NodeAsset,
 } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "../hydraulic-model";
-import { TopologyQueries } from "../topology/types";
+import { TopologyQueries } from "@epanet-js/hydraulic-model";
 
 export function inferNodeIsActive(
   node: NodeAsset,

@@ -6,7 +6,7 @@ import {
 import type {
   CustomerAssignedDemands,
   Demand,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 import {
   customerPointRowSchema,
   customerPointDemandRowSchema,

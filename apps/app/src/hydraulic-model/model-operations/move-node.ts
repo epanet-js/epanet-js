@@ -10,7 +10,7 @@ import {
   LabelManager,
   computeLinkLength,
 } from "@epanet-js/hydraulic-model";
-import { AssetsMap, getNode } from "../assets-map";
+import { AssetsMap, getNode } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";

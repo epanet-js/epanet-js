@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { AssetId } from "src/hydraulic-model";
-import { PathData } from "src/hydraulic-model/topology/types";
+import { PathData } from "@epanet-js/hydraulic-model";
 import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
 import { HglRange, TerrainPoint } from "src/panels/hgl-profile/chart-types";
 import { Mode, modeAtom } from "src/state/mode";

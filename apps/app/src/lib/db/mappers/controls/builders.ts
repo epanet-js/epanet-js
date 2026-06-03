@@ -1,5 +1,5 @@
-import type { Controls } from "src/hydraulic-model/controls";
-import { createEmptyControls } from "src/hydraulic-model/controls";
+import type { Controls } from "@epanet-js/hydraulic-model";
+import { createEmptyControls } from "@epanet-js/hydraulic-model";
 import { controlsSchema } from "@epanet-js/ejsdb";
 
 export const buildControlsData = (data: string | null): Controls => {

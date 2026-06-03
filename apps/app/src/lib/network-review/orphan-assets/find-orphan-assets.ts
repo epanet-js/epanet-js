@@ -1,6 +1,6 @@
 import { OrphanAssets } from "./data";
-import { AssetIndexQueries } from "src/hydraulic-model/asset-index";
-import { TopologyQueries } from "src/hydraulic-model/topology/types";
+import { AssetIndexQueries } from "@epanet-js/hydraulic-model";
+import { TopologyQueries } from "@epanet-js/hydraulic-model";
 
 export function findOrphanAssets(
   topology: TopologyQueries,

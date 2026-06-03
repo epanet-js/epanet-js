@@ -3,7 +3,7 @@ import { Store } from "src/state";
 import { wizardStateAtom } from "../use-wizard-state";
 import { WizardState, ParsedDataSummary } from "../types";
 import { buildCustomerPoint } from "src/__helpers__/hydraulic-model-builder";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
 
 export const setWizardState = (

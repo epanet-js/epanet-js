@@ -11,7 +11,7 @@ import { Patterns, PatternId } from "src/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { PropertyComparison } from "src/hooks/use-asset-comparison";
-import { calculateAverageDemand, Demand } from "src/hydraulic-model/demands";
+import { calculateAverageDemand, Demand } from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { QuantityRow } from "./ui-components";
 import {

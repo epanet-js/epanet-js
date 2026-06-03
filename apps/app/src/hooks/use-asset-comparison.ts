@@ -17,7 +17,7 @@ import {
   calculateAverageDemand,
   getCustomerPointDemands,
   getJunctionDemands,
-} from "src/hydraulic-model/demands";
+} from "@epanet-js/hydraulic-model";
 
 export type PropertyComparison<T = unknown> = {
   hasChanged: boolean;

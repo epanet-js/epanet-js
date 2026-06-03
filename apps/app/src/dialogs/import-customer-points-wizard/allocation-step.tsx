@@ -6,7 +6,7 @@ import {
   CustomerPointId,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "src/hydraulic-model/demands";
+import { Demand } from "@epanet-js/hydraulic-model";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
