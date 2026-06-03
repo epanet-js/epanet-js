@@ -81,7 +81,7 @@ export function DialogHeader({
         px-4 py-3
         text-base
         text-default
-        border-b border
+        border-b
       "
     >
       {children && children}
@@ -173,7 +173,7 @@ export const AckDialogAction = ({
     <div
       className={clsx(
         "relative",
-        "px-4 py-3 border-t border",
+        "px-4 py-3 border-t",
         "flex flex-col sm:items-center sm:flex-row-reverse space-y-2 sm:space-y-0 sm:gap-x-3",
       )}
     >
@@ -224,7 +224,7 @@ export function SimpleDialogActions({
         "relative",
         fullWidthSubmit
           ? "flex items-stretch justify-stretch"
-          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t border`,
+          : `flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t`,
       )}
     >
       {action ? (
