@@ -103,7 +103,7 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
       renderWizard(store);
 
       const defaultDemandInput = screen.getByLabelText(
-        /Value for: Default demand value/i,
+        /Value for: Default demand/i,
       );
       expect(defaultDemandInput).not.toBeDisabled();
 
