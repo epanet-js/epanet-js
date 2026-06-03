@@ -70,16 +70,6 @@ const isFileAcceptedByFormats = (file: File, formats: GisFormat[]): boolean => {
   return allExtensions.some((ext) => name.endsWith(ext));
 };
 
-const FILE_DESCRIPTIONS: Record<keyof GisFiles, string> = {
-  geojson: "GeoJSON file",
-  geojsonl: "GeoJSONL file",
-  shp: "Shapefile geometry file",
-  shx: "Shapefile index file",
-  dbf: "Shapefile property database",
-  cpg: "Shapefile property database text encoding",
-  prj: "Shapefile WKT projection file",
-};
-
 const FILE_LIST_ORDER: (keyof GisFiles)[] = [
   "geojson",
   "geojsonl",
@@ -92,11 +82,10 @@ const FILE_LIST_ORDER: (keyof GisFiles)[] = [
 
 const getFileEntries = (
   files: GisFiles,
-): { key: keyof GisFiles; file: File; description: string }[] =>
+): { key: keyof GisFiles; file: File }[] =>
   FILE_LIST_ORDER.filter((key) => files[key] != null).map((key) => ({
     key,
     file: files[key]!,
-    description: FILE_DESCRIPTIONS[key],
   }));
 
 const SelectedFileList = ({
@@ -106,12 +95,13 @@ const SelectedFileList = ({
   files: GisFiles;
   onRemove: (key: keyof GisFiles) => void;
 }) => {
+  const translate = useTranslate();
   const entries = getFileEntries(files);
   if (entries.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-1">
-      {entries.map(({ key, file, description }) => (
+      {entries.map(({ key, file }) => (
         <div
           key={key}
           className="flex items-center gap-2 bg-base rounded-md px-3 py-1.5 border shadow-xs"
@@ -120,7 +110,7 @@ const SelectedFileList = ({
             {file.name}
           </p>
           <p className="text-size-small text-subtle truncate flex-1">
-            {description}
+            {translate(`dropZone.fileDescriptions.${key}`)}
           </p>
           <button
             type="button"

@@ -9,7 +9,16 @@
     "defaultText": "Drop files here or click to browse",
     "activeText": "Drop your file here",
     "supportedFormats": "Supported formats: {{1}}",
-    "selectedFile": "Selected: {{1}}"
+    "selectedFile": "Selected: {{1}}",
+    "fileDescriptions": {
+      "geojson": "GeoJSON file",
+      "geojsonl": "GeoJSONL file",
+      "shp": "Shapefile geometry file",
+      "shx": "Shapefile index file",
+      "dbf": "Shapefile property database",
+      "cpg": "Shapefile property database text encoding",
+      "prj": "Shapefile WKT projection file"
+    }
   },
   "operationalData": "Operational data",
   "analysisTools": "Analysis tools",
