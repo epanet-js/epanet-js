@@ -976,16 +976,17 @@
         "demandSelector": {
           "label": "Demand",
           "placeholder": "Select demand property...",
-          "noneUseDefault": "None (use default value)"
+          "useDefault": "Use default demand"
         },
         "defaultDemand": {
-          "label": "Default demand value",
+          "label": "Default demand",
           "description": "Used when no demand attribute is selected."
         },
         "labelSelector": {
           "label": "Label",
           "placeholder": "Select label property...",
           "description": "Labels will be trimmed to {{1}} characters",
+          "autoGenerate": "Auto-generate",
           "noneAutoGenerate": "None (Auto-generate labels)"
         },
         "table": {
@@ -1011,7 +1012,7 @@
           "missingCoordinates": "Coordinates missing ({{1}})",
           "invalidProjection": "Invalid projection - expected WGS84/EPSG:4326 ({{1}})",
           "invalidDemands": "Invalid demands ({{1}})",
-          "defaultedDemands": "Invalid demands ({{1}}) (using default)",
+          "defaultedDemands": "Invalid demands ({{1}}) (using default demand)",
           "invalidJsonLines": "Invalid JSON lines ({{1}})",
           "creationFailures": "Creation failures ({{1}})",
           "noValidJunction": "No valid junction ({{1}})",

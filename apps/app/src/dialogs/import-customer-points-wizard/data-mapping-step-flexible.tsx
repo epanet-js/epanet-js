@@ -328,7 +328,7 @@ export const DataMappingStepFlexible: React.FC<{
                     <Selector
                       nullable={true}
                       placeholder={translate(
-                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.autoGenerate",
                       )}
                       options={Array.from(inputData.properties).map((prop) => ({
                         label: prop,
@@ -336,7 +336,7 @@ export const DataMappingStepFlexible: React.FC<{
                       }))}
                       selected={selectedLabelProperty || null}
                       clearLabel={translate(
-                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.autoGenerate",
                       )}
                       onChange={(value) =>
                         handleLabelPropertyChange(value ?? "")
@@ -364,7 +364,7 @@ export const DataMappingStepFlexible: React.FC<{
                     <Selector
                       nullable={true}
                       placeholder={translate(
-                        "importCustomerPoints.wizard.dataMapping.demandSelector.noneUseDefault",
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.useDefault",
                       )}
                       options={Array.from(inputData.properties).map((prop) => ({
                         label: prop,
@@ -372,7 +372,7 @@ export const DataMappingStepFlexible: React.FC<{
                       }))}
                       selected={selectedDemandProperty}
                       clearLabel={translate(
-                        "importCustomerPoints.wizard.dataMapping.demandSelector.noneUseDefault",
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.useDefault",
                       )}
                       onChange={(value) =>
                         handleDemandPropertyChange(value ?? null)
