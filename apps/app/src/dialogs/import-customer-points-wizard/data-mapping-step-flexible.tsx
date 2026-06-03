@@ -26,7 +26,8 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { Selector } from "src/components/form/selector";
 import { NumericField } from "src/components/form/numeric-field";
-import { CustomerPointsTable, IssuesSummary } from "./data-mapping-step";
+import { CustomerPointsTable, IssueSection } from "./data-mapping-step";
+import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 const CONSTANT_PATTERN_ID = 0;
 
 export const DataMappingStepFlexible: React.FC<{
@@ -196,11 +197,11 @@ export const DataMappingStepFlexible: React.FC<{
     (value: number) => {
       const safeValue = isNaN(value) ? 0 : value;
       setDefaultDemand(safeValue);
-      if (!inputData || selectedDemandProperty) return;
+      if (!inputData) return;
       setParsedDataSummary(null);
       parseInputDataToCustomerPoints(
         inputData,
-        null,
+        selectedDemandProperty,
         selectedLabelProperty,
         selectedPatternId,
         safeValue,
@@ -316,112 +317,117 @@ export const DataMappingStepFlexible: React.FC<{
                   "importCustomerPoints.wizard.dataMapping.attributesMapping.description",
                 )}
               </p>
-              <div className="space-y-4 md:grid md:gap-4 md:space-y-0 md:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <label className="block text-size-base text-default mb-2">
-                    {`${translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                    )} (${translate("optional")})`}
-                  </label>
-                  <Selector
-                    nullable={true}
-                    placeholder={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
-                    )}
-                    options={Array.from(inputData.properties).map((prop) => ({
-                      label: prop,
-                      value: prop,
-                    }))}
-                    selected={selectedLabelProperty || null}
-                    clearLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
-                    )}
-                    onChange={(value) => handleLabelPropertyChange(value ?? "")}
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.label",
-                    )}
-                  />
-                  <p className="text-size-small text-subtle mt-1">
-                    {translate(
-                      "importCustomerPoints.wizard.dataMapping.labelSelector.description",
-                      String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
-                    )}
-                  </p>
+              <div className="@container space-y-4">
+                <div className="@lg:grid @lg:grid-cols-3 @lg:gap-x-4">
+                  <div className="space-y-2">
+                    <label className="block text-size-base text-default">
+                      {translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                      )}
+                    </label>
+                    <Selector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.placeholder",
+                      )}
+                      options={Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      }))}
+                      selected={selectedLabelProperty || null}
+                      clearLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.noneAutoGenerate",
+                      )}
+                      onChange={(value) =>
+                        handleLabelPropertyChange(value ?? "")
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.label",
+                      )}
+                    />
+                    <p className="text-size-small text-subtle">
+                      {translate(
+                        "importCustomerPoints.wizard.dataMapping.labelSelector.description",
+                        String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-size-base text-default mb-2">
-                    {`${translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.label",
-                    )} (${translate("optional")})`}
-                  </label>
-                  <Selector
-                    nullable={true}
-                    placeholder={translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
-                    )}
-                    options={Array.from(inputData.properties).map((prop) => ({
-                      label: prop,
-                      value: prop,
-                    }))}
-                    selected={selectedDemandProperty}
-                    clearLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.noneUseDefault",
-                    )}
-                    onChange={(value) =>
-                      handleDemandPropertyChange(value ?? null)
-                    }
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.dataMapping.demandSelector.label",
-                    )}
-                  />
-                </div>
-                <div>
-                  <label className="block text-size-base text-default mb-2">
-                    {`${translate(
-                      "importCustomerPoints.wizard.dataMapping.defaultDemand.label",
-                    )} (${translateUnit(customerDemandPerDayUnit)})`}
-                  </label>
-                  <NumericField
-                    label={translate(
-                      "importCustomerPoints.wizard.dataMapping.defaultDemand.label",
-                    )}
-                    displayValue={localizeDecimal(defaultDemand)}
-                    onChangeValue={handleDefaultDemandChange}
-                    positiveOnly={true}
-                    isNullable={false}
-                    disabled={!!selectedDemandProperty}
-                    styleOptions={{ padding: "md", textSize: "sm" }}
-                  />
-                  <p className="text-size-small text-subtle mt-1">
-                    {translate(
-                      "importCustomerPoints.wizard.dataMapping.defaultDemand.description",
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-size-base text-default mb-2">
-                    {`${translate(
-                      "importCustomerPoints.wizard.demandOptions.timePattern.title",
-                    )} (${translate("optional")})`}
-                  </label>
-                  <Selector
-                    nullable
-                    placeholder={constantLabel}
-                    clearLabel={constantLabel}
-                    options={realPatternOptions}
-                    selected={selectedPatternId ?? null}
-                    onChange={(value) =>
-                      handlePatternChange(value ?? CONSTANT_PATTERN_ID)
-                    }
-                    ariaLabel={translate(
-                      "importCustomerPoints.wizard.demandOptions.timePattern.title",
-                    )}
-                  />
-                  <p className="text-size-small text-subtle mt-1">
-                    {translate(
-                      "importCustomerPoints.wizard.demandOptions.timePattern.description",
-                    )}
-                  </p>
+
+                <div className="space-y-4 @lg:grid @lg:gap-x-4 @lg:gap-y-2 @lg:space-y-0 @lg:grid-cols-3 @lg:grid-rows-[repeat(3,auto)]">
+                  <div className="space-y-2 @lg:space-y-0 @lg:grid @lg:grid-rows-subgrid @lg:row-span-3 @lg:gap-y-2">
+                    <label className="block text-size-base text-default">
+                      {translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                      )}
+                    </label>
+                    <Selector
+                      nullable={true}
+                      placeholder={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.placeholder",
+                      )}
+                      options={Array.from(inputData.properties).map((prop) => ({
+                        label: prop,
+                        value: prop,
+                      }))}
+                      selected={selectedDemandProperty}
+                      clearLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.noneUseDefault",
+                      )}
+                      onChange={(value) =>
+                        handleDemandPropertyChange(value ?? null)
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.dataMapping.demandSelector.label",
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-2 @lg:space-y-0 @lg:grid @lg:grid-rows-subgrid @lg:row-span-3 @lg:gap-y-2">
+                    <label className="block text-size-base text-default">
+                      {`${translate(
+                        "importCustomerPoints.wizard.dataMapping.defaultDemand.label",
+                      )} (${translateUnit(customerDemandPerDayUnit)})`}
+                    </label>
+                    <NumericField
+                      label={translate(
+                        "importCustomerPoints.wizard.dataMapping.defaultDemand.label",
+                      )}
+                      displayValue={localizeDecimal(defaultDemand)}
+                      onChangeValue={handleDefaultDemandChange}
+                      positiveOnly={true}
+                      styleOptions={{ padding: "md", textSize: "sm" }}
+                    />
+                    <p className="text-size-small text-subtle">
+                      {translate(
+                        "importCustomerPoints.wizard.dataMapping.defaultDemand.description",
+                      )}
+                    </p>
+                  </div>
+                  <div className="space-y-2 @lg:space-y-0 @lg:grid @lg:grid-rows-subgrid @lg:row-span-3 @lg:gap-y-2">
+                    <label className="block text-size-base text-default">
+                      {translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                      )}
+                    </label>
+                    <Selector
+                      nullable
+                      placeholder={constantLabel}
+                      clearLabel={constantLabel}
+                      options={realPatternOptions}
+                      selected={selectedPatternId ?? null}
+                      onChange={(value) =>
+                        handlePatternChange(value ?? CONSTANT_PATTERN_ID)
+                      }
+                      ariaLabel={translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.title",
+                      )}
+                    />
+                    <p className="text-size-small text-subtle">
+                      {translate(
+                        "importCustomerPoints.wizard.demandOptions.timePattern.description",
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -457,7 +463,7 @@ export const DataMappingStepFlexible: React.FC<{
 
         {showDataPreview && (
           <>
-            <IssuesSummary issues={parsedDataSummary.issues} />
+            <IssuesSummaryFlexible issues={parsedDataSummary.issues} />
 
             <CustomerPointsTable
               customerPoints={parsedDataSummary.validCustomerPoints}
@@ -482,5 +488,99 @@ export const DataMappingStepFlexible: React.FC<{
         />
       )}
     </>
+  );
+};
+
+type IssuesSummaryFlexibleProps = {
+  issues: CustomerPointsParserIssues | null;
+};
+
+const IssuesSummaryFlexible: React.FC<IssuesSummaryFlexibleProps> = ({
+  issues,
+}) => {
+  const translate = useTranslate();
+  const fallbackFeatures = issues?.skippedInvalidDemands ?? [];
+  const totalIssueCount =
+    (issues?.skippedNonPointFeatures?.length || 0) +
+    (issues?.skippedInvalidCoordinates?.length || 0) +
+    (issues?.skippedMissingCoordinates?.length || 0) +
+    (issues?.skippedInvalidProjection?.length || 0) +
+    (issues?.skippedCreationFailures?.length || 0) +
+    fallbackFeatures.length;
+
+  if (totalIssueCount === 0) return null;
+
+  return (
+    <div className="space-y-2 mt-6">
+      <h2 className="text-md font-medium text-default">
+        {translate(
+          "importCustomerPoints.wizard.dataMapping.issues.title",
+          localizeDecimal(totalIssueCount),
+        )}
+      </h2>
+      <div className="space-y-4">
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-size-base text-yellow-800">
+            {translate(
+              "importCustomerPoints.wizard.dataMapping.messages.skippedRowsWarning",
+            )}
+          </p>
+        </div>
+        {issues?.skippedNonPointFeatures && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.nonPointGeometries",
+              issues.skippedNonPointFeatures.length.toString(),
+            )}
+            features={issues.skippedNonPointFeatures}
+          />
+        )}
+        {issues?.skippedInvalidCoordinates && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.invalidCoordinates",
+              issues.skippedInvalidCoordinates.length.toString(),
+            )}
+            features={issues.skippedInvalidCoordinates}
+          />
+        )}
+        {issues?.skippedMissingCoordinates && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.missingCoordinates",
+              issues.skippedMissingCoordinates.length.toString(),
+            )}
+            features={issues.skippedMissingCoordinates}
+          />
+        )}
+        {issues?.skippedInvalidProjection && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.invalidProjection",
+              issues.skippedInvalidProjection.length.toString(),
+            )}
+            features={issues.skippedInvalidProjection}
+          />
+        )}
+        {fallbackFeatures.length > 0 && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.defaultedDemands",
+              fallbackFeatures.length.toString(),
+            )}
+            features={fallbackFeatures}
+          />
+        )}
+        {issues?.skippedCreationFailures && (
+          <IssueSection
+            title={translate(
+              "importCustomerPoints.wizard.dataMapping.issues.creationFailures",
+              issues.skippedCreationFailures.length.toString(),
+            )}
+            features={issues.skippedCreationFailures}
+          />
+        )}
+      </div>
+    </div>
   );
 };

@@ -21,7 +21,7 @@ export function* parseCustomerPoints(
   demandPropertyName: string | null = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
-  defaultDemand: number = 0,
+  defaultDemand: number | null = null,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
@@ -67,7 +67,7 @@ function* parseGeoJSONFeatures(
   demandPropertyName: string | null = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
-  defaultDemand: number = 0,
+  defaultDemand: number | null = null,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
@@ -97,7 +97,7 @@ function* parseGeoJSONLFeatures(
   demandPropertyName: string | null = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
-  defaultDemand: number = 0,
+  defaultDemand: number | null = null,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
 
@@ -137,7 +137,7 @@ const processGeoJSONFeature = (
   demandPropertyName: string | null = "demand",
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
-  defaultDemand: number = 0,
+  defaultDemand: number | null = null,
 ): ParsedCustomerPoint | null => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
@@ -163,23 +163,21 @@ const processGeoJSONFeature = (
   let demandInSourceUnit: number;
   if (demandPropertyName) {
     const demandValue = feature.properties?.[demandPropertyName];
-    if (demandValue === null || demandValue === undefined) {
-      issues.addSkippedInvalidDemand(feature);
-      return null;
-    }
+    const isInvalid =
+      demandValue === null ||
+      demandValue === undefined ||
+      typeof demandValue === "boolean" ||
+      isNaN(Number(demandValue));
 
-    if (typeof demandValue === "boolean") {
+    if (isInvalid) {
       issues.addSkippedInvalidDemand(feature);
-      return null;
-    }
-
-    demandInSourceUnit = Number(demandValue);
-    if (isNaN(demandInSourceUnit)) {
-      issues.addSkippedInvalidDemand(feature);
-      return null;
+      if (defaultDemand === null) return null;
+      demandInSourceUnit = defaultDemand;
+    } else {
+      demandInSourceUnit = Number(demandValue);
     }
   } else {
-    demandInSourceUnit = defaultDemand;
+    demandInSourceUnit = defaultDemand ?? 0;
   }
 
   try {

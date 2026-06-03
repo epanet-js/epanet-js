@@ -657,7 +657,10 @@ type IssueSectionProps = {
   features: Feature[];
 };
 
-const IssueSection: React.FC<IssueSectionProps> = ({ title, features }) => {
+export const IssueSection: React.FC<IssueSectionProps> = ({
+  title,
+  features,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const translate = useTranslate();
 

@@ -1002,6 +1002,7 @@
           "missingCoordinates": "Coordinates missing ({{1}})",
           "invalidProjection": "Invalid projection - expected WGS84/EPSG:4326 ({{1}})",
           "invalidDemands": "Invalid demands ({{1}})",
+          "defaultedDemands": "Invalid demands ({{1}}) (using default)",
           "invalidJsonLines": "Invalid JSON lines ({{1}})",
           "creationFailures": "Creation failures ({{1}})",
           "noValidJunction": "No valid junction ({{1}})",

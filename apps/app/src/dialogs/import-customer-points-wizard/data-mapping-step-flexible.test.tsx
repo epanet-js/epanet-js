@@ -75,7 +75,7 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
       });
     });
 
-    it("disables the default demand input when an attribute is selected", async () => {
+    it("keeps the default demand input editable when an attribute is selected", async () => {
       const user = userEvent.setup();
       const store = setInitialState({
         hydraulicModel: HydraulicModelBuilder.with().build(),
@@ -112,8 +112,146 @@ describe("DataMappingStepFlexible (FLAG_CP_OPTIONAL_DEMAND)", () => {
       await user.click(await screen.findByRole("option", { name: "demand" }));
 
       await waitFor(() => {
-        expect(defaultDemandInput).toBeDisabled();
+        expect(
+          screen.getByRole("combobox", { name: "Demand" }),
+        ).toHaveTextContent("demand");
       });
+      expect(defaultDemandInput).not.toBeDisabled();
+    });
+  });
+
+  describe("default demand fallback notice", () => {
+    it("reports how many points used the default value when the attribute is missing on some features", async () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        selectedDemandProperty: "demand",
+        inputData: {
+          properties: new Set(["demand"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: { demand: 10 },
+            },
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.002, 0.002],
+              },
+              properties: {},
+            },
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.003, 0.003],
+              },
+              properties: { demand: null },
+            },
+          ],
+        },
+      });
+
+      renderWizard(store);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Invalid demands \(2\)/i),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("does not show the notice when every point is defaulted (no attribute selected)", async () => {
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["name"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: { name: "A" },
+            },
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.002, 0.002],
+              },
+              properties: { name: "B" },
+            },
+          ],
+        },
+      });
+
+      renderWizard(store);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(2\)/)).toBeInTheDocument();
+      });
+
+      expect(
+        screen.queryByText(/Invalid demands/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not show the notice when every point has a valid attribute value", async () => {
+      const user = userEvent.setup();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, {
+        selectedFile: new File(["test"], "test.geojson", {
+          type: "application/json",
+        }),
+        inputData: {
+          properties: new Set(["demand"]),
+          features: [
+            {
+              type: "Feature" as const,
+              geometry: {
+                type: "Point" as const,
+                coordinates: [0.001, 0.001],
+              },
+              properties: { demand: 10 },
+            },
+          ],
+        },
+      });
+
+      renderWizard(store);
+
+      const demandSelector = screen.getByRole("combobox", { name: "Demand" });
+      await user.click(demandSelector);
+      await user.click(await screen.findByRole("option", { name: "demand" }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Customer points \(1\)/)).toBeInTheDocument();
+      });
+
+      expect(
+        screen.queryByText(/Invalid demands/i),
+      ).not.toBeInTheDocument();
     });
   });
 
