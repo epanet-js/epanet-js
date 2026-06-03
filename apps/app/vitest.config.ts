@@ -4,8 +4,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-const projectDir = process.cwd();
-loadEnvConfig(projectDir);
+loadEnvConfig(__dirname);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,7 +18,7 @@ export default defineConfig({
       ["src/**/*.integration.test.ts", "jsdom"],
       ["src/**/*.test.ts", "node"],
     ],
-    dir: "./",
+    dir: __dirname,
     deps: {
       interopDefault: true,
     },
