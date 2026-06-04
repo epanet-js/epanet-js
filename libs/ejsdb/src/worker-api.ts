@@ -85,15 +85,14 @@ const ready = (async () => {
   const inWorker =
     typeof (globalThis as { WorkerGlobalScope?: unknown }).WorkerGlobalScope !==
     "undefined";
-  const config =
-    inWorker
-      ? {
-          locateFile: (file: string) =>
-            file === "sqlite3.wasm"
-              ? `/vendor/sqlite3-${sqliteWasmPkg.version}.wasm`
-              : file,
-        }
-      : undefined;
+  const config = inWorker
+    ? {
+        locateFile: (file: string) =>
+          file === "sqlite3.wasm"
+            ? `/vendor/sqlite3-${sqliteWasmPkg.version}.wasm`
+            : file,
+      }
+    : undefined;
   sqlite3 = (await init(config)) as Sqlite3;
 })();
 

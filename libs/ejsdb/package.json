@@ -16,6 +16,7 @@
   },
   "scripts": {
     "lint": "eslint --cache --ext .ts src",
+    "lint:fix": "eslint --cache --ext .ts src --fix",
     "check-types": "tsc --noEmit",
     "test": "vitest run"
   },
