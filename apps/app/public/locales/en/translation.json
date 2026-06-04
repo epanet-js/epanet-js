@@ -23,7 +23,8 @@
       "shp": "Waiting for geometry (SHP)",
       "dbf": "Waiting for property database (DBF)",
       "prj": "Waiting for projection (PRJ)"
-    }
+    },
+    "shapefileReady": "Required Shapefiles ready"
   },
   "operationalData": "Operational data",
   "analysisTools": "Analysis tools",

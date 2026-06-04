@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { useDropZone } from "src/hooks/use-drop-zone";
 import { useTranslate } from "src/hooks/use-translate";
-import { UploadIcon, CloseIcon } from "src/icons";
+import { UploadIcon, CloseIcon, CheckIcon } from "src/icons";
 
 export type GisFormat = "geojson" | "geojsonl" | "shapefile";
 
@@ -86,6 +86,18 @@ const getFileGroupType = (
   return "shapefile";
 };
 
+const PRIMARY_EXTENSION: Record<ReturnType<typeof getFileGroupType>, string> = {
+  geojson: ".geojson",
+  geojsonl: ".geojsonl",
+  shapefile: ".shp",
+};
+
+const getDisplayName = (files: GisFiles): string => {
+  const baseName = getBaseName(files);
+  const ext = PRIMARY_EXTENSION[getFileGroupType(files)];
+  return baseName + ext;
+};
+
 const Badge = ({
   label,
   variant,
@@ -94,7 +106,7 @@ const Badge = ({
   variant: "green" | "gray";
 }) => (
   <span
-    className={`text-[10px] uppercase font-semibold rounded-sm px-2 py-0.5 ${
+    className={`px-2 py-0.5 rounded text-xs ${
       variant === "green"
         ? "bg-green-100 text-green-700"
         : "bg-gray-100 text-gray-700"
@@ -133,7 +145,7 @@ const SelectedFileList = ({
   if (!hasFiles) return null;
 
   const groupType = getFileGroupType(files);
-  const baseName = getBaseName(files);
+  const displayName = getDisplayName(files);
 
   const waitingMessage =
     groupType === "shapefile"
@@ -141,12 +153,23 @@ const SelectedFileList = ({
       : undefined;
 
   return (
-    <div className="flex items-center gap-2 bg-base rounded-md px-3 py-1.5 border shadow-xs">
-      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+    <div className="relative p-3 bg-base rounded-md border border-gray-200">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute top-2 right-2 p-0.5 rounded hover:bg-base-hover text-subtle hover:text-default"
+        aria-label="Remove files"
+      >
+        <CloseIcon className="h-4 w-4" />
+      </button>
+      <div className="flex flex-col gap-1 pr-6">
+        <span className="text-size-base text-default truncate font-medium">
+          {displayName}
+        </span>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-size-base text-default truncate font-medium">
-            {baseName}
-          </span>
           {groupType === "geojson" && <Badge label="GEOJSON" variant="green" />}
           {groupType === "geojsonl" && (
             <Badge label="GEOJSONL" variant="green" />
@@ -169,23 +192,18 @@ const SelectedFileList = ({
             </>
           )}
         </div>
-        {waitingMessage && (
-          <span className="text-subtle text-xs">
-            {translate(waitingMessage.translationKey)}
-          </span>
-        )}
+        {groupType === "shapefile" &&
+          (waitingMessage ? (
+            <span className="flex items-center gap-1 mt-1 text-xs text-slate-600">
+              {translate(waitingMessage.translationKey)}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 mt-1 text-xs text-green-700">
+              <CheckIcon className="h-3 w-3" />
+              {translate("dropZone.shapefileReady")}
+            </span>
+          ))}
       </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="shrink-0 p-0.5 rounded hover:bg-base-hover text-subtle hover:text-default"
-        aria-label="Remove files"
-      >
-        <CloseIcon className="h-4 w-4" />
-      </button>
     </div>
   );
 };
