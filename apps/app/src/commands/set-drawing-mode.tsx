@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { ephemeralStateAtom } from "src/state/drawing";
 import { selectionAtom } from "src/state/selection";
 import { lastDrawingModeAtom, Mode, modeAtom } from "src/state/mode";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 
 const DRAWING_MODES = [
   Mode.DRAW_JUNCTION,

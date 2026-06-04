@@ -37,7 +37,7 @@ import { changeProperty } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
-import { useSelection } from "src/selection/use-selection";
+import { useSelection } from "src/selection";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 

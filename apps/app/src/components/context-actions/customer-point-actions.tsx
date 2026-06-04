@@ -8,6 +8,7 @@ import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useAtomValue } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useConnectCustomerPoints,
@@ -86,14 +87,13 @@ export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
-  const customerPoint =
-    selection.type === "singleCustomerPoint"
-      ? hydraulicModel.customerPoints.get(selection.id)
-      : undefined;
+  const customerPoint = USelection.isSingleCustomerPoint(selection)
+    ? hydraulicModel.customerPoints.get(selection.id)
+    : undefined;
 
   const actions = useCustomerPointActions(customerPoint, as);
 
-  if (selection.type !== "singleCustomerPoint") return null;
+  if (!USelection.isSingleCustomerPoint(selection)) return null;
 
   return (
     <>

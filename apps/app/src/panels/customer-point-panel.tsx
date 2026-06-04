@@ -5,6 +5,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import { useCustomerPointActions } from "src/components/context-actions/customer-point-actions";
@@ -41,10 +42,9 @@ export function CustomerPointPanel() {
   const { transact } = useModelTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
-  const customerPoint =
-    selection.type === "singleCustomerPoint"
-      ? hydraulicModel.customerPoints.get(selection.id)
-      : undefined;
+  const customerPoint = USelection.isSingleCustomerPoint(selection)
+    ? hydraulicModel.customerPoints.get(selection.id)
+    : undefined;
 
   const customerPointId = customerPoint?.id;
   useEffect(() => {

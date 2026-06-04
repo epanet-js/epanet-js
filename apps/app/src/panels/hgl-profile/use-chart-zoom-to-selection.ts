@@ -2,7 +2,7 @@
 import { useEffect, type RefObject } from "react";
 import { useAtomValue } from "jotai";
 import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 import type { ProfileLink, ProfilePoint } from "./chart-data";
 
 const TARGET_LINK_FRACTION = 0.1;

@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import type { SetOptional } from "type-fest";
-import type { Sel } from "src/selection/types";
+import type { Sel } from "src/selection";
 import {
   ILayerConfig,
   ISymbology,
@@ -138,7 +138,7 @@ export const nullMapState: MapState = {
     previewProperty: null,
     layerConfigs: new Map(),
   },
-  selection: { type: "none" },
+  selection: USelection.none(),
   ephemeralState: { type: "none" },
   symbology: nullSymbologySpec,
   simulation: initialSimulationState,

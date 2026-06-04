@@ -14,6 +14,7 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom, autoElevationsAtom } from "src/state/drawing";
@@ -35,7 +36,7 @@ const resetAppState = (set: Setter) => {
   set(simulationDerivedAtom, initialSimulationState);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
-  set(selectionAtom, { type: "none" });
+  set(selectionAtom, USelection.none());
 };
 
 const clearSimulationStorage = async () => {

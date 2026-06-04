@@ -9,6 +9,7 @@ import {
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { hideHintsAtom } from "src/state/user-settings";
 import { Mode, modeAtom } from "src/state/mode";
 import { localizeKeybinding } from "src/infra/i18n";
@@ -112,7 +113,7 @@ export function Hints() {
       );
     }
     case Mode.NONE: {
-      if (selection.type === "none") {
+      if (USelection.isNone(selection)) {
         if (hydraulicModel.assets.size === 0) {
           return (
             <Hint
@@ -144,7 +145,7 @@ export function Hints() {
           }
         }
       }
-      if (selection.type === "single" && !isEditionBlocked) {
+      if (USelection.isSingleAsset(selection) && !isEditionBlocked) {
         const asset = hydraulicModel.assets.get(selection.id);
         if (asset && asset.isNode) {
           return (
@@ -156,7 +157,7 @@ export function Hints() {
           );
         }
       }
-      if (selection.type === "singleCustomerPoint" && !isEditionBlocked) {
+      if (USelection.isSingleCustomerPoint(selection) && !isEditionBlocked) {
         return (
           <Hint
             hintId={"DRAG_CUSTOMER_POINT"}

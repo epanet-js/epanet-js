@@ -1,4 +1,4 @@
-import type { Sel } from "src/selection/types";
+import { USelection } from "src/selection";
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -147,11 +147,7 @@ describe("openInpFromFs", () => {
       modelVersion: "10",
       settingsVersion: "",
     };
-    const previousSelection: Sel = {
-      type: "single",
-      id: IDS.ANY,
-      parts: [],
-    };
+    const previousSelection = USelection.fromIds([IDS.ANY]);
     const previousMomentLog = new MomentLog();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),

@@ -40,6 +40,7 @@ import {
   autoElevationsAtom,
 } from "src/state/drawing";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import {
   sourceRebuildDurationsAtom,
@@ -71,7 +72,7 @@ export const resetAppState = (set: Setter) => {
   set(nodeSizeAtom, defaultNodeSizeConfig);
   set(modeAtom, { mode: Mode.NONE });
   set(ephemeralStateAtom, { type: "none" });
-  set(selectionAtom, { type: "none" });
+  set(selectionAtom, USelection.none());
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);
   set(sourceRebuildDurationsAtom, []);

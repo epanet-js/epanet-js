@@ -58,7 +58,7 @@ export const useSaveInp = ({
           source,
           isSaveAs,
         });
-        const exportOptions: ExportOptions = { type: "inp", folderId: "" };
+        const exportOptions: ExportOptions = { type: "inp" };
         const asyncSave = async () => {
           const { fileSave } = await getFsAccess();
           const fileInfo = get(inpFileInfoAtom);

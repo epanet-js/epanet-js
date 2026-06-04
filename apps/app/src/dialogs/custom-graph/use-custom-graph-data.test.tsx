@@ -7,6 +7,7 @@ import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { SimulationState } from "src/state";
 import { useCustomGraphData } from "./use-custom-graph-data";
+import { USelection } from "src/selection";
 
 const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
 
@@ -24,7 +25,7 @@ describe("useCustomGraphData", () => {
   it("returns empty series when no simulation results exist", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
-      selection: { type: "single", id: IDS.J1, parts: [] },
+      selection: USelection.fromIds([IDS.J1]),
     });
 
     const { result, onProgress } = renderDataHook(store);
@@ -69,7 +70,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: { type: "multi", ids: [IDS.J1, IDS.P1] },
+      selection: USelection.fromIds([IDS.J1, IDS.P1]),
     });
 
     const { result } = renderDataHook(store);
@@ -106,7 +107,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: { type: "multi", ids: [IDS.J1, IDS.P1] },
+      selection: USelection.fromIds([IDS.J1, IDS.P1]),
     });
 
     const { result, onProgress } = renderDataHook(store);
@@ -132,7 +133,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: { type: "single", id: IDS.P1, parts: [] },
+      selection: USelection.fromIds([IDS.P1]),
     });
 
     const { result } = renderDataHook(store);
@@ -167,7 +168,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: { type: "single", id: IDS.P1, parts: [] },
+      selection: USelection.fromIds([IDS.P1]),
     });
 
     const { result } = renderDataHook(store);

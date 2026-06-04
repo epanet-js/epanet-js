@@ -25,6 +25,7 @@ vi.mock("src/hooks/use-zoom-to", () => ({
 }));
 
 import { CommandBar } from "./command-bar";
+import { USelection } from "src/selection";
 
 describe("CommandBar", () => {
   beforeEach(() => {
@@ -109,15 +110,9 @@ describe("CommandBar", () => {
     await waitFor(() => screen.getByText("P1"));
     await user.click(screen.getByText("P1"));
 
-    expect(store.get(selectionAtom)).toEqual({
-      type: "single",
-      id: 1,
-      parts: [],
-    });
-    expect(zoomToMock).toHaveBeenCalledWith(
-      { type: "single", id: 1, parts: [] },
-      18,
-    );
+    const selection = store.get(selectionAtom);
+    expect(USelection.isSelected(selection, 1)).toBe(true);
+    expect(zoomToMock).toHaveBeenCalledWith(selection, 18);
     expect(store.get(commandBarOpenAtom)).toBe(false);
   });
 
@@ -145,10 +140,9 @@ describe("CommandBar", () => {
     await waitFor(() => screen.getByText("CP7"));
     await user.click(screen.getByText("CP7"));
 
-    expect(store.get(selectionAtom)).toEqual({
-      type: "singleCustomerPoint",
-      id: 42,
-    });
+    expect(
+      USelection.isCustomerPointSelected(store.get(selectionAtom), 42),
+    ).toBe(true);
     expect(zoomToMock).toHaveBeenCalledWith(Maybe.of([10, 20, 10, 20]), 18);
   });
 

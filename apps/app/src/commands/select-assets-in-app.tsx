@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { AssetId } from "src/hydraulic-model";
-import { useSelection } from "src/selection/use-selection";
+import { useSelection } from "src/selection";
 import { selectionAtom } from "src/state/selection";
 
 export const useSelectAssetsInApp = () => {

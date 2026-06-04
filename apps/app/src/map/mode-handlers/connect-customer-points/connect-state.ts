@@ -5,6 +5,7 @@ import {
 } from "src/state/drawing";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { Position } from "src/types";
 import { useMemo } from "react";
@@ -15,7 +16,7 @@ export const useConnectCustomerPointsState = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   const customerPoints = useMemo(() => {
-    if (selection.type === "singleCustomerPoint") {
+    if (USelection.isSingleCustomerPoint(selection)) {
       const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       return customerPoint ? [customerPoint] : [];
     }

@@ -2,7 +2,6 @@
 
 export interface ExportOptions {
   type: "inp";
-  folderId: string | null;
 }
 
 export interface ConvertResult {

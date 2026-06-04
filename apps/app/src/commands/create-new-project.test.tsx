@@ -56,7 +56,7 @@ describe("create new project", () => {
     const previousFileInfo = aFileInfo({
       name: "previous-file",
       modelVersion: "PREV",
-      options: { type: "inp", folderId: null },
+      options: { type: "inp" },
     });
 
     const store = setInitialState({

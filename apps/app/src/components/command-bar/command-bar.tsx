@@ -8,7 +8,7 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { Asset, AssetId } from "src/hydraulic-model";
 import { LabelType } from "@epanet-js/hydraulic-model";
 import { USelection } from "src/selection";
-import { useSelection } from "src/selection/use-selection";
+import { useSelection } from "src/selection";
 import { customerPointsAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";

@@ -1,5 +1,6 @@
 import { useAtomValue } from "jotai";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
@@ -12,7 +13,7 @@ export function ContextActions() {
   const selection = useAtomValue(selectionAtom);
   const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
 
-  if (selection.type === "singleCustomerPoint") {
+  if (USelection.isSingleCustomerPoint(selection)) {
     return (
       <div className="flex items-center">
         <Divider />

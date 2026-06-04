@@ -3,6 +3,7 @@ import React from "react";
 import { NothingSelected } from "src/components/nothing-selected";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
@@ -16,7 +17,7 @@ export default function FeatureEditor() {
   const { units } = useAtomValue(projectSettingsAtom);
   const isEditionBlocked = useIsEditionBlocked();
 
-  if (selection.type === "singleCustomerPoint") {
+  if (USelection.isSingleCustomerPoint(selection)) {
     return <CustomerPointPanel />;
   }
 

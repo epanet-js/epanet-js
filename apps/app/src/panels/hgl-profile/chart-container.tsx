@@ -18,7 +18,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { highlightsAtom } from "src/state/highlights";
 import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";
 import { ProfileTooltip } from "./profile-tooltip";

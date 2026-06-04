@@ -3,7 +3,7 @@ import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
 import { PointerClickIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { Asset, AssetId } from "src/hydraulic-model";
-import { useSelection } from "src/selection/use-selection";
+import { useSelection } from "src/selection";
 import { useAtomValue } from "jotai";
 import { selectionAtom } from "src/state/selection";
 import { useUserTracking } from "src/infra/user-tracking";

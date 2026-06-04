@@ -10,7 +10,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { selectionAtom } from "src/state/selection";
-import type { Sel } from "src/selection/types";
+import { USelection } from "src/selection";
 import { SelectPathIcon, ZoomToIcon } from "src/icons";
 
 export const ProfileContextMenu = memo(function ProfileContextMenu({
@@ -40,18 +40,20 @@ function useActions(pathIds: number[]): Action[] {
   const setSelection = useSetAtom(selectionAtom);
 
   const isAllPathSelected = useMemo(() => {
-    if (selection.type !== "multi") return false;
-    if (selection.ids.length !== pathIds.length) return false;
-    const selected = new Set(selection.ids);
+    const selectedIds = USelection.toIds(selection);
+    if (selectedIds.length !== pathIds.length) return false;
+    const selected = new Set(selectedIds);
     return pathIds.every((id) => selected.has(id));
   }, [selection, pathIds]);
+
+  const pathSelection = useMemo(() => USelection.fromIds(pathIds), [pathIds]);
 
   const zoomToAction: Action = {
     icon: <ZoomToIcon />,
     applicable: pathIds.length > 0,
     label: translate("zoomTo"),
     onSelect: () => {
-      zoomTo({ type: "multi", ids: pathIds } as Sel);
+      zoomTo(pathSelection);
       return Promise.resolve();
     },
   };
@@ -61,7 +63,7 @@ function useActions(pathIds: number[]): Action[] {
     applicable: pathIds.length > 0 && !isAllPathSelected,
     label: translate("hglProfile.selectPath"),
     onSelect: () => {
-      setSelection({ type: "multi", ids: pathIds });
+      setSelection(pathSelection);
       return Promise.resolve();
     },
   };

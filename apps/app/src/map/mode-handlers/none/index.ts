@@ -4,7 +4,7 @@ import { Mode } from "src/state/mode";
 import { useSetAtom, useAtomValue } from "jotai";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "../utils";
-import { useSelection } from "src/selection";
+import { useSelection, USelection } from "src/selection";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import { searchNearbyRenderedFeatures } from "src/map/search";
 import { clickableLayers } from "src/map/layers/layer";
@@ -145,7 +145,7 @@ export function useNoneHandlers({
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
-      if (selection.type === "single") {
+      if (USelection.isSingleAsset(selection)) {
         const [assetId] = getSelectionIds();
         const clickedAsset = getClickedAsset(e);
         if (!clickedAsset || clickedAsset.id !== assetId) {
@@ -163,7 +163,7 @@ export function useNoneHandlers({
         return;
       }
 
-      if (selection.type === "singleCustomerPoint") {
+      if (USelection.isSingleCustomerPoint(selection)) {
         const clickedCustomerPoint = getClickedCustomerPoint(e);
         if (!clickedCustomerPoint || clickedCustomerPoint.id !== selection.id) {
           return;
@@ -208,7 +208,7 @@ export function useNoneHandlers({
           return;
         }
 
-        if (selection.type !== "single" || !isMoving || isCommitting) {
+        if (!USelection.isSingleAsset(selection) || !isMoving || isCommitting) {
           return skipMove(e);
         }
 
@@ -307,7 +307,7 @@ export function useNoneHandlers({
       if (isMovingCustomerPoint) {
         if (
           customerPointMoveActivated &&
-          selection.type === "singleCustomerPoint"
+          USelection.isSingleCustomerPoint(selection)
         ) {
           const newCoordinates = getMapCoord(e);
           const moment = moveCustomerPoint(hydraulicModel, {
@@ -320,7 +320,7 @@ export function useNoneHandlers({
         return;
       }
 
-      if (selection.type !== "single" || !isMoving) {
+      if (!USelection.isSingleAsset(selection) || !isMoving) {
         return skipMove(e);
       }
 

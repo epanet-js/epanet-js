@@ -32,6 +32,7 @@ import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { USelection } from "src/selection";
 
 describe("AssetPanel", () => {
   describe("with a pipe", () => {
@@ -1742,7 +1743,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: IDS.J2, parts: [] },
+        selection: USelection.fromIds([IDS.J2]),
       });
     });
 
@@ -1751,7 +1752,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: IDS.P1, parts: [] },
+        selection: USelection.fromIds([IDS.P1]),
       });
     });
 
@@ -1761,7 +1762,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: { type: "single", id: IDS.P2, parts: [] },
+        selection: USelection.fromIds([IDS.P2]),
       });
     });
 
@@ -1783,7 +1784,7 @@ describe("AssetPanel", () => {
     store.set(stagingModelAtom, hydraulicModel);
     store.set(dataAtom, {
       ...nullData,
-      selection: { type: "single", id: selectedAssetId, parts: [] },
+      selection: USelection.fromIds([selectedAssetId]),
     });
 
     let simulation: SimulationState = initialSimulationState;

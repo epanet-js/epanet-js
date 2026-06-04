@@ -26,7 +26,8 @@ import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";
 import { ILayerConfig, LayerConfigMap } from "src/types";
-import type { Sel } from "src/selection/types";
+import type { Sel } from "src/selection";
+import { USelection } from "src/selection";
 import { nanoid } from "nanoid";
 import {
   LinkSymbology,
@@ -68,7 +69,7 @@ export const setInitialState = (
     store = createStore(),
     hydraulicModel = HydraulicModelBuilder.with().build(),
     momentLog = new MomentLog(),
-    selection = { type: "none" },
+    selection = USelection.none(),
     fileInfo = null,
     layerConfigs = new Map(),
     nodeSymbology = nullSymbologySpec.node,
@@ -171,7 +172,7 @@ export const aFileInfo = (data: Partial<FileInfo> | null) => {
     handle: undefined,
     isMadeByApp: true,
     isDemoNetwork: false,
-    options: { type: "inp", folderId: "" } as ExportOptions,
+    options: { type: "inp" } as ExportOptions,
   };
   return { ...defaults, ...data };
 };
@@ -200,15 +201,8 @@ export const aSimulationFailure = ({
   };
 };
 
-export const aSingleSelection = ({
-  id = 1,
-}: { id?: Asset["id"] } = {}): Sel => {
-  return {
-    type: "single",
-    id,
-    parts: [],
-  };
-};
+export const aSingleSelection = ({ id = 1 }: { id?: Asset["id"] } = {}): Sel =>
+  USelection.single(id);
 
 export const aNodeSymbology = ({
   colorRule: partialColorRule = {},
@@ -270,14 +264,9 @@ export const aRangeColorRule = (
 
 export const aMultiSelection = ({
   ids = [],
-}: { ids?: Asset["id"][] } = {}): Sel => {
-  return {
-    type: "multi",
-    ids,
-  };
-};
+}: { ids?: Asset["id"][] } = {}): Sel => USelection.fromIds(ids);
 
-export const nullSelection: Sel = { type: "none" };
+export const nullSelection: Sel = USelection.none();
 
 export type SimulationData = {
   pipes?: Record<

@@ -25,7 +25,7 @@ export const useDeleteCustomerPoints = () => {
       });
 
       if (
-        selection.type === "singleCustomerPoint" &&
+        USelection.isSingleCustomerPoint(selection) &&
         customerPointIds.includes(selection.id)
       ) {
         setSelection(USelection.none());

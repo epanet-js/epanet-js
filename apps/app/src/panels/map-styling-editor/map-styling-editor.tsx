@@ -42,7 +42,7 @@ import { ColorPopover } from "src/components/color-popover";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { LegendRamp } from "src/components/legends";
 import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
@@ -410,7 +410,7 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
 
     updateCustomerPointsSymbology({ visible: newVisibility });
 
-    if (!newVisibility && selection.type === "singleCustomerPoint") {
+    if (!newVisibility && USelection.isSingleCustomerPoint(selection)) {
       setSelection(USelection.none());
     }
   };

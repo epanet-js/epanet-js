@@ -4,7 +4,7 @@ import { unwrap } from "jotai/utils";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { dataAtom } from "src/state/data";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";

@@ -9,7 +9,7 @@ import {
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import { type Data, dataAtom } from "src/state/data";
+import { dataAtom } from "src/state/data";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
@@ -17,14 +17,12 @@ import { type MomentPointer } from "src/state/map";
 import { branchStateAtom } from "src/state/branch-state";
 import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
-import { sortAts } from "src/lib/parse-stored";
 
 const MAX_CHANGES_BEFORE_MAP_SYNC = 500;
 
 export function ensureAtValues(
   features: Asset[] | undefined,
   hydraulicModel: HydraulicModel,
-  ctx: Data,
 ): Asset[] {
   if (!features || features.length === 0) return [];
 
@@ -40,7 +38,7 @@ export function ensureAtValues(
     const isNew = !hydraulicModel.assets.has(inputFeature.id);
 
     if (inputFeature.at === undefined) {
-      if (!lastAt) lastAt = getFreshAt(ctx, hydraulicModel);
+      if (!lastAt) lastAt = getFreshAt(hydraulicModel);
       const at = generateKeyBetween(lastAt, null);
       lastAt = at;
       mutable.at = at;
@@ -71,7 +69,7 @@ export function applyMoment(
   const processedMoment: ModelMoment = {
     ...forwardMoment,
     note: forwardMoment.note || "Update",
-    putAssets: ensureAtValues(forwardMoment.putAssets, hydraulicModel, ctx),
+    putAssets: ensureAtValues(forwardMoment.putAssets, hydraulicModel),
   };
 
   const factories = get(modelFactoriesAtom);
@@ -104,11 +102,6 @@ export function applyMoment(
   });
   set(dataAtom, {
     selection: ctx.selection,
-    folderMap: new Map(
-      Array.from(ctx.folderMap).sort((a, b) => {
-        return sortAts(a[1], b[1]);
-      }),
-    ),
   });
   return reverseMoment;
 }

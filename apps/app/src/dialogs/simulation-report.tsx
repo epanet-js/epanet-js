@@ -14,7 +14,7 @@ import {
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 
-import { useSelection } from "src/selection/use-selection";
+import { useSelection } from "src/selection";
 import { AssetId } from "src/hydraulic-model";
 import { useZoomTo } from "src/hooks/use-zoom-to";
 import { useUserTracking } from "src/infra/user-tracking";

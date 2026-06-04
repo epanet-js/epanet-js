@@ -129,7 +129,7 @@ export const useImportInp = () => {
         modelVersion: hydraulicModel.version,
         isMadeByApp,
         isDemoNetwork: isDemo,
-        options: { type: "inp", folderId: "" },
+        options: { type: "inp" },
       });
       setProjectFileInfo(null);
       if (!isDemo && file.handle) {

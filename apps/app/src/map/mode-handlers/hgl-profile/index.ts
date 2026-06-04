@@ -7,6 +7,7 @@ import { DraftPath, ephemeralStateAtom } from "src/state/drawing";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode, modeAtom } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { Asset, AssetId, LinkAsset } from "src/hydraulic-model";
 import { deriveProfilePath } from "src/panels/hgl-profile/path-finding";
 import { buildHglProfile } from "src/panels/hgl-profile/build-hgl-profile";
@@ -112,10 +113,9 @@ export function useHglProfileHandlers(
 
     setHglProfile(built.hglProfile);
     setEphemeralState({ type: "hglProfile" });
-    setSelection({
-      type: "multi",
-      ids: [...built.path.nodeIds, ...built.path.linkIds],
-    });
+    setSelection(
+      USelection.fromIds([...built.path.nodeIds, ...built.path.linkIds]),
+    );
   };
 
   const double: Handlers["double"] = (e) => {

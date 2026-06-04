@@ -40,7 +40,35 @@ module.exports = {
     "no-warning-comments": ["error", { terms: ["fixme"] }],
     "no-restricted-imports": [
       "error",
-      { paths: ["lodash", "purify-ts", "proj4"] },
+      {
+        paths: ["lodash", "purify-ts", "proj4"],
+        patterns: [
+          {
+            group: ["src/selection/types", "**/selection/types"],
+            message:
+              "Import Sel/Category from 'src/selection' (the module's public surface) and use USelection helpers to construct or read selections. Sub-types like SelMulti/SelSingle are intentionally not exported.",
+          },
+          {
+            group: [
+              "src/selection/selection",
+              "src/selection/use-selection",
+              "**/selection/selection",
+              "**/selection/use-selection",
+            ],
+            message:
+              "Import USelection / useSelection from 'src/selection' (the module's public surface), not its internal files.",
+          },
+        ],
+      },
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector:
+          "ObjectExpression > Property[key.name='type'][value.type='Literal'][value.value=/^(single|multi)$/]",
+        message:
+          "Do not construct Sel literals directly. Use USelection.single / USelection.singleCustomerPoint / USelection.fromIds / USelection.fromKindedIds instead. (See src/selection/AGENTS.md.)",
+      },
     ],
     "no-throw-literal": "error",
     "prefer-const": 1,
@@ -100,6 +128,24 @@ module.exports = {
       files: ["./*.config.js", ".eslintrc.js"],
       env: {
         commonjs: true,
+      },
+    },
+    {
+      // The selection module owns the Sel wire shape; tests and shared
+      // helpers legitimately construct Sel literals for fixtures and
+      // assertions.
+      files: [
+        "src/selection/**",
+        "src/__helpers__/**",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+      ],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          { paths: ["lodash", "purify-ts", "proj4"] },
+        ],
+        "no-restricted-syntax": "off",
       },
     },
     {

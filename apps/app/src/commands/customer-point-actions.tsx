@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -18,7 +19,7 @@ export const useConnectCustomerPoints = () => {
 
   const connectCustomerPoints = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
-      if (selection.type !== "singleCustomerPoint") return;
+      if (!USelection.isSingleCustomerPoint(selection)) return;
 
       const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       if (!customerPoint) return;
@@ -50,7 +51,7 @@ export const useDisconnectCustomerPoints = () => {
 
   const disconnectCustomerPoints = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
-      if (selection.type !== "singleCustomerPoint") return;
+      if (!USelection.isSingleCustomerPoint(selection)) return;
 
       const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       if (!customerPoint) return;

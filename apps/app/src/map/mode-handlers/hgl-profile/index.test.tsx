@@ -12,6 +12,7 @@ import type { Store } from "src/state";
 import type { HandlerContext } from "src/types";
 import type { Asset, AssetId, HydraulicModel } from "src/hydraulic-model";
 import { useHglProfileHandlers } from "./index";
+import { USelection } from "src/selection";
 
 let nextClickedAsset: Asset | null = null;
 
@@ -107,10 +108,9 @@ describe("useHglProfileHandlers click (commit-on-click model)", () => {
       ephemeral.type === "hglProfile" ? ephemeral.anchorIds : null,
     ).toBeUndefined();
 
-    expect(store.get(selectionAtom)).toEqual({
-      type: "multi",
-      ids: [IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2],
-    });
+    expect(store.get(selectionAtom)).toEqual(
+      USelection.fromIds([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]),
+    );
 
     expect(store.get(modeAtom).mode).toBe(Mode.HGL_PROFILE);
   });
@@ -139,7 +139,7 @@ describe("useHglProfileHandlers click (commit-on-click model)", () => {
 
     expect(store.get(selectionAtom)).toEqual({
       type: "multi",
-      ids: [IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2],
+      ids: { asset: [IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2] },
     });
   });
 

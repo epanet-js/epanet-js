@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { focusAtom } from "jotai-optics";
-import { USelection } from "src/selection/selection";
+import { USelection } from "src/selection";
 import { dataAtom } from "src/state/data";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 

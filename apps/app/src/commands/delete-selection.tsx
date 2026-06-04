@@ -61,7 +61,7 @@ export const useDeleteSelection = () => {
 
   const deleteSelectedCustomerPoint = useCallback(
     (source: AssetDeleted["source"]) => {
-      if (selection.type !== "singleCustomerPoint") return false;
+      if (!USelection.isSingleCustomerPoint(selection)) return false;
 
       const customerPoint = hydraulicModel.customerPoints.get(selection.id);
       if (!customerPoint) return false;

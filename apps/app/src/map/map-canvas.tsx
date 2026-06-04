@@ -1,6 +1,6 @@
 import type { HandlerContext, DragTarget } from "src/types";
-import type { Sel } from "src/selection/types";
-import type { FlatbushLike } from "src/lib/generate-flatbush-instance";
+import type { Sel } from "src/selection";
+import { USelection } from "src/selection";
 import React, {
   useRef,
   useEffect,
@@ -29,7 +29,6 @@ import {
 import { useSetAtom } from "jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import { MapEngine } from "./map-engine";
-import { EmptyIndex } from "src/lib/generate-flatbush-instance";
 import * as CM from "@radix-ui/react-context-menu";
 import { env } from "src/lib/env-client";
 import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
@@ -91,7 +90,7 @@ const debug = isDebugOn
         `MODE_HANDLDER@${method} ${JSON.stringify({
           event: e.type,
           mode,
-          selection: selection.type,
+          selection: USelection.describe(selection),
           dragTargetRef,
           method,
         })}`,
@@ -117,12 +116,9 @@ export const MapCanvas = memo(function MapCanvas({
 
   if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
 
-  const { folderMap } = data;
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   // State
-  const [flatbushInstance, setFlatbushInstance] =
-    useState<FlatbushLike>(EmptyIndex);
   const [contextInfo, setContextInfo] = useState<ContextInfo | null>(null);
 
   const lastCursor = useRef<{
@@ -196,13 +192,10 @@ export const MapCanvas = memo(function MapCanvas({
   if (isDebugOn) (window as any).mapEngine = mapRef.current;
 
   const handlerContext: HandlerContext = {
-    flatbushInstance,
-    setFlatbushInstance,
     mode,
     dragTargetRef,
     hydraulicModel,
     units,
-    folderMap,
     selection,
     map: mapRef.current!,
     rep,

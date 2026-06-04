@@ -1,4 +1,4 @@
-import type { Sel } from "src/selection/types";
+import type { Sel } from "src/selection";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useCallback, useRef } from "react";
 import { Unit } from "@epanet-js/quantity";
@@ -524,7 +524,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
           const shouldHideCustomerPointSelection =
             !isCustomerPointsVisible &&
-            mapState.selection.type === "singleCustomerPoint";
+            USelection.isSingleCustomerPoint(mapState.selection);
 
           const combinedOverlay = [
             ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
@@ -1062,7 +1062,7 @@ const buildSelectionOverlayForCustomerPoints = (
   customerPoints: CustomerPoints,
   zoom: number,
 ): CustomerPointsOverlay => {
-  if (selection.type === "singleCustomerPoint") {
+  if (USelection.isSingleCustomerPoint(selection)) {
     const customerPoint = customerPoints.get(selection.id);
     const pipeId = customerPoint?.connection?.pipeId;
     let isActive = false;

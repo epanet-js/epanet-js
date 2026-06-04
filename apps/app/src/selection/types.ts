@@ -1,38 +1,22 @@
 /**
- * A selection of a single folder.
+ * The kinds of selectable entities tracked by a multi-selection or by a
+ * kinded `single` selection. Extend with new kinds (e.g. `"zone"`) as needed.
  */
-export interface SelFolder {
-  type: "folder";
-  /**
-   * The folder's id
-   */
-  id: StringId;
-}
+export type Category = "asset" | "customerPoint";
 
 /**
- * A selection of a single feature.
+ * A selection of a single feature. `kind` discriminates whether the id refers
+ * to an asset or a customer point.
  */
 export interface SelSingle {
   type: "single";
-  /**
-   * The feature's id
-   */
+  kind: Category;
   id: number;
-  parts: readonly VertexId[];
 }
 
 export interface SelMulti {
   type: "multi";
-  ids: readonly number[];
-  previousIds?: readonly number[];
-}
-
-export interface SelSingleCustomerPoint {
-  type: "singleCustomerPoint";
-  /**
-   * The customer point's id
-   */
-  id: number;
+  ids: { readonly [K in Category]?: readonly number[] };
 }
 
 /**
@@ -43,9 +27,7 @@ export interface SelSingleCustomerPoint {
  */
 export type Sel =
   | SelMulti
-  | SelFolder
   | {
       type: "none";
     }
-  | SelSingle
-  | SelSingleCustomerPoint;
+  | SelSingle;

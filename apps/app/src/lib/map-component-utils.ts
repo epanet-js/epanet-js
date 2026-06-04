@@ -3,13 +3,11 @@ import type {
   Polygon,
   LineString,
   FeatureMap,
-  FolderMap,
 } from "src/types";
 import type { Map as MapboxMap } from "mapbox-gl";
 import { bufferPoint } from "@epanet-js/geometry";
 import { decodeId } from "src/lib/id";
 import sortBy from "lodash/sortBy";
-import { isFeatureLocked } from "./folder";
 import { getMapCoord } from "src/map/map-event";
 import { MapEngine } from "src/map";
 import { DECK_SYNTHETIC_ID } from "src/lib/constants";
@@ -72,11 +70,9 @@ export function fuzzyClick(
   e: MouseOrTouchEvent,
   {
     featureMapDeprecated,
-    folderMap,
     pmap,
   }: {
     featureMapDeprecated: FeatureMap;
-    folderMap: FolderMap;
     pmap: MapEngine;
   },
 ): ClickedFeature | null {
@@ -123,7 +119,7 @@ export function fuzzyClick(
   for (const id of ids) {
     const decodedId = decodeId(id);
     const wrappedFeature = featureMapDeprecated.get(decodedId.featureId);
-    if (wrappedFeature && !isFeatureLocked(wrappedFeature, folderMap)) {
+    if (wrappedFeature) {
       results.push({ wrappedFeature, decodedId, id });
     }
   }

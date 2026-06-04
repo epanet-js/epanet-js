@@ -1,7 +1,7 @@
 import { AssetsMap, Asset, AssetId, Pipe, Pump } from "src/hydraulic-model";
 import { Feature } from "src/types";
 import { USelection } from "src/selection";
-import type { Sel } from "src/selection/types";
+import type { Sel } from "src/selection";
 import { findLargestSegment, Link, Valve } from "@epanet-js/hydraulic-model";
 import {
   buildFeatureId,

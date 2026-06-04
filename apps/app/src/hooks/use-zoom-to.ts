@@ -5,7 +5,7 @@ import { LngLatBoundsLike } from "mapbox-gl";
 import { Maybe } from "purify-ts/Maybe";
 import { useCallback, useContext } from "react";
 import { USelection } from "src/selection";
-import type { Sel } from "src/selection/types";
+import type { Sel } from "src/selection";
 import { dataAtom } from "src/state/data";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { BBox, FeatureCollection, IWrappedFeature } from "src/types";

@@ -44,7 +44,7 @@ describe("save inp", () => {
       modelVersion: hydraulicModel.version,
       name: "my-network.inp",
       handle: newHandle,
-      options: { type: "inp", folderId: "" },
+      options: { type: "inp" },
       isMadeByApp: true,
       isDemoNetwork: false,
     });
@@ -60,7 +60,7 @@ describe("save inp", () => {
         modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
-        options: { type: "inp", folderId: "" },
+        options: { type: "inp" },
         isMadeByApp: false,
       }),
     });
@@ -91,7 +91,7 @@ describe("save inp", () => {
         modelVersion: "ANY",
         name: "NAME",
         handle: oldHandle,
-        options: { type: "inp", folderId: "" },
+        options: { type: "inp" },
       }),
     });
 
