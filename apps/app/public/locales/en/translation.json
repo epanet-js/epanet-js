@@ -18,6 +18,11 @@
       "dbf": "Shapefile property database",
       "cpg": "Shapefile property database text encoding",
       "prj": "Shapefile WKT projection file"
+    },
+    "errors": {
+      "shpMissing": "Geometry file missing",
+      "dbfMissing": "Property database missing",
+      "prjMissing": "Projection file missing"
     }
   },
   "operationalData": "Operational data",

@@ -115,10 +115,10 @@ const SHAPEFILE_OPTIONAL_BADGES: { key: keyof GisFiles; label: string }[] = [
   { key: "cpg", label: "CPG" },
 ];
 
-const SHAPEFILE_ERRORS: { key: keyof GisFiles; message: string }[] = [
-  { key: "shp", message: "Geometry file missing" },
-  { key: "dbf", message: "Property database missing" },
-  { key: "prj", message: "Projection file missing" },
+const SHAPEFILE_ERRORS: { key: keyof GisFiles; translationKey: string }[] = [
+  { key: "shp", translationKey: "dropZone.errors.shpMissing" },
+  { key: "dbf", translationKey: "dropZone.errors.dbfMissing" },
+  { key: "prj", translationKey: "dropZone.errors.prjMissing" },
 ];
 
 const SelectedFileList = ({
@@ -128,6 +128,7 @@ const SelectedFileList = ({
   files: GisFiles;
   onRemove: () => void;
 }) => {
+  const translate = useTranslate();
   const hasFiles = Object.values(files).some(Boolean);
   if (!hasFiles) return null;
 
@@ -170,12 +171,12 @@ const SelectedFileList = ({
         </div>
         {errors.length > 0 && (
           <div className="flex items-center gap-2">
-            {errors.map(({ key, message }) => (
+            {errors.map(({ key, translationKey }) => (
               <span
                 key={key}
                 className="text-red-700 text-xs rounded-sm bg-error-subtle p-1"
               >
-                {message}
+                {translate(translationKey)}
               </span>
             ))}
           </div>
