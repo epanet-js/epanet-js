@@ -56,6 +56,36 @@ export type HydraulicModelBuffers = Omit<
   "nodeIdsLookup" | "linkIdsLookup"
 >;
 
+export type OrphanLinkConnectionDetails = {
+  linkId: number;
+  linkType: string;
+  startId: number;
+  endId: number;
+  startExistsInAssets: boolean;
+  endExistsInAssets: boolean;
+  startIsNode: boolean;
+  endIsNode: boolean;
+  assetCount: number;
+  nodeMapperCount: number;
+  linkMapperCount: number;
+};
+
+export class OrphanLinkConnectionError extends Error {
+  readonly details: OrphanLinkConnectionDetails;
+
+  constructor(details: OrphanLinkConnectionDetails) {
+    super(
+      `Orphan link connection: link ${details.linkId} (${details.linkType}) ` +
+        `references node id(s) not in mapper [start=${details.startId} ` +
+        `(inAssets=${details.startExistsInAssets}, isNode=${details.startIsNode}), ` +
+        `end=${details.endId} (inAssets=${details.endExistsInAssets}, ` +
+        `isNode=${details.endIsNode})]`,
+    );
+    this.name = "OrphanLinkConnectionError";
+    this.details = details;
+  }
+}
+
 export function hydraulicModelTransferables(
   b: HydraulicModelBuffers,
 ): ArrayBuffer[] {
@@ -308,8 +338,25 @@ export class HydraulicModelEncoder {
     }
 
     const [startId, endId] = (asset as Pipe).connections;
-    const start = this.nodeIdMapper.getIdx(startId);
-    const end = this.nodeIdMapper.getIdx(endId);
+    const start = this.nodeIdMapper.tryGetIdx(startId);
+    const end = this.nodeIdMapper.tryGetIdx(endId);
+    if (start === undefined || end === undefined) {
+      const startAsset = this.model.assets.get(startId);
+      const endAsset = this.model.assets.get(endId);
+      throw new OrphanLinkConnectionError({
+        linkId: asset.id,
+        linkType: asset.type,
+        startId,
+        endId,
+        startExistsInAssets: startAsset !== undefined,
+        endExistsInAssets: endAsset !== undefined,
+        startIsNode: startAsset?.isNode === true,
+        endIsNode: endAsset?.isNode === true,
+        assetCount: this.model.assets.size,
+        nodeMapperCount: this.nodeIdMapper.count,
+        linkMapperCount: this.linkIdMapper.count,
+      });
+    }
     linkConnections.add([start, end]);
   }
 

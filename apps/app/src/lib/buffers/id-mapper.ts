@@ -18,6 +18,10 @@ export class IdMapper {
     return idx;
   }
 
+  tryGetIdx(id: number): number | undefined {
+    return this.idxLookup.get(id);
+  }
+
   getId(idx: number): number {
     return this.idsLookup[idx];
   }

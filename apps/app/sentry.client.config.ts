@@ -11,9 +11,22 @@ Sentry.init({
   tracesSampleRate: 1,
   debug: false,
   tunnel,
-  beforeSend: (event) => {
+  beforeSend: (event, hint) => {
     const privacySettings = readRawPrivacySettings();
     if (privacySettings?.skipErrorReporting === true) return null;
+
+    const error = hint?.originalException;
+    if (
+      error instanceof Error &&
+      "details" in error &&
+      typeof (error as { details: unknown }).details === "object" &&
+      (error as { details: unknown }).details !== null
+    ) {
+      event.contexts = {
+        ...event.contexts,
+        [error.name]: (error as { details: Record<string, unknown> }).details,
+      };
+    }
 
     return event;
   },
