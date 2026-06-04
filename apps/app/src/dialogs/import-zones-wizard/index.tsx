@@ -38,7 +38,6 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const { projections } = useProjections();
   const networkProjection = useAtomValue(projectSettingsAtom).projection;
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedGisFiles, setSelectedGisFiles] = useState<GisFiles>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("none");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -67,20 +66,21 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     },
   ];
 
-  const processFile = useCallback(
-    async (file: File) => {
+  const processGisFiles = useCallback(
+    async (gisFiles: GisFiles) => {
       setFileError(null);
       setReadResult(null);
       setIsProcessing(true);
 
-      const result = await readZoneFeatures(file, projections);
+      const primaryFile = gisFiles.geojson ?? gisFiles.shp;
+      const result = await readZoneFeatures(gisFiles, projections);
 
       setIsProcessing(false);
 
       if (result.error) {
         userTracking.capture({
           name: "importZones.dataInput.parseError",
-          fileName: file.name,
+          fileName: primaryFile?.name ?? "unknown",
           errorCode: result.error,
         });
         setFileError(result.error);
@@ -89,7 +89,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 
       userTracking.capture({
         name: "importZones.dataInput.fileLoaded",
-        fileName: file.name,
+        fileName: primaryFile?.name ?? "unknown",
         featuresCount: result.features.length,
         propertiesCount: result.uniqueProperties.size,
         coordinateConversion: !!result.coordinateConversion,
@@ -100,12 +100,21 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     [projections, userTracking],
   );
 
-  const handleFileDrop = useCallback(
-    (file: File) => {
-      setSelectedFile(file);
-      void processFile(file);
+  const handleGisFilesDrop = useCallback(
+    (gisFiles: GisFiles) => {
+      setSelectedGisFiles(gisFiles);
+
+      const hasGeojson = !!gisFiles.geojson;
+      const hasShapefile = !!(gisFiles.shp && gisFiles.dbf && gisFiles.prj);
+
+      if (hasGeojson || hasShapefile) {
+        void processGisFiles(gisFiles);
+      } else {
+        setReadResult(null);
+        setFileError(null);
+      }
     },
-    [processFile],
+    [processGisFiles],
   );
 
   const handleNextFromDataInput = useCallback(() => {
@@ -198,10 +207,8 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
       <WizardContent>
         {currentStep === DATA_INPUT_STEP_NUMBER && (
           <DataInputStep
-            selectedFile={selectedFile}
-            onFileDrop={handleFileDrop}
             gisFiles={selectedGisFiles}
-            onGisFilesDrop={setSelectedGisFiles}
+            onGisFilesDrop={handleGisFilesDrop}
             error={fileError}
             showNoProjectionWarning={
               readResult !== null && !readResult.coordinateConversion

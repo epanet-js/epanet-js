@@ -491,8 +491,9 @@ describe("readZoneFeatures", () => {
   });
 });
 
-const fileFrom = (content: string, name = "test.geojson") =>
-  new File([content], name, { type: "application/json" });
+const fileFrom = (content: string, name = "test.geojson") => ({
+  geojson: new File([content], name, { type: "application/json" }),
+});
 
 const mockProjections = new Map<string, Proj4Projection>([
   [

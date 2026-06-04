@@ -9,8 +9,6 @@ type DataInputStepProps = {
   error: string | null;
   showNoProjectionWarning: boolean;
   networkProjectionName: string;
-  onFileDrop: (file: File) => void;
-  selectedFile: File | null;
   gisFiles: GisFiles;
   onGisFilesDrop: (gisFiles: GisFiles) => void;
 };
@@ -21,14 +19,9 @@ export const DataInputStep = (props: DataInputStepProps) => {
     props;
   const translate = useTranslate();
 
-  const handleGisFilesDrop = useCallback(
-    (updated: GisFiles) => {
-      props.onGisFilesDrop(updated);
-
-      const primaryFile = updated.geojson ?? updated.shp;
-      if (primaryFile) {
-        props.onFileDrop(primaryFile);
-      }
+  const handleLegacyFileDrop = useCallback(
+    (file: File) => {
+      props.onGisFilesDrop({ geojson: file });
     },
     [props],
   );
@@ -40,16 +33,16 @@ export const DataInputStep = (props: DataInputStepProps) => {
       </h2>
       {useGisDropZone ? (
         <GisDropZone
-          onFileDrop={handleGisFilesDrop}
+          onFileDrop={props.onGisFilesDrop}
           supportedFormats={["geojson", "shapefile"]}
           selectedFiles={gisFiles}
         />
       ) : (
         <DropZone
-          onFileDrop={props.onFileDrop}
+          onFileDrop={handleLegacyFileDrop}
           accept=".geojson"
           supportedFormats="GeoJSON"
-          selectedFile={props.selectedFile}
+          selectedFile={gisFiles.geojson ?? null}
         />
       )}
       {error && (
