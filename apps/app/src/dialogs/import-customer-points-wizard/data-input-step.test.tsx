@@ -1,12 +1,18 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
+import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
+import { GisParseError } from "src/lib/gis-import/types";
 import { setWizardState } from "./__helpers__/wizard-state";
 import { renderWizard } from "./__helpers__/render-wizard";
+
+vi.mock("src/lib/gis-import/parse-shapefile");
 
 describe("DataInputStep", () => {
   beforeEach(() => {
@@ -266,6 +272,144 @@ describe("DataInputStep", () => {
     });
   });
 
+  describe("shapefile upload", () => {
+    beforeEach(() => {
+      stubFeatureOn("FLAG_SHP_CP_IMPORT");
+    });
+
+    it("processes valid shapefile successfully", async () => {
+      vi.mocked(parseShapefile).mockResolvedValue({
+        featureCollection: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [0.001, 0.001] },
+              properties: { name: "Customer A", demand: 25.5 },
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [0.002, 0.002] },
+              properties: { name: "Customer B", demand: 50.0 },
+            },
+          ],
+        },
+        name: "customers",
+        properties: ["name", "demand"],
+        coordinateConversion: {
+          detected: "GCS_WGS_1984",
+          converted: false,
+          fromCRS: "GCS_WGS_1984",
+        },
+      });
+
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadShapefileInStep();
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("tab", {
+            name: /data preview/i,
+            current: "step",
+          }),
+        ).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.fileLoaded",
+        fileName: "customers.shp",
+        propertiesCount: 2,
+        featuresCount: 2,
+        coordinateConversion: {
+          detected: "GCS_WGS_1984",
+          converted: false,
+          fromCRS: "GCS_WGS_1984",
+        },
+      });
+    });
+
+    it("shows error when shapefile parsing fails", async () => {
+      vi.mocked(parseShapefile).mockRejectedValue(
+        new GisParseError("customers.shp", "invalid-format"),
+      );
+
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadShapefileInStep();
+
+      await waitFor(() => {
+        expect(screen.getByText(/failed to parse file/i)).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.parseError",
+        fileName: "customers.shp",
+        errorCode: "invalid-format",
+      });
+    });
+
+    it("shows unsupported CRS error for unknown projections", async () => {
+      vi.mocked(parseShapefile).mockRejectedValue(
+        new GisParseError("customers.shp", "unsupported-crs"),
+      );
+
+      const userTracking = stubUserTracking();
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      await uploadShapefileInStep();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unsupported coordinate reference system/i),
+        ).toBeInTheDocument();
+      });
+
+      expect(userTracking.capture).toHaveBeenCalledWith({
+        name: "importCustomerPoints.dataInput.parseError",
+        fileName: "customers.shp",
+        errorCode: "unsupported-crs",
+      });
+    });
+
+    it("does not process shapefiles until all required files are present", async () => {
+      vi.mocked(parseShapefile).mockClear();
+
+      const store = setInitialState({
+        hydraulicModel: HydraulicModelBuilder.with().build(),
+      });
+
+      setWizardState(store, { currentStep: 1 });
+      renderWizard(store);
+
+      // Upload only .shp without .dbf and .prj
+      const fileInput = document.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement;
+      const shpFile = aTestFile({ filename: "customers.shp" });
+      await userEvent.upload(fileInput, shpFile);
+
+      expect(parseShapefile).not.toHaveBeenCalled();
+    });
+  });
+
   describe("file processing error handling", () => {
     it("shows parse error and stays on current step when JSON parsing fails", async () => {
       const userTracking = stubUserTracking();
@@ -482,6 +626,19 @@ const uploadFileInStep = async (file: File) => {
   expect(fileInput).toBeInTheDocument();
 
   await userEvent.upload(fileInput, file);
+};
+
+const uploadShapefileInStep = async () => {
+  const fileInput = document.querySelector(
+    'input[type="file"]',
+  ) as HTMLInputElement;
+  expect(fileInput).toBeInTheDocument();
+
+  const shpFile = aTestFile({ filename: "customers.shp" });
+  const dbfFile = aTestFile({ filename: "customers.dbf" });
+  const prjFile = aTestFile({ filename: "customers.prj" });
+
+  await userEvent.upload(fileInput, [shpFile, dbfFile, prjFile]);
 };
 
 const uploadInvalidFile = async (file: File) => {

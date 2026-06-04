@@ -7,6 +7,8 @@ import { DropZone } from "src/components/drop-zone";
 import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
+import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
+import { GisParseError } from "src/lib/gis-import/types";
 import type { Proj4Projection } from "src/lib/projections";
 import {
   customerPointsImportGuide,
@@ -173,15 +175,110 @@ export const DataInputStep: React.FC<{
     ],
   );
 
+  const handleShapefileProcess = useCallback(
+    async (files: GisFiles) => {
+      const shpFile = files.shp;
+      if (!shpFile) return;
+
+      resetWizardData();
+      setSelectedFile(shpFile);
+      setLoading(true);
+
+      try {
+        const fileArray = [files.shp, files.dbf, files.prj, files.cpg].filter(
+          (f): f is File => f != null,
+        );
+        const result = await parseShapefile(fileArray);
+        const features = result.featureCollection.features;
+
+        if (features.length === 0) {
+          userTracking.capture({
+            name: "importCustomerPoints.dataInput.noValidPoints",
+            fileName: shpFile.name,
+          });
+          setError(
+            translate("importCustomerPoints.dataSource.noValidPointsError"),
+          );
+          setLoading(false);
+          return;
+        }
+
+        setInputData({
+          features,
+          properties: new Set(result.properties),
+        });
+        setLoading(false);
+
+        userTracking.capture({
+          name: "importCustomerPoints.dataInput.fileLoaded",
+          fileName: shpFile.name,
+          propertiesCount: result.properties.length,
+          featuresCount: features.length,
+          coordinateConversion: result.coordinateConversion ?? null,
+        });
+
+        onNext();
+      } catch (err) {
+        const fileName = shpFile.name;
+        userTracking.capture({
+          name: "importCustomerPoints.dataInput.parseError",
+          fileName,
+          errorCode: err instanceof GisParseError ? err.code : undefined,
+        });
+
+        if (err instanceof GisParseError) {
+          if (
+            err.code === "unsupported-crs" ||
+            err.code === "projection-conversion-failed"
+          ) {
+            setError(
+              translate("importCustomerPoints.dataSource.unsupportedCrsError"),
+            );
+          } else if (
+            err.code === "missing-projection" ||
+            err.code === "invalid-projection"
+          ) {
+            setError(
+              translate(
+                "importCustomerPoints.dataSource.coordinateValidationError",
+              ),
+            );
+          } else {
+            setError(
+              translate("importCustomerPoints.dataSource.parseFileError"),
+            );
+          }
+        } else {
+          captureError(err as Error);
+          setError(translate("importCustomerPoints.dataSource.parseFileError"));
+        }
+        setLoading(false);
+      }
+    },
+    [
+      resetWizardData,
+      setSelectedFile,
+      setLoading,
+      setError,
+      setInputData,
+      onNext,
+      userTracking,
+      translate,
+    ],
+  );
+
   const handleGisFilesDrop = useCallback(
     (files: GisFiles) => {
       setGisFiles(files);
-      const file = files.geojson ?? files.geojsonl;
-      if (file) {
+
+      if (files.geojson || files.geojsonl) {
+        const file = (files.geojson ?? files.geojsonl)!;
         void handleFileProcess(file);
+      } else if (files.shp && files.dbf && files.prj) {
+        void handleShapefileProcess(files);
       }
     },
-    [handleFileProcess],
+    [handleFileProcess, handleShapefileProcess],
   );
 
   return (
@@ -203,7 +300,7 @@ export const DataInputStep: React.FC<{
             {isGisDropZoneOn ? (
               <GisDropZone
                 onFileDrop={handleGisFilesDrop}
-                supportedFormats={["geojson", "geojsonl"]}
+                supportedFormats={["geojson", "geojsonl", "shapefile"]}
                 selectedFiles={gisFiles}
                 disabled={isLoading}
                 testId="customer-points-drop-zone"
