@@ -7,6 +7,7 @@ import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
+import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { modelBuilderV2Url } from "src/global-config";
 
 interface IframeMessage {
@@ -50,6 +51,7 @@ const handleModelBuildEjsdbComplete = (
   userTracking: ReturnType<typeof useUserTracking>,
   checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
   openProjectFile: ReturnType<typeof useOpenProjectFile>,
+  toggleNetworkReview: ReturnType<typeof useToggleNetworkReview>,
 ) => {
   if (!message.data.ejsdbBytes) {
     return;
@@ -68,6 +70,7 @@ const handleModelBuildEjsdbComplete = (
 
   checkUnsavedChanges(async () => {
     await openProjectFile(projectFile, "modelBuilder");
+    toggleNetworkReview({ source: "auto", state: true });
   });
 };
 
@@ -104,6 +107,7 @@ export const ModelBuilderV2IframeDialog = ({
   const openProjectFile = useOpenProjectFile();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
+  const toggleNetworkReview = useToggleNetworkReview();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -123,6 +127,7 @@ export const ModelBuilderV2IframeDialog = ({
           userTracking,
           checkUnsavedChanges,
           openProjectFile,
+          toggleNetworkReview,
         );
       } else if (message.type === "trackUserEvent") {
         handleUserEvent(message as TrackUserEventMessage, userTracking);
@@ -136,7 +141,7 @@ export const ModelBuilderV2IframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [openProjectFile, checkUnsavedChanges, userTracking]);
+  }, [openProjectFile, checkUnsavedChanges, userTracking, toggleNetworkReview]);
 
   return (
     <BaseDialog
