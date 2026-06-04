@@ -24,6 +24,158 @@ interface GisDropZoneProps {
   testId?: string;
 }
 
+export const GisDropZone: React.FC<GisDropZoneProps> = ({
+  onFileDrop,
+  onFileRejected,
+  disabled = false,
+  supportedFormats = DEFAULT_FORMATS,
+  selectedFiles,
+  testId = "gis-drop-zone",
+}) => {
+  const translate = useTranslate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const accept = useMemo(
+    () => getAcceptString(supportedFormats),
+    [supportedFormats],
+  );
+
+  const handleFiles = useCallback(
+    (incomingFiles: File[]) => {
+      const updated: GisFiles = { ...selectedFiles };
+      let hasNew = false;
+
+      for (const file of incomingFiles) {
+        if (!isFileAcceptedByFormats(file, supportedFormats)) {
+          onFileRejected?.(file, "format");
+          continue;
+        }
+        const key = getGisFileKey(file);
+        if (key) {
+          updated[key] = file;
+          hasNew = true;
+        }
+      }
+
+      if (hasNew) {
+        onFileDrop(updated);
+      }
+    },
+    [supportedFormats, selectedFiles, onFileDrop, onFileRejected],
+  );
+
+  const handleSingleFile = useCallback(
+    (file: File) => handleFiles([file]),
+    [handleFiles],
+  );
+
+  const { dragState, dropZoneProps } = useDropZone({
+    onFileDrop: handleSingleFile,
+    onFileRejected,
+    accept,
+    disabled,
+    multiple: true,
+  });
+
+  const resetDropZoneHookState = useCallback(
+    (e: React.DragEvent) =>
+      dropZoneProps.onDrop?.(e as React.DragEvent<HTMLDivElement>),
+    [dropZoneProps],
+  );
+
+  const handleDropZoneClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (disabled || !e.target.files) return;
+      handleFiles(Array.from(e.target.files));
+      e.target.value = "";
+    },
+    [disabled, handleFiles],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      if (disabled) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      resetDropZoneHookState(e);
+
+      const files = e.dataTransfer?.files
+        ? Array.from(e.dataTransfer.files)
+        : [];
+
+      if (files.length > 0) {
+        handleFiles(files);
+      }
+    },
+    [disabled, handleFiles, resetDropZoneHookState],
+  );
+
+  const handleRemoveFile = useCallback(() => {
+    onFileDrop({});
+  }, [onFileDrop]);
+
+  const hasFiles = selectedFiles
+    ? Object.values(selectedFiles).some(Boolean)
+    : false;
+  const formatLabel = getFormatLabel(supportedFormats);
+
+  return (
+    <div
+      {...dropZoneProps}
+      onDrop={handleDrop}
+      onClick={undefined}
+      className={`
+        flex flex-col gap-3 rounded-lg transition-all duration-200 border-4 p-2
+        ${hasFiles && dragState === "over" ? "border-dashed border-accent" : "border-transparent"}
+      `}
+      data-testid={testId}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        multiple
+        disabled={disabled}
+        onChange={handleInputChange}
+        className="sr-only"
+        id="gis-file-input"
+      />
+
+      {hasFiles && selectedFiles ? (
+        <>
+          <AddMoreFilesButton
+            onClick={handleDropZoneClick}
+            disabled={disabled}
+            label={translate("dropZone.addMoreFiles", formatLabel)}
+          />
+          <SelectedFileList files={selectedFiles} onRemove={handleRemoveFile} />
+        </>
+      ) : (
+        <FileDropArea
+          dragState={dragState}
+          disabled={disabled}
+          onClick={handleDropZoneClick}
+          activeText={translate("dropZone.activeText")}
+          defaultText={translate("dropZone.defaultText")}
+          supportedFormatsText={translate(
+            "dropZone.supportedFormats",
+            formatLabel,
+          )}
+        />
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Internal components
+// ---------------------------------------------------------------------------
+
 const DEFAULT_FORMATS: GisFormat[] = ["geojson", "geojsonl", "shapefile"];
 
 const SHAPEFILE_EXTENSIONS = [".shp", ".shx", ".prj", ".cpg", ".dbf"];
@@ -133,6 +285,91 @@ const SHAPEFILE_WAITING: { key: keyof GisFiles; translationKey: string }[] = [
   { key: "prj", translationKey: "dropZone.waiting.prj" },
 ];
 
+const AddMoreFilesButton = ({
+  onClick,
+  disabled,
+  label,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled: boolean;
+  label: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`
+      w-full text-center px-4 py-2 text-sm font-medium text-white rounded
+      cursor-pointer transition-colors flex items-center justify-center gap-2
+      bg-accent hover:bg-accent-hover
+      ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+    `}
+  >
+    <UploadIcon className="h-4 w-4" />
+    <span>{label}</span>
+  </button>
+);
+
+type DragState = "idle" | "dragging" | "over";
+
+const FileDropArea = ({
+  dragState,
+  disabled,
+  onClick,
+  activeText,
+  defaultText,
+  supportedFormatsText,
+}: {
+  dragState: DragState;
+  disabled: boolean;
+  onClick: (e: React.MouseEvent) => void;
+  activeText: string;
+  defaultText: string;
+  supportedFormatsText: string;
+}) => (
+  <div
+    onClick={onClick}
+    className={`
+      min-h-[100px] border-2 border-dashed rounded-lg
+      flex flex-col items-center justify-center p-8 cursor-pointer
+      transition-all duration-200 ease-in-out
+      ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
+      ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
+      ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
+      ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+    `}
+  >
+    <div className="flex flex-col items-center space-y-4">
+      <div
+        className={`
+        p-3 rounded-full
+        ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
+      `}
+      >
+        <UploadIcon
+          className={`h-8 w-8 ${
+            dragState === "over" ? "text-accent-hover" : "text-subtle"
+          }`}
+        />
+      </div>
+
+      <div className="text-center">
+        <p
+          className={`text-size-heading-3 font-medium ${
+            dragState === "over" ? "text-accent" : "text-default"
+          }`}
+        >
+          {dragState === "over" ? activeText : defaultText}
+        </p>
+
+        <p className="text-size-base text-subtle mt-2">
+          {supportedFormatsText}
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
 const SelectedFileList = ({
   files,
   onRemove,
@@ -204,193 +441,6 @@ const SelectedFileList = ({
             </span>
           ))}
       </div>
-    </div>
-  );
-};
-
-export const GisDropZone: React.FC<GisDropZoneProps> = ({
-  onFileDrop,
-  onFileRejected,
-  disabled = false,
-  supportedFormats = DEFAULT_FORMATS,
-  selectedFiles,
-  testId = "gis-drop-zone",
-}) => {
-  const translate = useTranslate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const accept = useMemo(
-    () => getAcceptString(supportedFormats),
-    [supportedFormats],
-  );
-
-  const handleFiles = useCallback(
-    (incomingFiles: File[]) => {
-      const updated: GisFiles = { ...selectedFiles };
-      let hasNew = false;
-
-      for (const file of incomingFiles) {
-        if (!isFileAcceptedByFormats(file, supportedFormats)) {
-          onFileRejected?.(file, "format");
-          continue;
-        }
-        const key = getGisFileKey(file);
-        if (key) {
-          updated[key] = file;
-          hasNew = true;
-        }
-      }
-
-      if (hasNew) {
-        onFileDrop(updated);
-      }
-    },
-    [supportedFormats, selectedFiles, onFileDrop, onFileRejected],
-  );
-
-  const handleSingleFile = useCallback(
-    (file: File) => handleFiles([file]),
-    [handleFiles],
-  );
-
-  const { dragState, dropZoneProps } = useDropZone({
-    onFileDrop: handleSingleFile,
-    onFileRejected,
-    accept,
-    disabled,
-    multiple: true,
-  });
-
-  const resetDropZoneHookState = useCallback(
-    (e: React.DragEvent) =>
-      dropZoneProps.onDrop?.(e as React.DragEvent<HTMLDivElement>),
-    [dropZoneProps],
-  );
-
-  const handleDropZoneClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (disabled || !e.target.files) return;
-      handleFiles(Array.from(e.target.files));
-      e.target.value = "";
-    },
-    [disabled, handleFiles],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      if (disabled) return;
-      e.preventDefault();
-      e.stopPropagation();
-
-      resetDropZoneHookState(e);
-
-      const files = e.dataTransfer?.files
-        ? Array.from(e.dataTransfer.files)
-        : [];
-
-      if (files.length > 0) {
-        handleFiles(files);
-      }
-    },
-    [disabled, handleFiles, resetDropZoneHookState],
-  );
-
-  const handleRemoveFile = useCallback(() => {
-    onFileDrop({});
-  }, [onFileDrop]);
-
-  const hasFiles = selectedFiles
-    ? Object.values(selectedFiles).some(Boolean)
-    : false;
-  const formatLabel = getFormatLabel(supportedFormats);
-
-  return (
-    <div
-      {...dropZoneProps}
-      onDrop={handleDrop}
-      className={`
-        flex flex-col gap-3 rounded-lg transition-all duration-200 border-4 p-2
-        ${hasFiles && dragState === "over" ? "border-dashed border-accent" : "border-transparent"}
-      `}
-      data-testid={testId}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={accept}
-        multiple
-        disabled={disabled}
-        onChange={handleInputChange}
-        className="sr-only"
-        id="gis-file-input"
-      />
-
-      {hasFiles && selectedFiles ? (
-        <>
-          <button
-            type="button"
-            onClick={handleDropZoneClick}
-            disabled={disabled}
-            className={`
-              w-full text-center px-4 py-2 text-sm font-medium text-white rounded
-              cursor-pointer transition-colors flex items-center justify-center gap-2
-              bg-accent hover:bg-accent-hover
-              ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-            `}
-          >
-            <UploadIcon className="h-4 w-4" />
-            <span>{translate("dropZone.addMoreFiles", formatLabel)}</span>
-          </button>
-          <SelectedFileList files={selectedFiles} onRemove={handleRemoveFile} />
-        </>
-      ) : (
-        <div
-          onClick={handleDropZoneClick}
-          className={`
-            min-h-[100px] border-2 border-dashed rounded-lg
-            flex flex-col items-center justify-center p-8 cursor-pointer
-            transition-all duration-200 ease-in-out
-            ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
-            ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
-            ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
-            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-          `}
-        >
-          <div className="flex flex-col items-center space-y-4">
-            <div
-              className={`
-              p-3 rounded-full
-              ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
-            `}
-            >
-              <UploadIcon
-                className={`h-8 w-8 ${
-                  dragState === "over" ? "text-accent-hover" : "text-subtle"
-                }`}
-              />
-            </div>
-
-            <div className="text-center">
-              <p
-                className={`text-size-heading-3 font-medium ${
-                  dragState === "over" ? "text-accent" : "text-default"
-                }`}
-              >
-                {dragState === "over"
-                  ? translate("dropZone.activeText")
-                  : translate("dropZone.defaultText")}
-              </p>
-
-              <p className="text-size-base text-subtle mt-2">
-                {translate("dropZone.supportedFormats", formatLabel)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
