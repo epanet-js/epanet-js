@@ -70,61 +70,128 @@ const isFileAcceptedByFormats = (file: File, formats: GisFormat[]): boolean => {
   return allExtensions.some((ext) => name.endsWith(ext));
 };
 
-const FILE_LIST_ORDER: (keyof GisFiles)[] = [
-  "geojson",
-  "geojsonl",
-  "shp",
-  "shx",
-  "dbf",
-  "cpg",
-  "prj",
+const getBaseName = (files: GisFiles): string => {
+  const file = Object.values(files).find(Boolean) as File | undefined;
+  if (!file) return "";
+  const name = file.name;
+  const dotIndex = name.lastIndexOf(".");
+  return dotIndex > 0 ? name.substring(0, dotIndex) : name;
+};
+
+const getFileGroupType = (
+  files: GisFiles,
+): "geojson" | "geojsonl" | "shapefile" => {
+  if (files.geojson) return "geojson";
+  if (files.geojsonl) return "geojsonl";
+  return "shapefile";
+};
+
+const Badge = ({
+  label,
+  variant,
+}: {
+  label: string;
+  variant: "green" | "gray";
+}) => (
+  <span
+    className={`text-[10px] uppercase font-semibold rounded-sm px-2 py-0.5 ${
+      variant === "green"
+        ? "bg-green-100 text-green-700"
+        : "bg-gray-100 text-gray-700"
+    }`}
+  >
+    {label}
+  </span>
+);
+
+const SHAPEFILE_REQUIRED_BADGES: { key: keyof GisFiles; label: string }[] = [
+  { key: "shp", label: "SHP" },
+  { key: "dbf", label: "DBF" },
+  { key: "prj", label: "PRJ" },
 ];
 
-const getFileEntries = (
-  files: GisFiles,
-): { key: keyof GisFiles; file: File }[] =>
-  FILE_LIST_ORDER.filter((key) => files[key] != null).map((key) => ({
-    key,
-    file: files[key]!,
-  }));
+const SHAPEFILE_OPTIONAL_BADGES: { key: keyof GisFiles; label: string }[] = [
+  { key: "shx", label: "SHX" },
+  { key: "cpg", label: "CPG" },
+];
+
+const SHAPEFILE_ERRORS: { key: keyof GisFiles; message: string }[] = [
+  { key: "shp", message: "Geometry file missing" },
+  { key: "dbf", message: "Property database missing" },
+  { key: "prj", message: "Projection file missing" },
+];
 
 const SelectedFileList = ({
   files,
   onRemove,
 }: {
   files: GisFiles;
-  onRemove: (key: keyof GisFiles) => void;
+  onRemove: () => void;
 }) => {
-  const translate = useTranslate();
-  const entries = getFileEntries(files);
-  if (entries.length === 0) return null;
+  const hasFiles = Object.values(files).some(Boolean);
+  if (!hasFiles) return null;
+
+  const groupType = getFileGroupType(files);
+  const baseName = getBaseName(files);
+
+  const errors =
+    groupType === "shapefile"
+      ? SHAPEFILE_ERRORS.filter(({ key }) => !files[key])
+      : [];
 
   return (
-    <div className="flex flex-col gap-1">
-      {entries.map(({ key, file }) => (
-        <div
-          key={key}
-          className="flex items-center gap-2 bg-base rounded-md px-3 py-1.5 border shadow-xs"
-        >
-          <p className="text-size-base text-default truncate font-medium">
-            {file.name}
-          </p>
-          <p className="text-size-small text-subtle truncate flex-1">
-            {translate(`dropZone.fileDescriptions.${key}`)}
-          </p>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(key);
-            }}
-            className="shrink-0 p-0.5 rounded hover:bg-base-hover text-subtle hover:text-default"
-            aria-label={`Remove ${file.name}`}
-          >
-            <CloseIcon className="h-4 w-4" />
-          </button>
+    <div className="flex items-center gap-2 bg-base rounded-md px-3 py-1.5 border shadow-xs">
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-size-base text-default truncate font-medium">
+            {baseName}
+          </span>
+          {groupType === "geojson" && <Badge label="GEOJSON" variant="green" />}
+          {groupType === "geojsonl" && (
+            <Badge label="GEOJSONL" variant="green" />
+          )}
+          {groupType === "shapefile" && (
+            <>
+              {SHAPEFILE_REQUIRED_BADGES.map(({ key, label }) => (
+                <Badge
+                  key={key}
+                  label={label}
+                  variant={files[key] ? "green" : "gray"}
+                />
+              ))}
+              {SHAPEFILE_OPTIONAL_BADGES.map(
+                ({ key, label }) =>
+                  files[key] && (
+                    <Badge key={key} label={label} variant="green" />
+                  ),
+              )}
+            </>
+          )}
         </div>
-      ))}
+        {errors.length > 0 && (
+          <div className="flex items-center gap-2">
+            {errors.map(({ key, message }) => (
+              <span
+                key={key}
+                className="text-red-700 text-xs rounded-sm bg-error-subtle p-1"
+              >
+                {message}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="shrink-0 p-0.5 rounded hover:bg-base-hover text-subtle hover:text-default"
+        aria-label="Remove files"
+      >
+        <CloseIcon className="h-4 w-4" />
+      </button>
     </div>
   );
 };
@@ -210,14 +277,9 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
     [disabled, handleFiles],
   );
 
-  const handleRemoveFile = useCallback(
-    (key: keyof GisFiles) => {
-      const updated = { ...selectedFiles };
-      delete updated[key];
-      onFileDrop(updated);
-    },
-    [selectedFiles, onFileDrop],
-  );
+  const handleRemoveFile = useCallback(() => {
+    onFileDrop({});
+  }, [onFileDrop]);
 
   const hasFiles = selectedFiles
     ? Object.values(selectedFiles).some(Boolean)
