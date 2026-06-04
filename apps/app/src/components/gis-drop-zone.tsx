@@ -260,6 +260,12 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
     multiple: true,
   });
 
+  const resetDropZoneHookState = useCallback(
+    (e: React.DragEvent) =>
+      dropZoneProps.onDrop?.(e as React.DragEvent<HTMLDivElement>),
+    [dropZoneProps],
+  );
+
   const handleDropZoneClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
@@ -279,14 +285,17 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
       e.preventDefault();
       e.stopPropagation();
 
+      resetDropZoneHookState(e);
+
       const files = e.dataTransfer?.files
         ? Array.from(e.dataTransfer.files)
         : [];
+
       if (files.length > 0) {
         handleFiles(files);
       }
     },
-    [disabled, handleFiles],
+    [disabled, handleFiles, resetDropZoneHookState],
   );
 
   const handleRemoveFile = useCallback(() => {
@@ -299,7 +308,15 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
   const formatLabel = getFormatLabel(supportedFormats);
 
   return (
-    <div className="flex flex-col gap-3" data-testid={testId}>
+    <div
+      {...dropZoneProps}
+      onDrop={handleDrop}
+      className={`
+        flex flex-col gap-3 rounded-lg transition-all duration-200 border-4 p-2
+        ${hasFiles && dragState === "over" ? "border-dashed border-accent" : "border-transparent"}
+      `}
+      data-testid={testId}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -331,8 +348,6 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
         </>
       ) : (
         <div
-          {...dropZoneProps}
-          onDrop={handleDrop}
           onClick={handleDropZoneClick}
           className={`
             min-h-[100px] border-2 border-dashed rounded-lg
