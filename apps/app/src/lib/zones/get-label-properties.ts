@@ -12,12 +12,14 @@ export const getLabelProperties = (features: ZoneFeature[]): string[] => {
     }
   }
 
-  return [...allKeys].filter((key) =>
-    features.every((feature) => {
-      const value = feature.properties?.[key];
-      return !isEmptyValue(value);
-    }),
-  );
+  return [...allKeys]
+    .filter((key) =>
+      features.every((feature) => {
+        const value = feature.properties?.[key];
+        return !isEmptyValue(value);
+      }),
+    )
+    .sort((a, b) => a.localeCompare(b));
 };
 
 const isEmptyValue = (value: unknown): boolean =>

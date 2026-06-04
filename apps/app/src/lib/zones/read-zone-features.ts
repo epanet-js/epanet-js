@@ -117,7 +117,11 @@ const extractZoneFeatures = (
     return anError("noPolygons");
   }
 
-  return { features, uniqueProperties, coordinateConversion };
+  const sortedProperties = new Set(
+    [...uniqueProperties].sort((a, b) => a.localeCompare(b)),
+  );
+
+  return { features, uniqueProperties: sortedProperties, coordinateConversion };
 };
 
 const geojsonErrorMapping: Record<
