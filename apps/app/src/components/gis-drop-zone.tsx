@@ -300,65 +300,81 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
 
   return (
     <div className="flex flex-col gap-3" data-testid={testId}>
-      <div
-        {...dropZoneProps}
-        onDrop={handleDrop}
-        onClick={handleDropZoneClick}
-        className={`
-          min-h-[100px] border-2 border-dashed rounded-lg
-          flex flex-col items-center justify-center p-8 cursor-pointer
-          transition-all duration-200 ease-in-out
-          ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
-          ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
-          ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
-          ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-        `}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={accept}
-          multiple
-          disabled={disabled}
-          onChange={handleInputChange}
-          className="sr-only"
-          id="gis-file-input"
-        />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        multiple
+        disabled={disabled}
+        onChange={handleInputChange}
+        className="sr-only"
+        id="gis-file-input"
+      />
 
-        <div className="flex flex-col items-center space-y-4">
-          <div
+      {hasFiles && selectedFiles ? (
+        <>
+          <button
+            type="button"
+            onClick={handleDropZoneClick}
+            disabled={disabled}
             className={`
-            p-3 rounded-full
-            ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
-          `}
+              w-full text-center px-4 py-2 text-sm font-medium text-white rounded
+              cursor-pointer transition-colors flex items-center justify-center gap-2
+              bg-accent hover:bg-accent-hover
+              ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+            `}
           >
-            <UploadIcon
-              className={`h-8 w-8 ${
-                dragState === "over" ? "text-accent-hover" : "text-subtle"
-              }`}
-            />
-          </div>
-
-          <div className="text-center">
-            <p
-              className={`text-size-heading-3 font-medium ${
-                dragState === "over" ? "text-accent" : "text-default"
-              }`}
+            <UploadIcon className="h-4 w-4" />
+            <span>{translate("dropZone.addMoreFiles", formatLabel)}</span>
+          </button>
+          <SelectedFileList files={selectedFiles} onRemove={handleRemoveFile} />
+        </>
+      ) : (
+        <div
+          {...dropZoneProps}
+          onDrop={handleDrop}
+          onClick={handleDropZoneClick}
+          className={`
+            min-h-[100px] border-2 border-dashed rounded-lg
+            flex flex-col items-center justify-center p-8 cursor-pointer
+            transition-all duration-200 ease-in-out
+            ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
+            ${dragState === "dragging" ? "border-purple-400 bg-accent-tint" : ""}
+            ${dragState === "over" ? "border-purple-500 border-solid bg-purple-100" : ""}
+            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+          `}
+        >
+          <div className="flex flex-col items-center space-y-4">
+            <div
+              className={`
+              p-3 rounded-full
+              ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
+            `}
             >
-              {dragState === "over"
-                ? translate("dropZone.activeText")
-                : translate("dropZone.defaultText")}
-            </p>
+              <UploadIcon
+                className={`h-8 w-8 ${
+                  dragState === "over" ? "text-accent-hover" : "text-subtle"
+                }`}
+              />
+            </div>
 
-            <p className="text-size-base text-subtle mt-2">
-              {translate("dropZone.supportedFormats", formatLabel)}
-            </p>
+            <div className="text-center">
+              <p
+                className={`text-size-heading-3 font-medium ${
+                  dragState === "over" ? "text-accent" : "text-default"
+                }`}
+              >
+                {dragState === "over"
+                  ? translate("dropZone.activeText")
+                  : translate("dropZone.defaultText")}
+              </p>
+
+              <p className="text-size-base text-subtle mt-2">
+                {translate("dropZone.supportedFormats", formatLabel)}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-
-      {hasFiles && selectedFiles && (
-        <SelectedFileList files={selectedFiles} onRemove={handleRemoveFile} />
       )}
     </div>
   );

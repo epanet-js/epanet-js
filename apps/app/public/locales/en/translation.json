@@ -24,7 +24,8 @@
       "dbf": "Waiting for property database (DBF)",
       "prj": "Waiting for projection (PRJ)"
     },
-    "shapefileReady": "Required Shapefiles ready"
+    "shapefileReady": "Required Shapefiles ready",
+    "addMoreFiles": "Add more files ({{1}})"
   },
   "operationalData": "Operational data",
   "analysisTools": "Analysis tools",
