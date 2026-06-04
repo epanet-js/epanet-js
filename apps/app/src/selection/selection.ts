@@ -238,6 +238,31 @@ export const USelection = {
       ids: buildMultiIds(assetIds, customerPointIds),
     };
   },
+  /**
+   * Apply an add/subtract/replace operation using a pair of kinded id lists.
+   * Used by triggers (trace, area-select) that compute fresh asset+CP ids
+   * together and want a single setSelection call. `operation === undefined`
+   * means replace.
+   */
+  applyKindedOperation(
+    selection: Sel,
+    next: { assetIds: readonly number[]; customerPointIds: readonly number[] },
+    operation: "add" | "subtract" | undefined,
+  ): Sel {
+    if (operation === "add") {
+      return this.fromKindedIds(
+        unionIds(this.getAssetIds(selection), next.assetIds),
+        unionIds(this.getCustomerPointIds(selection), next.customerPointIds),
+      );
+    }
+    if (operation === "subtract") {
+      return this.fromKindedIds(
+        diffIds(this.getAssetIds(selection), next.assetIds),
+        diffIds(this.getCustomerPointIds(selection), next.customerPointIds),
+      );
+    }
+    return this.fromKindedIds(next.assetIds, next.customerPointIds);
+  },
   addId(selection: Sel, kind: Category, id: number): Sel {
     if (kind === "asset") {
       return this.addSelectionId(selection, id);
@@ -311,4 +336,25 @@ export const USelection = {
 
 export const SELECTION_NONE: Sel = {
   type: "none",
+};
+
+const unionIds = (
+  current: readonly number[],
+  added: readonly number[],
+): number[] => {
+  const seen = new Set(current);
+  const merged = current.slice();
+  for (const id of added) {
+    if (!seen.has(id)) merged.push(id);
+  }
+  return merged;
+};
+
+const diffIds = (
+  current: readonly number[],
+  removed: readonly number[],
+): number[] => {
+  if (removed.length === 0) return current.slice();
+  const toRemove = new Set(removed);
+  return current.filter((id) => !toRemove.has(id));
 };

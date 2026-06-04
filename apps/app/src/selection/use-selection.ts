@@ -55,6 +55,61 @@ export const useSelection = (selection: Sel) => {
     setTab(TabOption.Asset);
   };
 
+  const selectCustomerPoints = (customerPointIds: number[]) => {
+    userTracking.capture({
+      name: "multiSelect.updated",
+      count: customerPointIds.length,
+      operation: "new",
+    });
+    setSelection(USelection.fromKindedIds([], customerPointIds));
+    setTab(TabOption.Asset);
+  };
+
+  const extendCustomerPointSelection = (customerPointId: number | number[]) => {
+    const ids = Array.isArray(customerPointId)
+      ? customerPointId
+      : [customerPointId];
+    let next = selection;
+    for (const id of ids) next = USelection.addId(next, "customerPoint", id);
+    const { assets, customerPoints } = USelection.countByKind(next);
+    userTracking.capture({
+      name: "multiSelect.updated",
+      count: assets + customerPoints,
+      operation: Array.isArray(customerPointId) ? "bulk_add" : "single_add",
+    });
+    setSelection(next);
+    setTab(TabOption.Asset);
+  };
+
+  const toggleCustomerPointSelection = (customerPointId: number) => {
+    setSelection(
+      USelection.toggleId(selection, "customerPoint", customerPointId),
+    );
+    setTab(TabOption.Asset);
+  };
+
+  const removeCustomerPointFromSelection = (
+    customerPointId: number | number[],
+  ) => {
+    const ids = Array.isArray(customerPointId)
+      ? customerPointId
+      : [customerPointId];
+    let next = selection;
+    for (const id of ids) next = USelection.removeId(next, "customerPoint", id);
+    const { assets, customerPoints } = USelection.countByKind(next);
+    userTracking.capture({
+      name: "multiSelect.updated",
+      count: assets + customerPoints,
+      operation: Array.isArray(customerPointId)
+        ? "bulk_remove"
+        : "single_remove",
+    });
+    setSelection(next);
+  };
+
+  const isCustomerPointSelected = (customerPointId: number) =>
+    USelection.isCustomerPointSelected(selection, customerPointId);
+
   const removeFromSelection = (assetId: AssetId | AssetId[]) => {
     const newSelection = Array.isArray(assetId)
       ? USelection.removeSelectionIds(selection, assetId)
@@ -78,13 +133,18 @@ export const useSelection = (selection: Sel) => {
   return {
     setSelection,
     clearSelection,
-    toggleSingleSelection,
-    extendSelection,
-    isSelected,
-    removeFromSelection,
     selectAsset,
     selectAssets,
+    extendSelection,
+    toggleSingleSelection,
+    removeFromSelection,
     selectCustomerPoint,
+    isSelected,
+    selectCustomerPoints,
+    extendCustomerPointSelection,
+    toggleCustomerPointSelection,
+    removeCustomerPointFromSelection,
+    isCustomerPointSelected,
     getSelectionIds,
   };
 };

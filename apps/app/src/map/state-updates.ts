@@ -194,6 +194,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const zonesEnabled = useFeatureFlag("FLAG_ZONES");
+  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -429,6 +430,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewSelection || hasNewCustomerPoints) {
+          const buildSelectionOverlayForCustomerPoints = isMultiCpSelectionOn
+            ? buildSelectionOverlayForCustomerPointsNew
+            : buildSelectionOverlayForCustomerPointsDeprecated;
           selectionDeckLayersRef.current =
             buildSelectionOverlayForCustomerPoints(
               mapState.selection,
@@ -563,6 +567,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     isGridOn,
     isGridPreview,
     zonesEnabled,
+    isMultiCpSelectionOn,
   ]);
 
   doUpdates();
@@ -1056,7 +1061,7 @@ const buildCustomerPointsEphemeralOverlay = (
   return [];
 };
 
-const buildSelectionOverlayForCustomerPoints = (
+const buildSelectionOverlayForCustomerPointsDeprecated = (
   selection: Sel,
   assets: AssetsMap,
   customerPoints: CustomerPoints,
@@ -1079,6 +1084,28 @@ const buildSelectionOverlayForCustomerPoints = (
     }
   }
   return [];
+};
+
+const buildSelectionOverlayForCustomerPointsNew = (
+  selection: Sel,
+  assets: AssetsMap,
+  customerPoints: CustomerPoints,
+  zoom: number,
+): CustomerPointsOverlay => {
+  const selectedCpIds = USelection.getCustomerPointIds(selection);
+  if (selectedCpIds.length === 0) return [];
+
+  const selectedCps = [];
+  let anyActive = false;
+  for (const id of selectedCpIds) {
+    const customerPoint = customerPoints.get(id);
+    if (!customerPoint) continue;
+    selectedCps.push(customerPoint);
+    const pipeId = customerPoint.connection?.pipeId;
+    if (pipeId && assets.get(pipeId)?.isActive) anyActive = true;
+  }
+  if (selectedCps.length === 0) return [];
+  return buildCustomerPointsSelectionOverlay(selectedCps, anyActive, zoom);
 };
 
 function updateGrid({
