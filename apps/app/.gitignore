@@ -72,3 +72,6 @@ specs/
 
 # Benchmark data files
 **/.benchmark/
+
+# Generated at build time by scripts/copy-sqlite-wasm.mjs
+/public/vendor/sqlite3-*.wasm

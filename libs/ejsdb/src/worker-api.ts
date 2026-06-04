@@ -1,3 +1,4 @@
+import sqliteWasmPkg from "@sqlite.org/sqlite-wasm/package.json";
 import { APP_VERSION, migrations } from "./migrations";
 import { setPerfLogging, timed } from "./perf-log";
 import type {
@@ -76,9 +77,22 @@ let sqlite3: Sqlite3 | null = null;
 let db: OoDb | null = null;
 const stmtCache = new Map<string, Stmt>();
 
+// Serve the wasm binary from the app's static /vendor folder (copied there by
+// scripts/copy-sqlite-wasm.mjs) instead of letting the bundler resolve it from
+// inside this worker — the worker-asset path is flaky in `next dev` and surfaces
+// as a fatal "Aborted(NetworkError ... sqlite3.wasm)". The version comes from the
+// same package.json the copy script reads, so the URL always matches the binary.
 const ready = (async () => {
   const mod = await import("@sqlite.org/sqlite-wasm");
-  sqlite3 = (await mod.default()) as unknown as Sqlite3;
+  const init = mod.default as unknown as (config?: {
+    locateFile?: (file: string) => string;
+  }) => Promise<unknown>;
+  sqlite3 = (await init({
+    locateFile: (file) =>
+      file === "sqlite3.wasm"
+        ? `/vendor/sqlite3-${sqliteWasmPkg.version}.wasm`
+        : file,
+  })) as Sqlite3;
 })();
 
 const getStmt = (sql: string): Stmt => {
