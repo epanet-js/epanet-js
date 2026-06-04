@@ -20,9 +20,9 @@
       "prj": "Shapefile WKT projection file"
     },
     "errors": {
-      "shpMissing": "Geometry file missing",
-      "dbfMissing": "Property database missing",
-      "prjMissing": "Projection file missing"
+      "shpMissing": "Geometry file is missing",
+      "dbfMissing": "Property database is missing",
+      "prjMissing": "Projection file is missing"
     }
   },
   "operationalData": "Operational data",
