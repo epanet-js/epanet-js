@@ -63,13 +63,8 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
     [supportedFormats, selectedFiles, onFileDrop, onFileRejected],
   );
 
-  const handleSingleFile = useCallback(
-    (file: File) => handleFiles([file]),
-    [handleFiles],
-  );
-
   const { dragState, dropZoneProps } = useDropZone({
-    onFileDrop: handleSingleFile,
+    onFileDrop: () => {},
     onFileRejected,
     accept,
     disabled,
