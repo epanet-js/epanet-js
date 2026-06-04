@@ -59,7 +59,7 @@ type BoundingBox = [number, number, number, number];
 
 type RadiusSearch = { position: Position; radiusInM: number };
 
-type SearchOptions = BoundingBox | RadiusSearch | Position[];
+export type SearchOptions = BoundingBox | RadiusSearch | Position[];
 
 function isAxisAlignedRectangle(polygonCoords: Position[]): boolean {
   if (polygonCoords.length !== 5) return false;
@@ -152,7 +152,7 @@ export function toSearchPolygon(searchOptions: SearchOptions): SearchPolygon {
   };
 }
 
-function containsNode(
+export function containsNode(
   searchPolygon: SearchPolygon,
   nodeCoord: Position,
 ): boolean {

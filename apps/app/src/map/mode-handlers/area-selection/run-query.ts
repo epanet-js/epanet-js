@@ -3,25 +3,40 @@ import { Position } from "src/types";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import {
-  AssetsGeoIndex,
   AssetsGeoBuffers,
+  AssetsGeoIndex,
   assetsGeoTransferables,
 } from "src/hydraulic-model/assets-geo";
 import {
   AssetIndexBuffers,
   assetIndexTransferables,
 } from "src/hydraulic-model/asset-index-transferable";
+import { customerPointsGeoTransferables } from "src/hydraulic-model/customer-points-geo";
 import { queryContainedAssets } from "src/hydraulic-model/spatial-queries";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import type { SpatialQueryWorkerAPI } from "./worker-api";
 import {
+  EncodedAreaSelectionBuffers,
+  EncodedAreaSelectionResult,
   EncodedContainedAssets,
+  cloneEncodedAreaSelectionBuffers,
+  decodeAreaSelectionResult,
   decodeContainedAssets,
   encodeHydraulicModel,
+  getEncodedAreaSelectionBuffers,
 } from "./data";
 import { BufferType } from "src/lib/buffers";
 
-export const runQuery = async (
+export type AreaSelectionResult = {
+  assetIds: AssetId[];
+  customerPointIds: number[];
+};
+
+// ─── Deprecated path (FLAG_MULTI_CP_SELECTION off) ─────────────────────────
+// Byte-identical to the pre-feature implementation: encodes the model each
+// drag, spawns a worker, runs the asset-only query.
+
+export const runQueryDeprecated = async (
   hydraulicModel: HydraulicModel,
   points: Position[],
   signal: AbortSignal | undefined = undefined,
@@ -38,7 +53,7 @@ export const runQuery = async (
       bufferType,
     );
 
-    const encodedResult = await runWithWorker(
+    const encodedResult = await runAssetsWithWorker(
       assetIndexBuffers,
       assetsGeoBuffers,
       points,
@@ -55,7 +70,7 @@ export const runQuery = async (
   }
 };
 
-const runWithWorker = async (
+const runAssetsWithWorker = async (
   assetIndexBuffers: AssetIndexBuffers,
   assetsGeoBuffers: AssetsGeoBuffers,
   points: Position[],
@@ -92,6 +107,79 @@ const runWithWorker = async (
       Comlink.transfer(
         assetsGeoBuffers,
         assetsGeoTransferables(assetsGeoBuffers),
+      ),
+      points,
+    );
+  } catch (e) {
+    throw enrichWorkerError("spatial-query", e);
+  } finally {
+    signal?.removeEventListener("abort", abortHandler);
+    worker.terminate();
+  }
+};
+
+// ─── New path (FLAG_MULTI_CP_SELECTION on) ─────────────────────────────────
+// Caches encoded asset and customer-point buffers across drags; clones
+// before transfer so the cache survives Comlink's ownership move.
+
+export const runQueryNew = async (
+  hydraulicModel: HydraulicModel,
+  points: Position[],
+  signal: AbortSignal | undefined = undefined,
+  bufferType: BufferType = "array",
+): Promise<AreaSelectionResult> => {
+  if (signal?.aborted) {
+    throw new DOMException("Operation cancelled", "AbortError");
+  }
+
+  const cached = getEncodedAreaSelectionBuffers(hydraulicModel, bufferType);
+  const encoded = cloneEncodedAreaSelectionBuffers(cached);
+
+  const encodedResult = await runFeaturesWithWorker(encoded, points, signal);
+  return decodeAreaSelectionResult(encodedResult);
+};
+
+const runFeaturesWithWorker = async (
+  encoded: EncodedAreaSelectionBuffers,
+  points: Position[],
+  signal?: AbortSignal,
+): Promise<EncodedAreaSelectionResult> => {
+  if (signal?.aborted) {
+    throw new DOMException("Operation cancelled", "AbortError");
+  }
+
+  if (!canUseWorker()) {
+    const { workerAPI: fallbackWorkerAPI } = await import("./worker-api");
+    return fallbackWorkerAPI.queryContainedFeatures(
+      encoded.assetIndexBuffers,
+      encoded.assetsGeoBuffers,
+      encoded.customerPointsGeoBuffers,
+      points,
+    );
+  }
+
+  const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+    type: "module",
+  });
+
+  const workerAPI = Comlink.wrap<SpatialQueryWorkerAPI>(worker);
+
+  const abortHandler = () => worker.terminate();
+  signal?.addEventListener("abort", abortHandler);
+
+  try {
+    return await workerAPI.queryContainedFeatures(
+      Comlink.transfer(
+        encoded.assetIndexBuffers,
+        assetIndexTransferables(encoded.assetIndexBuffers),
+      ),
+      Comlink.transfer(
+        encoded.assetsGeoBuffers,
+        assetsGeoTransferables(encoded.assetsGeoBuffers),
+      ),
+      Comlink.transfer(
+        encoded.customerPointsGeoBuffers,
+        customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
       ),
       points,
     );
