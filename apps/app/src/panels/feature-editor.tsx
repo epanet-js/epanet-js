@@ -17,20 +17,17 @@ export default function FeatureEditor() {
   const { units } = useAtomValue(projectSettingsAtom);
   const isEditionBlocked = useIsEditionBlocked();
 
-  if (USelection.isSingleCustomerPoint(selection)) {
+  const { assets, customerPoints } = USelection.countByKind(selection);
+
+  if (assets === 0 && customerPoints === 0) {
+    return <NothingSelected />;
+  }
+
+  if (assets === 0 && customerPoints === 1) {
     return <CustomerPointPanel />;
   }
 
-  if (selectedFeatures.length > 1) {
-    return (
-      <MultiAssetPanel
-        selectedFeatures={selectedFeatures}
-        readonly={isEditionBlocked}
-      />
-    );
-  }
-
-  if (selectedFeatures.length === 1) {
+  if (assets === 1 && customerPoints === 0) {
     return (
       <AssetPanel
         units={units}
@@ -40,5 +37,11 @@ export default function FeatureEditor() {
     );
   }
 
-  return <NothingSelected />;
+  return (
+    <MultiAssetPanel
+      selectedFeatures={selectedFeatures}
+      customerPointCount={customerPoints}
+      readonly={isEditionBlocked}
+    />
+  );
 }

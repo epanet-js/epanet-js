@@ -43,9 +43,11 @@ import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 
 export function MultiAssetPanel({
   selectedFeatures,
+  customerPointCount = 0,
   readonly = false,
 }: {
   selectedFeatures: IWrappedFeature[];
+  customerPointCount?: number;
   readonly?: boolean;
 }) {
   const { formatting, units } = useAtomValue(projectSettingsAtom);
@@ -184,10 +186,21 @@ export function MultiAssetPanel({
     [showPumpLibrary, showPatternsLibrary],
   );
 
+  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
+
   return (
     <SectionList
       padding={3}
-      header={<Header selectedCount={selectedFeatures.length} />}
+      header={
+        isMultiCpSelectionOn ? (
+          <HeaderNew
+            assetCount={selectedFeatures.length}
+            customerPointCount={customerPointCount}
+          />
+        ) : (
+          <HeaderDeprecated selectedCount={selectedFeatures.length} />
+        )
+      }
       overflow={true}
     >
       {assetCounts.junction > 0 && (
@@ -374,7 +387,7 @@ export function MultiAssetPanel({
   );
 }
 
-const Header = ({ selectedCount }: { selectedCount: number }) => {
+const HeaderDeprecated = ({ selectedCount }: { selectedCount: number }) => {
   const translate = useTranslate();
 
   return (
@@ -384,6 +397,31 @@ const Header = ({ selectedCount }: { selectedCount: number }) => {
           {translate("selection")} (
           <span className="text-nowrap">
             {pluralize(translate, "asset", selectedCount)})
+          </span>
+        </span>
+        <MultiAssetActions />
+      </div>
+    </div>
+  );
+};
+
+const HeaderNew = ({
+  assetCount,
+  customerPointCount,
+}: {
+  assetCount: number;
+  customerPointCount: number;
+}) => {
+  const translate = useTranslate();
+  const totalCount = assetCount + customerPointCount;
+
+  return (
+    <div className="px-4 pt-4 pb-3">
+      <div className="flex items-start justify-between">
+        <span className="font-semibold mt-1">
+          {translate("selection")} (
+          <span className="text-nowrap">
+            {pluralize(translate, "asset", totalCount)})
           </span>
         </span>
         <MultiAssetActions />
