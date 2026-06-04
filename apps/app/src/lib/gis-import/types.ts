@@ -17,8 +17,15 @@ export class GisParseError extends Error {
   }
 }
 
+export type CoordinateConversion = {
+  detected: string;
+  converted: boolean;
+  fromCRS: string;
+};
+
 export type GisParseResult = {
   featureCollection: FeatureCollection;
   name: string;
   properties: string[];
+  coordinateConversion?: CoordinateConversion;
 };

@@ -1,9 +1,13 @@
 import { FeatureCollection } from "geojson";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import shp from "shpjs";
 import { GisParseError } from "./types";
 import { parseShapefile } from "./parse-shapefile";
 
 vi.mock("shpjs");
+
+const EPSG_27700_WKT =
+  'PROJCS["British_National_Grid",GEOGCS["GCS_OSGB_1936",DATUM["D_OSGB_1936",SPHEROID["Airy_1830",6377563.396,299.3249646]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",400000.0],PARAMETER["False_Northing",-100000.0],PARAMETER["Central_Meridian",-2.0],PARAMETER["Scale_Factor",0.9996012717],PARAMETER["Latitude_Of_Origin",49.0],UNIT["Meter",1.0]]';
 
 function makeFile(name: string, content: string = ""): File {
   return new File([content], name);
@@ -51,7 +55,6 @@ describe("parseShapefile", () => {
   });
 
   it("throws invalid-format when shpjs throws", async () => {
-    const { default: shp } = await import("shpjs");
     vi.mocked(shp).mockRejectedValue(new Error("corrupt file"));
 
     const files = [makeFile("roads.shp")];
@@ -64,7 +67,6 @@ describe("parseShapefile", () => {
   });
 
   it("throws no-features when feature collection is empty", async () => {
-    const { default: shp } = await import("shpjs");
     vi.mocked(shp).mockResolvedValue({
       type: "FeatureCollection",
       features: [],
@@ -77,7 +79,6 @@ describe("parseShapefile", () => {
   });
 
   it("returns result for valid WGS84 shapefile without .prj", async () => {
-    const { default: shp } = await import("shpjs");
     vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
 
     const files = [makeFile("roads.shp"), makeFile("roads.dbf")];
@@ -87,7 +88,6 @@ describe("parseShapefile", () => {
   });
 
   it("throws missing-projection when no .prj and coords are out of WGS84 range", async () => {
-    const { default: shp } = await import("shpjs");
     vi.mocked(shp).mockResolvedValue(outOfRangeFeatureCollection());
 
     const files = [makeFile("roads.shp")];
@@ -98,17 +98,66 @@ describe("parseShapefile", () => {
   });
 
   it("returns result when .prj is present, trusting shpjs reprojection", async () => {
-    const { default: shp } = await import("shpjs");
-    // shpjs handles reprojection internally — we return WGS84 coords from the mock
     vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
 
     const files = [makeFile("roads.shp"), makeFile("roads.prj", "PROJCS[...]")];
     const result = await parseShapefile(files);
     expect(result.name).toBe("roads");
-    // verify shpjs was called with the prj string
-    const { default: shpMock } = await import("shpjs");
-    expect(vi.mocked(shpMock)).toHaveBeenCalledWith(
+    expect(vi.mocked(shp)).toHaveBeenCalledWith(
       expect.objectContaining({ prj: "PROJCS[...]" }),
     );
+  });
+
+  describe("coordinateConversion", () => {
+    it("returns undefined when no .prj is present", async () => {
+      vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
+
+      const files = [makeFile("roads.shp")];
+      const result = await parseShapefile(files);
+      expect(result.coordinateConversion).toBeUndefined();
+    });
+
+    it("returns converted: true for EPSG:27700 (British National Grid)", async () => {
+      vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
+
+      const files = [
+        makeFile("roads.shp"),
+        makeFile("roads.prj", EPSG_27700_WKT),
+      ];
+      const result = await parseShapefile(files);
+      expect(result.coordinateConversion).toEqual({
+        detected: "British_National_Grid",
+        converted: true,
+        fromCRS: "British_National_Grid",
+      });
+    });
+
+    it("returns converted: false for WGS 84 (GEOGCS)", async () => {
+      vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
+
+      const prjContent = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984"]]';
+      const files = [makeFile("roads.shp"), makeFile("roads.prj", prjContent)];
+      const result = await parseShapefile(files);
+      expect(result.coordinateConversion).toEqual({
+        detected: "GCS_WGS_1984",
+        converted: false,
+        fromCRS: "GCS_WGS_1984",
+      });
+    });
+
+    it("returns fromCRS Unknown for malformed WKT", async () => {
+      vi.mocked(shp).mockResolvedValue(wgs84FeatureCollection());
+
+      const files = [
+        makeFile("roads.shp"),
+        makeFile("roads.prj", "not valid wkt"),
+      ];
+      const result = await parseShapefile(files);
+      expect(result.coordinateConversion).toEqual({
+        detected: "Unknown",
+        converted: true,
+        fromCRS: "Unknown",
+      });
+    });
   });
 });

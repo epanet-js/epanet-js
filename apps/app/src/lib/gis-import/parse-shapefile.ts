@@ -1,7 +1,11 @@
 import { FeatureCollection } from "geojson";
 import shp from "shpjs";
 import { isLikelyLatLng } from "src/lib/geojson-utils/coordinate-transform";
-import { GisParseError, type GisParseResult } from "./types";
+import {
+  GisParseError,
+  type CoordinateConversion,
+  type GisParseResult,
+} from "./types";
 
 function findByExtension(files: File[], ext: string): File | undefined {
   return files.find((f) => f.name.toLowerCase().endsWith(ext));
@@ -53,5 +57,22 @@ export async function parseShapefile(files: File[]): Promise<GisParseResult> {
   const properties = Object.keys(
     featureCollection.features[0]?.properties ?? {},
   );
-  return { featureCollection, name, properties };
+  const coordinateConversion = input.prj
+    ? buildCoordinateConversion(input.prj)
+    : undefined;
+  return { featureCollection, name, properties, coordinateConversion };
+}
+
+const WGS84_NAMES = new Set(["gcs_wgs_1984", "wgs 84", "wgs84"]);
+
+function buildCoordinateConversion(wkt: string): CoordinateConversion {
+  const nameMatch = wkt.match(/^(?:PROJCS|GEOGCS)\["([^"]+)"/);
+  const fromCRS = nameMatch?.[1] ?? "Unknown";
+  const isWgs84 = WGS84_NAMES.has(fromCRS.toLowerCase());
+
+  return {
+    detected: fromCRS,
+    converted: !isWgs84,
+    fromCRS,
+  };
 }
