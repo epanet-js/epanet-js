@@ -1,13 +1,19 @@
 import { useRef } from "react";
 import { Position, HandlerContext } from "src/types";
-import { useSelection } from "src/selection";
+import { useSelection, USelection } from "src/selection";
+import { useSetAtom } from "jotai";
+import { selectionAtom } from "src/state/selection";
 import { runQuery } from "./run-query";
+import { runCustomerPointsQuery } from "./run-customer-points-query";
 import { captureError } from "src/infra/error-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const useAreaSelection = (context: HandlerContext) => {
   const { selection, hydraulicModel } = context;
   const { selectAssets, clearSelection, extendSelection, removeFromSelection } =
     useSelection(selection);
+  const setSelection = useSetAtom(selectionAtom);
+  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const abort = () => {
@@ -36,18 +42,34 @@ export const useAreaSelection = (context: HandlerContext) => {
         return;
       }
 
-      if (assetIds.length === 0) {
+      const customerPointIds = isMultiCpSelectionOn
+        ? runCustomerPointsQuery(hydraulicModel, points)
+        : [];
+
+      if (assetIds.length === 0 && customerPointIds.length === 0) {
         if (!operation) {
           clearSelection();
         }
+        return;
+      }
+
+      if (isMultiCpSelectionOn && customerPointIds.length > 0) {
+        setSelection(
+          USelection.applyKindedOperation(
+            selection,
+            { assetIds, customerPointIds },
+            operation,
+          ),
+        );
+        return;
+      }
+
+      if (operation === "add") {
+        extendSelection(assetIds);
+      } else if (operation === "subtract") {
+        removeFromSelection(assetIds);
       } else {
-        if (operation === "add") {
-          extendSelection(assetIds);
-        } else if (operation === "subtract") {
-          removeFromSelection(assetIds);
-        } else {
-          selectAssets(assetIds);
-        }
+        selectAssets(assetIds);
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
