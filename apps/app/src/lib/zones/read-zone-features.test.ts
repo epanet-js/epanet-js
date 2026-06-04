@@ -186,6 +186,45 @@ describe("readZoneFeatures", () => {
     expect(result.uniqueProperties.has("lineProp")).toBe(false);
   });
 
+  it("excludes properties with empty values from uniqueProperties", async () => {
+    const geojson = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 0],
+              ],
+            ],
+          },
+          properties: {
+            name: "Zone A",
+            nullProp: null,
+            emptyString: "",
+            whitespace: "   ",
+            nullBytes: "\0\0\0",
+            nullBytesWithSpaces: " \0 ",
+            validZero: 0,
+            validFalse: false,
+          },
+        },
+      ],
+    };
+
+    const result = await readZoneFeatures(fileFrom(JSON.stringify(geojson)));
+
+    expect(result.error).toBeUndefined();
+    expect(result.uniqueProperties).toEqual(
+      new Set(["name", "validZero", "validFalse"]),
+    );
+  });
+
   describe("projection handling", () => {
     it("returns no coordinateConversion when projections are not provided", async () => {
       const geojson = {

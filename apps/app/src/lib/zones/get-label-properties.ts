@@ -12,12 +12,15 @@ export const getLabelProperties = (features: ZoneFeature[]): string[] => {
     }
   }
 
-  return [...allKeys].filter((key) => {
-    for (const feature of features) {
+  return [...allKeys].filter((key) =>
+    features.every((feature) => {
       const value = feature.properties?.[key];
-      if (value === null || value === undefined) return false;
-    }
-
-    return true;
-  });
+      return !isEmptyValue(value);
+    }),
+  );
 };
+
+const isEmptyValue = (value: unknown): boolean =>
+  value === null ||
+  value === undefined ||
+  (typeof value === "string" && value.replace(/[\s\0]+/g, "") === "");

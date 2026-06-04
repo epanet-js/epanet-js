@@ -18,6 +18,25 @@ describe("getLabelProperties", () => {
     expect(result).not.toContain("a");
   });
 
+  it("excludes properties with empty string, whitespace, or null-byte values", () => {
+    const features = [
+      aZone({
+        name: "Zone A",
+        empty: "",
+        whitespace: "   ",
+        nullBytes: "\0\0",
+      }),
+      aZone({ name: "Zone B", empty: "x", whitespace: "y", nullBytes: "z" }),
+    ];
+
+    const result = getLabelProperties(features);
+
+    expect(result).toContain("name");
+    expect(result).not.toContain("empty");
+    expect(result).not.toContain("whitespace");
+    expect(result).not.toContain("nullBytes");
+  });
+
   it("allows properties with duplicate values", () => {
     const features = [
       aZone({ id: 1, value: 100 }),

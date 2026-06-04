@@ -106,7 +106,9 @@ const extractZoneFeatures = (
 
     if (feature.properties) {
       for (const key of Object.keys(feature.properties)) {
-        uniqueProperties.add(key);
+        if (!isEmptyValue(feature.properties[key])) {
+          uniqueProperties.add(key);
+        }
       }
     }
   }
@@ -140,6 +142,11 @@ const shapefileErrorMapping: Record<GisParseErrorCode, ReadZoneFeaturesError> =
     "projection-conversion-failed": "unsupportedProjection",
     "no-features": "invalidFile",
   };
+
+const isEmptyValue = (value: unknown): boolean =>
+  value === null ||
+  value === undefined ||
+  (typeof value === "string" && value.replace(/[\s\0]+/g, "") === "");
 
 const isNotPolygon = (feature: Feature) =>
   feature.geometry?.type !== "Polygon" &&
