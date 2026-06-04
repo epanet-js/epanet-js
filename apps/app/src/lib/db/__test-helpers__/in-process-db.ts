@@ -1,5 +1,6 @@
 import { afterEach, beforeEach } from "vitest";
-import { api, resetWorkerForTest, setWorkerForTest } from "@epanet-js/ejsdb";
+import { resetWorkerForTest, setWorkerForTest } from "@epanet-js/ejsdb";
+import { api } from "@epanet-js/ejsdb/worker-api";
 
 export const useInProcessDb = (): void => {
   beforeEach(() => {
