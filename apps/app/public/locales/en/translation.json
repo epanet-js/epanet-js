@@ -19,10 +19,10 @@
       "cpg": "Shapefile property database text encoding",
       "prj": "Shapefile WKT projection file"
     },
-    "errors": {
-      "shpMissing": "Geometry file is missing",
-      "dbfMissing": "Property database is missing",
-      "prjMissing": "Projection file is missing"
+    "waiting": {
+      "shp": "Waiting for geometry (SHP)",
+      "dbf": "Waiting for property database (DBF)",
+      "prj": "Waiting for projection (PRJ)"
     }
   },
   "operationalData": "Operational data",

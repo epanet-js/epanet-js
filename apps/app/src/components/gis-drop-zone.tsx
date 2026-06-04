@@ -115,10 +115,10 @@ const SHAPEFILE_OPTIONAL_BADGES: { key: keyof GisFiles; label: string }[] = [
   { key: "cpg", label: "CPG" },
 ];
 
-const SHAPEFILE_ERRORS: { key: keyof GisFiles; translationKey: string }[] = [
-  { key: "shp", translationKey: "dropZone.errors.shpMissing" },
-  { key: "dbf", translationKey: "dropZone.errors.dbfMissing" },
-  { key: "prj", translationKey: "dropZone.errors.prjMissing" },
+const SHAPEFILE_WAITING: { key: keyof GisFiles; translationKey: string }[] = [
+  { key: "shp", translationKey: "dropZone.waiting.shp" },
+  { key: "dbf", translationKey: "dropZone.waiting.dbf" },
+  { key: "prj", translationKey: "dropZone.waiting.prj" },
 ];
 
 const SelectedFileList = ({
@@ -135,10 +135,10 @@ const SelectedFileList = ({
   const groupType = getFileGroupType(files);
   const baseName = getBaseName(files);
 
-  const errors =
+  const waitingMessage =
     groupType === "shapefile"
-      ? SHAPEFILE_ERRORS.filter(({ key }) => !files[key])
-      : [];
+      ? SHAPEFILE_WAITING.find(({ key }) => !files[key])
+      : undefined;
 
   return (
     <div className="flex items-center gap-2 bg-base rounded-md px-3 py-1.5 border shadow-xs">
@@ -169,17 +169,10 @@ const SelectedFileList = ({
             </>
           )}
         </div>
-        {errors.length > 0 && (
-          <div className="flex items-center gap-2">
-            {errors.map(({ key, translationKey }) => (
-              <span
-                key={key}
-                className="text-red-700 text-xs rounded-sm bg-error-subtle p-1"
-              >
-                {translate(translationKey)}
-              </span>
-            ))}
-          </div>
+        {waitingMessage && (
+          <span className="text-subtle text-xs">
+            {translate(waitingMessage.translationKey)}
+          </span>
         )}
       </div>
       <button
@@ -294,7 +287,7 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
         onDrop={handleDrop}
         onClick={handleDropZoneClick}
         className={`
-          min-h-[200px] border-2 border-dashed rounded-lg
+          min-h-[100px] border-2 border-dashed rounded-lg
           flex flex-col items-center justify-center p-8 cursor-pointer
           transition-all duration-200 ease-in-out
           ${dragState === "idle" ? "border-strong bg-panel hover:border-gray-400 hover:bg-base-hover" : ""}
