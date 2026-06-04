@@ -7,7 +7,7 @@ import {
   isLikelyLatLng,
 } from "./coordinate-transform";
 
-type GeoJsonValidationErrorCode =
+export type GeoJsonValidationErrorCode =
   | "invalid-projection"
   | "coordinates-missing"
   | "geometry-collection-not-supported"

@@ -6,9 +6,12 @@ import type {
 } from "geojson";
 import type { Proj4Projection } from "src/lib/projections";
 import type { GisFiles } from "src/components/gis-drop-zone";
-import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
+import {
+  parseGeoJson,
+  type GeoJsonValidationErrorCode,
+} from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
-import { GisParseError } from "src/lib/gis-import/types";
+import { GisParseError, GisParseErrorCode } from "src/lib/gis-import/types";
 
 export type ZoneFeature = Feature<Polygon | MultiPolygon>;
 
@@ -69,16 +72,7 @@ const readGeoJsonFile = async (
   }
 
   if (result.error) {
-    if (
-      result.error.code === "unsupported-crs" ||
-      result.error.code === "projection-conversion-failed"
-    ) {
-      return anError("unsupportedProjection");
-    }
-    if (result.error.code === "invalid-projection") {
-      return anError("invalidProjection");
-    }
-    return anError("invalidFile");
+    return anError(geojsonErrorMapping[result.error.code]);
   }
 
   return extractZoneFeatures(result.features, result.coordinateConversion);
@@ -92,17 +86,13 @@ const readShapefiles = async (
   );
 
   let featureCollection: FeatureCollection;
+
   try {
     const result = await parseShapefile(files);
     featureCollection = result.featureCollection;
   } catch (err) {
     if (err instanceof GisParseError) {
-      if (err.code === "missing-projection")
-        return anError("unsupportedProjection");
-      if (err.code === "unsupported-crs")
-        return anError("unsupportedProjection");
-      if (err.code === "invalid-projection")
-        return anError("invalidProjection");
+      return anError(shapefileErrorMapping[err.code]);
     }
     return anError("invalidFile");
   }
@@ -135,6 +125,29 @@ const extractZoneFeatures = (
 
   return { features, uniqueProperties, coordinateConversion };
 };
+
+const geojsonErrorMapping: Record<
+  GeoJsonValidationErrorCode,
+  ReadZoneFeaturesError
+> = {
+  "invalid-projection": "invalidProjection",
+  "coordinates-missing": "invalidFile",
+  "geometry-collection-not-supported": "invalidFile",
+  "invalid-coordinate-format": "invalidFile",
+  "coordinates-not-numbers": "invalidFile",
+  "projection-conversion-failed": "unsupportedProjection",
+  "unsupported-crs": "unsupportedProjection",
+};
+
+const shapefileErrorMapping: Record<GisParseErrorCode, ReadZoneFeaturesError> =
+  {
+    "invalid-format": "invalidFile",
+    "invalid-projection": "invalidProjection",
+    "missing-projection": "invalidProjection",
+    "unsupported-crs": "unsupportedProjection",
+    "projection-conversion-failed": "unsupportedProjection",
+    "no-features": "invalidFile",
+  };
 
 const isNotPolygon = (feature: Feature) =>
   feature.geometry?.type !== "Polygon" &&
