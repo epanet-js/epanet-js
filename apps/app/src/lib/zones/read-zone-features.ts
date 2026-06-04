@@ -1,9 +1,4 @@
-import type {
-  Feature,
-  FeatureCollection,
-  Polygon,
-  MultiPolygon,
-} from "geojson";
+import type { Feature, Polygon, MultiPolygon } from "geojson";
 import type { Proj4Projection } from "src/lib/projections";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import {
@@ -11,7 +6,11 @@ import {
   type GeoJsonValidationErrorCode,
 } from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
-import { GisParseError, GisParseErrorCode } from "src/lib/gis-import/types";
+import {
+  GisParseError,
+  GisParseErrorCode,
+  type CoordinateConversion,
+} from "src/lib/gis-import/types";
 
 export type ZoneFeature = Feature<Polygon | MultiPolygon>;
 
@@ -20,12 +19,6 @@ type ReadZoneFeaturesError =
   | "noPolygons"
   | "unsupportedProjection"
   | "invalidProjection";
-
-type CoordinateConversion = {
-  detected: string;
-  converted: boolean;
-  fromCRS: string;
-};
 
 export type ReadZoneFeaturesResult = {
   error?: ReadZoneFeaturesError;
@@ -85,19 +78,18 @@ const readShapefiles = async (
     (f): f is File => f != null,
   );
 
-  let featureCollection: FeatureCollection;
-
   try {
     const result = await parseShapefile(files);
-    featureCollection = result.featureCollection;
+    return extractZoneFeatures(
+      result.featureCollection.features,
+      result.coordinateConversion,
+    );
   } catch (err) {
     if (err instanceof GisParseError) {
       return anError(shapefileErrorMapping[err.code]);
     }
     return anError("invalidFile");
   }
-
-  return extractZoneFeatures(featureCollection.features);
 };
 
 const extractZoneFeatures = (
