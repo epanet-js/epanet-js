@@ -39,7 +39,8 @@ export const exportGeoJson = (
 ): ExportedFile[] => {
   const includeSimulationResults =
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const selectedAssets = options?.assetIdsFilter ?? null;
+  const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
   const entrySize = estimateEntrySize(hydraulicModel);
   const size =
@@ -51,13 +52,12 @@ export const exportGeoJson = (
   const transformCoord = createProjectionMapper(projection).toSource;
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
-  const hasAssetSelection = selectedAssets.size > 0;
   const header = buildGeoJsonHeader(projection);
 
   encodeHeader(buffers, offsets, encoder, header);
 
   hydraulicModel.assets.forEach((asset) => {
-    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
+    if (selectedAssets && !selectedAssets.has(asset.id)) return;
 
     const simulationValues = includeSimulationResults
       ? getSimulationResults[asset.type](asset)
@@ -78,6 +78,7 @@ export const exportGeoJson = (
   });
 
   hydraulicModel.customerPoints.forEach((point) => {
+    if (selectedCustomerPoints && !selectedCustomerPoints.has(point.id)) return;
     const junctionConnection =
       point.connection !== null
         ? (hydraulicModel.assets.get(point.connection.junctionId)?.label ?? "")

@@ -37,7 +37,8 @@ export const exportShapefiles = async (
 ): Promise<ExportedFile[]> => {
   const includeSimulationResults =
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const selectedAssets = options?.assetIdsFilter ?? null;
+  const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
   const writers: Record<ExportedAssetTypes, AssetWriter> = {
     junction: new AssetWriter(SHAPE_POINT),
@@ -51,7 +52,6 @@ export const exportShapefiles = async (
 
   const encoder = new TextEncoder();
   const transformCoord = createProjectionMapper(projection).toSource;
-  const hasSelection = selectedAssets.size > 0;
   const getSimResults = buildSimulationResultsReader(resultsReader);
   const seenFields: Record<ExportedAssetTypes, Set<string>> = {
     junction: new Set(),
@@ -64,7 +64,7 @@ export const exportShapefiles = async (
   };
 
   for (const asset of hydraulicModel.assets.values()) {
-    if (hasSelection && !selectedAssets.has(asset.id)) continue;
+    if (selectedAssets && !selectedAssets.has(asset.id)) continue;
 
     const writer = writers[asset.type];
     writer.recordCount++;
@@ -98,9 +98,11 @@ export const exportShapefiles = async (
     }
   }
 
-  writers["customerPoint"].recordCount = hydraulicModel.customerPoints.size;
-  writers["customerPoint"].shpBodyBytes =
-    28 * hydraulicModel.customerPoints.size;
+  const customerPointCount = selectedCustomerPoints
+    ? selectedCustomerPoints.size
+    : hydraulicModel.customerPoints.size;
+  writers["customerPoint"].recordCount = customerPointCount;
+  writers["customerPoint"].shpBodyBytes = 28 * customerPointCount;
 
   for (const type in writers) {
     const t = type as ExportedAssetTypes;
@@ -115,7 +117,7 @@ export const exportShapefiles = async (
   }
 
   for (const asset of hydraulicModel.assets.values()) {
-    if (hasSelection && !selectedAssets.has(asset.id)) continue;
+    if (selectedAssets && !selectedAssets.has(asset.id)) continue;
 
     const writer = writers[asset.type];
     const recordIndex = writer.nextRecordIndex();
@@ -155,6 +157,8 @@ export const exportShapefiles = async (
 
   const customerPointWriter = writers["customerPoint"];
   for (const point of hydraulicModel.customerPoints.values()) {
+    if (selectedCustomerPoints && !selectedCustomerPoints.has(point.id))
+      continue;
     const recordIndex = customerPointWriter.nextRecordIndex();
     const shxOffsetWords = customerPointWriter.shpCursor / 2;
 

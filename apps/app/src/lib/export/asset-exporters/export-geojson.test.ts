@@ -190,7 +190,7 @@ describe("export-geojson", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportGeoJson(model, WGS84, { selectedAssets: new Set([1]) });
+    const files = exportGeoJson(model, WGS84, { assetIdsFilter: new Set([1]) });
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 

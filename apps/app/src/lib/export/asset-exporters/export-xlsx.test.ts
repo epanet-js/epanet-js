@@ -86,7 +86,48 @@ describe("exportXlsx", () => {
     expect(wb.SheetNames).toEqual(["junctions"]);
   });
 
-  it("only writes selected assets, but always writes all customer points", async () => {
+  it("filters both assets and customer points by selectedAssets", async () => {
+    const IDS = { J1: 1, J2: 2, CP1: 3, CP2: 4 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [1, 1] })
+      .aCustomerPoint(IDS.CP1, { coordinates: [0.5, 0.5] })
+      .aCustomerPoint(IDS.CP2, { coordinates: [0.7, 0.7] })
+      .build();
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, {
+      assetIdsFilter: new Set([IDS.J1]),
+      customerPointIdFilter: new Set([IDS.CP1]),
+    });
+
+    const wb = getWorkbook();
+    // Only J1 exported (J2 filtered).
+    expect(sheetRows(wb, "junctions")).toHaveLength(2);
+    // Only CP1 exported (CP2 filtered).
+    expect(sheetRows(wb, "customer-points")).toHaveLength(2);
+  });
+
+  it("omits the customer-points sheet when CPs are filtered to an empty set", async () => {
+    const IDS = { J1: 1, CP1: 2 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aCustomerPoint(IDS.CP1, { coordinates: [0.5, 0.5] })
+      .build();
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, {
+      assetIdsFilter: new Set([IDS.J1]),
+      customerPointIdFilter: new Set(),
+    });
+
+    const wb = getWorkbook();
+    expect(wb.SheetNames).not.toContain("customer-points");
+  });
+
+  it("exports all CPs when selectedCustomerPoints is null (independent of asset filter)", async () => {
     const IDS = { J1: 1, J2: 2, CP1: 3 } as const;
 
     const model = HydraulicModelBuilder.with()
@@ -97,11 +138,14 @@ describe("exportXlsx", () => {
 
     const { handle, getWorkbook } = makeMockHandle();
     await exportXlsx(handle, model, WGS84, {
-      selectedAssets: new Set([IDS.J1]),
+      assetIdsFilter: new Set([IDS.J1]),
+      customerPointIdFilter: null,
     });
 
     const wb = getWorkbook();
+    // J2 filtered out by selectedAssets…
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
+    // …but CPs unfiltered because selectedCustomerPoints is null.
     expect(sheetRows(wb, "customer-points")).toHaveLength(2);
   });
 

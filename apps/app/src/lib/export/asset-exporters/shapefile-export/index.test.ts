@@ -75,7 +75,7 @@ describe("exportShapefiles", () => {
       .build();
 
     const files = await exportShapefiles(model, WGS84, {
-      selectedAssets: new Set([1]),
+      assetIdsFilter: new Set([1]),
     });
     const dbfFile = files.find((f) => f.fileName === "junctions.dbf")!;
     // record count in DBF header (bytes 4-7, little-endian)

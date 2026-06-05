@@ -212,6 +212,40 @@ describe("USelection", () => {
         ids: { asset: [1, 2], customerPoint: [7] },
       });
     });
+
+    it("dedups duplicate ids in fromIds", () => {
+      expect(USelection.fromIds([1, 1, 2, 2, 3])).toEqual({
+        type: "multi",
+        ids: { asset: [1, 2, 3] },
+      });
+      // Collapses to single when all duplicates resolve to one id.
+      expect(USelection.fromIds([5, 5, 5])).toEqual({
+        type: "single",
+        kind: "asset",
+        id: 5,
+      });
+    });
+
+    it("dedups duplicate ids in fromKindedIds for each kind", () => {
+      expect(USelection.fromKindedIds([1, 1, 2], [7, 7, 8])).toEqual({
+        type: "multi",
+        ids: { asset: [1, 2], customerPoint: [7, 8] },
+      });
+      // Collapses to single CP when CPs dedup to one and no assets.
+      expect(USelection.fromKindedIds([], [9, 9])).toEqual({
+        type: "single",
+        kind: "customerPoint",
+        id: 9,
+      });
+    });
+
+    it("countByKind reflects the deduplicated counts", () => {
+      const sel = USelection.fromKindedIds([1, 1, 2], [7, 7, 8, 8]);
+      expect(USelection.countByKind(sel)).toEqual({
+        assets: 2,
+        customerPoints: 2,
+      });
+    });
   });
 
   describe("kinded mutators", () => {

@@ -27,20 +27,23 @@ export const exportXlsx = async (
 ): Promise<void> => {
   const includeSimulationResults =
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const selectedAssets = options?.assetIdsFilter ?? null;
+  const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
 
-  const hasSelection = selectedAssets.size > 0;
   const assetTypeCounts = new Map<string, number>();
   hydraulicModel.assets.forEach((asset) => {
-    if (hasSelection && !selectedAssets.has(asset.id)) return;
+    if (selectedAssets && !selectedAssets.has(asset.id)) return;
     assetTypeCounts.set(asset.type, (assetTypeCounts.get(asset.type) ?? 0) + 1);
   });
+  const customerPointCount = selectedCustomerPoints
+    ? selectedCustomerPoints.size
+    : hydraulicModel.customerPoints.size;
 
   const activeAssetTypes = ALL_ASSET_TYPES.filter(
     (t) => (assetTypeCounts.get(t) ?? 0) > 0,
   );
-  const hasCustomerPoints = hydraulicModel.customerPoints.size > 0;
+  const hasCustomerPoints = customerPointCount > 0;
 
   const sheetNames = [
     ...activeAssetTypes.map((t) => FILE_NAMES[t]),
@@ -86,7 +89,7 @@ export const exportXlsx = async (
 
           hydraulicModel.assets.forEach((asset) => {
             if (asset.type !== assetType) return;
-            if (hasSelection && !selectedAssets.has(asset.id)) return;
+            if (selectedAssets && !selectedAssets.has(asset.id)) return;
 
             const simValues = includeSimulationResults
               ? (getSimResults[assetType](asset) as Record<string, unknown>)
@@ -123,6 +126,8 @@ export const exportXlsx = async (
           let customerRowCount = 1;
 
           hydraulicModel.customerPoints.forEach((point) => {
+            if (selectedCustomerPoints && !selectedCustomerPoints.has(point.id))
+              return;
             if (customerRowCount >= MAX_ROWS) {
               throw new Error(
                 `Sheet exceeds Excel's ${MAX_ROWS.toLocaleString()} row limit`,

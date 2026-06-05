@@ -14,7 +14,8 @@ export const exportCsv = (
 ): ExportedFile[] => {
   const includeSimulationResults =
     (options?.includeSimulationResults ?? false) && !!options?.resultsReader;
-  const selectedAssets = options?.selectedAssets ?? new Set<number>();
+  const selectedAssets = options?.assetIdsFilter ?? null;
+  const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
   const charsPerCol = 64;
   const numCols = 64;
@@ -24,7 +25,6 @@ export const exportCsv = (
   const size = numCols * numRows * charsPerCol;
   const parts: string[] = new Array(numCols + 1);
   const encoder = new TextEncoder();
-  const hasAssetSelection = selectedAssets.size > 0;
 
   const transformCoord = createProjectionMapper(projection).toSource;
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
@@ -203,13 +203,17 @@ export const exportCsv = (
       writeHeader(asset, Object.keys(simulationValues));
     }
 
-    if (hasAssetSelection && !selectedAssets.has(asset.id)) return;
+    if (selectedAssets && !selectedAssets.has(asset.id)) return;
     writeAsset(asset, simulationValues);
   });
 
   if (hydraulicModel.customerPoints.size > 0) {
     writeCustomerPointsHeader();
-    hydraulicModel.customerPoints.forEach((point) => writeCustomerPoint(point));
+    hydraulicModel.customerPoints.forEach((point) => {
+      if (selectedCustomerPoints && !selectedCustomerPoints.has(point.id))
+        return;
+      writeCustomerPoint(point);
+    });
   }
 
   return Object.entries(buffers)

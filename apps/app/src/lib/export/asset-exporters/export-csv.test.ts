@@ -195,7 +195,7 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportCsv(model, WGS84, { selectedAssets: new Set([1]) });
+    const files = exportCsv(model, WGS84, { assetIdsFilter: new Set([1]) });
 
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const rows = parseCsvRows(lines);

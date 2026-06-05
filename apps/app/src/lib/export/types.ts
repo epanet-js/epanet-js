@@ -41,7 +41,8 @@ export const ALL_METRICS: ExportSimulationResultsProperties[] = [
 
 export type AssetExportOptions = {
   includeSimulationResults?: boolean;
-  selectedAssets?: Set<number>;
+  assetIdsFilter?: Set<number> | null;
+  customerPointIdFilter?: Set<number> | null;
   resultsReader?: ResultsReader;
 };
 

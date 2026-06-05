@@ -17,7 +17,9 @@ export type DataExportOptions = {
   format: ExportFormat;
   includeSimulationResults: boolean;
   simulationStep?: number;
-  selectedAssets: Set<number>;
+  // null means "no filter, export all" (callers must be explicit).
+  assetIdFilter: Set<number> | null;
+  customerPointIdFilter: Set<number> | null;
 };
 
 export const useExportAssetData = () => {
@@ -71,7 +73,8 @@ export const useExportAssetData = () => {
             projectSettings.projection,
             {
               includeSimulationResults: options.includeSimulationResults,
-              selectedAssets: options.selectedAssets,
+              assetIdsFilter: options.assetIdFilter,
+              customerPointIdFilter: options.customerPointIdFilter,
               resultsReader,
             },
           );
@@ -87,7 +90,9 @@ export const useExportAssetData = () => {
             name: "assetData.exported",
             format: options.format,
             includeSimulationResults: options.includeSimulationResults,
-            hasSelection: options.selectedAssets.size > 0,
+            hasSelection:
+              options.assetIdFilter !== null ||
+              options.customerPointIdFilter !== null,
           });
         } catch {}
       },

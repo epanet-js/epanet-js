@@ -115,9 +115,11 @@ export const USelection = {
   fromIds(ids: readonly IWrappedFeature["id"][]): Sel {
     if (ids.length === 0) return SELECTION_NONE;
     if (ids.length === 1) return this.single(ids[0]);
+    const unique = dedupIds(ids);
+    if (unique.length === 1) return this.single(unique[0]);
     return {
       type: "multi",
-      ids: buildMultiIds(ids, EMPTY_NUMBER_ARRAY),
+      ids: buildMultiIds(unique, EMPTY_NUMBER_ARRAY),
     };
   },
   /**
@@ -227,15 +229,17 @@ export const USelection = {
     if (assetIds.length === 0 && customerPointIds.length === 0) {
       return SELECTION_NONE;
     }
-    if (customerPointIds.length === 0 && assetIds.length === 1) {
-      return this.single(assetIds[0]);
+    const uniqueAssetIds = dedupIds(assetIds);
+    const uniqueCpIds = dedupIds(customerPointIds);
+    if (uniqueCpIds.length === 0 && uniqueAssetIds.length === 1) {
+      return this.single(uniqueAssetIds[0]);
     }
-    if (assetIds.length === 0 && customerPointIds.length === 1) {
-      return this.singleCustomerPoint(customerPointIds[0]);
+    if (uniqueAssetIds.length === 0 && uniqueCpIds.length === 1) {
+      return this.singleCustomerPoint(uniqueCpIds[0]);
     }
     return {
       type: "multi",
-      ids: buildMultiIds(assetIds, customerPointIds),
+      ids: buildMultiIds(uniqueAssetIds, uniqueCpIds),
     };
   },
   /**
@@ -357,4 +361,11 @@ const diffIds = (
   if (removed.length === 0) return current.slice();
   const toRemove = new Set(removed);
   return current.filter((id) => !toRemove.has(id));
+};
+
+const dedupIds = (ids: readonly number[]): readonly number[] => {
+  if (ids.length <= 1) return ids;
+  const deduped = new Set<number>(ids);
+  if (deduped.size === ids.length) return ids;
+  return Array.from(deduped);
 };
