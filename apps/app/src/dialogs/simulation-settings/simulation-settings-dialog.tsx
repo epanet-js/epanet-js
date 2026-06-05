@@ -60,9 +60,10 @@ export const SimulationSettingsDialog = () => {
   const handleSubmit = useCallback(
     async (values: FormValues) => {
       if (hasChanges(values, simulationSettings)) {
-        transactSimulationSettings(
+        const applied = transactSimulationSettings(
           buildUpdatedSettings(values, simulationSettings),
         );
+        if (!applied) return;
       }
       if (
         values.qualityMassUnit !== projectSettings.units.chemicalConcentration

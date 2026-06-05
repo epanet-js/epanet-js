@@ -26,6 +26,7 @@ import { newProject } from "./new-project";
 import { saveProjectSettings } from "./save-project-settings";
 import { saveZones } from "./save-zones";
 import { setAllSimulationSettings } from "./set-all-simulation-settings";
+import { serializeSimulationSettings } from "../mappers/simulation-settings/to-rows";
 
 export type ImportProjectInput = {
   newDb?: boolean;
@@ -56,7 +57,9 @@ export const importProject = async (
     await writeAllPatterns(input.hydraulicModel.patterns);
     await writeAllCurves(input.hydraulicModel.curves);
     await writeAllControls(input.hydraulicModel.controls);
-    await setAllSimulationSettings(input.simulationSettings);
+    await setAllSimulationSettings(
+      serializeSimulationSettings(input.simulationSettings),
+    );
     await writeAllJunctionDemands(input.hydraulicModel.demands.junctions);
   });
 };
