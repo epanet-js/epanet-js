@@ -11,7 +11,7 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { applyMomentToDb } from "./apply-moment";
+import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
@@ -23,6 +23,9 @@ const seed = (hydraulicModel: HydraulicModel) =>
     projectSettings: defaultProjectSettings,
     simulationSettings: defaultSimulationSettings,
   });
+
+const persistMoment = (moment: ModelMoment) =>
+  applyMomentToDb(buildMomentPayload(moment));
 
 describe("apply-moment integration", () => {
   useInProcessDb();
@@ -65,7 +68,7 @@ describe("apply-moment integration", () => {
       ],
     };
 
-    await applyMomentToDb(moment);
+    await persistMoment(moment);
 
     const project = await fetchProject();
     expect(project.hydraulicModel.assets.size).toBe(4);
@@ -102,7 +105,7 @@ describe("apply-moment integration", () => {
       ],
     };
 
-    await applyMomentToDb(moment);
+    await persistMoment(moment);
 
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
@@ -132,7 +135,7 @@ describe("apply-moment integration", () => {
       ],
     };
 
-    await applyMomentToDb(moment);
+    await persistMoment(moment);
 
     const project = await fetchProject();
     const pipe = project.hydraulicModel.assets.get(IDS.P1) as Pipe;
@@ -150,7 +153,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "delete pipe",
       deleteAssets: [IDS.P1],
     });
@@ -185,7 +188,7 @@ describe("apply-moment integration", () => {
       snapPoint: [5, 0],
     });
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "add customer points",
       putCustomerPoints: [disconnected, connected],
     });
@@ -217,7 +220,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "delete cp1",
       deleteCustomerPoints: [IDS.CP1],
     });
@@ -238,7 +241,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "assign junction demand",
       putDemands: {
         assignments: [
@@ -273,7 +276,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "assign cp demand",
       putDemands: {
         assignments: [
@@ -302,7 +305,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "clear junction demands",
       putDemands: {
         assignments: [{ junctionId: IDS.J1, demands: [] }],
@@ -322,7 +325,7 @@ describe("apply-moment integration", () => {
       HydraulicModelBuilder.with().aDemandPattern(IDS.PT1, "old", [1]).build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "replace patterns",
       putPatterns: new Map([
         [
@@ -355,7 +358,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "replace curves",
       putCurves: new Map([
         [
@@ -395,7 +398,7 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({
+    await persistMoment({
       note: "replace controls",
       putControls: {
         simple: [
@@ -443,12 +446,64 @@ describe("apply-moment integration", () => {
         .build(),
     );
 
-    await applyMomentToDb({ note: "noop" });
+    await persistMoment({ note: "noop" });
 
     const project = await fetchProject();
     expect(project.hydraulicModel.assets.size).toBe(1);
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
     expect(j1.elevation).toBe(7);
     expect(j1.label).toBe("J1");
+  });
+});
+
+describe("buildMomentPayload validation", () => {
+  it("throws on a non-finite junction elevation upsert", () => {
+    const IDS = { J1: 1 } as const;
+    const junction = buildJunction({ id: IDS.J1, label: "J1" });
+    junction.setElevation(NaN);
+
+    expect(() =>
+      buildMomentPayload({ note: "bad elevation", putAssets: [junction] }),
+    ).toThrow();
+  });
+
+  it("throws on a non-finite pipe diameter patch", () => {
+    const IDS = { P1: 1 } as const;
+
+    expect(() =>
+      buildMomentPayload({
+        note: "bad diameter",
+        patchAssetsAttributes: [
+          { id: IDS.P1, type: "pipe", properties: { diameter: NaN } },
+        ],
+      }),
+    ).toThrow();
+  });
+
+  it("throws on a non-finite junction demand", () => {
+    const IDS = { J1: 1 } as const;
+
+    expect(() =>
+      buildMomentPayload({
+        note: "bad demand",
+        putDemands: {
+          assignments: [
+            {
+              junctionId: IDS.J1,
+              demands: [{ baseDemand: NaN }],
+            },
+          ],
+        },
+      }),
+    ).toThrow();
+  });
+
+  it("builds a valid moment without throwing", () => {
+    const IDS = { J1: 1 } as const;
+    const junction = buildJunction({ id: IDS.J1, label: "J1", elevation: 10 });
+
+    expect(() =>
+      buildMomentPayload({ note: "valid", putAssets: [junction] }),
+    ).not.toThrow();
   });
 });

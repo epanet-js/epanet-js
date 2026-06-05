@@ -917,6 +917,8 @@
   "visitLandingPageExplain": "Learn more about the app and what it can do.",
   "somethingWentWrong": "Something went wrong",
   "somethingWentWrongMessage": "Something went wrong. If the error persists, contact support.",
+  "changeNotApplied": "We couldn't apply your last change",
+  "changeNotAppliedMessage": "We suggest saving your work and trying again. If the problem continues, please contact support.",
   "tryAgain": "Try again",
   "tryAgainOrSupport": "Please try again, and if the error persists, contact support.",
   "payByInvoice": "Pay by invoice",

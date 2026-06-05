@@ -96,11 +96,10 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
   };
 };
 
-export const applyMomentToDb = async (moment: ModelMoment): Promise<void> => {
+export const applyMomentToDb = async (
+  payload: ApplyMomentPayload,
+): Promise<void> => {
   await timed("applyMomentToDb", async () => {
-    const payload = await timed("applyMomentToDb.buildPayload", () =>
-      buildMomentPayload(moment),
-    );
     if (
       payload.assetDeleteIds.length === 0 &&
       payload.assetUpserts.junctions.length === 0 &&

@@ -12,7 +12,7 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { applyMomentToDb } from "src/lib/db";
+import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 
 export const useUndoableTransactions = () => {
@@ -38,7 +38,10 @@ export const useUndoableTransactions = () => {
         if (isOurFileOn) {
           const worktree = get(worktreeAtom);
           if (worktree.activeBranchId === worktree.mainId) {
-            void applyMomentToDb(action.moment).catch(captureError);
+            void (async () =>
+              applyMomentToDb(buildMomentPayload(action.moment)))().catch(
+              captureError,
+            );
           }
         }
 

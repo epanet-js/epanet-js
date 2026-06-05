@@ -109,6 +109,10 @@ export type UnexpectedErrorDialogState = {
   onRetry?: () => void;
 };
 
+export type ChangeNotAppliedDialogState = {
+  type: "changeNotApplied";
+};
+
 export type ModelBuilderIframeDialogState = {
   type: "modelBuilderIframe";
 };
@@ -278,6 +282,7 @@ export type DialogState =
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState
   | UnexpectedErrorDialogState
+  | ChangeNotAppliedDialogState
   | ModelBuilderIframeDialogState
   | ModelBuilderV2IframeDialogState
   | EarlyAccessDialogState

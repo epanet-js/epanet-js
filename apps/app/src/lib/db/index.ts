@@ -6,7 +6,7 @@ export type { Project, FetchProjectPhase } from "./commands/fetch-project";
 export { saveProjectSettings } from "./commands/save-project-settings";
 export { saveZones } from "./commands/save-zones";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
-export { applyMomentToDb } from "./commands/apply-moment";
+export { applyMomentToDb, buildMomentPayload } from "./commands/apply-moment";
 export { importProject } from "./commands/import-project";
 export type { ImportProjectInput } from "./commands/import-project";
 export { exportDb } from "./commands/export-db";

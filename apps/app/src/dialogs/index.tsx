@@ -211,6 +211,18 @@ const UnexpectedErrorDialog = dynamic<{
   },
 );
 
+const ChangeNotAppliedDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/change-not-applied").then(
+      (r) => r.ChangeNotAppliedDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ImportCustomerPointsWizard = dynamic<{
   isOpen: boolean;
   onClose: () => void;
@@ -614,6 +626,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;
+  }
+  if (dialog.type === "changeNotApplied") {
+    return <ChangeNotAppliedDialog onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
     return <WelcomeDialog />;

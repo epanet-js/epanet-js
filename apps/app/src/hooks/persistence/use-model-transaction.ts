@@ -9,23 +9,43 @@ import {
   momentLogDerivedAtom,
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
+import { dialogAtom } from "src/state/dialog";
 import { trackMoment } from "src/lib/persistence/shared";
 import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { applyMomentToDb } from "src/lib/db";
+import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
+import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 
 export const useModelTransaction = () => {
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
   const transact = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, moment: ModelMoment) => {
         const momentLog = get(momentLogDerivedAtom).copy();
         const mapSyncMoment = get(mapSyncMomentAtom);
         const isTruncatingHistory = momentLog.nextRedo() !== null;
+
+        const worktree = get(worktreeAtom);
+        const willPersist =
+          isOurFileOn && worktree.activeBranchId === worktree.mainId;
+
+        let payload: ApplyMomentPayload | undefined;
+        if (willPersist && isSchemaFirstOn) {
+          try {
+            payload = buildMomentPayload(moment);
+          } catch (error) {
+            captureError(
+              error instanceof Error ? error : new Error(String(error)),
+            );
+            set(dialogAtom, { type: "changeNotApplied" });
+            return;
+          }
+        }
 
         trackMoment(moment);
         const newStateId = nanoid();
@@ -38,10 +58,14 @@ export const useModelTransaction = () => {
           stagingModelDerivedAtom,
         );
 
-        if (isOurFileOn) {
-          const worktree = get(worktreeAtom);
-          if (worktree.activeBranchId === worktree.mainId) {
-            void applyMomentToDb(moment).catch(captureError);
+        if (willPersist) {
+          if (payload) {
+            void applyMomentToDb(payload).catch(captureError);
+          } else {
+            void (async () =>
+              applyMomentToDb(buildMomentPayload(moment)))().catch(
+              captureError,
+            );
           }
         }
 
@@ -56,7 +80,7 @@ export const useModelTransaction = () => {
         set(momentLogDerivedAtom, momentLog);
         set(mapSyncMomentAtom, newMapSyncMoment);
       },
-      [isOurFileOn],
+      [isOurFileOn, isSchemaFirstOn],
     ),
   );
 
