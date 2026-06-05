@@ -142,7 +142,12 @@ const runMigrations = () => {
   db!.exec("BEGIN IMMEDIATE");
   try {
     for (let i = current; i < migrations.length; i++) {
-      db!.exec(migrations[i]);
+      const m = migrations[i];
+      if (typeof m === "string") {
+        db!.exec(m);
+      } else {
+        m(db!);
+      }
     }
     db!.exec(`PRAGMA user_version = ${migrations.length}`);
     db!.exec("COMMIT");

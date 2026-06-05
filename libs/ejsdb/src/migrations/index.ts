@@ -3,7 +3,19 @@ import m0002 from "./0002_pump_definition_type.sql?raw";
 import m0003 from "./0003_pipe_material_year.sql?raw";
 import m0004 from "./0004_zones_table.sql?raw";
 import m0005 from "./0005_zones_bbox_adjacency.sql?raw";
+import m0006 from "./0006_sanitize_labels";
 
-export const migrations: string[] = [m0001, m0002, m0003, m0004, m0005];
+export type MigrationDB = Parameters<typeof m0006>[0];
+
+export type Migration = string | ((db: MigrationDB) => void);
+
+export const migrations: Migration[] = [
+  m0001,
+  m0002,
+  m0003,
+  m0004,
+  m0005,
+  m0006,
+];
 
 export const APP_VERSION = migrations.length;
