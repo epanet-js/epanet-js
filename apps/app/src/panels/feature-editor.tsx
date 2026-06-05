@@ -28,12 +28,12 @@ export default function FeatureEditor() {
   }
 
   if (assets === 1 && customerPoints === 0) {
+    const asset = selectedFeatures[0] as Asset | undefined;
+    if (!asset) {
+      return <NothingSelected />;
+    }
     return (
-      <AssetPanel
-        units={units}
-        asset={selectedFeatures[0] as Asset}
-        readonly={isEditionBlocked}
-      />
+      <AssetPanel units={units} asset={asset} readonly={isEditionBlocked} />
     );
   }
 

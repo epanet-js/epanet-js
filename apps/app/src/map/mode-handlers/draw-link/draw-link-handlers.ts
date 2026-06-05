@@ -356,8 +356,10 @@ export function useDrawLinkHandlers({
       labelManager,
     });
 
+    const applied = transact(moment);
+    if (!applied) return undefined;
+
     userTracking.capture({ name: "asset.created", type: link.type });
-    transact(moment);
 
     if (moment.putAssets && moment.putAssets.length > 0) {
       const newLinkId = moment.putAssets[0].id;

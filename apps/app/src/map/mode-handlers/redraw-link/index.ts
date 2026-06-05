@@ -56,10 +56,13 @@ export function useRedrawLinkHandlers(
       precision: handlerContext.map.getPrecision(),
     });
 
-    userTracking.capture({ name: "asset.redrawed", type: link.type });
-    transact(moment);
+    const applied = transact(moment);
 
     setMode({ mode: Mode.NONE });
+
+    if (!applied) return undefined;
+
+    userTracking.capture({ name: "asset.redrawed", type: link.type });
 
     if (moment.putAssets && moment.putAssets.length > 0) {
       const newLinkId = moment.putAssets[0].id;

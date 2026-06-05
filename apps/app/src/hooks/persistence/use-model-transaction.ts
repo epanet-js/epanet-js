@@ -43,7 +43,7 @@ export const useModelTransaction = () => {
               error instanceof Error ? error : new Error(String(error)),
             );
             set(dialogAtom, { type: "changeNotApplied" });
-            return;
+            return false;
           }
         }
 
@@ -79,6 +79,8 @@ export const useModelTransaction = () => {
 
         set(momentLogDerivedAtom, momentLog);
         set(mapSyncMomentAtom, newMapSyncMoment);
+
+        return true;
       },
       [isOurFileOn, isSchemaFirstOn],
     ),

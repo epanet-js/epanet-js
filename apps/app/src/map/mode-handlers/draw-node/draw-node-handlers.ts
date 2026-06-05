@@ -50,7 +50,9 @@ export function useDrawNodeHandlers({
       assetFactory,
       labelManager,
     });
-    transact(moment);
+    const applied = transact(moment);
+    if (!applied) return;
+
     userTracking.capture({ name: "asset.created", type: nodeType });
 
     if (moment.putAssets && moment.putAssets.length > 0) {
@@ -72,15 +74,17 @@ export function useDrawNodeHandlers({
           newNodeType: nodeType,
           assetFactory,
         });
-        transact(moment);
-        userTracking.capture({
-          name: "asset.created",
-          type: nodeType,
-        });
+        const applied = transact(moment);
+        if (applied) {
+          userTracking.capture({
+            name: "asset.created",
+            type: nodeType,
+          });
 
-        if (moment.putAssets && moment.putAssets.length > 0) {
-          const newNodeId = moment.putAssets[0].id;
-          selectAsset(newNodeId);
+          if (moment.putAssets && moment.putAssets.length > 0) {
+            const newNodeId = moment.putAssets[0].id;
+            selectAsset(newNodeId);
+          }
         }
 
         setEphemeralState({ type: "none" });
