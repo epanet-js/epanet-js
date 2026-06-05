@@ -8,7 +8,6 @@ export type Zone = {
   label: string;
   geometry: MultiPolygon;
   bbox: BBox;
-  adjacentZones: ZoneId[];
 };
 
 export type Zones = Record<ZoneId, Zone>;

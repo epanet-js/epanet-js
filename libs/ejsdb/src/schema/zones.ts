@@ -5,7 +5,6 @@ export const zoneRowSchema = z.object({
   label: z.string(),
   geometry: z.string(),
   bbox: z.string(),
-  adjacent_zones: z.string(),
 });
 
 export type ZoneRow = z.infer<typeof zoneRowSchema>;

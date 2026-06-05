@@ -46,5 +46,4 @@ const makeZone = (id: number, label: string): Zone => ({
   label,
   geometry: multiPolygon,
   bbox: [0, 0, 1, 1],
-  adjacentZones: [],
 });

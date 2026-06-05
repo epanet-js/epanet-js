@@ -3,7 +3,6 @@ import turfGetBbox from "@turf/bbox";
 import type { Zones, ZoneId } from "./zones";
 import type { ZoneFeature } from "./read-zone-features";
 import { ZoneLabelGenerator } from "./zone-label-generator";
-import { computeAdjacency } from "./zone-adjacency";
 
 export type MergedZoneInfo = {
   label: string;
@@ -29,7 +28,7 @@ export const importZoneFeatures = (
       const label = labelGenerator.next();
       const geometry = toMultiPolygon(feature);
       const bbox = turfGetBbox(geometry);
-      zones[id] = { id, label, geometry, bbox, adjacentZones: [] };
+      zones[id] = { id, label, geometry, bbox };
     });
   } else {
     const groups = new Map<string, ZoneFeature[]>();
@@ -63,7 +62,7 @@ export const importZoneFeatures = (
         coordinates,
       };
       const bbox = turfGetBbox(geometry);
-      zones[id] = { id, label, geometry, bbox, adjacentZones: [] };
+      zones[id] = { id, label, geometry, bbox };
 
       if (groupFeatures.length > 1) {
         mergedZones.push({ label, featureCount: groupFeatures.length });
@@ -71,11 +70,6 @@ export const importZoneFeatures = (
 
       id++;
     }
-  }
-
-  const adjacency = computeAdjacency(zones);
-  for (const [zoneId, neighbors] of adjacency) {
-    zones[zoneId].adjacentZones = neighbors;
   }
 
   return { zones, mergedZones };

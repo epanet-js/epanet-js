@@ -10,7 +10,6 @@ export const buildZonesData = (rawRows: unknown[]): Zones => {
       label: row.label,
       geometry: JSON.parse(row.geometry),
       bbox: JSON.parse(row.bbox),
-      adjacentZones: JSON.parse(row.adjacent_zones),
     };
   }
   return zones;

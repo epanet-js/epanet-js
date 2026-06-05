@@ -4,6 +4,7 @@ import { assignZoneColors } from "./color-assignment";
 import { hexToRgb, rgbToHue, hueDistance } from "./hue-distance";
 import { getQualitativePaletteColors } from "./palette-lookup";
 import type { Zones } from "src/lib/zones";
+import { computeAdjacency } from "src/lib/zones/zone-adjacency";
 
 const TEST_PALETTE = getQualitativePaletteColors("Bold");
 
@@ -16,11 +17,11 @@ describe("assignZoneColors", () => {
 
   it("adjacent zones never share the same color", () => {
     const zones = makeAdjacentGrid(3, 3);
-    populateAdjacency(zones);
     const result = assignZoneColors(zones, TEST_PALETTE);
 
+    const adjacency = computeAdjacency(zones);
     for (const zone of Object.values(zones)) {
-      for (const nid of zone.adjacentZones) {
+      for (const nid of adjacency.get(zone.id) ?? []) {
         expect(result[zone.id]).not.toBe(result[nid]);
       }
     }
@@ -28,11 +29,11 @@ describe("assignZoneColors", () => {
 
   it("adjacent zones avoid hue-group similar colors when palette has room", () => {
     const zones = makeAdjacentGrid(2, 2);
-    populateAdjacency(zones);
     const result = assignZoneColors(zones, TEST_PALETTE);
 
+    const adjacency = computeAdjacency(zones);
     for (const zone of Object.values(zones)) {
-      for (const nid of zone.adjacentZones) {
+      for (const nid of adjacency.get(zone.id) ?? []) {
         expect(sameHueGroup(result[zone.id], result[nid])).toBe(false);
       }
     }
@@ -44,7 +45,6 @@ describe("assignZoneColors", () => {
       [5, 5, 6, 6],
       [10, 10, 11, 11],
     ]);
-    populateAdjacency(zones);
     const result = assignZoneColors(zones, TEST_PALETTE);
     const colors = Object.values(result);
     const unique = new Set(colors);
@@ -61,7 +61,6 @@ describe("assignZoneColors", () => {
       bboxes.push([cx - 0.3, cy - 0.3, cx + 0.3, cy + 0.3]);
     }
     const zones = makeZones(bboxes);
-    populateAdjacency(zones);
     const result = assignZoneColors(zones, TEST_PALETTE);
 
     for (const zone of Object.values(zones)) {
@@ -72,7 +71,6 @@ describe("assignZoneColors", () => {
   it("works with different palettes", () => {
     const palette = ["#FF0000", "#00FF00", "#0000FF"];
     const zones = makeAdjacentGrid(2, 1);
-    populateAdjacency(zones);
     const result = assignZoneColors(zones, palette);
 
     expect(palette).toContain(result[1]);
@@ -103,7 +101,6 @@ function makeZones(bboxes: BBox[]): Zones {
         ],
       },
       bbox,
-      adjacentZones: [],
     };
   });
   return zones;
@@ -117,23 +114,6 @@ function makeAdjacentGrid(rows: number, cols: number): Zones {
     }
   }
   return makeZones(bboxes);
-}
-
-function populateAdjacency(zones: Zones) {
-  const entries = Object.values(zones);
-  for (const z of entries) {
-    z.adjacentZones = [];
-  }
-  for (let i = 0; i < entries.length; i++) {
-    for (let j = i + 1; j < entries.length; j++) {
-      const a = entries[i].bbox;
-      const b = entries[j].bbox;
-      if (a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1]) {
-        entries[i].adjacentZones.push(entries[j].id);
-        entries[j].adjacentZones.push(entries[i].id);
-      }
-    }
-  }
 }
 
 function sameHueGroup(colorA: string, colorB: string): boolean {

@@ -1,4 +1,5 @@
 import type { Zones, ZoneId } from "src/lib/zones";
+import { computeAdjacency } from "src/lib/zones/zone-adjacency";
 import {
   hexToRgb,
   colorDistSq,
@@ -22,17 +23,22 @@ export const assignZoneColors = (
     cachedHueMap = buildHueGroupMap(palette, HUE_DISTANCE_THRESHOLD);
   }
 
+  const adjacency = computeAdjacency(zones);
+
   const assignment: Record<ZoneId, number> = {};
   const result: Record<ZoneId, string> = {};
 
   const sortedIds = Object.values(zones)
-    .sort((a, b) => b.adjacentZones.length - a.adjacentZones.length)
+    .sort(
+      (a, b) =>
+        (adjacency.get(b.id)?.length ?? 0) - (adjacency.get(a.id)?.length ?? 0),
+    )
     .map((z) => z.id);
 
   for (const zoneId of sortedIds) {
-    const zone = zones[zoneId];
+    const neighbors = adjacency.get(zoneId) ?? [];
     const usedIndices = new Set<number>();
-    for (const nid of zone.adjacentZones) {
+    for (const nid of neighbors) {
       if (nid in assignment) usedIndices.add(assignment[nid]);
     }
 

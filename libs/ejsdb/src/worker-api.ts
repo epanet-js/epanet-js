@@ -736,16 +736,10 @@ const bulkInsertJunctionDemands = (rows: readonly JunctionDemandRow[]) => {
 const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   bulkInsert(
     "zones",
-    ["id", "label", "geometry", "bbox", "adjacent_zones"],
+    ["id", "label", "geometry", "bbox"],
     rows,
     (row, params) => {
-      params.push(
-        row.id,
-        row.label,
-        row.geometry,
-        row.bbox,
-        row.adjacent_zones,
-      );
+      params.push(row.id, row.label, row.geometry, row.bbox);
     },
     BULK_CHUNK_SIZES.zones,
   );

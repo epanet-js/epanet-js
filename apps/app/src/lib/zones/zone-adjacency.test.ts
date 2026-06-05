@@ -105,7 +105,6 @@ function makeZones(bboxes: BBox[]): Zones {
         ],
       },
       bbox,
-      adjacentZones: [],
     };
   });
   return zones;
