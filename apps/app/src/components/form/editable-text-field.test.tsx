@@ -137,6 +137,51 @@ describe("EditableTextField", () => {
     });
   });
 
+  describe("maxLength", () => {
+    it("limits ASCII input to maxLength characters", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <EditableTextField
+          label="test"
+          value=""
+          onChangeValue={onChangeValue}
+          maxLength={5}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.type(input, "abcdefgh");
+      await user.keyboard("{Enter}");
+
+      expect(onChangeValue).toHaveBeenCalledWith("abcde");
+    });
+
+    it("counts multi-byte characters as one each", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <EditableTextField
+          label="test"
+          value=""
+          onChangeValue={onChangeValue}
+          maxLength={4}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      // 'é' is 2 bytes but 1 character — should keep all 4
+      await user.type(input, "éééé");
+      await user.keyboard("{Enter}");
+
+      expect(onChangeValue).toHaveBeenCalledWith("éééé");
+    });
+  });
+
   describe("combined allowedChars and maxByteLength", () => {
     it("applies both filters correctly", async () => {
       const user = userEvent.setup();

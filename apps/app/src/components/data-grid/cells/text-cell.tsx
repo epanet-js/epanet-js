@@ -9,7 +9,35 @@ const VALIDATION_DEBOUNCE_MS = 150;
 type TextCellProps = CellProps<string | null> & {
   readonly?: boolean;
   validate?: (value: string, rowIndex: number) => boolean;
+  allowedChars?: RegExp;
+  maxByteLength?: number;
+  maxLength?: number;
 };
+
+function filterInput(
+  raw: string,
+  allowedChars?: RegExp,
+  maxByteLength?: number,
+  maxLength?: number,
+): string {
+  let next = raw;
+  if (allowedChars) {
+    next = next
+      .split("")
+      .filter((char) => allowedChars.test(char))
+      .join("");
+  }
+  if (maxByteLength !== undefined) {
+    const encoder = new TextEncoder();
+    while (encoder.encode(next).length > maxByteLength) {
+      next = next.slice(0, -1);
+    }
+  }
+  if (maxLength !== undefined && next.length > maxLength) {
+    next = next.slice(0, maxLength);
+  }
+  return next;
+}
 
 export function TextCell({
   value,
@@ -19,6 +47,9 @@ export function TextCell({
   stopEditing,
   readonly,
   validate,
+  allowedChars,
+  maxByteLength,
+  maxLength,
 }: TextCellProps) {
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -63,7 +94,12 @@ export function TextCell({
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
+      const newValue = filterInput(
+        e.target.value,
+        allowedChars,
+        maxByteLength,
+        maxLength,
+      );
       setEditValue(newValue);
 
       if (validate) {
@@ -74,7 +110,15 @@ export function TextCell({
         }, VALIDATION_DEBOUNCE_MS);
       }
     },
-    [validate, rowIndex, setEditValue, setHasError],
+    [
+      validate,
+      rowIndex,
+      setEditValue,
+      setHasError,
+      allowedChars,
+      maxByteLength,
+      maxLength,
+    ],
   );
 
   if (readonly) {
@@ -120,21 +164,32 @@ export function textColumn<TData extends RowData = RowData>(
     size?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     validate?: (value: string, rowIndex: number) => boolean;
+    allowedChars?: RegExp;
+    maxByteLength?: number;
+    maxLength?: number;
   },
 ): GridColumn<TData> {
-  const { isReadOnly, validate } = options;
+  const { isReadOnly, validate, allowedChars, maxByteLength, maxLength } =
+    options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
 
   const CellComponent =
-    isReadOnly || validate
+    isReadOnly ||
+    validate ||
+    allowedChars ||
+    maxByteLength !== undefined ||
+    maxLength !== undefined
       ? (props: CellProps<string | null>) => (
           <TextCell
             {...props}
             readonly={resolveReadOnly(props.rowIndex)}
             validate={validate}
+            allowedChars={allowedChars}
+            maxByteLength={maxByteLength}
+            maxLength={maxLength}
           />
         )
       : TextCell;
@@ -146,7 +201,11 @@ export function textColumn<TData extends RowData = RowData>(
     meta: {
       cellComponent: CellComponent,
       copyValue: (v) => v ?? "",
-      pasteValue: (v) => v || null,
+      pasteValue: (v) => {
+        if (!v) return null;
+        const filtered = filterInput(v, allowedChars, maxByteLength, maxLength);
+        return filtered || null;
+      },
       deleteValue: null,
       isReadOnly,
     },

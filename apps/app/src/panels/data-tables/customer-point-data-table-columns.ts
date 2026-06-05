@@ -5,6 +5,7 @@ import {
   textColumn,
   type GridColumn,
 } from "src/components/data-grid";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
@@ -38,6 +39,7 @@ export function buildCustomerPointColumns(
     textColumn<CustomerPointRow>("label", {
       header: translate("label"),
       validate: validateLabel,
+      maxLength: MAX_CUSTOMER_POINT_LABEL_LENGTH,
     }),
     textColumn<CustomerPointRow>("connectedPipeLabel", {
       header: translate("pipe"),

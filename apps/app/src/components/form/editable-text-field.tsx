@@ -28,6 +28,7 @@ export const EditableTextField = ({
   tabIndex = 1,
   allowedChars,
   maxByteLength,
+  maxLength,
   onDirty,
   onReset,
   hasError = false,
@@ -43,6 +44,7 @@ export const EditableTextField = ({
   tabIndex?: number;
   allowedChars?: RegExp;
   maxByteLength?: number;
+  maxLength?: number;
   onDirty?: () => void;
   onReset?: () => void;
   hasError?: boolean;
@@ -128,6 +130,9 @@ export const EditableTextField = ({
       while (encoder.encode(newValue).length > maxByteLength) {
         newValue = newValue.slice(0, -1);
       }
+    }
+    if (maxLength !== undefined && newValue.length > maxLength) {
+      newValue = newValue.slice(0, maxLength);
     }
     setInputValue(newValue);
     setDirty(true);

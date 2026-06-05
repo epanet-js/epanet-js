@@ -90,6 +90,9 @@ export const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
   ],
 };
 
+const LABEL_ALLOWED_CHARS = /(?![\s;])[\x00-\xFF]/;
+const LABEL_MAX_BYTES = 31;
+
 export const NULLABLE_KEYS = new Set([
   "bulkReactionCoeff",
   "wallReactionCoeff",
@@ -583,6 +586,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -632,6 +637,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -693,6 +700,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -772,6 +781,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -833,6 +844,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -852,6 +865,8 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
+          allowedChars: LABEL_ALLOWED_CHARS,
+          maxByteLength: LABEL_MAX_BYTES,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(

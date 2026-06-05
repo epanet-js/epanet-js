@@ -213,8 +213,7 @@ export function CustomerPointPanel() {
               onReset={clearLabelError}
               onDirty={clearLabelError}
               hasError={!!labelError}
-              allowedChars={/(?![\s;])[\x00-\xFF]/}
-              maxByteLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
+              maxLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
               styleOptions={{
                 padding: "sm",
                 ghostBorder: true,

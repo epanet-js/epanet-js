@@ -329,6 +329,80 @@ describe("TextCell", () => {
     });
   });
 
+  describe("allowedChars prop", () => {
+    it("filters out characters not matching the pattern as they are typed", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <TextCell
+          {...defaultProps}
+          value={null}
+          editMode="full"
+          onChange={onChange}
+          allowedChars={/[a-zA-Z0-9]/}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      await user.type(input, "ab 1;2!c");
+      expect(input).toHaveValue("ab12c");
+
+      await user.keyboard("{Enter}");
+      expect(onChange).toHaveBeenCalledWith("ab12c");
+    });
+  });
+
+  describe("maxByteLength prop", () => {
+    it("truncates by UTF-8 byte length", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <TextCell
+          {...defaultProps}
+          value={null}
+          editMode="full"
+          onChange={onChange}
+          maxByteLength={4}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      // 'é' = 2 bytes; 4 bytes max keeps only 2 of them
+      await user.type(input, "éééé");
+      expect(input).toHaveValue("éé");
+
+      await user.keyboard("{Enter}");
+      expect(onChange).toHaveBeenCalledWith("éé");
+    });
+  });
+
+  describe("maxLength prop", () => {
+    it("truncates by character count, not bytes", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <TextCell
+          {...defaultProps}
+          value={null}
+          editMode="full"
+          onChange={onChange}
+          maxLength={4}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      // 4 multi-byte chars (8 bytes) — should all fit under maxLength=4
+      await user.type(input, "éééééé");
+      expect(input).toHaveValue("éééé");
+
+      await user.keyboard("{Enter}");
+      expect(onChange).toHaveBeenCalledWith("éééé");
+    });
+  });
+
   describe("readonly prop", () => {
     it("renders text div instead of an input", () => {
       render(<TextCell {...defaultProps} value="pipe-1" readonly />);
@@ -392,6 +466,43 @@ describe("textColumn", () => {
       const column = textColumn("name", { header: "Name" });
 
       expect(column.meta?.pasteValue?.("")).toBeNull();
+    });
+
+    it("strips characters not matching allowedChars", () => {
+      const column = textColumn("name", {
+        header: "Name",
+        allowedChars: /[a-zA-Z0-9]/,
+      });
+
+      expect(column.meta?.pasteValue?.("pipe 1;2!")).toBe("pipe12");
+    });
+
+    it("truncates by maxByteLength", () => {
+      const column = textColumn("name", {
+        header: "Name",
+        maxByteLength: 4,
+      });
+
+      // 'é' = 2 bytes
+      expect(column.meta?.pasteValue?.("éééé")).toBe("éé");
+    });
+
+    it("truncates by maxLength using character count", () => {
+      const column = textColumn("name", {
+        header: "Name",
+        maxLength: 3,
+      });
+
+      expect(column.meta?.pasteValue?.("éééééé")).toBe("ééé");
+    });
+
+    it("returns null when filtering leaves an empty string", () => {
+      const column = textColumn("name", {
+        header: "Name",
+        allowedChars: /[a-zA-Z0-9]/,
+      });
+
+      expect(column.meta?.pasteValue?.(" ;!")).toBeNull();
     });
   });
 
