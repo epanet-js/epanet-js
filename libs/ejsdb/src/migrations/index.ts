@@ -4,6 +4,7 @@ import m0003 from "./0003_pipe_material_year.sql?raw";
 import m0004 from "./0004_zones_table.sql?raw";
 import m0005 from "./0005_zones_bbox_adjacency.sql?raw";
 import m0006 from "./0006_sanitize_labels";
+import m0007 from "./0007_drop_zones_adjacency.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -16,6 +17,7 @@ export const migrations: Migration[] = [
   m0004,
   m0005,
   m0006,
+  m0007,
 ];
 
 export const APP_VERSION = migrations.length;
