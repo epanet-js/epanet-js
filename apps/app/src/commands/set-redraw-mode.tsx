@@ -19,11 +19,9 @@ export const useSetRedrawMode = () => {
 
   const setRedrawMode = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
-      const selectedIds = USelection.toIds(selection);
+      if (!USelection.isSingleAsset(selection)) return;
 
-      if (selectedIds.length !== 1) return;
-
-      const selectedAsset = hydraulicModel.assets.get(selectedIds[0]);
+      const selectedAsset = hydraulicModel.assets.get(selection.id);
 
       if (!selectedAsset || !selectedAsset.isLink) return;
 

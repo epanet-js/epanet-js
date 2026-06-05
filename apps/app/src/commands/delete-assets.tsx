@@ -34,16 +34,16 @@ export const useDeleteAssets = () => {
         });
       }
 
-      const currentIds = new Set(USelection.toIds(selection));
-      const intersects = assetIds.some((id) => currentIds.has(id));
+      const currentAssetIds = USelection.getAssetIds(selection);
+      const currentCustomerPointIds = USelection.getCustomerPointIds(selection);
+      const deletedSet = new Set(assetIds);
+      const intersects = currentAssetIds.some((id) => deletedSet.has(id));
       if (intersects) {
-        const remaining = USelection.toIds(selection).filter(
-          (id) => !assetIds.includes(id),
+        const remainingAssetIds = currentAssetIds.filter(
+          (id) => !deletedSet.has(id),
         );
         setSelection(
-          remaining.length === 0
-            ? USelection.none()
-            : USelection.fromIds(remaining),
+          USelection.fromKindedIds(remainingAssetIds, currentCustomerPointIds),
         );
       }
 
