@@ -527,6 +527,19 @@ const PriorityAccessDialog = dynamic<{
   },
 );
 
+const AllocateCustomerPointsDialog = dynamic<{
+  isOpen: boolean;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/allocate-customer-points").then(
+      (r) => r.AllocateCustomerPointsDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ImportZonesDialog = dynamic<{
   onClose: () => void;
 }>(
@@ -617,6 +630,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
+  }
+  if (dialog.type === "allocateCustomerPoints") {
+    return <AllocateCustomerPointsDialog isOpen={true} onClose={onClose} />;
   }
   if (dialog.type === "modelBuilderIframe") {
     return <ModelBuilderIframeDialog onClose={onClose} />;

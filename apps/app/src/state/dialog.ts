@@ -261,6 +261,10 @@ export type ImportZonesWarningDialogState = {
   onContinue: () => void;
 };
 
+export type AllocateCustomerPointsDialogState = {
+  type: "allocateCustomerPoints";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -311,6 +315,7 @@ export type DialogState =
   | PriorityAccessDialogState
   | ImportZonesDialogState
   | ImportZonesWarningDialogState
+  | AllocateCustomerPointsDialogState
   | null;
 
 export const dialogFromUrl = (): DialogState => {
