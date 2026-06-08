@@ -96,7 +96,6 @@ export const Toolbar = ({
   const importZonesDisabled = useImportZonesDisabled();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
-  const isZonesOn = useFeatureFlag("FLAG_ZONES");
   const { canUseHglProfile } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
@@ -156,18 +155,16 @@ export const Toolbar = ({
             >
               <ImportCustomerPointsIcon />
             </MenuAction>
-            {isZonesOn && (
-              <MenuAction
-                label={translate("importZones.title")}
-                role="button"
-                onClick={() => {
-                  openZonesImport({ source: "toolbar" });
-                }}
-                disabled={importZonesDisabled}
-              >
-                <ZonesIcon />
-              </MenuAction>
-            )}
+            <MenuAction
+              label={translate("importZones.title")}
+              role="button"
+              onClick={() => {
+                openZonesImport({ source: "toolbar" });
+              }}
+              disabled={importZonesDisabled}
+            >
+              <ZonesIcon />
+            </MenuAction>
           </>
         )}
         <Divider />

@@ -193,7 +193,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const zonesEnabled = useFeatureFlag("FLAG_ZONES");
   const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
 
   const doUpdates = useCallback(() => {
@@ -460,10 +459,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           await updateMapOverlaySource(map, mapState.mapOverlayFeatures);
         }
 
-        if (zonesEnabled) {
-          if (hasNewZoneFeatures || hasNewStyles) {
-            await updateZonesSource(map, mapState.zoneFeatures);
-          }
+        if (hasNewZoneFeatures || hasNewStyles) {
+          await updateZonesSource(map, mapState.zoneFeatures);
         }
 
         const hasAssetHighlights = mapState.highlights.some(
@@ -566,7 +563,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel.assets,
     isGridOn,
     isGridPreview,
-    zonesEnabled,
     isMultiCpSelectionOn,
   ]);
 

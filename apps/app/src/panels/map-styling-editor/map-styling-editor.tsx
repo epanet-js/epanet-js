@@ -46,7 +46,6 @@ import { USelection } from "src/selection";
 import { ElevationsEditor } from "./elevations-editor";
 import { ProjectionSection } from "./projection-section";
 import { TextField } from "src/components/form/text-field";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { zoneFeaturesAtom } from "src/state/zone-features";
 import { usePermissions } from "src/hooks/use-permissions";
 
@@ -90,11 +89,9 @@ export const MapStylingEditor = () => {
   const translate = useTranslate();
   const isGridOn = useAtomValue(showGridAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
-  const zonesEnabled = useFeatureFlag("FLAG_ZONES");
   const { canUseZones } = usePermissions();
   const zoneFeatures = useAtomValue(zoneFeaturesAtom);
-  const showZoneSymbology =
-    zonesEnabled && canUseZones && zoneFeatures.length > 0;
+  const showZoneSymbology = canUseZones && zoneFeatures.length > 0;
 
   return (
     <div className="flex-auto overflow-y-auto placemark-scrollbar ">
