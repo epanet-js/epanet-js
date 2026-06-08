@@ -956,8 +956,10 @@
     "finish": "Finish",
     "processing": "Processing..."
   },
+  "import": "Import",
   "importCustomerPoints": {
     "label": "Import customer points",
+    "menuEntry": "Customer points",
     "wizard": {
       "title": "Import customer points",
       "stepsAriaLabel": "Import wizard steps",

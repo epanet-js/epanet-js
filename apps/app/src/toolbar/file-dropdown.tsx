@@ -18,6 +18,8 @@ import {
   SaveIcon,
   SaveAllIcon,
   FileTextIcon,
+  ImportCustomerPointsIcon,
+  UploadIcon,
 } from "src/icons";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -31,6 +33,8 @@ import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import {
   Button,
@@ -101,6 +105,7 @@ export const FileDropdown = () => {
 
               <DDSeparator />
 
+              <ImportSubmenu />
               <ExportSubmenu />
               <RecentFilesMenu />
             </DDContent>
@@ -165,6 +170,36 @@ const NewProjectSubmenu = () => {
           >
             <FileSpreadsheetIcon />
             {translate("newProject.fromEpanetInp")}
+          </StyledItem>
+        </DDSubContent>
+      </DD.Portal>
+    </DD.Sub>
+  );
+};
+
+const ImportSubmenu = () => {
+  const isSplitAllocation = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
+  const importCustomerPoints = useImportCustomerPoints();
+  const translate = useTranslate();
+
+  if (!isSplitAllocation) return null;
+
+  return (
+    <DD.Sub>
+      <DDSubTriggerItem>
+        <UploadIcon />
+        {translate("import")}
+        <ChevronRightIcon size="sm" className="ml-auto" />
+      </DDSubTriggerItem>
+      <DD.Portal>
+        <DDSubContent sideOffset={4} alignOffset={-4}>
+          <StyledItem
+            onSelect={() => {
+              importCustomerPoints({ source: "toolbar" });
+            }}
+          >
+            <ImportCustomerPointsIcon />
+            {translate("importCustomerPoints.menuEntry")}
           </StyledItem>
         </DDSubContent>
       </DD.Portal>
