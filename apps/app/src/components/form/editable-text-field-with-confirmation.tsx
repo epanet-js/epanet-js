@@ -8,6 +8,7 @@ import {
   useEffect,
 } from "react";
 import clsx from "clsx";
+import { cleanLabel } from "@epanet-js/hydraulic-model";
 import { Button } from "src/components/elements";
 import { CheckIcon } from "src/icons";
 
@@ -127,19 +128,10 @@ export const EditableTextFieldWithConfirmation = forwardRef<
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    let newValue = e.target.value;
-    if (allowedChars) {
-      newValue = newValue
-        .split("")
-        .filter((char) => allowedChars.test(char))
-        .join("");
-    }
-    if (maxByteLength !== undefined) {
-      const encoder = new TextEncoder();
-      while (encoder.encode(newValue).length > maxByteLength) {
-        newValue = newValue.slice(0, -1);
-      }
-    }
+    const newValue = cleanLabel(e.target.value, {
+      allowedChars,
+      maxByteLength,
+    });
     setInputValue(newValue);
     setDirty(true);
   };

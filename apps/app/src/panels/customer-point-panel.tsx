@@ -30,7 +30,7 @@ import {
   changeDemandAssignment,
   changeCustomerPointLabel,
 } from "src/hydraulic-model/model-operations";
-import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "@epanet-js/hydraulic-model";
+import { customerPointLabelRules } from "@epanet-js/hydraulic-model";
 import { convertTo } from "@epanet-js/quantity";
 
 export function CustomerPointPanel() {
@@ -213,7 +213,7 @@ export function CustomerPointPanel() {
               onReset={clearLabelError}
               onDirty={clearLabelError}
               hasError={!!labelError}
-              maxLength={MAX_CUSTOMER_POINT_LABEL_LENGTH}
+              {...customerPointLabelRules}
               styleOptions={{
                 padding: "sm",
                 ghostBorder: true,

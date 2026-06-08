@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useRef } from "react";
 import type { ColumnDef, RowData } from "@tanstack/react-table";
+import { cleanLabel } from "@epanet-js/hydraulic-model";
 import { CellProps, GridColumn } from "../types";
 import { useEditableTextInput } from "./use-editable-text-input";
 
@@ -13,31 +14,6 @@ type TextCellProps = CellProps<string | null> & {
   maxByteLength?: number;
   maxLength?: number;
 };
-
-function filterInput(
-  raw: string,
-  allowedChars?: RegExp,
-  maxByteLength?: number,
-  maxLength?: number,
-): string {
-  let next = raw;
-  if (allowedChars) {
-    next = next
-      .split("")
-      .filter((char) => allowedChars.test(char))
-      .join("");
-  }
-  if (maxByteLength !== undefined) {
-    const encoder = new TextEncoder();
-    while (encoder.encode(next).length > maxByteLength) {
-      next = next.slice(0, -1);
-    }
-  }
-  if (maxLength !== undefined && next.length > maxLength) {
-    next = next.slice(0, maxLength);
-  }
-  return next;
-}
 
 export function TextCell({
   value,
@@ -94,12 +70,11 @@ export function TextCell({
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = filterInput(
-        e.target.value,
+      const newValue = cleanLabel(e.target.value, {
         allowedChars,
         maxByteLength,
         maxLength,
-      );
+      });
       setEditValue(newValue);
 
       if (validate) {
@@ -203,7 +178,11 @@ export function textColumn<TData extends RowData = RowData>(
       copyValue: (v) => v ?? "",
       pasteValue: (v) => {
         if (!v) return null;
-        const filtered = filterInput(v, allowedChars, maxByteLength, maxLength);
+        const filtered = cleanLabel(v, {
+          allowedChars,
+          maxByteLength,
+          maxLength,
+        });
         return filtered || null;
       },
       deleteValue: null,

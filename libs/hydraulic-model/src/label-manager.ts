@@ -1,4 +1,58 @@
 import { Asset } from "./asset-types";
+import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "./customer-points";
+
+const ASSET_LABEL_ALLOWED_CHARS = /(?![\s;])[\x00-\xFF]/;
+
+export const ASSET_LABEL_MAX_BYTES = 31;
+
+export const assetLabelRules = {
+  allowedChars: ASSET_LABEL_ALLOWED_CHARS,
+  maxByteLength: ASSET_LABEL_MAX_BYTES,
+} as const;
+
+export const customerPointLabelRules = {
+  maxLength: MAX_CUSTOMER_POINT_LABEL_LENGTH,
+} as const;
+
+const filterByAllowedChars = (s: string, pattern: RegExp): string =>
+  s
+    .split("")
+    .filter((char) => pattern.test(char))
+    .join("");
+
+const byteLength = (s: string): number => new TextEncoder().encode(s).length;
+
+export const truncateToByteLength = (s: string, maxBytes: number): string => {
+  if (byteLength(s) <= maxBytes) return s;
+  let out = s;
+  while (byteLength(out) > maxBytes) out = out.slice(0, -1);
+  return out;
+};
+
+const truncateToCharLength = (s: string, maxChars: number): string =>
+  s.length <= maxChars ? s : s.slice(0, maxChars);
+
+export const cleanLabel = (
+  raw: string,
+  rules: {
+    allowedChars?: RegExp;
+    maxByteLength?: number;
+    maxLength?: number;
+  },
+): string => {
+  let next = raw;
+  if (rules.allowedChars) next = filterByAllowedChars(next, rules.allowedChars);
+  if (rules.maxByteLength !== undefined)
+    next = truncateToByteLength(next, rules.maxByteLength);
+  if (rules.maxLength !== undefined)
+    next = truncateToCharLength(next, rules.maxLength);
+  return next;
+};
+
+type LabelLengthRule = {
+  maxByteLength?: number;
+  maxLength?: number;
+};
 
 export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
 
@@ -153,22 +207,36 @@ export class LabelManager {
     }
   }
 
-  generateNextLabel(inputLabel: string): string {
-    const MAX_LENGTH = 31;
+  generateNextLabel(
+    inputLabel: string,
+    rules: LabelLengthRule = assetLabelRules,
+  ): string {
     const { baseLabel, nextCounter } = this.extractBaseAndCounter(inputLabel);
 
     const generateLabelWithCounter = (counter: number): string => {
       const suffix = `_${counter}`;
-      const maxBaseLength = MAX_LENGTH - suffix.length;
 
-      if (maxBaseLength <= 0) {
-        throw new Error(
-          `Cannot generate label within ${MAX_LENGTH} character limit`,
-        );
+      if (rules.maxByteLength !== undefined) {
+        const maxBaseBytes = rules.maxByteLength - suffix.length;
+        if (maxBaseBytes <= 0) {
+          throw new Error(
+            `Cannot generate label within ${rules.maxByteLength} byte limit`,
+          );
+        }
+        return `${truncateToByteLength(baseLabel, maxBaseBytes)}${suffix}`;
       }
 
-      const truncatedBase = baseLabel.substring(0, maxBaseLength);
-      return `${truncatedBase}${suffix}`;
+      if (rules.maxLength !== undefined) {
+        const maxBaseChars = rules.maxLength - suffix.length;
+        if (maxBaseChars <= 0) {
+          throw new Error(
+            `Cannot generate label within ${rules.maxLength} character limit`,
+          );
+        }
+        return `${baseLabel.slice(0, maxBaseChars)}${suffix}`;
+      }
+
+      return `${baseLabel}${suffix}`;
     };
 
     let counter = nextCounter;

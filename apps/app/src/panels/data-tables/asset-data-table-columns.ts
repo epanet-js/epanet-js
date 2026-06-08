@@ -22,6 +22,7 @@ import {
   type PatternType,
   type Curves,
   type CurveType,
+  assetLabelRules,
 } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -89,9 +90,6 @@ export const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
     "chemicalSourceStrength",
   ],
 };
-
-const LABEL_ALLOWED_CHARS = /(?![\s;])[\x00-\xFF]/;
-const LABEL_MAX_BYTES = 31;
 
 export const NULLABLE_KEYS = new Set([
   "bulkReactionCoeff",
@@ -586,8 +584,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -637,8 +634,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -700,8 +696,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -781,8 +776,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -844,8 +838,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -865,8 +858,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          allowedChars: LABEL_ALLOWED_CHARS,
-          maxByteLength: LABEL_MAX_BYTES,
+          ...assetLabelRules,
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { assetLabelRules } from "@epanet-js/hydraulic-model";
 import { EditableTextFieldWithConfirmation } from "../form/editable-text-field-with-confirmation";
 
 type ItemInputProps = {
@@ -37,8 +38,7 @@ export const ItemInput = ({
         onChangeValue={handleChangeValue}
         onReset={onCancel}
         hasError={hasError}
-        allowedChars={/(?![\s;])[\x00-\xFF]/}
-        maxByteLength={31}
+        {...assetLabelRules}
         styleOptions={{
           padding: "sm",
           textSize: "sm",

@@ -28,6 +28,7 @@ import {
   type TankMixingModel,
   type ChemicalSourceType,
   CustomerPoint,
+  assetLabelRules,
 } from "@epanet-js/hydraulic-model";
 import { PanelActions } from "./actions";
 import {
@@ -155,8 +156,7 @@ const Header = ({
             onDirty={clearError}
             hasError={!!error}
             readOnly={readOnly}
-            allowedChars={/(?![\s;])[\x00-\xFF]/}
-            maxByteLength={31}
+            {...assetLabelRules}
             styleOptions={{
               padding: "sm",
               ghostBorder: true,

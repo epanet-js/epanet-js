@@ -284,7 +284,7 @@ describe("label manager", () => {
       expect(nextLabel).toEqual("MYLABEL_3");
     });
 
-    describe("31-character length limit", () => {
+    describe("31-byte length limit", () => {
       it("truncates base to fit suffix", () => {
         const labelManager = new LabelManager();
         const longLabel = "ExtremelyLongPipeNameExampleThatExceedsLimit";
@@ -334,6 +334,47 @@ describe("label manager", () => {
 
         expect(nextLabel.length).toBeLessThanOrEqual(31);
         expect(nextLabel).toEqual("A".repeat(29) + "_1");
+      });
+
+      it("counts multi-byte characters by UTF-8 byte length", () => {
+        const labelManager = new LabelManager();
+        // "é" is 2 bytes in UTF-8; 16 of them = 32 bytes, over the 31-byte cap.
+        // After reserving 2 bytes for the "_1" suffix, only 14 é's fit (28 bytes).
+        const longLabel = "é".repeat(16);
+
+        const nextLabel = labelManager.generateNextLabel(longLabel);
+
+        const byteLen = new TextEncoder().encode(nextLabel).length;
+        expect(byteLen).toBeLessThanOrEqual(31);
+        expect(nextLabel).toEqual("é".repeat(14) + "_1");
+      });
+    });
+
+    describe("custom rules", () => {
+      it("respects a larger byte budget when provided", () => {
+        const labelManager = new LabelManager();
+        const longLabel = "x".repeat(60);
+
+        const nextLabel = labelManager.generateNextLabel(longLabel, {
+          maxByteLength: 50,
+        });
+
+        expect(nextLabel.length).toBeLessThanOrEqual(50);
+        expect(nextLabel).toEqual("x".repeat(48) + "_1");
+      });
+
+      it("truncates by character count for customer-point-style rules", () => {
+        const labelManager = new LabelManager();
+        // "é" is 2 bytes; under maxLength=10 the suffix "_1" reserves 2 chars,
+        // so 8 é's fit (would be 16 bytes — fine because rule is char-based).
+        const longLabel = "é".repeat(20);
+
+        const nextLabel = labelManager.generateNextLabel(longLabel, {
+          maxLength: 10,
+        });
+
+        expect(nextLabel.length).toBeLessThanOrEqual(10);
+        expect(nextLabel).toEqual("é".repeat(8) + "_1");
       });
     });
   });
