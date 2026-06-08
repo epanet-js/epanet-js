@@ -957,6 +957,9 @@
     "processing": "Processing..."
   },
   "import": "Import",
+  "allocateCustomerPoints": {
+    "menuEntry": "Allocate customer points"
+  },
   "importCustomerPoints": {
     "label": "Import customer points",
     "menuEntry": "Customer points",

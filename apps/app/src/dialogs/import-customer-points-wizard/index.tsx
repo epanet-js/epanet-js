@@ -12,6 +12,7 @@ import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { DemandOptionsStep } from "./demand-options-step";
 import { AllocationStep } from "./allocation-step";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
@@ -39,6 +40,7 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
+  const isSplitAllocationEnabled = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const {
     projections,
     loading: projectionsLoading,
