@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useRef } from "react";
 import type { ColumnDef, RowData } from "@tanstack/react-table";
-import { cleanLabel } from "@epanet-js/hydraulic-model";
 import { CellProps, GridColumn } from "../types";
 import { useEditableTextInput } from "./use-editable-text-input";
 
@@ -10,9 +9,7 @@ const VALIDATION_DEBOUNCE_MS = 150;
 type TextCellProps = CellProps<string | null> & {
   readonly?: boolean;
   validate?: (value: string, rowIndex: number) => boolean;
-  allowedChars?: RegExp;
-  maxByteLength?: number;
-  maxLength?: number;
+  sanitize?: (raw: string) => string;
 };
 
 export function TextCell({
@@ -23,9 +20,7 @@ export function TextCell({
   stopEditing,
   readonly,
   validate,
-  allowedChars,
-  maxByteLength,
-  maxLength,
+  sanitize,
 }: TextCellProps) {
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,11 +65,7 @@ export function TextCell({
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = cleanLabel(e.target.value, {
-        allowedChars,
-        maxByteLength,
-        maxLength,
-      });
+      const newValue = sanitize ? sanitize(e.target.value) : e.target.value;
       setEditValue(newValue);
 
       if (validate) {
@@ -85,15 +76,7 @@ export function TextCell({
         }, VALIDATION_DEBOUNCE_MS);
       }
     },
-    [
-      validate,
-      rowIndex,
-      setEditValue,
-      setHasError,
-      allowedChars,
-      maxByteLength,
-      maxLength,
-    ],
+    [validate, rowIndex, setEditValue, setHasError, sanitize],
   );
 
   if (readonly) {
@@ -139,32 +122,23 @@ export function textColumn<TData extends RowData = RowData>(
     size?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     validate?: (value: string, rowIndex: number) => boolean;
-    allowedChars?: RegExp;
-    maxByteLength?: number;
-    maxLength?: number;
+    cleanLabel?: (raw: string) => string;
   },
 ): GridColumn<TData> {
-  const { isReadOnly, validate, allowedChars, maxByteLength, maxLength } =
-    options;
+  const { isReadOnly, validate, cleanLabel } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
 
   const CellComponent =
-    isReadOnly ||
-    validate ||
-    allowedChars ||
-    maxByteLength !== undefined ||
-    maxLength !== undefined
+    isReadOnly || validate || cleanLabel
       ? (props: CellProps<string | null>) => (
           <TextCell
             {...props}
             readonly={resolveReadOnly(props.rowIndex)}
             validate={validate}
-            allowedChars={allowedChars}
-            maxByteLength={maxByteLength}
-            maxLength={maxLength}
+            sanitize={cleanLabel}
           />
         )
       : TextCell;
@@ -178,12 +152,8 @@ export function textColumn<TData extends RowData = RowData>(
       copyValue: (v) => v ?? "",
       pasteValue: (v) => {
         if (!v) return null;
-        const filtered = cleanLabel(v, {
-          allowedChars,
-          maxByteLength,
-          maxLength,
-        });
-        return filtered || null;
+        const cleaned = cleanLabel ? cleanLabel(v) : v;
+        return cleaned || null;
       },
       deleteValue: null,
       isReadOnly,

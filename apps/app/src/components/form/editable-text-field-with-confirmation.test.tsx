@@ -5,29 +5,30 @@ import { EditableTextFieldWithConfirmation } from "./editable-text-field-with-co
 const setupUser = () => userEvent.setup();
 
 describe("EditableTextFieldWithConfirmation", () => {
-  describe("allowedChars", () => {
-    it("filters out characters not matching the pattern", async () => {
+  describe("cleanLabel", () => {
+    it("transforms typed input via the provided cleaner", async () => {
       const user = setupUser();
       const onChangeValue = vi.fn();
+      const upper = (raw: string) => raw.toUpperCase();
 
       render(
         <EditableTextFieldWithConfirmation
           label="test"
           value=""
           onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z0-9]/}
+          sanitize={upper}
         />,
       );
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
-      await user.type(input, "abc123!@#");
+      await user.type(input, "hello");
       await user.keyboard("{Enter}");
 
-      expect(onChangeValue).toHaveBeenCalledWith("abc123");
+      expect(onChangeValue).toHaveBeenCalledWith("HELLO");
     });
 
-    it("allows Latin-1 extended characters when pattern includes them", async () => {
+    it("does not transform when cleanLabel is omitted", async () => {
       const user = setupUser();
       const onChangeValue = vi.fn();
 
@@ -36,61 +37,15 @@ describe("EditableTextFieldWithConfirmation", () => {
           label="test"
           value=""
           onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z0-9\xA0-\xFF]/}
         />,
       );
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
-      await user.type(input, "caféñ");
+      await user.type(input, "anything; goes");
       await user.keyboard("{Enter}");
 
-      expect(onChangeValue).toHaveBeenCalledWith("caféñ");
-    });
-  });
-
-  describe("maxByteLength", () => {
-    it("limits ASCII input to maxByteLength bytes", async () => {
-      const user = setupUser();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextFieldWithConfirmation
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxByteLength={5}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      await user.type(input, "abcdefgh");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("abcde");
-    });
-
-    it("limits multi-byte characters by byte length, not character count", async () => {
-      const user = setupUser();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextFieldWithConfirmation
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxByteLength={4}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      // 'é' is 2 bytes in UTF-8, so 4 bytes max = 2 'é' characters
-      await user.type(input, "éééé");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("éé");
+      expect(onChangeValue).toHaveBeenCalledWith("anything; goes");
     });
   });
 

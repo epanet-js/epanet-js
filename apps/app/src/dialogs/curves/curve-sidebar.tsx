@@ -318,6 +318,7 @@ export const CurveSidebar = ({
                     actions={itemActions}
                     onAction={handleAction}
                     editLabelMode={getEditMode(actionState, curve.id)}
+                    sanitize={(raw) => LabelManager.sanitizeLabel(raw, "curve")}
                     onLabelChange={handleCurveLabelChange}
                     placeholder={translate("curves.curveName")}
                     onCancel={clearActionState}
@@ -330,6 +331,7 @@ export const CurveSidebar = ({
                   label="New curve name"
                   value=""
                   placeholder={translate("curves.curveName")}
+                  sanitize={(raw) => LabelManager.sanitizeLabel(raw, "curve")}
                   onCommit={handleCurveLabelChange}
                   onCancel={clearActionState}
                 />

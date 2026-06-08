@@ -354,6 +354,9 @@ export const PatternSidebar = ({
                     actions={itemActions}
                     onAction={handleAction}
                     editLabelMode={getEditMode(actionState, pattern.id)}
+                    sanitize={(raw) =>
+                      LabelManager.sanitizeLabel(raw, "pattern")
+                    }
                     onLabelChange={handlePatternLabelChange}
                     placeholder={translate("patterns.patternName")}
                     onCancel={clearActionState}
@@ -366,6 +369,7 @@ export const PatternSidebar = ({
                   label="New pattern name"
                   value=""
                   placeholder={translate("patterns.patternName")}
+                  sanitize={(raw) => LabelManager.sanitizeLabel(raw, "pattern")}
                   onCommit={handlePatternLabelChange}
                   onCancel={clearActionState}
                 />

@@ -16,6 +16,7 @@ type EditableListItemProps<T extends LabelledItem> = {
   icon?: React.ReactNode;
   editLabelMode?: "inline" | "below" | null;
   placeholder?: string;
+  sanitize?: (raw: string) => string;
   onLabelChange: (name: string) => boolean;
   onCancel: () => void;
   readOnly?: boolean;
@@ -29,6 +30,7 @@ export const EditableListItem = <T extends LabelledItem>({
   onAction,
   editLabelMode,
   placeholder,
+  sanitize,
   onLabelChange,
   onCancel,
   icon,
@@ -39,6 +41,7 @@ export const EditableListItem = <T extends LabelledItem>({
       <ItemInput
         value={item.label}
         placeholder={placeholder}
+        sanitize={sanitize}
         onCommit={onLabelChange}
         onCancel={onCancel}
       />
@@ -60,6 +63,7 @@ export const EditableListItem = <T extends LabelledItem>({
         <ItemInput
           value={item.label}
           placeholder={placeholder}
+          sanitize={sanitize}
           onCommit={onLabelChange}
           onCancel={onCancel}
           forceValidation

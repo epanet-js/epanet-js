@@ -6,7 +6,6 @@ import {
   useEffect,
 } from "react";
 import clsx from "clsx";
-import { cleanLabel } from "@epanet-js/hydraulic-model";
 
 type StyleOptions = {
   textSize?: "xs" | "sm" | "md";
@@ -27,9 +26,7 @@ export const EditableTextField = ({
   disabled = false,
   styleOptions = {},
   tabIndex = 1,
-  allowedChars,
-  maxByteLength,
-  maxLength,
+  sanitize,
   onDirty,
   onReset,
   hasError = false,
@@ -43,9 +40,7 @@ export const EditableTextField = ({
   disabled?: boolean;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
-  allowedChars?: RegExp;
-  maxByteLength?: number;
-  maxLength?: number;
+  sanitize?: (raw: string) => string;
   onDirty?: () => void;
   onReset?: () => void;
   hasError?: boolean;
@@ -119,11 +114,7 @@ export const EditableTextField = ({
   };
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const newValue = cleanLabel(e.target.value, {
-      allowedChars,
-      maxByteLength,
-      maxLength,
-    });
+    const newValue = sanitize ? sanitize(e.target.value) : e.target.value;
     setInputValue(newValue);
     setDirty(true);
     onDirty?.();

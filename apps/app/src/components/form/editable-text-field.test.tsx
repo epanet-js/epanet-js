@@ -3,29 +3,30 @@ import userEvent from "@testing-library/user-event";
 import { EditableTextField } from "./editable-text-field";
 
 describe("EditableTextField", () => {
-  describe("allowedChars", () => {
-    it("filters out characters not matching the pattern", async () => {
+  describe("cleanLabel", () => {
+    it("transforms typed input via the provided cleaner", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
+      const upper = (raw: string) => raw.toUpperCase();
 
       render(
         <EditableTextField
           label="test"
           value=""
           onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z0-9]/}
+          sanitize={upper}
         />,
       );
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
-      await user.type(input, "abc123!@#");
+      await user.type(input, "hello");
       await user.keyboard("{Enter}");
 
-      expect(onChangeValue).toHaveBeenCalledWith("abc123");
+      expect(onChangeValue).toHaveBeenCalledWith("HELLO");
     });
 
-    it("allows Latin-1 extended characters when pattern includes them", async () => {
+    it("does not transform input when cleanLabel is omitted", async () => {
       const user = userEvent.setup();
       const onChangeValue = vi.fn();
 
@@ -34,176 +35,15 @@ describe("EditableTextField", () => {
           label="test"
           value=""
           onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z0-9\xA0-\xFF]/}
         />,
       );
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
-      await user.type(input, "caféñ");
+      await user.type(input, "anything; goes");
       await user.keyboard("{Enter}");
 
-      expect(onChangeValue).toHaveBeenCalledWith("caféñ");
-    });
-
-    it("excludes specific special characters", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      // Pattern that excludes +, -, *, /, ^, ;, ", ', \, and whitespace
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z0-9_]/}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      await user.type(input, "abc+def-ghi");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("abcdefghi");
-    });
-  });
-
-  describe("maxByteLength", () => {
-    it("limits ASCII input to maxByteLength bytes", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxByteLength={5}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      await user.type(input, "abcdefgh");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("abcde");
-    });
-
-    it("limits multi-byte characters by byte length, not character count", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxByteLength={4}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      // 'é' is 2 bytes in UTF-8, so 4 bytes max = 2 'é' characters
-      await user.type(input, "éééé");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("éé");
-    });
-
-    it("handles mixed ASCII and multi-byte characters", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxByteLength={5}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      // 'a' = 1 byte, 'é' = 2 bytes, 'b' = 1 byte, 'ñ' = 2 bytes
-      // Total would be 6 bytes, should truncate to 5 bytes = "aéb"
-      await user.type(input, "aébñ");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("aéb");
-    });
-  });
-
-  describe("maxLength", () => {
-    it("limits ASCII input to maxLength characters", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxLength={5}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      await user.type(input, "abcdefgh");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("abcde");
-    });
-
-    it("counts multi-byte characters as one each", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          maxLength={4}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      // 'é' is 2 bytes but 1 character — should keep all 4
-      await user.type(input, "éééé");
-      await user.keyboard("{Enter}");
-
-      expect(onChangeValue).toHaveBeenCalledWith("éééé");
-    });
-  });
-
-  describe("combined allowedChars and maxByteLength", () => {
-    it("applies both filters correctly", async () => {
-      const user = userEvent.setup();
-      const onChangeValue = vi.fn();
-
-      render(
-        <EditableTextField
-          label="test"
-          value=""
-          onChangeValue={onChangeValue}
-          allowedChars={/[a-zA-Z]/}
-          maxByteLength={3}
-        />,
-      );
-
-      const input = screen.getByRole("textbox", { name: /value for: test/i });
-      await user.click(input);
-      await user.type(input, "a1b2c3d4");
-      await user.keyboard("{Enter}");
-
-      // First filters to "abcd", then truncates to 3 bytes = "abc"
-      expect(onChangeValue).toHaveBeenCalledWith("abc");
+      expect(onChangeValue).toHaveBeenCalledWith("anything; goes");
     });
   });
 

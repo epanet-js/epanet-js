@@ -28,7 +28,8 @@ import {
   type TankMixingModel,
   type ChemicalSourceType,
   CustomerPoint,
-  assetLabelRules,
+  LabelManager,
+  type LabelType,
 } from "@epanet-js/hydraulic-model";
 import { PanelActions } from "./actions";
 import {
@@ -67,6 +68,7 @@ import {
 export const AssetEditorContent = ({
   label,
   type,
+  labelType,
   isNew,
   onLabelChange,
   footer,
@@ -75,6 +77,7 @@ export const AssetEditorContent = ({
 }: {
   label: string;
   type: string;
+  labelType: LabelType;
   isNew?: boolean;
   onLabelChange: (newLabel: string) => string | undefined;
   footer?: React.ReactNode;
@@ -96,6 +99,7 @@ export const AssetEditorContent = ({
         <Header
           label={label}
           type={type}
+          labelType={labelType}
           isNew={isNew}
           onLabelChange={onLabelChange}
           readOnly={readOnly}
@@ -116,12 +120,14 @@ export const AssetEditorContent = ({
 const Header = ({
   label,
   type,
+  labelType,
   isNew,
   onLabelChange,
   readOnly = false,
 }: {
   label: string;
   type: string;
+  labelType: LabelType;
   isNew?: boolean;
   onLabelChange: (newLabel: string) => string | undefined;
   readOnly?: boolean;
@@ -156,7 +162,7 @@ const Header = ({
             onDirty={clearError}
             hasError={!!error}
             readOnly={readOnly}
-            {...assetLabelRules}
+            sanitize={(raw) => LabelManager.sanitizeLabel(raw, labelType)}
             styleOptions={{
               padding: "sm",
               ghostBorder: true,

@@ -445,6 +445,7 @@ const JunctionEditor = ({
     <AssetEditorContent
       label={junction.label}
       type={translate("junction")}
+      labelType="junction"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
@@ -740,6 +741,7 @@ const PipeEditor = ({
     <AssetEditorContent
       label={pipe.label}
       type={translate("pipe")}
+      labelType="pipe"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
@@ -1000,6 +1002,7 @@ const ReservoirEditor = ({
     <AssetEditorContent
       label={reservoir.label}
       type={translate("reservoir")}
+      labelType="reservoir"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
@@ -1188,6 +1191,7 @@ const TankEditor = ({
     <AssetEditorContent
       label={tank.label}
       type={translate("tank")}
+      labelType="tank"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
@@ -1924,6 +1928,7 @@ const ValveEditor = ({
     <AssetEditorContent
       label={valve.label}
       type={translate("valve")}
+      labelType="valve"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}
@@ -2159,6 +2164,7 @@ const PumpEditor = ({
     <AssetEditorContent
       label={pump.label}
       type={translate("pump")}
+      labelType="pump"
       isNew={isNew}
       onLabelChange={onLabelChange}
       footer={footer}

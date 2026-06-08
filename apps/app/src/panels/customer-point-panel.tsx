@@ -25,12 +25,12 @@ import {
   getCustomerPointDemands,
   calculateAverageDemand,
   Demand,
+  LabelManager,
 } from "@epanet-js/hydraulic-model";
 import {
   changeDemandAssignment,
   changeCustomerPointLabel,
 } from "src/hydraulic-model/model-operations";
-import { customerPointLabelRules } from "@epanet-js/hydraulic-model";
 import { convertTo } from "@epanet-js/quantity";
 
 export function CustomerPointPanel() {
@@ -213,7 +213,9 @@ export function CustomerPointPanel() {
               onReset={clearLabelError}
               onDirty={clearLabelError}
               hasError={!!labelError}
-              {...customerPointLabelRules}
+              sanitize={(raw) =>
+                LabelManager.sanitizeLabel(raw, "customerPoint")
+              }
               styleOptions={{
                 padding: "sm",
                 ghostBorder: true,

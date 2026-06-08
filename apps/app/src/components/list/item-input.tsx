@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { assetLabelRules } from "@epanet-js/hydraulic-model";
 import { EditableTextFieldWithConfirmation } from "../form/editable-text-field-with-confirmation";
 
 type ItemInputProps = {
   label?: string;
   value: string;
   placeholder?: string;
+  sanitize?: (raw: string) => string;
   onCommit: (name: string) => boolean;
   onCancel: () => void;
   forceValidation?: boolean;
@@ -15,6 +15,7 @@ export const ItemInput = ({
   label,
   value,
   placeholder,
+  sanitize,
   onCommit,
   onCancel,
   forceValidation,
@@ -38,7 +39,7 @@ export const ItemInput = ({
         onChangeValue={handleChangeValue}
         onReset={onCancel}
         hasError={hasError}
-        {...assetLabelRules}
+        sanitize={sanitize}
         styleOptions={{
           padding: "sm",
           textSize: "sm",

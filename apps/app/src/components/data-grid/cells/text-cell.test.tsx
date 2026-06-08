@@ -329,10 +329,11 @@ describe("TextCell", () => {
     });
   });
 
-  describe("allowedChars prop", () => {
-    it("filters out characters not matching the pattern as they are typed", async () => {
+  describe("cleanLabel prop", () => {
+    it("transforms typed input via the provided cleaner", async () => {
       const user = setupUser();
       const onChange = vi.fn();
+      const upper = (raw: string) => raw.toUpperCase();
 
       render(
         <TextCell
@@ -340,21 +341,19 @@ describe("TextCell", () => {
           value={null}
           editMode="full"
           onChange={onChange}
-          allowedChars={/[a-zA-Z0-9]/}
+          sanitize={upper}
         />,
       );
 
       const input = screen.getByRole("textbox");
-      await user.type(input, "ab 1;2!c");
-      expect(input).toHaveValue("ab12c");
+      await user.type(input, "hello");
+      expect(input).toHaveValue("HELLO");
 
       await user.keyboard("{Enter}");
-      expect(onChange).toHaveBeenCalledWith("ab12c");
+      expect(onChange).toHaveBeenCalledWith("HELLO");
     });
-  });
 
-  describe("maxByteLength prop", () => {
-    it("truncates by UTF-8 byte length", async () => {
+    it("does not transform when cleanLabel is omitted", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
@@ -364,42 +363,14 @@ describe("TextCell", () => {
           value={null}
           editMode="full"
           onChange={onChange}
-          maxByteLength={4}
         />,
       );
 
       const input = screen.getByRole("textbox");
-      // 'é' = 2 bytes; 4 bytes max keeps only 2 of them
-      await user.type(input, "éééé");
-      expect(input).toHaveValue("éé");
-
+      await user.type(input, "any; thing");
       await user.keyboard("{Enter}");
-      expect(onChange).toHaveBeenCalledWith("éé");
-    });
-  });
 
-  describe("maxLength prop", () => {
-    it("truncates by character count, not bytes", async () => {
-      const user = setupUser();
-      const onChange = vi.fn();
-
-      render(
-        <TextCell
-          {...defaultProps}
-          value={null}
-          editMode="full"
-          onChange={onChange}
-          maxLength={4}
-        />,
-      );
-
-      const input = screen.getByRole("textbox");
-      // 4 multi-byte chars (8 bytes) — should all fit under maxLength=4
-      await user.type(input, "éééééé");
-      expect(input).toHaveValue("éééé");
-
-      await user.keyboard("{Enter}");
-      expect(onChange).toHaveBeenCalledWith("éééé");
+      expect(onChange).toHaveBeenCalledWith("any; thing");
     });
   });
 
@@ -468,41 +439,22 @@ describe("textColumn", () => {
       expect(column.meta?.pasteValue?.("")).toBeNull();
     });
 
-    it("strips characters not matching allowedChars", () => {
+    it("transforms pasted value via the provided cleaner", () => {
       const column = textColumn("name", {
         header: "Name",
-        allowedChars: /[a-zA-Z0-9]/,
+        cleanLabel: (raw) => raw.toUpperCase(),
       });
 
-      expect(column.meta?.pasteValue?.("pipe 1;2!")).toBe("pipe12");
+      expect(column.meta?.pasteValue?.("pipe-1")).toBe("PIPE-1");
     });
 
-    it("truncates by maxByteLength", () => {
+    it("returns null when the cleaner reduces input to an empty string", () => {
       const column = textColumn("name", {
         header: "Name",
-        maxByteLength: 4,
+        cleanLabel: () => "",
       });
 
-      // 'é' = 2 bytes
-      expect(column.meta?.pasteValue?.("éééé")).toBe("éé");
-    });
-
-    it("truncates by maxLength using character count", () => {
-      const column = textColumn("name", {
-        header: "Name",
-        maxLength: 3,
-      });
-
-      expect(column.meta?.pasteValue?.("éééééé")).toBe("ééé");
-    });
-
-    it("returns null when filtering leaves an empty string", () => {
-      const column = textColumn("name", {
-        header: "Name",
-        allowedChars: /[a-zA-Z0-9]/,
-      });
-
-      expect(column.meta?.pasteValue?.(" ;!")).toBeNull();
+      expect(column.meta?.pasteValue?.("anything")).toBeNull();
     });
   });
 

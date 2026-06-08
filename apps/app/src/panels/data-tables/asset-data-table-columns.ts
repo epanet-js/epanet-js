@@ -22,7 +22,7 @@ import {
   type PatternType,
   type Curves,
   type CurveType,
-  assetLabelRules,
+  LabelManager,
 } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -584,7 +584,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -634,7 +634,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -696,7 +696,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -776,7 +776,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn("startNode", {
@@ -838,7 +838,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(
@@ -858,7 +858,7 @@ function _buildColumns(
         textColumn("label", {
           header: translate("label"),
           validate: validateLabel,
-          ...assetLabelRules,
+          cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol(

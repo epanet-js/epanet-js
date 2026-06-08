@@ -379,6 +379,53 @@ describe("label manager", () => {
     });
   });
 
+  describe("cleanLabel (static)", () => {
+    describe("asset label types", () => {
+      it("strips whitespace and semicolons", () => {
+        expect(LabelManager.sanitizeLabel("foo bar;", "junction")).toEqual(
+          "foobar",
+        );
+        expect(LabelManager.sanitizeLabel("ok\tlabel", "pipe")).toEqual("oklabel");
+      });
+
+      it("caps at 31 UTF-8 bytes", () => {
+        expect(LabelManager.sanitizeLabel("x".repeat(40), "junction")).toEqual(
+          "x".repeat(31),
+        );
+        // "é" is 2 bytes; 20 é's = 40 bytes, truncates to 15 é's (30 bytes; 16th would overflow).
+        expect(LabelManager.sanitizeLabel("é".repeat(20), "junction")).toEqual(
+          "é".repeat(15),
+        );
+      });
+
+      it("applies asset rules to patterns and curves", () => {
+        expect(LabelManager.sanitizeLabel("a b;", "pattern")).toEqual("ab");
+        expect(LabelManager.sanitizeLabel("a b;", "curve")).toEqual("ab");
+      });
+    });
+
+    describe("customer-point label type", () => {
+      it("does not strip whitespace or semicolons", () => {
+        expect(
+          LabelManager.sanitizeLabel("with space; ok", "customerPoint"),
+        ).toEqual("with space; ok");
+      });
+
+      it("caps at 50 characters (not bytes)", () => {
+        const fiftyAccents = "é".repeat(50);
+        // 50 chars, 100 bytes — within the char-based cap.
+        expect(LabelManager.sanitizeLabel(fiftyAccents, "customerPoint")).toEqual(
+          fiftyAccents,
+        );
+
+        // 60 chars truncates to 50.
+        expect(
+          LabelManager.sanitizeLabel("ñ".repeat(60), "customerPoint"),
+        ).toEqual("ñ".repeat(50));
+      });
+    });
+  });
+
   describe("shared counters", () => {
     it("two managers with shared counters advance together", () => {
       const sharedCounters = new Map<LabelType, number>();

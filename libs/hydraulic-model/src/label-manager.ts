@@ -1,18 +1,31 @@
 import { Asset } from "./asset-types";
 import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "./customer-points";
 
+export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
+
+type LabelLengthRule = {
+  maxByteLength?: number;
+  maxLength?: number;
+};
+
+type LabelRule = LabelLengthRule & {
+  allowedChars?: RegExp;
+};
+
 const ASSET_LABEL_ALLOWED_CHARS = /(?![\s;])[\x00-\xFF]/;
+const ASSET_LABEL_MAX_BYTES = 31;
 
-export const ASSET_LABEL_MAX_BYTES = 31;
-
-export const assetLabelRules = {
+const defaultLabelRule: LabelRule = {
   allowedChars: ASSET_LABEL_ALLOWED_CHARS,
   maxByteLength: ASSET_LABEL_MAX_BYTES,
-} as const;
+};
 
-export const customerPointLabelRules = {
+const customerPointLabelRule: LabelRule = {
   maxLength: MAX_CUSTOMER_POINT_LABEL_LENGTH,
-} as const;
+};
+
+const rulesForType = (type: LabelType): LabelRule =>
+  type === "customerPoint" ? customerPointLabelRule : defaultLabelRule;
 
 const filterByAllowedChars = (s: string, pattern: RegExp): string =>
   s
@@ -22,7 +35,7 @@ const filterByAllowedChars = (s: string, pattern: RegExp): string =>
 
 const byteLength = (s: string): number => new TextEncoder().encode(s).length;
 
-export const truncateToByteLength = (s: string, maxBytes: number): string => {
+const truncateToByteLength = (s: string, maxBytes: number): string => {
   if (byteLength(s) <= maxBytes) return s;
   let out = s;
   while (byteLength(out) > maxBytes) out = out.slice(0, -1);
@@ -31,30 +44,6 @@ export const truncateToByteLength = (s: string, maxBytes: number): string => {
 
 const truncateToCharLength = (s: string, maxChars: number): string =>
   s.length <= maxChars ? s : s.slice(0, maxChars);
-
-export const cleanLabel = (
-  raw: string,
-  rules: {
-    allowedChars?: RegExp;
-    maxByteLength?: number;
-    maxLength?: number;
-  },
-): string => {
-  let next = raw;
-  if (rules.allowedChars) next = filterByAllowedChars(next, rules.allowedChars);
-  if (rules.maxByteLength !== undefined)
-    next = truncateToByteLength(next, rules.maxByteLength);
-  if (rules.maxLength !== undefined)
-    next = truncateToCharLength(next, rules.maxLength);
-  return next;
-};
-
-type LabelLengthRule = {
-  maxByteLength?: number;
-  maxLength?: number;
-};
-
-export type LabelType = Asset["type"] | "pattern" | "curve" | "customerPoint";
 
 type LabelEntry = {
   id: number;
@@ -176,6 +165,18 @@ export class LabelManager {
     );
   }
 
+  static sanitizeLabel(raw: string, type: LabelType): string {
+    const rules = rulesForType(type);
+    let next = raw;
+    if (rules.allowedChars)
+      next = filterByAllowedChars(next, rules.allowedChars);
+    if (rules.maxByteLength !== undefined)
+      next = truncateToByteLength(next, rules.maxByteLength);
+    if (rules.maxLength !== undefined)
+      next = truncateToCharLength(next, rules.maxLength);
+    return next;
+  }
+
   getIdByLabel(label: string, type: LabelType): number | undefined {
     const normalizedLabel = this.normalizeLabel(label);
     const entries = this.labelToEntries.get(normalizedLabel) || [];
@@ -209,7 +210,7 @@ export class LabelManager {
 
   generateNextLabel(
     inputLabel: string,
-    rules: LabelLengthRule = assetLabelRules,
+    rules: LabelLengthRule = defaultLabelRule,
   ): string {
     const { baseLabel, nextCounter } = this.extractBaseAndCounter(inputLabel);
 

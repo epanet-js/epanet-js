@@ -5,7 +5,7 @@ import {
   textColumn,
   type GridColumn,
 } from "src/components/data-grid";
-import { customerPointLabelRules } from "@epanet-js/hydraulic-model";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
@@ -39,7 +39,7 @@ export function buildCustomerPointColumns(
     textColumn<CustomerPointRow>("label", {
       header: translate("label"),
       validate: validateLabel,
-      ...customerPointLabelRules,
+      cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, "customerPoint"),
     }),
     textColumn<CustomerPointRow>("connectedPipeLabel", {
       header: translate("pipe"),
