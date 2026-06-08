@@ -9,7 +9,6 @@ import { HglProfilePanel } from "./hgl-profile";
 const BOTTOM = { horizontal: "bottom", vertical: "bottom" } as const;
 
 export const PanelRegistrations = () => {
-  const hglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const hasHglProfile = useAtomValue(hasHglProfileAtom);
   const cpDataTableOn = useFeatureFlag("FLAG_CP_DATA_TABLE");
 
@@ -67,7 +66,7 @@ export const PanelRegistrations = () => {
       component: HglProfilePanel,
       defaultZone: BOTTOM,
     },
-    hglProfileOn && hasHglProfile,
+    hasHglProfile,
   );
 
   return null;
