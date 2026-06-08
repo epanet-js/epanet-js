@@ -37,6 +37,8 @@ import { Selector } from "../components/form/selector";
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
+import { dialogAtom } from "src/state/dialog";
+import { captureError } from "src/infra/error-tracking";
 import {
   gridHiddenAtom,
   gridPreviewAtom,
@@ -73,6 +75,7 @@ export const CreateNew = () => {
   const { startNewProject } = useStartNewProject();
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
 
@@ -133,13 +136,19 @@ export const CreateNew = () => {
       });
       setGridPreview(false);
       setGridHidden(false);
-      await startNewProject({
-        hydraulicModel,
-        factories,
-        projectSettings,
-        simulationSettings: defaultSimulationSettings,
-        autoElevations: projection.id !== "xy-grid",
-      });
+      try {
+        await startNewProject({
+          hydraulicModel,
+          factories,
+          projectSettings,
+          simulationSettings: defaultSimulationSettings,
+          autoElevations: projection.id !== "xy-grid",
+        });
+      } catch (error) {
+        captureError(error instanceof Error ? error : new Error(String(error)));
+        setDialog({ type: "changeNotApplied" });
+        return;
+      }
       if (map) {
         centerMapForNewProject(map, projection, location);
       }
@@ -160,6 +169,7 @@ export const CreateNew = () => {
       map,
       setInpFileInfo,
       setProjectFileInfo,
+      setDialog,
       setGridPreview,
       setGridHidden,
       userTracking,
