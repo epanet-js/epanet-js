@@ -51,7 +51,7 @@ export function useAssetComparison(asset: Asset | undefined) {
     }
 
     const baseValue = baseAsset.getProperty(propertyName) as T;
-    const hasChanged = !isEqual(currentValue, baseValue);
+    const hasChanged = !isEqual(currentValue ?? null, baseValue ?? null);
 
     return { hasChanged, baseValue };
   };

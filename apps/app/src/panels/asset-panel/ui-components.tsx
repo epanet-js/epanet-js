@@ -371,10 +371,11 @@ export const IntegerRow = <P extends string>({
   const displayValue = value === null ? "" : String(value);
   const label = displayName ?? translate(name);
 
-  const baseDisplayValue =
-    comparison?.hasChanged && comparison.baseValue != null
+  const baseDisplayValue = comparison?.hasChanged
+    ? comparison.baseValue != null
       ? String(comparison.baseValue)
-      : undefined;
+      : translate("none")
+    : undefined;
 
   const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();
@@ -384,7 +385,7 @@ export const IntegerRow = <P extends string>({
     }
     if (!Number.isFinite(newValue)) return;
     const truncated = Math.trunc(newValue);
-    if (positiveOnly && truncated <= 0) return;
+    if (positiveOnly && truncated < 0) return;
     onChange && onChange(name, truncated, value);
   };
 
@@ -446,10 +447,11 @@ export const CreatableTextRow = <P extends string>({
   const label = translate(name);
   const resolvedPlaceholder = placeholder ?? translate("none");
 
-  const baseDisplayValue =
-    comparison?.hasChanged && comparison.baseValue != null
+  const baseDisplayValue = comparison?.hasChanged
+    ? comparison.baseValue != null
       ? String(comparison.baseValue)
-      : undefined;
+      : translate("none")
+    : undefined;
 
   const handleChange = useCallback(
     (newValue: string | null) => {
