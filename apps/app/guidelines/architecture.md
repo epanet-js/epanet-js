@@ -39,7 +39,7 @@ User interaction
 
 - UI components may call `lib/` utility functions and import types freely — `lib/` is a general-purpose library, not a restricted core
 - User-initiated actions that change application state should go through a command, not be inlined in a component or hook
-- `lib/` should avoid importing from React or Jotai; the `persistence/` layer is a known exception as it is legitimately React-coupled
+- `lib/` should avoid importing from React or Jotai; the `persistence/` layer is a known exception as it is legitimately React-coupled — see [persistence.md](./persistence.md) for the schema-first validate-then-save pattern those hooks follow
 - Commands must not render JSX
 - Hooks are the glue layer — they may call lib functions, commands, and read atoms; keep orchestration logic in commands rather than hooks where possible
 - New features that span multiple surfaces belong under the relevant top-level folder, not buried inside `components/`
