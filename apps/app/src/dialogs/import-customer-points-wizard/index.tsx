@@ -148,6 +148,62 @@ export const ImportCustomerPointsWizard: React.FC<
     handleClose,
   ]);
 
+  const handleFinishWithoutAllocation = useCallback(async () => {
+    const { parsedDataSummary, keepDemands, setProcessing, setError } =
+      wizardState;
+    if (!parsedDataSummary) return;
+
+    setProcessing(true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    try {
+      const customerPointsToAdd = parsedDataSummary.validCustomerPoints;
+
+      const updatedHydraulicModel = addCustomerPoints(
+        hydraulicModel,
+        customerPointsToAdd,
+        {
+          preserveJunctionDemands: keepDemands,
+          overrideExisting: true,
+          customerPointDemands: parsedDataSummary.customerPointDemands,
+        },
+      );
+
+      const importedCount = updatedHydraulicModel.customerPoints.size;
+
+      void customerPointsImportReset({
+        hydraulicModel: updatedHydraulicModel,
+      });
+
+      userTracking.capture({
+        name: "importCustomerPoints.completed",
+        count: importedCount,
+        allocatedCount: 0,
+        disconnectedCount: importedCount,
+        rulesCount: 0,
+      });
+
+      notify({
+        variant: "success",
+        title: translate("importSuccessful"),
+        Icon: SuccessIcon,
+      });
+
+      handleClose();
+    } catch {
+      setError("Import failed. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
+  }, [
+    wizardState,
+    hydraulicModel,
+    customerPointsImportReset,
+    userTracking,
+    translate,
+    handleClose,
+  ]);
+
   const handleModalDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -174,11 +230,15 @@ export const ImportCustomerPointsWizard: React.FC<
       label: translate("importCustomerPoints.wizard.demandOptionsStep"),
       ariaLabel: "Step 3: Demand Options",
     },
-    {
-      number: 4,
-      label: translate("importCustomerPoints.wizard.allocationStepLabel"),
-      ariaLabel: "Step 4: Customers Allocation",
-    },
+    ...(!isSplitAllocationEnabled
+      ? [
+          {
+            number: 4,
+            label: translate("importCustomerPoints.wizard.allocationStepLabel"),
+            ariaLabel: "Step 4: Customers Allocation",
+          },
+        ]
+      : []),
   ];
 
   const {
@@ -218,7 +278,23 @@ export const ImportCustomerPointsWizard: React.FC<
         return (
           <WizardActions
             backAction={{ onClick: handleBack }}
-            nextAction={{ onClick: handleNext }}
+            nextAction={
+              isSplitAllocationEnabled ? undefined : { onClick: handleNext }
+            }
+            finishAction={
+              isSplitAllocationEnabled
+                ? {
+                    onClick: handleFinishWithoutAllocation,
+                    disabled: isProcessing,
+                    loading: isProcessing,
+                    label: isProcessing
+                      ? translate("wizard.processing")
+                      : translate(
+                          "importCustomerPoints.wizard.allocationStep.applyChanges",
+                        ),
+                  }
+                : undefined
+            }
           />
         );
       case 4:
@@ -305,7 +381,7 @@ export const ImportCustomerPointsWizard: React.FC<
                 wizardState={wizardState}
               />
             )}
-            {currentStep === 4 && (
+            {currentStep === 4 && !isSplitAllocationEnabled && (
               <AllocationStep
                 onBack={handleBack}
                 onFinish={handleClose}
