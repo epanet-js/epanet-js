@@ -711,11 +711,11 @@ describe("Parse inp with", () => {
       ${IDS.J2}  200
 
       [PIPES]
-      ${IDS.P1}  ${IDS.J1}  ${IDS.J2}  1000  100  100  0  Open
+      ${IDS.P1}  ${IDS.J1}  ${IDS.J2}  730  100  100  0  Open
 
       [COORDINATES]
-      ${IDS.J1}  10  20
-      ${IDS.J2}  11  21
+      ${IDS.J1}  2.3  48.85
+      ${IDS.J2}  2.31  48.85
       `;
 
       const result = parseInp(inp);

@@ -11,52 +11,45 @@ import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 
 export const useUndoableTransactions = () => {
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const historyControl = useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter, direction: "undo" | "redo") => {
-        const isUndo = direction === "undo";
+    useCallback((get: Getter, set: Setter, direction: "undo" | "redo") => {
+      const isUndo = direction === "undo";
 
-        const momentLog = get(momentLogDerivedAtom).copy();
-        const currentMapSyncMoment = get(mapSyncMomentAtom);
-        const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
-        if (!action) return;
+      const momentLog = get(momentLogDerivedAtom).copy();
+      const currentMapSyncMoment = get(mapSyncMomentAtom);
+      const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
+      if (!action) return;
 
-        applyMoment(
-          get,
-          set,
-          action.stateId,
-          action.moment,
-          stagingModelDerivedAtom,
+      applyMoment(
+        get,
+        set,
+        action.stateId,
+        action.moment,
+        stagingModelDerivedAtom,
+      );
+
+      const worktree = get(worktreeAtom);
+      if (worktree.activeBranchId === worktree.mainId) {
+        void (async () =>
+          applyMomentToDb(buildMomentPayload(action.moment)))().catch(
+          captureError,
         );
+      }
 
-        if (isOurFileOn) {
-          const worktree = get(worktreeAtom);
-          if (worktree.activeBranchId === worktree.mainId) {
-            void (async () =>
-              applyMomentToDb(buildMomentPayload(action.moment)))().catch(
-              captureError,
-            );
-          }
-        }
+      isUndo ? momentLog.undo() : momentLog.redo();
 
-        isUndo ? momentLog.undo() : momentLog.redo();
+      const newMapSyncMoment = computeSyncMoment(
+        currentMapSyncMoment,
+        momentLog,
+      );
 
-        const newMapSyncMoment = computeSyncMoment(
-          currentMapSyncMoment,
-          momentLog,
-        );
-
-        set(momentLogDerivedAtom, momentLog);
-        set(mapSyncMomentAtom, newMapSyncMoment);
-      },
-      [isOurFileOn],
-    ),
+      set(momentLogDerivedAtom, momentLog);
+      set(mapSyncMomentAtom, newMapSyncMoment);
+    }, []),
   );
 
   return { historyControl };

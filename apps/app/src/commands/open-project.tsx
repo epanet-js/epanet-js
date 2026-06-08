@@ -19,7 +19,6 @@ import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
@@ -256,14 +255,12 @@ export const useOpenProject = () => {
   const importInp = useImportInp();
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const translate = useTranslate();
 
   const openProject = useCallback(
     async ({ source }: { source: string }) => {
       userTracking.capture({ name: "openProject.started", source });
 
-      if (!isOurFileOn) return;
       if (!isReady) throw new Error("FS not ready");
 
       const file = await openFile({
@@ -316,7 +313,6 @@ export const useOpenProject = () => {
       importInp,
       userTracking,
       setDialogState,
-      isOurFileOn,
       translate,
     ],
   );

@@ -21,7 +21,6 @@ import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 
 export const useModelTransaction = () => {
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
   const transact = useAtomCallback(
     useCallback(
@@ -31,8 +30,7 @@ export const useModelTransaction = () => {
         const isTruncatingHistory = momentLog.nextRedo() !== null;
 
         const worktree = get(worktreeAtom);
-        const willPersist =
-          isOurFileOn && worktree.activeBranchId === worktree.mainId;
+        const willPersist = worktree.activeBranchId === worktree.mainId;
 
         let payload: ApplyMomentPayload | undefined;
         if (willPersist && isSchemaFirstOn) {
@@ -82,7 +80,7 @@ export const useModelTransaction = () => {
 
         return true;
       },
-      [isOurFileOn, isSchemaFirstOn],
+      [isSchemaFirstOn],
     ),
   );
 

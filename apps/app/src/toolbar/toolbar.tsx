@@ -6,7 +6,6 @@ import {
   RedoIcon,
   SettingsIcon,
   SaveIcon,
-  SaveAllIcon,
   RunSimulationIcon,
   ImportCustomerPointsIcon,
   PanelBottomIcon,
@@ -34,11 +33,7 @@ import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import {
-  saveAsShortcut,
-  saveShortcut,
-  useSaveInp,
-} from "src/commands/save-inp";
+import { saveShortcut } from "src/commands/save-inp";
 import { useSaveProject } from "src/commands/save-project";
 import {
   runSimulationShortcut,
@@ -82,7 +77,6 @@ export const Toolbar = ({
   customerAllocationDisabled?: boolean;
 }) => {
   const translate = useTranslate();
-  const saveInp = useSaveInp();
   const saveProject = useSaveProject();
   const userTracking = useUserTracking();
   const runSimulation = useRunSimulation();
@@ -94,7 +88,6 @@ export const Toolbar = ({
   const startProfileSelection = useStartProfileSelection();
   const openZonesImport = useOpenZonesImport();
   const importZonesDisabled = useImportZonesDisabled();
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
   const { canUseHglProfile } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
@@ -123,28 +116,12 @@ export const Toolbar = ({
               label={translate("save")}
               role="button"
               onClick={() => {
-                if (isOurFileOn) {
-                  void saveProject({ source: "toolbar" });
-                } else {
-                  void saveInp({ source: "toolbar" });
-                }
+                void saveProject({ source: "toolbar" });
               }}
               readOnlyHotkey={saveShortcut}
             >
               <SaveIcon />
             </MenuAction>
-            {!isOurFileOn && (
-              <MenuAction
-                label={translate("saveAs")}
-                role="button"
-                onClick={() => {
-                  void saveInp({ source: "toolbar", isSaveAs: true });
-                }}
-                readOnlyHotkey={saveAsShortcut}
-              >
-                <SaveAllIcon />
-              </MenuAction>
-            )}
             <MenuAction
               label={translate("importCustomerPoints.label")}
               role="button"

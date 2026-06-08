@@ -8,8 +8,11 @@ import { setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useOpenInpFromUrl } from "./open-inp-from-url";
 import { getByLabel } from "src/__helpers__/asset-queries";
+import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 
 describe("open inp from url", () => {
+  useInProcessDb();
+
   it("initializes state opening an inp from a url", async () => {
     const inp = minimalInp({ junctionId: "J1" });
     stubResponseOk(inp);

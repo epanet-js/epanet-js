@@ -10,12 +10,11 @@ import { captureError } from "src/infra/error-tracking";
 export const useZonesTransaction = () => {
   const setZones = useSetAtom(zonesAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 
   const transact = useCallback(
     async (next: Zones): Promise<boolean> => {
-      if (isOurFileOn && isSchemaFirstOn) {
+      if (isSchemaFirstOn) {
         try {
           serializeZones(next);
         } catch (error) {
@@ -29,13 +28,11 @@ export const useZonesTransaction = () => {
 
       setZones(next);
 
-      if (isOurFileOn) {
-        await saveZones(next);
-      }
+      await saveZones(next);
 
       return true;
     },
-    [setZones, setDialog, isOurFileOn, isSchemaFirstOn],
+    [setZones, setDialog, isSchemaFirstOn],
   );
 
   return { transact };

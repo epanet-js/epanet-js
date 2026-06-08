@@ -17,7 +17,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { MapContext, captureThumbnail } from "src/map";
 
@@ -40,7 +39,6 @@ export const useSaveProject = ({
   const translate = useTranslate();
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const map = useContext(MapContext);
 
   const performSave = useAtomCallback(
@@ -166,8 +164,6 @@ export const useSaveProject = ({
         set,
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) => {
-        if (!isOurFileOn) return false;
-
         userTracking.capture({ name: "project.saved", source, isSaveAs });
 
         const projectInfo = get(projectFileInfoAtom);
@@ -185,7 +181,7 @@ export const useSaveProject = ({
 
         return performSave({ isSaveAs });
       },
-      [performSave, isOurFileOn, userTracking],
+      [performSave, userTracking],
     ),
   );
 };

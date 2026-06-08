@@ -9,7 +9,6 @@ import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 
@@ -45,27 +44,22 @@ const Drop = () => {
   const userTracking = useUserTracking();
   const dialog = useAtomValue(dialogAtom);
   const setDialogState = useSetAtom(dialogAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const handlers: DropHandler[] = useMemo(
     () => [
-      ...(isOurFileOn
-        ? [
-            {
-              matches: (f: FileWithHandle) =>
-                f.name.toLowerCase().endsWith(projectExtension),
-              handle: (files: FileWithHandle[]) =>
-                openProjectFile(files[0], "dragDrop"),
-            },
-          ]
-        : []),
+      {
+        matches: (f: FileWithHandle) =>
+          f.name.toLowerCase().endsWith(projectExtension),
+        handle: (files: FileWithHandle[]) =>
+          openProjectFile(files[0], "dragDrop"),
+      },
       {
         matches: (f: FileWithHandle) =>
           f.name.toLowerCase().endsWith(inpExtension),
         handle: (files: FileWithHandle[]) => importInp(files, "dragDrop"),
       },
     ],
-    [isOurFileOn, openProjectFile, importInp],
+    [openProjectFile, importInp],
   );
 
   useEffect(() => {
@@ -159,9 +153,7 @@ const Drop = () => {
   if (dialog && dialog.type !== "welcome") return null;
 
   return dragging ? (
-    <StyledDropOverlay>
-      {translate(isOurFileOn ? "dropProjectOrInp" : "dropInp")}
-    </StyledDropOverlay>
+    <StyledDropOverlay>{translate("dropProjectOrInp")}</StyledDropOverlay>
   ) : null;
 };
 

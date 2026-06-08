@@ -20,7 +20,6 @@ import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 const getDefaultFsAccess = async () => {
   const { fileSave } = await import("browser-fs-access");
   return { fileSave };
@@ -40,11 +39,9 @@ export const useSaveInp = ({
 }: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
-  const fileInfo = useAtomValue(inpFileInfoAtom);
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -54,7 +51,7 @@ export const useSaveInp = ({
         { source, isSaveAs = false }: { source: string; isSaveAs?: boolean },
       ) {
         userTracking.capture({
-          name: isOurFileOn ? "inp.exported" : "model.saved",
+          name: "inp.exported",
           source,
           isSaveAs,
         });
@@ -155,7 +152,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map, isOurFileOn],
+      [userTracking, getFsAccess, addRecent, translate, map],
     ),
   );
 
@@ -164,16 +161,7 @@ export const useSaveInp = ({
 
   const saveAlerting = useCallback(
     ({ source, isSaveAs = false }: { source: string; isSaveAs?: boolean }) => {
-      const proceedWithSave = () => {
-        if (!isOurFileOn && fileInfo && !fileInfo.isMadeByApp) {
-          setDialogState({
-            type: "alertInpOutput",
-            onContinue: () => saveInp({ source, isSaveAs }),
-          });
-        } else {
-          return saveInp({ source, isSaveAs });
-        }
-      };
+      const proceedWithSave = () => saveInp({ source, isSaveAs });
 
       if (hasScenarios) {
         setDialogState({
@@ -184,7 +172,7 @@ export const useSaveInp = ({
         return proceedWithSave();
       }
     },
-    [fileInfo, setDialogState, saveInp, hasScenarios, isOurFileOn],
+    [setDialogState, saveInp, hasScenarios],
   );
 
   return saveAlerting;

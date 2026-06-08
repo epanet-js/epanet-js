@@ -13,13 +13,12 @@ import { captureError } from "src/infra/error-tracking";
 export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 
   const transact = useCallback(
     (next: SimulationSettings): boolean => {
       let data: string | undefined;
-      if (isOurFileOn && isSchemaFirstOn) {
+      if (isSchemaFirstOn) {
         try {
           data = serializeSimulationSettings(next);
         } catch (error) {
@@ -33,20 +32,18 @@ export const useSimulationSettingsTransaction = () => {
 
       setSettings(next);
 
-      if (isOurFileOn) {
-        if (data) {
-          void setAllSimulationSettings(data).catch(captureError);
-        } else {
-          void (async () =>
-            setAllSimulationSettings(
-              serializeSimulationSettings(next),
-            ))().catch(captureError);
-        }
+      if (data) {
+        void setAllSimulationSettings(data).catch(captureError);
+      } else {
+        void (async () =>
+          setAllSimulationSettings(serializeSimulationSettings(next)))().catch(
+          captureError,
+        );
       }
 
       return true;
     },
-    [setSettings, setDialog, isOurFileOn, isSchemaFirstOn],
+    [setSettings, setDialog, isSchemaFirstOn],
   );
 
   return { transact };

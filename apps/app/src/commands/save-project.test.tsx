@@ -13,7 +13,6 @@ import {
   stubFileSavePermissionDenied,
 } from "src/__helpers__/browser-fs-mock";
 import * as errorTracking from "src/infra/error-tracking";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import * as db from "src/lib/db";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -40,7 +39,6 @@ describe("save project", () => {
   useInProcessDb();
 
   it("writes the project and shows a success notification", async () => {
-    stubFeatureOn("FLAG_OUR_FILE");
     const newHandle = stubFileSave({ fileName: "my-project.ejsdb" });
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
@@ -55,7 +53,6 @@ describe("save project", () => {
   });
 
   it("shows the cancel warning when the user dismisses the save dialog", async () => {
-    stubFeatureOn("FLAG_OUR_FILE");
     stubFileSaveAbort();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
@@ -70,7 +67,6 @@ describe("save project", () => {
   });
 
   it("shows an error notification when persistence fails", async () => {
-    stubFeatureOn("FLAG_OUR_FILE");
     stubFileSave({ fileName: "my-project.ejsdb" });
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
@@ -94,7 +90,6 @@ describe("save project", () => {
   });
 
   it("notifies and does not report to Sentry when write permission is denied", async () => {
-    stubFeatureOn("FLAG_OUR_FILE");
     stubFileSavePermissionDenied();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });
@@ -118,7 +113,6 @@ describe("save project", () => {
   });
 
   it("treats a non-abort fileSave rejection as an error, not a cancel", async () => {
-    stubFeatureOn("FLAG_OUR_FILE");
     stubFileSaveError();
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const store = setInitialState({ hydraulicModel });

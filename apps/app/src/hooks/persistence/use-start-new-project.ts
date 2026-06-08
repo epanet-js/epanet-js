@@ -3,7 +3,6 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { type ModelFactories } from "@epanet-js/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
@@ -143,61 +142,48 @@ export const clearSimulationStorage = async () => {
 };
 
 export const useStartNewProject = () => {
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-
   const startNewProject = useAtomCallback(
-    useCallback(
-      async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
-        await clearSimulationStorage();
-        if (isOurFileOn) {
-          const mergedProjectSettings: ProjectSettings = {
-            ...input.projectSettings,
-            units: {
-              ...input.projectSettings.units,
-              chemicalConcentration: input.simulationSettings.qualityMassUnit,
-            },
-          };
-          await db.importProject({
-            newDb: true,
-            projectSettings: mergedProjectSettings,
-            hydraulicModel: input.hydraulicModel,
-            simulationSettings: input.simulationSettings,
-          });
-        }
-        resetAppState(set);
-        loadModel(set, input);
-      },
-      [isOurFileOn],
-    ),
+    useCallback(async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
+      await clearSimulationStorage();
+      const mergedProjectSettings: ProjectSettings = {
+        ...input.projectSettings,
+        units: {
+          ...input.projectSettings.units,
+          chemicalConcentration: input.simulationSettings.qualityMassUnit,
+        },
+      };
+      await db.importProject({
+        newDb: true,
+        projectSettings: mergedProjectSettings,
+        hydraulicModel: input.hydraulicModel,
+        simulationSettings: input.simulationSettings,
+      });
+      resetAppState(set);
+      loadModel(set, input);
+    }, []),
   );
 
   return { startNewProject };
 };
 
 export const useSeedDefaultProjectDb = () => {
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
-
   return useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter) => {
-        if (!isOurFileOn) return;
-        void db
-          .importProject({
-            newDb: true,
-            projectSettings: get(projectSettingsAtom),
-            hydraulicModel: get(stagingModelAtom),
-            simulationSettings: get(simulationSettingsAtom),
-          })
-          .catch((e: unknown) => {
-            const error = e instanceof Error ? e : new Error(String(e));
-            captureWarning("Failed to seed default project db", error);
-            set(dialogAtom, {
-              type: "appLoadFailed",
-              errorMessage: error.message,
-            });
+    useCallback((get: Getter, set: Setter) => {
+      void db
+        .importProject({
+          newDb: true,
+          projectSettings: get(projectSettingsAtom),
+          hydraulicModel: get(stagingModelAtom),
+          simulationSettings: get(simulationSettingsAtom),
+        })
+        .catch((e: unknown) => {
+          const error = e instanceof Error ? e : new Error(String(e));
+          captureWarning("Failed to seed default project db", error);
+          set(dialogAtom, {
+            type: "appLoadFailed",
+            errorMessage: error.message,
           });
-      },
-      [isOurFileOn],
-    ),
+        });
+    }, []),
   );
 };

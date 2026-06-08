@@ -27,7 +27,6 @@ import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
 
 export const inpExtension = ".inp";
@@ -39,32 +38,27 @@ export const useImportInp = () => {
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
 
   const handleImportComplete = useAtomCallback(
-    useCallback(
-      (get, set, issues: ParserIssues | null) => {
-        const showFormat =
-          isOurFileOn && get(userSettingsAtom).showFileFormatUpdated;
-        const openFormatDialog = () =>
-          set(dialogAtom, { type: "fileFormatUpdated" });
+    useCallback((get, set, issues: ParserIssues | null) => {
+      const showFormat = get(userSettingsAtom).showFileFormatUpdated;
+      const openFormatDialog = () =>
+        set(dialogAtom, { type: "fileFormatUpdated" });
 
-        if (!issues) {
-          if (showFormat) openFormatDialog();
-          else set(dialogAtom, null);
-          return;
-        }
+      if (!issues) {
+        if (showFormat) openFormatDialog();
+        else set(dialogAtom, null);
+        return;
+      }
 
-        set(dialogAtom, {
-          type: "inpIssues",
-          issues,
-          onAfterClose: showFormat ? openFormatDialog : undefined,
-        });
-      },
-      [isOurFileOn],
-    ),
+      set(dialogAtom, {
+        type: "inpIssues",
+        issues,
+        onAfterClose: showFormat ? openFormatDialog : undefined,
+      });
+    }, []),
   );
 
   const completeImport = useCallback(

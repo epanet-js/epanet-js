@@ -1,12 +1,10 @@
 import { useNewProject } from "src/commands/create-new-project";
-import { useOpenInpFromFs } from "src/commands/open-inp-from-fs";
 import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenProject } from "src/commands/open-project";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { languageConfig } from "src/infra/i18n/locale";
 import { useLocale, LocaleProvider } from "src/hooks/use-locale";
@@ -45,11 +43,9 @@ import Image from "next/image";
 export const WelcomeDialog = () => {
   const translate = useTranslate();
   const createNew = useNewProject();
-  const openInpFromFs = useOpenInpFromFs();
   const openProject = useOpenProject();
   const openModelBuilder = useOpenModelBuilder();
   const userTracking = useUserTracking();
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
 
   const currentLocale = useLocale();
   const currentLanguage = languageConfig.find(
@@ -85,56 +81,28 @@ export const WelcomeDialog = () => {
                 <FileIcon />
                 {translate("startBlankProject")}
               </Button>
-              {isOurFileOn ? (
-                <>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      openProject({ source: "welcome" });
-                    }}
-                    style={{ width: "100%" }}
-                  >
-                    <FolderOpenIcon />
-                    {translate("openModel")}
-                  </Button>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      openModelBuilder({ source: "welcome" });
-                    }}
-                    style={{ width: "100%" }}
-                    className="mt-4"
-                  >
-                    <GlobeIcon />
-                    {translate("importFromGIS")}
-                    <EarlyAccessIcon size="sm" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      void openInpFromFs({ source: "welcome" });
-                    }}
-                    style={{ width: "100%" }}
-                  >
-                    <FileSpreadsheetIcon />
-                    {translate("openINP")}
-                  </Button>
-                  <Button
-                    variant="quiet"
-                    onClick={() => {
-                      openModelBuilder({ source: "welcome" });
-                    }}
-                    style={{ width: "100%" }}
-                  >
-                    <GlobeIcon />
-                    {translate("importFromGIS")}
-                    <EarlyAccessIcon size="sm" />
-                  </Button>
-                </>
-              )}
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  openProject({ source: "welcome" });
+                }}
+                style={{ width: "100%" }}
+              >
+                <FolderOpenIcon />
+                {translate("openModel")}
+              </Button>
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  openModelBuilder({ source: "welcome" });
+                }}
+                style={{ width: "100%" }}
+                className="mt-4"
+              >
+                <GlobeIcon />
+                {translate("importFromGIS")}
+                <EarlyAccessIcon size="sm" />
+              </Button>
 
               <div className="mt-4 flex items-start flex-col gap-2">
                 <a

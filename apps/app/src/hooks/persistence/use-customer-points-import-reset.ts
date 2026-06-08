@@ -3,7 +3,6 @@ import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { mapSyncMomentAtom } from "src/state/map";
 import { initialSimulationState } from "src/state/simulation";
@@ -44,26 +43,22 @@ const loadModel = (
   get: Getter,
   set: Setter,
   { hydraulicModel }: CustomerPointsImportResetInput,
-  isOurFileOn: boolean,
 ) => {
   const momentLog = new MomentLog(hydraulicModel.version);
 
   set(stagingModelDerivedAtom, hydraulicModel);
-  if (isOurFileOn) {
-    void db
-      .importProject({
-        hydraulicModel,
-        simulationSettings: get(simulationSettingsAtom),
-      })
-      .catch(captureError);
-  }
+  void db
+    .importProject({
+      hydraulicModel,
+      simulationSettings: get(simulationSettingsAtom),
+    })
+    .catch(captureError);
   set(momentLogDerivedAtom, momentLog);
 
   set(worktreeAtom, initializeWorktree());
 };
 
 export const useCustomerPointsImportReset = () => {
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const customerPointsImportReset = useAtomCallback(
     useCallback(
       async (
@@ -73,9 +68,9 @@ export const useCustomerPointsImportReset = () => {
       ) => {
         await clearSimulationStorage();
         resetAppState(set);
-        loadModel(get, set, input, isOurFileOn);
+        loadModel(get, set, input);
       },
-      [isOurFileOn],
+      [],
     ),
   );
 

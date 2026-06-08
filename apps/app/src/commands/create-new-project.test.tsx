@@ -10,10 +10,13 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { useNewProject } from "./create-new-project";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
+import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 
 const aMoment = (name: string) => ({ note: name });
 
 describe("create new project", () => {
+  useInProcessDb();
+
   it("allows to choose the unit system", async () => {
     const store = setInitialState({});
 

@@ -10,12 +10,11 @@ import { captureError } from "src/infra/error-tracking";
 export const useProjectSettingsTransaction = () => {
   const setProjectSettings = useSetAtom(projectSettingsAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 
   const transact = useCallback(
     async (next: ProjectSettings): Promise<boolean> => {
-      if (isOurFileOn && isSchemaFirstOn) {
+      if (isSchemaFirstOn) {
         try {
           serializeProjectSettings(next);
         } catch (error) {
@@ -29,13 +28,11 @@ export const useProjectSettingsTransaction = () => {
 
       setProjectSettings(next);
 
-      if (isOurFileOn) {
-        await saveProjectSettings(next);
-      }
+      await saveProjectSettings(next);
 
       return true;
     },
-    [setProjectSettings, setDialog, isOurFileOn, isSchemaFirstOn],
+    [setProjectSettings, setDialog, isSchemaFirstOn],
   );
 
   return { transact };

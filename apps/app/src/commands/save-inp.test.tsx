@@ -68,9 +68,6 @@ describe("save inp", () => {
     renderComponent({ store });
 
     await triggerSave();
-
-    expect(screen.getByText(/another app/i)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /understood/i }));
     await waitForNotLoading();
 
     const lastSave = lastSaveCall();
