@@ -430,8 +430,8 @@ const SelectedFileList = ({
               {translate(waitingMessage.translationKey)}
             </span>
           ) : (
-            <span className="flex items-center gap-1 mt-1 text-xs text-green-700">
-              <CheckIcon className="h-3 w-3" />
+            <span className="flex items-center gap-1 mt-1 text-xs">
+              <CheckIcon className="h-3 w-3 text-green-700" />
               {translate("dropZone.shapefileReady")}
             </span>
           ))}
