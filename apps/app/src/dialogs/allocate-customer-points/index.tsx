@@ -1,13 +1,25 @@
-import React from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
+import { useAtomValue } from "jotai";
 import {
   AllocationRule,
+  CustomerPoint,
+  CustomerPointId,
   getDefaultAllocationRules,
+  initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
-import { useAtomValue } from "jotai";
+import { Demand } from "@epanet-js/hydraulic-model";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { modelFactoriesAtom } from "src/state/model-factories";
+
+import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
+import { notify } from "src/components/notifications";
+import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
@@ -22,25 +34,212 @@ export const AllocateCustomerPointsDialog: React.FC<
   AllocateCustomerPointsDialogProps
 > = ({ isOpen, onClose }) => {
   const translate = useTranslate();
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { customerPointFactory, idGenerator } =
+    useAtomValue(modelFactoriesAtom);
   const { units } = useAtomValue(projectSettingsAtom);
+  const { customerPointsImportReset } = useCustomerPointsImportReset();
 
-  const allocationRules: AllocationRule[] = getDefaultAllocationRules(units);
-  const isEditingRules = false;
-  const isAllocating = false;
-  const isProcessing = false;
-  const error: string | null = null;
-  const allocationResult = null;
-  const displayRules = allocationRules;
-  const allocationCounts: number[] = [];
-  const totalCustomerPoints = 0;
-  const totalAllocated = 0;
-  const unallocatedCount = 0;
+  const [allocationRules, setAllocationRules] = useState<AllocationRule[]>(() =>
+    getDefaultAllocationRules(units),
+  );
+  const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
+  const [allocationResult, setAllocationResult] =
+    useState<AllocationResult | null>(null);
+  const [isAllocating, setIsAllocating] = useState(false);
+  const [lastAllocatedRules, setLastAllocatedRules] = useState<
+    AllocationRule[] | null
+  >(null);
+  const [, setConnectionCounts] = useState<{
+    [ruleIndex: number]: number;
+  } | null>(null);
+  const [isEditingRules, setIsEditingRules] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFinish = () => {};
-  const handleEdit = () => {};
-  const handleSave = () => {};
-  const handleCancel = () => {};
-  const handleRulesChange = (_newRules: AllocationRule[]) => {};
+  const disconnectedCustomerPoints = Array.from(
+    hydraulicModel.customerPoints.values(),
+  ).filter((cp) => !cp.connection);
+
+  const forceLoadingState = () =>
+    new Promise((resolve) => setTimeout(resolve, 10));
+
+  const handleFinish = useCallback(async () => {
+    if (!allocationResult) return;
+
+    setIsProcessing(true);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    try {
+      const previewPoints = [
+        ...allocationResult.allocatedCustomerPoints.values(),
+        ...allocationResult.disconnectedCustomerPoints.values(),
+      ];
+
+      const customerPointsToAdd: CustomerPoint[] = [];
+      const reconciledDemands = new Map<CustomerPointId, Demand[]>();
+
+      for (const previewPoint of previewPoints) {
+        const reconciled = customerPointFactory.load({
+          id: idGenerator.newId(),
+          coordinates: previewPoint.coordinates,
+          label: previewPoint.label,
+        });
+        if (previewPoint.connection) {
+          reconciled.connect(previewPoint.connection);
+        }
+        customerPointsToAdd.push(reconciled);
+      }
+
+      const updatedHydraulicModel = addCustomerPoints(
+        hydraulicModel,
+        customerPointsToAdd,
+        {
+          preserveJunctionDemands: true,
+          overrideExisting: true,
+          customerPointDemands: reconciledDemands,
+        },
+      );
+
+      void customerPointsImportReset({
+        hydraulicModel: updatedHydraulicModel,
+      });
+
+      notify({
+        variant: "success",
+        title: translate("importSuccessful"),
+        Icon: SuccessIcon,
+      });
+
+      onClose();
+    } catch {
+      setError("Import failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [
+    allocationResult,
+    hydraulicModel,
+    onClose,
+    customerPointsImportReset,
+    customerPointFactory,
+    idGenerator,
+    translate,
+  ]);
+
+  const performAllocation = useCallback(
+    async (rules: AllocationRule[]) => {
+      if (!disconnectedCustomerPoints.length) {
+        return;
+      }
+
+      setIsAllocating(true);
+      setError(null);
+
+      await forceLoadingState();
+
+      try {
+        const customerPoints = initializeCustomerPoints();
+        disconnectedCustomerPoints.forEach((point) => {
+          customerPoints.set(point.id, point);
+        });
+
+        const result = await allocateCustomerPoints(hydraulicModel, {
+          allocationRules: rules,
+          customerPoints,
+        });
+
+        setAllocationResult(result);
+        setLastAllocatedRules([...rules]);
+
+        const connectionCounts: { [ruleIndex: number]: number } = {};
+        result.ruleMatches.forEach((count, index) => {
+          connectionCounts[index] = count;
+        });
+        setConnectionCounts(connectionCounts);
+      } catch (err) {
+        setError(
+          translate(
+            "importCustomerPoints.wizard.allocationStep.allocationFailed",
+            (err as Error).message,
+          ),
+        );
+      } finally {
+        setIsAllocating(false);
+      }
+    },
+    [disconnectedCustomerPoints, hydraulicModel, translate],
+  );
+
+  const shouldTriggerAllocation = useCallback(
+    (rules: AllocationRule[]) => {
+      if (!disconnectedCustomerPoints.length) {
+        return false;
+      }
+
+      if (isAllocating) {
+        return false;
+      }
+
+      if (!lastAllocatedRules) {
+        return true;
+      }
+
+      if (rules.length !== lastAllocatedRules.length) {
+        return true;
+      }
+
+      return rules.some((rule, index) => {
+        const lastRule = lastAllocatedRules[index];
+        return (
+          rule.maxDistance !== lastRule.maxDistance ||
+          rule.maxDiameter !== lastRule.maxDiameter
+        );
+      });
+    },
+    [disconnectedCustomerPoints, isAllocating, lastAllocatedRules],
+  );
+
+  const handleEdit = useCallback(() => {
+    setTempRules([...allocationRules]);
+    setIsEditingRules(true);
+  }, [allocationRules]);
+
+  const handleSave = useCallback(() => {
+    setAllocationRules(tempRules);
+    setIsEditingRules(false);
+    setTempRules([]);
+
+    if (shouldTriggerAllocation(tempRules)) {
+      void performAllocation(tempRules);
+    }
+  }, [tempRules, shouldTriggerAllocation, performAllocation]);
+
+  const handleCancel = useCallback(() => {
+    setTempRules([]);
+    setIsEditingRules(false);
+  }, []);
+
+  const handleRulesChange = useCallback((newRules: AllocationRule[]) => {
+    setTempRules(newRules);
+  }, []);
+
+  const initialized = useRef<boolean>(false);
+  useEffect(() => {
+    if (initialized.current) return;
+
+    initialized.current = true;
+    void performAllocation(allocationRules);
+  }, [performAllocation, allocationRules]);
+
+  const displayRules = isEditingRules ? tempRules : allocationRules;
+  const allocationCounts = allocationResult?.ruleMatches || [];
+  const totalCustomerPoints = disconnectedCustomerPoints.length;
+  const totalAllocated = allocationCounts.reduce(
+    (total, count) => total + count,
+    0,
+  );
+  const unallocatedCount = Math.max(0, totalCustomerPoints - totalAllocated);
 
   const footer = (
     <SimpleDialogActions
@@ -67,7 +266,7 @@ export const AllocateCustomerPointsDialog: React.FC<
       footer={footer}
       preventClose={isProcessing}
     >
-      <div className="p-4 overflow-y-auto grow space-y-4 scroll-shadows">
+      <div className="p-4 overflow-y-auto grow space-y-4">
         <div>
           <p className="text-size-base text-subtle">
             {translate(
