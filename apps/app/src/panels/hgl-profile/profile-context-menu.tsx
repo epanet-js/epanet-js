@@ -40,13 +40,16 @@ function useActions(pathIds: number[]): Action[] {
   const setSelection = useSetAtom(selectionAtom);
 
   const isAllPathSelected = useMemo(() => {
-    const selectedIds = USelection.toIds(selection);
+    const selectedIds = USelection.getAssetIds(selection);
     if (selectedIds.length !== pathIds.length) return false;
     const selected = new Set(selectedIds);
     return pathIds.every((id) => selected.has(id));
   }, [selection, pathIds]);
 
-  const pathSelection = useMemo(() => USelection.fromIds(pathIds), [pathIds]);
+  const pathSelection = useMemo(
+    () => USelection.fromAssetIds(pathIds),
+    [pathIds],
+  );
 
   const zoomToAction: Action = {
     icon: <ZoomToIcon />,

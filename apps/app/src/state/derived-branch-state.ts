@@ -154,7 +154,7 @@ export const customerPointsDerivedAtom = atom((get) => {
 export const selectedFeaturesDerivedAtom = atom((get) => {
   const data = get(dataAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
-  return USelection.getSelectedFeatures({ ...data, hydraulicModel });
+  return USelection.getSelectedAssets({ ...data, hydraulicModel });
 });
 
 export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {

@@ -78,7 +78,7 @@ export const ChartContainer = memo(function ChartContainer({
   const nodeColor = nodeSymbology.defaults.color;
 
   const selectedIds = useMemo(
-    () => new Set<number>(USelection.toIds(selection)),
+    () => new Set<number>(USelection.getAssetIds(selection)),
     [selection],
   );
 

@@ -25,7 +25,7 @@ describe("useCustomGraphData", () => {
   it("returns empty series when no simulation results exist", async () => {
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.with().aJunction(IDS.J1).build(),
-      selection: USelection.fromIds([IDS.J1]),
+      selection: USelection.fromAssetIds([IDS.J1]),
     });
 
     const { result, onProgress } = renderDataHook(store);
@@ -70,7 +70,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: USelection.fromIds([IDS.J1, IDS.P1]),
+      selection: USelection.fromAssetIds([IDS.J1, IDS.P1]),
     });
 
     const { result } = renderDataHook(store);
@@ -107,7 +107,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: USelection.fromIds([IDS.J1, IDS.P1]),
+      selection: USelection.fromAssetIds([IDS.J1, IDS.P1]),
     });
 
     const { result, onProgress } = renderDataHook(store);
@@ -133,7 +133,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: USelection.fromIds([IDS.P1]),
+      selection: USelection.fromAssetIds([IDS.P1]),
     });
 
     const { result } = renderDataHook(store);
@@ -168,7 +168,7 @@ describe("useCustomGraphData", () => {
     const store = setInitialState({
       hydraulicModel: model,
       simulation: makeSimulation(reader),
-      selection: USelection.fromIds([IDS.P1]),
+      selection: USelection.fromAssetIds([IDS.P1]),
     });
 
     const { result } = renderDataHook(store);

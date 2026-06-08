@@ -40,7 +40,7 @@ const useDeleteSelectionDeprecated = () => {
 
   const deleteSelectedAssets = useCallback(
     (source: AssetDeleted["source"]) => {
-      const assetIds = USelection.toIds(selection);
+      const assetIds = USelection.getAssetIds(selection);
       if (!assetIds.length) return false;
 
       clearSelection();

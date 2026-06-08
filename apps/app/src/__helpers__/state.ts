@@ -202,7 +202,7 @@ export const aSimulationFailure = ({
 };
 
 export const aSingleSelection = ({ id = 1 }: { id?: Asset["id"] } = {}): Sel =>
-  USelection.single(id);
+  USelection.singleAsset(id);
 
 export const aNodeSymbology = ({
   colorRule: partialColorRule = {},
@@ -264,7 +264,7 @@ export const aRangeColorRule = (
 
 export const aMultiSelection = ({
   ids = [],
-}: { ids?: Asset["id"][] } = {}): Sel => USelection.fromIds(ids);
+}: { ids?: Asset["id"][] } = {}): Sel => USelection.fromAssetIds(ids);
 
 export const nullSelection: Sel = USelection.none();
 

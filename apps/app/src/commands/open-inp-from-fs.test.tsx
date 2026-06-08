@@ -147,7 +147,7 @@ describe("openInpFromFs", () => {
       modelVersion: "10",
       settingsVersion: "",
     };
-    const previousSelection = USelection.fromIds([IDS.ANY]);
+    const previousSelection = USelection.fromAssetIds([IDS.ANY]);
     const previousMomentLog = new MomentLog();
     const store = setInitialState({
       hydraulicModel: HydraulicModelBuilder.empty(),

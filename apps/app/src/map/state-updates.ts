@@ -226,7 +226,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewHighlights,
     } = changes;
 
-    const selectionSize = USelection.toIds(mapState.selection).length;
+    const selectionSize = USelection.getAssetIds(mapState.selection).length;
     const hasLargeSelection = selectionSize > 50;
 
     const shouldShowLoader =
@@ -633,7 +633,7 @@ const updateIconsSource = withDebugInstrumentation(
     selection: Sel,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
-    const selectionSet = new Set(USelection.toIds(selection));
+    const selectionSet = new Set(USelection.getAssetIds(selection));
     const features = buildIconPointsSource(
       assets,
       selectionSet,
@@ -803,7 +803,7 @@ const updateSelection = withDebugInstrumentation(
 
 const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
   async (map: MapEngine, selection: Sel, assets: AssetsMap): Promise<void> => {
-    const selectedIds = USelection.toIds(selection);
+    const selectedIds = USelection.getAssetIds(selection);
 
     const selectedJunctionIds: AssetId[] = [];
 

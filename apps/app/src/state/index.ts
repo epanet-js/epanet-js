@@ -138,7 +138,7 @@ export {
 } from "src/state/scenarios";
 
 // Selection
-export { selectionAtom, selectedFeaturesAtom } from "src/state/selection";
+export { selectionAtom } from "src/state/selection";
 
 // Simulation
 export type {

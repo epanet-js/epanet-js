@@ -76,7 +76,7 @@ export const ExportSimulationResultsDialog = ({
   const exportSimulationResults = useExportSimulationResults();
 
   const selection = useAtomValue(selectionAtom);
-  const selectedIds = USelection.toIds(selection);
+  const selectedIds = USelection.getAssetIds(selection);
   const hasSelection = selectedIds.length > 0;
 
   const model = useAtomValue(stagingModelAtom);

@@ -16,7 +16,7 @@ export const useChangeSelectedAssetsActiveTopologyStatus = () => {
   const userTracking = useUserTracking();
   const { transact } = useModelTransaction();
 
-  const selectedIds = USelection.toIds(selection);
+  const selectedIds = USelection.getAssetIds(selection);
 
   const inactiveAssetIds = selectedIds.filter((assetId) => {
     const asset = hydraulicModel.assets.get(assetId);

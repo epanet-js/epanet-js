@@ -29,7 +29,7 @@ const useSelectAllDeprecated = () => {
       });
 
       setSelection(
-        USelection.fromIds(Array.from(hydraulicModel.assets.keys())),
+        USelection.fromAssetIds(Array.from(hydraulicModel.assets.keys())),
       );
     },
     [userTracking, setSelection, hydraulicModel],

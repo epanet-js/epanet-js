@@ -27,7 +27,7 @@ export function useChartZoomToSelection({
   totalLength,
 }: UseChartZoomToSelectionParams): void {
   const selection = useAtomValue(selectionAtom);
-  const ids = USelection.toIds(selection);
+  const ids = USelection.getAssetIds(selection);
   const idsKey = ids.join(",");
 
   useEffect(() => {

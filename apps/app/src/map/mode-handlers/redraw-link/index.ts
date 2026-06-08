@@ -23,7 +23,7 @@ export function useRedrawLinkHandlers(
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
   const { selectAsset } = useSelection(selection);
 
-  const selectedIds = USelection.toIds(selection);
+  const selectedIds = USelection.getAssetIds(selection);
   const selectedAssets = selectedIds
     .map((id) => assets.get(id))
     .filter((asset: Asset | undefined) => asset && asset.isLink === true);

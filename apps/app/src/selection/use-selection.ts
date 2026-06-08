@@ -12,16 +12,16 @@ export const useSelection = (selection: Sel) => {
   const userTracking = useUserTracking();
 
   const toggleSingleSelection = (id: AssetId, _type: Asset["type"]) => {
-    setSelection(USelection.toggleSingleSelectionId(selection, id));
+    setSelection(USelection.toggleSingleAsset(selection, id));
     setTab(TabOption.Asset);
   };
 
   const extendSelection = (assetId: AssetId | AssetId[]) => {
     const newSelection = Array.isArray(assetId)
-      ? USelection.addSelectionIds(selection, assetId)
-      : USelection.addSelectionId(selection, assetId);
+      ? USelection.addAssetIds(selection, assetId)
+      : USelection.addId(selection, "asset", assetId);
 
-    const newCount = USelection.toIds(newSelection).length;
+    const newCount = USelection.getAssetIds(newSelection).length;
     userTracking.capture({
       name: "multiSelect.updated",
       count: newCount,
@@ -32,11 +32,11 @@ export const useSelection = (selection: Sel) => {
   };
 
   const isSelected = (assetId: AssetId) => {
-    return USelection.isSelected(selection, assetId);
+    return USelection.isAssetSelected(selection, assetId);
   };
 
   const selectAsset = (assetId: AssetId) => {
-    setSelection(USelection.single(assetId));
+    setSelection(USelection.singleAsset(assetId));
     setTab(TabOption.Asset);
   };
 
@@ -46,7 +46,7 @@ export const useSelection = (selection: Sel) => {
       count: assetIds.length,
       operation: "new",
     });
-    setSelection(USelection.fromIds(assetIds));
+    setSelection(USelection.fromAssetIds(assetIds));
     setTab(TabOption.Asset);
   };
 
@@ -112,10 +112,10 @@ export const useSelection = (selection: Sel) => {
 
   const removeFromSelection = (assetId: AssetId | AssetId[]) => {
     const newSelection = Array.isArray(assetId)
-      ? USelection.removeSelectionIds(selection, assetId)
-      : USelection.removeFeatureFromSelection(selection, assetId);
+      ? USelection.removeAssetIds(selection, assetId)
+      : USelection.removeId(selection, "asset", assetId);
 
-    const newCount = USelection.toIds(newSelection).length;
+    const newCount = USelection.getAssetIds(newSelection).length;
     userTracking.capture({
       name: "multiSelect.updated",
       count: newCount,
@@ -128,7 +128,7 @@ export const useSelection = (selection: Sel) => {
     setSelection(USelection.none());
   };
 
-  const getSelectionIds = () => USelection.toIds(selection);
+  const getSelectionIds = () => USelection.getAssetIds(selection);
 
   return {
     setSelection,

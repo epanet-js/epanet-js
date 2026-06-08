@@ -111,7 +111,7 @@ describe("CommandBar", () => {
     await user.click(screen.getByText("P1"));
 
     const selection = store.get(selectionAtom);
-    expect(USelection.isSelected(selection, 1)).toBe(true);
+    expect(USelection.isAssetSelected(selection, 1)).toBe(true);
     expect(zoomToMock).toHaveBeenCalledWith(selection, 18);
     expect(store.get(commandBarOpenAtom)).toBe(false);
   });

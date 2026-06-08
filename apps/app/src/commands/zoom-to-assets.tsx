@@ -9,7 +9,7 @@ export const useZoomToAssets = () => {
   return useCallback(
     (assetIds: AssetId[]) => {
       if (assetIds.length === 0) return;
-      zoomTo(USelection.fromIds(assetIds));
+      zoomTo(USelection.fromAssetIds(assetIds));
     },
     [zoomTo],
   );

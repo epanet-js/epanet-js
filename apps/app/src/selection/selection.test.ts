@@ -23,25 +23,25 @@ const buildCustomerPoints = (...ids: number[]) => {
 };
 
 describe("USelection", () => {
-  describe("addSelectionIds", () => {
+  describe("addAssetIds", () => {
     it("adds ids to selection, extends existing, and filters duplicates", () => {
       // Add to none selection → multi
       const noneSelection = USelection.none();
-      const result1 = USelection.addSelectionIds(noneSelection, [1, 2, 3]);
+      const result1 = USelection.addAssetIds(noneSelection, [1, 2, 3]);
       expect(result1).toEqual({ type: "multi", ids: { asset: [1, 2, 3] } });
 
       // Extend existing selection
-      const singleSelection = USelection.single(1);
-      const result2 = USelection.addSelectionIds(singleSelection, [2, 3]);
+      const singleSelection = USelection.singleAsset(1);
+      const result2 = USelection.addAssetIds(singleSelection, [2, 3]);
       expect(result2).toEqual({ type: "multi", ids: { asset: [1, 2, 3] } });
 
       // Filter duplicates
-      const multiSelection = USelection.fromIds([1, 2]);
-      const result3 = USelection.addSelectionIds(multiSelection, [2, 3, 4]);
+      const multiSelection = USelection.fromAssetIds([1, 2]);
+      const result3 = USelection.addAssetIds(multiSelection, [2, 3, 4]);
       expect(result3).toEqual({ type: "multi", ids: { asset: [1, 2, 3, 4] } });
 
       // All duplicates → returns same selection
-      const result4 = USelection.addSelectionIds(multiSelection, [1, 2]);
+      const result4 = USelection.addAssetIds(multiSelection, [1, 2]);
       expect(result4).toBe(multiSelection);
     });
   });
@@ -53,7 +53,7 @@ describe("USelection", () => {
     const emptyCustomerPoints = buildCustomerPoints();
 
     it("returns same single selection when asset exists", () => {
-      const selection = USelection.single(IDS.J1);
+      const selection = USelection.singleAsset(IDS.J1);
       const result = USelection.clearInvalidIds(
         selection,
         assets,
@@ -63,7 +63,7 @@ describe("USelection", () => {
     });
 
     it("clears single selection when asset does not exist", () => {
-      const selection = USelection.single(99);
+      const selection = USelection.singleAsset(99);
       const result = USelection.clearInvalidIds(
         selection,
         assets,
@@ -73,7 +73,7 @@ describe("USelection", () => {
     });
 
     it("returns same multi selection when all assets exist", () => {
-      const selection = USelection.fromIds([IDS.J1, IDS.J2]);
+      const selection = USelection.fromAssetIds([IDS.J1, IDS.J2]);
       const result = USelection.clearInvalidIds(
         selection,
         assets,
@@ -83,7 +83,7 @@ describe("USelection", () => {
     });
 
     it("clears multi selection when any asset does not exist", () => {
-      const selection = USelection.fromIds([IDS.J1, 99]);
+      const selection = USelection.fromAssetIds([IDS.J1, 99]);
       const result = USelection.clearInvalidIds(
         selection,
         assets,
@@ -120,20 +120,20 @@ describe("USelection", () => {
     });
   });
 
-  describe("removeSelectionIds", () => {
+  describe("removeAssetIds", () => {
     it("removes ids, handles removal to none and single selection", () => {
       // Remove from multi selection
-      const multiSelection = USelection.fromIds([1, 2, 3, 4]);
-      const result1 = USelection.removeSelectionIds(multiSelection, [2, 4]);
+      const multiSelection = USelection.fromAssetIds([1, 2, 3, 4]);
+      const result1 = USelection.removeAssetIds(multiSelection, [2, 4]);
       expect(result1).toEqual({ type: "multi", ids: { asset: [1, 3] } });
 
       // Remove all → none
-      const twoItemSelection = USelection.fromIds([1, 2]);
-      const result2 = USelection.removeSelectionIds(twoItemSelection, [1, 2]);
+      const twoItemSelection = USelection.fromAssetIds([1, 2]);
+      const result2 = USelection.removeAssetIds(twoItemSelection, [1, 2]);
       expect(result2).toEqual({ type: "none" });
 
       // Remove to single
-      const result3 = USelection.removeSelectionIds(twoItemSelection, [2]);
+      const result3 = USelection.removeAssetIds(twoItemSelection, [2]);
       expect(result3).toEqual({
         type: "single",
         kind: "asset",
@@ -145,8 +145,8 @@ describe("USelection", () => {
   describe("kinded accessors", () => {
     it("getAssetIds returns asset ids and ignores customer points", () => {
       expect(USelection.getAssetIds(USelection.none())).toEqual([]);
-      expect(USelection.getAssetIds(USelection.single(1))).toEqual([1]);
-      expect(USelection.getAssetIds(USelection.fromIds([1, 2]))).toEqual([
+      expect(USelection.getAssetIds(USelection.singleAsset(1))).toEqual([1]);
+      expect(USelection.getAssetIds(USelection.fromAssetIds([1, 2]))).toEqual([
         1, 2,
       ]);
       expect(USelection.getAssetIds(USelection.singleCustomerPoint(7))).toEqual(
@@ -158,7 +158,9 @@ describe("USelection", () => {
 
     it("getCustomerPointIds returns CP ids from single and multi", () => {
       expect(USelection.getCustomerPointIds(USelection.none())).toEqual([]);
-      expect(USelection.getCustomerPointIds(USelection.single(1))).toEqual([]);
+      expect(USelection.getCustomerPointIds(USelection.singleAsset(1))).toEqual(
+        [],
+      );
       expect(
         USelection.getCustomerPointIds(USelection.singleCustomerPoint(7)),
       ).toEqual([7]);
@@ -180,7 +182,7 @@ describe("USelection", () => {
       });
       expect(USelection.isEmpty(mixed)).toBe(false);
 
-      expect(USelection.isSingleCustomerPoint(USelection.single(1))).toBe(
+      expect(USelection.isSingleCustomerPoint(USelection.singleAsset(1))).toBe(
         false,
       );
       expect(
@@ -214,12 +216,12 @@ describe("USelection", () => {
     });
 
     it("dedups duplicate ids in fromIds", () => {
-      expect(USelection.fromIds([1, 1, 2, 2, 3])).toEqual({
+      expect(USelection.fromAssetIds([1, 1, 2, 2, 3])).toEqual({
         type: "multi",
         ids: { asset: [1, 2, 3] },
       });
       // Collapses to single when all duplicates resolve to one id.
-      expect(USelection.fromIds([5, 5, 5])).toEqual({
+      expect(USelection.fromAssetIds([5, 5, 5])).toEqual({
         type: "single",
         kind: "asset",
         id: 5,

@@ -113,10 +113,10 @@ export function useChartClick({
 
       const selectAsset = (id: number) => {
         const next: Sel = shift
-          ? USelection.isSelected(deps.selection, id)
-            ? USelection.removeFeatureFromSelection(deps.selection, id)
-            : USelection.addSelectionId(deps.selection, id)
-          : USelection.toggleSingleSelectionId(deps.selection, id);
+          ? USelection.isAssetSelected(deps.selection, id)
+            ? USelection.removeId(deps.selection, "asset", id)
+            : USelection.addId(deps.selection, "asset", id)
+          : USelection.toggleSingleAsset(deps.selection, id);
         deps.setSelection(next);
         deps.setTab(TabOption.Asset);
         if (deps.mode === Mode.HGL_PROFILE) {

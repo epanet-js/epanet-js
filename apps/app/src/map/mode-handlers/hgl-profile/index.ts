@@ -114,7 +114,7 @@ export function useHglProfileHandlers(
     setHglProfile(built.hglProfile);
     setEphemeralState({ type: "hglProfile" });
     setSelection(
-      USelection.fromIds([...built.path.nodeIds, ...built.path.linkIds]),
+      USelection.fromAssetIds([...built.path.nodeIds, ...built.path.linkIds]),
     );
   };
 

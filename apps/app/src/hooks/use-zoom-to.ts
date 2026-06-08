@@ -31,7 +31,7 @@ export function useZoomTo() {
             type: "FeatureCollection",
             features: Array.isArray(selection)
               ? selection.map((f) => f.feature)
-              : USelection.getSelectedFeatures({
+              : USelection.getSelectedAssets({
                   ...data,
                   hydraulicModel,
                   selection,

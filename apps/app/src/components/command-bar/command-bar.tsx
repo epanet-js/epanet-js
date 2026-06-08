@@ -188,7 +188,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
     addRecent(option);
     if (option.data.kind === "asset") {
       selectAsset(option.data.rawId);
-      zoomTo(USelection.single(option.data.rawId), 18);
+      zoomTo(USelection.singleAsset(option.data.rawId), 18);
     } else {
       const customerPoint = customerPoints.get(option.data.rawId);
       selectCustomerPoint(option.data.rawId);

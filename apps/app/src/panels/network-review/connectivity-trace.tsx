@@ -58,7 +58,7 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
       setSelectedSubnetworkId(subnetwork.subnetworkId);
 
       const allIds = [...subnetwork.nodeIds, ...subnetwork.linkIds];
-      setSelection(USelection.fromIds(allIds));
+      setSelection(USelection.fromAssetIds(allIds));
 
       if (subnetwork.bounds) {
         zoomTo(Maybe.of(subnetwork.bounds));

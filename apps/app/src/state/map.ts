@@ -179,7 +179,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const resultsReader = get(simulationResultsDerivedAtom);
   const customerPoints = get(customerPointsDerivedAtom);
   const currentZoom = get(currentZoomAtom);
-  const selectedAssetIds = new Set(USelection.toIds(selection));
+  const selectedAssetIds = new Set(USelection.getAssetIds(selection));
 
   const movedAssetIds = get(movedAssetIdsAtom);
   const isOffline = get(offlineAtom);

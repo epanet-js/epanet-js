@@ -1733,7 +1733,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: USelection.fromIds([IDS.J2]),
+        selection: USelection.fromAssetIds([IDS.J2]),
       });
     });
 
@@ -1742,7 +1742,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: USelection.fromIds([IDS.P1]),
+        selection: USelection.fromAssetIds([IDS.P1]),
       });
     });
 
@@ -1752,7 +1752,7 @@ describe("AssetPanel", () => {
     act(() => {
       store.set(dataAtom, {
         ...store.get(dataAtom),
-        selection: USelection.fromIds([IDS.P2]),
+        selection: USelection.fromAssetIds([IDS.P2]),
       });
     });
 
@@ -1774,7 +1774,7 @@ describe("AssetPanel", () => {
     store.set(stagingModelAtom, hydraulicModel);
     store.set(dataAtom, {
       ...nullData,
-      selection: USelection.fromIds([selectedAssetId]),
+      selection: USelection.fromAssetIds([selectedAssetId]),
     });
 
     let simulation: SimulationState = initialSimulationState;

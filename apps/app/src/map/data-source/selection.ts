@@ -20,7 +20,7 @@ export const buildSelectionSource = (
   movedAssetIds: Set<AssetId> = new Set(),
   simulationResults?: ResultsReader | null,
 ): Feature[] => {
-  const selectedIds = USelection.toIds(selection);
+  const selectedIds = USelection.getAssetIds(selection);
   if (selectedIds.length === 0) {
     return [];
   }

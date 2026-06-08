@@ -76,7 +76,9 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
       }
       const crossingId = `${crossing.pipe1Id}-${crossing.pipe2Id}`;
       setSelectedCrossingId(crossingId);
-      setSelection(USelection.fromIds([crossing.pipe1Id, crossing.pipe2Id]));
+      setSelection(
+        USelection.fromAssetIds([crossing.pipe1Id, crossing.pipe2Id]),
+      );
       const [lon, lat] = crossing.intersectionPoint;
       zoomTo(Maybe.of([lon, lat, lon, lat]));
     },

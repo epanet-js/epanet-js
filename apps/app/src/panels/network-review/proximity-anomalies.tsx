@@ -72,7 +72,7 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
       }
       const connectionId = `${anomaly.nodeId}-${anomaly.pipeId}`;
       setSelectedProximityAnomalyId(connectionId);
-      setSelection(USelection.fromIds([anomaly.nodeId, anomaly.pipeId]));
+      setSelection(USelection.fromAssetIds([anomaly.nodeId, anomaly.pipeId]));
 
       const nodeGeometry = nodeAsset.feature.geometry as GeoJSON.Point;
       const boundingBox = bbox(

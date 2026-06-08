@@ -109,7 +109,7 @@ describe("useHglProfileHandlers click (commit-on-click model)", () => {
     ).toBeUndefined();
 
     expect(store.get(selectionAtom)).toEqual(
-      USelection.fromIds([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]),
+      USelection.fromAssetIds([IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2]),
     );
 
     expect(store.get(modeAtom).mode).toBe(Mode.HGL_PROFILE);
