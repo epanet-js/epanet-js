@@ -14,7 +14,7 @@ import {
   type ReadZoneFeaturesResult,
   type MergedZoneInfo,
 } from "src/lib/zones";
-import { useImportZoneFeatures } from "src/commands/import-zone-features";
+import { useImportZones } from "src/commands/import-zones";
 import { useUserTracking } from "src/infra/user-tracking";
 import type { GisFiles } from "src/components/gis-drop-zone";
 import { DataInputStep } from "./data-input-step";
@@ -34,7 +34,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { closeDialog } = useDialogState();
-  const importZoneFeatures = useImportZoneFeatures();
+  const importZones = useImportZones();
   const { projections } = useProjections();
   const networkProjection = useAtomValue(projectSettingsAtom).projection;
   const [currentStep, setCurrentStep] = useState(DATA_INPUT_STEP_NUMBER);
@@ -129,7 +129,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     userTracking.capture({ name: "importZones.dataMapping.next" });
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
-    const result = await importZoneFeatures(readResult.features, labelProperty);
+    const result = await importZones(readResult.features, labelProperty);
     if (!result) return;
     setMergedZones(result.mergedZones);
     const zonesCount = Object.keys(result.zones).length;
@@ -142,7 +142,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     });
 
     setCurrentStep(COMPLETE_STEP_NUMBER);
-  }, [readResult, selectedLabel, importZoneFeatures, userTracking]);
+  }, [readResult, selectedLabel, importZones, userTracking]);
 
   const goBack = useCallback(() => {
     userTracking.capture({ name: "importZones.dataMapping.back" });

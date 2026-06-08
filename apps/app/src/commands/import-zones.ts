@@ -3,10 +3,10 @@ import { importZoneFeatures } from "src/lib/zones";
 import type { ZoneFeature, ImportZoneFeaturesResult } from "src/lib/zones";
 import { useZonesTransaction } from "src/hooks/persistence/use-zones-transaction";
 
-export const useImportZoneFeatures = () => {
+export const useImportZones = () => {
   const { transact } = useZonesTransaction();
 
-  const importFeatures = useCallback(
+  const importZones = useCallback(
     async (
       features: ZoneFeature[],
       labelProperty?: string,
@@ -21,5 +21,5 @@ export const useImportZoneFeatures = () => {
     [transact],
   );
 
-  return importFeatures;
+  return importZones;
 };

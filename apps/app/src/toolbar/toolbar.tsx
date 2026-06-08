@@ -53,7 +53,7 @@ import {
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
-import { useImportZones } from "src/commands/import-zones";
+import { useOpenZonesImport } from "src/commands/open-zones-import";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
@@ -92,7 +92,7 @@ export const Toolbar = ({
   const showDataTables = useShowDataTables();
   const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
-  const importZones = useImportZones();
+  const openZonesImport = useOpenZonesImport();
   const importZonesDisabled = useImportZonesDisabled();
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const isHglProfileOn = useFeatureFlag("FLAG_PROFILE_VIEW");
@@ -161,7 +161,7 @@ export const Toolbar = ({
                 label={translate("importZones.title")}
                 role="button"
                 onClick={() => {
-                  importZones({ source: "toolbar" });
+                  openZonesImport({ source: "toolbar" });
                 }}
                 disabled={importZonesDisabled}
               >

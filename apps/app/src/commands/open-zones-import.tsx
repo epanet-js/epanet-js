@@ -5,7 +5,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { usePermissions } from "src/hooks/use-permissions";
 import { zonesAtom } from "src/state/zones";
 
-export const useImportZones = () => {
+export const useOpenZonesImport = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const zones = useAtomValue(zonesAtom);
   const userTracking = useUserTracking();
@@ -15,7 +15,7 @@ export const useImportZones = () => {
     setDialogState({ type: "importZones" });
   }, [setDialogState]);
 
-  const importZones = useCallback(
+  const openZonesImport = useCallback(
     ({ source }: { source: string }) => {
       userTracking.capture({
         name: "importZones.started",
@@ -42,5 +42,5 @@ export const useImportZones = () => {
     [setDialogState, zones, userTracking, canUseZones, openImportDialog],
   );
 
-  return importZones;
+  return openZonesImport;
 };
