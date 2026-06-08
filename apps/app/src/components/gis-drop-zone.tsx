@@ -41,8 +41,9 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
 
   const handleFiles = useCallback(
     (incomingFiles: File[]) => {
-      const updated: GisFiles = { ...selectedFiles };
+      let updated: GisFiles = { ...selectedFiles };
       let hasNew = false;
+      let currentBaseName = getShapefileBaseName(updated);
 
       for (const file of incomingFiles) {
         if (!isFileAcceptedByFormats(file, supportedFormats)) {
@@ -50,10 +51,18 @@ export const GisDropZone: React.FC<GisDropZoneProps> = ({
           continue;
         }
         const key = getGisFileKey(file);
-        if (key) {
-          updated[key] = file;
-          hasNew = true;
+        if (!key) continue;
+
+        if (SHAPEFILE_KEYS.has(key)) {
+          const incomingBase = getFileBaseName(file);
+          if (currentBaseName && incomingBase !== currentBaseName) {
+            updated = clearShapefileEntries(updated);
+          }
+          currentBaseName = incomingBase;
         }
+
+        updated[key] = file;
+        hasNew = true;
       }
 
       if (hasNew) {
@@ -175,6 +184,14 @@ const DEFAULT_FORMATS: GisFormat[] = ["geojson", "geojsonl", "shapefile"];
 
 const SHAPEFILE_EXTENSIONS = [".shp", ".shx", ".prj", ".cpg", ".dbf"];
 
+const SHAPEFILE_KEYS = new Set<keyof GisFiles>([
+  "shp",
+  "shx",
+  "prj",
+  "cpg",
+  "dbf",
+]);
+
 const FORMAT_EXTENSIONS: Record<GisFormat, string[]> = {
   geojson: [".geojson"],
   geojsonl: [".geojsonl"],
@@ -209,6 +226,28 @@ const getGisFileKey = (file: File): keyof GisFiles | null => {
     if (name.endsWith(ext)) return key;
   }
   return null;
+};
+
+const getFileBaseName = (file: File): string => {
+  const name = file.name;
+  const dotIndex = name.lastIndexOf(".");
+  return dotIndex > 0 ? name.substring(0, dotIndex) : name;
+};
+
+const getShapefileBaseName = (files: GisFiles): string | null => {
+  for (const key of SHAPEFILE_KEYS) {
+    const file = files[key];
+    if (file) return getFileBaseName(file);
+  }
+  return null;
+};
+
+const clearShapefileEntries = (files: GisFiles): GisFiles => {
+  const cleaned = { ...files };
+  for (const key of SHAPEFILE_KEYS) {
+    delete cleaned[key];
+  }
+  return cleaned;
 };
 
 const isFileAcceptedByFormats = (file: File, formats: GisFormat[]): boolean => {
