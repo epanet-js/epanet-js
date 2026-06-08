@@ -540,6 +540,19 @@ const AllocateCustomerPointsDialog = dynamic<{
   },
 );
 
+const AllocateCustomerPointsWarningDialog = dynamic<{
+  onImport: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/allocate-customer-points-warning").then(
+      (r) => r.AllocateCustomerPointsWarningDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ImportZonesDialog = dynamic<{
   onClose: () => void;
 }>(
@@ -633,6 +646,14 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "allocateCustomerPoints") {
     return <AllocateCustomerPointsDialog isOpen={true} onClose={onClose} />;
+  }
+  if (dialog.type === "allocateCustomerPointsWarning") {
+    return (
+      <AllocateCustomerPointsWarningDialog
+        onImport={dialog.onImport}
+        onClose={onClose}
+      />
+    );
   }
   if (dialog.type === "modelBuilderIframe") {
     return <ModelBuilderIframeDialog onClose={onClose} />;

@@ -958,7 +958,12 @@
   },
   "import": "Import",
   "allocateCustomerPoints": {
-    "menuEntry": "Allocate customer points"
+    "menuEntry": "Allocate customer points",
+    "warningDialog": {
+      "title": "No customer points found",
+      "noCustomerPoints": "There are no customer points in the network. Would you like to import them first?",
+      "importAction": "Import customer points"
+    }
   },
   "importCustomerPoints": {
     "label": "Import customer points",
