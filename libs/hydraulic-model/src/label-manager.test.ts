@@ -385,7 +385,9 @@ describe("label manager", () => {
         expect(LabelManager.sanitizeLabel("foo bar;", "junction")).toEqual(
           "foobar",
         );
-        expect(LabelManager.sanitizeLabel("ok\tlabel", "pipe")).toEqual("oklabel");
+        expect(LabelManager.sanitizeLabel("ok\tlabel", "pipe")).toEqual(
+          "oklabel",
+        );
       });
 
       it("caps at 31 UTF-8 bytes", () => {
@@ -414,9 +416,9 @@ describe("label manager", () => {
       it("caps at 50 characters (not bytes)", () => {
         const fiftyAccents = "é".repeat(50);
         // 50 chars, 100 bytes — within the char-based cap.
-        expect(LabelManager.sanitizeLabel(fiftyAccents, "customerPoint")).toEqual(
-          fiftyAccents,
-        );
+        expect(
+          LabelManager.sanitizeLabel(fiftyAccents, "customerPoint"),
+        ).toEqual(fiftyAccents);
 
         // 60 chars truncates to 50.
         expect(
