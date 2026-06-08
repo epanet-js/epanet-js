@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   computeMultiAssetData,
-  computeMultiAssetDataWithPipeAttributes,
   QuantityStats,
   CategoryStats,
   BooleanStats,
@@ -211,35 +210,7 @@ describe("computeMultiAssetData", () => {
     expect(diameterStat.unit).toBe("mm");
   });
 
-  it("computeMultiAssetData does not surface material or year stats", () => {
-    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1)
-      .aJunction(IDS.J2)
-      .aPipe(IDS.P1, {
-        startNodeId: IDS.J1,
-        endNodeId: IDS.J2,
-        material: "PVC",
-        year: 1995,
-      })
-      .build();
-    const assets = Array.from(hydraulicModel.assets.values());
-
-    const result = computeMultiAssetData(
-      assets,
-      units,
-      formatting,
-      hydraulicModel,
-    );
-    expect(
-      result.data.pipe.modelAttributes.find((s) => s.property === "material"),
-    ).toBeUndefined();
-    expect(
-      result.data.pipe.modelAttributes.find((s) => s.property === "year"),
-    ).toBeUndefined();
-  });
-
-  it("computeMultiAssetDataWithPipeAttributes surfaces material and year stats", () => {
+  it("computeMultiAssetData surfaces material and year stats", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
@@ -259,7 +230,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetDataWithPipeAttributes(
+    const result = computeMultiAssetData(
       assets,
       units,
       formatting,
@@ -296,7 +267,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetDataWithPipeAttributes(
+    const result = computeMultiAssetData(
       assets,
       units,
       formatting,
@@ -331,7 +302,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetDataWithPipeAttributes(
+    const result = computeMultiAssetData(
       assets,
       units,
       formatting,
@@ -357,7 +328,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetDataWithPipeAttributes(
+    const result = computeMultiAssetData(
       assets,
       units,
       formatting,

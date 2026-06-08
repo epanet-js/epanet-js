@@ -62,21 +62,6 @@ export type BatchEditPropertyConfig =
 
 export type EditableProperties = Record<string, BatchEditPropertyConfig>;
 
-export const PIPE_YEAR_EDITABLE_CONFIG: BatchEditPropertyConfig = {
-  fieldType: "quantity",
-  modelProperty: "year",
-  positiveOnly: true,
-  isNullable: true,
-  labelKey: "yearOfInstallation",
-  paywall: "pipeAttributes",
-};
-
-export const PIPE_MATERIAL_EDITABLE_CONFIG: BatchEditPropertyConfig = {
-  fieldType: "openCategory",
-  modelProperty: "material",
-  paywall: "pipeAttributes",
-};
-
 export const BATCH_EDITABLE_PROPERTIES: Record<
   Asset["type"],
   Record<string, BatchEditPropertyConfig>
@@ -134,6 +119,19 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       modelProperty: "length",
       positiveOnly: true,
       isNullable: false,
+    },
+    material: {
+      fieldType: "openCategory",
+      modelProperty: "material",
+      paywall: "pipeAttributes",
+    },
+    year: {
+      fieldType: "quantity",
+      modelProperty: "year",
+      positiveOnly: true,
+      isNullable: true,
+      labelKey: "yearOfInstallation",
+      paywall: "pipeAttributes",
     },
     roughness: {
       fieldType: "quantity",
@@ -335,15 +333,4 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       libraryLabelKey: "openPatternsLibrary",
     },
   },
-};
-
-// Parallel to BATCH_EDITABLE_PROPERTIES.pipe with material and year attached.
-// The consumer picks this version when FLAG_PIPE_ATTRIBUTES is on.
-export const PIPE_BATCH_EDITABLE_PROPERTIES_WITH_ATTRIBUTES: Record<
-  string,
-  BatchEditPropertyConfig
-> = {
-  ...BATCH_EDITABLE_PROPERTIES.pipe,
-  material: PIPE_MATERIAL_EDITABLE_CONFIG,
-  year: PIPE_YEAR_EDITABLE_CONFIG,
 };

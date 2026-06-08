@@ -377,8 +377,6 @@ type ExtraPipeColsFn = (
   formatting: FormattingSpec,
 ) => GridColumn<AssetRow>[];
 
-const noExtraPipeCols: ExtraPipeColsFn = () => [];
-
 type PipeAttributesLock = {
   openPaywall: () => void;
   icon: ReactNode;
@@ -937,12 +935,6 @@ function _buildColumns(
 }
 
 export function buildColumns(
-  ...args: BuildColumnsArgs
-): GridColumn<AssetRow>[] {
-  return _buildColumns(noExtraPipeCols, ...args);
-}
-
-export function buildColumnsWithPipeAttributes(
   materials: string[],
   lock: PipeAttributesLock | undefined,
   ...args: BuildColumnsArgs

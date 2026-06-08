@@ -53,11 +53,9 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { type AssetRow, buildRowsAsync } from "./data";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import {
   buildColumns,
-  buildColumnsWithPipeAttributes,
   EDITABLE_NUMERIC_KEYS,
   EDITABLE_SELECT_KEYS,
   type QualityAnalysisType,
@@ -123,17 +121,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
-  const pipeAttributesOn = useFeatureFlag("FLAG_PIPE_ATTRIBUTES");
   const {
     isLocked: pipeAttributesLocked,
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
   const pipeMaterials = useMemo(
     () =>
-      pipeAttributesOn && assetType === "pipe"
-        ? listPipeMaterials(hydraulicModel.assets)
-        : [],
-    [pipeAttributesOn, assetType, hydraulicModel.assets],
+      assetType === "pipe" ? listPipeMaterials(hydraulicModel.assets) : [],
+    [assetType, hydraulicModel.assets],
   );
   const columns = useMemo(() => {
     const validateLabel = (label: string, rowIndex: number) => {
@@ -142,31 +137,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       return labelManager.isLabelAvailable(label, assetType, assetId);
     };
     const getRow = (rowIndex: number) => rowsRef.current?.[rowIndex];
-    if (pipeAttributesOn) {
-      const lock = pipeAttributesLocked
-        ? {
-            openPaywall: openPipeAttributesPaywall,
-            icon: <PaywallLockIcon />,
-          }
-        : undefined;
-      return buildColumnsWithPipeAttributes(
-        pipeMaterials,
-        lock,
-        assetType,
-        translate,
-        hasSimulation,
-        units,
-        translateUnit,
-        formatting,
-        hydraulicModel.patterns,
-        hydraulicModel.curves,
-        simulationSettings,
-        qualityType,
-        validateLabel,
-        getRow,
-      );
-    }
+    const lock = pipeAttributesLocked
+      ? {
+          openPaywall: openPipeAttributesPaywall,
+          icon: <PaywallLockIcon />,
+        }
+      : undefined;
     return buildColumns(
+      pipeMaterials,
+      lock,
       assetType,
       translate,
       hasSimulation,
@@ -182,7 +161,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     );
   }, [
     assetType,
-    pipeAttributesOn,
     pipeAttributesLocked,
     openPipeAttributesPaywall,
     pipeMaterials,

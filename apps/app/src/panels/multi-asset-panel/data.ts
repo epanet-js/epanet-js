@@ -471,6 +471,13 @@ const appendPipeStats = (
     id,
   );
   updateQuantityStats(statsMap, "length", pipe.length, units, formatting, id);
+  updateCategoryStats(statsMap, "material", pipe.material, id, "none");
+  updateQuantityStats(statsMap, "year", pipe.year, units, formatting, id, {
+    unit: null,
+    decimals: 0,
+    isInteger: true,
+    emptyLabel: "none",
+  });
   updateQuantityStats(
     statsMap,
     "roughness",
@@ -601,6 +608,8 @@ const buildPipeSections = (
       "length",
       "roughness",
       "minorLoss",
+      "material",
+      "year",
     ]),
     quality: getStatsForProperties(statsMap, [
       "bulkReactionCoeff",
@@ -1625,169 +1634,4 @@ const getStatsForProperties = (
 const roundToDecimal = (value: number, decimals: number): number => {
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
-};
-
-// Parallel to computeMultiAssetData that also surfaces pipe material and year.
-// Picked by the consumer when FLAG_PIPE_ATTRIBUTES is on; the FF never enters
-// the helpers themselves.
-export const computeMultiAssetDataWithPipeAttributes = (
-  assets: Asset[],
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  hydraulicModel: HydraulicModel,
-  simulationResults?: ResultsReader | null,
-): ComputedMultiAssetData => {
-  const counts: AssetCounts = {
-    junction: 0,
-    pipe: 0,
-    pump: 0,
-    valve: 0,
-    reservoir: 0,
-    tank: 0,
-  };
-
-  const statsMaps = {
-    junction: new Map<string, AssetPropertyStats>(),
-    pipe: new Map<string, AssetPropertyStats>(),
-    pump: new Map<string, AssetPropertyStats>(),
-    valve: new Map<string, AssetPropertyStats>(),
-    reservoir: new Map<string, AssetPropertyStats>(),
-    tank: new Map<string, AssetPropertyStats>(),
-  };
-
-  for (const asset of assets) {
-    switch (asset.type) {
-      case "junction":
-        counts.junction++;
-        appendJunctionStats(
-          statsMaps.junction,
-          asset as Junction,
-          units,
-          formatting,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.assets,
-          hydraulicModel.demands,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "pipe":
-        counts.pipe++;
-        appendPipeStatsWithAttributes(
-          statsMaps.pipe,
-          asset as Pipe,
-          units,
-          formatting,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.demands,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "pump":
-        counts.pump++;
-        appendPumpStats(
-          statsMaps.pump,
-          asset as Pump,
-          units,
-          formatting,
-          hydraulicModel.curves,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "valve":
-        counts.valve++;
-        appendValveStats(
-          statsMaps.valve,
-          asset as Valve,
-          units,
-          formatting,
-          simulationResults,
-        );
-        break;
-      case "reservoir":
-        counts.reservoir++;
-        appendReservoirStats(
-          statsMaps.reservoir,
-          asset as Reservoir,
-          units,
-          formatting,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-      case "tank":
-        counts.tank++;
-        appendTankStats(
-          statsMaps.tank,
-          asset as Tank,
-          units,
-          formatting,
-          hydraulicModel.curves,
-          hydraulicModel.patterns,
-          simulationResults,
-        );
-        break;
-    }
-  }
-
-  return {
-    data: {
-      junction: buildJunctionSections(statsMaps.junction),
-      pipe: buildPipeSectionsWithAttributes(statsMaps.pipe),
-      pump: buildPumpSections(statsMaps.pump),
-      valve: buildValveSections(statsMaps.valve),
-      reservoir: buildReservoirSections(statsMaps.reservoir),
-      tank: buildTankSections(statsMaps.tank),
-    },
-    counts,
-  };
-};
-
-const appendPipeStatsWithAttributes = (
-  statsMap: Map<string, AssetPropertyStats>,
-  pipe: Pipe,
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  customerPointsLookup: CustomerPointsLookup,
-  demands: Demands,
-  patterns: Patterns,
-  simulationResults?: ResultsReader | null,
-) => {
-  appendPipeStats(
-    statsMap,
-    pipe,
-    units,
-    formatting,
-    customerPointsLookup,
-    demands,
-    patterns,
-    simulationResults,
-  );
-  updateCategoryStats(statsMap, "material", pipe.material, pipe.id, "none");
-  updateQuantityStats(statsMap, "year", pipe.year, units, formatting, pipe.id, {
-    unit: null,
-    decimals: 0,
-    isInteger: true,
-    emptyLabel: "none",
-  });
-};
-
-const buildPipeSectionsWithAttributes = (
-  statsMap: Map<string, AssetPropertyStats>,
-): AssetPropertySections => {
-  const base = buildPipeSections(statsMap);
-  return {
-    ...base,
-    modelAttributes: getStatsForProperties(statsMap, [
-      "initialStatus",
-      "diameter",
-      "length",
-      "roughness",
-      "minorLoss",
-      "material",
-      "year",
-    ]),
-  };
 };

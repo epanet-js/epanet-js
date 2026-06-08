@@ -50,6 +50,8 @@ describe("AssetPanel", () => {
           minorLoss: 0.1,
           startNodeId: IDS.j1,
           endNodeId: IDS.j2,
+          year: 2010,
+          material: "iron",
         })
         .build();
       const store = setInitialState({
@@ -76,23 +78,11 @@ describe("AssetPanel", () => {
       expectPropertyDisplayed("roughness", "1");
       expectPropertyDisplayed("length", "10");
       expectPropertyDisplayed("loss coeff. (m)", "0.1");
-      expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
-    });
-
-    it("does not show material or year fields when FLAG_PIPE_ATTRIBUTES is off", () => {
-      const IDS = { P1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with().aPipe(IDS.P1).build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.P1,
-      });
-
-      renderComponent(store);
-
-      expect(screen.queryByLabelText(/material/i)).not.toBeInTheDocument();
+      expectPropertyDisplayed("year of installation", "2010");
       expect(
-        screen.queryByLabelText(/year of installation/i),
-      ).not.toBeInTheDocument();
+        screen.getByRole("combobox", { name: /material/i }),
+      ).toHaveTextContent("iron");
+      expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
     });
 
     it("can show simulation results", async () => {
