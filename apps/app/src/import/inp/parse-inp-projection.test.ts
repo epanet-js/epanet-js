@@ -98,7 +98,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
     J2\t${endCoord[0]}\t${endCoord[1]}
     `;
 
-  it("flags XY grid masquerading as WGS84 when flag is on", () => {
+  it("flags XY grid masquerading as WGS84", () => {
     const inp = buildInpWith({
       units: "LPS",
       startCoord: [0, 0],
@@ -106,7 +106,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
       pipeLength: 100,
     });
 
-    const result = parseInp(inp, { xyDetect: true });
+    const result = parseInp(inp);
 
     expect(result.projectionStatus).toBe("unknown");
   });
@@ -119,20 +119,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
       pipeLength: 730,
     });
 
-    const result = parseInp(inp, { xyDetect: true });
-
-    expect(result.projectionStatus).toBe("wgs84");
-  });
-
-  it("preserves WGS84 verdict when flag is off", () => {
-    const inp = buildInpWith({
-      units: "LPS",
-      startCoord: [0, 0],
-      endCoord: [0.5, 0],
-      pipeLength: 100,
-    });
-
-    const result = parseInp(inp, { xyDetect: false });
+    const result = parseInp(inp);
 
     expect(result.projectionStatus).toBe("wgs84");
   });
@@ -145,7 +132,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
       pipeLength: 0,
     });
 
-    const result = parseInp(inp, { xyDetect: true });
+    const result = parseInp(inp);
 
     expect(result.projectionStatus).toBe("wgs84");
   });
@@ -158,7 +145,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
       pipeLength: 100,
     });
 
-    const result = parseInp(inp, { xyDetect: true });
+    const result = parseInp(inp);
 
     expect(result.projectionStatus).toBe("unknown");
   });
@@ -171,7 +158,7 @@ describe("xy-grid detection via pipe length sanity check", () => {
       pipeLength: 630,
     });
 
-    const result = parseInp(inp, { xyDetect: true });
+    const result = parseInp(inp);
 
     expect(result.projectionStatus).toBe("unknown");
     expect(result.suggestedXyScale).toBeCloseTo(63, 5);

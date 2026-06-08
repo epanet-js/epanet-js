@@ -41,7 +41,6 @@ export type ParseInpOptions = {
   customerPoints?: boolean;
   inactiveAssets?: boolean;
   populateAssetIndex?: boolean;
-  xyDetect?: boolean;
 };
 
 export type ParseInpResult = {
@@ -90,7 +89,6 @@ export const parseInp = (
     const detection = detectProjectionStatusWithLengths(
       hydraulicModel,
       inpData,
-      safeOptions,
     );
     projectionStatus = detection.status;
 
@@ -311,11 +309,8 @@ type ProjectionDetection = {
 const detectProjectionStatusWithLengths = (
   hydraulicModel: HydraulicModel,
   inpData: InpData,
-  options: ParseInpOptions,
 ): ProjectionDetection => {
   const rangeStatus = detectProjectionStatus(hydraulicModel);
-  if (!options.xyDetect) return { status: rangeStatus };
-
   const declaredUnit: Unit = isUsUnitSystem(inpData.options.units) ? "ft" : "m";
   const geodesicRatios: number[] = [];
   const rawScales: number[] = [];

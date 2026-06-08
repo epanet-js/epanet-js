@@ -39,7 +39,6 @@ export const useImportInp = () => {
   const setInpFileInfo = useSetAtom(inpFileInfoAtom);
   const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
   const userTracking = useUserTracking();
-  const isXyDetectOn = useFeatureFlag("FLAG_XY_DETECT");
   const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
@@ -210,7 +209,6 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           populateAssetIndex: true,
-          xyDetect: isXyDetectOn,
         };
 
         const result = parseInp(content, parseOptions);
@@ -272,13 +270,7 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [
-      completeImport,
-      isXyDetectOn,
-      setDialogState,
-      userTracking,
-      validateAndPrepare,
-    ],
+    [completeImport, setDialogState, userTracking, validateAndPrepare],
   );
 
   return importInp;
