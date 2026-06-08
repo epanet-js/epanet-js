@@ -130,6 +130,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
 
     const labelProperty = selectedLabel === "none" ? undefined : selectedLabel;
     const result = await importZoneFeatures(readResult.features, labelProperty);
+    if (!result) return;
     setMergedZones(result.mergedZones);
     const zonesCount = Object.keys(result.zones).length;
     setImportedZoneCount(zonesCount);

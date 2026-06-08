@@ -5,6 +5,7 @@ export { fetchProject } from "./commands/fetch-project";
 export type { Project, FetchProjectPhase } from "./commands/fetch-project";
 export { saveProjectSettings } from "./commands/save-project-settings";
 export { saveZones } from "./commands/save-zones";
+export { serializeZones } from "./mappers/zones/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";
 export { serializeSimulationSettings } from "./mappers/simulation-settings/to-rows";
 export { applyMomentToDb, buildMomentPayload } from "./commands/apply-moment";

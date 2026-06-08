@@ -1,30 +1,24 @@
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
-import { zonesAtom } from "src/state/zones";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { importZoneFeatures } from "src/lib/zones";
 import type { ZoneFeature, ImportZoneFeaturesResult } from "src/lib/zones";
-import * as db from "src/lib/db";
+import { useZonesTransaction } from "src/hooks/persistence/use-zones-transaction";
 
 export const useImportZoneFeatures = () => {
-  const setZones = useSetAtom(zonesAtom);
-  const isOurFileOn = useFeatureFlag("FLAG_OUR_FILE");
+  const { transact } = useZonesTransaction();
 
   const importFeatures = useCallback(
     async (
       features: ZoneFeature[],
       labelProperty?: string,
-    ): Promise<ImportZoneFeaturesResult> => {
+    ): Promise<ImportZoneFeaturesResult | null> => {
       const result = importZoneFeatures(features, labelProperty);
-      setZones(result.zones);
 
-      if (isOurFileOn) {
-        await db.saveZones(result.zones);
-      }
+      const applied = await transact(result.zones);
+      if (!applied) return null;
 
       return result;
     },
-    [setZones, isOurFileOn],
+    [transact],
   );
 
   return importFeatures;

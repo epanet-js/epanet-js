@@ -1,5 +1,5 @@
 import type { Zones } from "src/lib/zones";
-import type { ZoneRow } from "@epanet-js/ejsdb";
+import { parseRows, zoneRowSchema, type ZoneRow } from "@epanet-js/ejsdb";
 
 export const zonesToRows = (zones: Zones): ZoneRow[] =>
   Object.values(zones).map((zone) => ({
@@ -8,3 +8,6 @@ export const zonesToRows = (zones: Zones): ZoneRow[] =>
     geometry: JSON.stringify(zone.geometry),
     bbox: JSON.stringify(zone.bbox),
   }));
+
+export const serializeZones = (zones: Zones): ZoneRow[] =>
+  parseRows(zoneRowSchema, zonesToRows(zones), "Zone");
