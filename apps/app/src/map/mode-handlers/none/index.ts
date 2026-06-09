@@ -138,13 +138,26 @@ export function useNoneHandlers({
       radius: 7,
     });
 
+    // Find the closest picked customer point, if any
+    let closest: CustomerPoint | null = null;
+    let closestDistSq = Infinity;
     for (const pickInfo of pickedObjects) {
-      if (pickInfo.layer?.id === "customer-points-layer" && pickInfo.object) {
-        return pickInfo.object as CustomerPoint;
+      if (pickInfo.layer?.id !== "customer-points-layer" || !pickInfo.object) {
+        continue;
+      }
+      const cp = pickInfo.object as CustomerPoint;
+      const [lng, lat] = cp.coordinates;
+      const { x, y } = map.map.project([lng, lat]);
+      const dx = x - e.point.x;
+      const dy = y - e.point.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < closestDistSq) {
+        closestDistSq = distSq;
+        closest = cp;
       }
     }
 
-    return null;
+    return closest;
   };
 
   const handlers: Handlers = {
