@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { CollapsibleSection } from "src/components/form/fields";
-import { SpinnerIcon } from "src/icons";
+import { RingSpinner } from "src/components/ring-spinner";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAsyncCompute } from "src/hooks/use-async-compute";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -63,8 +63,8 @@ export function CustomerPointPanelSection({
       }
     >
       {isLoading ? (
-        <div className="flex justify-center py-4 text-subtle">
-          <SpinnerIcon />
+        <div className="flex items-center justify-center py-4">
+          <RingSpinner />
         </div>
       ) : (
         data && (

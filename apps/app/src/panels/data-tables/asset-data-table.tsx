@@ -46,7 +46,7 @@ import { useDeleteAssets } from "src/commands/delete-assets";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PaywallLockIcon, PointerClickIcon } from "src/icons";
 import { useFeatureLock } from "src/components/form/paywall";
-import { SpinnerIcon } from "src/icons";
+import { RingSpinner } from "src/components/ring-spinner";
 import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -540,8 +540,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   return (
     <div className="flex-1 min-h-0 relative">
       {rows === null ? (
-        <div className="absolute inset-0 flex items-center justify-center text-subtle">
-          <SpinnerIcon />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <RingSpinner />
         </div>
       ) : (
         <DataGrid

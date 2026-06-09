@@ -26,6 +26,7 @@ import { type AssetId, type Valve } from "@epanet-js/hydraulic-model";
 import { useTimeSeries } from "./use-time-series";
 import { QuickGraphChart } from "./quick-graph-chart";
 import { useChangeTimestep } from "src/commands/change-timestep";
+import { RingSpinner } from "src/components/ring-spinner";
 
 const QUICK_GRAPH_PROPERTIES: {
   [K in QuickGraphAssetType]: {
@@ -308,7 +309,7 @@ const QuickGraphSection = ({
       <div className="relative flex-1 min-h-[120px]">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base/50/50 z-10">
-            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <RingSpinner />
           </div>
         )}
         {data !== null ? (

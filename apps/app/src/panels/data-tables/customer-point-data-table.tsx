@@ -29,7 +29,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { SpinnerIcon } from "src/icons";
+import { RingSpinner } from "src/components/ring-spinner";
 import {
   buildCustomerPointRowsAsync,
   type CustomerPointRow,
@@ -407,8 +407,8 @@ export const CustomerPointDataTable = memo(
     return (
       <div className="flex-1 min-h-0 relative">
         {rows === null ? (
-          <div className="absolute inset-0 flex items-center justify-center text-subtle">
-            <SpinnerIcon />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <RingSpinner />
           </div>
         ) : (
           <DataGrid
