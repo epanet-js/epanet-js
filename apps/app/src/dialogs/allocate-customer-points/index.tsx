@@ -22,7 +22,6 @@ import {
 import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
-import { notify } from "src/components/notifications";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
@@ -86,20 +85,13 @@ export const AllocateCustomerPointsDialog: React.FC<
     try {
       const moment = applyAllocationResult(hydraulicModel, allocationResult);
       transact(moment);
-
-      notify({
-        variant: "success",
-        title: translate("importSuccessful"),
-        Icon: SuccessIcon,
-      });
-
       onClose();
     } catch {
       setError("Allocation failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  }, [allocationResult, hydraulicModel, onClose, transact, translate]);
+  }, [allocationResult, hydraulicModel, onClose, transact]);
 
   const performAllocation = useCallback(
     async (rules: AllocationRule[]) => {
@@ -201,6 +193,7 @@ export const AllocateCustomerPointsDialog: React.FC<
     void performAllocation(allocationRules);
   }, [performAllocation, allocationRules]);
 
+  const noPipesSelected = selectedPipeIds.size === 0;
   const displayRules = isEditingRules ? tempRules : allocationRules;
   const allocationCounts = allocationResult?.ruleMatches || [];
   const totalCustomerPoints = disconnectedCustomerPoints.length;
@@ -220,7 +213,11 @@ export const AllocateCustomerPointsDialog: React.FC<
       onAction={handleFinish}
       onClose={onClose}
       isDisabled={
-        isProcessing || !allocationResult || isEditingRules || isAllocating
+        isProcessing ||
+        !allocationResult ||
+        isEditingRules ||
+        isAllocating ||
+        noPipesSelected
       }
       isSubmitting={isProcessing}
     />
@@ -244,76 +241,88 @@ export const AllocateCustomerPointsDialog: React.FC<
           </p>
         </div>
 
+        {noPipesSelected && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+            <div className="flex items-center">
+              <p className="text-size-base text-yellow-800">
+                {translate("allocateCustomerPoints.noPipesSelected")}
+              </p>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-error-subtle border border-red-200 rounded-md p-3">
             <p className="text-red-700 text-size-base">{error}</p>
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-md font-medium">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.rulesTitle",
-              )}
-            </h3>
-            {!isEditingRules ? (
-              <Button
-                type="button"
-                onClick={handleEdit}
-                disabled={isAllocating}
-                variant="primary"
-                size="sm"
-              >
+        {!noPipesSelected && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-md font-medium">
                 {translate(
-                  "importCustomerPoints.wizard.allocationStep.editButton",
+                  "importCustomerPoints.wizard.allocationStep.rulesTitle",
                 )}
-              </Button>
-            ) : (
-              <div className="flex items-center space-x-2">
+              </h3>
+              {!isEditingRules ? (
                 <Button
                   type="button"
-                  onClick={handleSave}
+                  onClick={handleEdit}
+                  disabled={isAllocating}
                   variant="primary"
                   size="sm"
                 >
                   {translate(
-                    "importCustomerPoints.wizard.allocationStep.saveButton",
+                    "importCustomerPoints.wizard.allocationStep.editButton",
                   )}
                 </Button>
-                <Button
-                  type="button"
-                  onClick={handleCancel}
-                  variant="default"
-                  size="sm"
-                >
-                  {translate(
-                    "importCustomerPoints.wizard.allocationStep.cancelButton",
-                  )}
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    onClick={handleSave}
+                    variant="primary"
+                    size="sm"
+                  >
+                    {translate(
+                      "importCustomerPoints.wizard.allocationStep.saveButton",
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCancel}
+                    variant="default"
+                    size="sm"
+                  >
+                    {translate(
+                      "importCustomerPoints.wizard.allocationStep.cancelButton",
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <AllocationRulesTable
+              rules={displayRules}
+              allocationCounts={allocationCounts}
+              isEditing={isEditingRules}
+              isAllocating={isAllocating}
+              onChange={handleRulesChange}
+            />
+
+            <AllocationSummary
+              totalAllocated={totalAllocated}
+              unallocatedCount={unallocatedCount}
+              isVisible={
+                !isEditingRules && allocationRules.length > 0 && !isAllocating
+              }
+              totalCustomerPoints={totalCustomerPoints}
+            />
           </div>
+        )}
 
-          <AllocationRulesTable
-            rules={displayRules}
-            allocationCounts={allocationCounts}
-            isEditing={isEditingRules}
-            isAllocating={isAllocating}
-            onChange={handleRulesChange}
-          />
-
-          <AllocationSummary
-            totalAllocated={totalAllocated}
-            unallocatedCount={unallocatedCount}
-            isVisible={
-              !isEditingRules && allocationRules.length > 0 && !isAllocating
-            }
-            totalCustomerPoints={totalCustomerPoints}
-          />
-        </div>
-
-        {isAllocating && (
+        {isAllocating && !noPipesSelected && (
           <div className="flex items-center justify-center py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
             <span className="ml-2 text-size-base text-subtle">

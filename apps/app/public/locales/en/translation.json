@@ -959,6 +959,7 @@
   "import": "Import",
   "allocateCustomerPoints": {
     "menuEntry": "Allocate customer points",
+    "noPipesSelected": "Select pipes to perform customer allocation first",
     "warningDialog": {
       "title": "No customer points found",
       "noCustomerPoints": "There are no customer points in the network. Would you like to import them first?",
