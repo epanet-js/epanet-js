@@ -4,10 +4,15 @@ import { ModelBuilderV2IframeDialog } from "./model-builder-v2-iframe";
 
 const v2Url = vi.hoisted(() => "https://v2.example/?embedded=true");
 const openProjectFile = vi.hoisted(() => vi.fn());
+const enabledFlags = vi.hoisted(() => ({ value: [] as string[] }));
 
 vi.mock("src/global-config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/global-config")>()),
   modelBuilderV2Url: v2Url,
+}));
+
+vi.mock("src/hooks/use-feature-flags", () => ({
+  useEnabledFeatureFlags: () => enabledFlags.value,
 }));
 
 vi.mock("src/commands/open-project", () => ({
@@ -43,6 +48,7 @@ const postFromModelBuilder = (type: string, data: Record<string, unknown>) =>
 describe("ModelBuilderV2IframeDialog (v2)", () => {
   beforeEach(() => {
     openProjectFile.mockReset();
+    enabledFlags.value = [];
   });
 
   it("loads the v2 model-builder URL", () => {
@@ -51,6 +57,19 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
     expect(screen.getByTitle<HTMLIFrameElement>("Import from GIS").src).toBe(
       v2Url,
     );
+  });
+
+  it("forwards the host's enabled feature flags onto the iframe URL", () => {
+    enabledFlags.value = ["FLAG_TEST_ERRORS", "FLAG_BUILD_V2"];
+
+    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+
+    const src = new URL(
+      screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
+    );
+    expect(src.searchParams.get("embedded")).toBe("true");
+    expect(src.searchParams.get("FLAG_TEST_ERRORS")).toBe("true");
+    expect(src.searchParams.get("FLAG_BUILD_V2")).toBe("true");
   });
 
   it("opens the received .ejsdb as a project", async () => {

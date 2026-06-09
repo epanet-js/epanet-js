@@ -3,6 +3,7 @@ import { useEffect, useState, createContext, useContext, useRef } from "react";
 import { setFlagsContext } from "src/infra/error-tracking";
 import { isPosthogConfigured } from "src/infra/user-tracking";
 import {
+  getDisabledFlagsFromUrl,
   getEnabledFlagsFromUrl,
   getFlagOverrideFromUrl,
   useUrlFeatureFlag as useUrlFeatureFlagImpl,
@@ -10,7 +11,15 @@ import {
 
 const FEATURE_FLAGS_TIMEOUT_MS = 5000;
 
-const FeatureFlagsReadyContext = createContext<boolean>(false);
+type FeatureFlagsState = {
+  isReady: boolean;
+  enabledFlags: string[];
+};
+
+const FeatureFlagsContext = createContext<FeatureFlagsState>({
+  isReady: false,
+  enabledFlags: [],
+});
 
 const FeatureFlagsPostHogProvider = ({
   children,
@@ -20,6 +29,7 @@ const FeatureFlagsPostHogProvider = ({
   const posthog = usePostHog();
   const [flagsVersion, setFlagsVersion] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [enabledFlags, setEnabledFlags] = useState<string[]>([]);
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -39,6 +49,7 @@ const FeatureFlagsPostHogProvider = ({
       Promise.race([featureFlagsPromise, timeoutPromise])
         .then((flagsEnabled) => {
           setFlagsContext(flagsEnabled);
+          setEnabledFlags(flagsEnabled);
           setFlagsVersion((prev) => prev + 1);
           setIsReady(true);
         })
@@ -50,9 +61,9 @@ const FeatureFlagsPostHogProvider = ({
   }, [posthog, isReady]);
 
   return (
-    <FeatureFlagsReadyContext.Provider value={isReady}>
+    <FeatureFlagsContext.Provider value={{ isReady, enabledFlags }}>
       <div key={`flags-${flagsVersion}`}>{children}</div>
-    </FeatureFlagsReadyContext.Provider>
+    </FeatureFlagsContext.Provider>
   );
 };
 
@@ -62,17 +73,19 @@ const FeatureFlagsUrlProvider = ({
   children: React.ReactNode;
 }) => {
   const [isReady, setIsReady] = useState(false);
+  const [enabledFlags, setEnabledFlags] = useState<string[]>([]);
 
   useEffect(() => {
     const flagsEnabled = getEnabledFlagsFromUrl();
     setFlagsContext(flagsEnabled);
+    setEnabledFlags(flagsEnabled);
     setIsReady(true);
   }, []);
 
   return (
-    <FeatureFlagsReadyContext.Provider value={isReady}>
+    <FeatureFlagsContext.Provider value={{ isReady, enabledFlags }}>
       {children as JSX.Element}
-    </FeatureFlagsReadyContext.Provider>
+    </FeatureFlagsContext.Provider>
   );
 };
 
@@ -106,7 +119,19 @@ export const useFeatureFlag = isPosthogConfigured
   : useFeatureFlagWithUrl;
 
 export const useFeatureFlagsReady = (): boolean => {
-  return useContext(FeatureFlagsReadyContext);
+  return useContext(FeatureFlagsContext).isReady;
+};
+
+export const useEnabledFeatureFlags = (): string[] => {
+  const { enabledFlags } = useContext(FeatureFlagsContext);
+
+  const urlEnabled = getEnabledFlagsFromUrl();
+  const urlDisabled = getDisabledFlagsFromUrl();
+
+  const merged = new Set([...enabledFlags, ...urlEnabled]);
+  for (const flag of urlDisabled) merged.delete(flag);
+
+  return Array.from(merged);
 };
 
 /**

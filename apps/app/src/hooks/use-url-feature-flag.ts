@@ -32,6 +32,11 @@ export const getEnabledFlagsFromUrl = (): string[] =>
     .filter(([, v]) => v)
     .map(([k]) => k);
 
+export const getDisabledFlagsFromUrl = (): string[] =>
+  Object.entries(parseFlagsFromUrl())
+    .filter(([, v]) => !v)
+    .map(([k]) => k);
+
 /** Returns true/false if the URL explicitly sets the flag, undefined if absent. */
 export const getFlagOverrideFromUrl = (name: string): boolean | undefined =>
   parseFlagsFromUrl()[name];

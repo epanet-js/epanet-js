@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { Loading } from "../components/elements";
@@ -8,7 +8,16 @@ import { projectExtension } from "src/commands/save-project";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
+import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
 import { modelBuilderV2Url } from "src/global-config";
+
+const buildIframeSrc = (enabledFlags: string[]): string => {
+  const url = new URL(modelBuilderV2Url);
+  for (const flag of enabledFlags) {
+    url.searchParams.set(flag, "true");
+  }
+  return url.toString();
+};
 
 interface IframeMessage {
   type: string;
@@ -108,6 +117,8 @@ export const ModelBuilderV2IframeDialog = ({
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
+  const enabledFlags = useEnabledFeatureFlags();
+  const iframeSrc = useMemo(() => buildIframeSrc(enabledFlags), [enabledFlags]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -159,7 +170,7 @@ export const ModelBuilderV2IframeDialog = ({
           </div>
         )}
         <iframe
-          src={modelBuilderV2Url}
+          src={iframeSrc}
           className="w-full flex-1 border-0 rounded-bl-lg rounded-br-lg"
           onLoad={() => setIsLoading(false)}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
