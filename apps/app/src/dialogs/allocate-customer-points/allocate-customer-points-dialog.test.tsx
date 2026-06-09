@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
-import { setInitialState } from "src/__helpers__/state";
+import { setInitialState, aMultiSelection } from "src/__helpers__/state";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
@@ -87,8 +87,10 @@ describe("AllocateCustomerPointsDialog", () => {
 
     const builder = HydraulicModelBuilder.with();
     customerPoints.forEach((cp) => builder.aCustomerPoint(cp.id));
+    builder.aPipe(PIPE_ID);
     const store = setInitialState({
       hydraulicModel: builder.build(),
+      selection: aMultiSelection({ ids: [PIPE_ID] }),
     });
     renderDialog(store);
 
@@ -122,8 +124,10 @@ describe("AllocateCustomerPointsDialog", () => {
 
     const builder = HydraulicModelBuilder.with();
     customerPoints.forEach((cp) => builder.aCustomerPoint(cp.id));
+    builder.aPipe(PIPE_ID);
     const store = setInitialState({
       hydraulicModel: builder.build(),
+      selection: aMultiSelection({ ids: [PIPE_ID] }),
     });
     renderDialog(store);
 
@@ -157,8 +161,10 @@ describe("AllocateCustomerPointsDialog", () => {
 
     const builder = HydraulicModelBuilder.with();
     customerPoints.forEach((cp) => builder.aCustomerPoint(cp.id));
+    builder.aPipe(PIPE_ID);
     const store = setInitialState({
       hydraulicModel: builder.build(),
+      selection: aMultiSelection({ ids: [PIPE_ID] }),
     });
     renderDialog(store);
 
@@ -173,6 +179,8 @@ describe("AllocateCustomerPointsDialog", () => {
   });
 });
 
+const PIPE_ID = 100;
+
 const setupWithDisconnectedCPs = (count: number) => {
   const customerPoints = Array.from({ length: count }, (_, i) =>
     buildCustomerPoint(i + 1),
@@ -186,8 +194,10 @@ const setupWithDisconnectedCPs = (count: number) => {
 
   const builder = HydraulicModelBuilder.with();
   customerPoints.forEach((cp) => builder.aCustomerPoint(cp.id));
+  builder.aPipe(PIPE_ID);
   return setInitialState({
     hydraulicModel: builder.build(),
+    selection: aMultiSelection({ ids: [PIPE_ID] }),
   });
 };
 
