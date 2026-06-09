@@ -502,6 +502,51 @@ describe("prepareWorkerData", () => {
         expect(diameter).toBe(8);
       });
 
+      it("skips customer points outside the enlarged target pipe bounding box", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, CP2: 5, CP3: 6 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .aCustomerPoint(IDS.CP1, { coordinates: [5, 0] })
+          .aCustomerPoint(IDS.CP2, { coordinates: [5, 0.001] })
+          .aCustomerPoint(IDS.CP3, { coordinates: [100, 100] })
+          .build();
+
+        const allocationRules: AllocationRule[] = [
+          { maxDistance: 200, maxDiameter: 15 },
+        ];
+
+        const customerPoints = Array.from(
+          hydraulicModel.customerPoints.values(),
+        );
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          allocationRules,
+          customerPoints,
+          bufferTypeParam,
+          new Set([IDS.P1]),
+        );
+
+        const cpCount = new DataView(workerData.customerPoints).getUint32(
+          0,
+          true,
+        );
+        expect(cpCount).toBe(2);
+
+        expect(getCustomerPointId(workerData.customerPoints, 0)).toBe(IDS.CP1);
+        expect(getCustomerPointId(workerData.customerPoints, 1)).toBe(IDS.CP2);
+      });
+
       it("handles hydraulic model with no customer points", () => {
         const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()

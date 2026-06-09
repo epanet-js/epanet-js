@@ -1,4 +1,4 @@
-import { LineString, Feature, Position } from "@turf/helpers";
+import { LineString, Feature, Position, BBox } from "@turf/helpers";
 import lineSegment from "@turf/line-segment";
 import bbox from "@turf/bbox";
 import Flatbush from "flatbush";
@@ -181,7 +181,7 @@ export const getCustomerPointId = (
 
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
-  _allocationRules: AllocationRule[],
+  allocationRules: AllocationRule[],
   customerPoints: CustomerPoint[],
   bufferType: "shared" | "array" = "array",
   targetPipes?: Set<number>,
@@ -193,6 +193,10 @@ export const prepareWorkerData = (
     );
 
   const customerPointsCount = customerPoints.length;
+  const hasPipeFilter = targetPipes && targetPipes.size > 0;
+  const enlargedPipeBBoxes = hasPipeFilter
+    ? computeEnlargedPipeBBoxes(hydraulicModel, targetPipes, allocationRules)
+    : [];
 
   const BufferConstructor =
     bufferType === "shared" ? SharedArrayBuffer : ArrayBuffer;
@@ -229,7 +233,7 @@ export const prepareWorkerData = (
 
   for (const asset of hydraulicModel.assets.values()) {
     if (asset.isLink && asset.type === "pipe") {
-      if (targetPipes && targetPipes.size > 0 && !targetPipes.has(asset.id)) {
+      if (hasPipeFilter && !targetPipes.has(asset.id)) {
         continue;
       }
       const pipe = asset as Pipe;
@@ -257,14 +261,29 @@ export const prepareWorkerData = (
     }
   }
 
+  let addedCustomerPoints = 0;
   for (let i = 0; i < customerPoints.length; i++) {
     const customerPoint = customerPoints[i];
+
+    if (
+      hasPipeFilter &&
+      !isPointInAnyBBox(
+        customerPoint.coordinates[0],
+        customerPoint.coordinates[1],
+        enlargedPipeBBoxes,
+      )
+    ) {
+      continue;
+    }
+
     customerPointsBuilder.addCustomerPoint(
       customerPoint.id,
       customerPoint.coordinates,
-      i,
+      addedCustomerPoints,
     );
+    addedCustomerPoints++;
   }
+  customerPointsBuilder.updateCount(addedCustomerPoints);
 
   // Add a placeholder segment if no real segments exist
   if (pipeSegmentsCount === 0) {
@@ -455,10 +474,64 @@ class CustomerPointsBinaryBuilder {
     this.view.setFloat64(offset, coordinates[1], true);
   }
 
+  updateCount(count: number): void {
+    this.view.setUint32(0, count, true);
+  }
+
   build(): BinaryData {
     return this.buffer;
   }
 }
+
+const METERS_PER_DEGREE_LAT = 111_320;
+
+const metersToDegreesLat = (meters: number): number =>
+  meters / METERS_PER_DEGREE_LAT;
+
+const metersToDegreesLng = (meters: number, lat: number): number =>
+  meters / (METERS_PER_DEGREE_LAT * Math.cos((lat * Math.PI) / 180));
+
+const enlargeBBox = (
+  [minX, minY, maxX, maxY]: BBox,
+  distanceMeters: number,
+): BBox => {
+  const midLat = (minY + maxY) / 2;
+  const dLat = metersToDegreesLat(distanceMeters);
+  const dLng = metersToDegreesLng(distanceMeters, midLat);
+
+  return [minX - dLng, minY - dLat, maxX + dLng, maxY + dLat];
+};
+
+const isPointInAnyBBox = (
+  lng: number,
+  lat: number,
+  bboxes: BBox[],
+): boolean => {
+  for (const [minX, minY, maxX, maxY] of bboxes) {
+    if (lng >= minX && lng <= maxX && lat >= minY && lat <= maxY) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const computeEnlargedPipeBBoxes = (
+  hydraulicModel: HydraulicModel,
+  targetPipes: Set<number>,
+  allocationRules: AllocationRule[],
+): BBox[] => {
+  const maxDistance = Math.max(...allocationRules.map((r) => r.maxDistance));
+
+  const enlargedBBoxes: BBox[] = [];
+  for (const pipeId of targetPipes) {
+    const asset = hydraulicModel.assets.get(pipeId);
+    if (!asset || asset.type !== "pipe") continue;
+    const pipe = asset as Pipe;
+    enlargedBBoxes.push(enlargeBBox(bbox(pipe.feature), maxDistance));
+  }
+
+  return enlargedBBoxes;
+};
 
 const generateAssetIndexes = (
   assets: Asset[],
