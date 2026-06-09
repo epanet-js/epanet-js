@@ -74,7 +74,7 @@ export const pipeRowSchema = z.object({
   minor_loss: nullableNumber,
   bulk_reaction_coeff: nullableNumber,
   wall_reaction_coeff: nullableNumber,
-  material: z.string().nullable(),
+  material: z.string().max(200).nullable(),
   year: z.number().int().nonnegative().nullable(),
 });
 

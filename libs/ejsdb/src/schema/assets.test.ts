@@ -65,6 +65,22 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts pipe rows with material at the 200 character limit", () => {
+    const result = pipeRowSchema.safeParse({
+      ...validPipe,
+      material: "a".repeat(200),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects pipe rows with material longer than 200 characters", () => {
+    const result = pipeRowSchema.safeParse({
+      ...validPipe,
+      material: "a".repeat(201),
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("accepts pipe rows with year 0", () => {
     expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
       true,
