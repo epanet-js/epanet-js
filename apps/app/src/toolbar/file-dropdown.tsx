@@ -19,7 +19,8 @@ import {
   SaveAllIcon,
   FileTextIcon,
   ImportCustomerPointsIcon,
-  UploadIcon,
+  FolderInputIcon,
+  FolderOutputIcon,
 } from "src/icons";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -187,7 +188,7 @@ const ImportSubmenu = () => {
   return (
     <DD.Sub>
       <DDSubTriggerItem>
-        <UploadIcon />
+        <FolderOutputIcon />
         {translate("import")}
         <ChevronRightIcon size="sm" className="ml-auto" />
       </DDSubTriggerItem>
@@ -208,6 +209,7 @@ const ImportSubmenu = () => {
 };
 
 const ExportSubmenu = () => {
+  const isSplitAllocationEnabled = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const saveInp = useSaveInp();
   const saveProject = useSaveProject();
   const setDialogState = useSetAtom(dialogAtom);
@@ -216,7 +218,7 @@ const ExportSubmenu = () => {
   return (
     <DD.Sub>
       <DDSubTriggerItem>
-        <DownloadIcon />
+        {isSplitAllocationEnabled ? <FolderInputIcon /> : <DownloadIcon />}
         {translate("export")}
         <ChevronRightIcon size="sm" className="ml-auto" />
       </DDSubTriggerItem>

@@ -100,6 +100,8 @@ import {
   CirclePause,
   Zap,
   ChartLine,
+  FolderDown,
+  FolderUp,
 } from "lucide-react";
 
 export const iconSizes = {
@@ -171,6 +173,8 @@ export const FileSpreadsheetIcon = icon(FileSpreadsheet);
 export const FileBoxIcon = icon(FileBox);
 export const FolderIcon = icon(Folder);
 export const FolderOpenIcon = icon(FolderOpen);
+export const FolderInputIcon = icon(FolderUp);
+export const FolderOutputIcon = icon(FolderDown);
 export const DeleteIcon = icon(Trash);
 export const ZoomToIcon = icon(Crosshair);
 export const ActivateTopologyIcon = icon(Route);
