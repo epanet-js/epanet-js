@@ -81,9 +81,33 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts pipe rows with year 0", () => {
-    expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
+  it("accepts pipe rows with year at the 1000 lower bound", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 1000 }).success).toBe(
       true,
+    );
+  });
+
+  it("accepts pipe rows with year at the 9999 upper bound", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 9999 }).success).toBe(
+      true,
+    );
+  });
+
+  it("rejects pipe rows with a year below 1000", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 999 }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects pipe rows with a year above 9999", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 10000 }).success).toBe(
+      false,
+    );
+  });
+
+  it("rejects pipe rows with year 0", () => {
+    expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
+      false,
     );
   });
 
