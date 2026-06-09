@@ -7,7 +7,6 @@
 const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || "development";
 
 const nextConfig = {
-  productionBrowserSourceMaps: true,
   compress: false,
   swcMinify: true,
   poweredByHeader: false,
