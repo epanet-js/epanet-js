@@ -120,7 +120,7 @@
       "trial": "Custom layers are a paid feature. Activate your free trial to get full access for 14 days—no credit card required.",
       "captions": {
         "1": "Add your own map layers to epanet-js",
-        "2": "Use XYZ tiles, Mapbox, or TileJSON sources",
+        "2": "Use XYZ tiles, Mapbox, TileJSON sources or vector files",
         "3": "Overlay custom basemaps on your hydraulic model"
       }
     }
