@@ -8,24 +8,21 @@ import React, {
 import { useAtomValue } from "jotai";
 import {
   AllocationRule,
-  CustomerPoint,
-  CustomerPointId,
   getDefaultAllocationRules,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
-import { Demand } from "@epanet-js/hydraulic-model";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { modelFactoriesAtom } from "src/state/model-factories";
 
 import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
-import { addCustomerPoints } from "src/hydraulic-model/mutations/add-customer-points";
+import { connectCustomers } from "src/hydraulic-model/model-operations";
+import { Position } from "src/types";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
-import { useCustomerPointsImportReset } from "src/hooks/persistence/use-customer-points-import-reset";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { Button } from "src/components/elements";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
@@ -43,11 +40,9 @@ export const AllocateCustomerPointsDialog: React.FC<
 > = ({ isOpen, onClose }) => {
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { customerPointFactory, idGenerator } =
-    useAtomValue(modelFactoriesAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const selection = useAtomValue(selectionAtom);
-  const { customerPointsImportReset } = useCustomerPointsImportReset();
+  const { transact } = useModelTransaction();
 
   const selectedPipeIds = useMemo(() => {
     const assetIds = USelection.getAssetIds(selection);
@@ -85,46 +80,37 @@ export const AllocateCustomerPointsDialog: React.FC<
   const forceLoadingState = () =>
     new Promise((resolve) => setTimeout(resolve, 10));
 
-  const handleFinish = useCallback(async () => {
+  const handleFinish = useCallback(() => {
     if (!allocationResult) return;
 
     setIsProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 10));
 
     try {
-      const previewPoints = [
-        ...allocationResult.allocatedCustomerPoints.values(),
-        ...allocationResult.disconnectedCustomerPoints.values(),
-      ];
+      const cpsByPipe = new Map<
+        number,
+        { customerPointIds: number[]; snapPoints: Position[] }
+      >();
 
-      const customerPointsToAdd: CustomerPoint[] = [];
-      const reconciledDemands = new Map<CustomerPointId, Demand[]>();
-
-      for (const previewPoint of previewPoints) {
-        const reconciled = customerPointFactory.load({
-          id: idGenerator.newId(),
-          coordinates: previewPoint.coordinates,
-          label: previewPoint.label,
-        });
-        if (previewPoint.connection) {
-          reconciled.connect(previewPoint.connection);
+      for (const cp of allocationResult.allocatedCustomerPoints.values()) {
+        if (!cp.connection) continue;
+        const { pipeId, snapPoint } = cp.connection;
+        let entry = cpsByPipe.get(pipeId);
+        if (!entry) {
+          entry = { customerPointIds: [], snapPoints: [] };
+          cpsByPipe.set(pipeId, entry);
         }
-        customerPointsToAdd.push(reconciled);
+        entry.customerPointIds.push(cp.id);
+        entry.snapPoints.push(snapPoint);
       }
 
-      const updatedHydraulicModel = addCustomerPoints(
-        hydraulicModel,
-        customerPointsToAdd,
-        {
-          preserveJunctionDemands: true,
-          overrideExisting: true,
-          customerPointDemands: reconciledDemands,
-        },
-      );
-
-      void customerPointsImportReset({
-        hydraulicModel: updatedHydraulicModel,
-      });
+      for (const [pipeId, { customerPointIds, snapPoints }] of cpsByPipe) {
+        const moment = connectCustomers(hydraulicModel, {
+          customerPointIds,
+          pipeId,
+          snapPoints,
+        });
+        transact(moment);
+      }
 
       notify({
         variant: "success",
@@ -134,19 +120,11 @@ export const AllocateCustomerPointsDialog: React.FC<
 
       onClose();
     } catch {
-      setError("Import failed. Please try again.");
+      setError("Allocation failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  }, [
-    allocationResult,
-    hydraulicModel,
-    onClose,
-    customerPointsImportReset,
-    customerPointFactory,
-    idGenerator,
-    translate,
-  ]);
+  }, [allocationResult, hydraulicModel, onClose, transact, translate]);
 
   const performAllocation = useCallback(
     async (rules: AllocationRule[]) => {
