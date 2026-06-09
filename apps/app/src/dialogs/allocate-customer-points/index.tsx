@@ -15,10 +15,11 @@ import {
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
-import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import {
+  allocateCustomerPoints,
+  applyAllocationResult,
+} from "src/hydraulic-model/model-operations/allocate-customer-points";
 import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
-import { connectCustomers } from "src/hydraulic-model/model-operations";
-import { Position } from "src/types";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { notify } from "src/components/notifications";
@@ -66,9 +67,6 @@ export const AllocateCustomerPointsDialog: React.FC<
   const [lastAllocatedRules, setLastAllocatedRules] = useState<
     AllocationRule[] | null
   >(null);
-  const [, setConnectionCounts] = useState<{
-    [ruleIndex: number]: number;
-  } | null>(null);
   const [isEditingRules, setIsEditingRules] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,31 +84,8 @@ export const AllocateCustomerPointsDialog: React.FC<
     setIsProcessing(true);
 
     try {
-      const cpsByPipe = new Map<
-        number,
-        { customerPointIds: number[]; snapPoints: Position[] }
-      >();
-
-      for (const cp of allocationResult.allocatedCustomerPoints.values()) {
-        if (!cp.connection) continue;
-        const { pipeId, snapPoint } = cp.connection;
-        let entry = cpsByPipe.get(pipeId);
-        if (!entry) {
-          entry = { customerPointIds: [], snapPoints: [] };
-          cpsByPipe.set(pipeId, entry);
-        }
-        entry.customerPointIds.push(cp.id);
-        entry.snapPoints.push(snapPoint);
-      }
-
-      for (const [pipeId, { customerPointIds, snapPoints }] of cpsByPipe) {
-        const moment = connectCustomers(hydraulicModel, {
-          customerPointIds,
-          pipeId,
-          snapPoints,
-        });
-        transact(moment);
-      }
+      const moment = applyAllocationResult(hydraulicModel, allocationResult);
+      transact(moment);
 
       notify({
         variant: "success",
@@ -151,12 +126,6 @@ export const AllocateCustomerPointsDialog: React.FC<
 
         setAllocationResult(result);
         setLastAllocatedRules([...rules]);
-
-        const connectionCounts: { [ruleIndex: number]: number } = {};
-        result.ruleMatches.forEach((count, index) => {
-          connectionCounts[index] = count;
-        });
-        setConnectionCounts(connectionCounts);
       } catch (err) {
         setError(
           translate(
