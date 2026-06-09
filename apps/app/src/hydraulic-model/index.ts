@@ -56,12 +56,17 @@ export {
   deepClonePatterns,
   differentPatternsCount,
 } from "@epanet-js/hydraulic-model";
-export type { Demands, Demand } from "@epanet-js/hydraulic-model";
+export type {
+  Demands,
+  Demand,
+  PatternAverageCache,
+} from "@epanet-js/hydraulic-model";
 export {
   createEmptyDemands,
   getJunctionDemands,
   getCustomerPointDemands,
   calculateAverageDemand,
+  averagePatternMultiplier as calculatePatternAverage,
   getTotalCustomerDemand,
 } from "@epanet-js/hydraulic-model";
 export { applyMomentToModel } from "./mutations/apply-moment";

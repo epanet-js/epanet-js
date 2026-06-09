@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import {
-  computeMultiAssetData,
+import { computeAssetsStats } from "./asset-stats";
+import type {
   QuantityStats,
   CategoryStats,
   BooleanStats,
   LiteralCategoryStats,
-  AssetPropertyStats,
-} from "./data";
+  PropertyStats,
+} from "./stats";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import {
   presets,
@@ -22,7 +22,7 @@ describe("computeMultiAssetData", () => {
   };
 
   const findQuantityStat = (
-    stats: AssetPropertyStats[],
+    stats: PropertyStats[],
     property: string,
   ): QuantityStats => {
     const stat = stats.find((s) => s.property === property);
@@ -32,7 +32,7 @@ describe("computeMultiAssetData", () => {
   };
 
   const findCategoryStat = (
-    stats: AssetPropertyStats[],
+    stats: PropertyStats[],
     property: string,
   ): CategoryStats => {
     const stat = stats.find((s) => s.property === property);
@@ -42,7 +42,7 @@ describe("computeMultiAssetData", () => {
   };
 
   const findBooleanStat = (
-    stats: AssetPropertyStats[],
+    stats: PropertyStats[],
     property: string,
   ): BooleanStats => {
     const stat = stats.find((s) => s.property === property);
@@ -52,7 +52,7 @@ describe("computeMultiAssetData", () => {
   };
 
   const findLiteralCategoryStat = (
-    stats: AssetPropertyStats[],
+    stats: PropertyStats[],
     property: string,
   ): LiteralCategoryStats => {
     const stat = stats.find((s) => s.property === property);
@@ -70,7 +70,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -93,7 +93,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -129,7 +129,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -154,7 +154,7 @@ describe("computeMultiAssetData", () => {
     });
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -193,7 +193,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -230,7 +230,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -267,7 +267,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -302,7 +302,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -328,7 +328,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -355,7 +355,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -395,7 +395,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -428,7 +428,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -474,7 +474,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -522,7 +522,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -552,7 +552,7 @@ describe("computeMultiAssetData", () => {
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
 
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -592,7 +592,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -609,7 +609,7 @@ describe("computeMultiAssetData", () => {
 
   it("handles empty asset arrays", () => {
     const hydraulicModel = HydraulicModelBuilder.empty();
-    const result = computeMultiAssetData([], units, formatting, hydraulicModel);
+    const result = computeAssetsStats([], units, formatting, hydraulicModel);
 
     expect(result.data.junction.modelAttributes).toEqual([]);
     expect(result.data.junction.demands).toEqual([]);
@@ -625,7 +625,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -651,7 +651,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -695,7 +695,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -729,7 +729,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -767,7 +767,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -796,7 +796,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -845,7 +845,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -876,7 +876,7 @@ describe("computeMultiAssetData", () => {
     });
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -906,7 +906,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -931,7 +931,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -962,7 +962,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -983,7 +983,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -1016,7 +1016,7 @@ describe("computeMultiAssetData", () => {
       .build();
 
     const assets = Array.from(hydraulicModel.assets.values());
-    const result = computeMultiAssetData(
+    const result = computeAssetsStats(
       assets,
       units,
       formatting,
@@ -1042,7 +1042,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1069,7 +1069,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1095,7 +1095,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1123,7 +1123,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1145,7 +1145,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1168,7 +1168,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1197,7 +1197,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1221,7 +1221,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1245,7 +1245,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,
@@ -1280,7 +1280,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1315,7 +1315,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1350,7 +1350,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1388,7 +1388,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1422,7 +1422,7 @@ describe("computeMultiAssetData", () => {
       const pipes = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "pipe",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         pipes,
         units,
         formatting,
@@ -1452,7 +1452,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1482,7 +1482,7 @@ describe("computeMultiAssetData", () => {
       const junctions = Array.from(hydraulicModel.assets.values()).filter(
         (a) => a.type === "junction",
       );
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         junctions,
         units,
         formatting,
@@ -1512,7 +1512,7 @@ describe("computeMultiAssetData", () => {
         .build();
 
       const assets = Array.from(hydraulicModel.assets.values());
-      const result = computeMultiAssetData(
+      const result = computeAssetsStats(
         assets,
         units,
         formatting,

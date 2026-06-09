@@ -52,7 +52,7 @@ export const TriStateCheckbox = ({
       aria-label={ariaLabel}
       disabled={disabled}
       onChange={(e) => onChange(e.target.checked)}
-      className={`w-4 h-4 text-accent border-strong rounded checked:bg-current checked:border-transparent ${
+      className={`w-4 h-4 text-accent border-strong rounded checked:bg-current checked:border-transparent indeterminate:bg-current indeterminate:border-transparent ${
         disabled
           ? "cursor-not-allowed bg-base-disabled opacity-50"
           : "cursor-pointer bg-panel focus:ring-accent"

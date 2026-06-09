@@ -18,12 +18,12 @@ import {
   SortDescendingIcon,
 } from "src/icons";
 import {
-  AssetPropertyStats,
+  PropertyStats,
   EmptyBucket,
   QuantityStats,
   getDistinctBucketCount,
   getEmptyBucket,
-} from "./data";
+} from "./stats";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import {
@@ -42,7 +42,7 @@ import {
 } from "src/components/form/paywall";
 
 type MultiValueRowProps = {
-  propertyStats: AssetPropertyStats;
+  propertyStats: PropertyStats;
   config: BatchEditPropertyConfig;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
@@ -148,7 +148,7 @@ const StatsPopoverButton = ({
   onSelectAssets,
   emptyBucket,
 }: {
-  propertyStats: AssetPropertyStats;
+  propertyStats: PropertyStats;
   label: string;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
   emptyBucket?: EmptyBucket;
@@ -218,7 +218,7 @@ const EditableField = ({
   labelManager,
   onOpenLibrary,
 }: {
-  propertyStats: AssetPropertyStats;
+  propertyStats: PropertyStats;
   config: BatchEditPropertyConfig;
   isMixed: boolean;
   distinctBuckets: number;

@@ -11,11 +11,11 @@ import {
 import { MultipleValuesIcon } from "src/icons";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import {
-  AssetPropertyStats,
+  PropertyStats,
   EmptyBucket,
   getDistinctBucketCount,
   getEmptyBucket,
-} from "./data";
+} from "./stats";
 import {
   QuantityStatsBaseFields,
   SortableValuesList,
@@ -24,7 +24,7 @@ import {
 import { AssetId } from "src/hydraulic-model";
 
 type ReadOnlyMultiValueRowProps = {
-  propertyStats: AssetPropertyStats;
+  propertyStats: PropertyStats;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 };
 
@@ -136,7 +136,7 @@ const StatsPopoverButton = ({
   onSelectAssets,
   emptyBucket,
 }: {
-  propertyStats: AssetPropertyStats;
+  propertyStats: PropertyStats;
   label: string;
   decimals?: number;
   onSelectAssets?: (assetIds: AssetId[]) => void;

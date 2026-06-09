@@ -2,7 +2,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Section, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
-import { AssetPropertySections } from "./data";
+import { AssetPropertySections } from "./asset-stats";
+import type { CustomerPointPropertySections } from "./customer-point-stats";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 
-type SectionProps = {
+type AssetSectionProps = {
   sections: AssetPropertySections;
   editableProperties: EditableProperties;
   hasSimulation?: boolean;
@@ -44,7 +45,7 @@ export function AssetTypeSections({
   patterns,
   labelManager,
   onOpenLibrary,
-}: SectionProps) {
+}: AssetSectionProps) {
   const translate = useTranslate();
 
   const sectionKeys: Array<keyof AssetPropertySections> = [
@@ -111,6 +112,44 @@ export function AssetTypeSections({
                 />
               );
             })}
+          </Section>
+        );
+      })}
+    </SectionList>
+  );
+}
+
+export function CustomerPointSection({
+  sections,
+  onSelectCustomerPoints,
+}: {
+  sections: CustomerPointPropertySections;
+  onSelectCustomerPoints?: (ids: number[], property: string) => void;
+}) {
+  const translate = useTranslate();
+  const sectionKeys: Array<keyof CustomerPointPropertySections> = [
+    "connections",
+    "demands",
+  ];
+
+  return (
+    <SectionList overflow={false}>
+      {sectionKeys.map((sectionKey) => {
+        const stats = sections[sectionKey];
+        if (stats.length === 0) return null;
+        return (
+          <Section
+            key={sectionKey}
+            title={translate(sectionKey)}
+            variant="secondary"
+          >
+            {stats.map((stat) => (
+              <ReadOnlyMultiValueRow
+                key={stat.property}
+                propertyStats={stat}
+                onSelectAssets={onSelectCustomerPoints}
+              />
+            ))}
           </Section>
         );
       })}

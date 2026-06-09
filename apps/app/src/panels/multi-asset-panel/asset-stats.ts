@@ -3,7 +3,6 @@ import {
   UnitsSpec,
   FormattingSpec,
 } from "src/lib/project-settings/quantities-spec";
-import { getDecimals } from "src/lib/project-settings";
 import type { ResultsReader } from "src/simulation/results-reader";
 import {
   Asset,
@@ -32,45 +31,16 @@ import {
   getJunctionDemands,
 } from "src/hydraulic-model";
 
-export type EmptyBucket = {
-  label: string;
-  ids: AssetId[];
-};
-
-export type QuantityStats = {
-  type: "quantity";
-  property: string;
-  sum: number;
-  max: number;
-  min: number;
-  mean: number;
-  values: Map<number, AssetId[]>;
-  times: number;
-  decimals: number;
-  unit: Unit;
-  isInteger?: boolean;
-  emptyBucket?: EmptyBucket;
-};
-
-export type CategoryStats = {
-  type: "category";
-  property: string;
-  values: Map<string, AssetId[]>;
-  emptyBucket?: EmptyBucket;
-};
-
-export type LiteralCategoryStats = {
-  type: "literalCategory";
-  property: string;
-  values: Map<string, AssetId[]>;
-  emptyBucket?: EmptyBucket;
-};
-
-export type BooleanStats = {
-  type: "boolean";
-  property: string;
-  values: Map<string, AssetId[]>;
-};
+import {
+  type PropertyStats,
+  type QuantityStats,
+  type LiteralCategoryStats,
+  roundToDecimal,
+  updateBooleanStats,
+  updateCategoryStats,
+  updateLinkStats,
+  updateQuantityStats,
+} from "./stats";
 
 type Section =
   | "activeTopology"
@@ -81,31 +51,8 @@ type Section =
   | "demands"
   | "energyResults";
 
-export type AssetPropertyStats =
-  | QuantityStats
-  | CategoryStats
-  | BooleanStats
-  | LiteralCategoryStats;
-
-export const getEmptyBucket = (
-  stats: AssetPropertyStats,
-): EmptyBucket | undefined => {
-  if (
-    stats.type === "quantity" ||
-    stats.type === "category" ||
-    stats.type === "literalCategory"
-  ) {
-    return stats.emptyBucket;
-  }
-  return undefined;
-};
-
-export const getDistinctBucketCount = (stats: AssetPropertyStats): number => {
-  return stats.values.size + (getEmptyBucket(stats) ? 1 : 0);
-};
-
 export type AssetPropertySections = {
-  [section in Section]: AssetPropertyStats[];
+  [section in Section]: PropertyStats[];
 };
 
 export type MultiAssetsData = {
@@ -121,7 +68,7 @@ export type ComputedMultiAssetData = {
   counts: AssetCounts;
 };
 
-export const computeMultiAssetData = (
+export const computeAssetsStats = (
   assets: Asset[],
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -138,12 +85,12 @@ export const computeMultiAssetData = (
   };
 
   const statsMaps = {
-    junction: new Map<string, AssetPropertyStats>(),
-    pipe: new Map<string, AssetPropertyStats>(),
-    pump: new Map<string, AssetPropertyStats>(),
-    valve: new Map<string, AssetPropertyStats>(),
-    reservoir: new Map<string, AssetPropertyStats>(),
-    tank: new Map<string, AssetPropertyStats>(),
+    junction: new Map<string, PropertyStats>(),
+    pipe: new Map<string, PropertyStats>(),
+    pump: new Map<string, PropertyStats>(),
+    valve: new Map<string, PropertyStats>(),
+    reservoir: new Map<string, PropertyStats>(),
+    tank: new Map<string, PropertyStats>(),
   };
 
   for (const asset of assets) {
@@ -237,7 +184,7 @@ export const computeMultiAssetData = (
 };
 
 const appendJunctionStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   junction: Junction,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -412,7 +359,7 @@ const calculateCustomerPointsDemand = (
 };
 
 const buildJunctionSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
@@ -445,7 +392,7 @@ const buildJunctionSections = (
 };
 
 const appendPipeStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   pipe: Pipe,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -598,7 +545,7 @@ const appendPipeStats = (
 };
 
 const buildPipeSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
@@ -635,7 +582,7 @@ const buildPipeSections = (
 };
 
 const appendPumpStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   pump: Pump,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -826,7 +773,7 @@ const appendPumpStats = (
 };
 
 const buildPumpSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   // Remove pumpName row if no pumps have named curves
   const pumpNameStats = statsMap.get("pumpName") as
@@ -893,7 +840,7 @@ const buildPumpSections = (
 };
 
 const appendValveStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   valve: Valve,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -982,7 +929,7 @@ const appendValveStats = (
 };
 
 const buildValveSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
@@ -1010,7 +957,7 @@ const buildValveSections = (
 };
 
 const appendReservoirStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   reservoir: Reservoir,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -1124,7 +1071,7 @@ const appendReservoirStats = (
 };
 
 const buildReservoirSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   return {
     activeTopology: getStatsForProperties(statsMap, ["isEnabled"]),
@@ -1154,7 +1101,7 @@ const buildReservoirSections = (
 };
 
 const appendTankStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   tank: Tank,
   units: UnitsSpec,
   formatting: FormattingSpec,
@@ -1376,7 +1323,7 @@ const appendTankStats = (
 };
 
 const buildTankSections = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
 ): AssetPropertySections => {
   // Remove volumeCurve row if no tanks actually have curves
   const curveStats = statsMap.get("volumeCurve") as
@@ -1424,75 +1371,8 @@ const buildTankSections = (
   };
 };
 
-const updateQuantityStats = (
-  statsMap: Map<string, AssetPropertyStats>,
-  property: string,
-  value: number | null | undefined,
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  assetId: AssetId,
-  overrides?: {
-    unit?: Unit;
-    decimals?: number;
-    isInteger?: boolean;
-    emptyLabel?: string;
-  },
-) => {
-  const isEmpty = value === null || value === undefined;
-  if (isEmpty && !overrides?.emptyLabel) return;
-
-  if (!statsMap.has(property)) {
-    const decimals =
-      overrides?.decimals ??
-      getDecimals(formatting, property as keyof UnitsSpec) ??
-      3;
-    const unit =
-      overrides?.unit !== undefined
-        ? overrides.unit
-        : units[property as keyof UnitsSpec];
-
-    statsMap.set(property, {
-      type: "quantity",
-      property,
-      sum: 0,
-      min: Infinity,
-      max: -Infinity,
-      mean: 0,
-      values: new Map(),
-      times: 0,
-      decimals,
-      unit,
-      isInteger: overrides?.isInteger,
-    });
-  }
-
-  const stats = statsMap.get(property) as QuantityStats;
-
-  if (isEmpty) {
-    if (!stats.emptyBucket) {
-      stats.emptyBucket = { label: overrides!.emptyLabel!, ids: [] };
-    }
-    stats.emptyBucket.ids.push(assetId);
-    return;
-  }
-
-  const roundedValue = roundToDecimal(value, stats.decimals);
-
-  if (roundedValue < stats.min) stats.min = roundedValue;
-  if (roundedValue > stats.max) stats.max = roundedValue;
-
-  stats.sum += roundedValue;
-  stats.times += 1;
-  const ids = stats.values.get(roundedValue) || [];
-  ids.push(assetId);
-  stats.values.set(roundedValue, ids);
-
-  const mean = stats.sum / stats.times;
-  stats.mean = roundToDecimal(mean, stats.decimals);
-};
-
 const updateCustomerCountStats = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   property: string,
   value: number,
   assetId: AssetId,
@@ -1527,99 +1407,11 @@ const updateCustomerCountStats = (
   stats.mean = roundToDecimal(mean, 0);
 };
 
-const updateCategoryStats = (
-  statsMap: Map<string, AssetPropertyStats>,
-  property: string,
-  value: string | null | undefined,
-  assetId: AssetId,
-  emptyLabel?: string,
-) => {
-  const isEmpty = value === null || value === undefined || value === "";
-  if (isEmpty && !emptyLabel) return;
-
-  if (!statsMap.has(property)) {
-    statsMap.set(property, {
-      type: "category",
-      property,
-      values: new Map(),
-    });
-  }
-
-  const stats = statsMap.get(property) as CategoryStats;
-
-  if (isEmpty) {
-    if (!stats.emptyBucket) {
-      stats.emptyBucket = { label: emptyLabel!, ids: [] };
-    }
-    stats.emptyBucket.ids.push(assetId);
-    return;
-  }
-
-  const ids = stats.values.get(value) || [];
-  ids.push(assetId);
-  stats.values.set(value, ids);
-};
-
-const updateLinkStats = (
-  statsMap: Map<string, AssetPropertyStats>,
-  property: string,
-  linkLabel: string | null | undefined,
-  assetId: AssetId,
-  emptyLabel?: string,
-) => {
-  const isEmpty =
-    linkLabel === null || linkLabel === undefined || linkLabel === "";
-  if (isEmpty && !emptyLabel) return;
-
-  if (!statsMap.has(property)) {
-    statsMap.set(property, {
-      type: "literalCategory",
-      property,
-      values: new Map(),
-    });
-  }
-
-  const stats = statsMap.get(property) as LiteralCategoryStats;
-
-  if (isEmpty) {
-    if (!stats.emptyBucket) {
-      stats.emptyBucket = { label: emptyLabel!, ids: [] };
-    }
-    stats.emptyBucket.ids.push(assetId);
-    return;
-  }
-
-  const ids = stats.values.get(linkLabel) || [];
-  ids.push(assetId);
-  stats.values.set(linkLabel, ids);
-};
-
-const updateBooleanStats = (
-  statsMap: Map<string, AssetPropertyStats>,
-  property: string,
-  value: boolean,
-  assetId: AssetId,
-) => {
-  if (!statsMap.has(property)) {
-    statsMap.set(property, {
-      type: "boolean",
-      property,
-      values: new Map(),
-    });
-  }
-
-  const label = value ? "yes" : "no";
-  const stats = statsMap.get(property) as BooleanStats;
-  const ids = stats.values.get(label) || [];
-  ids.push(assetId);
-  stats.values.set(label, ids);
-};
-
 const getStatsForProperties = (
-  statsMap: Map<string, AssetPropertyStats>,
+  statsMap: Map<string, PropertyStats>,
   properties: string[],
-): AssetPropertyStats[] => {
-  const result: AssetPropertyStats[] = [];
+): PropertyStats[] => {
+  const result: PropertyStats[] = [];
 
   for (const property of properties) {
     const stats = statsMap.get(property);
@@ -1629,9 +1421,4 @@ const getStatsForProperties = (
   }
 
   return result;
-};
-
-const roundToDecimal = (value: number, decimals: number): number => {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
 };

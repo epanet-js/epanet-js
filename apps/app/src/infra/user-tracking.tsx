@@ -145,7 +145,7 @@ type SelectionNarrowedToAssetType = {
 
 type SelectionNarrowedToPropertyValue = {
   name: "selection.narrowedToPropertyValue";
-  type: Asset["type"];
+  type: Asset["type"] | "customerPoint";
   property: string;
   count: number;
 };

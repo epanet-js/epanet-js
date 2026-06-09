@@ -9,7 +9,8 @@ import {
   type CurveType,
   type PatternType,
 } from "@epanet-js/hydraulic-model";
-import { AssetTypeSections } from "./asset-type-sections";
+import { AssetTypeSections, CustomerPointSection } from "./sections";
+import { computeCustomerPointsStats } from "./customer-point-stats";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -22,7 +23,7 @@ import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
-import { computeMultiAssetData } from "./data";
+import { computeAssetsStats } from "./asset-stats";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -59,7 +60,7 @@ export function MultiAssetPanel({
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
-    return computeMultiAssetData(
+    return computeAssetsStats(
       selectedAssets,
       units,
       formatting,
@@ -67,6 +68,24 @@ export function MultiAssetPanel({
       simulationResults,
     );
   }, [selectedAssets, units, formatting, hydraulicModel, simulationResults]);
+
+  const customerPointData = useMemo(
+    () =>
+      computeCustomerPointsStats(
+        selectedCustomerPoints,
+        hydraulicModel.demands,
+        hydraulicModel.patterns,
+        units,
+        formatting,
+      ),
+    [
+      selectedCustomerPoints,
+      hydraulicModel.demands,
+      hydraulicModel.patterns,
+      units,
+      formatting,
+    ],
+  );
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -129,7 +148,7 @@ export function MultiAssetPanel({
   );
 
   const selection = useAtomValue(selectionAtom);
-  const { selectAssets } = useSelection(selection);
+  const { selectAssets, selectCustomerPoints } = useSelection(selection);
 
   const handleSelectAssets = useCallback(
     (assetIds: AssetId[], property: string, assetType: Asset["type"]) => {
@@ -142,6 +161,19 @@ export function MultiAssetPanel({
       selectAssets(assetIds);
     },
     [selectAssets, userTracking],
+  );
+
+  const handleSelectCustomerPoints = useCallback(
+    (ids: number[], property: string) => {
+      userTracking.capture({
+        name: "selection.narrowedToPropertyValue",
+        type: "customerPoint",
+        property,
+        count: ids.length,
+      });
+      selectCustomerPoints(ids);
+    },
+    [selectCustomerPoints, userTracking],
   );
 
   const handleOpenLibrary = useCallback(
@@ -358,6 +390,21 @@ export function MultiAssetPanel({
             patterns={hydraulicModel.patterns}
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
+          />
+        </CollapsibleSection>
+      )}
+
+      {isMultiCpSelectionOn && selectedCustomerPoints.length > 0 && (
+        <CollapsibleSection
+          title={`${translate("customerPoints")} (${selectedCustomerPoints.length})`}
+          open={collapseState.customerPoint}
+          onOpenChange={(open) =>
+            setCollapseState((prev) => ({ ...prev, customerPoint: open }))
+          }
+        >
+          <CustomerPointSection
+            sections={customerPointData}
+            onSelectCustomerPoints={handleSelectCustomerPoints}
           />
         </CollapsibleSection>
       )}

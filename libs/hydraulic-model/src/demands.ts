@@ -31,23 +31,35 @@ export const getCustomerPointDemands = (
   customerPointId: CustomerPointId,
 ): Demand[] => demands.customerPoints.get(customerPointId) || [];
 
+export type PatternAverageCache = Map<PatternId, number>;
+
+export const averagePatternMultiplier = (
+  patternId: PatternId,
+  patterns: Patterns,
+  cache?: PatternAverageCache,
+): number => {
+  const cached = cache?.get(patternId);
+  if (cached !== undefined) return cached;
+  const pattern = patterns.get(patternId);
+  const avg =
+    !pattern || pattern.multipliers.length === 0
+      ? 1
+      : pattern.multipliers.reduce((sum, m) => sum + m, 0) /
+        pattern.multipliers.length;
+  cache?.set(patternId, avg);
+  return avg;
+};
+
 export const calculateAverageDemand = (
   demands: Demand[],
   patterns: Patterns,
+  cache?: PatternAverageCache,
 ): number => {
   return demands.reduce((total, demand) => {
-    if (demand.patternId) {
-      const pattern = patterns.get(demand.patternId);
-
-      if (pattern && pattern.multipliers.length >= 0) {
-        const avgMultiplier =
-          pattern.multipliers.reduce((sum, m) => sum + m, 0) /
-          pattern.multipliers.length;
-        return total + demand.baseDemand * avgMultiplier;
-      }
-    }
-
-    return total + demand.baseDemand;
+    const multiplier = demand.patternId
+      ? averagePatternMultiplier(demand.patternId, patterns, cache)
+      : 1;
+    return total + demand.baseDemand * multiplier;
   }, 0);
 };
 

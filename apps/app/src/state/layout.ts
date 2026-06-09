@@ -55,6 +55,7 @@ export type MultiAssetPanelCollapse = {
   valve: boolean;
   reservoir: boolean;
   tank: boolean;
+  customerPoint: boolean;
 };
 
 export const multiAssetPanelCollapseAtom =
@@ -65,6 +66,7 @@ export const multiAssetPanelCollapseAtom =
     valve: true,
     reservoir: true,
     tank: true,
+    customerPoint: true,
   });
 
 export type AssetPanelSectionExpanded = {

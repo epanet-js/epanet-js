@@ -80,6 +80,7 @@
   "timePattern": "Pattern",
   "constant": "Constant",
   "constantPercent": "Constant {{1}}%",
+  "connected": "Connected",
   "customerDemand": "Customer demand",
   "customerPattern": "Customer demand pattern",
   "customerPoints": "Customer points",
