@@ -407,8 +407,12 @@ const CustomerPointsSection = ({ readonly }: { readonly?: boolean }) => {
 
     updateCustomerPointsSymbology({ visible: newVisibility });
 
-    if (!newVisibility && USelection.isSingleCustomerPoint(selection)) {
-      setSelection(USelection.none());
+    if (!newVisibility) {
+      const assetIds = USelection.getAssetIds(selection);
+      const customerPointIds = USelection.getCustomerPointIds(selection);
+      if (customerPointIds.length > 0) {
+        setSelection(USelection.fromIds(assetIds, []));
+      }
     }
   };
 

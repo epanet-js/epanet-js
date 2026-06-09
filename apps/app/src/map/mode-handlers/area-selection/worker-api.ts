@@ -23,10 +23,12 @@ export interface SpatialQueryWorkerAPI {
     points: Position[],
   ) => EncodedContainedAssets;
   // New: combined assets + customer points (FLAG_MULTI_CP_SELECTION on).
+  // `customerPointsGeoBuffers` is undefined when the model has no customer
+  // points or when the caller explicitly excludes them (e.g. CPs hidden).
   queryContainedFeatures: (
     assetIndexBuffers: AssetIndexBuffers,
     assetsGeoBuffers: AssetsGeoBuffers,
-    customerPointsGeoBuffers: CustomerPointsGeoBuffers,
+    customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
     points: Position[],
   ) => EncodedAreaSelectionResult;
 }
@@ -54,7 +56,7 @@ function queryContainedAssetsFromBuffers(
 function queryContainedFeaturesFromBuffers(
   assetIndexBuffers: AssetIndexBuffers,
   assetsGeoBuffers: AssetsGeoBuffers,
-  customerPointsGeoBuffers: CustomerPointsGeoBuffers,
+  customerPointsGeoBuffers: CustomerPointsGeoBuffers | undefined,
   points: Position[],
 ): EncodedAreaSelectionResult {
   const assetsGeoView = new AssetsGeoView(
@@ -63,10 +65,9 @@ function queryContainedFeaturesFromBuffers(
   );
 
   const assetIds = queryContainedAssets(assetsGeoView, points);
-  const customerPointIds = queryContainedCustomerPointsFromBuffers(
-    customerPointsGeoBuffers,
-    points,
-  );
+  const customerPointIds = customerPointsGeoBuffers
+    ? queryContainedCustomerPointsFromBuffers(customerPointsGeoBuffers, points)
+    : [];
 
   const assetIdsBuffer = new Uint32Array(assetIds);
   const cpIdsBuffer = new Uint32Array(customerPointIds);

@@ -130,6 +130,10 @@ const customerPointsSymbologyAtom = atom<CustomerPointsSymbology>(
   nullSymbologySpec.customerPoints,
 );
 
+export const customerPointsVisibleAtom = atom(
+  (get) => get(customerPointsSymbologyAtom).visible,
+);
+
 const zoneSymbologyAtom = atom<ZoneSymbology>(nullSymbologySpec.zone);
 
 /**

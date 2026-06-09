@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { Position, HandlerContext } from "src/types";
 import { useSelection, USelection } from "src/selection";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { selectionAtom } from "src/state/selection";
+import { customerPointsVisibleAtom } from "src/state/map-symbology";
 import { runQueryDeprecated, runQueryNew } from "./run-query";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -77,6 +78,7 @@ const useAreaSelectionNew = (context: HandlerContext) => {
   const { selectAssets, clearSelection, extendSelection, removeFromSelection } =
     useSelection(selection);
   const setSelection = useSetAtom(selectionAtom);
+  const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const abort = () => {
@@ -99,6 +101,8 @@ const useAreaSelectionNew = (context: HandlerContext) => {
         hydraulicModel,
         points,
         controller.signal,
+        undefined,
+        customerPointsVisible,
       );
 
       if (controller.signal.aborted) {

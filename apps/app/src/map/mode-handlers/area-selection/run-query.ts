@@ -127,12 +127,17 @@ export const runQueryNew = async (
   points: Position[],
   signal: AbortSignal | undefined = undefined,
   bufferType: BufferType = "array",
+  includeCustomerPoints: boolean = true,
 ): Promise<AreaSelectionResult> => {
   if (signal?.aborted) {
     throw new DOMException("Operation cancelled", "AbortError");
   }
 
-  const cached = getEncodedAreaSelectionBuffers(hydraulicModel, bufferType);
+  const cached = getEncodedAreaSelectionBuffers(
+    hydraulicModel,
+    bufferType,
+    includeCustomerPoints,
+  );
   const encoded = cloneEncodedAreaSelectionBuffers(cached);
 
   const encodedResult = await runFeaturesWithWorker(encoded, points, signal);
@@ -177,10 +182,12 @@ const runFeaturesWithWorker = async (
         encoded.assetsGeoBuffers,
         assetsGeoTransferables(encoded.assetsGeoBuffers),
       ),
-      Comlink.transfer(
-        encoded.customerPointsGeoBuffers,
-        customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
-      ),
+      encoded.customerPointsGeoBuffers
+        ? Comlink.transfer(
+            encoded.customerPointsGeoBuffers,
+            customerPointsGeoTransferables(encoded.customerPointsGeoBuffers),
+          )
+        : undefined,
       points,
     );
   } catch (e) {

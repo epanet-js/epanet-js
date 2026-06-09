@@ -73,7 +73,7 @@ export const decodeContainedAssets = (
 export type EncodedAreaSelectionBuffers = {
   assetsGeoBuffers: AssetsGeoBuffers;
   assetIndexBuffers: AssetIndexBuffers;
-  customerPointsGeoBuffers: CustomerPointsGeoBuffers;
+  customerPointsGeoBuffers?: CustomerPointsGeoBuffers;
 };
 
 const assetBuffersCache = new WeakMap<
@@ -88,11 +88,18 @@ const customerPointBuffersCache = new WeakMap<
 export const getEncodedAreaSelectionBuffers = (
   hydraulicModel: HydraulicModel,
   bufferType: BufferType = "array",
+  includeCustomerPoints: boolean = true,
 ): EncodedAreaSelectionBuffers => {
   let assetEntry = assetBuffersCache.get(hydraulicModel.assets);
   if (!assetEntry) {
     assetEntry = encodeHydraulicModel(hydraulicModel, bufferType);
     assetBuffersCache.set(hydraulicModel.assets, assetEntry);
+  }
+  if (!includeCustomerPoints || hydraulicModel.customerPoints.size === 0) {
+    return {
+      assetsGeoBuffers: assetEntry.assetsGeoBuffers,
+      assetIndexBuffers: assetEntry.assetIndexBuffers,
+    };
   }
   let cpEntry = customerPointBuffersCache.get(hydraulicModel.customerPoints);
   if (!cpEntry) {
@@ -114,9 +121,9 @@ export const cloneEncodedAreaSelectionBuffers = (
 ): EncodedAreaSelectionBuffers => ({
   assetsGeoBuffers: cloneAssetsGeoBuffers(encoded.assetsGeoBuffers),
   assetIndexBuffers: cloneAssetIndexBuffers(encoded.assetIndexBuffers),
-  customerPointsGeoBuffers: cloneCustomerPointsGeoBuffers(
-    encoded.customerPointsGeoBuffers,
-  ),
+  customerPointsGeoBuffers: encoded.customerPointsGeoBuffers
+    ? cloneCustomerPointsGeoBuffers(encoded.customerPointsGeoBuffers)
+    : undefined,
 });
 
 const cloneBinaryData = (data: BinaryData): BinaryData =>
