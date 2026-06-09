@@ -447,6 +447,61 @@ describe("prepareWorkerData", () => {
         expect(getCustomerPointId(workerData.customerPoints, 3)).toBe(IDS.CP4);
       });
 
+      it("filters pipes when targetPipes is non-empty", () => {
+        const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aJunction(IDS.J3, { coordinates: [20, 0] })
+          .aJunction(IDS.J4, { coordinates: [30, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 8,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .aPipe(IDS.P2, {
+            startNodeId: IDS.J3,
+            endNodeId: IDS.J4,
+            diameter: 12,
+            coordinates: [
+              [20, 0],
+              [30, 0],
+            ],
+          })
+          .build();
+
+        const allocationRules: AllocationRule[] = [
+          { maxDistance: 200, maxDiameter: 15 },
+        ];
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          allocationRules,
+          [],
+          bufferTypeParam,
+          new Set([IDS.P1]),
+        );
+
+        const flatbush = Flatbush.from(workerData.flatbushIndex);
+
+        const resultsNearP1 = flatbush.search(-1, -1, 11, 1);
+        expect(resultsNearP1).toHaveLength(1);
+
+        const resultsNearP2 = flatbush.search(19, -1, 31, 1);
+        expect(resultsNearP2).toHaveLength(0);
+
+        const pipeIndex = getSegmentPipeIndex(
+          workerData.segments,
+          resultsNearP1[0],
+        );
+        const diameter = getPipeDiameter(workerData.pipes, pipeIndex);
+        expect(diameter).toBe(8);
+      });
+
       it("handles hydraulic model with no customer points", () => {
         const IDS = { J1: 1, J2: 2, P1: 3 };
         const hydraulicModel = HydraulicModelBuilder.with()

@@ -10,6 +10,7 @@ import type { AllocationWorkerAPI } from "./worker";
 type InputData = {
   allocationRules: AllocationRule[];
   customerPoints: CustomerPoints;
+  targetPipes?: Set<number>;
   bufferType?: "shared" | "array";
 };
 
@@ -17,7 +18,12 @@ const WORKER_COUNT = 10;
 
 export const allocateCustomerPoints = async (
   hydraulicModel: HydraulicModel,
-  { allocationRules, customerPoints, bufferType = "array" }: InputData,
+  {
+    allocationRules,
+    customerPoints,
+    targetPipes,
+    bufferType = "array",
+  }: InputData,
 ): Promise<AllocationResult> => {
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<number, CustomerPoint>();
@@ -28,6 +34,7 @@ export const allocateCustomerPoints = async (
     allocationRules,
     Array.from(customerPoints.values()),
     bufferType,
+    targetPipes,
   );
 
   const totalCustomerPoints = customerPoints.size;

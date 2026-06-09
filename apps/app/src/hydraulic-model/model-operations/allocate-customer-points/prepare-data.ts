@@ -184,9 +184,13 @@ export const prepareWorkerData = (
   _allocationRules: AllocationRule[],
   customerPoints: CustomerPoint[],
   bufferType: "shared" | "array" = "array",
+  targetPipes?: Set<number>,
 ): RunData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
-    generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
+    generateAssetIndexes(
+      Array.from(hydraulicModel.assets.values()),
+      targetPipes,
+    );
 
   const customerPointsCount = customerPoints.length;
 
@@ -225,6 +229,9 @@ export const prepareWorkerData = (
 
   for (const asset of hydraulicModel.assets.values()) {
     if (asset.isLink && asset.type === "pipe") {
+      if (targetPipes && targetPipes.size > 0 && !targetPipes.has(asset.id)) {
+        continue;
+      }
       const pipe = asset as Pipe;
       const [startNodeId, endNodeId] = pipe.connections;
       pipesBuilder.addPipe(pipe.id, pipe.diameter, startNodeId, endNodeId);
@@ -455,6 +462,7 @@ class CustomerPointsBinaryBuilder {
 
 const generateAssetIndexes = (
   assets: Asset[],
+  targetPipes?: Set<number>,
 ): {
   pipesIndex: Map<number, number>;
   pipesCount: number;
@@ -470,6 +478,9 @@ const generateAssetIndexes = (
 
   for (const asset of assets) {
     if (asset.isLink && asset.type === "pipe") {
+      if (targetPipes && targetPipes.size > 0 && !targetPipes.has(asset.id)) {
+        continue;
+      }
       const pipe = asset as Pipe;
       pipesIndex.set(pipe.id, pipeIndex);
       pipeSegmentsCount += pipe.coordinates.length - 1;

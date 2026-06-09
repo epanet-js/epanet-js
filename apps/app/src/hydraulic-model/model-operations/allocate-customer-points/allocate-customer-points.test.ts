@@ -674,6 +674,72 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(allocatedCP2?.connection?.junctionId).toBeTruthy();
   });
 
+  it("allocates only to target pipes when targetPipes is non-empty", async () => {
+    const IDS = {
+      J1: 1,
+      J2: 2,
+      J3: 3,
+      J4: 4,
+      P1: 5,
+      P2: 6,
+      CP1: 7,
+      CP2: 8,
+    } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { coordinates: [-95.4089633, 29.701228] })
+      .aJunction(IDS.J2, { coordinates: [-95.4077939, 29.702706] })
+      .aJunction(IDS.J3, { coordinates: [-95.4089633, 29.710228] })
+      .aJunction(IDS.J4, { coordinates: [-95.4077939, 29.711706] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 8,
+        coordinates: [
+          [-95.4089633, 29.701228],
+          [-95.4077939, 29.702706],
+        ],
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J3,
+        endNodeId: IDS.J4,
+        diameter: 12,
+        coordinates: [
+          [-95.4089633, 29.710228],
+          [-95.4077939, 29.711706],
+        ],
+      })
+      .build();
+
+    const customerPoints: CustomerPoints = new Map([
+      [
+        IDS.CP1,
+        buildCustomerPoint(IDS.CP1, { coordinates: [-95.4084, 29.7019] }),
+      ],
+      [
+        IDS.CP2,
+        buildCustomerPoint(IDS.CP2, { coordinates: [-95.4084, 29.7109] }),
+      ],
+    ]);
+
+    const allocationRules: AllocationRule[] = [
+      { maxDistance: 200, maxDiameter: 15 },
+    ];
+
+    const result = await allocateCustomerPoints(hydraulicModel, {
+      allocationRules,
+      customerPoints,
+      targetPipes: new Set([IDS.P1]),
+    });
+
+    expect(result.allocatedCustomerPoints.size).toBe(1);
+    expect(result.allocatedCustomerPoints.has(IDS.CP1)).toBe(true);
+    expect(
+      result.allocatedCustomerPoints.get(IDS.CP1)?.connection?.pipeId,
+    ).toBe(IDS.P1);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
+    expect(result.disconnectedCustomerPoints.has(IDS.CP2)).toBe(true);
+  });
+
   it("demonstrates early termination with close match", async () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6, CP1: 7 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
