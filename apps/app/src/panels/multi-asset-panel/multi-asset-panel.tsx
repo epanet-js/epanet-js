@@ -1,7 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { pluralize } from "src/lib/utils";
-import { IWrappedFeature } from "src/types";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
 import { Asset, AssetId } from "src/hydraulic-model";
@@ -14,14 +13,15 @@ import { AssetTypeSections } from "./asset-type-sections";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { modelFactoriesAtom } from "src/state/model-factories";
-import { multiAssetPanelCollapseAtom } from "src/state/layout";
-import { selectionAtom } from "src/state/selection";
 import {
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
+  stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
+import type { CustomerPoint } from "@epanet-js/hydraulic-model";
+import { modelFactoriesAtom } from "src/state/model-factories";
+import { multiAssetPanelCollapseAtom } from "src/state/layout";
+import { selectionAtom } from "src/state/selection";
 import { computeMultiAssetData } from "./data";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -36,12 +36,12 @@ import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 
 export function MultiAssetPanel({
-  selectedFeatures,
-  customerPointCount = 0,
+  selectedAssets,
+  selectedCustomerPoints,
   readonly = false,
 }: {
-  selectedFeatures: IWrappedFeature[];
-  customerPointCount?: number;
+  selectedAssets: Asset[];
+  selectedCustomerPoints: CustomerPoint[];
   readonly?: boolean;
 }) {
   const { formatting, units } = useAtomValue(projectSettingsAtom);
@@ -59,15 +59,14 @@ export function MultiAssetPanel({
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
   const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
-    const assets = selectedFeatures as Asset[];
     return computeMultiAssetData(
-      assets,
+      selectedAssets,
       units,
       formatting,
       hydraulicModel,
       simulationResults,
     );
-  }, [selectedFeatures, units, formatting, hydraulicModel, simulationResults]);
+  }, [selectedAssets, units, formatting, hydraulicModel, simulationResults]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -78,12 +77,11 @@ export function MultiAssetPanel({
       reservoir: [],
       tank: [],
     };
-    for (const feature of selectedFeatures) {
-      const asset = feature as Asset;
+    for (const asset of selectedAssets) {
       map[asset.type].push(asset.id);
     }
     return map;
-  }, [selectedFeatures]);
+  }, [selectedAssets]);
 
   const tankEditableProperties = useMemo(() => {
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
@@ -174,11 +172,11 @@ export function MultiAssetPanel({
       header={
         isMultiCpSelectionOn ? (
           <HeaderNew
-            assetCount={selectedFeatures.length}
-            customerPointCount={customerPointCount}
+            assetCount={selectedAssets.length}
+            customerPointCount={selectedCustomerPoints.length}
           />
         ) : (
-          <HeaderDeprecated selectedCount={selectedFeatures.length} />
+          <HeaderDeprecated selectedCount={selectedAssets.length} />
         )
       }
       overflow={true}

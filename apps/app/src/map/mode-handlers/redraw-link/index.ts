@@ -3,7 +3,7 @@ import { useDrawLinkHandlers, type SubmitLinkParams } from "../draw-link";
 import { useAtomValue, useSetAtom } from "jotai";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
-import { Asset, LinkAsset, NodeAsset } from "src/hydraulic-model";
+import { LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { USelection, useSelection } from "src/selection";
 import { replaceLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -24,11 +24,14 @@ export function useRedrawLinkHandlers(
   const { selectAsset } = useSelection(selection);
 
   const selectedIds = USelection.getAssetIds(selection);
-  const selectedAssets = selectedIds
-    .map((id) => assets.get(id))
-    .filter((asset: Asset | undefined) => asset && asset.isLink === true);
+  const selectedLinkId = selectedIds.find((id) => {
+    const asset = assets.get(id);
+    return asset && asset.isLink === true;
+  });
+  const selectedLink = selectedLinkId
+    ? (assets.get(selectedLinkId) as LinkAsset)
+    : undefined;
 
-  const selectedLink = selectedAssets[0] as LinkAsset;
   const sourceLink = selectedLink || undefined;
 
   const onSubmitLink = ({
@@ -39,7 +42,7 @@ export function useRedrawLinkHandlers(
     endPipeId,
   }: SubmitLinkParams) => {
     const length = measureLength(link.feature);
-    if (!length) {
+    if (!length || !sourceLink) {
       return;
     }
 

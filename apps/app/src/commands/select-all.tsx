@@ -53,7 +53,7 @@ const useSelectAllNew = () => {
 
       const assetIds = Array.from(hydraulicModel.assets.keys());
       const customerPointIds = Array.from(hydraulicModel.customerPoints.keys());
-      setSelection(USelection.fromKindedIds(assetIds, customerPointIds));
+      setSelection(USelection.fromIds(assetIds, customerPointIds));
     },
     [userTracking, setSelection, hydraulicModel],
   );

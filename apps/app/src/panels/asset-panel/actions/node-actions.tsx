@@ -1,21 +1,16 @@
 import { useCallback } from "react";
-import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
-import { useZoomTo } from "src/hooks/use-zoom-to";
+import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import { ChartLineIcon, DeleteIcon, ZoomToIcon } from "src/icons";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
 import { ActionButton, Action } from "src/components/action-button";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
-import { useUserTracking } from "src/infra/user-tracking";
 
 export function useNodeActions(readonly = false): Action[] {
   const translate = useTranslate();
-  const zoomTo = useZoomTo();
+  const zoomToSelection = useZoomToSelection();
   const deleteSelection = useDeleteSelection();
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
   const { openCustomGraph } = useCustomGraph();
-  const userTracking = useUserTracking();
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -36,12 +31,8 @@ export function useNodeActions(readonly = false): Action[] {
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
-      userTracking.capture({
-        name: "selection.zoomedTo",
-        source: "asset-panel",
-        count: selectedWrappedFeatures.length,
-      });
-      return Promise.resolve(zoomTo(selectedWrappedFeatures));
+      zoomToSelection({ source: "toolbar" });
+      return Promise.resolve();
     },
   };
 

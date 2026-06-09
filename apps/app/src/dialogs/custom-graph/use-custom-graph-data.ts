@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import {
-  selectedFeaturesDerivedAtom,
+  selectedAssetsDerivedAtom,
   stagingModelDerivedAtom,
   simulationDerivedAtom,
 } from "src/state/derived-branch-state";
@@ -190,7 +190,7 @@ const categorizedAssetIdsAtom = atom<{
   linkIds: Set<number>;
   totalSelectedCount: number;
 }>((get) => {
-  const selectedFeatures = get(selectedFeaturesDerivedAtom);
+  const selectedFeatures = get(selectedAssetsDerivedAtom);
   const hydraulicModel = get(stagingModelDerivedAtom);
   const nodeIds = new Set<number>();
   const linkIds = new Set<number>();

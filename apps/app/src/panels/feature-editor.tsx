@@ -4,7 +4,10 @@ import { NothingSelected } from "src/components/nothing-selected";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedAssetsDerivedAtom,
+  selectedCustomerPointsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { MultiAssetPanel } from "./multi-asset-panel";
 import { AssetPanel } from "./asset-panel";
 import { CustomerPointPanel } from "./customer-point-panel";
@@ -12,7 +15,10 @@ import { Asset } from "src/hydraulic-model";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 
 export default function FeatureEditor() {
-  const selectedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
+  const selectedCustomerPoints = useAtomValue(
+    selectedCustomerPointsDerivedAtom,
+  );
   const selection = useAtomValue(selectionAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const isEditionBlocked = useIsEditionBlocked();
@@ -28,7 +34,7 @@ export default function FeatureEditor() {
   }
 
   if (assets === 1 && customerPoints === 0) {
-    const asset = selectedFeatures[0] as Asset | undefined;
+    const asset = selectedAssets[0] as Asset | undefined;
     if (!asset) {
       return <NothingSelected />;
     }
@@ -39,8 +45,8 @@ export default function FeatureEditor() {
 
   return (
     <MultiAssetPanel
-      selectedFeatures={selectedFeatures}
-      customerPointCount={customerPoints}
+      selectedAssets={selectedAssets}
+      selectedCustomerPoints={selectedCustomerPoints}
       readonly={isEditionBlocked}
     />
   );

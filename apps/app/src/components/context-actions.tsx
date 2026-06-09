@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
-import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedCustomerPointsDerivedAtom,
+  selectedAssetsDerivedAtom,
+} from "src/state/derived-branch-state";
 import React from "react";
 import { GeometryActions } from "./context-actions/geometry-actions";
 import { CustomerPointActions } from "./context-actions/customer-point-actions";
@@ -10,10 +11,12 @@ import { Divider } from "./menu-bar";
 
 export function ContextActions() {
   const translate = useTranslate();
-  const selection = useAtomValue(selectionAtom);
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
+  const selectedCustomerPoints = useAtomValue(
+    selectedCustomerPointsDerivedAtom,
+  );
 
-  if (USelection.isSingleCustomerPoint(selection)) {
+  if (selectedCustomerPoints.length === 1 && selectedAssets.length === 0) {
     return (
       <div className="flex items-center">
         <Divider />
@@ -30,16 +33,13 @@ export function ContextActions() {
     );
   }
 
-  if (selectedWrappedFeatures.length === 0) return null;
+  if (selectedAssets.length === 0) return null;
 
-  if (selectedWrappedFeatures.length > 1) return null;
+  if (selectedAssets.length > 1) return null;
 
   return (
     <div className="flex items-center">
-      <GeometryActions
-        selectedWrappedFeatures={selectedWrappedFeatures}
-        as="root"
-      />
+      <GeometryActions as="root" />
     </div>
   );
 }

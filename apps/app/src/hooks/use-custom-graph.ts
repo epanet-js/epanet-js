@@ -5,7 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { useUserTracking } from "src/infra/user-tracking";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import { selectedAssetsDerivedAtom } from "src/state/derived-branch-state";
 
 export const useCustomGraph = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -13,7 +13,7 @@ export const useCustomGraph = () => {
   const { canUseCustomGraphs } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
   const { capture } = useUserTracking();
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const selectedWrappedFeatures = useAtomValue(selectedAssetsDerivedAtom);
 
   const openCustomGraph = useCallback(() => {
     capture({

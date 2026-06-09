@@ -1,16 +1,16 @@
 import { useAtomValue } from "jotai";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import { selectedAssetsDerivedAtom } from "src/state/derived-branch-state";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { LinkActions } from "./link-actions";
 import { NodeActions } from "./node-actions";
 
 export function PanelActions() {
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
   const isEditionBlocked = useIsEditionBlocked();
 
-  if (selectedWrappedFeatures.length !== 1) return null;
+  if (selectedAssets.length !== 1) return null;
 
-  const asset = selectedWrappedFeatures[0];
+  const asset = selectedAssets[0];
   const isLink =
     asset.feature.properties?.type &&
     typeof asset.feature.properties.type === "string" &&

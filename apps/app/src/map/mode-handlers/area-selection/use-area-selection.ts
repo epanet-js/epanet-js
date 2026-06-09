@@ -114,7 +114,7 @@ const useAreaSelectionNew = (context: HandlerContext) => {
 
       if (customerPointIds.length > 0) {
         setSelection(
-          USelection.applyKindedOperation(
+          USelection.applyOperation(
             selection,
             { assetIds, customerPointIds },
             operation,

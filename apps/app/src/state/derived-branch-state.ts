@@ -151,10 +151,26 @@ export const customerPointsDerivedAtom = atom((get) => {
   return get(stagingModelDerivedAtom).customerPoints;
 });
 
-export const selectedFeaturesDerivedAtom = atom((get) => {
-  const data = get(dataAtom);
-  const hydraulicModel = get(stagingModelDerivedAtom);
-  return USelection.getSelectedAssets({ ...data, hydraulicModel });
+export const selectedAssetsDerivedAtom = atom((get) => {
+  const { selection } = get(dataAtom);
+  const { assets } = get(stagingModelDerivedAtom);
+  const features = [];
+  for (const id of USelection.getAssetIds(selection)) {
+    const asset = assets.get(id);
+    if (asset) features.push(asset);
+  }
+  return features;
+});
+
+export const selectedCustomerPointsDerivedAtom = atom((get) => {
+  const { selection } = get(dataAtom);
+  const { customerPoints } = get(stagingModelDerivedAtom);
+  const result = [];
+  for (const id of USelection.getCustomerPointIds(selection)) {
+    const cp = customerPoints.get(id);
+    if (cp) result.push(cp);
+  }
+  return result;
 });
 
 export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {

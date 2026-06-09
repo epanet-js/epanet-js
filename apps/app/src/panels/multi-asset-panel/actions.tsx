@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
-import { useZoomTo } from "src/hooks/use-zoom-to";
+import { useZoomToSelection } from "src/commands/zoom-to-selection";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import {
   useChangeSelectedAssetsActiveTopologyStatus,
@@ -14,21 +14,23 @@ import {
   DeactivateTopologyIcon,
   ChartLineIcon,
 } from "src/icons";
-import { selectedFeaturesDerivedAtom } from "src/state/derived-branch-state";
+import { selectionAtom } from "src/state/selection";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
-import { useUserTracking } from "src/infra/user-tracking";
+import { USelection } from "src/selection";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
-  const zoomTo = useZoomTo();
+  const zoomToSelection = useZoomToSelection();
   const deleteSelection = useDeleteSelection();
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
-  const selectedWrappedFeatures = useAtomValue(selectedFeaturesDerivedAtom);
+  const selection = useAtomValue(selectionAtom);
+  const { assets: assetCount } = USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
-  const userTracking = useUserTracking();
+
+  const hasAssets = assetCount > 0;
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -42,7 +44,7 @@ export function useMultiAssetActions(readonly = false): Action[] {
 
   const customGraphAction = {
     icon: <ChartLineIcon />,
-    applicable: true,
+    applicable: hasAssets,
     label: translate("customGraph.menuTitle"),
     onSelect: openCustomGraph,
   };
@@ -61,18 +63,14 @@ export function useMultiAssetActions(readonly = false): Action[] {
     applicable: true,
     label: translate("zoomTo"),
     onSelect: function doZoomTo() {
-      userTracking.capture({
-        name: "selection.zoomedTo",
-        source: "asset-panel",
-        count: selectedWrappedFeatures.length,
-      });
-      return Promise.resolve(zoomTo(selectedWrappedFeatures));
+      zoomToSelection({ source: "toolbar" });
+      return Promise.resolve();
     },
   };
 
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
-    applicable: true,
+    applicable: hasAssets,
     disabled: readonly,
     label: allActive
       ? translate("deactivateAssets")

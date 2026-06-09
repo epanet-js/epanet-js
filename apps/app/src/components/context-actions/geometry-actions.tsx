@@ -5,8 +5,8 @@ import type {
 import { B3Variant } from "src/components/elements";
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
-import { useZoomTo } from "src/hooks/use-zoom-to";
-import { IWrappedFeature } from "src/types";
+import { useZoomToSelection } from "src/commands/zoom-to-selection";
+import { selectedAssetsDerivedAtom } from "src/state/derived-branch-state";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import {
@@ -27,16 +27,25 @@ import { Mode, modeAtom } from "src/state/mode";
 import { useSetRedrawMode } from "src/commands/set-redraw-mode";
 import { useReverseLink } from "src/commands/reverse-link";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
-import { useUserTracking } from "src/infra/user-tracking";
 
-export function useActions(
-  selectedWrappedFeatures: IWrappedFeature[],
-  source: ActionProps["as"],
-): Action[] {
+export function GeometryActions({ as }: { as: ActionProps["as"] }) {
+  const actions = useSelectionActions(as);
+
+  return (
+    <>
+      {actions
+        .filter((action) => action.applicable)
+        .map((action, i) => (
+          <ActionItem as={as} key={i} action={action} />
+        ))}
+    </>
+  );
+}
+
+function useSelectionActions(source: ActionProps["as"]): Action[] {
   const translate = useTranslate();
-  const zoomTo = useZoomTo();
+  const zoomToSelection = useZoomToSelection();
   const deleteSelection = useDeleteSelection();
-  const userTracking = useUserTracking();
   const {
     changeSelectedAssetsActiveTopologyStatus: activateDeactivateAction,
     allActive,
@@ -45,6 +54,9 @@ export function useActions(
   const setRedrawMode = useSetRedrawMode();
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
+  const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
+
+  const hasAssets = selectedAssets.length > 0;
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -64,22 +76,20 @@ export function useActions(
     icon: <ZoomToIcon />,
     applicable: true,
     label: translate("zoomTo"),
-    onSelect: function doAddInnerRing() {
-      userTracking.capture({
-        name: "selection.zoomedTo",
-        source: source === "context-item" ? "map-context-menu" : "asset-panel",
-        count: selectedWrappedFeatures.length,
+    onSelect: function doZoomTo() {
+      zoomToSelection({
+        source: source === "context-item" ? "context-menu" : "toolbar",
       });
-      return Promise.resolve(zoomTo(selectedWrappedFeatures));
+      return Promise.resolve();
     },
   };
 
   const isOneLinkSelected =
-    selectedWrappedFeatures.length === 1 &&
-    selectedWrappedFeatures[0].feature.properties?.type &&
-    typeof selectedWrappedFeatures[0].feature.properties.type === "string" &&
+    selectedAssets.length === 1 &&
+    selectedAssets[0].feature.properties?.type &&
+    typeof selectedAssets[0].feature.properties.type === "string" &&
     ["pipe", "pump", "valve"].includes(
-      selectedWrappedFeatures[0].feature.properties.type,
+      selectedAssets[0].feature.properties.type,
     );
 
   const redrawAction = {
@@ -97,7 +107,7 @@ export function useActions(
 
   const customGraphAction = {
     icon: <ChartLineIcon />,
-    applicable: true,
+    applicable: hasAssets,
     label: translate("customGraph.menuTitle"),
     onSelect: openCustomGraph,
   };
@@ -116,7 +126,7 @@ export function useActions(
 
   const changeActiveTopologyStatusAction = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
-    applicable: true,
+    applicable: hasAssets,
     label: allActive
       ? translate("deactivateAssets")
       : translate("activateAssets"),
@@ -137,24 +147,4 @@ export function useActions(
     customGraphAction,
     deleteAssetsAction,
   ];
-}
-
-export function GeometryActions({
-  as,
-  selectedWrappedFeatures,
-}: {
-  as: ActionProps["as"];
-  selectedWrappedFeatures: IWrappedFeature[];
-}) {
-  const actions = useActions(selectedWrappedFeatures, as);
-
-  return (
-    <>
-      {actions
-        .filter((action) => action.applicable)
-        .map((action, i) => (
-          <ActionItem as={as} key={i} action={action} />
-        ))}
-    </>
-  );
 }

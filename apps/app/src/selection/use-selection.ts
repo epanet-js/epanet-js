@@ -61,7 +61,7 @@ export const useSelection = (selection: Sel) => {
       count: customerPointIds.length,
       operation: "new",
     });
-    setSelection(USelection.fromKindedIds([], customerPointIds));
+    setSelection(USelection.fromIds([], customerPointIds));
     setTab(TabOption.Asset);
   };
 

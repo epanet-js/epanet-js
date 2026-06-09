@@ -18,7 +18,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { ephemeralStateAtom, EphemeralEditingState } from "src/state/drawing";
 import {
   stagingModelDerivedAtom,
-  selectedFeaturesDerivedAtom,
+  selectedAssetsDerivedAtom,
+  selectedCustomerPointsDerivedAtom,
 } from "src/state/derived-branch-state";
 import {
   cursorStyleAtom,
@@ -347,12 +348,14 @@ export const MapCanvas = memo(function MapCanvas({
             ])
             .toArray() as Pos2;
 
-          const selectedFeatures = get(selectedFeaturesDerivedAtom);
+          const selectedAssets = get(selectedAssetsDerivedAtom);
+          const selectedCustomerPoints = get(selectedCustomerPointsDerivedAtom);
 
           setContextInfo({
             features: wrappedFeaturesFromMapFeatures(featureUnderMouse, assets),
             position,
-            selectedFeatures,
+            selectedFeatures: selectedAssets,
+            selectedCustomerPoints,
           });
         }
       },

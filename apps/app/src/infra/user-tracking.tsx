@@ -162,8 +162,9 @@ type SelectionCleared = {
 
 type SelectionZoomedTo = {
   name: "selection.zoomedTo";
-  source: "asset-panel" | "map-context-menu";
+  source: "toolbar" | "context-menu";
   count: number;
+  description: string;
 };
 
 type AssetDeselected = {

@@ -69,7 +69,7 @@ const useDeleteCustomerPointsNew = () => {
       if (selectedCpIds.some((id) => removed.has(id))) {
         const remainingCps = selectedCpIds.filter((id) => !removed.has(id));
         const assetIds = USelection.getAssetIds(selection).slice();
-        setSelection(USelection.fromKindedIds(assetIds, remainingCps));
+        setSelection(USelection.fromIds(assetIds, remainingCps));
       }
 
       const moment = removeCustomerPoints(hydraulicModel, { customerPointIds });

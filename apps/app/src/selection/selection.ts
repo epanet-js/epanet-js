@@ -1,13 +1,8 @@
 import type { Category, Sel, SelSingle } from "./types";
 import type { IWrappedFeature } from "src/types";
-import type { HydraulicModel, AssetsMap } from "src/hydraulic-model";
+import type { AssetsMap } from "src/hydraulic-model";
 import { type CustomerPoints } from "@epanet-js/hydraulic-model";
 import { EMPTY_ARRAY } from "src/lib/constants";
-
-type SelectionData = {
-  selection: Sel;
-  hydraulicModel: HydraulicModel;
-};
 
 const EMPTY_NUMBER_ARRAY: readonly number[] = EMPTY_ARRAY;
 
@@ -96,23 +91,6 @@ export const USelection = {
       ids: buildMultiIds(unique, EMPTY_NUMBER_ARRAY),
     };
   },
-  /**
-   * Get selected features of a single or multi selection.
-   */
-  getSelectedAssets({
-    selection,
-    hydraulicModel,
-  }: SelectionData): IWrappedFeature[] {
-    if (selection.type === "none") {
-      return EMPTY_ARRAY as IWrappedFeature[];
-    }
-    const features: IWrappedFeature[] = [];
-    for (const id of this.getAssetIds(selection)) {
-      const feature = hydraulicModel.assets.get(id);
-      if (feature) features.push(feature);
-    }
-    return features;
-  },
   isAssetSelected(selection: Sel, id: IWrappedFeature["id"]): boolean {
     switch (selection.type) {
       case "none":
@@ -154,18 +132,9 @@ export const USelection = {
     const currentIds = this.getAssetIds(selection);
     const removeSet = new Set(idsToRemove);
     const remainingIds = currentIds.filter((id) => !removeSet.has(id));
-    return this.fromKindedIds(
-      remainingIds,
-      this.getCustomerPointIds(selection),
-    );
+    return this.fromIds(remainingIds, this.getCustomerPointIds(selection));
   },
-  /**
-   * Build a selection from asset ids and customer point ids.
-   * Collapses to `none` when both lists are empty; preserves the
-   * `single` shape when there is exactly one asset (and no CPs),
-   * or exactly one customer point (and no assets).
-   */
-  fromKindedIds(
+  fromIds(
     assetIds: readonly number[],
     customerPointIds: readonly number[],
   ): Sel {
@@ -185,30 +154,24 @@ export const USelection = {
       ids: buildMultiIds(uniqueAssetIds, uniqueCpIds),
     };
   },
-  /**
-   * Apply an add/subtract/replace operation using a pair of kinded id lists.
-   * Used by triggers (trace, area-select) that compute fresh asset+CP ids
-   * together and want a single setSelection call. `operation === undefined`
-   * means replace.
-   */
-  applyKindedOperation(
+  applyOperation(
     selection: Sel,
     next: { assetIds: readonly number[]; customerPointIds: readonly number[] },
     operation: "add" | "subtract" | undefined,
   ): Sel {
     if (operation === "add") {
-      return this.fromKindedIds(
+      return this.fromIds(
         unionIds(this.getAssetIds(selection), next.assetIds),
         unionIds(this.getCustomerPointIds(selection), next.customerPointIds),
       );
     }
     if (operation === "subtract") {
-      return this.fromKindedIds(
+      return this.fromIds(
         diffIds(this.getAssetIds(selection), next.assetIds),
         diffIds(this.getCustomerPointIds(selection), next.customerPointIds),
       );
     }
-    return this.fromKindedIds(next.assetIds, next.customerPointIds);
+    return this.fromIds(next.assetIds, next.customerPointIds);
   },
   addId(selection: Sel, kind: Category, id: number): Sel {
     const existing =
@@ -216,11 +179,7 @@ export const USelection = {
         ? this.getAssetIds(selection)
         : this.getCustomerPointIds(selection);
     if (existing.includes(id)) return selection;
-    return this.applyKindedOperation(
-      selection,
-      kindedSingleton(kind, id),
-      "add",
-    );
+    return this.applyOperation(selection, kindedSingleton(kind, id), "add");
   },
   removeId(selection: Sel, kind: Category, id: number): Sel {
     const existing =
@@ -228,7 +187,7 @@ export const USelection = {
         ? this.getAssetIds(selection)
         : this.getCustomerPointIds(selection);
     if (!existing.includes(id)) return selection;
-    return this.applyKindedOperation(
+    return this.applyOperation(
       selection,
       kindedSingleton(kind, id),
       "subtract",

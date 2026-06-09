@@ -152,7 +152,7 @@ describe("USelection", () => {
       expect(USelection.getAssetIds(USelection.singleCustomerPoint(7))).toEqual(
         [],
       );
-      const mixed = USelection.fromKindedIds([1, 2], [7]);
+      const mixed = USelection.fromIds([1, 2], [7]);
       expect(USelection.getAssetIds(mixed)).toEqual([1, 2]);
     });
 
@@ -164,7 +164,7 @@ describe("USelection", () => {
       expect(
         USelection.getCustomerPointIds(USelection.singleCustomerPoint(7)),
       ).toEqual([7]);
-      const mixed = USelection.fromKindedIds([1], [7, 8]);
+      const mixed = USelection.fromIds([1], [7, 8]);
       expect(USelection.getCustomerPointIds(mixed)).toEqual([7, 8]);
     });
 
@@ -175,7 +175,7 @@ describe("USelection", () => {
       });
       expect(USelection.isEmpty(USelection.none())).toBe(true);
 
-      const mixed = USelection.fromKindedIds([1, 2], [7]);
+      const mixed = USelection.fromIds([1, 2], [7]);
       expect(USelection.countByKind(mixed)).toEqual({
         assets: 2,
         customerPoints: 1,
@@ -190,7 +190,7 @@ describe("USelection", () => {
       ).toBe(true);
       // fromKindedIds collapses ([], [oneCp]) into a SelSingle of kind customerPoint
       expect(
-        USelection.isSingleCustomerPoint(USelection.fromKindedIds([], [7])),
+        USelection.isSingleCustomerPoint(USelection.fromIds([], [7])),
       ).toBe(true);
       expect(USelection.isSingleCustomerPoint(mixed)).toBe(false);
     });
@@ -198,18 +198,18 @@ describe("USelection", () => {
 
   describe("fromKindedIds", () => {
     it("collapses to none, single asset, single CP, or multi", () => {
-      expect(USelection.fromKindedIds([], [])).toEqual({ type: "none" });
-      expect(USelection.fromKindedIds([1], [])).toEqual({
+      expect(USelection.fromIds([], [])).toEqual({ type: "none" });
+      expect(USelection.fromIds([1], [])).toEqual({
         type: "single",
         kind: "asset",
         id: 1,
       });
-      expect(USelection.fromKindedIds([], [7])).toEqual({
+      expect(USelection.fromIds([], [7])).toEqual({
         type: "single",
         kind: "customerPoint",
         id: 7,
       });
-      expect(USelection.fromKindedIds([1, 2], [7])).toEqual({
+      expect(USelection.fromIds([1, 2], [7])).toEqual({
         type: "multi",
         ids: { asset: [1, 2], customerPoint: [7] },
       });
@@ -229,12 +229,12 @@ describe("USelection", () => {
     });
 
     it("dedups duplicate ids in fromKindedIds for each kind", () => {
-      expect(USelection.fromKindedIds([1, 1, 2], [7, 7, 8])).toEqual({
+      expect(USelection.fromIds([1, 1, 2], [7, 7, 8])).toEqual({
         type: "multi",
         ids: { asset: [1, 2], customerPoint: [7, 8] },
       });
       // Collapses to single CP when CPs dedup to one and no assets.
-      expect(USelection.fromKindedIds([], [9, 9])).toEqual({
+      expect(USelection.fromIds([], [9, 9])).toEqual({
         type: "single",
         kind: "customerPoint",
         id: 9,
@@ -242,7 +242,7 @@ describe("USelection", () => {
     });
 
     it("countByKind reflects the deduplicated counts", () => {
-      const sel = USelection.fromKindedIds([1, 1, 2], [7, 7, 8, 8]);
+      const sel = USelection.fromIds([1, 1, 2], [7, 7, 8, 8]);
       expect(USelection.countByKind(sel)).toEqual({
         assets: 2,
         customerPoints: 2,
@@ -271,7 +271,7 @@ describe("USelection", () => {
     });
 
     it("removeId for customer points collapses correctly", () => {
-      const mixed = USelection.fromKindedIds([1], [7, 8]);
+      const mixed = USelection.fromIds([1], [7, 8]);
       const afterRemove = USelection.removeId(mixed, "customerPoint", 7);
       expect(afterRemove).toEqual({
         type: "multi",
@@ -316,7 +316,7 @@ describe("USelection", () => {
     it("returns same multi when all assets and CPs exist", () => {
       const assets = buildAssetsMap(IDS.J1, IDS.J2);
       const customerPoints = buildCustomerPoints(IDS.P1);
-      const selection = USelection.fromKindedIds([IDS.J1, IDS.J2], [IDS.P1]);
+      const selection = USelection.fromIds([IDS.J1, IDS.J2], [IDS.P1]);
       expect(
         USelection.clearInvalidIds(selection, assets, customerPoints),
       ).toBe(selection);
@@ -325,7 +325,7 @@ describe("USelection", () => {
     it("clears multi when a customer point id is missing", () => {
       const assets = buildAssetsMap(IDS.J1, IDS.J2);
       const customerPoints = buildCustomerPoints();
-      const selection = USelection.fromKindedIds([IDS.J1, IDS.J2], [IDS.P1]);
+      const selection = USelection.fromIds([IDS.J1, IDS.J2], [IDS.P1]);
       expect(
         USelection.clearInvalidIds(selection, assets, customerPoints),
       ).toEqual({ type: "none" });
