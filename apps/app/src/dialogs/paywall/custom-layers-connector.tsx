@@ -1,7 +1,7 @@
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 
 const CUSTOM_LAYERS_VIDEO_SRC =
-  "https://stream.mux.com/placeholder-custom-layers-video.m3u8";
+  "https://stream.mux.com/edP01XlZ2kgSvviQMj1jTnxc8NGy1qtfAPAsoyZdJcug.m3u8";
 
 const CUSTOM_LAYERS_CAPTIONS = [
   { start: 0.316, end: 4.033, captionKey: "customLayers.paywall.captions.1" },
