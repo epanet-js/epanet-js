@@ -26,13 +26,18 @@ export type CustomerPointPropertySections = {
   demands: PropertyStats[];
 };
 
-export const computeCustomerPointsStats = (
+const BATCH_SIZE = 5000;
+
+const yieldToMain = () =>
+  new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+export const computeCustomerPointsStats = async (
   customerPoints: CustomerPoint[],
   demands: Demands,
   patterns: Patterns,
   units: UnitsSpec,
   formatting: FormattingSpec,
-): CustomerPointPropertySections => {
+): Promise<CustomerPointPropertySections> => {
   const connectionsStats = new Map<string, PropertyStats>();
   const demandsStats = new Map<string, PropertyStats>();
   const patternAvgCache: PatternAverageCache = new Map();
@@ -44,7 +49,8 @@ export const computeCustomerPointsStats = (
   };
   const demandsCountOverrides = { isInteger: true, decimals: 0 };
 
-  for (const cp of customerPoints) {
+  for (let i = 0; i < customerPoints.length; i++) {
+    const cp = customerPoints[i];
     const cpDemands = getCustomerPointDemands(demands, cp.id);
 
     updateBooleanStats(connectionsStats, "connected", !!cp.connection, cp.id);
@@ -94,6 +100,10 @@ export const computeCustomerPointsStats = (
       cp.id,
       customerDemandOverrides,
     );
+
+    if (i > 0 && i % BATCH_SIZE === 0) {
+      await yieldToMain();
+    }
   }
 
   return {

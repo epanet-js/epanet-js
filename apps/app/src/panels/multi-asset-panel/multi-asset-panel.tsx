@@ -9,8 +9,8 @@ import {
   type CurveType,
   type PatternType,
 } from "@epanet-js/hydraulic-model";
-import { AssetTypeSections, CustomerPointSection } from "./sections";
-import { computeCustomerPointsStats } from "./customer-point-stats";
+import { AssetTypeSections } from "./sections";
+import { CustomerPointPanelSection } from "./customer-point-panel-section";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -68,24 +68,6 @@ export function MultiAssetPanel({
       simulationResults,
     );
   }, [selectedAssets, units, formatting, hydraulicModel, simulationResults]);
-
-  const customerPointData = useMemo(
-    () =>
-      computeCustomerPointsStats(
-        selectedCustomerPoints,
-        hydraulicModel.demands,
-        hydraulicModel.patterns,
-        units,
-        formatting,
-      ),
-    [
-      selectedCustomerPoints,
-      hydraulicModel.demands,
-      hydraulicModel.patterns,
-      units,
-      formatting,
-    ],
-  );
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -148,7 +130,7 @@ export function MultiAssetPanel({
   );
 
   const selection = useAtomValue(selectionAtom);
-  const { selectAssets, selectCustomerPoints } = useSelection(selection);
+  const { selectAssets } = useSelection(selection);
 
   const handleSelectAssets = useCallback(
     (assetIds: AssetId[], property: string, assetType: Asset["type"]) => {
@@ -161,19 +143,6 @@ export function MultiAssetPanel({
       selectAssets(assetIds);
     },
     [selectAssets, userTracking],
-  );
-
-  const handleSelectCustomerPoints = useCallback(
-    (ids: number[], property: string) => {
-      userTracking.capture({
-        name: "selection.narrowedToPropertyValue",
-        type: "customerPoint",
-        property,
-        count: ids.length,
-      });
-      selectCustomerPoints(ids);
-    },
-    [selectCustomerPoints, userTracking],
   );
 
   const handleOpenLibrary = useCallback(
@@ -395,18 +364,7 @@ export function MultiAssetPanel({
       )}
 
       {isMultiCpSelectionOn && selectedCustomerPoints.length > 0 && (
-        <CollapsibleSection
-          title={`${translate("customerPoints")} (${selectedCustomerPoints.length})`}
-          open={collapseState.customerPoint}
-          onOpenChange={(open) =>
-            setCollapseState((prev) => ({ ...prev, customerPoint: open }))
-          }
-        >
-          <CustomerPointSection
-            sections={customerPointData}
-            onSelectCustomerPoints={handleSelectCustomerPoints}
-          />
-        </CollapsibleSection>
+        <CustomerPointPanelSection customerPoints={selectedCustomerPoints} />
       )}
     </SectionList>
   );

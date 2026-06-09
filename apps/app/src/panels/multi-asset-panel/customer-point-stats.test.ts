@@ -47,9 +47,9 @@ describe("computeCustomerPointData", () => {
       .aDemandPattern(IDS.RESIDENTIAL, "Residential", [0.5, 1.5])
       .aDemandPattern(IDS.COMMERCIAL, "Commercial", [2]);
 
-  it("returns empty stats for empty selection", () => {
+  it("returns empty stats for empty selection", async () => {
     const model = baseModel().build();
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       [],
       model.demands,
       model.patterns,
@@ -60,7 +60,7 @@ describe("computeCustomerPointData", () => {
     expect(result.demands).toEqual([]);
   });
 
-  it("groups CPs by connection status", () => {
+  it("groups CPs by connection status", async () => {
     const model = baseModel()
       .aCustomerPoint(IDS.CP1, {
         connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
@@ -71,7 +71,7 @@ describe("computeCustomerPointData", () => {
       .aCustomerPoint(IDS.CP3)
       .build();
 
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       Array.from(model.customerPoints.values()),
       model.demands,
       model.patterns,
@@ -84,7 +84,7 @@ describe("computeCustomerPointData", () => {
     expect(connected.values.get("no")).toEqual([IDS.CP3]);
   });
 
-  it("buckets demandsCount per CP", () => {
+  it("buckets demandsCount per CP", async () => {
     const model = baseModel()
       .aCustomerPoint(IDS.CP1)
       .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 1 }])
@@ -93,7 +93,7 @@ describe("computeCustomerPointData", () => {
       .aCustomerPoint(IDS.CP3)
       .build();
 
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       Array.from(model.customerPoints.values()),
       model.demands,
       model.patterns,
@@ -111,7 +111,7 @@ describe("computeCustomerPointData", () => {
     expect(demandsCount.isInteger).toBe(true);
   });
 
-  it("places each CP at most once per pattern bucket", () => {
+  it("places each CP at most once per pattern bucket", async () => {
     const model = baseModel()
       .aCustomerPoint(IDS.CP1)
       .aCustomerPointDemand(IDS.CP1, [
@@ -125,7 +125,7 @@ describe("computeCustomerPointData", () => {
       ])
       .build();
 
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       Array.from(model.customerPoints.values()),
       model.demands,
       model.patterns,
@@ -142,7 +142,7 @@ describe("computeCustomerPointData", () => {
     expect(patterns.emptyBucket).toBeUndefined();
   });
 
-  it("places unpatterned and demandless CPs in the constant bucket", () => {
+  it("places unpatterned and demandless CPs in the constant bucket", async () => {
     const model = baseModel()
       .aCustomerPoint(IDS.CP1)
       .aCustomerPointDemand(IDS.CP1, [{ baseDemand: 4 }])
@@ -154,7 +154,7 @@ describe("computeCustomerPointData", () => {
       .aCustomerPoint(IDS.CP3)
       .build();
 
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       Array.from(model.customerPoints.values()),
       model.demands,
       model.patterns,
@@ -171,7 +171,7 @@ describe("computeCustomerPointData", () => {
     expect(patterns.values.get("Residential")).toEqual([IDS.CP2]);
   });
 
-  it("computes time-averaged customerDemand using pattern multipliers", () => {
+  it("computes time-averaged customerDemand using pattern multipliers", async () => {
     const model = baseModel()
       .aCustomerPoint(IDS.CP1)
       .aCustomerPointDemand(IDS.CP1, [
@@ -186,7 +186,7 @@ describe("computeCustomerPointData", () => {
       .aCustomerPoint(IDS.CP4)
       .build();
 
-    const result = computeCustomerPointsStats(
+    const result = await computeCustomerPointsStats(
       Array.from(model.customerPoints.values()),
       model.demands,
       model.patterns,

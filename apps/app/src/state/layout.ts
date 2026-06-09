@@ -58,16 +58,43 @@ export type MultiAssetPanelCollapse = {
   customerPoint: boolean;
 };
 
-export const multiAssetPanelCollapseAtom =
-  atomWithStorage<MultiAssetPanelCollapse>("multiAssetPanelCollapse", {
-    junction: true,
-    pipe: true,
-    pump: true,
-    valve: true,
-    reservoir: true,
-    tank: true,
-    customerPoint: true,
-  });
+const DEFAULT_MULTI_ASSET_PANEL_COLLAPSE: MultiAssetPanelCollapse = {
+  junction: true,
+  pipe: true,
+  pump: true,
+  valve: true,
+  reservoir: true,
+  tank: true,
+  customerPoint: true,
+};
+
+const storedMultiAssetPanelCollapseAtom = atomWithStorage<
+  Partial<MultiAssetPanelCollapse>
+>("multiAssetPanelCollapse", DEFAULT_MULTI_ASSET_PANEL_COLLAPSE);
+
+export const multiAssetPanelCollapseAtom = atom<
+  MultiAssetPanelCollapse,
+  [
+    | MultiAssetPanelCollapse
+    | ((prev: MultiAssetPanelCollapse) => MultiAssetPanelCollapse),
+  ],
+  void
+>(
+  (get) => ({
+    ...DEFAULT_MULTI_ASSET_PANEL_COLLAPSE,
+    ...get(storedMultiAssetPanelCollapseAtom),
+  }),
+  (get, set, next) => {
+    const current: MultiAssetPanelCollapse = {
+      ...DEFAULT_MULTI_ASSET_PANEL_COLLAPSE,
+      ...get(storedMultiAssetPanelCollapseAtom),
+    };
+    set(
+      storedMultiAssetPanelCollapseAtom,
+      typeof next === "function" ? next(current) : next,
+    );
+  },
+);
 
 export type AssetPanelSectionExpanded = {
   connections: boolean;
