@@ -44,9 +44,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   }
 
   return (
-    <div className="bg-base border rounded-lg overflow-hidden">
+    <div className="bg-base border rounded-lg overflow-auto max-h-[300px]">
       <table className="w-full">
-        <thead className="bg-panel border-b">
+        <thead className="bg-panel border-b sticky top-0 z-10">
           <tr>
             <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
               {translate(
