@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { BaseDialog } from "../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useLocale } from "src/hooks/use-locale";
 import { Loading } from "../components/elements";
 import { EarlyAccessBadge } from "../components/early-access-badge";
 import { useOpenProjectFile } from "src/commands/open-project";
@@ -11,11 +12,12 @@ import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
 import { modelBuilderV2Url } from "src/global-config";
 
-const buildIframeSrc = (enabledFlags: string[]): string => {
+const buildIframeSrc = (enabledFlags: string[], locale: string): string => {
   const url = new URL(modelBuilderV2Url);
   for (const flag of enabledFlags) {
     url.searchParams.set(flag, "true");
   }
+  url.searchParams.set("locale", locale);
   return url.toString();
 };
 
@@ -112,13 +114,17 @@ export const ModelBuilderV2IframeDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
   const openProjectFile = useOpenProjectFile();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
-  const iframeSrc = useMemo(() => buildIframeSrc(enabledFlags), [enabledFlags]);
+  const iframeSrc = useMemo(
+    () => buildIframeSrc(enabledFlags, locale),
+    [enabledFlags, locale],
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

@@ -54,9 +54,20 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   it("loads the v2 model-builder URL", () => {
     render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
 
-    expect(screen.getByTitle<HTMLIFrameElement>("Import from GIS").src).toBe(
-      v2Url,
+    const src = new URL(
+      screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
     );
+    expect(`${src.origin}${src.pathname}`).toBe("https://v2.example/");
+    expect(src.searchParams.get("embedded")).toBe("true");
+  });
+
+  it("forwards the host locale onto the iframe URL", () => {
+    render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
+
+    const src = new URL(
+      screen.getByTitle<HTMLIFrameElement>("Import from GIS").src,
+    );
+    expect(src.searchParams.get("locale")).toBe("en");
   });
 
   it("forwards the host's enabled feature flags onto the iframe URL", () => {
