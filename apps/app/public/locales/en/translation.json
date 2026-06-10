@@ -961,6 +961,10 @@
   "allocateCustomerPoints": {
     "menuEntry": "Allocate customer points",
     "noPipesSelected": "Select pipes to perform customer allocation first",
+    "table": {
+      "ignoreHeader": "Ignore",
+      "ignoreLabel": "Ignore"
+    },
     "warningDialog": {
       "title": "No customer points found",
       "noCustomerPoints": "There are no customer points in the network. Would you like to import them first?",

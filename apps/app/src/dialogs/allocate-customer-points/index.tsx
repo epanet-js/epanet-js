@@ -71,6 +71,9 @@ export const AllocateCustomerPointsDialog: React.FC<
   }, [selectedPipeIds, hydraulicModel.assets]);
 
   const [allocationRules, setAllocationRules] = useState<AllocationRule[]>([]);
+  const [ignoredDiameters, setIgnoredDiameters] = useState<Set<number>>(
+    new Set(),
+  );
   const [allocationResult, setAllocationResult] =
     useState<AllocationResult | null>(null);
   const [isAllocating, setIsAllocating] = useState(false);
@@ -112,8 +115,12 @@ export const AllocateCustomerPointsDialog: React.FC<
   }, [allocationResult, hydraulicModel, onClose, transact]);
 
   const performAllocation = useCallback(
-    async (rules: AllocationRule[]) => {
-      if (!disconnectedCustomerPoints.length || rules.length === 0) {
+    async (rules: AllocationRule[], ignored: Set<number>) => {
+      const activeRules = rules.filter(
+        (rule) => !ignored.has(rule.maxDiameter),
+      );
+      if (!disconnectedCustomerPoints.length || activeRules.length === 0) {
+        setAllocationResult(null);
         return;
       }
 
@@ -129,7 +136,7 @@ export const AllocateCustomerPointsDialog: React.FC<
         });
 
         const result = await allocateCustomerPoints(hydraulicModel, {
-          allocationRules: rules,
+          allocationRules: activeRules,
           customerPoints,
           targetPipes: selectedPipeIds,
         });
@@ -155,9 +162,23 @@ export const AllocateCustomerPointsDialog: React.FC<
         i === index ? { ...rule, maxDistance: value } : rule,
       );
       setAllocationRules(updatedRules);
-      void performAllocation(updatedRules);
+      void performAllocation(updatedRules, ignoredDiameters);
     },
-    [allocationRules, performAllocation],
+    [allocationRules, ignoredDiameters, performAllocation],
+  );
+
+  const handleIgnoreChange = useCallback(
+    (diameter: number, ignored: boolean) => {
+      const next = new Set(ignoredDiameters);
+      if (ignored) {
+        next.add(diameter);
+      } else {
+        next.delete(diameter);
+      }
+      setIgnoredDiameters(next);
+      void performAllocation(allocationRules, next);
+    },
+    [ignoredDiameters, allocationRules, performAllocation],
   );
 
   const initialized = useRef<boolean>(false);
@@ -166,8 +187,8 @@ export const AllocateCustomerPointsDialog: React.FC<
     if (allocationRules.length === 0) return;
 
     initialized.current = true;
-    void performAllocation(allocationRules);
-  }, [performAllocation, allocationRules]);
+    void performAllocation(allocationRules, ignoredDiameters);
+  }, [performAllocation, allocationRules, ignoredDiameters]);
 
   const noPipesSelected = selectedPipeIds.size === 0;
   const allocationCounts = allocationResult?.ruleMatches || [];
@@ -239,8 +260,10 @@ export const AllocateCustomerPointsDialog: React.FC<
             <AllocationRulesTable
               rules={allocationRules}
               allocationCounts={allocationCounts}
+              ignoredDiameters={ignoredDiameters}
               isAllocating={isAllocating}
               onDistanceChange={handleDistanceChange}
+              onIgnoreChange={handleIgnoreChange}
             />
 
             <AllocationSummary
