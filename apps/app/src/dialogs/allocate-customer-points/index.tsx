@@ -17,7 +17,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import {
   allocateCustomerPoints,
-  applyAllocationResult,
+  applyCustomerPointAllocation,
 } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -83,7 +83,9 @@ export const AllocateCustomerPointsDialog: React.FC<
     setIsProcessing(true);
 
     try {
-      const moment = applyAllocationResult(hydraulicModel, allocationResult);
+      const moment = applyCustomerPointAllocation(hydraulicModel, {
+        allocationResult,
+      });
       transact(moment);
       onClose();
     } catch {

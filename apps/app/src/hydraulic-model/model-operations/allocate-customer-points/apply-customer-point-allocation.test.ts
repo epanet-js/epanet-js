@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { applyAllocationResult } from "./apply-allocation-result";
+import { applyCustomerPointAllocation } from "./apply-customer-point-allocation";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 
-describe("applyAllocationResult", () => {
+describe("applyCustomerPointAllocation", () => {
   it("connects customer points from multiple pipes into a single moment", () => {
     const IDS = { J1: 1, J2: 2, J3: 3, J4: 4, P1: 5, P2: 6 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -47,10 +47,12 @@ describe("applyAllocationResult", () => {
       [101, cp2],
     ]);
 
-    const moment = applyAllocationResult(hydraulicModel, {
-      allocatedCustomerPoints,
-      disconnectedCustomerPoints: new Map(),
-      ruleMatches: [2],
+    const moment = applyCustomerPointAllocation(hydraulicModel, {
+      allocationResult: {
+        allocatedCustomerPoints,
+        disconnectedCustomerPoints: new Map(),
+        ruleMatches: [2],
+      },
     });
 
     expect(moment.putCustomerPoints).toHaveLength(2);
@@ -86,10 +88,12 @@ describe("applyAllocationResult", () => {
       [101, cp2],
     ]);
 
-    const moment = applyAllocationResult(hydraulicModel, {
-      allocatedCustomerPoints,
-      disconnectedCustomerPoints: new Map(),
-      ruleMatches: [2],
+    const moment = applyCustomerPointAllocation(hydraulicModel, {
+      allocationResult: {
+        allocatedCustomerPoints,
+        disconnectedCustomerPoints: new Map(),
+        ruleMatches: [2],
+      },
     });
 
     expect(moment.putCustomerPoints).toHaveLength(2);
@@ -111,10 +115,12 @@ describe("applyAllocationResult", () => {
       })
       .build();
 
-    const moment = applyAllocationResult(hydraulicModel, {
-      allocatedCustomerPoints: new Map(),
-      disconnectedCustomerPoints: new Map(),
-      ruleMatches: [0],
+    const moment = applyCustomerPointAllocation(hydraulicModel, {
+      allocationResult: {
+        allocatedCustomerPoints: new Map(),
+        disconnectedCustomerPoints: new Map(),
+        ruleMatches: [0],
+      },
     });
 
     expect(moment.putCustomerPoints).toHaveLength(0);
@@ -143,10 +149,12 @@ describe("applyAllocationResult", () => {
 
     const disconnectedCp = buildCustomerPoint(101, { coordinates: [50, 50] });
 
-    const moment = applyAllocationResult(hydraulicModel, {
-      allocatedCustomerPoints: new Map([[100, cp1]]),
-      disconnectedCustomerPoints: new Map([[101, disconnectedCp]]),
-      ruleMatches: [1],
+    const moment = applyCustomerPointAllocation(hydraulicModel, {
+      allocationResult: {
+        allocatedCustomerPoints: new Map([[100, cp1]]),
+        disconnectedCustomerPoints: new Map([[101, disconnectedCp]]),
+        ruleMatches: [1],
+      },
     });
 
     expect(moment.putCustomerPoints).toHaveLength(1);

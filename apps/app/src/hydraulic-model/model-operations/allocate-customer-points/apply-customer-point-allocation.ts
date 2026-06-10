@@ -1,13 +1,17 @@
 import { HydraulicModel } from "../../hydraulic-model";
-import { ModelMoment } from "../../model-operation";
+import { ModelMoment, ModelOperation } from "../../model-operation";
 import { AllocationResult } from "./types";
 import { connectCustomers } from "../connect-customers";
 import { Position } from "src/types";
 
-export const applyAllocationResult = (
-  hydraulicModel: HydraulicModel,
-  allocationResult: AllocationResult,
-): ModelMoment => {
+type InputData = {
+  allocationResult: AllocationResult;
+};
+
+export const applyCustomerPointAllocation: ModelOperation<InputData> = (
+  hydraulicModel,
+  { allocationResult },
+) => {
   const customerPointsByPipe = new Map<
     number,
     { customerPointIds: number[]; snapPoints: Position[] }
