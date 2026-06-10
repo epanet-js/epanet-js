@@ -193,7 +193,14 @@ export const AllocateCustomerPointsDialog: React.FC<
   }, [performAllocation, allocationRules, ignoredDiameters]);
 
   const noPipesSelected = selectedPipeIds.size === 0;
-  const allocationCounts = allocationResult?.ruleMatches || [];
+  const allocationCounts = useMemo(() => {
+    const ruleMatches = allocationResult?.ruleMatches || [];
+    let activeIndex = 0;
+    return allocationRules.map((rule) => {
+      if (ignoredDiameters.has(rule.maxDiameter)) return 0;
+      return ruleMatches[activeIndex++] ?? 0;
+    });
+  }, [allocationResult, allocationRules, ignoredDiameters]);
   const totalCustomerPoints = disconnectedCustomerPoints.length;
   const totalAllocated = allocationCounts.reduce(
     (total, count) => total + count,

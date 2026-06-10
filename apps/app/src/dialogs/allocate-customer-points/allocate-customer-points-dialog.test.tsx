@@ -12,12 +12,9 @@ import { vi } from "vitest";
 import { allocateCustomerPoints } from "src/lib/customer-points";
 import { Store } from "src/state";
 
-vi.mock(
-  "src/hydraulic-model/model-operations/allocate-customer-points",
-  () => ({
-    allocateCustomerPoints: vi.fn(),
-  }),
-);
+vi.mock("src/lib/customer-points", () => ({
+  allocateCustomerPoints: vi.fn(),
+}));
 
 describe("AllocateCustomerPointsDialog", () => {
   it("renders dialog with diameter-based rules table", async () => {
