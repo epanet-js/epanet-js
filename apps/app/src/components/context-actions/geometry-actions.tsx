@@ -6,7 +6,10 @@ import { B3Variant } from "src/components/elements";
 import { ActionItem } from "./action-item";
 import { useCallback } from "react";
 import { useZoomToSelection } from "src/commands/zoom-to-selection";
-import { selectedAssetsDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedAssetsDerivedAtom,
+  selectedCustomerPointsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { useTranslate } from "src/hooks/use-translate";
 import { useDeleteSelection } from "src/commands/delete-selection";
 import {
@@ -55,8 +58,12 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   const reverseLinkAction = useReverseLink();
   const { openCustomGraph } = useCustomGraph();
   const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
+  const selectedCustomerPoints = useAtomValue(
+    selectedCustomerPointsDerivedAtom,
+  );
 
   const hasAssets = selectedAssets.length > 0;
+  const hasCustomerPoints = selectedCustomerPoints.length > 0;
 
   const onDelete = useCallback(() => {
     const eventSource = source === "context-item" ? "context-menu" : "toolbar";
@@ -85,6 +92,7 @@ function useSelectionActions(source: ActionProps["as"]): Action[] {
   };
 
   const isOneLinkSelected =
+    !hasCustomerPoints &&
     selectedAssets.length === 1 &&
     selectedAssets[0].feature.properties?.type &&
     typeof selectedAssets[0].feature.properties.type === "string" &&
