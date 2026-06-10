@@ -6,6 +6,7 @@ import {
 } from "src/__helpers__/hydraulic-model-builder";
 import {
   Pipe,
+  Pump,
   NodeAsset,
   Valve,
   CustomerPoint,
@@ -896,6 +897,137 @@ describe("replaceLink", () => {
       expect(deleteAssets).toContain(IDS.PU1);
       expect(putAssets).toBeDefined();
       expect(putCustomerPoints).toBeUndefined();
+    });
+  });
+
+  describe("pump attribute preservation when redrawing", () => {
+    it("preserves the pump curve and other attributes", () => {
+      const IDS = { J1: 1, J2: 2, PU1: 3 } as const;
+      const customCurve = [
+        { x: 0, y: 100 },
+        { x: 50, y: 80 },
+        { x: 100, y: 40 },
+      ];
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aPump(IDS.PU1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+          definitionType: "designPointCurve",
+          curve: customCurve,
+          speed: 2,
+          initialStatus: "off",
+        })
+        .build();
+
+      const sourcePump = hydraulicModel.assets.get(IDS.PU1) as Pump;
+
+      // The redraw flow rebuilds the link from a copy of the source pump with
+      // new geometry (see draw-link-handlers `startDrawing`).
+      const redrawnPump = sourcePump.copy();
+      redrawnPump.setCoordinates([
+        [0, 0],
+        [5, 5],
+        [10, 0],
+      ]);
+
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
+
+      const { putAssets } = replaceLink(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        sourceLinkId: IDS.PU1,
+        newLink: redrawnPump,
+        startNode,
+        endNode,
+      });
+
+      const updatedPump = putAssets!.find(
+        (asset) => asset.type === "pump",
+      ) as Pump;
+      expect(updatedPump).toBeDefined();
+      expect(updatedPump.curve).toEqual(customCurve);
+      expect(updatedPump.definitionType).toEqual("designPointCurve");
+      expect(updatedPump.speed).toEqual(2);
+      expect(updatedPump.initialStatus).toEqual("off");
+      expect(updatedPump.coordinates).toEqual([
+        [0, 0],
+        [5, 5],
+        [10, 0],
+      ]);
+    });
+
+    it("preserves valve attributes", () => {
+      const IDS = { J1: 1, J2: 2, V1: 3 } as const;
+      const { assetFactory, labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({
+        assetFactory,
+        labelManager,
+      })
+        .aJunction(IDS.J1, { coordinates: [0, 0] })
+        .aJunction(IDS.J2, { coordinates: [10, 0] })
+        .aValve(IDS.V1, {
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          coordinates: [
+            [0, 0],
+            [10, 0],
+          ],
+          kind: "fcv",
+          setting: 42,
+          diameter: 250,
+          minorLoss: 3,
+          initialStatus: "closed",
+        })
+        .build();
+
+      const sourceValve = hydraulicModel.assets.get(IDS.V1) as Valve;
+
+      const redrawnValve = sourceValve.copy();
+      redrawnValve.setCoordinates([
+        [0, 0],
+        [5, 5],
+        [10, 0],
+      ]);
+
+      const startNode = hydraulicModel.assets.get(IDS.J1) as NodeAsset;
+      const endNode = hydraulicModel.assets.get(IDS.J2) as NodeAsset;
+
+      const { putAssets } = replaceLink(hydraulicModel, {
+        assetFactory,
+        labelManager,
+        lengthUnit: "m",
+        sourceLinkId: IDS.V1,
+        newLink: redrawnValve,
+        startNode,
+        endNode,
+      });
+
+      const updatedValve = putAssets!.find(
+        (asset) => asset.type === "valve",
+      ) as Valve;
+      expect(updatedValve).toBeDefined();
+      expect(updatedValve.kind).toEqual("fcv");
+      expect(updatedValve.setting).toEqual(42);
+      expect(updatedValve.diameter).toEqual(250);
+      expect(updatedValve.minorLoss).toEqual(3);
+      expect(updatedValve.initialStatus).toEqual("closed");
+      expect(updatedValve.coordinates).toEqual([
+        [0, 0],
+        [5, 5],
+        [10, 0],
+      ]);
     });
   });
 

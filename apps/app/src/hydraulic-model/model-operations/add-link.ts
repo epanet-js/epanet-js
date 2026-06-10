@@ -75,12 +75,6 @@ export const addLink: ModelOperation<InputData> = (hydraulicModel, data) => {
     ),
   );
 
-  if (linkCopy.type === "pump") {
-    (linkCopy.feature.properties as Record<string, unknown>).curve = [
-      { x: 1, y: 1 },
-    ];
-  }
-
   const { putAssets, deleteAssets, putCustomerPoints } = handlePipeSplits({
     link: linkCopy,
     startNode: startNodeCopy,
