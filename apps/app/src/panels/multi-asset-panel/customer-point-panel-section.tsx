@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { CollapsibleSection } from "src/components/form/fields";
@@ -6,13 +6,17 @@ import { RingSpinner } from "src/components/ring-spinner";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAsyncCompute } from "src/hooks/use-async-compute";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import {
+  selectedAssetsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { useSelection } from "src/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import { computeCustomerPointsStats } from "./customer-point-stats";
 import { CustomerPointSection } from "./sections";
+import { SelectOnlyCustomerPointsButton } from "./select-only-button";
 
 export function CustomerPointPanelSection({
   customerPoints,
@@ -27,7 +31,14 @@ export function CustomerPointPanelSection({
   );
   const selection = useAtomValue(selectionAtom);
   const { selectCustomerPoints } = useSelection(selection);
+  const selectedAssets = useAtomValue(selectedAssetsDerivedAtom);
   const userTracking = useUserTracking();
+
+  const customerPointIds = useMemo(
+    () => customerPoints.map((cp) => cp.id),
+    [customerPoints],
+  );
+  const showSelectOnly = selectedAssets.length > 0;
 
   const { data, isLoading } = useAsyncCompute(
     computeCustomerPointsStats,
@@ -60,6 +71,11 @@ export function CustomerPointPanelSection({
       open={collapseState.customerPoint}
       onOpenChange={(open) =>
         setCollapseState((prev) => ({ ...prev, customerPoint: open }))
+      }
+      action={
+        showSelectOnly ? (
+          <SelectOnlyCustomerPointsButton customerPointIds={customerPointIds} />
+        ) : undefined
       }
     >
       {isLoading ? (

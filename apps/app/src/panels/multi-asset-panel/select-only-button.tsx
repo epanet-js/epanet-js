@@ -52,3 +52,45 @@ export function SelectOnlyButton({
     </Tooltip.Root>
   );
 }
+
+export function SelectOnlyCustomerPointsButton({
+  customerPointIds,
+}: {
+  customerPointIds: number[];
+}) {
+  const translate = useTranslate();
+  const selection = useAtomValue(selectionAtom);
+  const { selectCustomerPoints } = useSelection(selection);
+  const userTracking = useUserTracking();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    userTracking.capture({
+      name: "selection.narrowedToAssetType",
+      type: "customerPoint",
+      count: customerPointIds.length,
+    });
+    selectCustomerPoints(customerPointIds);
+  };
+
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger onClick={handleClick} asChild>
+        <Button variant="quiet" className="h-8 w-8 justify-center" size="xxs">
+          <PointerClickIcon />
+        </Button>
+      </Tooltip.Trigger>
+      <TContent side="bottom">
+        <StyledTooltipArrow />
+        <span className="whitespace-nowrap">
+          {`${translate("select")} ${pluralize(
+            translate,
+            "customerPoint",
+            customerPointIds.length,
+            false,
+          )}`}
+        </span>
+      </TContent>
+    </Tooltip.Root>
+  );
+}

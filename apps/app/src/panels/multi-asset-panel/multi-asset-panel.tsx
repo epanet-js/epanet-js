@@ -97,8 +97,10 @@ export function MultiAssetPanel({
     return BATCH_EDITABLE_PROPERTIES.tank;
   }, [assetIdsByType.tank, hydraulicModel.assets]);
 
-  const showSelectOnly =
-    Object.values(assetCounts).filter((c) => c > 0).length > 1;
+  const distinctKindsSelected =
+    Object.values(assetCounts).filter((c) => c > 0).length +
+    (selectedCustomerPoints.length > 0 ? 1 : 0);
+  const showSelectOnly = distinctKindsSelected > 1;
 
   const handleBatchPropertyChange = useCallback(
     (
