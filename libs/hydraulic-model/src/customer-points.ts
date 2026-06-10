@@ -5,21 +5,21 @@ import { CustomerPointsLookup } from "./customer-points-lookup";
 
 export const MAX_CUSTOMER_POINT_LABEL_LENGTH = 50;
 
-export type AllocationRule = {
+export type CustomerPointAllocationRule = {
   maxDistance: number;
   maxDiameter: number;
 };
 
 export type CustomerPointId = number;
 
-export const defaultAllocationRules: AllocationRule[] = [
+export const defaultAllocationRules: CustomerPointAllocationRule[] = [
   { maxDistance: 100, maxDiameter: 300 },
 ];
 
 export const getDefaultAllocationRules = (units: {
   diameter: Unit;
   length: Unit;
-}): AllocationRule[] => {
+}): CustomerPointAllocationRule[] => {
   const maxDiameter = units.diameter === "in" ? 12 : 300;
   const maxDistance = units.length === "ft" ? 320 : 100;
 
@@ -70,6 +70,12 @@ export class CustomerPoint {
 }
 
 export class CustomerPoints extends Map<number, CustomerPoint> {}
+
+export type CustomerPointAllocationResult = {
+  allocatedCustomerPoints: CustomerPoints;
+  disconnectedCustomerPoints: CustomerPoints;
+  ruleMatches: number[];
+};
 
 export const initializeCustomerPoints = (): CustomerPoints => {
   return new Map<number, CustomerPoint>();

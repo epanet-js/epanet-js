@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import {
-  AllocationRule,
+  CustomerPointAllocationRule,
   CustomerPoint,
   CustomerPointId,
   initializeCustomerPoints,
@@ -30,11 +30,11 @@ export const AllocationStep: React.FC<{
   renderActions?: boolean;
   wizardState: WizardState &
     WizardActions & {
-      allocationRules: AllocationRule[];
+      allocationRules: CustomerPointAllocationRule[];
       units: { diameter: Unit; length: Unit };
     };
 }> = ({ onBack, onFinish, renderActions = true, wizardState }) => {
-  const [tempRules, setTempRules] = useState<AllocationRule[]>([]);
+  const [tempRules, setTempRules] = useState<CustomerPointAllocationRule[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { customerPointFactory, idGenerator } =
     useAtomValue(modelFactoriesAtom);
@@ -149,7 +149,7 @@ export const AllocationStep: React.FC<{
   ]);
 
   const performAllocation = useCallback(
-    async (rules: AllocationRule[]) => {
+    async (rules: CustomerPointAllocationRule[]) => {
       if (!parsedDataSummary?.validCustomerPoints?.length) {
         return;
       }
@@ -204,7 +204,7 @@ export const AllocationStep: React.FC<{
   );
 
   const shouldTriggerAllocation = useCallback(
-    (rules: AllocationRule[]) => {
+    (rules: CustomerPointAllocationRule[]) => {
       if (!parsedDataSummary?.validCustomerPoints?.length) {
         return false;
       }
@@ -276,9 +276,12 @@ export const AllocationStep: React.FC<{
     setIsEditingRules(false);
   }, [setIsEditingRules, userTracking]);
 
-  const handleRulesChange = useCallback((newRules: AllocationRule[]) => {
-    setTempRules(newRules);
-  }, []);
+  const handleRulesChange = useCallback(
+    (newRules: CustomerPointAllocationRule[]) => {
+      setTempRules(newRules);
+    },
+    [],
+  );
 
   const initialized = useRef<boolean>(false);
   useEffect(() => {

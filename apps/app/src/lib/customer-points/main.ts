@@ -1,14 +1,18 @@
 import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
-import { CustomerPoint, CustomerPoints } from "@epanet-js/hydraulic-model";
-import { AllocationRule, AllocationResult } from "./types";
+import {
+  CustomerPoint,
+  CustomerPoints,
+  CustomerPointAllocationResult,
+  CustomerPointAllocationRule,
+} from "@epanet-js/hydraulic-model";
 import { prepareWorkerData, RunData } from "./prepare-data";
 import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation, AllocationResultItem } from "./run-allocation";
 import type { AllocationWorkerAPI } from "./worker";
 
 type InputData = {
-  allocationRules: AllocationRule[];
+  allocationRules: CustomerPointAllocationRule[];
   customerPoints: CustomerPoints;
   targetPipes?: Set<number>;
   bufferType?: "shared" | "array";
@@ -24,7 +28,7 @@ export const allocateCustomerPoints = async (
     targetPipes,
     bufferType = "array",
   }: InputData,
-): Promise<AllocationResult> => {
+): Promise<CustomerPointAllocationResult> => {
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<number, CustomerPoint>();
   const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
@@ -84,7 +88,7 @@ export const allocateCustomerPoints = async (
 
 const runAllocationWithWorkers = async (
   workerData: RunData,
-  allocationRules: AllocationRule[],
+  allocationRules: CustomerPointAllocationRule[],
   totalCustomerPoints: number,
 ): Promise<AllocationResultItem[]> => {
   const pointsPerWorker = Math.ceil(totalCustomerPoints / WORKER_COUNT);

@@ -1,7 +1,8 @@
 import { atom, useAtom } from "jotai";
 import { useAtomValue } from "jotai";
 import {
-  AllocationRule,
+  CustomerPointAllocationRule,
+  CustomerPointAllocationResult,
   CustomerPoint,
   getDefaultAllocationRules,
 } from "@epanet-js/hydraulic-model";
@@ -14,7 +15,6 @@ import {
   ParsedDataSummary,
   InputData,
 } from "./types";
-import { AllocationResult } from "src/lib/customer-points";
 
 const initialState: WizardState = {
   currentStep: 1,
@@ -41,7 +41,7 @@ const initialState: WizardState = {
 export const wizardStateAtom = atom<WizardState>(initialState);
 
 export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
-  allocationRules: AllocationRule[];
+  allocationRules: CustomerPointAllocationRule[];
   units: UnitsSpec;
 } & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
@@ -123,7 +123,9 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, keepDemands }));
   };
 
-  const setAllocationRules = (allocationRules: AllocationRule[]) => {
+  const setAllocationRules = (
+    allocationRules: CustomerPointAllocationRule[],
+  ) => {
     setWizardState((prev) => ({ ...prev, allocationRules }));
   };
 
@@ -133,7 +135,9 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, connectionCounts }));
   };
 
-  const setAllocationResult = (allocationResult: AllocationResult | null) => {
+  const setAllocationResult = (
+    allocationResult: CustomerPointAllocationResult | null,
+  ) => {
     setWizardState((prev) => ({ ...prev, allocationResult }));
   };
 
@@ -142,7 +146,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   };
 
   const setLastAllocatedRules = (
-    lastAllocatedRules: AllocationRule[] | null,
+    lastAllocatedRules: CustomerPointAllocationRule[] | null,
   ) => {
     setWizardState((prev) => ({ ...prev, lastAllocatedRules }));
   };

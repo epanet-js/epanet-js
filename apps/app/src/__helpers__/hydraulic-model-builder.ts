@@ -28,7 +28,7 @@ import {
   TankBuildData,
   ValveBuildData,
   LabelManager,
-  AllocationRule,
+  CustomerPointAllocationRule,
   CustomerPoint,
   CustomerPoints,
   initializeCustomerPoints,
@@ -480,8 +480,8 @@ export class HydraulicModelBuilder {
 }
 
 export const anAllocationRule = (
-  overrides: Partial<AllocationRule> = {},
-): AllocationRule => ({
+  overrides: Partial<CustomerPointAllocationRule> = {},
+): CustomerPointAllocationRule => ({
   maxDistance: 10,
   maxDiameter: 200,
   ...overrides,

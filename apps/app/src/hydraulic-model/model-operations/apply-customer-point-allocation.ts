@@ -1,11 +1,11 @@
+import { CustomerPointAllocationResult } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../hydraulic-model";
 import { ModelMoment, ModelOperation } from "../model-operation";
-import { AllocationResult } from "../../lib/customer-points/types";
 import { connectCustomers } from "./connect-customers";
 import { Position } from "src/types";
 
 type InputData = {
-  allocationResult: AllocationResult;
+  allocationResult: CustomerPointAllocationResult;
 };
 
 export const applyCustomerPointAllocation: ModelOperation<InputData> = (

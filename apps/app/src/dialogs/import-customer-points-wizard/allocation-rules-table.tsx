@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import {
-  AllocationRule,
+  CustomerPointAllocationRule,
   defaultAllocationRules,
 } from "@epanet-js/hydraulic-model";
 
@@ -20,11 +20,11 @@ import {
 } from "src/icons";
 
 type AllocationRulesTableProps = {
-  rules: AllocationRule[];
+  rules: CustomerPointAllocationRule[];
   allocationCounts: number[];
   isEditing: boolean;
   isAllocating?: boolean;
-  onChange: (newRules: AllocationRule[]) => void;
+  onChange: (newRules: CustomerPointAllocationRule[]) => void;
 };
 
 export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
@@ -38,7 +38,9 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   const translateUnit = useTranslateUnit();
   const translate = useTranslate();
   const handleAddRule = useCallback(() => {
-    const newRule: AllocationRule = { ...defaultAllocationRules[0] };
+    const newRule: CustomerPointAllocationRule = {
+      ...defaultAllocationRules[0],
+    };
     onChange([...rules, newRule]);
   }, [rules, onChange]);
 
@@ -50,7 +52,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   );
 
   const handleRuleChange = useCallback(
-    (index: number, field: keyof AllocationRule, value: number) => {
+    (
+      index: number,
+      field: keyof CustomerPointAllocationRule,
+      value: number,
+    ) => {
       const updatedRules = rules.map((rule, i) =>
         i === index ? { ...rule, [field]: value } : rule,
       );

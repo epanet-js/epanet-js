@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { AllocationRule } from "@epanet-js/hydraulic-model";
+import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
 import { useAtomValue } from "jotai";
 
 import { NumericField } from "src/components/form/numeric-field";
@@ -12,7 +12,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { RefreshIcon } from "src/icons";
 
 type AllocationRulesTableProps = {
-  rules: AllocationRule[];
+  rules: CustomerPointAllocationRule[];
   allocationCounts: number[];
   ignoredDiameters: Set<number>;
   isAllocating?: boolean;

@@ -8,9 +8,9 @@ import {
   NodeAsset,
   NodeType,
   CustomerPoint,
+  CustomerPointAllocationRule,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
-import { AllocationRule } from "./types";
 
 export interface LinkSegmentProperties {
   linkId: number;
@@ -181,7 +181,7 @@ export const getCustomerPointId = (
 
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
-  allocationRules: AllocationRule[],
+  allocationRules: CustomerPointAllocationRule[],
   customerPoints: CustomerPoint[],
   bufferType: "shared" | "array" = "array",
   targetPipes?: Set<number>,
@@ -518,7 +518,7 @@ const isPointInAnyBBox = (
 const computeEnlargedPipeBBoxes = (
   hydraulicModel: HydraulicModel,
   targetPipes: Set<number>,
-  allocationRules: AllocationRule[],
+  allocationRules: CustomerPointAllocationRule[],
 ): BBox[] => {
   const maxDistance = Math.max(...allocationRules.map((r) => r.maxDistance));
 

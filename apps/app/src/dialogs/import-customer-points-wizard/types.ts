@@ -1,12 +1,12 @@
 import { Feature } from "geojson";
 import {
-  AllocationRule,
+  CustomerPointAllocationRule,
+  CustomerPointAllocationResult,
   CustomerPoint,
   CustomerPointId,
 } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
-import { AllocationResult } from "src/lib/customer-points";
 import { Unit } from "@epanet-js/quantity";
 
 export type WizardStep = 1 | 2 | 3 | 4;
@@ -36,11 +36,11 @@ export type WizardState = {
   error: string | null;
   isProcessing: boolean;
   keepDemands: boolean;
-  allocationRules: AllocationRule[] | null;
+  allocationRules: CustomerPointAllocationRule[] | null;
   connectionCounts: { [ruleIndex: number]: number } | null;
-  allocationResult: AllocationResult | null;
+  allocationResult: CustomerPointAllocationResult | null;
   isAllocating: boolean;
-  lastAllocatedRules: AllocationRule[] | null;
+  lastAllocatedRules: CustomerPointAllocationRule[] | null;
   isEditingRules: boolean;
   selectedPatternId: number | null;
   defaultDemand: number;
@@ -61,11 +61,11 @@ export type WizardActions = {
   setLoading: (loading: boolean) => void;
   setProcessing: (processing: boolean) => void;
   setKeepDemands: (keepDemands: boolean) => void;
-  setAllocationRules: (rules: AllocationRule[]) => void;
+  setAllocationRules: (rules: CustomerPointAllocationRule[]) => void;
   setConnectionCounts: (counts: { [ruleIndex: number]: number } | null) => void;
-  setAllocationResult: (result: AllocationResult | null) => void;
+  setAllocationResult: (result: CustomerPointAllocationResult | null) => void;
   setIsAllocating: (isAllocating: boolean) => void;
-  setLastAllocatedRules: (rules: AllocationRule[] | null) => void;
+  setLastAllocatedRules: (rules: CustomerPointAllocationRule[] | null) => void;
   setIsEditingRules: (isEditingRules: boolean) => void;
   setSelectedPatternId: (patternId: number | null) => void;
   setDefaultDemand: (value: number) => void;

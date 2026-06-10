@@ -7,7 +7,8 @@ import React, {
 } from "react";
 import { useAtomValue } from "jotai";
 import {
-  AllocationRule,
+  CustomerPointAllocationRule,
+  CustomerPointAllocationResult,
   getDefaultAllocationRules,
   initializeCustomerPoints,
   Pipe,
@@ -18,7 +19,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import { allocateCustomerPoints } from "src/lib/customer-points";
 import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
-import type { AllocationResult } from "src/lib/customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
@@ -70,12 +70,14 @@ export const AllocateCustomerPointsDialog: React.FC<
     return Array.from(diameters).sort((a, b) => a - b);
   }, [selectedPipeIds, hydraulicModel.assets]);
 
-  const [allocationRules, setAllocationRules] = useState<AllocationRule[]>([]);
+  const [allocationRules, setAllocationRules] = useState<
+    CustomerPointAllocationRule[]
+  >([]);
   const [ignoredDiameters, setIgnoredDiameters] = useState<Set<number>>(
     new Set(),
   );
   const [allocationResult, setAllocationResult] =
-    useState<AllocationResult | null>(null);
+    useState<CustomerPointAllocationResult | null>(null);
   const [isAllocating, setIsAllocating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +117,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   }, [allocationResult, hydraulicModel, onClose, transact]);
 
   const performAllocation = useCallback(
-    async (rules: AllocationRule[], ignored: Set<number>) => {
+    async (rules: CustomerPointAllocationRule[], ignored: Set<number>) => {
       const activeRules = rules.filter(
         (rule) => !ignored.has(rule.maxDiameter),
       );

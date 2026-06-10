@@ -1,15 +1,15 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { AllocationRule } from "@epanet-js/hydraulic-model";
+import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
 import { anAllocationRule } from "src/__helpers__/hydraulic-model-builder";
 import { vi } from "vitest";
 
 type AllocationRulesTableProps = {
-  rules: AllocationRule[];
+  rules: CustomerPointAllocationRule[];
   allocationCounts: number[];
   isEditing: boolean;
-  onChange: (newRules: AllocationRule[]) => void;
+  onChange: (newRules: CustomerPointAllocationRule[]) => void;
 };
 
 describe("AllocationRulesTable", () => {
@@ -27,7 +27,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("shows read-only table when isEditing is false", () => {
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -59,7 +59,9 @@ describe("AllocationRulesTable", () => {
     });
 
     it("shows editable table when isEditing is true", () => {
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
       const allocationCounts = [25];
 
       renderComponent({
@@ -91,7 +93,9 @@ describe("AllocationRulesTable", () => {
   describe("Rule Operations", () => {
     it("calls onChange with new rule when Add Rule is clicked", async () => {
       const user = userEvent.setup();
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
       const onChange = vi.fn();
 
       renderComponent({
@@ -112,7 +116,7 @@ describe("AllocationRulesTable", () => {
 
     it("calls onChange with removed rule when delete is clicked", async () => {
       const user = userEvent.setup();
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -135,7 +139,7 @@ describe("AllocationRulesTable", () => {
 
     it("calls onChange with reordered rules when move up is clicked", async () => {
       const user = userEvent.setup();
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -159,7 +163,7 @@ describe("AllocationRulesTable", () => {
 
     it("calls onChange with reordered rules when move down is clicked", async () => {
       const user = userEvent.setup();
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -184,7 +188,9 @@ describe("AllocationRulesTable", () => {
 
   describe("Field Editing", () => {
     it("calls onChange when diameter field changes", () => {
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
       const onChange = vi.fn();
 
       renderComponent({
@@ -206,7 +212,9 @@ describe("AllocationRulesTable", () => {
     });
 
     it("calls onChange when distance field changes", () => {
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
       const onChange = vi.fn();
 
       renderComponent({
@@ -230,7 +238,7 @@ describe("AllocationRulesTable", () => {
 
   describe("Edge Cases", () => {
     it("disables move up button for first rule", () => {
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -247,7 +255,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("disables move down button for last rule", () => {
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
       ];
@@ -264,7 +272,9 @@ describe("AllocationRulesTable", () => {
     });
 
     it("handles single rule scenario correctly", () => {
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
 
       renderComponent({
         rules,
@@ -280,7 +290,9 @@ describe("AllocationRulesTable", () => {
     });
 
     it("disables remove button when only one rule exists", () => {
-      const rules: AllocationRule[] = [anAllocationRule({ maxDistance: 100 })];
+      const rules: CustomerPointAllocationRule[] = [
+        anAllocationRule({ maxDistance: 100 }),
+      ];
 
       renderComponent({
         rules,
@@ -293,7 +305,7 @@ describe("AllocationRulesTable", () => {
     });
 
     it("displays correct order numbers", () => {
-      const rules: AllocationRule[] = [
+      const rules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
         { maxDistance: 150, maxDiameter: 300 },
         { maxDistance: 200, maxDiameter: 400 },
@@ -313,13 +325,15 @@ describe("AllocationRulesTable", () => {
   describe("Integration", () => {
     it("handles multiple operations in sequence", async () => {
       const user = userEvent.setup();
-      let currentRules: AllocationRule[] = [
+      let currentRules: CustomerPointAllocationRule[] = [
         anAllocationRule({ maxDistance: 100 }),
       ];
 
-      const mockOnChangeIntegration = vi.fn((newRules: AllocationRule[]) => {
-        currentRules = newRules;
-      });
+      const mockOnChangeIntegration = vi.fn(
+        (newRules: CustomerPointAllocationRule[]) => {
+          currentRules = newRules;
+        },
+      );
 
       const { rerender } = render(
         <AllocationRulesTable
