@@ -484,8 +484,6 @@ export function AddLayer() {
   const setDialogState = useSetAtom(dialogAtom);
   const { canAddCustomLayers } = usePermissions();
 
-  const isCustomLayersPaywallOn = useFeatureFlag("FLAG_CUSTOM_LAYERS_PAYWALL");
-
   const { applyChanges } = useLayerConfigState();
   const layerConfigs = useAtomValue(layerConfigAtom);
   const setGisData = useSetAtom(gisDataAtom);
@@ -590,18 +588,7 @@ export function AddLayer() {
 
   const handleUpgrade = () => {
     setOpen(false);
-    if (isCustomLayersPaywallOn) {
-      setDialogState({ type: "featurePaywall", feature: "customLayers" });
-    } else {
-      userTracking.capture({
-        name: "upgradeButton.clicked",
-        source: "customLayers",
-      });
-      setDialogState({
-        type: "upgrade",
-        source: { kind: "customLayers" },
-      });
-    }
+    setDialogState({ type: "featurePaywall", feature: "customLayers" });
   };
 
   const handleModeChange = (mode: Mode, type: string) => {
