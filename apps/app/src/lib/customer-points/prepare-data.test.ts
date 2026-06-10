@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
 import {
   prepareWorkerData,
   getSegmentCoordinates,
@@ -13,7 +14,6 @@ import {
   getCustomerPointId,
 } from "./prepare-data";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { AllocationRule } from "./types";
 import Flatbush from "flatbush";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
@@ -56,7 +56,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -94,7 +94,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -143,7 +143,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -185,7 +185,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -232,7 +232,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -269,7 +269,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -315,7 +315,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -356,7 +356,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -425,7 +425,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -474,7 +474,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -521,7 +521,7 @@ describe("prepareWorkerData", () => {
           .aCustomerPoint(IDS.CP3, { coordinates: [100, 100] })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 
@@ -563,7 +563,7 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: AllocationRule[] = [
+        const allocationRules: CustomerPointAllocationRule[] = [
           { maxDistance: 200, maxDiameter: 15 },
         ];
 

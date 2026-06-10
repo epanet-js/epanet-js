@@ -6,8 +6,10 @@ import { Position } from "geojson";
 import { findJunctionForCustomerPoint } from "../../hydraulic-model/utilities/junction-assignment";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 
-import { CustomerPointConnection } from "@epanet-js/hydraulic-model";
-import { AllocationRule } from "./types";
+import {
+  CustomerPointConnection,
+  CustomerPointAllocationRule,
+} from "@epanet-js/hydraulic-model";
 import {
   RunData,
   getSegmentCoordinates,
@@ -33,7 +35,7 @@ const bucketSize = 30;
 
 export const runAllocation = (
   workerData: RunData,
-  allocationRules: AllocationRule[],
+  allocationRules: CustomerPointAllocationRule[],
   offset: number = 0,
   count?: number,
 ): AllocationResultItem[] => {
@@ -84,7 +86,7 @@ export const runAllocation = (
 
 const findFirstMatchingRule = (
   customerPointCoordinates: Position,
-  allocationRules: AllocationRule[],
+  allocationRules: CustomerPointAllocationRule[],
   spatialData: { spatialIndex: Flatbush; workerData: RunData },
 ): { ruleIndex: number; connection: CustomerPointConnection | null } => {
   const customerPointFeature = point(customerPointCoordinates);

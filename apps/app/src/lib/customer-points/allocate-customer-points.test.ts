@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
 import { allocateCustomerPoints } from "./main";
-import { AllocationRule } from "./types";
 import {
   HydraulicModelBuilder,
   buildCustomerPoint,
@@ -39,7 +39,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -80,7 +80,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 10 },
       { maxDistance: 200, maxDiameter: 15 },
     ];
@@ -119,7 +119,7 @@ describe("allocateCustomerPoints", () => {
       [IDS.CP2, buildCustomerPoint(IDS.CP2, { coordinates: [-95.4, 29.8] })],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -183,7 +183,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
@@ -248,7 +248,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 10 },
       { maxDistance: 200, maxDiameter: 20 },
     ];
@@ -285,7 +285,7 @@ describe("allocateCustomerPoints", () => {
       .build();
 
     const customerPoints: CustomerPoints = new Map();
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -312,7 +312,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -350,7 +350,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 10 },
     ];
 
@@ -388,7 +388,7 @@ describe("allocateCustomerPoints", () => {
       [IDS.CP1, originalCustomerPoint],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -423,7 +423,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -461,7 +461,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -498,7 +498,7 @@ describe("allocateCustomerPoints", () => {
       [IDS.CP1, originalCustomerPoint],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -535,7 +535,7 @@ describe("allocateCustomerPoints", () => {
       [IDS.CP1, originalCustomerPoint],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 6 },
     ];
 
@@ -582,7 +582,7 @@ describe("allocateCustomerPoints", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -650,7 +650,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 10 },
       { maxDistance: 200, maxDiameter: 15 },
     ];
@@ -721,7 +721,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 200, maxDiameter: 15 },
     ];
 
@@ -773,7 +773,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
       ],
     ]);
 
-    const allocationRules: AllocationRule[] = [
+    const allocationRules: CustomerPointAllocationRule[] = [
       { maxDistance: 100, maxDiameter: 15 },
     ];
 
