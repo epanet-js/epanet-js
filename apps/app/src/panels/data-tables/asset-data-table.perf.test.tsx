@@ -49,7 +49,7 @@ describe("AssetDataTable (FLAG_DATA_TABLES_PERFORMANCE)", () => {
     stubFeatureOn("FLAG_DATA_TABLES_PERFORMANCE");
   });
 
-  it("renders model objects directly (direct attribute + computed column)", () => {
+  it("renders model objects directly (direct attribute + computed column)", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 25 })
       .aJunctionDemand(1, [{ baseDemand: 10 }])
@@ -58,8 +58,9 @@ describe("AssetDataTable (FLAG_DATA_TABLES_PERFORMANCE)", () => {
 
     renderTable(store);
 
-    // No async row build / spinner: the label (accessorKey) is present synchronously.
-    expect(screen.getByDisplayValue("J1")).toBeInTheDocument();
+    // The grid mount is deferred a frame; the label (accessorKey) appears once
+    // it mounts. No async row build is involved.
+    expect(await screen.findByDisplayValue("J1")).toBeInTheDocument();
     // Computed demand column (accessorFn) resolved from the model.
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
   });
@@ -74,7 +75,7 @@ describe("AssetDataTable (FLAG_DATA_TABLES_PERFORMANCE)", () => {
 
     renderTable(store);
 
-    const cell = screen.getByDisplayValue("J1");
+    const cell = await screen.findByDisplayValue("J1");
     await user.dblClick(cell);
     await waitFor(() => {
       expect(screen.getByDisplayValue("J1")).not.toHaveAttribute("readonly");

@@ -39,6 +39,7 @@ import {
   type CpAccessorCtx,
 } from "./customer-point-data-table-data";
 import { buildCustomerPointColumns } from "./customer-point-data-table-columns";
+import { useDeferredGridMount } from "./use-deferred-grid-mount";
 
 export const CustomerPointDataTable = memo(
   function CustomerPointDataTableInner() {
@@ -69,6 +70,8 @@ export const CustomerPointDataTable = memo(
     const rows = isPerfOn ? modelRows : legacyRows;
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
+    // Defer mounting the model-row grid so switching tabs stays responsive.
+    const gridReady = useDeferredGridMount(isPerfOn);
 
     const patternOptions = useMemo(() => {
       const options: { value: number; label: string }[] = [];
@@ -437,7 +440,7 @@ export const CustomerPointDataTable = memo(
 
     return (
       <div className="flex-1 min-h-0 relative">
-        {rows === null ? (
+        {rows === null || !gridReady ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <RingSpinner />
           </div>

@@ -61,6 +61,7 @@ import {
   buildAssetModelRows,
 } from "./data";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
+import { useDeferredGridMount } from "./use-deferred-grid-mount";
 import {
   buildColumns,
   EDITABLE_NUMERIC_KEYS,
@@ -133,6 +134,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const rows = isPerfOn ? modelRows : legacyRows;
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
+  // Defer mounting the model-row grid so switching tabs stays responsive.
+  const gridReady = useDeferredGridMount(isPerfOn);
 
   const {
     isLocked: pipeAttributesLocked,
@@ -567,7 +570,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   return (
     <div className="flex-1 min-h-0 relative">
-      {rows === null ? (
+      {rows === null || !gridReady ? (
         <div className="absolute inset-0 flex items-center justify-center">
           <RingSpinner />
         </div>
