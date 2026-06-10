@@ -42,12 +42,9 @@ vi.mock("src/hooks/use-projections", () => ({
 }));
 
 // Mock allocation function to control results in tests
-vi.mock(
-  "src/hydraulic-model/model-operations/allocate-customer-points",
-  () => ({
-    allocateCustomerPoints: vi.fn(),
-  }),
-);
+vi.mock("src/lib/customer-points", () => ({
+  allocateCustomerPoints: vi.fn(),
+}));
 
 describe("AllocationStep", () => {
   it("renders allocation step with default wizard state", async () => {
