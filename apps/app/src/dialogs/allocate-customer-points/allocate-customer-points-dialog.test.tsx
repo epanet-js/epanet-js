@@ -9,7 +9,7 @@ import { AllocateCustomerPointsDialog } from "./index";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
-import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { allocateCustomerPoints } from "src/lib/customer-points";
 import { Store } from "src/state";
 
 vi.mock(

@@ -14,7 +14,7 @@ import {
   ParsedDataSummary,
   InputData,
 } from "./types";
-import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { AllocationResult } from "src/lib/customer-points";
 
 const initialState: WizardState = {
   currentStep: 1,

@@ -3,7 +3,7 @@ import turfBuffer from "@turf/buffer";
 import turfBbox from "@turf/bbox";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
-import { findJunctionForCustomerPoint } from "../../utilities/junction-assignment";
+import { findJunctionForCustomerPoint } from "../../hydraulic-model/utilities/junction-assignment";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
 
 import { CustomerPointConnection } from "@epanet-js/hydraulic-model";

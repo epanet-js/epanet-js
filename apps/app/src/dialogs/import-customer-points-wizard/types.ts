@@ -6,7 +6,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
-import { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { AllocationResult } from "src/lib/customer-points";
 import { Unit } from "@epanet-js/quantity";
 
 export type WizardStep = 1 | 2 | 3 | 4;

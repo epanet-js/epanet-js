@@ -3,7 +3,6 @@ export { changeProperty, changeProperties } from "./change-property";
 export { mergeMoments } from "./merge-moments";
 export type { PropertyChange } from "./change-property";
 export { changeLabel } from "./change-label";
-export { allocateCustomerPoints } from "./allocate-customer-points";
 export { disconnectCustomers } from "./disconnect-customers";
 export { connectCustomers } from "./connect-customers";
 export { addNode } from "./add-node";

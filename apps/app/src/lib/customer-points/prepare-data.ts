@@ -9,7 +9,7 @@ import {
   NodeType,
   CustomerPoint,
 } from "@epanet-js/hydraulic-model";
-import { HydraulicModel } from "../../hydraulic-model";
+import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 import { AllocationRule } from "./types";
 
 export interface LinkSegmentProperties {

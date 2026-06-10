@@ -14,7 +14,7 @@ import { WizardState } from "./types";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
-import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { allocateCustomerPoints } from "src/lib/customer-points";
 
 // Mock projections hook directly
 vi.mock("src/hooks/use-projections", () => ({

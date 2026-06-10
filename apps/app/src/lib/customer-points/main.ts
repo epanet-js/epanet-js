@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { HydraulicModel } from "../../hydraulic-model";
+import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 import { CustomerPoint, CustomerPoints } from "@epanet-js/hydraulic-model";
 import { AllocationRule, AllocationResult } from "./types";
 import { prepareWorkerData, RunData } from "./prepare-data";
