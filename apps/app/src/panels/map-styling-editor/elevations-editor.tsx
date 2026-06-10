@@ -1,6 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { isPlayingAtom } from "src/state/simulation-playback";
 import { useCallback, useContext, useRef, useState } from "react";
+import { fetchProjections } from "src/lib/projections";
 
 import { LngLatBoundsLike } from "mapbox-gl";
 import { nanoid } from "nanoid";
@@ -1013,8 +1014,7 @@ const useProj4Definitions = () => {
   const getProj4Def = useCallback(
     async (epsgCode: number): Promise<string | null> => {
       if (!cacheRef.current) {
-        const response = await fetch("/projections.json");
-        const data: { id: string; code: string }[] = await response.json();
+        const data = await fetchProjections();
         cacheRef.current = new Map(data.map((p) => [p.id, p.code]));
       }
       return cacheRef.current.get(`EPSG:${epsgCode}`) ?? null;

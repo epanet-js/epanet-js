@@ -1,3 +1,10 @@
+import { setProjectionsBaseUrl } from "@epanet-js/projections";
+
+export const projectionsBaseUrl =
+  process.env.NEXT_PUBLIC_PROJECTIONS_BASE_URL ||
+  "https://epanet-js.github.io/epanet-js-projections";
+setProjectionsBaseUrl(projectionsBaseUrl);
+
 export const helpCenterUrl = "https://help.epanetjs.com";
 export const roadmapUrl = "https://roadmap.epanetjs.com";
 export const utilitiesUrl = "https://utils.epanetjs.com";

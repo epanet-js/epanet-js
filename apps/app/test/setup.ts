@@ -305,14 +305,14 @@ if (
       });
     }
 
-    if (url === "/projections.json") {
+    if (url.endsWith("/projections.json")) {
       return Promise.resolve({
         ok: true,
         json: () =>
           Promise.resolve(
             JSON.parse(
               Fs.readFileSync(
-                Path.join(__dirname, "../public/projections.json"),
+                Path.join(__dirname, "projections_fixture.json"),
                 "utf8",
               ),
             ),

@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterEach } from "vitest";
 import { getEsriWktString } from "./esri-wkt";
+import { setProjectionsBaseUrl } from "./config";
 import type { Proj4Projection } from "./projection";
+
+const TEST_BASE_URL = "https://example.com/projections";
 
 const makeProjection = (id: string, code: string): Proj4Projection => ({
   type: "proj4",
@@ -10,6 +13,10 @@ const makeProjection = (id: string, code: string): Proj4Projection => ({
 });
 
 describe("getEsriWktString", () => {
+  beforeAll(() => {
+    setProjectionsBaseUrl(TEST_BASE_URL);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -25,7 +32,7 @@ describe("getEsriWktString", () => {
     );
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      "/projection-data/epsg_28355.json",
+      `${TEST_BASE_URL}/projection-data/epsg_28355.json`,
     );
     expect(result).toBe(wkt);
   });
@@ -58,7 +65,7 @@ describe("getEsriWktString", () => {
     await getEsriWktString(makeProjection("EPSG:3857", "+proj=merc"));
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      "/projection-data/epsg_3857.json",
+      `${TEST_BASE_URL}/projection-data/epsg_3857.json`,
     );
   });
 });

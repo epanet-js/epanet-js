@@ -1,7 +1,9 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { exportShapefiles } from "./index";
-import { WGS84 } from "src/lib/projections";
+import { setProjectionsBaseUrl, WGS84 } from "src/lib/projections";
 import { vi, afterEach } from "vitest";
+
+const TEST_BASE_URL = "https://example.com/projections";
 
 // Helpers to read blobs in tests (Node environment)
 async function blobBytes(blob: Blob): Promise<Uint8Array> {
@@ -23,6 +25,10 @@ function fileNames(files: { fileName: string }[]) {
 }
 
 describe("exportShapefiles", () => {
+  beforeAll(() => {
+    setProjectionsBaseUrl(TEST_BASE_URL);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
