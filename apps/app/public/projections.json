@@ -25023,5 +25023,10 @@
     "id": "EPSG:31121",
     "name": "Zanderij / UTM zone 21N",
     "code": "+proj=utm +zone=21 +ellps=intl +towgs84=-265,120,-358,0,0,0,0 +units=m +no_defs"
+  },
+  {
+    "id": "EPSG:103599",
+    "name": "MAGNA-SIRGAS CMT12",
+    "code": "+proj=tmerc +lat_0=4 +lon_0=-73 +k=0.9992 +x_0=5000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs +type=crs"
   }
 ]
