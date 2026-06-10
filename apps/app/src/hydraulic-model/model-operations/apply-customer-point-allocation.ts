@@ -1,7 +1,7 @@
-import { HydraulicModel } from "../../hydraulic-model";
-import { ModelMoment, ModelOperation } from "../../model-operation";
-import { AllocationResult } from "./types";
-import { connectCustomers } from "../connect-customers";
+import { HydraulicModel } from "../hydraulic-model";
+import { ModelMoment, ModelOperation } from "../model-operation";
+import { AllocationResult } from "./allocate-customer-points/types";
+import { connectCustomers } from "./connect-customers";
 import { Position } from "src/types";
 
 type InputData = {

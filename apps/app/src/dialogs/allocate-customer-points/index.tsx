@@ -15,10 +15,8 @@ import {
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
-import {
-  allocateCustomerPoints,
-  applyCustomerPointAllocation,
-} from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { allocateCustomerPoints } from "src/hydraulic-model/model-operations/allocate-customer-points";
+import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
 import type { AllocationResult } from "src/hydraulic-model/model-operations/allocate-customer-points";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";
