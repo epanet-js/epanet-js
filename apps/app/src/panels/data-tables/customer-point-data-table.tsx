@@ -28,6 +28,7 @@ import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
+import { customerPointsVisibleAtom } from "src/state/map-symbology";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { RingSpinner } from "src/components/ring-spinner";
 import {
@@ -47,6 +48,7 @@ export const CustomerPointDataTable = memo(
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
+    const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
     const selectCustomerPointInApp = useSelectCustomerPointInApp();
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
     const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
@@ -233,6 +235,7 @@ export const CustomerPointDataTable = memo(
         {
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
+          disabled: () => !customerPointsVisible,
           onSelect: (selection, sortedRows, originCell) => {
             if (isMultiCpSelectionOn) {
               const ids = getCpIdsFromRange(
@@ -280,6 +283,7 @@ export const CustomerPointDataTable = memo(
         isEditionBlocked,
         deleteAction,
         userTracking,
+        customerPointsVisible,
       ],
     );
 
@@ -288,6 +292,7 @@ export const CustomerPointDataTable = memo(
         {
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
+          disabled: () => !customerPointsVisible,
           onSelect: (selection, sortedRows, originRowIndex) => {
             if (isMultiCpSelectionOn) {
               const ids = getCpIdsFromRange(
@@ -332,6 +337,7 @@ export const CustomerPointDataTable = memo(
         isEditionBlocked,
         deleteAction,
         userTracking,
+        customerPointsVisible,
       ],
     );
 
