@@ -1,4 +1,4 @@
-import { Locale, getLocale, symbols } from "@epanet-js/i18n";
+import { Locale, getLocale, symbols } from "@epanet-js/i18n/locale";
 
 const maxDecimals = 6;
 const scientificThresholds = {

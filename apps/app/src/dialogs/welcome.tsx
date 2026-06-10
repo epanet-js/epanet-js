@@ -6,7 +6,7 @@ import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
-import { languageConfig } from "@epanet-js/i18n";
+import { languageConfig } from "@epanet-js/i18n/locale";
 import { useLocale, LocaleProvider } from "src/hooks/use-locale";
 import {
   helpCenterUrl,

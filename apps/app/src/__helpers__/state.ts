@@ -41,7 +41,7 @@ import {
 } from "src/map/symbology/range-color-rule";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { LabelRule } from "src/map/symbology/symbology-types";
-import { Locale } from "@epanet-js/i18n";
+import { Locale } from "@epanet-js/i18n/locale";
 import { localeAtom } from "src/state/locale";
 import { branchStateAtom } from "src/state/branch-state";
 import { LabelManager } from "@epanet-js/hydraulic-model";

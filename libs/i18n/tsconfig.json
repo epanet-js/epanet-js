@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "locale.ts"]
 }

@@ -26,6 +26,15 @@ The lib is generic. Each app supplies the app-specific pieces:
 - an optional error handler for failed/timed-out language changes,
 - optional translation overrides.
 
+## Entry points
+
+- `@epanet-js/i18n` — the full API (hooks, provider, init factory, locale primitives).
+- `@epanet-js/i18n/locale` — **react-free** subpath exposing only the locale
+  primitives (`Locale`, `symbols`, `getLocale`, `languageConfig`,
+  `allSupportedLanguages`). Import from here in non-React / `node`-environment code
+  (e.g. number formatting) so it does not pull react-i18next or the HTTP backend into
+  its module graph.
+
 ## Public API
 
 ```ts

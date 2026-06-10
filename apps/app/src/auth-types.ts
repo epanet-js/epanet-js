@@ -1,5 +1,5 @@
 import { Plan } from "src/lib/account-plans";
-import { Locale } from "@epanet-js/i18n";
+import { Locale } from "@epanet-js/i18n/locale";
 
 export type User = {
   id: string | null;
