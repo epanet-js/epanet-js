@@ -26,6 +26,7 @@ export function useAsyncCompute<Args extends readonly unknown[], T>(
 
   // Stabilize `args` reference by element-wise identity so reference
   // equality can be used as the cache key.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableArgs = useMemo(() => args, args);
   const computedArgsRef = useRef<Args | null>(null);
 
