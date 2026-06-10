@@ -1,5 +1,5 @@
 import React from "react";
-import { Locale, languageConfig } from "src/infra/i18n/locale";
+import { Locale, languageConfig } from "@epanet-js/i18n";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button, DDContent, StyledItem } from "./elements";

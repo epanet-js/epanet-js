@@ -1,4 +1,4 @@
-import { Locale, getLocale, symbols } from "./locale";
+import { Locale, getLocale, symbols } from "@epanet-js/i18n";
 
 export const parseLocaleNumber = (
   numberString: string,

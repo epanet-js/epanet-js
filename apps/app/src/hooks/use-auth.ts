@@ -6,7 +6,7 @@ import {
 import { isAuthEnabled } from "src/global-config";
 import { nullUser, User } from "src/auth-types";
 import { Plan } from "src/lib/account-plans";
-import { allSupportedLanguages, Locale } from "src/infra/i18n/locale";
+import { allSupportedLanguages, Locale } from "@epanet-js/i18n";
 
 export type UseAuthHook = () => {
   isLoaded: boolean;

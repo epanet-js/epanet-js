@@ -6,7 +6,7 @@ import {
 } from "@clerk/nextjs";
 import { captureWarning } from "src/infra/error-tracking";
 import { enUS, esES } from "@clerk/localizations";
-import { getLocale } from "src/infra/i18n/locale";
+import { getLocale } from "@epanet-js/i18n";
 import { isAuthEnabled } from "src/global-config";
 
 const ActivateOrganization = () => {

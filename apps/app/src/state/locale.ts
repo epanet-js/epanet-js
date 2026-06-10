@@ -1,5 +1,5 @@
 import { atomWithStorage } from "jotai/utils";
-import { Locale, allSupportedLanguages } from "src/infra/i18n/locale";
+import { Locale, allSupportedLanguages } from "@epanet-js/i18n";
 
 const getInitialLocale = (): Locale => {
   if (typeof window === "undefined") return "en";
