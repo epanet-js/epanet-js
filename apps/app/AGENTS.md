@@ -28,7 +28,9 @@ This is the epanet-js application. The guidance is split in two:
 ## Workspace libraries
 
 This app depends on separate workspace packages (e.g. `@epanet-js/ejsdb`, the
-persistence / on-disk file-format layer). Each owns its own rules — read the
-`AGENTS.md` in that package before changing it. In particular, changing a table,
-column, schema, or persisted JSON shape in the persistence layer is a
+persistence / on-disk file-format layer, and `@epanet-js/i18n`, the shared i18n
+machinery this app and the model builder both consume — see
+[translation.md](./guidelines/translation.md)). Each owns its own rules — read the
+`AGENTS.md` or README in that package before changing it. In particular, changing a
+table, column, schema, or persisted JSON shape in the persistence layer is a
 **file-format change** that can corrupt saved project files.

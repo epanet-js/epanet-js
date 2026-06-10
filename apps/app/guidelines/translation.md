@@ -14,9 +14,9 @@ const NewFeatureComponent = () => {
   
   return (
     <div>
-      <h2>Water Quality Analysis</h2>  {/* Hardcoded English for UI validation */}
+      <h2>Water quality analysis</h2>  {/* Hardcoded English for UI validation */}
       <p>Configure your analysis parameters below.</p>
-      <button>Run Analysis</button>
+      <button>Run analysis</button>
     </div>
   );
 };
@@ -38,9 +38,9 @@ Add new keys to `/public/locales/en/translation.json`:
 ```json
 {
   "waterQualityAnalysis": {
-    "title": "Water Quality Analysis",
+    "title": "Water quality analysis",
     "description": "Configure your analysis parameters below.",
-    "runButton": "Run Analysis"
+    "runButton": "Run analysis"
   }
 }
 ```
@@ -69,6 +69,14 @@ const NewFeatureComponent = () => {
 - CDN serves translations from: `https://epanet-js.github.io/epanet-js-locales/`
 
 ## Translation System Integration
+
+The i18n machinery lives in the shared **`@epanet-js/i18n`** workspace lib
+(`createI18n`, `LocaleProvider` / `useLocale`, `useTranslate`, and the locale
+primitives via the react-free subpath `@epanet-js/i18n/locale`). This app consumes
+it through thin shims at `src/hooks/use-translate` and `src/hooks/use-locale`. The
+model-builder utility app is a second consumer with its own bundled English file
+(English only for now). Only the machinery is shared — each app keeps its own
+English translation file and backend load path.
 
 ### Core Hooks
 
@@ -111,10 +119,10 @@ Use nested structure for logical organization:
   },
   "dialogs": {
     "importWizard": {
-      "title": "Import Network",
+      "title": "Import network",
       "steps": {
-        "selectFile": "Select File",
-        "preview": "Preview Data"
+        "selectFile": "Select file",
+        "preview": "Preview data"
       }
     }
   },
@@ -126,6 +134,23 @@ Use nested structure for logical organization:
 }
 ```
 
+### Copy Style (Casing)
+
+Write UI copy in **sentence case** — capitalise only the first word. Keep
+capitalised:
+
+- **Proper nouns / acronyms:** EPANET, GIS, Mapbox, GeoJSON, Shapefile, INP, and
+  named formulas (Hazen-Williams, Darcy-Weisbach, Chezy-Manning).
+- **Asset / entity names:** Junction, Pipe, Reservoir, Tank, Valve, Pump.
+- **Unit labels:** as written (e.g. `CFS (cu foot/sec)`).
+
+```json
+{ "title": "Map attributes", "build": "Build model", "preview": "Data preview" }
+```
+
+Not `"Map Attributes"` / `"Build Model"` / `"Data Preview"`. Note `"Junction"` and
+`"Pipe"` above stay capitalised — they are asset names, not prose.
+
 ## Number and Unit Localization
 
 ### Locale-Specific Number Formatting
@@ -133,7 +158,7 @@ Use nested structure for logical organization:
 Different locales use different decimal and group separators:
 
 ```typescript
-// Defined in src/infra/i18n/locale.ts
+// Defined in @epanet-js/i18n (import from "@epanet-js/i18n/locale")
 const symbols = {
   es: { decimals: ",", groups: "." },  // 1.234,56
   en: { decimals: ".", groups: "," },  // 1,234.56
@@ -189,7 +214,7 @@ describe("New Feature Component", () => {
 
     it("shows hardcoded text during development", () => {
       render(<NewFeatureComponent />);
-      expect(screen.getByText("Water Quality Analysis")).toBeInTheDocument();
+      expect(screen.getByText("Water quality analysis")).toBeInTheDocument();
     });
 
     it("shows translated text when keys applied", () => {
