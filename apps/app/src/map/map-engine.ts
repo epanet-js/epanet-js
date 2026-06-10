@@ -354,9 +354,11 @@ export class MapEngine {
     y: number;
     radius?: number;
   }) {
+    // pickObjects treats x,y as the top-left corner of the search box, so
+    // shift the origin up-left by `radius` to center the box on the cursor.
     return this.overlay.pickObjects({
-      x,
-      y,
+      x: x - radius,
+      y: y - radius,
       width: radius * 2,
       height: radius * 2,
     });
