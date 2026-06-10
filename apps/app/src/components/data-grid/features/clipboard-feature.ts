@@ -4,6 +4,7 @@ import type {
   Table,
   TableFeature,
 } from "@tanstack/react-table";
+import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
@@ -33,6 +34,7 @@ declare module "@tanstack/react-table" {
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
     onDataChange?: (data: TData[]) => void;
+    patchRow?: PatchRowFn;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -68,19 +70,12 @@ export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
-    // Selection row indices are visual (positions within the sorted row model).
-    // Translate to data-array indices when reading from / writing to `data`.
-    const visualToDataIndex = (visualRow: number): number => {
-      const rows = table.getRowModel().rows;
-      return rows[visualRow]?.index ?? visualRow;
-    };
-
     const writeSelectionToClipboard = async (includeHeaders: boolean) => {
       const selection = table.getSelection?.();
       if (!selection) return;
 
       const columns = table.getVisibleLeafColumns();
-      const data = getData();
+      const rowModel = table.getRowModel();
       const rows: string[] = [];
 
       if (includeHeaders) {
@@ -100,7 +95,7 @@ export const ClipboardFeature: TableFeature = {
         visualRow <= selection.max.row;
         visualRow++
       ) {
-        const row = data[visualToDataIndex(visualRow)];
+        const tableRow = rowModel.rows[visualRow];
         const cells: string[] = [];
 
         for (
@@ -109,12 +104,14 @@ export const ClipboardFeature: TableFeature = {
           colIndex++
         ) {
           const column = columns[colIndex];
-          if (!column) {
+          if (!column || !tableRow) {
             cells.push("");
             continue;
           }
 
-          const value = (row as Record<string, unknown>)[column.id];
+          // Read through the row model so computed `accessorFn` columns resolve
+          // correctly (reading `row.original[column.id]` would miss them).
+          const value = tableRow.getValue(column.id);
           cells.push(column.getCopyValue(value));
         }
 
@@ -214,14 +211,14 @@ export const ClipboardFeature: TableFeature = {
         }
       }
 
+      const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
+
       for (let i = 0; i < targetRows; i++) {
         const dataIdx = dataIndices[i];
         const clipboardRow = clipboardRows[i % pasteRows] ?? [];
-        const existing = newData[dataIdx];
-        const newRow: Record<string, unknown> = existing
-          ? { ...(existing as Record<string, unknown>) }
-          : (createRow() as Record<string, unknown>);
+        const existing = newData[dataIdx] ?? createRow();
 
+        const patches: Record<string, unknown> = {};
         for (let j = 0; j < targetCols; j++) {
           const colIndex = selection.min.col + j;
           if (colIndex >= columns.length) break;
@@ -230,10 +227,10 @@ export const ClipboardFeature: TableFeature = {
           if (!column || column.isReadOnly(dataIdx)) continue;
 
           const cellText = clipboardRow[j % clipboardRow.length] ?? "";
-          newRow[column.id] = column.getPasteValue(cellText);
+          patches[column.id] = column.getPasteValue(cellText);
         }
 
-        newData[dataIdx] = newRow as TData;
+        newData[dataIdx] = patchRow(existing, patches);
       }
 
       onDataChange(newData);

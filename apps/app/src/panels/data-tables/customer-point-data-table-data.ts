@@ -19,6 +19,58 @@ export type CustomerPointRow = {
   avgDemand: number;
 };
 
+/**
+ * Context captured by the lazy customer-point accessors (flag path). Read on
+ * demand inside `accessorFn`, so the columns are rebuilt when these change.
+ */
+export type CpAccessorCtx = {
+  model: HydraulicModel;
+  units: UnitsSpec;
+};
+
+// Every customer-point column except `label` is computed/converted from the
+// model; `label` is a direct own property read via `accessorKey`.
+const CP_COMPUTED_KEYS = new Set<keyof CustomerPointRow>([
+  "connectedPipeLabel",
+  "connectedJunctionLabel",
+  "baseDemand",
+  "avgDemand",
+  "demandsCount",
+  "patternId",
+]);
+
+export function isCpComputedKey(key: string): boolean {
+  return CP_COMPUTED_KEYS.has(key as keyof CustomerPointRow);
+}
+
+/**
+ * Returns an `accessorFn` that lazily computes a single computed customer-point
+ * column for a model-object row. Reuses `buildCustomerPointRow` and picks the
+ * requested field; invoked only for rendered rows + the sorted column.
+ */
+export function cpAccessor(
+  key: keyof CustomerPointRow,
+  ctx: CpAccessorCtx,
+): (row: CustomerPointRow) => unknown {
+  return (row) => {
+    const built = buildCustomerPointRow(row.id, ctx.model, ctx.units);
+    return built ? built[key] : null;
+  };
+}
+
+/**
+ * Flag path: the grid rows ARE the CustomerPoint objects (no flat-row build).
+ */
+export function buildCustomerPointModelRows(
+  hydraulicModel: HydraulicModel,
+): CustomerPointRow[] {
+  const rows: CustomerPointRow[] = [];
+  for (const cp of hydraulicModel.customerPoints.values()) {
+    rows.push(cp as unknown as CustomerPointRow);
+  }
+  return rows;
+}
+
 const CHUNK_SIZE = 200;
 
 function yieldToMain(): Promise<void> {

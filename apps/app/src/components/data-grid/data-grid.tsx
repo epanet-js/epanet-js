@@ -33,6 +33,7 @@ import {
 } from "./features";
 import type { CellPosition } from "./types";
 import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
+import { defaultPatchRow, type PatchRowFn } from "./utils/patch-row";
 
 export type DataGridRef = {
   selectCells: (options?: {
@@ -71,6 +72,12 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onPaste?: (info: ClipboardPasteInfo) => void;
   onDelete?: (rowsToDelete: TData[]) => void;
   pinnedColumns?: { left?: string[] };
+  /**
+   * Strategy for applying a cell edit to a row. Defaults to a shallow spread
+   * (`defaultPatchRow`). Pass `patchModelRow` when `data` holds model objects
+   * whose attributes are behind prototype getters.
+   */
+  patchRow?: PatchRowFn;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -102,6 +109,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onPaste,
     onDelete,
     pinnedColumns,
+    patchRow,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -109,6 +117,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const rowsRef = useRef<GridRef>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
+  const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
 
   const table = useReactTable<TData>({
     data,
@@ -132,6 +141,7 @@ export const DataGrid = forwardRef(function DataGrid<
     autoExtendOnPaste: autoAddNewRows,
     onClipboardCopy: onCopy,
     onClipboardPaste: onPaste,
+    patchRow: patchRowFn,
     // Column sizing options
     defaultColumn: {
       minSize: minColumnSizePx,
@@ -334,14 +344,14 @@ export const DataGrid = forwardRef(function DataGrid<
     (rowIndex: number, columnId: string, value: unknown) => {
       const newData = dataRef.current.map((row, idx) => {
         if (idx === rowIndex) {
-          return { ...row, [columnId]: value };
+          return patchRowFn(row, { [columnId]: value });
         }
         return row;
       });
       dataRef.current = newData;
       onChange(newData);
     },
-    [onChange],
+    [onChange, patchRowFn],
   );
 
   const handleFocus = useCallback(

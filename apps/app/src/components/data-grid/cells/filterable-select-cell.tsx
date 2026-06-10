@@ -8,12 +8,13 @@ import React, {
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { Row, RowData } from "@tanstack/react-table";
 import {
   SelectorList,
   SelectorListOption,
 } from "src/components/form/selector-list";
 import { CellProps, GridColumn } from "../types";
+import { type ColumnKey, resolveColumnKey } from "./column-key";
 
 export type FilterableSelectOption<
   T extends string | number | boolean = string,
@@ -201,7 +202,7 @@ export function filterableSelectColumn<
   T extends string | number | boolean = string,
   TData extends RowData = RowData,
 >(
-  accessorKey: Extract<keyof TData, string> & string,
+  key: ColumnKey<TData, T | null>,
   options: {
     header: string;
     size?: number;
@@ -223,11 +224,11 @@ export function filterableSelectColumn<
       ? options.isReadOnly(rowIndex)
       : (options.isReadOnly ?? false);
 
-  const column: ColumnDef<TData, T | null> = {
-    accessorKey,
+  const column = {
+    ...resolveColumnKey(key),
     header: options.header,
     size: options.size,
-    sortingFn: (rowA, rowB, columnId) => {
+    sortingFn: (rowA: Row<TData>, rowB: Row<TData>, columnId: string) => {
       const aVal = rowA.getValue(columnId);
       const bVal = rowB.getValue(columnId);
       const aLabel =
@@ -241,11 +242,11 @@ export function filterableSelectColumn<
     meta: {
       autoSizeExtraWidth: 32,
       placeholder: options.placeholder,
-      copyValue: (v) => {
+      copyValue: (v: T | null) => {
         const match = options.options.find((opt) => opt.value === v);
         return match?.label ?? "";
       },
-      pasteValue: (v) => {
+      pasteValue: (v: string) => {
         const match = options.options.find(
           (opt) =>
             opt.enabled !== false &&

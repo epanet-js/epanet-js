@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import clsx from "clsx";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { Row, RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
+import { type ColumnKey, resolveColumnKey } from "./column-key";
 
 export function BooleanCell({
   value,
@@ -69,7 +70,7 @@ export function BooleanCell({
 }
 
 export function booleanColumn<TData extends RowData = RowData>(
-  accessorKey: Extract<keyof TData, string> & string,
+  key: ColumnKey<TData, boolean | null>,
   options: {
     header: string;
     size?: number;
@@ -81,11 +82,11 @@ export function booleanColumn<TData extends RowData = RowData>(
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
-  const column: ColumnDef<TData, boolean | null> = {
-    accessorKey,
+  const column = {
+    ...resolveColumnKey(key),
     header: options.header,
     size: options.size,
-    sortingFn: (rowA, rowB, columnId) => {
+    sortingFn: (rowA: Row<TData>, rowB: Row<TData>, columnId: string) => {
       const a = rowA.getValue(columnId) ? 1 : 0;
       const b = rowB.getValue(columnId) ? 1 : 0;
       return a - b;
@@ -97,8 +98,9 @@ export function booleanColumn<TData extends RowData = RowData>(
           readOnly={resolveReadOnly(props.rowIndex) || props.readOnly}
         />
       ),
-      copyValue: (v) => (v === true ? "TRUE" : v === false ? "FALSE" : ""),
-      pasteValue: (v) => {
+      copyValue: (v: boolean | null) =>
+        v === true ? "TRUE" : v === false ? "FALSE" : "",
+      pasteValue: (v: string) => {
         const lower = v.toLowerCase();
         if (lower === "true") return true;
         if (lower === "false") return false;

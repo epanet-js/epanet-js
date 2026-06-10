@@ -21,6 +21,88 @@ import { ResultsReader } from "src/simulation";
 
 export type AssetRow = Record<string, unknown> & { id: AssetId };
 
+/**
+ * Context captured by the lazy asset accessors (flag path). The model snapshot
+ * is read on demand inside `accessorFn`, so the column defs must be rebuilt when
+ * any of these change.
+ */
+export type AssetAccessorCtx = {
+  model: HydraulicModel;
+  simulation: ResultsReader | null;
+  translate: TranslateFn;
+};
+
+// Columns whose value is NOT a direct attribute of the asset object and must be
+// computed from the model/simulation. Everything else is read straight off the
+// model object via `accessorKey` (a prototype getter). `sim_*` columns are always
+// computed and handled separately.
+const ASSET_COMPUTED_KEYS: Record<AssetType, Set<string>> = {
+  junction: new Set([
+    "avgDemand",
+    "demandsCount",
+    "baseDemand",
+    "patternId",
+    "customerPointCount",
+    "avgCustomerDemand",
+  ]),
+  pipe: new Set([
+    "startNode",
+    "endNode",
+    "customerDemand",
+    "customerPointCount",
+  ]),
+  pump: new Set(["startNode", "endNode"]),
+  valve: new Set(["startNode", "endNode"]),
+  reservoir: new Set<string>([]),
+  tank: new Set(["minLevel", "maxLevel", "minVolume", "maxVolume"]),
+};
+
+export function isAssetComputedKey(type: AssetType, key: string): boolean {
+  return key.startsWith("sim_") || ASSET_COMPUTED_KEYS[type].has(key);
+}
+
+/**
+ * Returns an `accessorFn` that lazily computes a single computed column for a
+ * model-object row. Only invoked for rendered rows (and the sorted column), so
+ * the heavy per-cell work is no longer paid eagerly for every row.
+ */
+export function assetAccessor(
+  type: AssetType,
+  key: string,
+  ctx: AssetAccessorCtx,
+): (row: AssetRow) => unknown {
+  return (row) => {
+    const id = row.id;
+    if (key.startsWith("sim_")) {
+      if (!ctx.simulation) return null;
+      const simRow = buildSimRow(type, id, ctx.simulation, ctx.translate);
+      return simRow[key] ?? null;
+    }
+    const computed = buildComputedFields(type, id, ctx.model);
+    if (key in computed) return computed[key];
+    // Tank level/volume columns fall back to the asset's own value when there
+    // is no volume curve (buildComputedFields returns {} in that case).
+    const asset = ctx.model.assets.get(id);
+    return asset ? (asset as unknown as Record<string, unknown>)[key] : null;
+  };
+}
+
+/**
+ * Flag path: the grid rows ARE the model objects (no flat-row allocation or
+ * computation). Cast to AssetRow so the existing column/grid types apply; values
+ * are read lazily via `accessorKey` getters / computed `accessorFn`s.
+ */
+export function buildAssetModelRows(
+  assetType: AssetType,
+  hydraulicModel: HydraulicModel,
+): AssetRow[] {
+  const rows: AssetRow[] = [];
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === assetType) rows.push(asset as unknown as AssetRow);
+  }
+  return rows;
+}
+
 const CHUNK_SIZE = 200;
 
 function yieldToMain(): Promise<void> {

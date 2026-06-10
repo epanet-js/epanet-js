@@ -5,8 +5,9 @@ import {
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
+import { type ColumnKey, resolveColumnKey } from "./column-key";
 import { useEditableTextInput } from "./use-editable-text-input";
 
 function formatLocaleNumber(
@@ -146,7 +147,7 @@ export function FloatCell({
 }
 
 export function floatColumn<TData extends RowData = RowData>(
-  accessorKey: Extract<keyof TData, string> & string,
+  key: ColumnKey<TData, number | null>,
   options: {
     header: string;
     size?: number;
@@ -180,14 +181,14 @@ export function floatColumn<TData extends RowData = RowData>(
         )
       : FloatCell;
 
-  const column: ColumnDef<TData, number | null> = {
-    accessorKey,
+  const column = {
+    ...resolveColumnKey(key),
     header: options.header,
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v) => formatLocaleNumber(v, decimals),
-      pasteValue: (v) => parseNumericInput(v) ?? nullValue ?? null,
+      copyValue: (v: number | null) => formatLocaleNumber(v, decimals),
+      pasteValue: (v: string) => parseNumericInput(v) ?? nullValue ?? null,
       deleteValue: options.deleteValue ?? null,
       placeholder,
       isReadOnly: readonly,

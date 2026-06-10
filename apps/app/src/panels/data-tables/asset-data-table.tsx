@@ -40,6 +40,7 @@ import {
   type GutterContextAction,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
+  patchModelRow,
 } from "src/components/data-grid";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
 import { useDeleteAssets } from "src/commands/delete-assets";
@@ -52,7 +53,13 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { type AssetRow, buildRowsAsync } from "./data";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  type AssetRow,
+  type AssetAccessorCtx,
+  buildRowsAsync,
+  buildAssetModelRows,
+} from "./data";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import {
   buildColumns,
@@ -78,6 +85,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();
+  const isPerfOn = useFeatureFlag("FLAG_DATA_TABLES_PERFORMANCE");
   const selectAssetsInApp = useSelectAssetsInApp();
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
@@ -117,7 +125,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     return "none";
   }, [simulation, assetType, assetIds]);
 
-  const [rows, setRows] = useState<AssetRow[] | null>(null);
+  const [legacyRows, setLegacyRows] = useState<AssetRow[] | null>(null);
+  const modelRows = useMemo(
+    () => (isPerfOn ? buildAssetModelRows(assetType, hydraulicModel) : null),
+    [isPerfOn, assetType, hydraulicModel],
+  );
+  const rows = isPerfOn ? modelRows : legacyRows;
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
 
@@ -130,6 +143,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       assetType === "pipe" ? listPipeMaterials(hydraulicModel.assets) : [],
     [assetType, hydraulicModel.assets],
   );
+  const accessorCtx = useMemo<AssetAccessorCtx | undefined>(
+    () =>
+      isPerfOn ? { model: hydraulicModel, simulation, translate } : undefined,
+    [isPerfOn, hydraulicModel, simulation, translate],
+  );
+
   const columns = useMemo(() => {
     const validateLabel = (label: string, rowIndex: number) => {
       const assetId = rowsRef.current?.[rowIndex]?.id;
@@ -158,6 +177,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       qualityType,
       validateLabel,
       getRow,
+      accessorCtx,
     );
   }, [
     assetType,
@@ -174,10 +194,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     translate,
     translateUnit,
     units,
+    accessorCtx,
   ]);
 
   useEffect(
     function computeRows() {
+      if (isPerfOn) return;
       const controller = new AbortController();
 
       void buildRowsAsync(
@@ -188,12 +210,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         translate,
         controller.signal,
       ).then((result) => {
-        if (!controller.signal.aborted) setRows(result);
+        if (!controller.signal.aborted) setLegacyRows(result);
       });
 
       return () => controller.abort();
     },
-    [assetType, assetIds, hydraulicModel, simulation, translate],
+    [isPerfOn, assetType, assetIds, hydraulicModel, simulation, translate],
   );
 
   const onChange = useCallback(
@@ -220,9 +242,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               assetId,
             );
             const rest = existing.slice(1);
-            const nextBaseDemand = (newRow.baseDemand as number | null) ?? 0;
-            const nextPatternId =
-              (newRow.patternId as number | null) ?? undefined;
+            // Read the unedited field from the model so editing one of
+            // base demand / pattern preserves the other (model-object rows
+            // don't carry the computed value of the field that wasn't edited).
+            const nextBaseDemand = baseDemandChanged
+              ? ((newRow.baseDemand as number | null) ?? 0)
+              : (existing[0]?.baseDemand ?? 0);
+            const nextPatternId = patternIdChanged
+              ? ((newRow.patternId as number | null) ?? undefined)
+              : (existing[0]?.patternId ?? undefined);
             const isEmptyDefault =
               nextBaseDemand === 0 && nextPatternId === undefined;
             const newDemands =
@@ -552,6 +580,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           onChange={onChange}
           createRow={() => ({}) as AssetRow}
           getRowId={(row) => String(row.id)}
+          patchRow={isPerfOn ? patchModelRow : undefined}
           gutterColumn="selection"
           resizable
           sortable

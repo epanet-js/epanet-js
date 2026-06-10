@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useRef } from "react";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
+import { type ColumnKey, resolveColumnKey } from "./column-key";
 import { useEditableTextInput } from "./use-editable-text-input";
 
 const VALIDATION_DEBOUNCE_MS = 150;
@@ -116,7 +117,7 @@ export function TextCell({
 }
 
 export function textColumn<TData extends RowData = RowData>(
-  accessorKey: Extract<keyof TData, string> & string,
+  key: ColumnKey<TData, string | null>,
   options: {
     header: string;
     size?: number;
@@ -143,14 +144,14 @@ export function textColumn<TData extends RowData = RowData>(
         )
       : TextCell;
 
-  const column: ColumnDef<TData, string | null> = {
-    accessorKey,
+  const column = {
+    ...resolveColumnKey(key),
     header: options.header,
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v) => v ?? "",
-      pasteValue: (v) => {
+      copyValue: (v: string | null) => v ?? "",
+      pasteValue: (v: string) => {
         if (!v) return null;
         const cleaned = cleanLabel ? cleanLabel(v) : v;
         return cleaned || null;

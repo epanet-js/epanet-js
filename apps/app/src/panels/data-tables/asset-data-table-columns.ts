@@ -5,6 +5,7 @@ import {
   filterableSelectColumn,
   textColumn,
   type GridColumn,
+  type ColumnKey,
 } from "src/components/data-grid";
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
@@ -34,7 +35,34 @@ import type {
   FormattingSpec,
   QuantityProperty,
 } from "src/lib/project-settings/quantities-spec";
-import type { AssetRow } from "./data";
+import {
+  type AssetRow,
+  type AssetAccessorCtx,
+  assetAccessor,
+  isAssetComputedKey,
+} from "./data";
+
+/**
+ * Resolves a column key to either a plain `accessorKey` (legacy, or a direct
+ * attribute read off the model object) or `{ id, accessorFn }` for computed
+ * columns when the lazy-accessor context is present (FLAG_DATA_TABLES_PERFORMANCE).
+ * The resulting `column.id` stays the flat field name in both cases.
+ */
+function makeCk(type: AssetType, accessorCtx?: AssetAccessorCtx) {
+  return (key: string): ColumnKey<AssetRow, never> => {
+    if (accessorCtx && isAssetComputedKey(type, key)) {
+      return {
+        id: key,
+        accessorFn: assetAccessor(type, key, accessorCtx) as (
+          row: AssetRow,
+        ) => never,
+      };
+    }
+    return key;
+  };
+}
+
+type Ck = ReturnType<typeof makeCk>;
 
 export const EDITABLE_SELECT_KEYS: Record<AssetType, string[]> = {
   junction: ["chemicalSourceType", "chemicalSourcePatternId"],
@@ -117,6 +145,7 @@ function makeSimColHelpers(
   translateUnit: TranslateUnitFn,
   formatting: FormattingSpec,
   qualityType: QualityAnalysisType,
+  ck: Ck,
 ) {
   const headerLabel = (
     name: string,
@@ -131,7 +160,7 @@ function makeSimColHelpers(
     unit: Parameters<TranslateUnitFn>[0],
     property?: QuantityProperty,
   ): GridColumn<AssetRow> =>
-    floatColumn(key, {
+    floatColumn(ck(key), {
       header: headerLabel(name, unit),
       decimals:
         property != null
@@ -140,7 +169,7 @@ function makeSimColHelpers(
       isReadOnly: true,
     });
   const simTextValue = (key: string, name: string): GridColumn<AssetRow> =>
-    textColumn(key, { header: name, isReadOnly: true });
+    textColumn(ck(key), { header: name, isReadOnly: true });
   const qualityCols = (): GridColumn<AssetRow>[] => {
     if (qualityType === "age")
       return [
@@ -175,6 +204,7 @@ function makeSimColHelpers(
 }
 
 function buildSimColumns(
+  ck: Ck,
   ...[
     type,
     translate,
@@ -190,6 +220,7 @@ function buildSimColumns(
     translateUnit,
     formatting,
     qualityType,
+    ck,
   );
 
   const pressureStatsCols = (): GridColumn<AssetRow>[] => [
@@ -370,6 +401,7 @@ type BuildColumnsArgs = [
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
+  accessorCtx?: AssetAccessorCtx,
 ];
 
 type ExtraPipeColsFn = (
@@ -441,7 +473,9 @@ function _buildColumns(
   qualityType: QualityAnalysisType,
   validateLabel?: (label: string, rowIndex: number) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
+  accessorCtx?: AssetAccessorCtx,
 ): GridColumn<AssetRow>[] {
+  const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
   const energyGlobalPrice = simulationSettings.energyGlobalPrice;
   const energyGlobalEfficiency = simulationSettings.energyGlobalEfficiency;
@@ -465,7 +499,7 @@ function _buildColumns(
     isReadOnly?: (rowIndex: number) => boolean,
     placeholder?: string,
   ): GridColumn<AssetRow> =>
-    floatColumn(key, {
+    floatColumn(ck(key), {
       header: headerLabel(name, unit),
       decimals:
         property != null
@@ -480,7 +514,8 @@ function _buildColumns(
     key: string,
     name: string,
     isReadOnly = false,
-  ): GridColumn<AssetRow> => booleanColumn(key, { header: name, isReadOnly });
+  ): GridColumn<AssetRow> =>
+    booleanColumn(ck(key), { header: name, isReadOnly });
 
   const patternOpts = (filterType: PatternType, excludeId?: PatternId) =>
     [...patterns.values()]
@@ -508,7 +543,7 @@ function _buildColumns(
     isReadOnly?: (rowIndex: number) => boolean,
     excludeId?: PatternId,
   ): GridColumn<AssetRow> =>
-    filterableSelectColumn(key, {
+    filterableSelectColumn(ck(key), {
       header: name,
       options: patternOpts(filterType, excludeId),
       placeholder,
@@ -524,7 +559,7 @@ function _buildColumns(
     placeholder?: string,
     isReadOnly?: (rowIndex: number) => boolean,
   ): GridColumn<AssetRow> =>
-    filterableSelectColumn(key, {
+    filterableSelectColumn(ck(key), {
       header: name,
       options: curveOpts(filterType),
       placeholder: placeholder ?? translate("none"),
@@ -567,6 +602,7 @@ function _buildColumns(
 
   const simCols = hasSimulation
     ? buildSimColumns(
+        ck,
         type,
         translate,
         units,
@@ -597,28 +633,28 @@ function _buildColumns(
           units.emitterCoefficient,
           "emitterCoefficient",
         ),
-        floatColumn("avgDemand", {
+        floatColumn(ck("avgDemand"), {
           header: headerLabel(translate("directDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
         }),
-        integerColumn("demandsCount", {
+        integerColumn(ck("demandsCount"), {
           header: translate("demandsCount"),
           isReadOnly: true,
         }),
-        floatColumn("baseDemand", {
+        floatColumn(ck("baseDemand"), {
           header: headerLabel(translate("baseDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
           nullValue: 0,
           deleteValue: 0,
         }),
         patternCol("patternId", translate("timePattern"), "demand"),
-        floatColumn("customerPointCount", {
+        floatColumn(ck("customerPointCount"), {
           header: translate("connectedCustomers"),
           decimals: 0,
           isReadOnly: true,
         }),
-        floatColumn("avgCustomerDemand", {
+        floatColumn(ck("avgCustomerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
@@ -635,11 +671,11 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
-        textColumn("startNode", {
+        textColumn(ck("startNode"), {
           header: translate("startNode"),
           isReadOnly: true,
         }),
-        textColumn("endNode", {
+        textColumn(ck("endNode"), {
           header: translate("endNode"),
           isReadOnly: true,
         }),
@@ -665,12 +701,12 @@ function _buildColumns(
           "minorLoss",
         ),
         ...buildExtraPipeCols(translate, formatting),
-        floatColumn("customerDemand", {
+        floatColumn(ck("customerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
         }),
-        floatColumn("customerPointCount", {
+        floatColumn(ck("customerPointCount"), {
           header: translate("connectedCustomers"),
           decimals: 0,
           isReadOnly: true,
@@ -697,11 +733,11 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
-        textColumn("startNode", {
+        textColumn(ck("startNode"), {
           header: translate("startNode"),
           isReadOnly: true,
         }),
-        textColumn("endNode", {
+        textColumn(ck("endNode"), {
           header: translate("endNode"),
           isReadOnly: true,
         }),
@@ -777,11 +813,11 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled")),
-        textColumn("startNode", {
+        textColumn(ck("startNode"), {
           header: translate("startNode"),
           isReadOnly: true,
         }),
-        textColumn("endNode", {
+        textColumn(ck("endNode"), {
           header: translate("endNode"),
           isReadOnly: true,
         }),
@@ -892,7 +928,7 @@ function _buildColumns(
           "minVolume",
           (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
         ),
-        floatColumn("maxVolume", {
+        floatColumn(ck("maxVolume"), {
           header: headerLabel(translate("maxVolume"), units.minVolume),
           decimals: getDecimals(formatting, "minVolume"),
           isReadOnly: true,

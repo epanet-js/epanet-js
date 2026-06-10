@@ -4,8 +4,9 @@ import {
   normalizeNumericInput,
   parseNumericInput,
 } from "src/components/form/numeric-input-utils";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { RowData } from "@tanstack/react-table";
 import { CellProps, GridColumn } from "../types";
+import { type ColumnKey, resolveColumnKey } from "./column-key";
 import { useEditableTextInput } from "./use-editable-text-input";
 
 function formatInteger(value: number | null | undefined): string {
@@ -127,7 +128,7 @@ export function IntegerCell({
 }
 
 export function integerColumn<TData extends RowData = RowData>(
-  accessorKey: Extract<keyof TData, string> & string,
+  key: ColumnKey<TData, number | null>,
   options: {
     header: string;
     size?: number;
@@ -158,14 +159,14 @@ export function integerColumn<TData extends RowData = RowData>(
         )
       : IntegerCell;
 
-  const column: ColumnDef<TData, number | null> = {
-    accessorKey,
+  const column = {
+    ...resolveColumnKey(key),
     header: options.header,
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v) => formatInteger(v),
-      pasteValue: (v) => {
+      copyValue: (v: number | null) => formatInteger(v),
+      pasteValue: (v: string) => {
         const parsed = parseNumericInput(v);
         if (parsed === null) return nullValue ?? null;
         return Math.trunc(parsed);

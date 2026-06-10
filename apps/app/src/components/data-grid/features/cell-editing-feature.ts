@@ -10,6 +10,7 @@ import {
   type TableFeature,
   type Updater,
 } from "@tanstack/react-table";
+import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
 
 export type CellPosition = { col: number; row: number };
 
@@ -225,11 +226,13 @@ function clearSelectedCells<TData extends RowData>(
     if (row) targetRows.set(row.original, i);
   }
 
+  const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
+
   return data.map((row) => {
     const visibleIndex = targetRows.get(row);
     if (visibleIndex === undefined) return row;
 
-    const newRow = { ...(row as object) } as Record<string, unknown>;
+    const patches: Record<string, unknown> = {};
     for (
       let colIndex = selection.min.col;
       colIndex <= selection.max.col;
@@ -244,8 +247,8 @@ function clearSelectedCells<TData extends RowData>(
       const deleteValue = column.getDeleteValue();
       const value =
         typeof deleteValue === "function" ? deleteValue() : deleteValue;
-      newRow[accessorKey] = value ?? null;
+      patches[accessorKey] = value ?? null;
     }
-    return newRow as TData;
+    return patchRow(row, patches);
   });
 }

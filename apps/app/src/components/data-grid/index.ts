@@ -15,6 +15,9 @@ export type {
   CellPosition,
 } from "./types";
 
+export type { ColumnKey } from "./cells/column-key";
+export { patchModelRow } from "./utils/patch-row";
+export type { PatchRowFn } from "./utils/patch-row";
 export { booleanColumn } from "./cells/boolean-cell";
 export { floatColumn } from "./cells/float-cell";
 export { integerColumn } from "./cells/integer-cell";

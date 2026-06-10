@@ -17,6 +17,7 @@ import {
   type GutterContextAction,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
+  patchModelRow,
 } from "src/components/data-grid";
 import { useSelectCustomerPointInApp } from "src/commands/select-customer-point-in-app";
 import { useSelectCustomerPointsInApp } from "src/commands/select-customer-points-in-app";
@@ -33,7 +34,9 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { RingSpinner } from "src/components/ring-spinner";
 import {
   buildCustomerPointRowsAsync,
+  buildCustomerPointModelRows,
   type CustomerPointRow,
+  type CpAccessorCtx,
 } from "./customer-point-data-table-data";
 import { buildCustomerPointColumns } from "./customer-point-data-table-columns";
 
@@ -52,10 +55,18 @@ export const CustomerPointDataTable = memo(
     const selectCustomerPointInApp = useSelectCustomerPointInApp();
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
     const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
+    const isPerfOn = useFeatureFlag("FLAG_DATA_TABLES_PERFORMANCE");
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
 
-    const [rows, setRows] = useState<CustomerPointRow[] | null>(null);
+    const [legacyRows, setLegacyRows] = useState<CustomerPointRow[] | null>(
+      null,
+    );
+    const modelRows = useMemo(
+      () => (isPerfOn ? buildCustomerPointModelRows(hydraulicModel) : null),
+      [isPerfOn, hydraulicModel],
+    );
+    const rows = isPerfOn ? modelRows : legacyRows;
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
 
@@ -68,6 +79,11 @@ export const CustomerPointDataTable = memo(
       }
       return options;
     }, [patterns]);
+
+    const accessorCtx = useMemo<CpAccessorCtx | undefined>(
+      () => (isPerfOn ? { model: hydraulicModel, units } : undefined),
+      [isPerfOn, hydraulicModel, units],
+    );
 
     const columns = useMemo(
       () =>
@@ -82,6 +98,7 @@ export const CustomerPointDataTable = memo(
             if (cpId === undefined) return true;
             return labelManager.isLabelAvailable(label, "customerPoint", cpId);
           },
+          accessorCtx,
         ),
       [
         translate,
@@ -90,11 +107,13 @@ export const CustomerPointDataTable = memo(
         formatting,
         patternOptions,
         labelManager,
+        accessorCtx,
       ],
     );
 
     useEffect(
       function computeRows() {
+        if (isPerfOn) return;
         const controller = new AbortController();
 
         void buildCustomerPointRowsAsync(
@@ -102,12 +121,12 @@ export const CustomerPointDataTable = memo(
           units,
           controller.signal,
         ).then((result) => {
-          if (!controller.signal.aborted) setRows(result);
+          if (!controller.signal.aborted) setLegacyRows(result);
         });
 
         return () => controller.abort();
       },
-      [hydraulicModel, units],
+      [isPerfOn, hydraulicModel, units],
     );
 
     const onChange = useCallback(
@@ -150,15 +169,21 @@ export const CustomerPointDataTable = memo(
               newRow.id,
             );
             const rest = existing.slice(1);
-            const nextBaseDemandPerDay = newRow.baseDemand ?? 0;
-            const nextBaseDemand = convertTo(
-              {
-                value: nextBaseDemandPerDay,
-                unit: units.customerDemandPerDay,
-              },
-              units.customerDemand,
-            );
-            const nextPatternId = newRow.patternId ?? undefined;
+            // Read the unedited field from the model so editing one of base
+            // demand / pattern preserves the other (model-object rows don't
+            // carry the computed value of the field that wasn't edited).
+            const nextBaseDemand = baseDemandChanged
+              ? convertTo(
+                  {
+                    value: newRow.baseDemand ?? 0,
+                    unit: units.customerDemandPerDay,
+                  },
+                  units.customerDemand,
+                )
+              : (existing[0]?.baseDemand ?? 0);
+            const nextPatternId = patternIdChanged
+              ? (newRow.patternId ?? undefined)
+              : (existing[0]?.patternId ?? undefined);
             const isEmptyDefault =
               nextBaseDemand === 0 && nextPatternId === undefined;
             const newDemands =
@@ -424,6 +449,7 @@ export const CustomerPointDataTable = memo(
             onChange={onChange}
             createRow={() => ({}) as CustomerPointRow}
             getRowId={(row) => String(row.id)}
+            patchRow={isPerfOn ? patchModelRow : undefined}
             gutterColumn="selection"
             resizable
             sortable
