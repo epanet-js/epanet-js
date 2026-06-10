@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { Provider as JotaiProvider } from "jotai";
 import { setInitialState, aMultiSelection } from "src/__helpers__/state";
 import {
@@ -21,7 +20,7 @@ vi.mock(
 );
 
 describe("AllocateCustomerPointsDialog", () => {
-  it("renders dialog with rules table", async () => {
+  it("renders dialog with diameter-based rules table", async () => {
     const store = setupWithDisconnectedCPs(2);
     renderDialog(store);
 
@@ -29,35 +28,11 @@ describe("AllocateCustomerPointsDialog", () => {
 
     expect(screen.getByText("Max diameter (mm)")).toBeInTheDocument();
     expect(screen.getByText("Max distance (m)")).toBeInTheDocument();
-    expect(screen.getByText("Order")).toBeInTheDocument();
   });
 
   it("automatically runs initial allocation on mount", async () => {
     const store = setupWithDisconnectedCPs(2);
     renderDialog(store);
-
-    await waitForAllocations();
-
-    expect(screen.getByText(/Allocation summary/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/customer points will be allocated/),
-    ).toBeInTheDocument();
-  });
-
-  it("updates allocation summary when rules are changed", async () => {
-    const user = userEvent.setup();
-    const store = setupWithDisconnectedCPs(2);
-    renderDialog(store);
-
-    await waitForAllocations();
-
-    await user.click(screen.getByRole("button", { name: /edit/i }));
-
-    const distanceField = screen.getByLabelText("Value for: Max distance");
-    await user.clear(distanceField);
-    await user.type(distanceField, "50");
-
-    await user.click(screen.getByRole("button", { name: /save/i }));
 
     await waitForAllocations();
 
