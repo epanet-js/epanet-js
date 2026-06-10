@@ -141,7 +141,9 @@ export const CustomerPointDataTable = memo(
         for (let i = 0; i < newRows.length; i++) {
           const newRow = newRows[i];
           const oldRow = rowsRef.current?.[i];
-          if (!oldRow) continue;
+          // Only edited rows get a new object reference (patchRow); skipping the
+          // rest keeps this O(edited) instead of O(all rows) on every commit.
+          if (!oldRow || newRow === oldRow) continue;
 
           if (
             typeof newRow.label === "string" &&

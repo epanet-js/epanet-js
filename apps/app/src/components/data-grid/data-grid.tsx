@@ -342,12 +342,10 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellChange = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
-      const newData = dataRef.current.map((row, idx) => {
-        if (idx === rowIndex) {
-          return patchRowFn(row, { [columnId]: value });
-        }
-        return row;
-      });
+      // Copy the array shallowly and replace only the edited row, so large
+      // tables don't pay a per-row callback over every row on each edit.
+      const newData = dataRef.current.slice();
+      newData[rowIndex] = patchRowFn(newData[rowIndex], { [columnId]: value });
       dataRef.current = newData;
       onChange(newData);
     },
