@@ -1,88 +1,38 @@
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
-import { useTranslation as useI18NextTranslation } from "react-i18next";
-import type { i18n } from "i18next";
-import { Locale } from "src/infra/i18n/locale";
+  LocaleProvider as LibLocaleProvider,
+  TranslationOverridesProvider,
+} from "@epanet-js/i18n";
+import { useAtomValue } from "jotai";
 import { useUserSettings } from "src/hooks/use-user-settings";
-import "src/infra/i18n/i18next-config";
+import i18n from "src/infra/i18n/i18next-config";
 import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
 import { ErrorIcon } from "src/icons";
+import { translationOverridesAtom } from "src/state/translation-overrides";
 
-const I18N_TIMEOUT_MS = 10000;
-
-type LocaleContextType = {
-  locale: Locale;
-  setLocale: (locale: Locale) => Promise<void>;
-  isI18nReady: boolean;
-};
-
-const LocaleContext = createContext<LocaleContextType | null>(null);
+export { useLocale } from "@epanet-js/i18n";
 
 export const LocaleProvider = ({ children }: { children: React.ReactNode }) => {
-  const { locale, setLocale: setUserLocale } = useUserSettings();
-  const { i18n } = useI18NextTranslation();
-  const [isI18nReady, setIsI18nReady] = useState(false);
-
-  const changeLanguageWithTimeout = useCallback(
-    async (i18n: i18n, locale: Locale): Promise<void> => {
-      const changeLanguagePromise = i18n.changeLanguage(locale).then(() => {});
-      const timeoutPromise = new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), I18N_TIMEOUT_MS);
-      });
-
-      return Promise.race([changeLanguagePromise, timeoutPromise]).catch(
-        (error) => {
-          captureError(error);
-          notify({
-            variant: "error",
-            title: "Error",
-            Icon: ErrorIcon,
-          });
-        },
-      );
-    },
-    [],
-  );
-
-  useEffect(() => {
-    setIsI18nReady(false);
-    const syncLanguage = async () => {
-      if (i18n.language !== locale) {
-        await changeLanguageWithTimeout(i18n, locale);
-      }
-      setIsI18nReady(true);
-    };
-    void syncLanguage();
-  }, [locale, i18n, changeLanguageWithTimeout]);
-
-  const setLocale = useCallback(
-    async (newLocale: Locale) => {
-      await setUserLocale(newLocale);
-    },
-    [setUserLocale],
-  );
-
-  const value: LocaleContextType = {
-    locale,
-    setLocale,
-    isI18nReady,
-  };
+  const { locale, setLocale } = useUserSettings();
+  const overrides = useAtomValue(translationOverridesAtom);
 
   return (
-    <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
+    <LibLocaleProvider
+      i18n={i18n}
+      locale={locale}
+      setUserLocale={setLocale}
+      onError={(error) => {
+        captureError(error as Error);
+        notify({
+          variant: "error",
+          title: "Error",
+          Icon: ErrorIcon,
+        });
+      }}
+    >
+      <TranslationOverridesProvider value={overrides}>
+        {children}
+      </TranslationOverridesProvider>
+    </LibLocaleProvider>
   );
-};
-
-export const useLocale = () => {
-  const context = useContext(LocaleContext);
-  if (!context) {
-    throw new Error("useLocale must be used within LocaleProvider");
-  }
-  return context;
 };
