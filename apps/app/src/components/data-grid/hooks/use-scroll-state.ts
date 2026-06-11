@@ -23,12 +23,21 @@ export function useScrollState(ref: RefObject<HTMLElement | null>) {
       if (!el) return;
 
       const update = () => {
-        setState({
+        const next: ScrollState = {
           hasVerticalScroll: el.scrollHeight > el.clientHeight,
           hasHorizontalScroll: el.scrollWidth > el.clientWidth,
           scrollbarWidth: el.offsetWidth - el.clientWidth - 2,
           scrollbarHeight: el.offsetHeight - el.clientHeight - 2,
-        });
+        };
+        // Avoid re-render loop by bailing out when nothing changed
+        setState((prev) =>
+          prev.hasVerticalScroll === next.hasVerticalScroll &&
+          prev.hasHorizontalScroll === next.hasHorizontalScroll &&
+          prev.scrollbarWidth === next.scrollbarWidth &&
+          prev.scrollbarHeight === next.scrollbarHeight
+            ? prev
+            : next,
+        );
       };
 
       update();
