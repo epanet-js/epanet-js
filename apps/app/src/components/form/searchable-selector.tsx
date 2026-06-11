@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { useDialogContentContainer } from "src/components/dialog";
+import { useUIConfig } from "src/lib/ui-kit/ui-config";
 
 export type SearchableSelectorOption = {
   id: string;
@@ -39,6 +40,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
   const dialogContainer = useDialogContentContainer();
+  const ui = useUIConfig();
 
   useEffect(
     function keepActiveItemVisible() {
@@ -206,7 +208,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
             }}
           >
             {suggestions.length === 0 && !isSearching ? (
-              <div className="px-2 py-2 text-subtle">No results</div>
+              <div className="px-2 py-2 text-subtle">{ui.noResultsLabel}</div>
             ) : (
               <ul
                 ref={listRef}

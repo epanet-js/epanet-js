@@ -3,6 +3,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
 import { useDialogContentContainer } from "src/components/dialog";
+import { useUIConfig } from "src/lib/ui-kit/ui-config";
 import { SearchableSelectorOption } from "./searchable-selector";
 
 const ROW_HEIGHT = 36;
@@ -44,6 +45,7 @@ export const VirtualizedSearchableSelector = <
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dialogContainer = useDialogContentContainer();
+  const ui = useUIConfig();
 
   const virtualizer = useVirtualizer({
     count: suggestions.length,
@@ -219,7 +221,7 @@ export const VirtualizedSearchableSelector = <
             }}
           >
             {suggestions.length === 0 && !isSearching ? (
-              <div className="px-2 py-2 text-subtle">No results</div>
+              <div className="px-2 py-2 text-subtle">{ui.noResultsLabel}</div>
             ) : (
               <div
                 ref={setScrollElement}

@@ -2,7 +2,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
-import { useTranslate } from "src/hooks/use-translate";
 import { useDialogContentContainer } from "src/components/dialog";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import { BaseSelectorList, SelectorListOption } from "./selector-list";
@@ -45,24 +44,7 @@ type SelectorProps<T extends string | number> =
   | SelectorPropsNonNullable<T>
   | SelectorPropsNullable<T>;
 
-export function Selector<T extends string | number>(
-  props: SelectorPropsNonNullable<T>,
-): JSX.Element;
-export function Selector<T extends string | number>(
-  props: SelectorPropsNullable<T>,
-): JSX.Element;
-export function Selector<T extends string | number>(props: SelectorProps<T>) {
-  const translate = useTranslate();
-  return (
-    <BaseSelector
-      {...(props as SelectorPropsNullable<T>)}
-      searchPlaceholder={props.searchPlaceholder ?? translate("search")}
-      createLabel={
-        props.createLabel ?? ((query) => translate("addNewValue", query))
-      }
-    />
-  );
-}
+export const Selector = BaseSelector;
 
 export function BaseSelector<T extends string | number>(
   props: SelectorPropsNonNullable<T>,

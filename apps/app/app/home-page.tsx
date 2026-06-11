@@ -15,6 +15,7 @@ import { ErrorBoundary } from "@sentry/nextjs";
 import { FallbackError } from "src/components/fallback-error";
 import { FeatureFlagsProvider } from "src/hooks/use-feature-flags";
 import { LocaleProvider } from "src/hooks/use-locale";
+import { AppUIConfigProvider } from "src/components/app-ui-config-provider";
 
 const queryClient = new QueryClient();
 export default function HomePage({}) {
@@ -48,11 +49,13 @@ function ScratchpadInner({ store }: { store: Store }) {
       <UserTrackingProvider>
         <FeatureFlagsProvider>
           <LocaleProvider>
-            <PersistenceProvider store={store}>
-              <Suspense fallback={null}>
-                <EpanetApp />
-              </Suspense>
-            </PersistenceProvider>
+            <AppUIConfigProvider>
+              <PersistenceProvider store={store}>
+                <Suspense fallback={null}>
+                  <EpanetApp />
+                </Suspense>
+              </PersistenceProvider>
+            </AppUIConfigProvider>
           </LocaleProvider>
         </FeatureFlagsProvider>
       </UserTrackingProvider>

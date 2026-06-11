@@ -73,6 +73,7 @@
   "yearOfInstallation": "Year of installation",
   "search": "Search…",
   "addNewValue": "Add \"{{1}}\"",
+  "noResults": "No results",
   "demand": "Demand",
   "baseDemand": "Base demand",
   "directDemand": "Direct demand",

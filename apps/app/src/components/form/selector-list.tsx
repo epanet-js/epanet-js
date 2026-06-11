@@ -8,7 +8,7 @@ import {
 } from "react";
 import clsx from "clsx";
 import { CheckIcon } from "src/icons";
-import { useTranslate } from "src/hooks/use-translate";
+import { useUIConfig } from "src/lib/ui-kit/ui-config";
 
 export type SelectorListOption<T extends string | number | boolean> = {
   label: string;
@@ -41,20 +41,7 @@ const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
 
-export function SelectorList<T extends string | number | boolean>(
-  props: SelectorListProps<T>,
-) {
-  const translate = useTranslate();
-  return (
-    <BaseSelectorList
-      {...props}
-      searchPlaceholder={props.searchPlaceholder ?? translate("search")}
-      createLabel={
-        props.createLabel ?? ((query) => translate("addNewValue", query))
-      }
-    />
-  );
-}
+export const SelectorList = BaseSelectorList;
 
 export function BaseSelectorList<T extends string | number | boolean>({
   options,
@@ -72,6 +59,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   listClassName,
   initialQuery = "",
 }: SelectorListProps<T>) {
+  const ui = useUIConfig();
   const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     if (selected === null) return NO_INDEX;
@@ -409,7 +397,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
               setQuery(e.target.value);
               setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
             }}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? ui.searchPlaceholder}
             className="w-full h-8 px-2 text-size-base border border-strong rounded-sm outline-hidden focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
@@ -466,7 +454,12 @@ export function BaseSelectorList<T extends string | number | boolean>({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onCommit(trimmedQuery as T)}
               >
-                {createLabel?.(trimmedQuery) ?? trimmedQuery}
+                {createLabel
+                  ? createLabel(trimmedQuery)
+                  : ui.selectorAddNewValueTemplate.replace(
+                      "{{1}}",
+                      trimmedQuery,
+                    )}
               </li>
             )}
           </ul>
