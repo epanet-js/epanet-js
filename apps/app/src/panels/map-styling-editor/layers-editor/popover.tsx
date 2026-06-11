@@ -44,7 +44,7 @@ import {
   maybeDeleteOldMapboxLayer,
   useLayerConfigState,
 } from "src/map/layer-config";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";

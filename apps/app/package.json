@@ -52,6 +52,7 @@
     "@epanet-js/project-settings": "workspace:*",
     "@epanet-js/projections": "workspace:*",
     "@epanet-js/quantity": "workspace:*",
+    "@epanet-js/ui-kit": "workspace:*",
     "@google-cloud/storage": "^7.13.0",
     "@headlessui/react": "^1.7.19",
     "@lezer/highlight": "^1.2.0",

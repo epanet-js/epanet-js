@@ -9,10 +9,7 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
 import type { Row, RowData } from "@tanstack/react-table";
-import {
-  SelectorList,
-  SelectorListOption,
-} from "src/components/form/selector-list";
+import { SelectorList, SelectorListOption } from "@epanet-js/ui-kit";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";
 

@@ -13,7 +13,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
-import { SelectorPortalContainer } from "src/lib/ui-kit/portal";
+import { SelectorPortalContainer } from "@epanet-js/ui-kit";
 
 export const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);

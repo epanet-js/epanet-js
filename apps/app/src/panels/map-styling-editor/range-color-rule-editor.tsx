@@ -30,7 +30,7 @@ import {
   simulationResultsDerivedAtom,
 } from "src/state/derived-branch-state";
 
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import * as d3 from "d3-array";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSymbologyState } from "src/state/map-symbology";

@@ -1,4 +1,4 @@
-import {
+import React, {
   useState,
   useRef,
   useCallback,
@@ -7,8 +7,8 @@ import {
   useLayoutEffect,
 } from "react";
 import clsx from "clsx";
-import { CheckIcon } from "src/icons";
-import { useUIConfig } from "src/lib/ui-kit/ui-config";
+import { CheckIcon } from "../icons";
+import { useUIConfig } from "../ui-config";
 
 export type SelectorListOption<T extends string | number | boolean> = {
   label: string;

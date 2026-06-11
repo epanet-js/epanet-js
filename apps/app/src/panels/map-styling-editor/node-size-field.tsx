@@ -10,7 +10,7 @@ import { MapContext } from "src/map";
 import { currentZoomAtom } from "src/state/map";
 import { nodeSizeAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { strokeColorFor } from "src/lib/color";
-import { SelectorLikeButton } from "src/components/form/selector-trigger";
+import { SelectorLikeButton } from "@epanet-js/ui-kit";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
 import type { NodeSizeConfig } from "src/map/symbology/symbology-types";

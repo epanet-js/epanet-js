@@ -4,8 +4,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
-import { Selector } from "src/components/form/selector";
-import { SelectorListOption } from "src/components/form/selector-list";
+import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
 import {

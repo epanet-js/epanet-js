@@ -4,7 +4,7 @@ import { captureError } from "src/infra/error-tracking";
 import {
   SearchableSelector,
   type SearchableSelectorOption,
-} from "./searchable-selector";
+} from "@epanet-js/ui-kit";
 
 export type LocationData = {
   name: string;

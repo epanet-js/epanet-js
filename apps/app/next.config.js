@@ -15,6 +15,7 @@ const nextConfig = {
     "zrender",
     "@epanet-js/ejsdb",
     "@epanet-js/i18n",
+    "@epanet-js/ui-kit",
   ],
 
   typescript: {

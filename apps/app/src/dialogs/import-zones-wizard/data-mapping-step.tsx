@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { type ZoneFeature, ZoneLabelGenerator } from "src/lib/zones";
 
 const PREVIEW_LIMIT = 7;

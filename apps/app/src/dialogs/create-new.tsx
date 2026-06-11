@@ -33,7 +33,7 @@ import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
-import { Selector } from "../components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";

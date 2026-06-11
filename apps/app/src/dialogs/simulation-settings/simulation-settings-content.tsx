@@ -10,8 +10,7 @@ import {
   formatSecondsToDisplay,
 } from "src/components/form/time-field";
 import { NumericField } from "src/components/form/numeric-field";
-import { Selector } from "src/components/form/selector";
-import { SelectorListOption } from "src/components/form/selector-list";
+import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { hasScenariosAtom } from "src/state/scenarios";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {

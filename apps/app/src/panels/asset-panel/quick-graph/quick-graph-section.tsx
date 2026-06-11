@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { PinIcon, PinOffIcon } from "src/icons";
 import { Button } from "src/components/elements";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";

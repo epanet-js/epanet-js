@@ -46,7 +46,7 @@ import {
   maybeDeleteOldMapboxLayer,
   useLayerConfigState,
 } from "src/map/layer-config";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslate } from "src/hooks/use-translate";

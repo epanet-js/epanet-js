@@ -4,7 +4,7 @@ import { useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "src/components/dialog";
 import { Button, DDContent, StyledItem } from "src/components/elements";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";

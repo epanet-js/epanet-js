@@ -5,7 +5,7 @@ import { captureError } from "src/infra/error-tracking";
 import {
   SearchableSelector,
   type SearchableSelectorOption,
-} from "src/components/form/searchable-selector";
+} from "@epanet-js/ui-kit";
 import type { LocationData } from "src/components/form/location-search";
 import type { Proj4Projection } from "src/lib/projections";
 import { useTranslate } from "src/hooks/use-translate";

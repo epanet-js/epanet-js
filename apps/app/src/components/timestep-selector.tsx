@@ -15,7 +15,7 @@ import {
 import { Button, DDContent, StyledRadioItem } from "src/components/elements";
 import { simulationStepAtom } from "src/state/simulation";
 import { simulationDerivedAtom } from "src/state/derived-branch-state";
-import { triggerStylesFor } from "./form/selector-trigger";
+import { triggerStylesFor } from "@epanet-js/ui-kit";
 import React, { useEffect, useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import {

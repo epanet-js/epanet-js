@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { UIProvider } from "src/lib/ui-kit/ui-config";
+import { UIProvider } from "@epanet-js/ui-kit";
 
 export function AppUIConfigProvider({
   children,

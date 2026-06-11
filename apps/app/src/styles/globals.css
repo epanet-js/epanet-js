@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* ui-kit lives in a workspace package outside this app's tree; Tailwind v4 does
+   not scan it automatically, so register its source for class detection. */
+@source "../../../../libs/ui-kit/src";
+
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 

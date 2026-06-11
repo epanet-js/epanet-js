@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import React, { useMemo } from "react";
-import { ChevronDownIcon } from "src/icons";
+import { ChevronDownIcon } from "../icons";
 
 export type StyleOptions = {
   border?: boolean;

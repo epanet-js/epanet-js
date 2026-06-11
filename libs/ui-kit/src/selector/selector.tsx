@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
-import { ChevronDownIcon } from "src/icons";
-import { useSelectorPortalContainer } from "src/lib/ui-kit/portal";
+import { ChevronDownIcon } from "../icons";
+import { useSelectorPortalContainer } from "../portal";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import { BaseSelectorList, SelectorListOption } from "./selector-list";
 

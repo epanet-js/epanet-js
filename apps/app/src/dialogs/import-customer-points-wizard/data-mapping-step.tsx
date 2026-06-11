@@ -30,7 +30,7 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { WizardActions as WizardActionsComponent } from "src/components/wizard";
 import { convertTo } from "@epanet-js/quantity";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
-import { Selector } from "src/components/form/selector";
+import { Selector } from "@epanet-js/ui-kit";
 import { NumericField } from "src/components/form/numeric-field";
 const CONSTANT_PATTERN_ID = 0;
 
