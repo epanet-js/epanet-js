@@ -1,9 +1,11 @@
 # Theme Tokens Guidelines
 
-The app uses Tailwind v4's CSS-first theming. Semantic tokens are declared in
-`src/styles/globals.css` inside `@theme` and re-defined under `.dark` for dark
-mode. Use the semantic tokens — they remove the need for `dark:` variants and
-keep the visual language consistent.
+The app uses Tailwind v4's CSS-first theming. The semantic tokens themselves now
+live in the shared package **`@epanet-js/ui-kit/src/tokens.css`** (declared in
+`@theme` and re-defined under `.dark`), `@import`ed by `src/styles/globals.css`.
+App-only vars (`--highlight-*`, `--cm-font`, cursors) still live in `globals.css`.
+Use the semantic tokens — they remove the need for `dark:` variants and keep the
+visual language consistent.
 
 ## Available Tokens
 
@@ -59,15 +61,16 @@ Avoid one-off tokens.
 
 To add one:
 
-1. Define the variable in the `@theme { ... }` block in `globals.css`,
-   pointing at a Tailwind palette value
+1. Define the variable in the `@theme { ... }` block in
+   `@epanet-js/ui-kit/src/tokens.css`, pointing at a Tailwind palette value
    (e.g. `--color-accent-subtle: var(--color-purple-100);`).
-2. Re-define it under `.dark { ... }` with the dark-mode value.
+2. Re-define it under `.dark { ... }` (same file) with the dark-mode value.
 3. Add a row to the Available Tokens table above.
 
-Custom utilities (`@utility name { ... }`) are only needed when the property
-isn't `color` (e.g. `bg-base` sets `background-color: var(--color-background-base)`
-which lives outside `@theme` because it's the bare-`<body>` background).
+Custom utilities (`@utility name { ... }`, also in `tokens.css`) are only needed
+when the property isn't `color` (e.g. `bg-base` sets
+`background-color: var(--color-background-base)` which lives outside `@theme`
+because it's the bare-`<body>` background).
 
 ## Known Gaps
 

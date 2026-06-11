@@ -41,10 +41,12 @@ baked in). The app injects translations through the DOMAIN bridge
 ### Styling
 Tailwind v4 utility classes and **semantic tokens** (`bg-popover`, `text-subtle`,
 `border-base`, `text-size-*`). No hard-coded hex/oklch or raw palette literals where a
-token exists. **Contract with the consumer:** it must (1) define these tokens and (2) add
-this package to Tailwind's content scan via `@source` — otherwise the classes are never
-generated and components render unstyled. (See *Next steps #1* — the tokens are not yet
-shared.)
+token exists. The tokens are defined in `src/tokens.css` (the `@theme` block, the
+`.dark` overrides, and the `bg-base`/`border-base`/… utilities) and shipped as
+`@epanet-js/ui-kit/tokens.css`. **Contract with the consumer:** `@import` that file
+(after `@import "tailwindcss"`) and add this package to Tailwind's content scan via
+`@source` — otherwise the classes are never generated and components render unstyled.
+See [`./README.md`](./README.md) for the snippet.
 
 ### Icons
 Lucide icons via the local `src/icons` wrapper (`ChevronDownIcon`, `CheckIcon`, default
@@ -70,11 +72,10 @@ need — `scrollIntoView`, `hasPointerCapture`/`setPointerCapture`/`releasePoint
   `apps/app/src/components/` and compose a ui-kit primitive underneath.
 
 ## Next steps (roadmap)
-1. **Shared Tailwind token layer — top priority, blocks model-build.** The v4 `@theme`
-   tokens + `@utility` defs live only in `apps/app/src/styles/globals.css`; model-build is
-   Tailwind **v3** (shadcn HSL tokens), so the selector won't render there yet. Extract the
-   tokens into a shared CSS/preset this package ships (or a sibling `@epanet-js/ui-tokens`)
-   and reconcile model-build's Tailwind.
+1. **Shared Tailwind token layer — in progress (app-only).** The v4 tokens now live in
+   `src/tokens.css`, shipped as `@epanet-js/ui-kit/tokens.css`; the app consumes them.
+   Still to do for model-build: it's Tailwind **v3** (shadcn HSL tokens), so it needs a
+   v3↔v4 reconciliation and the `dark` custom-variant before the selector renders there.
 2. **Wire the selector into model-build** once the tokens are shared.
 3. **Migrate more BASE components** out of the app (dialogs, form fields, tabs, lists,
    popovers, data-grid, …) — candidate list in the app's `components/AGENTS.md`.

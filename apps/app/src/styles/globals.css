@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Design tokens (@theme, semantic colors, dark overrides, token utilities) now
+   live in the ui-kit package so other apps can share them. */
+@import "@epanet-js/ui-kit/tokens.css";
+
 /* ui-kit lives in a workspace package outside this app's tree; Tailwind v4 does
    not scan it automatically, so register its source for class detection. */
 @source "../../../../libs/ui-kit/src";
@@ -28,108 +32,6 @@
 
 /* max-xs: not built-in in v4 (max-sm and above are built-in) */
 @custom-variant max-xs (@media not all and (width >= 480px));
-
-@theme {
-  /* Fonts */
-  --font-sans: Inter, sans-serif;
-  --font-mono: "Source Code Pro", monospace;
-  --font-handwritten: Caveat, cursive;
-
-  /* gray → neutral (v3 used colors.neutral for gray) */
-  --color-gray-50: oklch(98.5% 0 0);
-  --color-gray-100: oklch(97% 0 0);
-  --color-gray-200: oklch(92.2% 0 0);
-  --color-gray-300: oklch(87% 0 0);
-  --color-gray-400: oklch(70.8% 0 0);
-  --color-gray-500: oklch(55.6% 0 0);
-  --color-gray-600: oklch(43.9% 0 0);
-  --color-gray-700: oklch(37.1% 0 0);
-  --color-gray-800: oklch(26.9% 0 0);
-  --color-gray-900: oklch(20.5% 0 0);
-  --color-gray-950: oklch(14.5% 0 0);
-
-  --color-black: #000;
-  --color-white: #fff;
-  --color-purple-100: oklch(94.6% 0.033 307.174);
-  --color-purple-300: oklch(82.7% 0.119 306.383);
-  --color-purple-500: oklch(62.7% 0.265 303.9);
-  --color-purple-700: oklch(49.6% 0.265 301.924);
-  --color-yellow-100: oklch(97.3% 0.071 103.193);
-  --color-yellow-300: oklch(90.5% 0.182 98.111);
-  --color-yellow-500: oklch(79.5% 0.184 86.047);
-
-  /* Semantic token colors (dark overrides in .dark below) */
-  --color-accent: var(--color-purple-500);
-  --color-accent-hover: var(--color-purple-600);
-  --color-base-hover: var(--color-gray-100);
-  --color-popover: var(--color-white);
-  --color-default: var(--color-gray-900);
-  --color-subtle: var(--color-gray-500);
-  --color-warning: var(--color-orange-600);
-  --color-warning-subtle: var(--color-orange-50);
-  --color-error: var(--color-red-600);
-  --color-error-subtle: var(--color-red-50);
-  --color-success: var(--color-green-600);
-  --color-success-subtle: var(--color-green-50);
-  --color-info: var(--color-blue-600);
-  --color-info-subtle: var(--color-blue-50);
-
-  --color-panel: var(--color-gray-50);
-  --color-base-active: var(--color-gray-200);
-  --color-base-disabled: var(--color-gray-100);
-  --color-track: var(--color-gray-200);
-  --color-disabled: var(--color-gray-300);
-  --color-accent-tint: var(--color-purple-50);
-
-  /* Semantic font sizes */
-  --text-size-heading-1: 1.5rem;
-  --text-size-heading-1--line-height: 2rem;
-  --text-size-heading-2: 1.25rem;
-  --text-size-heading-2--line-height: 1.75rem;
-  --text-size-heading-3: 1.125rem;
-  --text-size-heading-3--line-height: 1.75rem;
-  --text-size-base: 0.875rem;
-  --text-size-base--line-height: 1.25rem;
-  --text-size-small: 0.75rem;
-  --text-size-small--line-height: 1rem;
-}
-
-/*
-  The default border color changed to `currentcolor` in Tailwind CSS v4.
-  This restores the v3 default so existing border utilities keep their appearance.
-*/
-
-:root {
-  --color-background-base: var(--color-white);
-  --color-border: var(--color-gray-200);
-  --color-border-strong: var(--color-gray-300);
-}
-
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-border);
-  }
-}
-
-@utility bg-base {
-  background-color: var(--color-background-base);
-}
-
-@utility bg-track {
-  background-color: var(--color-track);
-}
-
-@utility border-base {
-  border-color: var(--color-border);
-}
-
-@utility border-strong {
-  border-color: var(--color-border-strong);
-}
 
 .mapboxgl-ctrl-bottom-right {
   display: none !important;
@@ -320,32 +222,8 @@ details summary::-webkit-details-marker {
 }
 
 .dark {
-  /* Semantic token dark overrides */
-  --color-accent: var(--color-purple-500);
-  --color-accent-hover: var(--color-purple-400);
-  --color-base-hover: var(--color-gray-700);
-  --color-base-active: var(--color-gray-600);
-  --color-base-disabled: var(--color-gray-800);
-  --color-track: var(--color-gray-600);
-  --color-accent-tint: var(--color-purple-950);
-  --color-panel: var(--color-gray-800);
-  --color-popover: var(--color-gray-800);
-  --color-default: var(--color-white);
-  --color-subtle: var(--color-gray-400);
-  --color-disabled: var(--color-gray-600);
-  --color-warning: var(--color-orange-400);
-  --color-warning-subtle: var(--color-orange-950);
-  --color-error: var(--color-red-300);
-  --color-error-subtle: var(--color-red-950);
-  --color-success: var(--color-green-400);
-  --color-success-subtle: var(--color-green-950);
-  --color-info: var(--color-blue-400);
-  --color-info-subtle: var(--color-blue-950);
-
-  --color-background-base: var(--color-gray-900);
-  --color-border: var(--color-gray-700);
-  --color-border-strong: var(--color-gray-600);
-
+  /* Semantic colour tokens are overridden in @epanet-js/ui-kit/tokens.css;
+     app-only vars below. */
   --highlight-purple: var(--color-purple-300);
   --highlight-dark-purple: var(--color-purple-100);
   --highlight-yellow: var(--color-yellow-100);
