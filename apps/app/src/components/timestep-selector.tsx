@@ -101,6 +101,8 @@ export const TimestepSelectorUI = ({
   const isPlaying = useAtomValue(isPlayingAtom);
 
   const isInline = variant === "inline";
+  const isLgOrLarger = useBreakpoint("lg");
+  const compact = isInline && !isLgOrLarger;
 
   return (
     <div
@@ -117,26 +119,30 @@ export const TimestepSelectorUI = ({
             "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
         )}
       >
-        <PlayButton />
-        <SpeedButton />
-        <Button
-          variant="quiet/mode"
-          className="h-8"
-          aria-label={translate("previousTimestep")}
-          onClick={() => goToPreviousTimestep("buttons")}
-          disabled={!canGoPrevious}
-        >
-          <ChevronLeftIcon />
-        </Button>
-        <Button
-          variant="quiet/mode"
-          className="h-8"
-          aria-label={translate("nextTimestep")}
-          onClick={() => goToNextTimestep("buttons")}
-          disabled={!canGoNext}
-        >
-          <ChevronRightIcon />
-        </Button>
+        {!compact && (
+          <>
+            <PlayButton />
+            <SpeedButton />
+            <Button
+              variant="quiet/mode"
+              className="h-8"
+              aria-label={translate("previousTimestep")}
+              onClick={() => goToPreviousTimestep("buttons")}
+              disabled={!canGoPrevious}
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              variant="quiet/mode"
+              className="h-8"
+              aria-label={translate("nextTimestep")}
+              onClick={() => goToNextTimestep("buttons")}
+              disabled={!canGoNext}
+            >
+              <ChevronRightIcon />
+            </Button>
+          </>
+        )}
         <TimestepDropdown
           currentTimestepIndex={currentTimestepIndex}
           timestepCount={timestepCount}
