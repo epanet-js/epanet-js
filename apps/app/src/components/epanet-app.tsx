@@ -42,6 +42,8 @@ import { Legends } from "./legends";
 import { TimestepSelector } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
+import { MapToolbar } from "src/toolbar/map-toolbar";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
@@ -192,6 +194,7 @@ export function EpanetApp() {
                 persistentTransform={persistentTransform}
                 setMap={setMap}
                 layout={layout}
+                readonly={isEditionBlocked}
               />
             </DndContext>
             {layout === "HORIZONTAL" && <BottomPanel />}
@@ -228,15 +231,19 @@ function DraggableMap({
   setMap,
   layout,
   persistentTransform,
+  readonly = false,
 }: {
   setMap: (arg0: MapEngine | null) => void;
   layout: ResolvedLayout;
   persistentTransform: Transform;
+  readonly?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
+  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
+  const isSmOrLarger = useBreakpoint("sm");
 
   useMapResize(containerRef.current, layout);
 
@@ -267,9 +274,10 @@ function DraggableMap({
       </div>
       <Legends />
       <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-        <TimestepSelector />
+        {!isDrawingToolbar && <TimestepSelector />}
         <MapLoading />
       </div>
+      {isDrawingToolbar && isSmOrLarger && <MapToolbar readonly={readonly} />}
     </div>
   );
 }

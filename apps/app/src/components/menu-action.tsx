@@ -31,7 +31,9 @@ export function DisabledMenuAction({
             </Button>
           </Tooltip.Trigger>
         </div>
-        <TContent side="bottom">{reason}</TContent>
+        <Tooltip.Portal>
+          <TContent side="bottom">{reason}</TContent>
+        </Tooltip.Portal>
       </Tooltip.Root>
     </div>
   );
@@ -104,17 +106,19 @@ export default function MenuAction({
           </Tooltip.Trigger>
         </div>
 
-        <TContent side="bottom">
-          <div className="flex gap-x-2 items-center">
-            {!expanded ? label : null}
-            {hotkey ? (
-              <Keycap size="xs">{localizeKeybinding(hotkey)}</Keycap>
-            ) : null}
-            {readOnlyHotkey ? (
-              <Keycap size="xs">{localizeKeybinding(readOnlyHotkey)}</Keycap>
-            ) : null}
-          </div>
-        </TContent>
+        <Tooltip.Portal>
+          <TContent side="bottom">
+            <div className="flex gap-x-2 items-center">
+              {!expanded ? label : null}
+              {hotkey ? (
+                <Keycap size="xs">{localizeKeybinding(hotkey)}</Keycap>
+              ) : null}
+              {readOnlyHotkey ? (
+                <Keycap size="xs">{localizeKeybinding(readOnlyHotkey)}</Keycap>
+              ) : null}
+            </div>
+          </TContent>
+        </Tooltip.Portal>
       </Tooltip.Root>
     </div>
   );

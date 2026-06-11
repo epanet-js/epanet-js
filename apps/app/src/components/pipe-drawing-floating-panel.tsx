@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
+import clsx from "clsx";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { pipeDrawingDefaultsAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";
@@ -9,7 +10,11 @@ import { useValueDisplay } from "src/hooks/use-value-display";
 import { useRef } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 
-export const PipeDrawingFloatingPanel = () => {
+export const PipeDrawingFloatingPanel = ({
+  variant = "floating",
+}: {
+  variant?: "floating" | "attached";
+} = {}) => {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -66,15 +71,21 @@ export const PipeDrawingFloatingPanel = () => {
   const diameterDisplay = displayValue(currentDiameter, "diameter");
   const roughnessDisplay = displayValue(currentRoughness, "roughness");
 
+  const positionClass =
+    variant === "attached"
+      ? ""
+      : "absolute bottom-8 left-1/2 -translate-x-1/2 z-20";
+
   return (
     <div
-      className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20
-                 bg-base
+      className={clsx(
+        positionClass,
+        `bg-base
                  shadow-lg rounded-md
                  p-3
                  border
-                 hidden md:flex flex-col lg:flex-row gap-x-6 gap-y-1
-                 "
+                 hidden md:flex flex-col lg:flex-row gap-x-6 gap-y-1`,
+      )}
     >
       <div className="flex gap-x-2 items-center">
         <label className="grow text-size-base text-subtle whitespace-nowrap">

@@ -16,6 +16,7 @@ import { localizeKeybinding } from "src/infra/i18n";
 import { useTranslate } from "src/hooks/use-translate";
 import { symbologyAtom } from "src/state/map-symbology";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { PropsWithChildren } from "react";
 
 export const tipLike = `
@@ -32,6 +33,7 @@ function HintWrapper({
   hintId: string;
 }>) {
   const [hideHints, setHideHints] = useAtom(hideHintsAtom);
+  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
 
   if (hideHints.includes(hintId)) {
     return null;
@@ -40,7 +42,10 @@ function HintWrapper({
   return (
     <div
       className={clsx(
-        "absolute max-w-[600px] top-2 left-3 text-size-base flex gap-x-2 rounded-md",
+        "absolute max-w-[600px] text-size-base flex gap-x-2 rounded-md",
+        isDrawingToolbar
+          ? "bottom-8 left-1/2 -translate-x-1/2"
+          : "top-2 left-3",
         "p-2 items-start",
         tipLike,
       )}

@@ -34,7 +34,24 @@ import {
 import { useTogglePlayback } from "src/commands/toggle-playback";
 import { useTranslate } from "src/hooks/use-translate";
 
-export const TimestepSelector = () => {
+export const useHasPlayableTimesteps = () => {
+  const simulationStep = useAtomValue(simulationStepAtom);
+  const simulation = useAtomValue(simulationDerivedAtom);
+  const isSmOrLarger = useBreakpoint("sm");
+
+  if (!isSmOrLarger) return false;
+  if (simulationStep === null) return false;
+  if (!("epsResultsReader" in simulation) || !simulation.epsResultsReader)
+    return false;
+
+  return simulation.epsResultsReader.timestepCount > 1;
+};
+
+export const TimestepSelector = ({
+  variant = "floating",
+}: {
+  variant?: "floating" | "inline";
+} = {}) => {
   const simulationStep = useAtomValue(simulationStepAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
   const { changeTimestep } = useChangeTimestep();
@@ -54,6 +71,7 @@ export const TimestepSelector = () => {
       timestepCount={timestepCount}
       reportTimestep={reportingTimeStep}
       onChangeTimestep={changeTimestep}
+      variant={variant}
     />
   );
 };
@@ -63,6 +81,7 @@ type TimestepSelectorUIProps = {
   timestepCount: number;
   reportTimestep: number;
   onChangeTimestep: (index: number, source: ChangeTimestepSource) => void;
+  variant?: "floating" | "inline";
 };
 
 export const TimestepSelectorUI = ({
@@ -70,6 +89,7 @@ export const TimestepSelectorUI = ({
   timestepCount,
   reportTimestep,
   onChangeTimestep,
+  variant = "floating",
 }: TimestepSelectorUIProps) => {
   const translate = useTranslate();
   const canGoPrevious = currentTimestepIndex > 0;
@@ -80,9 +100,23 @@ export const TimestepSelectorUI = ({
   const speedWarning = useAtomValue(currentSpeedWarningAtom);
   const isPlaying = useAtomValue(isPlayingAtom);
 
+  const isInline = variant === "inline";
+
   return (
-    <div className="grid grid-cols-[min-content] gap-1">
-      <div className="flex items-center gap-1 p-1 bg-base border rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
+    <div
+      className={clsx(
+        isInline
+          ? "flex items-center gap-2"
+          : "grid grid-cols-[min-content] gap-1",
+      )}
+    >
+      <div
+        className={clsx(
+          "flex items-center gap-1",
+          !isInline &&
+            "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
+        )}
+      >
         <PlayButton />
         <SpeedButton />
         <Button
@@ -112,7 +146,14 @@ export const TimestepSelectorUI = ({
         />
       </div>
       {isPlaying && speedWarning && (
-        <div className="flex items-start gap-1.5 text-size-small bg-base-hover/80 px-2 py-1 rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]">
+        <div
+          className={clsx(
+            "flex items-start gap-1.5 text-size-small px-2 py-1 rounded-xs",
+            isInline
+              ? "bg-warning-subtle text-warning max-w-[16rem]"
+              : "bg-base-hover/80 shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
+          )}
+        >
           <WarningIcon className="shrink-0 mt-px text-warning" />
           <span className="wrap-break-word min-w-0">
             {translate(
