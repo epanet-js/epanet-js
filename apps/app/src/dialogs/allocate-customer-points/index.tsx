@@ -112,6 +112,7 @@ export const AllocateCustomerPointsDialog: React.FC<
       await forceLoadingState();
 
       try {
+        const runOnWorker = true;
         const customerPoints = initializeCustomerPoints();
         disconnectedCustomerPoints.forEach((point) => {
           customerPoints.set(point.id, point);
@@ -120,6 +121,7 @@ export const AllocateCustomerPointsDialog: React.FC<
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
           customerPoints,
+          runOnWorker,
           targetPipes: selectedPipeIds,
         });
 

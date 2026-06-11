@@ -162,6 +162,7 @@ export const AllocationStep: React.FC<{
       await forceLoadingState();
 
       try {
+        const runOnWorker = true;
         const customerPoints = initializeCustomerPoints();
         validCustomerPoints.forEach((point) => {
           customerPoints.set(point.id, point);
@@ -169,6 +170,7 @@ export const AllocationStep: React.FC<{
 
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
+          runOnWorker,
           customerPoints,
         });
 

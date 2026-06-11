@@ -15,10 +15,9 @@ type InputData = {
   allocationRules: CustomerPointAllocationRule[];
   customerPoints: CustomerPoints;
   targetPipes?: Set<number>;
+  runOnWorker?: boolean;
   bufferType?: "shared" | "array";
 };
-
-const WORKER_COUNT = 10;
 
 export const allocateCustomerPoints = async (
   hydraulicModel: HydraulicModel,
@@ -26,6 +25,7 @@ export const allocateCustomerPoints = async (
     allocationRules,
     customerPoints,
     targetPipes,
+    runOnWorker = false,
     bufferType = "array",
   }: InputData,
 ): Promise<CustomerPointAllocationResult> => {
@@ -50,15 +50,18 @@ export const allocateCustomerPoints = async (
     };
   }
 
-  const shouldUseWorkers = hasWebWorker() && bufferType === "shared";
+  const shouldUseWorkers = runOnWorker && hasWebWorker();
+  const workerCount = 1;
+  const nullOffset = 0;
 
   const allocationResults = shouldUseWorkers
     ? await runAllocationWithWorkers(
         workerData,
         allocationRules,
         totalCustomerPoints,
+        workerCount,
       )
-    : runAllocation(workerData, allocationRules, 0);
+    : runAllocation(workerData, allocationRules, nullOffset);
 
   for (const result of allocationResults) {
     const customerPointCopy = customerPoints
@@ -89,13 +92,14 @@ const runAllocationWithWorkers = async (
   workerData: RunData,
   allocationRules: CustomerPointAllocationRule[],
   totalCustomerPoints: number,
+  workerCount: number,
 ): Promise<AllocationResultItem[]> => {
-  const pointsPerWorker = Math.ceil(totalCustomerPoints / WORKER_COUNT);
+  const pointsPerWorker = Math.ceil(totalCustomerPoints / workerCount);
   const workers: Worker[] = [];
   const workerAPIs: Comlink.Remote<AllocationWorkerAPI>[] = [];
 
   try {
-    for (let i = 0; i < WORKER_COUNT; i++) {
+    for (let i = 0; i < workerCount; i++) {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
       });
