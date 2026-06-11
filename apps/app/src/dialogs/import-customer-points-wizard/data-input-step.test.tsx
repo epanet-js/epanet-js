@@ -6,7 +6,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { aTestFile } from "src/__helpers__/file";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubProjectionsReady } from "src/__helpers__/projections";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { GisParseError } from "src/lib/gis-import/types";
 import { setWizardState } from "./__helpers__/wizard-state";
@@ -187,46 +186,6 @@ describe("DataInputStep", () => {
       });
     });
 
-    it("handles unsupported file formats (CSV)", async () => {
-      const userTracking = stubUserTracking();
-      const store = setInitialState({
-        hydraulicModel: HydraulicModelBuilder.with().build(),
-      });
-
-      setWizardState(store, {
-        currentStep: 1,
-      });
-
-      renderWizard(store);
-
-      const file = aTestFile({
-        filename: "customer-data.csv",
-        content: "name,lat,lng,demand\nCustomer A,0.001,0.001,25.5",
-      });
-
-      await uploadInvalidFile(file);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/file format not supported/i),
-        ).toBeInTheDocument();
-      });
-
-      expect(
-        screen.getByRole("tab", {
-          name: /data input/i,
-          current: "step",
-        }),
-      ).toBeInTheDocument();
-
-      expect(screen.getByRole("button", { name: /next/i })).toBeDisabled();
-
-      expect(userTracking.capture).toHaveBeenCalledWith({
-        name: "importCustomerPoints.dataInput.unsupportedFormat",
-        fileName: "customer-data.csv",
-      });
-    });
-
     it("extracts raw data from mixed feature types", async () => {
       const userTracking = stubUserTracking();
       const store = setInitialState({
@@ -273,10 +232,6 @@ describe("DataInputStep", () => {
   });
 
   describe("shapefile upload", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_SHP_CP_IMPORT");
-    });
-
     it("processes valid shapefile successfully", async () => {
       vi.mocked(parseShapefile).mockResolvedValue({
         featureCollection: {
@@ -639,21 +594,4 @@ const uploadShapefileInStep = async () => {
   const prjFile = aTestFile({ filename: "customers.prj" });
 
   await userEvent.upload(fileInput, [shpFile, dbfFile, prjFile]);
-};
-
-const uploadInvalidFile = async (file: File) => {
-  const dropZone = screen.getByTestId("customer-points-drop-zone");
-  await userEvent.click(dropZone);
-
-  const fileInput = document.querySelector(
-    'input[type="file"]',
-  ) as HTMLInputElement;
-  expect(fileInput).toBeInTheDocument();
-
-  Object.defineProperty(fileInput, "files", {
-    value: [file],
-    writable: false,
-  });
-
-  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
 };

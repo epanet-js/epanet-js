@@ -3,9 +3,7 @@ import { WizardState, WizardActions } from "./types";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { DropZone } from "src/components/drop-zone";
 import { GisDropZone, type GisFiles } from "src/components/gis-drop-zone";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { parseGeoJson } from "src/lib/geojson-utils/parse-geojson";
 import { parseShapefile } from "src/lib/gis-import/parse-shapefile";
 import { GisParseError } from "src/lib/gis-import/types";
@@ -23,13 +21,11 @@ export const DataInputStep: React.FC<{
   wizardState: WizardState & WizardActions;
   projections?: Map<string, Proj4Projection> | null;
 }> = ({ onNext, renderActions = true, wizardState, projections }) => {
-  const isGisDropZoneOn = useFeatureFlag("FLAG_SHP_CP_IMPORT");
   const userTracking = useUserTracking();
   const translate = useTranslate();
   const [gisFiles, setGisFiles] = useState<GisFiles>({});
 
   const {
-    selectedFile,
     error,
     isLoading,
     setSelectedFile,
@@ -39,20 +35,6 @@ export const DataInputStep: React.FC<{
     resetWizardData,
     inputData,
   } = wizardState;
-
-  const handleFileRejected = useCallback(
-    (file: File, _reason: string) => {
-      userTracking.capture({
-        name: "importCustomerPoints.dataInput.unsupportedFormat",
-        fileName: file.name,
-      });
-      setError(
-        translate("importCustomerPoints.dataSource.fileFormatNotSupported"),
-      );
-      setLoading(false);
-    },
-    [userTracking, setError, translate, setLoading],
-  );
 
   const handleFileProcess = useCallback(
     async (file: File) => {
@@ -297,25 +279,13 @@ export const DataInputStep: React.FC<{
           )}
 
           <div className="space-y-4">
-            {isGisDropZoneOn ? (
-              <GisDropZone
-                onFileDrop={handleGisFilesDrop}
-                supportedFormats={["geojson", "geojsonl", "shapefile"]}
-                selectedFiles={gisFiles}
-                disabled={isLoading}
-                testId="customer-points-drop-zone"
-              />
-            ) : (
-              <DropZone
-                onFileDrop={handleFileProcess}
-                onFileRejected={handleFileRejected}
-                accept=".geojson,.geojsonl"
-                disabled={isLoading}
-                supportedFormats="GeoJSON (.geojson), GeoJSONL (.geojsonl)"
-                selectedFile={selectedFile}
-                testId="customer-points-drop-zone"
-              />
-            )}
+            <GisDropZone
+              onFileDrop={handleGisFilesDrop}
+              supportedFormats={["geojson", "geojsonl", "shapefile"]}
+              selectedFiles={gisFiles}
+              disabled={isLoading}
+              testId="customer-points-drop-zone"
+            />
           </div>
 
           {isLoading && (
