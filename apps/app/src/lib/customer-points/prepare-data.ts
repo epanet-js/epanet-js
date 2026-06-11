@@ -8,7 +8,6 @@ import {
   NodeAsset,
   NodeType,
   CustomerPoint,
-  CustomerPointAllocationRule,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 
@@ -181,7 +180,6 @@ export const getCustomerPointId = (
 
 export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
-  allocationRules: CustomerPointAllocationRule[],
   customerPoints: CustomerPoint[],
   bufferType: "shared" | "array" = "array",
   targetPipes?: Set<number>,

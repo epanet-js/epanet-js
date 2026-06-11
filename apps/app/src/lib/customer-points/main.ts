@@ -35,7 +35,6 @@ export const allocateCustomerPoints = async (
 
   const workerData = prepareWorkerData(
     hydraulicModel,
-    allocationRules,
     Array.from(customerPoints.values()),
     bufferType,
     targetPipes,

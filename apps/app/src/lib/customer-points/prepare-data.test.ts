@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
 import {
   prepareWorkerData,
   getSegmentCoordinates,
@@ -56,13 +55,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -94,13 +88,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -143,13 +132,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -185,13 +169,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -232,13 +211,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -269,13 +243,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -315,13 +284,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );
@@ -356,16 +320,11 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const customerPoints = Array.from(
           hydraulicModel.customerPoints.values(),
         );
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           customerPoints,
           bufferTypeParam,
         );
@@ -425,16 +384,11 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const customerPoints = Array.from(
           hydraulicModel.customerPoints.values(),
         );
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           customerPoints,
           bufferTypeParam,
         );
@@ -473,17 +427,13 @@ describe("prepareWorkerData", () => {
             ],
           })
           .build();
-
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
+        const targetPipes = new Set([IDS.P1]);
 
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
-          new Set([IDS.P1]),
+          targetPipes,
         );
 
         const flatbush = Flatbush.from(workerData.flatbushIndex);
@@ -518,13 +468,8 @@ describe("prepareWorkerData", () => {
           })
           .build();
 
-        const allocationRules: CustomerPointAllocationRule[] = [
-          { maxDistance: 200, maxDiameter: 15 },
-        ];
-
         const workerData = prepareWorkerData(
           hydraulicModel,
-          allocationRules,
           [],
           bufferTypeParam,
         );

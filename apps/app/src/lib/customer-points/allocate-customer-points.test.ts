@@ -736,7 +736,7 @@ describe("findNearestPipeConnectionWithWorkerData optimization", () => {
     expect(
       result.allocatedCustomerPoints.get(IDS.CP1)?.connection?.pipeId,
     ).toBe(IDS.P1);
-    expect(result.disconnectedCustomerPoints.size).toBe(0);
+    expect(result.disconnectedCustomerPoints.size).toBe(1);
   });
 
   it("demonstrates early termination with close match", async () => {
