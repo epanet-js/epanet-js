@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
-import { useDialogContentContainer } from "src/components/dialog";
+import { useSelectorPortalContainer } from "src/lib/ui-kit/portal";
 import { useUIConfig } from "src/lib/ui-kit/ui-config";
 
 export type SearchableSelectorOption = {
@@ -39,7 +39,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
-  const dialogContainer = useDialogContentContainer();
+  const portalContainer = useSelectorPortalContainer();
   const ui = useUIConfig();
 
   useEffect(
@@ -193,7 +193,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
           </div>
         </Popover.Anchor>
 
-        <Popover.Portal container={dialogContainer ?? undefined}>
+        <Popover.Portal container={portalContainer ?? undefined}>
           <Popover.Content
             side="bottom"
             align="start"

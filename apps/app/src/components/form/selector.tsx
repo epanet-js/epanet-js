@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
-import { useDialogContentContainer } from "src/components/dialog";
+import { useSelectorPortalContainer } from "src/lib/ui-kit/portal";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
 import { BaseSelectorList, SelectorListOption } from "./selector-list";
 
@@ -75,7 +75,7 @@ export function BaseSelector<T extends string | number>({
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const dialogContainer = useDialogContentContainer();
+  const portalContainer = useSelectorPortalContainer();
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === selected) ?? null,
@@ -150,7 +150,7 @@ export function BaseSelector<T extends string | number>({
           </div>
         </button>
       </Popover.Trigger>
-      <Popover.Portal container={dialogContainer ?? undefined}>
+      <Popover.Portal container={portalContainer ?? undefined}>
         <Popover.Content
           side="bottom"
           align="start"

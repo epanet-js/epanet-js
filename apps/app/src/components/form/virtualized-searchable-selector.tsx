@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
-import { useDialogContentContainer } from "src/components/dialog";
+import { useSelectorPortalContainer } from "src/lib/ui-kit/portal";
 import { useUIConfig } from "src/lib/ui-kit/ui-config";
 import { SearchableSelectorOption } from "./searchable-selector";
 
@@ -44,7 +44,7 @@ export const VirtualizedSearchableSelector = <
   );
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const dialogContainer = useDialogContentContainer();
+  const portalContainer = useSelectorPortalContainer();
   const ui = useUIConfig();
 
   const virtualizer = useVirtualizer({
@@ -206,7 +206,7 @@ export const VirtualizedSearchableSelector = <
           </div>
         </Popover.Anchor>
 
-        <Popover.Portal container={dialogContainer ?? undefined}>
+        <Popover.Portal container={portalContainer ?? undefined}>
           <Popover.Content
             side="bottom"
             align="start"

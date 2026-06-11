@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import {
   Button,
@@ -19,15 +13,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { CloseIcon, RefreshIcon } from "src/icons";
-
-const DialogContentContext = createContext<HTMLElement | null>(null);
-
-/**
- * Returns the dialog content element when called inside a BaseDialog, or null
- * otherwise. Use as the `container` for nested Radix portals (Popover, etc.)
- * so they live inside the dialog's scroll-lock and focus scopes.
- */
-export const useDialogContentContainer = () => useContext(DialogContentContext);
+import { SelectorPortalContainer } from "src/lib/ui-kit/portal";
 
 export const useDialogState = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -142,7 +128,7 @@ export const BaseDialog = ({
             }
             aria-describedby={undefined}
           >
-            <DialogContentContext.Provider value={contentEl}>
+            <SelectorPortalContainer container={contentEl}>
               <DefaultErrorBoundary>
                 <div className="modal-container flex flex-col flex-nowrap flex-1 min-h-0">
                   {!title && <Dialog.Title className="sr-only" />}
@@ -153,7 +139,7 @@ export const BaseDialog = ({
                   {footer && <DialogFooter>{footer}</DialogFooter>}
                 </div>
               </DefaultErrorBoundary>
-            </DialogContentContext.Provider>
+            </SelectorPortalContainer>
           </StyledDialogContent>
         </div>
       </Dialog.Portal>
