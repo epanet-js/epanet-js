@@ -259,6 +259,7 @@ export const QuantityRow = <P extends string>({
   placeholder = "",
   comparison,
   onChange,
+  validate,
   displayName,
   paywall,
 }: {
@@ -275,6 +276,7 @@ export const QuantityRow = <P extends string>({
     newValue: number | null,
     oldValue: number | null,
   ) => void;
+  validate?: (value: number) => boolean;
   displayName?: string;
   paywall?: PaywallFeature;
 }) => {
@@ -302,9 +304,11 @@ export const QuantityRow = <P extends string>({
 
   const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();
-    const resolvedValue =
-      isEmpty && isNullable && placeholder ? null : newValue;
-    onChange && onChange(name, resolvedValue, value);
+    if (isEmpty) {
+      if (isNullable && placeholder) onChange && onChange(name, null, value);
+      return;
+    }
+    onChange && onChange(name, newValue, value);
   };
 
   return (
@@ -323,6 +327,7 @@ export const QuantityRow = <P extends string>({
           label={label}
           positiveOnly={positiveOnly}
           isNullable={isNullable}
+          validate={validate}
           readOnly={readOnly}
           displayValue={displayValue}
           placeholder={placeholder}
@@ -349,6 +354,7 @@ export const IntegerRow = <P extends string>({
   onChange,
   displayName,
   paywall,
+  validate,
 }: {
   name: P;
   value: number | null;
@@ -364,6 +370,7 @@ export const IntegerRow = <P extends string>({
   ) => void;
   displayName?: string;
   paywall?: PaywallFeature;
+  validate?: (value: number) => boolean;
 }) => {
   const translate = useTranslate();
   const lastChange = useRef<number>(0);
@@ -409,6 +416,7 @@ export const IntegerRow = <P extends string>({
           displayValue={displayValue}
           placeholder={placeholder}
           onChangeValue={handleChange}
+          validate={validate}
           styleOptions={{
             padding: "md",
             ghostBorder: readOnly,
@@ -429,6 +437,7 @@ export const CreatableTextRow = <P extends string>({
   comparison,
   onChange,
   paywall,
+  validateNew,
 }: {
   name: P;
   value: string | null;
@@ -442,6 +451,7 @@ export const CreatableTextRow = <P extends string>({
     oldValue: string | null,
   ) => void;
   paywall?: PaywallFeature;
+  validateNew?: (query: string) => boolean;
 }) => {
   const translate = useTranslate();
   const label = translate(name);
@@ -488,6 +498,7 @@ export const CreatableTextRow = <P extends string>({
           placeholder={resolvedPlaceholder}
           clearLabel={resolvedPlaceholder}
           ariaLabel={label}
+          validateNew={validateNew}
         />
       )}
     </PaywalledInlineField>

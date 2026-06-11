@@ -45,7 +45,7 @@ export function buildCustomerPointColumns(
   units: UnitsSpec,
   formatting: FormattingSpec,
   patternOptions: PatternOption[],
-  validateLabel: (label: string, rowIndex: number) => boolean,
+  validateLabel: (label: string, row: CustomerPointRow) => boolean,
   accessorCtx?: CpAccessorCtx,
 ): GridColumn<CustomerPointRow>[] {
   const ck = makeCk(accessorCtx);
@@ -86,15 +86,14 @@ export function buildCustomerPointColumns(
     floatColumn<CustomerPointRow>(ck("baseDemand"), {
       header: headerLabel(translate("baseDemand"), units.customerDemandPerDay),
       decimals: getDecimals(formatting, "customerDemandPerDay"),
-      nullValue: 0,
-      deleteValue: 0,
+      emptyValue: 0,
     }),
     filterableSelectColumn<number, CustomerPointRow>(ck("patternId"), {
       header: translate("timePattern"),
       options: patternOptions,
       placeholder: translate("constant"),
       emptyOptionLabel: translate("constant"),
-      deleteValue: null,
+      emptyValue: null,
     }),
   ];
 }

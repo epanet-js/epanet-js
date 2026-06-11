@@ -32,7 +32,7 @@ export type SelectorListProps<T extends string | number | boolean> = {
   minOptionsForSearch?: number;
   searchPlaceholder?: string;
   listClassName?: string;
-
+  validateNew?: (query: string) => boolean;
   /** Seed the search query on mount (used by data-grid type-to-open). */
   initialQuery?: string;
 };
@@ -57,6 +57,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   minOptionsForSearch = 8,
   searchPlaceholder,
   listClassName,
+  validateNew,
   initialQuery = "",
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
@@ -84,8 +85,10 @@ export function BaseSelectorList<T extends string | number | boolean>({
     return options.some((o) => o.label.toLowerCase() === q);
   }, [options, trimmedQuery]);
 
+  const isNewQueryInvalid =
+    !!validateNew && trimmedQuery.length > 0 && !validateNew(trimmedQuery);
   const showCreateOption =
-    allowNew && trimmedQuery.length > 0 && !hasExactMatch;
+    allowNew && trimmedQuery.length > 0 && !hasExactMatch && !isNewQueryInvalid;
   const showClearRow =
     nullable && clearLabel !== undefined && options.length > 0;
   const showActionRow =
@@ -398,7 +401,13 @@ export function BaseSelectorList<T extends string | number | boolean>({
               setActiveIndex(e.target.value.trim() ? 0 : NO_INDEX);
             }}
             placeholder={searchPlaceholder ?? ui.searchPlaceholder}
-            className="w-full h-8 px-2 text-size-base border border-strong rounded-sm outline-hidden focus:border-accent focus:ring-1 focus:ring-accent"
+            aria-invalid={isNewQueryInvalid || undefined}
+            className={clsx(
+              "w-full h-8 px-2 text-size-base border rounded-sm outline-hidden",
+              isNewQueryInvalid
+                ? "border-orange-500 dark:border-orange-700 focus:border-orange-500 dark:focus:border-orange-700 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
+                : "border-strong focus:border-accent focus:ring-1 focus:ring-accent",
+            )}
           />
         </div>
       )}

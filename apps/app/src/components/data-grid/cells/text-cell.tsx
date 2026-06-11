@@ -7,35 +7,38 @@ import { useEditableTextInput } from "./use-editable-text-input";
 
 const VALIDATION_DEBOUNCE_MS = 150;
 
-type TextCellProps = CellProps<string | null> & {
+type TextCellProps<TData = unknown> = CellProps<string | null> & {
+  emptyValue?: string | null;
   readonly?: boolean;
-  validate?: (value: string, rowIndex: number) => boolean;
+  validate?: (value: string, row: TData) => boolean;
   sanitize?: (raw: string) => string;
 };
 
-export function TextCell({
+export function TextCell<TData = unknown>({
   value,
-  rowIndex,
+  row,
   editMode,
   onChange,
   stopEditing,
+  emptyValue,
   readonly,
   validate,
   sanitize,
-}: TextCellProps) {
+}: TextCellProps<TData>) {
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isValid = useCallback(
-    (v: string) => !validate || v === "" || validate(v, rowIndex),
-    [validate, rowIndex],
+    (v: string) => !validate || v === "" || validate(v, row as TData),
+    [validate, row],
   );
 
   const parse = useCallback(
     (raw: string): string | null | undefined => {
       if (!isValid(raw)) return undefined;
-      return raw || null;
+      if (raw === "") return emptyValue;
+      return raw;
     },
-    [isValid],
+    [isValid, emptyValue],
   );
 
   const format = useCallback((v: string | null) => v ?? "", []);
@@ -73,11 +76,11 @@ export function TextCell({
         if (validationTimerRef.current)
           clearTimeout(validationTimerRef.current);
         validationTimerRef.current = setTimeout(() => {
-          setHasError(newValue !== "" && !validate(newValue, rowIndex));
+          setHasError(newValue !== "" && !validate(newValue, row as TData));
         }, VALIDATION_DEBOUNCE_MS);
       }
     },
-    [validate, rowIndex, setEditValue, setHasError, sanitize],
+    [validate, row, setEditValue, setHasError, sanitize],
   );
 
   if (readonly) {
@@ -121,22 +124,24 @@ export function textColumn<TData extends RowData = RowData>(
   options: {
     header: string;
     size?: number;
+    emptyValue?: string | null;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
-    validate?: (value: string, rowIndex: number) => boolean;
+    validate?: (value: string, row: TData) => boolean;
     cleanLabel?: (raw: string) => string;
   },
 ): GridColumn<TData> {
-  const { isReadOnly, validate, cleanLabel } = options;
+  const { emptyValue, isReadOnly, validate, cleanLabel } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
       : (isReadOnly ?? false);
 
   const CellComponent =
-    isReadOnly || validate || cleanLabel
+    emptyValue !== undefined || isReadOnly || validate || cleanLabel
       ? (props: CellProps<string | null>) => (
-          <TextCell
+          <TextCell<TData>
             {...props}
+            emptyValue={emptyValue}
             readonly={resolveReadOnly(props.rowIndex)}
             validate={validate}
             sanitize={cleanLabel}
@@ -151,12 +156,14 @@ export function textColumn<TData extends RowData = RowData>(
     meta: {
       cellComponent: CellComponent,
       copyValue: (v: string | null) => v ?? "",
-      pasteValue: (v: string) => {
-        if (!v) return null;
+      pasteValue: (v: string, row: TData) => {
+        if (!v) return emptyValue;
         const cleaned = cleanLabel ? cleanLabel(v) : v;
-        return cleaned || null;
+        if (!cleaned) return emptyValue;
+        if (validate && !validate(cleaned, row)) return undefined;
+        return cleaned;
       },
-      deleteValue: null,
+      deleteValue: emptyValue,
       isReadOnly,
     },
   };

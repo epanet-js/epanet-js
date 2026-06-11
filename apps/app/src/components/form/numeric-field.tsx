@@ -30,6 +30,7 @@ export const NumericField = ({
   placeholder,
   styleOptions = {},
   tabIndex = 1,
+  validate,
 }: {
   label: string;
   displayValue: string;
@@ -41,6 +42,7 @@ export const NumericField = ({
   placeholder?: string;
   styleOptions?: Partial<StyleOptions>;
   tabIndex?: number;
+  validate?: (value: number) => boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
@@ -120,8 +122,15 @@ export const NumericField = ({
     if (newInputValue === inputValue) return;
     if (rawValue.length > 0 && newInputValue.length === 0) return;
     setInputValue(newInputValue);
+    const isEmpty = newInputValue.trim() === "";
     const numericValue = parseLocaleNumber(newInputValue);
-    setError(isNaN(numericValue) || (!isNullable && numericValue === 0));
+    const isInvalidNumber = isEmpty ? !isNullable : isNaN(numericValue);
+    const failsValidation =
+      !isEmpty &&
+      !isInvalidNumber &&
+      validate !== undefined &&
+      !validate(numericValue);
+    setError(isInvalidNumber || failsValidation);
     setDirty(true);
   };
 

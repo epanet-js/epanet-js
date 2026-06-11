@@ -245,6 +245,7 @@ function clearSelectedCells<TData extends RowData>(
       if (!accessorKey) continue;
 
       const deleteValue = column.getDeleteValue();
+      if (deleteValue === undefined) continue;
       const value =
         typeof deleteValue === "function" ? deleteValue() : deleteValue;
       patches[accessorKey] = value ?? null;

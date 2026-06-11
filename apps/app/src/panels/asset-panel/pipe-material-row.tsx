@@ -3,6 +3,7 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
+import { isValidMaterial } from "src/hydraulic-model/property-validators";
 import { CreatableTextRow } from "./ui-components";
 
 type OnMaterialChange = (
@@ -38,6 +39,7 @@ export const PipeMaterialRow = ({
       onChange={onChange}
       readOnly={readOnly}
       paywall="pipeAttributes"
+      validateNew={isValidMaterial}
     />
   );
 };

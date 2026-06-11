@@ -41,6 +41,11 @@ import {
   assetAccessor,
   isAssetComputedKey,
 } from "./data";
+import {
+  isValidInstallationYear,
+  isGreaterThanZero,
+  isValidMaterial,
+} from "src/hydraulic-model/property-validators";
 
 /**
  * Resolves a column key to either a plain `accessorKey` (legacy, or a direct
@@ -124,7 +129,34 @@ export const NULLABLE_KEYS = new Set([
   "wallReactionCoeff",
   "energyPrice",
   "chemicalSourceStrength",
+]);
+
+export const POSITIVE_ONLY_KEYS = new Set([
+  "diameter",
+  "length",
+  "roughness",
+  "minorLoss",
+  "emitterCoefficient",
+  "initialQuality",
+  "initialLevel",
+  "minLevel",
+  "maxLevel",
+  "minVolume",
   "mixingFraction",
+  "chemicalSourceStrength",
+  "energyPrice",
+  "power",
+]);
+
+// Fields that must be strictly > 0 (positiveOnly only blocks negatives; the
+// validator below enforces non-zero on top of that).
+export const NON_ZERO_KEYS = new Set([
+  "diameter",
+  "length",
+  "roughness",
+  "maxLevel",
+  "mixingFraction",
+  "power",
 ]);
 
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
@@ -399,7 +431,7 @@ type BuildColumnsArgs = [
   curves: Curves,
   simulationSettings: SimulationSettings,
   qualityType: QualityAnalysisType,
-  validateLabel?: (label: string, rowIndex: number) => boolean,
+  validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
 ];
@@ -425,15 +457,17 @@ function pipeAttributeColsFor(
         options: materials.map((m) => ({ value: m, label: m })),
         placeholder: translate("none"),
         emptyOptionLabel: translate("none"),
-        deleteValue: null,
+        emptyValue: null,
         allowNew: true,
         createLabel: (query) => translate("addNewValue", query),
+        validateNew: isValidMaterial,
         isReadOnly: !!lock,
       }),
       integerColumn("year", {
         header: translate("yearOfInstallation"),
-        nullValue: null,
-        deleteValue: null,
+        emptyValue: null,
+        positiveOnly: true,
+        validate: isValidInstallationYear,
         placeholder: "",
         isReadOnly: !!lock,
       }),
@@ -471,7 +505,7 @@ function _buildColumns(
   curves: Curves,
   simulationSettings: SimulationSettings,
   qualityType: QualityAnalysisType,
-  validateLabel?: (label: string, rowIndex: number) => boolean,
+  validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
 ): GridColumn<AssetRow>[] {
@@ -507,7 +541,13 @@ function _buildColumns(
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       placeholder,
-      ...(NULLABLE_KEYS.has(key) ? { nullValue: null, deleteValue: null } : {}),
+      emptyValue: NULLABLE_KEYS.has(key)
+        ? null
+        : NON_ZERO_KEYS.has(key)
+          ? undefined
+          : 0,
+      positiveOnly: POSITIVE_ONLY_KEYS.has(key),
+      validate: NON_ZERO_KEYS.has(key) ? isGreaterThanZero : undefined,
     });
 
   const booleanCol = (
@@ -548,7 +588,7 @@ function _buildColumns(
       options: patternOpts(filterType, excludeId),
       placeholder,
       emptyOptionLabel: placeholder,
-      deleteValue: null,
+      emptyValue: null,
       isReadOnly,
     });
 
@@ -564,7 +604,7 @@ function _buildColumns(
       options: curveOpts(filterType),
       placeholder: placeholder ?? translate("none"),
       emptyOptionLabel: placeholder ?? translate("none"),
-      deleteValue: null,
+      emptyValue: null,
       isReadOnly,
     });
 
@@ -582,7 +622,7 @@ function _buildColumns(
       })),
       emptyOptionLabel: translate("none"),
       placeholder: translate("none"),
-      deleteValue: null,
+      emptyValue: null,
     }),
     numericCol(
       "chemicalSourceStrength",
@@ -645,8 +685,7 @@ function _buildColumns(
         floatColumn(ck("baseDemand"), {
           header: headerLabel(translate("baseDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
-          nullValue: 0,
-          deleteValue: 0,
+          emptyValue: 0,
         }),
         patternCol("patternId", translate("timePattern"), "demand"),
         floatColumn(ck("customerPointCount"), {
@@ -714,13 +753,13 @@ function _buildColumns(
         floatColumn("bulkReactionCoeff", {
           header: translate("bulkReactionCoeff"),
           decimals: formatting.defaultDecimals,
-          deleteValue: null,
+          emptyValue: null,
           placeholder: localizeDecimal(reactionGlobalBulk),
         }),
         floatColumn("wallReactionCoeff", {
           header: translate("wallReactionCoeff"),
           decimals: formatting.defaultDecimals,
-          deleteValue: null,
+          emptyValue: null,
           placeholder: localizeDecimal(reactionGlobalWall),
         }),
         ...simCols,
@@ -840,7 +879,7 @@ function _buildColumns(
           options: [...curveOpts("headloss"), ...curveOpts("valve")],
           placeholder: translate("none"),
           emptyOptionLabel: translate("none"),
-          deleteValue: null,
+          emptyValue: null,
           isReadOnly: (rowIndex) => {
             const kind = getRow?.(rowIndex)?.kind;
             return kind !== "gpv" && kind !== "pcv";
@@ -948,20 +987,21 @@ function _buildColumns(
             value: m,
             label: translate(`tank.${m}`),
           })),
-          deleteValue: "mixed",
+          emptyValue: "mixed",
         }),
-        floatColumn("mixingFraction", {
-          header: translate("mixingFraction"),
-          decimals: formatting.defaultDecimals,
-          deleteValue: null,
-          isReadOnly: (rowIndex) =>
+        numericCol(
+          "mixingFraction",
+          translate("mixingFraction"),
+          undefined,
+          undefined,
+          (rowIndex) =>
             getRow?.(rowIndex)?.mixingModel !== TANK_TWO_COMPARTMENT_MIXING,
-        }),
+        ),
         numericCol("initialQuality", translate("initialQuality")),
         floatColumn("bulkReactionCoeff", {
           header: translate("bulkReactionCoeff"),
           decimals: formatting.defaultDecimals,
-          deleteValue: null,
+          emptyValue: null,
           placeholder: localizeDecimal(reactionGlobalBulk),
         }),
         ...chemicalSourceTypeCols(),

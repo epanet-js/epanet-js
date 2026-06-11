@@ -41,21 +41,23 @@ describe("filterableSelectColumn", () => {
 
   describe("pasteValue", () => {
     it("matches by label (case-insensitive)", () => {
-      expect(column.meta!.pasteValue!("Pattern A")).toBe(1);
-      expect(column.meta!.pasteValue!("pattern a")).toBe(1);
-      expect(column.meta!.pasteValue!("PATTERN A")).toBe(1);
-      expect(column.meta!.pasteValue!("constant")).toBe(0);
+      expect(column.meta!.pasteValue!("Pattern A", {} as any)).toBe(1);
+      expect(column.meta!.pasteValue!("pattern a", {} as any)).toBe(1);
+      expect(column.meta!.pasteValue!("PATTERN A", {} as any)).toBe(1);
+      expect(column.meta!.pasteValue!("constant", {} as any)).toBe(0);
     });
 
     it("matches by value string", () => {
-      expect(column.meta!.pasteValue!("0")).toBe(0);
-      expect(column.meta!.pasteValue!("1")).toBe(1);
-      expect(column.meta!.pasteValue!("2")).toBe(2);
+      expect(column.meta!.pasteValue!("0", {} as any)).toBe(0);
+      expect(column.meta!.pasteValue!("1", {} as any)).toBe(1);
+      expect(column.meta!.pasteValue!("2", {} as any)).toBe(2);
     });
 
-    it("returns null for non-matching value", () => {
-      expect(column.meta!.pasteValue!("nonexistent")).toBe(null);
-      expect(column.meta!.pasteValue!("999")).toBe(null);
+    it("returns undefined for non-matching value (skip cell)", () => {
+      expect(
+        column.meta!.pasteValue!("nonexistent", {} as any),
+      ).toBeUndefined();
+      expect(column.meta!.pasteValue!("999", {} as any)).toBeUndefined();
     });
   });
 
@@ -63,14 +65,14 @@ describe("filterableSelectColumn", () => {
     it("preserves value through copy then paste", () => {
       const originalValue = 1;
       const copied = column.meta!.copyValue!(originalValue);
-      const pasted = column.meta!.pasteValue!(copied);
+      const pasted = column.meta!.pasteValue!(copied, {} as any);
       expect(pasted).toBe(originalValue);
     });
 
     it("preserves all option values through round-trip", () => {
       for (const option of options) {
         const copied = column.meta!.copyValue!(option.value);
-        const pasted = column.meta!.pasteValue!(copied);
+        const pasted = column.meta!.pasteValue!(copied, {} as any);
         expect(pasted).toBe(option.value);
       }
     });
@@ -94,6 +96,7 @@ describe("FilterableSelectCell", () => {
     onChange: vi.fn(),
     stopEditing: vi.fn(),
     startEditing: vi.fn(),
+    row: {},
     rowIndex: 0,
     columnIndex: 0,
     isActive: true,

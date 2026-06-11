@@ -186,8 +186,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
         floatColumn("multiplier", {
           header: translate("multiplier"),
           size: 82,
-          deleteValue: DEFAULT_MULTIPLIER,
-          nullValue: 0,
+          emptyValue: 0,
         }),
       ],
       [translate],

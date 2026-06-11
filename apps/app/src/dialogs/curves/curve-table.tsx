@@ -185,14 +185,12 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
         floatColumn("x", {
           header: xHeader,
           size: 82,
-          deleteValue: DEFAULT_X,
-          nullValue: 0,
+          emptyValue: 0,
         }),
         floatColumn("y", {
           header: yHeader,
           size: 82,
-          deleteValue: DEFAULT_Y,
-          nullValue: 0,
+          emptyValue: 0,
         }),
       ],
       [xHeader, yHeader],

@@ -6,6 +6,7 @@ const setupUser = () => userEvent.setup();
 
 const defaultProps = {
   value: 1.5,
+  row: {},
   rowIndex: 0,
   columnIndex: 0,
   isActive: false,
@@ -245,17 +246,39 @@ describe("FloatCell", () => {
       expect(onChange).toHaveBeenCalledWith(1.5);
     });
 
-    it("returns null for invalid input", async () => {
+    it("skips commit when input is cleared and no emptyValue is configured", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
       render(
         <FloatCell
           {...defaultProps}
-          value={0}
+          value={5}
           editMode="full"
           onChange={onChange}
           stopEditing={vi.fn()}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.keyboard("{Enter}");
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("commits the configured emptyValue when input is cleared", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <FloatCell
+          {...defaultProps}
+          value={5}
+          editMode="full"
+          onChange={onChange}
+          stopEditing={vi.fn()}
+          emptyValue={null}
         />,
       );
 
@@ -348,7 +371,7 @@ describe("floatColumn", () => {
       const column = floatColumn("price", {
         header: "Price",
         size: 100,
-        deleteValue: 0,
+        emptyValue: 0,
       });
 
       expect(column).toMatchObject({
@@ -359,10 +382,19 @@ describe("floatColumn", () => {
       });
     });
 
-    it("uses null as default deleteValue", () => {
+    it("leaves deleteValue undefined when emptyValue is not set", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.meta?.deleteValue).toBeNull();
+      expect(column.meta?.deleteValue).toBeUndefined();
+    });
+
+    it("mirrors emptyValue into deleteValue", () => {
+      const column = floatColumn("value", {
+        header: "Value",
+        emptyValue: 0,
+      });
+
+      expect(column.meta?.deleteValue).toBe(0);
     });
   });
 
@@ -407,27 +439,63 @@ describe("floatColumn", () => {
     it("parses valid number string", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.meta?.pasteValue?.("123.45")).toBe(123.45);
+      expect(column.meta?.pasteValue?.("123.45", {} as any)).toBe(123.45);
     });
 
     it("parses numbers with thousands separator", () => {
       const column = floatColumn("value", { header: "Value" });
 
       // In English locale, comma is thousands separator
-      expect(column.meta?.pasteValue?.("1,234.56")).toBe(1234.56);
+      expect(column.meta?.pasteValue?.("1,234.56", {} as any)).toBe(1234.56);
     });
 
-    it("returns null for invalid string", () => {
+    it("returns undefined for invalid string (skip cell)", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.meta?.pasteValue?.("abc")).toBeNull();
-      expect(column.meta?.pasteValue?.("")).toBeNull();
+      expect(column.meta?.pasteValue?.("abc", {} as any)).toBeUndefined();
+    });
+
+    it("returns emptyValue for empty string when emptyValue is configured", () => {
+      const column = floatColumn("value", {
+        header: "Value",
+        emptyValue: null,
+      });
+
+      expect(column.meta?.pasteValue?.("", {} as any)).toBeNull();
+    });
+
+    it("returns undefined for empty string when no emptyValue is configured", () => {
+      const column = floatColumn("value", { header: "Value" });
+
+      expect(column.meta?.pasteValue?.("", {} as any)).toBeUndefined();
     });
 
     it("parses negative numbers", () => {
       const column = floatColumn("value", { header: "Value" });
 
-      expect(column.meta?.pasteValue?.("-42.5")).toBe(-42.5);
+      expect(column.meta?.pasteValue?.("-42.5", {} as any)).toBe(-42.5);
+    });
+
+    it("rejects negative values when positiveOnly (zero is allowed)", () => {
+      const column = floatColumn("value", {
+        header: "Value",
+        positiveOnly: true,
+      });
+
+      expect(column.meta?.pasteValue?.("-42.5", {} as any)).toBeUndefined();
+      expect(column.meta?.pasteValue?.("0", {} as any)).toBe(0);
+      expect(column.meta?.pasteValue?.("1.5", {} as any)).toBe(1.5);
+    });
+
+    it("rejects zero when validate enforces non-zero", () => {
+      const column = floatColumn("value", {
+        header: "Value",
+        positiveOnly: true,
+        validate: (n) => n > 0,
+      });
+
+      expect(column.meta?.pasteValue?.("0", {} as any)).toBeUndefined();
+      expect(column.meta?.pasteValue?.("1.5", {} as any)).toBe(1.5);
     });
   });
 });

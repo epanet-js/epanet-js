@@ -82,8 +82,8 @@ const rowData = useMemo(() => toRows(points), [points]);
 // 3. Define columns with helpers (memoised)
 const columns = useMemo(
   () => [
-    floatColumn("x", { header: xHeader, size: 82, deleteValue: 0, nullValue: 0 }),
-    floatColumn("y", { header: yHeader, size: 82, deleteValue: 0, nullValue: 0 }),
+    floatColumn("x", { header: xHeader, size: 82, emptyValue: 0 }),
+    floatColumn("y", { header: yHeader, size: 82, emptyValue: 0 }),
   ],
   [xHeader, yHeader],
 );
@@ -121,13 +121,11 @@ Numeric input with locale formatting and parse validation.
 floatColumn("multiplier", {
   header: translate("multiplier"),
   size: 82,
-  deleteValue: 1.0,   // value set when user presses Delete/Backspace
-  nullValue: 0,       // value when input is cleared to empty
+  emptyValue: 0,       // value committed when the cell is cleared (typed empty or Delete)
 })
 ```
 
-- `deleteValue` — what Delete/Backspace writes into the cell (omit to write `null`)
-- `nullValue` — what an empty string parses to (omit to store `null`)
+- `emptyValue` — value committed when input is cleared (typed empty or Delete). Match the model's type: use `null` for optional fields, a sensible default for required fields where "reset to default" is meaningful. **Omit entirely to forbid clearing** (typing empty is a no-op, Delete is a no-op) — use this for required fields that have no valid empty state.
 - Copy/paste automatically converts to/from string
 
 ### `textColumn(accessorKey, options)`
@@ -135,21 +133,29 @@ floatColumn("multiplier", {
 Text input, optionally read-only.
 
 ```ts
-// Editable
+// Editable, not clearable (required field — Delete is a no-op, paste of empty/invalid is skipped)
 textColumn("label", { header: translate("label"), size: 120 })
+
+// Editable, clearable to null (optional field)
+textColumn("material", { header: translate("material"), size: 120, emptyValue: null })
 
 // Read-only (computed/derived — user should never edit)
 textColumn("timestep", { header: translate("timestep"), size: 82, isReadOnly: true })
 ```
 
-Pass `isReadOnly: true` for computed or derived columns. You can also pass a function `isReadOnly: (rowIndex) => boolean` for per-row control.
+- `emptyValue` — what to commit when input is cleared (typed empty, Delete, paste empty). Omit to forbid clearing. `meta.deleteValue` mirrors this.
+- `isReadOnly` — `true` or `(rowIndex) => boolean` for per-row control.
 
 ### `booleanColumn(accessorKey, options)`
 
 Checkbox renderer.
 
 ```ts
+// Required boolean — Delete is a no-op
 booleanColumn("active", { header: translate("active"), size: 60 })
+
+// Nullable boolean — Delete writes null
+booleanColumn("active", { header: translate("active"), size: 60, emptyValue: null })
 ```
 
 ### `filterableSelectColumn(accessorKey, options)`
@@ -162,10 +168,11 @@ filterableSelectColumn("category", {
   options: categoryOptions,   // FilterableSelectOption<T>[]
   placeholder: translate("selectCategory"),
   size: 120,
+  emptyValue: null,           // omit to forbid clearing
 })
 ```
 
-`FilterableSelectOption<T>` is `{ value: T; label: string }`.
+`FilterableSelectOption<T>` is `{ value: T; label: string }`. Paste skips the cell when the pasted text doesn't match any option's label or value.
 
 ---
 
@@ -266,8 +273,8 @@ const column: GridColumn = {
   header: "My Field",
   cellComponent: MyCell,
   copyValue: (v) => String(v),
-  pasteValue: (v) => v,
-  deleteValue: "",
+  pasteValue: (v) => v,    // return undefined to skip the cell (invalid input)
+  deleteValue: "",         // omit to disable Delete (no-op)
 };
 ```
 

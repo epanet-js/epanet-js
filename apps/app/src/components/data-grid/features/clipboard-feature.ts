@@ -40,7 +40,11 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     copyValue?: (value: TValue) => string;
-    pasteValue?: (text: string) => TValue;
+    // Returns undefined to signal "skip this cell" (e.g. pasted value
+    // fails validation). The clipboard feature leaves the cell unchanged.
+    // `row` is the destination row's data — useful for row-aware validators
+    // (e.g. uniqueness checks that need to exclude the current row's id).
+    pasteValue?: (text: string, row: TData) => TValue | undefined;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,7 +59,7 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Column<TData extends RowData, TValue> {
     getCopyValue: (value: unknown) => string;
-    getPasteValue: (text: string) => unknown;
+    getPasteValue: (text: string, row: TData) => unknown;
   }
 }
 
@@ -227,7 +231,9 @@ export const ClipboardFeature: TableFeature = {
           if (!column || column.isReadOnly(dataIdx)) continue;
 
           const cellText = clipboardRow[j % clipboardRow.length] ?? "";
-          patches[column.id] = column.getPasteValue(cellText);
+          const pasted = column.getPasteValue(cellText, existing);
+          if (pasted === undefined) continue;
+          patches[column.id] = pasted;
         }
 
         newData[dataIdx] = patchRow(existing, patches);
@@ -300,9 +306,9 @@ export const ClipboardFeature: TableFeature = {
       return fn ? fn(value) : String(value ?? "");
     };
 
-    column.getPasteValue = (text: string) => {
+    column.getPasteValue = (text: string, row: TData) => {
       const fn = column.columnDef.meta?.pasteValue;
-      return fn ? fn(text) : text;
+      return fn ? fn(text, row) : text;
     };
   },
 };

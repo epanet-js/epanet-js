@@ -27,13 +27,14 @@ const categoryOptions = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const columns: GridColumn<TestRow>[] = [
   textColumn("label", { header: "Label", size: 80, isReadOnly: true }),
-  floatColumn("value", { header: "Value", size: 100, deleteValue: null }),
-  booleanColumn("active", { header: "Active", size: 80 }),
+  floatColumn("value", { header: "Value", size: 100, emptyValue: null }),
+  booleanColumn("active", { header: "Active", size: 80, emptyValue: false }),
   filterableSelectColumn("category", {
     header: "Category",
     options: categoryOptions,
     placeholder: "Select...",
     minOptionsForSearch: 10, // Disable search for simpler tests
+    emptyValue: null,
   }),
 ];
 

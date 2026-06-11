@@ -15,7 +15,9 @@ function formatInteger(value: number | null | undefined): string {
 }
 
 type IntegerCellProps = CellProps<number | null> & {
-  nullValue?: number | null;
+  emptyValue?: number | null;
+  positiveOnly?: boolean;
+  validate?: (value: number) => boolean;
   readonly?: boolean;
   placeholder?: string;
 };
@@ -33,18 +35,25 @@ export function IntegerCell({
   editMode,
   onChange,
   stopEditing,
-  nullValue = null,
+  emptyValue,
+  positiveOnly = false,
+  validate,
   readonly,
   placeholder,
 }: IntegerCellProps) {
   const parse = useCallback(
     (raw: string): number | null | undefined => {
       const parsed = parseNumericInput(raw);
-      if (parsed !== null) return Math.trunc(parsed);
-      if (raw.trim() === "") return nullValue;
+      if (parsed !== null) {
+        const truncated = Math.trunc(parsed);
+        if (positiveOnly && truncated < 0) return undefined;
+        if (validate && !validate(truncated)) return undefined;
+        return truncated;
+      }
+      if (raw.trim() === "") return emptyValue;
       return undefined;
     },
-    [nullValue],
+    [emptyValue, positiveOnly, validate],
   );
 
   const format = useCallback((v: number | null) => formatInteger(v), []);
@@ -71,15 +80,19 @@ export function IntegerCell({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
-      const newValue = normalizeNumericInput(rawValue);
+      const newValue = normalizeNumericInput(rawValue, { positiveOnly });
       if (newValue === editValue) return;
       if (rawValue.length > 0 && newValue.length === 0) return;
       setEditValue(newValue);
-      setHasError(
-        newValue.trim() !== "" && parseNumericInput(newValue) === null,
-      );
+      const parsed = parseNumericInput(newValue);
+      const truncated = parsed === null ? null : Math.trunc(parsed);
+      const isInvalidNumber = newValue.trim() !== "" && parsed === null;
+      const isNegative = positiveOnly && truncated !== null && truncated < 0;
+      const failsValidation =
+        validate !== undefined && truncated !== null && !validate(truncated);
+      setHasError(isInvalidNumber || isNegative || failsValidation);
     },
-    [editValue, setEditValue, setHasError],
+    [editValue, positiveOnly, validate, setEditValue, setHasError],
   );
 
   const formattedValue = formatInteger(value);
@@ -132,27 +145,38 @@ export function integerColumn<TData extends RowData = RowData>(
   options: {
     header: string;
     size?: number;
-    deleteValue?: number | null;
-    nullValue?: number | null;
+    emptyValue?: number | null;
+    positiveOnly?: boolean;
+    validate?: (value: number) => boolean;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
   },
 ): GridColumn<TData> {
-  const { nullValue, isReadOnly: readonly, placeholder } = options;
+  const {
+    emptyValue,
+    positiveOnly,
+    validate,
+    isReadOnly: readonly,
+    placeholder,
+  } = options;
   const isStaticReadOnly = readonly === true;
   const isDynamicReadOnly = typeof readonly === "function";
   const resolveReadOnly = (rowIndex: number) =>
     typeof readonly === "function" ? readonly(rowIndex) : (readonly ?? false);
 
   const CellComponent =
-    nullValue !== undefined ||
+    emptyValue !== undefined ||
+    positiveOnly !== undefined ||
+    validate !== undefined ||
     isStaticReadOnly ||
     isDynamicReadOnly ||
     placeholder !== undefined
       ? (props: CellProps<number | null>) => (
           <IntegerCell
             {...props}
-            nullValue={nullValue}
+            emptyValue={emptyValue}
+            positiveOnly={positiveOnly}
+            validate={validate}
             readonly={resolveReadOnly(props.rowIndex)}
             placeholder={placeholder}
           />
@@ -168,10 +192,16 @@ export function integerColumn<TData extends RowData = RowData>(
       copyValue: (v: number | null) => formatInteger(v),
       pasteValue: (v: string) => {
         const parsed = parseNumericInput(v);
-        if (parsed === null) return nullValue ?? null;
-        return Math.trunc(parsed);
+        if (parsed !== null) {
+          const truncated = Math.trunc(parsed);
+          if (positiveOnly && truncated < 0) return undefined;
+          if (validate && !validate(truncated)) return undefined;
+          return truncated;
+        }
+        if (v.trim() === "") return emptyValue;
+        return undefined;
       },
-      deleteValue: options.deleteValue ?? null,
+      deleteValue: emptyValue,
       placeholder,
       isReadOnly: readonly,
     },

@@ -21,6 +21,7 @@ type SelectorPropsBase<T extends string | number> = {
   actionLabel?: string;
   onActionClick?: () => void;
   listClassName?: string;
+  validateNew?: (query: string) => boolean;
 };
 
 type SelectorPropsNonNullable<T extends string | number> =
@@ -70,6 +71,7 @@ export function BaseSelector<T extends string | number>({
   actionLabel,
   onActionClick,
   listClassName,
+  validateNew,
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -176,6 +178,7 @@ export function BaseSelector<T extends string | number>({
               minOptionsForSearch={minOptionsForSearch}
               searchPlaceholder={searchPlaceholder}
               listClassName={listClassName}
+              validateNew={validateNew}
             />
           )}
         </Popover.Content>

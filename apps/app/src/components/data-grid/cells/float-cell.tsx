@@ -19,7 +19,9 @@ function formatLocaleNumber(
 }
 
 type FloatCellProps = CellProps<number | null> & {
-  nullValue?: number | null;
+  emptyValue?: number | null;
+  positiveOnly?: boolean;
+  validate?: (value: number) => boolean;
   decimals?: number;
   readonly?: boolean;
   placeholder?: string;
@@ -38,7 +40,9 @@ export function FloatCell({
   editMode,
   onChange,
   stopEditing,
-  nullValue = null,
+  emptyValue,
+  positiveOnly = false,
+  validate,
   decimals,
   readonly,
   placeholder,
@@ -46,11 +50,15 @@ export function FloatCell({
   const parse = useCallback(
     (raw: string): number | null | undefined => {
       const parsed = parseNumericInput(raw);
-      if (parsed !== null) return parsed;
-      if (raw.trim() === "") return nullValue;
+      if (parsed !== null) {
+        if (positiveOnly && parsed < 0) return undefined;
+        if (validate && !validate(parsed)) return undefined;
+        return parsed;
+      }
+      if (raw.trim() === "") return emptyValue;
       return undefined;
     },
-    [nullValue],
+    [emptyValue, positiveOnly, validate],
   );
 
   const format = useCallback(
@@ -88,15 +96,19 @@ export function FloatCell({
       const rawValue = e.target.value;
       const newValue = normalizeNumericInput(rawValue, {
         allowExponentSign: true,
+        positiveOnly,
       });
       if (newValue === editValue) return;
       if (rawValue.length > 0 && newValue.length === 0) return;
       setEditValue(newValue);
-      setHasError(
-        newValue.trim() !== "" && parseNumericInput(newValue) === null,
-      );
+      const parsed = parseNumericInput(newValue);
+      const isInvalidNumber = newValue.trim() !== "" && parsed === null;
+      const isNegative = positiveOnly && parsed !== null && parsed < 0;
+      const failsValidation =
+        validate !== undefined && parsed !== null && !validate(parsed);
+      setHasError(isInvalidNumber || isNegative || failsValidation);
     },
-    [editValue, setEditValue, setHasError],
+    [editValue, positiveOnly, validate, setEditValue, setHasError],
   );
 
   const formattedValue = formatLocaleNumber(value, decimals);
@@ -151,21 +163,31 @@ export function floatColumn<TData extends RowData = RowData>(
   options: {
     header: string;
     size?: number;
-    deleteValue?: number | null;
-    nullValue?: number | null;
+    emptyValue?: number | null;
+    positiveOnly?: boolean;
+    validate?: (value: number) => boolean;
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
   },
 ): GridColumn<TData> {
-  const { nullValue, decimals, isReadOnly: readonly, placeholder } = options;
+  const {
+    emptyValue,
+    positiveOnly,
+    validate,
+    decimals,
+    isReadOnly: readonly,
+    placeholder,
+  } = options;
   const isStaticReadOnly = readonly === true;
   const isDynamicReadOnly = typeof readonly === "function";
   const resolveReadOnly = (rowIndex: number) =>
     typeof readonly === "function" ? readonly(rowIndex) : (readonly ?? false);
 
   const CellComponent =
-    nullValue !== undefined ||
+    emptyValue !== undefined ||
+    positiveOnly !== undefined ||
+    validate !== undefined ||
     decimals !== undefined ||
     isStaticReadOnly ||
     isDynamicReadOnly ||
@@ -173,7 +195,9 @@ export function floatColumn<TData extends RowData = RowData>(
       ? (props: CellProps<number | null>) => (
           <FloatCell
             {...props}
-            nullValue={nullValue}
+            emptyValue={emptyValue}
+            positiveOnly={positiveOnly}
+            validate={validate}
             decimals={decimals}
             readonly={resolveReadOnly(props.rowIndex)}
             placeholder={placeholder}
@@ -188,8 +212,17 @@ export function floatColumn<TData extends RowData = RowData>(
     meta: {
       cellComponent: CellComponent,
       copyValue: (v: number | null) => formatLocaleNumber(v, decimals),
-      pasteValue: (v: string) => parseNumericInput(v) ?? nullValue ?? null,
-      deleteValue: options.deleteValue ?? null,
+      pasteValue: (v: string) => {
+        const parsed = parseNumericInput(v);
+        if (parsed !== null) {
+          if (positiveOnly && parsed < 0) return undefined;
+          if (validate && !validate(parsed)) return undefined;
+          return parsed;
+        }
+        if (v.trim() === "") return emptyValue;
+        return undefined;
+      },
+      deleteValue: emptyValue,
       placeholder,
       isReadOnly: readonly,
     },

@@ -193,8 +193,8 @@ export const DemandCategoriesEditor = ({
       floatColumn("baseDemand", {
         header: translate("demand"),
         size: 60,
-        deleteValue: 0,
-        nullValue: 0,
+        emptyValue: 0,
+        positiveOnly: true,
       }),
       filterableSelectColumn("patternId", {
         header: translate("timePattern"),
@@ -202,7 +202,7 @@ export const DemandCategoriesEditor = ({
         options: patternOptions,
         placeholder: translate("constant"),
         emptyOptionLabel: translate("constant"),
-        deleteValue: null,
+        emptyValue: null,
       }),
     ],
     [translate, patternOptions],

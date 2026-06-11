@@ -18,6 +18,7 @@ import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
+import { isGreaterThanZero } from "src/hydraulic-model/property-validators";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -420,6 +421,9 @@ const PowerDefinition = ({
       unit={units.power}
       readOnly={readOnly}
       onChange={handlePowerChange}
+      positiveOnly={true}
+      isNullable={false}
+      validate={isGreaterThanZero}
     />
   );
 };

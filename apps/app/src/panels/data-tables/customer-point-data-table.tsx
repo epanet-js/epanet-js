@@ -96,8 +96,8 @@ export const CustomerPointDataTable = memo(
           units,
           formatting,
           patternOptions,
-          (label: string, rowIndex: number) => {
-            const cpId = rowsRef.current?.[rowIndex]?.id;
+          (label, row) => {
+            const cpId = row.id;
             if (cpId === undefined) return true;
             return labelManager.isLabelAvailable(label, "customerPoint", cpId);
           },

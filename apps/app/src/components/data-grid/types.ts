@@ -49,6 +49,7 @@ export type GutterContextAction<TData = unknown> = {
 
 export type CellProps<TValue = unknown> = {
   value: TValue;
+  row: unknown;
   rowIndex: number;
   columnIndex: number;
   isActive: boolean;

@@ -153,11 +153,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   );
 
   const columns = useMemo(() => {
-    const validateLabel = (label: string, rowIndex: number) => {
-      const assetId = rowsRef.current?.[rowIndex]?.id;
-      if (assetId === undefined) return true;
-      return labelManager.isLabelAvailable(label, assetType, assetId);
-    };
+    const validateLabel = (label: string, row: AssetRow) =>
+      labelManager.isLabelAvailable(label, assetType, row.id);
     const getRow = (rowIndex: number) => rowsRef.current?.[rowIndex];
     const lock = pipeAttributesLocked
       ? {

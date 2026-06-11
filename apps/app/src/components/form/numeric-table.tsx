@@ -7,6 +7,7 @@ export type Cell = {
   handler?: (newValue: number, isEmpty: boolean) => void;
   positiveOnly?: boolean;
   isNullable?: boolean;
+  validate?: (value: number) => boolean;
   readOnly?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -78,6 +79,7 @@ const GridRow = ({ label, cells }: { label: string; cells: [Cell, Cell] }) => {
                 label={cell.label}
                 positiveOnly={cell.positiveOnly}
                 isNullable={cell.isNullable}
+                validate={cell.validate}
                 displayValue={displayValue}
                 onChangeValue={cell.handler}
                 styleOptions={{

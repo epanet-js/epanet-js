@@ -63,6 +63,10 @@ import type {
 } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import {
+  isValidInstallationYear,
+  isGreaterThanZero,
+} from "src/hydraulic-model/property-validators";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import {
   AssetEditorContent,
@@ -476,6 +480,7 @@ const JunctionEditor = ({
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
         />
         <QuantityRow
           name="emitterCoefficient"
@@ -488,6 +493,7 @@ const JunctionEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={false}
         />
       </SectionWrapper>
       <SectionWrapper
@@ -549,6 +555,7 @@ const JunctionEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={false}
         />
         <ChemicalSourceEditor
           node={junction}
@@ -780,6 +787,7 @@ const PipeEditor = ({
           value={pipe.diameter}
           positiveOnly={true}
           isNullable={false}
+          validate={isGreaterThanZero}
           unit={units.diameter}
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
@@ -790,6 +798,7 @@ const PipeEditor = ({
           value={pipe.length}
           positiveOnly={true}
           isNullable={false}
+          validate={isGreaterThanZero}
           unit={units.length}
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
@@ -811,6 +820,7 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           paywall="pipeAttributes"
+          validate={isValidInstallationYear}
         />
         <QuantityRow
           name="roughness"
@@ -820,6 +830,8 @@ const PipeEditor = ({
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
+          validate={isGreaterThanZero}
         />
         <QuantityRow
           name="minorLoss"
@@ -829,6 +841,7 @@ const PipeEditor = ({
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
         />
       </SectionWrapper>
       {(customerCount > 0 ||
@@ -1026,6 +1039,7 @@ const ReservoirEditor = ({
           comparison={getComparison("elevation", reservoir.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
         />
         <ReservoirHeadField
           reservoir={reservoir}
@@ -1050,6 +1064,7 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={false}
         />
         <ChemicalSourceEditor
           node={reservoir}
@@ -1215,6 +1230,7 @@ const TankEditor = ({
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
         />
         <QuantityRow
           name="initialLevel"
@@ -1224,6 +1240,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={false}
         />
         <TankDefinitionField
           tank={tank}
@@ -1257,6 +1274,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={false}
         />
         <QuantityRow
           name="bulkReactionCoeff"
@@ -1294,6 +1312,8 @@ const TankEditor = ({
               onChange={onPropertyChange}
               positiveOnly={true}
               readOnly={readonly}
+              isNullable={false}
+              validate={isGreaterThanZero}
             />
           </NestedSection>
         )}
@@ -1618,6 +1638,7 @@ const TankDefinitionField = ({
               onChange={onPropertyChange}
               positiveOnly={true}
               isNullable={false}
+              validate={isGreaterThanZero}
               readOnly={readOnly}
             />
             <hr className=" my-1" />
@@ -1629,6 +1650,8 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     positiveOnly: true,
+                    isNullable: false,
+                    validate: isGreaterThanZero,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1644,6 +1667,7 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
+                    isNullable: false,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1652,6 +1676,7 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume,
                     positiveOnly: true,
+                    isNullable: false,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minVolume", v, tank.minVolume),
@@ -1670,6 +1695,8 @@ const TankDefinitionField = ({
               onChange={handleAreaChange}
               positiveOnly={true}
               readOnly={readOnly}
+              isNullable={false}
+              validate={isGreaterThanZero}
             />
             <hr className=" my-1" />
             <NumericTable
@@ -1680,6 +1707,8 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     positiveOnly: true,
+                    isNullable: false,
+                    validate: isGreaterThanZero,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1695,6 +1724,7 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     positiveOnly: true,
+                    isNullable: false,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1703,6 +1733,7 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume,
                     positiveOnly: true,
+                    isNullable: false,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minVolume", v, tank.minVolume),
@@ -1721,6 +1752,8 @@ const TankDefinitionField = ({
                   label: translate("maxLevel"),
                   value: tank.maxLevel,
                   positiveOnly: true,
+                  isNullable: false,
+                  validate: isGreaterThanZero,
                   readOnly,
                   handler: (v) => handleMaxLevelChange("maxLevel", v),
                 },
@@ -1728,6 +1761,8 @@ const TankDefinitionField = ({
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
                   positiveOnly: true,
+                  isNullable: false,
+                  validate: isGreaterThanZero,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
                 },
@@ -1737,6 +1772,7 @@ const TankDefinitionField = ({
                   label: translate("minLevel"),
                   value: tank.minLevel,
                   positiveOnly: true,
+                  isNullable: false,
                   readOnly,
                   handler: (v) => handleMinLevelChange("minLevel", v),
                 },
@@ -1744,6 +1780,7 @@ const TankDefinitionField = ({
                   label: translate("minVolume"),
                   value: tank.minVolume,
                   positiveOnly: true,
+                  isNullable: false,
                   readOnly,
                   handler: (v) => handleMinVolumeChange("minVolume", v),
                 },
@@ -1966,6 +2003,7 @@ const ValveEditor = ({
             comparison={getComparison("setting", valve.setting)}
             onChange={onPropertyChange}
             readOnly={readonly}
+            isNullable={false}
           />
         )}
         {valve.kind === "gpv" && (
@@ -2002,6 +2040,8 @@ const ValveEditor = ({
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
+          validate={isGreaterThanZero}
         />
         <QuantityRow
           name="minorLoss"
@@ -2011,6 +2051,7 @@ const ValveEditor = ({
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          isNullable={false}
         />
       </SectionWrapper>
       <SectionWrapper
@@ -2205,6 +2246,7 @@ const PumpEditor = ({
             onPropertyChange("speed", newValue, oldValue)
           }
           readOnly={readonly}
+          isNullable={false}
         />
         <SelectRow
           name="initialStatus"
@@ -2239,6 +2281,7 @@ const PumpEditor = ({
           unit={null}
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
+          positiveOnly={true}
           isNullable
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
@@ -2727,6 +2770,7 @@ const ChemicalSourceEditor = ({
             value={typedNode.chemicalSourceStrength ?? 0}
             unit={null}
             onChange={onPropertyChange}
+            positiveOnly={true}
             readOnly={readOnly}
           />
           <LibrarySelectRow
@@ -2950,6 +2994,7 @@ const ReservoirHeadField = ({
           unit={headUnit}
           onChange={onPropertyChange}
           readOnly={readOnly}
+          isNullable={false}
         />
 
         <LibrarySelectRow

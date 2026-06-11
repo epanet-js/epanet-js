@@ -35,6 +35,7 @@ type FilterableSelectCellProps<
   onActionClick?: () => void;
   allowNew?: boolean;
   createLabel?: (query: string) => string;
+  validateNew?: (query: string) => boolean;
 };
 
 export function FilterableSelectCell({
@@ -53,6 +54,7 @@ export function FilterableSelectCell({
   onActionClick,
   allowNew,
   createLabel,
+  validateNew,
 }: CellProps<string | number | boolean | null> &
   FilterableSelectCellProps<string | number | boolean>) {
   const isOpen = !!editMode;
@@ -188,6 +190,7 @@ export function FilterableSelectCell({
                 allowNew={allowNew}
                 createLabel={createLabel}
                 minOptionsForSearch={minOptionsForSearch}
+                validateNew={validateNew}
                 initialQuery={initialQuery}
               />
             )}
@@ -209,13 +212,14 @@ export function filterableSelectColumn<
     options: FilterableSelectOption<T>[];
     placeholder?: string;
     emptyOptionLabel?: string;
-    deleteValue?: T | null;
+    emptyValue?: T | null;
     minOptionsForSearch?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     actionLabel?: string;
     onActionClick?: () => void;
     allowNew?: boolean;
     createLabel?: (query: string) => string;
+    validateNew?: (query: string) => boolean;
   },
 ): GridColumn<TData> {
   const isEmpty = options.options.length === 0 && !options.allowNew;
@@ -253,9 +257,11 @@ export function filterableSelectColumn<
             (String(opt.value) === v ||
               opt.label.toLowerCase() === v.toLowerCase()),
         );
-        return match ? match.value : null;
+        if (match) return match.value;
+        if (v === "") return options.emptyValue;
+        return undefined;
       },
-      deleteValue: options.deleteValue ?? null,
+      deleteValue: options.emptyValue,
       isReadOnly: isEmpty ? true : options.isReadOnly,
       cellComponent: (props: CellProps<T | null>) => (
         <FilterableSelectCell
@@ -275,6 +281,7 @@ export function filterableSelectColumn<
           onActionClick={options.onActionClick}
           allowNew={options.allowNew}
           createLabel={options.createLabel}
+          validateNew={options.validateNew}
         />
       ),
     },

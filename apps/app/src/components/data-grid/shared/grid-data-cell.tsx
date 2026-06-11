@@ -108,6 +108,7 @@ export function GridDataCell<TData extends Record<string, unknown>>({
       {CellComponent ? (
         <CellComponent
           value={cell.getValue()}
+          row={cell.row.original}
           rowIndex={cell.row.index}
           columnIndex={cell.column.getIndex()}
           isActive={isActive && isInteractive}

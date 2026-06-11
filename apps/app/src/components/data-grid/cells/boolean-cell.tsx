@@ -74,10 +74,11 @@ export function booleanColumn<TData extends RowData = RowData>(
   options: {
     header: string;
     size?: number;
+    emptyValue?: boolean | null;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
   },
 ): GridColumn<TData> {
-  const { isReadOnly } = options;
+  const { emptyValue, isReadOnly } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
@@ -104,9 +105,10 @@ export function booleanColumn<TData extends RowData = RowData>(
         const lower = v.toLowerCase();
         if (lower === "true") return true;
         if (lower === "false") return false;
-        return null;
+        if (v === "") return emptyValue;
+        return undefined;
       },
-      deleteValue: false,
+      deleteValue: emptyValue,
       autoSizeExtraWidth: 16, // checkbox w-4
       isReadOnly,
     },

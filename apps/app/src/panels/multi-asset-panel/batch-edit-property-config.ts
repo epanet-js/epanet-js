@@ -11,6 +11,11 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { PaywallFeature } from "src/state/dialog";
+import {
+  isValidInstallationYear,
+  isGreaterThanZero,
+  isValidMaterial,
+} from "src/hydraulic-model/property-validators";
 
 type CommonConfig = {
   paywall?: PaywallFeature;
@@ -21,6 +26,7 @@ type QuantityConfig = CommonConfig & {
   modelProperty: ChangeableProperty;
   positiveOnly?: boolean;
   isNullable?: boolean;
+  validate?: (value: number) => boolean;
   labelKey?: string;
 };
 
@@ -51,6 +57,7 @@ type OpenCategoryConfig = CommonConfig & {
   fieldType: "openCategory";
   modelProperty: ChangeableProperty;
   nullLabelKey?: string;
+  validateNew?: (query: string) => boolean;
 };
 
 export type BatchEditPropertyConfig =
@@ -67,16 +74,22 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
   Record<string, BatchEditPropertyConfig>
 > = {
   junction: {
-    elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    elevation: {
+      fieldType: "quantity",
+      modelProperty: "elevation",
+      isNullable: false,
+    },
     emitterCoefficient: {
       fieldType: "quantity",
       modelProperty: "emitterCoefficient",
       positiveOnly: true,
+      isNullable: false,
     },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
       positiveOnly: true,
+      isNullable: false,
     },
     chemicalSourceType: {
       fieldType: "category",
@@ -113,23 +126,27 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       modelProperty: "diameter",
       positiveOnly: true,
       isNullable: false,
+      validate: isGreaterThanZero,
     },
     length: {
       fieldType: "quantity",
       modelProperty: "length",
       positiveOnly: true,
       isNullable: false,
+      validate: isGreaterThanZero,
     },
     material: {
       fieldType: "openCategory",
       modelProperty: "material",
       paywall: "pipeAttributes",
+      validateNew: isValidMaterial,
     },
     year: {
       fieldType: "quantity",
       modelProperty: "year",
       positiveOnly: true,
       isNullable: true,
+      validate: isValidInstallationYear,
       labelKey: "yearOfInstallation",
       paywall: "pipeAttributes",
     },
@@ -137,11 +154,14 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "quantity",
       modelProperty: "roughness",
       positiveOnly: true,
+      isNullable: false,
+      validate: isGreaterThanZero,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
       positiveOnly: true,
+      isNullable: false,
     },
     bulkReactionCoeff: {
       fieldType: "quantity",
@@ -166,6 +186,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "quantity",
       modelProperty: "speed",
       labelKey: "initialSpeed",
+      isNullable: false,
     },
     speedPattern: {
       fieldType: "librarySelect",
@@ -207,7 +228,11 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       values: valveKinds,
       useUppercaseLabel: true,
     },
-    setting: { fieldType: "quantity", modelProperty: "setting" },
+    setting: {
+      fieldType: "quantity",
+      modelProperty: "setting",
+      isNullable: false,
+    },
     initialStatus: {
       fieldType: "category",
       modelProperty: "initialStatus",
@@ -218,15 +243,22 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "quantity",
       modelProperty: "diameter",
       positiveOnly: true,
+      isNullable: false,
+      validate: isGreaterThanZero,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
       positiveOnly: true,
+      isNullable: false,
     },
   },
   reservoir: {
-    elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    elevation: {
+      fieldType: "quantity",
+      modelProperty: "elevation",
+      isNullable: false,
+    },
     headPattern: {
       fieldType: "librarySelect",
       modelProperty: "headPatternId",
@@ -238,6 +270,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "quantity",
       modelProperty: "initialQuality",
       positiveOnly: true,
+      isNullable: false,
     },
     chemicalSourceType: {
       fieldType: "category",
@@ -262,38 +295,49 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     },
   },
   tank: {
-    elevation: { fieldType: "quantity", modelProperty: "elevation" },
+    elevation: {
+      fieldType: "quantity",
+      modelProperty: "elevation",
+      isNullable: false,
+    },
     initialLevel: {
       fieldType: "quantity",
       modelProperty: "initialLevel",
       positiveOnly: true,
+      isNullable: false,
     },
     minLevel: {
       fieldType: "quantity",
       modelProperty: "minLevel",
       positiveOnly: true,
+      isNullable: false,
     },
     maxLevel: {
       fieldType: "quantity",
       modelProperty: "maxLevel",
       positiveOnly: true,
+      isNullable: false,
+      validate: isGreaterThanZero,
     },
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
       positiveOnly: true,
       isNullable: false,
+      validate: isGreaterThanZero,
     },
     minVolume: {
       fieldType: "quantity",
       modelProperty: "minVolume",
       positiveOnly: true,
+      isNullable: false,
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
       positiveOnly: true,
+      isNullable: false,
     },
     mixingModel: {
       fieldType: "category",
@@ -305,6 +349,8 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "quantity",
       modelProperty: "mixingFraction",
       positiveOnly: true,
+      isNullable: false,
+      validate: isGreaterThanZero,
     },
     bulkReactionCoeff: {
       fieldType: "quantity",

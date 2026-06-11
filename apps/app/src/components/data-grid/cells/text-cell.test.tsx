@@ -6,6 +6,7 @@ const setupUser = () => userEvent.setup();
 
 const defaultProps = {
   value: "hello",
+  row: {},
   rowIndex: 0,
   columnIndex: 0,
   isActive: false,
@@ -100,7 +101,28 @@ describe("TextCell", () => {
       expect(onChange).toHaveBeenCalledWith("node-1");
     });
 
-    it("commits null when field is cleared and Enter is pressed", async () => {
+    it("commits the configured emptyValue when field is cleared and Enter is pressed", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+
+      render(
+        <TextCell
+          {...defaultProps}
+          value="pipe-1"
+          editMode="full"
+          onChange={onChange}
+          emptyValue={null}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      await user.clear(input);
+      await user.keyboard("{Enter}");
+
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
+
+    it("skips commit when field is cleared and no emptyValue is configured", async () => {
       const user = setupUser();
       const onChange = vi.fn();
 
@@ -117,7 +139,7 @@ describe("TextCell", () => {
       await user.clear(input);
       await user.keyboard("{Enter}");
 
-      expect(onChange).toHaveBeenCalledWith(null);
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it("commits value on blur", async () => {
@@ -405,8 +427,14 @@ describe("textColumn", () => {
       });
     });
 
-    it("uses null as default deleteValue", () => {
+    it("leaves deleteValue undefined when emptyValue is not set", () => {
       const column = textColumn("name", { header: "Name" });
+
+      expect(column.meta?.deleteValue).toBeUndefined();
+    });
+
+    it("mirrors emptyValue into deleteValue", () => {
+      const column = textColumn("name", { header: "Name", emptyValue: null });
 
       expect(column.meta?.deleteValue).toBeNull();
     });
@@ -430,13 +458,19 @@ describe("textColumn", () => {
     it("returns the pasted string", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.meta?.pasteValue?.("pipe-1")).toBe("pipe-1");
+      expect(column.meta?.pasteValue?.("pipe-1", {} as any)).toBe("pipe-1");
     });
 
-    it("returns null for empty string", () => {
+    it("returns undefined for empty string when no emptyValue is configured", () => {
       const column = textColumn("name", { header: "Name" });
 
-      expect(column.meta?.pasteValue?.("")).toBeNull();
+      expect(column.meta?.pasteValue?.("", {} as any)).toBeUndefined();
+    });
+
+    it("returns the configured emptyValue for empty string", () => {
+      const column = textColumn("name", { header: "Name", emptyValue: null });
+
+      expect(column.meta?.pasteValue?.("", {} as any)).toBeNull();
     });
 
     it("transforms pasted value via the provided cleaner", () => {
@@ -445,16 +479,62 @@ describe("textColumn", () => {
         cleanLabel: (raw) => raw.toUpperCase(),
       });
 
-      expect(column.meta?.pasteValue?.("pipe-1")).toBe("PIPE-1");
+      expect(column.meta?.pasteValue?.("pipe-1", {} as any)).toBe("PIPE-1");
     });
 
-    it("returns null when the cleaner reduces input to an empty string", () => {
+    it("returns undefined when the cleaner reduces input to empty and no emptyValue is configured", () => {
       const column = textColumn("name", {
         header: "Name",
         cleanLabel: () => "",
       });
 
-      expect(column.meta?.pasteValue?.("anything")).toBeNull();
+      expect(column.meta?.pasteValue?.("anything", {} as any)).toBeUndefined();
+    });
+
+    it("returns undefined when validate rejects the pasted value (skip cell)", () => {
+      type Row = { id: number; name: string };
+      const existingNames = new Map<number, string>([
+        [1, "alice"],
+        [2, "bob"],
+      ]);
+      // Reject if the pasted name is already used by a different row.
+      const validate = (name: string, row: Row) => {
+        for (const [id, taken] of existingNames) {
+          if (id !== row.id && taken === name) return false;
+        }
+        return true;
+      };
+      const column = textColumn<Row>("name", { header: "Name", validate });
+
+      // Pasting "bob" into row id=1 conflicts with row id=2 → skip
+      expect(
+        column.meta?.pasteValue?.("bob", { id: 1, name: "alice" }),
+      ).toBeUndefined();
+    });
+
+    it("invokes validate with the destination row and commits when accepted", () => {
+      type Row = { id: number; name: string };
+      const validate = vi.fn(() => true);
+      const column = textColumn<Row>("name", { header: "Name", validate });
+      const row = { id: 7, name: "carol" };
+
+      expect(column.meta?.pasteValue?.("dora", row)).toBe("dora");
+      expect(validate).toHaveBeenCalledWith("dora", row);
+    });
+
+    it("runs the cleaner before passing the value to validate", () => {
+      type Row = { id: number; name: string };
+      const validate = vi.fn(() => true);
+      const column = textColumn<Row>("name", {
+        header: "Name",
+        cleanLabel: (raw) => raw.toUpperCase(),
+        validate,
+      });
+      const row = { id: 7, name: "carol" };
+
+      column.meta?.pasteValue?.("dora", row);
+
+      expect(validate).toHaveBeenCalledWith("DORA", row);
     });
   });
 

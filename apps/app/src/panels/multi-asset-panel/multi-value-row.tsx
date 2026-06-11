@@ -262,6 +262,7 @@ const EditableField = ({
         placeholder={mixedPlaceholder}
         positiveOnly={config.positiveOnly}
         isNullable={config.isNullable}
+        validate={config.validate}
         disabled={readonly}
         styleOptions={{}}
         onChangeValue={(newValue) => {
@@ -418,6 +419,7 @@ const EditableField = ({
         }}
         placeholder={placeholder}
         ariaLabel={label}
+        validateNew={config.validateNew}
       />
     );
   }
