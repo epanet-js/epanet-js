@@ -1,135 +1,265 @@
 import React, { useCallback } from "react";
-import { CustomerPointAllocationRule } from "@epanet-js/hydraulic-model";
+import {
+  CustomerPointAllocationRule,
+  defaultAllocationRules,
+} from "@epanet-js/hydraulic-model";
 import { useAtomValue } from "jotai";
 
 import { NumericField } from "src/components/form/numeric-field";
 import { TextField } from "src/components/form/text-field";
-import { Checkbox } from "src/components/form/Checkbox";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useTranslate } from "src/hooks/use-translate";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { RefreshIcon } from "src/icons";
+import { Button } from "src/components/elements";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  AddIcon,
+  DeleteIcon,
+  RefreshIcon,
+} from "src/icons";
 
 type AllocationRulesTableProps = {
   rules: CustomerPointAllocationRule[];
   allocationCounts: number[];
-  ignoredDiameters: Set<number>;
+  isEditing: boolean;
   isAllocating?: boolean;
-  onDistanceChange: (index: number, value: number) => void;
-  onIgnoreChange: (diameter: number, ignored: boolean) => void;
+  onChange: (newRules: CustomerPointAllocationRule[]) => void;
 };
 
 export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
   rules,
   allocationCounts,
-  ignoredDiameters,
+  isEditing,
   isAllocating = false,
-  onDistanceChange,
-  onIgnoreChange,
+  onChange,
 }) => {
   const { units } = useAtomValue(projectSettingsAtom);
   const translateUnit = useTranslateUnit();
   const translate = useTranslate();
 
-  const handleDistanceChange = useCallback(
-    (index: number) => (value: number) => {
-      onDistanceChange(index, value);
+  const handleAddRule = useCallback(() => {
+    const newRule: CustomerPointAllocationRule = {
+      ...defaultAllocationRules[0],
+    };
+    onChange([...rules, newRule]);
+  }, [rules, onChange]);
+
+  const handleRemoveRule = useCallback(
+    (index: number) => {
+      onChange(rules.filter((_, i) => i !== index));
     },
-    [onDistanceChange],
+    [rules, onChange],
+  );
+
+  const handleRuleChange = useCallback(
+    (
+      index: number,
+      field: keyof CustomerPointAllocationRule,
+      value: number,
+    ) => {
+      const updatedRules = rules.map((rule, i) =>
+        i === index ? { ...rule, [field]: value } : rule,
+      );
+      onChange(updatedRules);
+    },
+    [rules, onChange],
+  );
+
+  const handleMoveRule = useCallback(
+    (index: number, direction: "up" | "down") => {
+      const newIndex = direction === "up" ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= rules.length) return;
+
+      const updatedRules = [...rules];
+      [updatedRules[index], updatedRules[newIndex]] = [
+        updatedRules[newIndex],
+        updatedRules[index],
+      ];
+      onChange(updatedRules);
+    },
+    [rules, onChange],
   );
 
   if (rules.length === 0) {
-    return null;
+    return (
+      <div className="text-center py-8 bg-panel rounded-lg border-2 border-dashed border-strong">
+        <p className="text-subtle text-size-base">
+          {translate(
+            "importCustomerPoints.wizard.allocationStep.table.noRulesMessage",
+          )}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-base border rounded-lg overflow-auto max-h-[300px]">
-      <table className="w-full">
-        <thead className="bg-panel border-b sticky top-0 z-10">
-          <tr>
-            <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
-              )}{" "}
-              ({translateUnit(units.diameter)})
-            </th>
-            <th className="px-4 py-3 text-center text-size-small font-medium text-subtle tracking-wider w-24">
-              {translate("allocateCustomerPoints.table.ignoreHeader")}
-            </th>
-            <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
-              )}{" "}
-              ({translateUnit(units.length)})
-            </th>
-            <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-32">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.table.allocationsHeader",
+    <>
+      <div className="bg-base border rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-panel border-b">
+            <tr>
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-16">
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.orderHeader",
+                )}
+              </th>
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
+                )}{" "}
+                ({translateUnit(units.diameter)})
+              </th>
+              <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider">
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
+                )}{" "}
+                ({translateUnit(units.length)})
+              </th>
+              {!isEditing && (
+                <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-32">
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.table.allocationsHeader",
+                  )}
+                </th>
               )}
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-base divide-y divide-gray-200">
-          {rules.map((rule, index) => {
-            const isIgnored = ignoredDiameters.has(rule.maxDiameter);
-            return (
+              {isEditing && (
+                <th className="px-4 py-3 text-left text-size-small font-medium text-subtle tracking-wider w-24">
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.table.actionsHeader",
+                  )}
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="bg-base divide-y divide-gray-200">
+            {rules.map((rule, index) => (
               <tr
-                key={rule.maxDiameter}
+                key={index}
                 className={index % 2 === 0 ? "bg-base" : "bg-panel"}
               >
-                <td className="px-4 py-3">
-                  <TextField padding="sm">
-                    {localizeDecimal(rule.maxDiameter)}
-                  </TextField>
+                <td className="px-4 py-3 text-size-base font-medium text-default">
+                  {index + 1}
                 </td>
-                <td className="px-4 py-3 text-center">
-                  <label className="inline-flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={isIgnored}
-                      onChange={(e) =>
-                        onIgnoreChange(rule.maxDiameter, e.target.checked)
+                <td className="px-4 py-3">
+                  {isEditing ? (
+                    <NumericField
+                      label={translate(
+                        "importCustomerPoints.wizard.allocationStep.table.maxDiameterLabel",
+                      )}
+                      displayValue={localizeDecimal(rule.maxDiameter)}
+                      onChangeValue={(value) =>
+                        handleRuleChange(index, "maxDiameter", value)
                       }
+                      positiveOnly={true}
+                      styleOptions={{
+                        padding: "sm",
+                        border: "sm",
+                      }}
                     />
-                    <span className="text-size-small text-subtle">
-                      {translate("allocateCustomerPoints.table.ignoreLabel")}
-                    </span>
-                  </label>
-                </td>
-                <td className="px-4 py-3">
-                  <NumericField
-                    label={translate(
-                      "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
-                    )}
-                    displayValue={localizeDecimal(rule.maxDistance)}
-                    onChangeValue={handleDistanceChange(index)}
-                    positiveOnly={true}
-                    disabled={isIgnored}
-                    styleOptions={{
-                      padding: "sm",
-                      border: "sm",
-                    }}
-                  />
-                </td>
-                <td className="px-4 py-3 text-size-base text-subtle">
-                  {isAllocating ? (
-                    <div className="flex justify-center">
-                      <RefreshIcon
-                        className="animate-spin text-subtle"
-                        data-testid="allocation-loading"
-                      />
-                    </div>
-                  ) : isIgnored ? (
-                    "\u2014"
                   ) : (
-                    localizeDecimal(allocationCounts[index])
+                    <TextField padding="sm">
+                      {localizeDecimal(rule.maxDiameter)}
+                    </TextField>
                   )}
                 </td>
+                <td className="px-4 py-3">
+                  {isEditing ? (
+                    <NumericField
+                      label={translate(
+                        "importCustomerPoints.wizard.allocationStep.table.maxDistanceLabel",
+                      )}
+                      displayValue={localizeDecimal(rule.maxDistance)}
+                      onChangeValue={(value) =>
+                        handleRuleChange(index, "maxDistance", value)
+                      }
+                      positiveOnly={true}
+                      styleOptions={{
+                        padding: "sm",
+                        border: "sm",
+                      }}
+                    />
+                  ) : (
+                    <TextField padding="sm">
+                      {localizeDecimal(rule.maxDistance)}
+                    </TextField>
+                  )}
+                </td>
+                {!isEditing && (
+                  <td className="px-4 py-3 text-size-base text-subtle">
+                    {isAllocating ? (
+                      <div className="flex justify-center">
+                        <RefreshIcon
+                          className="animate-spin text-subtle"
+                          data-testid="allocation-loading"
+                        />
+                      </div>
+                    ) : (
+                      localizeDecimal(allocationCounts[index])
+                    )}
+                  </td>
+                )}
+                {isEditing && (
+                  <td className="px-4 py-3">
+                    <div className="flex items-center space-x-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveRule(index, "up")}
+                        disabled={index === 0}
+                        className="p-1 text-default hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.moveUpTooltip",
+                        )}
+                      >
+                        <ChevronUpIcon />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveRule(index, "down")}
+                        disabled={index === rules.length - 1}
+                        className="p-1 text-default hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.moveDownTooltip",
+                        )}
+                      >
+                        <ChevronDownIcon />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRule(index)}
+                        disabled={rules.length <= 1}
+                        className="p-1 text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={translate(
+                          "importCustomerPoints.wizard.allocationStep.table.removeRuleTooltip",
+                        )}
+                      >
+                        <DeleteIcon />
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {isEditing && (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            onClick={handleAddRule}
+            variant="default"
+            size="sm"
+          >
+            <AddIcon />
+            {translate(
+              "importCustomerPoints.wizard.allocationStep.table.addRuleButton",
+            )}
+          </Button>
+        </div>
+      )}
+    </>
   );
 };

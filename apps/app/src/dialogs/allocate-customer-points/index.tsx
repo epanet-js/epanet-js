@@ -24,6 +24,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
+import { Button } from "src/components/elements";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
@@ -73,9 +74,11 @@ export const AllocateCustomerPointsDialog: React.FC<
   const [allocationRules, setAllocationRules] = useState<
     CustomerPointAllocationRule[]
   >([]);
-  const [ignoredDiameters, setIgnoredDiameters] = useState<Set<number>>(
-    new Set(),
-  );
+  const [tempRules, setTempRules] = useState<CustomerPointAllocationRule[]>([]);
+  const [isEditingRules, setIsEditingRules] = useState(false);
+  const [lastAllocatedRules, setLastAllocatedRules] = useState<
+    CustomerPointAllocationRule[] | null
+  >(null);
   const [allocationResult, setAllocationResult] =
     useState<CustomerPointAllocationResult | null>(null);
   const [isAllocating, setIsAllocating] = useState(false);
@@ -117,11 +120,8 @@ export const AllocateCustomerPointsDialog: React.FC<
   }, [allocationResult, hydraulicModel, onClose, transact]);
 
   const performAllocation = useCallback(
-    async (rules: CustomerPointAllocationRule[], ignored: Set<number>) => {
-      const activeRules = rules.filter(
-        (rule) => !ignored.has(rule.maxDiameter),
-      );
-      if (!disconnectedCustomerPoints.length || activeRules.length === 0) {
+    async (rules: CustomerPointAllocationRule[]) => {
+      if (!disconnectedCustomerPoints.length || rules.length === 0) {
         setAllocationResult(null);
         return;
       }
@@ -138,12 +138,13 @@ export const AllocateCustomerPointsDialog: React.FC<
         });
 
         const result = await allocateCustomerPoints(hydraulicModel, {
-          allocationRules: activeRules,
+          allocationRules: rules,
           customerPoints,
           targetPipes: selectedPipeIds,
         });
 
         setAllocationResult(result);
+        setLastAllocatedRules([...rules]);
       } catch (err) {
         setError(
           translate(
@@ -158,29 +159,49 @@ export const AllocateCustomerPointsDialog: React.FC<
     [disconnectedCustomerPoints, hydraulicModel, translate, selectedPipeIds],
   );
 
-  const handleDistanceChange = useCallback(
-    (index: number, value: number) => {
-      const updatedRules = allocationRules.map((rule, i) =>
-        i === index ? { ...rule, maxDistance: value } : rule,
-      );
-      setAllocationRules(updatedRules);
-      void performAllocation(updatedRules, ignoredDiameters);
+  const shouldTriggerAllocation = useCallback(
+    (rules: CustomerPointAllocationRule[]) => {
+      if (!disconnectedCustomerPoints.length) return false;
+      if (isAllocating) return false;
+      if (!lastAllocatedRules) return true;
+      if (rules.length !== lastAllocatedRules.length) return true;
+
+      return rules.some((rule, index) => {
+        const lastRule = lastAllocatedRules[index];
+        return (
+          rule.maxDistance !== lastRule.maxDistance ||
+          rule.maxDiameter !== lastRule.maxDiameter
+        );
+      });
     },
-    [allocationRules, ignoredDiameters, performAllocation],
+    [disconnectedCustomerPoints, isAllocating, lastAllocatedRules],
   );
 
-  const handleIgnoreChange = useCallback(
-    (diameter: number, ignored: boolean) => {
-      const next = new Set(ignoredDiameters);
-      if (ignored) {
-        next.add(diameter);
-      } else {
-        next.delete(diameter);
-      }
-      setIgnoredDiameters(next);
-      void performAllocation(allocationRules, next);
+  const handleEdit = useCallback(() => {
+    setTempRules([...allocationRules]);
+    setIsEditingRules(true);
+  }, [allocationRules]);
+
+  const handleSave = useCallback(() => {
+    setAllocationRules(tempRules);
+    setIsEditingRules(false);
+    setTempRules([]);
+
+    if (shouldTriggerAllocation(tempRules)) {
+      void performAllocation(tempRules);
+    }
+  }, [tempRules, shouldTriggerAllocation, performAllocation]);
+
+  const handleCancel = useCallback(() => {
+    setTempRules([]);
+    setIsEditingRules(false);
+  }, []);
+
+  const handleRulesChange = useCallback(
+    (newRules: CustomerPointAllocationRule[]) => {
+      setTempRules(newRules);
     },
-    [ignoredDiameters, allocationRules, performAllocation],
+    [],
   );
 
   const initialized = useRef<boolean>(false);
@@ -189,18 +210,12 @@ export const AllocateCustomerPointsDialog: React.FC<
     if (allocationRules.length === 0) return;
 
     initialized.current = true;
-    void performAllocation(allocationRules, ignoredDiameters);
-  }, [performAllocation, allocationRules, ignoredDiameters]);
+    void performAllocation(allocationRules);
+  }, [performAllocation, allocationRules]);
 
   const noPipesSelected = selectedPipeIds.size === 0;
-  const allocationCounts = useMemo(() => {
-    const ruleMatches = allocationResult?.ruleMatches || [];
-    let activeIndex = 0;
-    return allocationRules.map((rule) => {
-      if (ignoredDiameters.has(rule.maxDiameter)) return 0;
-      return ruleMatches[activeIndex++] ?? 0;
-    });
-  }, [allocationResult, allocationRules, ignoredDiameters]);
+  const displayRules = isEditingRules ? tempRules : allocationRules;
+  const allocationCounts = allocationResult?.ruleMatches || [];
   const totalCustomerPoints = disconnectedCustomerPoints.length;
   const totalAllocated = allocationCounts.reduce(
     (total, count) => total + count,
@@ -218,7 +233,11 @@ export const AllocateCustomerPointsDialog: React.FC<
       onAction={handleFinish}
       onClose={onClose}
       isDisabled={
-        isProcessing || !allocationResult || isAllocating || noPipesSelected
+        isProcessing ||
+        !allocationResult ||
+        isAllocating ||
+        noPipesSelected ||
+        isEditingRules
       }
       isSubmitting={isProcessing}
     />
@@ -260,25 +279,64 @@ export const AllocateCustomerPointsDialog: React.FC<
 
         {!noPipesSelected && (
           <div className="space-y-4">
-            <h3 className="text-md font-medium">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.rulesTitle",
+            <div className="flex items-center justify-between">
+              <h3 className="text-md font-medium">
+                {translate(
+                  "importCustomerPoints.wizard.allocationStep.rulesTitle",
+                )}
+              </h3>
+              {!isEditingRules ? (
+                <Button
+                  type="button"
+                  onClick={handleEdit}
+                  disabled={isAllocating}
+                  variant="primary"
+                  size="sm"
+                >
+                  {translate(
+                    "importCustomerPoints.wizard.allocationStep.editButton",
+                  )}
+                </Button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    onClick={handleSave}
+                    variant="primary"
+                    size="sm"
+                  >
+                    {translate(
+                      "importCustomerPoints.wizard.allocationStep.saveButton",
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCancel}
+                    variant="default"
+                    size="sm"
+                  >
+                    {translate(
+                      "importCustomerPoints.wizard.allocationStep.cancelButton",
+                    )}
+                  </Button>
+                </div>
               )}
-            </h3>
+            </div>
 
             <AllocationRulesTable
-              rules={allocationRules}
+              rules={displayRules}
               allocationCounts={allocationCounts}
-              ignoredDiameters={ignoredDiameters}
+              isEditing={isEditingRules}
               isAllocating={isAllocating}
-              onDistanceChange={handleDistanceChange}
-              onIgnoreChange={handleIgnoreChange}
+              onChange={handleRulesChange}
             />
 
             <AllocationSummary
               totalAllocated={totalAllocated}
               unallocatedCount={unallocatedCount}
-              isVisible={allocationRules.length > 0 && !isAllocating}
+              isVisible={
+                !isEditingRules && allocationRules.length > 0 && !isAllocating
+              }
               totalCustomerPoints={totalCustomerPoints}
             />
           </div>
