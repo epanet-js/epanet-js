@@ -1,19 +1,12 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import {
   CustomerPointAllocationRule,
-  CustomerPointAllocationResult,
-  getDefaultAllocationRules,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
+import { useAllocateCustomerPointsState } from "./wizard-state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import { allocateCustomerPoints } from "src/lib/customer-points";
@@ -25,7 +18,6 @@ import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
-import { projectSettingsAtom } from "src/state/project-settings";
 
 type AllocateCustomerPointsDialogProps = {
   isOpen: boolean;
@@ -38,28 +30,26 @@ export const AllocateCustomerPointsDialog: React.FC<
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useModelTransaction();
 
-  const defaultRules = useMemo(() => getDefaultAllocationRules(units), [units]);
-
-  const [allocationRules, setAllocationRules] = useState<
-    CustomerPointAllocationRule[]
-  >([]);
-  const [tempRules, setTempRules] = useState<CustomerPointAllocationRule[]>([]);
-  const [isEditingRules, setIsEditingRules] = useState(false);
-  const [lastAllocatedRules, setLastAllocatedRules] = useState<
-    CustomerPointAllocationRule[] | null
-  >(null);
-  const [allocationResult, setAllocationResult] =
-    useState<CustomerPointAllocationResult | null>(null);
-  const [isAllocating, setIsAllocating] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAllocationRules(defaultRules);
-  }, [defaultRules]);
+  const {
+    allocationRules,
+    setAllocationRules,
+    tempRules,
+    setTempRules,
+    isEditingRules,
+    setIsEditingRules,
+    lastAllocatedRules,
+    setLastAllocatedRules,
+    allocationResult,
+    setAllocationResult,
+    isAllocating,
+    setIsAllocating,
+    isProcessing,
+    setIsProcessing,
+    error,
+    setError,
+  } = useAllocateCustomerPointsState();
 
   const disconnectedCustomerPoints = Array.from(
     hydraulicModel.customerPoints.values(),
@@ -97,11 +87,13 @@ export const AllocateCustomerPointsDialog: React.FC<
     }
   }, [
     allocationResult,
+    setIsProcessing,
     hydraulicModel,
-    onClose,
     transact,
     userTracking,
     allocationRules.length,
+    onClose,
+    setError,
   ]);
 
   const performAllocation = useCallback(
@@ -142,7 +134,15 @@ export const AllocateCustomerPointsDialog: React.FC<
         setIsAllocating(false);
       }
     },
-    [disconnectedCustomerPoints, hydraulicModel, translate],
+    [
+      disconnectedCustomerPoints,
+      hydraulicModel,
+      setAllocationResult,
+      setError,
+      setIsAllocating,
+      setLastAllocatedRules,
+      translate,
+    ],
   );
 
   const shouldTriggerAllocation = useCallback(
@@ -171,7 +171,7 @@ export const AllocateCustomerPointsDialog: React.FC<
 
     setTempRules([...allocationRules]);
     setIsEditingRules(true);
-  }, [allocationRules, userTracking]);
+  }, [allocationRules, setIsEditingRules, setTempRules, userTracking]);
 
   const handleSave = useCallback(() => {
     userTracking.capture({
@@ -189,11 +189,15 @@ export const AllocateCustomerPointsDialog: React.FC<
       void performAllocation(tempRules);
     }
   }, [
+    userTracking,
     tempRules,
+    allocationResult?.allocatedCustomerPoints.size,
+    allocationResult?.disconnectedCustomerPoints.size,
+    setAllocationRules,
+    setIsEditingRules,
+    setTempRules,
     shouldTriggerAllocation,
     performAllocation,
-    userTracking,
-    allocationResult,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -203,13 +207,13 @@ export const AllocateCustomerPointsDialog: React.FC<
 
     setTempRules([]);
     setIsEditingRules(false);
-  }, [userTracking]);
+  }, [setIsEditingRules, setTempRules, userTracking]);
 
   const handleRulesChange = useCallback(
     (newRules: CustomerPointAllocationRule[]) => {
       setTempRules(newRules);
     },
-    [],
+    [setTempRules],
   );
 
   const initialized = useRef<boolean>(false);
