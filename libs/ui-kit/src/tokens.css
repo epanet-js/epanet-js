@@ -54,6 +54,7 @@
   --color-error: var(--color-red-600);
   --color-error-subtle: var(--color-red-50);
   --color-success: var(--color-green-600);
+  --color-success-hover: var(--color-green-700);
   --color-success-subtle: var(--color-green-50);
   --color-info: var(--color-blue-600);
   --color-info-subtle: var(--color-blue-50);
@@ -134,6 +135,7 @@
   --color-error: var(--color-red-300);
   --color-error-subtle: var(--color-red-950);
   --color-success: var(--color-green-400);
+  --color-success-hover: var(--color-green-300);
   --color-success-subtle: var(--color-green-950);
   --color-info: var(--color-blue-400);
   --color-info-subtle: var(--color-blue-950);
