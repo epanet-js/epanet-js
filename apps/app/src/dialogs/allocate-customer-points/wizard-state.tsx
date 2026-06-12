@@ -25,6 +25,7 @@ export function useAllocateCustomerPointsState() {
   const [isAllocating, setIsAllocating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<number>(1);
 
   useEffect(() => {
     setAllocationRules(defaultRules);
@@ -47,6 +48,8 @@ export function useAllocateCustomerPointsState() {
     setIsProcessing,
     error,
     setError,
+    step,
+    setStep,
   };
 }
 

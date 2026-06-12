@@ -10,30 +10,22 @@ import { AllocateCustomerPointsState } from "./wizard-state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import { allocateCustomerPoints } from "src/lib/customer-points";
-import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { SuccessIcon, WarningIcon } from "src/icons";
-import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
 
 type AllocateCustomerPointsDialogProps = {
-  isOpen: boolean;
-  onClose: () => void;
   state: AllocateCustomerPointsState;
 };
 
 export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
-  isOpen,
-  onClose,
   state,
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useModelTransaction();
 
   const {
     allocationRules,
@@ -48,8 +40,6 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
     setAllocationResult,
     isAllocating,
     setIsAllocating,
-    isProcessing,
-    setIsProcessing,
     error,
     setError,
   } = state;
@@ -60,44 +50,6 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
 
   const forceLoadingState = () =>
     new Promise((resolve) => setTimeout(resolve, 10));
-
-  const handleFinish = useCallback(() => {
-    if (!allocationResult) return;
-
-    setIsProcessing(true);
-
-    try {
-      const moment = applyCustomerPointAllocation(hydraulicModel, {
-        allocationResult,
-      });
-      transact(moment);
-
-      userTracking.capture({
-        name: "importCustomerPoints.completed",
-        count:
-          allocationResult.allocatedCustomerPoints.size +
-          allocationResult.disconnectedCustomerPoints.size,
-        allocatedCount: allocationResult.allocatedCustomerPoints.size,
-        disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
-        rulesCount: allocationRules.length,
-      });
-
-      onClose();
-    } catch {
-      setError("Allocation failed. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [
-    allocationResult,
-    setIsProcessing,
-    hydraulicModel,
-    transact,
-    userTracking,
-    allocationRules.length,
-    onClose,
-    setError,
-  ]);
 
   const performAllocation = useCallback(
     async (rules: CustomerPointAllocationRule[]) => {
@@ -237,77 +189,52 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
   );
   const unallocatedCount = Math.max(0, totalCustomerPoints - totalAllocated);
 
-  const footer = (
-    <SimpleDialogActions
-      action={
-        isProcessing
-          ? translate("wizard.processing")
-          : translate("allocateCustomerPoints.dialog.applyChanges")
-      }
-      onAction={handleFinish}
-      onClose={onClose}
-      isDisabled={
-        isProcessing || !allocationResult || isAllocating || isEditingRules
-      }
-      isSubmitting={isProcessing}
-    />
-  );
-
   return (
-    <BaseDialog
-      title={translate("allocateCustomerPoints.dialog.title")}
-      size="lg"
-      isOpen={isOpen}
-      onClose={onClose}
-      footer={footer}
-      preventClose={isProcessing}
-    >
-      <div className="p-4 overflow-y-auto grow space-y-4">
-        <Description translate={translate} />
+    <div className="p-4 overflow-y-auto grow space-y-4">
+      <Description translate={translate} />
 
-        {error && <ErrorMessage error={error} />}
+      {error && <ErrorMessage error={error} />}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-md font-medium">
-              {translate("allocateCustomerPoints.dialog.rulesTitle")}
-            </h3>
-            {!isEditingRules ? (
-              <EditRulesButton
-                onClick={handleEdit}
-                disabled={isAllocating}
-                translate={translate}
-              />
-            ) : (
-              <RulesEditorButtons
-                onSave={handleSave}
-                onCancel={handleCancel}
-                translate={translate}
-              />
-            )}
-          </div>
-
-          <AllocationRulesTable
-            rules={displayRules}
-            allocationCounts={allocationCounts}
-            isEditing={isEditingRules}
-            isAllocating={isAllocating}
-            onChange={handleRulesChange}
-          />
-
-          <AllocationSummary
-            totalAllocated={totalAllocated}
-            unallocatedCount={unallocatedCount}
-            isVisible={
-              !isEditingRules && allocationRules.length > 0 && !isAllocating
-            }
-            totalCustomerPoints={totalCustomerPoints}
-          />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-md font-medium">
+            {translate("allocateCustomerPoints.dialog.rulesTitle")}
+          </h3>
+          {!isEditingRules ? (
+            <EditRulesButton
+              onClick={handleEdit}
+              disabled={isAllocating}
+              translate={translate}
+            />
+          ) : (
+            <RulesEditorButtons
+              onSave={handleSave}
+              onCancel={handleCancel}
+              translate={translate}
+            />
+          )}
         </div>
 
-        {isAllocating && <IsComputingMessage translate={translate} />}
+        <AllocationRulesTable
+          rules={displayRules}
+          allocationCounts={allocationCounts}
+          isEditing={isEditingRules}
+          isAllocating={isAllocating}
+          onChange={handleRulesChange}
+        />
+
+        <AllocationSummary
+          totalAllocated={totalAllocated}
+          unallocatedCount={unallocatedCount}
+          isVisible={
+            !isEditingRules && allocationRules.length > 0 && !isAllocating
+          }
+          totalCustomerPoints={totalCustomerPoints}
+        />
       </div>
-    </BaseDialog>
+
+      {isAllocating && <IsComputingMessage translate={translate} />}
+    </div>
   );
 };
 

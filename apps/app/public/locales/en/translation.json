@@ -971,6 +971,11 @@
       "noCustomerPoints": "There are no customer points in the network. Would you like to import them first?",
       "importAction": "Import customer points"
     },
+    "wizard": {
+      "title": "Allocate customer points",
+      "allocationModeStep": "Allocation mode",
+      "allocationStep": "Customers allocation"
+    },
     "dialog": {
       "title": "Customers allocation",
       "description": "Define rules for connecting customer points to pipes. You can specify multiple max distance and max diameter pairs to control how customer points are allocated to the network.",
