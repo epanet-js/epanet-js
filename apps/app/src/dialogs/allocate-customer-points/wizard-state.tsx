@@ -7,6 +7,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 
 import { projectSettingsAtom } from "src/state/project-settings";
+import { ZoneId } from "src/lib/zones";
 
 export function useAllocateCustomerPointsState() {
   const { units } = useAtomValue(projectSettingsAtom);
@@ -26,6 +27,13 @@ export function useAllocateCustomerPointsState() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<number>(1);
+  const [pipeAllocationMode, setPipeAllocationMode] = useState<
+    "allPipes" | "selectedPipes"
+  >("allPipes");
+  const [customerAllocationMode, setCustomerAllocationMode] = useState<
+    "allCustomers" | "zoneCustomers"
+  >("allCustomers");
+  const [allocationZone, setAllocationZone] = useState<ZoneId | null>(null);
 
   useEffect(() => {
     setAllocationRules(defaultRules);
@@ -50,6 +58,12 @@ export function useAllocateCustomerPointsState() {
     setError,
     step,
     setStep,
+    pipeAllocationMode,
+    setPipeAllocationMode,
+    customerAllocationMode,
+    setCustomerAllocationMode,
+    allocationZone,
+    setAllocationZone,
   };
 }
 

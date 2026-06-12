@@ -976,6 +976,23 @@
       "allocationModeStep": "Allocation mode",
       "allocationStep": "Customers allocation"
     },
+    "allocationOptions": {
+      "description": "Configure which zones and customers will be included in the allocation",
+      "pipeSelection": {
+        "title": "Pipe selection",
+        "allPipes": "All pipes",
+        "allPipesDescription": "Allocate customer points to all pipes in the network",
+        "selectedPipes": "Selected pipes only",
+        "selectedPipesDescription": "Allocate customer points only to selected pipes"
+      },
+      "customerSelection": {
+        "title": "Customer selection",
+        "allCustomers": "All customers",
+        "allCustomersDescription": "Allocate all customers in the network",
+        "zoneCustomers": "Only customers in zone",
+        "zoneCustomersDescription": "Allocate only customers located within the boundaries of a specific zone"
+      }
+    },
     "dialog": {
       "title": "Customers allocation",
       "description": "Define rules for connecting customer points to pipes. You can specify multiple max distance and max diameter pairs to control how customer points are allocated to the network.",
