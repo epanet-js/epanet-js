@@ -532,7 +532,7 @@ const AllocateCustomerPointsDialog = dynamic<{
   onClose: () => void;
 }>(
   () =>
-    import("src/dialogs/allocate-customer-points").then(
+    import("src/dialogs/allocate-customer-points/allocation-step").then(
       (r) => r.AllocateCustomerPointsDialog,
     ),
   {

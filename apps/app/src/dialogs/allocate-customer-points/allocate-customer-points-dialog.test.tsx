@@ -5,7 +5,7 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { AllocateCustomerPointsDialog } from "./index";
+import { AllocateCustomerPointsDialog } from "./allocation-step";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
