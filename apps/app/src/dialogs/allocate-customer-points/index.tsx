@@ -19,7 +19,7 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { allocateCustomerPoints } from "src/lib/customer-points";
 import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operations";
 import { localizeDecimal } from "src/infra/i18n/numbers";
-import { useTranslate } from "src/hooks/use-translate";
+import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
@@ -214,19 +214,9 @@ export const AllocateCustomerPointsDialog: React.FC<
       preventClose={isProcessing}
     >
       <div className="p-4 overflow-y-auto grow space-y-4">
-        <div>
-          <p className="text-size-base text-subtle">
-            {translate(
-              "importCustomerPoints.wizard.allocationStep.description",
-            )}
-          </p>
-        </div>
+        <Description translate={translate} />
 
-        {error && (
-          <div className="bg-error-subtle border border-red-200 rounded-md p-3">
-            <p className="text-red-700 text-size-base">{error}</p>
-          </div>
-        )}
+        {error && <ErrorMessage error={error} />}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -236,40 +226,17 @@ export const AllocateCustomerPointsDialog: React.FC<
               )}
             </h3>
             {!isEditingRules ? (
-              <Button
-                type="button"
+              <EditRulesButton
                 onClick={handleEdit}
                 disabled={isAllocating}
-                variant="primary"
-                size="sm"
-              >
-                {translate(
-                  "importCustomerPoints.wizard.allocationStep.editButton",
-                )}
-              </Button>
+                translate={translate}
+              />
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button
-                  type="button"
-                  onClick={handleSave}
-                  variant="primary"
-                  size="sm"
-                >
-                  {translate(
-                    "importCustomerPoints.wizard.allocationStep.saveButton",
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleCancel}
-                  variant="default"
-                  size="sm"
-                >
-                  {translate(
-                    "importCustomerPoints.wizard.allocationStep.cancelButton",
-                  )}
-                </Button>
-              </div>
+              <RulesEditorButtons
+                onSave={handleSave}
+                onCancel={handleCancel}
+                translate={translate}
+              />
             )}
           </div>
 
@@ -291,20 +258,71 @@ export const AllocateCustomerPointsDialog: React.FC<
           />
         </div>
 
-        {isAllocating && (
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
-            <span className="ml-2 text-size-base text-subtle">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.computingMessage",
-              )}
-            </span>
-          </div>
-        )}
+        {isAllocating && <IsComputingMessage translate={translate} />}
       </div>
     </BaseDialog>
   );
 };
+
+const Description = ({ translate }: { translate: TranslateFn }) => (
+  <p className="text-size-base text-subtle">
+    {translate("importCustomerPoints.wizard.allocationStep.description")}
+  </p>
+);
+
+const ErrorMessage = ({ error }: { error: string }) => (
+  <div className="bg-error-subtle border border-red-200 rounded-md p-3">
+    <p className="text-red-700 text-size-base">{error}</p>
+  </div>
+);
+
+const EditRulesButton = ({
+  disabled,
+  onClick,
+  translate,
+}: {
+  disabled: boolean;
+  onClick: () => void;
+  translate: TranslateFn;
+}) => (
+  <Button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    variant="primary"
+    size="sm"
+  >
+    {translate("importCustomerPoints.wizard.allocationStep.editButton")}
+  </Button>
+);
+
+const RulesEditorButtons = ({
+  onSave,
+  onCancel,
+  translate,
+}: {
+  onSave: () => void;
+  onCancel: () => void;
+  translate: TranslateFn;
+}) => (
+  <div className="flex items-center space-x-2">
+    <Button type="button" onClick={onSave} variant="primary" size="sm">
+      {translate("importCustomerPoints.wizard.allocationStep.saveButton")}
+    </Button>
+    <Button type="button" onClick={onCancel} variant="default" size="sm">
+      {translate("importCustomerPoints.wizard.allocationStep.cancelButton")}
+    </Button>
+  </div>
+);
+
+const IsComputingMessage = ({ translate }: { translate: TranslateFn }) => (
+  <div className="flex items-center justify-center py-4">
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+    <span className="ml-2 text-size-base text-subtle">
+      {translate("importCustomerPoints.wizard.allocationStep.computingMessage")}
+    </span>
+  </div>
+);
 
 type AllocationSummaryProps = {
   totalAllocated: number;
