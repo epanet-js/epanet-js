@@ -13,12 +13,15 @@ import {
   ActivateTopologyIcon,
   DeactivateTopologyIcon,
   ChartLineIcon,
+  DisconnectIcon,
 } from "src/icons";
 import { selectionAtom } from "src/state/selection";
 import { ActionButton, Action } from "src/components/action-button";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { USelection } from "src/selection";
+import { useDisconnectCustomerPoints } from "src/commands/customer-point-actions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -26,11 +29,19 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const deleteSelection = useDeleteSelection();
   const { changeSelectedAssetsActiveTopologyStatus, allActive } =
     useChangeSelectedAssetsActiveTopologyStatus();
+  const disconnectCustomerPoints = useDisconnectCustomerPoints();
   const selection = useAtomValue(selectionAtom);
-  const { assets: assetCount } = USelection.countByKind(selection);
+  const { assets: assetCount, customerPoints: customerPointCount } =
+    USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
 
+  const isMultipleCpDisconnectEnabled = useFeatureFlag(
+    "FLAG_MULTI_CP_DISCONNECT",
+  );
+
   const hasAssets = assetCount > 0;
+  const hasCustomerPoints = customerPointCount > 0;
+  const onlyHasCustomerPoints = hasCustomerPoints && !hasAssets;
 
   const onDelete = useCallback(() => {
     deleteSelection({ source: "toolbar" });
@@ -68,6 +79,18 @@ export function useMultiAssetActions(readonly = false): Action[] {
     },
   };
 
+  const disconnectCustomersAction = {
+    label: onlyHasCustomerPoints
+      ? translate("contextActions.customerPoints.disconnect")
+      : translate("contextActions.customerPoints.disconnectCustomers"),
+    icon: <DisconnectIcon />,
+    applicable: hasCustomerPoints,
+    onSelect: function disconnectCustomers() {
+      disconnectCustomerPoints({ source: "toolbar" });
+      return Promise.resolve();
+    },
+  };
+
   const changeActiveTopologyActionItem = {
     icon: allActive ? <DeactivateTopologyIcon /> : <ActivateTopologyIcon />,
     applicable: hasAssets,
@@ -79,12 +102,20 @@ export function useMultiAssetActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return [
-    zoomToAction,
-    changeActiveTopologyActionItem,
-    customGraphAction,
-    deleteAssetsAction,
-  ];
+  return isMultipleCpDisconnectEnabled
+    ? [
+        zoomToAction,
+        changeActiveTopologyActionItem,
+        customGraphAction,
+        disconnectCustomersAction,
+        deleteAssetsAction,
+      ]
+    : [
+        zoomToAction,
+        changeActiveTopologyActionItem,
+        customGraphAction,
+        deleteAssetsAction,
+      ];
 }
 
 export function MultiAssetActions() {

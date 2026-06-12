@@ -51,20 +51,15 @@ export const useDisconnectCustomerPoints = () => {
 
   const disconnectCustomerPoints = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
-      if (!USelection.isSingleCustomerPoint(selection)) return;
-
-      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
-      if (!customerPoint) return;
+      const customerPointIds = USelection.getCustomerPointIds(selection);
 
       userTracking.capture({
         name: "customerPointActions.disconnected",
-        count: 1,
+        count: customerPointIds.length,
         source,
       });
 
-      const moment = disconnectCustomers(hydraulicModel, {
-        customerPointIds: [customerPoint.id],
-      });
+      const moment = disconnectCustomers(hydraulicModel, { customerPointIds });
       transact(moment);
     },
     [selection, hydraulicModel, transact, userTracking],

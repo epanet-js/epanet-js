@@ -1114,6 +1114,7 @@
       "connect": "Connect",
       "reconnect": "Reconnect",
       "disconnect": "Disconnect",
+      "disconnectCustomers": "Disconnect customers",
       "customerPointSelected": "{{1}} customer point"
     }
   },
