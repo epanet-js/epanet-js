@@ -25,8 +25,6 @@ import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { selectionAtom } from "src/state/selection";
-import { USelection } from "src/selection";
 
 type AllocateCustomerPointsDialogProps = {
   isOpen: boolean;
@@ -39,20 +37,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   const translate = useTranslate();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
-  const selection = useAtomValue(selectionAtom);
   const { transact } = useModelTransaction();
-
-  const selectedPipeIds = useMemo(() => {
-    const assetIds = USelection.getAssetIds(selection);
-    const pipeIds = new Set<number>();
-    for (const id of assetIds) {
-      const asset = hydraulicModel.assets.get(id);
-      if (asset?.type === "pipe") {
-        pipeIds.add(id);
-      }
-    }
-    return pipeIds;
-  }, [selection, hydraulicModel.assets]);
 
   const defaultRules = useMemo(() => getDefaultAllocationRules(units), [units]);
 
@@ -122,7 +107,6 @@ export const AllocateCustomerPointsDialog: React.FC<
           allocationRules: rules,
           customerPoints,
           runOnWorker,
-          targetPipes: selectedPipeIds,
         });
 
         setAllocationResult(result);
@@ -138,7 +122,7 @@ export const AllocateCustomerPointsDialog: React.FC<
         setIsAllocating(false);
       }
     },
-    [disconnectedCustomerPoints, hydraulicModel, translate, selectedPipeIds],
+    [disconnectedCustomerPoints, hydraulicModel, translate],
   );
 
   const shouldTriggerAllocation = useCallback(

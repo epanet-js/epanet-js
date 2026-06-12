@@ -14,7 +14,6 @@ import type { AllocationWorkerAPI } from "./worker";
 type InputData = {
   allocationRules: CustomerPointAllocationRule[];
   customerPoints: CustomerPoints;
-  targetPipes?: Set<number>;
   runOnWorker?: boolean;
   bufferType?: "shared" | "array";
 };
@@ -24,7 +23,6 @@ export const allocateCustomerPoints = async (
   {
     allocationRules,
     customerPoints,
-    targetPipes,
     runOnWorker = false,
     bufferType = "array",
   }: InputData,
@@ -37,7 +35,6 @@ export const allocateCustomerPoints = async (
     hydraulicModel,
     Array.from(customerPoints.values()),
     bufferType,
-    targetPipes,
   );
 
   const totalCustomerPoints = customerPoints.size;
