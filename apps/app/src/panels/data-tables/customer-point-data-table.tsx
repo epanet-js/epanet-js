@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { dialogAtom } from "src/state/dialog";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import {
   changeCustomerPointLabel,
@@ -45,6 +46,7 @@ import { useDeferredGridMount } from "./use-deferred-grid-mount";
 export const CustomerPointDataTable = memo(
   function CustomerPointDataTableInner() {
     const dataGridRef = useRef<DataGridRef>(null);
+    const setDialogState = useSetAtom(dialogAtom);
     const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
     const { patterns } = hydraulicModel;
     const { units, formatting } = useAtomValue(projectSettingsAtom);
@@ -385,17 +387,41 @@ export const CustomerPointDataTable = memo(
 
     const handleCopy = useCallback(
       (info: ClipboardCopyInfo) => {
-        const { rows, cols, allRows, allCols, columnIds } = info;
+        const { selectedRows, copiedRows, cols, allRows, allCols, columnIds } =
+          info;
+        const truncated = copiedRows < selectedRows;
         userTracking.capture({
           name: "dataTables.copied",
           type: "customerPoint",
-          rows,
+          selectedRows,
+          copiedRows,
           cols,
           allRows,
           allCols,
           withHeaders: false,
           columnIds,
         });
+
+        if (truncated) {
+          notify({
+            variant: "default",
+            title: translate(
+              "dataTables.copy.truncatedTitle",
+              copiedRows.toLocaleString(),
+              selectedRows.toLocaleString(),
+            ),
+            description: translate("dataTables.copy.truncatedDescription"),
+            duration: 8000,
+            position: "bottom-center",
+            action: {
+              label: translate("dataTables.copy.exportAction"),
+              variant: "default",
+              align: "inline",
+              onClick: () => setDialogState({ type: "exportAssetData" }),
+            },
+          });
+          return;
+        }
 
         if (allRows) {
           notify({
@@ -414,7 +440,8 @@ export const CustomerPointDataTable = memo(
                 userTracking.capture({
                   name: "dataTables.copied",
                   type: "customerPoint",
-                  rows,
+                  selectedRows,
+                  copiedRows,
                   cols,
                   allRows,
                   allCols,
@@ -426,7 +453,7 @@ export const CustomerPointDataTable = memo(
           });
         }
       },
-      [userTracking, translate],
+      [userTracking, translate, setDialogState],
     );
 
     const handlePaste = useCallback(

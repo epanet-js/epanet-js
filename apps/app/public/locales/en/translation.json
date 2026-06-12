@@ -1438,7 +1438,10 @@
     "title": "Data tables",
     "copy": {
       "includeHeadersPrompt": "Copied. Include column headers?",
-      "includeHeadersAction": "Copy with headers"
+      "includeHeadersAction": "Copy with headers",
+      "truncatedTitle": "Copied the first {{1}} of {{2}} rows",
+      "truncatedDescription": "To export all rows, use Export data.",
+      "exportAction": "Export data"
     }
   },
   "hglProfile": {

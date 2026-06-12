@@ -5,13 +5,19 @@ import type {
   TableFeature,
 } from "@tanstack/react-table";
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
+import {
+  isLazyRowModel,
+  LAZY_ROW_MODEL_THRESHOLD,
+} from "../utils/lazy-core-row-model";
+import type { GridSelection } from "../types";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
 };
 
 export type ClipboardCopyInfo = {
-  rows: number;
+  selectedRows: number;
+  copiedRows: number;
   cols: number;
   allRows: boolean;
   allCols: boolean;
@@ -74,6 +80,15 @@ export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
+    // Max data rows a single copy will read. On lazy tables, copying the whole
+    // selection would materialize every row (the freeze the lazy model avoids),
+    // so we cap at the working-set size and let callers point users to Export.
+    const copyRowCap = (): number =>
+      isLazyRowModel(table) ? LAZY_ROW_MODEL_THRESHOLD : Infinity;
+
+    const lastCopyRow = (selection: GridSelection): number =>
+      Math.min(selection.max.row, selection.min.row + copyRowCap() - 1);
+
     const writeSelectionToClipboard = async (includeHeaders: boolean) => {
       const selection = table.getSelection?.();
       if (!selection) return;
@@ -94,9 +109,10 @@ export const ClipboardFeature: TableFeature = {
         rows.push(headers.join("\t"));
       }
 
+      const maxRow = lastCopyRow(selection);
       for (
         let visualRow = selection.min.row;
-        visualRow <= selection.max.row;
+        visualRow <= maxRow;
         visualRow++
       ) {
         const tableRow = rowModel.rows[visualRow];
@@ -143,7 +159,8 @@ export const ClipboardFeature: TableFeature = {
         if (id) columnIds.push(id);
       }
       return {
-        rows: selRows,
+        selectedRows: selRows,
+        copiedRows: Math.min(selRows, copyRowCap()),
         cols: selCols,
         allRows: selRows === data.length,
         allCols: selCols === columns.length,

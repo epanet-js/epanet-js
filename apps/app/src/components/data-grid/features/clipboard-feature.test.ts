@@ -33,6 +33,7 @@ type TableOptions = {
   onClipboardCopy?: (info: unknown) => void;
   onClipboardPaste?: (info: unknown) => void;
   sortable?: boolean;
+  lazyRowModel?: boolean;
 };
 
 const useClipboardTable = (options: TableOptions) =>
@@ -58,6 +59,7 @@ const useClipboardTable = (options: TableOptions) =>
     autoExtendOnPaste: options.autoExtendOnPaste,
     onClipboardCopy: options.onClipboardCopy as never,
     onClipboardPaste: options.onClipboardPaste as never,
+    lazyRowModel: options.lazyRowModel,
   });
 
 const stubClipboard = (initialText = "") => {
@@ -258,12 +260,113 @@ describe("ClipboardFeature", () => {
       });
 
       expect(onClipboardCopy).toHaveBeenCalledWith({
-        rows: 2,
+        selectedRows: 2,
+        copiedRows: 2,
         cols: 3,
         allRows: true,
         allCols: true,
         columnIds: ["id", "name", "value"],
       });
+    });
+  });
+
+  describe("lazy copy cap", () => {
+    const LAZY_CAP = 1000; // LAZY_ROW_MODEL_THRESHOLD
+    const makeRows = (n: number): TestRow[] =>
+      Array.from({ length: n }, (_, i) => ({
+        id: String(i),
+        name: `n${i}`,
+        value: String(i),
+      }));
+
+    it("caps a large copy at the working-set size and reports both counts", async () => {
+      const clip = stubClipboard();
+      const onClipboardCopy = vi.fn();
+      const data = makeRows(LAZY_CAP + 500); // 1500, over threshold → lazy
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, lazyRowModel: true, onClipboardCopy }),
+      );
+      // Select all rows in the first column.
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: data.length - 1 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      // Only the first 1000 rows are written.
+      const written = clip.getText().split("\n");
+      expect(written).toHaveLength(LAZY_CAP);
+      expect(written[0]).toBe("0");
+      expect(written[LAZY_CAP - 1]).toBe(String(LAZY_CAP - 1));
+
+      expect(onClipboardCopy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedRows: data.length,
+          copiedRows: LAZY_CAP,
+          allRows: true,
+        }),
+      );
+    });
+
+    it("does not cap when the selection fits within the working set", async () => {
+      const clip = stubClipboard();
+      const onClipboardCopy = vi.fn();
+      const data = makeRows(LAZY_CAP + 500); // lazy table...
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, lazyRowModel: true, onClipboardCopy }),
+      );
+      // ...but a small selection (500 rows).
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 499 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.getText().split("\n")).toHaveLength(500);
+      expect(onClipboardCopy).toHaveBeenCalledWith(
+        expect.objectContaining({ selectedRows: 500, copiedRows: 500 }),
+      );
+    });
+
+    it("does not cap non-lazy tables (copiedRows === selectedRows)", async () => {
+      const clip = stubClipboard();
+      const onClipboardCopy = vi.fn();
+      // Over the threshold by row count, but lazyRowModel not enabled.
+      const data = makeRows(LAZY_CAP + 200);
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onClipboardCopy }),
+      );
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: data.length - 1 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.getText().split("\n")).toHaveLength(data.length);
+      expect(onClipboardCopy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedRows: data.length,
+          copiedRows: data.length,
+        }),
+      );
     });
   });
 

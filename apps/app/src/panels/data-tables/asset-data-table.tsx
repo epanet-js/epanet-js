@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { dialogAtom } from "src/state/dialog";
 import {
   stagingModelDerivedAtom,
   simulationResultsDerivedAtom,
@@ -78,6 +79,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   assetType,
 }: AssetDataTableProps) {
   const dataGridRef = useRef<DataGridRef>(null);
+  const setDialogState = useSetAtom(dialogAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationResultsDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
@@ -512,17 +514,41 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   const handleCopy = useCallback(
     (info: ClipboardCopyInfo) => {
-      const { rows, cols, allRows, allCols, columnIds } = info;
+      const { selectedRows, copiedRows, cols, allRows, allCols, columnIds } =
+        info;
+      const truncated = copiedRows < selectedRows;
       userTracking.capture({
         name: "dataTables.copied",
         type: assetType,
-        rows,
+        selectedRows,
+        copiedRows,
         cols,
         allRows,
         allCols,
         withHeaders: false,
         columnIds,
       });
+
+      if (truncated) {
+        notify({
+          variant: "default",
+          title: translate(
+            "dataTables.copy.truncatedTitle",
+            copiedRows.toLocaleString(),
+            selectedRows.toLocaleString(),
+          ),
+          description: translate("dataTables.copy.truncatedDescription"),
+          duration: 8000,
+          position: "bottom-center",
+          action: {
+            label: translate("dataTables.copy.exportAction"),
+            variant: "default",
+            align: "inline",
+            onClick: () => setDialogState({ type: "exportAssetData" }),
+          },
+        });
+        return;
+      }
 
       const canIncludeHeaders = allRows;
       if (canIncludeHeaders) {
@@ -542,7 +568,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               userTracking.capture({
                 name: "dataTables.copied",
                 type: assetType,
-                rows,
+                selectedRows,
+                copiedRows,
                 cols,
                 allRows,
                 allCols,
@@ -554,7 +581,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         });
       }
     },
-    [userTracking, assetType, translate],
+    [userTracking, assetType, translate, setDialogState],
   );
 
   const handlePaste = useCallback(

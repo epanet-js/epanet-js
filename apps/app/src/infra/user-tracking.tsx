@@ -1318,7 +1318,8 @@ export type UserEvent =
   | {
       name: "dataTables.copied";
       type: Asset["type"] | "customerPoint";
-      rows: number;
+      selectedRows: number;
+      copiedRows: number;
       cols: number;
       allRows: boolean;
       allCols: boolean;
