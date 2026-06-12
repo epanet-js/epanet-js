@@ -57,6 +57,17 @@
   }
 }
 
+/* FLAG_DRAWING_TOOLBAR: align native map controls (zoom, scale, attribution)
+   to the same 8px inset used by the other map overlays, and give the control
+   group the same drop shadow as the toolbar (keeping its 4px rounded feel). */
+.drawing-toolbar-controls .mapboxgl-ctrl {
+  margin: 8px;
+}
+
+.drawing-toolbar-controls .mapboxgl-ctrl-group {
+  box-shadow: 0 2px 10px 2px rgba(0, 0, 0, 0.1);
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -1,7 +1,9 @@
 import { useAtomValue } from "jotai";
+import clsx from "clsx";
 import { dialogAtom } from "src/state/dialog";
+import { mapOverlayClass } from "src/components/map-overlay";
 import Modes from "./modes";
-import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
+import { MapToolbarPipeDrawing } from "./map-toolbar-pipe-drawing";
 
 export const MapToolbar = ({ readonly = false }: { readonly?: boolean }) => {
   const dialogState = useAtomValue(dialogAtom);
@@ -10,11 +12,16 @@ export const MapToolbar = ({ readonly = false }: { readonly?: boolean }) => {
 
   return (
     <div className="absolute top-2 inset-x-0 z-20 flex justify-center pointer-events-none">
-      <div className="flex flex-col items-center gap-2 pointer-events-auto">
-        <div className="flex items-center bg-base border rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)] px-2 py-1">
+      <div
+        className={clsx(
+          "pointer-events-auto flex flex-col bg-base",
+          mapOverlayClass,
+        )}
+      >
+        <div className="flex items-center justify-center px-2 py-1">
           <Modes disabled={readonly} />
         </div>
-        <PipeDrawingFloatingPanel variant="attached" />
+        <MapToolbarPipeDrawing />
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ import {
 } from "src/state/simulation-playback";
 import { useTogglePlayback } from "src/commands/toggle-playback";
 import { useTranslate } from "src/hooks/use-translate";
+import { mapOverlayClass } from "src/components/map-overlay";
 
 export const useHasPlayableTimesteps = () => {
   const simulationStep = useAtomValue(simulationStepAtom);
@@ -159,7 +160,12 @@ export const TimestepSpeedWarning = () => {
   if (!isPlaying || !speedWarning) return null;
 
   return (
-    <div className="flex items-start gap-1.5 text-size-small px-2 py-1 rounded-xs bg-base-hover/80 shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)] max-w-[16rem]">
+    <div
+      className={clsx(
+        "flex items-start gap-1.5 text-size-small px-2 py-1 bg-base-hover/80 max-w-[16rem]",
+        mapOverlayClass,
+      )}
+    >
       <WarningIcon className="shrink-0 mt-px text-warning" />
       <span className="wrap-break-word min-w-0">
         {translate(

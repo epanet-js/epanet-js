@@ -8,18 +8,26 @@ import { useAtomValue } from "jotai";
 import { linkSymbologyAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { useState } from "react";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { mapOverlayClass } from "src/components/map-overlay";
 import clsx from "clsx";
 import { ChevronDownIcon, ChevronRightIcon } from "src/icons";
 
 export const Legends = () => {
   const nodeSymbology = useAtomValue(nodeSymbologyAtom);
   const linkSymbology = useAtomValue(linkSymbologyAtom);
+  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
 
   const isSmOrLarger = useBreakpoint("sm");
   if (!isSmOrLarger) return null;
 
   return (
-    <div className="space-y-1 absolute top-10 left-3 w-48">
+    <div
+      className={clsx(
+        "space-y-1 absolute w-48",
+        isDrawingToolbar ? "top-2 left-2" : "top-10 left-3",
+      )}
+    >
       {!!nodeSymbology.colorRule && (
         <Legend symbology={nodeSymbology.colorRule} />
       )}
@@ -78,9 +86,15 @@ const LegendContainer = ({
   onClick?: () => void;
   children: React.ReactNode;
 }) => {
+  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
   return (
     <div
-      className="space-y-1 text-size-small bg-base border border-strong dark:border-black w-32 rounded-xs"
+      className={clsx(
+        "space-y-1 text-size-small bg-base w-32",
+        isDrawingToolbar
+          ? mapOverlayClass
+          : "border border-strong dark:border-black rounded-xs",
+      )}
       onClick={onClick}
     >
       {children}

@@ -21,7 +21,6 @@ import { PropsWithChildren } from "react";
 
 export const tipLike = `
     bg-base
-    rounded-xs
     shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
     ring-1 ring-gray-200 dark:ring-gray-700
     content-layout z-10`;
@@ -42,10 +41,10 @@ function HintWrapper({
   return (
     <div
       className={clsx(
-        "absolute max-w-[600px] text-size-base flex gap-x-2 rounded-md",
+        "absolute max-w-[600px] text-size-base flex gap-x-2",
         isDrawingToolbar
-          ? "bottom-8 left-1/2 -translate-x-1/2"
-          : "top-2 left-3",
+          ? "bottom-8 left-1/2 -translate-x-1/2 rounded-sm"
+          : "top-2 left-3 rounded-md",
         "p-2 items-start",
         tipLike,
       )}
