@@ -5,7 +5,8 @@ import {
   HydraulicModelBuilder,
   buildCustomerPoint,
 } from "src/__helpers__/hydraulic-model-builder";
-import { AllocateCustomerPointsDialog } from "./allocation-step";
+import { AllocationStep } from "./allocation-step";
+import { useAllocateCustomerPointsState } from "./wizard-state";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { vi } from "vitest";
@@ -179,13 +180,19 @@ const waitForAllocations = () => {
   });
 };
 
+const AllocationStepWrapper = ({ onClose }: { onClose: () => void }) => {
+  const state = useAllocateCustomerPointsState();
+  return <AllocationStep state={state} isOpen={true} onClose={onClose} />;
+};
+
 const renderDialog = (store: Store) => {
   const persistence = new Persistence(store);
+
   return render(
-    <PersistenceContext.Provider value={persistence}>
-      <JotaiProvider store={store}>
-        <AllocateCustomerPointsDialog isOpen={true} onClose={() => {}} />
-      </JotaiProvider>
-    </PersistenceContext.Provider>,
+    <JotaiProvider store={store}>
+      <PersistenceContext.Provider value={persistence}>
+        <AllocationStepWrapper onClose={() => {}} />
+      </PersistenceContext.Provider>
+    </JotaiProvider>,
   );
 };

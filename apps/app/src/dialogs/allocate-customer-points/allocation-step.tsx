@@ -6,7 +6,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
-import { useAllocateCustomerPointsState } from "./wizard-state";
+import { AllocateCustomerPointsState } from "./wizard-state";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 
 import { allocateCustomerPoints } from "src/lib/customer-points";
@@ -22,11 +22,14 @@ import { useUserTracking } from "src/infra/user-tracking";
 type AllocateCustomerPointsDialogProps = {
   isOpen: boolean;
   onClose: () => void;
+  state: AllocateCustomerPointsState;
 };
 
-export const AllocateCustomerPointsDialog: React.FC<
-  AllocateCustomerPointsDialogProps
-> = ({ isOpen, onClose }) => {
+export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
+  isOpen,
+  onClose,
+  state,
+}) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
@@ -49,7 +52,7 @@ export const AllocateCustomerPointsDialog: React.FC<
     setIsProcessing,
     error,
     setError,
-  } = useAllocateCustomerPointsState();
+  } = state;
 
   const disconnectedCustomerPoints = Array.from(
     hydraulicModel.customerPoints.values(),

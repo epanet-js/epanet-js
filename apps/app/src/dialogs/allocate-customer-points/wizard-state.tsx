@@ -49,3 +49,7 @@ export function useAllocateCustomerPointsState() {
     setError,
   };
 }
+
+export type AllocateCustomerPointsState = ReturnType<
+  typeof useAllocateCustomerPointsState
+>;
