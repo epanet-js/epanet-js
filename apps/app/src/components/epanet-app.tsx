@@ -39,7 +39,7 @@ import {
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
 import { Legends } from "./legends";
-import { TimestepSelector } from "./timestep-selector";
+import { TimestepSelector, TimestepSpeedWarning } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
 import { MapToolbar } from "src/toolbar/map-toolbar";
@@ -273,8 +273,9 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />
-      <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+      <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
         {!isDrawingToolbar && <TimestepSelector />}
+        <TimestepSpeedWarning />
         <MapLoading />
       </div>
       {isDrawingToolbar && isSmOrLarger && <MapToolbar readonly={readonly} />}

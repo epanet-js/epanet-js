@@ -97,79 +97,77 @@ export const TimestepSelectorUI = ({
 
   const { stopPlayback } = useTogglePlayback();
   const { goToPreviousTimestep, goToNextTimestep } = useChangeTimestep();
-  const speedWarning = useAtomValue(currentSpeedWarningAtom);
-  const isPlaying = useAtomValue(isPlayingAtom);
 
   const isInline = variant === "inline";
   const isLgOrLarger = useBreakpoint("lg");
   const compact = isInline && !isLgOrLarger;
 
-  return (
+  const controls = (
     <div
       className={clsx(
-        isInline
-          ? "flex items-center gap-2"
-          : "grid grid-cols-[min-content] gap-1",
+        "flex items-center gap-1",
+        !isInline &&
+          "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
       )}
     >
-      <div
-        className={clsx(
-          "flex items-center gap-1",
-          !isInline &&
-            "p-1 bg-base rounded-xs border shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
-        )}
-      >
-        {!compact && (
-          <>
-            <PlayButton />
-            <SpeedButton />
-            <Button
-              variant="quiet/mode"
-              className="h-8"
-              aria-label={translate("previousTimestep")}
-              onClick={() => goToPreviousTimestep("buttons")}
-              disabled={!canGoPrevious}
-            >
-              <ChevronLeftIcon />
-            </Button>
-            <Button
-              variant="quiet/mode"
-              className="h-8"
-              aria-label={translate("nextTimestep")}
-              onClick={() => goToNextTimestep("buttons")}
-              disabled={!canGoNext}
-            >
-              <ChevronRightIcon />
-            </Button>
-          </>
-        )}
-        <TimestepDropdown
-          currentTimestepIndex={currentTimestepIndex}
-          timestepCount={timestepCount}
-          reportTimestep={reportTimestep}
-          onOpen={() => stopPlayback("dropdown")}
-          onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
-        />
-      </div>
-      {isPlaying && speedWarning && (
-        <div
-          className={clsx(
-            "flex items-start gap-1.5 text-size-small px-2 py-1 rounded-xs",
-            isInline
-              ? "bg-warning-subtle text-warning max-w-[16rem]"
-              : "bg-base-hover/80 shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]",
-          )}
-        >
-          <WarningIcon className="shrink-0 mt-px text-warning" />
-          <span className="wrap-break-word min-w-0">
-            {translate(
-              speedWarning === "slow"
-                ? "playbackSpeedWarningSlow"
-                : "playbackSpeedWarningTooFast",
-            )}
-          </span>
-        </div>
+      {!compact && (
+        <>
+          <PlayButton />
+          <SpeedButton />
+          <Button
+            variant="quiet/mode"
+            className="h-8"
+            aria-label={translate("previousTimestep")}
+            onClick={() => goToPreviousTimestep("buttons")}
+            disabled={!canGoPrevious}
+          >
+            <ChevronLeftIcon />
+          </Button>
+          <Button
+            variant="quiet/mode"
+            className="h-8"
+            aria-label={translate("nextTimestep")}
+            onClick={() => goToNextTimestep("buttons")}
+            disabled={!canGoNext}
+          >
+            <ChevronRightIcon />
+          </Button>
+        </>
       )}
+      <TimestepDropdown
+        currentTimestepIndex={currentTimestepIndex}
+        timestepCount={timestepCount}
+        reportTimestep={reportTimestep}
+        onOpen={() => stopPlayback("dropdown")}
+        onChangeTimestep={(index) => onChangeTimestep(index, "dropdown")}
+      />
+    </div>
+  );
+
+  return isInline ? (
+    controls
+  ) : (
+    <div className="grid grid-cols-[min-content] gap-1">{controls}</div>
+  );
+};
+
+export const TimestepSpeedWarning = () => {
+  const translate = useTranslate();
+  const speedWarning = useAtomValue(currentSpeedWarningAtom);
+  const isPlaying = useAtomValue(isPlayingAtom);
+
+  if (!isPlaying || !speedWarning) return null;
+
+  return (
+    <div className="flex items-start gap-1.5 text-size-small px-2 py-1 rounded-xs bg-base-hover/80 shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)] max-w-[16rem]">
+      <WarningIcon className="shrink-0 mt-px text-warning" />
+      <span className="wrap-break-word min-w-0">
+        {translate(
+          speedWarning === "slow"
+            ? "playbackSpeedWarningSlow"
+            : "playbackSpeedWarningTooFast",
+        )}
+      </span>
     </div>
   );
 };

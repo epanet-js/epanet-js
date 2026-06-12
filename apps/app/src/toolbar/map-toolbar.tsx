@@ -1,9 +1,15 @@
+import { useAtomValue } from "jotai";
+import { dialogAtom } from "src/state/dialog";
 import Modes from "./modes";
 import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
 
 export const MapToolbar = ({ readonly = false }: { readonly?: boolean }) => {
+  const dialogState = useAtomValue(dialogAtom);
+
+  if (dialogState) return null;
+
   return (
-    <div className="absolute top-3 inset-x-0 z-20 flex justify-center pointer-events-none">
+    <div className="absolute top-2 inset-x-0 z-20 flex justify-center pointer-events-none">
       <div className="flex flex-col items-center gap-2 pointer-events-auto">
         <div className="flex items-center bg-base border rounded-xs shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)] px-2 py-1">
           <Modes disabled={readonly} />
