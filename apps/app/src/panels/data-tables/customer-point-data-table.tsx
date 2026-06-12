@@ -1,24 +1,5 @@
-import {
-  memo,
-  Profiler,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-
-// TEMP profiling to compare grid strategies. Remove after measuring.
-// Separates: the synchronous model transaction, the row-array rebuild, and the
-// full grid re-render (incl. TanStack's row-model work).
-const PROFILE_DATA_TABLES = true;
-const profileLog = (label: string, ms: number) => {
-  if (PROFILE_DATA_TABLES) {
-    // eslint-disable-next-line no-console
-    console.log(`[data-tables] ${label}: ${ms.toFixed(1)}ms`);
-  }
-};
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import {
@@ -83,16 +64,10 @@ export const CustomerPointDataTable = memo(
     const [legacyRows, setLegacyRows] = useState<CustomerPointRow[] | null>(
       null,
     );
-    const modelRows = useMemo(() => {
-      if (!isPerfOn) return null;
-      const t0 = performance.now();
-      const result = buildCustomerPointModelRows(hydraulicModel);
-      profileLog(
-        `buildCustomerPointModelRows (${result.length} rows)`,
-        performance.now() - t0,
-      );
-      return result;
-    }, [isPerfOn, hydraulicModel]);
+    const modelRows = useMemo(
+      () => (isPerfOn ? buildCustomerPointModelRows(hydraulicModel) : null),
+      [isPerfOn, hydraulicModel],
+    );
     const rows = isPerfOn ? modelRows : legacyRows;
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
@@ -160,7 +135,6 @@ export const CustomerPointDataTable = memo(
 
     const onChange = useCallback(
       (newRows: CustomerPointRow[]) => {
-        const t0 = performance.now();
         const demandAssignments: CustomerDemandAssignment[] = [];
         let oldDemandsTotal = 0;
         let newDemandsTotal = 0;
@@ -246,10 +220,6 @@ export const CustomerPointDataTable = memo(
             newCount: newDemandsTotal,
           });
         }
-        profileLog(
-          "onChange (transaction, synchronous)",
-          performance.now() - t0,
-        );
       },
       [hydraulicModel, units, labelManager, transact, userTracking, isPerfOn],
     );
@@ -473,41 +443,34 @@ export const CustomerPointDataTable = memo(
     const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;
 
     return (
-      <Profiler
-        id={isPerfOn ? "cp-grid (performant)" : "cp-grid (legacy)"}
-        onRender={(_id, phase, actualDuration) =>
-          profileLog(`grid render (${phase})`, actualDuration)
-        }
-      >
-        <div className="flex-1 min-h-0 relative">
-          {rows === null || !gridReady ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <RingSpinner />
-            </div>
-          ) : (
-            <Grid
-              ref={dataGridRef}
-              data={rows}
-              columns={columns}
-              onChange={onChange}
-              createRow={() => ({}) as CustomerPointRow}
-              getRowId={(row) => String(row.id)}
-              patchRow={isPerfOn ? patchModelRow : undefined}
-              gutterColumn="selection"
-              resizable
-              sortable
-              minColumnSizePx={20}
-              readOnly={isEditionBlocked}
-              cellContextActions={cellContextActions}
-              gutterContextActions={gutterContextActions}
-              onColumnSort={handleSort}
-              onCopy={handleCopy}
-              onPaste={handlePaste}
-              pinnedColumns={{ left: ["label"] }}
-            />
-          )}
-        </div>
-      </Profiler>
+      <div className="flex-1 min-h-0 relative">
+        {rows === null || !gridReady ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <RingSpinner />
+          </div>
+        ) : (
+          <Grid
+            ref={dataGridRef}
+            data={rows}
+            columns={columns}
+            onChange={onChange}
+            createRow={() => ({}) as CustomerPointRow}
+            getRowId={(row) => String(row.id)}
+            patchRow={isPerfOn ? patchModelRow : undefined}
+            gutterColumn="selection"
+            resizable
+            sortable
+            minColumnSizePx={20}
+            readOnly={isEditionBlocked}
+            cellContextActions={cellContextActions}
+            gutterContextActions={gutterContextActions}
+            onColumnSort={handleSort}
+            onCopy={handleCopy}
+            onPaste={handlePaste}
+            pinnedColumns={{ left: ["label"] }}
+          />
+        )}
+      </div>
     );
   },
 );
