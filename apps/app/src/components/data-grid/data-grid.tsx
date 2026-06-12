@@ -3,7 +3,9 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
+  useTransition,
 } from "react";
 import {
   type ColumnDef,
@@ -13,6 +15,8 @@ import {
 import { getStickySortedRowModel } from "./utils/get-sticky-sorted-row-model";
 import { getAdaptiveCoreRowModel } from "./utils/lazy-core-row-model";
 import { getAdaptiveStickySortedRowModel } from "./utils/lazy-sticky-sorted-row-model";
+import { GridBusyProvider } from "./shared/grid-busy";
+import { RingSpinner } from "src/components/ring-spinner";
 import {
   DataGridVariant,
   RowAction,
@@ -128,6 +132,16 @@ export const DataGrid = forwardRef(function DataGrid<
   const dataRef = useRef(data);
   dataRef.current = data;
   const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
+
+  // Generic "busy" mechanism: `runBusy` runs an operation (sort, bulk edit, …)
+  // as a transition so the triggering event stays responsive, and `isBusy`
+  // marks the grid busy — blocking interaction — until that render commits.
+  const [isBusy, startBusyTransition] = useTransition();
+  const runBusy = useCallback(
+    (operation: () => void) => startBusyTransition(operation),
+    [],
+  );
+  const busyApi = useMemo(() => ({ runBusy }), [runBusy]);
 
   const table = useReactTable<TData>({
     data,
@@ -434,46 +448,60 @@ export const DataGrid = forwardRef(function DataGrid<
   };
 
   return (
-    <div
-      className={
-        isSpreadsheet
-          ? "flex flex-col h-full text-size-base"
-          : "flex flex-col text-size-base"
-      }
-    >
+    <GridBusyProvider value={busyApi}>
       <div
-        ref={gridRef}
-        role="grid"
-        aria-rowcount={data.length}
-        aria-colcount={columns.length}
-        aria-multiselectable={true}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onCopy={table.handleCopyEvent}
-        onPaste={table.handlePasteEvent}
         className={
           isSpreadsheet
-            ? "relative flex flex-col flex-1 min-h-0 outline-hidden"
-            : "relative flex flex-col outline-hidden"
+            ? "flex flex-col h-full text-size-base"
+            : "flex flex-col text-size-base"
         }
-        data-capture-escape-key
       >
-        {isSpreadsheet ? (
-          <VirtualGrid ref={rowsRef} {...rowsProps} />
-        ) : (
-          <InlineGrid ref={rowsRef} {...rowsProps} />
+        <div
+          ref={gridRef}
+          role="grid"
+          aria-rowcount={data.length}
+          aria-colcount={columns.length}
+          aria-multiselectable={true}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onCopy={table.handleCopyEvent}
+          onPaste={table.handlePasteEvent}
+          className={
+            isSpreadsheet
+              ? "relative flex flex-col flex-1 min-h-0 outline-hidden"
+              : "relative flex flex-col outline-hidden"
+          }
+          data-capture-escape-key
+        >
+          {isSpreadsheet ? (
+            <VirtualGrid ref={rowsRef} {...rowsProps} />
+          ) : (
+            <InlineGrid ref={rowsRef} {...rowsProps} />
+          )}
+          {isBusy && (
+            // While a busy operation runs, swallow pointer events so no other
+            // action lands meanwhile, and show a spinner. The CSS animation is
+            // compositor-driven, so it keeps spinning even while the main thread
+            // is busy with the operation.
+            <div
+              className="absolute inset-0 z-30 flex items-center justify-center bg-base/50"
+              aria-hidden="true"
+            >
+              <RingSpinner />
+            </div>
+          )}
+        </div>
+
+        {!readOnly && (
+          <AddRowButton
+            label={addRowLabel}
+            onClick={handleAddRow}
+            variant={variant}
+          />
         )}
       </div>
-
-      {!readOnly && (
-        <AddRowButton
-          label={addRowLabel}
-          onClick={handleAddRow}
-          variant={variant}
-        />
-      )}
-    </div>
+    </GridBusyProvider>
   );
 }) as <TData extends Record<string, unknown>>(
   props: DataGridProps<TData> & {

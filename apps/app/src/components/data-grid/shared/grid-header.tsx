@@ -20,6 +20,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DataGridVariant } from "../types";
 import { resolveVisibleHeaderActions } from "../features";
 import { FIXED_COLUMN_SIZE } from "./dimensions";
+import { useGridBusy } from "./grid-busy";
 
 type GridHeaderProps<T> = {
   showGutterColumn: boolean;
@@ -140,6 +141,7 @@ function HeaderCell<T>({
   const cellRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { runBusy } = useGridBusy();
   const hasActions = header.column.getCanSort();
   const sortDirection = header.column.getIsSorted();
   const customHeaderActions = header.column.getCustomHeaderActions?.();
@@ -233,14 +235,18 @@ function HeaderCell<T>({
       )}
       {showActionsMenu && (
         <HeaderActionsButton
-          onSortAscending={() => {
-            header.column.toggleSorting(false);
-            onColumnSort?.(header.column.id, "asc");
-          }}
-          onSortDescending={() => {
-            header.column.toggleSorting(true);
-            onColumnSort?.(header.column.id, "desc");
-          }}
+          onSortAscending={() =>
+            runBusy(() => {
+              header.column.toggleSorting(false);
+              onColumnSort?.(header.column.id, "asc");
+            })
+          }
+          onSortDescending={() =>
+            runBusy(() => {
+              header.column.toggleSorting(true);
+              onColumnSort?.(header.column.id, "desc");
+            })
+          }
           onOpenChange={(open) => {
             setIsMenuOpen(open);
             if (!open) {
