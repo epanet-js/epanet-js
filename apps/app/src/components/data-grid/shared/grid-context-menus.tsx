@@ -5,9 +5,20 @@ import { CMContent, CMItem } from "src/components/elements";
 import { CopyIcon, ClipboardPasteIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { CellContextAction, GutterContextAction } from "../types";
+import { isLazyRowModel } from "../utils/lazy-core-row-model";
 
 const itemClassName = (isDisabled: boolean) =>
   clsx({ "opacity-50 cursor-not-allowed": isDisabled });
+
+// The full data array in display order. In lazy mode this avoids materializing
+// every Row (which `getRowModel().rows.map(r => r.original)` would do).
+function orderedOriginals<TData extends Record<string, unknown>>(
+  table: Table<TData>,
+): TData[] {
+  return isLazyRowModel(table)
+    ? table.getOrderedOriginals()
+    : table.getRowModel().rows.map((r) => r.original);
+}
 
 type CellContextMenuContentProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
@@ -27,7 +38,7 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
   const translate = useTranslate();
   const selection = table.getSelection();
   if (!selection) return null;
-  const sortedRows = table.getRowModel().rows.map((r) => r.original);
+  const sortedRows = orderedOriginals(table);
 
   return (
     <CM.Portal>
@@ -132,7 +143,7 @@ export function GutterContextMenuContent<
   const selection = table.getSelection();
   if (!selection) return null;
   if (actions.length === 0) return null;
-  const sortedRows = table.getRowModel().rows.map((r) => r.original);
+  const sortedRows = orderedOriginals(table);
 
   return (
     <CM.Portal>

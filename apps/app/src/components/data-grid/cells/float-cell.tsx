@@ -25,6 +25,8 @@ type FloatCellProps = CellProps<number | null> & {
   decimals?: number;
   readonly?: boolean;
   placeholder?: string;
+  toDisplay?: (stored: number) => number;
+  fromDisplay?: (displayed: number) => number;
 };
 
 const FLOAT_QUICK_NAV_KEYS = [
@@ -46,29 +48,39 @@ export function FloatCell({
   decimals,
   readonly,
   placeholder,
+  toDisplay,
+  fromDisplay,
 }: FloatCellProps) {
+  // Stored value -> the value shown/edited in the cell (identity when no transform).
+  const toDisplayValue = useCallback(
+    (v: number | null): number | null =>
+      v === null || toDisplay === undefined ? v : toDisplay(v),
+    [toDisplay],
+  );
+
   const parse = useCallback(
     (raw: string): number | null | undefined => {
       const parsed = parseNumericInput(raw);
       if (parsed !== null) {
         if (positiveOnly && parsed < 0) return undefined;
         if (validate && !validate(parsed)) return undefined;
-        return parsed;
+        return fromDisplay ? fromDisplay(parsed) : parsed;
       }
       if (raw.trim() === "") return emptyValue;
       return undefined;
     },
-    [emptyValue, positiveOnly, validate],
+    [emptyValue, positiveOnly, validate, fromDisplay],
   );
 
   const format = useCallback(
-    (v: number | null) => (v === null ? "" : formatLocaleNumber(v, decimals)),
-    [decimals],
+    (v: number | null) =>
+      v === null ? "" : formatLocaleNumber(toDisplayValue(v), decimals),
+    [decimals, toDisplayValue],
   );
 
   const formatForEdit = useCallback(
-    (v: number | null) => formatLocaleNumber(v),
-    [],
+    (v: number | null) => formatLocaleNumber(toDisplayValue(v)),
+    [toDisplayValue],
   );
 
   const {
@@ -111,7 +123,7 @@ export function FloatCell({
     [editValue, positiveOnly, validate, setEditValue, setHasError],
   );
 
-  const formattedValue = formatLocaleNumber(value, decimals);
+  const formattedValue = formatLocaleNumber(toDisplayValue(value), decimals);
   const baseDisplay = !editMode && value === null ? "" : formattedValue;
   const displayValue =
     !editMode && committedDisplay !== null ? committedDisplay : baseDisplay;
@@ -169,6 +181,8 @@ export function floatColumn<TData extends RowData = RowData>(
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
+    toDisplay?: (stored: number) => number;
+    fromDisplay?: (displayed: number) => number;
   },
 ): GridColumn<TData> {
   const {
@@ -178,6 +192,8 @@ export function floatColumn<TData extends RowData = RowData>(
     decimals,
     isReadOnly: readonly,
     placeholder,
+    toDisplay,
+    fromDisplay,
   } = options;
   const isStaticReadOnly = readonly === true;
   const isDynamicReadOnly = typeof readonly === "function";
@@ -191,7 +207,9 @@ export function floatColumn<TData extends RowData = RowData>(
     decimals !== undefined ||
     isStaticReadOnly ||
     isDynamicReadOnly ||
-    placeholder !== undefined
+    placeholder !== undefined ||
+    toDisplay !== undefined ||
+    fromDisplay !== undefined
       ? (props: CellProps<number | null>) => (
           <FloatCell
             {...props}
@@ -201,6 +219,8 @@ export function floatColumn<TData extends RowData = RowData>(
             decimals={decimals}
             readonly={resolveReadOnly(props.rowIndex)}
             placeholder={placeholder}
+            toDisplay={toDisplay}
+            fromDisplay={fromDisplay}
           />
         )
       : FloatCell;
@@ -211,13 +231,17 @@ export function floatColumn<TData extends RowData = RowData>(
     size: options.size,
     meta: {
       cellComponent: CellComponent,
-      copyValue: (v: number | null) => formatLocaleNumber(v, decimals),
+      copyValue: (v: number | null) =>
+        formatLocaleNumber(
+          v !== null && toDisplay ? toDisplay(v) : v,
+          decimals,
+        ),
       pasteValue: (v: string) => {
         const parsed = parseNumericInput(v);
         if (parsed !== null) {
           if (positiveOnly && parsed < 0) return undefined;
           if (validate && !validate(parsed)) return undefined;
-          return parsed;
+          return fromDisplay ? fromDisplay(parsed) : parsed;
         }
         if (v.trim() === "") return emptyValue;
         return undefined;

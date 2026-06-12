@@ -18,6 +18,7 @@ export type {
 export { CellRenderingFeature } from "./cell-rendering-feature";
 export type { CellComponent } from "./cell-rendering-feature";
 export { ColumnSizingFeature } from "./column-sizing-feature";
+export { LazyRowModelFeature } from "./lazy-row-model-feature";
 
 export {
   CustomHeaderActionsFeature,

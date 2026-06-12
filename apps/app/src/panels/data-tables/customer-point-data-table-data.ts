@@ -44,17 +44,48 @@ export function isCpComputedKey(key: string): boolean {
 }
 
 /**
- * Returns an `accessorFn` that lazily computes a single computed customer-point
- * column for a model-object row. Reuses `buildCustomerPointRow` and picks the
- * requested field; invoked only for rendered rows + the sorted column.
+ * Returns an `accessorFn` that lazily computes a SINGLE computed customer-point
+ * column for a model-object row. Computing per-field (rather than building the
+ * whole row and picking) matters at scale: sorting 450K rows by one column would
+ * otherwise rebuild every field of every row. Values must match
+ * `buildCustomerPointRow` exactly (see the parity test).
  */
 export function cpAccessor(
   key: keyof CustomerPointRow,
   ctx: CpAccessorCtx,
 ): (row: CustomerPointRow) => unknown {
   return (row) => {
-    const built = buildCustomerPointRow(row.id, ctx.model, ctx.units);
-    return built ? built[key] : null;
+    const { model } = ctx;
+    const cp = model.customerPoints.get(row.id);
+    if (!cp) return null;
+
+    switch (key) {
+      case "connectedPipeLabel":
+        return cp.connection
+          ? (model.assets.get(cp.connection.pipeId)?.label ?? null)
+          : null;
+      case "connectedJunctionLabel":
+        return cp.connection
+          ? (model.assets.get(cp.connection.junctionId)?.label ?? null)
+          : null;
+      case "demandsCount":
+        return getCustomerPointDemands(model.demands, row.id).length;
+      case "patternId": {
+        const first = getCustomerPointDemands(model.demands, row.id)[0];
+        return first?.patternId ?? null;
+      }
+      case "baseDemand":
+        return (
+          getCustomerPointDemands(model.demands, row.id)[0]?.baseDemand ?? 0
+        );
+      case "avgDemand":
+        return calculateAverageDemand(
+          getCustomerPointDemands(model.demands, row.id),
+          model.patterns,
+        );
+      default:
+        return null;
+    }
   };
 }
 

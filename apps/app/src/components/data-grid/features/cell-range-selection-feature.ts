@@ -11,6 +11,7 @@ import {
   type Updater,
 } from "@tanstack/react-table";
 import type { CellPosition, GridSelection } from "../types";
+import { isLazyRowModel } from "../utils/lazy-core-row-model";
 
 export type CellRangeSelectionInternalState = {
   range: GridSelection | null;
@@ -176,8 +177,15 @@ export const CellRangeSelectionFeature: TableFeature = {
     row: Row<TData>,
     table: Table<TData>,
   ): void => {
-    row.getVisualIndex = () =>
-      table.getVisualIndexLookup().get(row.id) ?? row.index;
+    row.getVisualIndex = () => {
+      // In lazy mode derive the visual (display) position from the sort order
+      // by data index, so we never iterate/materialize the full row set.
+      if (isLazyRowModel(table)) {
+        const { visualByDataIndex } = table.getLazyRowOrder();
+        return visualByDataIndex ? visualByDataIndex[row.index] : row.index;
+      }
+      return table.getVisualIndexLookup().get(row.id) ?? row.index;
+    };
 
     row.isFullySelected = () =>
       table.isSelectionFullRows() &&

@@ -35,6 +35,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
+  PerformantDataGrid,
   type DataGridRef,
   type CellContextAction,
   type GutterContextAction,
@@ -567,6 +568,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [userTracking, assetType],
   );
 
+  const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;
+
   return (
     <div className="flex-1 min-h-0 relative">
       {rows === null || !gridReady ? (
@@ -574,7 +577,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           <RingSpinner />
         </div>
       ) : (
-        <DataGrid
+        <Grid
           ref={dataGridRef}
           key={assetType}
           data={rows}

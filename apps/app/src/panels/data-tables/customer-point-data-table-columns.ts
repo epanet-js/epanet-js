@@ -7,6 +7,7 @@ import {
   type ColumnKey,
 } from "src/components/data-grid";
 import { LabelManager } from "@epanet-js/hydraulic-model";
+import { convertTo } from "@epanet-js/quantity";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { getDecimals } from "src/lib/project-settings";
@@ -57,7 +58,22 @@ export function buildCustomerPointColumns(
     return unitLabel ? `${name} (${unitLabel})` : name;
   };
 
-  return [
+  const demandTransforms = accessorCtx
+    ? {
+        toDisplay: (stored: number) =>
+          convertTo(
+            { value: stored, unit: units.customerDemand },
+            units.customerDemandPerDay,
+          ),
+        fromDisplay: (displayed: number) =>
+          convertTo(
+            { value: displayed, unit: units.customerDemandPerDay },
+            units.customerDemand,
+          ),
+      }
+    : {};
+
+  const columns = [
     textColumn<CustomerPointRow>(ck("label"), {
       header: translate("label"),
       validate: validateLabel,
@@ -78,6 +94,7 @@ export function buildCustomerPointColumns(
       ),
       decimals: getDecimals(formatting, "customerDemandPerDay"),
       isReadOnly: true,
+      ...demandTransforms,
     }),
     integerColumn<CustomerPointRow>(ck("demandsCount"), {
       header: translate("demandsCount"),
@@ -87,6 +104,7 @@ export function buildCustomerPointColumns(
       header: headerLabel(translate("baseDemand"), units.customerDemandPerDay),
       decimals: getDecimals(formatting, "customerDemandPerDay"),
       emptyValue: 0,
+      ...demandTransforms,
     }),
     filterableSelectColumn<number, CustomerPointRow>(ck("patternId"), {
       header: translate("timePattern"),
@@ -96,4 +114,6 @@ export function buildCustomerPointColumns(
       emptyValue: null,
     }),
   ];
+
+  return columns;
 }

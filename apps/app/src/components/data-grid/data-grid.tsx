@@ -11,6 +11,8 @@ import {
   getCoreRowModel,
 } from "@tanstack/react-table";
 import { getStickySortedRowModel } from "./utils/get-sticky-sorted-row-model";
+import { getAdaptiveCoreRowModel } from "./utils/lazy-core-row-model";
+import { getAdaptiveStickySortedRowModel } from "./utils/lazy-sticky-sorted-row-model";
 import {
   DataGridVariant,
   RowAction,
@@ -27,6 +29,7 @@ import {
   ClipboardFeature,
   ColumnSizingFeature,
   CustomHeaderActionsFeature,
+  LazyRowModelFeature,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
   type CopySelectionOptions,
@@ -78,6 +81,12 @@ type DataGridProps<TData extends Record<string, unknown>> = {
    * whose attributes are behind prototype getters.
    */
   patchRow?: PatchRowFn;
+  /**
+   * Opt into the lazy row model (materialize TanStack rows on demand) for large
+   * tables. Only engages past the row-count threshold. Gated by the caller (e.g.
+   * a feature flag) so it stays off for grids that don't need it.
+   */
+  enableLazyRowModel?: boolean;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -110,6 +119,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onDelete,
     pinnedColumns,
     patchRow,
+    enableLazyRowModel = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -123,7 +133,9 @@ export const DataGrid = forwardRef(function DataGrid<
     data,
     columns: columns as ColumnDef<TData>[],
     getRowId,
-    getCoreRowModel: getCoreRowModel(),
+    getCoreRowModel: enableLazyRowModel
+      ? getAdaptiveCoreRowModel()
+      : getCoreRowModel(),
     _features: [
       CellEditingFeature,
       CellRangeSelectionFeature,
@@ -131,6 +143,7 @@ export const DataGrid = forwardRef(function DataGrid<
       CellRenderingFeature,
       ColumnSizingFeature,
       CustomHeaderActionsFeature,
+      ...(enableLazyRowModel ? [LazyRowModelFeature] : []),
     ],
     // Clipboard feature options
     onDataChange: onChange,
@@ -142,6 +155,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onClipboardCopy: onCopy,
     onClipboardPaste: onPaste,
     patchRow: patchRowFn,
+    lazyRowModel: enableLazyRowModel,
     // Column sizing options
     defaultColumn: {
       minSize: minColumnSizePx,
@@ -154,7 +168,9 @@ export const DataGrid = forwardRef(function DataGrid<
       columnPinning: { left: pinnedColumns?.left ?? [] },
     },
     // Data sorting options
-    getSortedRowModel: getStickySortedRowModel(),
+    getSortedRowModel: enableLazyRowModel
+      ? getAdaptiveStickySortedRowModel()
+      : getStickySortedRowModel(),
     enableSorting: sortable,
     enableSortingRemoval: true,
     enableMultiSort: false,
@@ -459,6 +475,22 @@ export const DataGrid = forwardRef(function DataGrid<
       )}
     </div>
   );
+}) as <TData extends Record<string, unknown>>(
+  props: DataGridProps<TData> & {
+    ref?: React.Ref<DataGridRef>;
+  },
+) => React.ReactElement;
+
+/**
+ * `DataGrid` with the lazy row model enabled: above ~1000 rows TanStack `Row`
+ * objects are materialized on demand (bounded CPU + memory) instead of all up
+ * front. Use this for large, model-object-backed tables; `DataGrid` stays the
+ * standard/legacy grid.
+ */
+export const PerformantDataGrid = forwardRef(function PerformantDataGrid<
+  TData extends Record<string, unknown>,
+>(props: DataGridProps<TData>, ref: React.ForwardedRef<DataGridRef>) {
+  return <DataGrid {...props} enableLazyRowModel ref={ref} />;
 }) as <TData extends Record<string, unknown>>(
   props: DataGridProps<TData> & {
     ref?: React.Ref<DataGridRef>;

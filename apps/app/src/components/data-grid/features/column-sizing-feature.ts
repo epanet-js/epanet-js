@@ -1,9 +1,14 @@
 import type {
   Column,
+  Row,
   RowData,
   Table,
   TableFeature,
 } from "@tanstack/react-table";
+import {
+  type LazyRowModel,
+  isLazyRowModel,
+} from "../utils/lazy-core-row-model";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -23,6 +28,14 @@ declare module "@tanstack/react-table" {
 const DEFAULT_AUTO_SIZE_EXTRA_WIDTH = 16;
 // actions button w-6 -mr-1 (20) + border (2)
 const HEADER_SORT_BUTTON_AND_BORDER = 22;
+
+function rowsToMeasure<TData extends RowData>(
+  table: Table<TData>,
+): Row<TData>[] {
+  if (!isLazyRowModel(table)) return table.getRowModel().rows;
+  const model = table.getRowModel() as LazyRowModel<TData>;
+  return model.getMaterializedRows();
+}
 
 function resolveCanvasFonts(el: HTMLElement | null | undefined): {
   cellFont: string;
@@ -98,7 +111,7 @@ export const ColumnSizingFeature: TableFeature = {
       const cellWidth = measureMaxCellWidth(
         ctx,
         cellFont,
-        table.getRowModel().rows,
+        rowsToMeasure(table),
         column,
       );
 

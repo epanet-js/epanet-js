@@ -16,6 +16,7 @@ import {
   getCustomerPointDemands,
   HydraulicModel,
 } from "src/hydraulic-model";
+import type { CustomerPointId } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { ResultsReader } from "src/simulation";
 
@@ -78,13 +79,94 @@ export function assetAccessor(
       const simRow = buildSimRow(type, id, ctx.simulation, ctx.translate);
       return simRow[key] ?? null;
     }
-    const computed = buildComputedFields(type, id, ctx.model);
-    if (key in computed) return computed[key];
-    // Tank level/volume columns fall back to the asset's own value when there
-    // is no volume curve (buildComputedFields returns {} in that case).
-    const asset = ctx.model.assets.get(id);
-    return asset ? (asset as unknown as Record<string, unknown>)[key] : null;
+    return computeAssetComputedField(type, key, id, ctx.model);
   };
+}
+
+const nodeLabel = (model: HydraulicModel, id: AssetId): string =>
+  model.assets.get(id)?.label ?? "";
+
+const sumCustomerAvgDemand = (
+  model: HydraulicModel,
+  customerPoints: { id: CustomerPointId }[],
+): number =>
+  customerPoints.reduce(
+    (sum, cp) =>
+      sum +
+      calculateAverageDemand(
+        getCustomerPointDemands(model.demands, cp.id),
+        model.patterns,
+      ),
+    0,
+  );
+
+/**
+ * Computes a SINGLE computed (non-`sim_`) asset column from the model. Per-field
+ * (rather than building the whole computed group and picking) so sorting 450K
+ * rows by one column doesn't pay for the expensive cross-referencing fields
+ * (`avgCustomerDemand`/`customerDemand`) it didn't ask for. Values must match
+ * `buildComputedFields` exactly (see the parity test).
+ */
+function computeAssetComputedField(
+  type: AssetType,
+  key: string,
+  id: AssetId,
+  model: HydraulicModel,
+): unknown {
+  switch (key) {
+    case "startNode": {
+      const link = model.assets.get(id) as Pipe | Pump | Valve | undefined;
+      return link ? nodeLabel(model, link.connections[0]) : "";
+    }
+    case "endNode": {
+      const link = model.assets.get(id) as Pipe | Pump | Valve | undefined;
+      return link ? nodeLabel(model, link.connections[1]) : "";
+    }
+    case "baseDemand":
+      return getJunctionDemands(model.demands, id)[0]?.baseDemand ?? 0;
+    case "patternId":
+      return getJunctionDemands(model.demands, id)[0]?.patternId ?? null;
+    case "demandsCount":
+      return getJunctionDemands(model.demands, id).length;
+    case "avgDemand":
+      return calculateAverageDemand(
+        getJunctionDemands(model.demands, id),
+        model.patterns,
+      );
+    case "customerPointCount":
+      return type === "junction"
+        ? getActiveCustomerPoints(model.customerPointsLookup, model.assets, id)
+            .length
+        : Array.from(model.customerPointsLookup.getCustomerPoints(id)).length;
+    case "avgCustomerDemand":
+      return sumCustomerAvgDemand(
+        model,
+        getActiveCustomerPoints(model.customerPointsLookup, model.assets, id),
+      );
+    case "customerDemand":
+      return sumCustomerAvgDemand(
+        model,
+        Array.from(model.customerPointsLookup.getCustomerPoints(id)),
+      );
+    case "minLevel":
+    case "maxLevel":
+    case "minVolume":
+    case "maxVolume": {
+      const tank = model.assets.get(id) as Tank | undefined;
+      if (tank?.volumeCurveId) {
+        const curve = model.curves.get(tank.volumeCurveId);
+        if (curve && curve.points.length > 0) {
+          return tankVolumeCurveRange(curve)[key];
+        }
+      }
+      // No volume curve → the asset's own value (matches buildComputedFields {}).
+      return tank ? (tank as unknown as Record<string, unknown>)[key] : null;
+    }
+    default: {
+      const asset = model.assets.get(id);
+      return asset ? (asset as unknown as Record<string, unknown>)[key] : null;
+    }
+  }
 }
 
 /**

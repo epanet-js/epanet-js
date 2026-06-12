@@ -498,4 +498,50 @@ describe("floatColumn", () => {
       expect(column.meta?.pasteValue?.("1.5", {} as any)).toBe(1.5);
     });
   });
+
+  describe("toDisplay / fromDisplay transforms", () => {
+    const toDisplay = (stored: number) => stored * 10;
+    const fromDisplay = (displayed: number) => displayed / 10;
+
+    it("displays the transformed (display) value", () => {
+      render(<FloatCell {...defaultProps} value={5} toDisplay={toDisplay} />);
+      // stored 5 → displayed 50
+      expect(screen.getByDisplayValue("50")).toBeInTheDocument();
+    });
+
+    it("commits the stored value via fromDisplay", async () => {
+      const user = setupUser();
+      const onChange = vi.fn();
+      render(
+        <FloatCell
+          {...defaultProps}
+          value={5}
+          editMode="full"
+          onChange={onChange}
+          toDisplay={toDisplay}
+          fromDisplay={fromDisplay}
+        />,
+      );
+
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("50"); // edits in display space
+      await user.clear(input);
+      await user.type(input, "70");
+      await user.keyboard("{Enter}");
+
+      // typed display 70 → stored 7
+      expect(onChange).toHaveBeenCalledWith(7);
+    });
+
+    it("round-trips through the column copy/paste using the transforms", () => {
+      const column = floatColumn("value", {
+        header: "Value",
+        toDisplay,
+        fromDisplay,
+      });
+      // copy shows the display value; paste stores the raw value
+      expect(column.meta?.copyValue?.(5)).toMatch(/50/);
+      expect(column.meta?.pasteValue?.("70", {} as any)).toBe(7);
+    });
+  });
 });
