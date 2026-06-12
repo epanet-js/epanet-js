@@ -24,6 +24,7 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { Button } from "src/components/elements";
+import { useUserTracking } from "src/infra/user-tracking";
 import { projectSettingsAtom } from "src/state/project-settings";
 
 type AllocateCustomerPointsDialogProps = {
@@ -35,6 +36,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   AllocateCustomerPointsDialogProps
 > = ({ isOpen, onClose }) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useModelTransaction();
@@ -76,13 +78,31 @@ export const AllocateCustomerPointsDialog: React.FC<
         allocationResult,
       });
       transact(moment);
+
+      userTracking.capture({
+        name: "importCustomerPoints.completed",
+        count:
+          allocationResult.allocatedCustomerPoints.size +
+          allocationResult.disconnectedCustomerPoints.size,
+        allocatedCount: allocationResult.allocatedCustomerPoints.size,
+        disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
+        rulesCount: allocationRules.length,
+      });
+
       onClose();
     } catch {
       setError("Allocation failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  }, [allocationResult, hydraulicModel, onClose, transact]);
+  }, [
+    allocationResult,
+    hydraulicModel,
+    onClose,
+    transact,
+    userTracking,
+    allocationRules.length,
+  ]);
 
   const performAllocation = useCallback(
     async (rules: CustomerPointAllocationRule[]) => {
@@ -144,11 +164,23 @@ export const AllocateCustomerPointsDialog: React.FC<
   );
 
   const handleEdit = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.editStarted",
+      rulesCount: allocationRules.length,
+    });
+
     setTempRules([...allocationRules]);
     setIsEditingRules(true);
-  }, [allocationRules]);
+  }, [allocationRules, userTracking]);
 
   const handleSave = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.saved",
+      rulesCount: tempRules.length,
+      allocatedCount: allocationResult?.allocatedCustomerPoints.size || 0,
+      disconnectedCount: allocationResult?.disconnectedCustomerPoints.size || 0,
+    });
+
     setAllocationRules(tempRules);
     setIsEditingRules(false);
     setTempRules([]);
@@ -156,12 +188,22 @@ export const AllocateCustomerPointsDialog: React.FC<
     if (shouldTriggerAllocation(tempRules)) {
       void performAllocation(tempRules);
     }
-  }, [tempRules, shouldTriggerAllocation, performAllocation]);
+  }, [
+    tempRules,
+    shouldTriggerAllocation,
+    performAllocation,
+    userTracking,
+    allocationResult,
+  ]);
 
   const handleCancel = useCallback(() => {
+    userTracking.capture({
+      name: "importCustomerPoints.allocationRules.editCanceled",
+    });
+
     setTempRules([]);
     setIsEditingRules(false);
-  }, []);
+  }, [userTracking]);
 
   const handleRulesChange = useCallback(
     (newRules: CustomerPointAllocationRule[]) => {
