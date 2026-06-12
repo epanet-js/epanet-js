@@ -114,7 +114,7 @@ export const AllocateCustomerPointsDialog: React.FC<
       } catch (err) {
         setError(
           translate(
-            "importCustomerPoints.wizard.allocationStep.allocationFailed",
+            "allocateCustomerPoints.dialog.allocationFailed",
             (err as Error).message,
           ),
         );
@@ -193,7 +193,7 @@ export const AllocateCustomerPointsDialog: React.FC<
       action={
         isProcessing
           ? translate("wizard.processing")
-          : translate("importCustomerPoints.wizard.allocationStep.applyChanges")
+          : translate("allocateCustomerPoints.dialog.applyChanges")
       }
       onAction={handleFinish}
       onClose={onClose}
@@ -206,7 +206,7 @@ export const AllocateCustomerPointsDialog: React.FC<
 
   return (
     <BaseDialog
-      title={translate("importCustomerPoints.wizard.allocationStep.title")}
+      title={translate("allocateCustomerPoints.dialog.title")}
       size="lg"
       isOpen={isOpen}
       onClose={onClose}
@@ -221,9 +221,7 @@ export const AllocateCustomerPointsDialog: React.FC<
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-md font-medium">
-              {translate(
-                "importCustomerPoints.wizard.allocationStep.rulesTitle",
-              )}
+              {translate("allocateCustomerPoints.dialog.rulesTitle")}
             </h3>
             {!isEditingRules ? (
               <EditRulesButton
@@ -266,7 +264,7 @@ export const AllocateCustomerPointsDialog: React.FC<
 
 const Description = ({ translate }: { translate: TranslateFn }) => (
   <p className="text-size-base text-subtle">
-    {translate("importCustomerPoints.wizard.allocationStep.description")}
+    {translate("allocateCustomerPoints.dialog.description")}
   </p>
 );
 
@@ -292,7 +290,7 @@ const EditRulesButton = ({
     variant="primary"
     size="sm"
   >
-    {translate("importCustomerPoints.wizard.allocationStep.editButton")}
+    {translate("allocateCustomerPoints.dialog.editButton")}
   </Button>
 );
 
@@ -307,10 +305,10 @@ const RulesEditorButtons = ({
 }) => (
   <div className="flex items-center space-x-2">
     <Button type="button" onClick={onSave} variant="primary" size="sm">
-      {translate("importCustomerPoints.wizard.allocationStep.saveButton")}
+      {translate("allocateCustomerPoints.dialog.saveButton")}
     </Button>
     <Button type="button" onClick={onCancel} variant="default" size="sm">
-      {translate("importCustomerPoints.wizard.allocationStep.cancelButton")}
+      {translate("allocateCustomerPoints.dialog.cancelButton")}
     </Button>
   </div>
 );
@@ -319,7 +317,7 @@ const IsComputingMessage = ({ translate }: { translate: TranslateFn }) => (
   <div className="flex items-center justify-center py-4">
     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
     <span className="ml-2 text-size-base text-subtle">
-      {translate("importCustomerPoints.wizard.allocationStep.computingMessage")}
+      {translate("allocateCustomerPoints.dialog.computingMessage")}
     </span>
   </div>
 );
@@ -356,7 +354,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     <div className="bg-panel border rounded-lg p-4">
       <h4 className="text-size-base font-medium text-default mb-2">
         {translate(
-          "importCustomerPoints.wizard.allocationStep.summaryTitle",
+          "allocateCustomerPoints.dialog.summaryTitle",
           localizeDecimal(totalCustomerPoints),
         )}
       </h4>
@@ -365,7 +363,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
           <SuccessIcon className="text-success mr-2" />
           <span className="text-size-base text-default">
             {translate(
-              "importCustomerPoints.wizard.allocationStep.allocatedPoints",
+              "allocateCustomerPoints.dialog.allocatedPoints",
               localizeDecimal(totalAllocated),
               allocatedPercentage.toString(),
             )}
@@ -376,7 +374,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
             <WarningIcon className="text-warning mr-2" />
             <span className="text-size-base text-orange-700">
               {translate(
-                "importCustomerPoints.wizard.allocationStep.unallocatedPoints",
+                "allocateCustomerPoints.dialog.unallocatedPoints",
                 localizeDecimal(unallocatedCount),
                 unallocatedPercentage.toString(),
               )}

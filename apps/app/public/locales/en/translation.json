@@ -970,6 +970,20 @@
       "title": "No customer points found",
       "noCustomerPoints": "There are no customer points in the network. Would you like to import them first?",
       "importAction": "Import customer points"
+    },
+    "dialog": {
+      "title": "Customers allocation",
+      "description": "Define rules for connecting customer points to pipes. You can specify multiple max distance and max diameter pairs to control how customer points are allocated to the network.",
+      "rulesTitle": "Allocation rules",
+      "editButton": "Edit",
+      "saveButton": "Save",
+      "cancelButton": "Cancel",
+      "computingMessage": "Computing allocations...",
+      "summaryTitle": "Allocation summary ({{1}} total customer points)",
+      "allocatedPoints": "{{1}} customer points will be allocated ({{2}}%)",
+      "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
+      "allocationFailed": "Allocation failed: {{1}}",
+      "applyChanges": "Apply changes"
     }
   },
   "importCustomerPoints": {
