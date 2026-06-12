@@ -50,6 +50,8 @@ import {
   simulationPlaybackAtom,
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
+import { hglProfileAtom, hglProfileOpenAtom } from "src/state/hgl-profile";
+import { bottomActiveTabAtom } from "src/state/panel-layout";
 
 export type ProjectLoadInput = {
   hydraulicModel: HydraulicModel;
@@ -70,6 +72,9 @@ export const resetAppState = (set: Setter) => {
   set(propertyColorConfigAtom, defaultPropertyColorConfigs);
   set(nodeSizeAtom, defaultNodeSizeConfig);
   set(modeAtom, { mode: Mode.NONE });
+  set(hglProfileAtom, null);
+  set(hglProfileOpenAtom, false);
+  set(bottomActiveTabAtom, null);
   set(ephemeralStateAtom, { type: "none" });
   set(selectionAtom, USelection.none());
   set(pipeDrawingDefaultsAtom, {});
