@@ -170,8 +170,8 @@ export const AllocationStep: React.FC<{
 
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
-          runOnWorker,
           customerPoints,
+          options: { runOnWorker },
         });
 
         setAllocationResult(result);

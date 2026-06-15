@@ -73,7 +73,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
           customerPoints,
-          runOnWorker,
+          options: { runOnWorker },
         });
 
         setAllocationResult(result);

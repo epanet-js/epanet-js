@@ -1,6 +1,7 @@
 import * as Comlink from "comlink";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
 import {
+  AssetId,
   CustomerPoint,
   CustomerPoints,
   CustomerPointAllocationResult,
@@ -10,23 +11,27 @@ import { prepareWorkerData, RunData } from "./prepare-data";
 import { enrichWorkerError } from "src/infra/worker";
 import { runAllocation, AllocationResultItem } from "./run-allocation";
 import type { AllocationWorkerAPI } from "./worker";
+import type { Zone } from "src/lib/zones";
+
+type AllocationOptions = {
+  runOnWorker?: boolean;
+  bufferType?: "shared" | "array";
+  selectedPipes?: Set<AssetId>;
+  selectedZone?: Zone;
+};
 
 type InputData = {
   allocationRules: CustomerPointAllocationRule[];
   customerPoints: CustomerPoints;
-  runOnWorker?: boolean;
-  bufferType?: "shared" | "array";
+  options?: AllocationOptions;
 };
 
 export const allocateCustomerPoints = async (
   hydraulicModel: HydraulicModel,
-  {
-    allocationRules,
-    customerPoints,
-    runOnWorker = false,
-    bufferType = "array",
-  }: InputData,
+  { allocationRules, customerPoints, options }: InputData,
 ): Promise<CustomerPointAllocationResult> => {
+  const { runOnWorker = false, bufferType = "array" } = options ?? {};
+
   const ruleMatches = allocationRules.map(() => 0);
   const allocatedCustomerPoints = new Map<number, CustomerPoint>();
   const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
