@@ -260,6 +260,19 @@ const ModelBuilderV2IframeDialog = dynamic<{
   },
 );
 
+const ModelBuilderPaywallDialog = dynamic<{
+  source: string;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/model-builder-paywall").then(
+      (r) => r.ModelBuilderPaywallDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const EarlyAccessDialog = dynamic<{
   onContinue: () => void;
   afterSignupDialog?: string;
@@ -660,6 +673,11 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "modelBuilderV2Iframe") {
     return <ModelBuilderV2IframeDialog onClose={onClose} />;
+  }
+  if (dialog.type === "modelBuilderPaywall") {
+    return (
+      <ModelBuilderPaywallDialog source={dialog.source} onClose={onClose} />
+    );
   }
   if (dialog.type === "unexpectedError") {
     return <UnexpectedErrorDialog modal={dialog} onClose={onClose} />;

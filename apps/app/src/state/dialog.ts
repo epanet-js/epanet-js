@@ -79,7 +79,8 @@ export type UpgradeSource =
   | { kind: "priorityAccess"; featureName: string }
   | { kind: "paywall"; feature: PaywallFeature }
   | { kind: "menu" }
-  | { kind: "customLayers" };
+  | { kind: "customLayers" }
+  | { kind: "modelBuilder" };
 
 export const getSourceFeature = (
   source?: UpgradeSource,
@@ -119,6 +120,11 @@ export type ModelBuilderIframeDialogState = {
 
 export type ModelBuilderV2IframeDialogState = {
   type: "modelBuilderV2Iframe";
+};
+
+export type ModelBuilderPaywallDialogState = {
+  type: "modelBuilderPaywall";
+  source: string;
 };
 
 export type EarlyAccessDialogState = {
@@ -294,6 +300,7 @@ export type DialogState =
   | ChangeNotAppliedDialogState
   | ModelBuilderIframeDialogState
   | ModelBuilderV2IframeDialogState
+  | ModelBuilderPaywallDialogState
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState

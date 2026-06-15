@@ -659,7 +659,7 @@ type SlottableIcon =
   | React.FC<React.ComponentProps<"svg">>
   | ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
 
-const FeaturesList = ({
+export const FeaturesList = ({
   title,
   textColor = "text-default",
   items,
