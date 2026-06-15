@@ -637,6 +637,7 @@
   "scenariosItem": "Scenarios",
   "legacyModelBuilder": "Legacy model builder",
   "proModelBuilder": "Pro model builder",
+  "modelBuilderInfo": "The new Pro model builder adds pipe year & materials, projection preservation and multiple languages, with custom attributes and null values coming soon. The Legacy builder is kept for maintenance only.",
   "cloudStorage": "Cloud storage",
   "pointInTimeRestore": "Point in time restore - {{1}} days",
   "demandsAnalysis": "Demand analysis",

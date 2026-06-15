@@ -233,6 +233,7 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
                     feature: translate("legacyModelBuilder"),
                     Icon: CheckIcon,
                     iconColor: "text-success",
+                    tooltip: translate("modelBuilderInfo"),
                   },
                 ]
               : []),
@@ -311,6 +312,7 @@ const PersonalPlan = ({
                       feature: translate("proModelBuilder"),
                       Icon: CloseIcon,
                       iconColor: "text-red-500",
+                      tooltip: translate("modelBuilderInfo"),
                     },
                   ]
                 : []),
@@ -466,6 +468,7 @@ const ProPlan = ({
                       feature: translate("proModelBuilder"),
                       Icon: CheckIcon,
                       iconColor: "text-success",
+                      tooltip: translate("modelBuilderInfo"),
                     },
                   ]
                 : []),
@@ -697,18 +700,27 @@ export const FeaturesList = ({
 }: {
   title?: string;
   textColor?: string;
-  items: { feature: string; Icon: SlottableIcon; iconColor: string }[];
+  items: {
+    feature: string;
+    Icon: SlottableIcon;
+    iconColor: string;
+    tooltip?: string;
+  }[];
 }) => {
   return (
     <div className="my-4">
       {title && <p className="text-size-base text-subtle mb-2">{title}</p>}
       <ul className="space-y-2 grow">
-        {items.map(({ feature, Icon, iconColor }, index) => (
+        {items.map(({ feature, Icon, iconColor, tooltip }, index) => (
           <li
             key={index}
             className={`flex items-start text-size-base ${textColor}`}
           >
-            <Icon className={`h-5 w-5 ${iconColor} shrink-0 mr-2`} /> {feature}
+            <Icon className={`h-5 w-5 ${iconColor} shrink-0 mr-2`} />
+            <span className="flex items-center gap-1">
+              {feature}
+              {tooltip && <InfoTooltip text={tooltip} />}
+            </span>
           </li>
         ))}
       </ul>
@@ -750,7 +762,7 @@ const InfoTooltip = ({ text }: { text: string }) => {
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content
-          className="bg-gray-900 text-white text-size-base px-3 py-2 rounded-lg shadow-lg z-50"
+          className="max-w-xs text-pretty bg-gray-900 text-white text-size-base px-3 py-2 rounded-lg shadow-lg z-50"
           side="top"
           align="start"
         >
