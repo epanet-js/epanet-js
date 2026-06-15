@@ -174,12 +174,24 @@ export const useStartNewProject = () => {
 export const useSeedDefaultProjectDb = () => {
   return useAtomCallback(
     useCallback((get: Getter, set: Setter) => {
+      const projectSettings = get(projectSettingsAtom);
+      const hydraulicModel = get(stagingModelAtom);
+      const simulationSettings = get(simulationSettingsAtom);
+
+      resetAppState(set);
+      loadModel(set, {
+        hydraulicModel,
+        factories: get(modelFactoriesAtom),
+        projectSettings,
+        simulationSettings,
+      });
+
       void db
         .importProject({
           newDb: true,
-          projectSettings: get(projectSettingsAtom),
-          hydraulicModel: get(stagingModelAtom),
-          simulationSettings: get(simulationSettingsAtom),
+          projectSettings,
+          hydraulicModel,
+          simulationSettings,
         })
         .catch((e: unknown) => {
           const error = e instanceof Error ? e : new Error(String(e));
