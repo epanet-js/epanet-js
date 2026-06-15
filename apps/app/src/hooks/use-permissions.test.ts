@@ -54,6 +54,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseCustomGraphs).toBe(true);
     expect(p.canUseZones).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
+    expect(p.canUseModelBuildV2).toBe(true);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -66,6 +67,24 @@ describe("resolvePermissions", () => {
     expect(p.canUseElevations).toBe(false);
     expect(p.canUpgrade).toBe(true);
   });
+
+  it.each(["pro", "teams"] satisfies Plan[])(
+    "%s plan can use the v2 model builder",
+    (plan) => {
+      expect(
+        resolvePermissions(plan, false, false, false).canUseModelBuildV2,
+      ).toBe(true);
+    },
+  );
+
+  it.each(["free", "personal", "education"] satisfies Plan[])(
+    "%s plan cannot use the v2 model builder",
+    (plan) => {
+      expect(
+        resolvePermissions(plan, false, false, false).canUseModelBuildV2,
+      ).toBe(false);
+    },
+  );
 
   it("org admin can manage organization", () => {
     const p = resolvePermissions("teams", false, true, false);

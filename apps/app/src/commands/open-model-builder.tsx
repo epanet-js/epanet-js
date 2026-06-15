@@ -4,19 +4,18 @@ import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useEffectivePlan } from "src/hooks/use-effective-plan";
+import { usePermissions } from "src/hooks/use-permissions";
 
 export const useOpenModelBuilder = () => {
   const userTracking = useUserTracking();
   const setDialogState = useSetAtom(dialogAtom);
   const onlyEarlyAccess = useEarlyAccess();
   const isBuildV2On = useFeatureFlag("FLAG_BUILD_V2");
-  const effectivePlan = useEffectivePlan();
-  const isProOrTeams = effectivePlan === "pro" || effectivePlan === "teams";
+  const { canUseModelBuildV2 } = usePermissions();
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
-      if (isBuildV2On && !isProOrTeams) {
+      if (isBuildV2On && !canUseModelBuildV2) {
         setDialogState({ type: "modelBuilderPaywall", source });
         return;
       }
@@ -34,7 +33,13 @@ export const useOpenModelBuilder = () => {
         setDialogState({ type: dialogType });
       }, dialogType);
     },
-    [userTracking, setDialogState, onlyEarlyAccess, isBuildV2On, isProOrTeams],
+    [
+      userTracking,
+      setDialogState,
+      onlyEarlyAccess,
+      isBuildV2On,
+      canUseModelBuildV2,
+    ],
   );
 
   return openModelBuilder;

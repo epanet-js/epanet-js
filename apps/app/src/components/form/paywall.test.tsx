@@ -15,6 +15,7 @@ const defaultPermissions: Permissions = {
   canUseCustomGraphs: false,
   canUseZones: false,
   canUsePipeAttributes: false,
+  canUseModelBuildV2: false,
   canUpgrade: true,
   canManageOrganization: false,
 };
