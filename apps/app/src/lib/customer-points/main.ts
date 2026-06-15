@@ -41,6 +41,7 @@ export const allocateCustomerPoints = async (
     Array.from(customerPoints.values()),
     bufferType,
     options?.selectedZone?.geometry,
+    options?.selectedPipes,
   );
 
   const totalCustomerPoints = customerPoints.size;
