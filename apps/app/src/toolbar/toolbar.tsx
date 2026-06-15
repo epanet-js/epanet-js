@@ -19,7 +19,6 @@ import {
   HglProfileIcon,
   ZonesIcon,
 } from "src/icons";
-import Modes from "./modes";
 import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
@@ -108,7 +107,6 @@ export const Toolbar = ({
   const canRedo = useAtomValue(canRedoDerivedAtom);
   const isMdOrLarger = useBreakpoint("md");
   const isSmOrLarger = useBreakpoint("sm");
-  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
   const hasPlayableTimesteps = useHasPlayableTimesteps();
 
   const fileActionsGroup = isSmOrLarger && (
@@ -187,13 +185,6 @@ export const Toolbar = ({
       >
         <RedoIcon />
       </MenuAction>
-      <Divider />
-    </>
-  );
-
-  const drawingModesGroup = isSmOrLarger && (
-    <>
-      <Modes disabled={readonly} />
       <Divider />
     </>
   );
@@ -287,24 +278,13 @@ export const Toolbar = ({
         {fileActionsGroup}
         <Divider />
         {undoRedoGroup}
-        {isDrawingToolbar ? (
+        {operationalGroup}
+        <Divider />
+        {simulationGroup}
+        {hasPlayableTimesteps && (
           <>
-            {operationalGroup}
             <Divider />
-            {simulationGroup}
-            {hasPlayableTimesteps && (
-              <>
-                <Divider />
-                <TimestepSelector variant="inline" />
-              </>
-            )}
-          </>
-        ) : (
-          <>
-            {drawingModesGroup}
-            {simulationGroup}
-            <Divider />
-            {operationalGroup}
+            <TimestepSelector variant="inline" />
           </>
         )}
       </div>

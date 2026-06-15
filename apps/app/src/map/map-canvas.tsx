@@ -55,9 +55,7 @@ import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { useTranslate } from "src/hooks/use-translate";
 import { supportEmail } from "src/global-config";
 import { MapHandlers } from "./types";
-import { PipeDrawingFloatingPanel } from "src/components/pipe-drawing-floating-panel";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 mapboxgl.setRTLTextPlugin(
@@ -136,7 +134,6 @@ export const MapCanvas = memo(function MapCanvas({
   const mode = useAtomValue(modeAtom);
   const cursor = useAtomValue(cursorStyleAtom);
   const isEditionBlocked = useIsEditionBlocked();
-  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
   const [initError, setInitError] = useState<boolean>(false);
 
   // Refs
@@ -418,7 +415,6 @@ export const MapCanvas = memo(function MapCanvas({
       <Hints />
       <SatelliteToggle />
       <SatelliteResolutionMessage zoom={currentZoom} />
-      {!isDrawingToolbar && <PipeDrawingFloatingPanel />}
     </CM.Root>
   );
 });

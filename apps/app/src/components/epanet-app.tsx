@@ -39,11 +39,10 @@ import {
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import debounce from "lodash/debounce";
 import { Legends } from "./legends";
-import { TimestepSelector, TimestepSpeedWarning } from "./timestep-selector";
+import { TimestepSpeedWarning } from "./timestep-selector";
 import { MapLoading } from "src/map/map-loader";
 import { Toolbar } from "src/toolbar/";
 import { MapToolbar } from "src/toolbar/map-toolbar";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Footer } from "./footer";
 import { useHydrateAtoms } from "jotai/utils";
 import { TabCloseGuard } from "./tab-close-guard";
@@ -242,7 +241,6 @@ function DraggableMap({
   const { setNodeRef, transform } = useDraggable({
     id: "map",
   });
-  const isDrawingToolbar = useFeatureFlag("FLAG_DRAWING_TOOLBAR");
   const isSmOrLarger = useBreakpoint("sm");
 
   useMapResize(containerRef.current, layout);
@@ -253,7 +251,7 @@ function DraggableMap({
         layout === "FLOATING"
           ? "overflow-hidden absolute w-64 h-64 flex z-50 rounded-sm border border-gray-500 shadow-lg"
           : "relative flex-auto flex flex-col",
-        isDrawingToolbar && "drawing-toolbar-controls",
+        "drawing-toolbar-controls",
       )}
       ref={(elem) => {
         setNodeRef(elem);
@@ -274,17 +272,11 @@ function DraggableMap({
         <MapCanvas setMap={setMap} />
       </div>
       <Legends />
-      <div
-        className={clsx(
-          "absolute flex flex-col gap-1 items-end",
-          isDrawingToolbar ? "top-2 right-2" : "top-3 right-3",
-        )}
-      >
-        {!isDrawingToolbar && <TimestepSelector />}
-        {isDrawingToolbar && <TimestepSpeedWarning />}
+      <div className="absolute flex flex-col gap-1 items-end top-2 right-2">
+        <TimestepSpeedWarning />
         <MapLoading />
       </div>
-      {isDrawingToolbar && isSmOrLarger && <MapToolbar readonly={readonly} />}
+      {isSmOrLarger && <MapToolbar readonly={readonly} />}
     </div>
   );
 }

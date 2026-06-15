@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import clsx from "clsx";
 import { dialogAtom } from "src/state/dialog";
-import { mapOverlayClass } from "src/components/map-overlay";
 import Modes from "./modes";
 import { MapToolbarPipeDrawing } from "./map-toolbar-pipe-drawing";
 
@@ -15,7 +14,7 @@ export const MapToolbar = ({ readonly = false }: { readonly?: boolean }) => {
       <div
         className={clsx(
           "pointer-events-auto flex flex-col bg-base",
-          mapOverlayClass,
+          "rounded-sm border shadow-md",
         )}
       >
         <div className="flex items-center justify-center px-2 py-1">
