@@ -138,7 +138,7 @@ export const CellEditingFeature: TableFeature = {
         return;
       }
       const onChange = table.options.onDataChange;
-      if (onChange) onChange(clearSelectedCells(table));
+      if (onChange) void onChange(clearSelectedCells(table));
     };
   },
 

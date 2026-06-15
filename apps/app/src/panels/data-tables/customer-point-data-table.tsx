@@ -6,10 +6,12 @@ import { useModelTransaction } from "src/hooks/persistence/use-model-transaction
 import {
   changeCustomerPointLabel,
   changeDemandAssignment,
+  mergeMoments,
 } from "src/hydraulic-model/model-operations";
-import { getCustomerPointDemands } from "src/hydraulic-model";
+import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
 import { convertTo } from "@epanet-js/quantity";
+import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   DataGrid,
@@ -136,12 +138,16 @@ export const CustomerPointDataTable = memo(
     );
 
     const onChange = useCallback(
-      (newRows: CustomerPointRow[]) => {
+      async (newRows: CustomerPointRow[]) => {
+        const moments: ModelMoment[] = [];
         const demandAssignments: CustomerDemandAssignment[] = [];
+        let labelChanges = 0;
         let oldDemandsTotal = 0;
         let newDemandsTotal = 0;
 
+        const yieldIfSliceElapsed = createTimeSlicer();
         for (let i = 0; i < newRows.length; i++) {
+          await yieldIfSliceElapsed();
           const newRow = newRows[i];
           const oldRow = rowsRef.current?.[i];
           // Only edited rows get a new object reference (patchRow); skipping the
@@ -157,16 +163,13 @@ export const CustomerPointDataTable = memo(
               newRow.id,
             )
           ) {
-            const moment = changeCustomerPointLabel(hydraulicModel, {
-              customerPointId: newRow.id,
-              newLabel: newRow.label,
-            });
-            transact(moment);
-            userTracking.capture({
-              name: "customerPointActions.labelChanged",
-              oldLabel: oldRow.label,
-              newLabel: newRow.label,
-            });
+            moments.push(
+              changeCustomerPointLabel(hydraulicModel, {
+                customerPointId: newRow.id,
+                newLabel: newRow.label,
+              }),
+            );
+            labelChanges += 1;
           }
 
           const baseDemandChanged = newRow.baseDemand !== oldRow.baseDemand;
@@ -211,11 +214,22 @@ export const CustomerPointDataTable = memo(
         }
 
         if (demandAssignments.length > 0) {
-          const moment = changeDemandAssignment(
-            hydraulicModel,
-            demandAssignments,
+          moments.push(
+            changeDemandAssignment(hydraulicModel, demandAssignments),
           );
-          transact(moment);
+        }
+
+        const merged = mergeMoments(moments, "Edit customer points");
+        if (!merged) return;
+        transact(merged);
+
+        if (labelChanges > 0) {
+          userTracking.capture({
+            name: "customerPointActions.labelChanged",
+            count: labelChanges,
+          });
+        }
+        if (demandAssignments.length > 0) {
           userTracking.capture({
             name: "customerPointDemands.edited",
             oldCount: oldDemandsTotal,
@@ -387,14 +401,13 @@ export const CustomerPointDataTable = memo(
 
     const handleCopy = useCallback(
       (info: ClipboardCopyInfo) => {
-        const { selectedRows, copiedRows, cols, allRows, allCols, columnIds } =
-          info;
-        const truncated = copiedRows < selectedRows;
+        const { requestedRows, rows, cols, allRows, allCols, columnIds } = info;
+        const truncated = rows < requestedRows;
         userTracking.capture({
           name: "dataTables.copied",
           type: "customerPoint",
-          selectedRows,
-          copiedRows,
+          requestedRows,
+          rows,
           cols,
           allRows,
           allCols,
@@ -407,8 +420,8 @@ export const CustomerPointDataTable = memo(
             variant: "default",
             title: translate(
               "dataTables.copy.truncatedTitle",
-              copiedRows.toLocaleString(),
-              selectedRows.toLocaleString(),
+              rows.toLocaleString(),
+              requestedRows.toLocaleString(),
             ),
             description: translate("dataTables.copy.truncatedDescription"),
             duration: 8000,
@@ -440,8 +453,8 @@ export const CustomerPointDataTable = memo(
                 userTracking.capture({
                   name: "dataTables.copied",
                   type: "customerPoint",
-                  selectedRows,
-                  copiedRows,
+                  requestedRows,
+                  rows,
                   cols,
                   allRows,
                   allCols,
@@ -458,13 +471,27 @@ export const CustomerPointDataTable = memo(
 
     const handlePaste = useCallback(
       (info: ClipboardPasteInfo) => {
+        const { requestedRows, ...tracked } = info;
         userTracking.capture({
           name: "dataTables.pasted",
           type: "customerPoint",
-          ...info,
+          ...tracked,
         });
+        // Only when a paste cap (`maxPasteRows`) is set and hit — disabled today.
+        if (info.rows < requestedRows) {
+          notify({
+            variant: "default",
+            title: translate(
+              "dataTables.paste.cappedTitle",
+              info.rows.toLocaleString(),
+            ),
+            description: translate("dataTables.paste.cappedDescription"),
+            duration: 8000,
+            position: "bottom-center",
+          });
+        }
       },
-      [userTracking],
+      [userTracking, translate],
     );
 
     const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;

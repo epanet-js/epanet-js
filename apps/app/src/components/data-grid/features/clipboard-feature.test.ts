@@ -11,6 +11,12 @@ import {
 import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import { ClipboardFeature } from "./clipboard-feature";
+import { LazyRowModelFeature } from "./lazy-row-model-feature";
+import {
+  type LazyRowModel,
+  getAdaptiveCoreRowModel,
+} from "../utils/lazy-core-row-model";
+import { getAdaptiveStickySortedRowModel } from "../utils/lazy-sticky-sorted-row-model";
 import type { GridColumn, GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };
@@ -34,16 +40,21 @@ type TableOptions = {
   onClipboardPaste?: (info: unknown) => void;
   sortable?: boolean;
   lazyRowModel?: boolean;
+  maxPasteRows?: number;
 };
 
 const useClipboardTable = (options: TableOptions) =>
   useReactTable({
     data: options.data,
     columns: options.columns ?? defaultColumns,
-    getCoreRowModel: getCoreRowModel(),
+    getCoreRowModel: options.lazyRowModel
+      ? getAdaptiveCoreRowModel()
+      : getCoreRowModel(),
     ...(options.sortable
       ? {
-          getSortedRowModel: getSortedRowModel(),
+          getSortedRowModel: options.lazyRowModel
+            ? getAdaptiveStickySortedRowModel()
+            : getSortedRowModel(),
           enableSorting: true,
         }
       : {}),
@@ -51,6 +62,7 @@ const useClipboardTable = (options: TableOptions) =>
       CellEditingFeature,
       CellRangeSelectionFeature,
       ClipboardFeature,
+      ...(options.lazyRowModel ? [LazyRowModelFeature] : []),
     ],
     onDataChange: options.onChange,
     createRow: createTestRow,
@@ -60,6 +72,7 @@ const useClipboardTable = (options: TableOptions) =>
     onClipboardCopy: options.onClipboardCopy as never,
     onClipboardPaste: options.onClipboardPaste as never,
     lazyRowModel: options.lazyRowModel,
+    maxPasteRows: options.maxPasteRows,
   });
 
 const stubClipboard = (initialText = "") => {
@@ -260,8 +273,8 @@ describe("ClipboardFeature", () => {
       });
 
       expect(onClipboardCopy).toHaveBeenCalledWith({
-        selectedRows: 2,
-        copiedRows: 2,
+        requestedRows: 2,
+        rows: 2,
         cols: 3,
         allRows: true,
         allCols: true,
@@ -307,8 +320,8 @@ describe("ClipboardFeature", () => {
 
       expect(onClipboardCopy).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedRows: data.length,
-          copiedRows: LAZY_CAP,
+          requestedRows: data.length,
+          rows: LAZY_CAP,
           allRows: true,
         }),
       );
@@ -336,11 +349,11 @@ describe("ClipboardFeature", () => {
 
       expect(clip.getText().split("\n")).toHaveLength(500);
       expect(onClipboardCopy).toHaveBeenCalledWith(
-        expect.objectContaining({ selectedRows: 500, copiedRows: 500 }),
+        expect.objectContaining({ requestedRows: 500, rows: 500 }),
       );
     });
 
-    it("does not cap non-lazy tables (copiedRows === selectedRows)", async () => {
+    it("does not cap non-lazy tables (rows === requestedRows)", async () => {
       const clip = stubClipboard();
       const onClipboardCopy = vi.fn();
       // Over the threshold by row count, but lazyRowModel not enabled.
@@ -363,8 +376,124 @@ describe("ClipboardFeature", () => {
       expect(clip.getText().split("\n")).toHaveLength(data.length);
       expect(onClipboardCopy).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedRows: data.length,
-          copiedRows: data.length,
+          requestedRows: data.length,
+          rows: data.length,
+        }),
+      );
+    });
+  });
+
+  describe("lazy paste (uncapped, no materialization)", () => {
+    const THRESHOLD = 1000; // LAZY_ROW_MODEL_THRESHOLD
+    const makeRows = (n: number): TestRow[] =>
+      Array.from({ length: n }, (_, i) => ({
+        id: String(i),
+        name: `n${i}`,
+        value: String(i),
+      }));
+
+    it("fills a single column across all rows without materializing rows", async () => {
+      stubClipboard();
+      const onChange = vi.fn();
+      const data = makeRows(THRESHOLD + 500); // 1500, lazy
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, lazyRowModel: true, onChange }),
+      );
+      // Whole "name" column selected.
+      act(() =>
+        result.current.selectRange({
+          min: { col: 1, row: 0 },
+          max: { col: 1, row: data.length - 1 },
+        }),
+      );
+      await act(async () => {
+        await result.current.applyPaste("x");
+      });
+
+      const written = onChange.mock.calls[0][0] as TestRow[];
+      expect(written).toHaveLength(data.length);
+      expect(written[0].name).toBe("x");
+      expect(written[data.length - 1].name).toBe("x");
+      // Indices resolved without creating Row objects.
+      const model = result.current.getRowModel() as LazyRowModel<TestRow>;
+      expect(model.getMaterializedRows()).toHaveLength(0);
+    });
+
+    it("writes every row of a large multi-column paste (no cap)", async () => {
+      stubClipboard();
+      const onChange = vi.fn();
+      const onClipboardPaste = vi.fn();
+      const data = makeRows(THRESHOLD + 500);
+
+      const { result } = renderHook(() =>
+        useClipboardTable({
+          data,
+          lazyRowModel: true,
+          onChange,
+          onClipboardPaste,
+        }),
+      );
+      // First two columns across all rows; a 2-column value tiles down.
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 1, row: data.length - 1 },
+        }),
+      );
+      await act(async () => {
+        await result.current.applyPaste("a\tb");
+      });
+
+      const written = onChange.mock.calls[0][0] as TestRow[];
+      expect(written).toHaveLength(data.length);
+      expect(written[0].id).toBe("a");
+      expect(written[0].name).toBe("b");
+      // Past the old cap → still written (no truncation).
+      expect(written[THRESHOLD].id).toBe("a");
+      expect(written[data.length - 1].id).toBe("a");
+      // And no Row objects were materialized to resolve indices.
+      const model = result.current.getRowModel() as LazyRowModel<TestRow>;
+      expect(model.getMaterializedRows()).toHaveLength(0);
+
+      expect(onClipboardPaste).toHaveBeenCalledWith(
+        expect.objectContaining({ rows: data.length }),
+      );
+    });
+
+    it("caps the paste when maxPasteRows is set, reporting requestedRows", async () => {
+      stubClipboard();
+      const onChange = vi.fn();
+      const onClipboardPaste = vi.fn();
+      const data = makeRows(THRESHOLD + 500); // 1500
+
+      const { result } = renderHook(() =>
+        useClipboardTable({
+          data,
+          lazyRowModel: true,
+          onChange,
+          onClipboardPaste,
+          maxPasteRows: THRESHOLD,
+        }),
+      );
+      act(() =>
+        result.current.selectRange({
+          min: { col: 1, row: 0 },
+          max: { col: 1, row: data.length - 1 },
+        }),
+      );
+      await act(async () => {
+        await result.current.applyPaste("x");
+      });
+
+      const written = onChange.mock.calls[0][0] as TestRow[];
+      expect(written[0].name).toBe("x");
+      expect(written[THRESHOLD - 1].name).toBe("x");
+      expect(written[THRESHOLD].name).toBe(`n${THRESHOLD}`); // past cap → unchanged
+      expect(onClipboardPaste).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rows: THRESHOLD,
+          requestedRows: data.length,
         }),
       );
     });

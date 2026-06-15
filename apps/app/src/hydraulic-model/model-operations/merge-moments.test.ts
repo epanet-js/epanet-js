@@ -27,6 +27,22 @@ describe("mergeMoments", () => {
     expect(merged?.deleteCustomerPoints).toEqual([1]);
   });
 
+  it("concatenates patchAssetsAttributes from many moments in order", () => {
+    const moments = Array.from({ length: 5 }, (_, i) => ({
+      note: `patch ${i}`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      patchAssetsAttributes: [
+        { id: i, type: "junction", properties: {} } as any,
+      ],
+    }));
+
+    const merged = mergeMoments(moments, "Bulk patch");
+
+    expect(merged?.patchAssetsAttributes?.map((p) => p.id)).toEqual([
+      0, 1, 2, 3, 4,
+    ]);
+  });
+
   it("undoes a mixed asset+CP delete restoring the CP allocation", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const { labelManager } = buildTestFactories();

@@ -1468,6 +1468,10 @@
       "truncatedTitle": "Copied the first {{1}} of {{2}} rows",
       "truncatedDescription": "To export all rows, use Export data.",
       "exportAction": "Export data"
+    },
+    "paste": {
+      "cappedTitle": "Pasted into the first {{1}} rows",
+      "cappedDescription": "This paste was too large to apply in full. Use Import to add data in bulk."
     }
   },
   "hglProfile": {

@@ -101,14 +101,107 @@ function resolveSortingFn<TData extends RowData>(
   return autoSortingFn<TData>(values);
 }
 
-/**
- * Computes the sorted display order over data indices, using value extraction
- * (no `Row` objects). Custom column `sortingFn`s call `row.getValue`, so we feed
- * them two reusable getValue shims; values are cached per (index, column) so each
- * row's value is computed at most once per sort.
- *
- * Comparator ported from `get-sticky-sorted-row-model.ts` (table-core 8.17.3).
- */
+// Faithful port of table-core 8.17.3 `sortingFns.toString`: numbers stringify
+// (NaN/±Infinity → ""), strings pass through, everything else → "".
+function toSortString(value: unknown): string {
+  if (typeof value === "number") {
+    if (isNaN(value) || value === Infinity || value === -Infinity) return "";
+    return String(value);
+  }
+  if (typeof value === "string") return value;
+  return "";
+}
+
+// A precomputed alphanumeric sort key: avoids ~1M object allocations when keying a large column.
+export type AlphanumericKey = (string | number)[];
+
+export function buildAlphanumericKey(
+  value: unknown,
+  lower: boolean,
+): AlphanumericKey {
+  const str = lower ? toSortString(value).toLowerCase() : toSortString(value);
+  const parts = str.split(RE_SPLIT_ALPHANUMERIC).filter(Boolean);
+  const key: AlphanumericKey = new Array(parts.length);
+  for (let i = 0; i < parts.length; i++) {
+    const num = parseInt(parts[i], 10);
+    key[i] = isNaN(num) ? parts[i] : num;
+  }
+  return key;
+}
+
+export function compareAlphanumericKeys(
+  a: AlphanumericKey,
+  b: AlphanumericKey,
+): number {
+  const len = Math.min(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    const aChunk = a[i];
+    const bChunk = b[i];
+    if (typeof aChunk === "number") {
+      if (typeof bChunk === "number") {
+        if (aChunk > bChunk) return 1;
+        if (bChunk > aChunk) return -1;
+      } else {
+        return 1; // a is a number, b a string → string sorts first
+      }
+    } else if (typeof bChunk === "number") {
+      return -1; // a is a string, b a number → string sorts first
+    } else {
+      if (aChunk > bChunk) return 1;
+      if (bChunk > aChunk) return -1;
+    }
+  }
+  return a.length - b.length;
+}
+
+// table-core's `compareBasic` over precomputed text keys.
+function compareTextKeys(a: string, b: string): number {
+  return a === b ? 0 : a > b ? 1 : -1;
+}
+
+type SortStrategy =
+  | { kind: "alphanumeric"; keys: AlphanumericKey[] }
+  | { kind: "text"; keys: string[] }
+  | { kind: "fn" };
+
+type SortColumnInfo<TData extends RowData> = {
+  sortUndefined?: false | -1 | 1 | "first" | "last";
+  invertSorting?: boolean;
+  sortingFn: SortingFn<TData>;
+};
+
+function buildSortStrategies<TData extends RowData>(
+  availableSorting: SortingState,
+  columnInfoById: Record<string, SortColumnInfo<TData>>,
+  valuesByColumn: Record<string, unknown[]>,
+): SortStrategy[] {
+  return availableSorting.map((sortEntry) => {
+    const fn = columnInfoById[sortEntry.id]?.sortingFn;
+    const values = valuesByColumn[sortEntry.id];
+    if (!fn || !values) return { kind: "fn" };
+    if (
+      fn === sortingFns.alphanumeric ||
+      fn === sortingFns.alphanumericCaseSensitive
+    ) {
+      const lower = fn === sortingFns.alphanumeric;
+      return {
+        kind: "alphanumeric",
+        keys: values.map((v) => buildAlphanumericKey(v, lower)),
+      };
+    }
+    if (fn === sortingFns.text || fn === sortingFns.textCaseSensitive) {
+      const lower = fn === sortingFns.text;
+      return {
+        kind: "text",
+        keys: values.map((v) =>
+          lower ? toSortString(v).toLowerCase() : toSortString(v),
+        ),
+      };
+    }
+    return { kind: "fn" };
+  });
+}
+
 export function computeLazyRowOrder<TData extends RowData>(
   table: Table<TData>,
   sorting: SortingState,
@@ -119,19 +212,8 @@ export function computeLazyRowOrder<TData extends RowData>(
   );
   if (!availableSorting.length || data.length === 0) return IDENTITY_ORDER;
 
-  const columnInfoById: Record<
-    string,
-    {
-      sortUndefined?: false | -1 | 1 | "first" | "last";
-      invertSorting?: boolean;
-      sortingFn: SortingFn<TData>;
-    }
-  > = {};
+  const columnInfoById: Record<string, SortColumnInfo<TData>> = {};
 
-  // Precompute each sort column's value once per row into a flat array indexed
-  // by data index. The comparator then reads `values[index]` (O(1) array access)
-  // instead of Map lookups — at ~n·log(n) comparisons that map overhead was the
-  // dominant sort cost at scale.
   const valuesByColumn: Record<string, unknown[]> = {};
 
   for (const sortEntry of availableSorting) {
@@ -145,11 +227,16 @@ export function computeLazyRowOrder<TData extends RowData>(
     columnInfoById[sortEntry.id] = {
       sortUndefined: column.columnDef.sortUndefined,
       invertSorting: column.columnDef.invertSorting,
-      // Resolve from the precomputed values — never `column.getSortingFn()`,
-      // whose auto-detection iterates (materializes) the lazy row model.
+      // Resolve from the precomputed values — never `column.getSortingFn()`
       sortingFn: resolveSortingFn(table, column, values),
     };
   }
+
+  const strategies = buildSortStrategies(
+    availableSorting,
+    columnInfoById,
+    valuesByColumn,
+  );
 
   // Two reusable shims avoid per-comparison allocation across the whole sort.
   const shimA = {
@@ -192,12 +279,19 @@ export function computeLazyRowOrder<TData extends RowData>(
       }
 
       if (sortInt === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sortInt = columnInfo.sortingFn(
-          shimA as any,
-          shimB as any,
-          sortEntry.id,
-        );
+        const strategy = strategies[i];
+        if (strategy.kind === "alphanumeric") {
+          sortInt = compareAlphanumericKeys(strategy.keys[a], strategy.keys[b]);
+        } else if (strategy.kind === "text") {
+          sortInt = compareTextKeys(strategy.keys[a], strategy.keys[b]);
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          sortInt = columnInfo.sortingFn(
+            shimA as any,
+            shimB as any,
+            sortEntry.id,
+          );
+        }
       }
 
       if (sortInt !== 0) {
@@ -248,12 +342,6 @@ export function createLazyRowOrderGetter<TData extends RowData>(
     const sortChanged = cachedSortRef !== sorting;
     const cachedOrderIds = cachedResult.orderIds;
 
-    // In-place cell edit fast path: a new data array with the same length whose
-    // differing rows keep their id at the same index (only the object ref/value
-    // changed). The cached order, data-index map and visual map all stay valid —
-    // sticky, no re-sort, no re-map. We confirm via an O(n) ref scan plus an
-    // id check only on the rows that actually changed (O(edited)). A changed id
-    // at some index means a reorder/replace → fall through to reconcile.
     if (
       !sortChanged &&
       cachedOrderIds !== null &&

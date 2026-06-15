@@ -25,6 +25,7 @@ import {
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
+import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
   type AssetType,
@@ -222,7 +223,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   );
 
   const onChange = useCallback(
-    (newRows: AssetRow[]) => {
+    async (newRows: AssetRow[]) => {
       const editableKeys = [
         ...EDITABLE_NUMERIC_KEYS[assetType],
         ...EDITABLE_SELECT_KEYS[assetType],
@@ -230,7 +231,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();
       const demandAssignments: JunctionDemandAssignment[] = [];
+      const yieldIfSliceElapsed = createTimeSlicer();
       for (let i = 0; i < newRows.length; i++) {
+        await yieldIfSliceElapsed();
         const newRow = newRows[i];
         const oldRow = rowsRef.current?.[i];
         // Only edited rows get a new object reference (patchRow); skipping the
@@ -514,14 +517,13 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   const handleCopy = useCallback(
     (info: ClipboardCopyInfo) => {
-      const { selectedRows, copiedRows, cols, allRows, allCols, columnIds } =
-        info;
-      const truncated = copiedRows < selectedRows;
+      const { requestedRows, rows, cols, allRows, allCols, columnIds } = info;
+      const truncated = rows < requestedRows;
       userTracking.capture({
         name: "dataTables.copied",
         type: assetType,
-        selectedRows,
-        copiedRows,
+        requestedRows,
+        rows,
         cols,
         allRows,
         allCols,
@@ -534,8 +536,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           variant: "default",
           title: translate(
             "dataTables.copy.truncatedTitle",
-            copiedRows.toLocaleString(),
-            selectedRows.toLocaleString(),
+            rows.toLocaleString(),
+            requestedRows.toLocaleString(),
           ),
           description: translate("dataTables.copy.truncatedDescription"),
           duration: 8000,
@@ -568,8 +570,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
               userTracking.capture({
                 name: "dataTables.copied",
                 type: assetType,
-                selectedRows,
-                copiedRows,
+                requestedRows,
+                rows,
                 cols,
                 allRows,
                 allCols,
@@ -586,13 +588,27 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   const handlePaste = useCallback(
     (info: ClipboardPasteInfo) => {
+      const { requestedRows, ...tracked } = info;
       userTracking.capture({
         name: "dataTables.pasted",
         type: assetType,
-        ...info,
+        ...tracked,
       });
+      // Only when a paste cap (`maxPasteRows`) is set and hit — disabled today.
+      if (info.rows < requestedRows) {
+        notify({
+          variant: "default",
+          title: translate(
+            "dataTables.paste.cappedTitle",
+            info.rows.toLocaleString(),
+          ),
+          description: translate("dataTables.paste.cappedDescription"),
+          duration: 8000,
+          position: "bottom-center",
+        });
+      }
     },
-    [userTracking, assetType],
+    [userTracking, assetType, translate],
   );
 
   const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;

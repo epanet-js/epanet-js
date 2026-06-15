@@ -8,3 +8,4 @@ export { useScrollActiveCellIntoView } from "./use-scroll-active-cell-into-view"
 export { useHeaderScrollSync } from "./use-header-scroll-sync";
 export { useGridKeyboard } from "./use-grid-keyboard";
 export { useContextMenuTarget } from "./use-context-menu-target";
+export { useGridBusyState, type GridBusyState } from "./use-grid-busy-state";

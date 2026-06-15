@@ -792,8 +792,10 @@ type CustomerPointsDisconnected = {
 
 type CustomerPointLabelChanged = {
   name: "customerPointActions.labelChanged";
-  oldLabel: string;
-  newLabel: string;
+  // Single edit reports the labels; a batch (data-table paste) reports a count.
+  oldLabel?: string;
+  newLabel?: string;
+  count?: number;
 };
 
 type CustomerPointLabelDuplicate = {
@@ -1318,8 +1320,8 @@ export type UserEvent =
   | {
       name: "dataTables.copied";
       type: Asset["type"] | "customerPoint";
-      selectedRows: number;
-      copiedRows: number;
+      requestedRows: number;
+      rows: number;
       cols: number;
       allRows: boolean;
       allCols: boolean;

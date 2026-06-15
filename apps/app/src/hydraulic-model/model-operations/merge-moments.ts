@@ -1,5 +1,10 @@
 import type { ModelMoment } from "../model-operation";
 
+const append = <T>(target: T[], source: T[] | undefined): void => {
+  if (!source) return;
+  for (const item of source) target.push(item);
+};
+
 export const mergeMoments = (
   moments: ModelMoment[],
   note: string,
@@ -9,43 +14,38 @@ export const mergeMoments = (
 
   const merged: ModelMoment = { note };
 
+  const deleteAssets: NonNullable<ModelMoment["deleteAssets"]> = [];
+  const putAssets: NonNullable<ModelMoment["putAssets"]> = [];
+  const patchAssetsAttributes: NonNullable<
+    ModelMoment["patchAssetsAttributes"]
+  > = [];
+  const putCustomerPoints: NonNullable<ModelMoment["putCustomerPoints"]> = [];
+  const deleteCustomerPoints: NonNullable<ModelMoment["deleteCustomerPoints"]> =
+    [];
+
   for (const m of moments) {
-    if (m.deleteAssets?.length) {
-      merged.deleteAssets = [...(merged.deleteAssets ?? []), ...m.deleteAssets];
-    }
-    if (m.putAssets?.length) {
-      merged.putAssets = [...(merged.putAssets ?? []), ...m.putAssets];
-    }
-    if (m.patchAssetsAttributes?.length) {
-      merged.patchAssetsAttributes = [
-        ...(merged.patchAssetsAttributes ?? []),
-        ...m.patchAssetsAttributes,
-      ];
-    }
-    if (m.putCustomerPoints?.length) {
-      merged.putCustomerPoints = [
-        ...(merged.putCustomerPoints ?? []),
-        ...m.putCustomerPoints,
-      ];
-    }
-    if (m.deleteCustomerPoints?.length) {
-      merged.deleteCustomerPoints = [
-        ...(merged.deleteCustomerPoints ?? []),
-        ...m.deleteCustomerPoints,
-      ];
-    }
+    append(deleteAssets, m.deleteAssets);
+    append(putAssets, m.putAssets);
+    append(patchAssetsAttributes, m.patchAssetsAttributes);
+    append(putCustomerPoints, m.putCustomerPoints);
+    append(deleteCustomerPoints, m.deleteCustomerPoints);
     if (m.putDemands) merged.putDemands = m.putDemands;
     if (m.putControls) merged.putControls = m.putControls;
     if (m.putCurves) merged.putCurves = m.putCurves;
     if (m.putPatterns) merged.putPatterns = m.putPatterns;
   }
 
-  // A `putCustomerPoints` entry whose id is later in `deleteCustomerPoints`
-  // is a stale side-effect from an earlier moment (e.g. delete-assets writing
-  // a disconnected version of a CP that a subsequent moment outright
-  // deletes). Keeping it would corrupt the reverse moment: the inverse would
-  // remember the disconnected state instead of the original connected one,
-  // so undoing the delete would restore the CP without its allocation.
+  if (deleteAssets.length) merged.deleteAssets = deleteAssets;
+  if (putAssets.length) merged.putAssets = putAssets;
+  if (patchAssetsAttributes.length) {
+    merged.patchAssetsAttributes = patchAssetsAttributes;
+  }
+  if (putCustomerPoints.length) merged.putCustomerPoints = putCustomerPoints;
+  if (deleteCustomerPoints.length) {
+    merged.deleteCustomerPoints = deleteCustomerPoints;
+  }
+
+  // Fix to be able to restore CPs allocations when deleting them together with assets
   if (merged.putCustomerPoints?.length && merged.deleteCustomerPoints?.length) {
     const deletedIds = new Set(merged.deleteCustomerPoints);
     merged.putCustomerPoints = merged.putCustomerPoints.filter(

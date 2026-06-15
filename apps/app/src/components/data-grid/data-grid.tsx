@@ -3,9 +3,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
-  useTransition,
 } from "react";
 import {
   type ColumnDef,
@@ -13,7 +11,10 @@ import {
   getCoreRowModel,
 } from "@tanstack/react-table";
 import { getStickySortedRowModel } from "./utils/get-sticky-sorted-row-model";
-import { getAdaptiveCoreRowModel } from "./utils/lazy-core-row-model";
+import {
+  getAdaptiveCoreRowModel,
+  isLazyRowModel,
+} from "./utils/lazy-core-row-model";
 import { getAdaptiveStickySortedRowModel } from "./utils/lazy-sticky-sorted-row-model";
 import { GridBusyProvider } from "./shared/grid-busy";
 import { RingSpinner } from "src/components/ring-spinner";
@@ -25,7 +26,7 @@ import {
   GutterContextAction,
   GridColumn,
 } from "./types";
-import { useGridEditing, useMouseSelection } from "./hooks";
+import { useGridBusyState, useGridEditing, useMouseSelection } from "./hooks";
 import {
   CellEditingFeature,
   CellRangeSelectionFeature,
@@ -56,7 +57,7 @@ export type DataGridRef = {
 type DataGridProps<TData extends Record<string, unknown>> = {
   data: TData[];
   columns: GridColumn<TData>[];
-  onChange: (data: TData[]) => void;
+  onChange: (data: TData[]) => void | Promise<void>;
   createRow: () => TData;
   readOnly?: boolean;
   resizable?: boolean;
@@ -79,17 +80,8 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onPaste?: (info: ClipboardPasteInfo) => void;
   onDelete?: (rowsToDelete: TData[]) => void;
   pinnedColumns?: { left?: string[] };
-  /**
-   * Strategy for applying a cell edit to a row. Defaults to a shallow spread
-   * (`defaultPatchRow`). Pass `patchModelRow` when `data` holds model objects
-   * whose attributes are behind prototype getters.
-   */
+  maxPasteRows?: number;
   patchRow?: PatchRowFn;
-  /**
-   * Opt into the lazy row model (materialize TanStack rows on demand) for large
-   * tables. Only engages past the row-count threshold. Gated by the caller (e.g.
-   * a feature flag) so it stays off for grids that don't need it.
-   */
   enableLazyRowModel?: boolean;
 };
 
@@ -123,6 +115,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onDelete,
     pinnedColumns,
     patchRow,
+    maxPasteRows,
     enableLazyRowModel = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
@@ -133,15 +126,7 @@ export const DataGrid = forwardRef(function DataGrid<
   dataRef.current = data;
   const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
 
-  // Generic "busy" mechanism: `runBusy` runs an operation (sort, bulk edit, …)
-  // as a transition so the triggering event stays responsive, and `isBusy`
-  // marks the grid busy — blocking interaction — until that render commits.
-  const [isBusy, startBusyTransition] = useTransition();
-  const runBusy = useCallback(
-    (operation: () => void) => startBusyTransition(operation),
-    [],
-  );
-  const busyApi = useMemo(() => ({ runBusy }), [runBusy]);
+  const { isBusy, busyApi } = useGridBusyState();
 
   const table = useReactTable<TData>({
     data,
@@ -168,6 +153,7 @@ export const DataGrid = forwardRef(function DataGrid<
     autoExtendOnPaste: autoAddNewRows,
     onClipboardCopy: onCopy,
     onClipboardPaste: onPaste,
+    maxPasteRows,
     patchRow: patchRowFn,
     lazyRowModel: enableLazyRowModel,
     // Column sizing options
@@ -271,7 +257,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const handleAddRow = useCallback(() => {
     const currentData = dataRef.current;
     const newRow = createRow();
-    onChange([...currentData, newRow]);
+    void onChange([...currentData, newRow]);
     focusRow(currentData.length);
   }, [createRow, onChange, focusRow]);
 
@@ -372,12 +358,10 @@ export const DataGrid = forwardRef(function DataGrid<
 
   const handleCellChange = useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
-      // Copy the array shallowly and replace only the edited row, so large
-      // tables don't pay a per-row callback over every row on each edit.
       const newData = dataRef.current.slice();
       newData[rowIndex] = patchRowFn(newData[rowIndex], { [columnId]: value });
       dataRef.current = newData;
-      onChange(newData);
+      void onChange(newData);
     },
     [onChange, patchRowFn],
   );
@@ -393,6 +377,19 @@ export const DataGrid = forwardRef(function DataGrid<
       focusRow(0);
     },
     [activeCell, data.length, focusRow],
+  );
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      if (!table.getSelection()) return;
+      e.preventDefault();
+      if (isLazyRowModel(table)) {
+        busyApi.runBusyAsync(() => table.pasteSelection());
+      } else {
+        void table.pasteSelection();
+      }
+    },
+    [table, busyApi],
   );
 
   const handleEmptyAreaMouseDown = useCallback(
@@ -466,7 +463,7 @@ export const DataGrid = forwardRef(function DataGrid<
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onCopy={table.handleCopyEvent}
-          onPaste={table.handlePasteEvent}
+          onPaste={handlePaste}
           className={
             isSpreadsheet
               ? "relative flex flex-col flex-1 min-h-0 outline-hidden"
@@ -480,10 +477,6 @@ export const DataGrid = forwardRef(function DataGrid<
             <InlineGrid ref={rowsRef} {...rowsProps} />
           )}
           {isBusy && (
-            // While a busy operation runs, swallow pointer events so no other
-            // action lands meanwhile, and show a spinner. The CSS animation is
-            // compositor-driven, so it keeps spinning even while the main thread
-            // is busy with the operation.
             <div
               className="absolute inset-0 z-30 flex items-center justify-center bg-base/50"
               aria-hidden="true"
@@ -509,12 +502,6 @@ export const DataGrid = forwardRef(function DataGrid<
   },
 ) => React.ReactElement;
 
-/**
- * `DataGrid` with the lazy row model enabled: above ~1000 rows TanStack `Row`
- * objects are materialized on demand (bounded CPU + memory) instead of all up
- * front. Use this for large, model-object-backed tables; `DataGrid` stays the
- * standard/legacy grid.
- */
 export const PerformantDataGrid = forwardRef(function PerformantDataGrid<
   TData extends Record<string, unknown>,
 >(props: DataGridProps<TData>, ref: React.ForwardedRef<DataGridRef>) {

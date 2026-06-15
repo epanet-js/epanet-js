@@ -1,5 +1,6 @@
 import type {
   Column,
+  Row,
   RowData,
   Table,
   TableFeature,
@@ -10,14 +11,15 @@ import {
   LAZY_ROW_MODEL_THRESHOLD,
 } from "../utils/lazy-core-row-model";
 import type { GridSelection } from "../types";
+import { createTimeSlicer } from "src/infra/yield-to-main";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
 };
 
 export type ClipboardCopyInfo = {
-  selectedRows: number;
-  copiedRows: number;
+  requestedRows: number;
+  rows: number;
   cols: number;
   allRows: boolean;
   allCols: boolean;
@@ -25,6 +27,7 @@ export type ClipboardCopyInfo = {
 };
 
 export type ClipboardPasteInfo = {
+  requestedRows: number;
   rows: number;
   cols: number;
   allRows: boolean;
@@ -36,20 +39,18 @@ declare module "@tanstack/react-table" {
   interface TableOptionsResolved<TData extends RowData> {
     includeHeadersOnCopy?: boolean;
     autoExtendOnPaste?: boolean; // pasting extra content appends fresh rows
+    maxPasteRows?: number;
     createRow?: () => TData;
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
-    onDataChange?: (data: TData[]) => void;
+    onDataChange?: (data: TData[]) => void | Promise<void>;
     patchRow?: PatchRowFn;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     copyValue?: (value: TValue) => string;
-    // Returns undefined to signal "skip this cell" (e.g. pasted value
-    // fails validation). The clipboard feature leaves the cell unchanged.
-    // `row` is the destination row's data — useful for row-aware validators
-    // (e.g. uniqueness checks that need to exclude the current row's id).
+    // Returns undefined to signal "skip this cell"
     pasteValue?: (text: string, row: TData) => TValue | undefined;
   }
 
@@ -59,7 +60,7 @@ declare module "@tanstack/react-table" {
     pasteSelection: () => Promise<void>;
     handleCopyEvent: (e: React.ClipboardEvent) => void;
     handlePasteEvent: (e: React.ClipboardEvent) => void;
-    applyPaste: (text: string) => void;
+    applyPaste: (text: string) => Promise<void>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -76,13 +77,95 @@ const headerText = <TData extends RowData>(
   return typeof header === "string" ? header : "";
 };
 
+const collectColumnIds = <TData extends RowData>(
+  columns: Column<TData, unknown>[],
+  fromCol: number,
+  toColExclusive: number,
+): string[] => {
+  const ids: string[] = [];
+  for (let c = fromCol; c < toColExclusive; c++) {
+    const id = columns[c]?.id;
+    if (id) ids.push(id);
+  }
+  return ids;
+};
+
+type PasteBounds = {
+  targetRows: number;
+  targetCols: number;
+  writtenCols: number;
+  requestedRows: number;
+};
+
+const resolvePasteBounds = (
+  selection: GridSelection,
+  clipboard: { rows: number; cols: number },
+  columnCount: number,
+  visualRowCount: number,
+  options: { autoExtendOnPaste?: boolean; maxPasteRows?: number },
+): PasteBounds => {
+  const selRows = selection.max.row - selection.min.row + 1;
+  const selCols = selection.max.col - selection.min.col + 1;
+
+  const targetCols = Math.max(selCols, clipboard.cols);
+  const writtenCols = Math.min(targetCols, columnCount - selection.min.col);
+
+  const tiledRows = Math.max(selRows, clipboard.rows);
+  const remainingVisualRows = visualRowCount - selection.min.row;
+  const requestedRows = options.autoExtendOnPaste
+    ? tiledRows
+    : Math.min(tiledRows, Math.max(0, remainingVisualRows));
+
+  const targetRows =
+    options.maxPasteRows != null
+      ? Math.min(requestedRows, options.maxPasteRows)
+      : requestedRows;
+
+  return { targetRows, targetCols, writtenCols, requestedRows };
+};
+
+const createDataIndexResolver = <TData extends RowData>(
+  table: Table<TData>,
+  sortedRows: Row<TData>[],
+): ((visualRow: number) => number) => {
+  const orderByDataIndex = isLazyRowModel(table)
+    ? table.getLazyRowOrder().orderByDataIndex
+    : null;
+  return (visualRow) => {
+    if (orderByDataIndex) return orderByDataIndex[visualRow];
+    if (isLazyRowModel(table)) return visualRow;
+    return sortedRows[visualRow].index;
+  };
+};
+
+const collectRowPatches = <TData extends RowData>(
+  clipboardRow: string[],
+  columns: Column<TData, unknown>[],
+  startCol: number,
+  targetCols: number,
+  dataIdx: number,
+  existing: TData,
+): Record<string, unknown> => {
+  const patches: Record<string, unknown> = {};
+  for (let j = 0; j < targetCols; j++) {
+    const colIndex = startCol + j;
+    if (colIndex >= columns.length) break;
+
+    const column = columns[colIndex];
+    if (!column || column.isReadOnly(dataIdx)) continue;
+
+    const cellText = clipboardRow[j % clipboardRow.length] ?? "";
+    const pasted = column.getPasteValue(cellText, existing);
+    if (pasted === undefined) continue;
+    patches[column.id] = pasted;
+  }
+  return patches;
+};
+
 export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
-    // Max data rows a single copy will read. On lazy tables, copying the whole
-    // selection would materialize every row (the freeze the lazy model avoids),
-    // so we cap at the working-set size and let callers point users to Export.
     const copyRowCap = (): number =>
       isLazyRowModel(table) ? LAZY_ROW_MODEL_THRESHOLD : Infinity;
 
@@ -153,18 +236,17 @@ export const ClipboardFeature: TableFeature = {
       const data = getData();
       const selRows = selection.max.row - selection.min.row + 1;
       const selCols = selection.max.col - selection.min.col + 1;
-      const columnIds: string[] = [];
-      for (let c = selection.min.col; c <= selection.max.col; c++) {
-        const id = columns[c]?.id;
-        if (id) columnIds.push(id);
-      }
       return {
-        selectedRows: selRows,
-        copiedRows: Math.min(selRows, copyRowCap()),
+        requestedRows: selRows,
+        rows: Math.min(selRows, copyRowCap()),
         cols: selCols,
         allRows: selRows === data.length,
         allCols: selCols === columns.length,
-        columnIds,
+        columnIds: collectColumnIds(
+          columns,
+          selection.min.col,
+          selection.max.col + 1,
+        ),
       };
     };
 
@@ -179,7 +261,7 @@ export const ClipboardFeature: TableFeature = {
       if (info) table.options.onClipboardCopy?.(info);
     };
 
-    table.applyPaste = (text: string) => {
+    table.applyPaste = async (text: string) => {
       const selection = table.getSelection?.();
       if (!selection) return;
       if (table.options.readOnly) return;
@@ -195,91 +277,64 @@ export const ClipboardFeature: TableFeature = {
       const pasteRows = clipboardRows.length;
       const pasteCols = Math.max(...clipboardRows.map((r) => r.length));
 
-      const selRows = selection.max.row - selection.min.row + 1;
-      const selCols = selection.max.col - selection.min.col + 1;
-
-      // Tile the clipboard block to cover the full selection when the
-      // selection is larger; otherwise use the clipboard dimensions.
-      const targetRowsRaw = Math.max(selRows, pasteRows);
-      const targetCols = Math.max(selCols, pasteCols);
-
       const sortedRows = table.getRowModel().rows;
-      const visualRowCount = sortedRows.length;
-
-      // Cap the paste to the existing rows unless the consumer opted in to
-      // auto-extending. Extra clipboard rows past the end are dropped.
-      const remainingVisualRows = visualRowCount - selection.min.row;
-      const targetRows = table.options.autoExtendOnPaste
-        ? targetRowsRaw
-        : Math.min(targetRowsRaw, Math.max(0, remainingVisualRows));
-
+      const { targetRows, targetCols, writtenCols, requestedRows } =
+        resolvePasteBounds(
+          selection,
+          { rows: pasteRows, cols: pasteCols },
+          columns.length,
+          sortedRows.length,
+          table.options,
+        );
       if (targetRows === 0) return;
 
+      const dataIndexAt = createDataIndexResolver(table, sortedRows);
+      const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
       const newData = [...data];
 
-      // Map each visual row position in the paste target to a data-array
-      // index. For positions beyond the current row count, append a fresh
-      // row (only reached when autoExtendOnPaste is true).
-      const dataIndices: number[] = [];
+      const yieldIfSliceElapsed = createTimeSlicer();
       for (let i = 0; i < targetRows; i++) {
+        await yieldIfSliceElapsed();
+
         const visualRow = selection.min.row + i;
-        if (visualRow < visualRowCount) {
-          dataIndices.push(sortedRows[visualRow].index);
+        let dataIdx: number;
+        if (visualRow < sortedRows.length) {
+          dataIdx = dataIndexAt(visualRow);
         } else {
-          const created = createRow();
-          newData.push(created);
-          dataIndices.push(newData.length - 1);
+          newData.push(createRow());
+          dataIdx = newData.length - 1;
         }
-      }
 
-      const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
-
-      for (let i = 0; i < targetRows; i++) {
-        const dataIdx = dataIndices[i];
         const clipboardRow = clipboardRows[i % pasteRows] ?? [];
         const existing = newData[dataIdx] ?? createRow();
-
-        const patches: Record<string, unknown> = {};
-        for (let j = 0; j < targetCols; j++) {
-          const colIndex = selection.min.col + j;
-          if (colIndex >= columns.length) break;
-
-          const column = columns[colIndex];
-          if (!column || column.isReadOnly(dataIdx)) continue;
-
-          const cellText = clipboardRow[j % clipboardRow.length] ?? "";
-          const pasted = column.getPasteValue(cellText, existing);
-          if (pasted === undefined) continue;
-          patches[column.id] = pasted;
-        }
-
-        newData[dataIdx] = patchRow(existing, patches);
+        newData[dataIdx] = patchRow(
+          existing,
+          collectRowPatches(
+            clipboardRow,
+            columns,
+            selection.min.col,
+            targetCols,
+            dataIdx,
+            existing,
+          ),
+        );
       }
 
-      onDataChange(newData);
-
-      const writtenCols = Math.min(
-        targetCols,
-        columns.length - selection.min.col,
-      );
-      const columnIds: string[] = [];
-      for (
-        let c = selection.min.col;
-        c < selection.min.col + writtenCols;
-        c++
-      ) {
-        const id = columns[c]?.id;
-        if (id) columnIds.push(id);
-      }
+      await onDataChange(newData);
 
       table.options.onClipboardPaste?.({
+        requestedRows,
         rows: targetRows,
         cols: writtenCols,
         allRows:
           selection.min.row === 0 &&
           selection.min.row + targetRows >= newData.length,
         allCols: selection.min.col === 0 && writtenCols === columns.length,
-        columnIds,
+        columnIds: collectColumnIds(
+          columns,
+          selection.min.col,
+          selection.min.col + writtenCols,
+        ),
       });
     };
 
@@ -288,7 +343,7 @@ export const ClipboardFeature: TableFeature = {
       if (!selection || table.options.readOnly) return;
       try {
         const text = await navigator.clipboard.readText();
-        table.applyPaste(text);
+        await table.applyPaste(text);
       } catch {
         // Clipboard access denied or other error
       }
@@ -310,7 +365,7 @@ export const ClipboardFeature: TableFeature = {
       // check that steals window focus and breaks document-level
       // keyboard shortcuts (undo/redo) until the grid is re-focused.
       const text = e.clipboardData.getData("text/plain");
-      table.applyPaste(text);
+      void table.applyPaste(text);
     };
   },
 
