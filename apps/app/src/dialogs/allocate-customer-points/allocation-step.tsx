@@ -15,6 +15,7 @@ import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
+import { zonesAtom } from "src/state/zones";
 
 type AllocateCustomerPointsDialogProps = {
   state: AllocateCustomerPointsState;
@@ -26,6 +27,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const zones = useAtomValue(zonesAtom);
 
   const {
     allocationRules,
@@ -42,6 +44,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
     setIsAllocating,
     error,
     setError,
+    allocationZone,
   } = state;
 
   const disconnectedCustomerPoints = Array.from(
@@ -66,6 +69,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
       try {
         const runOnWorker = true;
         const customerPoints = initializeCustomerPoints();
+        const selectedZone = allocationZone ? zones[allocationZone] : undefined;
         disconnectedCustomerPoints.forEach((point) => {
           customerPoints.set(point.id, point);
         });
@@ -73,7 +77,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
           customerPoints,
-          options: { runOnWorker },
+          options: { runOnWorker, selectedZone },
         });
 
         setAllocationResult(result);
@@ -90,6 +94,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
       }
     },
     [
+      allocationZone,
       disconnectedCustomerPoints,
       hydraulicModel,
       setAllocationResult,
@@ -97,6 +102,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
       setIsAllocating,
       setLastAllocatedRules,
       translate,
+      zones,
     ],
   );
 

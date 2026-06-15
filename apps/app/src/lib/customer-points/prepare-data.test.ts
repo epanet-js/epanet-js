@@ -11,7 +11,9 @@ import {
   getNodeId,
   getCustomerPointCoordinates,
   getCustomerPointId,
+  deserializeZoneGeometry,
 } from "./prepare-data";
+import type { MultiPolygon } from "geojson";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import Flatbush from "flatbush";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
@@ -425,6 +427,199 @@ describe("prepareWorkerData", () => {
 
         expect(workerData.customerPoints).toBeInstanceOf(bufferType);
         expect(workerData.customerPoints.byteLength).toBe(8);
+      });
+
+      it("can deserialize a simple zone geometry from worker data", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .build();
+
+        const zoneGeometry: MultiPolygon = {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [0, 10],
+                [0, 0],
+              ],
+            ],
+          ],
+        };
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+          zoneGeometry,
+        );
+
+        expect(workerData.zoneGeometry).toBeInstanceOf(bufferType);
+
+        const result = deserializeZoneGeometry(workerData.zoneGeometry!);
+        expect(result.type).toBe("MultiPolygon");
+        expect(result.coordinates).toHaveLength(1);
+        expect(result.coordinates[0]).toHaveLength(1);
+        expect(result.coordinates[0][0]).toHaveLength(5);
+
+        for (let i = 0; i < zoneGeometry.coordinates[0][0].length; i++) {
+          expect(result.coordinates[0][0][i][0]).toBeCloseTo(
+            zoneGeometry.coordinates[0][0][i][0],
+            5,
+          );
+          expect(result.coordinates[0][0][i][1]).toBeCloseTo(
+            zoneGeometry.coordinates[0][0][i][1],
+            5,
+          );
+        }
+      });
+
+      it("can deserialize a multi-polygon zone geometry from worker data", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .build();
+
+        const zoneGeometry: MultiPolygon = {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [5, 0],
+                [5, 5],
+                [0, 5],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [20, 20],
+                [30, 20],
+                [30, 30],
+                [20, 30],
+                [20, 20],
+              ],
+            ],
+          ],
+        };
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+          zoneGeometry,
+        );
+
+        const result = deserializeZoneGeometry(workerData.zoneGeometry!);
+
+        expect(result.coordinates).toHaveLength(2);
+        expect(result.coordinates[0][0]).toHaveLength(5);
+        expect(result.coordinates[1][0]).toHaveLength(5);
+        expect(result.coordinates[1][0][0][0]).toBeCloseTo(20, 5);
+        expect(result.coordinates[1][0][0][1]).toBeCloseTo(20, 5);
+      });
+
+      it("can deserialize a polygon with a hole from worker data", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .build();
+
+        const zoneGeometry: MultiPolygon = {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [0, 0],
+                [20, 0],
+                [20, 20],
+                [0, 20],
+                [0, 0],
+              ],
+              [
+                [5, 5],
+                [15, 5],
+                [15, 15],
+                [5, 15],
+                [5, 5],
+              ],
+            ],
+          ],
+        };
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+          zoneGeometry,
+        );
+
+        const result = deserializeZoneGeometry(workerData.zoneGeometry!);
+
+        expect(result.coordinates).toHaveLength(1);
+        expect(result.coordinates[0]).toHaveLength(2);
+        expect(result.coordinates[0][0]).toHaveLength(5);
+        expect(result.coordinates[0][1]).toHaveLength(5);
+        expect(result.coordinates[0][1][0][0]).toBeCloseTo(5, 5);
+      });
+
+      it("excludes zoneGeometry from worker data when no zone is provided", () => {
+        const IDS = { J1: 1, J2: 2, P1: 3 };
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aJunction(IDS.J1, { coordinates: [0, 0] })
+          .aJunction(IDS.J2, { coordinates: [10, 0] })
+          .aPipe(IDS.P1, {
+            startNodeId: IDS.J1,
+            endNodeId: IDS.J2,
+            diameter: 12,
+            coordinates: [
+              [0, 0],
+              [10, 0],
+            ],
+          })
+          .build();
+
+        const workerData = prepareWorkerData(
+          hydraulicModel,
+          [],
+          bufferTypeParam,
+        );
+
+        expect(workerData.zoneGeometry).toBeUndefined();
       });
     },
   );

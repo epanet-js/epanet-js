@@ -1,6 +1,7 @@
 import { Point, Feature, point, lineString } from "@turf/helpers";
 import turfBuffer from "@turf/buffer";
 import turfBbox from "@turf/bbox";
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import Flatbush from "flatbush";
 import { Position } from "geojson";
 import { findJunctionForCustomerPoint } from "../../hydraulic-model/utilities/junction-assignment";
@@ -12,6 +13,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import {
   RunData,
+  deserializeZoneGeometry,
   getSegmentCoordinates,
   getSegmentPipeIndex,
   getPipeId,
@@ -41,6 +43,9 @@ export const runAllocation = (
 ): AllocationResultItem[] => {
   const results: AllocationResultItem[] = [];
   const spatialIndex = Flatbush.from(workerData.flatbushIndex);
+  const zoneGeometry = workerData.zoneGeometry
+    ? deserializeZoneGeometry(workerData.zoneGeometry)
+    : undefined;
 
   const totalCustomerPointsCount = new DataView(
     workerData.customerPoints,
@@ -67,6 +72,14 @@ export const runAllocation = (
       workerData.customerPoints,
       i,
     );
+
+    if (
+      zoneGeometry &&
+      !booleanPointInPolygon(customerPointCoordinates, zoneGeometry)
+    ) {
+      results.push({ customerPointId, connection: null, ruleIndex: -1 });
+      continue;
+    }
 
     const { ruleIndex, connection } = findFirstMatchingRule(
       customerPointCoordinates,

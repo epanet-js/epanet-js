@@ -35,10 +35,12 @@ export const AllocationModeStep = ({
 
   const zoneOptions = useMemo<SelectorListOption<ZoneId>[]>(
     () =>
-      Object.values(zones).map((zone) => ({
-        label: zone.label,
-        value: zone.id,
-      })),
+      Object.values(zones)
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .map((zone) => ({
+          label: zone.label,
+          value: zone.id,
+        })),
     [zones],
   );
 

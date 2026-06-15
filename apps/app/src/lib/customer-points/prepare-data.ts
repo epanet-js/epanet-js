@@ -10,6 +10,7 @@ import {
   CustomerPoint,
 } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "../../hydraulic-model/hydraulic-model";
+import type { MultiPolygon } from "geojson";
 
 export interface LinkSegmentProperties {
   linkId: number;
@@ -36,6 +37,7 @@ export interface RunData {
   pipes: BinaryData;
   nodes: BinaryData;
   customerPoints: BinaryData;
+  zoneGeometry?: BinaryData;
 }
 
 const BUFFER_HEADER_SIZE = 8;
@@ -182,6 +184,7 @@ export const prepareWorkerData = (
   hydraulicModel: HydraulicModel,
   customerPoints: CustomerPoint[],
   bufferType: "shared" | "array" = "array",
+  zoneGeometry?: MultiPolygon,
 ): RunData => {
   const { pipesIndex, pipesCount, pipeSegmentsCount, nodesIndex, nodesCount } =
     generateAssetIndexes(Array.from(hydraulicModel.assets.values()));
@@ -268,12 +271,22 @@ export const prepareWorkerData = (
 
   spatialIndex.finish();
 
+  let zoneGeometryBuffer: BinaryData | undefined;
+  if (zoneGeometry) {
+    const zoneBuilder = new ZoneGeometryBinaryBuilder(zoneGeometry, bufferType);
+    for (const polygon of zoneGeometry.coordinates) {
+      zoneBuilder.addPolygon(polygon);
+    }
+    zoneGeometryBuffer = zoneBuilder.build();
+  }
+
   return {
     flatbushIndex: spatialIndex.data as BinaryData,
     segments: segmentsBuilder.build(),
     pipes: pipesBuilder.build(),
     nodes: nodesBuilder.build(),
     customerPoints: customerPointsBuilder.build(),
+    zoneGeometry: zoneGeometryBuffer,
   };
 };
 
@@ -458,6 +471,97 @@ class CustomerPointsBinaryBuilder {
     return this.buffer;
   }
 }
+
+class ZoneGeometryBinaryBuilder {
+  private buffer: BinaryData;
+  private view: DataView;
+  private offset: number;
+
+  constructor(
+    geometry: MultiPolygon,
+    bufferType: "shared" | "array" = "array",
+  ) {
+    let totalSize = BUFFER_HEADER_SIZE;
+    for (const polygon of geometry.coordinates) {
+      totalSize += UINT32_SIZE;
+      for (const ring of polygon) {
+        totalSize += UINT32_SIZE;
+        totalSize += ring.length * 2 * FLOAT64_SIZE;
+      }
+    }
+
+    this.buffer =
+      bufferType === "shared"
+        ? new SharedArrayBuffer(totalSize)
+        : new ArrayBuffer(totalSize);
+    this.view = new DataView(this.buffer);
+
+    this.offset = 0;
+    this.view.setUint32(this.offset, geometry.coordinates.length, true);
+    this.offset += UINT32_SIZE;
+    this.view.setUint32(this.offset, 0, true);
+    this.offset += UINT32_SIZE;
+  }
+
+  addPolygon(rings: Position[][]): void {
+    this.view.setUint32(this.offset, rings.length, true);
+    this.offset += UINT32_SIZE;
+
+    for (const ring of rings) {
+      this.view.setUint32(this.offset, ring.length, true);
+      this.offset += UINT32_SIZE;
+
+      for (const position of ring) {
+        this.view.setFloat64(this.offset, position[0], true);
+        this.offset += FLOAT64_SIZE;
+        this.view.setFloat64(this.offset, position[1], true);
+        this.offset += FLOAT64_SIZE;
+      }
+    }
+  }
+
+  build(): BinaryData {
+    return this.buffer;
+  }
+}
+
+export const deserializeZoneGeometry = (buffer: BinaryData): MultiPolygon => {
+  const view = new DataView(buffer);
+  let offset = 0;
+
+  const polygonCount = view.getUint32(offset, true);
+  offset += UINT32_SIZE;
+  offset += UINT32_SIZE;
+
+  const coordinates: Position[][][] = [];
+
+  for (let p = 0; p < polygonCount; p++) {
+    const ringCount = view.getUint32(offset, true);
+    offset += UINT32_SIZE;
+
+    const polygon: Position[][] = [];
+    for (let r = 0; r < ringCount; r++) {
+      const positionCount = view.getUint32(offset, true);
+      offset += UINT32_SIZE;
+
+      const ring: Position[] = [];
+      for (let n = 0; n < positionCount; n++) {
+        const lng = view.getFloat64(offset, true);
+        offset += FLOAT64_SIZE;
+        const lat = view.getFloat64(offset, true);
+        offset += FLOAT64_SIZE;
+        ring.push([lng, lat]);
+      }
+      polygon.push(ring);
+    }
+    coordinates.push(polygon);
+  }
+
+  return {
+    type: "MultiPolygon",
+    coordinates,
+  };
+};
 
 const generateAssetIndexes = (
   assets: Asset[],

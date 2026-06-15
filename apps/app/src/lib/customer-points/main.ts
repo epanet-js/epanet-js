@@ -40,6 +40,7 @@ export const allocateCustomerPoints = async (
     hydraulicModel,
     Array.from(customerPoints.values()),
     bufferType,
+    options?.selectedZone?.geometry,
   );
 
   const totalCustomerPoints = customerPoints.size;
