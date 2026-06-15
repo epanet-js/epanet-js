@@ -1,17 +1,46 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { AllocateCustomerPointsState } from "./wizard-state";
 import { useAtomValue } from "jotai";
 import { zonesAtom } from "src/state/zones";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
+import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
+import { ZoneId } from "src/lib/zones";
 
 export const AllocationModeStep = ({
   state,
 }: {
   state: AllocateCustomerPointsState;
 }) => {
-  const { setPipeAllocationMode, setCustomerAllocationMode } = state;
+  const {
+    setPipeAllocationMode,
+    setCustomerAllocationMode,
+    customerAllocationMode,
+    allocationZone,
+    setAllocationZone,
+  } = state;
   const translate = useTranslate();
   const zones = useAtomValue(zonesAtom);
+  const selection = useAtomValue(selectionAtom);
+  const { assets } = useAtomValue(stagingModelDerivedAtom);
+  const hasSelectedPipes = useMemo(
+    () =>
+      USelection.getAssetIds(selection).some(
+        (id) => assets.get(id)?.type === "pipe",
+      ),
+    [selection, assets],
+  );
+
+  const zoneOptions = useMemo<SelectorListOption<ZoneId>[]>(
+    () =>
+      Object.values(zones).map((zone) => ({
+        label: zone.label,
+        value: zone.id,
+      })),
+    [zones],
+  );
 
   const pipeSelectionOptions = [
     {
@@ -32,10 +61,11 @@ export const AllocationModeStep = ({
       description: translate(
         `allocateCustomerPoints.allocationOptions.pipeSelection.selectedPipesDescription`,
       ),
-      disabled: false,
+      disabled: !hasSelectedPipes,
     },
   ];
 
+  const hasZones = Object.keys(zones).length > 0;
   const customerSelectionOptions = [
     {
       id: "allCustomers",
@@ -55,7 +85,7 @@ export const AllocationModeStep = ({
       description: translate(
         `allocateCustomerPoints.allocationOptions.customerSelection.zoneCustomersDescription`,
       ),
-      disabled: Object.keys(zones).length === 0,
+      disabled: !hasZones,
     },
   ];
 
@@ -83,12 +113,28 @@ export const AllocationModeStep = ({
         )}
         options={customerSelectionOptions}
         defaultValue="allCustomers"
-        onChange={(id) =>
-          id === "allCustomers"
-            ? setCustomerAllocationMode("allCustomers")
-            : setCustomerAllocationMode("zoneCustomers")
-        }
+        onChange={(id) => {
+          if (id === "allCustomers") {
+            setCustomerAllocationMode("allCustomers");
+            setAllocationZone(null);
+          } else {
+            setCustomerAllocationMode("zoneCustomers");
+          }
+        }}
       />
+
+      {customerAllocationMode === "zoneCustomers" && (
+        <Selector
+          options={zoneOptions}
+          selected={allocationZone}
+          nullable
+          placeholder={translate(
+            `allocateCustomerPoints.allocationOptions.customerSelection.selectZone`,
+          )}
+          onChange={(zoneId) => setAllocationZone(zoneId)}
+          styleOptions={{ border: true }}
+        />
+      )}
     </div>
   );
 };
