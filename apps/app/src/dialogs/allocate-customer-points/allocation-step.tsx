@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtomValue } from "jotai";
 import {
   CustomerPointAllocationRule,
@@ -16,6 +16,8 @@ import { SuccessIcon, WarningIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { useUserTracking } from "src/infra/user-tracking";
 import { zonesAtom } from "src/state/zones";
+import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 
 type AllocateCustomerPointsDialogProps = {
   state: AllocateCustomerPointsState;
@@ -28,6 +30,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const zones = useAtomValue(zonesAtom);
+  const selection = useAtomValue(selectionAtom);
 
   const {
     allocationRules,
@@ -45,7 +48,16 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
     error,
     setError,
     allocationZone,
+    pipeAllocationMode,
   } = state;
+
+  const selectedPipes = useMemo(() => {
+    if (pipeAllocationMode !== "selectedPipes") return undefined;
+    const pipeIds = USelection.getAssetIds(selection).filter(
+      (id) => hydraulicModel.assets.get(id)?.type === "pipe",
+    );
+    return new Set(pipeIds);
+  }, [pipeAllocationMode, selection, hydraulicModel.assets]);
 
   const disconnectedCustomerPoints = Array.from(
     hydraulicModel.customerPoints.values(),
@@ -77,7 +89,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
         const result = await allocateCustomerPoints(hydraulicModel, {
           allocationRules: rules,
           customerPoints,
-          options: { runOnWorker, selectedZone },
+          options: { runOnWorker, selectedZone, selectedPipes },
         });
 
         setAllocationResult(result);
@@ -97,6 +109,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
       allocationZone,
       disconnectedCustomerPoints,
       hydraulicModel,
+      selectedPipes,
       setAllocationResult,
       setError,
       setIsAllocating,
