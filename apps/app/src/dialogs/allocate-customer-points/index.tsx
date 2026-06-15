@@ -85,8 +85,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   ]);
 
   const bottomButtonsDisabled =
-    step === 2 &&
-    (isProcessing || !allocationResult || isAllocating || isEditingRules);
+    isProcessing || !allocationResult || isAllocating || isEditingRules;
 
   if (!isPerZoneAllocationEnabled) {
     const footer = (
@@ -137,7 +136,7 @@ export const AllocateCustomerPointsDialog: React.FC<
           <WizardActions
             nextAction={{
               onClick: () => setStep(2),
-              disabled: bottomButtonsDisabled,
+              disabled: false,
             }}
           />
         );

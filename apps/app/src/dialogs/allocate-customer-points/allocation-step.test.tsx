@@ -180,9 +180,9 @@ const waitForAllocations = () => {
   });
 };
 
-const AllocationStepWrapper = ({ onClose }: { onClose: () => void }) => {
+const AllocationStepWrapper = () => {
   const state = useAllocateCustomerPointsState();
-  return <AllocationStep state={state} isOpen={true} onClose={onClose} />;
+  return <AllocationStep state={state} />;
 };
 
 const renderDialog = (store: Store) => {
@@ -191,7 +191,7 @@ const renderDialog = (store: Store) => {
   return render(
     <JotaiProvider store={store}>
       <PersistenceContext.Provider value={persistence}>
-        <AllocationStepWrapper onClose={() => {}} />
+        <AllocationStepWrapper />
       </PersistenceContext.Provider>
     </JotaiProvider>,
   );
