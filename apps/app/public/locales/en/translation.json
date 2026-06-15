@@ -635,6 +635,8 @@
   "customMapLayers": "Custom map layers",
   "customElevations": "Custom elevations sources",
   "scenariosItem": "Scenarios",
+  "legacyModelBuilder": "Legacy model builder",
+  "proModelBuilder": "Pro model builder",
   "cloudStorage": "Cloud storage",
   "pointInTimeRestore": "Point in time restore - {{1}} days",
   "demandsAnalysis": "Demand analysis",
