@@ -154,7 +154,8 @@ export function BaseSelector<T extends string | number>({
         <Popover.Content
           side="bottom"
           align="start"
-          className="bg-popover min-w-(--radix-popover-trigger-width) border text-size-base rounded-md shadow-md z-50 mt-1"
+          collisionPadding={8}
+          className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {

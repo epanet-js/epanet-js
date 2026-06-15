@@ -383,7 +383,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
       tabIndex={showSearch ? -1 : 0}
       onKeyDown={handleKeyDown}
       onMouseLeave={() => setActiveIndex(NO_INDEX)}
-      className="outline-hidden"
+      className="outline-hidden flex flex-col min-h-0"
     >
       {showSearch && (
         <div
@@ -412,7 +412,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
         </div>
       )}
       {showList && (
-        <div className="outline-hidden max-h-56 overflow-auto scroll-shadows [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]">
           <ul role="listbox" tabIndex={-1} className="p-1">
             {filtered.map((option, i) => {
               const isOptionDisabled = !!option.disabled;
