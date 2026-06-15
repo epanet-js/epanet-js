@@ -166,10 +166,12 @@ const MultiSelector = ({
           {options.map((op) => (
             <label
               key={op.id}
-              className={`flex items-start space-x-3 cursor-pointer rounded-md p-3 border-2 transition-colors ${
-                selectedOption === op.id
-                  ? "border-accent bg-accent-tint"
-                  : " bg-base hover:border-strong hover:bg-panel"
+              className={`flex items-start space-x-3 rounded-md p-3 border-2 transition-colors ${
+                op.disabled
+                  ? "opacity-50 cursor-not-allowed bg-base"
+                  : selectedOption === op.id
+                    ? "cursor-pointer border-accent bg-accent-tint"
+                    : "cursor-pointer bg-base hover:border-strong hover:bg-panel"
               }`}
             >
               <input
