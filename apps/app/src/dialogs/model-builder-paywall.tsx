@@ -18,7 +18,16 @@ export const ModelBuilderPaywallDialog = ({
   const onlyEarlyAccess = useEarlyAccess();
   const userTracking = useUserTracking();
 
+  const handleDismiss = () => {
+    userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
+    onClose();
+  };
+
   const handleContinueWithLegacy = () => {
+    userTracking.capture({
+      name: "modelBuilder.paywall.continuedWithLegacy",
+      source,
+    });
     onlyEarlyAccess(() => {
       userTracking.capture({ name: "modelBuilder.opened", source });
       setDialog({ type: "modelBuilderIframe" });
@@ -26,6 +35,10 @@ export const ModelBuilderPaywallDialog = ({
   };
 
   const handleUpgrade = () => {
+    userTracking.capture({
+      name: "modelBuilder.paywall.upgradeClicked",
+      source,
+    });
     setDialog({ type: "upgrade", source: { kind: "modelBuilder" } });
   };
 
@@ -34,7 +47,7 @@ export const ModelBuilderPaywallDialog = ({
       title="Choose your model builder"
       size="md"
       isOpen={true}
-      onClose={onClose}
+      onClose={handleDismiss}
     >
       <div className="p-4">
         <p className="text-size-base text-default pb-6">

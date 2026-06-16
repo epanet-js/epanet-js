@@ -224,6 +224,22 @@ type ModelBuilderOpened = {
 type ModelBuilderCompleted = {
   name: "modelBuilder.completed";
 };
+type ModelBuilderPaywallSeen = {
+  name: "modelBuilder.paywall.seen";
+  source: string;
+};
+type ModelBuilderPaywallDismissed = {
+  name: "modelBuilder.paywall.dismissed";
+  source: string;
+};
+type ModelBuilderPaywallContinuedWithLegacy = {
+  name: "modelBuilder.paywall.continuedWithLegacy";
+  source: string;
+};
+type ModelBuilderPaywallUpgradeClicked = {
+  name: "modelBuilder.paywall.upgradeClicked";
+  source: string;
+};
 
 type ExamplesOpened = {
   name: "examples.opened";
@@ -1168,6 +1184,10 @@ export type UserEvent =
   | SimulationReportAssetClicked
   | ModelBuilderOpened
   | ModelBuilderCompleted
+  | ModelBuilderPaywallSeen
+  | ModelBuilderPaywallDismissed
+  | ModelBuilderPaywallContinuedWithLegacy
+  | ModelBuilderPaywallUpgradeClicked
   | ExamplesOpened
   | ImportCustomerPointsDataSelectDemandProperty
   | ImportCustomerPointsDataSelectLabelProperty

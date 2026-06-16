@@ -638,6 +638,12 @@ export const Dialogs = memo(function Dialogs() {
           featureName: dialog.featureName,
         });
       }
+      if (dialog.type === "modelBuilderPaywall") {
+        userTracking.capture({
+          name: "modelBuilder.paywall.seen",
+          source: dialog.source,
+        });
+      }
     }
     previousDialog.current = dialog;
   }
