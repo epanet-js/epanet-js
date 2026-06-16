@@ -115,7 +115,7 @@ export function FilterableSelectCell({
 
   if (readOnly) {
     return (
-      <div className="w-full h-full pl-2 flex items-center justify-between gap-1 text-size-base bg-panel">
+      <div className="w-full h-full px-2 flex items-center text-size-base bg-panel">
         <span
           className={clsx(
             "truncate",
@@ -124,9 +124,6 @@ export function FilterableSelectCell({
         >
           {selectedOption?.label ?? placeholder}
         </span>
-        <div className="pl-1 text-subtle">
-          <ChevronDownIcon />
-        </div>
       </div>
     );
   }

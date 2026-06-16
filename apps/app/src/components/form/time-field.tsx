@@ -166,7 +166,7 @@ export const formatSecondsToDisplay = (
   return `${hours}:${String(minutes).padStart(2, "0")}`;
 };
 
-const parseValueToSeconds = (value: string): number | undefined => {
+export const parseValueToSeconds = (value: string): number | undefined => {
   if (!value || value.trim() === "") return undefined;
   const trimmed = value.trim();
 

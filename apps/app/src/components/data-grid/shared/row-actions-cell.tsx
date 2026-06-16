@@ -17,7 +17,13 @@ export function RowActionsCell({
   isLastRow,
   disabled = false,
 }: RowActionsCellProps) {
-  return rowActions ? (
+  if (!rowActions) return null;
+
+  const visibleActions = rowActions.filter(
+    (action) => !action.hidden?.(rowIndex),
+  );
+
+  return (
     <div
       role="gridcell"
       onFocus={(e) => e.stopPropagation()}
@@ -31,11 +37,13 @@ export function RowActionsCell({
           : "border-b-0",
       )}
     >
-      <ActionsCell
-        rowIndex={rowIndex}
-        actions={rowActions}
-        disabled={disabled}
-      />
+      {visibleActions.length > 0 && (
+        <ActionsCell
+          rowIndex={rowIndex}
+          actions={visibleActions}
+          disabled={disabled}
+        />
+      )}
     </div>
-  ) : null;
+  );
 }

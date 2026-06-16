@@ -99,7 +99,9 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
+import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
@@ -2137,6 +2139,7 @@ const PumpEditor = ({
 }) => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translate = useTranslate();
+  const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
     getComparison,
@@ -2263,6 +2266,15 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      {isPumpControlsOn && (
+        <SectionWrapper title="Controls" section="controls">
+          <PumpControlsEditor
+            key={pump.id}
+            initialStatus={pump.initialStatus}
+            readOnly={readonly}
+          />
+        </SectionWrapper>
+      )}
       <SectionWrapper
         title={translate("energy")}
         section="energy"

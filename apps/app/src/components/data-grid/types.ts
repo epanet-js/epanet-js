@@ -19,6 +19,7 @@ export type RowAction = {
   icon: React.ReactNode;
   onSelect: (rowIndex: number) => void;
   disabled?: (rowIndex: number) => boolean;
+  hidden?: (rowIndex: number) => boolean;
 };
 
 export type ContextActionVariant = "default" | "destructive";

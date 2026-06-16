@@ -23,3 +23,4 @@ export { floatColumn } from "./cells/float-cell";
 export { integerColumn } from "./cells/integer-cell";
 export { filterableSelectColumn } from "./cells/filterable-select-cell";
 export { textColumn } from "./cells/text-cell";
+export { timeColumn } from "./cells/time-cell";
