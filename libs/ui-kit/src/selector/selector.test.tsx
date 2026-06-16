@@ -265,8 +265,8 @@ describe("Selector", () => {
           clearLabel="Clear selection"
         />,
       );
-      // No options → trigger should still be present; activate it and check
-      // the popover content does not render the clear button.
+      // No options → the trigger is disabled, so clicking it does nothing and
+      // the clear button never renders.
       const user = setupUser();
       await user.click(screen.getByRole("combobox", { name: "Pick one" }));
 
@@ -516,6 +516,69 @@ describe("Selector", () => {
       await user.click(screen.getByRole("combobox", { name: "Pick one" }));
 
       expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    });
+
+    it("is disabled and does not open when there are no options", async () => {
+      const user = setupUser();
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          clearLabel="Clear selection"
+        />,
+      );
+      const trigger = screen.getByRole("combobox", { name: "Pick one" });
+      expect(trigger).toBeDisabled();
+
+      await user.click(trigger);
+
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    });
+
+    it("stays enabled with no options when an action is available", async () => {
+      const user = setupUser();
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          actionLabel="Open library"
+          onActionClick={vi.fn()}
+        />,
+      );
+      const trigger = screen.getByRole("combobox", { name: "Pick one" });
+      expect(trigger).not.toBeDisabled();
+
+      await user.click(trigger);
+
+      expect(
+        screen.getByRole("button", { name: "Open library" }),
+      ).toBeInTheDocument();
+    });
+
+    it("stays enabled with no options when allowNew is set", () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[]}
+          selected={null}
+          onChange={vi.fn()}
+          nullable
+          placeholder="Choose…"
+          allowNew
+        />,
+      );
+
+      expect(
+        screen.getByRole("combobox", { name: "Pick one" }),
+      ).not.toBeDisabled();
     });
   });
 

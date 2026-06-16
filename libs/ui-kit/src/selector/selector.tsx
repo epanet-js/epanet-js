@@ -4,7 +4,11 @@ import clsx from "clsx";
 import { ChevronDownIcon } from "../icons";
 import { useSelectorPortalContainer } from "../portal";
 import { StyleOptions, triggerStylesFor } from "./selector-trigger";
-import { BaseSelectorList, SelectorListOption } from "./selector-list";
+import {
+  BaseSelectorList,
+  SelectorListOption,
+  isSelectorEmpty,
+} from "./selector-list";
 
 export type SelectorOption<T extends string | number> = SelectorListOption<T>;
 
@@ -82,19 +86,24 @@ export function BaseSelector<T extends string | number>({
     [options, selected],
   );
 
+  // An empty selector (no options and no way to add content) has nothing to
+  // show, so we treat it as disabled rather than opening an empty dropdown.
+  const effectiveDisabled =
+    disabled || isSelectorEmpty(options, { allowNew, onActionClick });
+
   const triggerStyles = useMemo(
-    () => triggerStylesFor(styleOptions, { disabled }),
-    [styleOptions, disabled],
+    () => triggerStylesFor(styleOptions, { disabled: effectiveDisabled }),
+    [styleOptions, effectiveDisabled],
   );
 
   const handleTriggerClick = useCallback(() => {
-    if (disabled) return;
+    if (effectiveDisabled) return;
     setOpen((prev) => !prev);
-  }, [disabled]);
+  }, [effectiveDisabled]);
 
   const handleTriggerKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (disabled) return;
+      if (effectiveDisabled) return;
       if (
         e.key === "Enter" ||
         e.key === " " ||
@@ -105,7 +114,7 @@ export function BaseSelector<T extends string | number>({
         setOpen(true);
       }
     },
-    [disabled],
+    [effectiveDisabled],
   );
 
   const handleCommit = useCallback(
@@ -120,7 +129,10 @@ export function BaseSelector<T extends string | number>({
   );
 
   return (
-    <Popover.Root open={open} onOpenChange={disabled ? undefined : setOpen}>
+    <Popover.Root
+      open={open}
+      onOpenChange={effectiveDisabled ? undefined : setOpen}
+    >
       <Popover.Trigger asChild>
         <button
           ref={buttonRef}
@@ -130,7 +142,7 @@ export function BaseSelector<T extends string | number>({
           aria-expanded={open}
           aria-haspopup="listbox"
           tabIndex={tabIndex}
-          disabled={disabled}
+          disabled={effectiveDisabled}
           onClick={handleTriggerClick}
           onKeyDown={handleTriggerKeyDown}
           className={triggerStyles}

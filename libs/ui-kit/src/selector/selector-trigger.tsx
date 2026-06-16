@@ -57,21 +57,30 @@ export const SelectorLikeButton = React.forwardRef<
     ariaLabel?: string;
     tabIndex?: number;
     styleOptions?: StyleOptions;
+    disabled?: boolean;
   }
 >(
   (
-    { children, ariaLabel, tabIndex = 1, styleOptions = {}, ...props },
+    {
+      children,
+      ariaLabel,
+      tabIndex = 1,
+      styleOptions = {},
+      disabled = false,
+      ...props
+    },
     forwardedRef,
   ) => {
     const triggerStyles = useMemo(() => {
-      return triggerStylesFor(styleOptions);
-    }, [styleOptions]);
+      return triggerStylesFor(styleOptions, { disabled });
+    }, [styleOptions, disabled]);
 
     return (
       <button
         ref={forwardedRef}
         aria-label={ariaLabel}
         tabIndex={tabIndex}
+        disabled={disabled}
         className={triggerStyles}
         {...props}
       >

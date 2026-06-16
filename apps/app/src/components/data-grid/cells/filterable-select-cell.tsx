@@ -9,7 +9,11 @@ import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
 import { ChevronDownIcon } from "src/icons";
 import type { Row, RowData } from "@tanstack/react-table";
-import { SelectorList, SelectorListOption } from "@epanet-js/ui-kit";
+import {
+  SelectorList,
+  SelectorListOption,
+  isSelectorEmpty,
+} from "@epanet-js/ui-kit";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";
 
@@ -216,7 +220,10 @@ export function filterableSelectColumn<
     validateNew?: (query: string) => boolean;
   },
 ): GridColumn<TData> {
-  const isEmpty = options.options.length === 0 && !options.allowNew;
+  const isEmpty = isSelectorEmpty(options.options, {
+    allowNew: options.allowNew,
+    onActionClick: options.onActionClick,
+  });
   const resolveReadOnly = (rowIndex: number) =>
     typeof options.isReadOnly === "function"
       ? options.isReadOnly(rowIndex)

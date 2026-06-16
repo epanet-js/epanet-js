@@ -41,6 +41,24 @@ const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
 
+/**
+ * A selector has nothing to show when there are no options and there is no
+ * other way to produce content (creating a new value or an action row). In
+ * those cases the trigger should be disabled rather than opening an empty
+ * dropdown. Use this to keep the disabled-when-empty behaviour consistent
+ * between the built-in `Selector` trigger and custom triggers wrapping
+ * `SelectorList`.
+ */
+export function isSelectorEmpty<T extends string | number | boolean>(
+  options: SelectorListOption<T>[],
+  {
+    allowNew = false,
+    onActionClick,
+  }: { allowNew?: boolean; onActionClick?: () => void } = {},
+): boolean {
+  return options.length === 0 && !allowNew && onActionClick === undefined;
+}
+
 export const SelectorList = BaseSelectorList;
 
 export function BaseSelectorList<T extends string | number | boolean>({
