@@ -17,23 +17,29 @@ type TimeCellProps = CellProps<number | null> & {
   emptyValue?: number | null;
   readonly?: boolean;
   placeholder?: string;
+  validate?: (value: number, rowIndex: number) => boolean;
 };
 
 export function TimeCell({
   value,
+  rowIndex,
   editMode,
   onChange,
   stopEditing,
   emptyValue = null,
   readonly,
   placeholder,
+  validate,
 }: TimeCellProps) {
   const parse = useCallback(
     (raw: string): number | null | undefined => {
       if (raw.trim() === "") return emptyValue;
-      return parseValueToSeconds(raw);
+      const seconds = parseValueToSeconds(raw);
+      if (seconds === undefined) return undefined;
+      if (validate && !validate(seconds, rowIndex)) return undefined;
+      return seconds;
     },
-    [emptyValue],
+    [emptyValue, validate, rowIndex],
   );
 
   const format = useCallback(
@@ -65,9 +71,15 @@ export function TimeCell({
       const newValue = sanitizeTimeInput(e.target.value);
       setEditValue(newValue);
       const isEmpty = newValue.trim() === "";
-      setHasError(!isEmpty && parseValueToSeconds(newValue) === undefined);
+      const seconds = parseValueToSeconds(newValue);
+      const isInvalid = !isEmpty && seconds === undefined;
+      const failsValidation =
+        seconds !== undefined &&
+        validate !== undefined &&
+        !validate(seconds, rowIndex);
+      setHasError(isInvalid || failsValidation);
     },
-    [setEditValue, setHasError],
+    [setEditValue, setHasError, validate, rowIndex],
   );
 
   const formattedValue = value === null ? "" : formatSecondsToDisplay(value);
@@ -122,9 +134,10 @@ export function timeColumn<TData extends RowData = RowData>(
     emptyValue?: number | null;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
+    validate?: (value: number, rowIndex: number) => boolean;
   },
 ): GridColumn<TData> {
-  const { emptyValue = null, isReadOnly, placeholder } = options;
+  const { emptyValue = null, isReadOnly, placeholder, validate } = options;
   const resolveReadOnly = (rowIndex: number) =>
     typeof isReadOnly === "function"
       ? isReadOnly(rowIndex)
@@ -136,6 +149,7 @@ export function timeColumn<TData extends RowData = RowData>(
       emptyValue={emptyValue}
       readonly={resolveReadOnly(props.rowIndex)}
       placeholder={placeholder}
+      validate={validate}
     />
   );
 

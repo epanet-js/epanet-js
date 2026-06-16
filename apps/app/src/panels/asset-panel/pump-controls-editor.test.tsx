@@ -11,7 +11,7 @@ const selectTimeBased = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(await screen.findByRole("option", { name: "Time-based" }));
 };
 
-const getRows = () => screen.getAllByRole("row").slice(1); // skip header
+const getRows = () => screen.getAllByRole("row").slice(1);
 
 const getCell = (rowIndex: number, colIndex: number) => {
   const cells = within(getRows()[rowIndex]).getAllByRole("gridcell");
@@ -22,6 +22,18 @@ const getTimeText = (rowIndex: number) => getCell(rowIndex, 0).textContent;
 const getTimeInputValue = (rowIndex: number) =>
   within(getCell(rowIndex, 0)).getByRole<HTMLInputElement>("textbox").value;
 const getStatusCell = (rowIndex: number) => getCell(rowIndex, 1);
+
+const startEditingTime = async (
+  user: ReturnType<typeof userEvent.setup>,
+  rowIndex: number,
+) => {
+  const cell = getCell(rowIndex, 0);
+  await user.click(cell);
+  await user.dblClick(cell);
+  const input = within(cell).getByRole<HTMLInputElement>("textbox");
+  await user.clear(input);
+  return input;
+};
 
 const getAddTimeStepButton = () =>
   screen.getByRole("button", { name: /add time step/i });
@@ -56,7 +68,6 @@ describe("PumpControlsEditor", () => {
     expect(getRows()).toHaveLength(1);
     expect(getTimeText(0)).toContain("0:00");
     expect(getStatusCell(0)).toHaveTextContent("On");
-    // Read-only first row renders plain text, not an editable input.
     expect(
       within(getCell(0, 0)).queryByRole("textbox"),
     ).not.toBeInTheDocument();
@@ -105,7 +116,7 @@ describe("PumpControlsEditor", () => {
     const user = userEvent.setup();
     renderEditor("on");
     await selectTimeBased(user);
-    await user.click(getAddTimeStepButton()); // row 1: 1:00, Off
+    await user.click(getAddTimeStepButton());
 
     await openRowActions(user, 1);
     await user.click(
@@ -121,7 +132,7 @@ describe("PumpControlsEditor", () => {
     const user = userEvent.setup();
     renderEditor("on");
     await selectTimeBased(user);
-    await user.click(getAddTimeStepButton()); // row 1: 1:00, Off
+    await user.click(getAddTimeStepButton());
 
     await openRowActions(user, 1);
     await user.click(
@@ -149,5 +160,64 @@ describe("PumpControlsEditor", () => {
     expect(
       screen.queryByRole("menuitem", { name: /insert row above/i }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("time sequence validation", () => {
+    const withTwoSteps = async (user: ReturnType<typeof userEvent.setup>) => {
+      renderEditor("on");
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+      await user.click(getAddTimeStepButton());
+    };
+
+    it("warns and reverts a time greater than the next row on blur", async () => {
+      const user = userEvent.setup();
+      await withTwoSteps(user);
+
+      const input = await startEditingTime(user, 1);
+      await user.keyboard("3:00");
+
+      expect(input.parentElement).toHaveClass("bg-orange-100");
+
+      await user.click(getCell(0, 0));
+
+      expect(getTimeInputValue(1)).toBe("1:00");
+    });
+
+    it("warns and reverts a time smaller than the previous row on blur", async () => {
+      const user = userEvent.setup();
+      await withTwoSteps(user);
+
+      const input = await startEditingTime(user, 2);
+      await user.keyboard("0:30");
+
+      expect(input.parentElement).toHaveClass("bg-orange-100");
+
+      await user.click(getCell(0, 0));
+
+      expect(getTimeInputValue(2)).toBe("2:00");
+    });
+
+    it("persists a valid in-sequence time", async () => {
+      const user = userEvent.setup();
+      await withTwoSteps(user);
+
+      const input = await startEditingTime(user, 1);
+      await user.keyboard("1:30{Enter}");
+
+      expect(input.parentElement).not.toHaveClass("bg-orange-100");
+      expect(getTimeInputValue(1)).toBe("1:30");
+    });
+
+    it("allows a repeated time equal to a neighbor", async () => {
+      const user = userEvent.setup();
+      await withTwoSteps(user);
+
+      await startEditingTime(user, 1);
+      await user.keyboard("2:00{Enter}");
+
+      expect(getRows()).toHaveLength(3);
+      expect(getTimeInputValue(1)).toBe("2:00");
+    });
   });
 });

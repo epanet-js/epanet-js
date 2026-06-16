@@ -41,6 +41,16 @@ export const PumpTimeBasedControls = ({
     [translate],
   );
 
+  const isTimeInSequence = useCallback(
+    (value: number, rowIndex: number) => {
+      const prev = rowIndex > 0 ? data[rowIndex - 1].time : -Infinity;
+      const next =
+        rowIndex < data.length - 1 ? data[rowIndex + 1].time : Infinity;
+      return value >= prev && value <= next;
+    },
+    [data],
+  );
+
   const columns: GridColumn<ControlStep>[] = useMemo(
     () => [
       timeColumn("time", {
@@ -48,6 +58,7 @@ export const PumpTimeBasedControls = ({
         size: 80,
         emptyValue: 0,
         isReadOnly: (rowIndex) => rowIndex === 0,
+        validate: isTimeInSequence,
       }),
       filterableSelectColumn<PumpStatus, ControlStep>("status", {
         header: translate("status"),
@@ -58,7 +69,7 @@ export const PumpTimeBasedControls = ({
         isReadOnly: (rowIndex) => rowIndex === 0,
       }),
     ],
-    [translate, statusOptions],
+    [translate, statusOptions, isTimeInSequence],
   );
 
   const createRow = useCallback((): ControlStep => {
