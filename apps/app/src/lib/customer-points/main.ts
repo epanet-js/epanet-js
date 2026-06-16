@@ -50,6 +50,7 @@ export const allocateCustomerPoints = async (
     return {
       allocatedCustomerPoints,
       disconnectedCustomerPoints,
+      customerPointsMatchedToZone: 0,
       ruleMatches,
     };
   }
@@ -67,7 +68,11 @@ export const allocateCustomerPoints = async (
       )
     : runAllocation(workerData, allocationRules, nullOffset);
 
+  let customerPointsMatchedToZone = 0;
+
   for (const result of allocationResults) {
+    if (result.inZone) customerPointsMatchedToZone++;
+
     const customerPointCopy = customerPoints
       .get(result.customerPointId)
       ?.copyDisconnected();
@@ -88,6 +93,7 @@ export const allocateCustomerPoints = async (
   return {
     allocatedCustomerPoints,
     disconnectedCustomerPoints,
+    customerPointsMatchedToZone,
     ruleMatches,
   };
 };

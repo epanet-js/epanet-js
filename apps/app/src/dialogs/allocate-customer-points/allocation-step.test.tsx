@@ -56,6 +56,7 @@ describe("AllocateCustomerPointsDialog", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     const builder = HydraulicModelBuilder.with();
@@ -93,6 +94,7 @@ describe("AllocateCustomerPointsDialog", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     const builder = HydraulicModelBuilder.with();
@@ -130,6 +132,7 @@ describe("AllocateCustomerPointsDialog", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     const builder = HydraulicModelBuilder.with();
@@ -163,6 +166,7 @@ const setupWithDisconnectedCPs = (count: number) => {
     ruleMatches: [count],
     allocatedCustomerPoints: new Map(customerPoints.map((cp) => [cp.id, cp])),
     disconnectedCustomerPoints: new Map(),
+    customerPointsMatchedToZone: 0,
   });
 
   const builder = HydraulicModelBuilder.with();

@@ -51,6 +51,7 @@ describe("applyCustomerPointAllocation", () => {
       allocationResult: {
         allocatedCustomerPoints,
         disconnectedCustomerPoints: new Map(),
+        customerPointsMatchedToZone: 0,
         ruleMatches: [2],
       },
     });
@@ -92,6 +93,7 @@ describe("applyCustomerPointAllocation", () => {
       allocationResult: {
         allocatedCustomerPoints,
         disconnectedCustomerPoints: new Map(),
+        customerPointsMatchedToZone: 0,
         ruleMatches: [2],
       },
     });
@@ -119,6 +121,7 @@ describe("applyCustomerPointAllocation", () => {
       allocationResult: {
         allocatedCustomerPoints: new Map(),
         disconnectedCustomerPoints: new Map(),
+        customerPointsMatchedToZone: 0,
         ruleMatches: [0],
       },
     });
@@ -153,6 +156,7 @@ describe("applyCustomerPointAllocation", () => {
       allocationResult: {
         allocatedCustomerPoints: new Map([[100, cp1]]),
         disconnectedCustomerPoints: new Map([[101, disconnectedCp]]),
+        customerPointsMatchedToZone: 0,
         ruleMatches: [1],
       },
     });

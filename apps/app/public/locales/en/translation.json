@@ -1011,6 +1011,7 @@
       "summaryTitle": "Allocation summary ({{1}} total customer points)",
       "allocatedPoints": "{{1}} customer points will be allocated ({{2}}%)",
       "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
+      "zoneAllocationSummary": "Allocated {{1}} customer points of {{2}} in zone {{3}} ({{4}}%)",
       "allocationFailed": "Allocation failed: {{1}}",
       "applyChanges": "Apply changes"
     }

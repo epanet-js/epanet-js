@@ -75,6 +75,7 @@ export type CustomerPointAllocationResult = {
   allocatedCustomerPoints: CustomerPoints;
   disconnectedCustomerPoints: CustomerPoints;
   ruleMatches: number[];
+  customerPointsMatchedToZone: number;
 };
 
 export const initializeCustomerPoints = (): CustomerPoints => {

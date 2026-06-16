@@ -31,6 +31,7 @@ export type AllocationResultItem = {
   customerPointId: number;
   connection: CustomerPointConnection | null;
   ruleIndex: number;
+  inZone: boolean;
 };
 
 const bucketSize = 30;
@@ -61,6 +62,7 @@ export const runAllocation = (
         customerPointId,
         connection: null,
         ruleIndex: -1,
+        inZone: !zoneGeometry,
       });
     }
     return results;
@@ -77,7 +79,12 @@ export const runAllocation = (
       zoneGeometry &&
       !booleanPointInPolygon(customerPointCoordinates, zoneGeometry)
     ) {
-      results.push({ customerPointId, connection: null, ruleIndex: -1 });
+      results.push({
+        customerPointId,
+        connection: null,
+        ruleIndex: -1,
+        inZone: false,
+      });
       continue;
     }
 
@@ -91,6 +98,7 @@ export const runAllocation = (
       customerPointId,
       connection,
       ruleIndex,
+      inZone: true,
     });
   }
 

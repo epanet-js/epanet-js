@@ -95,6 +95,7 @@ describe("AllocationStep", () => {
         ruleMatches: [1],
         allocatedCustomerPoints: new Map(),
         disconnectedCustomerPoints: new Map(),
+        customerPointsMatchedToZone: 0,
       },
       connectionCounts: { 0: 1 },
     });
@@ -231,6 +232,7 @@ describe("AllocationStep", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     setWizardState(store, {
@@ -277,6 +279,7 @@ describe("AllocationStep", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     setWizardState(store, {
@@ -323,6 +326,7 @@ describe("AllocationStep", () => {
       disconnectedCustomerPoints: new Map(
         customerPoints.slice(allocatedCount).map((cp) => [cp.id, cp]),
       ),
+      customerPointsMatchedToZone: 0,
     });
 
     setWizardState(store, {
