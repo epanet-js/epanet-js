@@ -5,7 +5,7 @@ import { CMContent, CMItem } from "src/components/elements";
 import { CopyIcon, ClipboardPasteIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { CellContextAction, GutterContextAction } from "../types";
-import { isLazyRowModel } from "../utils/lazy-core-row-model";
+import { isLazyRowModel } from "../models/lazy-core-row-model";
 import { useGridBusy } from "./grid-busy";
 
 const itemClassName = (isDisabled: boolean) =>

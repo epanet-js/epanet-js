@@ -28,7 +28,12 @@ Our data-grid is a custom spreadsheet-like table built on top of **TanStack Tabl
 | `src/components/data-grid/index.ts` | Public API — import from here |
 | `src/components/data-grid/features/cell-editing-feature.ts` | Manages active cell and edit mode |
 | `src/components/data-grid/features/cell-range-selection-feature.ts` | Multi-cell range selection |
-| `src/components/data-grid/features/clipboard-feature.ts` | Copy/paste (TSV) |
+| `src/components/data-grid/features/clipboard-feature.ts` | Copy/paste (TSV) — Row-free reads, sliced loops, `maxClipboardRows` cap |
+| `src/components/data-grid/models/lazy-core-row-model.ts` | Lazy core row model + `isLazyRowModel`, `getAdaptiveCoreRowModel`, `LAZY_ROW_MODEL_THRESHOLD` |
+| `src/components/data-grid/models/lazy-sticky-sorted-row-model.ts` | Sorted order over a lazy model without materializing rows; `getSortValue`, sort-key precompute |
+| `src/components/data-grid/models/get-sticky-sorted-row-model.ts` | Standard (non-lazy) sticky sorted row model |
+| `src/components/data-grid/hooks/use-grid-busy-state.ts` | Busy overlay state: `runBusy` (transition) / `runBusyAsync` (paint-then-run) |
+| `src/infra/yield-to-main.ts` | `yieldToMain` / `createTimeSlicer` — slice long synchronous loops |
 | `src/components/data-grid/shared/` | Internal sub-components: `VirtualGrid`, `InlineGrid`, `GridHeader`, `GridRow`, `VirtualRows`, `ScrollShadows`, `GridContextMenuWrapper`, etc. |
 | `src/components/data-grid/hooks/` | Internal hooks: `useGridKeyboard`, `useScrollActiveCellIntoView`, `useContainerHeight`, `useScrollState`, `useHeaderScrollSync`, `useContextMenuTarget`, plus selection/clipboard/editing logic |
 | `src/components/data-grid/cells/float-cell.tsx` | `floatColumn` helper + `FloatCell` |
@@ -62,6 +67,8 @@ Our data-grid is a custom spreadsheet-like table built on top of **TanStack Tabl
   includeHeadersOnCopy             // prepend column headers on Ctrl+C
   onCopy={handler}                 // (info: ClipboardCopyInfo) => void
   onPaste={handler}                // (info: ClipboardPasteInfo) => void
+  enableLazyRowModel               // opt into the lazy row model for large tables — see "Large tables" below
+  maxClipboardRows={100000}        // optional cap on rows a single copy/paste handles (unset = no cap)
   ref={gridRef}                    // DataGridRef
 />
 ```
@@ -309,6 +316,56 @@ Features communicate with each other by calling methods on the shared `table` in
 
 ---
 
+## Large tables: lazy row model, performance & OOM
+
+The grid runs on datasets of **~450K rows**. A naive TanStack table materializes one `Row` object per data row up front; at that scale it froze the UI for seconds and OOM'd the tab. The mechanisms below exist to prevent that. **Any new feature that touches row data must respect them — otherwise it silently reintroduces the freeze/OOM at scale.** When adding a feature, ask: "what does this do at 450K rows?"
+
+### The lazy row model
+
+- Opt in with `enableLazyRowModel` on `<DataGrid>` (gated behind `FLAG_DATA_TABLES_PERFORMANCE` at the call site). It only *engages* once `data.length > LAZY_ROW_MODEL_THRESHOLD` (1000); below that it's the standard model. `isLazyRowModel(table)` reports the active state.
+- When engaged, `Row` objects are created **on access** and LRU-capped (≈ the threshold), not built for the whole dataset. So `table.getRowModel().rows.length` is the full count, but **indexing `rows[i]` materializes that row**.
+- See `models/lazy-core-row-model.ts` (core model) and `models/lazy-sticky-sorted-row-model.ts` (sorted order without Rows).
+
+### Cardinal rule — never materialize the whole dataset
+
+Any path that can span the full selection/dataset (copy, paste, sort, bulk edit, export) must **not** loop over `table.getRowModel().rows[i]` across all rows — each index materializes a `Row`, exactly what the lazy model avoids. Instead:
+
+- **Read cell values off the model objects** via the column accessor: `column.accessorFn(original, dataIndex)` (canonical helper: `getSortValue` in `lazy-sticky-sorted-row-model.ts`). This resolves computed/`accessorFn` columns without a `Row`. Copy and sort both do this; do **not** reach for `row.getValue()` / `row.original` in a full-dataset loop.
+- **Map a visual row position → data index without a `Row`**: in lazy mode read the precomputed order (`table.getLazyRowOrder().orderByDataIndex`); unsorted lazy is identity; standard tables use the (small) row model. `clipboard-feature`'s `createDataIndexResolver` is the reference.
+- Need only a count? `table.getRowModel().rows.length` is cheap (`length` doesn't materialize). Never `.rows.map(...)` / `.rows.filter(...)` over the full model.
+
+Materialization is only acceptable bounded to the working set (viewport + overscan + a small selection) — virtualization only ever asks for visible indices.
+
+### Keep long synchronous work off the main thread
+
+A loop over the whole dataset (building a paste, building edit moments, serializing a copy) blocks the main thread for its full run. Slice it:
+
+- Wrap the loop with `createTimeSlicer()` from `src/infra/yield-to-main.ts` and `await` the returned guard once per iteration — it yields roughly every frame (50ms budget) so the tab stays responsive and overlays keep painting. The paste/copy loops and both data-table panels' `onChange` use this.
+- Make the operation `async` and show the busy overlay through it: `useGridBusyState()` exposes `runBusyAsync` (paint busy → run blocking/async work → clear) for handler-heavy ops (copy/paste), and `runBusy` (a React transition) for render-heavy ops (sort). Route all copy/paste entry points through it for a consistent indicator. `onDataChange` may return a `Promise` so the grid awaits a sliced commit.
+
+### Avoid accidental O(n²) and per-element re-work
+
+- **Don't accumulate with spread in a loop** (`acc = [...acc, ...next]`) — that's O(n²); push element-wise. (Real bug: many single-row paste moments turned `mergeMoments` into O(n²).)
+- **Don't re-normalize inside a comparator** — a sort calls it n·log(n) times. Precompute a sort key once per row and compare keys (see the `alphanumeric`/`text` precompute in `lazy-sticky-sorted-row-model.ts`); table-core's built-ins re-split / re-`toLowerCase` both operands on *every* comparison, which dominated a 450K sort.
+
+### Memory / OOM
+
+- **Don't retain large derived payloads.** Holding a multi-MB string/array in a closure or module var keeps it alive (defeats GC). The "add headers to last copy" path deliberately does **not** cache the copied body — it reads it back from the clipboard and prepends, caching only small fingerprints (selection, header row, body length) to detect change.
+- **Bulk edits/pastes build an undo moment retained in history**, so one huge operation can OOM via the moment log. `maxClipboardRows` (unset = no cap) bounds a single copy/paste; callers get `rows`/`requestedRows` on the copy/paste info to notify on truncation.
+- **The model commit is an O(n) floor you can't chunk.** A bulk `onChange` should build **one** merged moment and `transact` once (never one transaction per row). The transaction clones model state immutably — proportional to the model and unavoidable — so keep the *moment-building* loop sliced, then commit once.
+
+### Roadmap: one model, not two (post-flag)
+
+The dual model — standard below `LAZY_ROW_MODEL_THRESHOLD`, lazy above, chosen by `getAdaptiveCoreRowModel` / `getAdaptiveStickySortedRowModel` and gated by `FLAG_DATA_TABLES_PERFORMANCE` — is **temporary**. The agreed direction is: **once the flag is removed, go lazy-only** — delete the standard path (`getStickySortedRowModel`, the `getAdaptive*` wrappers) and every `isLazyRowModel(table)` branch, keeping the threshold solely as the LRU cap. Keeping both models is just transitional cost, not the target architecture.
+
+While the flag still exists, write code that makes that collapse cheaper:
+
+- **Don't add new `isLazyRowModel` branches** unless genuinely unavoidable. Write the lazy path (the future default) and let it run for both sizes; every new branch is one more thing to unwind later.
+- **Prefer the Row-free patterns** (read via `accessorFn`, map via the lazy order) even where the standard model would let you cheat with `getRowModel().rows` — see the Cardinal rule above.
+- Two things to settle at collapse time (flagged so they're not lost): (1) column auto-sizing measures **all** rows on the standard model vs **materialized only** on lazy (`rowsToMeasure` in `column-sizing-feature.ts`) — lazy-only makes "measure visible rows" the behaviour for every table; (2) the lazy model is a **fork of table-core** (8.17.3), so lazy-only makes that fork load-bearing for *all* tables with no unforked fallback — the lazy/standard parity tests are the safety net, keep them strong.
+
+---
+
 ## Internal Architecture (for contributors editing the grid itself)
 
 These conventions are not relevant to consumers of `<DataGrid>` — they apply when modifying anything under `src/components/data-grid/shared/` or `src/components/data-grid/hooks/`.
@@ -329,20 +386,21 @@ Anything backed by a feature method on `table` must be **read from `table`** at 
 
 The `useReactTable` instance is stable across renders, so the grid re-renders whenever feature state changes — fresh reads at the top of a component pick up the new value. **Don't** add a `selection` / `activeCell` / `editMode` prop to a new internal component; require `table` instead.
 
-### Don't wrap stable `table` methods in `useCallback`
+### Don't wrap stable `table` methods in `useCallback` just to forward them
 
-Methods attached by features (`table.startEditing`, `table.copySelection`, `table.handleCopyEvent`, etc.) are stable function references on a stable object. Pass them directly:
+Methods attached by features (`table.startEditing`, `table.stopEditing`, `table.copySelection`, etc.) are stable function references on a stable object. If you're only forwarding one, pass it directly:
 
 ```tsx
-// Wrong
-const handleCopy = useCallback((e) => table.handleCopyEvent(e), [table]);
-<div onCopy={handleCopy} />
+// Wrong — re-wrapping a stable method that you only forward
+const handleClear = useCallback(() => table.clearSelection(), [table]);
 
 // Right
-<div onCopy={table.handleCopyEvent} />
+onClick={table.clearSelection}
 ```
 
-Same applies to `useImperativeHandle` payloads and context-menu actions — assign `table.copySelection` directly.
+Same applies to `useImperativeHandle` payloads and context-menu actions — assign the method directly.
+
+Wrapping **is** warranted when the handler adds behaviour rather than merely forwarding. Copy/paste are intentionally wrapped (`handleCopy` / `handlePaste`) so they can run through `runBusyAsync` and show the busy overlay (see "Large tables") — that's not gratuitous forwarding.
 
 ### When `activeCell`/`editMode` is needed in an effect dep array
 

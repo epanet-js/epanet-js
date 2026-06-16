@@ -10,12 +10,12 @@ import {
   useReactTable,
   getCoreRowModel,
 } from "@tanstack/react-table";
-import { getStickySortedRowModel } from "./utils/get-sticky-sorted-row-model";
+import { getStickySortedRowModel } from "./models/get-sticky-sorted-row-model";
 import {
   getAdaptiveCoreRowModel,
   isLazyRowModel,
-} from "./utils/lazy-core-row-model";
-import { getAdaptiveStickySortedRowModel } from "./utils/lazy-sticky-sorted-row-model";
+} from "./models/lazy-core-row-model";
+import { getAdaptiveStickySortedRowModel } from "./models/lazy-sticky-sorted-row-model";
 import { GridBusyProvider } from "./shared/grid-busy";
 import { RingSpinner } from "src/components/ring-spinner";
 import {

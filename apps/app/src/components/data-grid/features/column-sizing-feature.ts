@@ -8,7 +8,7 @@ import type {
 import {
   type LazyRowModel,
   isLazyRowModel,
-} from "../utils/lazy-core-row-model";
+} from "../models/lazy-core-row-model";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

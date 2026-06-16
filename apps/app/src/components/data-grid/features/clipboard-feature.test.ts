@@ -15,8 +15,8 @@ import { LazyRowModelFeature } from "./lazy-row-model-feature";
 import {
   type LazyRowModel,
   getAdaptiveCoreRowModel,
-} from "../utils/lazy-core-row-model";
-import { getAdaptiveStickySortedRowModel } from "../utils/lazy-sticky-sorted-row-model";
+} from "../models/lazy-core-row-model";
+import { getAdaptiveStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
 import type { GridColumn, GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };

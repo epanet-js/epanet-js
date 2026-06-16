@@ -11,7 +11,7 @@ import {
   type Updater,
 } from "@tanstack/react-table";
 import type { CellPosition, GridSelection } from "../types";
-import { isLazyRowModel } from "../utils/lazy-core-row-model";
+import { isLazyRowModel } from "../models/lazy-core-row-model";
 
 export type CellRangeSelectionInternalState = {
   range: GridSelection | null;

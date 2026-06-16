@@ -6,7 +6,7 @@ import type {
   TableFeature,
 } from "@tanstack/react-table";
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
-import { isLazyRowModel } from "../utils/lazy-core-row-model";
+import { isLazyRowModel } from "../models/lazy-core-row-model";
 import type { GridSelection } from "../types";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 

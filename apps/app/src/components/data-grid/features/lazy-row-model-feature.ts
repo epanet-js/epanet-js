@@ -6,7 +6,7 @@ import {
 import {
   type LazyRowOrder,
   createLazyRowOrderGetter,
-} from "../utils/lazy-sticky-sorted-row-model";
+} from "../models/lazy-sticky-sorted-row-model";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
