@@ -2267,7 +2267,7 @@ const PumpEditor = ({
         />
       </SectionWrapper>
       {isPumpControlsOn && (
-        <SectionWrapper title="Controls" section="controls">
+        <SectionWrapper title={translate("controls.title")} section="controls">
           <PumpControlsEditor
             key={pump.id}
             initialStatus={pump.initialStatus}

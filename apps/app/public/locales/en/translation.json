@@ -896,7 +896,10 @@
     "simpleTab": "Simple",
     "rulesTab": "Rule-based",
     "simpleEmpty": "No simple controls defined",
-    "rulesEmpty": "No rule-based controls defined"
+    "rulesEmpty": "No rule-based controls defined",
+    "timeBased": "Time-based",
+    "time": "Time",
+    "addTimeStep": "Add time step"
   },
   "demandMultiplier": "Demand multiplier",
   "saveAndRun": "Save & run",
