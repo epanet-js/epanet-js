@@ -167,8 +167,8 @@ const MultiSelector = ({
             op.disabled
               ? "opacity-50 cursor-not-allowed bg-base"
               : selectedOption === op.id
-                ? "cursor-pointer border-accent bg-accent-tint"
-                : "cursor-pointer bg-base hover:border-strong hover:bg-panel"
+                ? "cursor-pointer bg-white border-strong"
+                : "cursor-pointer bg-white hover:border-strong hover:bg-panel"
           }`}
         >
           <input
@@ -180,7 +180,7 @@ const MultiSelector = ({
               setSelectedOption(op.id);
               onChange(op.id);
             }}
-            className="mt-0.5 h-4 w-4 text-accent-hover border-strong focus:ring-accent"
+            className="mt-1 h-4 w-4 text-accent-hover border-strong focus:ring-accent"
           />
           <div className="flex-1">
             <div className="font-medium text-default">{op.title}</div>
