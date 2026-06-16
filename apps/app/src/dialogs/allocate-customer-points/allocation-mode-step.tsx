@@ -123,14 +123,17 @@ export const AllocationModeStep = ({
       />
 
       {customerAllocationMode === "zoneCustomers" && (
-        <div className="pl-[calc(0.5rem+1rem+0.75rem)] max-w-[300px]">
+        <div className="space-y-2 pl-[calc(0.5rem+1rem+0.75rem)] max-w-[300px]">
+          <label className="block text-size-base font-medium text-subtle">
+            {translate(
+              "allocateCustomerPoints.allocationOptions.customerSelection.selectZone",
+            )}
+          </label>
           <Selector
             options={zoneOptions}
             selected={allocationZone}
             nullable
-            placeholder={translate(
-              "allocateCustomerPoints.allocationOptions.customerSelection.selectZone",
-            )}
+            placeholder={translate("none")}
             onChange={(zoneId) => setAllocationZone(zoneId)}
             styleOptions={{ border: true }}
           />
