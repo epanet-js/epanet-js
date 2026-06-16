@@ -8,7 +8,7 @@ import {
   filterableSelectColumn,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
-import { DeleteIcon } from "src/icons";
+import { DeleteIcon, AddIcon } from "src/icons";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 
@@ -94,6 +94,29 @@ export const PumpControlsEditor = ({
     setSteps((prev) => prev.filter((_, i) => i !== rowIndex));
   }, []);
 
+  const handleInsertRowAbove = useCallback((rowIndex: number) => {
+    setSteps((prev) => {
+      const source = prev[rowIndex];
+      const newRow = { time: source.time, status: source.status };
+      return [...prev.slice(0, rowIndex), newRow, ...prev.slice(rowIndex)];
+    });
+  }, []);
+
+  const handleInsertRowBelow = useCallback((rowIndex: number) => {
+    setSteps((prev) => {
+      const source = prev[rowIndex];
+      const newRow = {
+        time: source.time + ONE_HOUR_IN_SECONDS,
+        status: source.status,
+      };
+      return [
+        ...prev.slice(0, rowIndex + 1),
+        newRow,
+        ...prev.slice(rowIndex + 1),
+      ];
+    });
+  }, []);
+
   const rowActions = useMemo(
     () => [
       {
@@ -102,8 +125,19 @@ export const PumpControlsEditor = ({
         onSelect: handleDeleteRow,
         hidden: (rowIndex: number) => rowIndex === 0,
       },
+      {
+        label: translate("insertRowAbove"),
+        icon: <AddIcon size="sm" />,
+        onSelect: handleInsertRowAbove,
+        hidden: (rowIndex: number) => rowIndex === 0,
+      },
+      {
+        label: translate("insertRowBelow"),
+        icon: <AddIcon size="sm" />,
+        onSelect: handleInsertRowBelow,
+      },
     ],
-    [translate, handleDeleteRow],
+    [translate, handleDeleteRow, handleInsertRowAbove, handleInsertRowBelow],
   );
 
   return (
