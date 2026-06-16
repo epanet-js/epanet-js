@@ -477,7 +477,7 @@ export const CustomerPointDataTable = memo(
           type: "customerPoint",
           ...tracked,
         });
-        // Only when a paste cap (`maxPasteRows`) is set and hit — disabled today.
+        // Only when a clipboard cap (`maxClipboardRows`) is set and hit — disabled today.
         if (info.rows < requestedRows) {
           notify({
             variant: "default",

@@ -80,7 +80,8 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   onPaste?: (info: ClipboardPasteInfo) => void;
   onDelete?: (rowsToDelete: TData[]) => void;
   pinnedColumns?: { left?: string[] };
-  maxPasteRows?: number;
+  // Optional cap on how many rows a single copy or paste handles. Unset = no cap.
+  maxClipboardRows?: number;
   patchRow?: PatchRowFn;
   enableLazyRowModel?: boolean;
 };
@@ -115,7 +116,7 @@ export const DataGrid = forwardRef(function DataGrid<
     onDelete,
     pinnedColumns,
     patchRow,
-    maxPasteRows,
+    maxClipboardRows,
     enableLazyRowModel = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
@@ -153,7 +154,7 @@ export const DataGrid = forwardRef(function DataGrid<
     autoExtendOnPaste: autoAddNewRows,
     onClipboardCopy: onCopy,
     onClipboardPaste: onPaste,
-    maxPasteRows,
+    maxClipboardRows,
     patchRow: patchRowFn,
     lazyRowModel: enableLazyRowModel,
     // Column sizing options
@@ -379,6 +380,22 @@ export const DataGrid = forwardRef(function DataGrid<
     [activeCell, data.length, focusRow],
   );
 
+  const handleCopy = useCallback(
+    (e: React.ClipboardEvent) => {
+      if (!table.getSelection()) return;
+      e.preventDefault();
+      // Large (lazy) tables: a big selection builds a large clipboard payload
+      // across frames, so show the busy overlay through it. Small tables copy
+      // inline.
+      if (isLazyRowModel(table)) {
+        busyApi.runBusyAsync(() => table.copySelection());
+      } else {
+        void table.copySelection();
+      }
+    },
+    [table, busyApi],
+  );
+
   const handlePaste = useCallback(
     (e: React.ClipboardEvent) => {
       if (!table.getSelection()) return;
@@ -462,7 +479,7 @@ export const DataGrid = forwardRef(function DataGrid<
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          onCopy={table.handleCopyEvent}
+          onCopy={handleCopy}
           onPaste={handlePaste}
           className={
             isSpreadsheet

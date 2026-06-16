@@ -6,10 +6,7 @@ import type {
   TableFeature,
 } from "@tanstack/react-table";
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
-import {
-  isLazyRowModel,
-  LAZY_ROW_MODEL_THRESHOLD,
-} from "../utils/lazy-core-row-model";
+import { isLazyRowModel } from "../utils/lazy-core-row-model";
 import type { GridSelection } from "../types";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 
@@ -39,7 +36,7 @@ declare module "@tanstack/react-table" {
   interface TableOptionsResolved<TData extends RowData> {
     includeHeadersOnCopy?: boolean;
     autoExtendOnPaste?: boolean; // pasting extra content appends fresh rows
-    maxPasteRows?: number;
+    maxClipboardRows?: number; // optional cap on rows a single copy/paste handles
     createRow?: () => TData;
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
@@ -90,6 +87,27 @@ const collectColumnIds = <TData extends RowData>(
   return ids;
 };
 
+const buildHeaderLine = <TData extends RowData>(
+  columns: Column<TData, unknown>[],
+  fromCol: number,
+  toColInclusive: number,
+): string => {
+  const headers: string[] = [];
+  for (let c = fromCol; c <= toColInclusive; c++) {
+    headers.push(headerText(columns[c]));
+  }
+  return headers.join("\t");
+};
+
+const selectionsEqual = (a: GridSelection, b: GridSelection): boolean =>
+  a.min.col === b.min.col &&
+  a.min.row === b.min.row &&
+  a.max.col === b.max.col &&
+  a.max.row === b.max.row;
+
+const capRows = (requested: number, max: number | undefined): number =>
+  max != null ? Math.min(requested, max) : requested;
+
 type PasteBounds = {
   targetRows: number;
   targetCols: number;
@@ -102,7 +120,7 @@ const resolvePasteBounds = (
   clipboard: { rows: number; cols: number },
   columnCount: number,
   visualRowCount: number,
-  options: { autoExtendOnPaste?: boolean; maxPasteRows?: number },
+  options: { autoExtendOnPaste?: boolean; maxClipboardRows?: number },
 ): PasteBounds => {
   const selRows = selection.max.row - selection.min.row + 1;
   const selCols = selection.max.col - selection.min.col + 1;
@@ -116,10 +134,7 @@ const resolvePasteBounds = (
     ? tiledRows
     : Math.min(tiledRows, Math.max(0, remainingVisualRows));
 
-  const targetRows =
-    options.maxPasteRows != null
-      ? Math.min(requestedRows, options.maxPasteRows)
-      : requestedRows;
+  const targetRows = capRows(requestedRows, options.maxClipboardRows);
 
   return { targetRows, targetCols, writtenCols, requestedRows };
 };
@@ -166,62 +181,83 @@ export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
-    const copyRowCap = (): number =>
-      isLazyRowModel(table) ? LAZY_ROW_MODEL_THRESHOLD : Infinity;
-
-    const lastCopyRow = (selection: GridSelection): number =>
-      Math.min(selection.max.row, selection.min.row + copyRowCap() - 1);
+    let lastHeaderlessCopy: {
+      selection: GridSelection;
+      headerLine: string;
+      bodyLength: number;
+    } | null = null;
 
     const writeSelectionToClipboard = async (includeHeaders: boolean) => {
       const selection = table.getSelection?.();
       if (!selection) return;
 
-      const columns = table.getVisibleLeafColumns();
-      const rowModel = table.getRowModel();
-      const rows: string[] = [];
+      const isSameCopyWithHeaderes =
+        includeHeaders &&
+        lastHeaderlessCopy &&
+        selectionsEqual(lastHeaderlessCopy.selection, selection);
 
-      if (includeHeaders) {
-        const headers: string[] = [];
-        for (
-          let colIndex = selection.min.col;
-          colIndex <= selection.max.col;
-          colIndex++
-        ) {
-          headers.push(headerText(columns[colIndex]));
+      if (isSameCopyWithHeaderes) {
+        try {
+          const body = await navigator.clipboard.readText();
+          if (body.length === lastHeaderlessCopy!.bodyLength) {
+            await navigator.clipboard.writeText(
+              `${lastHeaderlessCopy!.headerLine}\n${body}`,
+            );
+            return;
+          }
+        } catch {
+          // Clipboard read denied/unavailable — rebuild below.
         }
-        rows.push(headers.join("\t"));
       }
 
-      const maxRow = lastCopyRow(selection);
+      const columns = table.getVisibleLeafColumns();
+      const data = getData();
+      const dataIndexAt = createDataIndexResolver(
+        table,
+        table.getRowModel().rows,
+      );
+
+      const selRows = selection.max.row - selection.min.row + 1;
+      const rowCount = capRows(selRows, table.options.maxClipboardRows);
+      const lastRow = selection.min.row + rowCount - 1;
+      const dataLines: string[] = [];
+      const yieldIfSliceElapsed = createTimeSlicer();
       for (
         let visualRow = selection.min.row;
-        visualRow <= maxRow;
+        visualRow <= lastRow;
         visualRow++
       ) {
-        const tableRow = rowModel.rows[visualRow];
+        await yieldIfSliceElapsed();
+        const dataIdx = dataIndexAt(visualRow);
+        const original = data[dataIdx];
         const cells: string[] = [];
-
-        for (
-          let colIndex = selection.min.col;
-          colIndex <= selection.max.col;
-          colIndex++
-        ) {
-          const column = columns[colIndex];
-          if (!column || !tableRow) {
+        for (let c = selection.min.col; c <= selection.max.col; c++) {
+          const column = columns[c];
+          if (!column || !original) {
             cells.push("");
             continue;
           }
-
-          // Read through the row model so computed `accessorFn` columns resolve
-          // correctly (reading `row.original[column.id]` would miss them).
-          const value = tableRow.getValue(column.id);
+          const value = column.accessorFn
+            ? column.accessorFn(original, dataIdx)
+            : undefined;
           cells.push(column.getCopyValue(value));
         }
-
-        rows.push(cells.join("\t"));
+        dataLines.push(cells.join("\t"));
       }
 
-      await navigator.clipboard.writeText(rows.join("\n"));
+      const dataText = dataLines.join("\n");
+      const headerLine = buildHeaderLine(
+        columns,
+        selection.min.col,
+        selection.max.col,
+      );
+      lastHeaderlessCopy = includeHeaders
+        ? null
+        : { selection, headerLine, bodyLength: dataText.length };
+
+      await navigator.clipboard.writeText(
+        includeHeaders ? `${headerLine}\n${dataText}` : dataText,
+      );
     };
 
     const resolveIncludeHeaders = (explicit: boolean | undefined): boolean => {
@@ -238,7 +274,7 @@ export const ClipboardFeature: TableFeature = {
       const selCols = selection.max.col - selection.min.col + 1;
       return {
         requestedRows: selRows,
-        rows: Math.min(selRows, copyRowCap()),
+        rows: capRows(selRows, table.options.maxClipboardRows),
         cols: selCols,
         allRows: selRows === data.length,
         allCols: selCols === columns.length,

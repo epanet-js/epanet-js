@@ -40,7 +40,7 @@ type TableOptions = {
   onClipboardPaste?: (info: unknown) => void;
   sortable?: boolean;
   lazyRowModel?: boolean;
-  maxPasteRows?: number;
+  maxClipboardRows?: number;
 };
 
 const useClipboardTable = (options: TableOptions) =>
@@ -72,7 +72,7 @@ const useClipboardTable = (options: TableOptions) =>
     onClipboardCopy: options.onClipboardCopy as never,
     onClipboardPaste: options.onClipboardPaste as never,
     lazyRowModel: options.lazyRowModel,
-    maxPasteRows: options.maxPasteRows,
+    maxClipboardRows: options.maxClipboardRows,
   });
 
 const stubClipboard = (initialText = "") => {
@@ -83,7 +83,15 @@ const stubClipboard = (initialText = "") => {
   });
   const readText = vi.fn(() => Promise.resolve(stored));
   Object.assign(navigator, { clipboard: { writeText, readText } });
-  return { writeText, readText, getText: () => stored };
+  return {
+    writeText,
+    readText,
+    getText: () => stored,
+    // Simulate an external clipboard change (not via our writeText).
+    setText: (text: string) => {
+      stored = text;
+    },
+  };
 };
 
 const single = (col: number, row: number): GridSelection => ({
@@ -174,6 +182,110 @@ describe("ClipboardFeature", () => {
       expect(clip.writeText).toHaveBeenCalledWith(
         "ID\tName\tValue\n1\tAlice\t100",
       );
+    });
+
+    it("prepends headers by reusing the last copy of the same selection (no re-read)", async () => {
+      const clip = stubClipboard();
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+      const nameAccessor = vi.fn((row: TestRow) => row.name);
+      const columns: GridColumn<TestRow>[] = [
+        { id: "name", header: "Name", accessorFn: nameAccessor },
+      ];
+
+      const { result } = renderHook(() => useClipboardTable({ data, columns }));
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 1 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+      expect(clip.getText()).toBe("Alice\nBob");
+      const readsAfterFirstCopy = nameAccessor.mock.calls.length;
+
+      await act(async () => {
+        await result.current.copySelection({ includeHeaders: true });
+      });
+      expect(clip.getText()).toBe("Name\nAlice\nBob");
+      // Fast path reused the cached body — no extra accessor reads.
+      expect(nameAccessor.mock.calls.length).toBe(readsAfterFirstCopy);
+    });
+
+    it("rebuilds (does not reuse) when the selection changed since the last copy", async () => {
+      const clip = stubClipboard();
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+      const nameAccessor = vi.fn((row: TestRow) => row.name);
+      const columns: GridColumn<TestRow>[] = [
+        { id: "name", header: "Name", accessorFn: nameAccessor },
+      ];
+
+      const { result } = renderHook(() => useClipboardTable({ data, columns }));
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 1 },
+        }),
+      );
+      await act(async () => {
+        await result.current.copySelection();
+      });
+      const readsAfterFirstCopy = nameAccessor.mock.calls.length;
+
+      // Shrink the selection, then copy with headers — cache no longer matches.
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        }),
+      );
+      await act(async () => {
+        await result.current.copySelection({ includeHeaders: true });
+      });
+      expect(clip.getText()).toBe("Name\nAlice");
+      expect(nameAccessor.mock.calls.length).toBeGreaterThan(
+        readsAfterFirstCopy,
+      );
+    });
+
+    it("rebuilds (does not prepend) when the clipboard changed since the copy", async () => {
+      const clip = stubClipboard();
+      const data: TestRow[] = [
+        { id: "1", name: "Alice", value: "100" },
+        { id: "2", name: "Bob", value: "200" },
+      ];
+      const nameAccessor = vi.fn((row: TestRow) => row.name);
+      const columns: GridColumn<TestRow>[] = [
+        { id: "name", header: "Name", accessorFn: nameAccessor },
+      ];
+
+      const { result } = renderHook(() => useClipboardTable({ data, columns }));
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 1 },
+        }),
+      );
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      // User copies something else (different length) before clicking "headers".
+      clip.setText("unrelated clipboard text");
+
+      await act(async () => {
+        await result.current.copySelection({ includeHeaders: true });
+      });
+      // Rebuilt from the grid, not prepended onto the unrelated content.
+      expect(clip.getText()).toBe("Name\nAlice\nBob");
     });
 
     it("uses includeHeadersOnCopy table option when no explicit flag is passed", async () => {
@@ -283,7 +395,7 @@ describe("ClipboardFeature", () => {
     });
   });
 
-  describe("lazy copy cap", () => {
+  describe("copy row cap", () => {
     const LAZY_CAP = 1000; // LAZY_ROW_MODEL_THRESHOLD
     const makeRows = (n: number): TestRow[] =>
       Array.from({ length: n }, (_, i) => ({
@@ -292,7 +404,7 @@ describe("ClipboardFeature", () => {
         value: String(i),
       }));
 
-    it("caps a large copy at the working-set size and reports both counts", async () => {
+    it("copies the whole selection on a large lazy table (no cap by default)", async () => {
       const clip = stubClipboard();
       const onClipboardCopy = vi.fn();
       const data = makeRows(LAZY_CAP + 500); // 1500, over threshold → lazy
@@ -300,7 +412,6 @@ describe("ClipboardFeature", () => {
       const { result } = renderHook(() =>
         useClipboardTable({ data, lazyRowModel: true, onClipboardCopy }),
       );
-      // Select all rows in the first column.
       act(() =>
         result.current.selectRange({
           min: { col: 0, row: 0 },
@@ -312,7 +423,44 @@ describe("ClipboardFeature", () => {
         await result.current.copySelection();
       });
 
-      // Only the first 1000 rows are written.
+      const written = clip.getText().split("\n");
+      expect(written).toHaveLength(data.length);
+      expect(written[0]).toBe("0");
+      expect(written[data.length - 1]).toBe(String(data.length - 1));
+
+      expect(onClipboardCopy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestedRows: data.length,
+          rows: data.length,
+          allRows: true,
+        }),
+      );
+    });
+
+    it("caps copy at maxClipboardRows when set, reporting both counts", async () => {
+      const clip = stubClipboard();
+      const onClipboardCopy = vi.fn();
+      const data = makeRows(LAZY_CAP + 500);
+
+      const { result } = renderHook(() =>
+        useClipboardTable({
+          data,
+          lazyRowModel: true,
+          onClipboardCopy,
+          maxClipboardRows: LAZY_CAP,
+        }),
+      );
+      act(() =>
+        result.current.selectRange({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: data.length - 1 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
       const written = clip.getText().split("\n");
       expect(written).toHaveLength(LAZY_CAP);
       expect(written[0]).toBe("0");
@@ -324,32 +472,6 @@ describe("ClipboardFeature", () => {
           rows: LAZY_CAP,
           allRows: true,
         }),
-      );
-    });
-
-    it("does not cap when the selection fits within the working set", async () => {
-      const clip = stubClipboard();
-      const onClipboardCopy = vi.fn();
-      const data = makeRows(LAZY_CAP + 500); // lazy table...
-
-      const { result } = renderHook(() =>
-        useClipboardTable({ data, lazyRowModel: true, onClipboardCopy }),
-      );
-      // ...but a small selection (500 rows).
-      act(() =>
-        result.current.selectRange({
-          min: { col: 0, row: 0 },
-          max: { col: 0, row: 499 },
-        }),
-      );
-
-      await act(async () => {
-        await result.current.copySelection();
-      });
-
-      expect(clip.getText().split("\n")).toHaveLength(500);
-      expect(onClipboardCopy).toHaveBeenCalledWith(
-        expect.objectContaining({ requestedRows: 500, rows: 500 }),
       );
     });
 
@@ -461,7 +583,7 @@ describe("ClipboardFeature", () => {
       );
     });
 
-    it("caps the paste when maxPasteRows is set, reporting requestedRows", async () => {
+    it("caps the paste when maxClipboardRows is set, reporting requestedRows", async () => {
       stubClipboard();
       const onChange = vi.fn();
       const onClipboardPaste = vi.fn();
@@ -473,7 +595,7 @@ describe("ClipboardFeature", () => {
           lazyRowModel: true,
           onChange,
           onClipboardPaste,
-          maxPasteRows: THRESHOLD,
+          maxClipboardRows: THRESHOLD,
         }),
       );
       act(() =>

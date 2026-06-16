@@ -42,6 +42,14 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
   if (!selection) return null;
   const sortedRows = orderedOriginals(table);
 
+  const runCopy = () => {
+    if (isLazyRowModel(table)) {
+      runBusyAsync(() => table.copySelection());
+    } else {
+      void table.copySelection();
+    }
+  };
+
   const runPaste = () => {
     if (readOnly) return;
     if (isLazyRowModel(table)) {
@@ -54,7 +62,7 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
   return (
     <CM.Portal>
       <CMContent>
-        <CMItem onSelect={() => void table.copySelection()}>
+        <CMItem onSelect={runCopy}>
           <CopyIcon />
           {translate("copy")}
         </CMItem>
