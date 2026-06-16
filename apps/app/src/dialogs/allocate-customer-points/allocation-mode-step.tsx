@@ -35,7 +35,7 @@ export const AllocationModeStep = ({
 
   const zoneOptions = useMemo<SelectorListOption<ZoneId>[]>(
     () =>
-      Object.values(zones)
+      Array.from(zones.values())
         .sort((a, b) => a.label.localeCompare(b.label))
         .map((zone) => ({
           label: zone.label,
@@ -67,7 +67,7 @@ export const AllocationModeStep = ({
     },
   ];
 
-  const hasZones = Object.keys(zones).length > 0;
+  const hasZones = zones.size > 0;
   const customerSelectionOptions = [
     {
       id: "allCustomers",

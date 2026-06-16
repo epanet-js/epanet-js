@@ -18,7 +18,7 @@ export const importZoneFeatures = (
   features: ZoneFeature[],
   labelProperty?: string,
 ): ImportZoneFeaturesResult => {
-  const zones: Zones = {};
+  const zones: Zones = new Map();
   const mergedZones: MergedZoneInfo[] = [];
   const labelGenerator = new ZoneLabelGenerator();
 
@@ -28,7 +28,7 @@ export const importZoneFeatures = (
       const label = labelGenerator.next();
       const geometry = toMultiPolygon(feature);
       const bbox = turfGetBbox(geometry);
-      zones[id] = { id, label, geometry, bbox };
+      zones.set(id, { id, label, geometry, bbox });
     });
   } else {
     const groups = new Map<string, ZoneFeature[]>();
@@ -62,7 +62,7 @@ export const importZoneFeatures = (
         coordinates,
       };
       const bbox = turfGetBbox(geometry);
-      zones[id] = { id, label, geometry, bbox };
+      zones.set(id, { id, label, geometry, bbox });
 
       if (groupFeatures.length > 1) {
         mergedZones.push({ label, featureCount: groupFeatures.length });

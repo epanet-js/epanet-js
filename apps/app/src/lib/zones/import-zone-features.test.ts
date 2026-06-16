@@ -8,8 +8,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features);
 
-    expect(zones[1].label).toBe("Z2");
-    expect(zones[2].label).toBe("Z3");
+    expect(zones.get(1)!.label).toBe("Z2");
+    expect(zones.get(2)!.label).toBe("Z3");
   });
 
   it("uses the specified label property", () => {
@@ -20,8 +20,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features, "name");
 
-    expect(zones[1].label).toBe("Zone A");
-    expect(zones[2].label).toBe("Zone B");
+    expect(zones.get(1)!.label).toBe("Zone A");
+    expect(zones.get(2)!.label).toBe("Zone B");
   });
 
   it("falls back to auto label when property is missing on a feature", () => {
@@ -29,8 +29,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features, "name");
 
-    expect(zones[1].label).toBe("Zone A");
-    expect(zones[2].label).toBe("Z2");
+    expect(zones.get(1)!.label).toBe("Zone A");
+    expect(zones.get(2)!.label).toBe("Z2");
   });
 
   it("converts Polygon geometry to MultiPolygon", () => {
@@ -38,8 +38,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features);
 
-    expect(zones[1].geometry.type).toBe("MultiPolygon");
-    expect(zones[1].geometry.coordinates).toEqual([
+    expect(zones.get(1)!.geometry.type).toBe("MultiPolygon");
+    expect(zones.get(1)!.geometry.coordinates).toEqual([
       [
         [
           [0, 0],
@@ -56,7 +56,7 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features);
 
-    expect(zones[1].geometry.type).toBe("MultiPolygon");
+    expect(zones.get(1)!.geometry.type).toBe("MultiPolygon");
   });
 
   it("assigns sequential ids starting from 1", () => {
@@ -64,10 +64,10 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features);
 
-    expect(Object.keys(zones)).toEqual(["1", "2", "3"]);
-    expect(zones[1].id).toBe(1);
-    expect(zones[2].id).toBe(2);
-    expect(zones[3].id).toBe(3);
+    expect([...zones.keys()]).toEqual([1, 2, 3]);
+    expect(zones.get(1)!.id).toBe(1);
+    expect(zones.get(2)!.id).toBe(2);
+    expect(zones.get(3)!.id).toBe(3);
   });
 
   it("merges features with the same label into a single zone", () => {
@@ -84,11 +84,11 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features, "name");
 
-    expect(Object.keys(zones)).toHaveLength(2);
-    expect(zones[1].label).toBe("Zone A");
-    expect(zones[1].geometry.coordinates).toHaveLength(2);
-    expect(zones[2].label).toBe("Zone B");
-    expect(zones[2].geometry.coordinates).toHaveLength(1);
+    expect(zones.size).toBe(2);
+    expect(zones.get(1)!.label).toBe("Zone A");
+    expect(zones.get(1)!.geometry.coordinates).toHaveLength(2);
+    expect(zones.get(2)!.label).toBe("Zone B");
+    expect(zones.get(2)!.geometry.coordinates).toHaveLength(1);
   });
 
   it("returns merged zone info for zones with multiple features", () => {
@@ -127,8 +127,8 @@ describe("importZoneFeatures", () => {
 
     const { zones } = importZoneFeatures(features, "name");
 
-    expect(Object.keys(zones)).toHaveLength(1);
-    expect(zones[1].geometry.coordinates).toHaveLength(2);
+    expect(zones.size).toBe(1);
+    expect(zones.get(1)!.geometry.coordinates).toHaveLength(2);
   });
 
   it("does not merge when no label property is provided", () => {
@@ -136,7 +136,7 @@ describe("importZoneFeatures", () => {
 
     const { zones, mergedZones } = importZoneFeatures(features);
 
-    expect(Object.keys(zones)).toHaveLength(2);
+    expect(zones.size).toBe(2);
     expect(mergedZones).toEqual([]);
   });
 });

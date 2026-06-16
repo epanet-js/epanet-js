@@ -5,7 +5,7 @@ import type { Zone } from "src/lib/zones";
 
 describe("buildZoneFeatures", () => {
   it("builds a feature from a MultiPolygon zone", () => {
-    const zones = { 1: makeZone(1, "Z1") };
+    const zones = new Map([[1, makeZone(1, "Z1")]]);
 
     const features = buildZoneFeatures(zones);
 
@@ -14,10 +14,10 @@ describe("buildZoneFeatures", () => {
   });
 
   it("builds features for multiple zones", () => {
-    const zones = {
-      1: makeZone(1, "Z1"),
-      2: makeZone(2, "Z2"),
-    };
+    const zones = new Map([
+      [1, makeZone(1, "Z1")],
+      [2, makeZone(2, "Z2")],
+    ]);
 
     const features = buildZoneFeatures(zones);
 

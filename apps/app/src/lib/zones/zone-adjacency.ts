@@ -5,7 +5,7 @@ export const bboxOverlaps = (a: BBox, b: BBox): boolean =>
   a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
 
 export const computeAdjacency = (zones: Zones): Map<ZoneId, ZoneId[]> => {
-  const entries = Object.values(zones);
+  const entries = Array.from(zones.values());
   const adj = new Map<ZoneId, Set<ZoneId>>();
 
   for (const z of entries) {

@@ -81,7 +81,9 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
       try {
         const runOnWorker = true;
         const customerPoints = initializeCustomerPoints();
-        const selectedZone = allocationZone ? zones[allocationZone] : undefined;
+        const selectedZone = allocationZone
+          ? zones.get(allocationZone)
+          : undefined;
         disconnectedCustomerPoints.forEach((point) => {
           customerPoints.set(point.id, point);
         });

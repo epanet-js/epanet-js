@@ -10,6 +10,6 @@ export type Zone = {
   bbox: BBox;
 };
 
-export type Zones = Record<ZoneId, Zone>;
+export type Zones = Map<ZoneId, Zone>;
 
-export const initializeZones = (): Zones => ({});
+export const initializeZones = (): Zones => new Map();

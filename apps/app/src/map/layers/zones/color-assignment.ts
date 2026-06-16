@@ -28,7 +28,7 @@ export const assignZoneColors = (
   const assignment: Record<ZoneId, number> = {};
   const result: Record<ZoneId, string> = {};
 
-  const sortedIds = Object.values(zones)
+  const sortedIds = Array.from(zones.values())
     .sort(
       (a, b) =>
         (adjacency.get(b.id)?.length ?? 0) - (adjacency.get(a.id)?.length ?? 0),

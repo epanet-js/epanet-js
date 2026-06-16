@@ -20,7 +20,7 @@ describe("assignZoneColors", () => {
     const result = assignZoneColors(zones, TEST_PALETTE);
 
     const adjacency = computeAdjacency(zones);
-    for (const zone of Object.values(zones)) {
+    for (const zone of zones.values()) {
       for (const nid of adjacency.get(zone.id) ?? []) {
         expect(result[zone.id]).not.toBe(result[nid]);
       }
@@ -32,7 +32,7 @@ describe("assignZoneColors", () => {
     const result = assignZoneColors(zones, TEST_PALETTE);
 
     const adjacency = computeAdjacency(zones);
-    for (const zone of Object.values(zones)) {
+    for (const zone of zones.values()) {
       for (const nid of adjacency.get(zone.id) ?? []) {
         expect(sameHueGroup(result[zone.id], result[nid])).toBe(false);
       }
@@ -63,7 +63,7 @@ describe("assignZoneColors", () => {
     const zones = makeZones(bboxes);
     const result = assignZoneColors(zones, TEST_PALETTE);
 
-    for (const zone of Object.values(zones)) {
+    for (const zone of zones.values()) {
       expect(TEST_PALETTE).toContain(result[zone.id]);
     }
   });
@@ -80,10 +80,10 @@ describe("assignZoneColors", () => {
 });
 
 function makeZones(bboxes: BBox[]): Zones {
-  const zones: Zones = {};
+  const zones: Zones = new Map();
   bboxes.forEach((bbox, i) => {
     const id = i + 1;
-    zones[id] = {
+    zones.set(id, {
       id,
       label: `Z${id}`,
       geometry: {
@@ -101,7 +101,7 @@ function makeZones(bboxes: BBox[]): Zones {
         ],
       },
       bbox,
-    };
+    });
   });
   return zones;
 }

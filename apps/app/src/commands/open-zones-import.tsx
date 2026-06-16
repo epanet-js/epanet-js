@@ -28,7 +28,7 @@ export const useOpenZonesImport = () => {
         return;
       }
 
-      const hasExistingZones = Object.keys(zones).length > 0;
+      const hasExistingZones = zones.size > 0;
 
       if (hasExistingZones) {
         setDialogState({

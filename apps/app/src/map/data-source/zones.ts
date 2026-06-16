@@ -6,7 +6,7 @@ export function buildZoneFeatures(
 ): Feature<Polygon | MultiPolygon>[] {
   const features: Feature<Polygon | MultiPolygon>[] = [];
 
-  for (const zone of Object.values(zones)) {
+  for (const zone of zones.values()) {
     features.push({
       type: "Feature",
       geometry: zone.geometry,

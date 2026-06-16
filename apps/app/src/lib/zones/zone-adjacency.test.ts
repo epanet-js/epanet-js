@@ -78,16 +78,16 @@ describe("computeAdjacency", () => {
   });
 
   it("handles empty zones record", () => {
-    const adj = computeAdjacency({});
+    const adj = computeAdjacency(new Map());
     expect(adj.size).toBe(0);
   });
 });
 
 function makeZones(bboxes: BBox[]): Zones {
-  const zones: Zones = {};
+  const zones: Zones = new Map();
   bboxes.forEach((bbox, i) => {
     const id = i + 1;
-    zones[id] = {
+    zones.set(id, {
       id,
       label: `Z${id}`,
       geometry: {
@@ -105,7 +105,7 @@ function makeZones(bboxes: BBox[]): Zones {
         ],
       },
       bbox,
-    };
+    });
   });
   return zones;
 }
