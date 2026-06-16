@@ -21,7 +21,6 @@ import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useCustomGraph } from "src/hooks/use-custom-graph";
 import { USelection } from "src/selection";
 import { useDisconnectCustomerPoints } from "src/commands/customer-point-actions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export function useMultiAssetActions(readonly = false): Action[] {
   const translate = useTranslate();
@@ -34,10 +33,6 @@ export function useMultiAssetActions(readonly = false): Action[] {
   const { assets: assetCount, customerPoints: customerPointCount } =
     USelection.countByKind(selection);
   const { openCustomGraph } = useCustomGraph();
-
-  const isMultipleCpDisconnectEnabled = useFeatureFlag(
-    "FLAG_MULTI_CP_DISCONNECT",
-  );
 
   const hasAssets = assetCount > 0;
   const hasCustomerPoints = customerPointCount > 0;
@@ -102,20 +97,13 @@ export function useMultiAssetActions(readonly = false): Action[] {
     onSelect: onChangeActiveTopology,
   };
 
-  return isMultipleCpDisconnectEnabled
-    ? [
-        zoomToAction,
-        changeActiveTopologyActionItem,
-        customGraphAction,
-        disconnectCustomersAction,
-        deleteAssetsAction,
-      ]
-    : [
-        zoomToAction,
-        changeActiveTopologyActionItem,
-        customGraphAction,
-        deleteAssetsAction,
-      ];
+  return [
+    zoomToAction,
+    changeActiveTopologyActionItem,
+    customGraphAction,
+    disconnectCustomersAction,
+    deleteAssetsAction,
+  ];
 }
 
 export function MultiAssetActions() {
