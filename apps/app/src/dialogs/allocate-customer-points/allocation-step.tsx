@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   CustomerPointAllocationRule,
   initializeCustomerPoints,
@@ -18,6 +18,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { zonesAtom } from "src/state/zones";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
+import { allocationRulesAtom } from "src/state/allocation-rules";
 
 type AllocateCustomerPointsDialogProps = {
   state: AllocateCustomerPointsState;
@@ -31,6 +32,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const zones = useAtomValue(zonesAtom);
   const selection = useAtomValue(selectionAtom);
+  const saveAllocationRules = useSetAtom(allocationRulesAtom);
 
   const {
     allocationRules,
@@ -159,6 +161,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
     });
 
     setAllocationRules(tempRules);
+    saveAllocationRules(tempRules);
     setIsEditingRules(false);
     setTempRules([]);
 
@@ -171,6 +174,7 @@ export const AllocationStep: React.FC<AllocateCustomerPointsDialogProps> = ({
     allocationResult?.allocatedCustomerPoints.size,
     allocationResult?.disconnectedCustomerPoints.size,
     setAllocationRules,
+    saveAllocationRules,
     setIsEditingRules,
     setTempRules,
     shouldTriggerAllocation,

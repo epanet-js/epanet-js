@@ -7,11 +7,13 @@ import {
 } from "@epanet-js/hydraulic-model";
 
 import { projectSettingsAtom } from "src/state/project-settings";
+import { allocationRulesAtom } from "src/state/allocation-rules";
 import { ZoneId } from "src/lib/zones";
 
 export function useAllocateCustomerPointsState() {
   const { units } = useAtomValue(projectSettingsAtom);
   const defaultRules = useMemo(() => getDefaultAllocationRules(units), [units]);
+  const savedRules = useAtomValue(allocationRulesAtom);
 
   const [allocationRules, setAllocationRules] = useState<
     CustomerPointAllocationRule[]
@@ -36,8 +38,8 @@ export function useAllocateCustomerPointsState() {
   const [allocationZone, setAllocationZone] = useState<ZoneId | null>(null);
 
   useEffect(() => {
-    setAllocationRules(defaultRules);
-  }, [defaultRules]);
+    setAllocationRules(savedRules ?? defaultRules);
+  }, [defaultRules, savedRules]);
 
   return {
     allocationRules,
