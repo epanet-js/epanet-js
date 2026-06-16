@@ -35,9 +35,12 @@ export const PumpControlsEditor = ({
 }) => {
   const translate = useTranslate();
   const [controlType, setControlType] = useState<ControlType>("none");
-  const [steps, setSteps] = useState<ControlStep[]>(() => [
-    { time: 0, status: initialStatus },
-  ]);
+  const [extraSteps, setExtraSteps] = useState<ControlStep[]>([]);
+
+  const data = useMemo<ControlStep[]>(
+    () => [{ time: 0, status: initialStatus }, ...extraSteps],
+    [initialStatus, extraSteps],
+  );
 
   const typeOptions = useMemo(
     () => [
@@ -79,43 +82,52 @@ export const PumpControlsEditor = ({
   );
 
   const createRow = useCallback((): ControlStep => {
-    const lastTime = steps.length > 0 ? steps[steps.length - 1].time : 0;
+    const lastTime = data.length > 0 ? data[data.length - 1].time : 0;
     return {
       time: lastTime + ONE_HOUR_IN_SECONDS,
       status: oppositeStatus(initialStatus),
     };
-  }, [steps, initialStatus]);
+  }, [data, initialStatus]);
 
   const handleChange = useCallback((newRows: ControlStep[]) => {
-    setSteps(newRows);
+    setExtraSteps(newRows.slice(1));
   }, []);
 
-  const handleDeleteRow = useCallback((rowIndex: number) => {
-    setSteps((prev) => prev.filter((_, i) => i !== rowIndex));
-  }, []);
+  const handleDeleteRow = useCallback(
+    (rowIndex: number) => {
+      setExtraSteps(data.filter((_, i) => i !== rowIndex).slice(1));
+    },
+    [data],
+  );
 
-  const handleInsertRowAbove = useCallback((rowIndex: number) => {
-    setSteps((prev) => {
-      const source = prev[rowIndex];
+  const handleInsertRowAbove = useCallback(
+    (rowIndex: number) => {
+      const source = data[rowIndex];
       const newRow = { time: source.time, status: source.status };
-      return [...prev.slice(0, rowIndex), newRow, ...prev.slice(rowIndex)];
-    });
-  }, []);
+      setExtraSteps(
+        [...data.slice(0, rowIndex), newRow, ...data.slice(rowIndex)].slice(1),
+      );
+    },
+    [data],
+  );
 
-  const handleInsertRowBelow = useCallback((rowIndex: number) => {
-    setSteps((prev) => {
-      const source = prev[rowIndex];
+  const handleInsertRowBelow = useCallback(
+    (rowIndex: number) => {
+      const source = data[rowIndex];
       const newRow = {
         time: source.time + ONE_HOUR_IN_SECONDS,
         status: source.status,
       };
-      return [
-        ...prev.slice(0, rowIndex + 1),
-        newRow,
-        ...prev.slice(rowIndex + 1),
-      ];
-    });
-  }, []);
+      setExtraSteps(
+        [
+          ...data.slice(0, rowIndex + 1),
+          newRow,
+          ...data.slice(rowIndex + 1),
+        ].slice(1),
+      );
+    },
+    [data],
+  );
 
   const rowActions = useMemo(
     () => [
@@ -161,7 +173,7 @@ export const PumpControlsEditor = ({
       {controlType === "timeBased" && (
         <NestedSection className="pb-2" indentation={0}>
           <DataGrid<ControlStep>
-            data={steps}
+            data={data}
             columns={columns}
             onChange={handleChange}
             createRow={createRow}
