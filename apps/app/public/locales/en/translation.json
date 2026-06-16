@@ -997,7 +997,7 @@
         "allCustomersDescription": "Allocate all customers in the network",
         "zoneCustomers": "Only customers in zone",
         "zoneCustomersDescription": "Allocate only customers located within the boundaries of a specific zone",
-        "selectZone": "Select a zone..."
+        "selectZone": "Select a zone"
       }
     },
     "dialog": {

@@ -92,7 +92,7 @@ export const AllocationModeStep = ({
   ];
 
   return (
-    <div className="overflow-y-auto grow space-y-3">
+    <div className="overflow-y-auto grow ml-3 space-y-3">
       <MultiSelector
         title={translate(
           `allocateCustomerPoints.allocationOptions.pipeSelection.title`,
@@ -123,16 +123,18 @@ export const AllocationModeStep = ({
       />
 
       {customerAllocationMode === "zoneCustomers" && (
-        <Selector
-          options={zoneOptions}
-          selected={allocationZone}
-          nullable
-          placeholder={translate(
-            `allocateCustomerPoints.allocationOptions.customerSelection.selectZone`,
-          )}
-          onChange={(zoneId) => setAllocationZone(zoneId)}
-          styleOptions={{ border: true }}
-        />
+        <div className="pl-[calc(0.5rem+1rem+0.75rem)] max-w-[300px]">
+          <Selector
+            options={zoneOptions}
+            selected={allocationZone}
+            nullable
+            placeholder={translate(
+              "allocateCustomerPoints.allocationOptions.customerSelection.selectZone",
+            )}
+            onChange={(zoneId) => setAllocationZone(zoneId)}
+            styleOptions={{ border: true }}
+          />
+        </div>
       )}
     </div>
   );
@@ -163,12 +165,12 @@ const MultiSelector = ({
       {options.map((op) => (
         <label
           key={op.id}
-          className={`flex items-start space-x-3 rounded-md p-2 border-2 transition-colors ${
+          className={`flex items-start space-x-3 rounded-md p-2 transition-colors ${
             op.disabled
               ? "opacity-50 cursor-not-allowed bg-base"
               : selectedOption === op.id
-                ? "cursor-pointer bg-white border-strong"
-                : "cursor-pointer bg-white hover:border-strong hover:bg-panel"
+                ? "cursor-pointer bg-white"
+                : "cursor-pointer bg-white hover:bg-panel"
           }`}
         >
           <input
