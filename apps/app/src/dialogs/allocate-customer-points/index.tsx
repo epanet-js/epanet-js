@@ -44,6 +44,8 @@ export const AllocateCustomerPointsDialog: React.FC<
     isProcessing,
     isAllocating,
     isEditingRules,
+    customerAllocationMode,
+    allocationZone,
   } = state;
 
   const handleFinish = useCallback(() => {
@@ -136,7 +138,9 @@ export const AllocateCustomerPointsDialog: React.FC<
           <WizardActions
             nextAction={{
               onClick: () => setStep(2),
-              disabled: false,
+              disabled:
+                customerAllocationMode === "zoneCustomers" &&
+                allocationZone === null,
             }}
           />
         );
