@@ -32,7 +32,7 @@ function Tab({
         active
           ? "text-black"
           : `
-          bg-base-hover
+          bg-panel
           border-b dark:border-black
           text-subtle
           hover:text-black dark:hover:text-gray-200

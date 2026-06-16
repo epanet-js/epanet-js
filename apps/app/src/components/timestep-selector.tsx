@@ -161,7 +161,7 @@ export const TimestepSpeedWarning = () => {
   return (
     <div
       className={clsx(
-        "flex items-start gap-1.5 text-size-small px-2 py-1 bg-base-hover/80 max-w-[16rem]",
+        "flex items-start gap-1.5 text-size-small px-2 py-1 bg-panel/80 max-w-[16rem]",
         "rounded-sm border shadow-md",
       )}
     >
@@ -356,7 +356,7 @@ const TimestepDropdown = ({
                     }}
                     className={clsx(
                       "absolute left-0 right-0 flex items-center justify-between gap-4 px-2",
-                      "text-left cursor-pointer hover:bg-purple-300/40 focus:bg-purple-300/40 rounded-xs",
+                      "text-left cursor-pointer hover:bg-base-hover focus:bg-base-hover rounded-xs",
                     )}
                     style={{
                       height: ROW_HEIGHT,

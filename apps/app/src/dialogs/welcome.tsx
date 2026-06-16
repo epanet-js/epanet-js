@@ -398,10 +398,7 @@ const RecentFileCard = ({
     className="group flex flex-col rounded-lg border shadow-xs cursor-pointer hover:bg-panel overflow-hidden min-w-0"
     onClick={onOpen}
   >
-    <div
-      className="relative bg-base-hover shrink-0"
-      style={{ aspectRatio: "5/4" }}
-    >
+    <div className="relative bg-panel shrink-0" style={{ aspectRatio: "5/4" }}>
       <Button
         variant="default"
         size="xxs"
@@ -466,7 +463,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
       onClick={handleClick}
     >
       <div
-        className="relative bg-base-hover shrink-0 overflow-hidden"
+        className="relative bg-panel shrink-0 overflow-hidden"
         style={{ aspectRatio: "5/4" }}
       >
         <img

@@ -353,7 +353,7 @@ const GeoTiffTilesPopover = ({
               {!readonly && (
                 <Button
                   variant="quiet/mode"
-                  className="h-8 text-error"
+                  className="h-8 text-error hover:bg-error-subtle"
                   aria-label={translate("Delete") + " " + tile.file.name}
                   onClick={(e) => {
                     e.stopPropagation();

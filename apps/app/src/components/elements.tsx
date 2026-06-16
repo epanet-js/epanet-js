@@ -760,16 +760,16 @@ const sharedBackground = (variant: B3Variant, disabled = false): ClassValue => {
     case "default":
       return [`bg-base`, !disabled && `hover:bg-base-hover`];
     case "quiet":
-      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+      return !disabled && `hover:bg-base-hover`;
     case "ultra-quiet":
-      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+      return !disabled && `hover:bg-base-hover`;
     case "quiet/mode":
-      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+      return !disabled && `hover:bg-base-hover`;
     case "quiet/list":
-      return !disabled && `hover:bg-gray-200 dark:hover:bg-gray-700`;
+      return !disabled && `hover:bg-base-hover`;
     case "destructive":
     case "danger-quiet":
-      return !disabled && `hover:bg-red-600/10 dark:hover:bg-red-400/20`;
+      return !disabled && `hover:bg-error-subtle`;
     case "success":
       return [
         `bg-green-500`,
@@ -845,8 +845,8 @@ export const styledButton = ({
             ? `aria-expanded:bg-blue-700
     data-[state=on]:bg-blue-700`
             : `
-    aria-expanded:bg-gray-200 dark:aria-expanded:bg-black
-    data-[state=on]:bg-gray-200 dark:data-[state=on]:bg-gray-600`,
+    aria-expanded:bg-base-hover
+    data-[state=on]:bg-base-hover`,
     "disabled:opacity-50 disabled:cursor-not-allowed",
     "transition-colors",
     // Focus
@@ -980,8 +980,8 @@ export const StyledThumb = classed(S.Thumb)(
 
 export const StyledPopoverTrigger = classed(Popover.Trigger)(
   clsx(
-    `aria-expanded:bg-gray-200 dark:aria-expanded:bg-gray-900
-    data-[state=on]:bg-gray-200 dark:data-[state=on]:bg-gray-600`,
+    `aria-expanded:bg-base-hover
+    data-[state=on]:bg-base-hover`,
     "disabled:opacity-50 disabled:cursor-not-allowed",
     // Focus
     `focus-visible:outline-hidden`,

@@ -164,7 +164,7 @@ const TabButton = ({
         "text-size-base py-1 px-3 focus:outline-hidden border-t border-l border-b last:border-r",
         isActive
           ? "text-default border-b-white -mb-px"
-          : "text-subtle border-b-transparent hover:text-black dark:hover:text-gray-200 bg-base-hover",
+          : "text-subtle border-b-transparent hover:text-black dark:hover:text-gray-200 bg-panel",
       )}
     >
       {label}

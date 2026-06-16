@@ -124,7 +124,7 @@ export const SimulationReportDialog = () => {
         <AckDialogAction label={translate("understood")} onAck={closeDialog} />
       }
     >
-      <div className="flex-1 p-4 text-size-base bg-base-hover text-default font-mono leading-loose">
+      <div className="flex-1 p-4 text-size-base bg-panel text-default font-mono leading-loose">
         {processedReport.map(renderRowWithSlots)}
       </div>
     </BaseDialog>

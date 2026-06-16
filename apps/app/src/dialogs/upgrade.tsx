@@ -393,7 +393,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
         <div className="w-full">
           <Button
             size="full-width"
-            className="default-pointer bg-base-hover text-default"
+            className="default-pointer bg-panel text-default"
             onClick={() => {
               userTracking.capture({ name: "studentLogin.clicked" });
               checkUnsavedChanges(() => {

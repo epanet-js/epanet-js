@@ -842,7 +842,7 @@ export const SettingsRow = ({
     <span className="text-size-base text-default dark:text-gray-200">
       {label}
       {badge && (
-        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-sm bg-base-hover text-subtle dark:bg-gray-800 dark:text-subtle">
+        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded-sm bg-panel text-subtle">
           {badge}
         </span>
       )}
@@ -1037,8 +1037,7 @@ const TextSetting = ({
       <div
         className={clsx(
           "w-56",
-          disabled &&
-            "[&>input]:border-strong [&>input]:bg-base-hover dark:[&>input]:bg-gray-800",
+          disabled && "[&>input]:border-strong [&>input]:bg-base-disabled",
         )}
       >
         <EditableTextField

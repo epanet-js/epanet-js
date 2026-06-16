@@ -132,7 +132,7 @@ export const FeaturePaywall = ({
       onClose={handleClose}
     >
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 p-4">
-        <div className="relative aspect-square bg-base-hover dark:bg-gray-800 border rounded-lg shadow-md overflow-hidden">
+        <div className="relative aspect-square bg-panel border rounded-lg shadow-md overflow-hidden">
           {config.videoSrc && config.captions ? (
             <VideoPlayer
               src={config.videoSrc}

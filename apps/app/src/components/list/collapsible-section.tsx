@@ -37,12 +37,12 @@ export const CollapsibleListSection = ({
     <C.Root open={isOpen} onOpenChange={onToggle}>
       <div
         data-section-type={sectionType}
-        className={`group/section flex items-center justify-between h-8 px-1 ${
+        className={`group/section flex items-center justify-between h-8 px-1 rounded-sm ${
           isFocused ? "bg-base-active" : "hover:bg-base-hover"
         }`}
       >
         <C.Trigger asChild>
-          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-subtle">
+          <button className="flex-1 min-w-0 flex items-center gap-1 text-sm font-medium text-default">
             {isOpen ? (
               <ChevronDownIcon size="sm" />
             ) : (
