@@ -14,6 +14,8 @@ import {
   valveKinds,
   PipeStatus,
   tankMixingModels,
+  ChemicalSourceType,
+  chemicalSourceTypes,
 } from "@epanet-js/hydraulic-model";
 import { ParseInpOptions } from "./parse-inp";
 
@@ -94,18 +96,17 @@ export const parseSource: RowParser = ({ trimmedRow, inpData }) => {
     inpData.sourcePatterns.add(patternId);
   }
 
-  const upperType = type?.toUpperCase();
-  const validTypes = ["CONCEN", "MASS", "FLOWPACED", "SETPOINT"] as const;
+  const lowerType = type?.toLowerCase();
   if (
     !nodeId ||
-    !upperType ||
-    !validTypes.includes(upperType as (typeof validTypes)[number])
+    !lowerType ||
+    !(chemicalSourceTypes as readonly string[]).includes(lowerType)
   ) {
     return;
   }
 
   inpData.sources.set(nodeId, {
-    type: upperType as (typeof validTypes)[number],
+    type: lowerType as ChemicalSourceType,
     strength: parseFloat(strength) || 0,
     patternId: patternId || undefined,
   });

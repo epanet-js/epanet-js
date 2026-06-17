@@ -1248,10 +1248,10 @@ describe("chemical sources", () => {
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
-    expect(j1.chemicalSourceType).toBe("CONCEN");
+    expect(j1.chemicalSourceType).toBe("concen");
     expect(j1.chemicalSourceStrength).toBe(1.2);
     expect(j1.chemicalSourcePatternId).toBeDefined();
-    expect(j2.chemicalSourceType).toBe("MASS");
+    expect(j2.chemicalSourceType).toBe("mass");
     expect(j2.chemicalSourceStrength).toBe(12);
     expect(j2.chemicalSourcePatternId).toBeUndefined();
   });

@@ -165,7 +165,7 @@ export type InpData = {
     diffusivity?: number;
   };
   sources: ItemData<{
-    type: "CONCEN" | "MASS" | "FLOWPACED" | "SETPOINT";
+    type: "concen" | "mass" | "flowpaced" | "setpoint";
     strength: number;
     patternId?: string;
   }>;

@@ -2186,12 +2186,12 @@ THEN LINK {{1}} STATUS IS OPEN`,
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          chemicalSourceType: "CONCEN",
+          chemicalSourceType: "concen",
           chemicalSourceStrength: 1.2,
         })
         .aJunction(IDS.J2, {
           elevation: 20,
-          chemicalSourceType: "MASS",
+          chemicalSourceType: "mass",
           chemicalSourceStrength: 12,
         })
         .build();
@@ -2227,7 +2227,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          chemicalSourceType: "CONCEN",
+          chemicalSourceType: "concen",
           chemicalSourceStrength: 1.2,
         })
         .build();
@@ -2245,7 +2245,7 @@ THEN LINK {{1}} STATUS IS OPEN`,
       const hydraulicModel = HydraulicModelBuilder.with()
         .aJunction(IDS.J1, {
           elevation: 10,
-          chemicalSourceType: "CONCEN",
+          chemicalSourceType: "concen",
           chemicalSourceStrength: 1.2,
           chemicalSourcePatternId: IDS.PAT1,
         })

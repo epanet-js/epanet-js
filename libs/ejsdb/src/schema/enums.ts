@@ -1,8 +1,8 @@
 export const chemicalSourceTypes = [
-  "CONCEN",
-  "MASS",
-  "FLOWPACED",
-  "SETPOINT",
+  "concen",
+  "mass",
+  "flowpaced",
+  "setpoint",
 ] as const;
 export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
 

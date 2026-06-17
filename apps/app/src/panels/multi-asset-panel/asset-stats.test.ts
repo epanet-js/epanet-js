@@ -347,10 +347,10 @@ describe("computeMultiAssetData", () => {
     const IDS = { J1: 1, J2: 2, J3: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, {
-        chemicalSourceType: "CONCEN",
+        chemicalSourceType: "concen",
         chemicalSourceStrength: 5,
       })
-      .aJunction(IDS.J2, { chemicalSourceType: "MASS" })
+      .aJunction(IDS.J2, { chemicalSourceType: "mass" })
       .aJunction(IDS.J3)
       .build();
     const assets = Array.from(hydraulicModel.assets.values());
@@ -366,8 +366,8 @@ describe("computeMultiAssetData", () => {
       result.data.junction.quality,
       "chemicalSourceType",
     );
-    expect(typeStat.values.get("source.CONCEN")).toHaveLength(1);
-    expect(typeStat.values.get("source.MASS")).toHaveLength(1);
+    expect(typeStat.values.get("source.concen")).toHaveLength(1);
+    expect(typeStat.values.get("source.mass")).toHaveLength(1);
     expect(typeStat.emptyBucket?.label).toBe("none");
     expect(typeStat.emptyBucket?.ids).toEqual([IDS.J3]);
 

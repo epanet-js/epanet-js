@@ -753,12 +753,13 @@ const appendSource = (
   const typedNode = node as Junction | Tank | Reservoir;
   const sourceType = typedNode.chemicalSourceType;
   if (!sourceType) return;
+  const inpType = sourceType.toUpperCase();
   const strength = typedNode.chemicalSourceStrength ?? 0;
   const patternId = typedNode.chemicalSourcePatternId;
   if (patternId) usedPatternIds.add(patternId);
   const row = patternId
-    ? `${idMap.nodeId(node)}\t${sourceType}\t${strength}\t${idMap.patternId(patternId)}`
-    : `${idMap.nodeId(node)}\t${sourceType}\t${strength}`;
+    ? `${idMap.nodeId(node)}\t${inpType}\t${strength}\t${idMap.patternId(patternId)}`
+    : `${idMap.nodeId(node)}\t${inpType}\t${strength}`;
   sections.sources.push(row);
 };
 

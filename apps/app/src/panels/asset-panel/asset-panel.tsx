@@ -2667,7 +2667,7 @@ const ChemicalSourceEditor = ({
   const typedNode = node as Junction | Tank | Reservoir;
 
   const strengthUnit =
-    typedNode.chemicalSourceType === "MASS"
+    typedNode.chemicalSourceType === "mass"
       ? `${translateUnit(unit)}/min`
       : translateUnit(unit);
 
