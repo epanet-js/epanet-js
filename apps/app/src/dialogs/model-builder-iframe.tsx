@@ -4,7 +4,6 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Loading } from "../components/elements";
 import { EarlyAccessBadge } from "../components/early-access-badge";
 import { useImportInp } from "src/commands/import-inp";
-import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { modelBuilderUrl } from "src/global-config";
@@ -46,7 +45,6 @@ interface OpenExternalLinkMessage extends IframeMessage {
 const handleModelBuildComplete = (
   message: ModelBuildCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
-  checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
   importInp: ReturnType<typeof useImportInp>,
   toggleNetworkReview: ReturnType<typeof useToggleNetworkReview>,
 ) => {
@@ -66,10 +64,10 @@ const handleModelBuildComplete = (
       type: "text/plain",
     });
 
-    checkUnsavedChanges(async () => {
+    void (async () => {
       await importInp([inpFile], "modelBuilder");
       toggleNetworkReview({ source: "auto", state: true });
-    });
+    })();
   }, 1000);
 };
 
@@ -104,7 +102,6 @@ export const ModelBuilderIframeDialog = ({
   const translate = useTranslate();
   const [isLoading, setIsLoading] = useState(true);
   const importInp = useImportInp();
-  const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
 
@@ -125,7 +122,6 @@ export const ModelBuilderIframeDialog = ({
           handleModelBuildComplete(
             message as ModelBuildCompleteMessage,
             userTracking,
-            checkUnsavedChanges,
             importInp,
             toggleNetworkReview,
           );
@@ -144,7 +140,7 @@ export const ModelBuilderIframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [importInp, checkUnsavedChanges, userTracking, toggleNetworkReview]);
+  }, [importInp, userTracking, toggleNetworkReview]);
 
   return (
     <BaseDialog

@@ -6,7 +6,6 @@ import { Loading } from "../components/elements";
 import { EarlyAccessBadge } from "../components/early-access-badge";
 import { useOpenProjectFile } from "src/commands/open-project";
 import { projectExtension } from "src/commands/save-project";
-import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useUserTracking, UserEvent } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
@@ -57,10 +56,9 @@ interface OpenExternalLinkMessage extends IframeMessage {
   };
 }
 
-const handleModelBuildEjsdbComplete = (
+const handleModelBuildEjsdbComplete = async (
   message: ModelBuildEjsdbCompleteMessage,
   userTracking: ReturnType<typeof useUserTracking>,
-  checkUnsavedChanges: ReturnType<typeof useUnsavedChangesCheck>,
   openProjectFile: ReturnType<typeof useOpenProjectFile>,
   toggleNetworkReview: ReturnType<typeof useToggleNetworkReview>,
 ) => {
@@ -79,10 +77,8 @@ const handleModelBuildEjsdbComplete = (
     type: "application/octet-stream",
   });
 
-  checkUnsavedChanges(async () => {
-    await openProjectFile(projectFile, "modelBuilder");
-    toggleNetworkReview({ source: "auto", state: true });
-  });
+  await openProjectFile(projectFile, "modelBuilder");
+  toggleNetworkReview({ source: "auto", state: true });
 };
 
 const handleUserEvent = (
@@ -117,7 +113,6 @@ export const ModelBuilderV2IframeDialog = ({
   const { locale } = useLocale();
   const [isLoading, setIsLoading] = useState(true);
   const openProjectFile = useOpenProjectFile();
-  const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const enabledFlags = useEnabledFeatureFlags();
@@ -139,10 +134,9 @@ export const ModelBuilderV2IframeDialog = ({
       }
 
       if (message.type === "modelBuildEjsdbComplete") {
-        handleModelBuildEjsdbComplete(
+        void handleModelBuildEjsdbComplete(
           message as ModelBuildEjsdbCompleteMessage,
           userTracking,
-          checkUnsavedChanges,
           openProjectFile,
           toggleNetworkReview,
         );
@@ -158,7 +152,7 @@ export const ModelBuilderV2IframeDialog = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [openProjectFile, checkUnsavedChanges, userTracking, toggleNetworkReview]);
+  }, [openProjectFile, userTracking, toggleNetworkReview]);
 
   return (
     <BaseDialog

@@ -181,9 +181,9 @@ export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {
     return projectInfo.modelVersion !== hydraulicModel.version;
   }
 
-  const fileInfo = get(inpFileInfoAtom);
-  if (fileInfo) {
-    return fileInfo.modelVersion !== hydraulicModel.version;
+  const inpFileInfo = get(inpFileInfoAtom);
+  if (inpFileInfo) {
+    return true;
   }
 
   const momentLog = get(momentLogDerivedAtom);

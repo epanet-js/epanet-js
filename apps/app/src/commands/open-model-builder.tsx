@@ -5,6 +5,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useUnsavedChangesCheck } from "./check-unsaved-changes";
 
 export const useOpenModelBuilder = () => {
   const userTracking = useUserTracking();
@@ -12,6 +13,7 @@ export const useOpenModelBuilder = () => {
   const onlyEarlyAccess = useEarlyAccess();
   const isBuildV2On = useFeatureFlag("FLAG_BUILD_V2");
   const { canUseModelBuildV2 } = usePermissions();
+  const checkUnsavedChanges = useUnsavedChangesCheck();
 
   const openModelBuilder = useCallback(
     ({ source }: { source: string }) => {
@@ -25,12 +27,14 @@ export const useOpenModelBuilder = () => {
         : "modelBuilderIframe";
 
       onlyEarlyAccess(() => {
-        userTracking.capture({
-          name: "modelBuilder.opened",
-          source,
-        });
+        checkUnsavedChanges(() => {
+          userTracking.capture({
+            name: "modelBuilder.opened",
+            source,
+          });
 
-        setDialogState({ type: dialogType });
+          setDialogState({ type: dialogType });
+        });
       }, dialogType);
     },
     [
@@ -39,6 +43,7 @@ export const useOpenModelBuilder = () => {
       onlyEarlyAccess,
       isBuildV2On,
       canUseModelBuildV2,
+      checkUnsavedChanges,
     ],
   );
 
