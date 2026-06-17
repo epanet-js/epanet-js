@@ -1,4 +1,5 @@
 export * from "./assets";
+export * from "./controls";
 export * from "./raw-controls";
 export * from "./curves";
 export * from "./customer-points";

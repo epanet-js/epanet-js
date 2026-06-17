@@ -9,6 +9,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { Demand, Demands } from "@epanet-js/hydraulic-model";
 import { RawControls } from "@epanet-js/hydraulic-model";
+import { Controls } from "@epanet-js/hydraulic-model";
 import type { AssetId } from "@epanet-js/hydraulic-model";
 
 type NonPatchableKeys = "type" | "connections";
@@ -52,6 +53,7 @@ export const toDemandAssignments = (demands: Demands): DemandAssignment[] => {
 export type OptionalMomentFields = {
   putDemands?: DemandSettingsChange;
   putRawControls?: RawControls;
+  putControls?: Controls;
   putCustomerPoints?: CustomerPoint[];
   deleteCustomerPoints?: CustomerPointId[];
   putCurves?: Curves;

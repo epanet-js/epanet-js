@@ -51,6 +51,9 @@ export const applyMomentToModel = (
   if (moment.putRawControls) {
     reverseMoment.putRawControls = hydraulicModel.rawControls;
   }
+  if (moment.putControls) {
+    reverseMoment.putControls = hydraulicModel.controls;
+  }
   if (moment.putCurves) {
     reverseMoment.putCurves = hydraulicModel.curves;
   }
@@ -106,6 +109,10 @@ export const applyMomentToModel = (
 
   if (moment.putRawControls) {
     hydraulicModel.rawControls = moment.putRawControls;
+  }
+
+  if (moment.putControls) {
+    hydraulicModel.controls = moment.putControls;
   }
 
   if (moment.putCurves) {

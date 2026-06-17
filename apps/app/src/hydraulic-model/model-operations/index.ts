@@ -12,6 +12,7 @@ export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
 export { mergeNodes } from "./merge-nodes";
 export { changeRawControls } from "./change-raw-controls";
+export { setLinkTimedSetting } from "./set-link-timed-setting";
 export { changeCurves } from "./change-curves";
 export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";

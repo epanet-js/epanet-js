@@ -13,6 +13,7 @@ import type {
   JunctionAssignedDemands,
 } from "@epanet-js/hydraulic-model";
 import type { RawControls } from "@epanet-js/hydraulic-model";
+import type { Controls } from "@epanet-js/hydraulic-model";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import {
   assetsToRows,
@@ -20,6 +21,7 @@ import {
   patternsToRows,
   curvesToRows,
   serializeRawControls,
+  serializeControls,
   junctionDemandsToRows,
 } from "@epanet-js/ejsdb-mappers";
 import { newProject } from "./new-project";
@@ -57,6 +59,7 @@ export const importProject = async (
     await writeAllPatterns(input.hydraulicModel.patterns);
     await writeAllCurves(input.hydraulicModel.curves);
     await writeAllRawControls(input.hydraulicModel.rawControls);
+    await writeAllControls(input.hydraulicModel.controls);
     await setAllSimulationSettings(
       serializeSimulationSettings(input.simulationSettings),
     );
@@ -92,6 +95,11 @@ const writeAllCurves = (curves: Curves) =>
 const writeAllRawControls = (rawControls: RawControls) =>
   timed("setAllRawControls", async () => {
     await getWorker().setAllRawControls(serializeRawControls(rawControls));
+  });
+
+const writeAllControls = (controls: Controls) =>
+  timed("setAllControls", async () => {
+    await getWorker().setAllControls(serializeControls(controls));
   });
 
 const writeAllJunctionDemands = (junctions: JunctionAssignedDemands) =>

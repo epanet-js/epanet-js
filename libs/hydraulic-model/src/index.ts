@@ -23,4 +23,5 @@ export * from "./assets-map";
 export * from "./asset-index";
 export * from "./demands";
 export * from "./raw-controls";
+export * from "./controls";
 export * from "./topology";

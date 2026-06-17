@@ -42,4 +42,5 @@ export type ApplyMomentPayload = {
   patternsReplacement: PatternRow[] | null;
   curvesReplacement: CurveRow[] | null;
   rawControlsReplacement: string | null;
+  controlsReplacement: string | null;
 };

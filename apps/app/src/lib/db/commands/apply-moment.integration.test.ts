@@ -437,6 +437,52 @@ describe("apply-moment integration", () => {
     });
   });
 
+  it("replaces controls via putControls and reloads them", async () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1)
+        .aJunction(IDS.J2)
+        .aPump(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build(),
+    );
+
+    await persistMoment({
+      note: "replace controls",
+      putControls: [
+        {
+          type: "timed-setting",
+          linkId: IDS.P1,
+          steps: [
+            { time: 0, setting: 1 },
+            { time: 3600, setting: 0 },
+          ],
+        },
+      ],
+    });
+
+    const project = await fetchProject();
+    expect(project.hydraulicModel.controls).toHaveLength(1);
+    expect(project.hydraulicModel.controls[0]).toEqual({
+      type: "timed-setting",
+      linkId: IDS.P1,
+      steps: [
+        { time: 0, setting: 1 },
+        { time: 3600, setting: 0 },
+      ],
+    });
+  });
+
+  it("returns empty controls for a project without a controls row", async () => {
+    const IDS = { J1: 1 } as const;
+
+    await seed(HydraulicModelBuilder.with().aJunction(IDS.J1).build());
+
+    const project = await fetchProject();
+    expect(project.hydraulicModel.controls).toEqual([]);
+  });
+
   it("does not change DB state for a noop moment", async () => {
     const IDS = { J1: 1 } as const;
 

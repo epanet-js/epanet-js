@@ -15,6 +15,7 @@ import {
   buildPatternsData,
   buildCurvesData,
   buildRawControlsData,
+  buildControlsData,
   buildJunctionDemandsData,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
@@ -83,6 +84,7 @@ export const fetchProject = async (
       junctionDemandsRaw,
       curvesRaw,
       rawControlsData,
+      controlsData,
       simulationSettingsData,
       maxId,
     ] = await timed("fetchProject.readSettings", () =>
@@ -93,6 +95,7 @@ export const fetchProject = async (
         worker.getJunctionDemands(),
         worker.getCurves(),
         worker.getRawControls(),
+        worker.getControls(),
         worker.getSimulationSettings(),
         worker.getMaxId(),
       ]),
@@ -137,6 +140,7 @@ export const fetchProject = async (
         const patterns = buildPatternsData(patternsRaw);
         const curves = buildCurvesData(curvesRaw);
         const rawControls = buildRawControlsData(rawControlsData);
+        const controls = buildControlsData(controlsData);
         const simulationSettings = buildSimulationSettingsData(
           simulationSettingsData,
         );
@@ -152,6 +156,7 @@ export const fetchProject = async (
           patterns,
           curves,
           rawControls,
+          controls,
           demands: {
             junctions: junctionDemands,
             customerPoints: customerDemands,

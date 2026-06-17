@@ -1,5 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
-import { PumpStatus, pumpStatuses } from "@epanet-js/hydraulic-model";
+import { useCallback, useMemo } from "react";
+import {
+  PumpStatus,
+  pumpStatuses,
+  TimedSettingStep,
+} from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
   type GridColumn,
@@ -9,6 +13,10 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { NestedSection } from "src/components/form/fields";
+import {
+  settingFromPumpStatus,
+  pumpStatusFromSetting,
+} from "./pump-controls-editor";
 
 export type ControlStep = { time: number; status: PumpStatus };
 
@@ -19,17 +27,40 @@ const oppositeStatus = (status: PumpStatus): PumpStatus =>
 
 export const PumpTimeBasedControls = ({
   initialStatus,
+  steps,
+  onStepsChange,
   readOnly = false,
 }: {
   initialStatus: PumpStatus;
+  steps: TimedSettingStep[];
+  onStepsChange: (steps: TimedSettingStep[] | null) => void;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const [extraSteps, setExtraSteps] = useState<ControlStep[]>([]);
 
   const data = useMemo<ControlStep[]>(
-    () => [{ time: 0, status: initialStatus }, ...extraSteps],
-    [initialStatus, extraSteps],
+    () =>
+      steps.map((step, index) => ({
+        time: step.time,
+        status:
+          index === 0 ? initialStatus : pumpStatusFromSetting(step.setting),
+      })),
+    [steps, initialStatus],
+  );
+
+  const persist = useCallback(
+    (rows: ControlStep[]) => {
+      onStepsChange(
+        rows.map((row, index) => ({
+          time: index === 0 ? 0 : row.time,
+          setting:
+            index === 0
+              ? settingFromPumpStatus(initialStatus)
+              : settingFromPumpStatus(row.status),
+        })),
+      );
+    },
+    [onStepsChange, initialStatus],
   );
 
   const statusOptions = useMemo(
@@ -80,26 +111,27 @@ export const PumpTimeBasedControls = ({
     };
   }, [data, initialStatus]);
 
-  const handleChange = useCallback((newRows: ControlStep[]) => {
-    setExtraSteps(newRows.slice(1));
-  }, []);
+  const handleChange = useCallback(
+    (newRows: ControlStep[]) => {
+      persist(newRows);
+    },
+    [persist],
+  );
 
   const handleDeleteRow = useCallback(
     (rowIndex: number) => {
-      setExtraSteps(data.filter((_, i) => i !== rowIndex).slice(1));
+      persist(data.filter((_, i) => i !== rowIndex));
     },
-    [data],
+    [data, persist],
   );
 
   const handleInsertRowAbove = useCallback(
     (rowIndex: number) => {
       const source = data[rowIndex];
       const newRow = { time: source.time, status: source.status };
-      setExtraSteps(
-        [...data.slice(0, rowIndex), newRow, ...data.slice(rowIndex)].slice(1),
-      );
+      persist([...data.slice(0, rowIndex), newRow, ...data.slice(rowIndex)]);
     },
-    [data],
+    [data, persist],
   );
 
   const handleInsertRowBelow = useCallback(
@@ -109,15 +141,13 @@ export const PumpTimeBasedControls = ({
         time: source.time + ONE_HOUR_IN_SECONDS,
         status: source.status,
       };
-      setExtraSteps(
-        [
-          ...data.slice(0, rowIndex + 1),
-          newRow,
-          ...data.slice(rowIndex + 1),
-        ].slice(1),
-      );
+      persist([
+        ...data.slice(0, rowIndex + 1),
+        newRow,
+        ...data.slice(rowIndex + 1),
+      ]);
     },
-    [data],
+    [data, persist],
   );
 
   const rowActions = useMemo(

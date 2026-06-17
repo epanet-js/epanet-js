@@ -21,6 +21,12 @@ import {
   PatternType,
 } from "src/hydraulic-model";
 import { SimpleControl, RuleBasedControl } from "@epanet-js/hydraulic-model";
+import {
+  Controls,
+  TimedSettingStep,
+  createEmptyControls,
+  setLinkTimedSetting,
+} from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "@epanet-js/hydraulic-model";
 import {
   CustomerPointsLookup,
@@ -132,6 +138,7 @@ export class HydraulicModelBuilder {
   private curves: Curves;
   private patterns: Patterns;
   private rawControlsValue: RawControls;
+  private controlsValue: Controls;
 
   static with(
     options: {
@@ -174,6 +181,7 @@ export class HydraulicModelBuilder {
     this.curves = new Map();
     this.patterns = new Map();
     this.rawControlsValue = createEmptyRawControls();
+    this.controlsValue = createEmptyControls();
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -437,6 +445,15 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aTimedSettingControl(data: { linkId: AssetId; steps: TimedSettingStep[] }) {
+    this.controlsValue = setLinkTimedSetting(
+      this.controlsValue,
+      data.linkId,
+      data.steps,
+    );
+    return this;
+  }
+
   build(): HydraulicModel {
     const lookup = new CustomerPointsLookup();
 
@@ -466,6 +483,7 @@ export class HydraulicModelBuilder {
       curves: this.curves,
       patterns: this.patterns,
       rawControls: this.rawControlsValue,
+      controls: this.controlsValue,
     };
   }
 

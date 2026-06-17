@@ -19,6 +19,7 @@ import {
   patternsToRows,
   curvesToRows,
   serializeRawControls,
+  serializeControls,
 } from "@epanet-js/ejsdb-mappers";
 import {
   assetPatchesToRows,
@@ -82,6 +83,10 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     ? serializeRawControls(moment.putRawControls)
     : null;
 
+  const controlsReplacement = moment.putControls
+    ? serializeControls(moment.putControls)
+    : null;
+
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
@@ -93,6 +98,7 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     patternsReplacement,
     curvesReplacement,
     rawControlsReplacement,
+    controlsReplacement,
   };
 };
 
@@ -120,7 +126,8 @@ export const applyMomentToDb = async (
       payload.junctionDemandUpdates.length === 0 &&
       payload.patternsReplacement === null &&
       payload.curvesReplacement === null &&
-      payload.rawControlsReplacement === null
+      payload.rawControlsReplacement === null &&
+      payload.controlsReplacement === null
     ) {
       return;
     }

@@ -17,6 +17,7 @@ import {
   RawControls,
   createEmptyRawControls,
 } from "@epanet-js/hydraulic-model";
+import { Controls, createEmptyControls } from "@epanet-js/hydraulic-model";
 
 export type HydraulicModel = {
   version: string;
@@ -29,6 +30,7 @@ export type HydraulicModel = {
   curves: Curves;
   patterns: Patterns;
   rawControls: RawControls;
+  controls: Controls;
 };
 
 export { AssetsMap };
@@ -36,6 +38,7 @@ export { AssetsMap };
 export const initializeHydraulicModel = ({
   demands = createEmptyDemands(),
   rawControls = createEmptyRawControls(),
+  controls = createEmptyControls(),
   idGenerator,
   assets,
   topology,
@@ -47,6 +50,7 @@ export const initializeHydraulicModel = ({
 }: {
   demands?: Demands;
   rawControls?: RawControls;
+  controls?: Controls;
   idGenerator?: IdGenerator;
   assets?: AssetsMap;
   topology?: Topology;
@@ -69,6 +73,7 @@ export const initializeHydraulicModel = ({
     curves: curves ?? new Map(),
     patterns: patterns ?? new Map(),
     rawControls,
+    controls,
   };
 };
 
@@ -89,6 +94,7 @@ export const copyModel = (source: HydraulicModel): HydraulicModel => {
     curves: new Map(source.curves),
     patterns: new Map(source.patterns),
     rawControls: { ...source.rawControls },
+    controls: source.controls.map((control) => ({ ...control })),
   };
 };
 

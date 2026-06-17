@@ -195,6 +195,12 @@ const upsertRawControls = (data: string) => {
   });
 };
 
+const upsertControls = (data: string) => {
+  db!.exec(`INSERT OR REPLACE INTO controls (id, data) VALUES (1, ?)`, {
+    bind: [data],
+  });
+};
+
 const upsertSimulationSettings = (data: string) => {
   db!.exec(
     `INSERT OR REPLACE INTO simulation_settings (id, data) VALUES (1, ?)`,
@@ -766,6 +772,7 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   pat: payload.patternsReplacement?.length ?? 0,
   cur: payload.curvesReplacement?.length ?? 0,
   ctrl: payload.rawControlsReplacement !== null ? 1 : 0,
+  ctrls: payload.controlsReplacement !== null ? 1 : 0,
 });
 
 export const api = {
@@ -918,6 +925,18 @@ export const api = {
       await ready;
       if (!db) throw new Error("No database open");
       const rows = db.exec("SELECT data FROM raw_controls WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as string[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
+  async getControls(): Promise<string | null> {
+    return timed("getControls", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
         returnValue: "resultRows",
       }) as string[][];
       if (rows.length === 0) return null;
@@ -1080,6 +1099,9 @@ export const api = {
           if (payload.rawControlsReplacement !== null) {
             upsertRawControls(payload.rawControlsReplacement);
           }
+          if (payload.controlsReplacement !== null) {
+            upsertControls(payload.controlsReplacement);
+          }
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
@@ -1198,6 +1220,14 @@ export const api = {
       await ready;
       if (!db) throw new Error("No database open");
       upsertRawControls(data);
+    });
+  },
+
+  async setAllControls(data: string): Promise<void> {
+    return timed("setAllControls", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      upsertControls(data);
     });
   },
 

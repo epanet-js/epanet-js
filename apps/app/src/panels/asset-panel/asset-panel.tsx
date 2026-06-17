@@ -69,6 +69,11 @@ import {
 } from "src/hydraulic-model/property-validators";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import {
+  getLinkTimedSetting,
+  type TimedSettingStep,
+} from "@epanet-js/hydraulic-model";
+import { setLinkTimedSetting } from "src/hydraulic-model/model-operations";
+import {
   AssetEditorContent,
   QuantityRow,
   SelectRow,
@@ -99,7 +104,10 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
-import { PumpControlsEditor } from "./pump-controls-editor";
+import {
+  PumpControlsEditor,
+  settingFromPumpStatus,
+} from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { NumericTable } from "src/components/form/numeric-table";
@@ -186,6 +194,23 @@ export function AssetPanel({
         property: "initialStatus",
         value: newStatus,
       });
+      if (asset.type === "pump") {
+        const control = getLinkTimedSetting(hydraulicModel.controls, asset.id);
+        if (control) {
+          const steps = control.steps.map((step, index) =>
+            index === 0
+              ? {
+                  time: 0,
+                  setting: settingFromPumpStatus(newStatus as PumpStatus),
+                }
+              : step,
+          );
+          moment.putControls = setLinkTimedSetting(hydraulicModel, {
+            linkId: asset.id,
+            steps,
+          }).putControls;
+        }
+      }
       transact(moment);
       userTracking.capture({
         name: "assetStatus.edited",
@@ -193,6 +218,24 @@ export function AssetPanel({
         property: "initialStatus",
         newStatus,
         oldStatus,
+      });
+    },
+    [hydraulicModel, asset.id, asset.type, transact, userTracking],
+  );
+
+  const handleTimedControlChange = useCallback(
+    (steps: TimedSettingStep[] | null) => {
+      const moment = setLinkTimedSetting(hydraulicModel, {
+        linkId: asset.id,
+        steps,
+      });
+      transact(moment);
+      userTracking.capture({
+        name: "assetProperty.edited",
+        type: asset.type,
+        property: "controls",
+        newValue: steps ? steps.length : 0,
+        oldValue: null,
       });
     },
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
@@ -314,6 +357,7 @@ export function AssetPanel({
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
+          onTimedControlChange={handleTimedControlChange}
           units={units}
           {...getLinkNodes(hydraulicModel.assets, pump)}
           readonly={readonly}
@@ -2118,6 +2162,7 @@ const PumpEditor = ({
   onActiveTopologyStatusChange,
   onBatchPropertyChange,
   onLabelChange,
+  onTimedControlChange,
   units,
   readonly = false,
 }: {
@@ -2134,6 +2179,7 @@ const PumpEditor = ({
   ) => void;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
+  onTimedControlChange: (steps: TimedSettingStep[] | null) => void;
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
@@ -2271,6 +2317,11 @@ const PumpEditor = ({
           <PumpControlsEditor
             key={pump.id}
             initialStatus={pump.initialStatus}
+            steps={
+              getLinkTimedSetting(hydraulicModel.controls, pump.id)?.steps ??
+              null
+            }
+            onStepsChange={onTimedControlChange}
             readOnly={readonly}
           />
         </SectionWrapper>

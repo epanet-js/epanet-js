@@ -1,10 +1,33 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PumpStatus } from "@epanet-js/hydraulic-model";
+import { useState } from "react";
+import { PumpStatus, TimedSettingStep } from "@epanet-js/hydraulic-model";
 import { PumpControlsEditor } from "./pump-controls-editor";
 
-const renderEditor = (initialStatus: PumpStatus = "on") =>
-  render(<PumpControlsEditor initialStatus={initialStatus} />);
+const Harness = ({
+  initialStatus = "on",
+  onChange,
+}: {
+  initialStatus?: PumpStatus;
+  onChange?: (steps: TimedSettingStep[] | null) => void;
+}) => {
+  const [steps, setSteps] = useState<TimedSettingStep[] | null>(null);
+  return (
+    <PumpControlsEditor
+      initialStatus={initialStatus}
+      steps={steps}
+      onStepsChange={(next) => {
+        onChange?.(next);
+        setSteps(next);
+      }}
+    />
+  );
+};
+
+const renderEditor = (
+  initialStatus: PumpStatus = "on",
+  onChange?: (steps: TimedSettingStep[] | null) => void,
+) => render(<Harness initialStatus={initialStatus} onChange={onChange} />);
 
 const selectTimeBased = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole("combobox", { name: "Type" }));
@@ -57,6 +80,43 @@ describe("PumpControlsEditor", () => {
       screen.queryByRole("button", { name: /add time step/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryAllByRole("row")).toHaveLength(0);
+  });
+
+  it("seeds a step 0 with the numeric setting from the initial status when time-based is selected", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderEditor("on", onChange);
+
+    await selectTimeBased(user);
+
+    expect(onChange).toHaveBeenCalledWith([{ time: 0, setting: 1 }]);
+  });
+
+  it("maps added steps to numeric settings", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderEditor("on", onChange);
+    await selectTimeBased(user);
+
+    await user.click(getAddTimeStepButton());
+
+    expect(onChange).toHaveBeenLastCalledWith([
+      { time: 0, setting: 1 },
+      { time: 3600, setting: 0 },
+    ]);
+  });
+
+  it("clears the controls when switching back to None", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderEditor("on", onChange);
+    await selectTimeBased(user);
+    onChange.mockClear();
+
+    await user.click(screen.getByRole("combobox", { name: "Type" }));
+    await user.click(await screen.findByRole("option", { name: "None" }));
+
+    expect(onChange).toHaveBeenCalledWith(null);
   });
 
   it("shows a read-only first row at 0:00 with the pump initial status when time-based", async () => {
