@@ -21,6 +21,7 @@ export type ClipboardCopyInfo = {
   allRows: boolean;
   allCols: boolean;
   columnIds: string[];
+  includeHeaders: boolean;
 };
 
 export type ClipboardPasteInfo = {
@@ -265,7 +266,9 @@ export const ClipboardFeature: TableFeature = {
       return table.options.includeHeadersOnCopy ?? false;
     };
 
-    const buildCopyInfo = (): ClipboardCopyInfo | null => {
+    const buildCopyInfo = (
+      includeHeaders: boolean,
+    ): ClipboardCopyInfo | null => {
       const selection = table.getSelection?.();
       if (!selection) return null;
       const columns = table.getVisibleLeafColumns();
@@ -283,6 +286,7 @@ export const ClipboardFeature: TableFeature = {
           selection.min.col,
           selection.max.col + 1,
         ),
+        includeHeaders,
       };
     };
 
@@ -293,7 +297,7 @@ export const ClipboardFeature: TableFeature = {
 
       await writeSelectionToClipboard(includeHeaders);
 
-      const info = buildCopyInfo();
+      const info = buildCopyInfo(includeHeaders);
       if (info) table.options.onClipboardCopy?.(info);
     };
 

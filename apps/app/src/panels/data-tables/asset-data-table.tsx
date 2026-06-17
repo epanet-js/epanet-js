@@ -517,7 +517,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
   const handleCopy = useCallback(
     (info: ClipboardCopyInfo) => {
-      const { requestedRows, rows, cols, allRows, allCols, columnIds } = info;
+      const {
+        requestedRows,
+        rows,
+        cols,
+        allRows,
+        allCols,
+        columnIds,
+        includeHeaders,
+      } = info;
       const truncated = rows < requestedRows;
       userTracking.capture({
         name: "dataTables.copied",
@@ -527,7 +535,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         cols,
         allRows,
         allCols,
-        withHeaders: false,
+        withHeaders: includeHeaders,
         columnIds,
       });
 
@@ -552,8 +560,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         return;
       }
 
-      const canIncludeHeaders = allRows;
-      if (canIncludeHeaders) {
+      if (allRows && !includeHeaders) {
         notify({
           variant: "default",
           title: translate("dataTables.copy.includeHeadersPrompt"),
@@ -566,17 +573,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             onClick: () => {
               void dataGridRef.current?.copySelection({
                 includeHeaders: true,
-              });
-              userTracking.capture({
-                name: "dataTables.copied",
-                type: assetType,
-                requestedRows,
-                rows,
-                cols,
-                allRows,
-                allCols,
-                withHeaders: true,
-                columnIds,
               });
             },
           },

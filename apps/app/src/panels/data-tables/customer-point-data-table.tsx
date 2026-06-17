@@ -401,7 +401,15 @@ export const CustomerPointDataTable = memo(
 
     const handleCopy = useCallback(
       (info: ClipboardCopyInfo) => {
-        const { requestedRows, rows, cols, allRows, allCols, columnIds } = info;
+        const {
+          requestedRows,
+          rows,
+          cols,
+          allRows,
+          allCols,
+          columnIds,
+          includeHeaders,
+        } = info;
         const truncated = rows < requestedRows;
         userTracking.capture({
           name: "dataTables.copied",
@@ -411,7 +419,7 @@ export const CustomerPointDataTable = memo(
           cols,
           allRows,
           allCols,
-          withHeaders: false,
+          withHeaders: includeHeaders,
           columnIds,
         });
 
@@ -436,7 +444,7 @@ export const CustomerPointDataTable = memo(
           return;
         }
 
-        if (allRows) {
+        if (allRows && !includeHeaders) {
           notify({
             variant: "default",
             title: translate("dataTables.copy.includeHeadersPrompt"),
@@ -449,17 +457,6 @@ export const CustomerPointDataTable = memo(
               onClick: () => {
                 void dataGridRef.current?.copySelection({
                   includeHeaders: true,
-                });
-                userTracking.capture({
-                  name: "dataTables.copied",
-                  type: "customerPoint",
-                  requestedRows,
-                  rows,
-                  cols,
-                  allRows,
-                  allCols,
-                  withHeaders: true,
-                  columnIds,
                 });
               },
             },

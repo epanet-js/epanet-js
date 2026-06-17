@@ -391,7 +391,27 @@ describe("ClipboardFeature", () => {
         allRows: true,
         allCols: true,
         columnIds: ["id", "name", "value"],
+        includeHeaders: false,
       });
+    });
+
+    it("reports includeHeaders: true when copying with headers", async () => {
+      stubClipboard();
+      const onClipboardCopy = vi.fn();
+      const data: TestRow[] = [{ id: "1", name: "Alice", value: "100" }];
+
+      const { result } = renderHook(() =>
+        useClipboardTable({ data, onClipboardCopy }),
+      );
+      act(() => result.current.selectRange(single(0, 0)));
+
+      await act(async () => {
+        await result.current.copySelection({ includeHeaders: true });
+      });
+
+      expect(onClipboardCopy).toHaveBeenCalledWith(
+        expect.objectContaining({ includeHeaders: true }),
+      );
     });
   });
 
