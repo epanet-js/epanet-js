@@ -18,6 +18,7 @@ export type ProjectFileInfo = {
   name: string;
   modelVersion: string;
   handle?: FileSystemHandle | FileSystemFileHandle;
+  isUnsaved?: boolean;
 };
 
 export const projectFileInfoAtom = atom<ProjectFileInfo | null>(null);

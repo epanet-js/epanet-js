@@ -77,7 +77,7 @@ const handleModelBuildEjsdbComplete = async (
     type: "application/octet-stream",
   });
 
-  await openProjectFile(projectFile, "modelBuilder");
+  await openProjectFile(projectFile, "modelBuilder", { isUnsaved: true });
   toggleNetworkReview({ source: "auto", state: true });
 };
 

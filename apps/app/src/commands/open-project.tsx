@@ -40,7 +40,11 @@ export const useOpenProjectFile = () => {
   const { addRecent } = useRecentFiles();
 
   return useCallback(
-    async (file: FileWithHandle, source: string) => {
+    async (
+      file: FileWithHandle,
+      source: string,
+      options: { isUnsaved?: boolean } = {},
+    ) => {
       try {
         setDialogState({ type: "openProjectProgress", phase: "opening" });
 
@@ -145,6 +149,7 @@ export const useOpenProjectFile = () => {
           name: file.name,
           handle: file.handle,
           modelVersion: result.modelVersion,
+          isUnsaved: options.isUnsaved,
         });
         setInpFileInfo(null);
 

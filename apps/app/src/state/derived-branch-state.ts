@@ -178,6 +178,7 @@ export const hasUnsavedChangesDerivedAtom = atom<boolean>((get) => {
   const hydraulicModel = get(stagingModelDerivedAtom);
 
   if (projectInfo) {
+    if (projectInfo.isUnsaved) return true;
     return projectInfo.modelVersion !== hydraulicModel.version;
   }
 
