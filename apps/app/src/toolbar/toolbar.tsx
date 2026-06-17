@@ -45,10 +45,8 @@ import {
   useShowSimulationSettings,
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
-import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useAllocateCustomerPoints } from "src/commands/allocate-customer-points";
 import { useOpenZonesImport } from "src/commands/open-zones-import";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
@@ -86,9 +84,7 @@ export const Toolbar = ({
   const runSimulation = useRunSimulation();
   const showSimulationSettings = useShowSimulationSettings();
   const showReport = useShowReport();
-  const importCustomerPoints = useImportCustomerPoints();
   const allocateCustomerPoints = useAllocateCustomerPoints();
-  const isSplitCpAllocationEnabled = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const showDataTables = useShowDataTables();
   const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
@@ -122,19 +118,9 @@ export const Toolbar = ({
         <SaveIcon />
       </MenuAction>
       <MenuAction
-        label={translate(
-          isSplitCpAllocationEnabled
-            ? "allocateCustomerPoints.menuEntry"
-            : "importCustomerPoints.label",
-        )}
+        label={translate("allocateCustomerPoints.menuEntry")}
         role="button"
-        onClick={() => {
-          if (isSplitCpAllocationEnabled) {
-            allocateCustomerPoints();
-          } else {
-            void importCustomerPoints({ source: "toolbar" });
-          }
-        }}
+        onClick={() => allocateCustomerPoints()}
         disabled={customerAllocationDisabled}
       >
         <ImportCustomerPointsIcon />

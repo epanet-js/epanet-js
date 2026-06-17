@@ -1,11 +1,5 @@
 import { atom, useAtom } from "jotai";
 import { useAtomValue } from "jotai";
-import {
-  CustomerPointAllocationRule,
-  CustomerPointAllocationResult,
-  CustomerPoint,
-  getDefaultAllocationRules,
-} from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -19,7 +13,6 @@ import {
 const initialState: WizardState = {
   currentStep: 1,
   selectedFile: null,
-  parsedCustomerPoints: null,
   parsedDataSummary: null,
   inputData: null,
   selectedDemandProperty: null,
@@ -28,20 +21,13 @@ const initialState: WizardState = {
   error: null,
   isProcessing: false,
   keepDemands: false,
-  allocationRules: null,
-  connectionCounts: null,
-  allocationResult: null,
-  isAllocating: false,
-  lastAllocatedRules: null,
-  isEditingRules: false,
   selectedPatternId: null,
   defaultDemand: 0,
 };
 
 export const wizardStateAtom = atom<WizardState>(initialState);
 
-export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
-  allocationRules: CustomerPointAllocationRule[];
+export const useWizardState = (): WizardState & {
   units: UnitsSpec;
 } & WizardActions => {
   const [state, setWizardState] = useAtom(wizardStateAtom);
@@ -54,7 +40,7 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
   const goNext = () => {
     setWizardState((prev) => ({
       ...prev,
-      currentStep: Math.min(4, prev.currentStep + 1) as WizardStep,
+      currentStep: Math.min(3, prev.currentStep + 1) as WizardStep,
       error: null,
     }));
   };
@@ -73,10 +59,6 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
       selectedFile: file,
       error: null,
     }));
-  };
-
-  const setParsedCustomerPoints = (points: CustomerPoint[] | null) => {
-    setWizardState((prev) => ({ ...prev, parsedCustomerPoints: points }));
   };
 
   const setParsedDataSummary = (summary: ParsedDataSummary | null) => {
@@ -123,38 +105,6 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setWizardState((prev) => ({ ...prev, keepDemands }));
   };
 
-  const setAllocationRules = (
-    allocationRules: CustomerPointAllocationRule[],
-  ) => {
-    setWizardState((prev) => ({ ...prev, allocationRules }));
-  };
-
-  const setConnectionCounts = (
-    connectionCounts: { [ruleIndex: number]: number } | null,
-  ) => {
-    setWizardState((prev) => ({ ...prev, connectionCounts }));
-  };
-
-  const setAllocationResult = (
-    allocationResult: CustomerPointAllocationResult | null,
-  ) => {
-    setWizardState((prev) => ({ ...prev, allocationResult }));
-  };
-
-  const setIsAllocating = (isAllocating: boolean) => {
-    setWizardState((prev) => ({ ...prev, isAllocating, error: null }));
-  };
-
-  const setLastAllocatedRules = (
-    lastAllocatedRules: CustomerPointAllocationRule[] | null,
-  ) => {
-    setWizardState((prev) => ({ ...prev, lastAllocatedRules }));
-  };
-
-  const setIsEditingRules = (isEditingRules: boolean) => {
-    setWizardState((prev) => ({ ...prev, isEditingRules }));
-  };
-
   const setSelectedPatternId = (patternId: number | null) => {
     setWizardState((prev) => ({ ...prev, selectedPatternId: patternId }));
   };
@@ -169,13 +119,11 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
 
   return {
     ...state,
-    allocationRules: state.allocationRules ?? getDefaultAllocationRules(units),
     units,
     goToStep,
     goNext,
     goBack,
     setSelectedFile,
-    setParsedCustomerPoints,
     setParsedDataSummary,
     setInputData,
     setSelectedDemandProperty,
@@ -185,12 +133,6 @@ export const useWizardState = (): Omit<WizardState, "allocationRules"> & {
     setLoading,
     setProcessing,
     setKeepDemands,
-    setAllocationRules,
-    setConnectionCounts,
-    setAllocationResult,
-    setIsAllocating,
-    setLastAllocatedRules,
-    setIsEditingRules,
     setSelectedPatternId,
     setDefaultDemand,
     reset,

@@ -13,7 +13,6 @@ export const setWizardState = (
   const defaultWizardState: WizardState = {
     currentStep: 2,
     selectedFile: null,
-    parsedCustomerPoints: null,
     parsedDataSummary: null,
     inputData: null,
     selectedDemandProperty: null,
@@ -22,12 +21,6 @@ export const setWizardState = (
     error: null,
     isProcessing: false,
     keepDemands: false,
-    allocationRules: null,
-    connectionCounts: null,
-    allocationResult: null,
-    isAllocating: false,
-    lastAllocatedRules: null,
-    isEditingRules: false,
     selectedPatternId: null,
     defaultDemand: 0,
   };

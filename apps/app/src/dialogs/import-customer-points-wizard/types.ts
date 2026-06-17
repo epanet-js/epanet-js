@@ -1,15 +1,10 @@
 import { Feature } from "geojson";
-import {
-  CustomerPointAllocationRule,
-  CustomerPointAllocationResult,
-  CustomerPoint,
-  CustomerPointId,
-} from "@epanet-js/hydraulic-model";
+import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
 import { Demand } from "@epanet-js/hydraulic-model";
 import { CustomerPointsParserIssues } from "src/import/customer-points/parse-customer-points-issues";
 import { Unit } from "@epanet-js/quantity";
 
-export type WizardStep = 1 | 2 | 3 | 4;
+export type WizardStep = 1 | 2 | 3;
 
 export type ParsedDataSummary = {
   validCustomerPoints: CustomerPoint[];
@@ -27,7 +22,6 @@ export type InputData = {
 export type WizardState = {
   currentStep: WizardStep;
   selectedFile: File | null;
-  parsedCustomerPoints: CustomerPoint[] | null;
   parsedDataSummary: ParsedDataSummary | null;
   inputData: InputData | null;
   selectedDemandProperty: string | null;
@@ -36,12 +30,6 @@ export type WizardState = {
   error: string | null;
   isProcessing: boolean;
   keepDemands: boolean;
-  allocationRules: CustomerPointAllocationRule[] | null;
-  connectionCounts: { [ruleIndex: number]: number } | null;
-  allocationResult: CustomerPointAllocationResult | null;
-  isAllocating: boolean;
-  lastAllocatedRules: CustomerPointAllocationRule[] | null;
-  isEditingRules: boolean;
   selectedPatternId: number | null;
   defaultDemand: number;
 };
@@ -51,7 +39,6 @@ export type WizardActions = {
   goNext: () => void;
   goBack: () => void;
   setSelectedFile: (file: File | null) => void;
-  setParsedCustomerPoints: (points: CustomerPoint[] | null) => void;
   setParsedDataSummary: (summary: ParsedDataSummary | null) => void;
   setInputData: (data: InputData | null) => void;
   setSelectedDemandProperty: (property: string | null) => void;
@@ -61,12 +48,6 @@ export type WizardActions = {
   setLoading: (loading: boolean) => void;
   setProcessing: (processing: boolean) => void;
   setKeepDemands: (keepDemands: boolean) => void;
-  setAllocationRules: (rules: CustomerPointAllocationRule[]) => void;
-  setConnectionCounts: (counts: { [ruleIndex: number]: number } | null) => void;
-  setAllocationResult: (result: CustomerPointAllocationResult | null) => void;
-  setIsAllocating: (isAllocating: boolean) => void;
-  setLastAllocatedRules: (rules: CustomerPointAllocationRule[] | null) => void;
-  setIsEditingRules: (isEditingRules: boolean) => void;
   setSelectedPatternId: (patternId: number | null) => void;
   setDefaultDemand: (value: number) => void;
   reset: () => void;

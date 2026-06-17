@@ -11,8 +11,6 @@ import { useWizardState } from "./use-wizard-state";
 import { DataInputStep } from "./data-input-step";
 import { DataMappingStep } from "./data-mapping-step";
 import { DemandOptionsStep } from "./demand-options-step";
-import { AllocationStep } from "./allocation-step";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
@@ -26,7 +24,6 @@ const stepNames = {
   1: "dataInput",
   2: "dataMapping",
   3: "demandOptions",
-  4: "allocation",
 } as const;
 
 type ImportCustomerPointsWizardProps = {
@@ -40,7 +37,6 @@ export const ImportCustomerPointsWizard: React.FC<
   const userTracking = useUserTracking();
   const wizardState = useWizardState();
   const translate = useTranslate();
-  const isSplitAllocationEnabled = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const {
     projections,
     loading: projectionsLoading,
@@ -86,71 +82,6 @@ export const ImportCustomerPointsWizard: React.FC<
   }, [userTracking, handleClose, wizardState.currentStep]);
 
   const handleFinish = useCallback(async () => {
-    const {
-      allocationResult,
-      allocationRules,
-      keepDemands,
-      parsedDataSummary,
-      setProcessing,
-      setError,
-    } = wizardState;
-    if (!allocationResult) return;
-
-    setProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 10));
-
-    try {
-      const customerPointsToAdd = [
-        ...allocationResult.allocatedCustomerPoints.values(),
-        ...allocationResult.disconnectedCustomerPoints.values(),
-      ];
-
-      const updatedHydraulicModel = addCustomerPoints(
-        hydraulicModel,
-        customerPointsToAdd,
-        {
-          preserveJunctionDemands: keepDemands,
-          overrideExisting: true,
-          customerPointDemands: parsedDataSummary?.customerPointDemands,
-        },
-      );
-
-      const importedCount = updatedHydraulicModel.customerPoints.size;
-
-      void customerPointsImportReset({
-        hydraulicModel: updatedHydraulicModel,
-      });
-
-      userTracking.capture({
-        name: "importCustomerPoints.completed",
-        count: importedCount,
-        allocatedCount: allocationResult.allocatedCustomerPoints.size,
-        disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
-        rulesCount: allocationRules.length,
-      });
-
-      notify({
-        variant: "success",
-        title: translate("importSuccessful"),
-        Icon: SuccessIcon,
-      });
-
-      handleClose();
-    } catch {
-      setError("Import failed. Please try again.");
-    } finally {
-      setProcessing(false);
-    }
-  }, [
-    wizardState,
-    hydraulicModel,
-    customerPointsImportReset,
-    userTracking,
-    translate,
-    handleClose,
-  ]);
-
-  const handleFinishWithoutAllocation = useCallback(async () => {
     const { parsedDataSummary, keepDemands, setProcessing, setError } =
       wizardState;
     if (!parsedDataSummary) return;
@@ -232,27 +163,10 @@ export const ImportCustomerPointsWizard: React.FC<
       label: translate("importCustomerPoints.wizard.demandOptionsStep"),
       ariaLabel: "Step 3: Demand Options",
     },
-    ...(!isSplitAllocationEnabled
-      ? [
-          {
-            number: 4,
-            label: translate("importCustomerPoints.wizard.allocationStepLabel"),
-            ariaLabel: "Step 4: Customers Allocation",
-          },
-        ]
-      : []),
   ];
 
-  const {
-    currentStep,
-    inputData,
-    isLoading,
-    parsedDataSummary,
-    isProcessing,
-    isAllocating,
-    isEditingRules,
-    allocationResult,
-  } = wizardState;
+  const { currentStep, inputData, isLoading, parsedDataSummary, isProcessing } =
+    wizardState;
 
   const footer = (() => {
     switch (currentStep) {
@@ -280,46 +194,16 @@ export const ImportCustomerPointsWizard: React.FC<
         return (
           <WizardActions
             backAction={{ onClick: handleBack }}
-            nextAction={
-              isSplitAllocationEnabled ? undefined : { onClick: handleNext }
-            }
-            finishAction={
-              isSplitAllocationEnabled
-                ? {
-                    onClick: handleFinishWithoutAllocation,
-                    disabled: isProcessing,
-                    loading: isProcessing,
-                    label: isProcessing
-                      ? translate("wizard.processing")
-                      : translate(
-                          "importCustomerPoints.wizard.allocationStep.applyChanges",
-                        ),
-                  }
-                : undefined
-            }
-          />
-        );
-      case 4:
-        return (
-          <WizardActions
-            backAction={{
-              onClick: handleBack,
-              disabled: isProcessing || isAllocating || isEditingRules,
+            finishAction={{
+              onClick: handleFinish,
+              disabled: isProcessing,
+              loading: isProcessing,
+              label: isProcessing
+                ? translate("wizard.processing")
+                : translate(
+                    "importCustomerPoints.wizard.allocationStep.applyChanges",
+                  ),
             }}
-            finishAction={
-              isEditingRules || isAllocating
-                ? undefined
-                : {
-                    onClick: handleFinish,
-                    disabled: isProcessing || !allocationResult,
-                    loading: isProcessing,
-                    label: isProcessing
-                      ? translate("wizard.processing")
-                      : translate(
-                          "importCustomerPoints.wizard.allocationStep.applyChanges",
-                        ),
-                  }
-            }
           />
         );
     }
@@ -379,14 +263,6 @@ export const ImportCustomerPointsWizard: React.FC<
               <DemandOptionsStep
                 onNext={handleNext}
                 onBack={handleBack}
-                renderActions={false}
-                wizardState={wizardState}
-              />
-            )}
-            {currentStep === 4 && !isSplitAllocationEnabled && (
-              <AllocationStep
-                onBack={handleBack}
-                onFinish={handleClose}
                 renderActions={false}
                 wizardState={wizardState}
               />

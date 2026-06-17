@@ -14,7 +14,6 @@ import {
   GlobeIcon,
   EarlyAccessIcon,
   OutdatedSimulationIcon,
-  DownloadIcon,
   SaveIcon,
   SaveAllIcon,
   FileTextIcon,
@@ -34,7 +33,6 @@ import { useOpenRecentFile } from "src/commands/open-recent-file";
 import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import {
@@ -179,11 +177,8 @@ const NewProjectSubmenu = () => {
 };
 
 const ImportSubmenu = () => {
-  const isSplitAllocation = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const importCustomerPoints = useImportCustomerPoints();
   const translate = useTranslate();
-
-  if (!isSplitAllocation) return null;
 
   return (
     <DD.Sub>
@@ -209,7 +204,6 @@ const ImportSubmenu = () => {
 };
 
 const ExportSubmenu = () => {
-  const isSplitAllocationEnabled = useFeatureFlag("FLAG_SPLIT_CP_ALLOCATION");
   const saveInp = useSaveInp();
   const saveProject = useSaveProject();
   const setDialogState = useSetAtom(dialogAtom);
@@ -218,7 +212,7 @@ const ExportSubmenu = () => {
   return (
     <DD.Sub>
       <DDSubTriggerItem>
-        {isSplitAllocationEnabled ? <FolderInputIcon /> : <DownloadIcon />}
+        <FolderInputIcon />
         {translate("export")}
         <ChevronRightIcon size="sm" className="ml-auto" />
       </DDSubTriggerItem>
