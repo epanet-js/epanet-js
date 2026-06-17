@@ -9,16 +9,13 @@ import {
   type GridColumn,
   timeColumn,
   filterableSelectColumn,
+  floatColumn,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { NestedSection } from "src/components/form/fields";
-import {
-  settingFromPumpStatus,
-  pumpStatusFromSetting,
-} from "./pump-controls-editor";
 
-export type ControlStep = { time: number; status: PumpStatus };
+export type ControlStep = { time: number; status: PumpStatus; speed: number };
 
 const ONE_HOUR_IN_SECONDS = 3600;
 
@@ -27,11 +24,13 @@ const oppositeStatus = (status: PumpStatus): PumpStatus =>
 
 export const PumpTimeBasedControls = ({
   initialStatus,
+  initialSpeed,
   steps,
   onStepsChange,
   readOnly = false,
 }: {
   initialStatus: PumpStatus;
+  initialSpeed: number;
   steps: TimedSettingStep[];
   onStepsChange: (steps: TimedSettingStep[] | null) => void;
   readOnly?: boolean;
@@ -39,28 +38,21 @@ export const PumpTimeBasedControls = ({
   const translate = useTranslate();
 
   const data = useMemo<ControlStep[]>(
-    () =>
-      steps.map((step, index) => ({
-        time: step.time,
-        status:
-          index === 0 ? initialStatus : pumpStatusFromSetting(step.setting),
-      })),
-    [steps, initialStatus],
+    () => [{ time: 0, status: initialStatus, speed: initialSpeed }, ...steps],
+    [initialStatus, initialSpeed, steps],
   );
 
   const persist = useCallback(
     (rows: ControlStep[]) => {
       onStepsChange(
-        rows.map((row, index) => ({
-          time: index === 0 ? 0 : row.time,
-          setting:
-            index === 0
-              ? settingFromPumpStatus(initialStatus)
-              : settingFromPumpStatus(row.status),
+        rows.slice(1).map((row) => ({
+          time: row.time,
+          status: row.status,
+          speed: row.speed,
         })),
       );
     },
-    [onStepsChange, initialStatus],
+    [onStepsChange],
   );
 
   const statusOptions = useMemo(
@@ -99,8 +91,16 @@ export const PumpTimeBasedControls = ({
         emptyValue: "off",
         isReadOnly: (rowIndex) => rowIndex === 0,
       }),
+      floatColumn("speed", {
+        header: translate("speed"),
+        size: 80,
+        positiveOnly: true,
+        emptyValue: initialSpeed,
+        isReadOnly: (rowIndex) =>
+          rowIndex === 0 || data[rowIndex]?.status === "off",
+      }),
     ],
-    [translate, statusOptions, isTimeInSequence],
+    [translate, statusOptions, isTimeInSequence, initialSpeed, data],
   );
 
   const createRow = useCallback((): ControlStep => {
@@ -108,8 +108,9 @@ export const PumpTimeBasedControls = ({
     return {
       time: lastTime + ONE_HOUR_IN_SECONDS,
       status: oppositeStatus(initialStatus),
+      speed: initialSpeed,
     };
-  }, [data, initialStatus]);
+  }, [data, initialStatus, initialSpeed]);
 
   const handleChange = useCallback(
     (newRows: ControlStep[]) => {
@@ -128,7 +129,7 @@ export const PumpTimeBasedControls = ({
   const handleInsertRowAbove = useCallback(
     (rowIndex: number) => {
       const source = data[rowIndex];
-      const newRow = { time: source.time, status: source.status };
+      const newRow = { ...source };
       persist([...data.slice(0, rowIndex), newRow, ...data.slice(rowIndex)]);
     },
     [data, persist],
@@ -137,10 +138,7 @@ export const PumpTimeBasedControls = ({
   const handleInsertRowBelow = useCallback(
     (rowIndex: number) => {
       const source = data[rowIndex];
-      const newRow = {
-        time: source.time + ONE_HOUR_IN_SECONDS,
-        status: source.status,
-      };
+      const newRow = { ...source, time: source.time + ONE_HOUR_IN_SECONDS };
       persist([
         ...data.slice(0, rowIndex + 1),
         newRow,

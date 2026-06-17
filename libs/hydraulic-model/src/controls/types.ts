@@ -1,8 +1,10 @@
 import { AssetId } from "../asset-types";
+import { PumpStatus } from "../asset-types/pump";
 
 export type TimedSettingStep = {
   time: number;
-  setting: number;
+  status: PumpStatus;
+  speed: number;
 };
 
 export type TimedSettingControl = {

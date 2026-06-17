@@ -455,8 +455,8 @@ describe("apply-moment integration", () => {
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
-            { time: 0, setting: 1 },
-            { time: 3600, setting: 0 },
+            { time: 3600, status: "off", speed: 1 },
+            { time: 7200, status: "on", speed: 1.5 },
           ],
         },
       ],
@@ -468,8 +468,8 @@ describe("apply-moment integration", () => {
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [
-        { time: 0, setting: 1 },
-        { time: 3600, setting: 0 },
+        { time: 3600, status: "off", speed: 1 },
+        { time: 7200, status: "on", speed: 1.5 },
       ],
     });
   });

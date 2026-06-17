@@ -28,8 +28,8 @@ describe("applyMomentToModel with putControls", () => {
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
-            { time: 0, setting: 1 },
-            { time: 3600, setting: 0 },
+            { time: 3600, status: "off", speed: 1 },
+            { time: 7200, status: "on", speed: 1.5 },
           ],
         },
       ],
@@ -38,8 +38,8 @@ describe("applyMomentToModel with putControls", () => {
     const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
-      { time: 0, setting: 1 },
-      { time: 3600, setting: 0 },
+      { time: 3600, status: "off", speed: 1 },
+      { time: 7200, status: "on", speed: 1.5 },
     ]);
     expect(reverse.putControls).toEqual([]);
   });
@@ -52,7 +52,7 @@ describe("applyMomentToModel with putControls", () => {
       .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
       .aTimedSettingControl({
         linkId: IDS.P1,
-        steps: [{ time: 0, setting: 1 }],
+        steps: [{ time: 3600, status: "off", speed: 1 }],
       })
       .build();
 
@@ -66,7 +66,7 @@ describe("applyMomentToModel with putControls", () => {
 
     applyMomentToModel(model, reverse, labelManager);
     expect(getLinkTimedSetting(model.controls, IDS.P1)?.steps).toEqual([
-      { time: 0, setting: 1 },
+      { time: 3600, status: "off", speed: 1 },
     ]);
   });
 });

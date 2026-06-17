@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { pumpStatuses } from "./enums";
 
 const timedSettingStepSchema = z.object({
   time: z.number(),
-  setting: z.number(),
+  status: z.enum(pumpStatuses),
+  speed: z.number(),
 });
 
 const timedSettingControlSchema = z.object({

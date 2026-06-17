@@ -4,17 +4,22 @@ import { useState } from "react";
 import { PumpStatus, TimedSettingStep } from "@epanet-js/hydraulic-model";
 import { PumpControlsEditor } from "./pump-controls-editor";
 
+const INITIAL_SPEED = 1.5;
+
 const Harness = ({
   initialStatus = "on",
+  initialSpeed = INITIAL_SPEED,
   onChange,
 }: {
   initialStatus?: PumpStatus;
+  initialSpeed?: number;
   onChange?: (steps: TimedSettingStep[] | null) => void;
 }) => {
   const [steps, setSteps] = useState<TimedSettingStep[] | null>(null);
   return (
     <PumpControlsEditor
       initialStatus={initialStatus}
+      initialSpeed={initialSpeed}
       steps={steps}
       onStepsChange={(next) => {
         onChange?.(next);
@@ -45,6 +50,7 @@ const getTimeText = (rowIndex: number) => getCell(rowIndex, 0).textContent;
 const getTimeInputValue = (rowIndex: number) =>
   within(getCell(rowIndex, 0)).getByRole<HTMLInputElement>("textbox").value;
 const getStatusCell = (rowIndex: number) => getCell(rowIndex, 1);
+const getSpeedCell = (rowIndex: number) => getCell(rowIndex, 2);
 
 const startEditingTime = async (
   user: ReturnType<typeof userEvent.setup>,
@@ -82,17 +88,17 @@ describe("PumpControlsEditor", () => {
     expect(screen.queryAllByRole("row")).toHaveLength(0);
   });
 
-  it("seeds a step 0 with the numeric setting from the initial status when time-based is selected", async () => {
+  it("enables time-based with no extra steps when selected", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     renderEditor("on", onChange);
 
     await selectTimeBased(user);
 
-    expect(onChange).toHaveBeenCalledWith([{ time: 0, setting: 1 }]);
+    expect(onChange).toHaveBeenCalledWith([]);
   });
 
-  it("maps added steps to numeric settings", async () => {
+  it("persists an added step with its status and the initial speed", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     renderEditor("on", onChange);
@@ -101,8 +107,7 @@ describe("PumpControlsEditor", () => {
     await user.click(getAddTimeStepButton());
 
     expect(onChange).toHaveBeenLastCalledWith([
-      { time: 0, setting: 1 },
-      { time: 3600, setting: 0 },
+      { time: 3600, status: "off", speed: INITIAL_SPEED },
     ]);
   });
 
@@ -140,6 +145,61 @@ describe("PumpControlsEditor", () => {
     await selectTimeBased(user);
 
     expect(getStatusCell(0)).toHaveTextContent("Off");
+  });
+
+  describe("speed column", () => {
+    it("shows the initial speed in the read-only first row", async () => {
+      const user = userEvent.setup();
+      renderEditor("on");
+
+      await selectTimeBased(user);
+
+      expect(getSpeedCell(0)).toHaveTextContent("1.5");
+      expect(
+        within(getSpeedCell(0)).queryByRole("textbox"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("defaults an added step's speed to the initial speed", async () => {
+      const user = userEvent.setup();
+      renderEditor("on");
+      await selectTimeBased(user);
+
+      await user.click(getAddTimeStepButton());
+
+      expect(getSpeedCell(1)).toHaveTextContent("1.5");
+    });
+
+    it("keeps speed read-only while the step status is off", async () => {
+      const user = userEvent.setup();
+      renderEditor("on");
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+
+      const cell = getSpeedCell(1);
+      await user.dblClick(cell);
+
+      expect(within(cell).queryByRole("textbox")).not.toBeInTheDocument();
+    });
+
+    it("allows editing speed when the step status is on", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("off", onChange);
+      await selectTimeBased(user);
+      await user.click(getAddTimeStepButton());
+      onChange.mockClear();
+
+      const cell = getSpeedCell(1);
+      await user.dblClick(cell);
+      const input = within(cell).getByRole<HTMLInputElement>("textbox");
+      await user.clear(input);
+      await user.keyboard("2{Enter}");
+
+      expect(onChange).toHaveBeenLastCalledWith([
+        { time: 3600, status: "on", speed: 2 },
+      ]);
+    });
   });
 
   it("adds a time step one hour after the last, with the opposite status", async () => {

@@ -8,12 +8,6 @@ import { PumpTimeBasedControls } from "./pump-time-based-controls";
 
 type ControlType = "none" | "timeBased";
 
-export const settingFromPumpStatus = (status: PumpStatus): number =>
-  status === "on" ? 1 : 0;
-
-export const pumpStatusFromSetting = (setting: number): PumpStatus =>
-  setting === 0 ? "off" : "on";
-
 const selectorStyleOptions = {
   border: true,
   textSize: "text-size-base",
@@ -22,11 +16,13 @@ const selectorStyleOptions = {
 
 export const PumpControlsEditor = ({
   initialStatus,
+  initialSpeed,
   steps,
   onStepsChange,
   readOnly = false,
 }: {
   initialStatus: PumpStatus;
+  initialSpeed: number;
   steps: TimedSettingStep[] | null;
   onStepsChange: (steps: TimedSettingStep[] | null) => void;
   readOnly?: boolean;
@@ -45,13 +41,7 @@ export const PumpControlsEditor = ({
   const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
 
   const handleTypeChange = (newValue: ControlType) => {
-    if (newValue === "timeBased") {
-      onStepsChange([
-        { time: 0, setting: settingFromPumpStatus(initialStatus) },
-      ]);
-    } else {
-      onStepsChange(null);
-    }
+    onStepsChange(newValue === "timeBased" ? [] : null);
   };
 
   return (
@@ -75,6 +65,7 @@ export const PumpControlsEditor = ({
       {controlType === "timeBased" && steps && (
         <PumpTimeBasedControls
           initialStatus={initialStatus}
+          initialSpeed={initialSpeed}
           steps={steps}
           onStepsChange={onStepsChange}
           readOnly={readOnly}

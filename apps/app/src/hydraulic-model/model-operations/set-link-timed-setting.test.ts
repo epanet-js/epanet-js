@@ -18,15 +18,15 @@ describe("setLinkTimedSetting", () => {
     const { putControls } = setLinkTimedSetting(hydraulicModel, {
       linkId: IDS.P1,
       steps: [
-        { time: 0, setting: 1 },
-        { time: 3600, setting: 0 },
+        { time: 3600, status: "off", speed: 1 },
+        { time: 7200, status: "on", speed: 1.5 },
       ],
     });
 
     expect(putControls).toBeDefined();
     expect(getLinkTimedSetting(putControls!, IDS.P1)?.steps).toEqual([
-      { time: 0, setting: 1 },
-      { time: 3600, setting: 0 },
+      { time: 3600, status: "off", speed: 1 },
+      { time: 7200, status: "on", speed: 1.5 },
     ]);
   });
 
@@ -37,7 +37,7 @@ describe("setLinkTimedSetting", () => {
       .aPump(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
       .aTimedSettingControl({
         linkId: IDS.P1,
-        steps: [{ time: 0, setting: 1 }],
+        steps: [{ time: 3600, status: "off", speed: 1 }],
       })
       .build();
 

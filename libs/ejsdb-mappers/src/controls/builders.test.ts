@@ -10,8 +10,8 @@ describe("buildControlsData", () => {
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
-            { time: 0, setting: 1 },
-            { time: 7200, setting: 0 },
+            { time: 3600, status: "on", speed: 1.2 },
+            { time: 7200, status: "off", speed: 1.2 },
           ],
         },
       ]),
@@ -22,8 +22,8 @@ describe("buildControlsData", () => {
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [
-        { time: 0, setting: 1 },
-        { time: 7200, setting: 0 },
+        { time: 3600, status: "on", speed: 1.2 },
+        { time: 7200, status: "off", speed: 1.2 },
       ],
     });
   });
@@ -42,7 +42,25 @@ describe("buildControlsData", () => {
     expect(() =>
       buildControlsData(
         JSON.stringify([
-          { type: "timed-setting", linkId: 1, steps: [{ time: 0 }] },
+          {
+            type: "timed-setting",
+            linkId: 1,
+            steps: [{ time: 0, status: "on" }],
+          },
+        ]),
+      ),
+    ).toThrow(/Controls: data does not match schema/);
+  });
+
+  it("throws when a step has an invalid status", () => {
+    expect(() =>
+      buildControlsData(
+        JSON.stringify([
+          {
+            type: "timed-setting",
+            linkId: 1,
+            steps: [{ time: 0, status: "maybe", speed: 1 }],
+          },
         ]),
       ),
     ).toThrow(/Controls: data does not match schema/);

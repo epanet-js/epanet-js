@@ -14,12 +14,12 @@ describe("controls helpers", () => {
 
     it("returns the timed-setting control for the link", () => {
       const controls = setLinkTimedSetting(createEmptyControls(), IDS.P1, [
-        { time: 0, setting: 1 },
+        { time: 3600, status: "off", speed: 1 },
       ]);
       expect(getLinkTimedSetting(controls, IDS.P1)).toEqual({
         type: "timed-setting",
         linkId: IDS.P1,
-        steps: [{ time: 0, setting: 1 }],
+        steps: [{ time: 3600, status: "off", speed: 1 }],
       });
     });
   });
@@ -27,37 +27,46 @@ describe("controls helpers", () => {
   describe("setLinkTimedSetting", () => {
     it("adds a control for a link", () => {
       const controls = setLinkTimedSetting(createEmptyControls(), IDS.P1, [
-        { time: 0, setting: 1 },
-        { time: 3600, setting: 0 },
+        { time: 3600, status: "off", speed: 1 },
+        { time: 7200, status: "on", speed: 1.5 },
       ]);
       expect(controls).toHaveLength(1);
+    });
+
+    it("adds a control with no extra steps (time-based enabled)", () => {
+      const controls = setLinkTimedSetting(createEmptyControls(), IDS.P1, []);
+      expect(getLinkTimedSetting(controls, IDS.P1)).toEqual({
+        type: "timed-setting",
+        linkId: IDS.P1,
+        steps: [],
+      });
     });
 
     it("replaces the control for the same link without touching others", () => {
       const initial = setLinkTimedSetting(
         setLinkTimedSetting(createEmptyControls(), IDS.P1, [
-          { time: 0, setting: 1 },
+          { time: 3600, status: "off", speed: 1 },
         ]),
         IDS.P2,
-        [{ time: 0, setting: 0 }],
+        [{ time: 3600, status: "on", speed: 1 }],
       );
 
       const updated = setLinkTimedSetting(initial, IDS.P1, [
-        { time: 0, setting: 0 },
+        { time: 7200, status: "on", speed: 2 },
       ]);
 
       expect(updated).toHaveLength(2);
       expect(getLinkTimedSetting(updated, IDS.P1)?.steps).toEqual([
-        { time: 0, setting: 0 },
+        { time: 7200, status: "on", speed: 2 },
       ]);
       expect(getLinkTimedSetting(updated, IDS.P2)?.steps).toEqual([
-        { time: 0, setting: 0 },
+        { time: 3600, status: "on", speed: 1 },
       ]);
     });
 
     it("removes the control when steps is null", () => {
       const initial = setLinkTimedSetting(createEmptyControls(), IDS.P1, [
-        { time: 0, setting: 1 },
+        { time: 3600, status: "off", speed: 1 },
       ]);
       const updated = setLinkTimedSetting(initial, IDS.P1, null);
       expect(updated).toHaveLength(0);
@@ -65,7 +74,9 @@ describe("controls helpers", () => {
 
     it("does not mutate the input controls", () => {
       const initial = createEmptyControls();
-      setLinkTimedSetting(initial, IDS.P1, [{ time: 0, setting: 1 }]);
+      setLinkTimedSetting(initial, IDS.P1, [
+        { time: 3600, status: "off", speed: 1 },
+      ]);
       expect(initial).toHaveLength(0);
     });
   });

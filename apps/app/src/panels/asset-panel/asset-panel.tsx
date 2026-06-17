@@ -104,10 +104,7 @@ import type {
   ValveSimulation,
 } from "src/simulation/results-reader";
 import { DemandsEditor } from "./demands-editor";
-import {
-  PumpControlsEditor,
-  settingFromPumpStatus,
-} from "./pump-controls-editor";
+import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { NumericTable } from "src/components/form/numeric-table";
@@ -194,23 +191,6 @@ export function AssetPanel({
         property: "initialStatus",
         value: newStatus,
       });
-      if (asset.type === "pump") {
-        const control = getLinkTimedSetting(hydraulicModel.controls, asset.id);
-        if (control) {
-          const steps = control.steps.map((step, index) =>
-            index === 0
-              ? {
-                  time: 0,
-                  setting: settingFromPumpStatus(newStatus as PumpStatus),
-                }
-              : step,
-          );
-          moment.putControls = setLinkTimedSetting(hydraulicModel, {
-            linkId: asset.id,
-            steps,
-          }).putControls;
-        }
-      }
       transact(moment);
       userTracking.capture({
         name: "assetStatus.edited",
@@ -2317,6 +2297,7 @@ const PumpEditor = ({
           <PumpControlsEditor
             key={pump.id}
             initialStatus={pump.initialStatus}
+            initialSpeed={pump.speed}
             steps={
               getLinkTimedSetting(hydraulicModel.controls, pump.id)?.steps ??
               null
