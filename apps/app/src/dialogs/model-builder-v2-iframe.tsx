@@ -71,6 +71,7 @@ const handleModelBuildEjsdbComplete = async (
 
   userTracking.capture({
     name: "modelBuilder.completed",
+    version: "v2",
   });
 
   const projectFile = new File([ejsdbBytes], filename, {

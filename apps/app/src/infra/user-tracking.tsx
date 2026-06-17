@@ -223,6 +223,7 @@ type ModelBuilderOpened = {
 };
 type ModelBuilderCompleted = {
   name: "modelBuilder.completed";
+  version?: "v2";
 };
 type ModelBuilderPaywallSeen = {
   name: "modelBuilder.paywall.seen";
