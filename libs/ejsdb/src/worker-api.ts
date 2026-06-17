@@ -190,7 +190,7 @@ const insertCurve = (row: CurveRow) => {
 };
 
 const upsertRawControls = (data: string) => {
-  db!.exec(`INSERT OR REPLACE INTO controls (id, data) VALUES (1, ?)`, {
+  db!.exec(`INSERT OR REPLACE INTO raw_controls (id, data) VALUES (1, ?)`, {
     bind: [data],
   });
 };
@@ -917,7 +917,7 @@ export const api = {
     return timed("getRawControls", async () => {
       await ready;
       if (!db) throw new Error("No database open");
-      const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
+      const rows = db.exec("SELECT data FROM raw_controls WHERE id = 1", {
         returnValue: "resultRows",
       }) as string[][];
       if (rows.length === 0) return null;

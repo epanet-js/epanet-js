@@ -26,7 +26,7 @@ Any of these breaks file compatibility unless a migration ships with it:
 - Editing bulk-insert column lists in `src/worker-api.ts` (they must match the table schema exactly)
 - Editing row-shape Zod schemas in `src/schema/*.ts` (they must match the columns)
 - Changing the shape of any JSON blob persisted as a string column. Today these are:
-  - `controls.data` (controls JSON)
+  - `raw_controls.data` (raw controls JSON)
   - `simulation_settings.data`
   - `project.settings`
   - `pumps.curve_points`
