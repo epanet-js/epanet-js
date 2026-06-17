@@ -15,6 +15,7 @@ import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import type { Store } from "src/state";
 
 import { AssetDataTable } from "./asset-data-table";
@@ -73,7 +74,7 @@ describe("AssetDataTable", () => {
 
     renderTable(store);
 
-    // Wait for the rows to be built (computeRows uses setTimeout(0)).
+    // Wait for the grid mount (deferred one frame via requestAnimationFrame).
     await waitFor(() => {
       expect(screen.getByDisplayValue("J1")).toBeInTheDocument();
     });
@@ -124,5 +125,48 @@ describe("AssetDataTable", () => {
     await new Promise((r) => setTimeout(r, 50));
 
     expect(notify).not.toHaveBeenCalled();
+  });
+
+  it("renders model objects directly (direct attribute + computed column)", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 25 })
+      .aJunctionDemand(1, [{ baseDemand: 10 }])
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    // The grid mount is deferred a frame; the label (accessorKey) appears once
+    // it mounts. No async row build is involved.
+    expect(await screen.findByDisplayValue("J1")).toBeInTheDocument();
+    // Computed demand column (accessorFn) resolved from the model.
+    expect(screen.getByDisplayValue("10")).toBeInTheDocument();
+  });
+
+  it("edits a label and writes it back to the model", async () => {
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 25 })
+      .aJunction(2, { label: "J2", elevation: 30 })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    const cell = await screen.findByDisplayValue("J1");
+    await user.dblClick(cell);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("J1")).not.toHaveAttribute("readonly");
+    });
+
+    const input = screen.getByDisplayValue("J1");
+    await user.clear(input);
+    await user.type(input, "J9{Enter}");
+
+    // The edit round-trips through the model and the row re-renders from it.
+    await waitFor(() => {
+      const model = store.get(stagingModelDerivedAtom);
+      expect(model.assets.get(1)?.label).toBe("J9");
+    });
   });
 });

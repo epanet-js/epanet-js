@@ -322,7 +322,7 @@ The grid runs on datasets of **~450K rows**. A naive TanStack table materializes
 
 ### The lazy row model
 
-- Opt in with `enableLazyRowModel` on `<DataGrid>` (gated behind `FLAG_DATA_TABLES_PERFORMANCE` at the call site). It only *engages* once `data.length > LAZY_ROW_MODEL_THRESHOLD` (1000); below that it's the standard model. `isLazyRowModel(table)` reports the active state.
+- Opt in with `enableLazyRowModel` on `<DataGrid>` (the data-table panels get it via `PerformantDataGrid`). It only *engages* once `data.length > LAZY_ROW_MODEL_THRESHOLD` (1000); below that it's the standard model. `isLazyRowModel(table)` reports the active state.
 - When engaged, `Row` objects are created **on access** and LRU-capped (≈ the threshold), not built for the whole dataset. So `table.getRowModel().rows.length` is the full count, but **indexing `rows[i]` materializes that row**.
 - See `models/lazy-core-row-model.ts` (core model) and `models/lazy-sticky-sorted-row-model.ts` (sorted order without Rows).
 
@@ -356,9 +356,9 @@ A loop over the whole dataset (building a paste, building edit moments, serializ
 
 ### Roadmap: one model, not two (post-flag)
 
-The dual model — standard below `LAZY_ROW_MODEL_THRESHOLD`, lazy above, chosen by `getAdaptiveCoreRowModel` / `getAdaptiveStickySortedRowModel` and gated by `FLAG_DATA_TABLES_PERFORMANCE` — is **temporary**. The agreed direction is: **once the flag is removed, go lazy-only** — delete the standard path (`getStickySortedRowModel`, the `getAdaptive*` wrappers) and every `isLazyRowModel(table)` branch, keeping the threshold solely as the LRU cap. Keeping both models is just transitional cost, not the target architecture.
+The dual model — standard below `LAZY_ROW_MODEL_THRESHOLD`, lazy above, chosen by `getAdaptiveCoreRowModel` / `getAdaptiveStickySortedRowModel` — is **temporary**. `FLAG_DATA_TABLES_PERFORMANCE` (which used to gate the call sites) has now been removed, so the immediate next step is to **go lazy-only** — delete the standard path (`getStickySortedRowModel`, the `getAdaptive*` wrappers) and every `isLazyRowModel(table)` branch, keeping the threshold solely as the LRU cap. Keeping both models is just transitional cost, not the target architecture.
 
-While the flag still exists, write code that makes that collapse cheaper:
+Until that collapse lands, write code that makes it cheaper:
 
 - **Don't add new `isLazyRowModel` branches** unless genuinely unavoidable. Write the lazy path (the future default) and let it run for both sizes; every new branch is one more thing to unwind later.
 - **Prefer the Row-free patterns** (read via `accessorFn`, map via the lazy order) even where the standard model would let you cheat with `getRowModel().rows` — see the Cardinal rule above.

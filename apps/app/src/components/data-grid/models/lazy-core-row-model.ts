@@ -25,8 +25,8 @@ export const LAZY_ROW_MODEL_THRESHOLD = 1000;
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableOptionsResolved<TData extends RowData> {
-    // Opt-in (gated by FLAG_DATA_TABLES_PERFORMANCE at the call site). The lazy
-    // row model only engages when this is true AND the data is over threshold.
+    // Opt-in via `PerformantDataGrid` / `enableLazyRowModel`. The lazy row model
+    // only engages when this is true AND the data is over threshold.
     lazyRowModel?: boolean;
   }
 }

@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import {
@@ -36,7 +36,6 @@ import {
   type CurveId,
 } from "@epanet-js/hydraulic-model";
 import {
-  DataGrid,
   PerformantDataGrid,
   type DataGridRef,
   type CellContextAction,
@@ -56,11 +55,9 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type AssetRow,
   type AssetAccessorCtx,
-  buildRowsAsync,
   buildAssetModelRows,
 } from "./data";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
@@ -90,7 +87,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();
-  const isPerfOn = useFeatureFlag("FLAG_DATA_TABLES_PERFORMANCE");
   const selectAssetsInApp = useSelectAssetsInApp();
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
@@ -130,16 +126,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     return "none";
   }, [simulation, assetType, assetIds]);
 
-  const [legacyRows, setLegacyRows] = useState<AssetRow[] | null>(null);
-  const modelRows = useMemo(
-    () => (isPerfOn ? buildAssetModelRows(assetType, hydraulicModel) : null),
-    [isPerfOn, assetType, hydraulicModel],
+  const rows = useMemo(
+    () => buildAssetModelRows(assetType, hydraulicModel),
+    [assetType, hydraulicModel],
   );
-  const rows = isPerfOn ? modelRows : legacyRows;
   const rowsRef = useRef(rows);
   rowsRef.current = rows;
-  // Defer mounting the model-row grid so switching tabs stays responsive.
-  const gridReady = useDeferredGridMount(isPerfOn);
+  // Defer mounting the grid so switching tabs stays responsive.
+  const gridReady = useDeferredGridMount();
 
   const {
     isLocked: pipeAttributesLocked,
@@ -150,10 +144,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       assetType === "pipe" ? listPipeMaterials(hydraulicModel.assets) : [],
     [assetType, hydraulicModel.assets],
   );
-  const accessorCtx = useMemo<AssetAccessorCtx | undefined>(
-    () =>
-      isPerfOn ? { model: hydraulicModel, simulation, translate } : undefined,
-    [isPerfOn, hydraulicModel, simulation, translate],
+  const accessorCtx = useMemo<AssetAccessorCtx>(
+    () => ({ model: hydraulicModel, simulation, translate }),
+    [hydraulicModel, simulation, translate],
   );
 
   const columns = useMemo(() => {
@@ -200,27 +193,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     units,
     accessorCtx,
   ]);
-
-  useEffect(
-    function computeRows() {
-      if (isPerfOn) return;
-      const controller = new AbortController();
-
-      void buildRowsAsync(
-        assetType,
-        assetIds,
-        hydraulicModel,
-        simulation,
-        translate,
-        controller.signal,
-      ).then((result) => {
-        if (!controller.signal.aborted) setLegacyRows(result);
-      });
-
-      return () => controller.abort();
-    },
-    [isPerfOn, assetType, assetIds, hydraulicModel, simulation, translate],
-  );
 
   const onChange = useCallback(
     async (newRows: AssetRow[]) => {
@@ -607,16 +579,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [userTracking, assetType, translate],
   );
 
-  const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;
-
   return (
     <div className="flex-1 min-h-0 relative">
-      {rows === null || !gridReady ? (
+      {!gridReady ? (
         <div className="absolute inset-0 flex items-center justify-center">
           <RingSpinner />
         </div>
       ) : (
-        <Grid
+        <PerformantDataGrid
           ref={dataGridRef}
           key={assetType}
           data={rows}
@@ -624,7 +594,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           onChange={onChange}
           createRow={() => ({}) as AssetRow}
           getRowId={(row) => String(row.id)}
-          patchRow={isPerfOn ? patchModelRow : undefined}
+          patchRow={patchModelRow}
           gutterColumn="selection"
           resizable
           sortable

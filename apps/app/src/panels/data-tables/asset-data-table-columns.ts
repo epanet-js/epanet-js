@@ -47,12 +47,6 @@ import {
   isValidMaterial,
 } from "src/hydraulic-model/property-validators";
 
-/**
- * Resolves a column key to either a plain `accessorKey` (legacy, or a direct
- * attribute read off the model object) or `{ id, accessorFn }` for computed
- * columns when the lazy-accessor context is present (FLAG_DATA_TABLES_PERFORMANCE).
- * The resulting `column.id` stays the flat field name in both cases.
- */
 function makeCk(type: AssetType, accessorCtx?: AssetAccessorCtx) {
   return (key: string): ColumnKey<AssetRow, never> => {
     if (accessorCtx && isAssetComputedKey(type, key)) {

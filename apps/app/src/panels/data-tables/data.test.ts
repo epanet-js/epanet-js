@@ -4,7 +4,6 @@ import type { TranslateFn } from "src/hooks/use-translate";
 import {
   assetAccessor,
   buildAssetModelRows,
-  buildRowsAsync,
   isAssetComputedKey,
   type AssetRow,
 } from "./data";
@@ -78,62 +77,5 @@ describe("assetAccessor (computed columns)", () => {
     const row = { id: 1 } as AssetRow;
 
     expect(assetAccessor("junction", "sim_pressure", ctx)(row)).toBeNull();
-  });
-});
-
-describe("assetAccessor parity with the legacy row builder", () => {
-  // A model with a customer point connected to junction 1 via pipe 3, so the
-  // cross-referencing computed columns are non-trivial.
-  const buildConnectedModel = () =>
-    HydraulicModelBuilder.with()
-      .aJunction(1, { label: "J1", elevation: 25 })
-      .aJunction(2, { label: "J2" })
-      .aJunctionDemand(1, [{ baseDemand: 10 }])
-      .aPipe(3, { label: "P1", startNodeId: 1, endNodeId: 2 })
-      .aCustomerPoint(4, {
-        label: "CP1",
-        connection: { pipeId: 3, junctionId: 1 },
-      })
-      .aCustomerPointDemand(4, [{ baseDemand: 5 }])
-      .build();
-
-  it("matches buildRowsAsync for junction computed columns", async () => {
-    const model = buildConnectedModel();
-    const [legacy] = await buildRowsAsync(
-      "junction",
-      [1],
-      model,
-      null,
-      translate,
-    );
-    const ctx = { model, simulation: null, translate };
-    const row = { id: 1 } as AssetRow;
-
-    for (const key of [
-      "avgDemand",
-      "demandsCount",
-      "baseDemand",
-      "patternId",
-      "customerPointCount",
-      "avgCustomerDemand",
-    ]) {
-      expect(assetAccessor("junction", key, ctx)(row)).toEqual(legacy[key]);
-    }
-  });
-
-  it("matches buildRowsAsync for pipe computed columns", async () => {
-    const model = buildConnectedModel();
-    const [legacy] = await buildRowsAsync("pipe", [3], model, null, translate);
-    const ctx = { model, simulation: null, translate };
-    const row = { id: 3 } as AssetRow;
-
-    for (const key of [
-      "startNode",
-      "endNode",
-      "customerDemand",
-      "customerPointCount",
-    ]) {
-      expect(assetAccessor("pipe", key, ctx)(row)).toEqual(legacy[key]);
-    }
   });
 });

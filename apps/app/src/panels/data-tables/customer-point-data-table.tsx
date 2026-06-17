@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { dialogAtom } from "src/state/dialog";
@@ -10,11 +10,9 @@ import {
 } from "src/hydraulic-model/model-operations";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
-import { convertTo } from "@epanet-js/quantity";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
-  DataGrid,
   PerformantDataGrid,
   type DataGridRef,
   type CellContextAction,
@@ -25,7 +23,6 @@ import {
 } from "src/components/data-grid";
 import { useSelectCustomerPointsInApp } from "src/commands/select-customer-points-in-app";
 import { useDeleteCustomerPoints } from "src/commands/delete-customer-points";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PointerClickIcon } from "src/icons";
 import { notify } from "src/components/notifications";
@@ -36,7 +33,6 @@ import { customerPointsVisibleAtom } from "src/state/map-symbology";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { RingSpinner } from "src/components/ring-spinner";
 import {
-  buildCustomerPointRowsAsync,
   buildCustomerPointModelRows,
   type CustomerPointRow,
   type CpAccessorCtx,
@@ -58,22 +54,17 @@ export const CustomerPointDataTable = memo(
     const isEditionBlocked = useIsEditionBlocked();
     const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
-    const isPerfOn = useFeatureFlag("FLAG_DATA_TABLES_PERFORMANCE");
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
 
-    const [legacyRows, setLegacyRows] = useState<CustomerPointRow[] | null>(
-      null,
+    const rows = useMemo(
+      () => buildCustomerPointModelRows(hydraulicModel),
+      [hydraulicModel],
     );
-    const modelRows = useMemo(
-      () => (isPerfOn ? buildCustomerPointModelRows(hydraulicModel) : null),
-      [isPerfOn, hydraulicModel],
-    );
-    const rows = isPerfOn ? modelRows : legacyRows;
     const rowsRef = useRef(rows);
     rowsRef.current = rows;
-    // Defer mounting the model-row grid so switching tabs stays responsive.
-    const gridReady = useDeferredGridMount(isPerfOn);
+    // Defer mounting the grid so switching tabs stays responsive.
+    const gridReady = useDeferredGridMount();
 
     const patternOptions = useMemo(() => {
       const options: { value: number; label: string }[] = [];
@@ -85,9 +76,9 @@ export const CustomerPointDataTable = memo(
       return options;
     }, [patterns]);
 
-    const accessorCtx = useMemo<CpAccessorCtx | undefined>(
-      () => (isPerfOn ? { model: hydraulicModel, units } : undefined),
-      [isPerfOn, hydraulicModel, units],
+    const accessorCtx = useMemo<CpAccessorCtx>(
+      () => ({ model: hydraulicModel, units }),
+      [hydraulicModel, units],
     );
 
     const columns = useMemo(
@@ -114,24 +105,6 @@ export const CustomerPointDataTable = memo(
         labelManager,
         accessorCtx,
       ],
-    );
-
-    useEffect(
-      function computeRows() {
-        if (isPerfOn) return;
-        const controller = new AbortController();
-
-        void buildCustomerPointRowsAsync(
-          hydraulicModel,
-          units,
-          controller.signal,
-        ).then((result) => {
-          if (!controller.signal.aborted) setLegacyRows(result);
-        });
-
-        return () => controller.abort();
-      },
-      [isPerfOn, hydraulicModel, units],
     );
 
     const onChange = useCallback(
@@ -178,15 +151,7 @@ export const CustomerPointDataTable = memo(
             );
             const rest = existing.slice(1);
             const nextBaseDemand = baseDemandChanged
-              ? isPerfOn
-                ? (newRow.baseDemand ?? 0) //Unit conversion handled by the cell
-                : convertTo(
-                    {
-                      value: newRow.baseDemand ?? 0,
-                      unit: units.customerDemandPerDay,
-                    },
-                    units.customerDemand,
-                  )
+              ? (newRow.baseDemand ?? 0) // Unit conversion handled by the cell
               : (existing[0]?.baseDemand ?? 0);
             const nextPatternId = patternIdChanged
               ? (newRow.patternId ?? undefined)
@@ -234,7 +199,7 @@ export const CustomerPointDataTable = memo(
           });
         }
       },
-      [hydraulicModel, units, labelManager, transact, userTracking, isPerfOn],
+      [hydraulicModel, labelManager, transact, userTracking],
     );
 
     const getCpIdsFromRange = useCallback(
@@ -441,23 +406,21 @@ export const CustomerPointDataTable = memo(
       [userTracking, translate],
     );
 
-    const Grid: typeof DataGrid = isPerfOn ? PerformantDataGrid : DataGrid;
-
     return (
       <div className="flex-1 min-h-0 relative">
-        {rows === null || !gridReady ? (
+        {!gridReady ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <RingSpinner />
           </div>
         ) : (
-          <Grid
+          <PerformantDataGrid
             ref={dataGridRef}
             data={rows}
             columns={columns}
             onChange={onChange}
             createRow={() => ({}) as CustomerPointRow}
             getRowId={(row) => String(row.id)}
-            patchRow={isPerfOn ? patchModelRow : undefined}
+            patchRow={patchModelRow}
             gutterColumn="selection"
             resizable
             sortable

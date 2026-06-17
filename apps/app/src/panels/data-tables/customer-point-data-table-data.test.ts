@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { presets } from "src/lib/project-settings/quantities-spec";
-import { convertTo } from "@epanet-js/quantity";
 import {
   buildCustomerPointModelRows,
-  buildCustomerPointRowsAsync,
   cpAccessor,
   isCpComputedKey,
   type CustomerPointRow,
@@ -45,41 +43,25 @@ describe("buildCustomerPointModelRows", () => {
 });
 
 describe("cpAccessor (computed columns)", () => {
-  it("matches the legacy row builder for the non-converted columns", async () => {
+  it("resolves the connection and demand columns from the model", () => {
     const model = buildModel();
-    const [legacy] = await buildCustomerPointRowsAsync(model, units);
     const row = { id: 4 } as CustomerPointRow;
     const ctx = { model, units };
 
-    const directKeys: (keyof CustomerPointRow)[] = [
-      "connectedPipeLabel",
-      "connectedJunctionLabel",
-      "demandsCount",
-      "patternId",
-    ];
-    for (const key of directKeys) {
-      expect(cpAccessor(key, ctx)(row)).toEqual(legacy[key]);
-    }
+    expect(cpAccessor("connectedPipeLabel", ctx)(row)).toBe("P1");
+    expect(cpAccessor("connectedJunctionLabel", ctx)(row)).toBe("J1");
+    expect(cpAccessor("demandsCount", ctx)(row)).toBe(1);
+    expect(cpAccessor("patternId", ctx)(row)).toBeNull();
   });
 
-  it("returns the RAW (stored) demand — the column converts for display", async () => {
+  it("returns the RAW (stored) demand — the column converts for display", () => {
     const model = buildModel();
-    const [legacy] = await buildCustomerPointRowsAsync(model, units);
     const row = { id: 4 } as CustomerPointRow;
     const ctx = { model, units };
 
-    // Stored value is 5; the accessor returns it raw (sort/copy source), and
-    // converting it to the display unit reproduces the legacy displayed value.
+    // The accessor is the sort/copy source: it returns the model-native stored
+    // value (5), NOT the per-day value the column renders for display.
     expect(cpAccessor("baseDemand", ctx)(row)).toBe(5);
     expect(cpAccessor("avgDemand", ctx)(row)).toBe(5);
-    expect(
-      convertTo(
-        {
-          value: cpAccessor("baseDemand", ctx)(row) as number,
-          unit: units.customerDemand,
-        },
-        units.customerDemandPerDay,
-      ),
-    ).toBe(legacy.baseDemand);
   });
 });
