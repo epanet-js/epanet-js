@@ -1,6 +1,4 @@
-import { focusAtom } from "jotai-optics";
-import { dataAtom } from "src/state/data";
+import { atom } from "jotai";
+import type { Sel } from "src/selection";
 
-export const selectionAtom = focusAtom(dataAtom, (optic) =>
-  optic.prop("selection"),
-);
+export const selectionAtom = atom<Sel>({ asset: [], customerPoint: [] });

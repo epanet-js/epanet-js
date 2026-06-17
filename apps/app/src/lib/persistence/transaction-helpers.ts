@@ -9,7 +9,6 @@ import {
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import { dataAtom } from "src/state/data";
 import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
@@ -63,7 +62,6 @@ export function applyMoment(
     void
   > = stagingModelAtom,
 ): ModelMoment {
-  const ctx = get(dataAtom);
   const hydraulicModel = get(modelAtom);
 
   const processedMoment: ModelMoment = {
@@ -99,9 +97,6 @@ export function applyMoment(
     version: stateId,
     customerPoints: updatedCustomerPoints,
     curves: updatedCurves,
-  });
-  set(dataAtom, {
-    selection: ctx.selection,
   });
   return reverseMoment;
 }

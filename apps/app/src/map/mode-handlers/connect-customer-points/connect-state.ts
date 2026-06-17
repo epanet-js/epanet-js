@@ -16,8 +16,9 @@ export const useConnectCustomerPointsState = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
   const customerPoints = useMemo(() => {
-    if (USelection.isSingleCustomerPoint(selection)) {
-      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
+    const customerPointId = USelection.singleCustomerPointId(selection);
+    if (customerPointId !== null) {
+      const customerPoint = hydraulicModel.customerPoints.get(customerPointId);
       return customerPoint ? [customerPoint] : [];
     }
     return [];

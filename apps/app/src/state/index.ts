@@ -1,7 +1,3 @@
-// Data
-export type { Data } from "src/state/data";
-export { nullData, dataAtom } from "src/state/data";
-
 // Dialog
 export type { DialogState } from "src/state/dialog";
 export { dialogFromUrl, dialogAtom } from "src/state/dialog";

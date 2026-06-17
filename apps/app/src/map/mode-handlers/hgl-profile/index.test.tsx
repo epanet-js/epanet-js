@@ -81,7 +81,7 @@ describe("useHglProfileHandlers click (commit-on-click model)", () => {
     expect(
       ephemeral.type === "hglProfile" ? ephemeral.anchorIds : null,
     ).toEqual([IDS.J1]);
-    expect(store.get(selectionAtom)).toEqual({ type: "none" });
+    expect(USelection.isNone(store.get(selectionAtom))).toBe(true);
   });
 
   it("commits the HGL profile on the second valid click", () => {
@@ -137,10 +137,13 @@ describe("useHglProfileHandlers click (commit-on-click model)", () => {
     expect(after!.anchors).toEqual([IDS.J1, IDS.J2, IDS.J3]);
     expect(after!.id).not.toBe(before!.id);
 
-    expect(store.get(selectionAtom)).toEqual({
-      type: "multi",
-      ids: { asset: [IDS.J1, IDS.J2, IDS.J3, IDS.P1, IDS.P2] },
-    });
+    expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([
+      IDS.J1,
+      IDS.J2,
+      IDS.J3,
+      IDS.P1,
+      IDS.P2,
+    ]);
   });
 
   it("ignores a click on the same last anchor", () => {

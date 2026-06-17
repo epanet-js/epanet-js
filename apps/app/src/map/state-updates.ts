@@ -114,7 +114,8 @@ const detectChanges = (
   hasNewImport: boolean;
   hasNewEditions: boolean;
   hasNewStyles: boolean;
-  hasNewSelection: boolean;
+  hasNewAssetsSelection: boolean;
+  hasNewCustomerPointsSelection: boolean;
   hasNewEphemeralState: boolean;
   hasEphemeralStateReset: boolean;
   hasNewSimulation: boolean;
@@ -138,7 +139,12 @@ const detectChanges = (
       !map.isStyleLoaded() ||
       state.stylesConfig !== prev.stylesConfig ||
       (!state.isOffline && prev.isOffline),
-    hasNewSelection: state.selection !== prev.selection,
+    hasNewAssetsSelection:
+      USelection.getAssetIds(state.selection) !==
+      USelection.getAssetIds(prev.selection),
+    hasNewCustomerPointsSelection:
+      USelection.getCustomerPointIds(state.selection) !==
+      USelection.getCustomerPointIds(prev.selection),
     hasNewEphemeralState: state.ephemeralState !== prev.ephemeralState,
     hasEphemeralStateReset:
       prev.ephemeralState.type !== "none" &&
@@ -206,7 +212,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewImport,
       hasNewStyles,
       hasNewEditions,
-      hasNewSelection,
+      hasNewAssetsSelection,
+      hasNewCustomerPointsSelection,
       hasNewEphemeralState,
       hasEphemeralStateReset,
       hasNewSymbologyRules,
@@ -224,8 +231,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewHighlights,
     } = changes;
 
-    const selectionSize = USelection.getAssetIds(mapState.selection).length;
+    const { assets: selectedAssetsCount, customerPoints: selectedCPcount } =
+      USelection.countByKind(mapState.selection);
+    const selectionSize = selectedAssetsCount + selectedCPcount;
     const hasLargeSelection = selectionSize > 50;
+    const hasNewSelection =
+      hasNewAssetsSelection || hasNewCustomerPointsSelection;
 
     const shouldShowLoader =
       hasNewImport ||
@@ -343,7 +354,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewEditions ||
           hasNewStyles ||
           hasNewSymbologyRules ||
-          hasNewSelection ||
+          hasNewAssetsSelection ||
           (hasNewSimulation && mapState.simulation.status !== "running") ||
           hasNewResults
         ) {
@@ -396,7 +407,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (
           hasNewZoom ||
-          hasNewSelection ||
+          hasNewCustomerPointsSelection ||
           hasNewSymbologyRules ||
           hasEphemeralStateReset
         ) {
@@ -426,7 +437,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           );
         }
 
-        if (hasNewSelection || hasNewCustomerPoints) {
+        if (hasNewCustomerPointsSelection || hasNewCustomerPoints) {
           selectionDeckLayersRef.current =
             buildSelectionOverlayForCustomerPoints(
               mapState.selection,
@@ -466,7 +477,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (
-          hasNewSelection ||
+          hasNewAssetsSelection ||
           hasNewStyles ||
           hasNewEditions ||
           (hasNewSimulation && mapState.simulation.status !== "running") ||
@@ -490,7 +501,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
         if (
           (hasNewSymbologyRules && !hasNewStyles) ||
-          hasNewSelection ||
+          hasNewAssetsSelection ||
           hasNewEditions
         ) {
           toggleAnalysisLayers(map, mapState.symbology);
@@ -500,7 +511,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           hasNewStyles ||
           hasNewCustomerPointsSymbology ||
           hasNewZoom ||
-          hasNewSelection ||
+          hasNewCustomerPointsSelection ||
           hasNewEphemeralState ||
           hasNewCustomerPoints ||
           hasNewEditions

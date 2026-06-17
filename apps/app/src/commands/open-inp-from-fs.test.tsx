@@ -2,7 +2,7 @@ import { USelection } from "src/selection";
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
-import { dataAtom } from "src/state/data";
+import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom } from "src/state/file-system";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { momentLogAtom } from "src/state/model-changes";
@@ -176,7 +176,7 @@ describe("openInpFromFs", () => {
     );
 
     const hydraulicModel = store.get(stagingModelAtom);
-    const { selection } = store.get(dataAtom);
+    const selection = store.get(selectionAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
     expect(getByLabel(hydraulicModel.assets, "P1")).toBeFalsy();
 
@@ -186,7 +186,7 @@ describe("openInpFromFs", () => {
     const simulation = store.get(simulationDerivedAtom);
     expect(simulation.status).toEqual("idle");
 
-    expect(selection.type).toEqual("none");
+    expect(USelection.isNone(selection)).toBe(true);
   });
 
   it("can save previous changes before opening", async () => {

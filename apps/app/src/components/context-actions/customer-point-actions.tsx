@@ -87,9 +87,11 @@ export function CustomerPointActions({ as }: { as: ActionProps["as"] }) {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
-  const customerPoint = USelection.isSingleCustomerPoint(selection)
-    ? hydraulicModel.customerPoints.get(selection.id)
-    : undefined;
+  const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
+  const customerPoint =
+    selectedCustomerPointId !== null
+      ? hydraulicModel.customerPoints.get(selectedCustomerPointId)
+      : undefined;
 
   const actions = useCustomerPointActions(customerPoint, as);
 

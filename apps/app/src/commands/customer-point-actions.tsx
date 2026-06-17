@@ -19,9 +19,13 @@ export const useConnectCustomerPoints = () => {
 
   const connectCustomerPoints = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {
-      if (!USelection.isSingleCustomerPoint(selection)) return;
+      const selectedCustomerPointId =
+        USelection.singleCustomerPointId(selection);
+      if (selectedCustomerPointId === null) return;
 
-      const customerPoint = hydraulicModel.customerPoints.get(selection.id);
+      const customerPoint = hydraulicModel.customerPoints.get(
+        selectedCustomerPointId,
+      );
       if (!customerPoint) return;
 
       const isReconnecting = customerPoint.connection !== null;

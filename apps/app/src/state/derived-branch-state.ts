@@ -6,7 +6,7 @@ import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
-import { dataAtom } from "src/state/data";
+import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { nullHydraulicModel } from "src/state/hydraulic-model";
 import { worktreeAtom } from "src/state/scenarios";
@@ -152,7 +152,7 @@ export const customerPointsDerivedAtom = atom((get) => {
 });
 
 export const selectedAssetsDerivedAtom = atom((get) => {
-  const { selection } = get(dataAtom);
+  const selection = get(selectionAtom);
   const { assets } = get(stagingModelDerivedAtom);
   const features = [];
   for (const id of USelection.getAssetIds(selection)) {
@@ -163,7 +163,7 @@ export const selectedAssetsDerivedAtom = atom((get) => {
 });
 
 export const selectedCustomerPointsDerivedAtom = atom((get) => {
-  const { selection } = get(dataAtom);
+  const selection = get(selectionAtom);
   const { customerPoints } = get(stagingModelDerivedAtom);
   const result = [];
   for (const id of USelection.getCustomerPointIds(selection)) {

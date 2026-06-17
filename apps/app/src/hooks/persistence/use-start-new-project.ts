@@ -21,7 +21,6 @@ import { momentLogAtom } from "src/state/model-changes";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
-import { dataAtom, nullData } from "src/state/data";
 import { mapSyncMomentAtom } from "src/state/map";
 import {
   nodeSymbologyAtom,
@@ -64,7 +63,7 @@ export type ProjectLoadInput = {
 
 export const resetAppState = (set: Setter) => {
   set(splitsAtom, defaultSplits);
-  set(dataAtom, nullData);
+  set(selectionAtom, USelection.none());
   set(mapSyncMomentAtom, { pointer: -1, version: 0 });
   set(nodeSymbologyAtom, nullSymbologySpec.node);
   set(linkSymbologyAtom, nullSymbologySpec.link);
@@ -76,7 +75,6 @@ export const resetAppState = (set: Setter) => {
   set(hglProfileOpenAtom, false);
   set(bottomActiveTabAtom, null);
   set(ephemeralStateAtom, { type: "none" });
-  set(selectionAtom, USelection.none());
   set(pipeDrawingDefaultsAtom, {});
   set(autoElevationsAtom, true);
   set(sourceRebuildDurationsAtom, []);

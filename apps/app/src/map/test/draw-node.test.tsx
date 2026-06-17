@@ -5,6 +5,7 @@ import { Mode } from "src/state/mode";
 import { renderMap } from "./__helpers__/map";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import { selectionAtom } from "src/state/selection";
+import { USelection } from "src/selection";
 import { Junction } from "@epanet-js/hydraulic-model";
 import { getAssetsByType } from "src/__helpers__/asset-queries";
 import { vi } from "vitest";
@@ -56,10 +57,8 @@ describe("Drawing a junction", () => {
 
     await waitFor(() => {
       const selection = store.get(selectionAtom);
-      expect(selection.type).toBe("single");
-      if (selection.type === "single") {
-        expect(selection.id).toBe(junction.id);
-      }
+      expect(USelection.isSingleAsset(selection)).toBe(true);
+      expect(USelection.singleAssetId(selection)).toBe(junction.id);
     });
   });
 });

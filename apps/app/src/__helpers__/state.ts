@@ -1,7 +1,7 @@
 import { createStore } from "jotai";
 import { HydraulicModelBuilder } from "./hydraulic-model-builder";
 import { MomentLog } from "src/lib/persistence/moment-log";
-import { dataAtom, nullData } from "src/state/data";
+import { selectionAtom } from "src/state/selection";
 import {
   FileInfo,
   inpFileInfoAtom,
@@ -87,10 +87,7 @@ export const setInitialState = (
   store.set(recentFilesStoreAtom, new RecentFilesStore(recentFilesKv));
 
   store.set(stagingModelAtom, hydraulicModel);
-  store.set(dataAtom, {
-    ...nullData,
-    selection,
-  });
+  store.set(selectionAtom, selection);
   store.set(momentLogAtom, momentLog);
   store.set(simulationStepAtom, simulationStep);
   store.set(inpFileInfoAtom, fileInfo);

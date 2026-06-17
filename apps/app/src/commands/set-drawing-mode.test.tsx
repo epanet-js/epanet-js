@@ -4,6 +4,7 @@ import { Store } from "src/state";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { aSingleSelection, setInitialState } from "src/__helpers__/state";
+import { USelection } from "src/selection";
 import { useDrawingMode } from "./set-drawing-mode";
 import { Mode } from "src/state/mode";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -69,7 +70,7 @@ describe("useDrawingMode", () => {
     await user.click(await screen.findByTestId("set-none-mode"));
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
 
     const updatedMode = store.get(modeAtom);
     expect(updatedMode.mode).toEqual(Mode.NONE);
@@ -93,7 +94,7 @@ describe("useDrawingMode", () => {
     await user.click(await screen.findByTestId("set-pipe-mode"));
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
 
     const updatedMode = store.get(modeAtom);
     expect(updatedMode.mode).toEqual(Mode.DRAW_PIPE);
@@ -166,7 +167,7 @@ describe("useDrawingMode", () => {
     await user.click(await screen.findByTestId("set-pipe-mode"));
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
 
     const updatedMode = store.get(modeAtom);
     expect(updatedMode.mode).toEqual(Mode.DRAW_PIPE);

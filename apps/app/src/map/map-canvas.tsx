@@ -13,7 +13,7 @@ import React, {
 import clsx from "clsx";
 import throttle from "lodash/throttle";
 import mapboxgl /*, { LngLatBoundsLike } */ from "mapbox-gl";
-import { dataAtom, Data } from "src/state/data";
+import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { ephemeralStateAtom, EphemeralEditingState } from "src/state/drawing";
 import {
@@ -67,12 +67,12 @@ mapboxgl.setRTLTextPlugin(
 );
 
 const exposeAppStateInWindow = (
-  data: Data,
+  selection: Sel,
   ephemeralState: EphemeralEditingState,
 ) => {
   if (typeof window === "undefined") return;
 
-  (window as any).appData = data;
+  (window as any).appData = { selection };
   (window as any).appEphemeralState = ephemeralState;
 };
 
@@ -109,12 +109,12 @@ export const MapCanvas = memo(function MapCanvas({
     useCallback((get) => get(mapViewportAtom), []),
   );
 
-  const data = useAtomValue(dataAtom);
+  const selection = useAtomValue(selectionAtom);
   const { units } = useAtomValue(projectSettingsAtom);
   const ephemeralState = useAtomValue(ephemeralStateAtom);
   const [currentZoom, setCurrentZoom] = useAtom(currentZoomAtom);
 
-  if (isDebugAppStateOn) exposeAppStateInWindow(data, ephemeralState);
+  if (isDebugAppStateOn) exposeAppStateInWindow(selection, ephemeralState);
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
 
@@ -130,7 +130,6 @@ export const MapCanvas = memo(function MapCanvas({
   });
 
   // Atom state
-  const selection = data.selection;
   const mode = useAtomValue(modeAtom);
   const cursor = useAtomValue(cursorStyleAtom);
   const isEditionBlocked = useIsEditionBlocked();

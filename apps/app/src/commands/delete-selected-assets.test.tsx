@@ -29,7 +29,7 @@ describe("delete selected", () => {
     await triggerCommand();
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -55,7 +55,7 @@ describe("delete selected", () => {
     await triggerCommand();
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(updatedHydraulicModel.assets.has(IDS.J2)).toBeFalsy();
@@ -79,7 +79,7 @@ describe("delete selected", () => {
     await triggerCommand();
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -103,7 +103,7 @@ describe("delete selected", () => {
     await triggerCommand();
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
@@ -143,7 +143,7 @@ describe("delete selected", () => {
     // remove moment deletes it; merged, the point must end up gone, not
     // resurrected as a disconnected copy.
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     const updatedHydraulicModel = store.get(stagingModelAtom);
     expect(updatedHydraulicModel.assets.has(IDS.P1)).toBeFalsy();
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
@@ -158,7 +158,7 @@ describe("delete selected", () => {
     await triggerCommand();
 
     const updatedSelection = store.get(selectionAtom);
-    expect(updatedSelection.type).toEqual("none");
+    expect(USelection.isNone(updatedSelection)).toBe(true);
     expect(userTracking.capture).not.toHaveBeenCalled();
   });
 

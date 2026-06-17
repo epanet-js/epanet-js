@@ -179,9 +179,14 @@ export function useNoneHandlers({
         return;
       }
 
-      if (USelection.isSingleCustomerPoint(selection)) {
+      const selectedCustomerPointId =
+        USelection.singleCustomerPointId(selection);
+      if (selectedCustomerPointId !== null) {
         const clickedCustomerPoint = getClickedCustomerPoint(e);
-        if (!clickedCustomerPoint || clickedCustomerPoint.id !== selection.id) {
+        if (
+          !clickedCustomerPoint ||
+          clickedCustomerPoint.id !== selectedCustomerPointId
+        ) {
           return;
         }
 
@@ -321,13 +326,12 @@ export function useNoneHandlers({
       e.preventDefault();
 
       if (isMovingCustomerPoint) {
-        if (
-          customerPointMoveActivated &&
-          USelection.isSingleCustomerPoint(selection)
-        ) {
+        const movingCustomerPointId =
+          USelection.singleCustomerPointId(selection);
+        if (customerPointMoveActivated && movingCustomerPointId !== null) {
           const newCoordinates = getMapCoord(e);
           const moment = moveCustomerPoint(hydraulicModel, {
-            customerPointId: selection.id,
+            customerPointId: movingCustomerPointId,
             newCoordinates,
           });
           transact(moment);

@@ -42,9 +42,11 @@ export function CustomerPointPanel() {
   const { transact } = useModelTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
-  const customerPoint = USelection.isSingleCustomerPoint(selection)
-    ? hydraulicModel.customerPoints.get(selection.id)
-    : undefined;
+  const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
+  const customerPoint =
+    selectedCustomerPointId !== null
+      ? hydraulicModel.customerPoints.get(selectedCustomerPointId)
+      : undefined;
 
   const customerPointId = customerPoint?.id;
   useEffect(() => {

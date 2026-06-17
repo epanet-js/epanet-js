@@ -1,5 +1,5 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
-import { dataAtom, nullData } from "src/state/data";
+import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
@@ -1731,29 +1731,20 @@ describe("AssetPanel", () => {
     expectTextPropertyDisplayed("direct demand (l/s)", "100");
 
     act(() => {
-      store.set(dataAtom, {
-        ...store.get(dataAtom),
-        selection: USelection.fromAssetIds([IDS.J2]),
-      });
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.J2]));
     });
 
     expectTextPropertyDisplayed("direct demand (l/s)", "200");
 
     act(() => {
-      store.set(dataAtom, {
-        ...store.get(dataAtom),
-        selection: USelection.fromAssetIds([IDS.P1]),
-      });
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.P1]));
     });
 
     expectPropertyDisplayed("diameter (mm)", "150");
     expectPropertyDisplayed("length (m)", "500");
 
     act(() => {
-      store.set(dataAtom, {
-        ...store.get(dataAtom),
-        selection: USelection.fromAssetIds([IDS.P2]),
-      });
+      store.set(selectionAtom, USelection.fromAssetIds([IDS.P2]));
     });
 
     expectPropertyDisplayed("diameter (mm)", "300");
@@ -1772,10 +1763,7 @@ describe("AssetPanel", () => {
     simulationData?: SimulationData;
   }): Store => {
     store.set(stagingModelAtom, hydraulicModel);
-    store.set(dataAtom, {
-      ...nullData,
-      selection: USelection.fromAssetIds([selectedAssetId]),
-    });
+    store.set(selectionAtom, USelection.fromAssetIds([selectedAssetId]));
 
     let simulation: SimulationState = initialSimulationState;
 

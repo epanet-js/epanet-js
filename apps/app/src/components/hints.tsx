@@ -145,8 +145,9 @@ export function Hints() {
           }
         }
       }
-      if (USelection.isSingleAsset(selection) && !isEditionBlocked) {
-        const asset = hydraulicModel.assets.get(selection.id);
+      const singleAssetId = USelection.singleAssetId(selection);
+      if (singleAssetId !== null && !isEditionBlocked) {
+        const asset = hydraulicModel.assets.get(singleAssetId);
         if (asset && asset.isNode) {
           return (
             <Hint
