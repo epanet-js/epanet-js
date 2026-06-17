@@ -23,7 +23,6 @@ import {
   type ClipboardPasteInfo,
   patchModelRow,
 } from "src/components/data-grid";
-import { useSelectCustomerPointInApp } from "src/commands/select-customer-point-in-app";
 import { useSelectCustomerPointsInApp } from "src/commands/select-customer-points-in-app";
 import { useDeleteCustomerPoints } from "src/commands/delete-customer-points";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -58,9 +57,7 @@ export const CustomerPointDataTable = memo(
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
     const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
-    const selectCustomerPointInApp = useSelectCustomerPointInApp();
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
-    const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
     const isPerfOn = useFeatureFlag("FLAG_DATA_TABLES_PERFORMANCE");
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
@@ -240,12 +237,6 @@ export const CustomerPointDataTable = memo(
       [hydraulicModel, units, labelManager, transact, userTracking, isPerfOn],
     );
 
-    const getCpIdFromRow = useCallback(
-      (sortedRows: CustomerPointRow[], rowIndex: number) =>
-        sortedRows[rowIndex]?.id,
-      [],
-    );
-
     const getCpIdsFromRange = useCallback(
       (sortedRows: CustomerPointRow[], minRow: number, maxRow: number) => {
         const ids = [];
@@ -282,38 +273,19 @@ export const CustomerPointDataTable = memo(
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
           disabled: () => !customerPointsVisible,
-          onSelect: (selection, sortedRows, originCell) => {
-            if (isMultiCpSelectionOn) {
-              const ids = getCpIdsFromRange(
-                sortedRows as CustomerPointRow[],
-                selection.min.row,
-                selection.max.row,
-              );
-              if (ids.length === 0) return;
-              selectCustomerPointsInApp(ids);
-              userTracking.capture({
-                name: "dataTables.selectedInMap",
-                type: "customerPoint",
-                source: "cell-context",
-                count: ids.length,
-              });
-              return;
-            }
-            const id = getCpIdFromRow(
+          onSelect: (selection, sortedRows) => {
+            const ids = getCpIdsFromRange(
               sortedRows as CustomerPointRow[],
-              originCell.row,
+              selection.min.row,
+              selection.max.row,
             );
-            if (id === undefined) return;
-            selectCustomerPointInApp(id);
-            dataGridRef.current?.selectCells({
-              colIndex: originCell.col,
-              rowIndex: originCell.row,
-            });
+            if (ids.length === 0) return;
+            selectCustomerPointsInApp(ids);
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",
               source: "cell-context",
-              count: 1,
+              count: ids.length,
             });
           },
         },
@@ -321,10 +293,7 @@ export const CustomerPointDataTable = memo(
       ],
       [
         translate,
-        isMultiCpSelectionOn,
-        selectCustomerPointInApp,
         selectCustomerPointsInApp,
-        getCpIdFromRow,
         getCpIdsFromRange,
         isEditionBlocked,
         deleteAction,
@@ -339,35 +308,19 @@ export const CustomerPointDataTable = memo(
           label: translate("selectInMap"),
           icon: <PointerClickIcon />,
           disabled: () => !customerPointsVisible,
-          onSelect: (selection, sortedRows, originRowIndex) => {
-            if (isMultiCpSelectionOn) {
-              const ids = getCpIdsFromRange(
-                sortedRows as CustomerPointRow[],
-                selection.min.row,
-                selection.max.row,
-              );
-              if (ids.length === 0) return;
-              selectCustomerPointsInApp(ids);
-              userTracking.capture({
-                name: "dataTables.selectedInMap",
-                type: "customerPoint",
-                source: "gutter-context",
-                count: ids.length,
-              });
-              return;
-            }
-            const id = getCpIdFromRow(
+          onSelect: (selection, sortedRows) => {
+            const ids = getCpIdsFromRange(
               sortedRows as CustomerPointRow[],
-              originRowIndex,
+              selection.min.row,
+              selection.max.row,
             );
-            if (id === undefined) return;
-            selectCustomerPointInApp(id);
-            dataGridRef.current?.selectCells({ rowIndex: originRowIndex });
+            if (ids.length === 0) return;
+            selectCustomerPointsInApp(ids);
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",
               source: "gutter-context",
-              count: 1,
+              count: ids.length,
             });
           },
         },
@@ -375,10 +328,7 @@ export const CustomerPointDataTable = memo(
       ],
       [
         translate,
-        isMultiCpSelectionOn,
-        selectCustomerPointInApp,
         selectCustomerPointsInApp,
-        getCpIdFromRow,
         getCpIdsFromRange,
         isEditionBlocked,
         deleteAction,

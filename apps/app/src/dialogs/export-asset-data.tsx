@@ -10,7 +10,6 @@ import { dialogAtom } from "src/state/dialog";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import type { ExportFormat } from "src/lib/export/types";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const exportFormats: { value: ExportFormat; labelKey: string }[] = [
   { value: "geojson", labelKey: "exportGeojson" },
@@ -35,12 +34,10 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const reportingTimeStep = epsResultsReader?.reportingTimeStep ?? 3600;
 
   const selection = useAtomValue(selectionAtom);
-  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
   const selectedAssetIds = USelection.getAssetIds(selection);
   const selectedCustomerPointIds = USelection.getCustomerPointIds(selection);
   const hasSelection =
-    selectedAssetIds.length > 0 ||
-    (isMultiCpSelectionOn && selectedCustomerPointIds.length > 0);
+    selectedAssetIds.length > 0 || selectedCustomerPointIds.length > 0;
 
   const [format, setFormat] = useState<ExportFormat>("geojson");
   const [includeSimulationResults, setIncludeSimulationResults] =
@@ -51,10 +48,9 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
     const assetIdFilter = selectedAssetsOnly
       ? new Set<number>(selectedAssetIds)
       : null;
-    const customerPointIdFilter =
-      selectedAssetsOnly && isMultiCpSelectionOn
-        ? new Set<number>(selectedCustomerPointIds)
-        : null;
+    const customerPointIdFilter = selectedAssetsOnly
+      ? new Set<number>(selectedCustomerPointIds)
+      : null;
     setDialogState(null);
 
     await exportAssetData({
@@ -66,7 +62,6 @@ export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
     });
   }, [
     selectedAssetsOnly,
-    isMultiCpSelectionOn,
     selectedAssetIds,
     selectedCustomerPointIds,
     setDialogState,

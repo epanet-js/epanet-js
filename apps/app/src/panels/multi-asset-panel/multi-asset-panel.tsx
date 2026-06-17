@@ -25,7 +25,6 @@ import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -167,20 +166,14 @@ export function MultiAssetPanel({
     [showPumpLibrary, showPatternsLibrary],
   );
 
-  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
-
   return (
     <SectionList
       padding={3}
       header={
-        isMultiCpSelectionOn ? (
-          <HeaderNew
-            assetCount={selectedAssets.length}
-            customerPointCount={selectedCustomerPoints.length}
-          />
-        ) : (
-          <HeaderDeprecated selectedCount={selectedAssets.length} />
-        )
+        <Header
+          assetCount={selectedAssets.length}
+          customerPointCount={selectedCustomerPoints.length}
+        />
       }
       overflow={true}
     >
@@ -365,32 +358,14 @@ export function MultiAssetPanel({
         </CollapsibleSection>
       )}
 
-      {isMultiCpSelectionOn && selectedCustomerPoints.length > 0 && (
+      {selectedCustomerPoints.length > 0 && (
         <CustomerPointPanelSection customerPoints={selectedCustomerPoints} />
       )}
     </SectionList>
   );
 }
 
-const HeaderDeprecated = ({ selectedCount }: { selectedCount: number }) => {
-  const translate = useTranslate();
-
-  return (
-    <div className="px-4 pt-4 pb-3">
-      <div className="flex items-start justify-between">
-        <span className="font-semibold mt-1">
-          {translate("selection")} (
-          <span className="text-nowrap">
-            {pluralize(translate, "asset", selectedCount)})
-          </span>
-        </span>
-        <MultiAssetActions />
-      </div>
-    </div>
-  );
-};
-
-const HeaderNew = ({
+const Header = ({
   assetCount,
   customerPointCount,
 }: {

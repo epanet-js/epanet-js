@@ -62,7 +62,6 @@ import {
   UnitsSpec,
 } from "src/lib/project-settings/quantities-spec";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
   CustomerPointsOverlay,
@@ -193,7 +192,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
 
   const doUpdates = useCallback(() => {
     if (!map) return;
@@ -429,9 +427,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
 
         if (hasNewSelection || hasNewCustomerPoints) {
-          const buildSelectionOverlayForCustomerPoints = isMultiCpSelectionOn
-            ? buildSelectionOverlayForCustomerPointsNew
-            : buildSelectionOverlayForCustomerPointsDeprecated;
           selectionDeckLayersRef.current =
             buildSelectionOverlayForCustomerPoints(
               mapState.selection,
@@ -563,7 +558,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     hydraulicModel.assets,
     isGridOn,
     isGridPreview,
-    isMultiCpSelectionOn,
   ]);
 
   doUpdates();
@@ -1057,32 +1051,7 @@ const buildCustomerPointsEphemeralOverlay = (
   return [];
 };
 
-const buildSelectionOverlayForCustomerPointsDeprecated = (
-  selection: Sel,
-  assets: AssetsMap,
-  customerPoints: CustomerPoints,
-  zoom: number,
-): CustomerPointsOverlay => {
-  if (USelection.isSingleCustomerPoint(selection)) {
-    const customerPoint = customerPoints.get(selection.id);
-    const pipeId = customerPoint?.connection?.pipeId;
-    let isActive = false;
-    if (pipeId) {
-      const pipe = assets.get(pipeId);
-      if (pipe?.isActive) isActive = true;
-    }
-    if (customerPoint) {
-      return buildCustomerPointsSelectionOverlay(
-        [customerPoint],
-        isActive,
-        zoom,
-      );
-    }
-  }
-  return [];
-};
-
-const buildSelectionOverlayForCustomerPointsNew = (
+const buildSelectionOverlayForCustomerPoints = (
   selection: Sel,
   assets: AssetsMap,
   customerPoints: CustomerPoints,

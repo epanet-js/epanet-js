@@ -1,18 +1,13 @@
 import Flatbush from "flatbush";
+import type { Position } from "geojson";
 import type { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { SearchOptions } from "./spatial-queries";
 import { toSearchPolygon, containsNode } from "./spatial-queries";
 import { BinaryData, BufferType, createBuffer } from "src/lib/buffers";
 
-/**
- * Transferable encoding of the customer-points spatial state. The Flatbush
- * tree, the parallel id array, and the parallel coordinates array all sit in
- * raw ArrayBuffers so the whole thing can cross the worker boundary in a
- * single zero-copy `Comlink.transfer`. The `ids` array maps Flatbush internal
- * indexes back to CP ids; the `coordinates` array is needed to run
- * point-in-polygon checks on the worker side without re-encoding the
- * CustomerPoints map.
- */
+type BoundingBox = [number, number, number, number];
+type CustomerPointFilterFn = (id: number, position: Position) => boolean;
+
 export type CustomerPointsGeoBuffers = {
   customerPointsGeo: BinaryData;
   customerPointsIndex: BinaryData; // Uint32Array, one entry per CP
@@ -81,27 +76,84 @@ export function cloneCustomerPointsGeoBuffers(
   };
 }
 
-export function queryContainedCustomerPointsFromBuffers(
-  buffers: CustomerPointsGeoBuffers,
+export interface CustomerPointsGeoQueries {
+  searchCustomerPoints(
+    bounds: BoundingBox,
+    filterFn?: CustomerPointFilterFn,
+  ): number[];
+}
+
+export class CustomerPointsGeoIndex implements CustomerPointsGeoQueries {
+  private spatialIndex?: Flatbush;
+  private ids: number[] = [];
+  private coordinates: Position[] = [];
+
+  constructor(private customerPoints: CustomerPoints) {}
+
+  searchCustomerPoints(
+    bounds: BoundingBox,
+    filterFn?: CustomerPointFilterFn,
+  ): number[] {
+    if (this.customerPoints.size === 0) return [];
+    if (!this.spatialIndex) this.build();
+    return this.spatialIndex!.search(...bounds, (index: number) =>
+      filterFn ? filterFn(this.ids[index], this.coordinates[index]) : true,
+    ).map((index) => this.ids[index]);
+  }
+
+  private build() {
+    this.spatialIndex = new Flatbush(this.customerPoints.size);
+    for (const customerPoint of this.customerPoints.values()) {
+      const [lng, lat] = customerPoint.coordinates;
+      this.spatialIndex.add(lng, lat, lng, lat);
+      this.ids.push(customerPoint.id);
+      this.coordinates.push([lng, lat]);
+    }
+    this.spatialIndex.finish();
+  }
+}
+
+export class CustomerPointsGeoView implements CustomerPointsGeoQueries {
+  private readonly spatialIndex: Flatbush | null;
+  private readonly ids: Uint32Array;
+  private readonly coordinates: Float64Array;
+
+  constructor(buffers: CustomerPointsGeoBuffers) {
+    if (buffers.customerPointsIndex.byteLength === 0) {
+      this.spatialIndex = null;
+      this.ids = new Uint32Array(0);
+      this.coordinates = new Float64Array(0);
+      return;
+    }
+    this.spatialIndex = Flatbush.from(buffers.customerPointsGeo);
+    this.ids = new Uint32Array(buffers.customerPointsIndex);
+    this.coordinates = new Float64Array(buffers.customerPointsSpatialIndex);
+  }
+
+  searchCustomerPoints(
+    bounds: BoundingBox,
+    filterFn?: CustomerPointFilterFn,
+  ): number[] {
+    if (!this.spatialIndex) return [];
+    return this.spatialIndex
+      .search(...bounds, (index: number) =>
+        filterFn
+          ? filterFn(this.ids[index], [
+              this.coordinates[index * 2],
+              this.coordinates[index * 2 + 1],
+            ])
+          : true,
+      )
+      .map((index) => this.ids[index]);
+  }
+}
+
+export function queryContainedCustomerPoints(
+  geo: CustomerPointsGeoQueries,
   searchOptions: SearchOptions,
 ): number[] {
-  if (buffers.customerPointsIndex.byteLength === 0) return [];
-  const flatbush = Flatbush.from(buffers.customerPointsGeo);
-  const ids = new Uint32Array(buffers.customerPointsIndex);
-  const coordinates = new Float64Array(buffers.customerPointsSpatialIndex);
-
   const search = toSearchPolygon(searchOptions);
-  const candidates = flatbush.search(...search.bounds);
-  if (search.isBounds) {
-    return Array.from(candidates, (idx) => ids[idx]);
-  }
-  const result: number[] = [];
-  for (const idx of candidates) {
-    const lng = coordinates[idx * 2];
-    const lat = coordinates[idx * 2 + 1];
-    if (containsNode(search, [lng, lat])) {
-      result.push(ids[idx]);
-    }
-  }
-  return result;
+  return geo.searchCustomerPoints(search.bounds, (_id, position) =>
+    search.isBounds ? true : containsNode(search, position),
+  );
 }

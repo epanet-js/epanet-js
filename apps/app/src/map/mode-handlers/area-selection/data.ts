@@ -16,10 +16,6 @@ import {
 } from "src/hydraulic-model/customer-points-geo";
 import { BinaryData, BufferType } from "src/lib/buffers/buffers";
 
-// ─── Deprecated path (FLAG_MULTI_CP_SELECTION off) ───
-// Byte-identical to the pre-feature version. No buffer caching here so the
-// flag-off path is provably free of any new state or memory pressure.
-
 export const encodeHydraulicModel = (
   hydraulicModel: HydraulicModel,
   bufferType: BufferType = "array",
@@ -52,20 +48,6 @@ export const encodeHydraulicModel = (
   };
 };
 
-export type EncodedContainedAssets = {
-  assetIds: BinaryData;
-  count: number;
-};
-
-export const decodeContainedAssets = (
-  encoded: EncodedContainedAssets,
-): AssetId[] => {
-  const { assetIds, count } = encoded;
-  const view = new Uint32Array(assetIds);
-  return Array.from(view.slice(0, count));
-};
-
-// ─── New path (FLAG_MULTI_CP_SELECTION on) ───
 // Caches encoded buffers by AssetsMap / CustomerPoints identity so subsequent
 // drags on the same model skip encoding. Buffers are cloned before transfer
 // so the cache survives Comlink's ownership move.

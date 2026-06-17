@@ -5,41 +5,10 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { customerPointsVisibleAtom } from "src/state/map-symbology";
 import { USelection } from "src/selection";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const selectAllShortcut = "ctrl+a";
 
 export const useSelectAll = () => {
-  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
-  const selectAllNew = useSelectAllNew();
-  const selectAllDeprecated = useSelectAllDeprecated();
-  return isMultiCpSelectionOn ? selectAllNew : selectAllDeprecated;
-};
-
-const useSelectAllDeprecated = () => {
-  const userTracking = useUserTracking();
-  const setSelection = useSetAtom(selectionAtom);
-  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-
-  const selectAll = useCallback(
-    ({ source }: { source: "shortcut" }) => {
-      userTracking.capture({
-        name: "fullSelection.enabled",
-        source,
-        count: hydraulicModel.assets.size,
-      });
-
-      setSelection(
-        USelection.fromAssetIds(Array.from(hydraulicModel.assets.keys())),
-      );
-    },
-    [userTracking, setSelection, hydraulicModel],
-  );
-
-  return selectAll;
-};
-
-const useSelectAllNew = () => {
   const userTracking = useUserTracking();
   const setSelection = useSetAtom(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);

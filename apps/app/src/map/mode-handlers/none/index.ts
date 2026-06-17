@@ -26,7 +26,6 @@ import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 const stateUpdateTime = 16;
 
@@ -55,7 +54,6 @@ export function useNoneHandlers({
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
 
   const setMode = useSetAtom(modeAtom);
-  const isMultiCpSelectionOn = useFeatureFlag("FLAG_MULTI_CP_SELECTION");
   const {
     clearSelection,
     isSelected,
@@ -430,7 +428,7 @@ export function useNoneHandlers({
         const clickedCustomerPoint = getClickedCustomerPoint(e);
 
         if (clickedCustomerPoint) {
-          if (isMultiCpSelectionOn && isShiftHeld()) {
+          if (isShiftHeld()) {
             if (isCustomerPointSelected(clickedCustomerPoint.id)) {
               removeCustomerPointFromSelection(clickedCustomerPoint.id);
             } else {
