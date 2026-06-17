@@ -6,6 +6,7 @@ import m0005 from "./0005_zones_bbox_adjacency.sql?raw";
 import m0006 from "./0006_sanitize_labels";
 import m0007 from "./0007_drop_zones_adjacency.sql?raw";
 import m0008 from "./0008_rename_controls_to_raw_controls.sql?raw";
+import m0009 from "./0009_create_controls_table.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -20,6 +21,7 @@ export const migrations: Migration[] = [
   m0006,
   m0007,
   m0008,
+  m0009,
 ];
 
 export const APP_VERSION = migrations.length;
