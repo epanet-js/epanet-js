@@ -224,7 +224,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
                     aria-selected={index === activeIndex}
                     className={clsx(
                       "px-2 py-2 cursor-pointer w-full text-left text-default hover:bg-base-hover rounded-sm",
-                      index === activeIndex && "bg-purple-300/40",
+                      index === activeIndex && "bg-base-hover",
                     )}
                     onMouseEnter={() => handleOptionMouseEnter(index)}
                     onMouseDown={handleOptionMouseDown}

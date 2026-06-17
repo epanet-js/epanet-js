@@ -815,7 +815,7 @@ export const ConnectedCustomersRow = ({
         <P.Trigger
           aria-label={`Connected customers: ${customerCount}`}
           onKeyDown={handleTriggerKeyDown}
-          className="text-left text-size-base p-2 text-default bg-base-hover border border-strong rounded-xs hover:bg-base-active focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent aria-expanded:ring-1 aria-expanded:ring-accent w-full flex items-center gap-x-2 tabular-nums"
+          className="text-left text-size-base p-2 text-default bg-base border border-strong rounded-xs hover:bg-base-hover focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-accent aria-expanded:ring-1 aria-expanded:ring-accent w-full flex items-center gap-x-2 tabular-nums"
         >
           <MultipleValuesIcon />
           {customerCount}
@@ -937,8 +937,8 @@ const CustomerPointsPopover = ({
                 role="listitem"
                 aria-label={`Customer point ${displayValue}: ${demandValue}`}
                 className="top-0 left-0 block w-full absolute py-2 px-2 flex items-center
-                  hover:bg-base-active
-                  gap-x-2 even:bg-base-hover dark:even:bg-gray-800"
+                  hover:bg-base-hover
+                  gap-x-2 even:bg-panel"
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,

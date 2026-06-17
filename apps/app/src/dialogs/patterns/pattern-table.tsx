@@ -153,6 +153,7 @@ export const PatternTable = forwardRef<DataGridRef, PatternTableProps>(
         {
           label: translate("delete"),
           icon: <DeleteIcon size="sm" />,
+          variant: "destructive" as const,
           onSelect: handleDeleteRow,
           disabled: () => rowData.length <= 1,
         },

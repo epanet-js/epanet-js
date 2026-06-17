@@ -27,7 +27,7 @@ export const PlanBadge = ({ plan }: { plan: Plan }) => {
   return (
     <span
       title={`${translate("planExplain", translate(`plan.${plan}`))}`}
-      className={`absolute right-[4.8px] top-[23.5px] -mr-2 h-3 flex items-center justify-center rounded-full px-[6px] py-[6px] text-[8px] font-bold z-10 tracking-[1px] ${planStyles[plan] || "bg-base-active text-default"}`}
+      className={`absolute right-[4.8px] top-[23.5px] -mr-2 h-3 flex items-center justify-center rounded-full px-[6px] py-[6px] text-[8px] font-bold z-10 tracking-[1px] ${planStyles[plan] || "bg-track text-default"}`}
     >
       {planBadgeText[plan]}
     </span>

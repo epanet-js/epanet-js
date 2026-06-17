@@ -33,12 +33,7 @@ export function RowGutterCell({
           "border-b-[--color-border]":
             (variant === "spreadsheet" && isLastRow) || !showRowNumbers,
         },
-        isRowSelected && variant === "spreadsheet"
-          ? "bg-accent"
-          : {
-              "bg-base-hover": variant === "spreadsheet",
-              "bg-panel": variant === "inline",
-            },
+        isRowSelected && variant === "spreadsheet" ? "bg-accent" : "bg-panel",
       )}
       onClick={onClick}
       onContextMenu={onContextMenu}

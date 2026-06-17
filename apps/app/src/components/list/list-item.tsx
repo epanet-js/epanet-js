@@ -31,9 +31,9 @@ export const ListItem = <T extends LabelledItem>({
   return (
     <li
       data-item-id={item.id}
-      className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 ${
+      className={`group flex items-center justify-between text-sm cursor-pointer h-8 min-w-0 rounded-sm ${
         isSelected
-          ? "bg-base-active"
+          ? "bg-accent-tint"
           : isMenuOpen
             ? "bg-base-hover"
             : "hover:bg-base-hover"

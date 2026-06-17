@@ -1,5 +1,6 @@
+import clsx from "clsx";
 import * as DD from "@radix-ui/react-dropdown-menu";
-import { Button } from "src/components/elements";
+import { Button, DDContent } from "src/components/elements";
 import { MoreActionsIcon } from "src/icons";
 import { RowAction } from "../types";
 
@@ -29,21 +30,25 @@ export function ActionsCell({
         </Button>
       </DD.Trigger>
       <DD.Portal>
-        <DD.Content
-          className="bg-popover border rounded-md shadow-md z-50 min-w-[160px]"
+        <DDContent
           align="end"
+          className="z-50 min-w-40"
           onClick={(e) => e.stopPropagation()}
         >
           {actions.map((action, index) => {
             const isDisabled = action.disabled?.(rowIndex) ?? false;
+            const isDestructive = action.variant === "destructive";
             return (
               <DD.Item
                 key={index}
-                className={`flex items-center gap-2 px-3 py-2 text-size-base outline-hidden ${
+                className={clsx(
+                  "rounded-sm flex items-center w-full h-8 px-3 text-size-base gap-x-2 outline-hidden",
                   isDisabled
                     ? "text-disabled cursor-not-allowed"
-                    : "cursor-pointer hover:bg-base-hover"
-                }`}
+                    : isDestructive
+                      ? "cursor-pointer text-error hover:bg-error-subtle"
+                      : "cursor-pointer hover:bg-base-hover text-default",
+                )}
                 onSelect={() => !isDisabled && action.onSelect(rowIndex)}
                 disabled={isDisabled}
               >
@@ -52,7 +57,7 @@ export function ActionsCell({
               </DD.Item>
             );
           })}
-        </DD.Content>
+        </DDContent>
       </DD.Portal>
     </DD.Root>
   );

@@ -247,7 +247,7 @@ export const VirtualizedSearchableSelector = <
                         aria-selected={index === activeIndex}
                         className={clsx(
                           "absolute left-0 right-0 px-2 py-2 cursor-pointer text-default dark:text-gray-100 hover:bg-base-hover dark:hover:bg-gray-700 rounded-sm",
-                          index === activeIndex && "bg-purple-300/40",
+                          index === activeIndex && "bg-base-hover",
                         )}
                         style={{
                           height: ROW_HEIGHT,

@@ -377,7 +377,7 @@ const FileDropArea = ({
       <div
         className={`
         p-3 rounded-full
-        ${dragState === "over" ? "bg-purple-200" : "bg-base-active"}
+        ${dragState === "over" ? "bg-purple-200" : "bg-track"}
       `}
       >
         <UploadIcon

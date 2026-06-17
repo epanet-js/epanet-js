@@ -756,7 +756,7 @@ const InfoTooltip = ({ text }: { text: string }) => {
   return (
     <Tooltip.Root delayDuration={100}>
       <Tooltip.Trigger asChild>
-        <button className="rounded-full hover:bg-base-active">
+        <button className="rounded-full hover:bg-base-hover">
           <InfoIcon className="w-5 h-5 text-subtle" />
         </button>
       </Tooltip.Trigger>

@@ -30,7 +30,7 @@ export const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentStep >= step.number
                   ? "bg-accent text-white"
-                  : "bg-base-active text-gray-600"
+                  : "bg-track text-subtle"
               }`}
             >
               {step.number}

@@ -167,7 +167,7 @@ const StatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={setIsOpen}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-active dark:hover:text-gray-200"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
       >
         <MultipleValuesIcon />
       </P.Trigger>
@@ -474,7 +474,7 @@ export const QuantityStatsBaseFields = ({
             <input
               role="textbox"
               aria-label={`Value for: ${label}`}
-              className="text-size-small font-mono px-2 py-2 bg-base-hover border-none focus-visible:ring-inset focus-visible:ring-accent focus-visible:bg-purple-300/10"
+              className="text-size-small font-mono px-2 py-2 bg-base-disabled border-none focus-visible:ring-inset focus-visible:ring-accent focus-visible:bg-purple-300/10"
               readOnly
               tabIndex={tabIndex}
               onFocus={handleFocus}
@@ -602,7 +602,7 @@ export const SortableValuesList = ({
             return (
               <div
                 key={index}
-                className={`py-2 px-2 flex items-center hover:bg-base-active gap-x-2 even:bg-base-hover ${isClickable ? "cursor-pointer" : ""}`}
+                className={`py-2 px-2 flex items-center hover:bg-base-hover gap-x-2 even:bg-panel ${isClickable ? "cursor-pointer" : ""}`}
                 role="row"
                 onClick={
                   isClickable ? () => onSelectAssets(assetIds) : undefined
@@ -627,7 +627,7 @@ export const SortableValuesList = ({
           })}
           {emptyBucket && (
             <div
-              className={`py-2 px-2 flex items-center hover:bg-base-active gap-x-2 even:bg-base-hover ${isClickable ? "cursor-pointer" : ""}`}
+              className={`py-2 px-2 flex items-center hover:bg-base-hover gap-x-2 even:bg-panel ${isClickable ? "cursor-pointer" : ""}`}
               role="row"
               onClick={
                 isClickable ? () => onSelectAssets(emptyBucket.ids) : undefined

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { B3Variant, Button, DDContent, StyledItem } from "../elements";
 import { MoreActionsIcon } from "src/icons";
@@ -21,9 +20,7 @@ export const ItemActions = ({
   onAction: (name: string) => void;
   onOpenChange: (open: boolean) => void;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
     onOpenChange(open);
   };
 
@@ -38,12 +35,8 @@ export const ItemActions = ({
             variant="quiet"
             size="xs"
             aria-label="Actions"
-            className={`h-6 w-6 self-center ${
-              isSelected
-                ? "hover:bg-white/30 dark:hover:bg-white/10"
-                : isOpen
-                  ? "hover:bg-base-active"
-                  : "invisible group-hover:visible hover:bg-base-active"
+            className={`h-6 w-6 self-center aria-expanded:bg-base-hover aria-expanded:visible hover:bg-base-hover ${
+              isSelected ? "" : "invisible group-hover:visible"
             }`}
           >
             <MoreActionsIcon size="sm" />

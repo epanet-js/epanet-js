@@ -66,10 +66,7 @@ export function GridHeader<T>({
   return (
     <div
       role="row"
-      className={clsx("flex shrink-0 min-w-full w-max", className, {
-        "bg-base-hover": variant === "spreadsheet",
-        "bg-panel": variant === "inline",
-      })}
+      className={clsx("flex shrink-0 min-w-full w-max bg-panel", className)}
       style={style}
     >
       {showGutterColumn && (
@@ -79,7 +76,7 @@ export function GridHeader<T>({
             "relative flex items-center justify-center font-semibold text-size-base shrink-0 cursor-pointer select-none h-8 sticky left-0 z-10",
             "border border-transparent w-8",
             "text-subtle",
-            variant === "spreadsheet" ? "bg-base-hover" : "bg-panel",
+            "bg-panel",
           )}
           onClick={onSelectAll}
         >
@@ -164,7 +161,7 @@ function HeaderCell<T>({
         "group relative flex items-center px-2 font-semibold text-size-base cursor-pointer select-none h-8 border border-transparent overflow-visible",
         { grow: !header.column.getCanResize() },
         isPinnedLeft && "sticky z-5",
-        isPinnedLeft && !isSelected && "bg-base-hover",
+        !isSelected && "bg-panel",
         isSelected ? "bg-accent text-white" : "text-subtle",
       )}
       style={{
@@ -324,7 +321,7 @@ function HeaderActionsButton({
             "ml-auto -mr-1 h-6 w-6 shrink-0",
             isSelected
               ? "text-white hover:bg-white/20 data-[state=open]:bg-white/20"
-              : "hover:bg-base-active",
+              : "hover:bg-base-hover",
           )}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}

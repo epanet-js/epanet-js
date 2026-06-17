@@ -38,7 +38,7 @@ export const CollapsibleListSection = ({
       <div
         data-section-type={sectionType}
         className={`group/section flex items-center justify-between h-8 px-1 rounded-sm ${
-          isFocused ? "bg-base-active" : "hover:bg-base-hover"
+          isFocused ? "bg-base-hover" : "hover:bg-base-hover"
         }`}
       >
         <C.Trigger asChild>
@@ -58,7 +58,7 @@ export const CollapsibleListSection = ({
             size="xs"
             aria-label={action.label}
             onClick={() => onAction(sectionType)}
-            className="h-6 w-6 hover:bg-base-active"
+            className="h-6 w-6 hover:bg-base-hover"
           >
             {action.icon}
           </Button>

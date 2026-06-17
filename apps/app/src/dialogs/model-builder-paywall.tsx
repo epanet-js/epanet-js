@@ -121,7 +121,7 @@ export const ModelBuilderPaywallDialog = ({
             <div className="p-4 w-full">
               <Button
                 size="full-width"
-                className="bg-base-hover text-default"
+                className="bg-panel text-default"
                 onClick={handleContinueWithLegacy}
               >
                 {translate("modelBuilderPaywall.continueWithLegacy")}

@@ -20,6 +20,7 @@ export type RowAction = {
   onSelect: (rowIndex: number) => void;
   disabled?: (rowIndex: number) => boolean;
   hidden?: (rowIndex: number) => boolean;
+  variant?: ContextActionVariant;
 };
 
 export type ContextActionVariant = "default" | "destructive";

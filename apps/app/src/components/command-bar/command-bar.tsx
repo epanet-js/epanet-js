@@ -311,7 +311,7 @@ const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
                   className={clsx(
                     "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-sm cursor-pointer text-gray-900 dark:text-gray-100",
                     index === activeIndex
-                      ? "bg-purple-300/40"
+                      ? "bg-base-hover"
                       : "hover:bg-base-hover",
                   )}
                 >

@@ -157,6 +157,7 @@ export const CurveTable = forwardRef<DataGridRef, CurveTableProps>(
         {
           label: translate("delete"),
           icon: <DeleteIcon size="sm" />,
+          variant: "destructive" as const,
           onSelect: handleDeleteRow,
           disabled: () => rowData.length <= 1,
         },

@@ -536,11 +536,11 @@ export const StyledFieldTextareaProse = classed(Field)(
     ),
 );
 
-export const contentLike = `py-1
-    bg-base
-    rounded-xs
-    shadow-[0_2px_10px_2px_rgba(0,0,0,0.1)]
-    ring-1 ring-gray-200 dark:ring-gray-700
+export const contentLike = `p-1
+    bg-popover
+    rounded-md
+    shadow-md
+    border
     content-layout z-30`;
 
 export const DDContent = classed(DD.Content)(contentLike);
@@ -561,8 +561,7 @@ export const DivSeparator = classed.div(styledSeparator);
 export const DDSeparator = classed(DD.Separator)(styledSeparator);
 export const StyledSelectSeparator = classed(Select.Separator)(styledSeparator);
 
-export const styledInlineA =
-  "text-purple-700 underline hover:text-black dark:text-purple-500 dark:hover:text-purple-300";
+export const styledInlineA = "text-accent-hover underline hover:text-default";
 
 export const menuItemLike = ({
   variant = "default",
@@ -571,17 +570,18 @@ export const menuItemLike = ({
 }) =>
   clsx([
     {
-      "text-default": variant === "default",
-      "text-red-500 dark:text-red-300":
+      "text-default hover:bg-base-hover focus-visible:bg-base-hover":
+        variant === "default" || variant === "quiet",
+      "text-error hover:bg-error-subtle focus-visible:bg-error-subtle":
         variant === "destructive" || variant === "danger-quiet",
     },
     `cursor-pointer
-    hover:bg-base-active
-    focus-visible:bg-base-hover
+    rounded-sm
     flex items-center
     w-full
-    py-1 pl-3 pr-3
-    text-sm gap-x-2`,
+    h-8 pl-3 pr-3
+    text-size-base gap-x-2
+    data-[state=checked]:bg-accent-tint`,
   ]);
 
 export const StyledButtonItem = classed.div(menuItemLike);
@@ -630,9 +630,9 @@ export const CMItem = classed(CM.Item)(menuItemLike);
 export const StyledPopoverCross = () => (
   <Popover.Close
     className="flex
-  focus-visible:text-black dark:focus-visible:text-white
-  text-gray-500 dark:text-gray-300
-  hover:text-black dark:hover:text-white"
+  focus-visible:text-default
+  text-subtle
+  hover:text-default"
   >
     <CloseIcon />
   </Popover.Close>
@@ -680,7 +680,7 @@ export const sharedEqualPadding = (size: B3Size): ClassValue => ({
 });
 
 export const styledRadio = clsx(
-  "text-accent dark:bg-transparent dark:checked:bg-accent focus:ring-accent",
+  "text-accent focus:ring-accent",
   sharedOutline("primary"),
 );
 
@@ -701,43 +701,26 @@ export function sharedOutline(
       : variant === "danger"
         ? `focus-visible:ring-1
     focus-visible:ring-offset-1
-    focus-visible:ring-red-500
-    dark:focus-visible:ring-red-500
-    dark:focus-visible:ring-offset-gray-900`
+    focus-visible:ring-error`
         : variant === "blue"
           ? `focus-visible:ring-1
     focus-visible:ring-offset-1
-    focus-visible:ring-blue-500
-    dark:focus-visible:ring-blue-500
-    dark:focus-visible:ring-offset-gray-900`
+    focus-visible:ring-info`
           : `focus-visible:ring-1
     focus-visible:ring-offset-1
-    focus-visible:ring-accent
-    dark:focus-visible:ring-offset-gray-900`,
+    focus-visible:ring-accent`,
 
     {
       [`border border-accent`]: variant === "primary",
       [`hover:border-accent-hover`]: variant === "primary" && !disabled,
       [`border border-blue-500`]: variant === "blue",
-      [`border
-    border-gray-300               dark:border-gray-500
-    shadow-xs
-  `]: variant === "default",
-
-      [`
-    focus-visible:border-gray-200   dark:focus-visible:border-gray-300
-    hover:border-gray-200   dark:hover:border-gray-300
-    `]: variant === "default" && !disabled,
-
-      [`border
-    border-red-200               dark:border-red-300
-  `]: variant === "destructive",
-
-      [`
-    focus-visible:border-red-500   dark:focus-visible:border-red-300
+      [`border border-strong shadow-xs`]: variant === "default",
+      [`focus-visible:border-base hover:border-base`]:
+        variant === "default" && !disabled,
+      [`border border-red-200 dark:border-red-300`]: variant === "destructive",
+      [`focus-visible:border-red-500   dark:focus-visible:border-red-300
     hover:border-red-300   dark:hover:border-red-300
   `]: variant === "destructive" && !disabled,
-
       [`border border-green-500`]: variant === "success",
       [`border border-red-700`]: variant === "danger",
     },
@@ -795,7 +778,7 @@ const sharedText = (variant: B3Variant): ClassValue => {
       return "font-medium text-default";
     }
     case "ultra-quiet":
-      return "text-gray-500 hover:text-gray-700";
+      return "text-subtle hover:text-default";
     case "primary": {
       return "font-medium text-white";
     }
@@ -803,7 +786,7 @@ const sharedText = (variant: B3Variant): ClassValue => {
       return "font-medium text-white";
     }
     case "destructive": {
-      return "font-medium text-red-500 dark:text-red-300";
+      return "font-medium text-error";
     }
     case "success": {
       return "font-medium text-white";
@@ -830,9 +813,7 @@ export const styledButton = ({
   clsx(
     variant === "quiet/list"
       ? `
-    aria-expanded:bg-gray-200
-    dark:aria-expanded:bg-gray-700
-    aria-expanded:group-focus-within:bg-purple-300/40
+    aria-expanded:bg-base-hover
     transition-colors
     `
       : variant === "quiet/mode"
@@ -866,7 +847,7 @@ export const styledButton = ({
       `flex-auto w-full ${textAlign === "start" ? "justify-start" : "justify-center"}`,
     // Colored variants
     variant === "danger-quiet" &&
-      `[&>svg]:text-red-500 dark:[&>svg]:text-red-300 [&>svg]:hover:text-red-600 dark:[&>svg]:hover:text-red-400`,
+      `[&>svg]:text-error [&>svg]:hover:text-red-600 dark:[&>svg]:hover:text-red-400`,
   );
 
 export const styledPanelTitle = ({

@@ -291,7 +291,7 @@ const GeoTiffElevationSourceRow = ({
       {!readonly && (
         <Button
           variant="quiet/mode"
-          className="h-8 text-error"
+          className="h-8 text-error hover:bg-error-subtle"
           aria-label={translate("delete")}
           onClick={() => actions.deleteSource(source.id)}
         >
@@ -340,14 +340,14 @@ const GeoTiffTilesPopover = ({
         readonly={readonly}
       />
       <div className="overflow-y-auto max-h-[30vh] scroll-shadows border rounded-sm">
-        <ul className="flex flex-col">
+        <ul className="flex flex-col p-1">
           {source.tiles.map((tile) => (
             <li
               key={tile.id}
               onMouseEnter={() => overlay.highlightTile(source.id, tile.id)}
               onMouseLeave={() => overlay.highlightTile(source.id, null)}
               onClick={() => handleTileClick(tile)}
-              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 hover:bg-base-hover"
+              className="group flex items-center justify-between gap-x-2 h-8 shrink-0 px-2 rounded-sm hover:bg-base-hover"
             >
               <span className="text-size-base">{tile.file.name}</span>
               {!readonly && (

@@ -43,7 +43,7 @@ export const DialogCloseX = () => {
     <Dialog.Close
       aria-label="Close"
       className="text-subtle shrink-0
-                  focus:bg-base-active
+                  focus:bg-base-hover
                   hover:text-default"
     >
       <CloseIcon />

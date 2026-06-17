@@ -28,7 +28,7 @@ export const WizardHeader: React.FC<WizardHeaderProps> = ({
             onClick={onClose}
             aria-label="Close wizard"
             className="text-subtle shrink-0
-                      focus:bg-base-active
+                      focus:bg-base-hover
                       hover:text-default"
           >
             <CloseIcon />

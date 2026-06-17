@@ -157,7 +157,7 @@ const StatsPopoverButton = ({
     <P.Root open={isOpen} onOpenChange={setIsOpen}>
       <P.Trigger
         aria-label={`Stats for: ${label}`}
-        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-active dark:hover:text-gray-200"
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
       >
         <MultipleValuesIcon />
       </P.Trigger>

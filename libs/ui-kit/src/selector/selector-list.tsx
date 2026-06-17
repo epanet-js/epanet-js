@@ -446,9 +446,14 @@ export function BaseSelectorList<T extends string | number | boolean>({
                       ? "cursor-default text-disabled"
                       : "cursor-pointer text-default",
                     !isOptionDisabled &&
-                      i === activeIndex &&
-                      "bg-purple-300/40",
+                      option.value === selected &&
+                      "bg-accent-tint",
                     !isOptionDisabled &&
+                      option.value !== selected &&
+                      i === activeIndex &&
+                      "bg-base-hover",
+                    !isOptionDisabled &&
+                      option.value !== selected &&
                       i !== activeIndex &&
                       "hover:bg-base-hover",
                     listClassName,
@@ -474,7 +479,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
                 className={clsx(
                   "flex items-center h-8 px-2 cursor-pointer text-accent rounded-sm",
                   filtered.length > 0 && "border-t border mt-1",
-                  activeIndex === filtered.length && "bg-purple-300/40",
+                  activeIndex === filtered.length && "bg-base-hover",
                   activeIndex !== filtered.length && "hover:bg-base-hover",
                 )}
                 onMouseEnter={() => setActiveIndex(filtered.length)}
@@ -501,8 +506,8 @@ export function BaseSelectorList<T extends string | number | boolean>({
             className={clsx(
               "flex items-center justify-between gap-4 w-full h-8 px-2 italic cursor-pointer text-default rounded-sm",
               activeIndex === clearIdx
-                ? "bg-purple-300/40"
-                : "hover:bg-purple-300/40",
+                ? "bg-base-hover"
+                : "hover:bg-base-hover",
             )}
             onMouseEnter={() => setActiveIndex(clearIdx)}
             onMouseDown={(e) => e.preventDefault()}
@@ -524,8 +529,8 @@ export function BaseSelectorList<T extends string | number | boolean>({
             className={clsx(
               "flex items-center justify-between gap-4 w-full h-8 px-2 cursor-pointer text-default rounded-sm",
               activeIndex === actionIdx
-                ? "bg-purple-300/40"
-                : "hover:bg-purple-300/40",
+                ? "bg-base-hover"
+                : "hover:bg-base-hover",
             )}
             onMouseEnter={() => setActiveIndex(actionIdx)}
             onMouseDown={(e) => e.preventDefault()}
