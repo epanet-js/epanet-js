@@ -3,20 +3,16 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { useReactTable } from "@tanstack/react-table";
 import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import { ClipboardFeature } from "./clipboard-feature";
 import { LazyRowModelFeature } from "./lazy-row-model-feature";
 import {
   type LazyRowModel,
-  getAdaptiveCoreRowModel,
+  getLazyCoreRowModel,
 } from "../models/lazy-core-row-model";
-import { getAdaptiveStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
+import { getLazyStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
 import type { GridColumn, GridSelection } from "../types";
 
 type TestRow = { id: string; name: string; value: string };
@@ -39,7 +35,6 @@ type TableOptions = {
   onClipboardCopy?: (info: unknown) => void;
   onClipboardPaste?: (info: unknown) => void;
   sortable?: boolean;
-  lazyRowModel?: boolean;
   maxClipboardRows?: number;
 };
 
@@ -47,14 +42,10 @@ const useClipboardTable = (options: TableOptions) =>
   useReactTable({
     data: options.data,
     columns: options.columns ?? defaultColumns,
-    getCoreRowModel: options.lazyRowModel
-      ? getAdaptiveCoreRowModel()
-      : getCoreRowModel(),
+    getCoreRowModel: getLazyCoreRowModel(),
     ...(options.sortable
       ? {
-          getSortedRowModel: options.lazyRowModel
-            ? getAdaptiveStickySortedRowModel()
-            : getSortedRowModel(),
+          getSortedRowModel: getLazyStickySortedRowModel(),
           enableSorting: true,
         }
       : {}),
@@ -62,7 +53,7 @@ const useClipboardTable = (options: TableOptions) =>
       CellEditingFeature,
       CellRangeSelectionFeature,
       ClipboardFeature,
-      ...(options.lazyRowModel ? [LazyRowModelFeature] : []),
+      LazyRowModelFeature,
     ],
     onDataChange: options.onChange,
     createRow: createTestRow,
@@ -71,7 +62,6 @@ const useClipboardTable = (options: TableOptions) =>
     autoExtendOnPaste: options.autoExtendOnPaste,
     onClipboardCopy: options.onClipboardCopy as never,
     onClipboardPaste: options.onClipboardPaste as never,
-    lazyRowModel: options.lazyRowModel,
     maxClipboardRows: options.maxClipboardRows,
   });
 
@@ -424,13 +414,13 @@ describe("ClipboardFeature", () => {
         value: String(i),
       }));
 
-    it("copies the whole selection on a large lazy table (no cap by default)", async () => {
+    it("copies the whole selection on a large table (no cap by default)", async () => {
       const clip = stubClipboard();
       const onClipboardCopy = vi.fn();
-      const data = makeRows(LAZY_CAP + 500); // 1500, over threshold → lazy
+      const data = makeRows(LAZY_CAP + 500); // 1500, over the LRU cap
 
       const { result } = renderHook(() =>
-        useClipboardTable({ data, lazyRowModel: true, onClipboardCopy }),
+        useClipboardTable({ data, onClipboardCopy }),
       );
       act(() =>
         result.current.selectRange({
@@ -465,7 +455,6 @@ describe("ClipboardFeature", () => {
       const { result } = renderHook(() =>
         useClipboardTable({
           data,
-          lazyRowModel: true,
           onClipboardCopy,
           maxClipboardRows: LAZY_CAP,
         }),
@@ -495,10 +484,10 @@ describe("ClipboardFeature", () => {
       );
     });
 
-    it("does not cap non-lazy tables (rows === requestedRows)", async () => {
+    it("does not cap by default (rows === requestedRows)", async () => {
       const clip = stubClipboard();
       const onClipboardCopy = vi.fn();
-      // Over the threshold by row count, but lazyRowModel not enabled.
+      // Over the LRU cap by row count, but no maxClipboardRows set.
       const data = makeRows(LAZY_CAP + 200);
 
       const { result } = renderHook(() =>
@@ -540,7 +529,7 @@ describe("ClipboardFeature", () => {
       const data = makeRows(THRESHOLD + 500); // 1500, lazy
 
       const { result } = renderHook(() =>
-        useClipboardTable({ data, lazyRowModel: true, onChange }),
+        useClipboardTable({ data, onChange }),
       );
       // Whole "name" column selected.
       act(() =>
@@ -571,7 +560,6 @@ describe("ClipboardFeature", () => {
       const { result } = renderHook(() =>
         useClipboardTable({
           data,
-          lazyRowModel: true,
           onChange,
           onClipboardPaste,
         }),
@@ -612,7 +600,6 @@ describe("ClipboardFeature", () => {
       const { result } = renderHook(() =>
         useClipboardTable({
           data,
-          lazyRowModel: true,
           onChange,
           onClipboardPaste,
           maxClipboardRows: THRESHOLD,

@@ -5,20 +5,17 @@ import { CMContent, CMItem } from "src/components/elements";
 import { CopyIcon, ClipboardPasteIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { CellContextAction, GutterContextAction } from "../types";
-import { isLazyRowModel } from "../models/lazy-core-row-model";
 import { useGridBusy } from "./grid-busy";
 
 const itemClassName = (isDisabled: boolean) =>
   clsx({ "opacity-50 cursor-not-allowed": isDisabled });
 
-// The full data array in display order. In lazy mode this avoids materializing
-// every Row (which `getRowModel().rows.map(r => r.original)` would do).
+// The full data array in display order, without materializing every Row (which
+// `getRowModel().rows.map(r => r.original)` would do).
 function orderedOriginals<TData extends Record<string, unknown>>(
   table: Table<TData>,
 ): TData[] {
-  return isLazyRowModel(table)
-    ? table.getOrderedOriginals()
-    : table.getRowModel().rows.map((r) => r.original);
+  return table.getOrderedOriginals();
 }
 
 type CellContextMenuContentProps<TData extends Record<string, unknown>> = {
@@ -43,20 +40,12 @@ export function CellContextMenuContent<TData extends Record<string, unknown>>({
   const sortedRows = orderedOriginals(table);
 
   const runCopy = () => {
-    if (isLazyRowModel(table)) {
-      runBusyAsync(() => table.copySelection());
-    } else {
-      void table.copySelection();
-    }
+    runBusyAsync(() => table.copySelection());
   };
 
   const runPaste = () => {
     if (readOnly) return;
-    if (isLazyRowModel(table)) {
-      runBusyAsync(() => table.pasteSelection());
-    } else {
-      void table.pasteSelection();
-    }
+    runBusyAsync(() => table.pasteSelection());
   };
 
   return (

@@ -1,12 +1,10 @@
 import type {
   Column,
-  Row,
   RowData,
   Table,
   TableFeature,
 } from "@tanstack/react-table";
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
-import { isLazyRowModel } from "../models/lazy-core-row-model";
 import type { GridSelection } from "../types";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 
@@ -142,16 +140,10 @@ const resolvePasteBounds = (
 
 const createDataIndexResolver = <TData extends RowData>(
   table: Table<TData>,
-  sortedRows: Row<TData>[],
 ): ((visualRow: number) => number) => {
-  const orderByDataIndex = isLazyRowModel(table)
-    ? table.getLazyRowOrder().orderByDataIndex
-    : null;
-  return (visualRow) => {
-    if (orderByDataIndex) return orderByDataIndex[visualRow];
-    if (isLazyRowModel(table)) return visualRow;
-    return sortedRows[visualRow].index;
-  };
+  const { orderByDataIndex } = table.getLazyRowOrder();
+  return (visualRow) =>
+    orderByDataIndex ? orderByDataIndex[visualRow] : visualRow;
 };
 
 const collectRowPatches = <TData extends RowData>(
@@ -213,10 +205,7 @@ export const ClipboardFeature: TableFeature = {
 
       const columns = table.getVisibleLeafColumns();
       const data = getData();
-      const dataIndexAt = createDataIndexResolver(
-        table,
-        table.getRowModel().rows,
-      );
+      const dataIndexAt = createDataIndexResolver(table);
 
       const selRows = selection.max.row - selection.min.row + 1;
       const rowCount = capRows(selRows, table.options.maxClipboardRows);
@@ -328,7 +317,7 @@ export const ClipboardFeature: TableFeature = {
         );
       if (targetRows === 0) return;
 
-      const dataIndexAt = createDataIndexResolver(table, sortedRows);
+      const dataIndexAt = createDataIndexResolver(table);
       const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
       const newData = [...data];
 

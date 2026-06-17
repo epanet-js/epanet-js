@@ -3,12 +3,11 @@
  */
 import { act } from "react";
 import { renderHook } from "@testing-library/react";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { useReactTable } from "@tanstack/react-table";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
+import { LazyRowModelFeature } from "./lazy-row-model-feature";
+import { getLazyCoreRowModel } from "../models/lazy-core-row-model";
+import { getLazyStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
 import type { CellPosition, GridSelection } from "../types";
 
 type Row = { a: string; b: string; c: string };
@@ -22,8 +21,8 @@ const useFeatureTable = (data: Row[] = []) =>
   useReactTable({
     data,
     columns: [{ accessorKey: "a" }, { accessorKey: "b" }, { accessorKey: "c" }],
-    getCoreRowModel: getCoreRowModel(),
-    _features: [CellRangeSelectionFeature],
+    getCoreRowModel: getLazyCoreRowModel(),
+    _features: [LazyRowModelFeature, CellRangeSelectionFeature],
   });
 
 const useGridTable = () =>
@@ -354,10 +353,10 @@ describe("sort-aware indexing", () => {
     useReactTable({
       data,
       columns: [{ accessorKey: "name" }, { accessorKey: "value" }],
-      getCoreRowModel: getCoreRowModel(),
-      getSortedRowModel: getSortedRowModel(),
+      getCoreRowModel: getLazyCoreRowModel(),
+      getSortedRowModel: getLazyStickySortedRowModel(),
       enableSorting: true,
-      _features: [CellRangeSelectionFeature],
+      _features: [LazyRowModelFeature, CellRangeSelectionFeature],
     });
 
   // Data is [Bob, Alice, Carol] but sorted asc → [Alice, Bob, Carol].
@@ -390,19 +389,6 @@ describe("sort-aware indexing", () => {
     expect(aliceRow.getVisualIndex()).toBe(0);
     expect(bobRow.getVisualIndex()).toBe(1);
     expect(carolRow.getVisualIndex()).toBe(2);
-  });
-
-  it("table.getVisualIndexLookup exposes the id → position map", () => {
-    const { result } = renderHook(useSortedTable);
-    act(() => {
-      result.current.setSorting([{ id: "name", desc: false }]);
-    });
-
-    const lookup = result.current.getVisualIndexLookup();
-    const rows = result.current.getRowModel().rows;
-    expect(lookup.get(rows[0].id)).toBe(0); // Alice
-    expect(lookup.get(rows[1].id)).toBe(1); // Bob
-    expect(lookup.get(rows[2].id)).toBe(2); // Carol
   });
 
   it("highlights the visually-selected range when the table is sorted", () => {

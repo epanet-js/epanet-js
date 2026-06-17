@@ -5,17 +5,9 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
-import {
-  type ColumnDef,
-  useReactTable,
-  getCoreRowModel,
-} from "@tanstack/react-table";
-import { getStickySortedRowModel } from "./models/get-sticky-sorted-row-model";
-import {
-  getAdaptiveCoreRowModel,
-  isLazyRowModel,
-} from "./models/lazy-core-row-model";
-import { getAdaptiveStickySortedRowModel } from "./models/lazy-sticky-sorted-row-model";
+import { type ColumnDef, useReactTable } from "@tanstack/react-table";
+import { getLazyCoreRowModel } from "./models/lazy-core-row-model";
+import { getLazyStickySortedRowModel } from "./models/lazy-sticky-sorted-row-model";
 import { GridBusyProvider } from "./shared/grid-busy";
 import { RingSpinner } from "src/components/ring-spinner";
 import {
@@ -83,7 +75,6 @@ type DataGridProps<TData extends Record<string, unknown>> = {
   // Optional cap on how many rows a single copy or paste handles. Unset = no cap.
   maxClipboardRows?: number;
   patchRow?: PatchRowFn;
-  enableLazyRowModel?: boolean;
 };
 
 export const DataGrid = forwardRef(function DataGrid<
@@ -117,7 +108,6 @@ export const DataGrid = forwardRef(function DataGrid<
     pinnedColumns,
     patchRow,
     maxClipboardRows,
-    enableLazyRowModel = false,
   }: DataGridProps<TData>,
   ref: React.ForwardedRef<DataGridRef>,
 ) {
@@ -133,9 +123,7 @@ export const DataGrid = forwardRef(function DataGrid<
     data,
     columns: columns as ColumnDef<TData>[],
     getRowId,
-    getCoreRowModel: enableLazyRowModel
-      ? getAdaptiveCoreRowModel()
-      : getCoreRowModel(),
+    getCoreRowModel: getLazyCoreRowModel(),
     _features: [
       CellEditingFeature,
       CellRangeSelectionFeature,
@@ -143,7 +131,7 @@ export const DataGrid = forwardRef(function DataGrid<
       CellRenderingFeature,
       ColumnSizingFeature,
       CustomHeaderActionsFeature,
-      ...(enableLazyRowModel ? [LazyRowModelFeature] : []),
+      LazyRowModelFeature,
     ],
     // Clipboard feature options
     onDataChange: onChange,
@@ -156,7 +144,6 @@ export const DataGrid = forwardRef(function DataGrid<
     onClipboardPaste: onPaste,
     maxClipboardRows,
     patchRow: patchRowFn,
-    lazyRowModel: enableLazyRowModel,
     // Column sizing options
     defaultColumn: {
       minSize: minColumnSizePx,
@@ -169,9 +156,7 @@ export const DataGrid = forwardRef(function DataGrid<
       columnPinning: { left: pinnedColumns?.left ?? [] },
     },
     // Data sorting options
-    getSortedRowModel: enableLazyRowModel
-      ? getAdaptiveStickySortedRowModel()
-      : getStickySortedRowModel(),
+    getSortedRowModel: getLazyStickySortedRowModel(),
     enableSorting: sortable,
     enableSortingRemoval: true,
     enableMultiSort: false,
@@ -384,14 +369,9 @@ export const DataGrid = forwardRef(function DataGrid<
     (e: React.ClipboardEvent) => {
       if (!table.getSelection()) return;
       e.preventDefault();
-      // Large (lazy) tables: a big selection builds a large clipboard payload
-      // across frames, so show the busy overlay through it. Small tables copy
-      // inline.
-      if (isLazyRowModel(table)) {
-        busyApi.runBusyAsync(() => table.copySelection());
-      } else {
-        void table.copySelection();
-      }
+      // A big selection builds a large clipboard payload across frames, so show
+      // the busy overlay through it (instant for small tables).
+      busyApi.runBusyAsync(() => table.copySelection());
     },
     [table, busyApi],
   );
@@ -400,11 +380,7 @@ export const DataGrid = forwardRef(function DataGrid<
     (e: React.ClipboardEvent) => {
       if (!table.getSelection()) return;
       e.preventDefault();
-      if (isLazyRowModel(table)) {
-        busyApi.runBusyAsync(() => table.pasteSelection());
-      } else {
-        void table.pasteSelection();
-      }
+      busyApi.runBusyAsync(() => table.pasteSelection());
     },
     [table, busyApi],
   );
@@ -513,16 +489,6 @@ export const DataGrid = forwardRef(function DataGrid<
       </div>
     </GridBusyProvider>
   );
-}) as <TData extends Record<string, unknown>>(
-  props: DataGridProps<TData> & {
-    ref?: React.Ref<DataGridRef>;
-  },
-) => React.ReactElement;
-
-export const PerformantDataGrid = forwardRef(function PerformantDataGrid<
-  TData extends Record<string, unknown>,
->(props: DataGridProps<TData>, ref: React.ForwardedRef<DataGridRef>) {
-  return <DataGrid {...props} enableLazyRowModel ref={ref} />;
 }) as <TData extends Record<string, unknown>>(
   props: DataGridProps<TData> & {
     ref?: React.Ref<DataGridRef>;

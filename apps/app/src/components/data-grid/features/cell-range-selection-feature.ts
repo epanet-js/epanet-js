@@ -11,7 +11,6 @@ import {
   type Updater,
 } from "@tanstack/react-table";
 import type { CellPosition, GridSelection } from "../types";
-import { isLazyRowModel } from "../models/lazy-core-row-model";
 
 export type CellRangeSelectionInternalState = {
   range: GridSelection | null;
@@ -50,11 +49,6 @@ declare module "@tanstack/react-table" {
       row?: number;
       extend?: boolean;
     }) => { range: GridSelection; movingCorner: CellPosition } | null;
-    /**
-     * Memoized lookup from row id → visual (displayed) row position.
-     * Rebuilt only when the sorted/filtered row model changes.
-     */
-    getVisualIndexLookup: () => Map<string, number>;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,18 +133,6 @@ export const CellRangeSelectionFeature: TableFeature = {
     table.isSingleCellSelection = () =>
       isSingleCellSelection(table.getSelection());
 
-    table.getVisualIndexLookup = memo(
-      () => [table.getRowModel().rows],
-      (rows) => {
-        const map = new Map<string, number>();
-        for (let i = 0; i < rows.length; i++) {
-          map.set(rows[i].id, i);
-        }
-        return map;
-      },
-      { key: "CellRangeSelectionFeature.getVisualIndexLookup" },
-    );
-
     table.updateSelection = ({ col, row, extend = false }) => {
       const rowCount = table.getRowModel().rows.length;
       const colCount = table.getVisibleLeafColumns().length;
@@ -178,13 +160,8 @@ export const CellRangeSelectionFeature: TableFeature = {
     table: Table<TData>,
   ): void => {
     row.getVisualIndex = () => {
-      // In lazy mode derive the visual (display) position from the sort order
-      // by data index, so we never iterate/materialize the full row set.
-      if (isLazyRowModel(table)) {
-        const { visualByDataIndex } = table.getLazyRowOrder();
-        return visualByDataIndex ? visualByDataIndex[row.index] : row.index;
-      }
-      return table.getVisualIndexLookup().get(row.id) ?? row.index;
+      const { visualByDataIndex } = table.getLazyRowOrder();
+      return visualByDataIndex ? visualByDataIndex[row.index] : row.index;
     };
 
     row.isFullySelected = () =>

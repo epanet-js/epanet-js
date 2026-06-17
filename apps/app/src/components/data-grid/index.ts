@@ -1,4 +1,4 @@
-export { DataGrid, PerformantDataGrid } from "./data-grid";
+export { DataGrid } from "./data-grid";
 export type { DataGridRef } from "./data-grid";
 export type {
   ClipboardCopyInfo,

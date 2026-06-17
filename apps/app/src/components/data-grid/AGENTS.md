@@ -29,9 +29,8 @@ Our data-grid is a custom spreadsheet-like table built on top of **TanStack Tabl
 | `src/components/data-grid/features/cell-editing-feature.ts` | Manages active cell and edit mode |
 | `src/components/data-grid/features/cell-range-selection-feature.ts` | Multi-cell range selection |
 | `src/components/data-grid/features/clipboard-feature.ts` | Copy/paste (TSV) — Row-free reads, sliced loops, `maxClipboardRows` cap |
-| `src/components/data-grid/models/lazy-core-row-model.ts` | Lazy core row model + `isLazyRowModel`, `getAdaptiveCoreRowModel`, `LAZY_ROW_MODEL_THRESHOLD` |
-| `src/components/data-grid/models/lazy-sticky-sorted-row-model.ts` | Sorted order over a lazy model without materializing rows; `getSortValue`, sort-key precompute |
-| `src/components/data-grid/models/get-sticky-sorted-row-model.ts` | Standard (non-lazy) sticky sorted row model |
+| `src/components/data-grid/models/lazy-core-row-model.ts` | The (only) core row model — lazy: `getLazyCoreRowModel`, `createOrderedLazyRowModel`, `LAZY_ROW_MODEL_THRESHOLD` (the LRU cap) |
+| `src/components/data-grid/models/lazy-sticky-sorted-row-model.ts` | Sorted order over the lazy model without materializing rows; `getLazyStickySortedRowModel`, `getSortValue`, sort-key precompute |
 | `src/components/data-grid/hooks/use-grid-busy-state.ts` | Busy overlay state: `runBusy` (transition) / `runBusyAsync` (paint-then-run) |
 | `src/infra/yield-to-main.ts` | `yieldToMain` / `createTimeSlicer` — slice long synchronous loops |
 | `src/components/data-grid/shared/` | Internal sub-components: `VirtualGrid`, `InlineGrid`, `GridHeader`, `GridRow`, `VirtualRows`, `ScrollShadows`, `GridContextMenuWrapper`, etc. |
@@ -67,7 +66,6 @@ Our data-grid is a custom spreadsheet-like table built on top of **TanStack Tabl
   includeHeadersOnCopy             // prepend column headers on Ctrl+C
   onCopy={handler}                 // (info: ClipboardCopyInfo) => void
   onPaste={handler}                // (info: ClipboardPasteInfo) => void
-  enableLazyRowModel               // opt into the lazy row model for large tables — see "Large tables" below
   maxClipboardRows={100000}        // optional cap on rows a single copy/paste handles (unset = no cap)
   ref={gridRef}                    // DataGridRef
 />
@@ -322,8 +320,8 @@ The grid runs on datasets of **~450K rows**. A naive TanStack table materializes
 
 ### The lazy row model
 
-- Opt in with `enableLazyRowModel` on `<DataGrid>` (the data-table panels get it via `PerformantDataGrid`). It only *engages* once `data.length > LAZY_ROW_MODEL_THRESHOLD` (1000); below that it's the standard model. `isLazyRowModel(table)` reports the active state.
-- When engaged, `Row` objects are created **on access** and LRU-capped (≈ the threshold), not built for the whole dataset. So `table.getRowModel().rows.length` is the full count, but **indexing `rows[i]` materializes that row**.
+- The lazy row model is the **only** row model — every `<DataGrid>` uses it, at any size. `Row` objects are created **on access** and LRU-capped at `LAZY_ROW_MODEL_THRESHOLD` (1000), not built for the whole dataset. So `table.getRowModel().rows.length` is the full count, but **indexing `rows[i]` materializes that row**.
+- `LAZY_ROW_MODEL_THRESHOLD` is purely the LRU cap now (not a switch): below it nothing is evicted, above it the least-recently-used rows are dropped.
 - See `models/lazy-core-row-model.ts` (core model) and `models/lazy-sticky-sorted-row-model.ts` (sorted order without Rows).
 
 ### Cardinal rule — never materialize the whole dataset
@@ -331,7 +329,7 @@ The grid runs on datasets of **~450K rows**. A naive TanStack table materializes
 Any path that can span the full selection/dataset (copy, paste, sort, bulk edit, export) must **not** loop over `table.getRowModel().rows[i]` across all rows — each index materializes a `Row`, exactly what the lazy model avoids. Instead:
 
 - **Read cell values off the model objects** via the column accessor: `column.accessorFn(original, dataIndex)` (canonical helper: `getSortValue` in `lazy-sticky-sorted-row-model.ts`). This resolves computed/`accessorFn` columns without a `Row`. Copy and sort both do this; do **not** reach for `row.getValue()` / `row.original` in a full-dataset loop.
-- **Map a visual row position → data index without a `Row`**: in lazy mode read the precomputed order (`table.getLazyRowOrder().orderByDataIndex`); unsorted lazy is identity; standard tables use the (small) row model. `clipboard-feature`'s `createDataIndexResolver` is the reference.
+- **Map a visual row position → data index without a `Row`**: read the precomputed order (`table.getLazyRowOrder().orderByDataIndex`); unsorted is identity. `clipboard-feature`'s `createDataIndexResolver` is the reference.
 - Need only a count? `table.getRowModel().rows.length` is cheap (`length` doesn't materialize). Never `.rows.map(...)` / `.rows.filter(...)` over the full model.
 
 Materialization is only acceptable bounded to the working set (viewport + overscan + a small selection) — virtualization only ever asks for visible indices.
@@ -354,15 +352,16 @@ A loop over the whole dataset (building a paste, building edit moments, serializ
 - **Bulk edits/pastes build an undo moment retained in history**, so one huge operation can OOM via the moment log. `maxClipboardRows` (unset = no cap) bounds a single copy/paste; callers get `rows`/`requestedRows` on the copy/paste info to notify on truncation.
 - **The model commit is an O(n) floor you can't chunk.** A bulk `onChange` should build **one** merged moment and `transact` once (never one transaction per row). The transaction clones model state immutably — proportional to the model and unavoidable — so keep the *moment-building* loop sliced, then commit once.
 
-### Roadmap: one model, not two (post-flag)
+### One model: lazy-only
 
-The dual model — standard below `LAZY_ROW_MODEL_THRESHOLD`, lazy above, chosen by `getAdaptiveCoreRowModel` / `getAdaptiveStickySortedRowModel` — is **temporary**. `FLAG_DATA_TABLES_PERFORMANCE` (which used to gate the call sites) has now been removed, so the immediate next step is to **go lazy-only** — delete the standard path (`getStickySortedRowModel`, the `getAdaptive*` wrappers) and every `isLazyRowModel(table)` branch, keeping the threshold solely as the LRU cap. Keeping both models is just transitional cost, not the target architecture.
+There is a **single** row model — the lazy one — for every table at every size (the
+dual standard/lazy model and its `getAdaptive*` wrappers, `isLazyRowModel` branches, and
+the `enableLazyRowModel` / `PerformantDataGrid` opt-in were all removed once
+`FLAG_DATA_TABLES_PERFORMANCE` shipped to 100%). Keep it that way:
 
-Until that collapse lands, write code that makes it cheaper:
-
-- **Don't add new `isLazyRowModel` branches** unless genuinely unavoidable. Write the lazy path (the future default) and let it run for both sizes; every new branch is one more thing to unwind later.
-- **Prefer the Row-free patterns** (read via `accessorFn`, map via the lazy order) even where the standard model would let you cheat with `getRowModel().rows` — see the Cardinal rule above.
-- Two things to settle at collapse time (flagged so they're not lost): (1) column auto-sizing measures **all** rows on the standard model vs **materialized only** on lazy (`rowsToMeasure` in `column-sizing-feature.ts`) — lazy-only makes "measure visible rows" the behaviour for every table; (2) the lazy model is a **fork of table-core** (8.17.3), so lazy-only makes that fork load-bearing for *all* tables with no unforked fallback — the lazy/standard parity tests are the safety net, keep them strong.
+- **Don't reintroduce a size branch.** Write the Row-free patterns (read via `accessorFn`, map via the lazy order) — see the Cardinal rule above — never a `data.length`-gated standard path.
+- The lazy model is a **fork of table-core** (8.17.3) and is now load-bearing for *all* tables with no unforked fallback — the lazy-model tests are the safety net, keep them strong.
+- Column auto-sizing measures **materialized (visible) rows only** for every table (`rowsToMeasure` in `column-sizing-feature.ts`) — there is no "measure all rows" path.
 
 ---
 

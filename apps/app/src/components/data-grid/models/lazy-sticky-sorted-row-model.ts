@@ -12,9 +12,7 @@ import {
 import {
   type LazyRowModel,
   createOrderedLazyRowModel,
-  isLazyRowModel,
 } from "./lazy-core-row-model";
-import { getStickySortedRowModel } from "./get-sticky-sorted-row-model";
 
 export type LazyRowOrder = {
   // Display position -> row id (stable across data-array rebuilds). `null` means
@@ -36,12 +34,6 @@ const IDENTITY_ORDER: LazyRowOrder = {
   visualByDataIndex: null,
 };
 
-/**
- * Reads the value to sort a row by — straight off the model object via the
- * column's accessor (identical to `Row.getValue`, but without a `Row`). The
- * accessor returns the stored value, so sorting never runs display transforms
- * (e.g. unit conversion) and the full dataset sorts without materializing rows.
- */
 export function getSortValue<TData extends RowData>(
   table: Table<TData>,
   columnId: string,
@@ -82,11 +74,7 @@ function autoSortingFn<TData extends RowData>(
   return (isString ? sortingFns.text : sortingFns.basic) as SortingFn<TData>;
 }
 
-/**
- * Resolves a column's sorting fn without touching the row model — mirrors
- * table-core's `getSortingFn` (function → as-is; named → options/built-in;
- * `auto`/unset → auto-detect), but the auto branch reads precomputed values.
- */
+// Resolves a column's sorting fn without materializing the row model
 function resolveSortingFn<TData extends RowData>(
   table: Table<TData>,
   column: Column<TData, unknown>,
@@ -319,7 +307,7 @@ export function computeLazyRowOrder<TData extends RowData>(
  * sort state changes; when data changes but the sort doesn't (e.g. a cell edit),
  * it reuses the cached order by id — an O(n) re-map, not a re-sort — so editing
  * while sorted stays cheap. New rows are appended in data order, removed rows
- * dropped, mirroring `getStickySortedRowModel`.
+ * dropped (sticky ordering).
  */
 export function createLazyRowOrderGetter<TData extends RowData>(
   table: Table<TData>,
@@ -407,11 +395,6 @@ export function createLazyRowOrderGetter<TData extends RowData>(
   };
 }
 
-/**
- * Drop-in for `getStickySortedRowModel()` in lazy mode. No active sort → returns
- * the (lazy) core model unchanged. Active sort → reorders via `getLazyRowOrder`
- * and presents the rows in display order lazily (only visible rows materialize).
- */
 export function getLazyStickySortedRowModel<TData extends RowData>(): (
   table: Table<TData>,
 ) => () => RowModel<TData> {
@@ -434,19 +417,4 @@ export function getLazyStickySortedRowModel<TData extends RowData>(): (
         "getLazyStickySortedRowModel",
       ),
     );
-}
-
-/**
- * Sorted row model that adapts per render to data size: the existing sticky
- * sorted model for small tables, the lazy (value-extractor) sort once past the
- * threshold. Both are instantiated once; the wrapper picks which to evaluate.
- */
-export function getAdaptiveStickySortedRowModel<TData extends RowData>(): (
-  table: Table<TData>,
-) => () => RowModel<TData> {
-  return (table) => {
-    const standard = getStickySortedRowModel<TData>()(table);
-    const lazy = getLazyStickySortedRowModel<TData>()(table);
-    return () => (isLazyRowModel(table) ? lazy() : standard());
-  };
 }

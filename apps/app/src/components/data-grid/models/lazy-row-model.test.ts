@@ -8,9 +8,9 @@ import { describe, expect, it } from "vitest";
 import {
   type LazyRowModel,
   LAZY_ROW_MODEL_THRESHOLD,
-  getAdaptiveCoreRowModel,
+  getLazyCoreRowModel,
 } from "./lazy-core-row-model";
-import { getAdaptiveStickySortedRowModel } from "./lazy-sticky-sorted-row-model";
+import { getLazyStickySortedRowModel } from "./lazy-sticky-sorted-row-model";
 import { LazyRowModelFeature } from "../features/lazy-row-model-feature";
 import { CellRangeSelectionFeature } from "../features/cell-range-selection-feature";
 
@@ -24,18 +24,19 @@ const makeData = (n: number): Row[] =>
     label: `r${i}`,
   }));
 
-const useGridTable = (data: Row[], lazyRowModel = true) =>
+const useGridTable = (data: Row[]) =>
   useReactTable<Row>({
     data,
     columns: [{ accessorKey: "value" }, { accessorKey: "label" }],
     getRowId: (row) => String(row.id),
-    getCoreRowModel: getAdaptiveCoreRowModel(),
-    getSortedRowModel: getAdaptiveStickySortedRowModel(),
+    getCoreRowModel: getLazyCoreRowModel(),
+    getSortedRowModel: getLazyStickySortedRowModel(),
     enableSorting: true,
-    lazyRowModel,
     _features: [LazyRowModelFeature, CellRangeSelectionFeature],
   });
 
+// The lazy model is the only model now; the threshold is just the LRU cap, so we
+// exercise sizes both above and below it.
 const LARGE = LAZY_ROW_MODEL_THRESHOLD + 500; // 1500
 const SMALL = LAZY_ROW_MODEL_THRESHOLD - 500; // 500
 
@@ -72,26 +73,16 @@ describe("lazy core row model (> threshold)", () => {
   });
 });
 
-describe("standard row model (<= threshold)", () => {
-  it("uses a real dense array (unchanged behaviour)", () => {
+describe("lazy core row model (<= threshold)", () => {
+  it("stays lazy below the threshold too (proxy, no dense indices)", () => {
     const { result } = renderHook(() => useGridTable(makeData(SMALL)));
     const rows = result.current.getRowModel().rows;
 
     expect(rows.length).toBe(SMALL);
     expect(Array.isArray(rows)).toBe(true);
-    // Standard model is a dense array → own indices present.
-    expect(Object.keys(rows).length).toBe(SMALL);
-  });
-});
-
-describe("gating (lazyRowModel opt-in)", () => {
-  it("stays on the standard model when not opted in, even past threshold", () => {
-    const { result } = renderHook(() => useGridTable(makeData(LARGE), false));
-    const rows = result.current.getRowModel().rows;
-
-    expect(rows.length).toBe(LARGE);
-    // Not opted in → dense standard array despite being over threshold.
-    expect(Object.keys(rows).length).toBe(LARGE);
+    // The lazy proxy has no own enumerable indices, regardless of size — there
+    // is no separate dense "standard" model anymore.
+    expect(Object.keys(rows).length).toBe(0);
   });
 });
 
@@ -142,7 +133,7 @@ describe("lazy sorting (> threshold)", () => {
     expect(result.current.getRowModel().rows[0].id).toBe(String(LARGE - 1));
 
     // Edit: id 0's value becomes the smallest. A re-sort would move it to the
-    // front; sticky keeps it in place (matches getStickySortedRowModel).
+    // front; sticky ordering keeps it in place.
     const edited = makeData(LARGE).map((r) =>
       r.id === 0 ? { ...r, value: -1 } : r,
     );
@@ -236,9 +227,48 @@ describe("getMaterializedRows (working set)", () => {
     expect(model.getMaterializedRows()).toHaveLength(2);
   });
 
-  it("is absent from the standard (non-lazy) model", () => {
+  it("is present below the threshold too (single lazy model)", () => {
     const { result } = renderHook(() => useGridTable(makeData(SMALL)));
-    const model = result.current.getRowModel() as Partial<LazyRowModel<Row>>;
-    expect(model.getMaterializedRows).toBeUndefined();
+    const model = result.current.getRowModel() as LazyRowModel<Row>;
+    expect(typeof model.getMaterializedRows).toBe("function");
+    expect(model.getMaterializedRows()).toHaveLength(0);
+  });
+});
+
+describe("maxMaterializedRows (LRU cap override)", () => {
+  it("caps the materialized working set at the configured value", () => {
+    const data = makeData(LARGE);
+    const { result } = renderHook(() =>
+      useReactTable<Row>({
+        data,
+        columns: [{ accessorKey: "value" }, { accessorKey: "label" }],
+        getRowId: (row) => String(row.id),
+        getCoreRowModel: getLazyCoreRowModel(),
+        maxMaterializedRows: 5,
+        _features: [LazyRowModelFeature],
+      }),
+    );
+    const model = () => result.current.getRowModel() as LazyRowModel<Row>;
+
+    // Access far more rows than the cap; the LRU retains only the last 5.
+    for (let i = 0; i < 12; i++) void model().rows[i];
+
+    const built = model().getMaterializedRows();
+    expect(built).toHaveLength(5);
+    expect(built.map((r) => r.index).sort((a, b) => a - b)).toEqual([
+      7, 8, 9, 10, 11,
+    ]);
+  });
+
+  it("defaults to LAZY_ROW_MODEL_THRESHOLD when unset", () => {
+    const data = makeData(LAZY_ROW_MODEL_THRESHOLD + 50);
+    const { result } = renderHook(() => useGridTable(data));
+    const model = () => result.current.getRowModel() as LazyRowModel<Row>;
+
+    for (let i = 0; i < data.length; i++) void model().rows[i];
+
+    expect(model().getMaterializedRows()).toHaveLength(
+      LAZY_ROW_MODEL_THRESHOLD,
+    );
   });
 });

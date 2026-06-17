@@ -2,10 +2,12 @@
  * @vitest-environment jsdom
  */
 import { act } from "react";
-import { renderHook } from "@testing-library/react";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { renderHook, type RenderHookResult } from "@testing-library/react";
+import { type Table, useReactTable } from "@tanstack/react-table";
 import { ClipboardFeature } from "./clipboard-feature";
 import { ColumnSizingFeature } from "./column-sizing-feature";
+import { LazyRowModelFeature } from "./lazy-row-model-feature";
+import { getLazyCoreRowModel } from "../models/lazy-core-row-model";
 import type { GridColumn } from "../types";
 
 type TestRow = { name: string; price: number };
@@ -56,8 +58,22 @@ const useSizingTable = (
   useReactTable<TestRow>({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    _features: [ColumnSizingFeature, ClipboardFeature],
+    getCoreRowModel: getLazyCoreRowModel(),
+    _features: [LazyRowModelFeature, ColumnSizingFeature, ClipboardFeature],
+  });
+
+// Auto-sizing measures only materialized (on-screen) rows. In a headless test
+// nothing is virtualized, so touch the rows to materialize them — mirroring what
+// the virtualizer renders — before fitting the column.
+const fitWidth = (
+  result: RenderHookResult<Table<TestRow>, unknown>["result"],
+  columnId: string,
+  container?: HTMLElement | null,
+) =>
+  act(() => {
+    const rows = result.current.getRowModel().rows;
+    for (let i = 0; i < rows.length; i++) void rows[i];
+    result.current.getColumn(columnId)?.fitWidthToContent(container);
   });
 
 afterEach(() => {
@@ -120,7 +136,7 @@ describe("ColumnSizingFeature", () => {
         /* defaultExtraWidth */ 16 +
         /* +2 padding */ 2;
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       expect(result.current.getState().columnSizing.name).toBe(expected);
     });
@@ -136,7 +152,7 @@ describe("ColumnSizingFeature", () => {
       const header = "Very-Long-Header-Label";
       const expected = Math.ceil(header.length * HEADER_CHAR_WIDTH) + 16 + 2;
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       expect(result.current.getState().columnSizing.name).toBe(expected);
     });
@@ -159,7 +175,7 @@ describe("ColumnSizingFeature", () => {
       const placeholder = "type-something-here";
       const expected = Math.ceil(placeholder.length * CELL_CHAR_WIDTH) + 16 + 2;
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       expect(result.current.getState().columnSizing.name).toBe(expected);
     });
@@ -174,7 +190,7 @@ describe("ColumnSizingFeature", () => {
       const { result } = renderHook(() => useSizingTable(data, columns));
       const expected = Math.ceil(6 * CELL_CHAR_WIDTH) + 40 + 2;
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       expect(result.current.getState().columnSizing.name).toBe(expected);
     });
@@ -193,7 +209,7 @@ describe("ColumnSizingFeature", () => {
       const minWidth = Math.ceil(HEADER_CHAR_WIDTH * 2) + 22;
       // Content size would be 1 * 7 + 16 + 2 = 25, smaller than minWidth.
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       expect(result.current.getState().columnSizing.name).toBe(minWidth);
     });
@@ -214,7 +230,7 @@ describe("ColumnSizingFeature", () => {
       const formatted = "$ 1234567890.00 USD";
       const expected = Math.ceil(formatted.length * CELL_CHAR_WIDTH) + 16 + 2;
 
-      act(() => result.current.getColumn("price")?.fitWidthToContent());
+      fitWidth(result, "price");
 
       expect(result.current.getState().columnSizing.price).toBe(expected);
     });
@@ -230,7 +246,7 @@ describe("ColumnSizingFeature", () => {
       );
       expect(result.current.getState().columnSizing.name).toBe(999);
 
-      act(() => result.current.getColumn("name")?.fitWidthToContent());
+      fitWidth(result, "name");
 
       // resetSize removes the column from the columnSizing state.
       expect(result.current.getState().columnSizing.name).toBeUndefined();

@@ -5,10 +5,7 @@ import type {
   Table,
   TableFeature,
 } from "@tanstack/react-table";
-import {
-  type LazyRowModel,
-  isLazyRowModel,
-} from "../models/lazy-core-row-model";
+import { type LazyRowModel } from "../models/lazy-core-row-model";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -32,7 +29,6 @@ const HEADER_SORT_BUTTON_AND_BORDER = 22;
 function rowsToMeasure<TData extends RowData>(
   table: Table<TData>,
 ): Row<TData>[] {
-  if (!isLazyRowModel(table)) return table.getRowModel().rows;
   const model = table.getRowModel() as LazyRowModel<TData>;
   return model.getMaterializedRows();
 }

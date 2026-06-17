@@ -13,7 +13,7 @@ import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operati
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import {
-  PerformantDataGrid,
+  DataGrid,
   type DataGridRef,
   type CellContextAction,
   type GutterContextAction,
@@ -413,7 +413,7 @@ export const CustomerPointDataTable = memo(
             <RingSpinner />
           </div>
         ) : (
-          <PerformantDataGrid
+          <DataGrid
             ref={dataGridRef}
             data={rows}
             columns={columns}

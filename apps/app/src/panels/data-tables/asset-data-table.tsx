@@ -36,7 +36,7 @@ import {
   type CurveId,
 } from "@epanet-js/hydraulic-model";
 import {
-  PerformantDataGrid,
+  DataGrid,
   type DataGridRef,
   type CellContextAction,
   type GutterContextAction,
@@ -586,7 +586,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           <RingSpinner />
         </div>
       ) : (
-        <PerformantDataGrid
+        <DataGrid
           ref={dataGridRef}
           key={assetType}
           data={rows}

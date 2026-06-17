@@ -4,46 +4,34 @@ import {
   type RowModel,
   type Table,
   createRow,
-  getCoreRowModel,
   getMemoOptions,
   memo,
 } from "@tanstack/react-table";
 
-// Above this many rows the grid switches to the lazy row model: TanStack `Row`
-// objects are materialized on access (not all up front), which keeps mount/edit
-// CPU and heap bounded to the working set instead of the full row count.
-// (Building one `Row` per data row is what froze the UI and OOM'd at ~450K.)
+// Default LRU cap for the lazy row model: at most this many TanStack `Row`
+// objects are retained per data generation. `Row`s are materialized on access
+// (not all up front), so CPU and heap stay bounded to the working set instead of
+// the full row count — this is what keeps mount/edit responsive and avoids the
+// OOM that building one `Row` per data row caused at ~450K. The cap is far more
+// than a viewport + overscan + any realistic selection, and re-accessing an
+// evicted row just recreates it (cheap). Override per table with the
+// `maxMaterializedRows` option.
 //
-// Also used as the LRU cap: at most this many materialized rows are retained
-// per data generation — far more than a viewport + overscan + any realistic
-// selection, and re-accessing an evicted row just recreates it (cheap).
-//
-// Forked against @tanstack/table-core 8.17.3 — re-check `createRow` /
-// `getCoreRowModel` on upgrade.
+// Forked against @tanstack/table-core 8.17.3 — re-check `createRow` on upgrade.
 export const LAZY_ROW_MODEL_THRESHOLD = 1000;
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableOptionsResolved<TData extends RowData> {
-    // Opt-in via `PerformantDataGrid` / `enableLazyRowModel`. The lazy row model
-    // only engages when this is true AND the data is over threshold.
-    lazyRowModel?: boolean;
+    // Max materialized `Row` objects retained (LRU cap). Defaults to
+    // `LAZY_ROW_MODEL_THRESHOLD` (1000).
+    maxMaterializedRows?: number;
   }
 }
 
 export type LazyRowModel<TData extends RowData> = RowModel<TData> & {
   getMaterializedRows: () => Row<TData>[];
 };
-
-/** Whether the grid should use the lazy row model for the current data size. */
-export function isLazyRowModel<TData extends RowData>(
-  table: Table<TData>,
-): boolean {
-  return (
-    table.options.lazyRowModel === true &&
-    table.options.data.length > LAZY_ROW_MODEL_THRESHOLD
-  );
-}
 
 /**
  * Builds a lazy, array-like `rows` collection: `length` is the full data length,
@@ -61,6 +49,8 @@ function createLazyRows<TData extends RowData>(
   getCachedRows: () => Row<TData>[];
 } {
   const length = data.length;
+  const max_materialized_rows =
+    table.options.maxMaterializedRows ?? LAZY_ROW_MODEL_THRESHOLD;
   const cache = new Map<number, Row<TData>>();
 
   const getRowAt = (index: number): Row<TData> | undefined => {
@@ -83,7 +73,7 @@ function createLazyRows<TData extends RowData>(
       undefined,
     );
     cache.set(index, row);
-    if (cache.size > LAZY_ROW_MODEL_THRESHOLD) {
+    if (cache.size > max_materialized_rows) {
       const oldest = cache.keys().next().value;
       if (oldest !== undefined) cache.delete(oldest);
     }
@@ -222,21 +212,5 @@ export function createOrderedLazyRowModel<TData extends RowData>(
     flatRows: proxy,
     rowsById: baseModel.rowsById,
     getMaterializedRows: baseModel.getMaterializedRows,
-  };
-}
-
-/**
- * Core row model that adapts per render to data size: standard `getCoreRowModel`
- * for small tables, the lazy model once past the threshold. Both inner models
- * are instantiated once and memoized on `[data]`; the wrapper just picks which to
- * evaluate, so crossing the threshold needs no remount.
- */
-export function getAdaptiveCoreRowModel<TData extends RowData>(): (
-  table: Table<TData>,
-) => () => RowModel<TData> {
-  return (table) => {
-    const standard = getCoreRowModel<TData>()(table);
-    const lazy = getLazyCoreRowModel<TData>()(table);
-    return () => (isLazyRowModel(table) ? lazy() : standard());
   };
 }
