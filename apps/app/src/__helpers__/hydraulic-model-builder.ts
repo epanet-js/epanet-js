@@ -12,8 +12,8 @@ import {
   ReservoirBuildData,
   NodeAsset,
   AssetId,
-  Controls,
-  createEmptyControls,
+  RawControls,
+  createEmptyRawControls,
   createEmptyDemands,
   Demand,
   Demands,
@@ -131,7 +131,7 @@ export class HydraulicModelBuilder {
   private customerPointIdGenerator: WritableIdGenerator;
   private curves: Curves;
   private patterns: Patterns;
-  private controlsValue: Controls;
+  private rawControlsValue: RawControls;
 
   static with(
     options: {
@@ -173,7 +173,7 @@ export class HydraulicModelBuilder {
     this.demands = createEmptyDemands();
     this.curves = new Map();
     this.patterns = new Map();
-    this.controlsValue = createEmptyControls();
+    this.rawControlsValue = createEmptyRawControls();
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -416,7 +416,7 @@ export class HydraulicModelBuilder {
         isActionTarget: ref.isActionTarget ?? false,
       })),
     };
-    this.controlsValue.simple.push(control);
+    this.rawControlsValue.simple.push(control);
     return this;
   }
 
@@ -433,7 +433,7 @@ export class HydraulicModelBuilder {
         isActionTarget: ref.isActionTarget ?? false,
       })),
     };
-    this.controlsValue.rules.push(rule);
+    this.rawControlsValue.rules.push(rule);
     return this;
   }
 
@@ -465,7 +465,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       curves: this.curves,
       patterns: this.patterns,
-      controls: this.controlsValue,
+      rawControls: this.rawControlsValue,
     };
   }
 

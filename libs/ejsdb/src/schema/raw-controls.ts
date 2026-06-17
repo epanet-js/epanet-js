@@ -16,7 +16,7 @@ const ruleBasedControlSchema = z.object({
   assetReferences: z.array(assetReferenceSchema),
 });
 
-export const controlsSchema = z.object({
+export const rawControlsSchema = z.object({
   simple: z.array(simpleControlSchema),
   rules: z.array(ruleBasedControlSchema),
 });

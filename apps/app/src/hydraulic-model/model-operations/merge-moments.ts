@@ -30,7 +30,7 @@ export const mergeMoments = (
     append(putCustomerPoints, m.putCustomerPoints);
     append(deleteCustomerPoints, m.deleteCustomerPoints);
     if (m.putDemands) merged.putDemands = m.putDemands;
-    if (m.putControls) merged.putControls = m.putControls;
+    if (m.putRawControls) merged.putRawControls = m.putRawControls;
     if (m.putCurves) merged.putCurves = m.putCurves;
     if (m.putPatterns) merged.putPatterns = m.putPatterns;
   }

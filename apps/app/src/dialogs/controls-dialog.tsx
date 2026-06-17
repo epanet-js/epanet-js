@@ -15,9 +15,9 @@ import {
   formatSimpleControl,
   formatRuleBasedControl,
   IdResolver,
-  parseControlsFromText,
+  parseRawControlsFromText,
 } from "@epanet-js/hydraulic-model";
-import { changeControls } from "src/hydraulic-model/model-operations";
+import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 
@@ -38,18 +38,18 @@ export const ControlsDialog = () => {
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
 
-  const { controls, assets } = hydraulicModel;
+  const { rawControls, assets } = hydraulicModel;
 
   const idResolver: IdResolver = (assetId) => {
     const asset = assets.get(assetId);
     return asset?.label ?? String(assetId);
   };
 
-  const initialSimpleText = controls.simple
+  const initialSimpleText = rawControls.simple
     .map((control) => formatSimpleControl(control, idResolver))
     .join("\n");
 
-  const initialRulesText = controls.rules
+  const initialRulesText = rawControls.rules
     .map((rule) => formatRuleBasedControl(rule, idResolver))
     .join("\n\n");
 
@@ -60,7 +60,7 @@ export const ControlsDialog = () => {
 
   const handleSubmit = useCallback(
     (values: FormValues) => {
-      const newControls = parseControlsFromText(
+      const newControls = parseRawControlsFromText(
         values.simpleText,
         values.rulesText,
         assets,
@@ -70,7 +70,7 @@ export const ControlsDialog = () => {
         simpleControlsCount: newControls.simple.length,
         rulesCount: newControls.rules.length,
       });
-      const moment = changeControls(hydraulicModel, newControls);
+      const moment = changeRawControls(hydraulicModel, newControls);
       transact(moment);
       closeDialog();
     },

@@ -387,7 +387,7 @@ describe("apply-moment integration", () => {
     ]);
   });
 
-  it("replaces controls via putControls", async () => {
+  it("replaces controls via putRawControls", async () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 
     await seed(
@@ -400,7 +400,7 @@ describe("apply-moment integration", () => {
 
     await persistMoment({
       note: "replace controls",
-      putControls: {
+      putRawControls: {
         simple: [
           {
             template: "LINK {{0}} OPEN IF NODE {{1}} BELOW 5",
@@ -421,16 +421,16 @@ describe("apply-moment integration", () => {
     });
 
     const project = await fetchProject();
-    expect(project.hydraulicModel.controls.simple).toHaveLength(1);
-    expect(project.hydraulicModel.controls.simple[0]).toEqual({
+    expect(project.hydraulicModel.rawControls.simple).toHaveLength(1);
+    expect(project.hydraulicModel.rawControls.simple[0]).toEqual({
       template: "LINK {{0}} OPEN IF NODE {{1}} BELOW 5",
       assetReferences: [
         { assetId: IDS.P1, isActionTarget: true },
         { assetId: IDS.J1, isActionTarget: false },
       ],
     });
-    expect(project.hydraulicModel.controls.rules).toHaveLength(1);
-    expect(project.hydraulicModel.controls.rules[0]).toEqual({
+    expect(project.hydraulicModel.rawControls.rules).toHaveLength(1);
+    expect(project.hydraulicModel.rawControls.rules[0]).toEqual({
       ruleId: "R1",
       template: "RULE R1\nIF NODE {{0}} LEVEL > 5",
       assetReferences: [{ assetId: IDS.J2, isActionTarget: false }],

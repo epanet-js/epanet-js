@@ -18,7 +18,7 @@ import {
   toJunctionDemandRow,
   patternsToRows,
   curvesToRows,
-  serializeControls,
+  serializeRawControls,
 } from "@epanet-js/ejsdb-mappers";
 import {
   assetPatchesToRows,
@@ -78,8 +78,8 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     ? curvesToRows(moment.putCurves)
     : null;
 
-  const controlsReplacement = moment.putControls
-    ? serializeControls(moment.putControls)
+  const rawControlsReplacement = moment.putRawControls
+    ? serializeRawControls(moment.putRawControls)
     : null;
 
   return {
@@ -92,7 +92,7 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     junctionDemandUpdates,
     patternsReplacement,
     curvesReplacement,
-    controlsReplacement,
+    rawControlsReplacement,
   };
 };
 
@@ -120,7 +120,7 @@ export const applyMomentToDb = async (
       payload.junctionDemandUpdates.length === 0 &&
       payload.patternsReplacement === null &&
       payload.curvesReplacement === null &&
-      payload.controlsReplacement === null
+      payload.rawControlsReplacement === null
     ) {
       return;
     }

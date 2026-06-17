@@ -4,7 +4,7 @@ import {
   SimpleControl,
   RuleBasedControl,
   AssetReference,
-  Controls,
+  RawControls,
 } from "./types";
 
 export type LabelResolver = (
@@ -74,11 +74,11 @@ export const parseRulesFromText = (
   return ruleBlocks.map((block) => parseRuleBasedControl(block, resolveLabel));
 };
 
-export const parseControlsFromText = (
+export const parseRawControlsFromText = (
   simpleText: string,
   rulesText: string,
   assets: AssetsMap,
-): Controls => {
+): RawControls => {
   const resolveLabel = createLabelResolverFromAssets(assets);
   return {
     simple: parseSimpleControlsFromText(simpleText, resolveLabel),

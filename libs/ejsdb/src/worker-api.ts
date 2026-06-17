@@ -189,7 +189,7 @@ const insertCurve = (row: CurveRow) => {
     .stepReset();
 };
 
-const upsertControls = (data: string) => {
+const upsertRawControls = (data: string) => {
   db!.exec(`INSERT OR REPLACE INTO controls (id, data) VALUES (1, ?)`, {
     bind: [data],
   });
@@ -765,7 +765,7 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   jDem: payload.junctionDemandUpdates.length,
   pat: payload.patternsReplacement?.length ?? 0,
   cur: payload.curvesReplacement?.length ?? 0,
-  ctrl: payload.controlsReplacement !== null ? 1 : 0,
+  ctrl: payload.rawControlsReplacement !== null ? 1 : 0,
 });
 
 export const api = {
@@ -913,8 +913,8 @@ export const api = {
     );
   },
 
-  async getControls(): Promise<string | null> {
-    return timed("getControls", async () => {
+  async getRawControls(): Promise<string | null> {
+    return timed("getRawControls", async () => {
       await ready;
       if (!db) throw new Error("No database open");
       const rows = db.exec("SELECT data FROM controls WHERE id = 1", {
@@ -1077,8 +1077,8 @@ export const api = {
               insertCurve(row);
             }
           }
-          if (payload.controlsReplacement !== null) {
-            upsertControls(payload.controlsReplacement);
+          if (payload.rawControlsReplacement !== null) {
+            upsertRawControls(payload.rawControlsReplacement);
           }
           db.exec("COMMIT");
         } catch (e) {
@@ -1193,11 +1193,11 @@ export const api = {
     );
   },
 
-  async setAllControls(data: string): Promise<void> {
-    return timed("setAllControls", async () => {
+  async setAllRawControls(data: string): Promise<void> {
+    return timed("setAllRawControls", async () => {
       await ready;
       if (!db) throw new Error("No database open");
-      upsertControls(data);
+      upsertRawControls(data);
     });
   },
 

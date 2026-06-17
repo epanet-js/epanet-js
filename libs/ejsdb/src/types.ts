@@ -41,5 +41,5 @@ export type ApplyMomentPayload = {
   junctionDemandUpdates: JunctionDemandUpdate[];
   patternsReplacement: PatternRow[] | null;
   curvesReplacement: CurveRow[] | null;
-  controlsReplacement: string | null;
+  rawControlsReplacement: string | null;
 };

@@ -92,16 +92,16 @@ describe("ControlsDialog", () => {
 
     await waitFor(() => {
       const hydraulicModel = store.get(stagingModelAtom);
-      expect(hydraulicModel.controls.simple).toHaveLength(1);
-      expect(hydraulicModel.controls.simple[0].template).toBe(
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
+      expect(hydraulicModel.rawControls.simple[0].template).toBe(
         "LINK {{0}} CLOSED IF NODE {{1}} BELOW 50",
       );
-      expect(hydraulicModel.controls.simple[0].assetReferences[0].assetId).toBe(
-        3,
-      );
-      expect(hydraulicModel.controls.simple[0].assetReferences[1].assetId).toBe(
-        2,
-      );
+      expect(
+        hydraulicModel.rawControls.simple[0].assetReferences[0].assetId,
+      ).toBe(3);
+      expect(
+        hydraulicModel.rawControls.simple[0].assetReferences[1].assetId,
+      ).toBe(2);
     });
   });
 
@@ -136,8 +136,8 @@ describe("ControlsDialog", () => {
 
     await waitFor(() => {
       const hydraulicModel = store.get(stagingModelAtom);
-      expect(hydraulicModel.controls.simple).toHaveLength(1);
-      expect(hydraulicModel.controls.rules).toHaveLength(1);
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
+      expect(hydraulicModel.rawControls.rules).toHaveLength(1);
     });
   });
 

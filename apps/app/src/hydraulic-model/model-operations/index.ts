@@ -11,7 +11,7 @@ export { addLink } from "./add-link";
 export { replaceNode as replaceNode } from "./replace-node";
 export { replaceLink } from "./replace-link";
 export { mergeNodes } from "./merge-nodes";
-export { changeControls } from "./change-controls";
+export { changeRawControls } from "./change-raw-controls";
 export { changeCurves } from "./change-curves";
 export { changePatterns } from "./change-patterns";
 export { changeDemandAssignment } from "./change-demand-assignment";

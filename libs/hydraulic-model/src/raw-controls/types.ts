@@ -16,12 +16,12 @@ export type RuleBasedControl = {
   assetReferences: AssetReference[];
 };
 
-export type Controls = {
+export type RawControls = {
   simple: SimpleControl[];
   rules: RuleBasedControl[];
 };
 
-export const createEmptyControls = (): Controls => ({
+export const createEmptyRawControls = (): RawControls => ({
   simple: [],
   rules: [],
 });

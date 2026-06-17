@@ -5,8 +5,8 @@ export {
   updateHydraulicModelAssets,
   copyModel,
 } from "./hydraulic-model";
-export type { Controls } from "@epanet-js/hydraulic-model";
-export { createEmptyControls } from "@epanet-js/hydraulic-model";
+export type { RawControls } from "@epanet-js/hydraulic-model";
+export { createEmptyRawControls } from "@epanet-js/hydraulic-model";
 export { AssetFactory } from "@epanet-js/hydraulic-model";
 export type {
   JunctionBuildData,

@@ -229,7 +229,7 @@ export const buildModel = (
     inpData.patterns,
   );
 
-  addControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
+  addRawControls(hydraulicModel, inpData.controls, nodeIds, linkIds);
 
   return {
     hydraulicModel,
@@ -1056,7 +1056,7 @@ export const isWgs84 = (coordinates: Position) =>
   coordinates[1] >= -90 &&
   coordinates[1] <= 90;
 
-const addControls = (
+const addRawControls = (
   hydraulicModel: HydraulicModel,
   rawControls: InpData["controls"],
   nodeIds: ItemData<AssetId>,
@@ -1066,7 +1066,7 @@ const addControls = (
     return assetType === "link" ? linkIds.get(label) : nodeIds.get(label);
   };
 
-  hydraulicModel.controls = {
+  hydraulicModel.rawControls = {
     simple: parseSimpleControlsFromText(rawControls.simple, resolveLabel),
     rules: parseRulesFromText(rawControls.ruleBased, resolveLabel),
   };

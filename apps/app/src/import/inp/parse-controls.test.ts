@@ -11,8 +11,8 @@ describe("Parse CONTROLS and RULES sections", () => {
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual([]);
-      expect(hydraulicModel.controls.rules).toEqual([]);
+      expect(hydraulicModel.rawControls.simple).toEqual([]);
+      expect(hydraulicModel.rawControls.rules).toEqual([]);
     });
 
     it("parses single line CONTROLS section with resolvable assets", () => {
@@ -48,9 +48,9 @@ describe("Parse CONTROLS and RULES sections", () => {
         (a) => a.feature.properties.label === LABELS.T1,
       )!;
 
-      expect(hydraulicModel.controls.simple).toHaveLength(1);
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
 
-      const control = hydraulicModel.controls.simple[0];
+      const control = hydraulicModel.rawControls.simple[0];
       expect(control.template).toBe("LINK {{0}} OPEN IF NODE {{1}} ABOVE 100");
       expect(control.assetReferences).toHaveLength(2);
       expect(control.assetReferences[0].assetId).toBe(pipe.id);
@@ -88,16 +88,16 @@ describe("Parse CONTROLS and RULES sections", () => {
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.simple).toHaveLength(3);
+      expect(hydraulicModel.rawControls.simple).toHaveLength(3);
 
       expect(
-        hydraulicModel.controls.simple[0].assetReferences[0].isActionTarget,
+        hydraulicModel.rawControls.simple[0].assetReferences[0].isActionTarget,
       ).toBe(true);
       expect(
-        hydraulicModel.controls.simple[1].assetReferences[0].isActionTarget,
+        hydraulicModel.rawControls.simple[1].assetReferences[0].isActionTarget,
       ).toBe(true);
       expect(
-        hydraulicModel.controls.simple[2].assetReferences[0].isActionTarget,
+        hydraulicModel.rawControls.simple[2].assetReferences[0].isActionTarget,
       ).toBe(true);
     });
   });
@@ -112,8 +112,8 @@ describe("Parse CONTROLS and RULES sections", () => {
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.simple).toEqual([]);
-      expect(hydraulicModel.controls.rules).toEqual([]);
+      expect(hydraulicModel.rawControls.simple).toEqual([]);
+      expect(hydraulicModel.rawControls.rules).toEqual([]);
     });
 
     it("parses single RULES section with resolvable assets", () => {
@@ -150,9 +150,9 @@ describe("Parse CONTROLS and RULES sections", () => {
         (a) => a.feature.properties.label === LABELS.P1,
       )!;
 
-      expect(hydraulicModel.controls.rules).toHaveLength(1);
+      expect(hydraulicModel.rawControls.rules).toHaveLength(1);
 
-      const rule = hydraulicModel.controls.rules[0];
+      const rule = hydraulicModel.rawControls.rules[0];
       expect(rule.ruleId).toBe("1");
       expect(rule.template).toBe(`RULE {{id}}
 IF NODE {{0}} LEVEL > 100
@@ -195,9 +195,9 @@ THEN LINK {{1}} STATUS IS OPEN`);
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.rules).toHaveLength(2);
-      expect(hydraulicModel.controls.rules[0].ruleId).toBe("1");
-      expect(hydraulicModel.controls.rules[1].ruleId).toBe("2");
+      expect(hydraulicModel.rawControls.rules).toHaveLength(2);
+      expect(hydraulicModel.rawControls.rules[0].ruleId).toBe("1");
+      expect(hydraulicModel.rawControls.rules[1].ruleId).toBe("2");
     });
   });
 
@@ -232,8 +232,8 @@ THEN LINK {{1}} STATUS IS OPEN`);
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.simple).toHaveLength(1);
-      expect(hydraulicModel.controls.rules).toHaveLength(1);
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
+      expect(hydraulicModel.rawControls.rules).toHaveLength(1);
     });
 
     it("parses controls alongside other sections", () => {
@@ -266,14 +266,14 @@ THEN LINK {{1}} STATUS IS OPEN`);
       const { hydraulicModel } = parseInp(inp);
 
       expect(hydraulicModel.assets.size).toEqual(3);
-      expect(hydraulicModel.controls.simple).toHaveLength(1);
-      expect(hydraulicModel.controls.rules).toHaveLength(1);
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
+      expect(hydraulicModel.rawControls.rules).toHaveLength(1);
 
-      expect(hydraulicModel.controls.simple[0].template).toContain("CLOSED");
-      expect(hydraulicModel.controls.rules[0].template).toContain(
+      expect(hydraulicModel.rawControls.simple[0].template).toContain("CLOSED");
+      expect(hydraulicModel.rawControls.rules[0].template).toContain(
         "RULE {{id}}",
       );
-      expect(hydraulicModel.controls.rules[0].ruleId).toBe("1");
+      expect(hydraulicModel.rawControls.rules[0].ruleId).toBe("1");
     });
 
     it("preserves inline comments in CONTROLS", () => {
@@ -300,7 +300,7 @@ THEN LINK {{1}} STATUS IS OPEN`);
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.simple[0].template).toContain(
+      expect(hydraulicModel.rawControls.simple[0].template).toContain(
         ";open when tank is full",
       );
     });
@@ -331,10 +331,10 @@ THEN LINK {{1}} STATUS IS OPEN`);
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.rules[0].template).toContain(
+      expect(hydraulicModel.rawControls.rules[0].template).toContain(
         ";main tank control",
       );
-      expect(hydraulicModel.controls.rules[0].template).toContain(
+      expect(hydraulicModel.rawControls.rules[0].template).toContain(
         ";activate pump",
       );
     });
@@ -366,7 +366,9 @@ THEN LINK {{1}} STATUS IS OPEN`);
 
       const { hydraulicModel } = parseInp(inp);
 
-      expect(hydraulicModel.controls.rules[0].template).toContain("PRIORITY 5");
+      expect(hydraulicModel.rawControls.rules[0].template).toContain(
+        "PRIORITY 5",
+      );
     });
   });
 });

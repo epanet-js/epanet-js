@@ -67,7 +67,7 @@ type HydraulicModel = {
   labelManager: LabelManager;              // Auto-label generation
   headlossFormula: HeadlossFormula;
   curves: Curves;
-  controls: Controls;
+  rawControls: RawControls;
   patterns: Patterns;
 };
 // Note: CustomerPointFactory is NOT on HydraulicModel — see Model Factories section

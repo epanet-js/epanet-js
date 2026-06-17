@@ -1,7 +1,7 @@
 import {
   parseSimpleControlsFromText,
   parseRulesFromText,
-  parseControlsFromText,
+  parseRawControlsFromText,
   createLabelResolverFromAssets,
   LabelResolver,
 } from "@epanet-js/hydraulic-model";
@@ -424,7 +424,7 @@ RULE without proper format`;
   });
 });
 
-describe("parseControlsFromText", () => {
+describe("parseRawControlsFromText", () => {
   it("parses both simple controls and rules from AssetsMap", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })
@@ -437,7 +437,11 @@ describe("parseControlsFromText", () => {
 IF NODE T1 LEVEL > 100
 THEN LINK P1 STATUS IS OPEN`;
 
-    const result = parseControlsFromText(simpleText, rulesText, model.assets);
+    const result = parseRawControlsFromText(
+      simpleText,
+      rulesText,
+      model.assets,
+    );
 
     expect(result.simple).toHaveLength(1);
     expect(result.rules).toHaveLength(1);
@@ -450,7 +454,7 @@ THEN LINK P1 STATUS IS OPEN`;
   it("handles empty inputs", () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
 
-    const result = parseControlsFromText("", "", model.assets);
+    const result = parseRawControlsFromText("", "", model.assets);
 
     expect(result.simple).toEqual([]);
     expect(result.rules).toEqual([]);

@@ -22,5 +22,5 @@ export * from "./factories/customer-point-factory";
 export * from "./assets-map";
 export * from "./asset-index";
 export * from "./demands";
-export * from "./controls";
+export * from "./raw-controls";
 export * from "./topology";

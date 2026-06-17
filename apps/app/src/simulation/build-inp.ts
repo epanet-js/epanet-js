@@ -650,7 +650,12 @@ export const buildInp = withDebugInstrumentation(
       opts.usedCurves,
     );
 
-    appendControls(sections, hydraulicModel.controls, idMap, hydraulicModel);
+    appendRawControls(
+      sections,
+      hydraulicModel.rawControls,
+      idMap,
+      hydraulicModel,
+    );
 
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
@@ -1209,9 +1214,9 @@ const kindFor = (valve: Valve): EpanetValveType => {
   return valve.kind.toUpperCase() as EpanetValveType;
 };
 
-const appendControls = (
+const appendRawControls = (
   sections: InpSections,
-  controls: HydraulicModel["controls"],
+  rawControls: HydraulicModel["rawControls"],
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
 ) => {
@@ -1227,11 +1232,11 @@ const appendControls = (
     }
   };
 
-  for (const control of controls.simple) {
+  for (const control of rawControls.simple) {
     sections.controls.push(formatSimpleControl(control, idResolver));
   }
 
-  for (const rule of controls.rules) {
+  for (const rule of rawControls.rules) {
     sections.rules.push(formatRuleBasedControl(rule, idResolver));
   }
 };

@@ -1,10 +1,10 @@
-import { buildControlsData } from "./builders";
+import { buildRawControlsData } from "./builders";
 
-describe("buildControlsData", () => {
+describe("buildRawControlsData", () => {
   it("reconstructs controls from the serialized blob", () => {
     const IDS = { A1: 1, A2: 2 } as const;
 
-    const controls = buildControlsData(
+    const controls = buildRawControlsData(
       JSON.stringify({
         simple: [
           {
@@ -43,20 +43,20 @@ describe("buildControlsData", () => {
   });
 
   it("returns empty controls for null input (fresh project)", () => {
-    const controls = buildControlsData(null);
+    const controls = buildRawControlsData(null);
     expect(controls.simple).toEqual([]);
     expect(controls.rules).toEqual([]);
   });
 
   it("throws when the blob is not valid JSON", () => {
-    expect(() => buildControlsData("not-json")).toThrow(
+    expect(() => buildRawControlsData("not-json")).toThrow(
       /Controls: data is not valid JSON/,
     );
   });
 
   it("throws when a rule is missing ruleId", () => {
     expect(() =>
-      buildControlsData(
+      buildRawControlsData(
         JSON.stringify({
           simple: [],
           rules: [
@@ -72,7 +72,7 @@ describe("buildControlsData", () => {
 
   it("throws when assetReferences is malformed", () => {
     expect(() =>
-      buildControlsData(
+      buildRawControlsData(
         JSON.stringify({
           simple: [
             {
@@ -89,7 +89,7 @@ describe("buildControlsData", () => {
   });
 
   it("throws when top-level shape is wrong", () => {
-    expect(() => buildControlsData(JSON.stringify({ simple: [] }))).toThrow(
+    expect(() => buildRawControlsData(JSON.stringify({ simple: [] }))).toThrow(
       /Controls: data does not match schema/,
     );
   });

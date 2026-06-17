@@ -1,7 +1,7 @@
-import { createEmptyControls } from "@epanet-js/hydraulic-model";
-import { serializeControls } from "./to-rows";
+import { createEmptyRawControls } from "@epanet-js/hydraulic-model";
+import { serializeRawControls } from "./to-rows";
 
-describe("serializeControls", () => {
+describe("serializeRawControls", () => {
   it("produces a JSON string that round-trips through JSON.parse", () => {
     const IDS = { A1: 1, A2: 2 } as const;
     const controls = {
@@ -23,19 +23,19 @@ describe("serializeControls", () => {
       ],
     };
 
-    const data = serializeControls(controls);
+    const data = serializeRawControls(controls);
 
     expect(JSON.parse(data)).toEqual(controls);
   });
 
   it("serializes empty controls as empty arrays", () => {
-    const data = serializeControls(createEmptyControls());
+    const data = serializeRawControls(createEmptyRawControls());
     expect(JSON.parse(data)).toEqual({ simple: [], rules: [] });
   });
 
   it("throws when the in-memory shape is malformed", () => {
     expect(() =>
-      serializeControls({
+      serializeRawControls({
         simple: [
           {
             assetReferences: [],

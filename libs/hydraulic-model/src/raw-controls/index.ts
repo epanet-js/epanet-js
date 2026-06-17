@@ -3,10 +3,10 @@ export type {
   AssetReference,
   SimpleControl,
   RuleBasedControl,
-  Controls,
+  RawControls,
 } from "./types";
 
-export { createEmptyControls } from "./types";
+export { createEmptyRawControls } from "./types";
 
 export { formatSimpleControl, formatRuleBasedControl } from "./format-control";
 
@@ -15,8 +15,8 @@ export type { IdResolver } from "./format-control";
 export {
   parseSimpleControlsFromText,
   parseRulesFromText,
-  parseControlsFromText,
+  parseRawControlsFromText,
   createLabelResolverFromAssets,
-} from "./parse-controls";
+} from "./parse-raw-controls";
 
-export type { LabelResolver } from "./parse-controls";
+export type { LabelResolver } from "./parse-raw-controls";
