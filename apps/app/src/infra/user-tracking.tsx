@@ -1,6 +1,7 @@
 import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { useCallback, useMemo } from "react";
 import { Asset, HeadlossFormula } from "src/hydraulic-model";
+import type { Control } from "@epanet-js/hydraulic-model";
 import { isDebugOn } from "./debug-mode";
 import { MODE_INFO } from "src/state/mode";
 import { SimulationState } from "src/state/simulation";
@@ -83,6 +84,21 @@ type AssetPropertyEdited = {
   property: string;
   newValue: number | string | null;
   oldValue: number | string | null;
+};
+
+type AssetControlChanged = {
+  name: "assetControl.changed";
+  type: Asset["type"];
+  controlType: Control["type"];
+  previousType: Control["type"] | null;
+  stepsCount?: number;
+};
+
+type AssetControlRemoved = {
+  name: "assetControl.removed";
+  type: Asset["type"];
+  previousType: Control["type"] | null;
+  stepsCount?: number;
 };
 
 type AssetPropertyBatchEdited = {
@@ -1097,6 +1113,8 @@ export type UserEvent =
   | LinkReversed
   | AssetSelected
   | AssetDeselected
+  | AssetControlChanged
+  | AssetControlRemoved
   | AssetPropertyEdited
   | AssetPropertyBatchEdited
   | AssetPropertiesEdited

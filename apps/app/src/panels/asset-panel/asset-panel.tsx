@@ -127,6 +127,15 @@ type OnPropertyChange = <P extends ChangeableProperty>(
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 
+const controlTrackingData = (
+  control: Control | null,
+): { stepsCount?: number } => {
+  if (control?.type === "timed-setting") {
+    return { stepsCount: control.steps.length };
+  }
+  return {};
+};
+
 export function AssetPanel({
   asset,
   units,
@@ -206,19 +215,32 @@ export function AssetPanel({
   );
 
   const handleControlChange = useCallback(
-    (assetId: AssetId, control: Control | null) => {
+    (
+      assetId: AssetId,
+      control: Control | null,
+      previousControl: Control | null,
+    ) => {
       const moment = changeAssetControl(hydraulicModel, {
         assetId,
         control,
       });
       transact(moment);
-      userTracking.capture({
-        name: "assetProperty.edited",
-        type: asset.type,
-        property: "controls",
-        newValue: control ? 1 : 0,
-        oldValue: null,
-      });
+      if (control === null) {
+        userTracking.capture({
+          name: "assetControl.removed",
+          type: asset.type,
+          previousType: previousControl?.type ?? null,
+          ...controlTrackingData(previousControl),
+        });
+      } else {
+        userTracking.capture({
+          name: "assetControl.changed",
+          type: asset.type,
+          controlType: control.type,
+          previousType: previousControl?.type ?? null,
+          ...controlTrackingData(control),
+        });
+      }
     },
     [hydraulicModel, asset.type, transact, userTracking],
   );
@@ -2161,7 +2183,11 @@ const PumpEditor = ({
   ) => void;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
-  onControlChange: (assetId: AssetId, control: Control | null) => void;
+  onControlChange: (
+    assetId: AssetId,
+    control: Control | null,
+    previousControl: Control | null,
+  ) => void;
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
@@ -2199,11 +2225,17 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
-  const handleStepsChange = (steps: TimedSettingStep[] | null) =>
+  const handleStepsChange = (steps: TimedSettingStep[] | null) => {
+    const previousControl = getLinkTimedSetting(
+      hydraulicModel.controls,
+      pump.id,
+    );
     onControlChange(
       pump.id,
       steps === null ? null : { type: "timed-setting", linkId: pump.id, steps },
+      previousControl,
     );
+  };
 
   const activeTopologyComparison = getComparison("isActive", pump.isActive);
   const hasModelAttributesChanges =
