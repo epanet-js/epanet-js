@@ -1006,8 +1006,8 @@
       "description": "Configure which zones and customers will be included in the allocation",
       "pipeSelection": {
         "title": "Pipe selection",
-        "allPipes": "All pipes",
-        "allPipesDescription": "Allocate customer points to all pipes in the network",
+        "allPipes": "Any pipe",
+        "allPipesDescription": "Allocate customer points to any pipe in the network",
         "selectedPipes": "Selected pipes only",
         "selectedPipesDescription": "Allocate customer points only to selected pipes"
       },
@@ -1015,7 +1015,7 @@
         "title": "Customer selection",
         "allCustomers": "All customers",
         "allCustomersDescription": "Allocate all customers in the network",
-        "zoneCustomers": "Only customers in zone",
+        "zoneCustomers": "Only customers in a zone",
         "zoneCustomersDescription": "Allocate only customers located within the boundaries of a specific zone",
         "selectZone": "Select a zone"
       }
