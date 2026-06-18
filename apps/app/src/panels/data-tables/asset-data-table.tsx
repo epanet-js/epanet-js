@@ -45,6 +45,8 @@ import {
   patchModelRow,
 } from "src/components/data-grid";
 import { useSelectAssetsInApp } from "src/commands/select-assets-in-app";
+import { useZoomTo } from "src/hooks/use-zoom-to";
+import { USelection } from "src/selection";
 import { useDeleteAssets } from "src/commands/delete-assets";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PaywallLockIcon, PointerClickIcon } from "src/icons";
@@ -88,6 +90,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();
   const selectAssetsInApp = useSelectAssetsInApp();
+  const zoomTo = useZoomTo();
   const deleteAssetsAction = useDeleteAssets();
   const userTracking = useUserTracking();
 
@@ -421,6 +424,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             selection.max.row,
           );
           selectAssetsInApp(ids);
+          zoomTo(USelection.fromAssetIds(ids));
           userTracking.capture({
             name: "dataTables.selectedInMap",
             type: assetType,
@@ -434,6 +438,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [
       translate,
       selectAssetsInApp,
+      zoomTo,
       getAssetIdsFromSortedRows,
       isEditionBlocked,
       deleteAction,
@@ -454,6 +459,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
             selection.max.row,
           );
           selectAssetsInApp(ids);
+          zoomTo(USelection.fromAssetIds(ids));
           userTracking.capture({
             name: "dataTables.selectedInMap",
             type: assetType,
@@ -467,6 +473,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [
       translate,
       selectAssetsInApp,
+      zoomTo,
       getAssetIdsFromSortedRows,
       isEditionBlocked,
       deleteAction,

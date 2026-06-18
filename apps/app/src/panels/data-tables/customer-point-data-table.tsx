@@ -22,6 +22,8 @@ import {
   patchModelRow,
 } from "src/components/data-grid";
 import { useSelectCustomerPointsInApp } from "src/commands/select-customer-points-in-app";
+import { useZoomTo } from "src/hooks/use-zoom-to";
+import { USelection } from "src/selection";
 import { useDeleteCustomerPoints } from "src/commands/delete-customer-points";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, PointerClickIcon } from "src/icons";
@@ -54,6 +56,7 @@ export const CustomerPointDataTable = memo(
     const isEditionBlocked = useIsEditionBlocked();
     const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
+    const zoomTo = useZoomTo();
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
 
@@ -246,6 +249,7 @@ export const CustomerPointDataTable = memo(
             );
             if (ids.length === 0) return;
             selectCustomerPointsInApp(ids);
+            zoomTo(USelection.fromIds([], ids));
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",
@@ -259,6 +263,7 @@ export const CustomerPointDataTable = memo(
       [
         translate,
         selectCustomerPointsInApp,
+        zoomTo,
         getCpIdsFromRange,
         isEditionBlocked,
         deleteAction,
@@ -281,6 +286,7 @@ export const CustomerPointDataTable = memo(
             );
             if (ids.length === 0) return;
             selectCustomerPointsInApp(ids);
+            zoomTo(USelection.fromIds([], ids));
             userTracking.capture({
               name: "dataTables.selectedInMap",
               type: "customerPoint",
@@ -294,6 +300,7 @@ export const CustomerPointDataTable = memo(
       [
         translate,
         selectCustomerPointsInApp,
+        zoomTo,
         getCpIdsFromRange,
         isEditionBlocked,
         deleteAction,
