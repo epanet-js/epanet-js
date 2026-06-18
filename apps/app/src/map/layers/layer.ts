@@ -5,8 +5,6 @@ export type LayerId =
   | "delta-features-junctions"
   | "main-features-junctions"
   | "selected-junctions"
-  | "delta-features-junction-results"
-  | "main-features-junction-results"
   | "main-features-pipe-arrows"
   | "delta-features-pipe-arrows"
   | "selected-pipe-arrows"
@@ -32,8 +30,6 @@ export const assetLayers: LayerId[] = [
   "main-features-pipes",
   "delta-features-junctions",
   "main-features-junctions",
-  "delta-features-junction-results",
-  "main-features-junction-results",
   "icons-reservoirs",
   "main-features-pump-lines",
   "delta-features-pump-lines",

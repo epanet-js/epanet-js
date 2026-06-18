@@ -2,8 +2,9 @@ import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
 import { strokeColorFor } from "src/lib/color";
-import { junctionCircleSizes } from "./junctions";
+import { junctionCircleSizes, junctionLayerMinZoom } from "./junctions";
 import { colors } from "src/lib/constants";
+import { defaultNodeSizeConfig } from "src/map/symbology";
 
 const COLOR_SELECTED_DEFAULT = colors.fuchsia500;
 const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
@@ -156,7 +157,7 @@ export const selectedJunctionsLayer = ({
       ],
       ...junctionCircleSizes(),
     },
-    minzoom: 13,
+    minzoom: junctionLayerMinZoom(defaultNodeSizeConfig),
   };
 };
 

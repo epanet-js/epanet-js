@@ -13,8 +13,6 @@ export const useSnapping = (map: MapEngine, assetsMap: AssetsMap) => {
       layers: [
         "delta-features-junctions",
         "main-features-junctions",
-        "delta-features-junction-results",
-        "main-features-junction-results",
         "icons-tanks",
         "icons-reservoirs",
       ],

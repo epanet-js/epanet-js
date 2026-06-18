@@ -11,9 +11,8 @@ import {
 import {
   SupportedProperty,
   nullSymbologySpec,
-  defaultNodeSizeConfig,
-  type NodeSizeConfig,
 } from "src/map/symbology/symbology-types";
+import { defaultNodeSizeConfig, type NodeSizeConfig } from "src/map/symbology";
 import { type ColorRuleConfig } from "src/map/symbology/range-color-rule";
 
 export type { SymbologySpec };

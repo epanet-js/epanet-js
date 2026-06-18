@@ -6,6 +6,7 @@ export type {
   CustomerPointsSymbology,
   ZoneSymbology,
   SymbologySpec,
-  NodeSizeConfig,
 } from "./symbology-types";
-export { nullSymbologySpec, defaultNodeSizeConfig } from "./symbology-types";
+export { nullSymbologySpec } from "./symbology-types";
+export type { NodeSizeConfig } from "./node-size";
+export { defaultNodeSizeConfig } from "./node-size";

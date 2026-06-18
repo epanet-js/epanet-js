@@ -55,6 +55,7 @@ import type {
   NodeDefaults,
   LinkDefaults,
   ZoneSymbology,
+  NodeSizeConfig,
 } from "src/map/symbology";
 import { buildZoneColorExpression } from "src/map/layers/zones";
 import {
@@ -74,9 +75,10 @@ import {
 } from "./overlays/customer-points";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import {
-  junctionsSymbologyFilterExpression,
   junctionFillColorExpression,
   junctionStrokeColorExpression,
+  junctionCircleRadius,
+  junctionLayerMinZoom,
 } from "./layers/junctions";
 import {
   pipeLinkColorExpression,
@@ -131,6 +133,7 @@ const detectChanges = (
   hasNewResults: boolean;
   hasNewMapOverlay: boolean;
   hasNewHighlights: boolean;
+  hasNewNodeSize: boolean;
 } => {
   return {
     hasNewImport: state.momentLogId !== prev.momentLogId,
@@ -172,6 +175,7 @@ const detectChanges = (
     hasNewZoneColorAssignments:
       state.zoneColorAssignments !== prev.zoneColorAssignments,
     hasNewHighlights: state.highlights !== prev.highlights,
+    hasNewNodeSize: state.nodeSize !== prev.nodeSize,
   };
 };
 
@@ -229,6 +233,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       hasNewResults,
       hasNewMapOverlay,
       hasNewHighlights,
+      hasNewNodeSize,
     } = changes;
 
     const { assets: selectedAssetsCount, customerPoints: selectedCPcount } =
@@ -298,6 +303,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.zoneColorAssignments,
           );
           toggleZoneLayers(map, mapState.symbology.zone);
+        }
+
+        if (hasNewStyles || hasNewNodeSize || hasNewImport) {
+          applyJunctionSize(map, mapState.nodeSize);
         }
 
         if (
@@ -491,12 +500,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.movedAssetIds,
             mapState.resultsReader,
           );
-
-          await hideSymbologyForSelectedJunctions(
-            map,
-            mapState.selection,
-            assets,
-          );
         }
 
         if (
@@ -597,6 +600,35 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
   { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
 );
 
+const applyJunctionSize = withDebugInstrumentation(
+  (map: MapEngine, config: NodeSizeConfig) => {
+    const sizeLayers = [
+      "main-features-junctions",
+      "delta-features-junctions",
+      "ephemeral-junction-highlight",
+      "highlights-marker",
+      "selected-junctions",
+    ];
+    const radius = junctionCircleRadius(config);
+    for (const layerId of sizeLayers) {
+      if (!map.map.getLayer(layerId)) continue;
+      map.setLayerPaintRule(layerId, "circle-radius", radius);
+    }
+
+    const visibilityLayers = [
+      "main-features-junctions",
+      "delta-features-junctions",
+      "selected-junctions",
+    ];
+    const minzoom = junctionLayerMinZoom(config);
+    for (const layerId of visibilityLayers) {
+      if (!map.map.getLayer(layerId)) continue;
+      map.setLayerMinZoom(layerId, minzoom);
+    }
+  },
+  { name: "MAP_STATE:APPLY_JUNCTION_SIZE", maxDurationMs: 100 },
+);
+
 const toggleAnalysisLayers = withDebugInstrumentation(
   (map: MapEngine, symbology: SymbologySpec) => {
     const arrowProperties = ["flow", "velocity", "unitHeadloss"];
@@ -614,17 +646,6 @@ const toggleAnalysisLayers = withDebugInstrumentation(
         "main-features-pipe-arrows",
         "delta-features-pipe-arrows",
         "selected-pipe-arrows",
-      ]);
-    }
-    if (!symbology.node.colorRule) {
-      map.hideLayers([
-        "main-features-junction-results",
-        "delta-features-junction-results",
-      ]);
-    } else {
-      map.showLayers([
-        "main-features-junction-results",
-        "delta-features-junction-results",
       ]);
     }
   },
@@ -806,29 +827,6 @@ const updateSelection = withDebugInstrumentation(
   { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
 );
 
-const hideSymbologyForSelectedJunctions = withDebugInstrumentation(
-  async (map: MapEngine, selection: Sel, assets: AssetsMap): Promise<void> => {
-    const selectedIds = USelection.getAssetIds(selection);
-
-    const selectedJunctionIds: AssetId[] = [];
-
-    selectedIds.forEach((selectedAssetId) => {
-      const asset = assets.get(selectedAssetId);
-      if (!!asset && asset.type === "junction") {
-        selectedJunctionIds.push(selectedAssetId);
-      }
-    });
-
-    const filter = junctionsSymbologyFilterExpression(selectedJunctionIds);
-
-    await map.waitForMapIdle(() => {
-      map.setLayerFilter("main-features-junction-results", filter);
-      map.setLayerFilter("delta-features-junction-results", filter);
-    }, selectedJunctionIds.length);
-  },
-  { name: "MAP_STATE:UPDATE_JUNCTIONS_SELECTION", maxDurationMs: 100 },
-);
-
 function addGisLayersToMap(
   map: MapEngine,
   stylesConfig: StylesConfig,
@@ -908,8 +906,6 @@ const updateDefaultMapColors = withDebugInstrumentation(
     const junctionLayers = [
       "main-features-junctions",
       "delta-features-junctions",
-      "main-features-junction-results",
-      "delta-features-junction-results",
     ];
     for (const layerId of junctionLayers) {
       map.setLayerPaintRule(

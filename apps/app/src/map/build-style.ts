@@ -89,7 +89,6 @@ import type { PreviewProperty } from "src/state/map-symbology";
 import type { ISymbology } from "src/types";
 import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
 import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";
-import { junctionResultsLayer } from "src/map/layers/junctions";
 import { pumpIcons, pumpLines } from "src/map/layers/pumps";
 import { valveIcons, valveLines } from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
@@ -281,18 +280,6 @@ export function makeLayers({
     junctionsLayer({
       source: "delta-features",
       layerId: "delta-features-junctions",
-      symbology,
-      nodeDefaults,
-    }),
-    junctionResultsLayer({
-      source: "main-features",
-      layerId: "main-features-junction-results",
-      symbology,
-      nodeDefaults,
-    }),
-    junctionResultsLayer({
-      source: "delta-features",
-      layerId: "delta-features-junction-results",
       symbology,
       nodeDefaults,
     }),

@@ -43,8 +43,6 @@ export const useSnapping = (
       layers: [
         "delta-features-junctions",
         "main-features-junctions",
-        "delta-features-junction-results",
-        "main-features-junction-results",
         "icons-tanks",
         "icons-reservoirs",
       ],

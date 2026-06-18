@@ -21,6 +21,13 @@ import {
 export const DEFAULT_ZOOM = 15.5;
 export const DEFAULT_CENTER: [number, number] = [-4.3800042, 55.914314];
 
+export const MAP_MIN_ZOOM = 0;
+export const MAP_MAX_ZOOM = 26;
+
+// Mapbox style spec caps a layer's zoom range at 24, regardless of the map's
+// own maxZoom.
+export const LAYER_MAX_ZOOM = 24;
+
 export type InitialViewport = {
   center: [number, number];
   zoom: number;
@@ -28,7 +35,7 @@ export type InitialViewport = {
 
 const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   style: { version: 8, layers: [], sources: {} },
-  maxZoom: 26,
+  maxZoom: MAP_MAX_ZOOM,
   boxZoom: false,
   dragRotate: false,
   attributionControl: false,
@@ -293,10 +300,12 @@ export class MapEngine {
     this.map.setPaintProperty(layerId, name, rule);
   }
 
-  setLayerZoomRange(layerId: string, minzoom: number, maxzoom: number): void {
+  setLayerMinZoom(layerId: string, minzoom: number): void {
     if (!this.map || !(this.map as any).style) return;
 
-    this.map.setLayerZoomRange(layerId, minzoom, maxzoom);
+    // +1 because mapbox hides a layer once zoom >= maxzoom, so this keeps the
+    // layer visible at the highest map zoom.
+    this.map.setLayerZoomRange(layerId, minzoom, MAP_MAX_ZOOM + 1);
   }
 
   private memoizedNavigableMinZoom = memo(

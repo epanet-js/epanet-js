@@ -1,28 +1,19 @@
-import { useCallback, useContext, useId, useRef } from "react";
+import { useContext, useId, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import type mapboxgl from "mapbox-gl";
 import * as Popover from "@radix-ui/react-popover";
 import * as Slider from "@radix-ui/react-slider";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map";
+import { LAYER_MAX_ZOOM, MAP_MIN_ZOOM, MAP_MAX_ZOOM } from "src/map/map-engine";
+import type { NodeSizeConfig } from "src/map/symbology";
 import { currentZoomAtom } from "src/state/map";
 import { nodeSizeAtom, nodeSymbologyAtom } from "src/state/map-symbology";
 import { strokeColorFor } from "src/lib/color";
 import { SelectorLikeButton } from "@epanet-js/ui-kit";
 import { InlineField } from "src/components/form/fields";
 import * as E from "src/components/elements";
-import type { NodeSizeConfig } from "src/map/symbology/symbology-types";
-
-const MAP_MIN_ZOOM = 0;
-const MAP_MAX_ZOOM = 26;
-
-// +1 because mapbox hides a layer when zoom >= maxzoom.
-const JUNCTION_MAX_ZOOM = MAP_MAX_ZOOM + 1;
-
-// Mapbox style spec caps a layer's zoom range at 24.
-export const LAYER_MAX_ZOOM = 24;
 
 // Kept strictly below LAYER_MAX_ZOOM so the radius interpolation stops stay ascending.
 const MAX_MIN_VISIBLE_ZOOM = LAYER_MAX_ZOOM - 1;
@@ -33,7 +24,9 @@ const SIZE_SLIDER_STEP = 1;
 
 export function NodeSizeField({ readonly }: { readonly?: boolean }) {
   const translate = useTranslate();
-  const { config, onChange } = useJunctionSize();
+  // The map reacts to nodeSizeAtom changes via the map state-updates loop, so
+  // writing the atom is enough — no imperative paint from here.
+  const [config, setConfig] = useAtom(nodeSizeAtom);
 
   return (
     <InlineField
@@ -41,89 +34,16 @@ export function NodeSizeField({ readonly }: { readonly?: boolean }) {
       labelSize="sm"
       layout="fixed-label"
     >
-      <NodeSizeEditor value={config} onChange={onChange} readonly={readonly} />
+      <NodeSizeEditor value={config} onChange={setConfig} readonly={readonly} />
     </InlineField>
   );
 }
-
-export const junctionLayerMinZoom = ({
-  minVisibleZoom,
-}: NodeSizeConfig): number =>
-  Math.min(Math.max(minVisibleZoom, MAP_MIN_ZOOM), LAYER_MAX_ZOOM);
-
-export const junctionCircleRadius = ({
-  minVisibleZoom,
-  minSize,
-  maxSize,
-}: NodeSizeConfig): number | mapboxgl.Expression => {
-  if (minSize === maxSize) return minSize;
-  // Equal/inverted interpolation stops would be invalid — hold at maxSize.
-  if (minVisibleZoom >= LAYER_MAX_ZOOM) return maxSize;
-
-  return [
-    "interpolate",
-    ["linear"],
-    ["zoom"],
-    minVisibleZoom,
-    minSize,
-    LAYER_MAX_ZOOM,
-    maxSize,
-  ];
-};
 
 const toPct = (value: number) =>
   Math.min(
     100,
     Math.max(0, ((value - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM)) * 100),
   );
-
-// All junction layers built from junctionCircleSizes() — kept in sync via imperative paints.
-const JUNCTION_SIZE_LAYERS: string[] = [
-  "main-features-junctions",
-  "delta-features-junctions",
-  "ephemeral-junction-highlight",
-  "highlights-marker",
-  "selected-junctions",
-];
-
-// Subset that respects the user's min visible zoom; draft/hover overlays keep their own lower minzoom.
-const JUNCTION_VISIBILITY_LAYERS: string[] = [
-  "main-features-junctions",
-  "delta-features-junctions",
-  "selected-junctions",
-];
-
-export function useJunctionSize() {
-  const map = useContext(MapContext);
-  const [config, setConfig] = useAtom(nodeSizeAtom);
-
-  const applyToMap = useCallback(
-    (next: NodeSizeConfig) => {
-      if (!map || !map.map.isStyleLoaded()) return;
-      const radius = junctionCircleRadius(next);
-      for (const layerId of JUNCTION_SIZE_LAYERS) {
-        if (!map.map.getLayer(layerId)) continue;
-        map.setLayerPaintRule(layerId, "circle-radius", radius);
-      }
-      const minzoom = junctionLayerMinZoom(next);
-      for (const layerId of JUNCTION_VISIBILITY_LAYERS) {
-        if (!map.map.getLayer(layerId)) continue;
-        map.setLayerZoomRange(layerId, minzoom, JUNCTION_MAX_ZOOM);
-      }
-    },
-    [map],
-  );
-
-  const onChange = useCallback(
-    (next: NodeSizeConfig) => {
-      setConfig(next);
-      applyToMap(next);
-    },
-    [applyToMap, setConfig],
-  );
-
-  return { config, onChange };
-}
 
 const PreviewCircle = ({
   radiusPx,

@@ -12,9 +12,9 @@ import type { InitialViewport } from "src/map/map-engine";
 import { basemaps } from "src/map/basemaps";
 import { showGridAtom } from "src/state/map-projection";
 import { memoryMetaAtom } from "src/state/map-symbology";
-import type { SymbologySpec } from "src/map/symbology";
-import { nullSymbologySpec } from "src/map/symbology";
-import { symbologyAtom } from "src/state/map-symbology";
+import type { SymbologySpec, NodeSizeConfig } from "src/map/symbology";
+import { nullSymbologySpec, defaultNodeSizeConfig } from "src/map/symbology";
+import { symbologyAtom, nodeSizeAtom } from "src/state/map-symbology";
 import {
   momentLogDerivedAtom,
   simulationDerivedAtom,
@@ -126,6 +126,7 @@ export type MapState = {
   zoneFeatures: GeoJSON.Feature[];
   zoneColorAssignments: Record<number, string>;
   highlights: Highlight[];
+  nodeSize: NodeSizeConfig;
 };
 
 export const nullMapState: MapState = {
@@ -153,6 +154,7 @@ export const nullMapState: MapState = {
   zoneFeatures: [],
   zoneColorAssignments: {},
   highlights: [],
+  nodeSize: defaultNodeSizeConfig,
 } as const;
 
 export const stylesConfigAtom = atom<StylesConfig>((get) => {
@@ -187,6 +189,7 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
   const zoneFeatures = get(zoneFeaturesAtom);
   const zoneColorAssignments = get(zoneColorAssignmentsAtom);
   const highlights = get(highlightsAtom);
+  const nodeSize = get(nodeSizeAtom);
 
   return {
     momentLogId: momentLog.id,
@@ -209,5 +212,6 @@ export const mapStateDerivedAtom = atom<MapState>((get) => {
     zoneFeatures,
     zoneColorAssignments,
     highlights,
+    nodeSize,
   };
 });
