@@ -155,6 +155,7 @@ export const PumpTimeBasedControls = ({
         icon: <DeleteIcon size="sm" />,
         onSelect: handleDeleteRow,
         hidden: (rowIndex: number) => rowIndex === 0,
+        variant: "destructive" as const,
       },
       {
         label: translate("insertRowAbove"),

@@ -167,6 +167,7 @@ export const DemandCategoriesEditor = ({
         icon: <DeleteIcon size="sm" />,
         onSelect: handleDeleteRow,
         disabled: isDeleteDisabled,
+        variant: "destructive" as const,
       },
       {
         label: translate("insertRowAbove"),
