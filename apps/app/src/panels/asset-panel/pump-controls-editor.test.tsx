@@ -217,6 +217,7 @@ describe("PumpControlsEditor", () => {
 
     expect(getRows()).toHaveLength(3);
     expect(getTimeInputValue(2)).toBe("2:00");
+    expect(getStatusCell(2)).toHaveTextContent("On");
   });
 
   it("deletes an added step", async () => {
@@ -232,7 +233,7 @@ describe("PumpControlsEditor", () => {
     expect(getRows()).toHaveLength(1);
   });
 
-  it("inserts a row below incrementing the time by one hour, keeping the status", async () => {
+  it("inserts a row below incrementing the time by one hour, inverting the status", async () => {
     const user = userEvent.setup();
     renderEditor("on");
     await selectTimeBased(user);
@@ -245,7 +246,8 @@ describe("PumpControlsEditor", () => {
 
     expect(getRows()).toHaveLength(3);
     expect(getTimeInputValue(2)).toBe("2:00");
-    expect(getStatusCell(2)).toHaveTextContent("Off");
+    expect(getStatusCell(1)).toHaveTextContent("Off");
+    expect(getStatusCell(2)).toHaveTextContent("On");
   });
 
   it("inserts a row above copying the source row time and status", async () => {
@@ -262,6 +264,8 @@ describe("PumpControlsEditor", () => {
     expect(getRows()).toHaveLength(3);
     expect(getTimeInputValue(1)).toBe("1:00");
     expect(getTimeInputValue(2)).toBe("1:00");
+    expect(getStatusCell(1)).toHaveTextContent("Off");
+    expect(getStatusCell(2)).toHaveTextContent("Off");
   });
 
   it("does not offer delete or insert-above on the read-only first row", async () => {

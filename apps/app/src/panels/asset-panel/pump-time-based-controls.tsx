@@ -104,13 +104,13 @@ export const PumpTimeBasedControls = ({
   );
 
   const createRow = useCallback((): ControlStep => {
-    const lastTime = data.length > 0 ? data[data.length - 1].time : 0;
+    const last = data[data.length - 1];
     return {
-      time: lastTime + ONE_HOUR_IN_SECONDS,
-      status: oppositeStatus(initialStatus),
+      time: last.time + ONE_HOUR_IN_SECONDS,
+      status: oppositeStatus(last.status),
       setting: initialSpeed,
     };
-  }, [data, initialStatus, initialSpeed]);
+  }, [data, initialSpeed]);
 
   const handleChange = useCallback(
     (newRows: ControlStep[]) => {
@@ -138,7 +138,11 @@ export const PumpTimeBasedControls = ({
   const handleInsertRowBelow = useCallback(
     (rowIndex: number) => {
       const source = data[rowIndex];
-      const newRow = { ...source, time: source.time + ONE_HOUR_IN_SECONDS };
+      const newRow = {
+        ...source,
+        time: source.time + ONE_HOUR_IN_SECONDS,
+        status: oppositeStatus(source.status),
+      };
       persist([
         ...data.slice(0, rowIndex + 1),
         newRow,
