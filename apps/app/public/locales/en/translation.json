@@ -921,6 +921,10 @@
     "timeBased": "Time-based",
     "levelBased": "Level-based",
     "level": "Level (m)",
+    "levelValidation": {
+      "outOfRange": "Level must be between {{1}} and {{2}}.",
+      "onBelowOff": "On level must be below the off level."
+    },
     "time": "Time",
     "addTimeStep": "Add time step"
   },

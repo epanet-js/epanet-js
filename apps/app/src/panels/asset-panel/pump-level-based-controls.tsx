@@ -6,6 +6,7 @@ import {
   Tank,
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
+import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { NumericTable, Cell } from "src/components/form/numeric-table";
@@ -15,6 +16,25 @@ const selectorStyleOptions = {
   textSize: "text-size-base",
   paddingY: 2,
 } as const;
+
+type LevelField = "onLevel" | "offLevel";
+
+type LevelSettingError = "onOutOfRange" | "offOutOfRange" | "order";
+
+const validateLevelSetting = (params: {
+  onLevel: number;
+  offLevel: number;
+  minLevel: number;
+  maxLevel: number;
+}): LevelSettingError[] => {
+  const { onLevel, offLevel, minLevel, maxLevel } = params;
+  const errors: LevelSettingError[] = [];
+  const inRange = (value: number) => value >= minLevel && value <= maxLevel;
+  if (!inRange(onLevel)) errors.push("onOutOfRange");
+  if (!inRange(offLevel)) errors.push("offOutOfRange");
+  if (onLevel >= offLevel) errors.push("order");
+  return errors;
+};
 
 export const PumpLevelBasedControls = ({
   control,
@@ -36,6 +56,33 @@ export const PumpLevelBasedControls = ({
 
   const selectedTank = tanks.find((tank) => tank.id === control.tankId) ?? null;
 
+  const errors = selectedTank
+    ? validateLevelSetting({
+        onLevel: control.on.level,
+        offLevel: control.off.level,
+        minLevel: selectedTank.minLevel,
+        maxLevel: selectedTank.maxLevel,
+      })
+    : [];
+
+  const handleLevelChange = (
+    field: LevelField,
+    value: number,
+    isEmpty: boolean,
+  ) => {
+    if (isEmpty) return;
+    onControlChange(
+      field === "onLevel"
+        ? { ...control, on: { ...control.on, level: value } }
+        : { ...control, off: { level: value } },
+    );
+  };
+
+  const handleSettingChange = (value: number, isEmpty: boolean) => {
+    if (isEmpty) return;
+    onControlChange({ ...control, on: { ...control.on, setting: value } });
+  };
+
   const handleTankChange = (tankId: number) => {
     const tank = tanks.find((t) => t.id === tankId);
     if (!tank) return;
@@ -50,27 +97,25 @@ export const PumpLevelBasedControls = ({
     );
   };
 
+  const hasOrderError = errors.includes("order");
+  const hasOnError = errors.includes("onOutOfRange") || hasOrderError;
+  const hasOffError = errors.includes("offOutOfRange") || hasOrderError;
+
   const cells: Array<[Cell, Cell]> = [
     [
       {
         label: `${translate("pump.on")} ${translate("controls.level")}`,
         value: control.on.level,
-        handler: (newValue) =>
-          onControlChange({
-            ...control,
-            on: { ...control.on, level: newValue },
-          }),
+        hasError: hasOnError,
+        handler: (newValue, isEmpty) =>
+          handleLevelChange("onLevel", newValue, isEmpty),
         readOnly,
       },
       {
         label: `${translate("pump.on")} ${translate("speed")}`,
         value: control.on.setting,
         positiveOnly: true,
-        handler: (newValue) =>
-          onControlChange({
-            ...control,
-            on: { ...control.on, setting: newValue },
-          }),
+        handler: handleSettingChange,
         readOnly,
       },
     ],
@@ -78,8 +123,9 @@ export const PumpLevelBasedControls = ({
       {
         label: `${translate("pump.off")} ${translate("controls.level")}`,
         value: control.off.level,
-        handler: (newValue) =>
-          onControlChange({ ...control, off: { level: newValue } }),
+        hasError: hasOffError,
+        handler: (newValue, isEmpty) =>
+          handleLevelChange("offLevel", newValue, isEmpty),
         readOnly,
       },
       {
@@ -89,6 +135,23 @@ export const PumpLevelBasedControls = ({
       },
     ],
   ];
+
+  const messageParts: string[] = [];
+  if (
+    selectedTank &&
+    (errors.includes("onOutOfRange") || errors.includes("offOutOfRange"))
+  ) {
+    messageParts.push(
+      translate(
+        "controls.levelValidation.outOfRange",
+        localizeDecimal(selectedTank.minLevel),
+        localizeDecimal(selectedTank.maxLevel),
+      ),
+    );
+  }
+  if (hasOrderError) {
+    messageParts.push(translate("controls.levelValidation.onBelowOff"));
+  }
 
   return (
     <NestedSection className="pb-2">
@@ -114,6 +177,11 @@ export const PumpLevelBasedControls = ({
         }}
         cells={cells}
       />
+      {messageParts.length > 0 && (
+        <p className="text-size-base font-semibold text-orange-800">
+          {messageParts.join(" ")}
+        </p>
+      )}
     </NestedSection>
   );
 };

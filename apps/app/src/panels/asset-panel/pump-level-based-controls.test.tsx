@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { LevelSettingControl, Tank } from "@epanet-js/hydraulic-model";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
 
@@ -23,44 +24,62 @@ const aControl = (): LevelSettingControl => ({
   off: { level: 9 },
 });
 
-const renderControls = (onControlChange = vi.fn()) => {
-  render(
+const Harness = ({
+  onChange,
+}: {
+  onChange?: (control: LevelSettingControl) => void;
+}) => {
+  const [control, setControl] = useState<LevelSettingControl>(aControl);
+  return (
     <PumpLevelBasedControls
-      control={aControl()}
+      control={control}
       tanks={TANKS}
-      onControlChange={onControlChange}
-    />,
+      onControlChange={(next) => {
+        onChange?.(next);
+        setControl(next);
+      }}
+    />
   );
-  return onControlChange;
+};
+
+const renderControls = (onChange = vi.fn()) => {
+  render(<Harness onChange={onChange} />);
+  return onChange;
+};
+
+const onLevelInput = () => screen.getByRole("textbox", { name: /On Level/ });
+const offLevelInput = () => screen.getByRole("textbox", { name: /Off Level/ });
+
+const editValue = async (
+  user: ReturnType<typeof userEvent.setup>,
+  input: HTMLElement,
+  value: string,
+) => {
+  await user.clear(input);
+  await user.type(input, `${value}{Enter}`);
 };
 
 describe("PumpLevelBasedControls", () => {
   it("renders the on level/speed and off level as editable, off speed empty", () => {
     renderControls();
 
-    expect(
-      screen.getByRole("textbox", { name: /On Level/ }),
-    ).toBeInTheDocument();
+    expect(onLevelInput()).toBeInTheDocument();
     expect(
       screen.getByRole("textbox", { name: /On Speed/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("textbox", { name: /Off Level/ }),
-    ).toBeInTheDocument();
+    expect(offLevelInput()).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: /Off Speed/ }),
     ).not.toBeInTheDocument();
   });
 
-  it("emits an updated control when the on level changes", async () => {
+  it("emits an updated control when a valid on level is entered", async () => {
     const user = userEvent.setup();
-    const onControlChange = renderControls();
+    const onChange = renderControls();
 
-    const input = screen.getByRole("textbox", { name: /On Level/ });
-    await user.clear(input);
-    await user.type(input, "4{Enter}");
+    await editValue(user, onLevelInput(), "4");
 
-    expect(onControlChange).toHaveBeenLastCalledWith({
+    expect(onChange).toHaveBeenLastCalledWith({
       type: "level-setting",
       linkId: PUMP_ID,
       tankId: 10,
@@ -69,14 +88,94 @@ describe("PumpLevelBasedControls", () => {
     });
   });
 
+  describe("validation", () => {
+    it("saves an out-of-range on level and flags only that field", async () => {
+      const user = userEvent.setup();
+      const onChange = renderControls();
+
+      await editValue(user, onLevelInput(), "1");
+
+      expect(onLevelInput()).toHaveClass("border-orange-500");
+      expect(offLevelInput()).not.toHaveClass("border-orange-500");
+      expect(screen.getByText(/must be between/i)).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 10,
+        on: { level: 1, setting: INITIAL_SPEED },
+        off: { level: 9 },
+      });
+    });
+
+    it("highlights both levels and saves when on is not below off", async () => {
+      const user = userEvent.setup();
+      const onChange = renderControls();
+
+      await editValue(user, onLevelInput(), "9");
+
+      expect(onLevelInput()).toHaveClass("border-orange-500");
+      expect(offLevelInput()).toHaveClass("border-orange-500");
+      expect(
+        screen.getByText(/on level must be below the off level/i),
+      ).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 10,
+        on: { level: 9, setting: INITIAL_SPEED },
+        off: { level: 9 },
+      });
+    });
+
+    it("highlights both levels when off is dropped to the on level", async () => {
+      const user = userEvent.setup();
+      const onChange = renderControls();
+
+      await editValue(user, offLevelInput(), "2");
+
+      expect(onLevelInput()).toHaveClass("border-orange-500");
+      expect(offLevelInput()).toHaveClass("border-orange-500");
+      expect(
+        screen.getByText(/on level must be below the off level/i),
+      ).toBeInTheDocument();
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 10,
+        on: { level: 2, setting: INITIAL_SPEED },
+        off: { level: 2 },
+      });
+    });
+
+    it("clears the warning once the value becomes valid", async () => {
+      const user = userEvent.setup();
+      const onChange = renderControls();
+
+      await editValue(user, onLevelInput(), "1");
+      expect(screen.getByText(/must be between/i)).toBeInTheDocument();
+
+      await editValue(user, onLevelInput(), "3");
+
+      expect(screen.queryByText(/must be between/i)).not.toBeInTheDocument();
+      expect(onLevelInput()).not.toHaveClass("border-orange-500");
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 10,
+        on: { level: 3, setting: INITIAL_SPEED },
+        off: { level: 9 },
+      });
+    });
+  });
+
   it("rebuilds the levels from the newly selected tank, keeping the on-speed", async () => {
     const user = userEvent.setup();
-    const onControlChange = renderControls();
+    const onChange = renderControls();
 
     await user.click(screen.getByRole("combobox", { name: "Tank" }));
     await user.click(await screen.findByRole("option", { name: "Tank 2" }));
 
-    expect(onControlChange).toHaveBeenLastCalledWith({
+    expect(onChange).toHaveBeenLastCalledWith({
       type: "level-setting",
       linkId: PUMP_ID,
       tankId: 11,
@@ -99,7 +198,5 @@ describe("PumpLevelBasedControls", () => {
       screen.queryByRole("combobox", { name: "Tank" }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("Tank 1")).toBeInTheDocument();
-    const offSpeed = screen.queryByRole("textbox", { name: /Speed/ });
-    expect(offSpeed).not.toBeInTheDocument();
   });
 });
