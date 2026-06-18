@@ -414,7 +414,11 @@ export const parseCurve: RowParser = ({
   const normalizedLabel = curveId.toUpperCase();
   const existing = inpData.curves.get(normalizedLabel);
   const points = existing?.points || [];
-  points.push({ x: parseFloat(x), y: parseFloat(y) });
+  const parsedX = parseFloat(x);
+  const parsedY = parseFloat(y);
+  if (Number.isFinite(parsedX) && Number.isFinite(parsedY)) {
+    points.push({ x: parsedX, y: parsedY });
+  }
   const fallbackType = existing
     ? existing.fallbackType
     : detectCurveTypeFromComment(previousComment);

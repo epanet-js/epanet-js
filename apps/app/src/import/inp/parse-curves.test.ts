@@ -131,6 +131,47 @@ describe("curve type inference", () => {
     expect(hydraulicModel.curves.size).toBe(0);
   });
 
+  it("skips curve points with non-numeric coordinates", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [PUMPS]
+    pu1\tj1\tj2\tHEAD cu1
+    [CURVES]
+    cu1\t0\t200
+    cu1\tN/A\t100
+    cu1\t100\t0
+    ${coords(["j1", "j2"])}
+    `;
+
+    const { hydraulicModel, factories } = parseInp(inp);
+
+    const curveId = factories.labelManager.getIdByLabel("cu1", "curve")!;
+    const curve = hydraulicModel.curves.get(curveId)!;
+    expect(curve.points).toEqual([
+      { x: 0, y: 200 },
+      { x: 100, y: 0 },
+    ]);
+  });
+
+  it("drops curve with only invalid coordinate rows", () => {
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+    [CURVES]
+    cu1
+    cu1\tN/A\tN/A
+    ${coords(["j1", "j2"])}
+    `;
+
+    const { hydraulicModel, factories } = parseInp(inp);
+
+    expect(hydraulicModel.curves.size).toBe(0);
+    expect(factories.labelManager.getIdByLabel("cu1", "curve")).toBeUndefined();
+  });
+
   it("keeps invalid curve as library reference", () => {
     const inp = `
     [JUNCTIONS]
