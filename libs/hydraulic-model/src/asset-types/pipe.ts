@@ -6,7 +6,7 @@ export type PipeStatus = (typeof pipeStatuses)[number];
 export type PipeProperties = {
   type: "pipe";
   diameter: number;
-  roughness: number;
+  roughness: number | null;
   minorLoss: number;
   initialStatus: PipeStatus;
   bulkReactionCoeff?: number;
@@ -48,7 +48,7 @@ export class Pipe extends Link<PipeProperties> {
     return this.properties.roughness;
   }
 
-  setRoughness(value: number) {
+  setRoughness(value: number | null) {
     this.properties.roughness = value;
   }
 

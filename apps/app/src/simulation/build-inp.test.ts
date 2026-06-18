@@ -177,6 +177,37 @@ describe("build inp", () => {
     expect(inp).toContain("5\t2\t3\t20\t200\t2\t0\tClosed");
   });
 
+  it("falls back to the headloss-formula default when roughness is empty", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
+    const buildModel = () =>
+      HydraulicModelBuilder.with()
+        .aNode(IDS.NODE1)
+        .aNode(IDS.NODE2)
+        .aPipe(IDS.PIPE, {
+          startNodeId: IDS.NODE1,
+          endNodeId: IDS.NODE2,
+          length: 10,
+          diameter: 100,
+          roughness: null,
+          initialStatus: "open",
+        })
+        .build();
+
+    const hazenWilliamsInp = buildInp(buildModel(), {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+      headlossFormula: "H-W",
+    });
+    expect(hazenWilliamsInp).toContain("3\t1\t2\t10\t100\t130\t0\tOpen");
+
+    const darcyWeisbachInp = buildInp(buildModel(), {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+      headlossFormula: "D-W",
+    });
+    expect(darcyWeisbachInp).toContain("3\t1\t2\t10\t100\t0.1\t0\tOpen");
+  });
+
   it("adds pipes with check valve status", () => {
     const IDS = { NODE1: 1, NODE2: 2, CVPIPE: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()

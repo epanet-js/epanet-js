@@ -57,6 +57,7 @@ type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV" | "GPV" | "PCV";
 
 import type { EpanetUnitSystem } from "@epanet-js/project-settings";
+import { getDefaultRoughness } from "@epanet-js/project-settings";
 export type { EpanetUnitSystem };
 
 export const defaultAccuracy = 0.001;
@@ -585,6 +586,7 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           asset as Pipe,
           transformCoord,
+          headlossFormula,
         );
         if (opts.includeQuality) {
           appendPipeReaction(sections, idMap, asset as Pipe);
@@ -980,6 +982,7 @@ const appendPipe = (
   inactiveAssets: boolean,
   pipe: Pipe,
   transformCoord: (p: Position) => Position,
+  headlossFormula: HeadlossFormula,
 ) => {
   if (!pipe.isActive && !inactiveAssets) {
     return;
@@ -988,6 +991,7 @@ const appendPipe = (
   const linkId = idMap.linkId(pipe);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
   const commentPrefix = !pipe.isActive ? ";" : "";
+  const roughness = pipe.roughness ?? getDefaultRoughness(headlossFormula);
 
   sections.pipes.push(
     commentPrefix +
@@ -997,7 +1001,7 @@ const appendPipe = (
         endId,
         pipe.length,
         pipe.diameter,
-        pipe.roughness,
+        roughness,
         pipe.minorLoss,
         pipeStatusFor(pipe),
       ].join("\t"),
