@@ -40,3 +40,13 @@ export const setLinkTimedSetting = (
   if (steps === null) return others;
   return [...others, { type: "timed-setting", linkId, steps }];
 };
+
+export const setAssetControl = (
+  controls: Controls,
+  assetId: AssetId,
+  control: Control | null,
+): Controls => {
+  const others = controls.filter((c) => c.linkId !== assetId);
+  if (control === null) return others;
+  return [...others, control];
+};

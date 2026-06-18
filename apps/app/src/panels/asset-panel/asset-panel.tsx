@@ -70,9 +70,11 @@ import {
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import {
   getLinkTimedSetting,
+  type AssetId,
+  type Control,
   type TimedSettingStep,
 } from "@epanet-js/hydraulic-model";
-import { setLinkTimedSetting } from "src/hydraulic-model/model-operations";
+import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
   QuantityRow,
@@ -203,22 +205,22 @@ export function AssetPanel({
     [hydraulicModel, asset.id, asset.type, transact, userTracking],
   );
 
-  const handleTimedControlChange = useCallback(
-    (steps: TimedSettingStep[] | null) => {
-      const moment = setLinkTimedSetting(hydraulicModel, {
-        linkId: asset.id,
-        steps,
+  const handleControlChange = useCallback(
+    (assetId: AssetId, control: Control | null) => {
+      const moment = changeAssetControl(hydraulicModel, {
+        assetId,
+        control,
       });
       transact(moment);
       userTracking.capture({
         name: "assetProperty.edited",
         type: asset.type,
         property: "controls",
-        newValue: steps ? steps.length : 0,
+        newValue: control ? 1 : 0,
         oldValue: null,
       });
     },
-    [hydraulicModel, asset.id, asset.type, transact, userTracking],
+    [hydraulicModel, asset.type, transact, userTracking],
   );
 
   const handleBatchPropertyChange = useCallback(
@@ -337,7 +339,7 @@ export function AssetPanel({
           onActiveTopologyStatusChange={handleActiveTopologyStatusChange}
           onBatchPropertyChange={handleBatchPropertyChange}
           onLabelChange={handleLabelChange}
-          onTimedControlChange={handleTimedControlChange}
+          onControlChange={handleControlChange}
           units={units}
           {...getLinkNodes(hydraulicModel.assets, pump)}
           readonly={readonly}
@@ -2142,7 +2144,7 @@ const PumpEditor = ({
   onActiveTopologyStatusChange,
   onBatchPropertyChange,
   onLabelChange,
-  onTimedControlChange,
+  onControlChange,
   units,
   readonly = false,
 }: {
@@ -2159,7 +2161,7 @@ const PumpEditor = ({
   ) => void;
   onBatchPropertyChange: (changes: PropertyChange[]) => void;
   onLabelChange: (newLabel: string) => string | undefined;
-  onTimedControlChange: (steps: TimedSettingStep[] | null) => void;
+  onControlChange: (assetId: AssetId, control: Control | null) => void;
   units: UnitsSpec;
   readonly?: boolean;
 }) => {
@@ -2196,6 +2198,12 @@ const PumpEditor = ({
   ) => {
     onStatusChange(newValue, oldValue);
   };
+
+  const handleStepsChange = (steps: TimedSettingStep[] | null) =>
+    onControlChange(
+      pump.id,
+      steps === null ? null : { type: "timed-setting", linkId: pump.id, steps },
+    );
 
   const activeTopologyComparison = getComparison("isActive", pump.isActive);
   const hasModelAttributesChanges =
@@ -2302,7 +2310,7 @@ const PumpEditor = ({
               getLinkTimedSetting(hydraulicModel.controls, pump.id)?.steps ??
               null
             }
-            onStepsChange={onTimedControlChange}
+            onStepsChange={handleStepsChange}
             readOnly={readonly}
           />
         </SectionWrapper>

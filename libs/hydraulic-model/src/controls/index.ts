@@ -9,4 +9,5 @@ export {
   createEmptyControls,
   getLinkTimedSetting,
   setLinkTimedSetting,
+  setAssetControl,
 } from "./types";
