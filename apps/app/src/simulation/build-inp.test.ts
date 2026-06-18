@@ -1784,29 +1784,6 @@ describe("build inp", () => {
         expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 1:30`);
       });
 
-      it("ignores level-setting controls (not yet simulated)", () => {
-        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
-        const hydraulicModel = HydraulicModelBuilder.with()
-          .aNode(IDS.N1)
-          .aNode(IDS.N2)
-          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
-          .aLevelSettingControl({
-            linkId: IDS.PU1,
-            tankId: IDS.T1,
-            on: { level: 2, setting: 1.5 },
-            off: { level: 9 },
-          })
-          .build();
-
-        const inp = buildInp(hydraulicModel, {
-          units: presets.LPS.units,
-          simulationSettings: defaultSimulationSettings,
-        });
-
-        expect(inp).not.toContain("[CONTROLS]");
-        expect(inp).not.toContain(`LINK ${IDS.PU1}`);
-      });
-
       it("appends timed controls after simple controls", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()
@@ -1832,6 +1809,95 @@ describe("build inp", () => {
         const timedIndex = inp.indexOf(`LINK ${IDS.PU1} CLOSED AT TIME 1`);
         expect(simpleIndex).toBeGreaterThanOrEqual(0);
         expect(timedIndex).toBeGreaterThan(simpleIndex);
+      });
+    });
+
+    describe("level-setting controls", () => {
+      it("emits an on and an off control line", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aTank(IDS.T1)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aLevelSettingControl({
+            linkId: IDS.PU1,
+            tankId: IDS.T1,
+            on: { level: 2, setting: 1.5 },
+            off: { level: 9 },
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain("[CONTROLS]");
+        expect(inp).toContain(`LINK ${IDS.PU1} 1.5 IF NODE ${IDS.T1} BELOW 2`);
+        expect(inp).toContain(
+          `LINK ${IDS.PU1} CLOSED IF NODE ${IDS.T1} ABOVE 9`,
+        );
+      });
+
+      it("maps a unit on-setting to OPEN", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aTank(IDS.T1)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aLevelSettingControl({
+            linkId: IDS.PU1,
+            tankId: IDS.T1,
+            on: { level: 2, setting: 1 },
+            off: { level: 9 },
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN IF NODE ${IDS.T1} BELOW 2`);
+        expect(inp).toContain(
+          `LINK ${IDS.PU1} CLOSED IF NODE ${IDS.T1} ABOVE 9`,
+        );
+      });
+
+      it("appends level controls after simple controls", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aTank(IDS.T1)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aSimpleControl({
+            template: "LINK P9 OPEN IF NODE T9 ABOVE 100",
+            assetReferences: [],
+          })
+          .aLevelSettingControl({
+            linkId: IDS.PU1,
+            tankId: IDS.T1,
+            on: { level: 2, setting: 1 },
+            off: { level: 9 },
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        const controlsSection = inp.slice(inp.indexOf("[CONTROLS]"));
+        expect(
+          controlsSection.indexOf("LINK P9 OPEN IF NODE T9 ABOVE 100"),
+        ).toBeLessThan(
+          controlsSection.indexOf(
+            `LINK ${IDS.PU1} OPEN IF NODE ${IDS.T1} BELOW 2`,
+          ),
+        );
       });
     });
   });

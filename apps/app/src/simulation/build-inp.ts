@@ -665,6 +665,13 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel,
     );
 
+    appendLevelSettingControls(
+      sections,
+      hydraulicModel.controls,
+      idMap,
+      hydraulicModel,
+    );
+
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
@@ -1280,6 +1287,45 @@ const appendTimedSettingControls = (
         `LINK ${linkId} ${settingText} AT TIME ${formatSecondsToTime(step.time)}`,
       );
     }
+  }
+};
+
+const appendLevelSettingControls = (
+  sections: InpSections,
+  controls: HydraulicModel["controls"],
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+) => {
+  const resolveLinkId = (linkId: AssetId): string => {
+    const asset = hydraulicModel.assets.get(linkId);
+    if (!asset) return String(linkId);
+    return idMap.linkId(asset as LinkAsset);
+  };
+
+  const resolveNodeId = (nodeId: AssetId): string => {
+    const asset = hydraulicModel.assets.get(nodeId);
+    if (!asset) return String(nodeId);
+    return idMap.nodeId(asset as NodeAsset);
+  };
+
+  for (const control of controls) {
+    if (control.type !== "level-setting") continue;
+
+    const linkId = resolveLinkId(control.linkId);
+    const tankId = resolveNodeId(control.tankId);
+
+    const onSetting = pumpSettingFor("on", control.on.setting);
+    const onSettingText =
+      typeof onSetting === "number"
+        ? String(onSetting)
+        : onSetting.toUpperCase();
+
+    sections.controls.push(
+      `LINK ${linkId} ${onSettingText} IF NODE ${tankId} BELOW ${control.on.level}`,
+    );
+    sections.controls.push(
+      `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${control.off.level}`,
+    );
   }
 };
 
