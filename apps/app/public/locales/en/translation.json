@@ -918,6 +918,8 @@
     "simpleEmpty": "No simple controls defined",
     "rulesEmpty": "No rule-based controls defined",
     "timeBased": "Time-based",
+    "levelBased": "Level-based",
+    "level": "Level (m)",
     "time": "Time",
     "addTimeStep": "Add time step"
   },

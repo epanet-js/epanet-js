@@ -13,8 +13,17 @@ const timedSettingControlSchema = z.object({
   steps: z.array(timedSettingStepSchema),
 });
 
+const levelSettingControlSchema = z.object({
+  type: z.literal("level-setting"),
+  linkId: z.number(),
+  tankId: z.number(),
+  on: z.object({ level: z.number(), setting: z.number() }),
+  off: z.object({ level: z.number() }),
+});
+
 export const controlSchema = z.discriminatedUnion("type", [
   timedSettingControlSchema,
+  levelSettingControlSchema,
 ]);
 
 export const controlsSchema = z.array(controlSchema);

@@ -68,12 +68,7 @@ import {
   isGreaterThanZero,
 } from "src/hydraulic-model/property-validators";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
-import {
-  getLinkTimedSetting,
-  type AssetId,
-  type Control,
-  type TimedSettingStep,
-} from "@epanet-js/hydraulic-model";
+import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
 import {
   AssetEditorContent,
@@ -2225,16 +2220,19 @@ const PumpEditor = ({
     onStatusChange(newValue, oldValue);
   };
 
-  const handleStepsChange = (steps: TimedSettingStep[] | null) => {
-    const previousControl = getLinkTimedSetting(
-      hydraulicModel.controls,
-      pump.id,
-    );
-    onControlChange(
-      pump.id,
-      steps === null ? null : { type: "timed-setting", linkId: pump.id, steps },
-      previousControl,
-    );
+  const tanks = useMemo(
+    () =>
+      [...hydraulicModel.assets.values()].filter(
+        (asset): asset is Tank => asset.type === "tank",
+      ),
+    [hydraulicModel.assets],
+  );
+
+  const pumpControl =
+    hydraulicModel.controls.find((c) => c.linkId === pump.id) ?? null;
+
+  const handleControlChangeForPump = (control: Control | null) => {
+    onControlChange(pump.id, control, pumpControl);
   };
 
   const activeTopologyComparison = getComparison("isActive", pump.isActive);
@@ -2336,13 +2334,12 @@ const PumpEditor = ({
         <SectionWrapper title={translate("controls.title")} section="controls">
           <PumpControlsEditor
             key={pump.id}
+            linkId={pump.id}
             initialStatus={pump.initialStatus}
             initialSpeed={pump.speed}
-            steps={
-              getLinkTimedSetting(hydraulicModel.controls, pump.id)?.steps ??
-              null
-            }
-            onStepsChange={handleStepsChange}
+            control={pumpControl}
+            tanks={tanks}
+            onControlChange={handleControlChangeForPump}
             readOnly={readonly}
           />
         </SectionWrapper>

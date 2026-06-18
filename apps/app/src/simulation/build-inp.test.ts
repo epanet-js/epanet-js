@@ -1784,6 +1784,29 @@ describe("build inp", () => {
         expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 1:30`);
       });
 
+      it("ignores level-setting controls (not yet simulated)", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aLevelSettingControl({
+            linkId: IDS.PU1,
+            tankId: IDS.T1,
+            on: { level: 2, setting: 1.5 },
+            off: { level: 9 },
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).not.toContain("[CONTROLS]");
+        expect(inp).not.toContain(`LINK ${IDS.PU1}`);
+      });
+
       it("appends timed controls after simple controls", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()

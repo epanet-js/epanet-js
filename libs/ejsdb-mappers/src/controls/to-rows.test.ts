@@ -20,6 +20,22 @@ describe("serializeControls", () => {
     expect(JSON.parse(data)).toEqual(controls);
   });
 
+  it("round-trips a level-setting control", () => {
+    const controls: Controls = [
+      {
+        type: "level-setting",
+        linkId: 7,
+        tankId: 12,
+        on: { level: 2, setting: 1.5 },
+        off: { level: 9 },
+      },
+    ];
+
+    const data = serializeControls(controls);
+
+    expect(JSON.parse(data)).toEqual(controls);
+  });
+
   it("serializes empty controls as an empty array", () => {
     const data = serializeControls(createEmptyControls());
     expect(JSON.parse(data)).toEqual([]);

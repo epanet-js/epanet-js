@@ -23,8 +23,10 @@ import {
 import { SimpleControl, RuleBasedControl } from "@epanet-js/hydraulic-model";
 import {
   Controls,
+  LevelSettingControl,
   TimedSettingStep,
   createEmptyControls,
+  setAssetControl,
   setLinkTimedSetting,
 } from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "@epanet-js/hydraulic-model";
@@ -451,6 +453,14 @@ export class HydraulicModelBuilder {
       data.linkId,
       data.steps,
     );
+    return this;
+  }
+
+  aLevelSettingControl(data: Omit<LevelSettingControl, "type">) {
+    this.controlsValue = setAssetControl(this.controlsValue, data.linkId, {
+      type: "level-setting",
+      ...data,
+    });
     return this;
   }
 

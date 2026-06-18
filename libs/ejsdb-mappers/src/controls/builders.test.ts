@@ -28,6 +28,28 @@ describe("buildControlsData", () => {
     });
   });
 
+  it("reconstructs a level-setting control from the serialized blob", () => {
+    const controls = buildControlsData(
+      JSON.stringify([
+        {
+          type: "level-setting",
+          linkId: 7,
+          tankId: 12,
+          on: { level: 2, setting: 1.5 },
+          off: { level: 9 },
+        },
+      ]),
+    );
+
+    expect(controls[0]).toEqual({
+      type: "level-setting",
+      linkId: 7,
+      tankId: 12,
+      on: { level: 2, setting: 1.5 },
+      off: { level: 9 },
+    });
+  });
+
   it("returns empty controls for null input (fresh project)", () => {
     expect(buildControlsData(null)).toEqual([]);
   });

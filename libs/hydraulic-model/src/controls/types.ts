@@ -13,7 +13,15 @@ export type TimedSettingControl = {
   steps: TimedSettingStep[];
 };
 
-export type Control = TimedSettingControl;
+export type LevelSettingControl = {
+  type: "level-setting";
+  linkId: AssetId;
+  tankId: AssetId;
+  on: { level: number; setting: number };
+  off: { level: number };
+};
+
+export type Control = TimedSettingControl | LevelSettingControl;
 
 export type Controls = Control[];
 
@@ -27,6 +35,29 @@ export const getLinkTimedSetting = (
     (control): control is TimedSettingControl =>
       control.type === "timed-setting" && control.linkId === linkId,
   ) ?? null;
+
+export const getLinkLevelSetting = (
+  controls: Controls,
+  linkId: AssetId,
+): LevelSettingControl | null =>
+  controls.find(
+    (control): control is LevelSettingControl =>
+      control.type === "level-setting" && control.linkId === linkId,
+  ) ?? null;
+
+export const buildDefaultLevelSetting = (
+  linkId: AssetId,
+  tankId: AssetId,
+  minLevel: number,
+  maxLevel: number,
+  initialSpeed: number,
+): LevelSettingControl => ({
+  type: "level-setting",
+  linkId,
+  tankId,
+  on: { level: minLevel, setting: initialSpeed },
+  off: { level: maxLevel },
+});
 
 export const setLinkTimedSetting = (
   controls: Controls,

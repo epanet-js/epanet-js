@@ -1,6 +1,9 @@
 import {
+  buildDefaultLevelSetting,
   createEmptyControls,
+  getLinkLevelSetting,
   getLinkTimedSetting,
+  setAssetControl,
   setLinkTimedSetting,
 } from "./types";
 
@@ -78,6 +81,48 @@ describe("controls helpers", () => {
         { time: 3600, status: "off", setting: 1 },
       ]);
       expect(initial).toHaveLength(0);
+    });
+  });
+
+  describe("buildDefaultLevelSetting", () => {
+    it("builds a level control from tank min/max and the initial speed", () => {
+      expect(buildDefaultLevelSetting(IDS.P1, 12, 2, 9, 1.5)).toEqual({
+        type: "level-setting",
+        linkId: IDS.P1,
+        tankId: 12,
+        on: { level: 2, setting: 1.5 },
+        off: { level: 9 },
+      });
+    });
+  });
+
+  describe("getLinkLevelSetting", () => {
+    it("returns null when no level control exists for the link", () => {
+      expect(getLinkLevelSetting(createEmptyControls(), IDS.P1)).toBeNull();
+    });
+
+    it("returns the level-setting control for the link", () => {
+      const control = buildDefaultLevelSetting(IDS.P1, 12, 2, 9, 1.5);
+      const controls = setAssetControl(createEmptyControls(), IDS.P1, control);
+      expect(getLinkLevelSetting(controls, IDS.P1)).toEqual(control);
+    });
+
+    it("does not return a timed-setting control", () => {
+      const controls = setLinkTimedSetting(createEmptyControls(), IDS.P1, []);
+      expect(getLinkLevelSetting(controls, IDS.P1)).toBeNull();
+    });
+  });
+
+  describe("setAssetControl across control types", () => {
+    it("replaces a timed control with a level control on the same link", () => {
+      const timed = setLinkTimedSetting(createEmptyControls(), IDS.P1, [
+        { time: 3600, status: "off", setting: 1 },
+      ]);
+      const level = buildDefaultLevelSetting(IDS.P1, 12, 2, 9, 1.5);
+      const updated = setAssetControl(timed, IDS.P1, level);
+      expect(updated).toHaveLength(1);
+      expect(getLinkTimedSetting(updated, IDS.P1)).toBeNull();
+      expect(getLinkLevelSetting(updated, IDS.P1)).toEqual(level);
     });
   });
 });

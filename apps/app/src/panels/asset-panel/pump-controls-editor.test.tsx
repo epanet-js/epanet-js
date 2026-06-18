@@ -1,29 +1,46 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { PumpStatus, TimedSettingStep } from "@epanet-js/hydraulic-model";
+import { Control, PumpStatus, Tank } from "@epanet-js/hydraulic-model";
 import { PumpControlsEditor } from "./pump-controls-editor";
 
 const INITIAL_SPEED = 1.5;
+const PUMP_ID = 3;
+
+const makeTank = (
+  id: number,
+  label: string,
+  minLevel: number,
+  maxLevel: number,
+): Tank => ({ id, label, type: "tank", minLevel, maxLevel }) as unknown as Tank;
+
+const DEFAULT_TANKS = [
+  makeTank(10, "Tank 1", 2, 9),
+  makeTank(11, "Tank 2", 1, 5),
+];
 
 const Harness = ({
   initialStatus = "on",
   initialSpeed = INITIAL_SPEED,
+  tanks = DEFAULT_TANKS,
   onChange,
 }: {
   initialStatus?: PumpStatus;
   initialSpeed?: number;
-  onChange?: (steps: TimedSettingStep[] | null) => void;
+  tanks?: Tank[];
+  onChange?: (control: Control | null) => void;
 }) => {
-  const [steps, setSteps] = useState<TimedSettingStep[] | null>(null);
+  const [control, setControl] = useState<Control | null>(null);
   return (
     <PumpControlsEditor
+      linkId={PUMP_ID}
       initialStatus={initialStatus}
       initialSpeed={initialSpeed}
-      steps={steps}
-      onStepsChange={(next) => {
+      control={control}
+      tanks={tanks}
+      onControlChange={(next) => {
         onChange?.(next);
-        setSteps(next);
+        setControl(next);
       }}
     />
   );
@@ -31,13 +48,23 @@ const Harness = ({
 
 const renderEditor = (
   initialStatus: PumpStatus = "on",
-  onChange?: (steps: TimedSettingStep[] | null) => void,
-) => render(<Harness initialStatus={initialStatus} onChange={onChange} />);
+  onChange?: (control: Control | null) => void,
+  tanks: Tank[] = DEFAULT_TANKS,
+) =>
+  render(
+    <Harness initialStatus={initialStatus} onChange={onChange} tanks={tanks} />,
+  );
 
-const selectTimeBased = async (user: ReturnType<typeof userEvent.setup>) => {
+const selectType = async (
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+) => {
   await user.click(screen.getByRole("combobox", { name: "Type" }));
-  await user.click(await screen.findByRole("option", { name: "Time-based" }));
+  await user.click(await screen.findByRole("option", { name }));
 };
+
+const selectTimeBased = (user: ReturnType<typeof userEvent.setup>) =>
+  selectType(user, "Time-based");
 
 const getRows = () => screen.getAllByRole("row").slice(1);
 
@@ -76,6 +103,20 @@ const openRowActions = async (
 };
 
 describe("PumpControlsEditor", () => {
+  it("lists the control types with level-based before time-based", async () => {
+    const user = userEvent.setup();
+    renderEditor("on");
+
+    await user.click(screen.getByRole("combobox", { name: "Type" }));
+
+    const options = await screen.findAllByRole("option");
+    expect(options.map((o) => o.textContent)).toEqual([
+      "None",
+      "Level-based",
+      "Time-based",
+    ]);
+  });
+
   it("defaults to type None with no controls table", () => {
     renderEditor("on");
 
@@ -88,6 +129,80 @@ describe("PumpControlsEditor", () => {
     expect(screen.queryAllByRole("row")).toHaveLength(0);
   });
 
+  describe("level-based", () => {
+    it("disables the level-based option when there are no tanks", async () => {
+      const user = userEvent.setup();
+      renderEditor("on", undefined, []);
+
+      await user.click(screen.getByRole("combobox", { name: "Type" }));
+
+      expect(
+        await screen.findByRole("option", { name: "Level-based" }),
+      ).toHaveAttribute("aria-disabled", "true");
+    });
+
+    it("builds a default control from the first tank when selected", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+
+      await selectType(user, "Level-based");
+
+      expect(onChange).toHaveBeenCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 10,
+        on: { level: 2, setting: INITIAL_SPEED },
+        off: { level: 9 },
+      });
+    });
+
+    it("shows On/Off rows with the tank levels and on-speed", async () => {
+      const user = userEvent.setup();
+      renderEditor("on");
+
+      await selectType(user, "Level-based");
+
+      expect(screen.getByRole("combobox", { name: "Tank" })).toHaveTextContent(
+        "Tank 1",
+      );
+      const cells = screen.getAllByRole("cell");
+      expect(cells.some((c) => c.textContent === "On")).toBe(true);
+      expect(cells.some((c) => c.textContent === "Off")).toBe(true);
+    });
+
+    it("updates the levels when a different tank is selected", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+      await selectType(user, "Level-based");
+      onChange.mockClear();
+
+      await user.click(screen.getByRole("combobox", { name: "Tank" }));
+      await user.click(await screen.findByRole("option", { name: "Tank 2" }));
+
+      expect(onChange).toHaveBeenCalledWith({
+        type: "level-setting",
+        linkId: PUMP_ID,
+        tankId: 11,
+        on: { level: 1, setting: INITIAL_SPEED },
+        off: { level: 5 },
+      });
+    });
+
+    it("clears the control when switching back to None", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+      await selectType(user, "Level-based");
+      onChange.mockClear();
+
+      await selectType(user, "None");
+
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
+  });
+
   it("enables time-based with no extra steps when selected", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -95,7 +210,11 @@ describe("PumpControlsEditor", () => {
 
     await selectTimeBased(user);
 
-    expect(onChange).toHaveBeenCalledWith([]);
+    expect(onChange).toHaveBeenCalledWith({
+      type: "timed-setting",
+      linkId: PUMP_ID,
+      steps: [],
+    });
   });
 
   it("persists an added step with its status and the initial speed", async () => {
@@ -106,9 +225,11 @@ describe("PumpControlsEditor", () => {
 
     await user.click(getAddTimeStepButton());
 
-    expect(onChange).toHaveBeenLastCalledWith([
-      { time: 3600, status: "off", setting: INITIAL_SPEED },
-    ]);
+    expect(onChange).toHaveBeenLastCalledWith({
+      type: "timed-setting",
+      linkId: PUMP_ID,
+      steps: [{ time: 3600, status: "off", setting: INITIAL_SPEED }],
+    });
   });
 
   it("clears the controls when switching back to None", async () => {
@@ -118,8 +239,7 @@ describe("PumpControlsEditor", () => {
     await selectTimeBased(user);
     onChange.mockClear();
 
-    await user.click(screen.getByRole("combobox", { name: "Type" }));
-    await user.click(await screen.findByRole("option", { name: "None" }));
+    await selectType(user, "None");
 
     expect(onChange).toHaveBeenCalledWith(null);
   });
@@ -196,9 +316,11 @@ describe("PumpControlsEditor", () => {
       await user.clear(input);
       await user.keyboard("2{Enter}");
 
-      expect(onChange).toHaveBeenLastCalledWith([
-        { time: 3600, status: "on", setting: 2 },
-      ]);
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "timed-setting",
+        linkId: PUMP_ID,
+        steps: [{ time: 3600, status: "on", setting: 2 }],
+      });
     });
   });
 

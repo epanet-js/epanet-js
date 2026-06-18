@@ -1,4 +1,8 @@
-import { Control, getLinkTimedSetting } from "@epanet-js/hydraulic-model";
+import {
+  Control,
+  getLinkLevelSetting,
+  getLinkTimedSetting,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { changeAssetControl } from "./change-asset-control";
 
@@ -73,6 +77,36 @@ describe("changeAssetControl", () => {
     expect(getLinkTimedSetting(putControls!, IDS.P2)?.steps).toEqual([
       { time: 3600, status: "off", setting: 1 },
     ]);
+  });
+
+  it("replaces a timed control with a level control on the same asset", () => {
+    const hydraulicModel = aModel()
+      .aTimedSettingControl({
+        linkId: IDS.P1,
+        steps: [{ time: 3600, status: "off", setting: 1 }],
+      })
+      .build();
+
+    const { putControls } = changeAssetControl(hydraulicModel, {
+      assetId: IDS.P1,
+      control: {
+        type: "level-setting",
+        linkId: IDS.P1,
+        tankId: 9,
+        on: { level: 2, setting: 1.5 },
+        off: { level: 9 },
+      },
+    });
+
+    expect(putControls!.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
+    expect(getLinkTimedSetting(putControls!, IDS.P1)).toBeNull();
+    expect(getLinkLevelSetting(putControls!, IDS.P1)).toEqual({
+      type: "level-setting",
+      linkId: IDS.P1,
+      tankId: 9,
+      on: { level: 2, setting: 1.5 },
+      off: { level: 9 },
+    });
   });
 
   it("clears the control when control is null", () => {
