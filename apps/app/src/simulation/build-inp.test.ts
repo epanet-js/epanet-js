@@ -1711,6 +1711,106 @@ describe("build inp", () => {
         "LINK P1 OPEN IF NODE T1 ABOVE 100 ;open when tank is full",
       );
     });
+
+    describe("timed-setting controls", () => {
+      it("emits a control line per step", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aTimedSettingControl({
+            linkId: IDS.PU1,
+            steps: [
+              { time: 3600, status: "off", speed: 1 },
+              { time: 7200, status: "on", speed: 1 },
+            ],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain("[CONTROLS]");
+        expect(inp).toContain(`LINK ${IDS.PU1} CLOSED AT TIME 1`);
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 2`);
+      });
+
+      it("maps status and speed to the pump setting", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aTimedSettingControl({
+            linkId: IDS.PU1,
+            steps: [
+              { time: 3600, status: "off", speed: 2 },
+              { time: 7200, status: "on", speed: 1 },
+              { time: 10800, status: "on", speed: 1.5 },
+            ],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain(`LINK ${IDS.PU1} CLOSED AT TIME 1`);
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 2`);
+        expect(inp).toContain(`LINK ${IDS.PU1} 1.5 AT TIME 3`);
+      });
+
+      it("formats the step time as hours and minutes", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aTimedSettingControl({
+            linkId: IDS.PU1,
+            steps: [{ time: 5400, status: "on", speed: 1 }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 1:30`);
+      });
+
+      it("appends timed controls after simple controls", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aSimpleControl({
+            template: "LINK P9 OPEN IF NODE T1 ABOVE 100",
+            assetReferences: [],
+          })
+          .aTimedSettingControl({
+            linkId: IDS.PU1,
+            steps: [{ time: 3600, status: "off", speed: 1 }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        const simpleIndex = inp.indexOf("LINK P9 OPEN IF NODE T1 ABOVE 100");
+        const timedIndex = inp.indexOf(`LINK ${IDS.PU1} CLOSED AT TIME 1`);
+        expect(simpleIndex).toBeGreaterThanOrEqual(0);
+        expect(timedIndex).toBeGreaterThan(simpleIndex);
+      });
+    });
   });
 
   describe("rules section", () => {

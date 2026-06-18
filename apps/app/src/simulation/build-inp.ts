@@ -28,6 +28,7 @@ import {
   AssetId,
   CurveId,
   ICurve,
+  PumpStatus,
 } from "@epanet-js/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import {
@@ -657,6 +658,13 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel,
     );
 
+    appendTimedSettingControls(
+      sections,
+      hydraulicModel.controls,
+      idMap,
+      hydraulicModel,
+    );
+
     const hasControls = sections.controls.length > 1;
     const hasRules = sections.rules.length > 1;
     const hasEmitters = sections.emitters.length > 2;
@@ -1192,13 +1200,19 @@ const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
   }
 };
 
-const pumpStatusFor = (pump: Pump): SimulationPumpStatus | number => {
-  if (pump.initialStatus === "off" || pump.speed === 0) return "Closed";
+const pumpSettingFor = (
+  status: PumpStatus,
+  speed: number,
+): SimulationPumpStatus | number => {
+  if (status === "off" || speed === 0) return "Closed";
 
-  if (pump.speed !== 1) return pump.speed;
+  if (speed !== 1) return speed;
 
   return "Open";
 };
+
+const pumpStatusFor = (pump: Pump): SimulationPumpStatus | number =>
+  pumpSettingFor(pump.initialStatus, pump.speed);
 
 const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
   switch (valve.initialStatus) {
@@ -1239,6 +1253,33 @@ const appendRawControls = (
 
   for (const rule of rawControls.rules) {
     sections.rules.push(formatRuleBasedControl(rule, idResolver));
+  }
+};
+
+const appendTimedSettingControls = (
+  sections: InpSections,
+  controls: HydraulicModel["controls"],
+  idMap: EpanetIds,
+  hydraulicModel: HydraulicModel,
+) => {
+  const resolveLinkId = (linkId: AssetId): string => {
+    const asset = hydraulicModel.assets.get(linkId);
+    if (!asset) return String(linkId);
+    return idMap.linkId(asset as LinkAsset);
+  };
+
+  for (const control of controls) {
+    if (control.type !== "timed-setting") continue;
+
+    const linkId = resolveLinkId(control.linkId);
+    for (const step of control.steps) {
+      const setting = pumpSettingFor(step.status, step.speed);
+      const settingText =
+        typeof setting === "number" ? String(setting) : setting.toUpperCase();
+      sections.controls.push(
+        `LINK ${linkId} ${settingText} AT TIME ${formatSecondsToTime(step.time)}`,
+      );
+    }
   }
 };
 
