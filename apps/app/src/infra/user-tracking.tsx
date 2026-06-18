@@ -606,6 +606,42 @@ type ImportCustomerPointsAllocationRulesEditCanceled = {
   name: "importCustomerPoints.allocationRules.editCanceled";
 };
 
+type AllocateCustomerPointsPipeMode = {
+  name: "allocateCustomerPoints.pipeMode";
+  mode: "allPipes" | "selectedPipes";
+};
+
+type AllocateCustomerPointsCustomerMode = {
+  name: "allocateCustomerPoints.customerMode";
+  mode: "allCustomers" | "zoneCustomers";
+};
+
+type AllocateCustomerPointsZoneSelected = {
+  name: "allocateCustomerPoints.zoneSelected";
+};
+
+type AllocateCustomerPointsNextClicked = {
+  name: "allocateCustomerPoints.nextClicked";
+  pipeMode: "allPipes" | "selectedPipes";
+  customerMode: "allCustomers" | "zoneCustomers";
+  hasZone: boolean;
+};
+
+type AllocateCustomerPointsCompleted = {
+  name: "allocateCustomerPoints.completed";
+  count: number;
+  rulesCount: number;
+  allocatedCount: number;
+  disconnectedCount: number;
+  pipeMode: "allPipes" | "selectedPipes";
+  customerMode: "allCustomers" | "zoneCustomers";
+  hasZone: boolean;
+};
+
+type AllocateCustomerPointsBack = {
+  name: "allocateCustomerPoints.back";
+};
+
 type ImportCustomerPointsDataInputNoValidPoints = {
   name: "importCustomerPoints.dataInput.noValidPoints";
   fileName: string;
@@ -1141,6 +1177,12 @@ export type UserEvent =
   | ImportCustomerPointsAllocationRulesEditStarted
   | ImportCustomerPointsAllocationRulesSaved
   | ImportCustomerPointsAllocationRulesEditCanceled
+  | AllocateCustomerPointsPipeMode
+  | AllocateCustomerPointsCustomerMode
+  | AllocateCustomerPointsZoneSelected
+  | AllocateCustomerPointsNextClicked
+  | AllocateCustomerPointsCompleted
+  | AllocateCustomerPointsBack
   | ImportCustomerPointsDataInputNoValidPoints
   | ImportCustomerPointsDataInputParseError
   | ImportCustomerPointsDataInputUnsupportedFormat

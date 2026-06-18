@@ -45,6 +45,7 @@ export const AllocateCustomerPointsDialog: React.FC<
     isAllocating,
     isEditingRules,
     customerAllocationMode,
+    pipeAllocationMode,
     allocationZone,
   } = state;
 
@@ -60,13 +61,16 @@ export const AllocateCustomerPointsDialog: React.FC<
       transact(moment);
 
       userTracking.capture({
-        name: "importCustomerPoints.completed",
+        name: "allocateCustomerPoints.completed",
         count:
           allocationResult.allocatedCustomerPoints.size +
           allocationResult.disconnectedCustomerPoints.size,
         allocatedCount: allocationResult.allocatedCustomerPoints.size,
         disconnectedCount: allocationResult.disconnectedCustomerPoints.size,
         rulesCount: allocationRules.length,
+        pipeMode: pipeAllocationMode,
+        customerMode: customerAllocationMode,
+        hasZone: allocationZone !== null,
       });
 
       onClose();
@@ -84,6 +88,9 @@ export const AllocateCustomerPointsDialog: React.FC<
     allocationRules.length,
     onClose,
     setError,
+    pipeAllocationMode,
+    customerAllocationMode,
+    allocationZone,
   ]);
 
   const bottomButtonsDisabled =
@@ -137,7 +144,15 @@ export const AllocateCustomerPointsDialog: React.FC<
         return (
           <WizardActions
             nextAction={{
-              onClick: () => setStep(2),
+              onClick: () => {
+                userTracking.capture({
+                  name: "allocateCustomerPoints.nextClicked",
+                  pipeMode: pipeAllocationMode,
+                  customerMode: customerAllocationMode,
+                  hasZone: allocationZone !== null,
+                });
+                setStep(2);
+              },
               disabled:
                 customerAllocationMode === "zoneCustomers" &&
                 allocationZone === null,
@@ -148,7 +163,12 @@ export const AllocateCustomerPointsDialog: React.FC<
         return (
           <WizardActions
             backAction={{
-              onClick: () => setStep(1),
+              onClick: () => {
+                userTracking.capture({
+                  name: "allocateCustomerPoints.back",
+                });
+                setStep(1);
+              },
               disabled: bottomButtonsDisabled,
             }}
             finishAction={{

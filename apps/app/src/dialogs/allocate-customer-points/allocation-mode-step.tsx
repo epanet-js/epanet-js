@@ -8,6 +8,7 @@ import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { ZoneId } from "src/lib/zones";
+import { useUserTracking } from "src/infra/user-tracking";
 
 export const AllocationModeStep = ({
   state,
@@ -22,6 +23,7 @@ export const AllocationModeStep = ({
     setAllocationZone,
   } = state;
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const zones = useAtomValue(zonesAtom);
   const selection = useAtomValue(selectionAtom);
   const { assets } = useAtomValue(stagingModelDerivedAtom);
@@ -99,11 +101,14 @@ export const AllocationModeStep = ({
         )}
         options={pipeSelectionOptions}
         defaultValue="allPipes"
-        onChange={(id) =>
-          id === "allPipes"
-            ? setPipeAllocationMode("allPipes")
-            : setPipeAllocationMode("selectedPipes")
-        }
+        onChange={(id) => {
+          const mode = id === "allPipes" ? "allPipes" : "selectedPipes";
+          setPipeAllocationMode(mode);
+          userTracking.capture({
+            name: "allocateCustomerPoints.pipeMode",
+            mode,
+          });
+        }}
       />
 
       <MultiSelector
@@ -113,12 +118,17 @@ export const AllocationModeStep = ({
         options={customerSelectionOptions}
         defaultValue="allCustomers"
         onChange={(id) => {
-          if (id === "allCustomers") {
+          const mode = id === "allCustomers" ? "allCustomers" : "zoneCustomers";
+          if (mode === "allCustomers") {
             setCustomerAllocationMode("allCustomers");
             setAllocationZone(null);
           } else {
             setCustomerAllocationMode("zoneCustomers");
           }
+          userTracking.capture({
+            name: "allocateCustomerPoints.customerMode",
+            mode,
+          });
         }}
       />
 
@@ -134,7 +144,14 @@ export const AllocationModeStep = ({
             selected={allocationZone}
             nullable
             placeholder={translate("none")}
-            onChange={(zoneId) => setAllocationZone(zoneId)}
+            onChange={(zoneId) => {
+              setAllocationZone(zoneId);
+              if (zoneId) {
+                userTracking.capture({
+                  name: "allocateCustomerPoints.zoneSelected",
+                });
+              }
+            }}
             styleOptions={{ border: true }}
           />
         </div>
