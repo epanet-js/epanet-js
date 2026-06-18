@@ -1722,8 +1722,8 @@ describe("build inp", () => {
           .aTimedSettingControl({
             linkId: IDS.PU1,
             steps: [
-              { time: 3600, status: "off", speed: 1 },
-              { time: 7200, status: "on", speed: 1 },
+              { time: 3600, status: "off", setting: 1 },
+              { time: 7200, status: "on", setting: 1 },
             ],
           })
           .build();
@@ -1738,7 +1738,7 @@ describe("build inp", () => {
         expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 2`);
       });
 
-      it("maps status and speed to the pump setting", () => {
+      it("maps status and setting to the pump control value", () => {
         const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
         const hydraulicModel = HydraulicModelBuilder.with()
           .aNode(IDS.N1)
@@ -1747,9 +1747,9 @@ describe("build inp", () => {
           .aTimedSettingControl({
             linkId: IDS.PU1,
             steps: [
-              { time: 3600, status: "off", speed: 2 },
-              { time: 7200, status: "on", speed: 1 },
-              { time: 10800, status: "on", speed: 1.5 },
+              { time: 3600, status: "off", setting: 2 },
+              { time: 7200, status: "on", setting: 1 },
+              { time: 10800, status: "on", setting: 1.5 },
             ],
           })
           .build();
@@ -1772,7 +1772,7 @@ describe("build inp", () => {
           .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
           .aTimedSettingControl({
             linkId: IDS.PU1,
-            steps: [{ time: 5400, status: "on", speed: 1 }],
+            steps: [{ time: 5400, status: "on", setting: 1 }],
           })
           .build();
 
@@ -1796,7 +1796,7 @@ describe("build inp", () => {
           })
           .aTimedSettingControl({
             linkId: IDS.PU1,
-            steps: [{ time: 3600, status: "off", speed: 1 }],
+            steps: [{ time: 3600, status: "off", setting: 1 }],
           })
           .build();
 

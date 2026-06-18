@@ -15,7 +15,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { NestedSection } from "src/components/form/fields";
 
-export type ControlStep = { time: number; status: PumpStatus; speed: number };
+export type ControlStep = { time: number; status: PumpStatus; setting: number };
 
 const ONE_HOUR_IN_SECONDS = 3600;
 
@@ -38,7 +38,7 @@ export const PumpTimeBasedControls = ({
   const translate = useTranslate();
 
   const data = useMemo<ControlStep[]>(
-    () => [{ time: 0, status: initialStatus, speed: initialSpeed }, ...steps],
+    () => [{ time: 0, status: initialStatus, setting: initialSpeed }, ...steps],
     [initialStatus, initialSpeed, steps],
   );
 
@@ -48,7 +48,7 @@ export const PumpTimeBasedControls = ({
         rows.slice(1).map((row) => ({
           time: row.time,
           status: row.status,
-          speed: row.speed,
+          setting: row.setting,
         })),
       );
     },
@@ -91,7 +91,7 @@ export const PumpTimeBasedControls = ({
         emptyValue: "off",
         isReadOnly: (rowIndex) => rowIndex === 0,
       }),
-      floatColumn("speed", {
+      floatColumn("setting", {
         header: translate("speed"),
         size: 80,
         positiveOnly: true,
@@ -108,7 +108,7 @@ export const PumpTimeBasedControls = ({
     return {
       time: lastTime + ONE_HOUR_IN_SECONDS,
       status: oppositeStatus(initialStatus),
-      speed: initialSpeed,
+      setting: initialSpeed,
     };
   }, [data, initialStatus, initialSpeed]);
 

@@ -17,7 +17,7 @@ describe("changeAssetControl", () => {
     const control: Control = {
       type: "timed-setting",
       linkId: IDS.P1,
-      steps: [{ time: 3600, status: "off", speed: 1 }],
+      steps: [{ time: 3600, status: "off", setting: 1 }],
     };
 
     const { putControls } = changeAssetControl(hydraulicModel, {
@@ -26,7 +26,7 @@ describe("changeAssetControl", () => {
     });
 
     expect(getLinkTimedSetting(putControls!, IDS.P1)?.steps).toEqual([
-      { time: 3600, status: "off", speed: 1 },
+      { time: 3600, status: "off", setting: 1 },
     ]);
   });
 
@@ -34,7 +34,7 @@ describe("changeAssetControl", () => {
     const hydraulicModel = aModel()
       .aTimedSettingControl({
         linkId: IDS.P1,
-        steps: [{ time: 3600, status: "off", speed: 1 }],
+        steps: [{ time: 3600, status: "off", setting: 1 }],
       })
       .build();
 
@@ -43,13 +43,13 @@ describe("changeAssetControl", () => {
       control: {
         type: "timed-setting",
         linkId: IDS.P1,
-        steps: [{ time: 7200, status: "on", speed: 1.5 }],
+        steps: [{ time: 7200, status: "on", setting: 1.5 }],
       },
     });
 
     expect(putControls!.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
     expect(getLinkTimedSetting(putControls!, IDS.P1)?.steps).toEqual([
-      { time: 7200, status: "on", speed: 1.5 },
+      { time: 7200, status: "on", setting: 1.5 },
     ]);
   });
 
@@ -57,7 +57,7 @@ describe("changeAssetControl", () => {
     const hydraulicModel = aModel()
       .aTimedSettingControl({
         linkId: IDS.P2,
-        steps: [{ time: 3600, status: "off", speed: 1 }],
+        steps: [{ time: 3600, status: "off", setting: 1 }],
       })
       .build();
 
@@ -66,12 +66,12 @@ describe("changeAssetControl", () => {
       control: {
         type: "timed-setting",
         linkId: IDS.P1,
-        steps: [{ time: 7200, status: "on", speed: 1.5 }],
+        steps: [{ time: 7200, status: "on", setting: 1.5 }],
       },
     });
 
     expect(getLinkTimedSetting(putControls!, IDS.P2)?.steps).toEqual([
-      { time: 3600, status: "off", speed: 1 },
+      { time: 3600, status: "off", setting: 1 },
     ]);
   });
 
@@ -79,7 +79,7 @@ describe("changeAssetControl", () => {
     const hydraulicModel = aModel()
       .aTimedSettingControl({
         linkId: IDS.P1,
-        steps: [{ time: 3600, status: "off", speed: 1 }],
+        steps: [{ time: 3600, status: "off", setting: 1 }],
       })
       .build();
 

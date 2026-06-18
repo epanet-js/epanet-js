@@ -4,7 +4,7 @@ import { pumpStatuses } from "./enums";
 const timedSettingStepSchema = z.object({
   time: z.number(),
   status: z.enum(pumpStatuses),
-  speed: z.number(),
+  setting: z.number(),
 });
 
 const timedSettingControlSchema = z.object({

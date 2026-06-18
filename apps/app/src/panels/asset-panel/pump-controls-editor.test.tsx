@@ -107,7 +107,7 @@ describe("PumpControlsEditor", () => {
     await user.click(getAddTimeStepButton());
 
     expect(onChange).toHaveBeenLastCalledWith([
-      { time: 3600, status: "off", speed: INITIAL_SPEED },
+      { time: 3600, status: "off", setting: INITIAL_SPEED },
     ]);
   });
 
@@ -197,7 +197,7 @@ describe("PumpControlsEditor", () => {
       await user.keyboard("2{Enter}");
 
       expect(onChange).toHaveBeenLastCalledWith([
-        { time: 3600, status: "on", speed: 2 },
+        { time: 3600, status: "on", setting: 2 },
       ]);
     });
   });

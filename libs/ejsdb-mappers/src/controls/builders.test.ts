@@ -10,8 +10,8 @@ describe("buildControlsData", () => {
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
-            { time: 3600, status: "on", speed: 1.2 },
-            { time: 7200, status: "off", speed: 1.2 },
+            { time: 3600, status: "on", setting: 1.2 },
+            { time: 7200, status: "off", setting: 1.2 },
           ],
         },
       ]),
@@ -22,8 +22,8 @@ describe("buildControlsData", () => {
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [
-        { time: 3600, status: "on", speed: 1.2 },
-        { time: 7200, status: "off", speed: 1.2 },
+        { time: 3600, status: "on", setting: 1.2 },
+        { time: 7200, status: "off", setting: 1.2 },
       ],
     });
   });
@@ -59,7 +59,7 @@ describe("buildControlsData", () => {
           {
             type: "timed-setting",
             linkId: 1,
-            steps: [{ time: 0, status: "maybe", speed: 1 }],
+            steps: [{ time: 0, status: "maybe", setting: 1 }],
           },
         ]),
       ),

@@ -1273,7 +1273,7 @@ const appendTimedSettingControls = (
 
     const linkId = resolveLinkId(control.linkId);
     for (const step of control.steps) {
-      const setting = pumpSettingFor(step.status, step.speed);
+      const setting = pumpSettingFor(step.status, step.setting);
       const settingText =
         typeof setting === "number" ? String(setting) : setting.toUpperCase();
       sections.controls.push(
