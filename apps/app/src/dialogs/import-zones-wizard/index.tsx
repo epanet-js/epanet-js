@@ -132,7 +132,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
     const result = await importZones(readResult.features, labelProperty);
     if (!result) return;
     setMergedZones(result.mergedZones);
-    const zonesCount = Object.keys(result.zones).length;
+    const zonesCount = result.zones.size;
     setImportedZoneCount(zonesCount);
 
     userTracking.capture({
