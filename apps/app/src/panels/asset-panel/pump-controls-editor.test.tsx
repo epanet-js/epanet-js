@@ -217,7 +217,7 @@ describe("PumpControlsEditor", () => {
     });
   });
 
-  it("persists an added step with its status and the initial speed", async () => {
+  it("persists an added off step with a speed of 0", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     renderEditor("on", onChange);
@@ -228,7 +228,7 @@ describe("PumpControlsEditor", () => {
     expect(onChange).toHaveBeenLastCalledWith({
       type: "timed-setting",
       linkId: PUMP_ID,
-      steps: [{ time: 3600, status: "off", setting: INITIAL_SPEED }],
+      steps: [{ time: 3600, status: "off", setting: 0 }],
     });
   });
 
@@ -280,14 +280,29 @@ describe("PumpControlsEditor", () => {
       ).not.toBeInTheDocument();
     });
 
-    it("defaults an added step's speed to the initial speed", async () => {
+    it("defaults an added off step's speed to 0", async () => {
       const user = userEvent.setup();
       renderEditor("on");
       await selectTimeBased(user);
 
       await user.click(getAddTimeStepButton());
 
-      expect(getSpeedCell(1)).toHaveTextContent("1.5");
+      expect(getSpeedCell(1)).toHaveTextContent("0");
+    });
+
+    it("defaults an added on step's speed to the initial speed", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("off", onChange);
+      await selectTimeBased(user);
+
+      await user.click(getAddTimeStepButton());
+
+      expect(onChange).toHaveBeenLastCalledWith({
+        type: "timed-setting",
+        linkId: PUMP_ID,
+        steps: [{ time: 3600, status: "on", setting: INITIAL_SPEED }],
+      });
     });
 
     it("keeps speed read-only while the step status is off", async () => {

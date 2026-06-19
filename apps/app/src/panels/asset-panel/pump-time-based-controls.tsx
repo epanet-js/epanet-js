@@ -103,14 +103,20 @@ export const PumpTimeBasedControls = ({
     [translate, statusOptions, isTimeInSequence, initialSpeed, data],
   );
 
+  const settingForStatus = useCallback(
+    (status: PumpStatus): number => (status === "off" ? 0 : initialSpeed),
+    [initialSpeed],
+  );
+
   const createRow = useCallback((): ControlStep => {
     const last = data[data.length - 1];
+    const status = oppositeStatus(last.status);
     return {
       time: last.time + ONE_HOUR_IN_SECONDS,
-      status: oppositeStatus(last.status),
-      setting: initialSpeed,
+      status,
+      setting: settingForStatus(status),
     };
-  }, [data, initialSpeed]);
+  }, [data, settingForStatus]);
 
   const handleChange = useCallback(
     (newRows: ControlStep[]) => {
@@ -138,10 +144,12 @@ export const PumpTimeBasedControls = ({
   const handleInsertRowBelow = useCallback(
     (rowIndex: number) => {
       const source = data[rowIndex];
+      const status = oppositeStatus(source.status);
       const newRow = {
         ...source,
         time: source.time + ONE_HOUR_IN_SECONDS,
-        status: oppositeStatus(source.status),
+        status,
+        setting: settingForStatus(status),
       };
       persist([
         ...data.slice(0, rowIndex + 1),
@@ -149,7 +157,7 @@ export const PumpTimeBasedControls = ({
         ...data.slice(rowIndex + 1),
       ]);
     },
-    [data, persist],
+    [data, persist, settingForStatus],
   );
 
   const rowActions = useMemo(
