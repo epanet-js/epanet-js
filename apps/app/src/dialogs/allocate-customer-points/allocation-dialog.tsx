@@ -310,7 +310,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-md font-medium">
-            {translate("allocateCustomerPoints.dialog.rulesTitle")}
+            {translate("allocateCustomerPoints.dialog.rulesHeading")}
           </h3>
           {!isEditingRules ? (
             <EditRulesButton
@@ -377,7 +377,7 @@ const AllocationScope: React.FC<AllocationScopeProps> = ({
 }) => (
   <div className="mt-3">
     <h3 className="text-md font-medium pb-3">
-      {translate("allocateCustomerPoints.dialog.allocationScope")}
+      {translate("allocateCustomerPoints.dialog.scopeHeading")}
     </h3>
     <div className="flex gap-4 items-center">
       <label className="text-size-base text-subtle">
@@ -499,7 +499,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return (
       <>
         <h3 className="text-md font-medium">
-          {translate("allocateCustomerPoints.dialog.summaryTitleWithoutTotal")}
+          {translate("allocateCustomerPoints.dialog.summaryHeading")}
         </h3>
         <div className="bg-panel border rounded-lg p-4 space-y-4">
           <div>
@@ -568,7 +568,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   return (
     <>
       <h3 className="text-md font-medium">
-        {translate("allocateCustomerPoints.dialog.summaryTitleWithoutTotal")}
+        {translate("allocateCustomerPoints.dialog.summaryHeading")}
       </h3>
       <div className="bg-panel border rounded-lg p-4">
         <div className="space-y-2">

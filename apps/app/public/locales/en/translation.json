@@ -1052,7 +1052,10 @@
       "allZones": "All zones",
       "selectedPipesOnly": "Selected pipes only",
       "zoneCoverage": "Coverage in zone {{1}}",
-      "networkCoverage": "Coverage across network"
+      "networkCoverage": "Coverage across network",
+      "scopeHeading": "Scope",
+      "rulesHeading": "Rules",
+      "summaryHeading": "Summary"
     }
   },
   "importCustomerPoints": {
