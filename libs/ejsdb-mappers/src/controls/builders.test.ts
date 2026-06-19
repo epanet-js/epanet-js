@@ -7,6 +7,7 @@ describe("buildControlsData", () => {
     const controls = buildControlsData(
       JSON.stringify([
         {
+          id: "ctrl-1",
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
@@ -19,6 +20,7 @@ describe("buildControlsData", () => {
 
     expect(controls).toHaveLength(1);
     expect(controls[0]).toEqual({
+      id: "ctrl-1",
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [
@@ -32,6 +34,7 @@ describe("buildControlsData", () => {
     const controls = buildControlsData(
       JSON.stringify([
         {
+          id: "ctrl-1",
           type: "level-setting",
           linkId: 7,
           tankId: 12,
@@ -42,6 +45,7 @@ describe("buildControlsData", () => {
     );
 
     expect(controls[0]).toEqual({
+      id: "ctrl-1",
       type: "level-setting",
       linkId: 7,
       tankId: 12,

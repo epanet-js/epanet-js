@@ -93,6 +93,7 @@ export const PumpLevelBasedControls = ({
         tank.minLevel,
         tank.maxLevel,
         control.on.setting,
+        control.id,
       ),
     );
   };

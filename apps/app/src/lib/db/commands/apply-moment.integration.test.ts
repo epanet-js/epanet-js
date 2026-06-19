@@ -452,6 +452,7 @@ describe("apply-moment integration", () => {
       note: "replace controls",
       putControls: [
         {
+          id: "ctrl-1",
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [
@@ -465,6 +466,7 @@ describe("apply-moment integration", () => {
     const project = await fetchProject();
     expect(project.hydraulicModel.controls).toHaveLength(1);
     expect(project.hydraulicModel.controls[0]).toEqual({
+      id: "ctrl-1",
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [

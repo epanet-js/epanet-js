@@ -25,6 +25,7 @@ describe("applyMomentToModel with putControls", () => {
       note: "Change controls",
       putControls: [
         {
+          id: "ctrl-1",
           type: "timed-setting",
           linkId: IDS.P1,
           steps: [

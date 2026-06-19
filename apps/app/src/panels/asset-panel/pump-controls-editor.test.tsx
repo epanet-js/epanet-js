@@ -196,7 +196,12 @@ describe("PumpControlsEditor", () => {
       const onChange = vi.fn();
       render(
         <Harness
-          initialControl={{ type: "timed-setting", linkId: PUMP_ID, steps: [] }}
+          initialControl={{
+            id: "ctrl-1",
+            type: "timed-setting",
+            linkId: PUMP_ID,
+            steps: [],
+          }}
           onChange={onChange}
         />,
       );
@@ -228,6 +233,7 @@ describe("PumpControlsEditor", () => {
       await selectType(user, "Level-based");
 
       expect(onChange).toHaveBeenCalledWith({
+        id: expect.any(String),
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 10,
@@ -261,6 +267,7 @@ describe("PumpControlsEditor", () => {
       await user.click(await screen.findByRole("option", { name: "Tank 2" }));
 
       expect(onChange).toHaveBeenCalledWith({
+        id: expect.any(String),
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 11,
@@ -290,6 +297,7 @@ describe("PumpControlsEditor", () => {
     await selectTimeBased(user);
 
     expect(onChange).toHaveBeenCalledWith({
+      id: expect.any(String),
       type: "timed-setting",
       linkId: PUMP_ID,
       steps: [],
@@ -305,6 +313,7 @@ describe("PumpControlsEditor", () => {
     await user.click(getAddTimeStepButton());
 
     expect(onChange).toHaveBeenLastCalledWith({
+      id: expect.any(String),
       type: "timed-setting",
       linkId: PUMP_ID,
       steps: [{ time: 3600, status: "off", setting: 0 }],
@@ -378,6 +387,7 @@ describe("PumpControlsEditor", () => {
       await user.click(getAddTimeStepButton());
 
       expect(onChange).toHaveBeenLastCalledWith({
+        id: expect.any(String),
         type: "timed-setting",
         linkId: PUMP_ID,
         steps: [{ time: 3600, status: "on", setting: INITIAL_SPEED }],
@@ -411,6 +421,7 @@ describe("PumpControlsEditor", () => {
       await user.keyboard("2{Enter}");
 
       expect(onChange).toHaveBeenLastCalledWith({
+        id: expect.any(String),
         type: "timed-setting",
         linkId: PUMP_ID,
         steps: [{ time: 3600, status: "on", setting: 2 }],

@@ -25,9 +25,10 @@ import {
   Controls,
   LevelSettingControl,
   TimedSettingStep,
+  buildTimedSetting,
+  createControlId,
   createEmptyControls,
   setAssetControl,
-  setLinkTimedSetting,
 } from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "@epanet-js/hydraulic-model";
 import {
@@ -448,16 +449,17 @@ export class HydraulicModelBuilder {
   }
 
   aTimedSettingControl(data: { linkId: AssetId; steps: TimedSettingStep[] }) {
-    this.controlsValue = setLinkTimedSetting(
+    this.controlsValue = setAssetControl(
       this.controlsValue,
       data.linkId,
-      data.steps,
+      buildTimedSetting(data.linkId, data.steps),
     );
     return this;
   }
 
-  aLevelSettingControl(data: Omit<LevelSettingControl, "type">) {
+  aLevelSettingControl(data: Omit<LevelSettingControl, "type" | "id">) {
     this.controlsValue = setAssetControl(this.controlsValue, data.linkId, {
+      id: createControlId(),
       type: "level-setting",
       ...data,
     });

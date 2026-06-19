@@ -17,6 +17,7 @@ const makeTank = (
 const TANKS = [makeTank(10, "Tank 1", 2, 9), makeTank(11, "Tank 2", 1, 5)];
 
 const aControl = (): LevelSettingControl => ({
+  id: "ctrl-1",
   type: "level-setting",
   linkId: PUMP_ID,
   tankId: 10,
@@ -80,6 +81,7 @@ describe("PumpLevelBasedControls", () => {
     await editValue(user, onLevelInput(), "4");
 
     expect(onChange).toHaveBeenLastCalledWith({
+      id: "ctrl-1",
       type: "level-setting",
       linkId: PUMP_ID,
       tankId: 10,
@@ -99,6 +101,7 @@ describe("PumpLevelBasedControls", () => {
       expect(offLevelInput()).not.toHaveClass("border-orange-500");
       expect(screen.getByText(/must be between/i)).toBeInTheDocument();
       expect(onChange).toHaveBeenLastCalledWith({
+        id: "ctrl-1",
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 10,
@@ -119,6 +122,7 @@ describe("PumpLevelBasedControls", () => {
         screen.getByText(/on level must be below the off level/i),
       ).toBeInTheDocument();
       expect(onChange).toHaveBeenLastCalledWith({
+        id: "ctrl-1",
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 10,
@@ -139,6 +143,7 @@ describe("PumpLevelBasedControls", () => {
         screen.getByText(/on level must be below the off level/i),
       ).toBeInTheDocument();
       expect(onChange).toHaveBeenLastCalledWith({
+        id: "ctrl-1",
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 10,
@@ -159,6 +164,7 @@ describe("PumpLevelBasedControls", () => {
       expect(screen.queryByText(/must be between/i)).not.toBeInTheDocument();
       expect(onLevelInput()).not.toHaveClass("border-orange-500");
       expect(onChange).toHaveBeenLastCalledWith({
+        id: "ctrl-1",
         type: "level-setting",
         linkId: PUMP_ID,
         tankId: 10,
@@ -176,6 +182,7 @@ describe("PumpLevelBasedControls", () => {
     await user.click(await screen.findByRole("option", { name: "Tank 2" }));
 
     expect(onChange).toHaveBeenLastCalledWith({
+      id: "ctrl-1",
       type: "level-setting",
       linkId: PUMP_ID,
       tankId: 11,

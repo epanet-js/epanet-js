@@ -8,12 +8,14 @@ const timedSettingStepSchema = z.object({
 });
 
 const timedSettingControlSchema = z.object({
+  id: z.string(),
   type: z.literal("timed-setting"),
   linkId: z.number(),
   steps: z.array(timedSettingStepSchema),
 });
 
 const levelSettingControlSchema = z.object({
+  id: z.string(),
   type: z.literal("level-setting"),
   linkId: z.number(),
   tankId: z.number(),

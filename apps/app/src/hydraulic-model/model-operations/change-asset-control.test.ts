@@ -19,6 +19,7 @@ describe("changeAssetControl", () => {
   it("assigns a control to the asset", () => {
     const hydraulicModel = aModel().build();
     const control: Control = {
+      id: "ctrl-1",
       type: "timed-setting",
       linkId: IDS.P1,
       steps: [{ time: 3600, status: "off", setting: 1 }],
@@ -45,6 +46,7 @@ describe("changeAssetControl", () => {
     const { putControls } = changeAssetControl(hydraulicModel, {
       assetId: IDS.P1,
       control: {
+        id: "ctrl-1",
         type: "timed-setting",
         linkId: IDS.P1,
         steps: [{ time: 7200, status: "on", setting: 1.5 }],
@@ -68,6 +70,7 @@ describe("changeAssetControl", () => {
     const { putControls } = changeAssetControl(hydraulicModel, {
       assetId: IDS.P1,
       control: {
+        id: "ctrl-1",
         type: "timed-setting",
         linkId: IDS.P1,
         steps: [{ time: 7200, status: "on", setting: 1.5 }],
@@ -90,6 +93,7 @@ describe("changeAssetControl", () => {
     const { putControls } = changeAssetControl(hydraulicModel, {
       assetId: IDS.P1,
       control: {
+        id: "ctrl-1",
         type: "level-setting",
         linkId: IDS.P1,
         tankId: 9,
@@ -101,6 +105,7 @@ describe("changeAssetControl", () => {
     expect(putControls!.filter((c) => c.linkId === IDS.P1)).toHaveLength(1);
     expect(getLinkTimedSetting(putControls!, IDS.P1)).toBeNull();
     expect(getLinkLevelSetting(putControls!, IDS.P1)).toEqual({
+      id: "ctrl-1",
       type: "level-setting",
       linkId: IDS.P1,
       tankId: 9,

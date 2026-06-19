@@ -3,6 +3,7 @@ import { Selector } from "@epanet-js/ui-kit";
 import {
   AssetId,
   buildDefaultLevelSetting,
+  buildTimedSetting,
   Control,
   PumpStatus,
   Tank,
@@ -73,7 +74,7 @@ export const PumpControlsEditor = ({
       return;
     }
     if (newValue === "timeBased") {
-      onControlChange({ type: "timed-setting", linkId, steps: [] });
+      onControlChange(buildTimedSetting(linkId, []));
       return;
     }
     if (newValue === "levelBased") {
@@ -95,7 +96,7 @@ export const PumpControlsEditor = ({
 
   const handleStepsChange = (steps: TimedSettingStep[] | null) => {
     onControlChange(
-      steps === null ? null : { type: "timed-setting", linkId, steps },
+      steps === null ? null : buildTimedSetting(linkId, steps, control?.id),
     );
   };
 

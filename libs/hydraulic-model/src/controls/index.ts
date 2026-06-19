@@ -1,4 +1,5 @@
 export type {
+  ControlId,
   TimedSettingStep,
   TimedSettingControl,
   LevelSettingControl,
@@ -7,10 +8,11 @@ export type {
 } from "./types";
 
 export {
+  createControlId,
   createEmptyControls,
   getLinkTimedSetting,
   getLinkLevelSetting,
+  buildTimedSetting,
   buildDefaultLevelSetting,
-  setLinkTimedSetting,
   setAssetControl,
 } from "./types";

@@ -6,6 +6,7 @@ describe("serializeControls", () => {
     const IDS = { P1: 7 } as const;
     const controls: Controls = [
       {
+        id: "ctrl-1",
         type: "timed-setting",
         linkId: IDS.P1,
         steps: [
@@ -23,6 +24,7 @@ describe("serializeControls", () => {
   it("round-trips a level-setting control", () => {
     const controls: Controls = [
       {
+        id: "ctrl-1",
         type: "level-setting",
         linkId: 7,
         tankId: 12,
