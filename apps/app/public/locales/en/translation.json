@@ -1055,7 +1055,8 @@
       "networkCoverage": "Coverage across network",
       "scopeHeading": "Scope",
       "rulesHeading": "Rules",
-      "summaryHeading": "Summary"
+      "summaryHeading": "Summary",
+      "noChanges": "No customer points to allocate in this scope"
     }
   },
   "importCustomerPoints": {

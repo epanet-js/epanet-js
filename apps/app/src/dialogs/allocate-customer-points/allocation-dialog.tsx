@@ -503,6 +503,24 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return null;
   }
 
+  if (totalCustomerPoints === 0) {
+    return (
+      <>
+        <h3 className="text-md font-medium">
+          {translate("allocateCustomerPoints.dialog.summaryHeading")}
+        </h3>
+        <div className="bg-panel border rounded-lg p-4">
+          <div className="flex items-center">
+            <SuccessIcon className="text-success mr-2" />
+            <span className="text-size-base text-default">
+              {translate("allocateCustomerPoints.dialog.noChanges")}
+            </span>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const isInZoneAllocationMode =
     zoneName != null && customerPointsInZone != null;
 
