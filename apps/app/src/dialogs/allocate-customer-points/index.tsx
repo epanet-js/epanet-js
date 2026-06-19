@@ -17,6 +17,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { AllocationModeStep } from "./allocation-mode-step";
+import { AllocationDialog } from "./allocation-dialog";
 
 type AllocateCustomerPointsDialogProps = {
   isOpen: boolean;
@@ -32,7 +33,9 @@ export const AllocateCustomerPointsDialog: React.FC<
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useModelTransaction();
 
-  const isPerZoneAllocationEnabled = useFeatureFlag("FLAG_ZONE_CP_ALLOCATION");
+  const isSingleDialogEnabled = useFeatureFlag(
+    "FLAG_CP_ALLOCATION_SINGLE_DIALOG",
+  );
 
   const {
     step,
@@ -96,7 +99,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   const bottomButtonsDisabled =
     isProcessing || !allocationResult || isAllocating || isEditingRules;
 
-  if (!isPerZoneAllocationEnabled) {
+  if (isSingleDialogEnabled) {
     const footer = (
       <SimpleDialogActions
         action={
@@ -120,7 +123,7 @@ export const AllocateCustomerPointsDialog: React.FC<
         footer={footer}
         preventClose={isProcessing}
       >
-        <AllocationStep state={state} />
+        <AllocationDialog state={state} />
       </BaseDialog>
     );
   }
