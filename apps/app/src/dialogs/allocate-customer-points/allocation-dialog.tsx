@@ -390,21 +390,25 @@ const AllocationScope: React.FC<AllocationScopeProps> = ({
       {translate("allocateCustomerPoints.dialog.scopeHeading")}
     </h3>
     <div className="flex gap-4 items-center">
-      <label className="text-size-base text-subtle">
-        {translate("allocateCustomerPoints.dialog.allocationZone")}
-      </label>
-      <div className="min-w-0" style={{ width: 200 }}>
-        <Selector
-          options={zoneOptions}
-          selected={selectedZoneValue}
-          nullable
-          disabled={disabled}
-          placeholder={translate("allocateCustomerPoints.dialog.allZones")}
-          clearLabel={translate("allocateCustomerPoints.dialog.allZones")}
-          onChange={onZoneChange}
-          styleOptions={{ border: true }}
-        />
-      </div>
+      {zoneOptions.length > 0 && (
+        <>
+          <label className="text-size-base text-subtle">
+            {translate("allocateCustomerPoints.dialog.allocationZone")}
+          </label>
+          <div className="min-w-0" style={{ width: 200 }}>
+            <Selector
+              options={zoneOptions}
+              selected={selectedZoneValue}
+              nullable
+              disabled={disabled}
+              placeholder={translate("allocateCustomerPoints.dialog.allZones")}
+              clearLabel={translate("allocateCustomerPoints.dialog.allZones")}
+              onChange={onZoneChange}
+              styleOptions={{ border: true }}
+            />
+          </div>
+        </>
+      )}
       <label
         className={`flex items-center gap-2 text-size-base ${disabled || !hasSelectedPipes ? "text-disabled cursor-not-allowed" : "text-default"}`}
       >
