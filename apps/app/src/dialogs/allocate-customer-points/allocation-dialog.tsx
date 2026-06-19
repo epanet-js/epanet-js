@@ -129,6 +129,8 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
   const forceLoadingState = () =>
     new Promise((resolve) => setTimeout(resolve, 10));
 
+  const allocationGenRef = useRef(0);
+
   const performAllocation = useCallback(
     async (rules: CustomerPointAllocationRule[]) => {
       if (!disconnectedCustomerPoints.length || rules.length === 0) {
@@ -136,6 +138,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         return;
       }
 
+      const gen = ++allocationGenRef.current;
       setIsAllocating(true);
       setError(null);
 
@@ -157,9 +160,12 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
           options: { runOnWorker, selectedZone, selectedPipes },
         });
 
+        if (gen !== allocationGenRef.current) return;
+
         setAllocationResult(result);
         setLastAllocatedRules([...rules]);
       } catch (err) {
+        if (gen !== allocationGenRef.current) return;
         setError(
           translate(
             "allocateCustomerPoints.dialog.allocationFailed",
@@ -167,7 +173,9 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
           ),
         );
       } finally {
-        setIsAllocating(false);
+        if (gen === allocationGenRef.current) {
+          setIsAllocating(false);
+        }
       }
     },
     [
@@ -187,7 +195,6 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
   const shouldTriggerAllocation = useCallback(
     (rules: CustomerPointAllocationRule[]) => {
       if (!disconnectedCustomerPoints.length) return false;
-      if (isAllocating) return false;
       if (!lastAllocatedRules) return true;
       if (rules.length !== lastAllocatedRules.length) return true;
 
@@ -199,7 +206,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         );
       });
     },
-    [disconnectedCustomerPoints, isAllocating, lastAllocatedRules],
+    [disconnectedCustomerPoints, lastAllocatedRules],
   );
 
   const handleEdit = useCallback(() => {
