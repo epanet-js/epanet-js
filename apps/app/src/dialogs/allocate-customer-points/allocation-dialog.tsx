@@ -300,6 +300,7 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         }
         pipeAllocationMode={pipeAllocationMode}
         hasSelectedPipes={hasSelectedPipes}
+        disabled={isEditingRules}
         onZoneChange={handleZoneChange}
         onPipeModeChange={handlePipeModeChange}
         translate={translate}
@@ -361,6 +362,7 @@ type AllocationScopeProps = {
   selectedZoneValue: string | null;
   pipeAllocationMode: "allPipes" | "selectedPipes";
   hasSelectedPipes: boolean;
+  disabled: boolean;
   onZoneChange: (value: string | null) => void;
   onPipeModeChange: (checked: boolean) => void;
   translate: TranslateFn;
@@ -371,6 +373,7 @@ const AllocationScope: React.FC<AllocationScopeProps> = ({
   selectedZoneValue,
   pipeAllocationMode,
   hasSelectedPipes,
+  disabled,
   onZoneChange,
   onPipeModeChange,
   translate,
@@ -388,16 +391,19 @@ const AllocationScope: React.FC<AllocationScopeProps> = ({
           options={zoneOptions}
           selected={selectedZoneValue}
           nullable
+          disabled={disabled}
           placeholder={translate("allocateCustomerPoints.dialog.allZones")}
           clearLabel={translate("allocateCustomerPoints.dialog.allZones")}
           onChange={onZoneChange}
           styleOptions={{ border: true }}
         />
       </div>
-      <label className="flex items-center gap-2 text-size-base text-default">
+      <label
+        className={`flex items-center gap-2 text-size-base ${disabled || !hasSelectedPipes ? "text-disabled cursor-not-allowed" : "text-default"}`}
+      >
         <Checkbox
           checked={pipeAllocationMode === "selectedPipes"}
-          disabled={!hasSelectedPipes}
+          disabled={disabled || !hasSelectedPipes}
           onChange={(e) => onPipeModeChange(e.target.checked)}
         />
         {translate("allocateCustomerPoints.dialog.selectedPipesOnly")}
