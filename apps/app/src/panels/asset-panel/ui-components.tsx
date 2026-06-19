@@ -248,13 +248,17 @@ export const TextRow = ({
   );
 };
 
-export const QuantityRow = <P extends string>({
+export const QuantityRow = <
+  P extends string,
+  V extends number | null | undefined = number | null,
+>({
   name,
   value,
   unit,
   positiveOnly = false,
   readOnly = false,
-  isNullable = true,
+  isNullable = false,
+  isOptional = false,
   placeholder = "",
   comparison,
   onChange,
@@ -263,18 +267,15 @@ export const QuantityRow = <P extends string>({
   paywall,
 }: {
   name: P;
-  value: number | null;
+  value: V;
   unit: Unit;
   positiveOnly?: boolean;
   isNullable?: boolean;
+  isOptional?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
-  onChange?: (
-    name: P,
-    newValue: number | null,
-    oldValue: number | null,
-  ) => void;
+  onChange?: (name: P, newValue: V, oldValue: V) => void;
   validate?: (value: number) => boolean;
   displayName?: string;
   paywall?: PaywallFeature;
@@ -285,11 +286,7 @@ export const QuantityRow = <P extends string>({
   const { displayValue: formatValue } = useValueDisplay();
 
   const displayValue =
-    value === null
-      ? isNullable && placeholder
-        ? ""
-        : translate("notAvailable")
-      : formatValue(value, name as QuantityProperty);
+    value == null ? "" : formatValue(value, name as QuantityProperty);
 
   const translatedName = displayName ?? translate(name);
   const label = unit
@@ -304,10 +301,11 @@ export const QuantityRow = <P extends string>({
   const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();
     if (isEmpty) {
-      if (isNullable && placeholder) onChange && onChange(name, null, value);
+      if (isOptional) onChange && onChange(name, undefined as V, value);
+      else if (isNullable) onChange && onChange(name, null as V, value);
       return;
     }
-    onChange && onChange(name, newValue, value);
+    onChange && onChange(name, newValue as V, value);
   };
 
   return (
@@ -319,13 +317,13 @@ export const QuantityRow = <P extends string>({
       paywall={paywall}
     >
       {readOnly ? (
-        <TextField padding="md">{displayValue}</TextField>
+        <TextField padding="md">{displayValue || placeholder}</TextField>
       ) : (
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
           positiveOnly={positiveOnly}
-          isNullable={isNullable}
+          isNullable={isNullable || isOptional}
           validate={validate}
           readOnly={readOnly}
           displayValue={displayValue}
@@ -342,12 +340,16 @@ export const QuantityRow = <P extends string>({
   );
 };
 
-export const IntegerRow = <P extends string>({
+export const IntegerRow = <
+  P extends string,
+  V extends number | null | undefined = number | null,
+>({
   name,
   value,
   positiveOnly = false,
   readOnly = false,
   isNullable = true,
+  isOptional = false,
   placeholder = "",
   comparison,
   onChange,
@@ -356,17 +358,14 @@ export const IntegerRow = <P extends string>({
   validate,
 }: {
   name: P;
-  value: number | null;
+  value: V;
   positiveOnly?: boolean;
   isNullable?: boolean;
+  isOptional?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
-  onChange?: (
-    name: P,
-    newValue: number | null,
-    oldValue: number | null,
-  ) => void;
+  onChange?: (name: P, newValue: V, oldValue: V) => void;
   displayName?: string;
   paywall?: PaywallFeature;
   validate?: (value: number) => boolean;
@@ -374,7 +373,7 @@ export const IntegerRow = <P extends string>({
   const translate = useTranslate();
   const lastChange = useRef<number>(0);
 
-  const displayValue = value === null ? "" : String(value);
+  const displayValue = value == null ? "" : String(value);
   const label = displayName ?? translate(name);
 
   const baseDisplayValue = comparison?.hasChanged
@@ -386,13 +385,14 @@ export const IntegerRow = <P extends string>({
   const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();
     if (isEmpty) {
-      if (isNullable) onChange && onChange(name, null, value);
+      if (isOptional) onChange && onChange(name, undefined as V, value);
+      else if (isNullable) onChange && onChange(name, null as V, value);
       return;
     }
     if (!Number.isFinite(newValue)) return;
     const truncated = Math.trunc(newValue);
     if (positiveOnly && truncated < 0) return;
-    onChange && onChange(name, truncated, value);
+    onChange && onChange(name, truncated as V, value);
   };
 
   return (
@@ -410,7 +410,7 @@ export const IntegerRow = <P extends string>({
           key={lastChange.current + displayValue}
           label={label}
           positiveOnly={positiveOnly}
-          isNullable={isNullable}
+          isNullable={isNullable || isOptional}
           readOnly={readOnly}
           displayValue={displayValue}
           placeholder={placeholder}
@@ -427,11 +427,15 @@ export const IntegerRow = <P extends string>({
   );
 };
 
-export const CreatableTextRow = <P extends string>({
+export const CreatableTextRow = <
+  P extends string,
+  V extends string | null | undefined = string | null,
+>({
   name,
   value,
   options,
   readOnly = false,
+  isOptional = false,
   placeholder,
   comparison,
   onChange,
@@ -439,16 +443,13 @@ export const CreatableTextRow = <P extends string>({
   validateNew,
 }: {
   name: P;
-  value: string | null;
+  value: V;
   options: string[];
   readOnly?: boolean;
+  isOptional?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
-  onChange?: (
-    name: P,
-    newValue: string | null,
-    oldValue: string | null,
-  ) => void;
+  onChange?: (name: P, newValue: V, oldValue: V) => void;
   paywall?: PaywallFeature;
   validateNew?: (query: string) => boolean;
 }) => {
@@ -472,9 +473,12 @@ export const CreatableTextRow = <P extends string>({
               (o) => o.toLowerCase() === normalized.toLowerCase(),
             ) ?? normalized);
       if (canonical === value) return;
-      onChange && onChange(name, canonical, value);
+      const emitted = (
+        canonical === null && isOptional ? undefined : canonical
+      ) as V;
+      onChange && onChange(name, emitted, value);
     },
-    [name, onChange, options, value],
+    [name, onChange, options, value, isOptional],
   );
 
   return (
@@ -490,7 +494,7 @@ export const CreatableTextRow = <P extends string>({
       ) : (
         <Selector
           options={options.map((o) => ({ value: o, label: o }))}
-          selected={value}
+          selected={value ?? null}
           nullable
           allowNew
           onChange={handleChange}

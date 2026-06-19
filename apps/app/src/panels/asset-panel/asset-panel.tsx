@@ -117,8 +117,8 @@ import { Unit } from "@epanet-js/quantity";
 
 type OnPropertyChange = <P extends ChangeableProperty>(
   name: P,
-  value: ChangeablePropertyValue<P> | null,
-  oldValue: ChangeablePropertyValue<P> | null,
+  value: ChangeablePropertyValue<P>,
+  oldValue: ChangeablePropertyValue<P>,
 ) => void;
 type OnStatusChange<T> = (newStatus: T, oldStatus: T) => void;
 
@@ -152,7 +152,7 @@ export function AssetPanel({
       const moment = changeProperty(hydraulicModel, {
         assetIds: [asset.id],
         property,
-        value: (value ?? undefined) as ChangeablePropertyValue<typeof property>,
+        value,
       });
       transact(moment);
       userTracking.capture({
@@ -621,30 +621,35 @@ const JunctionEditor = ({
           value={simPressure}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="minPressure"
           value={junctionSimulation?.minPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="maxPressure"
           value={junctionSimulation?.maxPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="actualDemand"
           value={simDemand}
           unit={units.actualDemand}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         {junctionSimulation?.waterAge != null && (
           <QuantityRow
@@ -652,6 +657,7 @@ const JunctionEditor = ({
             value={junctionSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {junctionSimulation?.waterTrace != null && (
@@ -660,6 +666,7 @@ const JunctionEditor = ({
             value={junctionSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {junctionSimulation?.chemicalConcentration != null && (
@@ -668,6 +675,7 @@ const JunctionEditor = ({
             value={junctionSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -859,8 +867,9 @@ const PipeEditor = ({
         <IntegerRow
           name="year"
           displayName={translate("yearOfInstallation")}
-          value={pipe.year ?? null}
+          value={pipe.year}
           positiveOnly={true}
+          isOptional
           comparison={getComparison("year", pipe.year ?? null)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -925,8 +934,9 @@ const PipeEditor = ({
       <SectionWrapper title={translate("quality")} section="quality">
         <QuantityRow
           name="bulkReactionCoeff"
-          value={pipe.bulkReactionCoeff ?? null}
+          value={pipe.bulkReactionCoeff}
           unit={null}
+          isOptional
           placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
           comparison={getComparison(
             "bulkReactionCoeff",
@@ -937,8 +947,9 @@ const PipeEditor = ({
         />
         <QuantityRow
           name="wallReactionCoeff"
-          value={pipe.wallReactionCoeff ?? null}
+          value={pipe.wallReactionCoeff}
           unit={null}
+          isOptional
           placeholder={localizeDecimal(simulationSettings.reactionGlobalWall)}
           comparison={getComparison(
             "wallReactionCoeff",
@@ -957,24 +968,28 @@ const PipeEditor = ({
           value={simFlow}
           unit={units.flow}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
           unit={units.velocity}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="unitHeadloss"
           value={simUnitHeadloss}
           unit={units.unitHeadloss}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
           unit={units.headloss}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <TextRow name="actualStatus" value={simulationStatusText} />
         {pipeSimulation?.waterAge != null && (
@@ -983,6 +998,7 @@ const PipeEditor = ({
             value={pipeSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {pipeSimulation?.waterTrace != null && (
@@ -991,6 +1007,7 @@ const PipeEditor = ({
             value={pipeSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {pipeSimulation?.chemicalConcentration != null && (
@@ -999,6 +1016,7 @@ const PipeEditor = ({
             value={pipeSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -1129,30 +1147,35 @@ const ReservoirEditor = ({
           value={simPressure}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="minPressure"
           value={reservoirSimulation?.minPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="maxPressure"
           value={reservoirSimulation?.maxPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
           unit={units.netFlow}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         {reservoirSimulation?.waterAge != null && (
           <QuantityRow
@@ -1160,6 +1183,7 @@ const ReservoirEditor = ({
             value={reservoirSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {reservoirSimulation?.waterTrace != null && (
@@ -1168,6 +1192,7 @@ const ReservoirEditor = ({
             value={reservoirSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {reservoirSimulation?.chemicalConcentration != null && (
@@ -1176,6 +1201,7 @@ const ReservoirEditor = ({
             value={reservoirSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -1323,8 +1349,9 @@ const TankEditor = ({
         />
         <QuantityRow
           name="bulkReactionCoeff"
-          value={tank.bulkReactionCoeff ?? null}
+          value={tank.bulkReactionCoeff}
           unit={null}
+          isOptional
           placeholder={localizeDecimal(simulationSettings.reactionGlobalBulk)}
           comparison={getComparison(
             "bulkReactionCoeff",
@@ -1372,42 +1399,49 @@ const TankEditor = ({
           value={simPressure}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="minPressure"
           value={tankSimulation?.minPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="maxPressure"
           value={tankSimulation?.maxPressure ?? null}
           unit={units.pressure}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="head"
           value={simHead}
           unit={units.head}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="level"
           value={simLevel}
           unit={units.level}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="volume"
           value={simVolume}
           unit={units.volume}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="netFlow"
           value={simNetFlow}
           unit={units.netFlow}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         {tankSimulation?.waterAge != null && (
           <QuantityRow
@@ -1415,6 +1449,7 @@ const TankEditor = ({
             value={tankSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {tankSimulation?.waterTrace != null && (
@@ -1423,6 +1458,7 @@ const TankEditor = ({
             value={tankSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {tankSimulation?.chemicalConcentration != null && (
@@ -1431,6 +1467,7 @@ const TankEditor = ({
             value={tankSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -2108,18 +2145,21 @@ const ValveEditor = ({
           value={simFlow}
           unit={units.flow}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="velocity"
           value={simVelocity}
           unit={units.velocity}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="headlossShort"
           value={simHeadloss}
           unit={units.headloss}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <TextRow name="status" value={statusText} />
         {valveSimulation?.waterAge != null && (
@@ -2128,6 +2168,7 @@ const ValveEditor = ({
             value={valveSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {valveSimulation?.waterTrace != null && (
@@ -2136,6 +2177,7 @@ const ValveEditor = ({
             value={valveSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {valveSimulation?.chemicalConcentration != null && (
@@ -2144,6 +2186,7 @@ const ValveEditor = ({
             value={valveSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -2368,12 +2411,12 @@ const PumpEditor = ({
         />
         <QuantityRow
           name="energyPrice"
-          value={pump.energyPrice ?? null}
+          value={pump.energyPrice}
           unit={null}
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
           positiveOnly={true}
-          isNullable
+          isOptional
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
         />
@@ -2395,12 +2438,14 @@ const PumpEditor = ({
           value={simFlow}
           unit={units.flow}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="pumpHead"
           value={simHead}
           unit={units.headloss}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <TextRow name="status" value={statusText} />
         {pumpSimulation?.waterAge != null && (
@@ -2409,6 +2454,7 @@ const PumpEditor = ({
             value={pumpSimulation.waterAge}
             unit={units.waterAge}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {pumpSimulation?.waterTrace != null && (
@@ -2417,6 +2463,7 @@ const PumpEditor = ({
             value={pumpSimulation.waterTrace}
             unit={units.waterTrace}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
         {pumpSimulation?.chemicalConcentration != null && (
@@ -2425,6 +2472,7 @@ const PumpEditor = ({
             value={pumpSimulation.chemicalConcentration}
             unit={units.chemicalConcentration}
             readOnly={true}
+            placeholder={translate("notAvailable")}
           />
         )}
       </SectionWrapper>
@@ -2437,42 +2485,49 @@ const PumpEditor = ({
           value={pumpEnergy?.utilization ?? null}
           unit={units.efficiency}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="averageEfficiency"
           value={pumpEnergy?.averageEfficiency ?? null}
           unit={units.efficiency}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="averageKwPerFlowUnit"
           value={pumpEnergy?.averageKwPerFlowUnit ?? null}
           unit={units.averageKwPerFlowUnit}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="averageKw"
           value={pumpEnergy?.averageKw ?? null}
           unit={units.power}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="peakKw"
           value={pumpEnergy?.peakKw ?? null}
           unit={units.power}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="averageCostPerDay"
           value={pumpEnergy?.averageCostPerDay ?? null}
           unit={null}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
         <QuantityRow
           name="demandCharge"
           value={pumpEnergy?.demandCharge ?? null}
           unit={null}
           readOnly={true}
+          placeholder={translate("notAvailable")}
         />
       </SectionWrapper>
     </AssetEditorContent>

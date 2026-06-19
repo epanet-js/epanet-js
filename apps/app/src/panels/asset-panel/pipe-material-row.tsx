@@ -8,8 +8,8 @@ import { CreatableTextRow } from "./ui-components";
 
 type OnMaterialChange = (
   name: "material",
-  newValue: string | null,
-  oldValue: string | null,
+  newValue: string | undefined,
+  oldValue: string | undefined,
 ) => void;
 
 export const PipeMaterialRow = ({
@@ -33,8 +33,9 @@ export const PipeMaterialRow = ({
   return (
     <CreatableTextRow
       name="material"
-      value={pipe.material ?? null}
+      value={pipe.material}
       options={existingMaterials}
+      isOptional
       comparison={comparison}
       onChange={onChange}
       readOnly={readOnly}
