@@ -1564,6 +1564,7 @@
     "completeStep": {
       "title": "Complete",
       "summary": "Imported {{1}} zones from GeoJSON.",
+      "summaryShapefile": "Imported {{1}} zones from Shapefile.",
       "mergedSummary": "Merged {{1}} zones from multiple features:",
       "mergedLabelHeader": "Zone",
       "mergedFeaturesHeader": "Number of merged features"

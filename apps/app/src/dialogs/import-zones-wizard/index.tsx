@@ -229,6 +229,7 @@ export const ImportZonesDialog = ({ onClose }: { onClose: () => void }) => {
           <CompleteStep
             numZones={importedZoneCount}
             mergedZones={mergedZones}
+            sourceType={selectedGisFiles.shp ? "shapefile" : "geojson"}
           />
         )}
       </WizardContent>
