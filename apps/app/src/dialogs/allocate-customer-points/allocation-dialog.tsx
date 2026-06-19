@@ -4,6 +4,7 @@ import {
   CustomerPointAllocationRule,
   initializeCustomerPoints,
 } from "@epanet-js/hydraulic-model";
+import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 
 import { AllocationRulesTable } from "./allocation-rules-table";
 import { AllocateCustomerPointsState } from "./wizard-state";
@@ -14,6 +15,7 @@ import { localizeDecimal } from "src/infra/i18n/numbers";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { Button } from "src/components/elements";
+import { Checkbox } from "src/components/form/Checkbox";
 import { useUserTracking } from "src/infra/user-tracking";
 import { zonesAtom } from "src/state/zones";
 import { selectionAtom } from "src/state/selection";
@@ -50,8 +52,11 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
     error,
     setError,
     allocationZone,
+    setAllocationZone,
     customerAllocationMode,
+    setCustomerAllocationMode,
     pipeAllocationMode,
+    setPipeAllocationMode,
   } = state;
 
   const selectedPipes = useMemo(() => {
@@ -61,6 +66,61 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
     );
     return new Set(pipeIds);
   }, [pipeAllocationMode, selection, hydraulicModel.assets]);
+
+  const hasSelectedPipes = useMemo(
+    () =>
+      USelection.getAssetIds(selection).some(
+        (id) => hydraulicModel.assets.get(id)?.type === "pipe",
+      ),
+    [selection, hydraulicModel.assets],
+  );
+
+  const zoneOptions = useMemo<SelectorListOption<string>[]>(
+    () =>
+      Array.from(zones.values())
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .map((zone) => ({
+          label: zone.label,
+          value: String(zone.id),
+        })),
+    [zones],
+  );
+
+  const handleZoneChange = useCallback(
+    (value: string | null) => {
+      const zoneId = value != null ? Number(value) : null;
+      if (zoneId === null) {
+        setCustomerAllocationMode("allCustomers");
+        setAllocationZone(null);
+      } else {
+        setCustomerAllocationMode("zoneCustomers");
+        setAllocationZone(zoneId);
+      }
+      const mode = zoneId === null ? "allCustomers" : "zoneCustomers";
+      userTracking.capture({
+        name: "allocateCustomerPoints.customerMode",
+        mode,
+      });
+      if (zoneId !== null) {
+        userTracking.capture({
+          name: "allocateCustomerPoints.zoneSelected",
+        });
+      }
+    },
+    [setCustomerAllocationMode, setAllocationZone, userTracking],
+  );
+
+  const handlePipeModeChange = useCallback(
+    (checked: boolean) => {
+      const mode = checked ? "selectedPipes" : "allPipes";
+      setPipeAllocationMode(mode);
+      userTracking.capture({
+        name: "allocateCustomerPoints.pipeMode",
+        mode,
+      });
+    },
+    [setPipeAllocationMode, userTracking],
+  );
 
   const disconnectedCustomerPoints = Array.from(
     hydraulicModel.customerPoints.values(),
@@ -206,6 +266,22 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
     void performAllocation(allocationRules);
   }, [performAllocation, allocationRules]);
 
+  const prevScopeRef = useRef({ allocationZone, pipeAllocationMode });
+  useEffect(() => {
+    const prev = prevScopeRef.current;
+    prevScopeRef.current = { allocationZone, pipeAllocationMode };
+
+    if (!initialized.current) return;
+    if (
+      prev.allocationZone === allocationZone &&
+      prev.pipeAllocationMode === pipeAllocationMode
+    )
+      return;
+    if (allocationRules.length === 0) return;
+
+    void performAllocation(allocationRules);
+  }, [allocationZone, pipeAllocationMode, allocationRules, performAllocation]);
+
   const displayRules = isEditingRules ? tempRules : allocationRules;
   const allocationCounts = allocationResult?.ruleMatches || [];
   const totalCustomerPoints = disconnectedCustomerPoints.length;
@@ -217,7 +293,17 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
 
   return (
     <div className="p-4 overflow-y-auto grow space-y-4">
-      <Description translate={translate} />
+      <AllocationScope
+        zoneOptions={zoneOptions}
+        selectedZoneValue={
+          allocationZone != null ? String(allocationZone) : null
+        }
+        pipeAllocationMode={pipeAllocationMode}
+        hasSelectedPipes={hasSelectedPipes}
+        onZoneChange={handleZoneChange}
+        onPipeModeChange={handlePipeModeChange}
+        translate={translate}
+      />
 
       {error && <ErrorMessage error={error} />}
 
@@ -270,10 +356,54 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
   );
 };
 
-const Description = ({ translate }: { translate: TranslateFn }) => (
-  <p className="text-size-base text-subtle">
-    {translate("allocateCustomerPoints.dialog.description")}
-  </p>
+type AllocationScopeProps = {
+  zoneOptions: SelectorListOption<string>[];
+  selectedZoneValue: string | null;
+  pipeAllocationMode: "allPipes" | "selectedPipes";
+  hasSelectedPipes: boolean;
+  onZoneChange: (value: string | null) => void;
+  onPipeModeChange: (checked: boolean) => void;
+  translate: TranslateFn;
+};
+
+const AllocationScope: React.FC<AllocationScopeProps> = ({
+  zoneOptions,
+  selectedZoneValue,
+  pipeAllocationMode,
+  hasSelectedPipes,
+  onZoneChange,
+  onPipeModeChange,
+  translate,
+}) => (
+  <div className="mt-3">
+    <h3 className="text-md font-medium pb-3">
+      {translate("allocateCustomerPoints.dialog.allocationScope")}
+    </h3>
+    <div className="flex gap-4 items-center">
+      <label className="text-size-base text-subtle">
+        {translate("allocateCustomerPoints.dialog.allocationZone")}
+      </label>
+      <div className="min-w-0" style={{ width: 200 }}>
+        <Selector
+          options={zoneOptions}
+          selected={selectedZoneValue}
+          nullable
+          placeholder={translate("allocateCustomerPoints.dialog.allZones")}
+          clearLabel={translate("allocateCustomerPoints.dialog.allZones")}
+          onChange={onZoneChange}
+          styleOptions={{ border: true }}
+        />
+      </div>
+      <label className="flex items-center gap-2 text-size-base text-default">
+        <Checkbox
+          checked={pipeAllocationMode === "selectedPipes"}
+          disabled={!hasSelectedPipes}
+          onChange={(e) => onPipeModeChange(e.target.checked)}
+        />
+        {translate("allocateCustomerPoints.dialog.selectedPipesOnly")}
+      </label>
+    </div>
+  </div>
 );
 
 const ErrorMessage = ({ error }: { error: string }) => (
@@ -295,7 +425,7 @@ const EditRulesButton = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    variant="primary"
+    variant="default"
     size="sm"
   >
     {translate("allocateCustomerPoints.dialog.editButton")}
@@ -339,6 +469,9 @@ type AllocationSummaryProps = {
   customerPointsInZone?: number;
 };
 
+const percentage = (numerator: number, denominator: number) =>
+  denominator > 0 ? Math.round((numerator / denominator) * 10000) / 100 : 0;
+
 const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   totalAllocated,
   unallocatedCount,
@@ -353,118 +486,116 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     return null;
   }
 
-  const allocatedPercentage =
-    totalCustomerPoints > 0
-      ? Math.round((totalAllocated / totalCustomerPoints) * 10000) / 100
-      : 0;
-  const unallocatedPercentage =
-    totalCustomerPoints > 0
-      ? Math.round((unallocatedCount / totalCustomerPoints) * 10000) / 100
-      : 0;
-
   const isInZoneAllocationMode =
     zoneName != null && customerPointsInZone != null;
+
+  if (isInZoneAllocationMode) {
+    const zoneUnallocated = Math.max(0, customerPointsInZone - totalAllocated);
+    const networkUnallocated = Math.max(
+      0,
+      totalCustomerPoints - totalAllocated,
+    );
+
+    return (
+      <>
+        <h3 className="text-md font-medium">
+          {translate("allocateCustomerPoints.dialog.summaryTitleWithoutTotal")}
+        </h3>
+        <div className="bg-panel border rounded-lg p-4 space-y-4">
+          <div>
+            <h4 className="text-size-base font-medium text-default mb-2">
+              {translate(
+                "allocateCustomerPoints.dialog.zoneCoverage",
+                zoneName,
+              )}
+            </h4>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <SuccessIcon className="text-success mr-2" />
+                <span className="text-size-base text-default">
+                  {translate(
+                    "allocateCustomerPoints.dialog.allocatedPoints",
+                    localizeDecimal(totalAllocated),
+                    percentage(totalAllocated, customerPointsInZone).toString(),
+                  )}
+                </span>
+              </div>
+              {zoneUnallocated > 0 && (
+                <div className="flex items-center">
+                  <WarningIcon className="text-warning mr-2" />
+                  <span className="text-size-base text-orange-700">
+                    {translate(
+                      "allocateCustomerPoints.dialog.unallocatedPoints",
+                      localizeDecimal(zoneUnallocated),
+                      percentage(
+                        zoneUnallocated,
+                        customerPointsInZone,
+                      ).toString(),
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-size-base font-medium text-default mb-2">
+              {translate("allocateCustomerPoints.dialog.networkCoverage")}
+            </h4>
+            <div className="flex items-center">
+              <span className="text-size-base text-default">
+                {translate(
+                  "allocateCustomerPoints.dialog.unallocatedPoints",
+                  localizeDecimal(networkUnallocated),
+                  percentage(
+                    networkUnallocated,
+                    totalCustomerPoints,
+                  ).toString(),
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const allocatedPercentage = percentage(totalAllocated, totalCustomerPoints);
+  const unallocatedPercentage = percentage(
+    unallocatedCount,
+    totalCustomerPoints,
+  );
+
   return (
-    <div className="bg-panel border rounded-lg p-4">
-      <h4 className="text-size-base font-medium text-default mb-2">
-        {translate(
-          "allocateCustomerPoints.dialog.summaryTitle",
-          localizeDecimal(totalCustomerPoints),
-        )}
-      </h4>
-      <div className="space-y-2">
-        {isInZoneAllocationMode ? (
-          <AllocatedInZoneLabel
-            zoneName={zoneName}
-            totalAllocated={totalAllocated}
-            customerPointsInZone={customerPointsInZone}
-            translate={translate}
-          />
-        ) : (
-          <AllocatedCustomersLabel
-            totalAllocated={totalAllocated}
-            allocatedPercentage={allocatedPercentage}
-            translate={translate}
-          />
-        )}
-        {unallocatedCount > 0 && (
-          <UnallocatedCustomersLabel
-            unallocatedCount={unallocatedCount}
-            unallocatedPercentage={unallocatedPercentage}
-            translate={translate}
-          />
-        )}
+    <>
+      <h3 className="text-md font-medium">
+        {translate("allocateCustomerPoints.dialog.summaryTitleWithoutTotal")}
+      </h3>
+      <div className="bg-panel border rounded-lg p-4">
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <SuccessIcon className="text-success mr-2" />
+            <span className="text-size-base text-default">
+              {translate(
+                "allocateCustomerPoints.dialog.allocatedPoints",
+                localizeDecimal(totalAllocated),
+                allocatedPercentage.toString(),
+              )}
+            </span>
+          </div>
+          {unallocatedCount > 0 && (
+            <div className="flex items-center">
+              <WarningIcon className="text-warning mr-2" />
+              <span className="text-size-base text-orange-700">
+                {translate(
+                  "allocateCustomerPoints.dialog.unallocatedPoints",
+                  localizeDecimal(unallocatedCount),
+                  unallocatedPercentage.toString(),
+                )}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
-
-const AllocatedCustomersLabel = ({
-  totalAllocated,
-  allocatedPercentage,
-  translate,
-}: {
-  totalAllocated: number;
-  allocatedPercentage: number;
-  translate: TranslateFn;
-}) => (
-  <div className="flex items-center">
-    <SuccessIcon className="text-success mr-2" />
-    <span className="text-size-base text-default">
-      {translate(
-        "allocateCustomerPoints.dialog.allocatedPoints",
-        localizeDecimal(totalAllocated),
-        allocatedPercentage.toString(),
-      )}
-    </span>
-  </div>
-);
-
-const UnallocatedCustomersLabel = ({
-  unallocatedCount,
-  unallocatedPercentage,
-  translate,
-}: {
-  unallocatedCount: number;
-  unallocatedPercentage: number;
-  translate: TranslateFn;
-}) => (
-  <div className="flex items-center">
-    <WarningIcon className="text-warning mr-2" />
-    <span className="text-size-base text-orange-700">
-      {translate(
-        "allocateCustomerPoints.dialog.unallocatedPoints",
-        localizeDecimal(unallocatedCount),
-        unallocatedPercentage.toString(),
-      )}
-    </span>
-  </div>
-);
-
-const AllocatedInZoneLabel = ({
-  zoneName,
-  totalAllocated,
-  customerPointsInZone,
-  translate,
-}: {
-  zoneName: string;
-  totalAllocated: number;
-  customerPointsInZone: number;
-  translate: TranslateFn;
-}) => (
-  <div className="flex items-center">
-    <SuccessIcon className="text-success mr-2" />
-    <span className="text-size-base text-default">
-      {translate(
-        "allocateCustomerPoints.dialog.zoneAllocationSummary",
-        localizeDecimal(totalAllocated),
-        localizeDecimal(customerPointsInZone),
-        zoneName,
-        (customerPointsInZone > 0
-          ? Math.round((totalAllocated / customerPointsInZone) * 10000) / 100
-          : 0
-        ).toString(),
-      )}
-    </span>
-  </div>
-);

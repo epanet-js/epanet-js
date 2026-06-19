@@ -1046,7 +1046,13 @@
       "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
       "zoneAllocationSummary": "Allocated {{1}} customer points of {{2}} in zone {{3}} ({{4}}%)",
       "allocationFailed": "Allocation failed: {{1}}",
-      "applyChanges": "Apply changes"
+      "applyChanges": "Apply changes",
+      "allocationScope": "Allocation scope",
+      "allocationZone": "Allocation zone",
+      "allZones": "All zones",
+      "selectedPipesOnly": "Selected pipes only",
+      "zoneCoverage": "Coverage in zone {{1}}",
+      "networkCoverage": "Coverage across network"
     }
   },
   "importCustomerPoints": {
@@ -1148,6 +1154,7 @@
         "computingMessage": "Computing allocations...",
         "processingMessage": "Processing allocation rules...",
         "summaryTitle": "Allocation summary ({{1}} total customer points)",
+        "summaryTitleWithoutTotal": "Summary",
         "allocatedPoints": "{{1}} customer points will be allocated ({{2}}%)",
         "unallocatedPoints": "{{1}} customer points remain unallocated ({{2}}%)",
         "allocationFailed": "Allocation failed: {{1}}",
