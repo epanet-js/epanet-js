@@ -346,9 +346,8 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         <AllocationSummary
           totalAllocated={totalAllocated}
           unallocatedCount={unallocatedCount}
-          isVisible={
-            !isEditingRules && allocationRules.length > 0 && !isAllocating
-          }
+          isAllocating={isAllocating}
+          isVisible={!isEditingRules && allocationRules.length > 0}
           totalCustomerPoints={totalCustomerPoints}
           zoneName={
             customerAllocationMode === "zoneCustomers" && allocationZone
@@ -358,8 +357,6 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
           customerPointsInZone={allocationResult?.customerPointsMatchedToZone}
         />
       </div>
-
-      {isAllocating && <IsComputingMessage translate={translate} />}
     </div>
   );
 };
@@ -468,18 +465,10 @@ const RulesEditorButtons = ({
   </div>
 );
 
-const IsComputingMessage = ({ translate }: { translate: TranslateFn }) => (
-  <div className="flex items-center justify-center py-4">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
-    <span className="ml-2 text-size-base text-subtle">
-      {translate("allocateCustomerPoints.dialog.computingMessage")}
-    </span>
-  </div>
-);
-
 type AllocationSummaryProps = {
   totalAllocated: number;
   unallocatedCount: number;
+  isAllocating: boolean;
   isVisible: boolean;
   totalCustomerPoints: number;
   zoneName?: string;
@@ -492,6 +481,7 @@ const percentage = (numerator: number, denominator: number) =>
 const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   totalAllocated,
   unallocatedCount,
+  isAllocating,
   isVisible,
   totalCustomerPoints,
   zoneName,
@@ -501,6 +491,24 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
 
   if (!isVisible) {
     return null;
+  }
+
+  if (isAllocating) {
+    return (
+      <>
+        <h3 className="text-md font-medium">
+          {translate("allocateCustomerPoints.dialog.summaryHeading")}
+        </h3>
+        <div className="bg-panel border rounded-lg p-4">
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+            <span className="ml-2 text-size-base text-subtle">
+              {translate("allocateCustomerPoints.dialog.computingMessage")}
+            </span>
+          </div>
+        </div>
+      </>
+    );
   }
 
   if (totalCustomerPoints === 0) {
