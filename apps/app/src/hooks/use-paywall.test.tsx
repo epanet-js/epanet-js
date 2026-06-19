@@ -9,6 +9,7 @@ const defaultPermissions: Permissions = {
   canUseHglProfile: false,
   canUseCustomGraphs: false,
   canUseZones: false,
+  canUseControls: false,
   canUsePipeAttributes: false,
   canUseModelBuildV2: false,
   canValidateModel: false,

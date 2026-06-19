@@ -9,6 +9,8 @@ import {
   TimedSettingStep,
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
+import { usePermissions } from "src/hooks/use-permissions";
+import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { PumpTimeBasedControls } from "./pump-time-based-controls";
@@ -46,6 +48,8 @@ export const PumpControlsEditor = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const { canUseControls } = usePermissions();
+  const showPriorityAccess = useShowPriorityAccessDialog();
   const controlType = controlTypeFor(control);
 
   const typeOptions = useMemo(
@@ -64,6 +68,10 @@ export const PumpControlsEditor = ({
   const selectedTypeOption = typeOptions.find((o) => o.value === controlType);
 
   const handleTypeChange = (newValue: ControlType) => {
+    if (newValue !== "none" && !canUseControls) {
+      showPriorityAccess({ featureName: translate("controls.nativeTitle") });
+      return;
+    }
     if (newValue === "timeBased") {
       onControlChange({ type: "timed-setting", linkId, steps: [] });
       return;

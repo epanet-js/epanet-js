@@ -11,6 +11,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseCustomGraphs).toBe(false);
     expect(p.canUseZones).toBe(false);
+    expect(p.canUseControls).toBe(false);
     expect(p.canUsePipeAttributes).toBe(false);
     expect(p.canValidateModel).toBe(false);
     expect(p.canUpgrade).toBe(true);
@@ -27,6 +28,7 @@ describe("resolvePermissions", () => {
       expect(p.canUseHglProfile).toBe(true);
       expect(p.canUseCustomGraphs).toBe(true);
       expect(p.canUseZones).toBe(true);
+      expect(p.canUseControls).toBe(true);
       expect(p.canUsePipeAttributes).toBe(true);
       expect(p.canValidateModel).toBe(true);
       expect(p.canUpgrade).toBe(false);
@@ -42,6 +44,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseCustomGraphs).toBe(false);
     expect(p.canUseZones).toBe(true);
+    expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canValidateModel).toBe(true);
     expect(p.canUpgrade).toBe(false);
@@ -56,6 +59,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseHglProfile).toBe(true);
     expect(p.canUseCustomGraphs).toBe(true);
     expect(p.canUseZones).toBe(true);
+    expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canUseModelBuildV2).toBe(true);
     expect(p.canValidateModel).toBe(true);

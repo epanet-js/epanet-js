@@ -14,6 +14,7 @@ export type Permissions = {
   canUseHglProfile: boolean;
   canUseCustomGraphs: boolean;
   canUseZones: boolean;
+  canUseControls: boolean;
   canUsePipeAttributes: boolean;
   canUseModelBuildV2: boolean;
   canValidateModel: boolean;
@@ -38,6 +39,7 @@ export const resolvePermissions = (
     canUseHglProfile: hasEarlyAccess,
     canUseCustomGraphs: hasEarlyAccess,
     canUseZones: hasPaidAccess,
+    canUseControls: hasPaidAccess,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
     canUseModelBuildV2: ["pro", "teams"].includes(plan) || trialActive,
     canValidateModel: hasPaidAccess,

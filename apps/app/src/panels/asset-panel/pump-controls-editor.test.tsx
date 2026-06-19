@@ -2,7 +2,36 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { Control, PumpStatus, Tank } from "@epanet-js/hydraulic-model";
+import {
+  resolvePermissions,
+  type Permissions,
+} from "src/hooks/use-permissions";
 import { PumpControlsEditor } from "./pump-controls-editor";
+
+const entitledPermissions = resolvePermissions("pro", false, false, false);
+const permissionsRef: { current: Permissions } = {
+  current: entitledPermissions,
+};
+const showPriorityAccessMock = vi.fn();
+
+vi.mock("src/hooks/use-permissions", async () => {
+  const actual = await vi.importActual<
+    typeof import("src/hooks/use-permissions")
+  >("src/hooks/use-permissions");
+  return {
+    ...actual,
+    usePermissions: () => permissionsRef.current,
+  };
+});
+
+vi.mock("src/hooks/use-priority-access", () => ({
+  useShowPriorityAccessDialog: () => showPriorityAccessMock,
+}));
+
+beforeEach(() => {
+  permissionsRef.current = entitledPermissions;
+  showPriorityAccessMock.mockClear();
+});
 
 const INITIAL_SPEED = 1.5;
 const PUMP_ID = 3;
@@ -23,14 +52,16 @@ const Harness = ({
   initialStatus = "on",
   initialSpeed = INITIAL_SPEED,
   tanks = DEFAULT_TANKS,
+  initialControl = null,
   onChange,
 }: {
   initialStatus?: PumpStatus;
   initialSpeed?: number;
   tanks?: Tank[];
+  initialControl?: Control | null;
   onChange?: (control: Control | null) => void;
 }) => {
-  const [control, setControl] = useState<Control | null>(null);
+  const [control, setControl] = useState<Control | null>(initialControl);
   return (
     <PumpControlsEditor
       linkId={PUMP_ID}
@@ -127,6 +158,54 @@ describe("PumpControlsEditor", () => {
       screen.queryByRole("button", { name: /add time step/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryAllByRole("row")).toHaveLength(0);
+  });
+
+  describe("priority access", () => {
+    beforeEach(() => {
+      permissionsRef.current = resolvePermissions("free", false, false, false);
+    });
+
+    it("blocks selecting time-based and does not change the control", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+
+      await selectTimeBased(user);
+
+      expect(showPriorityAccessMock).toHaveBeenCalledWith({
+        featureName: "native controls",
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("blocks selecting level-based and does not change the control", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      renderEditor("on", onChange);
+
+      await selectType(user, "Level-based");
+
+      expect(showPriorityAccessMock).toHaveBeenCalledWith({
+        featureName: "native controls",
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("still allows clearing an existing control to None", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Harness
+          initialControl={{ type: "timed-setting", linkId: PUMP_ID, steps: [] }}
+          onChange={onChange}
+        />,
+      );
+
+      await selectType(user, "None");
+
+      expect(showPriorityAccessMock).not.toHaveBeenCalled();
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
   });
 
   describe("level-based", () => {

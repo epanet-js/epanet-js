@@ -914,6 +914,7 @@
   },
   "controls": {
     "title": "Controls",
+    "nativeTitle": "native controls",
     "simpleTab": "Simple",
     "rulesTab": "Rule-based",
     "simpleEmpty": "No simple controls defined",
