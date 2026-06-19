@@ -11,7 +11,7 @@ import {
   type Reservoir,
   type Pipe,
 } from "@epanet-js/hydraulic-model";
-import { fetchProject } from "./fetch-project";
+import { fetchProject, fetchProjectWithNullValues } from "./fetch-project";
 import { importProject } from "./import-project";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
@@ -129,5 +129,39 @@ describe("fetch-project integration", () => {
 
     const project = await fetchProject();
     expect(project.hydraulicModel.assets.size).toBe(1);
+  });
+
+  describe("when the roughness column is null", () => {
+    const importPipeWithNullRoughness = () =>
+      importProject({
+        newDb: true,
+        hydraulicModel: HydraulicModelBuilder.with()
+          .aJunction(1)
+          .aJunction(2)
+          .aPipe(3, { startNodeId: 1, endNodeId: 2, roughness: null })
+          .build(),
+        projectSettings: defaultProjectSettings,
+        simulationSettings: defaultSimulationSettings,
+      });
+
+    it("fills the default with fetchProject", async () => {
+      await importPipeWithNullRoughness();
+
+      const project = await fetchProject();
+
+      expect((project.hydraulicModel.assets.get(3) as Pipe).roughness).toBe(
+        130,
+      );
+    });
+
+    it("keeps it empty with fetchProjectWithNullValues", async () => {
+      await importPipeWithNullRoughness();
+
+      const project = await fetchProjectWithNullValues();
+
+      expect(
+        (project.hydraulicModel.assets.get(3) as Pipe).roughness,
+      ).toBeNull();
+    });
   });
 });

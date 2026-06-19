@@ -11,11 +11,17 @@ import { useNewProject } from "./create-new-project";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { modelFactoriesAtom } from "src/state/model-factories";
 
 const aMoment = (name: string) => ({ note: name });
 
 describe("create new project", () => {
   useInProcessDb();
+
+  beforeEach(() => {
+    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+  });
 
   it("allows to choose the unit system", async () => {
     const store = setInitialState({});
@@ -111,6 +117,30 @@ describe("create new project", () => {
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
     const hydraulicModel = store.get(stagingModelAtom);
     expect(hydraulicModel.assets.get(IDS.J1)).not.toBeUndefined();
+  });
+
+  it("builds a factory that defaults roughness when validation is off", async () => {
+    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+    const store = setInitialState({});
+    renderComponent({ store });
+
+    await triggerNew();
+    await userEvent.click(screen.getByRole("button", { name: /create/i }));
+
+    const { assetFactory } = store.get(modelFactoriesAtom);
+    expect(assetFactory.createPipe({}).roughness).toBe(130);
+  });
+
+  it("builds a factory that leaves roughness empty when validation is on", async () => {
+    stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
+    const store = setInitialState({});
+    renderComponent({ store });
+
+    await triggerNew();
+    await userEvent.click(screen.getByRole("button", { name: /create/i }));
+
+    const { assetFactory } = store.get(modelFactoriesAtom);
+    expect(assetFactory.createPipe({}).roughness).toBeNull();
   });
 
   const triggerNew = async () => {

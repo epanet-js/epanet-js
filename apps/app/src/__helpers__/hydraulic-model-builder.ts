@@ -235,13 +235,15 @@ export class HydraulicModelBuilder {
   aPipe(
     id: number,
     data: Partial<
-      PipeBuildData & {
+      Omit<PipeBuildData, "roughness"> & {
         startNodeId: number;
         endNodeId: number;
+        roughness: number | null;
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, coordinates, ...properties } = data;
+    const { startNodeId, endNodeId, coordinates, roughness, ...properties } =
+      data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -250,7 +252,11 @@ export class HydraulicModelBuilder {
       connections: [startNode.id, endNode.id],
       id,
       ...properties,
+      ...(typeof roughness === "number" ? { roughness } : {}),
     });
+    if (roughness === null) {
+      pipe.setRoughness(null);
+    }
     this.assets.set(id, pipe);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);

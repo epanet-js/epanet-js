@@ -5,6 +5,7 @@ import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { FetchProjectPhase } from "src/lib/db";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   clearSimulationStorage,
   loadModel,
@@ -35,6 +36,8 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -46,13 +49,16 @@ export const useOpenPersistedProject = () => {
         if (result.status !== "ok" && result.status !== "migrated") {
           return result;
         }
+        const fetchProject = allowsNullValues
+          ? db.fetchProjectWithNullValues
+          : db.fetchProject;
         const {
           projectSettings,
           zones,
           hydraulicModel,
           factories,
           simulationSettings,
-        } = await db.fetchProject({ onProgress });
+        } = await fetchProject({ onProgress });
         onProgress?.("finalizing");
         await clearSimulationStorage();
         resetAppState(set);
@@ -71,7 +77,7 @@ export const useOpenPersistedProject = () => {
           projectSettings,
         };
       },
-      [],
+      [allowsNullValues],
     ),
   );
 

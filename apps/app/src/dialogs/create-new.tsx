@@ -26,9 +26,11 @@ import {
 } from "src/hydraulic-model";
 import {
   initializeModelFactories,
+  initializeModelFactoriesWithNullValues,
   LabelManager,
   headlossFormulasFullNames,
 } from "@epanet-js/hydraulic-model";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { useTranslate } from "src/hooks/use-translate";
@@ -81,6 +83,7 @@ export const CreateNew = () => {
 
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
   const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
   const { closeDialog } = useDialogState();
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
@@ -129,7 +132,10 @@ export const CreateNew = () => {
       const hydraulicModel = initializeHydraulicModel({
         idGenerator,
       });
-      const factories = initializeModelFactories({
+      const initializeFactories = allowsNullValues
+        ? initializeModelFactoriesWithNullValues
+        : initializeModelFactories;
+      const factories = initializeFactories({
         idGenerator,
         labelManager: new LabelManager(),
         defaults,
@@ -173,6 +179,7 @@ export const CreateNew = () => {
       setGridPreview,
       setGridHidden,
       userTracking,
+      allowsNullValues,
     ],
   );
 

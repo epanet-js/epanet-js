@@ -1,14 +1,14 @@
 import { IdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
-import { AssetFactory } from "./asset-factory";
+import { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
 import type { DefaultsSpec } from "../asset-types";
 
 export {
   CustomerPointFactory,
   buildCustomerPointPreviewFactory,
 } from "./customer-point-factory";
-export { AssetFactory } from "./asset-factory";
+export { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
 
 export type ModelFactories = {
   customerPointFactory: CustomerPointFactory;
@@ -18,12 +18,17 @@ export type ModelFactories = {
   idGenerator: IdGenerator;
 };
 
-export const initializeModelFactories = (options: {
+type ModelFactoriesOptions = {
   idGenerator: IdGenerator;
   labelManager: LabelManager;
   defaults: DefaultsSpec;
   labelCounters?: Map<LabelType, number>;
-}): ModelFactories => {
+};
+
+const buildModelFactories = (
+  options: ModelFactoriesOptions,
+  assetFactory: AssetFactory,
+): ModelFactories => {
   const labelCounters = options.labelCounters ?? new Map<LabelType, number>();
   options.labelManager.adoptCounters(labelCounters);
 
@@ -32,13 +37,33 @@ export const initializeModelFactories = (options: {
       options.idGenerator,
       options.labelManager,
     ),
-    assetFactory: new AssetFactory(
-      options.defaults,
-      options.idGenerator,
-      options.labelManager,
-    ),
+    assetFactory,
     labelManager: options.labelManager,
     labelCounters,
     idGenerator: options.idGenerator,
   };
 };
+
+export const initializeModelFactories = (
+  options: ModelFactoriesOptions,
+): ModelFactories =>
+  buildModelFactories(
+    options,
+    new AssetFactory(
+      options.defaults,
+      options.idGenerator,
+      options.labelManager,
+    ),
+  );
+
+export const initializeModelFactoriesWithNullValues = (
+  options: ModelFactoriesOptions,
+): ModelFactories =>
+  buildModelFactories(
+    options,
+    new AssetFactoryWithNullValues(
+      options.defaults,
+      options.idGenerator,
+      options.labelManager,
+    ),
+  );

@@ -5,6 +5,7 @@ import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
   initializeModelFactories,
+  initializeModelFactoriesWithNullValues,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
@@ -40,7 +41,10 @@ export type FetchProjectOptions = {
   onProgress?: (phase: FetchProjectPhase) => void;
 };
 
-export const fetchProject = async (
+type InitializeModelFactories = typeof initializeModelFactories;
+
+const fetchProjectWith = async (
+  initializeFactories: InitializeModelFactories,
   options: FetchProjectOptions = {},
 ): Promise<Project> => {
   const { onProgress } = options;
@@ -112,7 +116,7 @@ export const fetchProject = async (
         const zones = buildZonesData(zonesRaw);
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
-        const factories = initializeModelFactories({
+        const factories = initializeFactories({
           idGenerator,
           labelManager: new LabelManager(),
           defaults: projectSettings.defaults,
@@ -183,3 +187,12 @@ export const fetchProject = async (
     );
   });
 };
+
+export const fetchProject = (
+  options: FetchProjectOptions = {},
+): Promise<Project> => fetchProjectWith(initializeModelFactories, options);
+
+export const fetchProjectWithNullValues = (
+  options: FetchProjectOptions = {},
+): Promise<Project> =>
+  fetchProjectWith(initializeModelFactoriesWithNullValues, options);

@@ -27,7 +27,7 @@ export type PipeBuildData = {
   connections?: LinkConnections;
   initialStatus?: PipeStatus;
   diameter?: number;
-  roughness?: number | null;
+  roughness?: number;
   minorLoss?: number;
   length?: number;
   bulkReactionCoeff?: number;
@@ -168,8 +168,7 @@ export class AssetFactory {
       length: this.getPipeValue("length", length),
       diameter: this.getPipeValue("diameter", diameter),
       minorLoss: this.getPipeValue("minorLoss", minorLoss),
-      roughness:
-        roughness === null ? null : this.getPipeValue("roughness", roughness),
+      roughness: this.getPipeValue("roughness", roughness),
       bulkReactionCoeff,
       wallReactionCoeff,
       material,
@@ -416,5 +415,15 @@ export class AssetFactory {
     if (isProvided(candidate)) return candidate;
 
     return this.defaults.tank[name] || 0;
+  }
+}
+
+export class AssetFactoryWithNullValues extends AssetFactory {
+  createPipe(data: PipeBuildData = {}): Pipe {
+    const pipe = super.createPipe(data);
+    if (data.roughness == null) {
+      pipe.setRoughness(null);
+    }
+    return pipe;
   }
 }

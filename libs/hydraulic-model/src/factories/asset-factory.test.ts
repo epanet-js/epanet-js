@@ -1,16 +1,41 @@
 import { describe, it, expect } from "vitest";
-import { buildPipe } from "../test-helpers";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
+import { LabelManager } from "../label-manager";
+import { testDefaults } from "../test-helpers/defaults";
+
+const assetFactory = () =>
+  new AssetFactory(
+    testDefaults,
+    new ConsecutiveIdsGenerator(),
+    new LabelManager(),
+  );
+
+const assetFactoryWithNullValues = () =>
+  new AssetFactoryWithNullValues(
+    testDefaults,
+    new ConsecutiveIdsGenerator(),
+    new LabelManager(),
+  );
 
 describe("AssetFactory createPipe roughness", () => {
   it("applies the default roughness when none is provided", () => {
-    expect(buildPipe({}).roughness).toEqual(130);
+    expect(assetFactory().createPipe({}).roughness).toEqual(130);
   });
 
   it("keeps the provided roughness value", () => {
-    expect(buildPipe({ roughness: 95 }).roughness).toEqual(95);
+    expect(assetFactory().createPipe({ roughness: 95 }).roughness).toEqual(95);
+  });
+});
+
+describe("AssetFactoryWithNullValues createPipe roughness", () => {
+  it("leaves roughness empty when none is provided", () => {
+    expect(assetFactoryWithNullValues().createPipe({}).roughness).toBeNull();
   });
 
-  it("leaves roughness empty when explicitly null", () => {
-    expect(buildPipe({ roughness: null }).roughness).toBeNull();
+  it("keeps the provided roughness value", () => {
+    expect(
+      assetFactoryWithNullValues().createPipe({ roughness: 95 }).roughness,
+    ).toEqual(95);
   });
 });
