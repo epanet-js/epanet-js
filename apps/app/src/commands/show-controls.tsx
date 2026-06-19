@@ -10,7 +10,7 @@ export const useShowControls = () => {
   const userTracking = useUserTracking();
 
   const showControls = useCallback(
-    ({ source }: { source: "toolbar" | "shortcut" }) => {
+    ({ source }: { source: "toolbar" | "shortcut" | "assetPanel" }) => {
       userTracking.capture({
         name: "controls.opened",
         source,

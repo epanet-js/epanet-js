@@ -12,6 +12,8 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
+import { useShowControls } from "src/commands/show-controls";
+import { WarningIcon } from "src/icons";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { PumpTimeBasedControls } from "./pump-time-based-controls";
@@ -38,6 +40,7 @@ export const PumpControlsEditor = ({
   control,
   tanks,
   onControlChange,
+  hasRawControls = false,
   readOnly = false,
 }: {
   linkId: AssetId;
@@ -46,11 +49,13 @@ export const PumpControlsEditor = ({
   control: Control | null;
   tanks: Tank[];
   onControlChange: (control: Control | null) => void;
+  hasRawControls?: boolean;
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
   const { canUseControls } = usePermissions();
   const showPriorityAccess = useShowPriorityAccessDialog();
+  const showControls = useShowControls();
   const controlType = controlTypeFor(control);
 
   const typeOptions = useMemo(
@@ -135,6 +140,17 @@ export const PumpControlsEditor = ({
           onStepsChange={handleStepsChange}
           readOnly={readOnly}
         />
+      )}
+
+      {hasRawControls && (
+        <button
+          type="button"
+          onClick={() => showControls({ source: "assetPanel" })}
+          className="flex items-center gap-x-1.5 py-1 text-size-base text-subtle hover:text-default cursor-pointer"
+        >
+          <WarningIcon size="sm" />
+          <span>{translate("controls.rawControlsDetected")}</span>
+        </button>
       )}
     </>
   );

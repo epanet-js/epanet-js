@@ -2231,6 +2231,15 @@ const PumpEditor = ({
   const pumpControl =
     hydraulicModel.controls.find((c) => c.linkId === pump.id) ?? null;
 
+  const { rawControls } = hydraulicModel;
+  const hasRawControls =
+    rawControls.simple.some((c) =>
+      c.assetReferences.some((ref) => ref.assetId === pump.id),
+    ) ||
+    rawControls.rules.some((r) =>
+      r.assetReferences.some((ref) => ref.assetId === pump.id),
+    );
+
   const handleControlChangeForPump = (control: Control | null) => {
     onControlChange(pump.id, control, pumpControl);
   };
@@ -2340,6 +2349,7 @@ const PumpEditor = ({
             control={pumpControl}
             tanks={tanks}
             onControlChange={handleControlChangeForPump}
+            hasRawControls={hasRawControls}
             readOnly={readonly}
           />
         </SectionWrapper>

@@ -915,9 +915,10 @@
   "controls": {
     "title": "Controls",
     "epanetTitle": "EPANET Controls",
-    "nativeControlsInfoTitle": "Easier Pump Controls Available",
+    "nativeControlsInfoTitle": "Easier pump controls available",
     "nativeControlsInfoDescription": "You can now configure time-based and level-based pump controls directly from the asset panel!",
     "nativeControlsInfoNote": "While you can still use the raw editor, please avoid configuring the same asset in both places to prevent control conflicts.",
+    "rawControlsDetected": "EPANET raw controls detected",
     "nativeTitle": "native controls",
     "simpleTab": "Simple",
     "rulesTab": "Rule-based",
