@@ -196,6 +196,25 @@ Node 19 and Pipe 56`;
     });
   });
 
+  it("replaces IDs with labels in PIPES section rows with a missing roughness", () => {
+    const IDS = { P1: 1, J1: 2, J2: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2, { label: "Junction2" })
+      .build().assets;
+
+    const report = `1\t2\t3\t1000\t300\tMISSING`;
+
+    const { processedReport } = processReportWithSlots(report, assets);
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: "{{0}}\t{{1}}\t{{2}}\t1000\t300\tMISSING",
+      assetSlots: [IDS.P1, IDS.J1, IDS.J2],
+    });
+  });
+
   it("replaces IDs with labels in PUMPS section rows", () => {
     const IDS = { PUMP1: 1, N12: 12, N32: 32 };
     const assets = HydraulicModelBuilder.with()
