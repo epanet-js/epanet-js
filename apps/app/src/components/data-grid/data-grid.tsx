@@ -34,6 +34,7 @@ import {
 import type { CellPosition } from "./types";
 import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
 import { defaultPatchRow, type PatchRowFn } from "./utils/patch-row";
+import { resolveDataIndex } from "./utils/data-index";
 
 export type DataGridRef = {
   selectCells: (options?: {
@@ -230,8 +231,9 @@ export const DataGrid = forwardRef(function DataGrid<
     (rowIndex: number) => {
       const leafColumns = table.getVisibleLeafColumns();
       if (leafColumns.length === 0) return;
+      const dataIndex = resolveDataIndex(table, rowIndex);
       const firstEditableCol = leafColumns.findIndex(
-        (col) => !col.isReadOnly(rowIndex),
+        (col) => !col.isReadOnly(dataIndex),
       );
       const colIndex = firstEditableCol !== -1 ? firstEditableCol : 0;
       gridRef.current?.focus();
@@ -304,7 +306,7 @@ export const DataGrid = forwardRef(function DataGrid<
     (col: number) => {
       const column = table.getVisibleLeafColumns()[col];
       const rowIndex = table.getActiveCell()?.row ?? 0;
-      if (column && !column.isReadOnly(rowIndex)) {
+      if (column && !column.isReadOnly(resolveDataIndex(table, rowIndex))) {
         table.startEditing("full");
       }
     },

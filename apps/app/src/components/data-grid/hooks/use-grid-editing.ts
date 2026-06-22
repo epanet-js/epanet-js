@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import type { Table } from "@tanstack/react-table";
+import { resolveDataIndex } from "../utils/data-index";
 
 type UseGridEditingOptions<TData extends Record<string, unknown>> = {
   table: Table<TData>;
@@ -87,7 +88,10 @@ export function useGridEditing<TData extends Record<string, unknown>>({
           e.preventDefault();
           if (activeCell) {
             const column = table.getVisibleLeafColumns()[activeCell.col];
-            if (column && !column.isReadOnly(activeCell.row)) {
+            if (
+              column &&
+              !column.isReadOnly(resolveDataIndex(table, activeCell.row))
+            ) {
               table.startEditing("full");
             }
           }
@@ -131,7 +135,10 @@ export function useGridEditing<TData extends Record<string, unknown>>({
             !e.altKey
           ) {
             const column = table.getVisibleLeafColumns()[activeCell.col];
-            if (column && !column.isReadOnly(activeCell.row)) {
+            if (
+              column &&
+              !column.isReadOnly(resolveDataIndex(table, activeCell.row))
+            ) {
               table.startEditing("quick");
             }
           }

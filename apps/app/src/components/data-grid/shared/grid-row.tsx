@@ -73,7 +73,7 @@ export function GridRow<TData extends Record<string, unknown>>({
           <GridDataCell
             key={cell.id}
             cell={cell}
-            readOnly={cell.column.isReadOnly(rowIndex)}
+            readOnly={cell.column.isReadOnly(cell.row.index)}
             onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
             onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
             onDoubleClick={() => onCellDoubleClick(colIndex)}

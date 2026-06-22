@@ -228,7 +228,7 @@ function clearSelectedCells<TData extends RowData>(
 
   const patchRow: PatchRowFn = table.options.patchRow ?? defaultPatchRow;
 
-  return data.map((row) => {
+  return data.map((row, dataIndex) => {
     const visibleIndex = targetRows.get(row);
     if (visibleIndex === undefined) return row;
 
@@ -239,7 +239,9 @@ function clearSelectedCells<TData extends RowData>(
       colIndex++
     ) {
       const column = columns[colIndex];
-      if (!column || column.isReadOnly(visibleIndex)) continue;
+      // Read-only rules address rows by data index; `visibleIndex` is the
+      // sorted position, so use the data-array index here.
+      if (!column || column.isReadOnly(dataIndex)) continue;
 
       const accessorKey = column.id;
       if (!accessorKey) continue;
