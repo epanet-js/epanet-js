@@ -1615,6 +1615,14 @@
     }
   },
   "pipeLibrary": {
-    "menuLabel": "Pipe library"
+    "menuLabel": "Pipe library",
+    "applyRoughness": "Apply roughness to assets...",
+    "materials": "Pipe materials",
+    "age": "Age",
+    "roughness": "Roughness",
+    "addEntry": "Add entry",
+    "noSelection": "Select a material to view its roughness entries",
+    "emptyTitle": "The pipe library is empty",
+    "emptyDescription": "Add a pipe material to get started"
   }
 }
