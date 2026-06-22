@@ -400,37 +400,42 @@ describe("addCustomerPoints", () => {
     expect(totalCustomerDemand).toBe(25);
   });
 
-  it("resets junction base demands to 0 when preserveJunctionDemands is false", () => {
-    const IDS = { J1: 1, CP1: 2 } as const;
+  it("resets junction base demands for all junctions when preserveJunctionDemands is false", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
+      .aJunction(IDS.J2, { coordinates: [10, 0] })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 0],
+          [10, 0],
+        ],
+      })
       .aJunctionDemand(IDS.J1, [{ baseDemand: 60 }])
+      .aJunctionDemand(IDS.J2, [{ baseDemand: 40 }])
       .build();
-
-    const customerPointsToAdd: CustomerPoint[] = [];
 
     const cp1 = buildCustomerPoint(IDS.CP1, {
       coordinates: [2, 1],
     });
     cp1.connect({
-      pipeId: 999,
+      pipeId: IDS.P1,
       snapPoint: [2, 0],
       junctionId: IDS.J1,
     });
-    customerPointsToAdd.push(cp1);
 
-    const updatedModel = addCustomerPoints(
-      hydraulicModel,
-      customerPointsToAdd,
-      {
-        preserveJunctionDemands: false,
-        customerPointDemands: new Map<number, Demand[]>([
-          [IDS.CP1, [{ baseDemand: 35 }]],
-        ]),
-      },
-    );
+    const updatedModel = addCustomerPoints(hydraulicModel, [cp1], {
+      preserveJunctionDemands: false,
+      customerPointDemands: new Map<number, Demand[]>([
+        [IDS.CP1, [{ baseDemand: 35 }]],
+      ]),
+    });
 
     expect(updatedModel.demands.junctions.has(IDS.J1)).toBe(false);
+    expect(updatedModel.demands.junctions.has(IDS.J2)).toBe(false);
+    expect(updatedModel.demands.junctions.size).toBe(0);
 
     const j1CustomerPoints =
       updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);

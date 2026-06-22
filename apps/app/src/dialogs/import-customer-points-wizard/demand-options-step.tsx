@@ -52,12 +52,12 @@ export const DemandOptionsStep: React.FC<{
               <div className="flex-1">
                 <div className="font-medium text-default">
                   {translate(
-                    "importCustomerPoints.wizard.demandOptions.replaceOption.title",
+                    "importCustomerPoints.wizard.demandOptions.deleteOption.title",
                   )}
                 </div>
                 <div className="text-size-base text-subtle mt-1">
                   {translate(
-                    "importCustomerPoints.wizard.demandOptions.replaceOption.description",
+                    "importCustomerPoints.wizard.demandOptions.deleteOption.description",
                   )}
                 </div>
               </div>

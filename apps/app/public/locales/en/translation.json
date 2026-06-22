@@ -1134,9 +1134,9 @@
       },
       "demandOptions": {
         "title": "Demand options",
-        "replaceOption": {
-          "title": "Replace existing demands with customer demands (default)",
-          "description": "Set all base demands at junctions to zero and use only the customer point demands. Recommended when customer data is the main source of demand."
+        "deleteOption": {
+          "title": "Delete all existing junction demand (default)",
+          "description": "Set all base demands at junctions to zero and use only allocated customer point demands. Recommended when customer data is the main source of demand."
         },
         "addOnTopOption": {
           "title": "Add customer demands on top of existing demands",

@@ -28,21 +28,11 @@ export const addCustomerPoints = (
     ? new CustomerPointsLookup()
     : hydraulicModel.customerPointsLookup.copy();
 
-  const junctionsToClearDemands = new Set<number>();
-
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
 
     if (customerPoint.connection) {
       updatedLookup.addConnection(customerPoint);
-    }
-
-    if (!customerPoint.connection || !customerPoint.connection.junctionId) {
-      continue;
-    }
-
-    if (!preserveJunctionDemands) {
-      junctionsToClearDemands.add(customerPoint.connection.junctionId);
     }
   }
 
@@ -51,14 +41,9 @@ export const addCustomerPoints = (
     updatedAssets,
   );
 
-  const updatedJunctionDemands =
-    junctionsToClearDemands.size > 0
-      ? new Map(hydraulicModel.demands.junctions)
-      : hydraulicModel.demands.junctions;
-
-  for (const junctionId of junctionsToClearDemands) {
-    updatedJunctionDemands.delete(junctionId);
-  }
+  const updatedJunctionDemands = !preserveJunctionDemands
+    ? new Map<number, Demand[]>()
+    : hydraulicModel.demands.junctions;
 
   const updatedCustomerDemands = overrideExisting
     ? new Map<number, Demand[]>()
@@ -71,7 +56,7 @@ export const addCustomerPoints = (
   }
 
   const demandsChanged =
-    junctionsToClearDemands.size > 0 ||
+    !preserveJunctionDemands ||
     (options.customerPointDemands && options.customerPointDemands.size > 0) ||
     overrideExisting;
 
