@@ -10,5 +10,5 @@ export type NodeSizeConfig = {
 export const defaultNodeSizeConfig: NodeSizeConfig = {
   minVisibleZoom: 12,
   minSize: 1,
-  maxSize: 5,
+  maxSize: 12,
 };
