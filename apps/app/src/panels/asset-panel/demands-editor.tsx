@@ -195,7 +195,6 @@ export const DemandCategoriesEditor = ({
         header: translate("demand"),
         size: 60,
         emptyValue: 0,
-        positiveOnly: true,
       }),
       filterableSelectColumn("patternId", {
         header: translate("timePattern"),
