@@ -52,7 +52,7 @@ export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
 
 export const pipeDrawingDefaultsAtom = atom<{
   diameter?: number;
-  roughness?: number;
+  roughness?: number | null;
 }>({});
 
 export const autoElevationsAtom = atom<boolean>(true);

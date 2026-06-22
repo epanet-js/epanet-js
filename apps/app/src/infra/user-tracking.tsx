@@ -1475,7 +1475,7 @@ export type UserEvent =
   | {
       name: "pipeDrawingDefaults.changed";
       property: "diameter" | "roughness";
-      newValue: number;
+      newValue: number | null;
     }
   | { name: "unexpectedError.seen" }
   | { name: "fitMapToNetworkExtent.clicked" }
