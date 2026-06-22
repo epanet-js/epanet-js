@@ -16,3 +16,5 @@ export {
   buildDefaultLevelSetting,
   setAssetControl,
 } from "./types";
+
+export { ControlsLookup, buildControlsLookup } from "./lookup";

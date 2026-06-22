@@ -9,6 +9,7 @@ import {
   Curves,
   Patterns,
   LabelManager,
+  buildControlsLookup,
 } from "@epanet-js/hydraulic-model";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { isDebugOn } from "src/infra/debug-mode";
@@ -113,6 +114,7 @@ export const applyMomentToModel = (
 
   if (moment.putControls) {
     hydraulicModel.controls = moment.putControls;
+    hydraulicModel.controlsLookup = buildControlsLookup(moment.putControls);
   }
 
   if (moment.putCurves) {

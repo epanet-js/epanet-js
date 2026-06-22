@@ -2272,7 +2272,9 @@ const PumpEditor = ({
   );
 
   const pumpControl =
-    hydraulicModel.controls.find((c) => c.linkId === pump.id) ?? null;
+    [...hydraulicModel.controlsLookup.getControls(pump.id)].find(
+      (c) => c.linkId === pump.id,
+    ) ?? null;
 
   const { rawControls } = hydraulicModel;
   const hasRawControls =

@@ -29,6 +29,7 @@ import {
   createControlId,
   createEmptyControls,
   setAssetControl,
+  buildControlsLookup,
 } from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "@epanet-js/hydraulic-model";
 import {
@@ -502,6 +503,7 @@ export class HydraulicModelBuilder {
       patterns: this.patterns,
       rawControls: this.rawControlsValue,
       controls: this.controlsValue,
+      controlsLookup: buildControlsLookup(this.controlsValue),
     };
   }
 
