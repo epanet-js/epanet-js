@@ -291,12 +291,35 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
 
   const displayRules = isEditingRules ? tempRules : allocationRules;
   const allocationCounts = allocationResult?.ruleMatches || [];
-  const totalCustomerPoints = disconnectedCustomerPoints.length;
-  const totalAllocated = allocationCounts.reduce(
+  const totalCustomerPoints = hydraulicModel.customerPoints.size;
+  const totalUnallocatedCustomerPoints = useMemo(() => {
+    let count = 0;
+    for (const [, cp] of hydraulicModel.customerPoints) {
+      if (cp.connection === null) {
+        count++;
+      }
+    }
+
+    return count;
+  }, [hydraulicModel]);
+  const totalAllocatedCustomerPoints = useMemo(() => {
+    let count = 0;
+    for (const [, cp] of hydraulicModel.customerPoints) {
+      if (cp.connection !== null) {
+        count++;
+      }
+    }
+
+    return count;
+  }, [hydraulicModel]);
+  const allocatedByAllRules = allocationCounts.reduce(
     (total, count) => total + count,
     0,
   );
-  const unallocatedCount = Math.max(0, totalCustomerPoints - totalAllocated);
+  const unallocatedCount = Math.max(
+    0,
+    totalCustomerPoints - allocatedByAllRules - totalAllocatedCustomerPoints,
+  );
 
   return (
     <div className="p-4 overflow-y-auto grow space-y-4">
@@ -344,11 +367,12 @@ export const AllocationDialog: React.FC<AllocateCustomerPointsDialogProps> = ({
         />
 
         <AllocationSummary
-          totalAllocated={totalAllocated}
+          totalAllocated={allocatedByAllRules}
           unallocatedCount={unallocatedCount}
           isAllocating={isAllocating}
           isVisible={!isEditingRules && allocationRules.length > 0}
           totalCustomerPoints={totalCustomerPoints}
+          totalUnallocatedCustomerPoints={totalUnallocatedCustomerPoints}
           zoneName={
             customerAllocationMode === "zoneCustomers" && allocationZone
               ? zones.get(allocationZone)?.label
@@ -471,6 +495,7 @@ type AllocationSummaryProps = {
   isAllocating: boolean;
   isVisible: boolean;
   totalCustomerPoints: number;
+  totalUnallocatedCustomerPoints: number;
   zoneName?: string;
   customerPointsInZone?: number;
 };
@@ -484,6 +509,7 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   isAllocating,
   isVisible,
   totalCustomerPoints,
+  totalUnallocatedCustomerPoints,
   zoneName,
   customerPointsInZone,
 }) => {
@@ -511,7 +537,10 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     );
   }
 
-  if (totalCustomerPoints === 0) {
+  const nothingToAllocate =
+    totalCustomerPoints === 0 || totalUnallocatedCustomerPoints === 0;
+
+  if (nothingToAllocate) {
     return (
       <>
         <h3 className="text-md font-medium">
@@ -534,10 +563,6 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
 
   if (isInZoneAllocationMode) {
     const zoneUnallocated = Math.max(0, customerPointsInZone - totalAllocated);
-    const networkUnallocated = Math.max(
-      0,
-      totalCustomerPoints - totalAllocated,
-    );
 
     return (
       <>
@@ -588,9 +613,9 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
               <span className="text-size-base text-default">
                 {translate(
                   "allocateCustomerPoints.dialog.unallocatedPoints",
-                  localizeDecimal(networkUnallocated),
+                  localizeDecimal(totalUnallocatedCustomerPoints),
                   percentage(
-                    networkUnallocated,
+                    totalUnallocatedCustomerPoints,
                     totalCustomerPoints,
                   ).toString(),
                 )}

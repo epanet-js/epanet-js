@@ -196,7 +196,11 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                         />
                       </div>
                     ) : (
-                      localizeDecimal(allocationCounts[index])
+                      localizeDecimal(
+                        isNaN(allocationCounts[index])
+                          ? 0
+                          : allocationCounts[index],
+                      )
                     )}
                   </td>
                 )}
