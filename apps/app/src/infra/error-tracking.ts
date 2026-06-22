@@ -10,9 +10,13 @@ export const captureError = (error: Error) => {
   Sentry.captureException(error);
 };
 
-export const captureWarning = (message: string, error?: unknown) => {
+export const captureWarning = (
+  message: string,
+  error?: unknown,
+  contexts?: Record<string, Record<string, unknown>>,
+) => {
   // eslint-disable-next-line no-console
-  if (isDebugMode()) console.warn(message, error);
+  if (isDebugMode()) console.warn(message, error, contexts);
 
   Sentry.captureMessage(message, {
     level: "warning",
@@ -20,6 +24,7 @@ export const captureWarning = (message: string, error?: unknown) => {
       error instanceof Error
         ? { error: error.message, stack: error.stack }
         : undefined,
+    contexts,
   });
 };
 

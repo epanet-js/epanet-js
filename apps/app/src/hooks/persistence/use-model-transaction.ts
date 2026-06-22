@@ -10,6 +10,7 @@ import {
 } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { dialogAtom } from "src/state/dialog";
+import { modeAtom, MODE_INFO } from "src/state/mode";
 import { trackMoment } from "src/lib/persistence/shared";
 import {
   applyMoment,
@@ -18,7 +19,11 @@ import {
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
+import {
+  findOrphanLinkConnections,
+  findStoreInconsistencies,
+} from "src/hydraulic-model/validate-moment-integrity";
 
 export const useModelTransaction = () => {
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
@@ -45,6 +50,27 @@ export const useModelTransaction = () => {
           }
         }
 
+        const orphanLinks = findOrphanLinkConnections(
+          get(stagingModelDerivedAtom),
+          moment,
+        );
+        if (orphanLinks.length > 0) {
+          const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
+          const causes = [...new Set(orphanLinks.map((o) => o.cause))];
+          captureWarning(
+            `Model integrity (orphan link connection)`,
+            undefined,
+            {
+              "model operation": {
+                note: moment.note,
+                mode: MODE_INFO[get(modeAtom).mode].name,
+                linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
+                cause: causes.length === 1 ? causes[0] : causes,
+              },
+            },
+          );
+        }
+
         trackMoment(moment);
         const newStateId = nanoid();
 
@@ -55,6 +81,24 @@ export const useModelTransaction = () => {
           moment,
           stagingModelDerivedAtom,
         );
+
+        const storeInconsistencies = findStoreInconsistencies(
+          get(stagingModelDerivedAtom),
+          moment,
+        );
+        if (storeInconsistencies.length > 0) {
+          captureWarning(
+            `Model integrity (store desync) after "${moment.note}": ` +
+              storeInconsistencies
+                .map(
+                  (i) =>
+                    `id=${i.id} kind=${i.kind} ` +
+                    `assets=${i.inAssets} index=${i.inAssetIndex} ` +
+                    `topology=${i.inTopology}`,
+                )
+                .join("; "),
+          );
+        }
 
         if (willPersist) {
           if (payload) {
