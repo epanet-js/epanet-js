@@ -5,6 +5,7 @@ import {
   type GridColumn,
   type RowAction,
   floatColumn,
+  integerColumn,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
@@ -101,7 +102,7 @@ export const PipeRoughnessTable = ({
 
   const columns: GridColumn<RoughnessEntry>[] = useMemo(
     () => [
-      floatColumn("age", {
+      integerColumn("age", {
         header: translate("pipeLibrary.age"),
         size: 82,
         emptyValue: 0,
