@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
+import {
+  getLinkLevelSetting,
+  getLinkTimedSetting,
+} from "@epanet-js/hydraulic-model";
 import { deleteAssets } from "./delete-assets";
+import { applyMomentToModel } from "../mutations/apply-moment";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildTestFactories } from "src/__helpers__/test-factories";
 
 describe("deleteAssets", () => {
   it("disconnects customer points when deleting pipe", () => {
@@ -298,6 +304,114 @@ describe("deleteAssets", () => {
       });
 
       expect(putDemands).toBeUndefined();
+    });
+  });
+
+  describe("controls cleanup", () => {
+    it("removes the control attached to a deleted pump", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, N3: 4, N4: 5, P2: 6 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTimedSettingControl({
+          linkId: IDS.P1,
+          steps: [{ time: 3600, status: "off", setting: 1 }],
+        })
+        .aJunction(IDS.N3)
+        .aJunction(IDS.N4)
+        .aPump(IDS.P2, { startNodeId: IDS.N3, endNodeId: IDS.N4 })
+        .aTimedSettingControl({
+          linkId: IDS.P2,
+          steps: [{ time: 7200, status: "on", setting: 1 }],
+        })
+        .build();
+
+      const { putControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+      });
+
+      expect(putControls).toBeDefined();
+      expect(getLinkTimedSetting(putControls!, IDS.P1)).toBeNull();
+      expect(getLinkTimedSetting(putControls!, IDS.P2)).not.toBeNull();
+    });
+
+    it("removes a level-setting control when its tank is deleted while the pump survives", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aLevelSettingControl({
+          linkId: IDS.P1,
+          tankId: IDS.T1,
+          on: { level: 1, setting: 1 },
+          off: { level: 5 },
+        })
+        .build();
+
+      const { deleteAssets: deletedAssetIds, putControls } = deleteAssets(
+        hydraulicModel,
+        { assetIds: [IDS.T1] },
+      );
+
+      expect(deletedAssetIds).toEqual([IDS.T1]);
+      expect(putControls).toBeDefined();
+      expect(getLinkLevelSetting(putControls!, IDS.P1)).toBeNull();
+    });
+
+    it("does not include putControls when the deleted asset has no controls", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, J1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTimedSettingControl({
+          linkId: IDS.P1,
+          steps: [{ time: 3600, status: "off", setting: 1 }],
+        })
+        .aJunction(IDS.J1)
+        .build();
+
+      const { putControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.J1],
+      });
+
+      expect(putControls).toBeUndefined();
+    });
+
+    it("applies and undoes the control removal through the moment", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const { labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aLevelSettingControl({
+          linkId: IDS.P1,
+          tankId: IDS.T1,
+          on: { level: 1, setting: 1 },
+          off: { level: 5 },
+        })
+        .build();
+
+      const moment = deleteAssets(hydraulicModel, { assetIds: [IDS.T1] });
+      const reverse = applyMomentToModel(hydraulicModel, moment, labelManager);
+
+      expect(getLinkLevelSetting(hydraulicModel.controls, IDS.P1)).toBeNull();
+      expect(hydraulicModel.controlsLookup.hasControls(IDS.P1)).toBe(false);
+      expect(hydraulicModel.controlsLookup.hasControls(IDS.T1)).toBe(false);
+
+      applyMomentToModel(hydraulicModel, reverse, labelManager);
+
+      expect(
+        getLinkLevelSetting(hydraulicModel.controls, IDS.P1),
+      ).not.toBeNull();
+      expect(hydraulicModel.controlsLookup.hasControls(IDS.P1)).toBe(true);
+      expect(hydraulicModel.controlsLookup.hasControls(IDS.T1)).toBe(true);
+      expect(hydraulicModel.assets.has(IDS.T1)).toBe(true);
     });
   });
 });

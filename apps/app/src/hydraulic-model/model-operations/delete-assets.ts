@@ -6,6 +6,7 @@ import {
   LinkAsset,
   CustomerPoint,
   CustomerPointsLookup,
+  Control,
 } from "@epanet-js/hydraulic-model";
 import type {
   AssetPatch,
@@ -26,7 +27,8 @@ export const deleteAssets: ModelOperation<InputData> = (
   hydraulicModel,
   { assetIds, shouldUpdateCustomerPoints = false },
 ) => {
-  const { topology, assets, customerPointsLookup } = hydraulicModel;
+  const { topology, assets, customerPointsLookup, controlsLookup, controls } =
+    hydraulicModel;
   const affectedIds = new Set(assetIds);
   const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
 
@@ -62,6 +64,17 @@ export const deleteAssets: ModelOperation<InputData> = (
     affectedIds,
   );
 
+  const controlsToRemove = new Set<Control>();
+  for (const id of affectedIds) {
+    for (const control of controlsLookup.getControls(id)) {
+      controlsToRemove.add(control);
+    }
+  }
+  const putControls =
+    controlsToRemove.size > 0
+      ? controls.filter((control) => !controlsToRemove.has(control))
+      : undefined;
+
   return {
     note: "Delete assets",
     deleteAssets: Array.from(affectedIds),
@@ -72,6 +85,7 @@ export const deleteAssets: ModelOperation<InputData> = (
         ? Array.from(disconnectedCustomerPoints.values())
         : undefined,
     ...(putDemands && { putDemands }),
+    ...(putControls && { putControls }),
   };
 };
 
