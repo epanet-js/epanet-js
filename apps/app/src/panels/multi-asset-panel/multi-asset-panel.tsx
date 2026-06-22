@@ -87,7 +87,7 @@ export function MultiAssetPanel({
     return map;
   }, [selectedAssets]);
 
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const pipeEditableProperties = useMemo(
     () => pipeEditablePropertiesFor(allowsNullValues),
     [allowsNullValues],

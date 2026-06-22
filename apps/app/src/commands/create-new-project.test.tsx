@@ -20,7 +20,7 @@ describe("create new project", () => {
   useInProcessDb();
 
   beforeEach(() => {
-    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+    stubFeatureOff("FLAG_NULL_VALUES");
   });
 
   it("allows to choose the unit system", async () => {
@@ -120,7 +120,7 @@ describe("create new project", () => {
   });
 
   it("builds a factory that defaults roughness when validation is off", async () => {
-    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+    stubFeatureOff("FLAG_NULL_VALUES");
     const store = setInitialState({});
     renderComponent({ store });
 
@@ -132,7 +132,7 @@ describe("create new project", () => {
   });
 
   it("builds a factory that leaves roughness empty when validation is on", async () => {
-    stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
+    stubFeatureOn("FLAG_NULL_VALUES");
     const store = setInitialState({});
     renderComponent({ store });
 

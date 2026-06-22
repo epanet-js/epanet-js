@@ -710,7 +710,7 @@ const PipeEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {

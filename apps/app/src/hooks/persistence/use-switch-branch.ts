@@ -60,7 +60,7 @@ function validateSelection(
 }
 
 export const useSwitchBranch = () => {
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const switchBranch = useAtomCallback(
     useCallback(
       (get: Getter, set: Setter, branchId: string) => {

@@ -153,7 +153,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     () => ({ model: hydraulicModel, simulation, translate }),
     [hydraulicModel, simulation, translate],
   );
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const columns = useMemo(() => {
     const validateLabel = (label: string, row: AssetRow) =>

@@ -83,7 +83,7 @@ export const CreateNew = () => {
 
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
   const { closeDialog } = useDialogState();
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);

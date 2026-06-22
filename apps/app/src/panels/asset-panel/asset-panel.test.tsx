@@ -37,7 +37,7 @@ import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
   beforeEach(() => {
-    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+    stubFeatureOff("FLAG_NULL_VALUES");
   });
 
   describe("with a pipe", () => {
@@ -91,7 +91,7 @@ describe("AssetPanel", () => {
     });
 
     it("clears roughness to empty when validation is enabled", async () => {
-      stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
+      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { roughness: 120 })
@@ -115,7 +115,7 @@ describe("AssetPanel", () => {
     });
 
     it("keeps roughness when clearing while validation is disabled", async () => {
-      stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+      stubFeatureOff("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { roughness: 120 })

@@ -41,7 +41,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {

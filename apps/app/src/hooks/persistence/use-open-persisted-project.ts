@@ -36,7 +36,7 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
-  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const openPersistedProject = useAtomCallback(
     useCallback(
