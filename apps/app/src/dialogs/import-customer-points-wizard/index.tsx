@@ -97,7 +97,6 @@ export const ImportCustomerPointsWizard: React.FC<
         customerPointsToAdd,
         {
           preserveJunctionDemands: keepDemands,
-          overrideExisting: true,
           customerPointDemands: parsedDataSummary.customerPointDemands,
         },
       );

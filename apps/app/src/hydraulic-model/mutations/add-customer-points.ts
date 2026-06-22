@@ -25,10 +25,6 @@ export const addCustomerPoints = (
 
   for (const customerPoint of customerPointsToAdd) {
     updatedCustomerPoints.set(customerPoint.id, customerPoint);
-
-    if (customerPoint.connection) {
-      updatedLookup.addConnection(customerPoint);
-    }
   }
 
   const updatedHydraulicModel = updateHydraulicModelAssets(
