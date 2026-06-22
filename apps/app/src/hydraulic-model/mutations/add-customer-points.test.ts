@@ -311,51 +311,6 @@ describe("addCustomerPoints", () => {
     expect(updatedModel.customerPoints).not.toBe(originalModel.customerPoints);
   });
 
-  it("adds new customer points while preserving existing connections", () => {
-    const IDS = { J1: 1, J2: 2, P1: 3, EXISTING: 4, CP1: 5 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0] })
-      .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aCustomerPoint(IDS.EXISTING, {
-        coordinates: [1, 1],
-        connection: {
-          pipeId: IDS.P1,
-          junctionId: IDS.J1,
-          snapPoint: [1, 0],
-        },
-      })
-      .aCustomerPointDemand(IDS.EXISTING, [{ baseDemand: 10 }])
-      .build();
-
-    const customerPointsToAdd: CustomerPoint[] = [];
-    const newCP = buildCustomerPoint(IDS.CP1, {
-      coordinates: [2, 1],
-    });
-    newCP.connect({
-      pipeId: IDS.P1,
-      snapPoint: [2, 0],
-      junctionId: IDS.J1,
-    });
-    customerPointsToAdd.push(newCP);
-
-    const existingCP = hydraulicModel.customerPoints.get(IDS.EXISTING)!;
-    const updatedModel = addCustomerPoints(
-      hydraulicModel,
-      customerPointsToAdd,
-      {
-        customerPointDemands: new Map<number, Demand[]>([
-          [IDS.CP1, [{ baseDemand: 25 }]],
-        ]),
-      },
-    );
-
-    const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
-    expect(Array.from(j1CustomerPoints)).toContain(newCP);
-    expect(Array.from(j1CustomerPoints)).toContain(existingCP);
-  });
-
   it("preserves junction base demands by default", () => {
     const IDS = { J1: 1, CP1: 2 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -565,119 +520,7 @@ describe("addCustomerPoints", () => {
     expect(p1CustomerPointIds).toContain(IDS.CP2);
   });
 
-  it("overrides existing customer points when overrideExisting is true", () => {
-    const IDS = {
-      J1: 1,
-      J2: 2,
-      P1: 3,
-      EXISTING1: 4,
-      EXISTING2: 5,
-      NEW1: 6,
-    } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0] })
-      .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aCustomerPoint(IDS.EXISTING1, {
-        coordinates: [1, 1],
-        connection: {
-          pipeId: IDS.P1,
-          junctionId: IDS.J1,
-          snapPoint: [1, 0],
-        },
-      })
-      .aCustomerPointDemand(IDS.EXISTING1, [{ baseDemand: 10 }])
-      .aCustomerPoint(IDS.EXISTING2, {
-        coordinates: [9, 1],
-        connection: {
-          pipeId: IDS.P1,
-          junctionId: IDS.J2,
-          snapPoint: [9, 0],
-        },
-      })
-      .aCustomerPointDemand(IDS.EXISTING2, [{ baseDemand: 20 }])
-      .build();
-
-    expect(hydraulicModel.customerPoints.size).toBe(2);
-
-    const newCP = buildCustomerPoint(IDS.NEW1, {
-      coordinates: [5, 1],
-    });
-    newCP.connect({
-      pipeId: IDS.P1,
-      snapPoint: [5, 0],
-      junctionId: IDS.J1,
-    });
-
-    const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
-      overrideExisting: true,
-      customerPointDemands: new Map<number, Demand[]>([
-        [IDS.NEW1, [{ baseDemand: 100 }]],
-      ]),
-    });
-
-    expect(updatedModel.customerPoints.size).toBe(1);
-    expect(updatedModel.customerPoints.has(IDS.NEW1)).toBe(true);
-    expect(updatedModel.customerPoints.has(IDS.EXISTING1)).toBe(false);
-    expect(updatedModel.customerPoints.has(IDS.EXISTING2)).toBe(false);
-
-    const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
-    const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
-
-    expect(Array.from(j1CustomerPoints)).toHaveLength(1);
-    expect(Array.from(j1CustomerPoints)[0]?.id).toBe(IDS.NEW1);
-    expect(Array.from(j2CustomerPoints)).toHaveLength(0);
-  });
-
-  it("preserves existing customer points when overrideExisting is false", () => {
-    const IDS = { J1: 1, J2: 2, P1: 3, EXISTING: 4, NEW1: 5 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aJunction(IDS.J1, { coordinates: [0, 0] })
-      .aJunction(IDS.J2, { coordinates: [10, 0] })
-      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
-      .aCustomerPoint(IDS.EXISTING, {
-        coordinates: [1, 1],
-        connection: {
-          pipeId: IDS.P1,
-          junctionId: IDS.J1,
-          snapPoint: [1, 0],
-        },
-      })
-      .aCustomerPointDemand(IDS.EXISTING, [{ baseDemand: 10 }])
-      .build();
-
-    const newCP = buildCustomerPoint(IDS.NEW1, {
-      coordinates: [5, 1],
-    });
-    newCP.connect({
-      pipeId: IDS.P1,
-      snapPoint: [5, 0],
-      junctionId: IDS.J2,
-    });
-
-    const updatedModel = addCustomerPoints(hydraulicModel, [newCP], {
-      overrideExisting: false,
-      customerPointDemands: new Map<number, Demand[]>([
-        [IDS.NEW1, [{ baseDemand: 100 }]],
-      ]),
-    });
-
-    expect(updatedModel.customerPoints.size).toBe(2);
-    expect(updatedModel.customerPoints.has(IDS.EXISTING)).toBe(true);
-    expect(updatedModel.customerPoints.has(IDS.NEW1)).toBe(true);
-
-    const j1CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J1);
-    const j2CustomerPoints =
-      updatedModel.customerPointsLookup.getCustomerPoints(IDS.J2);
-
-    expect(Array.from(j1CustomerPoints)).toHaveLength(1);
-    expect(Array.from(j2CustomerPoints)).toHaveLength(1);
-  });
-
-  it("clears customer points lookup when overrideExisting is true", () => {
+  it("clears existing customer points lookup", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, EXISTING: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [0, 0] })
@@ -698,9 +541,7 @@ describe("addCustomerPoints", () => {
       true,
     );
 
-    const updatedModel = addCustomerPoints(hydraulicModel, [], {
-      overrideExisting: true,
-    });
+    const updatedModel = addCustomerPoints(hydraulicModel, []);
 
     expect(updatedModel.customerPoints.size).toBe(0);
     expect(updatedModel.customerPointsLookup.hasConnections(IDS.J1)).toBe(
