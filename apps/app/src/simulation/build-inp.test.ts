@@ -173,39 +173,61 @@ describe("build inp", () => {
     });
 
     expect(inp).toContain("[PIPES]");
-    expect(inp).toContain("4\t1\t2\t10\t100\t1\t0\tOpen");
+    // Minor loss (0) and status (Open) are EPANET defaults, so they're omitted.
+    expect(inp).toContain("4\t1\t2\t10\t100\t1\n");
+    expect(inp).not.toContain("4\t1\t2\t10\t100\t1\t0\tOpen");
+    // A non-default status keeps both trailing columns.
     expect(inp).toContain("5\t2\t3\t20\t200\t2\t0\tClosed");
   });
 
-  it("falls back to the headloss-formula default when roughness is empty", () => {
+  it("writes MISSING for a null roughness", () => {
     const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
-    const buildModel = () =>
-      HydraulicModelBuilder.with()
-        .aNode(IDS.NODE1)
-        .aNode(IDS.NODE2)
-        .aPipe(IDS.PIPE, {
-          startNodeId: IDS.NODE1,
-          endNodeId: IDS.NODE2,
-          length: 10,
-          diameter: 100,
-          roughness: null,
-          initialStatus: "open",
-        })
-        .build();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPipe(IDS.PIPE, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        length: 10,
+        diameter: 100,
+        roughness: null,
+        initialStatus: "open",
+      })
+      .build();
 
-    const hazenWilliamsInp = buildInp(buildModel(), {
+    const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
       headlossFormula: "H-W",
     });
-    expect(hazenWilliamsInp).toContain("3\t1\t2\t10\t100\t130\t0\tOpen");
 
-    const darcyWeisbachInp = buildInp(buildModel(), {
+    expect(inp).toContain("3\t1\t2\t10\t100\tMISSING\n");
+    expect(inp).not.toContain("3\t1\t2\t10\t100\t130");
+  });
+
+  it("keeps minor loss and status when the minor loss is not zero", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPipe(IDS.PIPE, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        length: 10,
+        diameter: 100,
+        roughness: 130,
+        minorLoss: 5,
+        initialStatus: "open",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
       simulationSettings: defaultSimulationSettings,
-      headlossFormula: "D-W",
+      headlossFormula: "H-W",
     });
-    expect(darcyWeisbachInp).toContain("3\t1\t2\t10\t100\t0.1\t0\tOpen");
+
+    expect(inp).toContain("3\t1\t2\t10\t100\t130\t5\tOpen");
   });
 
   it("adds pipes with check valve status", () => {

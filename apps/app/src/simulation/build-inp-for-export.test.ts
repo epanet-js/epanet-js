@@ -97,7 +97,7 @@ describe("build inp export ", () => {
     );
 
     expect(rowsFrom(inp)).toContain("[PIPES]");
-    expect(rowsFrom(inp)).toContain("P_1\tJ_1\tJ_2\t10\t100\t1\t0\tOpen");
+    expect(rowsFrom(inp)).toContain("P_1\tJ_1\tJ_2\t10\t100\t1");
     expect(rowsFrom(inp)).toContain("P_2\tJ_2\tRES_1\t20\t200\t2\t0\tClosed");
   });
 
@@ -236,7 +236,7 @@ describe("build inp export ", () => {
 
     expect(rowsFrom(inp)).toContain("[PIPES]");
     expect(rowsFrom(inp)).toContain(
-      "SAME_LABEL\tSAME_LABEL\tSAME_LABEL.1\t10\t100\t1\t0\tOpen",
+      "SAME_LABEL\tSAME_LABEL\tSAME_LABEL.1\t10\t100\t1",
     );
     expect(rowsFrom(inp)).toContain("[JUNCTIONS]");
     expect(rowsFrom(inp)).toContain("SAME_LABEL\t10");

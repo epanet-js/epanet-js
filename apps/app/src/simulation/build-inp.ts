@@ -56,8 +56,9 @@ type SimulationPumpStatus = "Open" | "Closed";
 type SimulationValveStatus = "Open" | "Closed";
 type EpanetValveType = "TCV" | "PRV" | "PSV" | "PBV" | "FCV" | "GPV" | "PCV";
 
+const MISSING_VALUE = "MISSING";
+
 import type { EpanetUnitSystem } from "@epanet-js/project-settings";
-import { getDefaultRoughness } from "@epanet-js/project-settings";
 export type { EpanetUnitSystem };
 
 export const defaultAccuracy = 0.001;
@@ -586,7 +587,6 @@ export const buildInp = withDebugInstrumentation(
           opts.inactiveAssets,
           asset as Pipe,
           transformCoord,
-          headlossFormula,
         );
         if (opts.includeQuality) {
           appendPipeReaction(sections, idMap, asset as Pipe);
@@ -982,7 +982,6 @@ const appendPipe = (
   inactiveAssets: boolean,
   pipe: Pipe,
   transformCoord: (p: Position) => Position,
-  headlossFormula: HeadlossFormula,
 ) => {
   if (!pipe.isActive && !inactiveAssets) {
     return;
@@ -991,21 +990,21 @@ const appendPipe = (
   const linkId = idMap.linkId(pipe);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
   const commentPrefix = !pipe.isActive ? ";" : "";
-  const roughness = pipe.roughness ?? getDefaultRoughness(headlossFormula);
 
-  sections.pipes.push(
-    commentPrefix +
-      [
-        linkId,
-        startId,
-        endId,
-        pipe.length,
-        pipe.diameter,
-        roughness,
-        pipe.minorLoss,
-        pipeStatusFor(pipe),
-      ].join("\t"),
-  );
+  const status = pipeStatusFor(pipe);
+  const columns: (string | number)[] = [
+    linkId,
+    startId,
+    endId,
+    pipe.length,
+    pipe.diameter,
+    requiredValue(pipe.roughness),
+  ];
+  if (pipe.minorLoss !== 0 || status !== "Open") {
+    columns.push(pipe.minorLoss, status);
+  }
+
+  sections.pipes.push(commentPrefix + columns.join("\t"));
   if (geolocation) {
     appendLinkVertices(sections, idMap, pipe, transformCoord, commentPrefix);
   }
@@ -1451,3 +1450,6 @@ const appendCustomerPoint = (
     }
   }
 };
+
+const requiredValue = <T>(value: T | undefined | null): T | string =>
+  value == null ? MISSING_VALUE : value;
