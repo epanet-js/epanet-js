@@ -118,7 +118,7 @@ export const EDITABLE_NUMERIC_KEYS: Record<AssetType, string[]> = {
   ],
 };
 
-export const NULLABLE_KEYS = new Set([
+export const OPTIONAL_KEYS = new Set([
   "bulkReactionCoeff",
   "wallReactionCoeff",
   "energyPrice",
@@ -152,6 +152,21 @@ export const NON_ZERO_KEYS = new Set([
   "mixingFraction",
   "power",
 ]);
+
+const NULLABLE_KEYS = new Set(["roughness"]);
+
+export const isOptionalColumn = (key: string): boolean =>
+  OPTIONAL_KEYS.has(key);
+
+export const isNullableColumn = (
+  key: string,
+  allowsNullValues?: boolean,
+): boolean => !!allowsNullValues && NULLABLE_KEYS.has(key);
+
+export const isEmptiableColumn = (
+  key: string,
+  allowsNullValues?: boolean,
+): boolean => isOptionalColumn(key) || isNullableColumn(key, allowsNullValues);
 
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
 export type QualityAnalysisType = "none" | "age" | "trace" | "chemical";
@@ -428,6 +443,7 @@ type BuildColumnsArgs = [
   validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
+  allowsNullValues?: boolean,
 ];
 
 type ExtraPipeColsFn = (
@@ -502,6 +518,7 @@ function _buildColumns(
   validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
+  allowsNullValues?: boolean,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -535,7 +552,7 @@ function _buildColumns(
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       placeholder,
-      emptyValue: NULLABLE_KEYS.has(key)
+      emptyValue: isEmptiableColumn(key, allowsNullValues)
         ? null
         : NON_ZERO_KEYS.has(key)
           ? undefined
@@ -624,6 +641,7 @@ function _buildColumns(
       undefined,
       undefined,
       isChemicalSourceNone,
+      localizeDecimal(0),
     ),
     patternCol(
       "chemicalSourcePatternId",

@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { pluralize } from "src/lib/utils";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
@@ -24,7 +25,10 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
-import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
+import {
+  BATCH_EDITABLE_PROPERTIES,
+  pipeEditablePropertiesFor,
+} from "./batch-edit-property-config";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -83,6 +87,12 @@ export function MultiAssetPanel({
     return map;
   }, [selectedAssets]);
 
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const pipeEditableProperties = useMemo(
+    () => pipeEditablePropertiesFor(allowsNullValues),
+    [allowsNullValues],
+  );
+
   const tankEditableProperties = useMemo(() => {
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
       const tank = hydraulicModel.assets.get(id) as Tank;
@@ -105,7 +115,7 @@ export function MultiAssetPanel({
     (
       assetType: Asset["type"],
       modelProperty: ChangeableProperty,
-      value: number | string | boolean,
+      value: number | string | boolean | null | undefined,
     ) => {
       const assetIds = assetIdsByType[assetType];
       const moment =
@@ -123,7 +133,7 @@ export function MultiAssetPanel({
         name: "assetProperty.batchEdited",
         type: assetType,
         property: modelProperty,
-        newValue: typeof value === "boolean" ? Number(value) : value,
+        newValue: typeof value === "boolean" ? Number(value) : (value ?? null),
         count: assetIds.length,
       });
     },
@@ -227,7 +237,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.pipe}
+            editableProperties={pipeEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
             readonly={readonly}

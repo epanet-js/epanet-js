@@ -432,6 +432,7 @@ const appendPipeStats = (
     units,
     formatting,
     id,
+    { emptyLabel: "none" },
   );
   updateQuantityStats(
     statsMap,

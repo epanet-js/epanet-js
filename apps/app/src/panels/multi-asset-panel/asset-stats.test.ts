@@ -318,6 +318,78 @@ describe("computeMultiAssetData", () => {
     expect(yearStat.emptyBucket?.ids).toEqual([IDS.P3]);
   });
 
+  it("counts pipes with null roughness in emptyBucket and excludes them from min/max/mean", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        roughness: 130,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        roughness: 100,
+      })
+      .aPipe(IDS.P3, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        roughness: null,
+      })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeAssetsStats(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const roughnessStat = findQuantityStat(
+      result.data.pipe.modelAttributes,
+      "roughness",
+    );
+    expect(roughnessStat.times).toBe(2);
+    expect(roughnessStat.emptyBucket?.label).toBe("none");
+    expect(roughnessStat.emptyBucket?.ids).toEqual([IDS.P3]);
+  });
+
+  it("surfaces roughness stat with only emptyBucket when every pipe is null", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        roughness: null,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        roughness: null,
+      })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeAssetsStats(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const roughnessStat = findQuantityStat(
+      result.data.pipe.modelAttributes,
+      "roughness",
+    );
+    expect(roughnessStat.values.size).toBe(0);
+    expect(roughnessStat.emptyBucket?.ids).toEqual([IDS.P1, IDS.P2]);
+  });
+
   it("surfaces material stat with only emptyBucket when no pipe has a material", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -371,6 +443,9 @@ describe("computeMultiAssetData", () => {
     expect(typeStat.emptyBucket?.label).toBe("none");
     expect(typeStat.emptyBucket?.ids).toEqual([IDS.J3]);
 
+    // J2 has a source type but no strength, so it lands in the empty bucket
+    // (the field shows "0" as its placeholder). J3 has no source type, so
+    // strength is skipped for it entirely.
     const strengthStat = findQuantityStat(
       result.data.junction.quality,
       "chemicalSourceStrength",

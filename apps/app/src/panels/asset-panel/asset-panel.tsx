@@ -525,7 +525,6 @@ const JunctionEditor = ({
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
         />
         <QuantityRow
           name="emitterCoefficient"
@@ -538,7 +537,6 @@ const JunctionEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
-          isNullable={false}
         />
       </SectionWrapper>
       <SectionWrapper
@@ -600,7 +598,6 @@ const JunctionEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
-          isNullable={false}
         />
         <ChemicalSourceEditor
           node={junction}
@@ -713,6 +710,7 @@ const PipeEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
@@ -839,7 +837,6 @@ const PipeEditor = ({
           name="diameter"
           value={pipe.diameter}
           positiveOnly={true}
-          isNullable={false}
           validate={isGreaterThanZero}
           unit={units.diameter}
           comparison={getComparison("diameter", pipe.diameter)}
@@ -850,7 +847,6 @@ const PipeEditor = ({
           name="length"
           value={pipe.length}
           positiveOnly={true}
-          isNullable={false}
           validate={isGreaterThanZero}
           unit={units.length}
           comparison={getComparison("length", pipe.length)}
@@ -884,7 +880,7 @@ const PipeEditor = ({
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
+          isNullable={allowsNullValues}
           validate={isGreaterThanZero}
         />
         <QuantityRow
@@ -895,7 +891,6 @@ const PipeEditor = ({
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
         />
       </SectionWrapper>
       {(customerCount > 0 ||
@@ -1102,7 +1097,6 @@ const ReservoirEditor = ({
           comparison={getComparison("elevation", reservoir.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
         />
         <ReservoirHeadField
           reservoir={reservoir}
@@ -1127,7 +1121,6 @@ const ReservoirEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
-          isNullable={false}
         />
         <ChemicalSourceEditor
           node={reservoir}
@@ -1301,7 +1294,6 @@ const TankEditor = ({
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
         />
         <QuantityRow
           name="initialLevel"
@@ -1311,7 +1303,6 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
-          isNullable={false}
         />
         <TankDefinitionField
           tank={tank}
@@ -1345,7 +1336,6 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
-          isNullable={false}
         />
         <QuantityRow
           name="bulkReactionCoeff"
@@ -1384,7 +1374,6 @@ const TankEditor = ({
               onChange={onPropertyChange}
               positiveOnly={true}
               readOnly={readonly}
-              isNullable={false}
               validate={isGreaterThanZero}
             />
           </NestedSection>
@@ -1719,7 +1708,6 @@ const TankDefinitionField = ({
               unit={units.tankDiameter}
               onChange={onPropertyChange}
               positiveOnly={true}
-              isNullable={false}
               validate={isGreaterThanZero}
               readOnly={readOnly}
             />
@@ -1777,7 +1765,6 @@ const TankDefinitionField = ({
               onChange={handleAreaChange}
               positiveOnly={true}
               readOnly={readOnly}
-              isNullable={false}
               validate={isGreaterThanZero}
             />
             <hr className=" my-1" />
@@ -2085,7 +2072,6 @@ const ValveEditor = ({
             comparison={getComparison("setting", valve.setting)}
             onChange={onPropertyChange}
             readOnly={readonly}
-            isNullable={false}
           />
         )}
         {valve.kind === "gpv" && (
@@ -2122,7 +2108,6 @@ const ValveEditor = ({
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
           validate={isGreaterThanZero}
         />
         <QuantityRow
@@ -2133,7 +2118,6 @@ const ValveEditor = ({
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={false}
         />
       </SectionWrapper>
       <SectionWrapper
@@ -2367,7 +2351,6 @@ const PumpEditor = ({
             onPropertyChange("speed", newValue, oldValue)
           }
           readOnly={readonly}
-          isNullable={false}
         />
         <SelectRow
           name="initialStatus"
@@ -2915,10 +2898,12 @@ const ChemicalSourceEditor = ({
           <QuantityRow
             name="chemicalSourceStrength"
             displayName={`${translate("chemicalSourceStrength")} (${strengthUnit})`}
-            value={typedNode.chemicalSourceStrength ?? 0}
+            value={typedNode.chemicalSourceStrength}
             unit={null}
             onChange={onPropertyChange}
             positiveOnly={true}
+            isOptional
+            placeholder={localizeDecimal(0)}
             readOnly={readOnly}
           />
           <LibrarySelectRow
@@ -3142,7 +3127,6 @@ const ReservoirHeadField = ({
           unit={headUnit}
           onChange={onPropertyChange}
           readOnly={readOnly}
-          isNullable={false}
         />
 
         <LibrarySelectRow

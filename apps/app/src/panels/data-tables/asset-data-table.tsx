@@ -68,8 +68,10 @@ import {
   buildColumns,
   EDITABLE_NUMERIC_KEYS,
   EDITABLE_SELECT_KEYS,
+  isNullableColumn,
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 interface AssetDataTableProps {
   assetType: AssetType;
@@ -151,6 +153,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     () => ({ model: hydraulicModel, simulation, translate }),
     [hydraulicModel, simulation, translate],
   );
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
 
   const columns = useMemo(() => {
     const validateLabel = (label: string, row: AssetRow) =>
@@ -178,6 +181,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       validateLabel,
       getRow,
       accessorCtx,
+      allowsNullValues,
     );
   }, [
     assetType,
@@ -195,6 +199,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     translateUnit,
     units,
     accessorCtx,
+    allowsNullValues,
   ]);
 
   const onChange = useCallback(
@@ -348,11 +353,18 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           );
         }
 
-        if (changes.length > 0) {
+        const normalizedChanges: PropertyChange[] = changes.map((change) =>
+          change.value === null &&
+          !isNullableColumn(change.property, allowsNullValues)
+            ? ({ ...change, value: undefined } as unknown as PropertyChange)
+            : change,
+        );
+
+        if (normalizedChanges.length > 0) {
           moments.push(
             changeProperties(hydraulicModel, {
               assetIds: [assetId],
-              changes,
+              changes: normalizedChanges,
             }),
           );
         }
@@ -375,7 +387,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         }
       }
     },
-    [assetType, hydraulicModel, labelManager, transact, userTracking],
+    [
+      assetType,
+      hydraulicModel,
+      labelManager,
+      transact,
+      userTracking,
+      allowsNullValues,
+    ],
   );
 
   const getAssetIdsFromSortedRows = useCallback(

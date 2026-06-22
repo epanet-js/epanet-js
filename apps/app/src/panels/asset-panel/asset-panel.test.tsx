@@ -33,8 +33,13 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { USelection } from "src/selection";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
+  beforeEach(() => {
+    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+  });
+
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
@@ -83,6 +88,54 @@ describe("AssetPanel", () => {
         screen.getByRole("combobox", { name: /material/i }),
       ).toHaveTextContent("iron");
       expect(screen.queryAllByText("Not available").length).toBeGreaterThan(0);
+    });
+
+    it("clears roughness to empty when validation is enabled", async () => {
+      stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { roughness: 120 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: roughness/i,
+      });
+      await user.clear(field);
+      await user.keyboard("{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBeNull();
+    });
+
+    it("keeps roughness when clearing while validation is disabled", async () => {
+      stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { roughness: 120 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: roughness/i,
+      });
+      await user.clear(field);
+      await user.keyboard("{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBe(120);
     });
 
     it("can show simulation results", async () => {

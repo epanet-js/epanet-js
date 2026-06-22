@@ -21,7 +21,7 @@ type AssetSectionProps = {
   hasSimulation?: boolean;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
-    value: number | string | boolean,
+    value: number | string | boolean | null | undefined,
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;

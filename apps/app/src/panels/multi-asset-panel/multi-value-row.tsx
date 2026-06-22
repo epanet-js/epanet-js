@@ -45,7 +45,7 @@ type MultiValueRowProps = {
   config: BatchEditPropertyConfig;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
-    value: number | string | boolean,
+    value: number | string | boolean | null | undefined,
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
@@ -224,7 +224,7 @@ const EditableField = ({
   emptyBucket?: EmptyBucket;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
-    value: number | string | boolean,
+    value: number | string | boolean | null | undefined,
   ) => void;
   label: string;
   readonly: boolean;
@@ -254,17 +254,30 @@ const EditableField = ({
           ? String(firstValue)
           : localizeDecimal(firstValue, { decimals: stats.decimals });
 
+    const quantityPlaceholder = !isOnlyEmpty
+      ? mixedPlaceholder
+      : config.isNullable
+        ? ""
+        : (config.placeholder ?? mixedPlaceholder);
+
     return (
       <NumericField
         label={label}
         displayValue={displayValue}
-        placeholder={mixedPlaceholder}
+        placeholder={quantityPlaceholder}
         positiveOnly={config.positiveOnly}
-        isNullable={config.isNullable}
+        isNullable={Boolean(config.isNullable || config.isOptional)}
         validate={config.validate}
         disabled={readonly}
         styleOptions={{}}
-        onChangeValue={(newValue) => {
+        onChangeValue={(newValue, isEmpty) => {
+          if (isEmpty) {
+            if (config.isOptional)
+              onPropertyChange(config.modelProperty, undefined);
+            else if (config.isNullable)
+              onPropertyChange(config.modelProperty, null);
+            return;
+          }
           onPropertyChange(config.modelProperty, newValue);
         }}
       />
@@ -300,7 +313,7 @@ const EditableField = ({
     const handleCategoryChange = (newValue: string | null) => {
       if (newValue === null) {
         if (isClearable) {
-          onPropertyChange(config.modelProperty, undefined as never);
+          onPropertyChange(config.modelProperty, undefined);
         }
         return;
       }
@@ -384,7 +397,7 @@ const EditableField = ({
         onChange={(newValue) => {
           onPropertyChange(
             config.modelProperty,
-            newValue === null ? (undefined as never) : Number(newValue),
+            newValue === null ? undefined : Number(newValue),
           );
         }}
         disabled={readonly}
