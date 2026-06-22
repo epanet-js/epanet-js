@@ -514,6 +514,9 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
   customerPointsInZone,
 }) => {
   const translate = useTranslate();
+  const isInZoneAllocationMode =
+    zoneName != null && customerPointsInZone != null;
+  const summaryHeight = isInZoneAllocationMode ? 180 : 88;
 
   if (!isVisible) {
     return null;
@@ -525,8 +528,11 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         <h3 className="text-md font-medium">
           {translate("allocateCustomerPoints.dialog.summaryHeading")}
         </h3>
-        <div className="bg-panel border rounded-lg p-4">
-          <div className="flex items-center justify-center py-4">
+        <div
+          className="bg-panel border rounded-lg p-4 flex items-center justify-center"
+          style={{ height: summaryHeight }}
+        >
+          <div className="flex items-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
             <span className="ml-2 text-size-base text-subtle">
               {translate("allocateCustomerPoints.dialog.computingMessage")}
@@ -546,7 +552,10 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         <h3 className="text-md font-medium">
           {translate("allocateCustomerPoints.dialog.summaryHeading")}
         </h3>
-        <div className="bg-panel border rounded-lg p-4">
+        <div
+          className="bg-panel border rounded-lg p-4"
+          style={{ height: summaryHeight }}
+        >
           <div className="flex items-center">
             <SuccessIcon className="text-success mr-2" />
             <span className="text-size-base text-default">
@@ -558,9 +567,6 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
     );
   }
 
-  const isInZoneAllocationMode =
-    zoneName != null && customerPointsInZone != null;
-
   if (isInZoneAllocationMode) {
     const zoneUnallocated = Math.max(0, customerPointsInZone - totalAllocated);
 
@@ -569,7 +575,10 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
         <h3 className="text-md font-medium">
           {translate("allocateCustomerPoints.dialog.summaryHeading")}
         </h3>
-        <div className="bg-panel border rounded-lg p-4 space-y-4">
+        <div
+          className="bg-panel border rounded-lg p-4 space-y-4"
+          style={{ height: summaryHeight }}
+        >
           <div>
             <h4 className="text-size-base font-medium text-default mb-2">
               {translate(
@@ -638,7 +647,10 @@ const AllocationSummary: React.FC<AllocationSummaryProps> = ({
       <h3 className="text-md font-medium">
         {translate("allocateCustomerPoints.dialog.summaryHeading")}
       </h3>
-      <div className="bg-panel border rounded-lg p-4">
+      <div
+        className="bg-panel border rounded-lg p-4"
+        style={{ height: summaryHeight }}
+      >
         <div className="space-y-2">
           <div className="flex items-center">
             <SuccessIcon className="text-success mr-2" />
