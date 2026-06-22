@@ -379,6 +379,50 @@ describe("parse pipes", () => {
     expect(pipe.minorLoss).toEqual(0);
   });
 
+  it("stores an invalid roughness as null when null values are allowed", () => {
+    const pipeId = "P1";
+    const inp = `
+    [RESERVOIRS]
+    R1\t100
+    [JUNCTIONS]
+    J1\t50
+    [PIPES]
+    ${pipeId}\tR1\tJ1\t1000\t12\tMISSING\t0\tOpen
+
+    [COORDINATES]
+    R1\t0\t0
+    J1\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.roughness).toBeNull();
+  });
+
+  it("stores missing roughness as null when null values are allowed", () => {
+    const pipeId = "P1";
+    const inp = `
+    [OPTIONS]
+    Headloss\tH-W
+    [RESERVOIRS]
+    R1\t100
+    [JUNCTIONS]
+    J1\t50
+    [PIPES]
+    ${pipeId}\tR1\tJ1\t1000\t12
+
+    [COORDINATES]
+    R1\t0\t0
+    J1\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.roughness).toBeNull();
+  });
+
   it("defaults missing roughness to the D-W formula default", () => {
     const pipeId = "P1";
     const inp = `

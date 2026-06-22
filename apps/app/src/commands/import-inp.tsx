@@ -25,6 +25,7 @@ import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
@@ -40,6 +41,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
+  const allowsNullValues = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {
@@ -203,6 +205,7 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           populateAssetIndex: true,
+          allowsNullValues,
         };
 
         const result = parseInp(content, parseOptions);
@@ -264,7 +267,13 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [completeImport, setDialogState, userTracking, validateAndPrepare],
+    [
+      completeImport,
+      setDialogState,
+      userTracking,
+      validateAndPrepare,
+      allowsNullValues,
+    ],
   );
 
   return importInp;

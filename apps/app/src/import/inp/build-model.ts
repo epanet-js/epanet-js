@@ -7,6 +7,7 @@ import {
   CustomerPointFactory,
   ModelFactories,
   initializeModelFactories,
+  initializeModelFactoriesWithNullValues,
   type TankMixingModel,
   PumpStatus,
   ValveStatus,
@@ -111,7 +112,10 @@ export const buildModel = (
     idGenerator,
   });
 
-  const factories = initializeModelFactories({
+  const initializeFactories = options?.allowsNullValues
+    ? initializeModelFactoriesWithNullValues
+    : initializeModelFactories;
+  const factories = initializeFactories({
     idGenerator,
     labelManager,
     defaults,
