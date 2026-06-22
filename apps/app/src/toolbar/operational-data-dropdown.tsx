@@ -6,10 +6,12 @@ import {
   ChevronDownIcon,
   ControlsIcon,
   PatternsIcon,
+  PipeLibraryIcon,
   PumpLibraryIcon,
   CurveLibraryIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Button,
   DDContent,
@@ -19,13 +21,16 @@ import {
 } from "src/components/elements";
 import { useShowControls } from "src/commands/show-controls";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
+import { useShowPipeLibrary } from "src/commands/show-pipe-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
+  const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
   const showControls = useShowControls();
   const showPatternsLibrary = useShowPatternsLibrary();
+  const showPipeLibrary = useShowPipeLibrary();
   const showPumpLibrary = useShowPumpLibrary();
   const showCurveLibrary = useShowCurveLibrary();
 
@@ -67,6 +72,15 @@ export const OperationalDataDropdown = () => {
                 <PumpLibraryIcon />
                 {translate("pumpLibrary")}
               </StyledItem>
+
+              {isPipeLibraryOn && (
+                <StyledItem
+                  onSelect={() => showPipeLibrary({ source: "toolbar" })}
+                >
+                  <PipeLibraryIcon />
+                  {translate("pipeLibrary.menuLabel")}
+                </StyledItem>
+              )}
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
                 <ControlsIcon />

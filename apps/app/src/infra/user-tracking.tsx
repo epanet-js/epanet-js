@@ -1048,6 +1048,11 @@ type PatternsUncategorized = {
   count: number;
 };
 
+type PipeLibraryOpened = {
+  name: "pipeLibrary.opened";
+  source: "toolbar";
+};
+
 type PumpLibraryOpened = {
   name: "pumpLibrary.opened";
   source: "toolbar" | "pump";
@@ -1534,6 +1539,7 @@ export type UserEvent =
   | PatternsUpdated
   | PatternsDiscarded
   | PatternsUncategorized
+  | PipeLibraryOpened
   | PumpLibraryOpened
   | CurveLibraryOpened
   | CurvesUpdated

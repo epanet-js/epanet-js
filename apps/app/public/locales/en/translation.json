@@ -1613,5 +1613,8 @@
       "plans": "Zone overlays are available on paid plans.",
       "trial": "Zone overlays are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
+  },
+  "pipeLibrary": {
+    "menuLabel": "Pipe library"
   }
 }

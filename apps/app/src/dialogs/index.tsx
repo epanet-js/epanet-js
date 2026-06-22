@@ -349,6 +349,13 @@ const PatternsDialog = dynamic<{
   loading: () => <LoadingDialog />,
 });
 
+const PipeLibraryDialog = dynamic(
+  () => import("src/dialogs/pipe-library").then((r) => r.PipeLibraryDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const PumpLibraryDialog = dynamic<{
   initialCurveId?: number;
   initialSection?: "pump" | "efficiency";
@@ -738,6 +745,9 @@ export const Dialogs = memo(function Dialogs() {
         initialSection={dialog.initialSection}
       />
     );
+  }
+  if (dialog.type === "pipeLibrary") {
+    return <PipeLibraryDialog />;
   }
   if (dialog.type === "pumpLibrary") {
     return (

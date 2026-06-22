@@ -177,6 +177,10 @@ export type PumpLibraryDialogState = {
   initialSection?: "pump" | "efficiency";
 };
 
+export type PipeLibraryDialogState = {
+  type: "pipeLibrary";
+};
+
 export type CurveLibraryDialogState = {
   type: "curveLibrary";
   initialCurveId?: CurveId;
@@ -316,6 +320,7 @@ export type DialogState =
   | { type: "simulationSettings" }
   | { type: "controls" }
   | PatternsLibraryDialog
+  | PipeLibraryDialogState
   | PumpLibraryDialogState
   | CurveLibraryDialogState
   | DeleteScenarioConfirmationDialogState

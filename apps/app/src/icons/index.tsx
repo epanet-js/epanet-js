@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ArrowUpNarrowWide,
   Bell,
+  BookText,
   ChartColumn,
   Check,
   ChevronDown,
@@ -244,6 +245,7 @@ export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
+export const PipeLibraryIcon = icon(BookText);
 export { CustomZonesIcon as ZonesIcon } from "./custom-icons/zones-icon";
 
 export const ReverseIcon: React.FC<IconProps> = ({
