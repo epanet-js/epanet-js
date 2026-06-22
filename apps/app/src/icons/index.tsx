@@ -79,6 +79,7 @@ import {
   ScanText,
   Search,
   Settings,
+  SquareArrowOutUpRight,
   SquareDashed,
   SquareDashedMousePointer,
   SquareStack,
@@ -143,6 +144,7 @@ export const UtilitiesIcon = icon(ToolCase);
 export const InfoIcon = icon(Info);
 export const SuccessIcon = icon(CircleCheck);
 export const WarningIcon = icon(TriangleAlert);
+export const ExternalLinkIcon = icon(SquareArrowOutUpRight);
 export const ErrorIcon = icon(CircleX);
 export const StopSimulationIcon = icon(CirclePause);
 export const UserIcon = icon(User);
