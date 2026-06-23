@@ -4,7 +4,6 @@ export type RoughnessEntry = {
 };
 
 export type PipeMaterial = {
-  id: number;
   label: string;
   entries: RoughnessEntry[];
 };

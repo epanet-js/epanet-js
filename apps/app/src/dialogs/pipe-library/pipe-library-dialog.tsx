@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useAtom } from "jotai";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
@@ -7,67 +8,70 @@ import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { VerticalResizer } from "../vertical-resizer";
 import { PipeLibraryIcon } from "src/icons";
 import { Button } from "src/components/elements";
-import { PipeMaterial, RoughnessEntry } from "./types";
-
-let nextId = 1;
+import {
+  pipeMaterialsAtom,
+  selectedMaterialLabelAtom,
+} from "src/state/pipe-library";
+import type { RoughnessEntry } from "./types";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();
   const dialogActions = useRef<DialogActionsHandle>(null);
-  const [materials, setMaterials] = useState<PipeMaterial[]>([]);
-  const [selectedMaterialId, setSelectedMaterialId] = useState<number | null>(
-    null,
-  );
+  const [materials, setMaterials] = useAtom(pipeMaterialsAtom);
+  const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);
   const [sidebarWidth, setSidebarWidth] = useState(224);
 
   const selectedMaterial =
-    materials.find((m) => m.id === selectedMaterialId) ?? null;
+    materials.find((m) => m.label === selectedLabel) ?? null;
   const isEmpty = materials.length === 0;
 
-  const handleAddMaterial = useCallback((label: string): number => {
-    const id = nextId++;
-    setMaterials((prev) => [...prev, { id, label, entries: [] }]);
-    return id;
-  }, []);
+  const handleAddMaterial = useCallback(
+    (label: string) => {
+      setMaterials((prev) => [...prev, { label, entries: [] }]);
+    },
+    [setMaterials],
+  );
 
-  const handleRenameMaterial = useCallback((id: number, label: string) => {
-    setMaterials((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, label } : m)),
-    );
-  }, []);
+  const handleRenameMaterial = useCallback(
+    (oldLabel: string, newLabel: string) => {
+      setMaterials((prev) =>
+        prev.map((m) => (m.label === oldLabel ? { ...m, label: newLabel } : m)),
+      );
+      setSelectedLabel((prev) => (prev === oldLabel ? newLabel : prev));
+    },
+    [setMaterials, setSelectedLabel],
+  );
 
   const handleDuplicateMaterial = useCallback(
-    (sourceId: number, label: string): number => {
-      const source = materials.find((m) => m.id === sourceId);
-      if (!source) return -1;
-      const id = nextId++;
+    (sourceLabel: string, newLabel: string) => {
+      const source = materials.find((m) => m.label === sourceLabel);
+      if (!source) return;
       setMaterials((prev) => [
         ...prev,
-        { id, label, entries: source.entries.map((e) => ({ ...e })) },
+        { label: newLabel, entries: source.entries.map((e) => ({ ...e })) },
       ]);
-      return id;
     },
-    [materials],
+    [materials, setMaterials],
   );
 
   const handleDeleteMaterial = useCallback(
-    (id: number) => {
-      setMaterials((prev) => prev.filter((m) => m.id !== id));
-      if (selectedMaterialId === id) {
-        setSelectedMaterialId(null);
+    (label: string) => {
+      setMaterials((prev) => prev.filter((m) => m.label !== label));
+      if (selectedLabel === label) {
+        setSelectedLabel(null);
       }
     },
-    [selectedMaterialId],
+    [selectedLabel, setMaterials, setSelectedLabel],
   );
 
   const handleEntriesChange = useCallback(
     (entries: RoughnessEntry[]) => {
-      if (selectedMaterialId === null) return;
+      if (selectedLabel === null) return;
       setMaterials((prev) =>
-        prev.map((m) => (m.id === selectedMaterialId ? { ...m, entries } : m)),
+        prev.map((m) => (m.label === selectedLabel ? { ...m, entries } : m)),
       );
     },
-    [selectedMaterialId],
+    [selectedLabel, setMaterials],
   );
 
   return (
@@ -96,8 +100,8 @@ export const PipeLibraryDialog = () => {
             <PipeLibrarySidebar
               width={sidebarWidth}
               materials={materials}
-              selectedMaterialId={selectedMaterialId}
-              onSelectMaterial={setSelectedMaterialId}
+              selectedLabel={selectedLabel}
+              onSelectMaterial={setSelectedLabel}
               onAddMaterial={handleAddMaterial}
               onRenameMaterial={handleRenameMaterial}
               onDuplicateMaterial={handleDuplicateMaterial}

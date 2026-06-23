@@ -16,18 +16,18 @@ import { PipeMaterial } from "./types";
 
 type ActionState =
   | { action: "creating" }
-  | { action: "renaming"; materialId: number }
+  | { action: "renaming"; materialLabel: string }
   | { action: "duplicating"; sourceMaterial: PipeMaterial };
 
 type PipeLibrarySidebarProps = {
   width: number;
   materials: PipeMaterial[];
-  selectedMaterialId: number | null;
-  onSelectMaterial: (id: number | null) => void;
-  onAddMaterial: (label: string) => number;
-  onRenameMaterial: (id: number, label: string) => void;
-  onDuplicateMaterial: (sourceId: number, label: string) => number;
-  onDeleteMaterial: (id: number) => void;
+  selectedLabel: string | null;
+  onSelectMaterial: (label: string | null) => void;
+  onAddMaterial: (label: string) => void;
+  onRenameMaterial: (oldLabel: string, newLabel: string) => void;
+  onDuplicateMaterial: (sourceLabel: string, newLabel: string) => void;
+  onDeleteMaterial: (label: string) => void;
 };
 
 const SECTION_TYPE = "materials";
@@ -35,7 +35,7 @@ const SECTION_TYPE = "materials";
 export const PipeLibrarySidebar = ({
   width,
   materials,
-  selectedMaterialId,
+  selectedLabel,
   onSelectMaterial,
   onAddMaterial,
   onRenameMaterial,
@@ -51,19 +51,20 @@ export const PipeLibrarySidebar = ({
 
   const navItems = useMemo(
     (): NavItem<string>[] =>
-      materials.map((m) => ({ id: m.id, section: SECTION_TYPE })),
+      materials.map((_, i) => ({ id: i, section: SECTION_TYPE })),
     [materials],
   );
 
   const focusedItem = useMemo((): NavItem<string> | undefined => {
-    if (selectedMaterialId != null) {
-      return { id: selectedMaterialId, section: SECTION_TYPE };
+    if (selectedLabel != null) {
+      const idx = materials.findIndex((m) => m.label === selectedLabel);
+      if (idx >= 0) return { id: idx, section: SECTION_TYPE };
     }
     if (focusedSection) {
       return { section: focusedSection };
     }
     return undefined;
-  }, [focusedSection, selectedMaterialId]);
+  }, [focusedSection, selectedLabel, materials]);
 
   const clearActionState = () => {
     setActionState(undefined);
@@ -74,19 +75,20 @@ export const PipeLibrarySidebar = ({
     (item: NavItem<string>) => {
       if (item.id != null) {
         setFocusedSection(null);
-        onSelectMaterial(item.id);
+        const material = materials[item.id];
+        onSelectMaterial(material?.label ?? null);
       } else {
         setFocusedSection(item.section);
         onSelectMaterial(null);
       }
     },
-    [onSelectMaterial],
+    [onSelectMaterial, materials],
   );
 
-  const isLabelAvailable = (label: string, excludeId?: number): boolean => {
+  const isLabelAvailable = (label: string, excludeLabel?: string): boolean => {
     const lower = label.toLowerCase();
     return !materials.some(
-      (m) => m.id !== excludeId && m.label.toLowerCase() === lower,
+      (m) => m.label !== excludeLabel && m.label.toLowerCase() === lower,
     );
   };
 
@@ -97,19 +99,17 @@ export const PipeLibrarySidebar = ({
     if (!trimmedName) return true;
 
     if (actionState.action === "renaming") {
-      if (!isLabelAvailable(trimmedName, actionState.materialId)) return true;
-      onRenameMaterial(actionState.materialId, trimmedName);
+      if (!isLabelAvailable(trimmedName, actionState.materialLabel))
+        return true;
+      onRenameMaterial(actionState.materialLabel, trimmedName);
     } else if (actionState.action === "duplicating") {
       if (!isLabelAvailable(trimmedName)) return true;
-      const newId = onDuplicateMaterial(
-        actionState.sourceMaterial.id,
-        trimmedName,
-      );
-      onSelectMaterial(newId);
+      onDuplicateMaterial(actionState.sourceMaterial.label, trimmedName);
+      onSelectMaterial(trimmedName);
     } else if (actionState.action === "creating") {
       if (!isLabelAvailable(trimmedName)) return true;
-      const newId = onAddMaterial(trimmedName);
-      onSelectMaterial(newId);
+      onAddMaterial(trimmedName);
+      onSelectMaterial(trimmedName);
     }
 
     clearActionState();
@@ -127,9 +127,12 @@ export const PipeLibrarySidebar = ({
   ) => {
     switch (action) {
       case "rename":
-        return setActionState({ action: "renaming", materialId: item.id });
+        return setActionState({
+          action: "renaming",
+          materialLabel: item.label,
+        });
       case "duplicate": {
-        const material = materials.find((m) => m.id === item.id);
+        const material = materials.find((m) => m.label === item.label);
         if (material) {
           setActionState({ action: "duplicating", sourceMaterial: material });
         }
@@ -138,7 +141,7 @@ export const PipeLibrarySidebar = ({
       case "delete": {
         clearActionState();
         onSelectMaterial(null);
-        onDeleteMaterial(item.id);
+        onDeleteMaterial(item.label);
         return;
       }
     }
@@ -183,17 +186,17 @@ export const PipeLibrarySidebar = ({
           }}
           onAction={handleNew}
         >
-          {materials.map((material) => (
+          {materials.map((material, i) => (
             <EditableListItem
-              key={material.id}
-              item={material}
-              isSelected={material.id === selectedMaterialId}
+              key={material.label}
+              item={{ id: i, label: material.label }}
+              isSelected={material.label === selectedLabel}
               onSelect={() =>
-                handleSelectItem({ id: material.id, section: SECTION_TYPE })
+                handleSelectItem({ id: i, section: SECTION_TYPE })
               }
               actions={itemActions}
               onAction={handleAction}
-              editLabelMode={getEditMode(actionState, material.id)}
+              editLabelMode={getEditMode(actionState, material.label)}
               onLabelChange={handleLabelChange}
               placeholder={translate("pipeLibrary.materials")}
               onCancel={clearActionState}
@@ -214,12 +217,12 @@ export const PipeLibrarySidebar = ({
   );
 };
 
-const getEditMode = (actionState: ActionState | undefined, id: number) => {
-  if (actionState?.action === "renaming" && actionState.materialId === id)
+const getEditMode = (actionState: ActionState | undefined, label: string) => {
+  if (actionState?.action === "renaming" && actionState.materialLabel === label)
     return "inline";
   if (
     actionState?.action === "duplicating" &&
-    actionState.sourceMaterial.id === id
+    actionState.sourceMaterial.label === label
   )
     return "below";
   return null;
