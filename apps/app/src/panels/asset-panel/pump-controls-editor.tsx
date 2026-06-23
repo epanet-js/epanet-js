@@ -148,7 +148,7 @@ export const PumpControlsEditor = ({
           onClick={() => showControls({ source: "assetPanel" })}
           className="flex items-center gap-x-1.5 py-1 text-size-base font-semibold text-orange-800 cursor-pointer"
         >
-          <ExternalLinkIcon size="sm" />
+          <ExternalLinkIcon size="md" />
           <span>{translate("controls.rawControlsDetected")}</span>
         </button>
       )}
