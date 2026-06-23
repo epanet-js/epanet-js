@@ -8,7 +8,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
-import { modelValidationIssuesAtom } from "src/state/network-review";
+import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
 import userEvent from "@testing-library/user-event";
 import { useRunSimulation } from "./run-simulation";
 import { lib } from "src/lib/worker";
@@ -22,9 +22,9 @@ vi.mock("src/lib/worker", () => ({
   },
 }));
 
-let canValidateModel = false;
+let canValidateModelAttributes = false;
 vi.mock("src/hooks/use-permissions", () => ({
-  usePermissions: () => ({ canValidateModel }),
+  usePermissions: () => ({ canValidateModelAttributes }),
 }));
 
 describe("Run simulation", () => {
@@ -32,7 +32,7 @@ describe("Run simulation", () => {
 
   beforeEach(() => {
     wireWebWorker();
-    canValidateModel = false;
+    canValidateModelAttributes = false;
     stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
   });
   afterEach(() => {
@@ -169,7 +169,7 @@ describe("Run simulation", () => {
 
   describe("model validation", () => {
     const enableValidation = () => {
-      canValidateModel = true;
+      canValidateModelAttributes = true;
       stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
     };
 
@@ -184,11 +184,11 @@ describe("Run simulation", () => {
 
       await waitFor(() => {
         expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelValidation",
+          type: "modelAttributesValidation",
           issueCount: 1,
         });
       });
-      expect(store.get(modelValidationIssuesAtom)).toHaveLength(1);
+      expect(store.get(modelAttributesValidationIssuesAtom)).toHaveLength(1);
       expect(lib.runSimulation).not.toHaveBeenCalled();
     });
 
@@ -202,7 +202,7 @@ describe("Run simulation", () => {
       await triggerRun();
       await waitFor(() => {
         expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelValidation",
+          type: "modelAttributesValidation",
         });
       });
 
@@ -226,7 +226,7 @@ describe("Run simulation", () => {
       await triggerRun();
       await waitFor(() => {
         expect(store.get(dialogAtom)).toMatchObject({
-          type: "modelValidation",
+          type: "modelAttributesValidation",
         });
       });
 
@@ -254,13 +254,13 @@ describe("Run simulation", () => {
         expect(simulation.status).toEqual("success");
       });
       expect(store.get(dialogAtom)).not.toMatchObject({
-        type: "modelValidation",
+        type: "modelAttributesValidation",
       });
     });
 
     it("runs directly without validating when the gate is off", async () => {
       stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
-      canValidateModel = true;
+      canValidateModelAttributes = true;
       const store = setInitialState({
         hydraulicModel: aModelWithEmptyRoughness(),
       });
@@ -272,7 +272,7 @@ describe("Run simulation", () => {
         expect(lib.runSimulation).toHaveBeenCalled();
       });
       expect(store.get(dialogAtom)).not.toMatchObject({
-        type: "modelValidation",
+        type: "modelAttributesValidation",
       });
     });
   });

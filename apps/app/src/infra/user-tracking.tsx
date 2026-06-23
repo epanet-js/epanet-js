@@ -932,7 +932,8 @@ type NetworkReviewChecked = {
     | "networkReview.orphanAssets.opened"
     | "networkReview.proximityAnomalies.opened"
     | "networkReview.connectivityTrace.opened"
-    | "networkReview.crossingPipes.opened";
+    | "networkReview.crossingPipes.opened"
+    | "networkReview.modelAttributesValidation.opened";
 };
 
 type NetworkReviewChanged =
@@ -940,7 +941,8 @@ type NetworkReviewChanged =
       name:
         | "networkReview.orphanAssets.changed"
         | "networkReview.connectivityTrace.changed"
-        | "networkReview.crossingPipes.changed";
+        | "networkReview.crossingPipes.changed"
+        | "networkReview.modelAttributesValidation.changed";
       count: number;
     }
   | {
@@ -955,7 +957,8 @@ type NetworkReviewBack = {
     | "networkReview.orphanAssets.back"
     | "networkReview.proximityAnomalies.back"
     | "networkReview.connectivityTrace.back"
-    | "networkReview.crossingPipes.back";
+    | "networkReview.crossingPipes.back"
+    | "networkReview.modelAttributesValidation.back";
   count: number;
 };
 

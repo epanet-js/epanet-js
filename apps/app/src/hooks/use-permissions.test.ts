@@ -13,7 +13,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseZones).toBe(false);
     expect(p.canUseControls).toBe(false);
     expect(p.canUsePipeAttributes).toBe(false);
-    expect(p.canValidateModel).toBe(false);
+    expect(p.canValidateModelAttributes).toBe(false);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -30,7 +30,7 @@ describe("resolvePermissions", () => {
       expect(p.canUseZones).toBe(true);
       expect(p.canUseControls).toBe(true);
       expect(p.canUsePipeAttributes).toBe(true);
-      expect(p.canValidateModel).toBe(true);
+      expect(p.canValidateModelAttributes).toBe(true);
       expect(p.canUpgrade).toBe(false);
       expect(p.canManageOrganization).toBe(false);
     },
@@ -46,7 +46,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseZones).toBe(true);
     expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
-    expect(p.canValidateModel).toBe(true);
+    expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUpgrade).toBe(false);
     expect(p.canManageOrganization).toBe(false);
   });
@@ -62,7 +62,7 @@ describe("resolvePermissions", () => {
     expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
     expect(p.canUseModelBuildV2).toBe(true);
-    expect(p.canValidateModel).toBe(true);
+    expect(p.canValidateModelAttributes).toBe(true);
     expect(p.canUpgrade).toBe(true);
     expect(p.canManageOrganization).toBe(false);
   });

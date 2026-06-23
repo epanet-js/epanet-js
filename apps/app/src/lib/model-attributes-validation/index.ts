@@ -1,4 +1,4 @@
-export { validateModel } from "./run-check";
+export { validateModelAttributes } from "./run-check";
 export { groupIssues } from "./issues";
 export { RULES } from "./rules";
 export type {

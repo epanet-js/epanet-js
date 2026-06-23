@@ -1,15 +1,15 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { validateModel } from "./run-check";
+import { validateModelAttributes } from "./run-check";
 import { RULES } from "./rules";
 
-describe("validateModel", () => {
+describe("validateModelAttributes", () => {
   describe("pipe roughness", () => {
     it("flags a missing roughness as a present error", async () => {
       const model = HydraulicModelBuilder.with()
         .aPipe(1, { label: "P1", roughness: null })
         .build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toEqual([
         {
@@ -29,7 +29,7 @@ describe("validateModel", () => {
         .aPipe(1, { label: "P1", roughness: 0 })
         .build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
       expect(issues[0]).toMatchObject({
@@ -44,7 +44,7 @@ describe("validateModel", () => {
         .aPipe(1, { roughness: -5 })
         .build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
       expect(issues[0].ruleId).toBe("pipe.roughness.positive");
@@ -55,7 +55,7 @@ describe("validateModel", () => {
         .aPipe(1, { roughness: 130 })
         .build();
 
-      expect(await validateModel(model)).toEqual([]);
+      expect(await validateModelAttributes(model)).toEqual([]);
     });
 
     it("reports a single issue per pipe with fail-fast (present before positive)", async () => {
@@ -63,7 +63,7 @@ describe("validateModel", () => {
         .aPipe(1, { roughness: null })
         .build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(1);
       expect(issues[0].ruleId).toBe("pipe.roughness.present");
@@ -76,7 +76,7 @@ describe("validateModel", () => {
       }
       const model = builder.build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toHaveLength(25);
       expect(
@@ -91,7 +91,7 @@ describe("validateModel", () => {
       .aReservoir(2, { label: "R1" })
       .build();
 
-    expect(await validateModel(model)).toEqual([]);
+    expect(await validateModelAttributes(model)).toEqual([]);
   });
 
   describe("customer point connection", () => {
@@ -100,7 +100,7 @@ describe("validateModel", () => {
         .aCustomerPoint(1, { label: "CP1" })
         .build();
 
-      const issues = await validateModel(model);
+      const issues = await validateModelAttributes(model);
 
       expect(issues).toEqual([
         {
@@ -126,7 +126,7 @@ describe("validateModel", () => {
         })
         .build();
 
-      expect(await validateModel(model)).toEqual([]);
+      expect(await validateModelAttributes(model)).toEqual([]);
     });
   });
 
@@ -138,7 +138,7 @@ describe("validateModel", () => {
         .build();
       const pipeRules = RULES.filter((rule) => rule.entityType === "pipe");
 
-      const issues = await validateModel(model, { rules: pipeRules });
+      const issues = await validateModelAttributes(model, { rules: pipeRules });
 
       expect(issues).toHaveLength(1);
       expect(issues[0]).toMatchObject({
@@ -157,7 +157,7 @@ describe("validateModel", () => {
       controller.abort();
 
       await expect(
-        validateModel(model, { signal: controller.signal }),
+        validateModelAttributes(model, { signal: controller.signal }),
       ).rejects.toMatchObject({ name: "AbortError" });
     });
   });

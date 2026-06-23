@@ -105,8 +105,8 @@ export type ImportCustomerPointsWarningDialogState = {
   onContinue: () => void;
 };
 
-export type ModelValidationDialogState = {
-  type: "modelValidation";
+export type ModelAttributesValidationDialogState = {
+  type: "modelAttributesValidation";
   issueCount: number;
   onFixFirst: () => void;
   onRunAnyway: () => void;
@@ -202,7 +202,8 @@ export type PaywallFeature =
   | "elevations"
   | "customLayers"
   | "pipeAttributes"
-  | "zones";
+  | "zones"
+  | "modelAttributesValidation";
 
 export type FeaturePaywallDialogState = {
   type: "featurePaywall";
@@ -303,7 +304,7 @@ export type DialogState =
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState
-  | ModelValidationDialogState
+  | ModelAttributesValidationDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState
   | ModelBuilderIframeDialogState

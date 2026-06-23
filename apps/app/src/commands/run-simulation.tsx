@@ -27,8 +27,12 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
-import { validateModel } from "src/lib/model-validation";
-import { modelValidationIssuesAtom } from "src/state/network-review";
+import { validateModelAttributes } from "src/lib/model-attributes-validation";
+import {
+  modelAttributesValidationIssuesAtom,
+  selectedReviewCheckAtom,
+} from "src/state/network-review";
+import { CheckType } from "src/panels/network-review/common";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -38,8 +42,8 @@ export const useRunSimulation = () => {
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const isValidationFlagOn = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
-  const { canValidateModel } = usePermissions();
-  const validationEnabled = isValidationFlagOn && canValidateModel;
+  const { canValidateModelAttributes } = usePermissions();
+  const validationEnabled = isValidationFlagOn && canValidateModelAttributes;
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -183,15 +187,15 @@ export const useRunSimulation = () => {
         };
 
         if (validationEnabled) {
-          const issues = await validateModel(hydraulicModel);
-          set(modelValidationIssuesAtom, issues);
+          const issues = await validateModelAttributes(hydraulicModel);
+          set(modelAttributesValidationIssuesAtom, issues);
           if (issues.length > 0) {
             userTracking.capture({
               name: "simulation.validation.issuesFound",
               issueCount: issues.length,
             });
             setDialogState({
-              type: "modelValidation",
+              type: "modelAttributesValidation",
               issueCount: issues.length,
               onFixFirst: () => {
                 setDialogState(null);
@@ -199,6 +203,10 @@ export const useRunSimulation = () => {
                   name: "simulation.validation.resolved",
                   choice: "fixFirst",
                 });
+                set(
+                  selectedReviewCheckAtom,
+                  CheckType.modelAttributesValidation,
+                );
                 toggleNetworkReview({ source: "auto", state: true });
               },
               onRunAnyway: () => {

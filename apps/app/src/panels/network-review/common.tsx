@@ -12,6 +12,7 @@ export const enum CheckType {
   orphanAssets = "orphanAssets",
   proximityAnomalies = "proximityAnomalies",
   crossingPipes = "crossingPipes",
+  modelAttributesValidation = "modelAttributesValidation",
 }
 
 export const ToolHeader = ({

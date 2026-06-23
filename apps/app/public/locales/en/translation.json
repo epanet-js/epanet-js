@@ -658,7 +658,7 @@
     "saveBuildSettings": "Save build settings",
     "filterData": "Filter data"
   },
-  "modelValidation": {
+  "modelAttributesValidation": {
     "dialog": {
       "title": "Model issues found",
       "body": "We found {{1}} issue(s) in your model that may affect the simulation. You can fix them first or run the simulation anyway.",
@@ -1262,6 +1262,24 @@
       "summary_other": "{{count}} intersections found",
       "issueLabel": "Pipe {{1}} crosses pipe {{2}}",
       "emptyMessage": "No crossing pipes found in your network"
+    },
+    "modelAttributesValidation": {
+      "title": "Model attributes",
+      "description": "Find missing or invalid attribute values that may prevent the simulation from running.",
+      "summary_zero": "No issues found",
+      "summary_one": "1 issue found",
+      "summary_other": "{{count}} issues found",
+      "issueLabel": "{{1}} ({{2}})",
+      "emptyMessage": "Your model attributes are valid. Well done!",
+      "affectedCount_one": "1 asset affected",
+      "affectedCount_other": "{{count}} assets affected",
+      "expand": "Expand affected assets",
+      "collapse": "Collapse affected assets",
+      "rule": {
+        "roughnessPresent": "Pipe roughness missing",
+        "roughnessPositive": "Pipe roughness must be positive",
+        "customerPointConnected": "Customer point disconnected"
+      }
     }
   },
   "privacyBanner": {

@@ -30,6 +30,13 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseZones",
     dialog: { type: "featurePaywall", feature: "zones" },
   },
+  modelAttributesValidation: {
+    permission: "canValidateModelAttributes",
+    dialog: {
+      type: "upgrade",
+      source: { kind: "paywall", feature: "modelAttributesValidation" },
+    },
+  },
 };
 
 export const usePaywall = (

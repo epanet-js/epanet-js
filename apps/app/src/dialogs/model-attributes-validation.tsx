@@ -1,7 +1,7 @@
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 
-export const ModelValidationDialog = ({
+export const ModelAttributesValidationDialog = ({
   issueCount,
   onFixFirst,
   onRunAnyway,
@@ -26,23 +26,28 @@ export const ModelValidationDialog = ({
 
   return (
     <BaseDialog
-      title={translate("modelValidation.dialog.title")}
+      title={translate("modelAttributesValidation.dialog.title")}
       size="md"
       isOpen={true}
       onClose={onClose}
       footer={
         <SimpleDialogActions
-          action={translate("modelValidation.dialog.fixFirst")}
+          action={translate("modelAttributesValidation.dialog.fixFirst")}
           onAction={handleFixFirst}
           secondary={{
-            action: translate("modelValidation.dialog.runAnyway"),
+            action: translate("modelAttributesValidation.dialog.runAnyway"),
             onClick: handleRunAnyway,
           }}
         />
       }
     >
       <div className="p-4 text-size-base">
-        <p>{translate("modelValidation.dialog.body", String(issueCount))}</p>
+        <p>
+          {translate(
+            "modelAttributesValidation.dialog.body",
+            String(issueCount),
+          )}
+        </p>
       </div>
     </BaseDialog>
   );

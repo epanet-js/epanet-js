@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 import { createStore, Provider as JotaiProvider } from "jotai";
-import { ModelValidationDialog } from "./model-validation";
+import { ModelAttributesValidationDialog } from "./model-attributes-validation";
 
 const renderDialog = (
   props: Partial<{
@@ -21,13 +21,13 @@ const renderDialog = (
   };
   render(
     <JotaiProvider store={store}>
-      <ModelValidationDialog {...resolved} />
+      <ModelAttributesValidationDialog {...resolved} />
     </JotaiProvider>,
   );
   return resolved;
 };
 
-describe("ModelValidationDialog", () => {
+describe("ModelAttributesValidationDialog", () => {
   it("shows the issue count in the body", () => {
     renderDialog({ issueCount: 3 });
 

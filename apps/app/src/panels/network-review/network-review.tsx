@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtom, useSetAtom } from "jotai";
+import { Lock } from "lucide-react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -7,6 +9,7 @@ import {
   OrphanNodeIcon,
   PipesCrossinIcon,
   ProximityCheckIcon,
+  WarningIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -14,15 +17,36 @@ import { CheckType } from "./common";
 import { ProximityAnomalies } from "./proximity-anomalies";
 import { CrossingPipes } from "./crossing-pipes";
 import { ConnectivityTrace } from "./connectivity-trace";
+import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { usePermissions } from "src/hooks/use-permissions";
+import { usePaywall } from "src/hooks/use-paywall";
+import { dialogAtom } from "src/state/dialog";
+import { selectedReviewCheckAtom } from "src/state/network-review";
 
 export function NetworkReview() {
-  const [checkType, setCheckType] = useState<CheckType | null>(null);
+  const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
+    selectedReviewCheckAtom,
+  );
+  const [checkType, setCheckType] = useState<CheckType | null>(
+    () => selectedReviewCheck,
+  );
+
+  useEffect(
+    function deepLinkToSelectedCheck() {
+      if (selectedReviewCheck !== null) {
+        setCheckType(selectedReviewCheck);
+      }
+    },
+    [selectedReviewCheck],
+  );
 
   const goBackToSummary = useCallback(() => {
     setCheckType(null);
-  }, []);
+    setSelectedReviewCheck(null);
+  }, [setSelectedReviewCheck]);
 
   switch (checkType) {
     case CheckType.orphanAssets:
@@ -33,6 +57,8 @@ export function NetworkReview() {
       return <CrossingPipes onGoBack={goBackToSummary} />;
     case CheckType.connectivityTrace:
       return <ConnectivityTrace onGoBack={goBackToSummary} />;
+    case CheckType.modelAttributesValidation:
+      return <ModelAttributesValidation onGoBack={goBackToSummary} />;
     default:
       return (
         <NetworkReviewSummary
@@ -42,7 +68,7 @@ export function NetworkReview() {
   }
 }
 
-const allChecks = [
+const baseChecks = [
   CheckType.orphanAssets,
   CheckType.proximityAnomalies,
   CheckType.crossingPipes,
@@ -55,6 +81,31 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
+  const isValidationFlagOn = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const { canValidateModelAttributes } = usePermissions();
+  const setDialog = useSetAtom(dialogAtom);
+  const modelAttributesValidationPaywall = usePaywall(
+    "modelAttributesValidation",
+  );
+
+  const allChecks = useMemo(() => {
+    if (isValidationFlagOn) {
+      return [...baseChecks, CheckType.modelAttributesValidation];
+    }
+    return baseChecks;
+  }, [isValidationFlagOn]);
+
+  const isLocked = useCallback(
+    (checkType: CheckType) =>
+      checkType === CheckType.modelAttributesValidation &&
+      !canValidateModelAttributes,
+    [canValidateModelAttributes],
+  );
+
+  const openUpgrade = useCallback(() => {
+    if (modelAttributesValidationPaywall)
+      setDialog(modelAttributesValidationPaywall);
+  }, [modelAttributesValidationPaywall, setDialog]);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -98,7 +149,7 @@ function NetworkReviewSummary({
           break;
       }
     },
-    [selectedCheckType, onClick],
+    [selectedCheckType, onClick, allChecks],
   );
 
   return (
@@ -124,6 +175,11 @@ function NetworkReviewSummary({
             checkType={checkType}
             onClick={onClick}
             isSelected={selectedCheckType === checkType}
+            requiresEarlyAccess={
+              checkType !== CheckType.modelAttributesValidation
+            }
+            isLocked={isLocked(checkType)}
+            onLocked={openUpgrade}
           />
         ))}
       </div>
@@ -136,6 +192,7 @@ const iconsByCheckType = {
   [CheckType.connectivityTrace]: <ConnectivityTraceIcon />,
   [CheckType.proximityAnomalies]: <ProximityCheckIcon />,
   [CheckType.crossingPipes]: <PipesCrossinIcon />,
+  [CheckType.modelAttributesValidation]: <WarningIcon />,
 };
 
 const labelKeyByCheckType = {
@@ -143,6 +200,8 @@ const labelKeyByCheckType = {
   [CheckType.connectivityTrace]: "networkReview.connectivityTrace.title",
   [CheckType.proximityAnomalies]: "networkReview.proximityAnomalies.title",
   [CheckType.crossingPipes]: "networkReview.crossingPipes.title",
+  [CheckType.modelAttributesValidation]:
+    "networkReview.modelAttributesValidation.title",
 };
 
 const ReviewCheck = ({
@@ -150,11 +209,17 @@ const ReviewCheck = ({
   checkType,
   isEnabled = true,
   isSelected,
+  requiresEarlyAccess = true,
+  isLocked = false,
+  onLocked,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
   isEnabled?: boolean;
   isSelected: boolean;
+  requiresEarlyAccess?: boolean;
+  isLocked?: boolean;
+  onLocked?: () => void;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -164,13 +229,31 @@ const ReviewCheck = ({
 
   const selectCheck = useCallback(() => {
     if (!isEnabled) return;
-    onlyEarlyAccess(() => {
+    if (isLocked) {
+      onLocked?.();
+      return;
+    }
+    const openCheck = () => {
       userTracking.capture({
         name: `networkReview.${checkType}.opened`,
       });
       onClick(checkType);
-    });
-  }, [onClick, checkType, userTracking, isEnabled, onlyEarlyAccess]);
+    };
+    if (requiresEarlyAccess) {
+      onlyEarlyAccess(openCheck);
+    } else {
+      openCheck();
+    }
+  }, [
+    onClick,
+    checkType,
+    userTracking,
+    isEnabled,
+    onlyEarlyAccess,
+    requiresEarlyAccess,
+    isLocked,
+    onLocked,
+  ]);
 
   return (
     <Button
@@ -188,14 +271,20 @@ const ReviewCheck = ({
         <div className="flex flex-row gap-2 flex-wrap items-center">
           <div className="text-size-base font-bold text-left">{label}</div>
         </div>
-        {isEnabled && (
-          <div
-            className={`pt-[.125rem] transition-opacity ${
-              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}
-          >
-            <ChevronRightIcon />
+        {isLocked ? (
+          <div className="pt-[.125rem] text-subtle">
+            <Lock size={16} />
           </div>
+        ) : (
+          isEnabled && (
+            <div
+              className={`pt-[.125rem] transition-opacity ${
+                isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              <ChevronRightIcon />
+            </div>
+          )
         )}
       </div>
     </Button>

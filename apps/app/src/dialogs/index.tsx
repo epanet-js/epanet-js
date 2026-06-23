@@ -566,14 +566,16 @@ const AllocateCustomerPointsWarningDialog = dynamic<{
   },
 );
 
-const ModelValidationDialog = dynamic<{
+const ModelAttributesValidationDialog = dynamic<{
   issueCount: number;
   onFixFirst: () => void;
   onRunAnyway: () => void;
   onClose: () => void;
 }>(
   () =>
-    import("src/dialogs/model-validation").then((r) => r.ModelValidationDialog),
+    import("src/dialogs/model-attributes-validation").then(
+      (r) => r.ModelAttributesValidationDialog,
+    ),
   {
     loading: () => <LoadingDialog />,
   },
@@ -687,9 +689,9 @@ export const Dialogs = memo(function Dialogs() {
       />
     );
   }
-  if (dialog.type === "modelValidation") {
+  if (dialog.type === "modelAttributesValidation") {
     return (
-      <ModelValidationDialog
+      <ModelAttributesValidationDialog
         issueCount={dialog.issueCount}
         onFixFirst={dialog.onFixFirst}
         onRunAnyway={dialog.onRunAnyway}

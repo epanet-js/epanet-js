@@ -71,7 +71,7 @@ const throwIfAborted = (signal?: AbortSignal) => {
   }
 };
 
-export const validateModel = async (
+export const validateModelAttributes = async (
   model: HydraulicModel,
   options: { rules?: Rule[]; signal?: AbortSignal } = {},
 ): Promise<ValidationIssue[]> => {
