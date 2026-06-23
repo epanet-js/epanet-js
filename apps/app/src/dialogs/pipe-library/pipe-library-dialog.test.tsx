@@ -28,6 +28,8 @@ describe("PipeLibraryDialog", () => {
     await editCell(user, 1, 0, "10");
     await editCell(user, 1, 1, "130");
 
+    await clickSave(user);
+
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Cast Iron");
@@ -54,6 +56,8 @@ describe("PipeLibraryDialog", () => {
     const input = screen.getByPlaceholderText("Pipe materials");
     await user.clear(input);
     await user.type(input, "Ductile Iron{Enter}");
+
+    await clickSave(user);
 
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(1);
@@ -83,6 +87,8 @@ describe("PipeLibraryDialog", () => {
     await user.clear(input);
     await user.type(input, "Cast Iron Copy{Enter}");
 
+    await clickSave(user);
+
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(2);
     expect(materials[1].label).toBe("Cast Iron Copy");
@@ -110,6 +116,8 @@ describe("PipeLibraryDialog", () => {
     renderDialog(store);
 
     await editCell(user, 0, 1, "999");
+
+    await clickSave(user);
 
     const entries = store.get(pipeMaterialsAtom)[0].entries;
     const nonEmpty = entries.filter(
@@ -139,12 +147,49 @@ describe("PipeLibraryDialog", () => {
     await openActionsMenu(user, "Cast Iron");
     await user.click(screen.getByRole("menuitem", { name: /delete/i }));
 
-    const materials = store.get(pipeMaterialsAtom);
-    expect(materials).toHaveLength(1);
-    expect(materials[0].label).toBe("PVC");
     expect(
       screen.queryByRole("button", { name: "Cast Iron" }),
     ).not.toBeInTheDocument();
+
+    await clickSave(user);
+
+    const materials = store.get(pipeMaterialsAtom);
+    expect(materials).toHaveLength(1);
+    expect(materials[0].label).toBe("PVC");
+  });
+
+  it("does not persist changes when cancel is clicked", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    await openActionsMenu(user, "Cast Iron");
+    await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+    const input = screen.getByPlaceholderText("Pipe materials");
+    await user.clear(input);
+    await user.type(input, "Renamed{Enter}");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: /discard/i }));
+
+    const materials = store.get(pipeMaterialsAtom);
+    expect(materials).toHaveLength(1);
+    expect(materials[0].label).toBe("Cast Iron");
+  });
+
+  it("disables save when there are no changes", () => {
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+    ]);
+    renderDialog(store);
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 });
 
@@ -198,4 +243,11 @@ const openActionsMenu = async (
     name: "Actions",
   });
   await user.click(actionsButton);
+};
+
+const clickSave = async (user: ReturnType<typeof setupUser>) => {
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+  await user.click(screen.getByRole("button", { name: "Save" }));
 };

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
@@ -12,66 +12,75 @@ import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
+import type { PipeMaterial } from "./types";
 import type { RoughnessEntry } from "./types";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();
   const dialogActions = useRef<DialogActionsHandle>(null);
-  const [materials, setMaterials] = useAtom(pipeMaterialsAtom);
+  const savedMaterials = useAtomValue(pipeMaterialsAtom);
+  const [, setSavedMaterials] = useAtom(pipeMaterialsAtom);
   const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);
+  const [draftMaterials, setDraftMaterials] =
+    useState<PipeMaterial[]>(savedMaterials);
   const [sidebarWidth, setSidebarWidth] = useState(224);
 
-  const selectedMaterial =
-    materials.find((m) => m.label === selectedLabel) ?? null;
-  const isEmpty = materials.length === 0;
+  const hasChanges = draftMaterials !== savedMaterials;
 
-  const handleAddMaterial = useCallback(
-    (label: string) => {
-      setMaterials((prev) => [...prev, { label, entries: [] }]);
-    },
-    [setMaterials],
-  );
+  const selectedMaterial =
+    draftMaterials.find((m) => m.label === selectedLabel) ?? null;
+  const isEmpty = draftMaterials.length === 0;
+
+  const handleSave = useCallback(() => {
+    setSavedMaterials(draftMaterials);
+  }, [draftMaterials, setSavedMaterials]);
+
+  const handleAddMaterial = useCallback((label: string) => {
+    setDraftMaterials((prev) => [...prev, { label, entries: [] }]);
+  }, []);
 
   const handleRenameMaterial = useCallback(
     (oldLabel: string, newLabel: string) => {
-      setMaterials((prev) =>
+      setDraftMaterials((prev) =>
         prev.map((m) => (m.label === oldLabel ? { ...m, label: newLabel } : m)),
       );
       setSelectedLabel((prev) => (prev === oldLabel ? newLabel : prev));
     },
-    [setMaterials, setSelectedLabel],
+    [setSelectedLabel],
   );
 
   const handleDuplicateMaterial = useCallback(
     (sourceLabel: string, newLabel: string) => {
-      const source = materials.find((m) => m.label === sourceLabel);
-      if (!source) return;
-      setMaterials((prev) => [
-        ...prev,
-        { label: newLabel, entries: source.entries.map((e) => ({ ...e })) },
-      ]);
+      setDraftMaterials((prev) => {
+        const source = prev.find((m) => m.label === sourceLabel);
+        if (!source) return prev;
+        return [
+          ...prev,
+          { label: newLabel, entries: source.entries.map((e) => ({ ...e })) },
+        ];
+      });
     },
-    [materials, setMaterials],
+    [],
   );
 
   const handleDeleteMaterial = useCallback(
     (label: string) => {
-      setMaterials((prev) => prev.filter((m) => m.label !== label));
+      setDraftMaterials((prev) => prev.filter((m) => m.label !== label));
       if (selectedLabel === label) {
         setSelectedLabel(null);
       }
     },
-    [selectedLabel, setMaterials, setSelectedLabel],
+    [selectedLabel, setSelectedLabel],
   );
 
   const handleEntriesChange = useCallback(
     (entries: RoughnessEntry[]) => {
       if (selectedLabel === null) return;
-      setMaterials((prev) =>
+      setDraftMaterials((prev) =>
         prev.map((m) => (m.label === selectedLabel ? { ...m, entries } : m)),
       );
     },
-    [selectedLabel, setMaterials],
+    [selectedLabel],
   );
 
   return (
@@ -85,7 +94,8 @@ export const PipeLibraryDialog = () => {
         <DialogActions
           ref={dialogActions}
           readOnly={false}
-          hasChanges={false}
+          hasChanges={hasChanges}
+          onSave={handleSave}
         />
       }
     >
@@ -99,7 +109,7 @@ export const PipeLibraryDialog = () => {
           <div className="shrink-0 flex">
             <PipeLibrarySidebar
               width={sidebarWidth}
-              materials={materials}
+              materials={draftMaterials}
               selectedLabel={selectedLabel}
               onSelectMaterial={setSelectedLabel}
               onAddMaterial={handleAddMaterial}
