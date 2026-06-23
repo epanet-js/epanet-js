@@ -8,16 +8,22 @@ import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { VerticalResizer } from "../vertical-resizer";
 import { PipeLibraryIcon } from "src/icons";
 import { Button } from "src/components/elements";
+import { notify } from "src/components/notifications";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
+import { applyRoughnessMoment } from "./apply-roughness";
 import type { PipeMaterial } from "./types";
 import type { RoughnessEntry } from "./types";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();
   const dialogActions = useRef<DialogActionsHandle>(null);
+  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const { transact } = useModelTransaction();
   const savedMaterials = useAtomValue(pipeMaterialsAtom);
   const [, setSavedMaterials] = useAtom(pipeMaterialsAtom);
   const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);
@@ -92,6 +98,19 @@ export const PipeLibraryDialog = () => {
     [selectedLabel],
   );
 
+  const handleApplyRoughness = useCallback(() => {
+    const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
+    if (moment.patchAssetsAttributes!.length === 0) return;
+    transact(moment);
+    notify({
+      variant: "success",
+      title: translate(
+        "pipeLibrary.appliedRoughness",
+        moment.patchAssetsAttributes!.length,
+      ),
+    });
+  }, [hydraulicModel, draftMaterials, transact, translate]);
+
   return (
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
@@ -114,6 +133,7 @@ export const PipeLibraryDialog = () => {
             variant="default"
             size="sm"
             disabled={isEmpty || hasValidationErrors}
+            onClick={handleApplyRoughness}
           >
             {translate("pipeLibrary.applyRoughness")}
           </Button>

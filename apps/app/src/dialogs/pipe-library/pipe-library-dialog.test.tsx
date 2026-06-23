@@ -2,6 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
+import { vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import {
@@ -11,9 +12,34 @@ import {
 import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
 
+const mockTransact = vi.fn();
+vi.mock("src/hooks/persistence/use-model-transaction", () => ({
+  useModelTransaction: () => ({ transact: mockTransact }),
+}));
+
+vi.mock("./apply-roughness", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./apply-roughness")>();
+  return {
+    ...original,
+    applyRoughnessMoment: vi.fn(original.applyRoughnessMoment),
+  };
+});
+
+import { applyRoughnessMoment } from "./apply-roughness";
+
+vi.mock("src/components/notifications", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("src/components/notifications")>();
+  return {
+    ...original,
+    notify: vi.fn(),
+  };
+});
+
 describe("PipeLibraryDialog", () => {
   beforeEach(() => {
     stubUserTracking();
+    vi.clearAllMocks();
   });
 
   it("creates a material and sets values in two rows", async () => {
@@ -190,6 +216,28 @@ describe("PipeLibraryDialog", () => {
     renderDialog(store);
 
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("applies roughness to pipes via transact when button is clicked", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
+    ]);
+    renderDialog(store);
+
+    const mockMoment = {
+      note: "Apply roughness from pipe library",
+      patchAssetsAttributes: [
+        { id: 1, type: "pipe", properties: { roughness: 120 } },
+      ],
+    };
+    vi.mocked(applyRoughnessMoment).mockReturnValue(mockMoment as never);
+
+    await user.click(screen.getByRole("button", { name: /apply roughness/i }));
+
+    expect(applyRoughnessMoment).toHaveBeenCalled();
+    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 
   it("disables apply roughness when a material has incomplete entries", async () => {

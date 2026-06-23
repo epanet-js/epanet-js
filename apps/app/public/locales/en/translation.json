@@ -1623,6 +1623,7 @@
     "addEntry": "Add entry",
     "noSelection": "Select a material to view its roughness entries",
     "emptyTitle": "The pipe library is empty",
-    "emptyDescription": "Add a pipe material to get started"
+    "emptyDescription": "Add a pipe material to get started",
+    "appliedRoughness": "Updated {{count}} pipes"
   }
 }
