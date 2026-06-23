@@ -744,6 +744,7 @@ function _buildColumns(
           "diameter",
         ),
         numericCol("length", translate("length"), units.length, "length"),
+        ...buildExtraPipeCols(translate, formatting),
         numericCol("roughness", translate("roughness"), units.roughness),
         numericCol(
           "minorLoss",
@@ -751,7 +752,6 @@ function _buildColumns(
           units.minorLoss,
           "minorLoss",
         ),
-        ...buildExtraPipeCols(translate, formatting),
         floatColumn(ck("customerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
