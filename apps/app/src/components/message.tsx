@@ -47,7 +47,7 @@ export const Message = ({
           "w-[300px]": size === "sm",
           "w-auto": size === "auto",
         },
-        "flex items-start p-3 border rounded-lg shadow-md",
+        "flex items-start p-3 border rounded-lg",
         color.bg,
       )}
     >
