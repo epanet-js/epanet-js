@@ -92,6 +92,40 @@ describe("PipeLibraryDialog", () => {
     ]);
   });
 
+  it("sorts entries by age ascending, empty ages at bottom", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 20, roughness: 140 },
+          { age: 5, roughness: 120 },
+          { age: null, roughness: null },
+          { age: 10, roughness: 130 },
+        ],
+      },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    await editCell(user, 0, 1, "999");
+
+    const entries = store.get(pipeMaterialsAtom)[0].entries;
+    const nonEmpty = entries.filter(
+      (e) => e.age !== null || e.roughness !== null,
+    );
+    expect(nonEmpty).toEqual([
+      { age: 5, roughness: 999 },
+      { age: 10, roughness: 130 },
+      { age: 20, roughness: 140 },
+    ]);
+    expect(entries[entries.length - 1]).toEqual({
+      age: null,
+      roughness: null,
+    });
+  });
+
   it("removes a material", async () => {
     const user = setupUser();
     const store = setInitialState();

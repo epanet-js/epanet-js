@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef } from "react";
+import { useMemo, useCallback, useRef, useEffect } from "react";
 import {
   DataGrid,
   type DataGridRef,
@@ -16,7 +16,7 @@ type PipeRoughnessTableProps = {
   onChange: (entries: RoughnessEntry[]) => void;
 };
 
-const DEFAULT_ROW: RoughnessEntry = { age: 0, roughness: 0 };
+const DEFAULT_ROW: RoughnessEntry = { age: null, roughness: null };
 
 export const PipeRoughnessTable = ({
   entries,
@@ -29,6 +29,13 @@ export const PipeRoughnessTable = ({
     () => (entries.length === 0 ? [{ ...DEFAULT_ROW }] : entries),
     [entries],
   );
+
+  useEffect(() => {
+    const sorted = sortByAge(entries);
+    if (sorted.some((entry, i) => entry !== entries[i])) {
+      onChange(sorted);
+    }
+  }, [entries, onChange]);
 
   const selectRow = useCallback((rowIndex: number) => {
     gridRef.current?.selectCells({ rowIndex });
@@ -105,7 +112,7 @@ export const PipeRoughnessTable = ({
       integerColumn("age", {
         header: translate("pipeLibrary.age"),
         size: 82,
-        emptyValue: 0,
+        emptyValue: null,
       }),
       floatColumn("roughness", {
         header: translate("pipeLibrary.roughness"),
@@ -151,3 +158,11 @@ export const PipeRoughnessTable = ({
     </div>
   );
 };
+
+const sortByAge = (rows: RoughnessEntry[]): RoughnessEntry[] =>
+  [...rows].sort((a, b) => {
+    if (a.age === null && b.age === null) return 0;
+    if (a.age === null) return 1;
+    if (b.age === null) return -1;
+    return a.age - b.age;
+  });
