@@ -213,5 +213,7 @@ const isMaterialInvalid = (material: PipeMaterial): boolean =>
   material.entries.some(
     (e) =>
       (e.age !== null && e.roughness === null) ||
-      (e.age === null && e.roughness !== null),
+      (e.age === null && e.roughness !== null) ||
+      (e.age !== null && e.age <= 0) ||
+      (e.roughness !== null && e.roughness <= 0),
   );
