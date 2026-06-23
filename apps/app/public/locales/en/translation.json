@@ -1624,6 +1624,13 @@
     "noSelection": "Select a material to view its roughness entries",
     "emptyTitle": "The pipe library is empty",
     "emptyDescription": "Add a pipe material to get started",
-    "appliedRoughness": "Updated {{count}} pipes"
+    "appliedRoughness": "Updated {{count}} pipes",
+    "validation": {
+      "invalidMaterial": "Material {{1}} contains invalid values",
+      "roughnessPositive": "Roughness must be greater than zero",
+      "agePositive": "Age must be greater than zero",
+      "roughnessRequired": "Roughness must be set",
+      "ageRequired": "Age must be set"
+    }
   }
 }

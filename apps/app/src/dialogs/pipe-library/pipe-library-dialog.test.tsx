@@ -258,6 +258,9 @@ describe("PipeLibraryDialog", () => {
     expect(
       screen.getByRole("button", { name: /apply roughness/i }),
     ).toBeDisabled();
+    expect(
+      screen.getByText(/cast iron contains invalid values/i),
+    ).toBeVisible();
 
     await editCell(user, 1, 1, "130");
 

@@ -5,6 +5,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
+import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
 import { PipeLibraryIcon } from "src/icons";
 import { Button } from "src/components/elements";
@@ -40,7 +41,9 @@ export const PipeLibraryDialog = () => {
   const invalidMaterialLabels = useMemo(
     () =>
       new Set(
-        draftMaterials.filter((m) => isMaterialInvalid(m)).map((m) => m.label),
+        draftMaterials
+          .filter((m) => getFirstError(m) !== null)
+          .map((m) => m.label),
       ),
     [draftMaterials],
   );
@@ -115,7 +118,7 @@ export const PipeLibraryDialog = () => {
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
       size="lg"
-      height="lg"
+      height="xl"
       isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
       footer={
@@ -158,10 +161,16 @@ export const PipeLibraryDialog = () => {
           </div>
           <div className="flex-1 flex flex-col min-h-0 w-full">
             {selectedMaterial ? (
-              <PipeRoughnessTable
-                entries={selectedMaterial.entries}
-                onChange={handleEntriesChange}
-              />
+              <>
+                <PipeRoughnessTable
+                  entries={selectedMaterial.entries}
+                  onChange={handleEntriesChange}
+                />
+                <PipeErrorBanner
+                  materialLabel={selectedMaterial.label}
+                  error={getFirstError(selectedMaterial)}
+                />
+              </>
             ) : isEmpty ? (
               <div className="flex-1 flex items-center justify-center p-2">
                 <EmptyState />
@@ -209,11 +218,16 @@ const EmptyState = () => {
   );
 };
 
-const isMaterialInvalid = (material: PipeMaterial): boolean =>
-  material.entries.some(
-    (e) =>
-      (e.age !== null && e.roughness === null) ||
-      (e.age === null && e.roughness !== null) ||
-      (e.age !== null && e.age <= 0) ||
-      (e.roughness !== null && e.roughness <= 0),
-  );
+export const getFirstError = (material: PipeMaterial): string | null => {
+  for (const e of material.entries) {
+    if (e.roughness !== null && e.roughness <= 0)
+      return "pipeLibrary.validation.roughnessPositive";
+    if (e.age !== null && e.age <= 0)
+      return "pipeLibrary.validation.agePositive";
+    if (e.age !== null && e.roughness === null)
+      return "pipeLibrary.validation.roughnessRequired";
+    if (e.age === null && e.roughness !== null)
+      return "pipeLibrary.validation.ageRequired";
+  }
+  return null;
+};
