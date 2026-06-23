@@ -282,6 +282,16 @@ type SimulationExecuted = {
   qualityType: QualitySimulationType;
 };
 
+type SimulationValidationIssuesFound = {
+  name: "simulation.validation.issuesFound";
+  issueCount: number;
+};
+
+type SimulationValidationResolved = {
+  name: "simulation.validation.resolved";
+  choice: "fixFirst" | "runAnyway";
+};
+
 type SimulationTimestepChanged = {
   name: "simulation.timestep.changed";
   timestepIndex: number;
@@ -1133,6 +1143,8 @@ export type UserEvent =
   | UnsavedChangesSeen
   | ExampleModelClicked
   | SimulationExecuted
+  | SimulationValidationIssuesFound
+  | SimulationValidationResolved
   | SimulationTimestepChanged
   | SimulationPlaybackStopped
   | SimulationPlaybackStarted

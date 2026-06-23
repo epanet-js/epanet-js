@@ -105,6 +105,13 @@ export type ImportCustomerPointsWarningDialogState = {
   onContinue: () => void;
 };
 
+export type ModelValidationDialogState = {
+  type: "modelValidation";
+  issueCount: number;
+  onFixFirst: () => void;
+  onRunAnyway: () => void;
+};
+
 export type UnexpectedErrorDialogState = {
   type: "unexpectedError";
   onRetry?: () => void;
@@ -296,6 +303,7 @@ export type DialogState =
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState
+  | ModelValidationDialogState
   | UnexpectedErrorDialogState
   | ChangeNotAppliedDialogState
   | ModelBuilderIframeDialogState

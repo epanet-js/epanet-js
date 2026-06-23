@@ -566,6 +566,19 @@ const AllocateCustomerPointsWarningDialog = dynamic<{
   },
 );
 
+const ModelValidationDialog = dynamic<{
+  issueCount: number;
+  onFixFirst: () => void;
+  onRunAnyway: () => void;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/model-validation").then((r) => r.ModelValidationDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ImportZonesDialog = dynamic<{
   onClose: () => void;
 }>(
@@ -670,6 +683,16 @@ export const Dialogs = memo(function Dialogs() {
     return (
       <AllocateCustomerPointsWarningDialog
         onImport={dialog.onImport}
+        onClose={onClose}
+      />
+    );
+  }
+  if (dialog.type === "modelValidation") {
+    return (
+      <ModelValidationDialog
+        issueCount={dialog.issueCount}
+        onFixFirst={dialog.onFixFirst}
+        onRunAnyway={dialog.onRunAnyway}
         onClose={onClose}
       />
     );

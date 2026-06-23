@@ -658,6 +658,14 @@
     "saveBuildSettings": "Save build settings",
     "filterData": "Filter data"
   },
+  "modelValidation": {
+    "dialog": {
+      "title": "Model issues found",
+      "body": "We found {{1}} issue(s) in your model that may affect the simulation. You can fix them first or run the simulation anyway.",
+      "fixFirst": "Fix issues first",
+      "runAnyway": "Run anyway"
+    }
+  },
   "cloudStorage": "Cloud storage",
   "pointInTimeRestore": "Point in time restore - {{1}} days",
   "demandsAnalysis": "Demand analysis",
