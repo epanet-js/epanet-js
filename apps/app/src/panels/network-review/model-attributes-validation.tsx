@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -36,42 +36,23 @@ const ruleLabelKeys: Record<string, string> = {
     "networkReview.modelAttributesValidation.rule.customerPointConnected",
 };
 
-type ValidationRow =
-  | { kind: "group"; id: string; group: ValidationGroup }
-  | {
-      kind: "issue";
-      id: string;
-      entityType: EntityType;
-      issue: ValidationIssue;
-    };
-
-const groupRowId = (ruleId: string) => `group:${ruleId}`;
-const issueRowId = (ruleId: string, entityId: number) =>
-  `issue:${ruleId}:${entityId}`;
-
-export const buildRows = (
-  groups: ValidationGroup[],
-  expandedRuleIds: Set<string>,
-): ValidationRow[] => {
-  const rows: ValidationRow[] = [];
-  for (const group of groups) {
-    rows.push({ kind: "group", id: groupRowId(group.ruleId), group });
-    if (expandedRuleIds.has(group.ruleId)) {
-      for (const issue of group.issues) {
-        rows.push({
-          kind: "issue",
-          id: issueRowId(group.ruleId, issue.entityId),
-          entityType: group.entityType,
-          issue,
-        });
-      }
-    }
-  }
-  return rows;
-};
+const ruleLabelKey = (ruleId: string) =>
+  ruleLabelKeys[ruleId] ?? "networkReview.modelAttributesValidation.title";
 
 const countIssues = (groups: ValidationGroup[]): number =>
   groups.reduce((total, group) => total + group.issues.length, 0);
+
+const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
+  <span
+    className={
+      severity === "error"
+        ? "text-red-600 dark:text-red-400"
+        : "text-orange-500 dark:text-orange-400"
+    }
+  >
+    {severity === "error" ? <ErrorIcon /> : <WarningIcon />}
+  </span>
+);
 
 export const ModelAttributesValidation = ({
   onGoBack,
@@ -87,21 +68,13 @@ export const ModelAttributesValidation = ({
     selectAssets,
     selectCustomerPoint,
     selectCustomerPoints,
-    clearSelection,
   } = useSelection(selection);
   const zoomTo = useZoomTo();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
-  const [expandedRuleIds, setExpandedRuleIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [detailRuleId, setDetailRuleId] = useState<string | null>(null);
 
   const issuesCount = countIssues(groups);
   const lastIssuesCount = useRef(0);
-  const rows = useMemo(
-    () => buildRows(groups, expandedRuleIds),
-    [groups, expandedRuleIds],
-  );
 
   useEffect(
     function recomputeModelAttributesValidation() {
@@ -148,37 +121,15 @@ export const ModelAttributesValidation = ({
     [selectAsset, selectCustomerPoint, zoomToAssets],
   );
 
-  const toggleExpand = useCallback((ruleId: string) => {
-    setExpandedRuleIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(ruleId)) next.delete(ruleId);
-      else next.add(ruleId);
-      return next;
-    });
-  }, []);
-
-  const selectRow = useCallback(
-    (row: ValidationRow | null) => {
-      if (!row) {
-        setSelectedRowId(null);
-        clearSelection();
-        return;
-      }
-
-      setSelectedRowId(row.id);
-
-      if (row.kind === "group") {
-        setExpandedRuleIds((prev) => new Set(prev).add(row.group.ruleId));
-        selectEntities(
-          row.group.entityType,
-          row.group.issues.map((issue) => issue.entityId),
-        );
-        return;
-      }
-
-      selectEntity(row.entityType, row.issue.entityId);
+  const openGroup = useCallback(
+    (group: ValidationGroup) => {
+      selectEntities(
+        group.entityType,
+        group.issues.map((issue) => issue.entityId),
+      );
+      setDetailRuleId(group.ruleId);
     },
-    [clearSelection, selectEntities, selectEntity],
+    [selectEntities],
   );
 
   useEffect(() => {
@@ -191,6 +142,31 @@ export const ModelAttributesValidation = ({
     }
   }, [issuesCount, userTracking]);
 
+  const detailGroup = detailRuleId
+    ? (groups.find((group) => group.ruleId === detailRuleId) ?? null)
+    : null;
+
+  useEffect(
+    function leaveDetailWhenGroupResolved() {
+      if (isReady && detailRuleId && !detailGroup) {
+        setDetailRuleId(null);
+      }
+    },
+    [isReady, detailRuleId, detailGroup],
+  );
+
+  if (detailGroup) {
+    return (
+      <ModelAttributesValidationDetail
+        group={detailGroup}
+        onGoBack={() => setDetailRuleId(null)}
+        onSelectIssue={(issue) =>
+          selectEntity(detailGroup.entityType, issue.entityId)
+        }
+      />
+    );
+  }
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
@@ -202,13 +178,10 @@ export const ModelAttributesValidation = ({
       <div className="relative grow flex flex-col">
         {isReady ? (
           <>
-            {rows.length > 0 ? (
-              <ModelAttributesValidationList
-                rows={rows}
-                onClick={selectRow}
-                selectedRowId={selectedRowId}
-                expandedRuleIds={expandedRuleIds}
-                onToggleExpand={toggleExpand}
+            {groups.length > 0 ? (
+              <ModelAttributesValidationGroupList
+                groups={groups}
+                onOpen={openGroup}
                 onGoBack={onGoBack}
               />
             ) : (
@@ -232,83 +205,85 @@ export const ModelAttributesValidation = ({
   );
 };
 
-const ModelAttributesValidationList = ({
-  rows,
-  onClick,
-  selectedRowId,
-  expandedRuleIds,
-  onToggleExpand,
+const ModelAttributesValidationGroupList = ({
+  groups,
+  onOpen,
   onGoBack,
 }: {
-  rows: ValidationRow[];
-  onClick: (row: ValidationRow | null) => void;
-  selectedRowId: string | null;
-  expandedRuleIds: Set<string>;
-  onToggleExpand: (ruleId: string) => void;
+  groups: ValidationGroup[];
+  onOpen: (group: ValidationGroup) => void;
   onGoBack: () => void;
 }) => {
-  return (
-    <VirtualizedIssuesList
-      items={rows}
-      selectedItemId={selectedRowId}
-      onSelect={onClick}
-      getItemId={(row) => row.id}
-      renderItem={(_index, row, selectedId, onClick) =>
-        row.kind === "group" ? (
-          <ModelAttributesValidationGroupItem
-            row={row}
-            selectedId={selectedId}
-            onClick={onClick}
-            isExpanded={expandedRuleIds.has(row.group.ruleId)}
-            onToggleExpand={onToggleExpand}
-          />
-        ) : (
-          <ModelAttributesValidationIssueItem
-            row={row}
-            selectedId={selectedId}
-            onClick={onClick}
-          />
-        )
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(function autoFocusOnMount() {
+    const timer = setTimeout(() => {
+      containerRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const currentIndex = groups.findIndex(
+        (group) => group.ruleId === selectedRuleId,
+      );
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedRuleId(
+            groups[Math.min(currentIndex + 1, groups.length - 1)].ruleId,
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedRuleId(groups[Math.max(currentIndex - 1, 0)].ruleId);
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (currentIndex !== -1) onOpen(groups[currentIndex]);
+          break;
+        case "Escape":
+          e.preventDefault();
+          onGoBack();
+          break;
       }
-      checkType={CheckType.modelAttributesValidation}
-      estimateSize={44}
-      onGoBack={onGoBack}
-    />
+    },
+    [groups, selectedRuleId, onOpen, onGoBack],
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex-auto overflow-y-auto placemark-scrollbar px-1"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      <ToolDescription checkType={CheckType.modelAttributesValidation} />
+      {groups.map((group) => (
+        <ModelAttributesValidationGroupRow
+          key={group.ruleId}
+          group={group}
+          isSelected={selectedRuleId === group.ruleId}
+          onClick={() => onOpen(group)}
+        />
+      ))}
+    </div>
   );
 };
 
-const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
-  <span
-    className={
-      severity === "error"
-        ? "text-red-600 dark:text-red-400"
-        : "text-orange-500 dark:text-orange-400"
-    }
-  >
-    {severity === "error" ? <ErrorIcon /> : <WarningIcon />}
-  </span>
-);
-
-const ModelAttributesValidationGroupItem = ({
-  row,
+const ModelAttributesValidationGroupRow = ({
+  group,
+  isSelected,
   onClick,
-  selectedId,
-  isExpanded,
-  onToggleExpand,
 }: {
-  row: Extract<ValidationRow, { kind: "group" }>;
-  onClick: (row: ValidationRow) => void;
-  selectedId: string | null;
-  isExpanded: boolean;
-  onToggleExpand: (ruleId: string) => void;
+  group: ValidationGroup;
+  isSelected: boolean;
+  onClick: () => void;
 }) => {
   const translate = useTranslate();
-  const { group } = row;
-  const isSelected = selectedId === row.id;
-  const label = translate(
-    ruleLabelKeys[group.ruleId] ??
-      "networkReview.modelAttributesValidation.title",
-  );
+  const label = translate(ruleLabelKey(group.ruleId));
   const affectedText = translate(
     "networkReview.modelAttributesValidation.affectedCount",
     group.issues.length,
@@ -316,8 +291,7 @@ const ModelAttributesValidationGroupItem = ({
 
   return (
     <Button
-      onClick={() => onClick(row)}
-      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
       variant={"quiet/list"}
       role="button"
       aria-label={translate(
@@ -326,12 +300,10 @@ const ModelAttributesValidationGroupItem = ({
         String(group.issues.length),
       )}
       aria-checked={isSelected}
-      aria-expanded={isExpanded ? "true" : "false"}
-      aria-selected={isSelected}
-      tabIndex={-1}
+      aria-expanded={isSelected ? true : false}
       className="group w-full"
     >
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-1 pr-0 text-size-base w-full text-left">
+      <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full text-left">
         <div className="pt-[.125rem]">
           <SeverityIcon severity={group.severity} />
         </div>
@@ -339,43 +311,120 @@ const ModelAttributesValidationGroupItem = ({
           <span className="font-bold">{label}</span>
           <span className="text-subtle">{affectedText}</span>
         </div>
-        <span
-          role="button"
-          aria-label={translate(
-            isExpanded
-              ? "networkReview.modelAttributesValidation.collapse"
-              : "networkReview.modelAttributesValidation.expand",
-          )}
-          tabIndex={-1}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleExpand(group.ruleId);
-          }}
-          className="pt-[.125rem] text-subtle"
+        <div
+          className={`pt-[.125rem] transition-opacity ${
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          }`}
         >
-          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </span>
+          <ChevronRight size={16} />
+        </div>
       </div>
     </Button>
   );
 };
 
-const ModelAttributesValidationIssueItem = ({
-  row,
-  onClick,
-  selectedId,
+const ModelAttributesValidationDetail = ({
+  group,
+  onGoBack,
+  onSelectIssue,
 }: {
-  row: Extract<ValidationRow, { kind: "issue" }>;
-  onClick: (row: ValidationRow) => void;
-  selectedId: string | null;
+  group: ValidationGroup;
+  onGoBack: () => void;
+  onSelectIssue: (issue: ValidationIssue) => void;
 }) => {
-  const isSelected = selectedId === row.id;
-  const label = row.issue.label ?? String(row.issue.entityId);
+  const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
+
+  const selectIssue = useCallback(
+    (issue: ValidationIssue | null) => {
+      if (!issue) {
+        setSelectedEntityId(null);
+        return;
+      }
+      setSelectedEntityId(issue.entityId);
+      onSelectIssue(issue);
+    },
+    [onSelectIssue],
+  );
+
+  return (
+    <div className="absolute inset-0 flex flex-col">
+      <ModelAttributesValidationDetailHeader
+        group={group}
+        onGoBack={onGoBack}
+      />
+      <div className="relative grow flex flex-col">
+        <VirtualizedIssuesList
+          items={group.issues}
+          selectedItemId={selectedEntityId}
+          onSelect={selectIssue}
+          getItemId={(issue) => issue.entityId}
+          renderItem={(_index, issue, selectedId, onClick) => (
+            <ModelAttributesValidationEntityRow
+              issue={issue}
+              isSelected={selectedId === issue.entityId}
+              onClick={onClick}
+            />
+          )}
+          checkType={CheckType.modelAttributesValidation}
+          showDescription={false}
+          onGoBack={onGoBack}
+        />
+      </div>
+    </div>
+  );
+};
+
+const ModelAttributesValidationDetailHeader = ({
+  group,
+  onGoBack,
+}: {
+  group: ValidationGroup;
+  onGoBack: () => void;
+}) => {
+  const translate = useTranslate();
+  const label = translate(ruleLabelKey(group.ruleId));
+  const affectedText = translate(
+    "networkReview.modelAttributesValidation.affectedCount",
+    group.issues.length,
+  );
+
+  return (
+    <div className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b pl-1 py-3">
+      <Button
+        className="mt-[-.25rem] py-1.5"
+        size="xs"
+        variant={"quiet"}
+        role="button"
+        aria-label={translate("back")}
+        onClick={onGoBack}
+      >
+        <ChevronLeft size={16} />
+      </Button>
+      <div className="w-full flex flex-col gap-2 pr-2">
+        <div className="flex flex-row items-center gap-2">
+          <SeverityIcon severity={group.severity} />
+          <p className="text-size-base font-bold text-default">{label}</p>
+        </div>
+        <p className="text-subtle text-size-base">{affectedText}</p>
+      </div>
+    </div>
+  );
+};
+
+const ModelAttributesValidationEntityRow = ({
+  issue,
+  isSelected,
+  onClick,
+}: {
+  issue: ValidationIssue;
+  isSelected: boolean;
+  onClick: (issue: ValidationIssue) => void;
+}) => {
+  const label = issue.label ?? String(issue.entityId);
 
   return (
     <Button
-      onClick={() => onClick(row)}
+      onClick={() => onClick(issue)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
       role="button"
@@ -385,7 +434,7 @@ const ModelAttributesValidationIssueItem = ({
       tabIndex={-1}
       className="group w-full"
     >
-      <div className="flex items-center p-1 pl-8 pr-0 text-size-base w-full text-left">
+      <div className="flex items-center p-1 pr-0 text-size-base w-full text-left">
         <span className="truncate">{label}</span>
       </div>
     </Button>

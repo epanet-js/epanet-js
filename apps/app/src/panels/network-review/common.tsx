@@ -221,6 +221,7 @@ export const VirtualizedIssuesList = <T, I>({
   checkType,
   estimateSize = 35,
   autoFocus = true,
+  showDescription = true,
   onGoBack,
 }: {
   items: T[];
@@ -236,9 +237,9 @@ export const VirtualizedIssuesList = <T, I>({
   checkType: CheckType;
   estimateSize?: number;
   autoFocus?: boolean;
+  showDescription?: boolean;
   onGoBack: () => void;
 }) => {
-  const headerRows = 1;
   const lastKeyboardNavigatedIndexRef = useRef<number | null>(null);
   const lastProcessedSelectedIdRef = useRef<I | null>(null);
 
@@ -250,7 +251,7 @@ export const VirtualizedIssuesList = <T, I>({
   });
 
   const rowVirtualizer = useVirtualizer({
-    count: items.length + headerRows,
+    count: items.length,
     getScrollElement: () => listRef.current,
     estimateSize: () => estimateSize,
   });
@@ -269,7 +270,7 @@ export const VirtualizedIssuesList = <T, I>({
   const ensureItemIsVisible = useCallback(() => {
     if (lastKeyboardNavigatedIndexRef.current === null) return;
 
-    const rowIndex = lastKeyboardNavigatedIndexRef.current + headerRows;
+    const rowIndex = lastKeyboardNavigatedIndexRef.current;
     const range = rowVirtualizer.range;
 
     if (!range) return;
@@ -310,10 +311,7 @@ export const VirtualizedIssuesList = <T, I>({
         case "PageDown":
           e.preventDefault();
           const { endIndex } = range;
-          const nextPageIndex = Math.min(
-            Math.max(endIndex - headerRows, 0),
-            items.length - 1,
-          );
+          const nextPageIndex = Math.min(endIndex, items.length - 1);
           onSelect(items[nextPageIndex]);
           lastKeyboardNavigatedIndexRef.current = nextPageIndex;
           lastProcessedSelectedIdRef.current = getIdFromIssue(
@@ -323,7 +321,7 @@ export const VirtualizedIssuesList = <T, I>({
         case "PageUp":
           e.preventDefault();
           const { startIndex } = range;
-          const previousPageIndex = Math.max(startIndex - headerRows - 1, 0);
+          const previousPageIndex = Math.max(startIndex - 1, 0);
           onSelect(items[previousPageIndex]);
           lastKeyboardNavigatedIndexRef.current = previousPageIndex;
           lastProcessedSelectedIdRef.current = getIdFromIssue(
@@ -404,60 +402,49 @@ export const VirtualizedIssuesList = <T, I>({
   const rows = rowVirtualizer.getVirtualItems();
 
   return (
-    <div
-      ref={listRef}
-      className="group flex-auto pb-1 overflow-y-auto placemark-scrollbar"
-      style={{ contain: "strict" }}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
+    <div className="flex-auto flex flex-col min-h-0">
+      {showDescription && <ToolDescription checkType={checkType} />}
       <div
-        className="w-full relative"
-        style={{ height: rowVirtualizer.getTotalSize() }}
+        ref={listRef}
+        className="group flex-auto pb-1 overflow-y-auto placemark-scrollbar"
+        style={{ contain: "strict" }}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
       >
         <div
-          className="absolute top-0 left-0 w-full"
-          style={{
-            transform: `translateY(${rows[0]?.start ?? 0}px)`,
-          }}
+          className="w-full relative"
+          style={{ height: rowVirtualizer.getTotalSize() }}
         >
-          {rows.map((virtualRow) => {
-            if (virtualRow.index === 0) {
+          <div
+            className="absolute top-0 left-0 w-full"
+            style={{
+              transform: `translateY(${rows[0]?.start ?? 0}px)`,
+            }}
+          >
+            {rows.map((virtualRow) => {
+              const item = items[virtualRow.index];
+              const itemIndex = virtualRow.index;
+              const handleClickWithIndex = (clickedIssue: T) =>
+                handleItemClick(clickedIssue, itemIndex);
+
               return (
                 <div
-                  key="description"
+                  key={String(getIdFromIssue(item))}
                   data-index={virtualRow.index}
-                  className="w-full"
+                  className="w-full px-1"
                   ref={rowVirtualizer.measureElement}
                   role="listItem"
                 >
-                  <ToolDescription checkType={checkType} />
+                  {renderItem(
+                    itemIndex,
+                    item,
+                    selectedItemId,
+                    handleClickWithIndex,
+                  )}
                 </div>
               );
-            }
-
-            const item = items[virtualRow.index - headerRows];
-            const itemIndex = virtualRow.index - headerRows;
-            const handleClickWithIndex = (clickedIssue: T) =>
-              handleItemClick(clickedIssue, itemIndex);
-
-            return (
-              <div
-                key={String(getIdFromIssue(item))}
-                data-index={virtualRow.index}
-                className="w-full px-1"
-                ref={rowVirtualizer.measureElement}
-                role="listItem"
-              >
-                {renderItem(
-                  virtualRow.index,
-                  item,
-                  selectedItemId,
-                  handleClickWithIndex,
-                )}
-              </div>
-            );
-          })}
+            })}
+          </div>
         </div>
       </div>
     </div>

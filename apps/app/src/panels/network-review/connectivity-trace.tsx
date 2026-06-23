@@ -157,7 +157,7 @@ const SubNetworksList = ({
       getItemId={(issue) => issue.subnetworkId}
       renderItem={(index, subnetwork, selectedId, onClick) => (
         <SubnetworkItem
-          index={index}
+          index={index + 1}
           subnetwork={subnetwork}
           selectedId={selectedId}
           onClick={onClick}
