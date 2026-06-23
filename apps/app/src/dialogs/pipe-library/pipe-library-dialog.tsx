@@ -86,7 +86,7 @@ export const PipeLibraryDialog = () => {
   return (
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
-      size="md"
+      size="lg"
       height="lg"
       isOpen={true}
       onClose={() => dialogActions.current?.closeDialog()}
