@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -30,6 +30,15 @@ export const PipeLibraryDialog = () => {
   const selectedMaterial =
     draftMaterials.find((m) => m.label === selectedLabel) ?? null;
   const isEmpty = draftMaterials.length === 0;
+
+  const invalidMaterialLabels = useMemo(
+    () =>
+      new Set(
+        draftMaterials.filter((m) => isMaterialInvalid(m)).map((m) => m.label),
+      ),
+    [draftMaterials],
+  );
+  const hasValidationErrors = invalidMaterialLabels.size > 0;
 
   const handleSave = useCallback(() => {
     setSavedMaterials(draftMaterials);
@@ -101,7 +110,11 @@ export const PipeLibraryDialog = () => {
     >
       <div className="flex flex-col flex-1 min-h-0">
         <div className="flex items-center px-4 py-2 border-b">
-          <Button variant="default" size="sm" disabled={isEmpty}>
+          <Button
+            variant="default"
+            size="sm"
+            disabled={isEmpty || hasValidationErrors}
+          >
             {translate("pipeLibrary.applyRoughness")}
           </Button>
         </div>
@@ -111,6 +124,7 @@ export const PipeLibraryDialog = () => {
               width={sidebarWidth}
               materials={draftMaterials}
               selectedLabel={selectedLabel}
+              invalidMaterialLabels={invalidMaterialLabels}
               onSelectMaterial={setSelectedLabel}
               onAddMaterial={handleAddMaterial}
               onRenameMaterial={handleRenameMaterial}
@@ -174,3 +188,10 @@ const EmptyState = () => {
     </div>
   );
 };
+
+const isMaterialInvalid = (material: PipeMaterial): boolean =>
+  material.entries.some(
+    (e) =>
+      (e.age !== null && e.roughness === null) ||
+      (e.age === null && e.roughness !== null),
+  );

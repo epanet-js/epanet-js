@@ -191,6 +191,34 @@ describe("PipeLibraryDialog", () => {
 
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
+
+  it("disables apply roughness when a material has incomplete entries", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 5, roughness: 120 },
+          { age: 10, roughness: null },
+        ],
+      },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    expect(
+      screen.getByRole("button", { name: /apply roughness/i }),
+    ).toBeDisabled();
+
+    await editCell(user, 1, 1, "130");
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /apply roughness/i }),
+      ).toBeEnabled();
+    });
+  });
 });
 
 const renderDialog = (store: Store) => {

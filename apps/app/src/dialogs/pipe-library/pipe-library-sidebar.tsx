@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { AddIcon, CloseIcon, DuplicateIcon, RenameIcon } from "src/icons";
+import {
+  AddIcon,
+  CloseIcon,
+  DuplicateIcon,
+  RenameIcon,
+  WarningIcon,
+} from "src/icons";
 import {
   EditableListItem,
   ItemInput,
@@ -23,6 +29,7 @@ type PipeLibrarySidebarProps = {
   width: number;
   materials: PipeMaterial[];
   selectedLabel: string | null;
+  invalidMaterialLabels: Set<string>;
   onSelectMaterial: (label: string | null) => void;
   onAddMaterial: (label: string) => void;
   onRenameMaterial: (oldLabel: string, newLabel: string) => void;
@@ -36,6 +43,7 @@ export const PipeLibrarySidebar = ({
   width,
   materials,
   selectedLabel,
+  invalidMaterialLabels,
   onSelectMaterial,
   onAddMaterial,
   onRenameMaterial,
@@ -191,6 +199,11 @@ export const PipeLibrarySidebar = ({
               key={material.label}
               item={{ id: i, label: material.label }}
               isSelected={material.label === selectedLabel}
+              icon={
+                invalidMaterialLabels.has(material.label) && (
+                  <InvalidMaterialIcon />
+                )
+              }
               onSelect={() =>
                 handleSelectItem({ id: i, section: SECTION_TYPE })
               }
@@ -216,6 +229,12 @@ export const PipeLibrarySidebar = ({
     </div>
   );
 };
+
+const InvalidMaterialIcon = () => (
+  <span className="text-warning shrink-0">
+    <WarningIcon size="sm" />
+  </span>
+);
 
 const getEditMode = (actionState: ActionState | undefined, label: string) => {
   if (actionState?.action === "renaming" && actionState.materialLabel === label)
