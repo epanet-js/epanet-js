@@ -742,4 +742,28 @@ describe("Selector", () => {
       expect(search).toHaveValue("d");
     });
   });
+
+  describe("onActiveOptionChange", () => {
+    it("reports the option under the cursor and clears on close", async () => {
+      const onActiveOptionChange = vi.fn();
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={vi.fn()}
+          onActiveOptionChange={onActiveOptionChange}
+        />,
+      );
+      const user = await openSelector();
+
+      expect(onActiveOptionChange).toHaveBeenCalledWith("Apple");
+
+      await user.hover(screen.getByRole("option", { name: "Banana" }));
+      expect(onActiveOptionChange).toHaveBeenLastCalledWith("Banana");
+
+      await user.click(screen.getByRole("option", { name: "Banana" }));
+      expect(onActiveOptionChange).toHaveBeenLastCalledWith(null);
+    });
+  });
 });

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
+import { getDefaultStore } from "jotai";
 import { LevelSettingControl, Tank } from "@epanet-js/hydraulic-model";
+import { highlightsAtom } from "src/state/highlights";
 import { PumpLevelBasedControls } from "./pump-level-based-controls";
 
 const PUMP_ID = 3;
@@ -12,7 +14,15 @@ const makeTank = (
   label: string,
   minLevel: number,
   maxLevel: number,
-): Tank => ({ id, label, type: "tank", minLevel, maxLevel }) as unknown as Tank;
+): Tank =>
+  ({
+    id,
+    label,
+    type: "tank",
+    minLevel,
+    maxLevel,
+    coordinates: [id, id],
+  }) as unknown as Tank;
 
 const TANKS = [makeTank(10, "Tank 1", 2, 9), makeTank(11, "Tank 2", 1, 5)];
 
@@ -188,6 +198,26 @@ describe("PumpLevelBasedControls", () => {
       tankId: 11,
       on: { level: 1, setting: INITIAL_SPEED },
       off: { level: 5 },
+    });
+  });
+
+  describe("map highlight", () => {
+    it("highlights the hovered tank option and clears on close", async () => {
+      const store = getDefaultStore();
+      store.set(highlightsAtom, []);
+      const user = userEvent.setup();
+      renderControls();
+
+      await user.click(screen.getByRole("combobox", { name: "Tank" }));
+      await user.hover(await screen.findByRole("option", { name: "Tank 2" }));
+
+      expect(store.get(highlightsAtom)).toEqual([
+        { type: "marker", coordinates: [11, 11], nodeType: "tank" },
+      ]);
+
+      await user.click(screen.getByRole("option", { name: "Tank 2" }));
+
+      expect(store.get(highlightsAtom)).toEqual([]);
     });
   });
 

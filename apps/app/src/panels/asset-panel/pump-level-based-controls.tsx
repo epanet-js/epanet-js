@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {
   buildDefaultLevelSetting,
@@ -6,6 +7,7 @@ import {
   Tank,
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
+import { highlightsAtom } from "src/state/highlights";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField, NestedSection } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
@@ -48,6 +50,7 @@ export const PumpLevelBasedControls = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
+  const setHighlights = useSetAtom(highlightsAtom);
 
   const tankOptions = useMemo(
     () => tanks.map((tank) => ({ value: tank.id, label: tank.label })),
@@ -97,6 +100,28 @@ export const PumpLevelBasedControls = ({
       ),
     );
   };
+
+  const clearHighlight = useCallback(() => setHighlights([]), [setHighlights]);
+
+  const highlightTankById = useCallback(
+    (tankId: number | null) => {
+      const coordinates =
+        tankId === null
+          ? undefined
+          : tanks.find((tank) => tank.id === tankId)?.coordinates;
+      if (!coordinates) {
+        setHighlights([]);
+        return;
+      }
+      const [lng, lat] = coordinates;
+      setHighlights([
+        { type: "marker", coordinates: [lng, lat], nodeType: "tank" },
+      ]);
+    },
+    [tanks, setHighlights],
+  );
+
+  useEffect(() => clearHighlight, [clearHighlight]);
 
   const hasOrderError = errors.includes("order");
   const hasOnError = errors.includes("onOutOfRange") || hasOrderError;
@@ -157,19 +182,24 @@ export const PumpLevelBasedControls = ({
   return (
     <NestedSection className="pb-2">
       <InlineField name={translate("tank")} labelSize="md">
-        {readOnly ? (
-          <TextField padding="md">{selectedTank?.label ?? ""}</TextField>
-        ) : (
-          <div className="w-full">
+        <div
+          className="w-full"
+          onMouseEnter={() => highlightTankById(control.tankId)}
+          onMouseLeave={clearHighlight}
+        >
+          {readOnly ? (
+            <TextField padding="md">{selectedTank?.label ?? ""}</TextField>
+          ) : (
             <Selector
               ariaLabel={translate("tank")}
               options={tankOptions}
               selected={control.tankId}
               onChange={handleTankChange}
+              onActiveOptionChange={highlightTankById}
               styleOptions={selectorStyleOptions}
             />
-          </div>
-        )}
+          )}
+        </div>
       </InlineField>
       <NumericTable
         labels={{

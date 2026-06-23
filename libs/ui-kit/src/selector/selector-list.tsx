@@ -35,6 +35,12 @@ export type SelectorListProps<T extends string | number | boolean> = {
   validateNew?: (query: string) => boolean;
   /** Seed the search query on mount (used by data-grid type-to-open). */
   initialQuery?: string;
+  /**
+   * Called with the value of the option currently under the cursor or keyboard
+   * focus (null when none / on close). Lets a consumer preview the active
+   * option, e.g. highlight it elsewhere in the UI.
+   */
+  onActiveOptionChange?: (value: T | null) => void;
 };
 
 const NO_INDEX = -1;
@@ -77,6 +83,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   listClassName,
   validateNew,
   initialQuery = "",
+  onActiveOptionChange,
 }: SelectorListProps<T>) {
   const ui = useUIConfig();
   const [query, setQuery] = useState(initialQuery);
@@ -148,6 +155,25 @@ export function BaseSelectorList<T extends string | number | boolean>({
     },
     [activeIndex],
   );
+
+  const activeValue =
+    activeIndex >= 0 && activeIndex < filtered.length
+      ? filtered[activeIndex].value
+      : null;
+
+  const onActiveOptionChangeRef = useRef(onActiveOptionChange);
+  onActiveOptionChangeRef.current = onActiveOptionChange;
+
+  useEffect(
+    function emitActiveOption() {
+      onActiveOptionChangeRef.current?.(activeValue);
+    },
+    [activeValue],
+  );
+
+  useEffect(function clearActiveOptionOnUnmount() {
+    return () => onActiveOptionChangeRef.current?.(null);
+  }, []);
 
   const triggerAction = useCallback(() => {
     onActionClick?.();
