@@ -31,7 +31,7 @@ import {
   EarlyAccessIcon,
 } from "src/icons";
 import { BaseDialog, DialogCloseX, useDialogState } from "../components/dialog";
-import { Message } from "../components/message";
+import { Message } from "@epanet-js/ui-kit";
 import { DRUMCHAPEL, WATERDOWN } from "src/demo/demo-networks";
 import optimaticsLogoUrl from "src/assets/images/logos/optimatics-logo-black.webp";
 import affinityWaterLogoUrl from "src/assets/images/logos/affinity-water-logo.svg";

@@ -21,7 +21,7 @@ import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { Message } from "src/components/message";
+import { Message } from "@epanet-js/ui-kit";
 
 type Tab = "simple" | "ruleBased";
 
