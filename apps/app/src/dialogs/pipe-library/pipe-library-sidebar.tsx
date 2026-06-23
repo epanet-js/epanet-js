@@ -12,7 +12,7 @@ import type {
   NavItem,
   NavigableListHandle,
 } from "src/components/list";
-import type { PipeMaterial } from "./pipe-library-dialog";
+import { PipeMaterial } from "./types";
 
 type ActionState =
   | { action: "creating" }

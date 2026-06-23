@@ -7,17 +7,7 @@ import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { VerticalResizer } from "../vertical-resizer";
 import { PipeLibraryIcon } from "src/icons";
 import { Button } from "src/components/elements";
-
-export type RoughnessEntry = {
-  age: number | null;
-  roughness: number | null;
-};
-
-export type PipeMaterial = {
-  id: number;
-  label: string;
-  entries: RoughnessEntry[];
-};
+import { PipeMaterial, RoughnessEntry } from "./types";
 
 let nextId = 1;
 

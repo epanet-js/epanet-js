@@ -9,7 +9,7 @@ import {
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
 import { DeleteIcon, AddIcon } from "src/icons";
-import type { RoughnessEntry } from "./pipe-library-dialog";
+import { RoughnessEntry } from "./types";
 
 type PipeRoughnessTableProps = {
   entries: RoughnessEntry[];
