@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
@@ -80,8 +80,8 @@ describe("PipeLibraryDialog", () => {
     await user.click(screen.getByRole("menuitem", { name: /rename/i }));
 
     const input = screen.getByPlaceholderText("Pipe materials");
-    await user.clear(input);
-    await user.type(input, "Ductile Iron{Enter}");
+    fireEvent.change(input, { target: { value: "Ductile Iron" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 
     await clickSave(user);
 
@@ -110,8 +110,8 @@ describe("PipeLibraryDialog", () => {
     await user.click(screen.getByRole("menuitem", { name: /duplicate/i }));
 
     const input = screen.getByPlaceholderText("Pipe materials");
-    await user.clear(input);
-    await user.type(input, "Cast Iron Copy{Enter}");
+    fireEvent.change(input, { target: { value: "Cast Iron Copy" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 
     await clickSave(user);
 
@@ -197,8 +197,8 @@ describe("PipeLibraryDialog", () => {
     await user.click(screen.getByRole("menuitem", { name: /rename/i }));
 
     const input = screen.getByPlaceholderText("Pipe materials");
-    await user.clear(input);
-    await user.type(input, "Renamed{Enter}");
+    fireEvent.change(input, { target: { value: "Renamed" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     await user.click(screen.getByRole("button", { name: /discard/i }));
@@ -218,7 +218,7 @@ describe("PipeLibraryDialog", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
-  it("applies roughness to pipes via transact when button is clicked", async () => {
+  it("applies roughness to pipes to hydraulic model when apply button is clicked", async () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
@@ -240,7 +240,7 @@ describe("PipeLibraryDialog", () => {
     expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 
-  it("disables apply roughness when a material has incomplete entries", async () => {
+  it("disables apply roughness when a material fails validation", async () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
@@ -296,8 +296,8 @@ const editCell = async (
     expect(within(cell).getByRole("textbox")).not.toHaveAttribute("readonly");
   });
   const input = within(cell).getByRole("textbox");
-  await user.clear(input);
-  await user.type(input, `${value}{Enter}`);
+  fireEvent.change(input, { target: { value } });
+  fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 };
 
 const addMaterial = async (
@@ -306,7 +306,8 @@ const addMaterial = async (
 ) => {
   await user.click(screen.getByRole("button", { name: "Pipe materials" }));
   const input = screen.getByRole("textbox");
-  await user.type(input, `${name}{Enter}`);
+  fireEvent.change(input, { target: { value: name } });
+  fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 };
 
 const openActionsMenu = async (
