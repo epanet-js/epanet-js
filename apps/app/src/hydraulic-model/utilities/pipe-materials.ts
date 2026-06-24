@@ -1,12 +1,11 @@
 import type { AssetsMap } from "@epanet-js/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
-import type { PipeMaterial } from "src/lib/pipe-library";
 
-// Returns distinct pipe materials across the model and the pipe library,
+// Returns distinct pipe materials across the model and an extra set of materials,
 // case-insensitive-deduped (first-seen casing wins), sorted case-insensitively.
 export const listPipeMaterials = (
   assets: AssetsMap,
-  libraryMaterials: PipeMaterial[] = [],
+  extraMaterials: string[] = [],
 ): string[] => {
   const seen = new Map<string, string>();
   for (const asset of assets.values()) {
@@ -16,9 +15,9 @@ export const listPipeMaterials = (
     const key = m.toLowerCase();
     if (!seen.has(key)) seen.set(key, m);
   }
-  for (const lm of libraryMaterials) {
-    const key = lm.label.toLowerCase();
-    if (!seen.has(key)) seen.set(key, lm.label);
+  for (const material of extraMaterials) {
+    const key = material.toLowerCase();
+    if (!seen.has(key)) seen.set(key, material);
   }
   return Array.from(seen.values()).sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),

@@ -146,7 +146,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
   const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
-  const libraryMaterials = useAtomValue(pipeMaterialsAtom);
+  const libraryMaterials = useAtomValue(pipeMaterialsAtom).map((m) => m.label);
   const pipeMaterials = useMemo(
     () =>
       assetType === "pipe"
