@@ -25,7 +25,16 @@ vi.mock("./apply-roughness", async (importOriginal) => {
   };
 });
 
+vi.mock("./rename-materials", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./rename-materials")>();
+  return {
+    ...original,
+    renameMaterialsMoment: vi.fn(original.renameMaterialsMoment),
+  };
+});
+
 import { applyRoughnessMoment } from "./apply-roughness";
+import { renameMaterialsMoment } from "./rename-materials";
 
 vi.mock("src/components/notifications", async (importOriginal) => {
   const original =
@@ -237,6 +246,36 @@ describe("PipeLibraryDialog", () => {
     await user.click(screen.getByRole("button", { name: /apply roughness/i }));
 
     expect(applyRoughnessMoment).toHaveBeenCalled();
+    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
+  });
+
+  it("propagates material renames to pipes on save", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    const mockMoment = {
+      note: "Rename pipe materials",
+      patchAssetsAttributes: [
+        { id: 1, type: "pipe", properties: { material: "Ductile Iron" } },
+      ],
+    };
+    vi.mocked(renameMaterialsMoment).mockReturnValue(mockMoment as never);
+
+    await openActionsMenu(user, "Cast Iron");
+    await user.click(screen.getByRole("menuitem", { name: /rename/i }));
+
+    const input = screen.getByPlaceholderText("Pipe materials");
+    fireEvent.change(input, { target: { value: "Ductile Iron" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+
+    await clickSave(user);
+
+    expect(renameMaterialsMoment).toHaveBeenCalled();
     expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 

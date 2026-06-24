@@ -17,6 +17,7 @@ import {
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
 import { applyRoughnessMoment } from "./apply-roughness";
+import { renameMaterialsMoment } from "./rename-materials";
 import type { PipeMaterial } from "./types";
 import type { RoughnessEntry } from "./types";
 
@@ -31,6 +32,7 @@ export const PipeLibraryDialog = () => {
   const [draftMaterials, setDraftMaterials] =
     useState<PipeMaterial[]>(savedMaterials);
   const [sidebarWidth, setSidebarWidth] = useState(224);
+  const pendingRenamesRef = useRef(new Map<string, string>());
 
   const hasChanges = draftMaterials !== savedMaterials;
 
@@ -51,7 +53,15 @@ export const PipeLibraryDialog = () => {
 
   const handleSave = useCallback(() => {
     setSavedMaterials(draftMaterials);
-  }, [draftMaterials, setSavedMaterials]);
+    const renames = pendingRenamesRef.current;
+    if (renames.size > 0) {
+      const moment = renameMaterialsMoment(hydraulicModel, renames);
+      if (moment.patchAssetsAttributes!.length > 0) {
+        transact(moment);
+      }
+      renames.clear();
+    }
+  }, [draftMaterials, setSavedMaterials, hydraulicModel, transact]);
 
   const handleAddMaterial = useCallback((label: string) => {
     setDraftMaterials((prev) => [...prev, { label, entries: [] }]);
@@ -63,6 +73,20 @@ export const PipeLibraryDialog = () => {
         prev.map((m) => (m.label === oldLabel ? { ...m, label: newLabel } : m)),
       );
       setSelectedLabel((prev) => (prev === oldLabel ? newLabel : prev));
+
+      const renames = pendingRenamesRef.current;
+      let originalLabel: string | undefined;
+      for (const [key, value] of renames) {
+        if (value === oldLabel) {
+          originalLabel = key;
+          break;
+        }
+      }
+      if (originalLabel !== undefined) {
+        renames.set(originalLabel, newLabel);
+      } else {
+        renames.set(oldLabel, newLabel);
+      }
     },
     [setSelectedLabel],
   );
@@ -86,6 +110,14 @@ export const PipeLibraryDialog = () => {
       setDraftMaterials((prev) => prev.filter((m) => m.label !== label));
       if (selectedLabel === label) {
         setSelectedLabel(null);
+      }
+
+      const renames = pendingRenamesRef.current;
+      for (const [key, value] of renames) {
+        if (value === label) {
+          renames.delete(key);
+          break;
+        }
       }
     },
     [selectedLabel, setSelectedLabel],
