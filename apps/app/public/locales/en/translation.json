@@ -1275,6 +1275,9 @@
       "affectedCount_other": "{{count}} assets affected",
       "expand": "Expand affected assets",
       "collapse": "Collapse affected assets",
+      "upgrade": {
+        "title": "Upgrade to review and fix all model issues"
+      },
       "rule": {
         "roughnessPresent": "Pipe roughness missing",
         "roughnessPositive": "Pipe roughness must be positive",

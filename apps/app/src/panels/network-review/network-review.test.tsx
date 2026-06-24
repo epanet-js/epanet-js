@@ -69,7 +69,7 @@ describe("NetworkReview", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists the check but opens the upgrade dialog when the permission is missing", () => {
+  it("opens the (paywalled) panel when the permission is missing", () => {
     stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
     canValidateModelAttributes = false;
 
@@ -79,10 +79,11 @@ describe("NetworkReview", () => {
 
     fireEvent.click(check);
 
-    expect(store.get(dialogAtom)).toEqual({
-      type: "upgrade",
-      source: { kind: "paywall", feature: "modelAttributesValidation" },
-    });
+    // The panel opens (the paywall lives inside it); no upgrade dialog here.
+    expect(
+      screen.getByText("model-attributes-validation-panel"),
+    ).toBeInTheDocument();
+    expect(store.get(dialogAtom)).toBeNull();
   });
 
   it("deep-links to the model validation panel from the atom", () => {

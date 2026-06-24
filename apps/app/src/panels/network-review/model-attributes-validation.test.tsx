@@ -13,12 +13,18 @@ import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
 import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
 import { selectionAtom } from "src/state/selection";
+import { dialogAtom } from "src/state/dialog";
 import { USelection } from "src/selection";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 
 vi.mock("src/hooks/use-zoom-to", () => ({ useZoomTo: () => vi.fn() }));
 vi.mock("src/infra/user-tracking", () => ({
   useUserTracking: () => ({ capture: vi.fn() }),
+}));
+
+let canValidateModelAttributes = true;
+vi.mock("src/hooks/use-permissions", () => ({
+  usePermissions: () => ({ canValidateModelAttributes }),
 }));
 
 // The shared ResizeObserver stub feeds react-virtual's measureElement an entry
@@ -43,6 +49,10 @@ const renderPanel = (store: Store) => {
 };
 
 describe("ModelAttributesValidation panel", () => {
+  beforeEach(() => {
+    canValidateModelAttributes = true;
+  });
+
   it("computes issues and shows the count in the header", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aPipe(1, { label: "P1", roughness: null })
@@ -115,5 +125,39 @@ describe("ModelAttributesValidation panel", () => {
     fireEvent.click(screen.getByRole("button", { name: /select/i }));
 
     expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
+  });
+
+  describe("without permission", () => {
+    it("discloses the first issue and paywalls the rest behind an overlay", async () => {
+      canValidateModelAttributes = false;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(1, { label: "P1", roughness: null })
+        .aPipe(2, { label: "P2", roughness: 0 })
+        .build();
+      const store = setInitialState({ hydraulicModel });
+
+      renderPanel(store);
+
+      // The first group (missing roughness) is disclosed...
+      const firstGroup = await screen.findByRole("button", {
+        name: /roughness missing/i,
+      });
+      // ...the rest are rendered (dimmed under the overlay) but still route to
+      // the paywall on click.
+      const blockedGroup = screen.getByRole("button", {
+        name: /must be positive/i,
+      });
+
+      // Clicking the disclosed issue opens the upgrade dialog, no selection.
+      fireEvent.click(firstGroup);
+      expect(store.get(dialogAtom)).toMatchObject({ type: "upgrade" });
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([]);
+
+      // Clicking a blocked issue also opens the upgrade dialog, no selection.
+      act(() => store.set(dialogAtom, null));
+      fireEvent.click(blockedGroup);
+      expect(store.get(dialogAtom)).toMatchObject({ type: "upgrade" });
+      expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([]);
+    });
   });
 });

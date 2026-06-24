@@ -24,7 +24,6 @@ import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { usePermissions } from "src/hooks/use-permissions";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { validateModelAttributes } from "src/lib/model-attributes-validation";
@@ -41,9 +40,7 @@ export const useRunSimulation = () => {
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
-  const isValidationFlagOn = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
-  const { canValidateModelAttributes } = usePermissions();
-  const validationEnabled = isValidationFlagOn && canValidateModelAttributes;
+  const validationEnabled = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
 
   const runSimulation = useAtomCallback(
     useCallback(

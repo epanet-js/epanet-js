@@ -192,6 +192,24 @@ describe("Run simulation", () => {
       expect(lib.runSimulation).not.toHaveBeenCalled();
     });
 
+    it("shows the dialog even without the validation permission", async () => {
+      stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
+      canValidateModelAttributes = false;
+      const store = setInitialState({
+        hydraulicModel: aModelWithEmptyRoughness(),
+      });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => {
+        expect(store.get(dialogAtom)).toMatchObject({
+          type: "modelAttributesValidation",
+        });
+      });
+      expect(lib.runSimulation).not.toHaveBeenCalled();
+    });
+
     it("runs the simulation when choosing run anyway", async () => {
       enableValidation();
       const store = setInitialState({

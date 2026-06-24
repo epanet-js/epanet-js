@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtom, useSetAtom } from "jotai";
-import { Lock } from "lucide-react";
+import { useAtom } from "jotai";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -21,9 +20,6 @@ import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { usePermissions } from "src/hooks/use-permissions";
-import { usePaywall } from "src/hooks/use-paywall";
-import { dialogAtom } from "src/state/dialog";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 
 export function NetworkReview() {
@@ -82,11 +78,6 @@ function NetworkReviewSummary({
 }) {
   const translate = useTranslate();
   const isValidationFlagOn = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
-  const { canValidateModelAttributes } = usePermissions();
-  const setDialog = useSetAtom(dialogAtom);
-  const modelAttributesValidationPaywall = usePaywall(
-    "modelAttributesValidation",
-  );
 
   const allChecks = useMemo(() => {
     if (isValidationFlagOn) {
@@ -94,18 +85,6 @@ function NetworkReviewSummary({
     }
     return baseChecks;
   }, [isValidationFlagOn]);
-
-  const isLocked = useCallback(
-    (checkType: CheckType) =>
-      checkType === CheckType.modelAttributesValidation &&
-      !canValidateModelAttributes,
-    [canValidateModelAttributes],
-  );
-
-  const openUpgrade = useCallback(() => {
-    if (modelAttributesValidationPaywall)
-      setDialog(modelAttributesValidationPaywall);
-  }, [modelAttributesValidationPaywall, setDialog]);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -178,8 +157,6 @@ function NetworkReviewSummary({
             requiresEarlyAccess={
               checkType !== CheckType.modelAttributesValidation
             }
-            isLocked={isLocked(checkType)}
-            onLocked={openUpgrade}
           />
         ))}
       </div>
@@ -210,16 +187,12 @@ const ReviewCheck = ({
   isEnabled = true,
   isSelected,
   requiresEarlyAccess = true,
-  isLocked = false,
-  onLocked,
 }: {
   checkType: CheckType;
   onClick: (checkType: CheckType) => void;
   isEnabled?: boolean;
   isSelected: boolean;
   requiresEarlyAccess?: boolean;
-  isLocked?: boolean;
-  onLocked?: () => void;
 }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
@@ -229,10 +202,6 @@ const ReviewCheck = ({
 
   const selectCheck = useCallback(() => {
     if (!isEnabled) return;
-    if (isLocked) {
-      onLocked?.();
-      return;
-    }
     const openCheck = () => {
       userTracking.capture({
         name: `networkReview.${checkType}.opened`,
@@ -251,8 +220,6 @@ const ReviewCheck = ({
     isEnabled,
     onlyEarlyAccess,
     requiresEarlyAccess,
-    isLocked,
-    onLocked,
   ]);
 
   return (
@@ -270,20 +237,14 @@ const ReviewCheck = ({
         <div className="flex flex-row gap-2 flex-wrap items-center">
           <div className="text-size-base font-bold text-left">{label}</div>
         </div>
-        {isLocked ? (
-          <div className="pt-[.125rem] text-subtle">
-            <Lock size={16} />
+        {isEnabled && (
+          <div
+            className={`pt-[.125rem] transition-opacity ${
+              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <ChevronRightIcon />
           </div>
-        ) : (
-          isEnabled && (
-            <div
-              className={`pt-[.125rem] transition-opacity ${
-                isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-              }`}
-            >
-              <ChevronRightIcon />
-            </div>
-          )
         )}
       </div>
     </Button>
