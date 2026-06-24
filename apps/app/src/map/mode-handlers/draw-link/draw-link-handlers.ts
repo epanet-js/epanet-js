@@ -340,10 +340,16 @@ export function useDrawLinkHandlers({
     startPipeId?: AssetId;
     endPipeId?: AssetId;
   }) => {
+    if (submittedLinkIdRef.current === link.id) {
+      return undefined;
+    }
+
     const length = measureLength(link.feature);
     if (!length) {
       return;
     }
+
+    submittedLinkIdRef.current = link.id;
 
     const moment = addLink(hydraulicModel, {
       link: link,
@@ -382,6 +388,11 @@ export function useDrawLinkHandlers({
   const { fetchElevation, prefetchTile } = useElevations(units.elevation);
 
   const isClickInProgress = useRef<boolean>(false);
+  // A single finishing gesture (e.g. double-click on a snap target) fires
+  // `click` and `dblclick`, both reading the same stale `drawing` closure. Track
+  // the last submitted link id so the same drawing can't be submitted twice
+  // (which would re-split an already-deleted pipe and crash, or duplicate links).
+  const submittedLinkIdRef = useRef<AssetId | null>(null);
 
   const createJunction = (coordinates: Position, elevation: number) =>
     assetFactory.createJunction({
@@ -625,7 +636,11 @@ export function useDrawLinkHandlers({
         link,
         endNode: endJunction,
       };
-      onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
+      try {
+        onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
+      } catch (error) {
+        captureError(error as Error);
+      }
       resetDrawing();
     },
     exit() {

@@ -4,6 +4,19 @@ import type { MapHandlers, ClickEvent } from "../../types";
 import { DataSource } from "src/map/data-source";
 import { Feature } from "geojson";
 import { vi } from "vitest";
+import { act } from "react";
+
+// Run a map interaction and let the resulting work settle, all inside act():
+// the synchronous invocation, the React renders/effects it triggers, and the
+// map-sync timers (which run on setTimeout and update React state) all complete
+// within the act() boundary. This keeps handlers.current fresh for the next
+// action and prevents any state update from escaping act() and warning.
+const settle = async (invoke: () => void, ms: number = 0): Promise<void> => {
+  await act(async () => {
+    invoke();
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  });
+};
 
 type FeatureState = Record<string, string | boolean | number>;
 
@@ -138,6 +151,10 @@ class MapTestEngine {
       { hidden: true },
     );
   }
+  getPrecision(): number {
+    return 7;
+  }
+  suspendOverlayStyleReactions() {}
   showLayers() {}
   hideLayers() {}
   showFeatures() {}
@@ -210,17 +227,11 @@ vi.mock("../../map-engine", () => {
   };
 });
 
-export const fireMapDown = (
+export const fireMapDown = async (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
-  fireMapDownSync(map, clickPoint);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 10); // Small delay to allow React state updates
-  });
+  await settle(() => fireMapDownSync(map, clickPoint), 10);
 };
 
 export const fireMapDownSync = (
@@ -238,16 +249,11 @@ export const fireMapDownSync = (
   } as unknown as mapboxgl.MapMouseEvent);
 };
 
-export const fireMapUp = (
+export const fireMapUp = async (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
-  fireMapUpSync(map, clickPoint);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 10); // Small delay to allow React state updates
-  });
+  await settle(() => fireMapUpSync(map, clickPoint), 10);
 };
 
 export const fireMapUpSync = (
@@ -269,58 +275,43 @@ export const fireMapClick = async (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
-  await fireMapDown(map, clickPoint);
-  await fireMapUp(map, clickPoint);
-
-  map.handlers.current.onClick({
-    lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
-    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
-    originalEvent: new MouseEvent("click"),
-    target: map.map,
-    type: "click",
-    preventDefault: () => {},
-    defaultPrevented: false,
-  } as unknown as ClickEvent);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 10); // Small delay to allow React state updates
-  });
+  await settle(() => {
+    fireMapDownSync(map, clickPoint);
+    fireMapUpSync(map, clickPoint);
+    map.handlers.current.onClick({
+      lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
+      point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
+      originalEvent: new MouseEvent("click"),
+      target: map.map,
+      type: "click",
+      preventDefault: () => {},
+      defaultPrevented: false,
+    } as unknown as ClickEvent);
+  }, 10);
 };
 
-export const fireDoubleClick = (
+export const fireDoubleClick = async (
   map: MapTestEngine,
   clickPoint: { lng: number; lat: number },
 ): Promise<void> => {
-  map.handlers.current.onDoubleClick({
-    lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
-    point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
-    originalEvent: new MouseEvent("click"),
-    target: map.map,
-    type: "dblclick",
-    preventDefault: () => {},
-    defaultPrevented: false,
-  } as unknown as ClickEvent);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 0);
-  });
+  await settle(() => {
+    map.handlers.current.onDoubleClick({
+      lngLat: new mapboxgl.LngLat(clickPoint.lng, clickPoint.lat),
+      point: new mapboxgl.Point(clickPoint.lng * 100, clickPoint.lat * 100), // Mock point coordinates
+      originalEvent: new MouseEvent("click"),
+      target: map.map,
+      type: "dblclick",
+      preventDefault: () => {},
+      defaultPrevented: false,
+    } as unknown as ClickEvent);
+  }, 10);
 };
 
-export const fireMapMove = (
+export const fireMapMove = async (
   map: MapTestEngine,
   movePoint: { lng: number; lat: number },
 ): Promise<void> => {
-  fireMapMoveSync(map, movePoint);
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 0);
-  });
+  await settle(() => fireMapMoveSync(map, movePoint), 0);
 };
 
 export const fireMapMoveSync = (
