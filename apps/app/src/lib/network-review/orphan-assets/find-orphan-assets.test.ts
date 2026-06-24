@@ -108,4 +108,26 @@ describe("findOrphanAssets", () => {
     expect(orphanLinks).toHaveLength(0);
     expect(orphanNodes).toHaveLength(0);
   });
+
+  it("reports a pipe that lost one of its nodes as an orphan link", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    // Simulate the corrupted state: J2 is gone from the model but P1 still
+    // references it (a dangling connection).
+    model.assets.delete(IDS.J2);
+    model.assetIndex.removeNode(IDS.J2);
+
+    const { orphanLinks, orphanNodes } = findOrphanAssets(
+      model.topology,
+      model.assetIndex,
+    );
+
+    expect(orphanLinks).toEqual([IDS.P1]);
+    expect(orphanNodes).toEqual([]);
+  });
 });

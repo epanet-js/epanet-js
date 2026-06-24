@@ -50,6 +50,22 @@ describe("buildOrphanAssets", () => {
       "J2",
     ]);
   });
+
+  it("includes a pipe that lost one of its nodes", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .aPipe(IDS.P1, { label: "P1", startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+
+    const orphanAssets = buildOrphanAssets(model, {
+      orphanNodes: [],
+      orphanLinks: [IDS.P1],
+    });
+
+    expect(orphanAssets.map((asset) => asset.label)).toEqual(["P1"]);
+  });
 });
 
 describe("encodeData", () => {

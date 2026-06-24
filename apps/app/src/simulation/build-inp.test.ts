@@ -205,6 +205,33 @@ describe("build inp", () => {
     expect(inp).not.toContain("3\t1\t2\t10\t100\t130");
   });
 
+  it("writes MISSING for a pipe that lost one of its nodes", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPipe(IDS.PIPE, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        length: 10,
+        diameter: 100,
+        initialStatus: "open",
+      })
+      .build();
+
+    // The pipe loses its end node: remove NODE2 but keep the dangling pipe.
+    hydraulicModel.assets.delete(IDS.NODE2);
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+      headlossFormula: "H-W",
+    });
+
+    // EPANET will report the undefined node "MISSING" instead of the app crashing.
+    expect(inp).toContain("3\t1\tMISSING\t");
+  });
+
   it("keeps minor loss and status when the minor loss is not zero", () => {
     const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()

@@ -185,6 +185,7 @@ export class HydraulicModelEncoder {
   private prepareMappings() {
     for (const [id, asset] of this.model.assets) {
       if (asset.isLink) {
+        if (this.isOrphanLink(asset)) continue;
         this.linkIdMapper.getOrAssignIdx(id);
         this.prepareSegmentsEncoding(asset);
       } else {
@@ -192,6 +193,13 @@ export class HydraulicModelEncoder {
         this.prepareNodeConnectionsEncoding(asset, id);
       }
     }
+  }
+
+  private isOrphanLink(asset: Asset): boolean {
+    const [startId, endId] = (asset as Pipe).connections;
+    const start = this.model.assets.get(startId);
+    const end = this.model.assets.get(endId);
+    return start?.isNode !== true || end?.isNode !== true;
   }
 
   private prepareSegmentsEncoding(asset: Asset) {
@@ -438,9 +446,13 @@ export class HydraulicModelEncoder {
       return;
     }
     const connectedLinkIds = this.nodeConnectionsCache.get(id) ?? [];
-    const connectedLinkIdxs = connectedLinkIds.map((linkId) =>
-      this.linkIdMapper.getIdx(linkId),
-    );
+    const connectedLinkIdxs: number[] = [];
+    for (const linkId of connectedLinkIds) {
+      // Drop links excluded from the mapper (those referencing a missing node);
+      // the buffer was sized for the unfiltered list, so writing fewer is safe.
+      const idx = this.linkIdMapper.tryGetIdx(linkId);
+      if (idx !== undefined) connectedLinkIdxs.push(idx);
+    }
 
     nodeConnections.add(connectedLinkIdxs);
   }

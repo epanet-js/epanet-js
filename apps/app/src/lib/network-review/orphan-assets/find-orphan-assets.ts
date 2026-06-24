@@ -8,10 +8,15 @@ export function findOrphanAssets(
 ): OrphanAssets {
   const orphanLinks: number[] = [];
   for (const [linkId] of assetIndex.iterateLinks()) {
+    const [startNode, endNode] = topology.getNodes(linkId);
+
+    if (!assetIndex.hasNode(startNode) || !assetIndex.hasNode(endNode)) {
+      orphanLinks.push(linkId);
+      continue;
+    }
+
     const linkType = assetIndex.getLinkType(linkId);
     if (linkType === "pipe") continue;
-
-    const [startNode, endNode] = topology.getNodes(linkId);
 
     const startNodeConnections = topology.getLinks(startNode).length;
     const endNodeConnections = topology.getLinks(endNode).length;

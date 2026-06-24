@@ -1161,12 +1161,17 @@ const getLinkConnectionIds = (
 ) => {
   const [nodeStart, nodeEnd] = link.connections;
 
-  const startNodeId = idMap.nodeId(
-    hydraulicModel.assets.get(nodeStart) as NodeAsset,
-  );
-  const endNodeId = idMap.nodeId(
-    hydraulicModel.assets.get(nodeEnd) as NodeAsset,
-  );
+  const startNode = hydraulicModel.assets.get(nodeStart);
+  const endNode = hydraulicModel.assets.get(nodeEnd);
+
+  const startNodeId =
+    startNode?.isNode === true
+      ? idMap.nodeId(startNode as NodeAsset)
+      : MISSING_VALUE;
+  const endNodeId =
+    endNode?.isNode === true
+      ? idMap.nodeId(endNode as NodeAsset)
+      : MISSING_VALUE;
 
   return [startNodeId, endNodeId];
 };

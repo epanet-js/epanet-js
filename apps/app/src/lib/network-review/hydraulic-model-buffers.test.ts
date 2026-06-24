@@ -190,6 +190,31 @@ describe("HydraulicModelEncoder - links encoding options", () => {
     expect(view.count).toBe(0);
   });
 
+  it("excludes a link that lost a node instead of crashing", () => {
+    const IDS = { J1: 1, J2: 2, T1: 3, P1: 4, P2: 5 } as const;
+    const model = createTestModel();
+    // P2 (J2 -> T1) loses its node: remove T1 but keep the dangling pipe.
+    model.assets.delete(IDS.T1);
+    model.assetIndex.removeNode(IDS.T1);
+
+    const encoder = new HydraulicModelEncoder(model, {
+      links: new Set(["connections"]),
+      nodes: new Set(["connections"]),
+      bufferType: "array",
+    });
+
+    const buffers = encoder.buildBuffers();
+    const view = new FixedSizeBufferView(
+      buffers.links.connections,
+      EncodedSize.id * 2,
+      decodeLinkConnections,
+    );
+
+    // Only the valid pipe survives; the dangling one is excluded.
+    expect(view.count).toBe(1);
+    expect(buffers.linkIdsLookup).toEqual([IDS.P1]);
+  });
+
   it("encodes link types when enabled", () => {
     const model = createTestModel();
     const encoder = new HydraulicModelEncoder(model, {
