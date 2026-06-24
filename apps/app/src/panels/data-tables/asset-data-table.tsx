@@ -72,6 +72,7 @@ import {
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { pipeMaterialsAtom } from "src/state/pipe-library";
 
 interface AssetDataTableProps {
   assetType: AssetType;
@@ -144,10 +145,17 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     isLocked: pipeAttributesLocked,
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
+  const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
+  const libraryMaterials = useAtomValue(pipeMaterialsAtom);
   const pipeMaterials = useMemo(
     () =>
-      assetType === "pipe" ? listPipeMaterials(hydraulicModel.assets) : [],
-    [assetType, hydraulicModel.assets],
+      assetType === "pipe"
+        ? listPipeMaterials(
+            hydraulicModel.assets,
+            isPipeLibraryOn ? libraryMaterials : [],
+          )
+        : [],
+    [assetType, hydraulicModel.assets, isPipeLibraryOn, libraryMaterials],
   );
   const accessorCtx = useMemo<AssetAccessorCtx>(
     () => ({ model: hydraulicModel, simulation, translate }),
