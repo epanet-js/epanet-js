@@ -12,7 +12,6 @@ const defaultPermissions: Permissions = {
   canUseScenarios: false,
   canUseElevations: false,
   canUseHglProfile: false,
-  canUseCustomGraphs: false,
   canUseZones: false,
   canUseControls: false,
   canUsePipeAttributes: false,
