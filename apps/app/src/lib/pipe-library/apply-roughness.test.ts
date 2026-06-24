@@ -261,6 +261,23 @@ describe("applyRoughnessMoment", () => {
     ]);
   });
 
+  it("skips pipes that already have a roughness set", () => {
+    const materials: PipeMaterial[] = [
+      { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
+    ];
+    const model = makeModel(
+      makePipe(1, {
+        material: "Cast Iron",
+        year: CURRENT_YEAR - 5,
+        roughness: 80,
+      }),
+    );
+
+    const moment = applyRoughnessMoment(model, materials);
+
+    expect(moment.patchAssetsAttributes).toEqual([]);
+  });
+
   it("applies roughness to a pipe with age 0", () => {
     const materials: PipeMaterial[] = [
       { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },

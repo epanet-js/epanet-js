@@ -26,6 +26,7 @@ export const applyRoughnessMoment = (
   for (const [assetId, asset] of hydraulicModel.assets) {
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
+    if (pipe.roughness != null) continue;
     if (!pipe.material || !pipe.year) continue;
 
     const entries = materialMap.get(pipe.material);
