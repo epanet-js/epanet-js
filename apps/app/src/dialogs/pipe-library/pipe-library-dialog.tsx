@@ -16,10 +16,11 @@ import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
-import { applyRoughnessMoment } from "./apply-roughness";
-import { renameMaterialsMoment } from "./rename-materials";
-import type { PipeMaterial } from "./types";
-import type { RoughnessEntry } from "./types";
+import {
+  applyRoughnessMoment,
+  renameMaterialsMoment,
+} from "src/lib/pipe-library";
+import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();

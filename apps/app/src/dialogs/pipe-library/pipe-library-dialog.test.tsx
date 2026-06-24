@@ -17,24 +17,30 @@ vi.mock("src/hooks/persistence/use-model-transaction", () => ({
   useModelTransaction: () => ({ transact: mockTransact }),
 }));
 
-vi.mock("./apply-roughness", async (importOriginal) => {
-  const original = await importOriginal<typeof import("./apply-roughness")>();
+vi.mock("src/lib/pipe-library/apply-roughness", async (importOriginal) => {
+  const original =
+    await importOriginal<
+      typeof import("src/lib/pipe-library/apply-roughness")
+    >();
   return {
     ...original,
     applyRoughnessMoment: vi.fn(original.applyRoughnessMoment),
   };
 });
 
-vi.mock("./rename-materials", async (importOriginal) => {
-  const original = await importOriginal<typeof import("./rename-materials")>();
+vi.mock("src/lib/pipe-library/rename-materials", async (importOriginal) => {
+  const original =
+    await importOriginal<
+      typeof import("src/lib/pipe-library/rename-materials")
+    >();
   return {
     ...original,
     renameMaterialsMoment: vi.fn(original.renameMaterialsMoment),
   };
 });
 
-import { applyRoughnessMoment } from "./apply-roughness";
-import { renameMaterialsMoment } from "./rename-materials";
+import { applyRoughnessMoment } from "src/lib/pipe-library/apply-roughness";
+import { renameMaterialsMoment } from "src/lib/pipe-library/rename-materials";
 
 vi.mock("src/components/notifications", async (importOriginal) => {
   const original =
