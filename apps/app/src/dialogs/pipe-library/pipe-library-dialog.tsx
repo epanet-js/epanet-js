@@ -20,6 +20,7 @@ import {
   applyRoughnessMoment,
   renameMaterialsMoment,
   validateMaterial,
+  DEFAULT_ROUGHNESS,
 } from "src/lib/pipe-library";
 import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
 
@@ -66,7 +67,10 @@ export const PipeLibraryDialog = () => {
   }, [draftMaterials, setSavedMaterials, hydraulicModel, transact]);
 
   const handleAddMaterial = useCallback((label: string) => {
-    setDraftMaterials((prev) => [...prev, { label, entries: [] }]);
+    setDraftMaterials((prev) => [
+      ...prev,
+      { label, entries: [{ age: 0, roughness: DEFAULT_ROUGHNESS }] },
+    ]);
   }, []);
 
   const handleRenameMaterial = useCallback(

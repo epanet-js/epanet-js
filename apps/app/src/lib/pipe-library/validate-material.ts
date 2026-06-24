@@ -10,7 +10,7 @@ export const validateMaterial = (material: PipeMaterial): string | null => {
       return "pipeLibrary.validation.roughnessPositive";
     }
 
-    if (e.age !== null && e.age <= 0) {
+    if (e.age !== null && e.age < 0) {
       return "pipeLibrary.validation.agePositive";
     }
 

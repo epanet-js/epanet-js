@@ -1631,7 +1631,7 @@
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
       "roughnessPositive": "Roughness must be greater than zero",
-      "agePositive": "Age must be greater than zero",
+      "agePositive": "Age must not be negative",
       "roughnessRequired": "Roughness must be set",
       "ageRequired": "Age must be set",
       "emptyEntries": "Empty entries are not valid"
