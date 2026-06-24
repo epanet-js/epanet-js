@@ -110,6 +110,7 @@ export const BaseDialog = ({
   preventClose = false,
 }: BaseDialogProps) => {
   const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
+
   return (
     <Dialog.Root
       open={isOpen}
@@ -126,6 +127,13 @@ export const BaseDialog = ({
             onEscapeKeyDown={
               preventClose ? (e) => e.preventDefault() : undefined
             }
+            onPointerDownOutside={(e) => {
+              const target = e.detail.originalEvent
+                .target as HTMLElement | null;
+              if (target?.closest?.("[data-notification]")) {
+                e.preventDefault();
+              }
+            }}
             aria-describedby={undefined}
           >
             <SelectorPortalContainer container={contentEl}>
