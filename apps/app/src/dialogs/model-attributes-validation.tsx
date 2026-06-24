@@ -27,7 +27,7 @@ export const ModelAttributesValidationDialog = ({
   return (
     <BaseDialog
       title={translate("modelAttributesValidation.dialog.title")}
-      size="md"
+      size="sm"
       isOpen={true}
       onClose={onClose}
       footer={
