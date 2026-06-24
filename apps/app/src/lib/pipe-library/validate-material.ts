@@ -27,5 +27,9 @@ export const validateMaterial = (material: PipeMaterial): string | null => {
     }
   }
 
+  if (material.entries.find((e) => e.age === 0) === undefined) {
+    return "pipeLibrary.validation.zeroAge";
+  }
+
   return null;
 };

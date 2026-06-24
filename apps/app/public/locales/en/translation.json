@@ -1634,7 +1634,8 @@
       "agePositive": "Age must not be negative",
       "roughnessRequired": "Roughness must be set",
       "ageRequired": "Age must be set",
-      "emptyEntries": "Empty entries are not valid"
+      "emptyEntries": "Empty entries are not valid",
+      "zeroAge": "An entry for new pipes (age 0) should exist"
     }
   }
 }
