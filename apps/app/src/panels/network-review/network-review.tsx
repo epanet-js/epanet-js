@@ -259,7 +259,6 @@ const ReviewCheck = ({
     <Button
       onClick={selectCheck}
       variant={"quiet/list"}
-      role="button"
       aria-label={label}
       aria-checked={isSelected}
       aria-expanded={isSelected ? true : false}

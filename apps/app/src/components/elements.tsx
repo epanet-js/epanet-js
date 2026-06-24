@@ -814,6 +814,8 @@ export const styledButton = ({
     variant === "quiet/list"
       ? `
     aria-expanded:bg-base-hover
+    aria-selected:bg-accent-tint
+    aria-selected:hover:bg-accent-tint
     transition-colors
     `
       : variant === "quiet/mode"

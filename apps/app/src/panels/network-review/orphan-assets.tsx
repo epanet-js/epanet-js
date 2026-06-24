@@ -26,6 +26,7 @@ import {
   LoadingState,
   ToolDescription,
   ToolHeader,
+  useCheckHeader,
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
@@ -101,12 +102,16 @@ export const OrphanAssets = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [orphanAssets, userTracking]);
 
+  const headerProps = useCheckHeader(
+    CheckType.orphanAssets,
+    orphanAssets.length,
+    onGoBack,
+  );
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        checkType={CheckType.orphanAssets}
-        onGoBack={onGoBack}
-        itemsCount={orphanAssets.length}
+        {...headerProps}
         autoFocus={orphanAssets.length === 0 && !isLoading}
       />
       <div className="relative grow flex flex-col">
@@ -194,14 +199,11 @@ const OrphanAssetItem = ({
       onClick={() => onClick(orphanAsset)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
-      role="button"
       aria-label={translate(
         "networkReview.orphanAssets.issueLabel",
         translate(orphanAsset.type),
         orphanAsset.label,
       )}
-      aria-checked={isSelected}
-      aria-expanded={isSelected ? "true" : "false"}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full"

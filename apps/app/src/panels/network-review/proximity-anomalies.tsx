@@ -7,6 +7,7 @@ import {
   LoadingState,
   ToolDescription,
   ToolHeader,
+  useCheckHeader,
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
@@ -125,12 +126,16 @@ export const ProximityAnomalies = ({ onGoBack }: { onGoBack: () => void }) => {
     [proximityAnomalies.length],
   );
 
+  const headerProps = useCheckHeader(
+    CheckType.proximityAnomalies,
+    proximityAnomalies.length,
+    onGoBack,
+  );
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        onGoBack={onGoBack}
-        itemsCount={proximityAnomalies.length}
-        checkType={CheckType.proximityAnomalies}
+        {...headerProps}
         autoFocus={proximityAnomalies.length === 0 && !isLoading}
       />
       <DistanceInput
@@ -341,13 +346,10 @@ const ProximityAnomalyItem = ({
       onClick={() => onClick(anomaly)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
-      role="button"
       aria-label={translate(
         "networkReview.proximityAnomalies.issueLabel",
         nodeAsset.label,
       )}
-      aria-checked={isSelected}
-      aria-expanded={isSelected ? "true" : "false"}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full"

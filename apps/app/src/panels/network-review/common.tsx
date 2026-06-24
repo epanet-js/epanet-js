@@ -17,35 +17,26 @@ export const enum CheckType {
 
 export const ToolHeader = ({
   onGoBack,
-  itemsCount,
-  checkType,
+  title,
+  summary,
   autoFocus = false,
 }: {
   onGoBack: () => void;
-  itemsCount: number;
-  checkType: CheckType;
+  title: string;
+  summary?: string;
   autoFocus?: boolean;
 }) => {
   const translate = useTranslate();
-  const userTracking = useUserTracking();
   const headerRef = useRef<HTMLDivElement>(null);
-
-  const goBack = useCallback(() => {
-    userTracking.capture({
-      name: `networkReview.${checkType}.back`,
-      count: itemsCount,
-    });
-    onGoBack();
-  }, [onGoBack, userTracking, itemsCount, checkType]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        goBack();
+        onGoBack();
       }
     },
-    [goBack],
+    [onGoBack],
   );
 
   useEffect(() => {
@@ -68,32 +59,44 @@ export const ToolHeader = ({
         className="mt-[-.25rem] py-1.5"
         size="xs"
         variant={"quiet"}
-        role="button"
         aria-label={translate("back")}
-        onClick={goBack}
+        onClick={onGoBack}
       >
         <ChevronLeftIcon size={16} />
       </Button>
       <div className="w-full flex-col">
-        <p className="text-size-base font-bold text-default">
-          {translate(`networkReview.${checkType}.title`)}
-        </p>
-        <Summary checkType={checkType} count={itemsCount} />
+        <p className="text-size-base font-bold text-default">{title}</p>
+        {summary !== undefined && (
+          <p className="text-subtle text-size-base">{summary}</p>
+        )}
       </div>
     </div>
   );
 };
 
-const Summary = ({
-  count,
-  checkType,
-}: {
-  count: number;
-  checkType: CheckType;
-}) => {
+// Network-review-specific bridge: derives the ToolHeader props from a check
+// type and owns the "back" tracking, keeping ToolHeader a generic component.
+export const useCheckHeader = (
+  checkType: CheckType,
+  itemsCount: number,
+  onGoBack: () => void,
+) => {
   const translate = useTranslate();
-  const message = translate(`networkReview.${checkType}.summary`, count);
-  return <p className="text-subtle text-size-base">{message}</p>;
+  const userTracking = useUserTracking();
+
+  const goBack = useCallback(() => {
+    userTracking.capture({
+      name: `networkReview.${checkType}.back`,
+      count: itemsCount,
+    });
+    onGoBack();
+  }, [checkType, itemsCount, onGoBack, userTracking]);
+
+  return {
+    title: translate(`networkReview.${checkType}.title`),
+    summary: translate(`networkReview.${checkType}.summary`, itemsCount),
+    onGoBack: goBack,
+  };
 };
 
 export const ToolDescription = ({ checkType }: { checkType: CheckType }) => {
@@ -415,7 +418,8 @@ export const VirtualizedIssuesList = <T, I>({
           className="w-full relative"
           style={{ height: rowVirtualizer.getTotalSize() }}
         >
-          <div
+          <ul
+            role="list"
             className="absolute top-0 left-0 w-full"
             style={{
               transform: `translateY(${rows[0]?.start ?? 0}px)`,
@@ -428,12 +432,11 @@ export const VirtualizedIssuesList = <T, I>({
                 handleItemClick(clickedIssue, itemIndex);
 
               return (
-                <div
+                <li
                   key={String(getIdFromIssue(item))}
                   data-index={virtualRow.index}
                   className="w-full px-1"
                   ref={rowVirtualizer.measureElement}
-                  role="listItem"
                 >
                   {renderItem(
                     itemIndex,
@@ -441,10 +444,10 @@ export const VirtualizedIssuesList = <T, I>({
                     selectedItemId,
                     handleClickWithIndex,
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       </div>
     </div>

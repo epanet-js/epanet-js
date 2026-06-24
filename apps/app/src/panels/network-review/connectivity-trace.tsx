@@ -17,6 +17,7 @@ import {
   LoadingState,
   ToolDescription,
   ToolHeader,
+  useCheckHeader,
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
@@ -101,12 +102,16 @@ export const ConnectivityTrace = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [subnetworks, getSelectionIds]);
 
+  const headerProps = useCheckHeader(
+    CheckType.connectivityTrace,
+    subnetworks.length,
+    onGoBack,
+  );
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        checkType={CheckType.connectivityTrace}
-        onGoBack={onGoBack}
-        itemsCount={subnetworks.length}
+        {...headerProps}
         autoFocus={subnetworks.length === 0 && !isLoading}
       />
       <div className="relative grow flex flex-col">
@@ -197,15 +202,12 @@ const SubnetworkItem = ({
       onClick={() => onClick(subnetwork)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
-      role="button"
       aria-label={translate(
         "networkReview.connectivityTrace.issueLabel",
         String(index),
         String(subnetwork.supplySourceCount),
         String(subnetwork.linkIds.length),
       )}
-      aria-checked={isSelected}
-      aria-expanded={isSelected ? "true" : "false"}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full"

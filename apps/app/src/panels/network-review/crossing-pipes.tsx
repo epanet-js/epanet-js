@@ -4,6 +4,7 @@ import {
   LoadingState,
   ToolDescription,
   ToolHeader,
+  useCheckHeader,
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
@@ -109,12 +110,16 @@ export const CrossingPipes = ({ onGoBack }: { onGoBack: () => void }) => {
     }
   }, [crossingPipes, isSelected]);
 
+  const headerProps = useCheckHeader(
+    CheckType.crossingPipes,
+    crossingPipes.length,
+    onGoBack,
+  );
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        onGoBack={onGoBack}
-        itemsCount={crossingPipes.length}
-        checkType={CheckType.crossingPipes}
+        {...headerProps}
         autoFocus={crossingPipes.length === 0 && !isLoading}
       />
       <div className="relative grow flex flex-col">
@@ -212,14 +217,11 @@ const CrossingPipeItem = ({
       onClick={() => onClick(crossing)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
-      role="button"
       aria-label={translate(
         "networkReview.crossingPipes.issueLabel",
         pipe1Asset.label,
         pipe2Asset.label,
       )}
-      aria-checked={isSelected}
-      aria-expanded={isSelected ? "true" : "false"}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full"

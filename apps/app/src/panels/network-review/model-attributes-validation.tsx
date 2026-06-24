@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
@@ -23,6 +23,7 @@ import {
   LoadingState,
   ToolDescription,
   ToolHeader,
+  useCheckHeader,
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
@@ -155,6 +156,12 @@ export const ModelAttributesValidation = ({
     [isReady, detailRuleId, detailGroup],
   );
 
+  const headerProps = useCheckHeader(
+    CheckType.modelAttributesValidation,
+    issuesCount,
+    onGoBack,
+  );
+
   if (detailGroup) {
     return (
       <ModelAttributesValidationDetail
@@ -170,9 +177,7 @@ export const ModelAttributesValidation = ({
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
-        checkType={CheckType.modelAttributesValidation}
-        onGoBack={onGoBack}
-        itemsCount={issuesCount}
+        {...headerProps}
         autoFocus={issuesCount === 0 && !isLoading}
       />
       <div className="relative grow flex flex-col">
@@ -293,14 +298,12 @@ const ModelAttributesValidationGroupRow = ({
     <Button
       onClick={onClick}
       variant={"quiet/list"}
-      role="button"
       aria-label={translate(
         "networkReview.modelAttributesValidation.issueLabel",
         label,
         String(group.issues.length),
       )}
-      aria-checked={isSelected}
-      aria-expanded={isSelected ? true : false}
+      aria-selected={isSelected}
       className="group w-full"
     >
       <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 items-start p-2 pr-0 text-size-base w-full text-left">
@@ -332,6 +335,7 @@ const ModelAttributesValidationDetail = ({
   onGoBack: () => void;
   onSelectIssue: (issue: ValidationIssue) => void;
 }) => {
+  const translate = useTranslate();
   const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
 
   const selectIssue = useCallback(
@@ -348,9 +352,13 @@ const ModelAttributesValidationDetail = ({
 
   return (
     <div className="absolute inset-0 flex flex-col">
-      <ModelAttributesValidationDetailHeader
-        group={group}
+      <ToolHeader
         onGoBack={onGoBack}
+        title={translate(ruleLabelKey(group.ruleId))}
+        summary={translate(
+          "networkReview.modelAttributesValidation.affectedCount",
+          group.issues.length,
+        )}
       />
       <div className="relative grow flex flex-col">
         <VirtualizedIssuesList
@@ -374,43 +382,6 @@ const ModelAttributesValidationDetail = ({
   );
 };
 
-const ModelAttributesValidationDetailHeader = ({
-  group,
-  onGoBack,
-}: {
-  group: ValidationGroup;
-  onGoBack: () => void;
-}) => {
-  const translate = useTranslate();
-  const label = translate(ruleLabelKey(group.ruleId));
-  const affectedText = translate(
-    "networkReview.modelAttributesValidation.affectedCount",
-    group.issues.length,
-  );
-
-  return (
-    <div className="grid grid-cols-[auto_1fr] gap-x-1 items-start w-full border-b pl-1 py-3">
-      <Button
-        className="mt-[-.25rem] py-1.5"
-        size="xs"
-        variant={"quiet"}
-        role="button"
-        aria-label={translate("back")}
-        onClick={onGoBack}
-      >
-        <ChevronLeft size={16} />
-      </Button>
-      <div className="w-full flex flex-col gap-2 pr-2">
-        <div className="flex flex-row items-center gap-2">
-          <SeverityIcon severity={group.severity} />
-          <p className="text-size-base font-bold text-default">{label}</p>
-        </div>
-        <p className="text-subtle text-size-base">{affectedText}</p>
-      </div>
-    </div>
-  );
-};
-
 const ModelAttributesValidationEntityRow = ({
   issue,
   isSelected,
@@ -427,9 +398,7 @@ const ModelAttributesValidationEntityRow = ({
       onClick={() => onClick(issue)}
       onMouseDown={(e) => e.preventDefault()}
       variant={"quiet/list"}
-      role="button"
       aria-label={label}
-      aria-checked={isSelected}
       aria-selected={isSelected}
       tabIndex={-1}
       className="group w-full"
