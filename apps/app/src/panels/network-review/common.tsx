@@ -2,6 +2,7 @@ import { ChevronLeftIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button, Loading } from "src/components/elements";
+import { Action, ActionButton } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoom } from "src/hooks/use-zoom";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -19,15 +20,21 @@ export const ToolHeader = ({
   onGoBack,
   title,
   summary,
+  actions,
   autoFocus = false,
 }: {
   onGoBack: () => void;
   title: string;
   summary?: string;
+  actions?: Action[];
   autoFocus?: boolean;
 }) => {
   const translate = useTranslate();
   const headerRef = useRef<HTMLDivElement>(null);
+
+  const applicableActions = (actions ?? []).filter(
+    (action) => action.applicable,
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -56,16 +63,25 @@ export const ToolHeader = ({
       onKeyDown={autoFocus ? handleKeyDown : undefined}
     >
       <Button
-        className="mt-[-.25rem] py-1.5"
-        size="xs"
+        className="h-8 w-4 justify-center -my-1.5"
+        size="xxs"
         variant={"quiet"}
         aria-label={translate("back")}
         onClick={onGoBack}
       >
         <ChevronLeftIcon size={16} />
       </Button>
-      <div className="w-full flex-col">
-        <p className="text-size-base font-bold text-default">{title}</p>
+      <div className="w-full pr-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-size-base font-bold text-default">{title}</p>
+          {applicableActions.length > 0 && (
+            <div className="flex gap-1 -my-1.5">
+              {applicableActions.map((action, i) => (
+                <ActionButton key={i} action={action} />
+              ))}
+            </div>
+          )}
+        </div>
         {summary !== undefined && (
           <p className="text-subtle text-size-base">{summary}</p>
         )}

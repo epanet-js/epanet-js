@@ -2,9 +2,11 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "src/components/elements";
+import { Action } from "src/components/action-button";
 import { useTranslate } from "src/hooks/use-translate";
 import { useZoomTo } from "src/hooks/use-zoom-to";
-import { ErrorIcon, WarningIcon } from "src/icons";
+import { ErrorIcon, PointerClickIcon, WarningIcon } from "src/icons";
+import { pluralize } from "src/lib/utils";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -170,6 +172,12 @@ export const ModelAttributesValidation = ({
         onSelectIssue={(issue) =>
           selectEntity(detailGroup.entityType, issue.entityId)
         }
+        onSelectAll={() =>
+          selectEntities(
+            detailGroup.entityType,
+            detailGroup.issues.map((issue) => issue.entityId),
+          )
+        }
       />
     );
   }
@@ -330,10 +338,12 @@ const ModelAttributesValidationDetail = ({
   group,
   onGoBack,
   onSelectIssue,
+  onSelectAll,
 }: {
   group: ValidationGroup;
   onGoBack: () => void;
   onSelectIssue: (issue: ValidationIssue) => void;
+  onSelectAll: () => void;
 }) => {
   const translate = useTranslate();
   const [selectedEntityId, setSelectedEntityId] = useState<number | null>(null);
@@ -350,6 +360,21 @@ const ModelAttributesValidationDetail = ({
     [onSelectIssue],
   );
 
+  const selectAllAction: Action = {
+    icon: <PointerClickIcon />,
+    label: `${translate("select")} ${pluralize(
+      translate,
+      group.entityType,
+      group.issues.length,
+      false,
+    )}`,
+    applicable: true,
+    onSelect: () => {
+      onSelectAll();
+      return Promise.resolve();
+    },
+  };
+
   return (
     <div className="absolute inset-0 flex flex-col">
       <ToolHeader
@@ -359,6 +384,7 @@ const ModelAttributesValidationDetail = ({
           "networkReview.modelAttributesValidation.affectedCount",
           group.issues.length,
         )}
+        actions={[selectAllAction]}
       />
       <div className="relative grow flex flex-col">
         <VirtualizedIssuesList

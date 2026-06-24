@@ -1,6 +1,13 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import { vi } from "vitest";
 import { Provider as JotaiProvider } from "jotai";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { Store } from "src/state";
@@ -28,7 +35,9 @@ beforeAll(() => {
 const renderPanel = (store: Store) => {
   render(
     <JotaiProvider store={store}>
-      <ModelAttributesValidation onGoBack={vi.fn()} />
+      <TooltipProvider>
+        <ModelAttributesValidation onGoBack={vi.fn()} />
+      </TooltipProvider>
     </JotaiProvider>,
   );
 };
@@ -84,5 +93,27 @@ describe("ModelAttributesValidation panel", () => {
     expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
     // ...and we navigate to the detail (the check-title header is gone).
     expect(screen.queryByText("Model attributes")).not.toBeInTheDocument();
+  });
+
+  it("re-selects all affected entities from the detail header action", async () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipe(1, { label: "P1", roughness: null })
+      .aPipe(2, { label: "P2", roughness: null })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderPanel(store);
+
+    const groupRow = await screen.findByRole("button", {
+      name: /roughness missing/i,
+    });
+    fireEvent.click(groupRow);
+
+    act(() => store.set(selectionAtom, USelection.none()));
+    expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([]);
+
+    fireEvent.click(screen.getByRole("button", { name: /select/i }));
+
+    expect(USelection.getAssetIds(store.get(selectionAtom))).toEqual([1, 2]);
   });
 });
