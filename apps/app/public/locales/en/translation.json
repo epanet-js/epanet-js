@@ -1630,7 +1630,8 @@
       "roughnessPositive": "Roughness must be greater than zero",
       "agePositive": "Age must be greater than zero",
       "roughnessRequired": "Roughness must be set",
-      "ageRequired": "Age must be set"
+      "ageRequired": "Age must be set",
+      "emptyEntries": "Empty entries are not valid"
     }
   }
 }

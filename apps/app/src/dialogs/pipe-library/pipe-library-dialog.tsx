@@ -19,6 +19,7 @@ import {
 import {
   applyRoughnessMoment,
   renameMaterialsMoment,
+  validateMaterial,
 } from "src/lib/pipe-library";
 import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
 
@@ -45,7 +46,7 @@ export const PipeLibraryDialog = () => {
     () =>
       new Set(
         draftMaterials
-          .filter((m) => getFirstError(m) !== null)
+          .filter((m) => validateMaterial(m) !== null)
           .map((m) => m.label),
       ),
     [draftMaterials],
@@ -201,7 +202,7 @@ export const PipeLibraryDialog = () => {
                 />
                 <PipeErrorBanner
                   materialLabel={selectedMaterial.label}
-                  error={getFirstError(selectedMaterial)}
+                  error={validateMaterial(selectedMaterial)}
                 />
               </>
             ) : isEmpty ? (
@@ -249,18 +250,4 @@ const EmptyState = () => {
       </p>
     </div>
   );
-};
-
-export const getFirstError = (material: PipeMaterial): string | null => {
-  for (const e of material.entries) {
-    if (e.roughness !== null && e.roughness <= 0)
-      return "pipeLibrary.validation.roughnessPositive";
-    if (e.age !== null && e.age <= 0)
-      return "pipeLibrary.validation.agePositive";
-    if (e.age !== null && e.roughness === null)
-      return "pipeLibrary.validation.roughnessRequired";
-    if (e.age === null && e.roughness !== null)
-      return "pipeLibrary.validation.ageRequired";
-  }
-  return null;
 };

@@ -307,7 +307,7 @@ describe("PipeLibraryDialog", () => {
       screen.getByText(/cast iron contains invalid values/i),
     ).toBeVisible();
 
-    await editCell(user, 1, 1, "130");
+    await editCell(user, 1, 1, "130", "tab");
 
     await waitFor(() => {
       expect(
@@ -337,6 +337,7 @@ const editCell = async (
   rowIndex: number,
   colIndex: number,
   value: string,
+  commit: "enter" | "tab" = "enter",
 ) => {
   const cell = getCell(rowIndex, colIndex);
   await user.dblClick(cell);
@@ -345,7 +346,11 @@ const editCell = async (
   });
   const input = within(cell).getByRole("textbox");
   fireEvent.change(input, { target: { value } });
-  fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+  if (commit === "tab") {
+    await user.tab();
+  } else {
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+  }
 };
 
 const addMaterial = async (
