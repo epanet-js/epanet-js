@@ -237,7 +237,13 @@ describe("PipeLibraryDialog", () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 10, roughness: 120 },
+        ],
+      },
     ]);
     renderDialog(store);
 
@@ -292,6 +298,7 @@ describe("PipeLibraryDialog", () => {
       {
         label: "Cast Iron",
         entries: [
+          { age: 0, roughness: 100 },
           { age: 5, roughness: 120 },
           { age: 10, roughness: null },
         ],
@@ -307,7 +314,7 @@ describe("PipeLibraryDialog", () => {
       screen.getByText(/cast iron contains invalid values/i),
     ).toBeVisible();
 
-    await editCell(user, 1, 1, "130", "tab");
+    await editCell(user, 2, 1, "130", "tab");
 
     await waitFor(() => {
       expect(
