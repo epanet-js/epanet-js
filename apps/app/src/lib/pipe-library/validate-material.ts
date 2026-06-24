@@ -31,5 +31,10 @@ export const validateMaterial = (material: PipeMaterial): string | null => {
     return "pipeLibrary.validation.zeroAge";
   }
 
+  const ages = material.entries.map((e) => e.age).filter((a) => a !== null);
+  if (new Set(ages).size !== ages.length) {
+    return "pipeLibrary.validation.duplicateAge";
+  }
+
   return null;
 };
