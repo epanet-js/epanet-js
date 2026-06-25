@@ -131,6 +131,41 @@ describe("fetch-project integration", () => {
     expect(project.hydraulicModel.assets.size).toBe(1);
   });
 
+  it("round-trips pipe library data", async () => {
+    const pipeLibrary = [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 130 },
+          { age: 10, roughness: 100 },
+        ],
+      },
+    ];
+
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+      pipeLibrary,
+    });
+
+    const project = await fetchProject();
+    expect(project.pipeLibrary).toEqual(pipeLibrary);
+  });
+
+  it("returns empty array when no pipe library was saved", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const project = await fetchProject();
+    expect(project.pipeLibrary).toEqual([]);
+  });
+
   describe("when the roughness column is null", () => {
     const importPipeWithNullRoughness = () =>
       importProject({

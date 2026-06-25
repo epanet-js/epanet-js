@@ -8,6 +8,7 @@ export * from "./patterns";
 export * from "./project-settings";
 export * from "./simulation-settings";
 export * from "./zones";
+export * from "./pipe-library";
 export * from "./patches";
 export * from "./enums";
 export { parseRows } from "./parse-rows";

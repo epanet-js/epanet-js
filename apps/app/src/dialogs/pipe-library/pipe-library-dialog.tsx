@@ -12,6 +12,7 @@ import { Button } from "src/components/elements";
 import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
 import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
@@ -31,7 +32,7 @@ export const PipeLibraryDialog = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useModelTransaction();
   const savedMaterials = useAtomValue(pipeMaterialsAtom);
-  const [, setSavedMaterials] = useAtom(pipeMaterialsAtom);
+  const { transact: transactPipeLibrary } = usePipeLibraryTransaction();
   const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);
   const [draftMaterials, setDraftMaterials] =
     useState<PipeMaterial[]>(savedMaterials);
@@ -55,8 +56,7 @@ export const PipeLibraryDialog = () => {
   );
   const hasValidationErrors = invalidMaterialLabels.size > 0;
 
-  const handleSave = useCallback(() => {
-    setSavedMaterials(draftMaterials);
+  const handleSave = useCallback(async () => {
     const renames = pendingRenamesRef.current;
     if (renames.size > 0) {
       const moment = renameMaterialsMoment(hydraulicModel, renames);
@@ -65,7 +65,9 @@ export const PipeLibraryDialog = () => {
       }
       renames.clear();
     }
-  }, [draftMaterials, setSavedMaterials, hydraulicModel, transact]);
+
+    await transactPipeLibrary(draftMaterials);
+  }, [draftMaterials, transactPipeLibrary, hydraulicModel, transact]);
 
   const handleAddMaterial = useCallback((label: string) => {
     setDraftMaterials((prev) => [

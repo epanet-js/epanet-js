@@ -17,6 +17,15 @@ vi.mock("src/hooks/persistence/use-model-transaction", () => ({
   useModelTransaction: () => ({ transact: mockTransact }),
 }));
 
+let activeStore: Store | null = null;
+const mockPipeLibraryTransact = vi.fn(async (materials: unknown[]) => {
+  activeStore?.set(pipeMaterialsAtom, materials as never);
+  return Promise.resolve(true);
+});
+vi.mock("src/hooks/persistence/use-pipe-library-transaction", () => ({
+  usePipeLibraryTransaction: () => ({ transact: mockPipeLibraryTransact }),
+}));
+
 vi.mock("src/lib/pipe-library/apply-roughness", async (importOriginal) => {
   const original =
     await importOriginal<
@@ -351,6 +360,7 @@ describe("PipeLibraryDialog", () => {
 });
 
 const renderDialog = (store: Store) => {
+  activeStore = store;
   return render(
     <JotaiProvider store={store}>
       <PipeLibraryDialog />

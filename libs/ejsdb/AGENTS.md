@@ -30,6 +30,7 @@ Any of these breaks file compatibility unless a migration ships with it:
   - `controls.data` (controls JSON)
   - `simulation_settings.data`
   - `project.settings`
+  - `project.pipe_library`
   - `pumps.curve_points`
   - `patterns.multipliers`
   - `curves.points`

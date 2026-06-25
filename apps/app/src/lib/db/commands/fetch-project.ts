@@ -1,4 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { PipeMaterial } from "src/lib/pipe-library";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -21,10 +22,12 @@ import {
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
+import { buildPipeLibraryData } from "../mappers/pipe-library/builders";
 import { buildZonesData } from "../mappers/zones/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
+  pipeLibrary: PipeMaterial[];
   zones: Zones;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
@@ -83,6 +86,7 @@ const fetchProjectWith = async (
     onProgress?.("reading-settings");
     const [
       settingsJson,
+      pipeLibraryJson,
       zonesRaw,
       patternsRaw,
       junctionDemandsRaw,
@@ -94,6 +98,7 @@ const fetchProjectWith = async (
     ] = await timed("fetchProject.readSettings", () =>
       Promise.all([
         worker.getProjectSettings(),
+        worker.getPipeLibrary(),
         worker.getZones(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
@@ -113,6 +118,7 @@ const fetchProjectWith = async (
       "fetchProject.build",
       () => {
         const projectSettings = buildProjectSettingsData(settingsJson);
+        const pipeLibrary = buildPipeLibraryData(pipeLibraryJson);
         const zones = buildZonesData(zonesRaw);
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
@@ -169,6 +175,7 @@ const fetchProjectWith = async (
 
         return {
           projectSettings,
+          pipeLibrary,
           zones,
           hydraulicModel,
           factories,

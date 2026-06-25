@@ -65,11 +65,22 @@ describe("open integration", () => {
       .aJunctionDemand(1, [{ baseDemand: 2.5, patternId: 6 }])
       .build();
 
+    const pipeLibrary = [
+      {
+        label: "PVC",
+        entries: [
+          { age: 0, roughness: 150 },
+          { age: 20, roughness: 130 },
+        ],
+      },
+    ];
+
     await importProject({
       newDb: true,
       hydraulicModel,
       projectSettings,
       simulationSettings,
+      pipeLibrary,
     });
 
     const blob = await exportDb();
@@ -127,5 +138,7 @@ describe("open integration", () => {
     expect(project.hydraulicModel.demands.junctions.get(1)).toEqual([
       { baseDemand: 2.5, patternId: 6 },
     ]);
+
+    expect(project.pipeLibrary).toEqual(pipeLibrary);
   });
 });

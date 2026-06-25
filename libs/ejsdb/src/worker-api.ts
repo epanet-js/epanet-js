@@ -864,7 +864,30 @@ export const api = {
     return timed("saveProjectSettings", async () => {
       await ready;
       if (!db) throw new Error("No database open");
-      db.exec("INSERT OR REPLACE INTO project (id, settings) VALUES (1, ?)", {
+      db.exec(
+        "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
+        { bind: [json] },
+      );
+    });
+  },
+
+  async getPipeLibrary(): Promise<string | null> {
+    return timed("getPipeLibrary", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec("SELECT pipe_library FROM project WHERE id = 1", {
+        returnValue: "resultRows",
+      }) as string[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
+  async savePipeLibrary(json: string) {
+    return timed("savePipeLibrary", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      db.exec("UPDATE project SET pipe_library = ? WHERE id = 1", {
         bind: [json],
       });
     });

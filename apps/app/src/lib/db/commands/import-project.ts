@@ -1,5 +1,6 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
+import type { PipeMaterial } from "src/lib/pipe-library";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import type { AssetsMap } from "@epanet-js/hydraulic-model";
@@ -26,6 +27,7 @@ import {
 } from "@epanet-js/ejsdb-mappers";
 import { newProject } from "./new-project";
 import { saveProjectSettings } from "./save-project-settings";
+import { savePipeLibrary } from "./save-pipe-library";
 import { saveZones } from "./save-zones";
 import { setAllSimulationSettings } from "./set-all-simulation-settings";
 import { serializeSimulationSettings } from "../mappers/simulation-settings/to-rows";
@@ -33,6 +35,7 @@ import { serializeSimulationSettings } from "../mappers/simulation-settings/to-r
 export type ImportProjectInput = {
   newDb?: boolean;
   projectSettings?: ProjectSettings;
+  pipeLibrary?: PipeMaterial[];
   zones?: Zones;
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
@@ -47,6 +50,9 @@ export const importProject = async (
     }
     if (input.projectSettings) {
       await saveProjectSettings(input.projectSettings);
+    }
+    if (input.pipeLibrary && input.pipeLibrary.length > 0) {
+      await savePipeLibrary(input.pipeLibrary);
     }
     if (input.zones) {
       await saveZones(input.zones);
