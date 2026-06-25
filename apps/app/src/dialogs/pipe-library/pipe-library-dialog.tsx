@@ -169,7 +169,7 @@ export const PipeLibraryDialog = () => {
           ];
           for (const age of det.ages) {
             if (age !== 0) {
-              entries.push({ age, roughness: null });
+              entries.push({ age, roughness: DEFAULT_ROUGHNESS });
             }
           }
           entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
@@ -184,7 +184,7 @@ export const PipeLibraryDialog = () => {
           const newEntries = [...existing.entries];
           for (const age of det.ages) {
             if (!existingAges.has(age)) {
-              newEntries.push({ age, roughness: null });
+              newEntries.push({ age, roughness: DEFAULT_ROUGHNESS });
             }
           }
           if (newEntries.length !== existing.entries.length) {

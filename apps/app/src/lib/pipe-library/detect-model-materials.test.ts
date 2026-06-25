@@ -11,9 +11,7 @@ describe("detectModelMaterials", () => {
   });
 
   it("skips pipes without a material", () => {
-    const model = makeModel(
-      makePipe(1, { year: CURRENT_YEAR - 5 }),
-    );
+    const model = makeModel(makePipe(1, { year: CURRENT_YEAR - 5 }));
     expect(detectModelMaterials(model)).toEqual([]);
   });
 
