@@ -78,7 +78,7 @@ describe("PipeLibraryDialog", () => {
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Cast Iron");
-    expect(materials[0].entries).toEqual([{ age: 0, roughness: 100 }]);
+    expect(materials[0].entries).toEqual([{ age: 0, roughness: 140 }]);
   });
 
   it("edits roughness and saves", async () => {

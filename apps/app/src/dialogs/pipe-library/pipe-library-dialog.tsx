@@ -11,6 +11,7 @@ import { PipeLibraryIcon } from "src/icons";
 import { Button } from "src/components/elements";
 import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
 import {
@@ -22,7 +23,8 @@ import {
   renameMaterialsMoment,
   validateMaterial,
   detectModelMaterials,
-  DEFAULT_ROUGHNESS,
+  DEFAULT_ROUGHNESS_HW,
+  DEFAULT_ROUGHNESS_DW_CM,
 } from "src/lib/pipe-library";
 import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
 
@@ -30,6 +32,7 @@ export const PipeLibraryDialog = () => {
   const translate = useTranslate();
   const dialogActions = useRef<DialogActionsHandle>(null);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const projectSettings = useAtomValue(projectSettingsAtom);
   const { transact } = useModelTransaction();
   const savedMaterials = useAtomValue(pipeMaterialsAtom);
   const { transact: transactPipeLibrary } = usePipeLibraryTransaction();
@@ -38,6 +41,14 @@ export const PipeLibraryDialog = () => {
     useState<PipeMaterial[]>(savedMaterials);
   const [sidebarWidth, setSidebarWidth] = useState(224);
   const pendingRenamesRef = useRef(new Map<string, string>());
+
+  const defaultRoughness = useMemo(
+    () =>
+      projectSettings.headlossFormula === "H-W"
+        ? DEFAULT_ROUGHNESS_HW
+        : DEFAULT_ROUGHNESS_DW_CM,
+    [projectSettings.headlossFormula],
+  );
 
   const hasChanges = draftMaterials !== savedMaterials;
 
@@ -69,12 +80,15 @@ export const PipeLibraryDialog = () => {
     await transactPipeLibrary(draftMaterials);
   }, [draftMaterials, transactPipeLibrary, hydraulicModel, transact]);
 
-  const handleAddMaterial = useCallback((label: string) => {
-    setDraftMaterials((prev) => [
-      ...prev,
-      { label, entries: [{ age: 0, roughness: DEFAULT_ROUGHNESS }] },
-    ]);
-  }, []);
+  const handleAddMaterial = useCallback(
+    (label: string) => {
+      setDraftMaterials((prev) => [
+        ...prev,
+        { label, entries: [{ age: 0, roughness: defaultRoughness }] },
+      ]);
+    },
+    [defaultRoughness],
+  );
 
   const handleRenameMaterial = useCallback(
     (oldLabel: string, newLabel: string) => {
@@ -167,11 +181,11 @@ export const PipeLibraryDialog = () => {
 
         if (existingIndex === -1) {
           const entries: RoughnessEntry[] = [
-            { age: 0, roughness: DEFAULT_ROUGHNESS },
+            { age: 0, roughness: defaultRoughness },
           ];
           for (const age of det.ages) {
             if (age !== 0) {
-              entries.push({ age, roughness: DEFAULT_ROUGHNESS });
+              entries.push({ age, roughness: defaultRoughness });
             }
           }
           entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
@@ -186,7 +200,7 @@ export const PipeLibraryDialog = () => {
           const newEntries = [...existing.entries];
           for (const age of det.ages) {
             if (!existingAges.has(age)) {
-              newEntries.push({ age, roughness: DEFAULT_ROUGHNESS });
+              newEntries.push({ age, roughness: defaultRoughness });
             }
           }
           if (newEntries.length !== existing.entries.length) {
@@ -198,7 +212,7 @@ export const PipeLibraryDialog = () => {
 
       return updated;
     });
-  }, [hydraulicModel]);
+  }, [hydraulicModel, defaultRoughness]);
 
   return (
     <BaseDialog
