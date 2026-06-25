@@ -1092,6 +1092,16 @@ type CurveChanged = {
   property: "label" | "points" | "type";
 };
 
+type CustomAttributesOpened = {
+  name: "customAttributes.opened";
+  source: "toolbar";
+};
+
+type CustomAttributesUpdated = {
+  name: "customAttributes.updated";
+  count: number;
+};
+
 type AssetDataExported = {
   name: "assetData.exported";
   format: "geojson" | "csv" | "shapefile" | "xlsx";
@@ -1548,6 +1558,8 @@ export type UserEvent =
   | CurveAdded
   | CurveDeleted
   | CurveChanged
+  | CustomAttributesOpened
+  | CustomAttributesUpdated
   | AssetDataExported
   | SimulationResultsExported
   | CustomGraphExported

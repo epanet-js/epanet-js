@@ -1426,6 +1426,17 @@
     "setAsHeadloss": "Set as Headloss",
     "saveInvalid": "Some curves have validation warnings."
   },
+  "customAttributes": {
+    "title": "Custom attributes",
+    "label": "Label",
+    "type": "Type",
+    "typeText": "Text",
+    "typeNumber": "Number",
+    "addAttribute": "Add attribute",
+    "defaultLabel": "Attribute {{1}}",
+    "invalidLabel": "Invalid attribute",
+    "emptyLabelError": "Attribute labels cannot be empty."
+  },
   "percentOpen": "% Open",
   "percentFullFlow": "% Full flow",
   "energy": "Energy",

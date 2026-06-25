@@ -9,6 +9,7 @@ import {
   PipeLibraryIcon,
   PumpLibraryIcon,
   CurveLibraryIcon,
+  TableIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -24,15 +25,18 @@ import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPipeLibrary } from "src/commands/show-pipe-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
+import { useShowCustomAttributes } from "src/commands/show-custom-attributes";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
+  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const showControls = useShowControls();
   const showPatternsLibrary = useShowPatternsLibrary();
   const showPipeLibrary = useShowPipeLibrary();
   const showPumpLibrary = useShowPumpLibrary();
   const showCurveLibrary = useShowCurveLibrary();
+  const showCustomAttributes = useShowCustomAttributes();
 
   return (
     <Tooltip.Root delayDuration={200}>
@@ -79,6 +83,15 @@ export const OperationalDataDropdown = () => {
                 >
                   <PipeLibraryIcon />
                   {translate("pipeLibrary.menuLabel")}
+                </StyledItem>
+              )}
+
+              {isCustomAttributesOn && (
+                <StyledItem
+                  onSelect={() => showCustomAttributes({ source: "toolbar" })}
+                >
+                  <TableIcon />
+                  {translate("customAttributes.title")}
                 </StyledItem>
               )}
 

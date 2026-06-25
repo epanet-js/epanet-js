@@ -1,0 +1,50 @@
+import clsx from "clsx";
+import { AssetType } from "@epanet-js/hydraulic-model";
+import { useTranslate } from "src/hooks/use-translate";
+import {
+  CustomAttributesDefinition,
+  countFor,
+} from "src/lib/custom-attributes";
+
+type CustomAttributesSidebarProps = {
+  width: number;
+  assetTypes: AssetType[];
+  definition: CustomAttributesDefinition;
+  selectedAssetType: AssetType;
+  onSelect: (assetType: AssetType) => void;
+};
+
+export const CustomAttributesSidebar = ({
+  width,
+  assetTypes,
+  definition,
+  selectedAssetType,
+  onSelect,
+}: CustomAttributesSidebarProps) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="shrink-0 flex flex-col gap-1 py-2" style={{ width }}>
+      {assetTypes.map((assetType) => {
+        const isSelected = assetType === selectedAssetType;
+        const count = countFor(definition, assetType);
+        return (
+          <button
+            key={assetType}
+            type="button"
+            onClick={() => onSelect(assetType)}
+            className={clsx(
+              "flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-size-base text-left",
+              isSelected
+                ? "bg-purple-100 text-purple-900 dark:bg-purple-900/40 dark:text-purple-100"
+                : "text-default hover:bg-gray-100 dark:hover:bg-gray-800",
+            )}
+          >
+            <span className="truncate">{translate(assetType)}</span>
+            <span className="shrink-0 tabular-nums text-subtle">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};

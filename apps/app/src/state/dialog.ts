@@ -1,7 +1,7 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
-import { CurveId } from "@epanet-js/hydraulic-model";
+import { CurveId, AssetType } from "@epanet-js/hydraulic-model";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "src/lib/projections";
 
@@ -187,6 +187,11 @@ export type CurveLibraryDialogState = {
   initialSection?: "volume" | "valve" | "headloss";
 };
 
+export type CustomAttributesDialogState = {
+  type: "customAttributes";
+  initialAssetType?: AssetType;
+};
+
 export type DeleteScenarioConfirmationDialogState = {
   type: "deleteScenarioConfirmation";
   scenarioId: string;
@@ -323,6 +328,7 @@ export type DialogState =
   | PipeLibraryDialogState
   | PumpLibraryDialogState
   | CurveLibraryDialogState
+  | CustomAttributesDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | FeaturePaywallDialogState

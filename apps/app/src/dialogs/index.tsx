@@ -5,6 +5,7 @@ import { dialogAtom } from "src/state/dialog";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import type { Projection } from "src/lib/projections";
+import type { AssetType } from "@epanet-js/hydraulic-model";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
@@ -369,6 +370,18 @@ const CurveLibraryDialog = dynamic<{
 }>(() => import("src/dialogs/curves").then((r) => r.CurveLibraryDialog), {
   loading: () => <LoadingDialog />,
 });
+
+const CustomAttributesDialog = dynamic<{
+  initialAssetType?: AssetType;
+}>(
+  () =>
+    import("src/dialogs/custom-attributes").then(
+      (r) => r.CustomAttributesDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
 
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
@@ -763,6 +776,11 @@ export const Dialogs = memo(function Dialogs() {
         initialCurveId={dialog.initialCurveId}
         initialSection={dialog.initialSection}
       />
+    );
+  }
+  if (dialog.type === "customAttributes") {
+    return (
+      <CustomAttributesDialog initialAssetType={dialog.initialAssetType} />
     );
   }
 

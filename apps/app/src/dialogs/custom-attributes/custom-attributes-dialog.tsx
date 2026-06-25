@@ -1,0 +1,166 @@
+import { useState, useCallback, useMemo, useRef } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { TriangleAlert } from "lucide-react";
+import { AssetType } from "@epanet-js/hydraulic-model";
+import { BaseDialog } from "../../components/dialog";
+import { useTranslate } from "src/hooks/use-translate";
+import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { projectSettingsAtom } from "src/state/project-settings";
+import { useUserTracking } from "src/infra/user-tracking";
+import { NotificationBanner } from "src/components/notifications";
+import { VerticalResizer } from "../vertical-resizer";
+import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
+import { CustomAttributesSidebar } from "./custom-attributes-sidebar";
+import { CustomAttributesTable } from "./custom-attributes-table";
+import {
+  CustomAttribute,
+  CustomAttributesDefinition,
+  deepCloneCustomAttributes,
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  nextIdSeed,
+  setAttributes,
+  totalAttributesCount,
+} from "src/lib/custom-attributes";
+
+const ASSET_TYPE_ORDER: AssetType[] = [
+  "pipe",
+  "pump",
+  "valve",
+  "junction",
+  "reservoir",
+  "tank",
+];
+
+const serialize = (definition: CustomAttributesDefinition): string =>
+  JSON.stringify(
+    ASSET_TYPE_ORDER.map((assetType) => [
+      assetType,
+      getAttributes(definition, assetType).map((attribute) => [
+        attribute.id,
+        attribute.label,
+        attribute.type,
+      ]),
+    ]),
+  );
+
+const hasEmptyLabel = (attributes: CustomAttribute[]): boolean =>
+  attributes.some((attribute) => !attribute.label.trim());
+
+export const CustomAttributesDialog = ({
+  initialAssetType,
+}: {
+  initialAssetType?: AssetType;
+}) => {
+  const translate = useTranslate();
+  const projectSettings = useAtomValue(projectSettingsAtom);
+  const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const userTracking = useUserTracking();
+  const isEditionBlocked = useIsEditionBlocked();
+
+  const savedDefinition = useMemo(
+    () => projectSettings.customAttributes ?? emptyCustomAttributesDefinition(),
+    [projectSettings.customAttributes],
+  );
+  const savedSnapshotRef = useRef<string>(serialize(savedDefinition));
+
+  const [edited, setEdited] = useState<CustomAttributesDefinition>(() =>
+    deepCloneCustomAttributes(savedDefinition),
+  );
+  const [selectedAssetType, setSelectedAssetType] = useState<AssetType>(
+    initialAssetType ?? ASSET_TYPE_ORDER[0],
+  );
+  const [sidebarWidth, setSidebarWidth] = useState(200);
+  const idCounterRef = useRef<number>(nextIdSeed(savedDefinition));
+  const dialogActions = useRef<DialogActionsHandle>(null);
+
+  const makeId = useCallback(() => `ca-${idCounterRef.current++}`, []);
+
+  const selectedAttributes = useMemo(
+    () => getAttributes(edited, selectedAssetType),
+    [edited, selectedAssetType],
+  );
+
+  const handleTableChange = useCallback(
+    (attributes: CustomAttribute[]) => {
+      setEdited((prev) => setAttributes(prev, selectedAssetType, attributes));
+    },
+    [selectedAssetType],
+  );
+
+  const hasChanges = serialize(edited) !== savedSnapshotRef.current;
+
+  const isInvalid = useMemo(
+    () =>
+      ASSET_TYPE_ORDER.some((assetType) =>
+        hasEmptyLabel(getAttributes(edited, assetType)),
+      ),
+    [edited],
+  );
+
+  const selectedTypeHasEmptyLabel = useMemo(
+    () => hasEmptyLabel(selectedAttributes),
+    [selectedAttributes],
+  );
+
+  const handleSave = useCallback(() => {
+    setProjectSettings({ ...projectSettings, customAttributes: edited });
+    userTracking.capture({
+      name: "customAttributes.updated",
+      count: totalAttributesCount(edited),
+    });
+  }, [edited, projectSettings, setProjectSettings, userTracking]);
+
+  return (
+    <BaseDialog
+      title={translate("customAttributes.title")}
+      size="lg"
+      height="lg"
+      isOpen={true}
+      onClose={() => dialogActions.current?.closeDialog()}
+      footer={
+        <DialogActions
+          ref={dialogActions}
+          onSave={handleSave}
+          readOnly={isEditionBlocked}
+          hasChanges={hasChanges}
+          saveDisabled={isInvalid}
+        />
+      }
+    >
+      <div className="flex-1 flex min-h-0">
+        <div className="shrink-0 flex">
+          <CustomAttributesSidebar
+            width={sidebarWidth}
+            assetTypes={ASSET_TYPE_ORDER}
+            definition={edited}
+            selectedAssetType={selectedAssetType}
+            onSelect={setSelectedAssetType}
+          />
+          <VerticalResizer
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+          />
+        </div>
+        <div className="flex-1 flex flex-col min-h-0 w-full px-4 py-3 gap-2">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <CustomAttributesTable
+              attributes={selectedAttributes}
+              onChange={handleTableChange}
+              makeId={makeId}
+              readOnly={isEditionBlocked}
+            />
+          </div>
+          {selectedTypeHasEmptyLabel && (
+            <NotificationBanner
+              variant="warning"
+              title={translate("customAttributes.invalidLabel")}
+              description={translate("customAttributes.emptyLabelError")}
+              Icon={TriangleAlert}
+            />
+          )}
+        </div>
+      </div>
+    </BaseDialog>
+  );
+};
