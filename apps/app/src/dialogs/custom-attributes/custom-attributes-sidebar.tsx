@@ -11,6 +11,7 @@ type CustomAttributesSidebarProps = {
   assetTypes: AssetType[];
   definition: CustomAttributesDefinition;
   selectedAssetType: AssetType;
+  invalidAssetTypes: Set<AssetType>;
   onSelect: (assetType: AssetType) => void;
 };
 
@@ -19,6 +20,7 @@ export const CustomAttributesSidebar = ({
   assetTypes,
   definition,
   selectedAssetType,
+  invalidAssetTypes,
   onSelect,
 }: CustomAttributesSidebarProps) => {
   const translate = useTranslate();
@@ -28,6 +30,7 @@ export const CustomAttributesSidebar = ({
       {assetTypes.map((assetType) => {
         const isSelected = assetType === selectedAssetType;
         const count = countFor(definition, assetType);
+        const isInvalid = invalidAssetTypes.has(assetType);
         return (
           <button
             key={assetType}
@@ -41,7 +44,15 @@ export const CustomAttributesSidebar = ({
             )}
           >
             <span className="truncate">{translate(assetType)}</span>
-            <span className="shrink-0 tabular-nums text-subtle">{count}</span>
+            <span className="shrink-0 flex items-center gap-1.5">
+              {isInvalid && (
+                <span
+                  className="h-2 w-2 rounded-full bg-current text-warning"
+                  aria-hidden="true"
+                />
+              )}
+              <span className="tabular-nums text-subtle">{count}</span>
+            </span>
           </button>
         );
       })}

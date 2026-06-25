@@ -91,13 +91,15 @@ export const CustomAttributesDialog = ({
 
   const hasChanges = serialize(edited) !== savedSnapshotRef.current;
 
-  const isInvalid = useMemo(
-    () =>
-      ASSET_TYPE_ORDER.some((assetType) =>
-        hasEmptyLabel(getAttributes(edited, assetType)),
-      ),
-    [edited],
-  );
+  const invalidAssetTypes = useMemo(() => {
+    const set = new Set<AssetType>();
+    for (const assetType of ASSET_TYPE_ORDER) {
+      if (hasEmptyLabel(getAttributes(edited, assetType))) set.add(assetType);
+    }
+    return set;
+  }, [edited]);
+
+  const isInvalid = invalidAssetTypes.size > 0;
 
   const selectedTypeHasEmptyLabel = useMemo(
     () => hasEmptyLabel(selectedAttributes),
@@ -136,6 +138,7 @@ export const CustomAttributesDialog = ({
             assetTypes={ASSET_TYPE_ORDER}
             definition={edited}
             selectedAssetType={selectedAssetType}
+            invalidAssetTypes={invalidAssetTypes}
             onSelect={setSelectedAssetType}
           />
           <VerticalResizer
