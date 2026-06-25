@@ -52,30 +52,41 @@ export const PipeRoughnessTable = ({
     [rowData, onChange],
   );
 
+  const newRowAfter = useCallback(
+    (rowIndex: number): RoughnessEntry => {
+      const ref = rowData[rowIndex];
+      if (ref?.age != null && ref?.roughness != null) {
+        return { age: ref.age + 1, roughness: ref.roughness };
+      }
+      return { ...DEFAULT_ROW };
+    },
+    [rowData],
+  );
+
   const handleInsertRowAbove = useCallback(
     (rowIndex: number) => {
       const newRows = [
         ...rowData.slice(0, rowIndex),
-        { ...DEFAULT_ROW },
+        newRowAfter(rowIndex - 1),
         ...rowData.slice(rowIndex),
       ];
       onChange(newRows);
       selectRow(rowIndex);
     },
-    [rowData, onChange, selectRow],
+    [rowData, onChange, selectRow, newRowAfter],
   );
 
   const handleInsertRowBelow = useCallback(
     (rowIndex: number) => {
       const newRows = [
         ...rowData.slice(0, rowIndex + 1),
-        { ...DEFAULT_ROW },
+        newRowAfter(rowIndex),
         ...rowData.slice(rowIndex + 1),
       ];
       onChange(newRows);
       selectRow(rowIndex + 1);
     },
-    [rowData, onChange, selectRow],
+    [rowData, onChange, selectRow, newRowAfter],
   );
 
   const rowActions: RowAction[] = useMemo(
@@ -125,7 +136,10 @@ export const PipeRoughnessTable = ({
     [translate],
   );
 
-  const createRow = useCallback((): RoughnessEntry => ({ ...DEFAULT_ROW }), []);
+  const createRow = useCallback(
+    (): RoughnessEntry => newRowAfter(rowData.length - 1),
+    [newRowAfter, rowData.length],
+  );
 
   const handleChange = useCallback(
     (newRows: RoughnessEntry[]) => {
