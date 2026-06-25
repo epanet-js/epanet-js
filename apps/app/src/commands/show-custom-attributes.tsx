@@ -1,8 +1,8 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { AssetType } from "@epanet-js/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { dialogAtom } from "src/state/dialog";
+import type { CustomAttributeAssetType } from "src/lib/custom-attributes";
 
 export const useShowCustomAttributes = () => {
   const setDialogState = useSetAtom(dialogAtom);
@@ -14,7 +14,7 @@ export const useShowCustomAttributes = () => {
       initialAssetType,
     }: {
       source: "toolbar";
-      initialAssetType?: AssetType;
+      initialAssetType?: CustomAttributeAssetType;
     }) => {
       userTracking.capture({
         name: "customAttributes.opened",

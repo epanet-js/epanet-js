@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import clsx from "clsx";
 import { TriangleAlert } from "lucide-react";
-import { AssetType } from "@epanet-js/hydraulic-model";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
@@ -15,6 +14,7 @@ import { CustomAttributesSidebar } from "./custom-attributes-sidebar";
 import { CustomAttributesTable } from "./custom-attributes-table";
 import {
   CustomAttribute,
+  CustomAttributeAssetType,
   CustomAttributesDefinition,
   deepCloneCustomAttributes,
   emptyCustomAttributesDefinition,
@@ -25,13 +25,14 @@ import {
   totalAttributesCount,
 } from "src/lib/custom-attributes";
 
-const ASSET_TYPE_ORDER: AssetType[] = [
+const ASSET_TYPE_ORDER: CustomAttributeAssetType[] = [
   "pipe",
   "pump",
   "valve",
   "junction",
   "reservoir",
   "tank",
+  "customerPoint",
 ];
 
 const serialize = (definition: CustomAttributesDefinition): string =>
@@ -52,7 +53,7 @@ const hasEmptyLabel = (attributes: CustomAttribute[]): boolean =>
 export const CustomAttributesDialog = ({
   initialAssetType,
 }: {
-  initialAssetType?: AssetType;
+  initialAssetType?: CustomAttributeAssetType;
 }) => {
   const translate = useTranslate();
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -69,9 +70,8 @@ export const CustomAttributesDialog = ({
   const [edited, setEdited] = useState<CustomAttributesDefinition>(() =>
     deepCloneCustomAttributes(savedDefinition),
   );
-  const [selectedAssetType, setSelectedAssetType] = useState<AssetType>(
-    initialAssetType ?? ASSET_TYPE_ORDER[0],
-  );
+  const [selectedAssetType, setSelectedAssetType] =
+    useState<CustomAttributeAssetType>(initialAssetType ?? ASSET_TYPE_ORDER[0]);
   const [sidebarWidth, setSidebarWidth] = useState(200);
   const idCounterRef = useRef<number>(nextIdSeed(savedDefinition));
   const dialogActions = useRef<DialogActionsHandle>(null);
@@ -93,7 +93,7 @@ export const CustomAttributesDialog = ({
   const hasChanges = serialize(edited) !== savedSnapshotRef.current;
 
   const invalidAssetTypes = useMemo(() => {
-    const set = new Set<AssetType>();
+    const set = new Set<CustomAttributeAssetType>();
     for (const assetType of ASSET_TYPE_ORDER) {
       const attributes = getAttributes(edited, assetType);
       if (hasEmptyLabel(attributes) || hasDuplicateLabel(attributes))

@@ -1,18 +1,18 @@
 import clsx from "clsx";
-import { AssetType } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
 import {
+  CustomAttributeAssetType,
   CustomAttributesDefinition,
   countFor,
 } from "src/lib/custom-attributes";
 
 type CustomAttributesSidebarProps = {
   width: number;
-  assetTypes: AssetType[];
+  assetTypes: CustomAttributeAssetType[];
   definition: CustomAttributesDefinition;
-  selectedAssetType: AssetType;
-  invalidAssetTypes: Set<AssetType>;
-  onSelect: (assetType: AssetType) => void;
+  selectedAssetType: CustomAttributeAssetType;
+  invalidAssetTypes: Set<CustomAttributeAssetType>;
+  onSelect: (assetType: CustomAttributeAssetType) => void;
 };
 
 export const CustomAttributesSidebar = ({

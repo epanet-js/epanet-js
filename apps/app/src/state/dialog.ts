@@ -1,7 +1,8 @@
 import { atomWithReset } from "jotai/utils";
 import { ParserIssues } from "src/import/inp";
 import type { QualitySimulationType } from "src/simulation/simulation-settings";
-import { CurveId, AssetType } from "@epanet-js/hydraulic-model";
+import { CurveId } from "@epanet-js/hydraulic-model";
+import type { CustomAttributeAssetType } from "src/lib/custom-attributes";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "src/lib/projections";
 
@@ -189,7 +190,7 @@ export type CurveLibraryDialogState = {
 
 export type CustomAttributesDialogState = {
   type: "customAttributes";
-  initialAssetType?: AssetType;
+  initialAssetType?: CustomAttributeAssetType;
 };
 
 export type DeleteScenarioConfirmationDialogState = {

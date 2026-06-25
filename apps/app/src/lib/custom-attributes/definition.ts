@@ -1,5 +1,7 @@
 import { AssetType } from "@epanet-js/hydraulic-model";
 
+export type CustomAttributeAssetType = AssetType | "customerPoint";
+
 export type CustomAttributeType = "text" | "number";
 
 export const customAttributeTypes: CustomAttributeType[] = ["text", "number"];
@@ -13,7 +15,7 @@ export type CustomAttribute = {
 };
 
 export type CustomAttributesDefinition = Map<
-  AssetType,
+  CustomAttributeAssetType,
   Map<CustomAttributeId, CustomAttribute>
 >;
 
@@ -22,7 +24,7 @@ export const emptyCustomAttributesDefinition = (): CustomAttributesDefinition =>
 
 export const getAttributes = (
   definition: CustomAttributesDefinition,
-  assetType: AssetType,
+  assetType: CustomAttributeAssetType,
 ): CustomAttribute[] => {
   const byId = definition.get(assetType);
   return byId ? [...byId.values()] : [];
@@ -30,12 +32,12 @@ export const getAttributes = (
 
 export const countFor = (
   definition: CustomAttributesDefinition,
-  assetType: AssetType,
+  assetType: CustomAttributeAssetType,
 ): number => definition.get(assetType)?.size ?? 0;
 
 export const setAttributes = (
   definition: CustomAttributesDefinition,
-  assetType: AssetType,
+  assetType: CustomAttributeAssetType,
   attributes: CustomAttribute[],
 ): CustomAttributesDefinition => {
   const next = deepCloneCustomAttributes(definition);
