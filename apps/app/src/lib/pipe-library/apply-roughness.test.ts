@@ -5,39 +5,6 @@ import { applyRoughnessMoment, findRoughness } from "./apply-roughness";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const makePipe = (
-  id: number,
-  props: { material?: string; year?: number; roughness?: number | null },
-): Pipe =>
-  new Pipe(
-    id,
-    [
-      [0, 0],
-      [1, 1],
-    ],
-    {
-      type: "pipe",
-      label: `pipe-${id}`,
-      connections: [0, 0],
-      initialStatus: "open",
-      length: 100,
-      diameter: 200,
-      minorLoss: 0,
-      roughness: props.roughness ?? null,
-      material: props.material,
-      year: props.year,
-      isActive: true,
-    },
-  );
-
-const makeModel = (...pipes: Pipe[]): HydraulicModel => {
-  const assets = new AssetsMap();
-  for (const pipe of pipes) {
-    assets.set(pipe.id, pipe);
-  }
-  return { assets } as HydraulicModel;
-};
-
 describe("findRoughness", () => {
   it("returns the roughness when pipe age equals the entry age", () => {
     const entries = [{ age: 10, roughness: 100 }];
@@ -292,4 +259,58 @@ describe("applyRoughnessMoment", () => {
       { id: 1, type: "pipe", properties: { roughness: 120 } },
     ]);
   });
+
+  it("clamps age to 0 for pipes with a future installation year", () => {
+    const materials: PipeMaterial[] = [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 10, roughness: 120 },
+        ],
+      },
+    ];
+    const model = makeModel(
+      makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR + 5 }),
+    );
+
+    const moment = applyRoughnessMoment(model, materials);
+
+    expect(moment.patchAssetsAttributes).toEqual([
+      { id: 1, type: "pipe", properties: { roughness: 100 } },
+    ]);
+  });
 });
+
+const makePipe = (
+  id: number,
+  props: { material?: string; year?: number; roughness?: number | null },
+): Pipe =>
+  new Pipe(
+    id,
+    [
+      [0, 0],
+      [1, 1],
+    ],
+    {
+      type: "pipe",
+      label: `pipe-${id}`,
+      connections: [0, 0],
+      initialStatus: "open",
+      length: 100,
+      diameter: 200,
+      minorLoss: 0,
+      roughness: props.roughness ?? null,
+      material: props.material,
+      year: props.year,
+      isActive: true,
+    },
+  );
+
+const makeModel = (...pipes: Pipe[]): HydraulicModel => {
+  const assets = new AssetsMap();
+  for (const pipe of pipes) {
+    assets.set(pipe.id, pipe);
+  }
+  return { assets } as HydraulicModel;
+};

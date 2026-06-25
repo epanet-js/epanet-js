@@ -32,7 +32,7 @@ export const applyRoughnessMoment = (
     const entries = materialMap.get(pipe.material);
     if (!entries) continue;
 
-    const pipeAge = currentYear - pipe.year;
+    const pipeAge = Math.max(0, currentYear - pipe.year);
     const roughness = findRoughness(entries, pipeAge);
     if (roughness == null) continue;
 
