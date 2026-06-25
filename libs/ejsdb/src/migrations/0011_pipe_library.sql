@@ -1,0 +1,1 @@
+ALTER TABLE project ADD COLUMN pipe_library TEXT NOT NULL DEFAULT '[]';
