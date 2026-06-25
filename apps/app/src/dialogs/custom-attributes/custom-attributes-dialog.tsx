@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
+import clsx from "clsx";
 import { TriangleAlert } from "lucide-react";
 import { AssetType } from "@epanet-js/hydraulic-model";
 import { BaseDialog } from "../../components/dialog";
@@ -151,14 +152,20 @@ export const CustomAttributesDialog = ({
               readOnly={isEditionBlocked}
             />
           </div>
-          {selectedTypeHasEmptyLabel && (
+          <div
+            className={clsx(
+              "shrink-0",
+              !selectedTypeHasEmptyLabel && "invisible",
+            )}
+            aria-hidden={!selectedTypeHasEmptyLabel}
+          >
             <NotificationBanner
               variant="warning"
               title={translate("customAttributes.invalidLabel")}
               description={translate("customAttributes.emptyLabelError")}
               Icon={TriangleAlert}
             />
-          )}
+          </div>
         </div>
       </div>
     </BaseDialog>
