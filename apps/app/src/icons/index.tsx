@@ -50,6 +50,7 @@ import {
   Lasso,
   Link2,
   Link2Off,
+  ListPlus,
   Lock,
   Locate,
   LocateOff,
@@ -243,6 +244,7 @@ export const DuplicateIcon = icon(Copy);
 export const CopyIcon = icon(Copy);
 export const ClipboardPasteIcon = icon(ClipboardPaste);
 export const TableIcon = icon(Table);
+export const CustomAttributesIcon = icon(ListPlus);
 export const SelectPathIcon = icon(SquareDashedMousePointer);
 export const ChartLineIcon = icon(ChartLine);
 export const PipeLibraryIcon = icon(BookText);

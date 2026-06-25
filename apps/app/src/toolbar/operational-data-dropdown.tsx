@@ -9,7 +9,7 @@ import {
   PipeLibraryIcon,
   PumpLibraryIcon,
   CurveLibraryIcon,
-  TableIcon,
+  CustomAttributesIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -86,19 +86,19 @@ export const OperationalDataDropdown = () => {
                 </StyledItem>
               )}
 
-              {isCustomAttributesOn && (
-                <StyledItem
-                  onSelect={() => showCustomAttributes({ source: "toolbar" })}
-                >
-                  <TableIcon />
-                  {translate("customAttributes.title")}
-                </StyledItem>
-              )}
-
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
                 <ControlsIcon />
                 {translate("controls.title")}
               </StyledItem>
+
+              {isCustomAttributesOn && (
+                <StyledItem
+                  onSelect={() => showCustomAttributes({ source: "toolbar" })}
+                >
+                  <CustomAttributesIcon />
+                  {translate("customAttributes.title")}
+                </StyledItem>
+              )}
             </DDContent>
           </DD.Portal>
         </DD.Root>
