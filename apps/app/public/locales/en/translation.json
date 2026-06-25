@@ -1628,6 +1628,7 @@
     "emptyTitle": "The pipe library is empty",
     "emptyDescription": "Add a pipe material to get started",
     "appliedRoughness": "Updated {{count}} pipes",
+    "importFromModel": "Import from model",
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
       "roughnessPositive": "Roughness must be greater than zero",

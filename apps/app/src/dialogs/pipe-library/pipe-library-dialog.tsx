@@ -20,6 +20,7 @@ import {
   applyRoughnessMoment,
   renameMaterialsMoment,
   validateMaterial,
+  detectModelMaterials,
   DEFAULT_ROUGHNESS,
 } from "src/lib/pipe-library";
 import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
@@ -152,6 +153,51 @@ export const PipeLibraryDialog = () => {
     });
   }, [hydraulicModel, draftMaterials, transact, translate]);
 
+  const handleImportFromModel = useCallback(() => {
+    const detected = detectModelMaterials(hydraulicModel);
+    if (detected.length === 0) return;
+
+    setDraftMaterials((prev) => {
+      const updated = [...prev];
+
+      for (const det of detected) {
+        const existingIndex = updated.findIndex((m) => m.label === det.label);
+
+        if (existingIndex === -1) {
+          const entries: RoughnessEntry[] = [
+            { age: 0, roughness: DEFAULT_ROUGHNESS },
+          ];
+          for (const age of det.ages) {
+            if (age !== 0) {
+              entries.push({ age, roughness: null });
+            }
+          }
+          entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
+          updated.push({ label: det.label, entries });
+        } else {
+          const existing = updated[existingIndex];
+          const existingAges = new Set(
+            existing.entries
+              .map((e) => e.age)
+              .filter((a): a is number => a !== null),
+          );
+          const newEntries = [...existing.entries];
+          for (const age of det.ages) {
+            if (!existingAges.has(age)) {
+              newEntries.push({ age, roughness: null });
+            }
+          }
+          if (newEntries.length !== existing.entries.length) {
+            newEntries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
+            updated[existingIndex] = { ...existing, entries: newEntries };
+          }
+        }
+      }
+
+      return updated;
+    });
+  }, [hydraulicModel]);
+
   return (
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
@@ -170,7 +216,7 @@ export const PipeLibraryDialog = () => {
       }
     >
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="flex items-center px-4 py-2 border-b">
+        <div className="flex items-center justify-between px-4 py-2 border-b">
           <Button
             variant="default"
             size="sm"
@@ -178,6 +224,9 @@ export const PipeLibraryDialog = () => {
             onClick={handleApplyRoughness}
           >
             {translate("pipeLibrary.applyRoughness")}
+          </Button>
+          <Button variant="default" size="sm" onClick={handleImportFromModel}>
+            {translate("pipeLibrary.importFromModel")}
           </Button>
         </div>
         <div className="flex-1 flex min-h-0">
