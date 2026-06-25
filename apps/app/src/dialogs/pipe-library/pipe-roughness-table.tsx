@@ -85,12 +85,13 @@ export const PipeRoughnessTable = ({
         icon: <DeleteIcon size="sm" />,
         variant: "destructive" as const,
         onSelect: handleDeleteRow,
-        disabled: () => rowData.length <= 1,
+        disabled: (rowIndex: number) => rowIndex === 0 || rowData.length <= 1,
       },
       {
         label: translate("insertRowAbove"),
         icon: <AddIcon size="sm" />,
         onSelect: handleInsertRowAbove,
+        disabled: (rowIndex: number) => rowIndex === 0,
       },
       {
         label: translate("insertRowBelow"),
@@ -113,6 +114,7 @@ export const PipeRoughnessTable = ({
         header: translate("pipeLibrary.age"),
         size: 82,
         emptyValue: null,
+        isReadOnly: (rowIndex: number) => rowIndex === 0,
       }),
       floatColumn("roughness", {
         header: translate("pipeLibrary.roughness"),
