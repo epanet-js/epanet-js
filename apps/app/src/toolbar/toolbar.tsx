@@ -22,8 +22,6 @@ import {
 import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
 import { commandBarOpenAtom } from "src/state/command-bar";
-import { usePermissions } from "src/hooks/use-permissions";
-import { useShowPriorityAccessDialog } from "src/hooks/use-priority-access";
 import { opfsAvailableAtom } from "src/state/opfs";
 import {
   canRedoDerivedAtom,
@@ -90,8 +88,6 @@ export const Toolbar = ({
   const startProfileSelection = useStartProfileSelection();
   const openZonesImport = useOpenZonesImport();
   const importZonesDisabled = useImportZonesDisabled();
-  const { canUseHglProfile } = usePermissions();
-  const showPriorityAccess = useShowPriorityAccessDialog();
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
 
@@ -239,12 +235,6 @@ export const Toolbar = ({
         role="button"
         selected={currentMode === Mode.HGL_PROFILE}
         onClick={() => {
-          if (!canUseHglProfile) {
-            showPriorityAccess({
-              featureName: translate("hglProfile.toolbar"),
-            });
-            return;
-          }
           showHglProfile({ source: "toolbar" });
           startProfileSelection({ source: "toolbar" });
         }}

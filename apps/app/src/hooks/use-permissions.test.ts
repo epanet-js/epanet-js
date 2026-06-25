@@ -8,7 +8,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(false);
     expect(p.canUseScenarios).toBe(false);
     expect(p.canUseElevations).toBe(false);
-    expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseZones).toBe(false);
     expect(p.canUseControls).toBe(false);
     expect(p.canUsePipeAttributes).toBe(false);
@@ -24,7 +23,6 @@ describe("resolvePermissions", () => {
       expect(p.canAddCustomLayers).toBe(true);
       expect(p.canUseScenarios).toBe(true);
       expect(p.canUseElevations).toBe(true);
-      expect(p.canUseHglProfile).toBe(true);
       expect(p.canUseZones).toBe(true);
       expect(p.canUseControls).toBe(true);
       expect(p.canUsePipeAttributes).toBe(true);
@@ -39,7 +37,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
-    expect(p.canUseHglProfile).toBe(false);
     expect(p.canUseZones).toBe(true);
     expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);
@@ -53,7 +50,6 @@ describe("resolvePermissions", () => {
     expect(p.canAddCustomLayers).toBe(true);
     expect(p.canUseScenarios).toBe(true);
     expect(p.canUseElevations).toBe(true);
-    expect(p.canUseHglProfile).toBe(true);
     expect(p.canUseZones).toBe(true);
     expect(p.canUseControls).toBe(true);
     expect(p.canUsePipeAttributes).toBe(true);

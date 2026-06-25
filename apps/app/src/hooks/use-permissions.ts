@@ -11,7 +11,6 @@ export type Permissions = {
   canAddCustomLayers: boolean;
   canUseScenarios: boolean;
   canUseElevations: boolean;
-  canUseHglProfile: boolean;
   canUseZones: boolean;
   canUseControls: boolean;
   canUsePipeAttributes: boolean;
@@ -29,13 +28,10 @@ export const resolvePermissions = (
 ): Permissions => {
   const hasPaidAccess =
     ["pro", "education", "personal", "teams"].includes(plan) || trialActive;
-  const hasEarlyAccess =
-    ["pro", "personal", "teams"].includes(plan) || trialActive;
   return {
     canAddCustomLayers: hasPaidAccess,
     canUseScenarios: hasPaidAccess,
     canUseElevations: hasPaidAccess,
-    canUseHglProfile: hasEarlyAccess,
     canUseZones: hasPaidAccess,
     canUseControls: hasPaidAccess,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
