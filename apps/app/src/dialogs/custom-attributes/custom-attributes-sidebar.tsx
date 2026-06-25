@@ -37,22 +37,22 @@ export const CustomAttributesSidebar = ({
             type="button"
             onClick={() => onSelect(assetType)}
             className={clsx(
-              "flex items-center justify-between gap-2 px-3 py-1.5 rounded-md text-size-base text-left",
+              "flex items-center justify-between gap-2 px-4 py-1.5 rounded-md text-size-base text-left",
               isSelected
                 ? "bg-purple-100 text-purple-900 dark:bg-purple-900/40 dark:text-purple-100"
                 : "text-default hover:bg-gray-100 dark:hover:bg-gray-800",
             )}
           >
-            <span className="truncate">{translate(assetType)}</span>
-            <span className="shrink-0 flex items-center gap-1.5">
-              {isInvalid && (
-                <span
-                  className="h-2 w-2 rounded-full bg-current text-warning"
-                  aria-hidden="true"
-                />
-              )}
-              <span className="tabular-nums text-subtle">{count}</span>
+            <span className="min-w-0 flex items-baseline gap-1">
+              <span className="truncate">{translate(assetType)}</span>
+              <span className="shrink-0 text-subtle">({count})</span>
             </span>
+            {isInvalid && (
+              <span
+                className="shrink-0 h-2 w-2 rounded-full bg-current text-warning"
+                aria-hidden="true"
+              />
+            )}
           </button>
         );
       })}
