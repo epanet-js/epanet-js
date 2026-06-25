@@ -23,6 +23,7 @@ export const DialogActions = forwardRef<
     hasWarnings?: boolean;
     readOnly?: boolean;
     saveDisabled?: boolean;
+    closeOnSave?: boolean;
   }
 >(
   (
@@ -33,6 +34,7 @@ export const DialogActions = forwardRef<
       hasWarnings = false,
       readOnly = false,
       saveDisabled = false,
+      closeOnSave = true,
     },
     ref,
   ) => {
@@ -51,13 +53,16 @@ export const DialogActions = forwardRef<
         return closeDialog();
       }
       onSave?.(hasWarnings);
-      closeDialog();
+      if (closeOnSave) {
+        closeDialog();
+      }
     }, [
       hasWarnings,
       showSaveWarning,
       hasChanges,
       onSave,
       closeDialog,
+      closeOnSave,
       onClose,
     ]);
 
