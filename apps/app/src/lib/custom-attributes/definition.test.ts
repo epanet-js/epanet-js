@@ -3,8 +3,10 @@ import { AssetType } from "@epanet-js/hydraulic-model";
 import {
   CustomAttribute,
   CustomAttributesDefinition,
+  duplicateLabelKeys,
   emptyCustomAttributesDefinition,
   getAttributes,
+  hasDuplicateLabel,
   setAttributes,
 } from "./definition";
 
@@ -77,5 +79,37 @@ describe("setAttributes", () => {
     );
 
     expect(getAttributes(definition, "pipe")).toEqual([attr("ca-1", "Second")]);
+  });
+});
+
+describe("hasDuplicateLabel", () => {
+  it("detects duplicates ignoring case and surrounding whitespace", () => {
+    expect(
+      hasDuplicateLabel([attr("ca-1", "Diameter"), attr("ca-2", " diameter ")]),
+    ).toBe(true);
+  });
+
+  it("ignores empty labels", () => {
+    expect(hasDuplicateLabel([attr("ca-1", "   "), attr("ca-2", "")])).toBe(
+      false,
+    );
+  });
+
+  it("returns false for distinct labels", () => {
+    expect(
+      hasDuplicateLabel([attr("ca-1", "Diameter"), attr("ca-2", "Material")]),
+    ).toBe(false);
+  });
+});
+
+describe("duplicateLabelKeys", () => {
+  it("returns the normalized keys that appear more than once", () => {
+    const keys = duplicateLabelKeys([
+      attr("ca-1", "Diameter"),
+      attr("ca-2", "DIAMETER "),
+      attr("ca-3", "Material"),
+    ]);
+
+    expect([...keys]).toEqual(["diameter"]);
   });
 });

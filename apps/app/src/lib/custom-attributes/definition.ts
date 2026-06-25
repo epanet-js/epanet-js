@@ -71,6 +71,26 @@ export const totalAttributesCount = (
   return total;
 };
 
+export const normalizeLabel = (label: string): string =>
+  label.trim().toLowerCase();
+
+export const duplicateLabelKeys = (
+  attributes: CustomAttribute[],
+): Set<string> => {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const { label } of attributes) {
+    const key = normalizeLabel(label);
+    if (!key) continue;
+    if (seen.has(key)) duplicates.add(key);
+    else seen.add(key);
+  }
+  return duplicates;
+};
+
+export const hasDuplicateLabel = (attributes: CustomAttribute[]): boolean =>
+  duplicateLabelKeys(attributes).size > 0;
+
 export const nextIdSeed = (definition: CustomAttributesDefinition): number => {
   let max = 0;
   for (const byId of definition.values()) {

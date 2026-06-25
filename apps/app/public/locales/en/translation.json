@@ -1435,7 +1435,8 @@
     "addAttribute": "Add attribute",
     "defaultLabel": "Attribute {{1}}",
     "invalidLabel": "Invalid attribute",
-    "emptyLabelError": "Attribute labels cannot be empty."
+    "emptyLabelError": "Attribute labels cannot be empty.",
+    "duplicateLabelError": "Attribute labels must be unique within an asset type."
   },
   "percentOpen": "% Open",
   "percentFullFlow": "% Full flow",

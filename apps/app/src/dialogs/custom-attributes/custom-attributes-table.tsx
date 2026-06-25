@@ -12,6 +12,8 @@ import {
   CustomAttribute,
   CustomAttributeType,
   customAttributeTypes,
+  duplicateLabelKeys,
+  normalizeLabel,
 } from "src/lib/custom-attributes";
 
 type CustomAttributesTableProps = {
@@ -98,12 +100,19 @@ export const CustomAttributesTable = ({
     [translate, handleDeleteRow],
   );
 
+  const duplicateKeys = useMemo(
+    () => duplicateLabelKeys(attributes),
+    [attributes],
+  );
+
   const cellHasWarning = useCallback(
     (rowIndex: number, columnId: string) => {
       if (columnId !== "label") return false;
-      return !attributes[rowIndex]?.label?.trim();
+      const label = attributes[rowIndex]?.label ?? "";
+      if (!label.trim()) return true;
+      return duplicateKeys.has(normalizeLabel(label));
     },
-    [attributes],
+    [attributes, duplicateKeys],
   );
 
   return (

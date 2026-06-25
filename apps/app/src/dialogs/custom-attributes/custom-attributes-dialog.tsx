@@ -19,6 +19,7 @@ import {
   deepCloneCustomAttributes,
   emptyCustomAttributesDefinition,
   getAttributes,
+  hasDuplicateLabel,
   nextIdSeed,
   setAttributes,
   totalAttributesCount,
@@ -94,7 +95,9 @@ export const CustomAttributesDialog = ({
   const invalidAssetTypes = useMemo(() => {
     const set = new Set<AssetType>();
     for (const assetType of ASSET_TYPE_ORDER) {
-      if (hasEmptyLabel(getAttributes(edited, assetType))) set.add(assetType);
+      const attributes = getAttributes(edited, assetType);
+      if (hasEmptyLabel(attributes) || hasDuplicateLabel(attributes))
+        set.add(assetType);
     }
     return set;
   }, [edited]);
@@ -103,6 +106,11 @@ export const CustomAttributesDialog = ({
 
   const selectedTypeHasEmptyLabel = useMemo(
     () => hasEmptyLabel(selectedAttributes),
+    [selectedAttributes],
+  );
+
+  const selectedTypeHasDuplicateLabel = useMemo(
+    () => hasDuplicateLabel(selectedAttributes),
     [selectedAttributes],
   );
 
@@ -158,14 +166,22 @@ export const CustomAttributesDialog = ({
           <div
             className={clsx(
               "shrink-0",
-              !selectedTypeHasEmptyLabel && "invisible",
+              !selectedTypeHasEmptyLabel &&
+                !selectedTypeHasDuplicateLabel &&
+                "invisible",
             )}
-            aria-hidden={!selectedTypeHasEmptyLabel}
+            aria-hidden={
+              !selectedTypeHasEmptyLabel && !selectedTypeHasDuplicateLabel
+            }
           >
             <NotificationBanner
               variant="warning"
               title={translate("customAttributes.invalidLabel")}
-              description={translate("customAttributes.emptyLabelError")}
+              description={translate(
+                selectedTypeHasEmptyLabel
+                  ? "customAttributes.emptyLabelError"
+                  : "customAttributes.duplicateLabelError",
+              )}
               Icon={TriangleAlert}
             />
           </div>
