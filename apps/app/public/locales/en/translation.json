@@ -1650,6 +1650,13 @@
       "emptyEntries": "Empty entries are not valid",
       "zeroAge": "An entry for new pipes (age 0) should exist",
       "duplicateAge": "Each age value must be unique"
+    },
+    "paywall": {
+      "title": "Upgrade to use the pipe library",
+      "description1": "Define pipe materials and their roughness coefficients by age in a centralized library.",
+      "description2": "Apply roughness values across your network in one click, keeping your model consistent and up to date.",
+      "plans": "The pipe library is available on paid plans.",
+      "trial": "The pipe library is a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
     }
   }
 }

@@ -459,6 +459,18 @@ const ZonesPaywallConnector = dynamic<{
   },
 );
 
+const PipeLibraryPaywallConnector = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/paywall/pipe-library-connector").then(
+      (r) => r.PipeLibraryPaywallConnector,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ElevationTileErrorsDialog = dynamic<{
   totalCount: number;
   errors: { fileName: string; error: string }[];
@@ -797,6 +809,9 @@ export const Dialogs = memo(function Dialogs() {
     }
     if (dialog.feature === "zones") {
       return <ZonesPaywallConnector onClose={onClose} />;
+    }
+    if (dialog.feature === "pipeLibrary") {
+      return <PipeLibraryPaywallConnector onClose={onClose} />;
     }
     return <ElevationsPaywallConnector onClose={onClose} />;
   }

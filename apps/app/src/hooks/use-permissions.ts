@@ -16,6 +16,7 @@ export type Permissions = {
   canUsePipeAttributes: boolean;
   canUseModelBuildV2: boolean;
   canValidateModelAttributes: boolean;
+  canUsePipeLibrary: boolean;
   canUpgrade: boolean;
   canManageOrganization: boolean;
 };
@@ -37,6 +38,7 @@ export const resolvePermissions = (
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,
     canUseModelBuildV2: ["pro", "teams"].includes(plan) || trialActive,
     canValidateModelAttributes: hasPaidAccess,
+    canUsePipeLibrary: hasPaidAccess,
     canUpgrade: plan === "free",
     canManageOrganization: isOrgAdmin,
   };

@@ -11,6 +11,7 @@ const defaultPermissions: Permissions = {
   canUsePipeAttributes: false,
   canUseModelBuildV2: false,
   canValidateModelAttributes: false,
+  canUsePipeLibrary: false,
   canUpgrade: true,
   canManageOrganization: false,
 };

@@ -1051,6 +1051,7 @@ type PatternsUncategorized = {
 type PipeLibraryOpened = {
   name: "pipeLibrary.opened";
   source: "toolbar";
+  canUsePipeLibrary: boolean;
 };
 
 type PumpLibraryOpened = {
