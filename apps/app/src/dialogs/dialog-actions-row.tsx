@@ -22,6 +22,7 @@ export const DialogActions = forwardRef<
     hasChanges?: boolean;
     hasWarnings?: boolean;
     readOnly?: boolean;
+    saveDisabled?: boolean;
   }
 >(
   (
@@ -31,6 +32,7 @@ export const DialogActions = forwardRef<
       hasChanges = false,
       hasWarnings = false,
       readOnly = false,
+      saveDisabled = false,
     },
     ref,
   ) => {
@@ -144,7 +146,7 @@ export const DialogActions = forwardRef<
           type="button"
           variant="primary"
           onClick={handleSave}
-          disabled={!hasChanges}
+          disabled={!hasChanges || saveDisabled}
         >
           {translate("dialog.save")}
         </Button>

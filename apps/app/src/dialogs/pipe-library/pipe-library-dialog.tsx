@@ -165,6 +165,7 @@ export const PipeLibraryDialog = () => {
           readOnly={false}
           hasChanges={hasChanges}
           onSave={handleSave}
+          saveDisabled={invalidMaterialLabels.size > 0}
         />
       }
     >

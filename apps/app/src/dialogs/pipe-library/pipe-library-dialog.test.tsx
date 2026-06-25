@@ -57,26 +57,44 @@ describe("PipeLibraryDialog", () => {
     vi.clearAllMocks();
   });
 
-  it("creates a material and sets values in two rows", async () => {
+  it("creates a material with a default age 0 entry", async () => {
     const user = setupUser();
     const store = setInitialState();
     renderDialog(store);
 
     await addMaterial(user, "Cast Iron");
 
-    await editCell(user, 0, 0, "5");
-    await editCell(user, 0, 1, "120");
-    await editCell(user, 1, 0, "10");
-    await editCell(user, 1, 1, "130");
-
     await clickSave(user);
 
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Cast Iron");
+    expect(materials[0].entries).toEqual([{ age: 0, roughness: 100 }]);
+  });
+
+  it("edits roughness and saves", async () => {
+    const user = setupUser();
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 10, roughness: 130 },
+        ],
+      },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    await editCell(user, 0, 1, "120");
+
+    await clickSave(user);
+
+    const materials = store.get(pipeMaterialsAtom);
     expect(materials[0].entries).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ age: 5, roughness: 120 }),
+        expect.objectContaining({ age: 0, roughness: 120 }),
         expect.objectContaining({ age: 10, roughness: 130 }),
       ]),
     );
@@ -86,7 +104,13 @@ describe("PipeLibraryDialog", () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 5, roughness: 120 },
+        ],
+      },
     ]);
     store.set(selectedMaterialLabelAtom, "Cast Iron");
     renderDialog(store);
@@ -103,7 +127,10 @@ describe("PipeLibraryDialog", () => {
     const materials = store.get(pipeMaterialsAtom);
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Ductile Iron");
-    expect(materials[0].entries).toEqual([{ age: 5, roughness: 120 }]);
+    expect(materials[0].entries).toEqual([
+      { age: 0, roughness: 100 },
+      { age: 5, roughness: 120 },
+    ]);
   });
 
   it("duplicates a material with the same values", async () => {
@@ -113,6 +140,7 @@ describe("PipeLibraryDialog", () => {
       {
         label: "Cast Iron",
         entries: [
+          { age: 0, roughness: 100 },
           { age: 5, roughness: 120 },
           { age: 10, roughness: 130 },
         ],
@@ -134,12 +162,13 @@ describe("PipeLibraryDialog", () => {
     expect(materials).toHaveLength(2);
     expect(materials[1].label).toBe("Cast Iron Copy");
     expect(materials[1].entries).toEqual([
+      { age: 0, roughness: 100 },
       { age: 5, roughness: 120 },
       { age: 10, roughness: 130 },
     ]);
   });
 
-  it("sorts entries by age ascending, empty ages at bottom", async () => {
+  it("sorts entries by age ascending", async () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
@@ -147,9 +176,9 @@ describe("PipeLibraryDialog", () => {
         label: "Cast Iron",
         entries: [
           { age: 20, roughness: 140 },
-          { age: 5, roughness: 120 },
-          { age: null, roughness: null },
+          { age: 0, roughness: 100 },
           { age: 10, roughness: 130 },
+          { age: 5, roughness: 120 },
         ],
       },
     ]);
@@ -161,18 +190,15 @@ describe("PipeLibraryDialog", () => {
     await clickSave(user);
 
     const entries = store.get(pipeMaterialsAtom)[0].entries;
-    const nonEmpty = entries.filter(
+    const filled = entries.filter(
       (e) => e.age !== null || e.roughness !== null,
     );
-    expect(nonEmpty).toEqual([
-      { age: 5, roughness: 999 },
+    expect(filled).toEqual([
+      { age: 0, roughness: 999 },
+      { age: 5, roughness: 120 },
       { age: 10, roughness: 130 },
       { age: 20, roughness: 140 },
     ]);
-    expect(entries[entries.length - 1]).toEqual({
-      age: null,
-      roughness: null,
-    });
   });
 
   it("removes a material", async () => {
@@ -265,7 +291,7 @@ describe("PipeLibraryDialog", () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
     ]);
     store.set(selectedMaterialLabelAtom, "Cast Iron");
     renderDialog(store);
