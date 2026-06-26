@@ -6,7 +6,7 @@ import { usePaywall } from "src/hooks/use-paywall";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { PaywallLockIcon } from "src/icons";
-import { TContent, StyledTooltipArrow } from "src/components/elements";
+import { Button, TContent, StyledTooltipArrow } from "src/components/elements";
 
 export const useFeatureLock = (feature: PaywallFeature | undefined) => {
   const paywallDialog = usePaywall(feature);
@@ -53,6 +53,42 @@ export const PaywallLockButton = ({
   );
 };
 
+// Purely visual dim that fades blocked content into the panel background. The
+// gradient reaches the opaque background early (well before the bottom) so only
+// the first rows stay legible and the rest fade out aggressively.
+const FadeGradient = () => (
+  <div
+    aria-hidden
+    className="absolute inset-0 pointer-events-none bg-linear-to-b from-transparent via-popover via-65% to-popover"
+  />
+);
+
+export const PaywallFade = ({
+  feature,
+  className,
+  children,
+}: {
+  feature: PaywallFeature;
+  className?: string;
+  children: React.ReactNode;
+}) => {
+  const { openPaywall } = useFeatureLock(feature);
+
+  return (
+    <div
+      className={`relative ${className ?? ""}`}
+      onClickCapture={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openPaywall();
+      }}
+    >
+      {children}
+      <FadeGradient />
+    </div>
+  );
+};
+
 export const PaywallOverlay = ({
   feature,
   ariaLabel,
@@ -74,6 +110,32 @@ export const PaywallOverlay = ({
         onClick={openPaywall}
         className="absolute inset-0 w-full h-full cursor-pointer bg-transparent"
       />
+    </div>
+  );
+};
+
+// Bordered CTA card explaining a paid feature, with an Upgrade button that opens
+// the paywall. Useful for list-shaped paywalls where a per-field lock icon
+// wouldn't convey that the whole list is gated.
+export const PaywallUpgradeBox = ({
+  feature,
+  title,
+  description,
+}: {
+  feature: PaywallFeature;
+  title: string;
+  description: string;
+}) => {
+  const translate = useTranslate();
+  const { openPaywall } = useFeatureLock(feature);
+
+  return (
+    <div className="mx-3 mb-3 rounded-lg border border-purple-200 bg-base p-4 shadow-md dark:border-purple-900">
+      <h3 className="font-bold text-size-base">{title}</h3>
+      <p className="mt-1 mb-3 text-subtle text-size-base">{description}</p>
+      <Button variant="primary" onClick={openPaywall}>
+        {translate("upgrade")}
+      </Button>
     </div>
   );
 };

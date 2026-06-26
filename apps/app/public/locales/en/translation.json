@@ -661,7 +661,8 @@
   "modelAttributesValidation": {
     "dialog": {
       "title": "Model issues found",
-      "body": "We found {{1}} issue(s) in your model that may affect the simulation.",
+      "body": "We found {{1}} issue(s) in your model that may affect the simulation. We recommend fixing them to ensure the simulation is accurate and completes successfully.",
+      "upgradeHint": "Upgrade to a paid plan to unlock detailed lists and automated fixes, or review the issue categories below for free.",
       "fixFirst": "Fix issues first",
       "runAnyway": "Run anyway"
     }
@@ -1276,7 +1277,8 @@
       "expand": "Expand affected assets",
       "collapse": "Collapse affected assets",
       "upgrade": {
-        "title": "Upgrade to review and fix all model issues"
+        "title": "See the full list of issues",
+        "description": "Review the detailed list of assets with issues and access automated fixes"
       },
       "rule": {
         "pipeRoughnessPresent": "Pipe roughness missing",

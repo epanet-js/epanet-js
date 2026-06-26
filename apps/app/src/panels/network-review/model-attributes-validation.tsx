@@ -8,12 +8,11 @@ import { useZoomTo } from "src/hooks/use-zoom-to";
 import { ErrorIcon, PointerClickIcon, WarningIcon } from "src/icons";
 import { pluralize } from "src/lib/utils";
 import { usePermissions } from "src/hooks/use-permissions";
-import { usePaywall } from "src/hooks/use-paywall";
+import { PaywallFade, PaywallUpgradeBox } from "src/components/form/paywall";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { dialogAtom } from "src/state/dialog";
 import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
 import {
   EntityType,
@@ -49,16 +48,6 @@ const ruleLabelKey = (ruleId: string) =>
 
 const countIssues = (groups: ValidationGroup[]): number =>
   groups.reduce((total, group) => total + group.issues.length, 0);
-
-// Purely visual dim that fades the blocked issues into the panel background.
-// pointer-events pass through so the rows keep their hover (padlock) and clicks
-// reach the paywall.
-const PaywallFadeOverlay = () => (
-  <div
-    aria-hidden
-    className="absolute inset-0 pointer-events-none bg-linear-to-b from-transparent to-popover"
-  />
-);
 
 const SeverityIcon = ({ severity }: { severity: "error" | "warning" }) => (
   <span
@@ -180,17 +169,6 @@ export const ModelAttributesValidation = ({
     onGoBack,
   );
 
-  if (!canValidateModelAttributes) {
-    return (
-      <ModelAttributesValidationPaywall
-        headerProps={headerProps}
-        groups={groups}
-        isLoading={isLoading}
-        isReady={isReady}
-      />
-    );
-  }
-
   if (detailGroup) {
     return (
       <ModelAttributesValidationDetail
@@ -219,11 +197,15 @@ export const ModelAttributesValidation = ({
         {isReady ? (
           <>
             {groups.length > 0 ? (
-              <ModelAttributesValidationGroupList
-                groups={groups}
-                onOpen={openGroup}
-                onGoBack={onGoBack}
-              />
+              canValidateModelAttributes ? (
+                <ModelAttributesValidationGroupList
+                  groups={groups}
+                  onOpen={openGroup}
+                  onGoBack={onGoBack}
+                />
+              ) : (
+                <ModelAttributesValidationLockedList groups={groups} />
+              )
             ) : (
               <>
                 <ToolDescription
@@ -321,7 +303,7 @@ const ModelAttributesValidationGroupRow = ({
 }: {
   group: ValidationGroup;
   isSelected: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   locked?: boolean;
 }) => {
   const translate = useTranslate();
@@ -363,68 +345,45 @@ const ModelAttributesValidationGroupRow = ({
   );
 };
 
-const ModelAttributesValidationPaywall = ({
-  headerProps,
+const ModelAttributesValidationLockedList = ({
   groups,
-  isLoading,
-  isReady,
 }: {
-  headerProps: { title: string; summary: string; onGoBack: () => void };
   groups: ValidationGroup[];
-  isLoading: boolean;
-  isReady: boolean;
 }) => {
-  const setDialog = useSetAtom(dialogAtom);
-  const paywall = usePaywall("modelAttributesValidation");
-
-  const openUpgrade = useCallback(() => {
-    if (paywall) setDialog(paywall);
-  }, [paywall, setDialog]);
+  const translate = useTranslate();
 
   return (
-    <div className="absolute inset-0 flex flex-col">
-      <ToolHeader {...headerProps} />
-      <div className="relative grow flex flex-col">
-        {isReady ? (
-          groups.length > 0 ? (
-            <>
-              <ToolDescription
-                checkType={CheckType.modelAttributesValidation}
+    <>
+      <PaywallFade
+        feature="modelAttributesValidation"
+        className="flex-auto flex flex-col min-h-0"
+      >
+        <div className="flex-auto overflow-y-auto placemark-scrollbar">
+          <ToolDescription checkType={CheckType.modelAttributesValidation} />
+          <div className="px-1">
+            {groups.map((group) => (
+              <ModelAttributesValidationGroupRow
+                key={group.ruleId}
+                group={group}
+                isSelected={false}
+                locked
               />
-              {/* The first issue stays legible at the (transparent) top while
-                  the rest fade out under the overlay; clicks open the paywall. */}
-              <div className="relative">
-                <div className="px-1">
-                  {groups.map((group) => (
-                    <ModelAttributesValidationGroupRow
-                      key={group.ruleId}
-                      group={group}
-                      isSelected={false}
-                      onClick={openUpgrade}
-                      locked
-                    />
-                  ))}
-                </div>
-                <PaywallFadeOverlay />
-              </div>
-            </>
-          ) : (
-            <>
-              <ToolDescription
-                checkType={CheckType.modelAttributesValidation}
-              />
-              <EmptyState checkType={CheckType.modelAttributesValidation} />
-            </>
-          )
-        ) : (
-          <>
-            <ToolDescription checkType={CheckType.modelAttributesValidation} />
-            <LoadingState />
-          </>
-        )}
-        {isLoading && <LoadingState overlay />}
+            ))}
+          </div>
+        </div>
+      </PaywallFade>
+      <div className="absolute inset-x-0 bottom-0">
+        <PaywallUpgradeBox
+          feature="modelAttributesValidation"
+          title={translate(
+            "networkReview.modelAttributesValidation.upgrade.title",
+          )}
+          description={translate(
+            "networkReview.modelAttributesValidation.upgrade.description",
+          )}
+        />
       </div>
-    </div>
+    </>
   );
 };
 

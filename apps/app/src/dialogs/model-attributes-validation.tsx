@@ -1,5 +1,6 @@
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { usePermissions } from "src/hooks/use-permissions";
 
 export const ModelAttributesValidationDialog = ({
   issueCount,
@@ -13,6 +14,7 @@ export const ModelAttributesValidationDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const { canValidateModelAttributes } = usePermissions();
 
   const handleFixFirst = () => {
     onClose();
@@ -41,13 +43,16 @@ export const ModelAttributesValidationDialog = ({
         />
       }
     >
-      <div className="p-4 text-size-base">
+      <div className="p-4 text-size-base flex flex-col gap-2">
         <p>
           {translate(
             "modelAttributesValidation.dialog.body",
             String(issueCount),
           )}
         </p>
+        {!canValidateModelAttributes && (
+          <p>{translate("modelAttributesValidation.dialog.upgradeHint")}</p>
+        )}
       </div>
     </BaseDialog>
   );
