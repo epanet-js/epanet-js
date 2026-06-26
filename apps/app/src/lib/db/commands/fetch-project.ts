@@ -21,10 +21,10 @@ import {
   buildControlsData,
   buildJunctionDemandsData,
   buildCustomAttributesDefinition,
+  buildPipeLibraryData,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
-import { buildPipeLibraryData } from "../mappers/pipe-library/builders";
 import { buildZonesData } from "../mappers/zones/builders";
 
 export type Project = {

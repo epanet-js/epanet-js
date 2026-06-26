@@ -17,6 +17,7 @@
     "@epanet-js/custom-attributes": "workspace:*",
     "@epanet-js/ejsdb": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
+    "@epanet-js/pipe-library": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {

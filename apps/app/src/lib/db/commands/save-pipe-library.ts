@@ -1,6 +1,6 @@
 import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { getWorker, timed } from "@epanet-js/ejsdb";
-import { serializePipeLibrary } from "../mappers/pipe-library/to-rows";
+import { serializePipeLibrary } from "@epanet-js/ejsdb-mappers";
 
 export const savePipeLibrary = async (
   materials: PipeMaterial[],

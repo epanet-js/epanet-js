@@ -3,7 +3,8 @@ import { useSetAtom } from "jotai";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { pipeMaterialsAtom } from "src/state/pipe-library";
 import { dialogAtom } from "src/state/dialog";
-import { savePipeLibrary, serializePipeLibrary } from "src/lib/db";
+import { savePipeLibrary } from "src/lib/db";
+import { serializePipeLibrary } from "@epanet-js/ejsdb-mappers";
 import { captureError } from "src/infra/error-tracking";
 
 export const usePipeLibraryTransaction = () => {
