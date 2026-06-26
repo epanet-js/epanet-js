@@ -17,6 +17,7 @@ import { ZoomToIcon } from "src/icons";
 import { BBox } from "src/types";
 import { TextRow, QuantityRow } from "./asset-panel/ui-components";
 import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
+import { CustomAttributesSection } from "./asset-panel/custom-attributes-section";
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -267,6 +268,7 @@ export function CustomerPointPanel() {
             <TextRow name="junction" value={junction ? junction.label : ""} />
           </SectionWrapper>
         )}
+        <CustomAttributesSection id={customerPoint.id} type="customerPoint" />
         <SectionWrapper
           title={translate("demands")}
           section="demands"

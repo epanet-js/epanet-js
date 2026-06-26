@@ -104,6 +104,7 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
@@ -539,6 +540,7 @@ const JunctionEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={junction.id} type="junction" />
       <SectionWrapper
         title={translate("demands")}
         section="demands"
@@ -893,6 +895,7 @@ const PipeEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={pipe.id} type="pipe" />
       {(customerCount > 0 ||
         getCustomerCountComparison(customerCount).hasChanged) && (
         <SectionWrapper
@@ -1106,6 +1109,7 @@ const ReservoirEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={reservoir.id} type="reservoir" />
       <SectionWrapper title={translate("quality")} section="quality">
         <QuantityRow
           name="initialQuality"
@@ -1323,6 +1327,7 @@ const TankEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={tank.id} type="tank" />
       <SectionWrapper title={translate("quality")} section="quality">
         <QuantityRow
           name="initialQuality"
@@ -2130,6 +2135,7 @@ const ValveEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={valve.id} type="valve" />
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -2377,6 +2383,7 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
+      <CustomAttributesSection id={pump.id} type="pump" />
       {isPumpControlsOn && (
         <SectionWrapper title={translate("controls.title")} section="controls">
           <PumpControlsEditor
