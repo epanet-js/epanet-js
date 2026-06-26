@@ -893,6 +893,34 @@ export const api = {
     });
   },
 
+  async getCustomAttributesDefinition(): Promise<string | null> {
+    return timed("getCustomAttributesDefinition", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      const rows = db.exec(
+        "SELECT custom_attributes_definition FROM project WHERE id = 1",
+        {
+          returnValue: "resultRows",
+        },
+      ) as (string | null)[][];
+      if (rows.length === 0) return null;
+      return rows[0][0];
+    });
+  },
+
+  async saveCustomAttributesDefinition(json: string) {
+    return timed("saveCustomAttributesDefinition", async () => {
+      await ready;
+      if (!db) throw new Error("No database open");
+      db.exec(
+        "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
+        {
+          bind: [json],
+        },
+      );
+    });
+  },
+
   async getJunctions(): Promise<unknown[]> {
     return timed("getJunctions", () => readAll("SELECT * FROM junctions"));
   },
