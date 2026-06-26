@@ -18,6 +18,7 @@ type PipeRoughnessTableProps = {
 
 const DEFAULT_ROW: RoughnessEntry = { age: null, roughness: null };
 
+const YEARS_BETWEEN_NEW_ROWS = 10;
 export const PipeRoughnessTable = ({
   entries,
   onChange,
@@ -56,7 +57,10 @@ export const PipeRoughnessTable = ({
     (rowIndex: number): RoughnessEntry => {
       const ref = rowData[rowIndex];
       if (ref?.age != null && ref?.roughness != null) {
-        return { age: ref.age + 1, roughness: ref.roughness };
+        return {
+          age: ref.age + YEARS_BETWEEN_NEW_ROWS,
+          roughness: ref.roughness,
+        };
       }
       return { ...DEFAULT_ROW };
     },
