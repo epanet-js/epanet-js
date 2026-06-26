@@ -230,7 +230,6 @@ export const PipeLibraryDialog = () => {
           hasChanges={hasChanges}
           onSave={handleSave}
           saveDisabled={invalidMaterialLabels.size > 0}
-          closeOnSave={false}
         />
       }
     >
