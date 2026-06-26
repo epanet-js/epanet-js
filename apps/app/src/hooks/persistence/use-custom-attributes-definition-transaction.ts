@@ -8,7 +8,7 @@ import { saveCustomAttributes } from "src/lib/db";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import { captureError } from "src/infra/error-tracking";
 
-export const useCustomAttributesTransaction = () => {
+export const useCustomAttributesDefinitionTransaction = () => {
   const setCustomAttributes = useSetAtom(customAttributesDefinitionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
