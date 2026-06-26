@@ -63,10 +63,11 @@ export const findRoughness = (
   entries: RoughnessEntry[],
   pipeAge: number,
 ): number | null => {
-  let result: number | null = null;
+  if (entries.length === 0) return null;
+  let result: number | null = entries[0].roughness;
   for (const entry of entries) {
+    if (entry.age! > pipeAge) break;
     result = entry.roughness;
-    if (entry.age! >= pipeAge) break;
   }
   return result;
 };

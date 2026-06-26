@@ -28,7 +28,7 @@ describe("findRoughness", () => {
     ];
     expect(findRoughness(entries, 5)).toBe(100);
     expect(findRoughness(entries, 10)).toBe(100);
-    expect(findRoughness(entries, 11)).toBe(200);
+    expect(findRoughness(entries, 11)).toBe(100);
     expect(findRoughness(entries, 20)).toBe(200);
     expect(findRoughness(entries, 30)).toBe(200);
   });
@@ -40,8 +40,8 @@ describe("findRoughness", () => {
       { age: 30, roughness: 300 },
     ];
     expect(findRoughness(entries, 1)).toBe(100);
-    expect(findRoughness(entries, 15)).toBe(200);
-    expect(findRoughness(entries, 25)).toBe(300);
+    expect(findRoughness(entries, 15)).toBe(100);
+    expect(findRoughness(entries, 25)).toBe(200);
     expect(findRoughness(entries, 50)).toBe(300);
   });
 
@@ -123,8 +123,8 @@ describe("applyRoughnessMoment", () => {
 
     expect(moment.patchAssetsAttributes).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
-      { id: 2, type: "pipe", properties: { roughness: 200 } },
-      { id: 3, type: "pipe", properties: { roughness: 300 } },
+      { id: 2, type: "pipe", properties: { roughness: 100 } },
+      { id: 3, type: "pipe", properties: { roughness: 200 } },
       { id: 4, type: "pipe", properties: { roughness: 300 } },
     ]);
   });
@@ -224,7 +224,7 @@ describe("applyRoughnessMoment", () => {
 
     expect(moment.patchAssetsAttributes).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
-      { id: 2, type: "pipe", properties: { roughness: 200 } },
+      { id: 2, type: "pipe", properties: { roughness: 100 } },
     ]);
   });
 
