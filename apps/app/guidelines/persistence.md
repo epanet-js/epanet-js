@@ -19,7 +19,6 @@ the model untouched. The **only** exception is import, which is allowed to valid
 | `saveX` command | `src/lib/db/commands/save-*.ts` | Persist to the worker. Always serializes (validates) at the write boundary |
 | `use-*-transaction` hook | `src/hooks/persistence/use-*-transaction.ts` | Validate **before** the atom update, then set the atom, then `saveX` |
 | `changeNotApplied` dialog | `src/dialogs/change-not-applied.tsx` (type in `src/state/dialog.ts`) | The standard "we couldn't apply your change — save your work, try again, contact us" error |
-| `FLAG_SCHEMA_FIRST` | feature flag | Gates the pre-mutation validation while the pattern rolls out |
 
 `serializeX` is reused everywhere — the `saveX` write boundary, the transaction hook, and import all
 call the same validator, so "valid" means the same thing on every path.
@@ -35,24 +34,21 @@ validates first; on failure it captures the error, shows `changeNotApplied`, and
 export const useZonesTransaction = () => {
   const setZones = useSetAtom(zonesAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 
   const transact = useCallback(
     async (next: Zones): Promise<boolean> => {
-      if (isSchemaFirstOn) {
-        try {
-          serializeZones(next); // validate BEFORE applying
-        } catch (error) {
-          captureError(error instanceof Error ? error : new Error(String(error)));
-          setDialog({ type: "changeNotApplied" });
-          return false; // model untouched, nothing persisted
-        }
+      try {
+        serializeZones(next); // validate BEFORE applying
+      } catch (error) {
+        captureError(error instanceof Error ? error : new Error(String(error)));
+        setDialog({ type: "changeNotApplied" });
+        return false; // model untouched, nothing persisted
       }
       setZones(next);
       await saveZones(next);
       return true;
     },
-    [setZones, setDialog, isSchemaFirstOn],
+    [setZones, setDialog],
   );
 
   return { transact };
@@ -116,6 +112,5 @@ protect, so they must validate first.
 
 - See [architecture.md](./architecture.md) for the Command → Lib → State layering (`persistence/` is the
   React-coupled exception that owns these hooks).
-- See [feature-flags.md](./feature-flags.md) for `FLAG_SCHEMA_FIRST` / `FLAG_X` rollout conventions.
 - See [`../../../libs/ejsdb/AGENTS.md`](../../../libs/ejsdb/AGENTS.md) for file-format / migration rules
   when changing a schema or persisted JSON shape.

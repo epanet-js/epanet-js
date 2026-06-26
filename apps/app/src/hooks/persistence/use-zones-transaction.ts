@@ -3,27 +3,21 @@ import { useSetAtom } from "jotai";
 import type { Zones } from "src/lib/zones";
 import { zonesAtom } from "src/state/zones";
 import { dialogAtom } from "src/state/dialog";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { saveZones, serializeZones } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
 
 export const useZonesTransaction = () => {
   const setZones = useSetAtom(zonesAtom);
   const setDialog = useSetAtom(dialogAtom);
-  const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 
   const transact = useCallback(
     async (next: Zones): Promise<boolean> => {
-      if (isSchemaFirstOn) {
-        try {
-          serializeZones(next);
-        } catch (error) {
-          captureError(
-            error instanceof Error ? error : new Error(String(error)),
-          );
-          setDialog({ type: "changeNotApplied" });
-          return false;
-        }
+      try {
+        serializeZones(next);
+      } catch (error) {
+        captureError(error instanceof Error ? error : new Error(String(error)));
+        setDialog({ type: "changeNotApplied" });
+        return false;
       }
 
       setZones(next);
@@ -32,7 +26,7 @@ export const useZonesTransaction = () => {
 
       return true;
     },
-    [setZones, setDialog, isSchemaFirstOn],
+    [setZones, setDialog],
   );
 
   return { transact };

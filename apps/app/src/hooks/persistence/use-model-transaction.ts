@@ -16,7 +16,6 @@ import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
@@ -26,106 +25,91 @@ import {
 } from "src/hydraulic-model/validate-moment-integrity";
 
 export const useModelTransaction = () => {
-  const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
   const transact = useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter, moment: ModelMoment) => {
-        const momentLog = get(momentLogDerivedAtom).copy();
-        const mapSyncMoment = get(mapSyncMomentAtom);
-        const isTruncatingHistory = momentLog.nextRedo() !== null;
+    useCallback((get: Getter, set: Setter, moment: ModelMoment) => {
+      const momentLog = get(momentLogDerivedAtom).copy();
+      const mapSyncMoment = get(mapSyncMomentAtom);
+      const isTruncatingHistory = momentLog.nextRedo() !== null;
 
-        const worktree = get(worktreeAtom);
-        const willPersist = worktree.activeBranchId === worktree.mainId;
+      const worktree = get(worktreeAtom);
+      const willPersist = worktree.activeBranchId === worktree.mainId;
 
-        let payload: ApplyMomentPayload | undefined;
-        if (willPersist && isSchemaFirstOn) {
-          try {
-            payload = buildMomentPayload(moment);
-          } catch (error) {
-            captureError(
-              error instanceof Error ? error : new Error(String(error)),
-            );
-            set(dialogAtom, { type: "changeNotApplied" });
-            return false;
-          }
-        }
-
-        const orphanLinks = findOrphanLinkConnections(
-          get(stagingModelDerivedAtom),
-          moment,
-        );
-        if (orphanLinks.length > 0) {
-          const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
-          const causes = [...new Set(orphanLinks.map((o) => o.cause))];
-          captureWarning(
-            `Model integrity (orphan link connection)`,
-            undefined,
-            {
-              "model operation": {
-                note: moment.note,
-                mode: MODE_INFO[get(modeAtom).mode].name,
-                linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
-                cause: causes.length === 1 ? causes[0] : causes,
-              },
-            },
+      let payload: ApplyMomentPayload | undefined;
+      if (willPersist) {
+        try {
+          payload = buildMomentPayload(moment);
+        } catch (error) {
+          captureError(
+            error instanceof Error ? error : new Error(String(error)),
           );
+          set(dialogAtom, { type: "changeNotApplied" });
+          return false;
         }
+      }
 
-        trackMoment(moment);
-        const newStateId = nanoid();
+      const orphanLinks = findOrphanLinkConnections(
+        get(stagingModelDerivedAtom),
+        moment,
+      );
+      if (orphanLinks.length > 0) {
+        const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
+        const causes = [...new Set(orphanLinks.map((o) => o.cause))];
+        captureWarning(`Model integrity (orphan link connection)`, undefined, {
+          "model operation": {
+            note: moment.note,
+            mode: MODE_INFO[get(modeAtom).mode].name,
+            linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
+            cause: causes.length === 1 ? causes[0] : causes,
+          },
+        });
+      }
 
-        const reverseMoment = applyMoment(
-          get,
-          set,
-          newStateId,
-          moment,
-          stagingModelDerivedAtom,
+      trackMoment(moment);
+      const newStateId = nanoid();
+
+      const reverseMoment = applyMoment(
+        get,
+        set,
+        newStateId,
+        moment,
+        stagingModelDerivedAtom,
+      );
+
+      const storeInconsistencies = findStoreInconsistencies(
+        get(stagingModelDerivedAtom),
+        moment,
+      );
+      if (storeInconsistencies.length > 0) {
+        captureWarning(
+          `Model integrity (store desync) after "${moment.note}": ` +
+            storeInconsistencies
+              .map(
+                (i) =>
+                  `id=${i.id} kind=${i.kind} ` +
+                  `assets=${i.inAssets} index=${i.inAssetIndex} ` +
+                  `topology=${i.inTopology}`,
+              )
+              .join("; "),
         );
+      }
 
-        const storeInconsistencies = findStoreInconsistencies(
-          get(stagingModelDerivedAtom),
-          moment,
-        );
-        if (storeInconsistencies.length > 0) {
-          captureWarning(
-            `Model integrity (store desync) after "${moment.note}": ` +
-              storeInconsistencies
-                .map(
-                  (i) =>
-                    `id=${i.id} kind=${i.kind} ` +
-                    `assets=${i.inAssets} index=${i.inAssetIndex} ` +
-                    `topology=${i.inTopology}`,
-                )
-                .join("; "),
-          );
-        }
+      if (payload) {
+        void applyMomentToDb(payload).catch(captureError);
+      }
 
-        if (willPersist) {
-          if (payload) {
-            void applyMomentToDb(payload).catch(captureError);
-          } else {
-            void (async () =>
-              applyMomentToDb(buildMomentPayload(moment)))().catch(
-              captureError,
-            );
-          }
-        }
+      momentLog.append(moment, reverseMoment, newStateId);
 
-        momentLog.append(moment, reverseMoment, newStateId);
+      const newMapSyncMoment = computeSyncMoment(
+        mapSyncMoment,
+        momentLog,
+        isTruncatingHistory,
+      );
 
-        const newMapSyncMoment = computeSyncMoment(
-          mapSyncMoment,
-          momentLog,
-          isTruncatingHistory,
-        );
+      set(momentLogDerivedAtom, momentLog);
+      set(mapSyncMomentAtom, newMapSyncMoment);
 
-        set(momentLogDerivedAtom, momentLog);
-        set(mapSyncMomentAtom, newMapSyncMoment);
-
-        return true;
-      },
-      [isSchemaFirstOn],
-    ),
+      return true;
+    }, []),
   );
 
   return { transact };
