@@ -20,7 +20,7 @@ const initialState: WizardState = {
   isLoading: false,
   error: null,
   isProcessing: false,
-  keepDemands: false,
+  keepDemands: true,
   selectedPatternId: null,
   defaultDemand: 0,
 };
