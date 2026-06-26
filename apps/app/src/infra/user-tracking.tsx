@@ -1054,6 +1054,36 @@ type PipeLibraryOpened = {
   canUsePipeLibrary: boolean;
 };
 
+type PipeLibraryMaterialChanged = {
+  name: "pipeLibrary.material.changed";
+  action: "added" | "renamed" | "duplicated" | "deleted";
+};
+
+type PipeLibraryRoughnessRowChanged = {
+  name: "pipeLibrary.roughnessRow.changed";
+  action: "insertedAbove" | "insertedBelow" | "deleted";
+};
+
+type PipeLibraryRoughnessApplied = {
+  name: "pipeLibrary.roughnessApplied";
+  pipesUpdated: number;
+};
+
+type PipeLibraryImportedFromModel = {
+  name: "pipeLibrary.importedFromModel";
+  materialsDetected: number;
+};
+
+type PipeLibrarySaved = {
+  name: "pipeLibrary.saved";
+  materialsCount: number;
+};
+
+type PipeLibraryClosed = {
+  name: "pipeLibrary.closed";
+  hadChanges: boolean;
+};
+
 type PumpLibraryOpened = {
   name: "pumpLibrary.opened";
   source: "toolbar" | "pump";
@@ -1551,6 +1581,12 @@ export type UserEvent =
   | PatternsDiscarded
   | PatternsUncategorized
   | PipeLibraryOpened
+  | PipeLibraryMaterialChanged
+  | PipeLibraryRoughnessRowChanged
+  | PipeLibraryRoughnessApplied
+  | PipeLibraryImportedFromModel
+  | PipeLibrarySaved
+  | PipeLibraryClosed
   | PumpLibraryOpened
   | CurveLibraryOpened
   | CurvesUpdated

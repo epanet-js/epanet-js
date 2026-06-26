@@ -8,6 +8,7 @@ import {
   integerColumn,
 } from "src/components/data-grid";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, AddIcon } from "src/icons";
 import type { RoughnessEntry } from "@epanet-js/pipe-library";
 
@@ -24,6 +25,7 @@ export const PipeRoughnessTable = ({
   onChange,
 }: PipeRoughnessTableProps) => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const gridRef = useRef<DataGridRef>(null);
 
   const rowData = useMemo(
@@ -49,8 +51,12 @@ export const PipeRoughnessTable = ({
       } else {
         onChange(rowData.filter((_, i) => i !== rowIndex));
       }
+      userTracking.capture({
+        name: "pipeLibrary.roughnessRow.changed",
+        action: "deleted",
+      });
     },
-    [rowData, onChange],
+    [rowData, onChange, userTracking],
   );
 
   const newRowAfter = useCallback(
@@ -76,8 +82,12 @@ export const PipeRoughnessTable = ({
       ];
       onChange(newRows);
       selectRow(rowIndex);
+      userTracking.capture({
+        name: "pipeLibrary.roughnessRow.changed",
+        action: "insertedAbove",
+      });
     },
-    [rowData, onChange, selectRow, newRowAfter],
+    [rowData, onChange, selectRow, newRowAfter, userTracking],
   );
 
   const handleInsertRowBelow = useCallback(
@@ -89,8 +99,12 @@ export const PipeRoughnessTable = ({
       ];
       onChange(newRows);
       selectRow(rowIndex + 1);
+      userTracking.capture({
+        name: "pipeLibrary.roughnessRow.changed",
+        action: "insertedBelow",
+      });
     },
-    [rowData, onChange, selectRow, newRowAfter],
+    [rowData, onChange, selectRow, newRowAfter, userTracking],
   );
 
   const rowActions: RowAction[] = useMemo(
@@ -156,8 +170,12 @@ export const PipeRoughnessTable = ({
     (rowsToDelete: RoughnessEntry[]) => {
       const toRemove = new Set(rowsToDelete);
       handleChange(rowData.filter((row) => !toRemove.has(row)));
+      userTracking.capture({
+        name: "pipeLibrary.roughnessRow.changed",
+        action: "deleted",
+      });
     },
-    [handleChange, rowData],
+    [handleChange, rowData, userTracking],
   );
 
   return (

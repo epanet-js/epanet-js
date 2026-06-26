@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
@@ -32,6 +33,7 @@ import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();
+  const userTracking = useUserTracking();
   const dialogActions = useRef<DialogActionsHandle>(null);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
@@ -80,7 +82,17 @@ export const PipeLibraryDialog = () => {
     }
 
     await transactPipeLibrary(draftMaterials);
-  }, [draftMaterials, transactPipeLibrary, hydraulicModel, transact]);
+    userTracking.capture({
+      name: "pipeLibrary.saved",
+      materialsCount: draftMaterials.length,
+    });
+  }, [
+    draftMaterials,
+    transactPipeLibrary,
+    hydraulicModel,
+    transact,
+    userTracking,
+  ]);
 
   const handleAddMaterial = useCallback(
     (label: string) => {
@@ -88,8 +100,12 @@ export const PipeLibraryDialog = () => {
         ...prev,
         { label, entries: [{ age: 0, roughness: defaultRoughness }] },
       ]);
+      userTracking.capture({
+        name: "pipeLibrary.material.changed",
+        action: "added",
+      });
     },
-    [defaultRoughness],
+    [defaultRoughness, userTracking],
   );
 
   const handleRenameMaterial = useCallback(
@@ -112,8 +128,12 @@ export const PipeLibraryDialog = () => {
       } else {
         renames.set(oldLabel, newLabel);
       }
+      userTracking.capture({
+        name: "pipeLibrary.material.changed",
+        action: "renamed",
+      });
     },
-    [setSelectedLabel],
+    [setSelectedLabel, userTracking],
   );
 
   const handleDuplicateMaterial = useCallback(
@@ -126,8 +146,12 @@ export const PipeLibraryDialog = () => {
           { label: newLabel, entries: source.entries.map((e) => ({ ...e })) },
         ];
       });
+      userTracking.capture({
+        name: "pipeLibrary.material.changed",
+        action: "duplicated",
+      });
     },
-    [],
+    [userTracking],
   );
 
   const handleDeleteMaterial = useCallback(
@@ -144,8 +168,12 @@ export const PipeLibraryDialog = () => {
           break;
         }
       }
+      userTracking.capture({
+        name: "pipeLibrary.material.changed",
+        action: "deleted",
+      });
     },
-    [selectedLabel, setSelectedLabel],
+    [selectedLabel, setSelectedLabel, userTracking],
   );
 
   const handleEntriesChange = useCallback(
@@ -162,6 +190,10 @@ export const PipeLibraryDialog = () => {
     const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
     if (moment.patchAssetsAttributes!.length === 0) return;
     transact(moment);
+    userTracking.capture({
+      name: "pipeLibrary.roughnessApplied",
+      pipesUpdated: moment.patchAssetsAttributes!.length,
+    });
     notify({
       variant: "success",
       title: translate(
@@ -169,11 +201,16 @@ export const PipeLibraryDialog = () => {
         moment.patchAssetsAttributes!.length,
       ),
     });
-  }, [hydraulicModel, draftMaterials, transact, translate]);
+  }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
 
   const handleImportFromModel = useCallback(() => {
     const detected = detectModelMaterials(hydraulicModel.assets);
     if (detected.length === 0) return;
+
+    userTracking.capture({
+      name: "pipeLibrary.importedFromModel",
+      materialsDetected: detected.length,
+    });
 
     setDraftMaterials((prev) => {
       const updated = [...prev];
@@ -214,7 +251,7 @@ export const PipeLibraryDialog = () => {
 
       return updated;
     });
-  }, [hydraulicModel, defaultRoughness]);
+  }, [hydraulicModel, defaultRoughness, userTracking]);
 
   return (
     <BaseDialog
@@ -229,6 +266,9 @@ export const PipeLibraryDialog = () => {
           readOnly={false}
           hasChanges={hasChanges}
           onSave={handleSave}
+          onClose={(hadChanges) =>
+            userTracking.capture({ name: "pipeLibrary.closed", hadChanges })
+          }
           saveDisabled={invalidMaterialLabels.size > 0}
         />
       }
