@@ -1436,7 +1436,8 @@
     "defaultLabel": "Attribute {{1}}",
     "invalidLabel": "Invalid attribute",
     "emptyLabelError": "Attribute labels cannot be empty.",
-    "duplicateLabelError": "Attribute labels must be unique within an asset type."
+    "duplicateLabelError": "Attribute labels must be unique within an asset type.",
+    "labelTooLongError": "Attribute labels cannot exceed {{1}} characters."
   },
   "percentOpen": "% Open",
   "percentFullFlow": "% Full flow",

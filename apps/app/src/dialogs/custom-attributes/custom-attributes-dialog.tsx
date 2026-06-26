@@ -20,6 +20,8 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   hasDuplicateLabel,
+  hasTooLongLabel,
+  MAX_LABEL_LENGTH,
   nextIdSeed,
   setAttributes,
   totalAttributesCount,
@@ -96,7 +98,11 @@ export const CustomAttributesDialog = ({
     const set = new Set<CustomAttributeAssetType>();
     for (const assetType of ASSET_TYPE_ORDER) {
       const attributes = getAttributes(edited, assetType);
-      if (hasEmptyLabel(attributes) || hasDuplicateLabel(attributes))
+      if (
+        hasEmptyLabel(attributes) ||
+        hasDuplicateLabel(attributes) ||
+        hasTooLongLabel(attributes)
+      )
         set.add(assetType);
     }
     return set;
@@ -111,6 +117,11 @@ export const CustomAttributesDialog = ({
 
   const selectedTypeHasDuplicateLabel = useMemo(
     () => hasDuplicateLabel(selectedAttributes),
+    [selectedAttributes],
+  );
+
+  const selectedTypeHasTooLongLabel = useMemo(
+    () => hasTooLongLabel(selectedAttributes),
     [selectedAttributes],
   );
 
@@ -167,21 +178,29 @@ export const CustomAttributesDialog = ({
             className={clsx(
               "shrink-0",
               !selectedTypeHasEmptyLabel &&
+                !selectedTypeHasTooLongLabel &&
                 !selectedTypeHasDuplicateLabel &&
                 "invisible",
             )}
             aria-hidden={
-              !selectedTypeHasEmptyLabel && !selectedTypeHasDuplicateLabel
+              !selectedTypeHasEmptyLabel &&
+              !selectedTypeHasTooLongLabel &&
+              !selectedTypeHasDuplicateLabel
             }
           >
             <NotificationBanner
               variant="warning"
               title={translate("customAttributes.invalidLabel")}
-              description={translate(
+              description={
                 selectedTypeHasEmptyLabel
-                  ? "customAttributes.emptyLabelError"
-                  : "customAttributes.duplicateLabelError",
-              )}
+                  ? translate("customAttributes.emptyLabelError")
+                  : selectedTypeHasTooLongLabel
+                    ? translate(
+                        "customAttributes.labelTooLongError",
+                        String(MAX_LABEL_LENGTH),
+                      )
+                    : translate("customAttributes.duplicateLabelError")
+              }
               Icon={TriangleAlert}
             />
           </div>

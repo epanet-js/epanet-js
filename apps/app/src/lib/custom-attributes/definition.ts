@@ -73,8 +73,16 @@ export const totalAttributesCount = (
   return total;
 };
 
+export const MAX_LABEL_LENGTH = 50;
+
 export const normalizeLabel = (label: string): string =>
   label.trim().toLowerCase();
+
+export const isLabelTooLong = (label: string): boolean =>
+  label.trim().length > MAX_LABEL_LENGTH;
+
+export const hasTooLongLabel = (attributes: CustomAttribute[]): boolean =>
+  attributes.some((attribute) => isLabelTooLong(attribute.label));
 
 export const duplicateLabelKeys = (
   attributes: CustomAttribute[],

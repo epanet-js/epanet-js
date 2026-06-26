@@ -7,6 +7,8 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   hasDuplicateLabel,
+  hasTooLongLabel,
+  MAX_LABEL_LENGTH,
   setAttributes,
 } from "./definition";
 
@@ -98,6 +100,26 @@ describe("hasDuplicateLabel", () => {
   it("returns false for distinct labels", () => {
     expect(
       hasDuplicateLabel([attr("ca-1", "Diameter"), attr("ca-2", "Material")]),
+    ).toBe(false);
+  });
+});
+
+describe("hasTooLongLabel", () => {
+  it("returns false for a label at the maximum length", () => {
+    expect(hasTooLongLabel([attr("ca-1", "a".repeat(MAX_LABEL_LENGTH))])).toBe(
+      false,
+    );
+  });
+
+  it("returns true for a label over the maximum length", () => {
+    expect(
+      hasTooLongLabel([attr("ca-1", "a".repeat(MAX_LABEL_LENGTH + 1))]),
+    ).toBe(true);
+  });
+
+  it("trims surrounding whitespace before measuring", () => {
+    expect(
+      hasTooLongLabel([attr("ca-1", `  ${"a".repeat(MAX_LABEL_LENGTH)}  `)]),
     ).toBe(false);
   });
 });

@@ -13,6 +13,7 @@ import {
   CustomAttributeType,
   customAttributeTypes,
   duplicateLabelKeys,
+  isLabelTooLong,
   normalizeLabel,
 } from "src/lib/custom-attributes";
 
@@ -110,6 +111,7 @@ export const CustomAttributesTable = ({
       if (columnId !== "label") return false;
       const label = attributes[rowIndex]?.label ?? "";
       if (!label.trim()) return true;
+      if (isLabelTooLong(label)) return true;
       return duplicateKeys.has(normalizeLabel(label));
     },
     [attributes, duplicateKeys],
