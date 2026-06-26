@@ -5,10 +5,10 @@ import { useTranslate } from "src/hooks/use-translate";
 import {
   ChevronRightIcon,
   ConnectivityTraceIcon,
+  MissingAttributeIcon,
   OrphanNodeIcon,
   PipesCrossinIcon,
   ProximityCheckIcon,
-  WarningIcon,
 } from "src/icons";
 import { OrphanAssets } from "./orphan-assets";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -169,7 +169,7 @@ const iconsByCheckType = {
   [CheckType.connectivityTrace]: <ConnectivityTraceIcon />,
   [CheckType.proximityAnomalies]: <ProximityCheckIcon />,
   [CheckType.crossingPipes]: <PipesCrossinIcon />,
-  [CheckType.modelAttributesValidation]: <WarningIcon />,
+  [CheckType.modelAttributesValidation]: <MissingAttributeIcon />,
 };
 
 const labelKeyByCheckType = {
