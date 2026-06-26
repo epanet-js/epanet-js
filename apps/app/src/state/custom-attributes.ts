@@ -4,6 +4,6 @@ import {
   emptyCustomAttributesDefinition,
 } from "@epanet-js/custom-attributes";
 
-export const customAttributesAtom = atom<CustomAttributesDefinition>(
+export const customAttributesDefinitionAtom = atom<CustomAttributesDefinition>(
   emptyCustomAttributesDefinition(),
 );

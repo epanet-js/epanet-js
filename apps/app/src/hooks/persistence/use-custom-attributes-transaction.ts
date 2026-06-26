@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
 import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
-import { customAttributesAtom } from "src/state/custom-attributes";
+import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
 import { dialogAtom } from "src/state/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { saveCustomAttributes } from "src/lib/db";
@@ -9,7 +9,7 @@ import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import { captureError } from "src/infra/error-tracking";
 
 export const useCustomAttributesTransaction = () => {
-  const setCustomAttributes = useSetAtom(customAttributesAtom);
+  const setCustomAttributes = useSetAtom(customAttributesDefinitionAtom);
   const setDialog = useSetAtom(dialogAtom);
   const isSchemaFirstOn = useFeatureFlag("FLAG_SCHEMA_FIRST");
 

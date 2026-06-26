@@ -5,7 +5,7 @@ import { TriangleAlert } from "lucide-react";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { customAttributesAtom } from "src/state/custom-attributes";
+import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
 import { useCustomAttributesTransaction } from "src/hooks/persistence/use-custom-attributes-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NotificationBanner } from "src/components/notifications";
@@ -58,7 +58,7 @@ export const CustomAttributesDialog = ({
   initialAssetType?: CustomAttributeAssetType;
 }) => {
   const translate = useTranslate();
-  const savedDefinition = useAtomValue(customAttributesAtom);
+  const savedDefinition = useAtomValue(customAttributesDefinitionAtom);
   const { transact } = useCustomAttributesTransaction();
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();

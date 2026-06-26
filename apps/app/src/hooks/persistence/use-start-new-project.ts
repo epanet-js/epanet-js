@@ -55,7 +55,7 @@ import {
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
 import { pipeMaterialsAtom } from "src/state/pipe-library";
-import { customAttributesAtom } from "src/state/custom-attributes";
+import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
 import { hglProfileAtom, hglProfileOpenAtom } from "src/state/hgl-profile";
 import { bottomActiveTabAtom } from "src/state/panel-layout";
 
@@ -91,7 +91,7 @@ export const resetAppState = (set: Setter) => {
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
   set(pipeMaterialsAtom, []);
-  set(customAttributesAtom, emptyCustomAttributesDefinition());
+  set(customAttributesDefinitionAtom, emptyCustomAttributesDefinition());
 };
 
 export const loadModel = (
@@ -124,7 +124,7 @@ export const loadModel = (
   set(simulationSettingsAtom, simulationSettings);
   set(pipeMaterialsAtom, input.pipeLibrary ?? []);
   set(
-    customAttributesAtom,
+    customAttributesDefinitionAtom,
     input.customAttributes ?? emptyCustomAttributesDefinition(),
   );
   if (autoElevations !== undefined) {
