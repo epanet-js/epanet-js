@@ -5,6 +5,7 @@ import {
   CustomAttributesDefinition,
   countFor,
 } from "@epanet-js/custom-attributes";
+import { WarningIcon } from "src/icons";
 
 type CustomAttributesSidebarProps = {
   width: number;
@@ -26,7 +27,7 @@ export const CustomAttributesSidebar = ({
   const translate = useTranslate();
 
   return (
-    <div className="shrink-0 flex flex-col gap-1 py-2" style={{ width }}>
+    <div className="shrink-0 flex flex-col p-3 border-r" style={{ width }}>
       {assetTypes.map((assetType) => {
         const isSelected = assetType === selectedAssetType;
         const count = countFor(definition, assetType);
@@ -47,12 +48,7 @@ export const CustomAttributesSidebar = ({
               <span className="truncate">{translate(assetType)}</span>
               <span className="shrink-0 text-subtle">({count})</span>
             </span>
-            {isInvalid && (
-              <span
-                className="shrink-0 h-2 w-2 rounded-full bg-current text-warning"
-                aria-hidden="true"
-              />
-            )}
+            {isInvalid && <WarningIcon className="text-warning" />}
           </button>
         );
       })}

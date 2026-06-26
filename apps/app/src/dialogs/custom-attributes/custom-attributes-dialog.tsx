@@ -163,7 +163,7 @@ export const CustomAttributesDialog = ({
             onWidthChange={setSidebarWidth}
           />
         </div>
-        <div className="flex-1 flex flex-col min-h-0 w-full px-4 py-3 gap-2">
+        <div className="flex-1 flex flex-col min-h-0 w-full pr-3 py-3 gap-2">
           <div className="flex-1 min-h-0 overflow-hidden">
             <CustomAttributesTable
               attributes={selectedAttributes}
