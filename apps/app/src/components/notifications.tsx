@@ -53,7 +53,7 @@ export const NotificationBanner = ({
     >
       {Icon && (
         <Icon
-          className={clsx("h-5 w-5 mr-3 shrink-0", {
+          className={clsx("h-4 w-4 mt-0.5 mr-2 shrink-0", {
             "text-success": variant === "success",
             "text-error": variant === "error",
             "text-warning": variant === "warning",

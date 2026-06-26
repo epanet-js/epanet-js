@@ -232,7 +232,7 @@ export const PipeLibrarySidebar = ({
 
 const InvalidMaterialIcon = () => (
   <span className="text-warning shrink-0">
-    <WarningIcon size="sm" />
+    <WarningIcon size="md" />
   </span>
 );
 
