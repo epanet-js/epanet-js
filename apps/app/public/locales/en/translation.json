@@ -1279,8 +1279,16 @@
         "title": "Upgrade to review and fix all model issues"
       },
       "rule": {
-        "roughnessPresent": "Pipe roughness missing",
-        "roughnessPositive": "Pipe roughness must be positive",
+        "pipeRoughnessPresent": "Pipe roughness missing",
+        "pipeRoughnessPositive": "Pipe roughness must be positive",
+        "reservoirHeadPresent": "Reservoir head missing",
+        "tankInitialLevelPresent": "Tank initial level missing",
+        "tankInitialLevelNonNegative": "Tank initial level must be zero or greater",
+        "tankDiameterPresent": "Tank diameter missing",
+        "tankDiameterPositive": "Tank diameter must be positive",
+        "valveDiameterPresent": "Valve diameter missing",
+        "valveDiameterPositive": "Valve diameter must be positive",
+        "valveSettingPresent": "Valve setting missing",
         "customerPointConnected": "Customer point disconnected"
       }
     }

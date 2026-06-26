@@ -22,10 +22,10 @@ export type ValveKind = (typeof valveKinds)[number];
 
 export type ValveProperties = {
   type: "valve";
-  diameter: number;
+  diameter: number | null;
   minorLoss: number;
   kind: ValveKind;
-  setting: number;
+  setting: number | null;
   initialStatus: ValveStatus;
   curveId?: CurveId;
 } & LinkProperties;

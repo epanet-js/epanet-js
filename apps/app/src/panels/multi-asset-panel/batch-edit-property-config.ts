@@ -365,15 +365,34 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
   },
 };
 
-export const pipeEditablePropertiesFor = (
+// Numeric attributes that may be left empty (null) when the null-values feature
+// is on. Required ones are enforced by the pre-simulation check instead
+// (lib/model-attributes-validation). Mirror of NULLABLE_KEYS in the data table.
+// First batch: simulation-only + panel-only required attributes. "diameter" is
+// gated to non-pipe types (pipe diameter is deferred).
+const NULLABLE_BATCH_KEYS = new Set([
+  "roughness",
+  "head",
+  "initialLevel",
+  "setting",
+  "diameter",
+]);
+
+export const withNullableProperties = (
+  properties: EditableProperties,
   allowsNullValues: boolean,
+  assetType?: Asset["type"],
 ): EditableProperties => {
-  const roughness = BATCH_EDITABLE_PROPERTIES.pipe.roughness;
-  if (!allowsNullValues || roughness.fieldType !== "quantity") {
-    return BATCH_EDITABLE_PROPERTIES.pipe;
+  if (!allowsNullValues) return properties;
+  const result: EditableProperties = {};
+  for (const [key, config] of Object.entries(properties)) {
+    const nullable =
+      NULLABLE_BATCH_KEYS.has(key) &&
+      !(key === "diameter" && assetType === "pipe");
+    result[key] =
+      config.fieldType === "quantity" && nullable
+        ? { ...config, isNullable: true }
+        : config;
   }
-  return {
-    ...BATCH_EDITABLE_PROPERTIES.pipe,
-    roughness: { ...roughness, isNullable: true },
-  };
+  return result;
 };

@@ -153,7 +153,21 @@ export const NON_ZERO_KEYS = new Set([
   "power",
 ]);
 
-const NULLABLE_KEYS = new Set(["roughness"]);
+// Numeric attributes that may be left empty (null) when the null-values feature
+// is on. Enforcement of required ones moves to the pre-simulation check
+// (lib/model-attributes-validation). Already-optional attributes (OPTIONAL_KEYS)
+// are emptiable regardless of the flag.
+//
+// First batch: simulation-only + panel-only required attributes. "diameter" is
+// shared across pipe/valve/tank; it is gated to non-pipe types where used (see
+// numericCol) so pipe diameter stays required for now.
+const NULLABLE_KEYS = new Set([
+  "roughness",
+  "head",
+  "initialLevel",
+  "setting",
+  "diameter",
+]);
 
 export const isOptionalColumn = (key: string): boolean =>
   OPTIONAL_KEYS.has(key);
@@ -543,8 +557,13 @@ function _buildColumns(
     property?: QuantityProperty,
     isReadOnly?: (rowIndex: number) => boolean,
     placeholder?: string,
-  ): GridColumn<AssetRow> =>
-    floatColumn(ck(key), {
+  ): GridColumn<AssetRow> => {
+    // "diameter" is shared across types; pipe diameter is deferred from the
+    // first nullable batch, so exclude it here.
+    const nullable =
+      isNullableColumn(key, allowsNullValues) &&
+      !(key === "diameter" && type === "pipe");
+    return floatColumn(ck(key), {
       header: headerLabel(name, unit),
       decimals:
         property != null
@@ -552,14 +571,19 @@ function _buildColumns(
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       placeholder,
-      emptyValue: isEmptiableColumn(key, allowsNullValues)
-        ? null
-        : NON_ZERO_KEYS.has(key)
-          ? undefined
-          : 0,
+      emptyValue:
+        isOptionalColumn(key) || nullable
+          ? null
+          : NON_ZERO_KEYS.has(key)
+            ? undefined
+            : 0,
       positiveOnly: POSITIVE_ONLY_KEYS.has(key),
       validate: NON_ZERO_KEYS.has(key) ? isGreaterThanZero : undefined,
+      // Nullable columns commit invalid values (with a warning) and move
+      // enforcement to the pre-simulation check.
+      commitInvalidValues: nullable,
     });
+  };
 
   const booleanCol = (
     key: string,

@@ -293,10 +293,11 @@ export const QuantityRow = <
     ? `${translatedName} (${translateUnit(unit)})`
     : `${translatedName}`;
 
-  const baseDisplayValue =
-    comparison?.hasChanged && comparison.baseValue != null
+  const baseDisplayValue = comparison?.hasChanged
+    ? comparison.baseValue != null
       ? formatValue(comparison.baseValue as number, name as QuantityProperty)
-      : undefined;
+      : translate("none")
+    : undefined;
 
   const handleChange = (newValue: number, isEmpty: boolean) => {
     lastChange.current = Date.now();

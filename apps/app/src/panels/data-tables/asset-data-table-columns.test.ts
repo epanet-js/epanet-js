@@ -30,9 +30,23 @@ describe("isNullableColumn", () => {
     expect(isNullableColumn("bulkReactionCoeff", true)).toBe(false);
   });
 
-  it("leaves required numeric columns non-nullable", () => {
-    expect(isNullableColumn("diameter", true)).toBe(false);
+  it("treats batch-1 nullable columns as nullable when allowed", () => {
+    expect(isNullableColumn("diameter", false)).toBe(false);
+    expect(isNullableColumn("diameter", true)).toBe(true);
+    expect(isNullableColumn("setting", true)).toBe(true);
+    expect(isNullableColumn("head", true)).toBe(true);
+    expect(isNullableColumn("initialLevel", true)).toBe(true);
+  });
+
+  it("leaves deferred and optional-bound columns non-nullable", () => {
     expect(isNullableColumn("length", true)).toBe(false);
+    expect(isNullableColumn("elevation", true)).toBe(false);
+    expect(isNullableColumn("minLevel", true)).toBe(false);
+    // EPANET-optional attributes are excluded from the nullable batch.
+    expect(isNullableColumn("minorLoss", true)).toBe(false);
+    expect(isNullableColumn("minVolume", true)).toBe(false);
+    expect(isNullableColumn("emitterCoefficient", true)).toBe(false);
+    expect(isNullableColumn("power", true)).toBe(false);
   });
 });
 
@@ -47,7 +61,12 @@ describe("isEmptiableColumn", () => {
     expect(isEmptiableColumn("roughness", true)).toBe(true);
   });
 
-  it("keeps required columns non-emptiable", () => {
-    expect(isEmptiableColumn("diameter", true)).toBe(false);
+  it("lets batch-1 nullable columns render empty only when allowed", () => {
+    expect(isEmptiableColumn("diameter", false)).toBe(false);
+    expect(isEmptiableColumn("diameter", true)).toBe(true);
+  });
+
+  it("keeps deferred required columns non-emptiable", () => {
+    expect(isEmptiableColumn("length", true)).toBe(false);
   });
 });

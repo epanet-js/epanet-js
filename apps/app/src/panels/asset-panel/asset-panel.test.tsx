@@ -1585,7 +1585,7 @@ describe("AssetPanel", () => {
   });
 
   describe("validations", () => {
-    it("ignores sign in positive only numeric fields", async () => {
+    it("rejects a negative value in a positive-validated field", async () => {
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { diameter: 20 })
@@ -1605,10 +1605,12 @@ describe("AssetPanel", () => {
       await user.type(field, "-10");
       await user.keyboard("{Enter}");
 
+      // `validate` (isGreaterThanZero) governs; a negative is rejected and the
+      // non-nullable field reverts to its previous value rather than coercing.
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("10");
+      expect(updatedField).toHaveValue("20");
       expect(updatedField).not.toHaveFocus();
     });
 

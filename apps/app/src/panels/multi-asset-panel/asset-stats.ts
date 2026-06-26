@@ -863,6 +863,7 @@ const appendValveStats = (
     units,
     formatting,
     id,
+    { emptyLabel: "none" },
   );
   updateQuantityStats(
     statsMap,
@@ -871,6 +872,7 @@ const appendValveStats = (
     units,
     formatting,
     id,
+    { emptyLabel: "none" },
   );
   updateQuantityStats(
     statsMap,
@@ -1127,6 +1129,7 @@ const appendTankStats = (
     units,
     formatting,
     id,
+    { emptyLabel: "none" },
   );
   if (!tank.volumeCurveId) {
     updateQuantityStats(
@@ -1152,6 +1155,7 @@ const appendTankStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
     updateQuantityStats(
       statsMap,

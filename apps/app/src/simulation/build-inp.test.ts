@@ -2616,3 +2616,34 @@ THEN LINK {{1}} STATUS IS OPEN`,
     });
   });
 });
+
+describe("build inp with null attributes", () => {
+  const inpFor = (hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>) =>
+    buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+  it("emits a missing-value marker for required attributes, never a preset", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aReservoir(1, { head: null })
+      .build();
+
+    const inp = inpFor(hydraulicModel);
+
+    // A missing-value marker is emitted, never a made-up default head.
+    expect(inp).toContain("[RESERVOIRS]");
+    expect(inp).toContain("MISSING");
+    expect(inp).not.toContain("null");
+  });
+
+  it("emits a missing-value marker for a null valve diameter and setting", () => {
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aValve(1, { diameter: null, setting: null })
+      .build();
+
+    const inp = inpFor(hydraulicModel);
+
+    expect(inp).toContain("MISSING");
+  });
+});

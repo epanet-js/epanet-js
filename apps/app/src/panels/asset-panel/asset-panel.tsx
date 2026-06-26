@@ -1220,6 +1220,7 @@ const TankEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
@@ -1303,6 +1304,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           positiveOnly={true}
           readOnly={readonly}
+          isNullable={allowsNullValues}
         />
         <TankDefinitionField
           tank={tank}
@@ -1483,6 +1485,7 @@ const TankDefinitionField = ({
   const translateUnit = useTranslateUnit();
   const showCurveLibrary = useShowCurveLibrary();
   const { getComparison, getCurveComparison } = useAssetComparison(tank);
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const [definitionMode, setDefinitionMode] = useState<TankDefinitionMode>(
     tank.volumeCurveId != null ? "curveBased" : "diameterBased",
@@ -1545,14 +1548,17 @@ const TankDefinitionField = ({
       const baseMinLevel = minLevelComp.baseValue ?? tank.minLevel;
       const baseMaxLevel = maxLevelComp.baseValue ?? tank.maxLevel;
       const baseMaxVolume = tankVolumeFor(
-        baseDiameter,
+        baseDiameter ?? 0,
         baseMaxLevel,
         baseMinVolume,
         baseMinLevel,
       );
-      lines.push(
-        `${translate("diameter")}: ${localizeDecimal(baseDiameter)} ${diameterUnit}`,
-      );
+      // A null base diameter is shown as "None" rather than coerced to 0.
+      const baseDiameterLabel =
+        baseDiameter != null
+          ? `${localizeDecimal(baseDiameter)} ${diameterUnit}`
+          : translate("none");
+      lines.push(`${translate("diameter")}: ${baseDiameterLabel}`);
       lines.push(
         `${translate("minLevel")}: ${localizeDecimal(baseMinLevel)} ${levelUnit}`,
       );
@@ -1634,7 +1640,7 @@ const TankDefinitionField = ({
     const diameter = tankDiameterFor(
       maxVolume,
       tank.maxLevel,
-      tank.minVolume,
+      tank.minVolume ?? 0,
       tank.minLevel,
     );
     if (diameter !== tank.diameter) {
@@ -1646,7 +1652,7 @@ const TankDefinitionField = ({
     const diameter = tankDiameterFor(
       tank.maxVolume,
       maxLevel,
-      tank.minVolume,
+      tank.minVolume ?? 0,
       tank.minLevel,
     );
     onBatchPropertyChange([
@@ -1659,7 +1665,7 @@ const TankDefinitionField = ({
     const diameter = tankDiameterFor(
       tank.maxVolume,
       tank.maxLevel,
-      tank.minVolume,
+      tank.minVolume ?? 0,
       minLevel,
     );
     onBatchPropertyChange([
@@ -1710,6 +1716,7 @@ const TankDefinitionField = ({
               positiveOnly={true}
               validate={isGreaterThanZero}
               readOnly={readOnly}
+              isNullable={allowsNullValues}
             />
             <hr className=" my-1" />
             <NumericTable
@@ -1953,6 +1960,7 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2072,6 +2080,7 @@ const ValveEditor = ({
             comparison={getComparison("setting", valve.setting)}
             onChange={onPropertyChange}
             readOnly={readonly}
+            isNullable={allowsNullValues}
           />
         )}
         {valve.kind === "gpv" && (
@@ -2109,6 +2118,7 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           validate={isGreaterThanZero}
+          isNullable={allowsNullValues}
         />
         <QuantityRow
           name="minorLoss"
@@ -2373,7 +2383,7 @@ const PumpEditor = ({
             key={pump.id}
             linkId={pump.id}
             initialStatus={pump.initialStatus}
-            initialSpeed={pump.speed}
+            initialSpeed={pump.speed ?? 1}
             control={pumpControl}
             tanks={tanks}
             onControlChange={handleControlChangeForPump}
@@ -3034,6 +3044,7 @@ const ReservoirHeadField = ({
   const showPatternsLibrary = useShowPatternsLibrary();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
 
   const averageHead = useMemo(
@@ -3065,7 +3076,7 @@ const ReservoirHeadField = ({
     if (!hasChanged) return undefined;
 
     const baseHead = headComparison.hasChanged
-      ? (headComparison.baseValue as number)
+      ? (headComparison.baseValue as number | null)
       : reservoir.head;
 
     const baseMultipliers = patternComparison.hasChanged
@@ -3080,9 +3091,13 @@ const ReservoirHeadField = ({
           baseMultipliers.length
         : 1;
 
-    const baseAverageHead = baseHead * avgMultiplier;
     const unitLabel = translateUnit(headUnit);
-    const formattedAvgHead = localizeDecimal(baseAverageHead);
+    const noneLabel = translate("none");
+    // A null base head is shown as "None" rather than coerced to a number.
+    const formattedAvgHead =
+      baseHead != null ? localizeDecimal(baseHead * avgMultiplier) : noneLabel;
+    const formattedHead =
+      baseHead != null ? localizeDecimal(baseHead) : noneLabel;
 
     const basePattern = patternComparison.baseValue;
     const multipliersDiffer =
@@ -3094,7 +3109,7 @@ const ReservoirHeadField = ({
       <div className="whitespace-pre-line">
         {`${translate("headAverage")} (${unitLabel}): ${formattedAvgHead}`}
         {headComparison.hasChanged &&
-          `\n${translate("head")} (${unitLabel}): ${localizeDecimal(baseHead)}`}
+          `\n${translate("head")} (${unitLabel}): ${formattedHead}`}
         {patternComparison.hasChanged && basePattern
           ? `\n${translate("headPattern")}: ${basePattern.label}`
           : `\n${translate("headPattern")}: ${translate("constant")}`}
@@ -3127,6 +3142,7 @@ const ReservoirHeadField = ({
           unit={headUnit}
           onChange={onPropertyChange}
           readOnly={readOnly}
+          isNullable={allowsNullValues}
         />
 
         <LibrarySelectRow

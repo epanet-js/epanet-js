@@ -422,8 +422,8 @@ const PowerDefinition = ({
       readOnly={readOnly}
       onChange={handlePowerChange}
       positiveOnly={true}
-      isNullable={false}
       validate={isGreaterThanZero}
+      isNullable={false}
     />
   );
 };

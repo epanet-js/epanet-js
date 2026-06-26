@@ -27,7 +27,7 @@ import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
 import {
   BATCH_EDITABLE_PROPERTIES,
-  pipeEditablePropertiesFor,
+  withNullableProperties,
 } from "./batch-edit-property-config";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -88,23 +88,68 @@ export function MultiAssetPanel({
   }, [selectedAssets]);
 
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+  const junctionEditableProperties = useMemo(
+    () =>
+      withNullableProperties(
+        BATCH_EDITABLE_PROPERTIES.junction,
+        allowsNullValues,
+        "junction",
+      ),
+    [allowsNullValues],
+  );
   const pipeEditableProperties = useMemo(
-    () => pipeEditablePropertiesFor(allowsNullValues),
+    () =>
+      withNullableProperties(
+        BATCH_EDITABLE_PROPERTIES.pipe,
+        allowsNullValues,
+        "pipe",
+      ),
+    [allowsNullValues],
+  );
+  const pumpEditableProperties = useMemo(
+    () =>
+      withNullableProperties(
+        BATCH_EDITABLE_PROPERTIES.pump,
+        allowsNullValues,
+        "pump",
+      ),
+    [allowsNullValues],
+  );
+  const valveEditableProperties = useMemo(
+    () =>
+      withNullableProperties(
+        BATCH_EDITABLE_PROPERTIES.valve,
+        allowsNullValues,
+        "valve",
+      ),
+    [allowsNullValues],
+  );
+  const reservoirEditableProperties = useMemo(
+    () =>
+      withNullableProperties(
+        BATCH_EDITABLE_PROPERTIES.reservoir,
+        allowsNullValues,
+        "reservoir",
+      ),
     [allowsNullValues],
   );
 
   const tankEditableProperties = useMemo(() => {
+    const base = withNullableProperties(
+      BATCH_EDITABLE_PROPERTIES.tank,
+      allowsNullValues,
+      "tank",
+    );
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
       const tank = hydraulicModel.assets.get(id) as Tank;
       return !!tank.volumeCurveId;
     });
     if (hasCurveTanks) {
-      const { minLevel, maxLevel, diameter, minVolume, ...rest } =
-        BATCH_EDITABLE_PROPERTIES.tank;
+      const { minLevel, maxLevel, diameter, minVolume, ...rest } = base;
       return rest;
     }
-    return BATCH_EDITABLE_PROPERTIES.tank;
-  }, [assetIdsByType.tank, hydraulicModel.assets]);
+    return base;
+  }, [assetIdsByType.tank, hydraulicModel.assets, allowsNullValues]);
 
   const distinctKindsSelected =
     Object.values(assetCounts).filter((c) => c > 0).length +
@@ -205,7 +250,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.junction}
+            editableProperties={junctionEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("junction", p, v)
@@ -264,7 +309,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pump}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.pump}
+            editableProperties={pumpEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
             readonly={readonly}
@@ -295,7 +340,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.valve}
+            editableProperties={valveEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("valve", p, v)
@@ -324,7 +369,7 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
-            editableProperties={BATCH_EDITABLE_PROPERTIES.reservoir}
+            editableProperties={reservoirEditableProperties}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("reservoir", p, v)
             }

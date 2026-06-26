@@ -8,11 +8,11 @@ export const TANK_TWO_COMPARTMENT_MIXING =
 
 export type TankProperties = {
   type: "tank";
-  initialLevel: number;
+  initialLevel: number | null;
   minLevel: number;
   maxLevel: number;
   minVolume: number;
-  diameter: number;
+  diameter: number | null;
   overflow: boolean;
   mixingModel: TankMixingModel;
   mixingFraction: number;
@@ -82,13 +82,15 @@ export class Tank extends Node<TankProperties> {
     return this.properties.volumeCurveId;
   }
 
+  // Derived display values; missing diameter/minVolume fall back to 0. The
+  // simulation reads the raw attributes, validated by the pre-simulation check.
   get area() {
-    return tankAreaFromDiameter(this.diameter);
+    return tankAreaFromDiameter(this.diameter ?? 0);
   }
 
   get maxVolume() {
     return tankVolumeFor(
-      this.diameter,
+      this.diameter ?? 0,
       this.maxLevel,
       this.minVolume,
       this.minLevel,

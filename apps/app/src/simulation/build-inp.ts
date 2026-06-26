@@ -826,7 +826,10 @@ const appendReservoir = (
   const reservoirId = idMap.nodeId(reservoir);
   const commentPrefix = !reservoir.isActive ? ";" : "";
 
-  const columns: (string | number)[] = [reservoirId, reservoir.head];
+  const columns: (string | number)[] = [
+    reservoirId,
+    requiredValue(reservoir.head),
+  ];
   if (reservoir.headPatternId) {
     columns.push(idMap.patternId(reservoir.headPatternId));
     usedPatternIds.add(reservoir.headPatternId);
@@ -870,10 +873,13 @@ const appendTank = (
       [
         tankId,
         tank.elevation,
-        tank.initialLevel,
+        requiredValue(tank.initialLevel),
         tank.minLevel,
         tank.maxLevel,
-        tank.diameter,
+        // Diameter is required unless a volume curve defines the geometry.
+        tank.volumeCurveId
+          ? (tank.diameter ?? 0)
+          : requiredValue(tank.diameter),
         tank.minVolume,
         tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
         tank.overflow ? "YES" : "NO",
@@ -1034,7 +1040,6 @@ const appendPump = (
     speedPatternParts.push(`PATTERN ${idMap.patternId(pump.speedPatternId)}`);
     usedPatternIds.add(pump.speedPatternId);
   }
-
   switch (pump.definitionType) {
     case "power":
       sections.pumps.push(
@@ -1132,9 +1137,9 @@ const appendValve = (
   const valveData = [
     linkId,
     ...getLinkConnectionIds(hydraulicModel, idMap, valve),
-    String(valve.diameter),
+    String(requiredValue(valve.diameter)),
     kindFor(valve),
-    valve.kind === "gpv" ? valveCurveId : String(valve.setting),
+    valve.kind === "gpv" ? valveCurveId : String(requiredValue(valve.setting)),
     String(valve.minorLoss),
   ];
   if (valve.kind === "pcv") {

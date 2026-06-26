@@ -39,3 +39,23 @@ describe("AssetFactoryWithNullValues createPipe roughness", () => {
     ).toEqual(95);
   });
 });
+
+describe("AssetFactoryWithNullValues createReservoir head", () => {
+  it("leaves head empty when neither head nor relativeHead is provided", () => {
+    expect(assetFactoryWithNullValues().createReservoir({}).head).toBeNull();
+  });
+
+  it("keeps the provided head value", () => {
+    expect(
+      assetFactoryWithNullValues().createReservoir({ head: 42 }).head,
+    ).toEqual(42);
+  });
+
+  it("derives head from elevation + relativeHead instead of nulling it", () => {
+    const reservoir = assetFactoryWithNullValues().createReservoir({
+      elevation: 100,
+      relativeHead: 10,
+    });
+    expect(reservoir.head).toEqual(110);
+  });
+});

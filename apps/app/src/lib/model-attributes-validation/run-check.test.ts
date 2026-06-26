@@ -85,6 +85,114 @@ describe("validateModelAttributes", () => {
     });
   });
 
+  describe("required attributes", () => {
+    it("flags a missing reservoir head", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aReservoir(1, { label: "R1", head: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toEqual([
+        {
+          ruleId: "reservoir.head.present",
+          entityType: "reservoir",
+          entityId: 1,
+          label: "R1",
+          field: "head",
+          severity: "error",
+          message: "required",
+        },
+      ]);
+    });
+
+    it("flags a missing valve diameter", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aValve(1, { diameter: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0].ruleId).toBe("valve.diameter.present");
+    });
+
+    it("flags a zero valve diameter as a positive error", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aValve(1, { diameter: 0 })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0].ruleId).toBe("valve.diameter.positive");
+    });
+
+    it("flags a missing valve setting", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aValve(1, { kind: "tcv", setting: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues.map((i) => i.ruleId)).toContain("valve.setting.present");
+    });
+
+    it("does not require a setting for a gpv valve", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aValve(1, { kind: "gpv", setting: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues.map((i) => i.ruleId)).not.toContain(
+        "valve.setting.present",
+      );
+    });
+
+    it("requires a setting for a pcv valve", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aValve(1, { kind: "pcv", setting: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues.map((i) => i.ruleId)).toContain("valve.setting.present");
+    });
+
+    it("flags a missing tank diameter unless a volume curve is set", async () => {
+      const withoutCurve = HydraulicModelBuilder.with()
+        .aTank(1, { diameter: null })
+        .build();
+      expect(
+        (await validateModelAttributes(withoutCurve)).map((i) => i.ruleId),
+      ).toContain("tank.diameter.present");
+
+      const withCurve = HydraulicModelBuilder.with()
+        .aTank(2, { diameter: null, volumeCurveId: 9 })
+        .build();
+      expect(
+        (await validateModelAttributes(withCurve)).map((i) => i.ruleId),
+      ).not.toContain("tank.diameter.present");
+    });
+
+    it("allows a zero tank initial level but flags a missing one", async () => {
+      const zero = HydraulicModelBuilder.with()
+        .aTank(1, { initialLevel: 0 })
+        .build();
+      expect(
+        (await validateModelAttributes(zero)).map((i) => i.ruleId),
+      ).not.toContain("tank.initialLevel.nonNegative");
+
+      const missing = HydraulicModelBuilder.with()
+        .aTank(2, { initialLevel: null })
+        .build();
+      expect(
+        (await validateModelAttributes(missing)).map((i) => i.ruleId),
+      ).toContain("tank.initialLevel.present");
+    });
+  });
+
   it("ignores assets without rules", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })

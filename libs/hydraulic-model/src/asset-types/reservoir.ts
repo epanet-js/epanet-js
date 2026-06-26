@@ -3,7 +3,7 @@ import { Node, NodeProperties } from "./node";
 
 export type ReservoirProperties = {
   type: "reservoir";
-  head: number;
+  head: number | null;
   headPatternId?: PatternId;
 } & NodeProperties;
 
@@ -34,14 +34,17 @@ export const calculateAverageHead = (
   reservoir: Reservoir,
   patterns: Patterns,
 ): number => {
+  // Derived display value; a missing head falls back to 0 (the simulation reads
+  // the raw head, which is validated by the pre-simulation check).
+  const head = reservoir.head ?? 0;
   if (reservoir.headPatternId) {
     const pattern = patterns.get(reservoir.headPatternId);
     if (pattern && pattern.multipliers.length > 0) {
       const avgMultiplier =
         pattern.multipliers.reduce((sum, m) => sum + m, 0) /
         pattern.multipliers.length;
-      return reservoir.head * avgMultiplier;
+      return head * avgMultiplier;
     }
   }
-  return reservoir.head;
+  return head;
 };

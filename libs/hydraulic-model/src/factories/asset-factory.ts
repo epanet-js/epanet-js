@@ -418,12 +418,51 @@ export class AssetFactory {
   }
 }
 
+// Leaves attributes null when the build data does not provide them, instead of
+// applying a factory preset. Used by imports (e.g. GIS column mapping) under the
+// null-values feature; required attributes left null are caught by the
+// pre-simulation check. Reservoir head is handled separately (see
+// createReservoir) because it can be derived from elevation + relativeHead.
+const nullifyUnmapped = <
+  T extends { setProperty: (name: string, value: unknown) => void },
+>(
+  asset: T,
+  data: Record<string, unknown>,
+  fields: readonly string[],
+): T => {
+  for (const field of fields) {
+    if (data[field] == null) asset.setProperty(field, null);
+  }
+  return asset;
+};
+
 export class AssetFactoryWithNullValues extends AssetFactory {
   createPipe(data: PipeBuildData = {}): Pipe {
-    const pipe = super.createPipe(data);
-    if (data.roughness == null) {
-      pipe.setRoughness(null);
+    return nullifyUnmapped(super.createPipe(data), data, ["roughness"]);
+  }
+
+  createValve(data: ValveBuildData = {}): Valve {
+    return nullifyUnmapped(super.createValve(data), data, [
+      "diameter",
+      "setting",
+    ]);
+  }
+
+  createTank(data: TankBuildData = {}): Tank {
+    return nullifyUnmapped(super.createTank(data), data, [
+      "initialLevel",
+      "diameter",
+    ]);
+  }
+
+  createReservoir(data: ReservoirBuildData = {}): Reservoir {
+    const reservoir = super.createReservoir(data);
+    // Head can be derived from elevation + relativeHead; only null it when
+    // neither head nor relativeHead was provided (otherwise the derived value
+    // stands rather than being discarded).
+    if (data.head == null && data.relativeHead == null) {
+      reservoir.setProperty("head", null);
     }
-    return pipe;
+    return reservoir;
   }
 }

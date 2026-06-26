@@ -36,6 +36,8 @@ export const NumericField = ({
   displayValue: string;
   onChangeValue?: (newValue: number, isEmpty: boolean) => void;
   isNullable?: boolean;
+  /** @deprecated Legacy fallback; ignored when `validate` is provided. To be
+   * removed in the null-values feature-flag cleanup. */
   positiveOnly?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
@@ -44,9 +46,19 @@ export const NumericField = ({
   tabIndex?: number;
   validate?: (value: number) => boolean;
 }) => {
+  // `validate` is the single source of truth when present; `positiveOnly` is a
+  // legacy fallback only used when there is no validator. The informational
+  // commit (invalid values warn but still commit) is driven by `isNullable`.
+  const enforcePositiveOnly = positiveOnly && validate === undefined;
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
   const [hasError, setError] = useState(false);
+  // hasError drives the warning styling; isBlocked gates the commit. For
+  // nullable fields a failed domain validation (e.g. not > 0) is informational
+  // only — the value still commits and enforcement moves to the
+  // pre-simulation check. A genuinely invalid number always blocks.
+  const [isBlocked, setBlocked] = useState(false);
   const [isDirty, setDirty] = useState(false);
 
   useEffect(() => {
@@ -60,12 +72,12 @@ export const NumericField = ({
       resetInput();
       return;
     }
-    if (e.key === "Enter" && !hasError) {
+    if (e.key === "Enter" && !isBlocked) {
       e.preventDefault();
       handleCommitLastChange();
       return;
     }
-    if (e.key === "Enter" && hasError) {
+    if (e.key === "Enter" && isBlocked) {
       e.preventDefault();
       resetInput();
       return;
@@ -80,11 +92,12 @@ export const NumericField = ({
     setInputValue(displayValue);
     setDirty(false);
     setError(false);
+    setBlocked(false);
     blurInput();
   };
 
   const handleBlur = () => {
-    if (isDirty && !hasError) {
+    if (isDirty && !isBlocked) {
       handleCommitLastChange();
     } else {
       resetInput();
@@ -105,6 +118,7 @@ export const NumericField = ({
 
     setDirty(false);
     setError(false);
+    setBlocked(false);
     blurInput();
   };
 
@@ -117,7 +131,7 @@ export const NumericField = ({
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const rawValue = e.target.value;
     const newInputValue = normalizeNumericInput(rawValue, {
-      positiveOnly,
+      positiveOnly: enforcePositiveOnly,
     });
     if (newInputValue === inputValue) return;
     if (rawValue.length > 0 && newInputValue.length === 0) return;
@@ -131,6 +145,9 @@ export const NumericField = ({
       validate !== undefined &&
       !validate(numericValue);
     setError(isInvalidNumber || failsValidation);
+    // A failed domain validation only blocks the commit on non-nullable fields;
+    // for nullable fields it is a warning and the value still commits.
+    setBlocked(isInvalidNumber || (failsValidation && !isNullable));
     setDirty(true);
   };
 

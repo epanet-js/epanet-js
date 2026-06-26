@@ -52,6 +52,41 @@ import {
   presets,
 } from "src/lib/project-settings/quantities-spec";
 
+type WithNullable<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]?: T[P] | null;
+};
+
+const NULLABLE_BUILD_FIELDS = {
+  pipe: ["roughness"],
+  valve: ["diameter", "setting"],
+  reservoir: ["head"],
+  tank: ["initialLevel", "diameter"],
+} as const;
+
+const stripNulls = <D extends Record<string, unknown>>(
+  data: D,
+  fields: readonly string[],
+): D => {
+  const out = { ...data };
+  for (const field of fields) {
+    if (out[field] === null) delete out[field];
+  }
+  return out;
+};
+
+const applyNulls = <
+  T extends { setProperty: (name: string, value: unknown) => void },
+>(
+  asset: T,
+  data: Record<string, unknown>,
+  fields: readonly string[],
+): T => {
+  for (const field of fields) {
+    if (data[field] === null) asset.setProperty(field, null);
+  }
+  return asset;
+};
+
 export const buildPipe = (
   data: PipeBuildData = {},
   unitsOverride: Partial<UnitsSpec> = {},
@@ -213,21 +248,34 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aReservoir(id: number, properties: Partial<ReservoirBuildData> = {}) {
+  aReservoir(
+    id: number,
+    properties: Partial<WithNullable<ReservoirBuildData, "head">> = {},
+  ) {
     const reservoir = this.assetFactory.createReservoir({
       id,
-      ...properties,
+      ...(stripNulls(
+        properties,
+        NULLABLE_BUILD_FIELDS.reservoir,
+      ) as ReservoirBuildData),
     });
+    applyNulls(reservoir, properties, NULLABLE_BUILD_FIELDS.reservoir);
     this.assets.set(id, reservoir);
     this.idGenerator.addId(id);
     return this;
   }
 
-  aTank(id: number, data: Partial<TankBuildData> = {}) {
+  aTank(
+    id: number,
+    data: Partial<
+      WithNullable<TankBuildData, "initialLevel" | "diameter">
+    > = {},
+  ) {
     const tank = this.assetFactory.createTank({
       id,
-      ...data,
+      ...(stripNulls(data, NULLABLE_BUILD_FIELDS.tank) as TankBuildData),
     });
+    applyNulls(tank, data, NULLABLE_BUILD_FIELDS.tank);
     this.assets.set(id, tank);
     this.idGenerator.addId(id);
     return this;
@@ -236,15 +284,13 @@ export class HydraulicModelBuilder {
   aPipe(
     id: number,
     data: Partial<
-      Omit<PipeBuildData, "roughness"> & {
+      WithNullable<PipeBuildData, "roughness"> & {
         startNodeId: number;
         endNodeId: number;
-        roughness: number | null;
       }
     > = {},
   ) {
-    const { startNodeId, endNodeId, coordinates, roughness, ...properties } =
-      data;
+    const { startNodeId, endNodeId, coordinates, ...rest } = data;
     const startNode = this.getNodeOrCreate(startNodeId);
     const endNode = this.getNodeOrCreate(endNodeId);
 
@@ -252,12 +298,9 @@ export class HydraulicModelBuilder {
       coordinates: coordinates || [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
-      ...properties,
-      ...(typeof roughness === "number" ? { roughness } : {}),
+      ...(stripNulls(rest, NULLABLE_BUILD_FIELDS.pipe) as PipeBuildData),
     });
-    if (roughness === null) {
-      pipe.setRoughness(null);
-    }
+    applyNulls(pipe, rest, NULLABLE_BUILD_FIELDS.pipe);
     this.assets.set(id, pipe);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
@@ -296,7 +339,7 @@ export class HydraulicModelBuilder {
   aValve(
     id: number,
     data: Partial<
-      ValveBuildData & {
+      WithNullable<ValveBuildData, "diameter" | "setting"> & {
         startNodeId: number;
         endNodeId: number;
       }
@@ -310,8 +353,12 @@ export class HydraulicModelBuilder {
       coordinates: [startNode.coordinates, endNode.coordinates],
       connections: [startNode.id, endNode.id],
       id,
-      ...properties,
+      ...(stripNulls(
+        properties,
+        NULLABLE_BUILD_FIELDS.valve,
+      ) as ValveBuildData),
     });
+    applyNulls(valve, properties, NULLABLE_BUILD_FIELDS.valve);
     this.assets.set(id, valve);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
