@@ -1,23 +1,20 @@
-import { AssetType } from "@epanet-js/hydraulic-model";
+import type {
+  CustomAttribute,
+  CustomAttributeAssetType,
+  CustomAttributeId,
+  CustomAttributeType,
+  CustomAttributesDefinition,
+} from "@epanet-js/custom-attributes";
 
-export type CustomAttributeAssetType = AssetType | "customerPoint";
-
-export type CustomAttributeType = "text" | "number";
-
-export const customAttributeTypes: CustomAttributeType[] = ["text", "number"];
-
-export type CustomAttributeId = string;
-
-export type CustomAttribute = {
-  id: CustomAttributeId;
-  label: string;
-  type: CustomAttributeType;
+export type {
+  CustomAttribute,
+  CustomAttributeAssetType,
+  CustomAttributeId,
+  CustomAttributeType,
+  CustomAttributesDefinition,
 };
 
-export type CustomAttributesDefinition = Map<
-  CustomAttributeAssetType,
-  Map<CustomAttributeId, CustomAttribute>
->;
+export const customAttributeTypes: CustomAttributeType[] = ["text", "number"];
 
 export const emptyCustomAttributesDefinition = (): CustomAttributesDefinition =>
   new Map();

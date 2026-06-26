@@ -1,11 +1,12 @@
 import { useState, useCallback, useMemo, useRef } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import clsx from "clsx";
 import { TriangleAlert } from "lucide-react";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { projectSettingsAtom } from "src/state/project-settings";
+import { customAttributesAtom } from "src/state/custom-attributes";
+import { useCustomAttributesTransaction } from "src/hooks/persistence/use-custom-attributes-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NotificationBanner } from "src/components/notifications";
 import { VerticalResizer } from "../vertical-resizer";
@@ -17,7 +18,6 @@ import {
   CustomAttributeAssetType,
   CustomAttributesDefinition,
   deepCloneCustomAttributes,
-  emptyCustomAttributesDefinition,
   getAttributes,
   hasDuplicateLabel,
   hasTooLongLabel,
@@ -58,15 +58,11 @@ export const CustomAttributesDialog = ({
   initialAssetType?: CustomAttributeAssetType;
 }) => {
   const translate = useTranslate();
-  const projectSettings = useAtomValue(projectSettingsAtom);
-  const setProjectSettings = useSetAtom(projectSettingsAtom);
+  const savedDefinition = useAtomValue(customAttributesAtom);
+  const { transact } = useCustomAttributesTransaction();
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
 
-  const savedDefinition = useMemo(
-    () => projectSettings.customAttributes ?? emptyCustomAttributesDefinition(),
-    [projectSettings.customAttributes],
-  );
   const savedSnapshotRef = useRef<string>(serialize(savedDefinition));
 
   const [edited, setEdited] = useState<CustomAttributesDefinition>(() =>
@@ -125,13 +121,15 @@ export const CustomAttributesDialog = ({
     [selectedAttributes],
   );
 
-  const handleSave = useCallback(() => {
-    setProjectSettings({ ...projectSettings, customAttributes: edited });
+  const handleSave = useCallback(async () => {
+    const applied = await transact(edited);
+    if (!applied) return;
+
     userTracking.capture({
       name: "customAttributes.updated",
       count: totalAttributesCount(edited),
     });
-  }, [edited, projectSettings, setProjectSettings, userTracking]);
+  }, [edited, transact, userTracking]);
 
   return (
     <BaseDialog

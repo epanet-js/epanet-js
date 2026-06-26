@@ -12,3 +12,5 @@ export * from "./junction-demands/to-rows";
 export * from "./junction-demands/builders";
 export * from "./patterns/to-rows";
 export * from "./patterns/builders";
+export * from "./custom-attributes-definition/to-rows";
+export * from "./custom-attributes-definition/builders";

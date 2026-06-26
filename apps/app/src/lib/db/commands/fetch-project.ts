@@ -1,5 +1,6 @@
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { PipeMaterial } from "src/lib/pipe-library";
+import type { CustomAttributesDefinition } from "src/lib/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -19,6 +20,7 @@ import {
   buildRawControlsData,
   buildControlsData,
   buildJunctionDemandsData,
+  buildCustomAttributesDefinition,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
@@ -28,6 +30,7 @@ import { buildZonesData } from "../mappers/zones/builders";
 export type Project = {
   projectSettings: ProjectSettings;
   pipeLibrary: PipeMaterial[];
+  customAttributes: CustomAttributesDefinition;
   zones: Zones;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
@@ -87,6 +90,7 @@ const fetchProjectWith = async (
     const [
       settingsJson,
       pipeLibraryJson,
+      customAttributesJson,
       zonesRaw,
       patternsRaw,
       junctionDemandsRaw,
@@ -99,6 +103,7 @@ const fetchProjectWith = async (
       Promise.all([
         worker.getProjectSettings(),
         worker.getPipeLibrary(),
+        worker.getCustomAttributesDefinition(),
         worker.getZones(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
@@ -119,6 +124,8 @@ const fetchProjectWith = async (
       () => {
         const projectSettings = buildProjectSettingsData(settingsJson);
         const pipeLibrary = buildPipeLibraryData(pipeLibraryJson);
+        const customAttributes =
+          buildCustomAttributesDefinition(customAttributesJson);
         const zones = buildZonesData(zonesRaw);
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
@@ -176,6 +183,7 @@ const fetchProjectWith = async (
         return {
           projectSettings,
           pipeLibrary,
+          customAttributes,
           zones,
           hydraulicModel,
           factories,

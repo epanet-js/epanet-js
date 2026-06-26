@@ -13,6 +13,12 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { fetchProject, fetchProjectWithNullValues } from "./fetch-project";
 import { importProject } from "./import-project";
+import { saveCustomAttributes } from "./save-custom-attributes";
+import {
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  setAttributes,
+} from "src/lib/custom-attributes";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
 describe("fetch-project integration", () => {
@@ -164,6 +170,39 @@ describe("fetch-project integration", () => {
 
     const project = await fetchProject();
     expect(project.pipeLibrary).toEqual([]);
+  });
+
+  it("round-trips the custom attributes definition", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "pipe",
+      [{ id: "ca-1", label: "Material", type: "text" }],
+    );
+    await saveCustomAttributes(definition);
+
+    const project = await fetchProject();
+    expect(getAttributes(project.customAttributes, "pipe")).toEqual([
+      { id: "ca-1", label: "Material", type: "text" },
+    ]);
+  });
+
+  it("returns an empty definition when none was saved (migrated default)", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const project = await fetchProject();
+    expect(project.customAttributes.size).toBe(0);
   });
 
   describe("when the roughness column is null", () => {

@@ -7,6 +7,10 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import { type ModelFactories } from "@epanet-js/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { PipeMaterial } from "src/lib/pipe-library";
+import {
+  type CustomAttributesDefinition,
+  emptyCustomAttributesDefinition,
+} from "src/lib/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -51,6 +55,7 @@ import {
 } from "src/state/simulation-playback";
 import { zonesAtom } from "src/state/zones";
 import { pipeMaterialsAtom } from "src/state/pipe-library";
+import { customAttributesAtom } from "src/state/custom-attributes";
 import { hglProfileAtom, hglProfileOpenAtom } from "src/state/hgl-profile";
 import { bottomActiveTabAtom } from "src/state/panel-layout";
 
@@ -59,6 +64,7 @@ export type ProjectLoadInput = {
   factories: ModelFactories;
   projectSettings: ProjectSettings;
   pipeLibrary?: PipeMaterial[];
+  customAttributes?: CustomAttributesDefinition;
   zones?: Zones;
   simulationSettings: SimulationSettings;
   autoElevations?: boolean;
@@ -85,6 +91,7 @@ export const resetAppState = (set: Setter) => {
   set(simulationPlaybackAtom, initialPlaybackState);
   set(zonesAtom, initializeZones());
   set(pipeMaterialsAtom, []);
+  set(customAttributesAtom, emptyCustomAttributesDefinition());
 };
 
 export const loadModel = (
@@ -116,6 +123,10 @@ export const loadModel = (
   set(momentLogAtom, momentLog);
   set(simulationSettingsAtom, simulationSettings);
   set(pipeMaterialsAtom, input.pipeLibrary ?? []);
+  set(
+    customAttributesAtom,
+    input.customAttributes ?? emptyCustomAttributesDefinition(),
+  );
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
   }
