@@ -15,7 +15,7 @@ import {
   duplicateLabelKeys,
   isLabelTooLong,
   normalizeLabel,
-} from "src/lib/custom-attributes";
+} from "@epanet-js/custom-attributes";
 
 type CustomAttributesTableProps = {
   attributes: CustomAttribute[];

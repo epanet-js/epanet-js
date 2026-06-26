@@ -18,7 +18,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "src/lib/custom-attributes";
+} from "@epanet-js/custom-attributes";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
 describe("fetch-project integration", () => {

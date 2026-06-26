@@ -1,4 +1,4 @@
-import type { CustomAttributesDefinition } from "src/lib/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 

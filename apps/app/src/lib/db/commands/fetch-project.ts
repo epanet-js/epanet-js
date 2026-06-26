@@ -1,6 +1,6 @@
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { PipeMaterial } from "src/lib/pipe-library";
-import type { CustomAttributesDefinition } from "src/lib/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";

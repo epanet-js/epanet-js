@@ -10,7 +10,7 @@ import type { PipeMaterial } from "src/lib/pipe-library";
 import {
   type CustomAttributesDefinition,
   emptyCustomAttributesDefinition,
-} from "src/lib/custom-attributes";
+} from "@epanet-js/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";

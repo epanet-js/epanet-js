@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import type { CustomAttributesDefinition } from "src/lib/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 import { customAttributesAtom } from "src/state/custom-attributes";
 import { dialogAtom } from "src/state/dialog";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";

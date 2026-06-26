@@ -25,7 +25,7 @@ import {
   nextIdSeed,
   setAttributes,
   totalAttributesCount,
-} from "src/lib/custom-attributes";
+} from "@epanet-js/custom-attributes";
 
 const ASSET_TYPE_ORDER: CustomAttributeAssetType[] = [
   "pipe",

@@ -4,7 +4,7 @@ import {
   CustomAttributeAssetType,
   CustomAttributesDefinition,
   countFor,
-} from "src/lib/custom-attributes";
+} from "@epanet-js/custom-attributes";
 
 type CustomAttributesSidebarProps = {
   width: number;
