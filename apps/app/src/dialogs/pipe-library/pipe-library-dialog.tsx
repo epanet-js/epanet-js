@@ -21,12 +21,14 @@ import {
 import {
   applyRoughnessMoment,
   renameMaterialsMoment,
+} from "src/lib/pipe-library";
+import {
   validateMaterial,
   detectModelMaterials,
   DEFAULT_ROUGHNESS_HW,
   DEFAULT_ROUGHNESS_DW_CM,
-} from "src/lib/pipe-library";
-import type { PipeMaterial, RoughnessEntry } from "src/lib/pipe-library";
+} from "@epanet-js/pipe-library";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
 
 export const PipeLibraryDialog = () => {
   const translate = useTranslate();
@@ -170,7 +172,7 @@ export const PipeLibraryDialog = () => {
   }, [hydraulicModel, draftMaterials, transact, translate]);
 
   const handleImportFromModel = useCallback(() => {
-    const detected = detectModelMaterials(hydraulicModel);
+    const detected = detectModelMaterials(hydraulicModel.assets);
     if (detected.length === 0) return;
 
     setDraftMaterials((prev) => {

@@ -1,5 +1,5 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { PipeMaterial } from "src/lib/pipe-library";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";

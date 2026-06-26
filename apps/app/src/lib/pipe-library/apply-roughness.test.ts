@@ -1,6 +1,6 @@
 import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 import type { HydraulicModel } from "src/hydraulic-model";
-import type { PipeMaterial } from "./types";
 import { applyRoughnessMoment, findRoughness } from "./apply-roughness";
 
 const CURRENT_YEAR = new Date().getFullYear();

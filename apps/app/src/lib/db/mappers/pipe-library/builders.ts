@@ -1,4 +1,4 @@
-import type { PipeMaterial } from "src/lib/pipe-library";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { pipeLibrarySchema } from "@epanet-js/ejsdb";
 
 export const buildPipeLibraryData = (data: string | null): PipeMaterial[] => {

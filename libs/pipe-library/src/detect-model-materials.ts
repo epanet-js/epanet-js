@@ -1,4 +1,4 @@
-import type { Pipe, HydraulicModel } from "src/hydraulic-model";
+import type { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 
 const AGE_STEP = 10;
 
@@ -15,13 +15,11 @@ export type DetectedMaterial = {
   ages: Set<number>;
 };
 
-export const detectModelMaterials = (
-  hydraulicModel: HydraulicModel,
-): DetectedMaterial[] => {
+export const detectModelMaterials = (assets: AssetsMap): DetectedMaterial[] => {
   const rawAges = new Map<string, Set<number>>();
   const currentYear = new Date().getFullYear();
 
-  for (const [, asset] of hydraulicModel.assets) {
+  for (const [, asset] of assets) {
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
     if (!pipe.material) continue;

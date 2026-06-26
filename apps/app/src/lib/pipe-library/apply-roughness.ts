@@ -5,8 +5,7 @@ import type {
   ModelMoment,
 } from "src/hydraulic-model/model-operation";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
-import type { PipeMaterial } from "./types";
-import type { RoughnessEntry } from "./types";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
 
 export const applyRoughnessMoment = (
   hydraulicModel: HydraulicModel,

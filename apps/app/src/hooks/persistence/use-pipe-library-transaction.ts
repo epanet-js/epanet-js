@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import type { PipeMaterial } from "src/lib/pipe-library";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { pipeMaterialsAtom } from "src/state/pipe-library";
 import { dialogAtom } from "src/state/dialog";
 import { savePipeLibrary, serializePipeLibrary } from "src/lib/db";

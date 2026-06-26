@@ -50,6 +50,7 @@
     "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/i18n": "workspace:*",
     "@epanet-js/id-generator": "workspace:*",
+    "@epanet-js/pipe-library": "workspace:*",
     "@epanet-js/project-settings": "workspace:*",
     "@epanet-js/projections": "workspace:*",
     "@epanet-js/quantity": "workspace:*",

@@ -18,7 +18,7 @@ import type {
   NavItem,
   NavigableListHandle,
 } from "src/components/list";
-import { PipeMaterial } from "src/lib/pipe-library";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 
 type ActionState =
   | { action: "creating" }

@@ -6,7 +6,7 @@ import { captureWarning } from "src/infra/error-tracking";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { type ModelFactories } from "@epanet-js/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { PipeMaterial } from "src/lib/pipe-library";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
 import {
   type CustomAttributesDefinition,
   emptyCustomAttributesDefinition,
