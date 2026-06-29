@@ -109,6 +109,18 @@ const SimulationSummaryDialog = dynamic<{
   },
 );
 
+const SimulationOutOfMemoryDialog = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/simulation-out-of-memory").then(
+      (r) => r.SimulationOutOfMemoryDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const UnsavedChangesDialog = dynamic<{
   onContinue: () => void;
   onClose: () => void;
@@ -666,6 +678,9 @@ export const Dialogs = memo(function Dialogs() {
           qualityType: dialog.qualityType,
         });
       }
+      if (dialog.type === "simulationOutOfMemory") {
+        userTracking.capture({ name: "simulationOutOfMemory.seen" });
+      }
       if (dialog.type === "unexpectedError") {
         userTracking.capture({ name: "unexpectedError.seen" });
       }
@@ -706,6 +721,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationSummary") {
     return <SimulationSummaryDialog modal={dialog} onClose={onClose} />;
+  }
+  if (dialog.type === "simulationOutOfMemory") {
+    return <SimulationOutOfMemoryDialog onClose={onClose} />;
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;

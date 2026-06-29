@@ -95,6 +95,31 @@ describe("Run simulation", () => {
     });
   });
 
+  it("shows the out of memory dialog when the simulation runs out of memory", async () => {
+    (lib.runSimulation as unknown as Mock).mockResolvedValue({
+      status: "failure",
+      report: "",
+      metadata: new ArrayBuffer(0),
+      jsError: "memory access out of bounds",
+      errorKind: "oom",
+      simulationStats: { nodeCount: 1, linkCount: 0, stepCount: 1 },
+    });
+
+    const store = setInitialState({ hydraulicModel: aSimulableModel() });
+    renderComponent({ store });
+
+    await triggerRun();
+
+    await waitFor(() => {
+      expect(store.get(dialogAtom)).toMatchObject({
+        type: "simulationOutOfMemory",
+      });
+    });
+    expect(store.get(dialogAtom)).not.toMatchObject({
+      type: "simulationSummary",
+    });
+  });
+
   it("can show the report with warnings", async () => {
     const hydraulicModel = aSimulableModelWithWarnings();
     const store = setInitialState({ hydraulicModel });

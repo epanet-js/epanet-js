@@ -29,6 +29,10 @@ export type SimulationReportDialogState = {
   type: "simulationReport";
 };
 
+export type SimulationOutOfMemoryDialogState = {
+  type: "simulationOutOfMemory";
+};
+
 export type WelcomeDialogState = {
   type: "welcome";
 };
@@ -304,6 +308,7 @@ export type DialogState =
   | { type: "createNew" }
   | SimulationSummaryState
   | SimulationReportDialogState
+  | SimulationOutOfMemoryDialogState
   | WelcomeDialogState
   | InpIssuesDialogState
   | { type: "loading" }

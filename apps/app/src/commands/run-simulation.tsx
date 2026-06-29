@@ -101,14 +101,15 @@ export const useRunSimulation = () => {
           const previousSourceId = get(simulationSourceIdDerivedAtom);
           const runQuality =
             simulationSettings.qualitySimulationType !== "none";
-          const { report, status, metadata } = await runSimulationWorker(
-            inp,
-            appId,
-            reportProgress,
-            { runQuality },
-            scenarioKey,
-            runId,
-          );
+          const { report, status, metadata, errorKind } =
+            await runSimulationWorker(
+              inp,
+              appId,
+              reportProgress,
+              { runQuality },
+              scenarioKey,
+              runId,
+            );
 
           isCompleted = true;
 
@@ -169,6 +170,11 @@ export const useRunSimulation = () => {
           if (options?.onContinue && status === "success") {
             setDialogState(null);
             options.onContinue();
+            return;
+          }
+
+          if (status === "failure" && errorKind === "oom") {
+            setDialogState({ type: "simulationOutOfMemory" });
             return;
           }
 
