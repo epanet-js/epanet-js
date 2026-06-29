@@ -303,3 +303,4 @@ export { CustomBoundaryTraceIcon as BoundaryTraceIcon } from "./custom-icons/tra
 export { CustomCurveLibraryIcon as CurveLibraryIcon } from "./custom-icons/curve-library-icon";
 export { CustomHglProfileIcon as HglProfileIcon } from "./custom-icons/hgl-profile-icon";
 export { CustomMissingAttributeIcon as MissingAttributeIcon } from "./custom-icons/missing-attribute-icon";
+export { CustomAllocateCustomerPointsIcon as AllocateCustomerPointsIcon } from "./custom-icons/allocate-customer-points-icon";

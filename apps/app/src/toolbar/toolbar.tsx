@@ -7,7 +7,6 @@ import {
   SettingsIcon,
   SaveIcon,
   RunSimulationIcon,
-  ImportCustomerPointsIcon,
   PanelBottomIcon,
   PanelBottomActiveIcon,
   PanelLeftIcon,
@@ -68,6 +67,7 @@ import {
   toggleBottomPanelShortcut,
   useToggleBottomPanel,
 } from "src/commands/toggle-bottom-panel";
+import { CustomAllocateCustomerPointsIcon } from "src/icons/custom-icons/allocate-customer-points-icon";
 
 export const Toolbar = ({
   readonly = false,
@@ -119,7 +119,7 @@ export const Toolbar = ({
         onClick={() => allocateCustomerPoints()}
         disabled={customerAllocationDisabled}
       >
-        <ImportCustomerPointsIcon />
+        <CustomAllocateCustomerPointsIcon />
       </MenuAction>
       <MenuAction
         label={translate("importZones.title")}
