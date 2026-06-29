@@ -5,16 +5,25 @@ import {
   type CustomAttributeType,
   getAttributes,
 } from "./definition";
+import {
+  type CustomAttributesData,
+  type CustomAttributeValue,
+  emptyCustomAttributesData,
+  getValue,
+} from "./data";
 
 export type ResolvedCustomAttribute = {
   id: CustomAttributeId;
   type: CustomAttributeType;
   label: string;
-  value: string | number | null;
+  value: CustomAttributeValue;
 };
 
 export class CustomAttributes {
-  constructor(private readonly definition: CustomAttributesDefinition) {}
+  constructor(
+    private readonly definition: CustomAttributesDefinition,
+    private readonly data: CustomAttributesData = emptyCustomAttributesData(),
+  ) {}
 
   getAttributesFor(
     id: number,
@@ -24,7 +33,7 @@ export class CustomAttributes {
       id: attribute.id,
       type: attribute.type,
       label: attribute.label,
-      value: null,
+      value: getValue(this.data, type, id, attribute.id),
     }));
   }
 }

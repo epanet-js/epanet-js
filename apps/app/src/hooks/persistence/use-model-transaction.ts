@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
 import type { Getter, Setter } from "jotai";
 import { nanoid } from "nanoid";
-import type { ModelMoment } from "src/hydraulic-model";
+import type { Moment } from "src/lib/persistence/moment";
 import { mapSyncMomentAtom } from "src/state/map";
 import {
   stagingModelDerivedAtom,
@@ -26,7 +26,7 @@ import {
 
 export const useModelTransaction = () => {
   const transact = useAtomCallback(
-    useCallback((get: Getter, set: Setter, moment: ModelMoment) => {
+    useCallback((get: Getter, set: Setter, moment: Moment) => {
       const momentLog = get(momentLogDerivedAtom).copy();
       const mapSyncMoment = get(mapSyncMomentAtom);
       const isTruncatingHistory = momentLog.nextRedo() !== null;

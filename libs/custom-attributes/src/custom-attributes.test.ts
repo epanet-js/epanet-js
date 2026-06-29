@@ -4,6 +4,7 @@ import {
   emptyCustomAttributesDefinition,
   setAttributes,
 } from "./definition";
+import { emptyCustomAttributesData, setValue } from "./data";
 
 const attr = (
   id: string,
@@ -21,6 +22,27 @@ describe("CustomAttributes", () => {
     const customAttributes = new CustomAttributes(definition);
 
     expect(customAttributes.getAttributesFor(7, "junction")).toEqual([
+      { id: "ca-1", type: "text", label: "Owner", value: null },
+      { id: "ca-2", type: "number", label: "Age", value: null },
+    ]);
+  });
+
+  it("resolves injected values and defaults to null when absent", () => {
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "junction",
+      [attr("ca-1", "Owner", "text"), attr("ca-2", "Age", "number")],
+    );
+    let data = emptyCustomAttributesData();
+    data = setValue(data, "junction", 7, "ca-1", "Alice");
+    data = setValue(data, "junction", 7, "ca-2", 42);
+    const customAttributes = new CustomAttributes(definition, data);
+
+    expect(customAttributes.getAttributesFor(7, "junction")).toEqual([
+      { id: "ca-1", type: "text", label: "Owner", value: "Alice" },
+      { id: "ca-2", type: "number", label: "Age", value: 42 },
+    ]);
+    expect(customAttributes.getAttributesFor(8, "junction")).toEqual([
       { id: "ca-1", type: "text", label: "Owner", value: null },
       { id: "ca-2", type: "number", label: "Age", value: null },
     ]);

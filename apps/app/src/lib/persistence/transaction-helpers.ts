@@ -3,7 +3,6 @@ import { generateKeyBetween } from "fractional-indexing";
 import type { Getter, Setter, WritableAtom } from "jotai";
 import {
   type HydraulicModel,
-  type ModelMoment,
   type Asset,
   updateHydraulicModelAssets,
   applyMomentToModel,
@@ -14,6 +13,9 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import { type MomentPointer } from "src/state/map";
 import { branchStateAtom } from "src/state/branch-state";
+import { customAttributesDataAtom } from "src/state/custom-attributes";
+import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
+import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
 
@@ -55,16 +57,16 @@ export function applyMoment(
   get: Getter,
   set: Setter,
   stateId: string,
-  forwardMoment: ModelMoment,
+  forwardMoment: Moment,
   modelAtom: WritableAtom<
     HydraulicModel,
     [HydraulicModel],
     void
   > = stagingModelAtom,
-): ModelMoment {
+): Moment {
   const hydraulicModel = get(modelAtom);
 
-  const processedMoment: ModelMoment = {
+  const processedMoment: Moment = {
     ...forwardMoment,
     note: forwardMoment.note || "Update",
     putAssets: ensureAtValues(forwardMoment.putAssets, hydraulicModel),
@@ -98,6 +100,16 @@ export function applyMoment(
     customerPoints: updatedCustomerPoints,
     curves: updatedCurves,
   });
+
+  if (forwardMoment.customAttributes) {
+    const { data, reverse } = applyMomentToCustomAttributes(
+      get(customAttributesDataAtom),
+      forwardMoment.customAttributes,
+    );
+    set(customAttributesDataAtom, data);
+    return { ...reverseMoment, customAttributes: reverse };
+  }
+
   return reverseMoment;
 }
 
