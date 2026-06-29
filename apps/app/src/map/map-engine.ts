@@ -212,6 +212,7 @@ export class MapEngine {
   }
 
   removeSource(name: DataSource) {
+    if (!this.map || !(this.map as any).style) return;
     const source = this.map.getSource(name);
     if (!source) return;
 
