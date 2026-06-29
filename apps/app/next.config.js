@@ -7,6 +7,7 @@
 const commitSha = process.env.VERCEL_GIT_COMMIT_SHA || "development";
 
 const nextConfig = {
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID,
   compress: false,
   swcMinify: true,
   poweredByHeader: false,
@@ -27,7 +28,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  webpack(config) {
+  webpack(config, { webpack }) {
     config.resolve.fallback = { ...config.resolve.fallback, fs: false };
     config.module.rules.push({
       test: /\.sql$/,
@@ -42,6 +43,54 @@ const nextConfig = {
         filename: "static/wasm/[name].[contenthash][ext]",
       },
     });
+
+    // Append ?dpl=<deploymentId> to chunk URLs loaded inside Web Workers.
+    // Next.js only patches __webpack_require__.u in the main-thread runtime;
+    // workers get their own runtime and miss the deployment ID, causing
+    // importScripts to hit the latest deployment where old chunks don't exist.
+    const deploymentId = process.env.NEXT_DEPLOYMENT_ID;
+    if (deploymentId) {
+      const { RuntimeModule, RuntimeGlobals } = webpack;
+
+      class WorkerDeploymentIdRuntimeModule extends RuntimeModule {
+        constructor() {
+          super("worker-deployment-id", RuntimeModule.STAGE_ATTACH);
+        }
+        generate() {
+          return [
+            "(function() {",
+            `  var orig = ${RuntimeGlobals.getChunkScriptFilename};`,
+            "  if (orig) {",
+            `    ${RuntimeGlobals.getChunkScriptFilename} = function(chunkId) {`,
+            `      return orig(chunkId) + ${JSON.stringify("?dpl=" + deploymentId)};`,
+            "    };",
+            "  }",
+            "})();",
+          ].join("\n");
+        }
+      }
+
+      config.plugins.push({
+        apply(compiler) {
+          compiler.hooks.thisCompilation.tap(
+            "WorkerDeploymentIdPlugin",
+            (compilation) => {
+              compilation.hooks.runtimeRequirementInTree
+                .for(RuntimeGlobals.ensureChunkHandlers)
+                .tap("WorkerDeploymentIdPlugin", (chunk) => {
+                  const opts = chunk.getEntryOptions();
+                  if (opts && opts.chunkLoading === "import-scripts") {
+                    compilation.addRuntimeModule(
+                      chunk,
+                      new WorkerDeploymentIdRuntimeModule(),
+                    );
+                  }
+                });
+            },
+          );
+        },
+      });
+    }
 
     return config;
   },
