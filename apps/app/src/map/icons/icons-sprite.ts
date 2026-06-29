@@ -1,4 +1,4 @@
-import triangle from "src/map/icons/triangle.png";
+import { triangleDataUri } from "src/map/icons/triangle";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import {
   buildCheckValveSvg,
@@ -88,7 +88,7 @@ export const buildIconUrls = (): IconUrl[] => {
   return [
     {
       id: "triangle",
-      url: triangle.src,
+      url: triangleDataUri,
       isSdf: true,
     },
     {
