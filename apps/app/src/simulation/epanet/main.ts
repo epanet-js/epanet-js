@@ -2,7 +2,7 @@ import * as Comlink from "comlink";
 import { lib as webWorker } from "src/lib/worker";
 import { EPSSimulationResult, ProgressCallback } from "./worker";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { enrichWorkerError } from "src/infra/worker";
 
 let cancelRequested = false;
@@ -41,16 +41,17 @@ export const runSimulation = withDebugInstrumentation(
       throw enrichWorkerError("simulation", e);
     }
     if (result.jsError) {
-      const message =
-        result.errorKind === "oom"
-          ? `Out of memory: ${result.jsError}`
-          : `Simulation JS error: ${result.jsError}`;
-      captureError(
-        new Error(message),
-        result.simulationStats
-          ? { Simulation: result.simulationStats }
-          : undefined,
-      );
+      const contexts = result.simulationStats
+        ? { Simulation: result.simulationStats }
+        : undefined;
+      if (result.errorKind === "oom") {
+        captureWarning(`Out of memory: ${result.jsError}`, undefined, contexts);
+      } else {
+        captureError(
+          new Error(`Simulation JS error: ${result.jsError}`),
+          contexts,
+        );
+      }
     }
     return result;
   },

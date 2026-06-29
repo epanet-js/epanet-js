@@ -12,7 +12,7 @@ import {
 import { SimulationMetadata } from "./simulation-metadata";
 import { Mock } from "vitest";
 import { patchEpanetLoader } from "src/__helpers__/epanet-loader";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 
 vi.mock("src/lib/worker", () => ({
   lib: {
@@ -22,6 +22,7 @@ vi.mock("src/lib/worker", () => ({
 
 vi.mock("src/infra/error-tracking", () => ({
   captureError: vi.fn(),
+  captureWarning: vi.fn(),
 }));
 
 describe("EPS simulation", () => {
@@ -32,6 +33,7 @@ describe("EPS simulation", () => {
       workerRunSimulation,
     );
     (captureError as unknown as Mock).mockClear();
+    (captureWarning as unknown as Mock).mockClear();
   });
 
   it("returns metadata with timestep count for single timestep", async () => {
@@ -258,7 +260,7 @@ describe("EPS simulation", () => {
     );
   });
 
-  it("reports an out-of-memory failure with sizing context", async () => {
+  it("reports an out-of-memory failure as a warning with sizing context", async () => {
     (lib.runSimulation as unknown as Mock).mockResolvedValue({
       status: "failure",
       report: "The simulation ran out of memory",
@@ -270,8 +272,11 @@ describe("EPS simulation", () => {
 
     await runSimulation("inp", "test-oom");
 
-    const [error, contexts] = (captureError as unknown as Mock).mock.calls[0];
-    expect(error.message).toBe("Out of memory: Array buffer allocation failed");
+    expect(captureError).not.toHaveBeenCalled();
+    const [message, error, contexts] = (captureWarning as unknown as Mock).mock
+      .calls[0];
+    expect(message).toBe("Out of memory: Array buffer allocation failed");
+    expect(error).toBeUndefined();
     expect(contexts).toEqual({
       Simulation: { nodeCount: 10, linkCount: 12, stepCount: 5 },
     });
@@ -287,6 +292,7 @@ describe("EPS simulation", () => {
 
     await runSimulation("inp", "test-js-error");
 
+    expect(captureWarning).not.toHaveBeenCalled();
     const [error, contexts] = (captureError as unknown as Mock).mock.calls[0];
     expect(error.message).toBe("Simulation JS error: something broke");
     expect(contexts).toBeUndefined();
