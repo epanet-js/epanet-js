@@ -270,6 +270,42 @@ Node 19 and Pipe 56`;
     expect(errorCollector.hasErrors()).toBe(false);
   });
 
+  it("does not flag rule numbers in input error messages as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Input Error 204: undefined link in following line of Rule 3:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Input Error 204: undefined link in following line of Rule 3:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("does not flag literal value numbers in error messages as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 217: invalid pattern value 5 for tank`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 217: invalid pattern value 5 for tank`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
   it("handles error messages with missing tank node correctly", () => {
     const assets = HydraulicModelBuilder.with().build().assets;
 
@@ -294,7 +330,8 @@ Node 19 and Pipe 56`;
       reason: "missing_asset",
       match: "Error 225: invalid lower/upper levels for tank node 42",
       id: "42",
-      regexp: "/Error \\d{3}:.*?\\b(\\d+)\\b/",
+      regexp:
+        "/Error \\d{3}:.*?(?<!(?:Rule|line|value|level|trial|trials|step|section)\\s)\\b(\\d+)\\b/",
     });
 
     expect(errors[1]).toMatchObject({

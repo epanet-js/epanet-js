@@ -20,7 +20,11 @@ const pipesSectionRowRegExp =
 const pumpsSectionRowRegExp =
   /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(?:HEAD|POWER|SPEED|PATTERN)\b/i;
 const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\s+(\d+)(?=\s+[a-z])/i;
-const errorMessageRegExp = /Error \d{3}:.*?\b(\d+)\b/;
+const nonAssetNumberPrefixes =
+  "Rule|line|value|level|trial|trials|step|section";
+const errorMessageRegExp = new RegExp(
+  `Error \\d{3}:.*?(?<!(?:${nonAssetNumberPrefixes})\\s)\\b(\\d+)\\b`,
+);
 const assetReferenceRegExp =
   /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\s+(\d+)/gi;
 
@@ -35,7 +39,7 @@ const sectionRowRegExps = [
   assetReferenceRegExp,
 ];
 
-const errorLineRegExp = /^\s*Error \d{3}:/;
+const errorLineRegExp = /^\s*(?:Input\s+)?Error \d{3}:/;
 const errorLineRegExps = [errorMessageRegExp, assetReferenceRegExp];
 
 export const processReportWithSlots = (
