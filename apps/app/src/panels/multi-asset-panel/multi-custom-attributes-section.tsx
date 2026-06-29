@@ -44,7 +44,6 @@ export function MultiCustomAttributesSection({
       transact(
         changeCustomAttributes(
           assetIds.map((assetId) => ({
-            assetType,
             assetId,
             attributeId,
             value,
@@ -52,7 +51,7 @@ export function MultiCustomAttributesSection({
         ),
       );
     },
-    [transact, assetType, assetIds],
+    [transact, assetIds],
   );
 
   if (!isCustomAttributesOn) return null;
@@ -66,7 +65,6 @@ export function MultiCustomAttributesSection({
         <MultiCustomAttributeRow
           key={attribute.id}
           attribute={attribute}
-          assetType={assetType}
           assetIds={assetIds}
           readonly={readonly}
           onChange={handleChange}
@@ -79,14 +77,12 @@ export function MultiCustomAttributesSection({
 
 const MultiCustomAttributeRow = ({
   attribute,
-  assetType,
   assetIds,
   readonly,
   onChange,
   onSelectAssets,
 }: {
   attribute: CustomAttribute;
-  assetType: CustomAttributeAssetType;
   assetIds: number[];
   readonly: boolean;
   onChange: (
@@ -101,10 +97,7 @@ const MultiCustomAttributeRow = ({
 
   const valuesById = assetIds.map(
     (id) =>
-      [id, getValue(data, assetType, id, attribute.id)] as [
-        number,
-        CustomAttributeValue,
-      ],
+      [id, getValue(data, id, attribute.id)] as [number, CustomAttributeValue],
   );
   const propertyStats = buildCustomAttributeStats(
     attribute,

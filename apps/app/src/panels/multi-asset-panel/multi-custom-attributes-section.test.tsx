@@ -144,8 +144,8 @@ describe("MultiCustomAttributesSection", () => {
 
   it("shows the shared value when all selected assets match", () => {
     let data = emptyCustomAttributesData();
-    data = setValue(data, "junction", IDS.J1, "ca-1", 42);
-    data = setValue(data, "junction", IDS.J2, "ca-1", 42);
+    data = setValue(data, IDS.J1, "ca-1", 42);
+    data = setValue(data, IDS.J2, "ca-1", 42);
     const store = setInitialState({ data });
     withNumberAttribute(store);
 
@@ -156,8 +156,8 @@ describe("MultiCustomAttributesSection", () => {
 
   it("shows a mixed placeholder and stats when values differ", async () => {
     let data = emptyCustomAttributesData();
-    data = setValue(data, "junction", IDS.J1, "ca-1", 10);
-    data = setValue(data, "junction", IDS.J2, "ca-1", 20);
+    data = setValue(data, IDS.J1, "ca-1", 10);
+    data = setValue(data, IDS.J2, "ca-1", 20);
     const store = setInitialState({ data });
     withNumberAttribute(store);
 
@@ -187,8 +187,8 @@ describe("MultiCustomAttributesSection", () => {
 
     await waitFor(() => {
       const data = store.get(customAttributesDataAtom);
-      expect(getValue(data, "junction", IDS.J1, "ca-1")).toBe(99);
-      expect(getValue(data, "junction", IDS.J2, "ca-1")).toBe(99);
+      expect(getValue(data, IDS.J1, "ca-1")).toBe(99);
+      expect(getValue(data, IDS.J2, "ca-1")).toBe(99);
     });
   });
 });

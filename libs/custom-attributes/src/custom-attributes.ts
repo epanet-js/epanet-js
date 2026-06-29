@@ -33,7 +33,7 @@ export class CustomAttributes {
       id: attribute.id,
       type: attribute.type,
       label: attribute.label,
-      value: getValue(this.data, type, id, attribute.id),
+      value: getValue(this.data, id, attribute.id),
     }));
   }
 }

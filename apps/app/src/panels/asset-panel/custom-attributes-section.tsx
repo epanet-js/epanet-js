@@ -31,7 +31,6 @@ export const CustomAttributesSection = ({
       transact(
         changeCustomAttributes([
           {
-            assetType: type,
             assetId: id,
             attributeId,
             value,
@@ -39,7 +38,7 @@ export const CustomAttributesSection = ({
         ]),
       );
     },
-    [transact, type, id],
+    [transact, id],
   );
 
   if (!isCustomAttributesOn) return null;

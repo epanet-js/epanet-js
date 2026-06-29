@@ -16,20 +16,13 @@ export const applyMomentToCustomAttributes = (
   const reverseValues: CustomAttributeValueChange[] = [];
 
   for (const change of moment.putValues) {
-    const { assetType, assetId, attributeId } = change;
+    const { assetId, attributeId } = change;
     reverseValues.push({
-      assetType,
       assetId,
       attributeId,
-      value: getValue(nextData, assetType, assetId, attributeId),
+      value: getValue(nextData, assetId, attributeId),
     });
-    nextData = setValue(
-      nextData,
-      assetType,
-      assetId,
-      attributeId,
-      change.value,
-    );
+    nextData = setValue(nextData, assetId, attributeId, change.value);
   }
 
   return { data: nextData, reverse: { putValues: reverseValues } };

@@ -34,8 +34,8 @@ describe("CustomAttributes", () => {
       [attr("ca-1", "Owner", "text"), attr("ca-2", "Age", "number")],
     );
     let data = emptyCustomAttributesData();
-    data = setValue(data, "junction", 7, "ca-1", "Alice");
-    data = setValue(data, "junction", 7, "ca-2", 42);
+    data = setValue(data, 7, "ca-1", "Alice");
+    data = setValue(data, 7, "ca-2", 42);
     const customAttributes = new CustomAttributes(definition, data);
 
     expect(customAttributes.getAttributesFor(7, "junction")).toEqual([
