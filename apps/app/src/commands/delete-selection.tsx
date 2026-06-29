@@ -1,6 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback } from "react";
-import { Asset } from "src/hydraulic-model";
 import {
   deleteAssets,
   mergeMoments,
@@ -38,11 +37,15 @@ export const useDeleteSelection = () => {
 
       clearSelection();
 
-      if (assetIds.length === 1 && customerPointIds.length === 0) {
+      const singleAsset =
+        assetIds.length === 1 && customerPointIds.length === 0
+          ? hydraulicModel.assets.get(assetIds[0])
+          : undefined;
+      if (singleAsset) {
         userTracking.capture({
           name: "asset.deleted",
           source,
-          type: (hydraulicModel.assets.get(assetIds[0]) as Asset).type,
+          type: singleAsset.type,
         });
       } else if (assetIds.length > 0) {
         userTracking.capture({
