@@ -141,7 +141,7 @@ export function MultiValueRow({
   );
 }
 
-const StatsPopoverButton = ({
+export const StatsPopoverButton = ({
   propertyStats,
   label,
   onSelectAssets,

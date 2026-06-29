@@ -8,7 +8,7 @@ import type {
 } from "@epanet-js/custom-attributes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { changeCustomAttribute } from "src/lib/custom-attributes/change-custom-attribute";
+import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
 import { customAttributesAtom } from "src/state/custom-attributes";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
@@ -29,12 +29,14 @@ export const CustomAttributesSection = ({
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
       transact(
-        changeCustomAttribute({
-          assetType: type,
-          assetId: id,
-          attributeId,
-          value,
-        }),
+        changeCustomAttributes([
+          {
+            assetType: type,
+            assetId: id,
+            attributeId,
+            value,
+          },
+        ]),
       );
     },
     [transact, type, id],
