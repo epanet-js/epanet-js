@@ -231,6 +231,33 @@ describe("Parse inp with", () => {
     expect(projectSettings.headlossFormula).toEqual("D-W");
   });
 
+  it("reads headloss formula regardless of capitalization", () => {
+    const inp = `
+    [OPTIONS]
+    Units\tLPS
+    Headloss\td-w
+    `;
+
+    const { projectSettings } = parseInp(inp);
+
+    expect(projectSettings.headlossFormula).toEqual("D-W");
+    expect(projectSettings.defaults.pipe.roughness).toEqual(0.1);
+  });
+
+  it("falls back to H-W and reports an issue when the headloss formula is unrecognized", () => {
+    const inp = `
+    [OPTIONS]
+    Units\tLPS
+    Headloss\tNOPE
+    `;
+
+    const { projectSettings, issues } = parseInp(inp);
+
+    expect(projectSettings.headlossFormula).toEqual("H-W");
+    expect(projectSettings.defaults.pipe.roughness).toEqual(130);
+    expect(issues?.nonDefaultOptions?.get("HEADLOSS")).toEqual("H-W");
+  });
+
   it("says when inp contains unsupported sections", () => {
     const inp = `
     [LEAKAGE]

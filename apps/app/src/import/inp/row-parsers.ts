@@ -16,6 +16,7 @@ import {
   tankMixingModels,
   ChemicalSourceType,
   chemicalSourceTypes,
+  headlossFormulas,
 } from "@epanet-js/hydraulic-model";
 import { ParseInpOptions } from "./parse-inp";
 
@@ -730,7 +731,15 @@ export const parseOption: RowParser = ({
   }
 
   if (name === "HEADLOSS") {
-    inpData.options.headlossFormula = value as HeadlossFormula;
+    if (
+      typeof value === "string" &&
+      (headlossFormulas as readonly string[]).includes(value)
+    ) {
+      inpData.options.headlossFormula = value as HeadlossFormula;
+    } else {
+      inpData.options.headlossFormula = "H-W";
+      issues.addUsedOption(name, "H-W");
+    }
     return;
   }
 
