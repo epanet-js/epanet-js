@@ -16,6 +16,17 @@ Sentry.init({
     if (privacySettings?.skipErrorReporting === true) return null;
 
     const error = hint?.originalException;
+
+    const isPosthogNetworkError =
+      error instanceof Error &&
+      error.message === "Failed to fetch" &&
+      event.exception?.values?.some((value) =>
+        value.stacktrace?.frames?.some((frame) =>
+          frame.filename?.includes("posthog-js"),
+        ),
+      );
+    if (isPosthogNetworkError) return null;
+
     if (
       error instanceof Error &&
       "details" in error &&
