@@ -3,11 +3,14 @@ import { Plan } from "src/lib/account-plans";
 
 const isDebugMode = (): boolean => process.env.NODE_ENV === "development";
 
-export const captureError = (error: Error) => {
+export const captureError = (
+  error: Error,
+  contexts?: Record<string, Record<string, unknown>>,
+) => {
   // eslint-disable-next-line no-console
   if (isDebugMode()) console.error(error);
 
-  Sentry.captureException(error);
+  Sentry.captureException(error, contexts ? { contexts } : undefined);
 };
 
 export const captureWarning = (

@@ -41,7 +41,16 @@ export const runSimulation = withDebugInstrumentation(
       throw enrichWorkerError("simulation", e);
     }
     if (result.jsError) {
-      captureError(new Error(`Simulation JS error: ${result.jsError}`));
+      const message =
+        result.errorKind === "oom"
+          ? `Out of memory: ${result.jsError}`
+          : `Simulation JS error: ${result.jsError}`;
+      captureError(
+        new Error(message),
+        result.simulationStats
+          ? { Simulation: result.simulationStats }
+          : undefined,
+      );
     }
     return result;
   },

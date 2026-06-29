@@ -24,6 +24,8 @@ export type EPSSimulationResult = {
   report: string;
   metadata: ArrayBuffer;
   jsError?: string;
+  errorKind?: "oom";
+  simulationStats?: { nodeCount: number; linkCount: number; stepCount: number };
 };
 
 export type SimulationProgress = {
@@ -56,9 +58,13 @@ export const runSimulation = async (
   ws.writeFile("net.inp", inp);
 
   let timestepCount = 0;
+  let nodeCount = 0;
+  let linkCount = 0;
   let stopped = false;
   try {
     model.open("net.inp", "report.rpt", "results.out");
+    nodeCount = model.getCount(CountType.NodeCount);
+    linkCount = model.getCount(CountType.LinkCount);
 
     const missingDataAccumulator = new MissingSimulationDataAccumulator(model);
     const totalDuration = model.getTimeParameter(TimeParameter.Duration);
@@ -153,17 +159,30 @@ export const runSimulation = async (
     const isWasmMemoryError =
       error instanceof WebAssembly.RuntimeError ||
       errorMessage.includes("memory access out of bounds");
+    const isJsHeapOom =
+      error instanceof RangeError &&
+      errorMessage.includes("Array buffer allocation failed");
+    const isOutOfMemory = isWasmMemoryError || isJsHeapOom;
     const isEpanetError = /EPANET Error|^Error \d+/.test(errorMessage);
 
-    const displayMessage = isWasmMemoryError
+    const displayMessage = isOutOfMemory
       ? `The simulation ran out of memory at timestep ${timestepCount}. The network may be too large for the current engine. (${errorMessage})`
       : errorMessage;
+    const oomReason = isWasmMemoryError
+      ? "WASM memory access out of bounds"
+      : "Array buffer allocation failed";
 
     return {
       status: "failure",
       report: report.length > 0 ? curateReport(report) : displayMessage,
       metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
-      jsError: isEpanetError ? undefined : displayMessage,
+      jsError: isEpanetError
+        ? undefined
+        : isOutOfMemory
+          ? oomReason
+          : displayMessage,
+      errorKind: isOutOfMemory ? "oom" : undefined,
+      simulationStats: { nodeCount, linkCount, stepCount: timestepCount },
     };
   }
 };
