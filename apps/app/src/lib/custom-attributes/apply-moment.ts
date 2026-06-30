@@ -1,4 +1,5 @@
 import {
+  type CustomAttributeId,
   type CustomAttributesData,
   getValue,
   setValue,
@@ -11,12 +12,15 @@ import type {
 export const applyMomentToCustomAttributes = (
   data: CustomAttributesData,
   moment: CustomAttributesMoment,
+  validAttributeIds: Set<CustomAttributeId>,
 ): { data: CustomAttributesData; reverse: CustomAttributesMoment } => {
   let nextData = data;
   const reverseValues: CustomAttributeValueChange[] = [];
 
   for (const change of moment.putValues) {
     const { assetId, attributeId } = change;
+    if (!validAttributeIds.has(attributeId)) continue;
+
     reverseValues.push({
       assetId,
       attributeId,

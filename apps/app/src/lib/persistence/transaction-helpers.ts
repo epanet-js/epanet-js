@@ -13,7 +13,11 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import { type MomentPointer } from "src/state/map";
 import { branchStateAtom } from "src/state/branch-state";
-import { customAttributesDataAtom } from "src/state/custom-attributes";
+import {
+  customAttributesDataAtom,
+  customAttributesDefinitionAtom,
+} from "src/state/custom-attributes";
+import { getAttributeIds } from "@epanet-js/custom-attributes";
 import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
 import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
@@ -102,9 +106,13 @@ export function applyMoment(
   });
 
   if (forwardMoment.customAttributes) {
+    const validAttributeIds = getAttributeIds(
+      get(customAttributesDefinitionAtom),
+    );
     const { data, reverse } = applyMomentToCustomAttributes(
       get(customAttributesDataAtom),
       forwardMoment.customAttributes,
+      validAttributeIds,
     );
     set(customAttributesDataAtom, data);
     return { ...reverseMoment, customAttributes: reverse };

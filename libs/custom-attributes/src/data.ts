@@ -35,3 +35,29 @@ export const setValue = (
 
   return next;
 };
+
+export const removeAttributes = (
+  data: CustomAttributesData,
+  attributeIds: Set<CustomAttributeId>,
+): CustomAttributesData => {
+  if (attributeIds.size === 0) return data;
+
+  let changed = false;
+  const next: CustomAttributesData = new Map();
+
+  for (const [assetId, values] of data) {
+    const kept: CustomAttributeValues = new Map();
+    for (const [attributeId, value] of values) {
+      if (attributeIds.has(attributeId)) {
+        changed = true;
+      } else {
+        kept.set(attributeId, value);
+      }
+    }
+    if (kept.size > 0) {
+      next.set(assetId, kept);
+    }
+  }
+
+  return changed ? next : data;
+};

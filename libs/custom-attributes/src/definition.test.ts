@@ -4,6 +4,7 @@ import {
   CustomAttributesDefinition,
   duplicateLabelKeys,
   emptyCustomAttributesDefinition,
+  getAttributeIds,
   getAttributes,
   hasDuplicateLabel,
   hasTooLongLabel,
@@ -132,5 +133,24 @@ describe("duplicateLabelKeys", () => {
     ]);
 
     expect([...keys]).toEqual(["diameter"]);
+  });
+});
+
+describe("getAttributeIds", () => {
+  it("returns every attribute id flattened across asset types", () => {
+    const definition = withAttributes({
+      pipe: [attr("ca-1", "Diameter"), attr("ca-2", "Material")],
+      junction: [attr("ca-3", "Elevation")],
+    });
+
+    expect(getAttributeIds(definition)).toEqual(
+      new Set(["ca-1", "ca-2", "ca-3"]),
+    );
+  });
+
+  it("returns an empty set for an empty definition", () => {
+    expect(getAttributeIds(emptyCustomAttributesDefinition())).toEqual(
+      new Set(),
+    );
   });
 });

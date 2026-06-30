@@ -63,6 +63,18 @@ export const deepCloneCustomAttributes = (
   return next;
 };
 
+export const getAttributeIds = (
+  definition: CustomAttributesDefinition,
+): Set<CustomAttributeId> => {
+  const ids = new Set<CustomAttributeId>();
+  for (const byId of definition.values()) {
+    for (const id of byId.keys()) {
+      ids.add(id);
+    }
+  }
+  return ids;
+};
+
 export const totalAttributesCount = (
   definition: CustomAttributesDefinition,
 ): number => {

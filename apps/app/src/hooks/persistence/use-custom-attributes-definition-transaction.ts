@@ -1,15 +1,41 @@
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
-import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
+import { useAtomCallback } from "jotai/utils";
+import {
+  type CustomAttributesDefinition,
+  getAttributeIds,
+  removeAttributes,
+} from "@epanet-js/custom-attributes";
+import {
+  customAttributesDataAtom,
+  customAttributesDefinitionAtom,
+} from "src/state/custom-attributes";
 import { dialogAtom } from "src/state/dialog";
 import { saveCustomAttributes } from "src/lib/db";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import { captureError } from "src/infra/error-tracking";
 
 export const useCustomAttributesDefinitionTransaction = () => {
-  const setCustomAttributes = useSetAtom(customAttributesDefinitionAtom);
   const setDialog = useSetAtom(dialogAtom);
+
+  const apply = useAtomCallback(
+    useCallback((get, set, next: CustomAttributesDefinition) => {
+      const previousIds = getAttributeIds(get(customAttributesDefinitionAtom));
+      const nextIds = getAttributeIds(next);
+      const removedIds = new Set(
+        [...previousIds].filter((id) => !nextIds.has(id)),
+      );
+
+      set(customAttributesDefinitionAtom, next);
+
+      if (removedIds.size > 0) {
+        set(
+          customAttributesDataAtom,
+          removeAttributes(get(customAttributesDataAtom), removedIds),
+        );
+      }
+    }, []),
+  );
 
   const transact = useCallback(
     async (next: CustomAttributesDefinition): Promise<boolean> => {
@@ -21,13 +47,13 @@ export const useCustomAttributesDefinitionTransaction = () => {
         return false;
       }
 
-      setCustomAttributes(next);
+      apply(next);
 
       await saveCustomAttributes(next);
 
       return true;
     },
-    [setCustomAttributes, setDialog],
+    [apply, setDialog],
   );
 
   return { transact };
