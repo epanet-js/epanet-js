@@ -326,6 +326,26 @@ describe("PipeLibraryDialog", () => {
     expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 
+  it("highlights cells that fail validation", () => {
+    const store = setInitialState();
+    store.set(pipeMaterialsAtom, [
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 10, roughness: null },
+        ],
+      },
+    ]);
+    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    renderDialog(store);
+
+    expect(getCell(1, 1)).toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(0, 0)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
+  });
+
   it("disables apply roughness when a material fails validation", async () => {
     const user = setupUser();
     const store = setInitialState();

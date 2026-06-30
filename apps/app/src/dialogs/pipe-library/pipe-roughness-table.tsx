@@ -10,7 +10,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, AddIcon } from "src/icons";
-import type { RoughnessEntry } from "@epanet-js/pipe-library";
+import { validateEntry, type RoughnessEntry } from "@epanet-js/pipe-library";
 
 type PipeRoughnessTableProps = {
   entries: RoughnessEntry[];
@@ -27,6 +27,40 @@ export const PipeRoughnessTable = ({
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const gridRef = useRef<DataGridRef>(null);
+
+  const errorCells = useMemo(() => {
+    const set = new Set<string>();
+
+    for (let i = 0; i < entries.length; i++) {
+      for (const err of validateEntry(entries[i])) {
+        set.add(`${i}:${err.field}`);
+      }
+    }
+
+    const ageIndices = new Map<number, number[]>();
+    for (let i = 0; i < entries.length; i++) {
+      const age = entries[i].age;
+      if (age !== null) {
+        const list = ageIndices.get(age);
+        if (list) list.push(i);
+        else ageIndices.set(age, [i]);
+      }
+    }
+    for (const indices of ageIndices.values()) {
+      if (indices.length > 1) {
+        for (const idx of indices) set.add(`${idx}:age`);
+      }
+    }
+
+    return set;
+  }, [entries]);
+
+  const cellHasWarning = useCallback(
+    (rowIndex: number, columnId: string) => {
+      return errorCells.has(`${rowIndex}:${columnId}`);
+    },
+    [errorCells],
+  );
 
   const rowData = useMemo(
     () => (entries.length === 0 ? [{ ...DEFAULT_ROW }] : entries),
@@ -192,6 +226,7 @@ export const PipeRoughnessTable = ({
         gutterColumn="numbered"
         variant="spreadsheet"
         autoAddNewRows
+        cellHasWarning={cellHasWarning}
       />
     </div>
   );
