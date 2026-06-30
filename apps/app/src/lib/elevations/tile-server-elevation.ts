@@ -217,7 +217,7 @@ const fetchTileFromUrl = withDebugInstrumentation(
   {
     name: "FETCH_ELEVATION:FETCH_TILE",
     maxDurationMs: 500,
-    maxCalls: 5,
+    maxCalls: 7,
     callsIntervalMs: 1000,
   },
 );
