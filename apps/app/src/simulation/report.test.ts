@@ -306,6 +306,24 @@ Node 19 and Pipe 56`;
     expect(errorCollector.hasErrors()).toBe(false);
   });
 
+  it("does not flag undefined curve numbers in error messages as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 206: undefined curve 0 in [VALVES] section:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 206: undefined curve 0 in [VALVES] section:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
   it("handles error messages with missing tank node correctly", () => {
     const assets = HydraulicModelBuilder.with().build().assets;
 
@@ -331,7 +349,7 @@ Node 19 and Pipe 56`;
       match: "Error 225: invalid lower/upper levels for tank node 42",
       id: "42",
       regexp:
-        "/Error \\d{3}:.*?(?<!(?:Rule|line|value|level|trial|trials|step|section)\\s)\\b(\\d+)\\b/",
+        "/Error \\d{3}:.*?(?<!(?:Rule|line|value|level|trial|trials|step|section|curve)\\s)\\b(\\d+)\\b/",
     });
 
     expect(errors[1]).toMatchObject({
