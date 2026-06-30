@@ -10,6 +10,7 @@ import m0009 from "./0009_create_controls_table.sql?raw";
 import m0010 from "./0010_lowercase_enums.sql?raw";
 import m0011 from "./0011_pipe_library.sql?raw";
 import m0012 from "./0012_custom_attributes_definition.sql?raw";
+import m0013 from "./0013_custom_attributes_data.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -28,6 +29,7 @@ export const migrations: Migration[] = [
   m0010,
   m0011,
   m0012,
+  m0013,
 ];
 
 export const APP_VERSION = migrations.length;
