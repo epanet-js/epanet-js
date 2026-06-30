@@ -188,7 +188,13 @@ export const PipeLibraryDialog = () => {
 
   const handleApplyRoughness = useCallback(() => {
     const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
-    if (moment.patchAssetsAttributes!.length === 0) return;
+    if (moment.patchAssetsAttributes!.length === 0) {
+      notify({
+        variant: "default",
+        title: translate("pipeLibrary.noAssetsChanged"),
+      });
+      return;
+    }
     transact(moment);
     userTracking.capture({
       name: "pipeLibrary.roughnessApplied",
