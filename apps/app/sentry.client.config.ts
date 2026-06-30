@@ -11,6 +11,7 @@ Sentry.init({
   tracesSampleRate: 1,
   debug: false,
   tunnel,
+  denyUrls: [/chrome-extension:\/\//, /^app:\/\/\/scripts\/inpage\.js/],
   beforeSend: (event, hint) => {
     const privacySettings = readRawPrivacySettings();
     if (privacySettings?.skipErrorReporting === true) return null;
