@@ -276,21 +276,24 @@ const ModelAttributesValidationGroupList = ({
   );
 
   return (
-    <div
-      ref={containerRef}
-      className="flex-auto overflow-y-auto placemark-scrollbar px-1"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
+    <div className="flex-auto flex flex-col min-h-0">
       <ToolDescription checkType={CheckType.modelAttributesValidation} />
-      {groups.map((group) => (
-        <ModelAttributesValidationGroupRow
-          key={group.ruleId}
-          group={group}
-          isSelected={selectedRuleId === group.ruleId}
-          onClick={() => onOpen(group)}
-        />
-      ))}
+      <div
+        ref={containerRef}
+        className="flex-auto overflow-y-auto placemark-scrollbar px-1"
+        style={{ contain: "strict" }}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
+        {groups.map((group) => (
+          <ModelAttributesValidationGroupRow
+            key={group.ruleId}
+            group={group}
+            isSelected={selectedRuleId === group.ruleId}
+            onClick={() => onOpen(group)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -358,18 +361,19 @@ const ModelAttributesValidationLockedList = ({
         feature="modelAttributesValidation"
         className="flex-auto flex flex-col min-h-0"
       >
-        <div className="flex-auto overflow-y-auto placemark-scrollbar">
-          <ToolDescription checkType={CheckType.modelAttributesValidation} />
-          <div className="px-1">
-            {groups.map((group) => (
-              <ModelAttributesValidationGroupRow
-                key={group.ruleId}
-                group={group}
-                isSelected={false}
-                locked
-              />
-            ))}
-          </div>
+        <ToolDescription checkType={CheckType.modelAttributesValidation} />
+        <div
+          className="flex-auto overflow-y-auto placemark-scrollbar px-1"
+          style={{ contain: "strict" }}
+        >
+          {groups.map((group) => (
+            <ModelAttributesValidationGroupRow
+              key={group.ruleId}
+              group={group}
+              isSelected={false}
+              locked
+            />
+          ))}
         </div>
       </PaywallFade>
       <div className="absolute inset-x-0 bottom-0">
