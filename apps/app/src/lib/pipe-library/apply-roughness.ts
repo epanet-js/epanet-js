@@ -26,13 +26,19 @@ export const applyRoughnessMoment = (
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
     if (pipe.roughness != null) continue;
-    if (!pipe.material || !pipe.year) continue;
+    if (!pipe.material) continue;
 
     const entries = materialMap.get(pipe.material);
     if (!entries) continue;
 
-    const pipeAge = Math.max(0, currentYear - pipe.year);
-    const roughness = findRoughness(entries, pipeAge);
+    let roughness: number | null;
+    if (entries.length === 1) {
+      roughness = entries[0].roughness;
+    } else {
+      if (!pipe.year) continue;
+      const pipeAge = Math.max(0, currentYear - pipe.year);
+      roughness = findRoughness(entries, pipeAge);
+    }
     if (roughness == null) continue;
 
     let group = roughnessGroups.get(roughness);

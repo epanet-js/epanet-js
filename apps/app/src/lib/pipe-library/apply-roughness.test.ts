@@ -77,15 +77,34 @@ describe("applyRoughnessMoment", () => {
     expect(moment.patchAssetsAttributes).toEqual([]);
   });
 
-  it("skips pipes without a year", () => {
+  it("skips pipes without a year when material has multiple entries", () => {
     const materials: PipeMaterial[] = [
-      { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
+      {
+        label: "Cast Iron",
+        entries: [
+          { age: 0, roughness: 100 },
+          { age: 10, roughness: 120 },
+        ],
+      },
     ];
     const model = makeModel(makePipe(1, { material: "Cast Iron" }));
 
     const moment = applyRoughnessMoment(model, materials);
 
     expect(moment.patchAssetsAttributes).toEqual([]);
+  });
+
+  it("applies roughness to pipes without a year when material has a single entry", () => {
+    const materials: PipeMaterial[] = [
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
+    ];
+    const model = makeModel(makePipe(1, { material: "Cast Iron" }));
+
+    const moment = applyRoughnessMoment(model, materials);
+
+    expect(moment.patchAssetsAttributes).toEqual([
+      { id: 1, type: "pipe", properties: { roughness: 120 } },
+    ]);
   });
 
   it("skips pipes whose material is not in the library", () => {
