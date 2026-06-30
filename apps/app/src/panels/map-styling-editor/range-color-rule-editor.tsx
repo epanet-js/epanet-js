@@ -437,10 +437,9 @@ const IntervalsEditor = ({
                 label={`break ${i}`}
                 isNullable={true}
                 readOnly={false}
-                positiveOnly={Boolean(absValues)}
                 displayValue={localizeDecimal(breakValue)}
                 onChangeValue={(value) => {
-                  onChangeBreak(i, value);
+                  onChangeBreak(i, absValues ? Math.abs(value) : value);
                 }}
               />
               {canDelete ? (

@@ -63,10 +63,12 @@ import type {
 } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import {
-  isValidInstallationYear,
   isGreaterThanZero,
-} from "src/hydraulic-model/property-validators";
+  isZeroOrGreater,
+  isWithinUnitRange,
+} from "src/components/form/numeric-input-utils";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
@@ -536,7 +538,7 @@ const JunctionEditor = ({
             junction.emitterCoefficient,
           )}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           readOnly={readonly}
         />
       </SectionWrapper>
@@ -598,7 +600,7 @@ const JunctionEditor = ({
           }
           comparison={getComparison("initialQuality", junction.initialQuality)}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           readOnly={readonly}
         />
         <ChemicalSourceEditor
@@ -838,7 +840,6 @@ const PipeEditor = ({
         <QuantityRow
           name="diameter"
           value={pipe.diameter}
-          positiveOnly={true}
           validate={isGreaterThanZero}
           unit={units.diameter}
           comparison={getComparison("diameter", pipe.diameter)}
@@ -848,7 +849,6 @@ const PipeEditor = ({
         <QuantityRow
           name="length"
           value={pipe.length}
-          positiveOnly={true}
           validate={isGreaterThanZero}
           unit={units.length}
           comparison={getComparison("length", pipe.length)}
@@ -866,7 +866,6 @@ const PipeEditor = ({
           name="year"
           displayName={translate("yearOfInstallation")}
           value={pipe.year}
-          positiveOnly={true}
           isOptional
           comparison={getComparison("year", pipe.year ?? null)}
           onChange={onPropertyChange}
@@ -877,7 +876,6 @@ const PipeEditor = ({
         <QuantityRow
           name="roughness"
           value={pipe.roughness}
-          positiveOnly={true}
           unit={units.roughness}
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
@@ -888,7 +886,7 @@ const PipeEditor = ({
         <QuantityRow
           name="minorLoss"
           value={pipe.minorLoss}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           onChange={onPropertyChange}
@@ -1123,7 +1121,7 @@ const ReservoirEditor = ({
           }
           comparison={getComparison("initialQuality", reservoir.initialQuality)}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           readOnly={readonly}
         />
         <ChemicalSourceEditor
@@ -1306,7 +1304,7 @@ const TankEditor = ({
           unit={units.initialLevel}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           readOnly={readonly}
           isNullable={allowsNullValues}
         />
@@ -1341,7 +1339,7 @@ const TankEditor = ({
           }
           comparison={getComparison("initialQuality", tank.initialQuality)}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           readOnly={readonly}
         />
         <QuantityRow
@@ -1379,9 +1377,8 @@ const TankEditor = ({
               value={tank.mixingFraction}
               unit={null}
               onChange={onPropertyChange}
-              positiveOnly={true}
+              validate={isWithinUnitRange}
               readOnly={readonly}
-              validate={isGreaterThanZero}
             />
           </NestedSection>
         )}
@@ -1718,7 +1715,6 @@ const TankDefinitionField = ({
               value={tank.diameter}
               unit={units.tankDiameter}
               onChange={onPropertyChange}
-              positiveOnly={true}
               validate={isGreaterThanZero}
               readOnly={readOnly}
               isNullable={allowsNullValues}
@@ -1731,7 +1727,6 @@ const TankDefinitionField = ({
                   {
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
-                    positiveOnly: true,
                     isNullable: false,
                     validate: isGreaterThanZero,
                     readOnly,
@@ -1748,7 +1743,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    positiveOnly: true,
+                    validate: isZeroOrGreater,
                     isNullable: false,
                     readOnly,
                     handler: (v) =>
@@ -1757,7 +1752,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minVolume"),
                     value: tank.minVolume,
-                    positiveOnly: true,
+                    validate: isZeroOrGreater,
                     isNullable: false,
                     readOnly,
                     handler: (v) =>
@@ -1775,7 +1770,6 @@ const TankDefinitionField = ({
               value={tank.area}
               unit={units.tankArea}
               onChange={handleAreaChange}
-              positiveOnly={true}
               readOnly={readOnly}
               validate={isGreaterThanZero}
             />
@@ -1787,7 +1781,6 @@ const TankDefinitionField = ({
                   {
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
-                    positiveOnly: true,
                     isNullable: false,
                     validate: isGreaterThanZero,
                     readOnly,
@@ -1804,7 +1797,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    positiveOnly: true,
+                    validate: isZeroOrGreater,
                     isNullable: false,
                     readOnly,
                     handler: (v) =>
@@ -1813,7 +1806,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minVolume"),
                     value: tank.minVolume,
-                    positiveOnly: true,
+                    validate: isZeroOrGreater,
                     isNullable: false,
                     readOnly,
                     handler: (v) =>
@@ -1832,7 +1825,6 @@ const TankDefinitionField = ({
                 {
                   label: translate("maxLevel"),
                   value: tank.maxLevel,
-                  positiveOnly: true,
                   isNullable: false,
                   validate: isGreaterThanZero,
                   readOnly,
@@ -1841,7 +1833,6 @@ const TankDefinitionField = ({
                 {
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
-                  positiveOnly: true,
                   isNullable: false,
                   validate: isGreaterThanZero,
                   readOnly,
@@ -1852,7 +1843,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("minLevel"),
                   value: tank.minLevel,
-                  positiveOnly: true,
+                  validate: isZeroOrGreater,
                   isNullable: false,
                   readOnly,
                   handler: (v) => handleMinLevelChange("minLevel", v),
@@ -1860,7 +1851,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("minVolume"),
                   value: tank.minVolume,
-                  positiveOnly: true,
+                  validate: isZeroOrGreater,
                   isNullable: false,
                   readOnly,
                   handler: (v) => handleMinVolumeChange("minVolume", v),
@@ -2117,7 +2108,6 @@ const ValveEditor = ({
         <QuantityRow
           name="diameter"
           value={valve.diameter}
-          positiveOnly={true}
           unit={units.diameter}
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
@@ -2128,7 +2118,7 @@ const ValveEditor = ({
         <QuantityRow
           name="minorLoss"
           value={valve.minorLoss}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           unit={units.minorLoss}
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
@@ -2361,6 +2351,7 @@ const PumpEditor = ({
         <QuantityRow
           name="initialSpeed"
           value={pump.speed}
+          validate={isZeroOrGreater}
           unit={units.speed}
           comparison={getComparison("speed", pump.speed)}
           onChange={(_, newValue, oldValue) =>
@@ -2417,7 +2408,7 @@ const PumpEditor = ({
           unit={null}
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
-          positiveOnly={true}
+          validate={isZeroOrGreater}
           isOptional
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
@@ -2918,7 +2909,7 @@ const ChemicalSourceEditor = ({
             value={typedNode.chemicalSourceStrength}
             unit={null}
             onChange={onPropertyChange}
-            positiveOnly={true}
+            validate={isZeroOrGreater}
             isOptional
             placeholder={localizeDecimal(0)}
             readOnly={readOnly}

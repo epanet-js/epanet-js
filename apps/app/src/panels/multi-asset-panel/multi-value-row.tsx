@@ -265,8 +265,11 @@ const EditableField = ({
         label={label}
         displayValue={displayValue}
         placeholder={quantityPlaceholder}
-        positiveOnly={config.positiveOnly}
         isNullable={Boolean(config.isNullable || config.isOptional)}
+        commitInvalidValues={
+          config.commitInvalidValues ??
+          Boolean(config.isNullable || config.isOptional)
+        }
         validate={config.validate}
         disabled={readonly}
         styleOptions={{}}

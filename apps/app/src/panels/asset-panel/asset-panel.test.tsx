@@ -142,6 +142,31 @@ describe("AssetPanel", () => {
       const updated = store.get(stagingModelDerivedAtom);
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBe(120);
     });
+    it("blocks a negative value when validation is disabled (commit reverts)", async () => {
+      stubFeatureOff("FLAG_NULL_VALUES");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { minorLoss: 5 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: loss coeff/i,
+      });
+      await user.clear(field);
+      await user.keyboard("-3{Enter}");
+
+      // `validate` supersedes the legacy positiveOnly block: the negative fails
+      // validation, so the commit is blocked and the original value is kept.
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(5);
+    });
 
     it("can show simulation results", async () => {
       const IDS = { P1: 1 };

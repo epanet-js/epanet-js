@@ -255,10 +255,10 @@ export const QuantityRow = <
   name,
   value,
   unit,
-  positiveOnly = false,
   readOnly = false,
   isNullable = false,
   isOptional = false,
+  commitInvalidValues,
   placeholder = "",
   comparison,
   onChange,
@@ -269,9 +269,9 @@ export const QuantityRow = <
   name: P;
   value: V;
   unit: Unit;
-  positiveOnly?: boolean;
   isNullable?: boolean;
   isOptional?: boolean;
+  commitInvalidValues?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
@@ -323,8 +323,10 @@ export const QuantityRow = <
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
-          positiveOnly={positiveOnly}
           isNullable={isNullable || isOptional}
+          commitInvalidValues={
+            commitInvalidValues ?? (isNullable || isOptional)
+          }
           validate={validate}
           readOnly={readOnly}
           displayValue={displayValue}
@@ -347,7 +349,6 @@ export const IntegerRow = <
 >({
   name,
   value,
-  positiveOnly = false,
   readOnly = false,
   isNullable = true,
   isOptional = false,
@@ -360,7 +361,6 @@ export const IntegerRow = <
 }: {
   name: P;
   value: V;
-  positiveOnly?: boolean;
   isNullable?: boolean;
   isOptional?: boolean;
   readOnly?: boolean;
@@ -392,7 +392,6 @@ export const IntegerRow = <
     }
     if (!Number.isFinite(newValue)) return;
     const truncated = Math.trunc(newValue);
-    if (positiveOnly && truncated < 0) return;
     onChange && onChange(name, truncated as V, value);
   };
 
@@ -410,7 +409,6 @@ export const IntegerRow = <
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
-          positiveOnly={positiveOnly}
           isNullable={isNullable || isOptional}
           readOnly={readOnly}
           displayValue={displayValue}

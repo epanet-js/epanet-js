@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
 import {
   PumpStatus,
   pumpStatuses,
@@ -94,7 +95,7 @@ export const PumpTimeBasedControls = ({
       floatColumn("setting", {
         header: translate("speed"),
         size: 80,
-        positiveOnly: true,
+        validate: isGreaterThanZero,
         emptyValue: initialSpeed,
         isReadOnly: (rowIndex) =>
           rowIndex === 0 || data[rowIndex]?.status === "off",

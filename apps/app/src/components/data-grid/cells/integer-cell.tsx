@@ -16,8 +16,8 @@ function formatInteger(value: number | null | undefined): string {
 
 type IntegerCellProps = CellProps<number | null> & {
   emptyValue?: number | null;
-  positiveOnly?: boolean;
   validate?: (value: number) => boolean;
+  commitInvalidValues?: boolean;
   readonly?: boolean;
   placeholder?: string;
 };
@@ -36,8 +36,8 @@ export function IntegerCell({
   onChange,
   stopEditing,
   emptyValue,
-  positiveOnly = false,
   validate,
+  commitInvalidValues = false,
   readonly,
   placeholder,
 }: IntegerCellProps) {
@@ -46,14 +46,14 @@ export function IntegerCell({
       const parsed = parseNumericInput(raw);
       if (parsed !== null) {
         const truncated = Math.trunc(parsed);
-        if (positiveOnly && truncated < 0) return undefined;
-        if (validate && !validate(truncated)) return undefined;
+        if (!commitInvalidValues && validate && !validate(truncated))
+          return undefined;
         return truncated;
       }
       if (raw.trim() === "") return emptyValue;
       return undefined;
     },
-    [emptyValue, positiveOnly, validate],
+    [emptyValue, validate, commitInvalidValues],
   );
 
   const format = useCallback((v: number | null) => formatInteger(v), []);
@@ -80,19 +80,18 @@ export function IntegerCell({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
-      const newValue = normalizeNumericInput(rawValue, { positiveOnly });
+      const newValue = normalizeNumericInput(rawValue);
       if (newValue === editValue) return;
       if (rawValue.length > 0 && newValue.length === 0) return;
       setEditValue(newValue);
       const parsed = parseNumericInput(newValue);
       const truncated = parsed === null ? null : Math.trunc(parsed);
       const isInvalidNumber = newValue.trim() !== "" && parsed === null;
-      const isNegative = positiveOnly && truncated !== null && truncated < 0;
       const failsValidation =
         validate !== undefined && truncated !== null && !validate(truncated);
-      setHasError(isInvalidNumber || isNegative || failsValidation);
+      setHasError(isInvalidNumber || failsValidation);
     },
-    [editValue, positiveOnly, validate, setEditValue, setHasError],
+    [editValue, validate, setEditValue, setHasError],
   );
 
   const formattedValue = formatInteger(value);
@@ -146,16 +145,16 @@ export function integerColumn<TData extends RowData = RowData>(
     header: string;
     size?: number;
     emptyValue?: number | null;
-    positiveOnly?: boolean;
     validate?: (value: number) => boolean;
+    commitInvalidValues?: boolean;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
   },
 ): GridColumn<TData> {
   const {
     emptyValue,
-    positiveOnly,
     validate,
+    commitInvalidValues,
     isReadOnly: readonly,
     placeholder,
   } = options;
@@ -166,8 +165,8 @@ export function integerColumn<TData extends RowData = RowData>(
 
   const CellComponent =
     emptyValue !== undefined ||
-    positiveOnly !== undefined ||
     validate !== undefined ||
+    commitInvalidValues !== undefined ||
     isStaticReadOnly ||
     isDynamicReadOnly ||
     placeholder !== undefined
@@ -175,8 +174,8 @@ export function integerColumn<TData extends RowData = RowData>(
           <IntegerCell
             {...props}
             emptyValue={emptyValue}
-            positiveOnly={positiveOnly}
             validate={validate}
+            commitInvalidValues={commitInvalidValues}
             readonly={resolveReadOnly(props.rowIndex)}
             placeholder={placeholder}
           />
@@ -194,8 +193,8 @@ export function integerColumn<TData extends RowData = RowData>(
         const parsed = parseNumericInput(v);
         if (parsed !== null) {
           const truncated = Math.trunc(parsed);
-          if (positiveOnly && truncated < 0) return undefined;
-          if (validate && !validate(truncated)) return undefined;
+          if (!commitInvalidValues && validate && !validate(truncated))
+            return undefined;
           return truncated;
         }
         if (v.trim() === "") return emptyValue;

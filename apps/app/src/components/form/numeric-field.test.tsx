@@ -140,4 +140,59 @@ describe("NumericField", () => {
       expect(input).toHaveValue("99");
     });
   });
+
+  describe("commitInvalidValues (informational mode)", () => {
+    const nonNegative = (n: number) => n >= 0;
+
+    it("blocks the invalid commit when commitInvalidValues is off", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <NumericField
+          label="test"
+          displayValue="5"
+          onChangeValue={onChangeValue}
+          validate={nonNegative}
+          isNullable={false}
+          commitInvalidValues={false}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      // `validate` supersedes the legacy positiveOnly block: the negative is
+      // typeable but fails validation, so the commit is blocked and reverts.
+      await user.type(input, "-3");
+      expect(input).toHaveValue("-3");
+      await user.keyboard("{Enter}");
+      expect(onChangeValue).not.toHaveBeenCalled();
+      expect(input).toHaveValue("5");
+    });
+
+    it("allows negative input and commits it (warning) when on", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <NumericField
+          label="test"
+          displayValue="5"
+          onChangeValue={onChangeValue}
+          validate={nonNegative}
+          isNullable={false}
+          commitInvalidValues={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      await user.type(input, "-3");
+      expect(input).toHaveValue("-3");
+      await user.keyboard("{Enter}");
+      expect(onChangeValue).toHaveBeenCalledWith(-3, false);
+    });
+  });
 });

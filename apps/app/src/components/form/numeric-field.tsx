@@ -23,10 +23,10 @@ export const NumericField = ({
   label,
   displayValue,
   onChangeValue,
-  positiveOnly = false,
   readOnly = false,
   disabled = false,
   isNullable = true,
+  commitInvalidValues = false,
   placeholder,
   styleOptions = {},
   tabIndex = 1,
@@ -36,9 +36,7 @@ export const NumericField = ({
   displayValue: string;
   onChangeValue?: (newValue: number, isEmpty: boolean) => void;
   isNullable?: boolean;
-  /** @deprecated Legacy fallback; ignored when `validate` is provided. To be
-   * removed in the null-values feature-flag cleanup. */
-  positiveOnly?: boolean;
+  commitInvalidValues?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -46,11 +44,6 @@ export const NumericField = ({
   tabIndex?: number;
   validate?: (value: number) => boolean;
 }) => {
-  // `validate` is the single source of truth when present; `positiveOnly` is a
-  // legacy fallback only used when there is no validator. The informational
-  // commit (invalid values warn but still commit) is driven by `isNullable`.
-  const enforcePositiveOnly = positiveOnly && validate === undefined;
-
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(displayValue);
   const [hasError, setError] = useState(false);
@@ -130,9 +123,7 @@ export const NumericField = ({
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const rawValue = e.target.value;
-    const newInputValue = normalizeNumericInput(rawValue, {
-      positiveOnly: enforcePositiveOnly,
-    });
+    const newInputValue = normalizeNumericInput(rawValue);
     if (newInputValue === inputValue) return;
     if (rawValue.length > 0 && newInputValue.length === 0) return;
     setInputValue(newInputValue);
@@ -145,9 +136,10 @@ export const NumericField = ({
       validate !== undefined &&
       !validate(numericValue);
     setError(isInvalidNumber || failsValidation);
-    // A failed domain validation only blocks the commit on non-nullable fields;
-    // for nullable fields it is a warning and the value still commits.
-    setBlocked(isInvalidNumber || (failsValidation && !isNullable));
+    // A failed domain validation blocks the commit unless the field commits
+    // invalid values (informational, driven by the flag). An unparseable number
+    // always blocks.
+    setBlocked(isInvalidNumber || (failsValidation && !commitInvalidValues));
     setDirty(true);
   };
 

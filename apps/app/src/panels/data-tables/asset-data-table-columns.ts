@@ -43,9 +43,13 @@ import {
 } from "./data";
 import {
   isValidInstallationYear,
-  isGreaterThanZero,
   isValidMaterial,
 } from "src/hydraulic-model/property-validators";
+import {
+  isGreaterThanZero,
+  isZeroOrGreater,
+  isWithinUnitRange,
+} from "src/components/form/numeric-input-utils";
 
 function makeCk(type: AssetType, accessorCtx?: AssetAccessorCtx) {
   return (key: string): ColumnKey<AssetRow, never> => {
@@ -125,25 +129,6 @@ export const OPTIONAL_KEYS = new Set([
   "chemicalSourceStrength",
 ]);
 
-export const POSITIVE_ONLY_KEYS = new Set([
-  "diameter",
-  "length",
-  "roughness",
-  "minorLoss",
-  "emitterCoefficient",
-  "initialQuality",
-  "initialLevel",
-  "minLevel",
-  "maxLevel",
-  "minVolume",
-  "mixingFraction",
-  "chemicalSourceStrength",
-  "energyPrice",
-  "power",
-]);
-
-// Fields that must be strictly > 0 (positiveOnly only blocks negatives; the
-// validator below enforces non-zero on top of that).
 export const NON_ZERO_KEYS = new Set([
   "diameter",
   "length",
@@ -153,14 +138,18 @@ export const NON_ZERO_KEYS = new Set([
   "power",
 ]);
 
-// Numeric attributes that may be left empty (null) when the null-values feature
-// is on. Enforcement of required ones moves to the pre-simulation check
-// (lib/model-attributes-validation). Already-optional attributes (OPTIONAL_KEYS)
-// are emptiable regardless of the flag.
-//
-// First batch: simulation-only + panel-only required attributes. "diameter" is
-// shared across pipe/valve/tank; it is gated to non-pipe types where used (see
-// numericCol) so pipe diameter stays required for now.
+const ZERO_OR_GREATER_KEYS = new Set([
+  "minorLoss",
+  "emitterCoefficient",
+  "minVolume",
+  "initialQuality",
+  "initialLevel",
+  "minLevel",
+  "speed",
+  "energyPrice",
+  "chemicalSourceStrength",
+]);
+
 const NULLABLE_KEYS = new Set([
   "roughness",
   "head",
@@ -171,6 +160,15 @@ const NULLABLE_KEYS = new Set([
 
 export const isOptionalColumn = (key: string): boolean =>
   OPTIONAL_KEYS.has(key);
+
+const numericValidatorFor = (
+  key: string,
+): ((value: number) => boolean) | undefined => {
+  if (key === "mixingFraction") return isWithinUnitRange;
+  if (NON_ZERO_KEYS.has(key)) return isGreaterThanZero;
+  if (ZERO_OR_GREATER_KEYS.has(key)) return isZeroOrGreater;
+  return undefined;
+};
 
 export const isNullableColumn = (
   key: string,
@@ -490,7 +488,6 @@ function pipeAttributeColsFor(
       integerColumn("year", {
         header: translate("yearOfInstallation"),
         emptyValue: null,
-        positiveOnly: true,
         validate: isValidInstallationYear,
         placeholder: "",
         isReadOnly: !!lock,
@@ -553,10 +550,19 @@ function _buildColumns(
   const numericCol = (
     key: string,
     name: string,
-    unit: Parameters<TranslateUnitFn>[0] = null,
-    property?: QuantityProperty,
-    isReadOnly?: (rowIndex: number) => boolean,
-    placeholder?: string,
+    {
+      unit = null,
+      property,
+      isReadOnly,
+      placeholder,
+      commitInvalidValues,
+    }: {
+      unit?: Parameters<TranslateUnitFn>[0];
+      property?: QuantityProperty;
+      isReadOnly?: (rowIndex: number) => boolean;
+      placeholder?: string;
+      commitInvalidValues?: boolean;
+    } = {},
   ): GridColumn<AssetRow> => {
     // "diameter" is shared across types; pipe diameter is deferred from the
     // first nullable batch, so exclude it here.
@@ -577,11 +583,8 @@ function _buildColumns(
           : NON_ZERO_KEYS.has(key)
             ? undefined
             : 0,
-      positiveOnly: POSITIVE_ONLY_KEYS.has(key),
-      validate: NON_ZERO_KEYS.has(key) ? isGreaterThanZero : undefined,
-      // Nullable columns commit invalid values (with a warning) and move
-      // enforcement to the pre-simulation check.
-      commitInvalidValues: nullable,
+      validate: numericValidatorFor(key),
+      commitInvalidValues,
     });
   };
 
@@ -659,14 +662,11 @@ function _buildColumns(
       placeholder: translate("none"),
       emptyValue: null,
     }),
-    numericCol(
-      "chemicalSourceStrength",
-      translate("chemicalSourceStrength"),
-      undefined,
-      undefined,
-      isChemicalSourceNone,
-      localizeDecimal(0),
-    ),
+    numericCol("chemicalSourceStrength", translate("chemicalSourceStrength"), {
+      isReadOnly: isChemicalSourceNone,
+      placeholder: localizeDecimal(0),
+      commitInvalidValues: allowsNullValues,
+    }),
     patternCol(
       "chemicalSourcePatternId",
       translate("chemicalSourcePattern"),
@@ -697,18 +697,14 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
-        numericCol(
-          "elevation",
-          translate("elevation"),
-          units.elevation,
-          "elevation",
-        ),
-        numericCol(
-          "emitterCoefficient",
-          translate("emitterCoefficient"),
-          units.emitterCoefficient,
-          "emitterCoefficient",
-        ),
+        numericCol("elevation", translate("elevation"), {
+          unit: units.elevation,
+          property: "elevation",
+        }),
+        numericCol("emitterCoefficient", translate("emitterCoefficient"), {
+          unit: units.emitterCoefficient,
+          property: "emitterCoefficient",
+        }),
         floatColumn(ck("avgDemand"), {
           header: headerLabel(translate("directDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
@@ -761,21 +757,23 @@ function _buildColumns(
             label: translate(`pipe.${s}`),
           })),
         }),
-        numericCol(
-          "diameter",
-          translate("diameter"),
-          units.diameter,
-          "diameter",
-        ),
-        numericCol("length", translate("length"), units.length, "length"),
+        numericCol("diameter", translate("diameter"), {
+          unit: units.diameter,
+          property: "diameter",
+        }),
+        numericCol("length", translate("length"), {
+          unit: units.length,
+          property: "length",
+        }),
         ...buildExtraPipeCols(translate, formatting),
-        numericCol("roughness", translate("roughness"), units.roughness),
-        numericCol(
-          "minorLoss",
-          translate("minorLoss"),
-          units.minorLoss,
-          "minorLoss",
-        ),
+        numericCol("roughness", translate("roughness"), {
+          unit: units.roughness,
+          commitInvalidValues: allowsNullValues,
+        }),
+        numericCol("minorLoss", translate("minorLoss"), {
+          unit: units.minorLoss,
+          property: "minorLoss",
+        }),
         floatColumn(ck("customerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
           decimals: getDecimals(formatting, "baseDemand"),
@@ -847,14 +845,16 @@ function _buildColumns(
           undefined,
           (rowIndex) => getRow?.(rowIndex)?.definitionType !== "curveId",
         ),
-        numericCol(
-          "power",
-          translate("power"),
-          units.power,
-          "power",
-          (rowIndex) => getRow?.(rowIndex)?.definitionType !== "power",
-        ),
-        numericCol("speed", translate("initialSpeed"), units.speed, "speed"),
+        numericCol("power", translate("power"), {
+          unit: units.power,
+          property: "power",
+          isReadOnly: (rowIndex) =>
+            getRow?.(rowIndex)?.definitionType !== "power",
+        }),
+        numericCol("speed", translate("initialSpeed"), {
+          unit: units.speed,
+          property: "speed",
+        }),
         patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
         curveCol(
           "efficiencyCurveId",
@@ -862,14 +862,10 @@ function _buildColumns(
           "efficiency",
           translate("constantPercent", localizeDecimal(energyGlobalEfficiency)),
         ),
-        numericCol(
-          "energyPrice",
-          translate("energyPrice"),
-          undefined,
-          undefined,
-          undefined,
-          localizeDecimal(energyGlobalPrice),
-        ),
+        numericCol("energyPrice", translate("energyPrice"), {
+          placeholder: localizeDecimal(energyGlobalPrice),
+          commitInvalidValues: allowsNullValues,
+        }),
         patternCol(
           "energyPricePatternId",
           translate("energyPricePattern"),
@@ -903,13 +899,10 @@ function _buildColumns(
             label: translate(`valve.${k}.detailed`),
           })),
         }),
-        numericCol(
-          "setting",
-          translate("setting"),
-          undefined,
-          undefined,
-          (rowIndex) => getRow?.(rowIndex)?.kind === "gpv",
-        ),
+        numericCol("setting", translate("setting"), {
+          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind === "gpv",
+          commitInvalidValues: allowsNullValues,
+        }),
         filterableSelectColumn("curveId", {
           header: translate("valveCurve"),
           options: [...curveOpts("headloss"), ...curveOpts("valve")],
@@ -928,18 +921,15 @@ function _buildColumns(
             label: translate(`valve.${s}`),
           })),
         }),
-        numericCol(
-          "diameter",
-          translate("diameter"),
-          units.diameter,
-          "diameter",
-        ),
-        numericCol(
-          "minorLoss",
-          translate("minorLoss"),
-          units.minorLoss,
-          "minorLoss",
-        ),
+        numericCol("diameter", translate("diameter"), {
+          unit: units.diameter,
+          property: "diameter",
+          commitInvalidValues: allowsNullValues,
+        }),
+        numericCol("minorLoss", translate("minorLoss"), {
+          unit: units.minorLoss,
+          property: "minorLoss",
+        }),
         ...simCols,
       ];
     case "reservoir":
@@ -950,13 +940,15 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
-        numericCol(
-          "elevation",
-          translate("elevation"),
-          units.elevation,
-          "elevation",
-        ),
-        numericCol("head", translate("head"), units.head, "head"),
+        numericCol("elevation", translate("elevation"), {
+          unit: units.elevation,
+          property: "elevation",
+        }),
+        numericCol("head", translate("head"), {
+          unit: units.head,
+          property: "head",
+          commitInvalidValues: allowsNullValues,
+        }),
         patternCol("headPatternId", translate("headPattern"), "reservoirHead"),
         numericCol("initialQuality", translate("initialQuality")),
         ...chemicalSourceTypeCols(),
@@ -970,51 +962,41 @@ function _buildColumns(
           cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, type),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
-        numericCol(
-          "elevation",
-          translate("elevation"),
-          units.elevation,
-          "elevation",
-        ),
-        numericCol(
-          "initialLevel",
-          translate("initialLevel"),
-          units.initialLevel,
-          "initialLevel",
-        ),
-        numericCol(
-          "minLevel",
-          translate("minLevel"),
-          units.minLevel,
-          "minLevel",
-          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-        ),
-        numericCol(
-          "maxLevel",
-          translate("maxLevel"),
-          units.maxLevel,
-          "maxLevel",
-          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-        ),
-        numericCol(
-          "minVolume",
-          translate("minVolume"),
-          units.minVolume,
-          "minVolume",
-          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-        ),
+        numericCol("elevation", translate("elevation"), {
+          unit: units.elevation,
+          property: "elevation",
+        }),
+        numericCol("initialLevel", translate("initialLevel"), {
+          unit: units.initialLevel,
+          property: "initialLevel",
+          commitInvalidValues: allowsNullValues,
+        }),
+        numericCol("minLevel", translate("minLevel"), {
+          unit: units.minLevel,
+          property: "minLevel",
+          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+        }),
+        numericCol("maxLevel", translate("maxLevel"), {
+          unit: units.maxLevel,
+          property: "maxLevel",
+          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+        }),
+        numericCol("minVolume", translate("minVolume"), {
+          unit: units.minVolume,
+          property: "minVolume",
+          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+        }),
         floatColumn(ck("maxVolume"), {
           header: headerLabel(translate("maxVolume"), units.minVolume),
           decimals: getDecimals(formatting, "minVolume"),
           isReadOnly: true,
         }),
-        numericCol(
-          "diameter",
-          translate("diameter"),
-          units.tankDiameter,
-          "tankDiameter",
-          (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-        ),
+        numericCol("diameter", translate("diameter"), {
+          unit: units.tankDiameter,
+          property: "tankDiameter",
+          isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+          commitInvalidValues: allowsNullValues,
+        }),
         curveCol("volumeCurveId", translate("volumeCurve"), "volume"),
         booleanCol("overflow", translate("canOverflow")),
         filterableSelectColumn("mixingModel", {
@@ -1025,14 +1007,10 @@ function _buildColumns(
           })),
           emptyValue: "mixed",
         }),
-        numericCol(
-          "mixingFraction",
-          translate("mixingFraction"),
-          undefined,
-          undefined,
-          (rowIndex) =>
+        numericCol("mixingFraction", translate("mixingFraction"), {
+          isReadOnly: (rowIndex) =>
             getRow?.(rowIndex)?.mixingModel !== TANK_TWO_COMPARTMENT_MIXING,
-        ),
+        }),
         numericCol("initialQuality", translate("initialQuality")),
         floatColumn("bulkReactionCoeff", {
           header: translate("bulkReactionCoeff"),

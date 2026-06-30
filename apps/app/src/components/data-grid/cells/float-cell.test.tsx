@@ -476,10 +476,10 @@ describe("floatColumn", () => {
       expect(column.meta?.pasteValue?.("-42.5", {} as any)).toBe(-42.5);
     });
 
-    it("rejects negative values when positiveOnly (zero is allowed)", () => {
+    it("rejects negative values when validate is non-negative (zero is allowed)", () => {
       const column = floatColumn("value", {
         header: "Value",
-        positiveOnly: true,
+        validate: (n) => n >= 0,
       });
 
       expect(column.meta?.pasteValue?.("-42.5", {} as any)).toBeUndefined();
@@ -490,7 +490,6 @@ describe("floatColumn", () => {
     it("rejects zero when validate enforces non-zero", () => {
       const column = floatColumn("value", {
         header: "Value",
-        positiveOnly: true,
         validate: (n) => n > 0,
       });
 

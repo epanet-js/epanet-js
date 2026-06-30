@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { isZeroOrGreater } from "src/components/form/numeric-input-utils";
 import { Feature } from "geojson";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -398,7 +399,7 @@ export const DataMappingStep: React.FC<{
                       )}
                       displayValue={localizeDecimal(defaultDemand)}
                       onChangeValue={handleDefaultDemandChange}
-                      positiveOnly={true}
+                      validate={isZeroOrGreater}
                       styleOptions={{ padding: "md", textSize: "sm" }}
                     />
                     <p className="text-size-small text-subtle">

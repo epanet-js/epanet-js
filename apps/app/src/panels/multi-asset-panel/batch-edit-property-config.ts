@@ -13,9 +13,13 @@ import type { ChangeableProperty } from "src/hydraulic-model/model-operations/ch
 import type { PaywallFeature } from "src/state/dialog";
 import {
   isValidInstallationYear,
-  isGreaterThanZero,
   isValidMaterial,
 } from "src/hydraulic-model/property-validators";
+import {
+  isGreaterThanZero,
+  isZeroOrGreater,
+  isWithinUnitRange,
+} from "src/components/form/numeric-input-utils";
 
 type CommonConfig = {
   paywall?: PaywallFeature;
@@ -24,11 +28,11 @@ type CommonConfig = {
 type QuantityConfig = CommonConfig & {
   fieldType: "quantity";
   modelProperty: ChangeableProperty;
-  positiveOnly?: boolean;
   isNullable?: boolean;
   isOptional?: boolean;
   placeholder?: string;
   validate?: (value: number) => boolean;
+  commitInvalidValues?: boolean;
   labelKey?: string;
 };
 
@@ -83,12 +87,12 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     emitterCoefficient: {
       fieldType: "quantity",
       modelProperty: "emitterCoefficient",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     chemicalSourceType: {
       fieldType: "category",
@@ -100,7 +104,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
       isOptional: true,
       placeholder: "0",
     },
@@ -124,13 +128,11 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     length: {
       fieldType: "quantity",
       modelProperty: "length",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     material: {
@@ -142,7 +144,6 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     year: {
       fieldType: "quantity",
       modelProperty: "year",
-      positiveOnly: true,
       isOptional: true,
       validate: isValidInstallationYear,
       labelKey: "yearOfInstallation",
@@ -151,13 +152,12 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     roughness: {
       fieldType: "quantity",
       modelProperty: "roughness",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     bulkReactionCoeff: {
       fieldType: "quantity",
@@ -181,6 +181,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     speed: {
       fieldType: "quantity",
       modelProperty: "speed",
+      validate: isZeroOrGreater,
       labelKey: "initialSpeed",
     },
     speedPattern: {
@@ -202,7 +203,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     energyPrice: {
       fieldType: "quantity",
       modelProperty: "energyPrice",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
       isOptional: true,
     },
     energyPricePattern: {
@@ -236,13 +237,12 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
   },
   reservoir: {
@@ -260,7 +260,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     chemicalSourceType: {
       fieldType: "category",
@@ -272,7 +272,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
       isOptional: true,
       placeholder: "0",
     },
@@ -293,35 +293,33 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     initialLevel: {
       fieldType: "quantity",
       modelProperty: "initialLevel",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     minLevel: {
       fieldType: "quantity",
       modelProperty: "minLevel",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     maxLevel: {
       fieldType: "quantity",
       modelProperty: "maxLevel",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      positiveOnly: true,
       validate: isGreaterThanZero,
     },
     minVolume: {
       fieldType: "quantity",
       modelProperty: "minVolume",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
     },
     mixingModel: {
       fieldType: "category",
@@ -332,8 +330,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     mixingFraction: {
       fieldType: "quantity",
       modelProperty: "mixingFraction",
-      positiveOnly: true,
-      validate: isGreaterThanZero,
+      validate: isWithinUnitRange,
     },
     bulkReactionCoeff: {
       fieldType: "quantity",
@@ -350,7 +347,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      positiveOnly: true,
+      validate: isZeroOrGreater,
       isOptional: true,
       placeholder: "0",
     },
@@ -365,11 +362,6 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
   },
 };
 
-// Numeric attributes that may be left empty (null) when the null-values feature
-// is on. Required ones are enforced by the pre-simulation check instead
-// (lib/model-attributes-validation). Mirror of NULLABLE_KEYS in the data table.
-// First batch: simulation-only + panel-only required attributes. "diameter" is
-// gated to non-pipe types (pipe diameter is deferred).
 const NULLABLE_BATCH_KEYS = new Set([
   "roughness",
   "head",
