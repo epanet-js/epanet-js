@@ -25,28 +25,17 @@ export const applyRoughnessMoment = (
   for (const [assetId, asset] of hydraulicModel.assets) {
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
-    if (pipe.roughness != null) continue;
-    if (!pipe.material) continue;
+    if (pipe.roughness != null || !pipe.material) continue;
 
     const entries = materialMap.get(pipe.material);
     if (!entries) continue;
 
-    let roughness: number | null;
-    if (entries.length === 1) {
-      roughness = entries[0].roughness;
-    } else {
-      if (!pipe.year) continue;
-      const pipeAge = Math.max(0, currentYear - pipe.year);
-      roughness = findRoughness(entries, pipeAge);
-    }
+    const roughness = resolveRoughness(pipe, entries, currentYear);
     if (roughness == null) continue;
 
-    let group = roughnessGroups.get(roughness);
-    if (!group) {
-      group = [];
-      roughnessGroups.set(roughness, group);
-    }
-    group.push(assetId);
+    const group = roughnessGroups.get(roughness);
+    if (group) group.push(assetId);
+    else roughnessGroups.set(roughness, [assetId]);
   }
 
   const patches: AssetPatch[] = [];
@@ -63,6 +52,17 @@ export const applyRoughnessMoment = (
     note: "Apply roughness from pipe library",
     patchAssetsAttributes: patches,
   };
+};
+
+const resolveRoughness = (
+  pipe: Pipe,
+  entries: RoughnessEntry[],
+  currentYear: number,
+): number | null => {
+  if (entries.length === 1) return entries[0].roughness;
+  if (!pipe.year) return null;
+  const pipeAge = Math.max(0, currentYear - pipe.year);
+  return findRoughness(entries, pipeAge);
 };
 
 export const findRoughness = (
