@@ -80,7 +80,9 @@ export function useNoneHandlers({
     moveActivated,
   } = useMoveState();
   const setCursor = useSetAtom(cursorStyleAtom);
-  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
+  const { fetchElevation, prefetchTileThrottled } = useElevations(
+    units.elevation,
+  );
   const { transact } = useModelTransaction();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const {
@@ -238,7 +240,7 @@ export function useNoneHandlers({
           return;
         }
 
-        void prefetchTile(e.lngLat);
+        void prefetchTileThrottled(e.lngLat);
 
         const [assetId] = getSelectionIds();
         const asset = hydraulicModel.assets.get(assetId);

@@ -24,7 +24,7 @@ export const stubElevation = (
 
         return Promise.resolve(0);
       }),
-    prefetchTile: vi.fn(),
+    prefetchTileThrottled: vi.fn(),
   });
 
   (useElevationsModule.useElevations as Mock).mockImplementation(mockImpl);
@@ -35,7 +35,7 @@ export const stubElevationError = () => {
     fetchElevation: vi
       .fn()
       .mockRejectedValue(new Error("Failed to fetch elevation")),
-    prefetchTile: vi.fn(),
+    prefetchTileThrottled: vi.fn(),
   });
 
   (useElevationsModule.useElevations as Mock).mockImplementation(mockImpl);

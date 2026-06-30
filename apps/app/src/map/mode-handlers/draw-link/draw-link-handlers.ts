@@ -385,7 +385,9 @@ export function useDrawLinkHandlers({
     const [lng, lat] = coordinates;
     return { lng, lat };
   };
-  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
+  const { fetchElevation, prefetchTileThrottled } = useElevations(
+    units.elevation,
+  );
 
   const isClickInProgress = useRef<boolean>(false);
   // A single finishing gesture (e.g. double-click on a snap target) fires
@@ -544,7 +546,7 @@ export function useDrawLinkHandlers({
         return;
       }
 
-      void prefetchTile(e.lngLat);
+      void prefetchTileThrottled(e.lngLat);
 
       const snappingCandidate = getSnappingCandidateIfEnabled(
         e,

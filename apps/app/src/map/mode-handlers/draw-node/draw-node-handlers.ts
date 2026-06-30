@@ -31,7 +31,9 @@ export function useDrawNodeHandlers({
   const { transact } = useModelTransaction();
   const userTracking = useUserTracking();
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
-  const { fetchElevation, prefetchTile } = useElevations(units.elevation);
+  const { fetchElevation, prefetchTileThrottled } = useElevations(
+    units.elevation,
+  );
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
 
@@ -110,7 +112,7 @@ export function useDrawNodeHandlers({
     },
     move: throttle(
       (e) => {
-        prefetchTile(e.lngLat);
+        prefetchTileThrottled(e.lngLat);
 
         const mouseCoord = getMapCoord(e);
         const snappingCandidate = findSnappingCandidate(e, mouseCoord);

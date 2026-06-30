@@ -5,8 +5,9 @@ import { notify } from "src/components/notifications";
 import { useTranslate } from "src/hooks/use-translate";
 import { offlineAtom } from "src/state/offline";
 import { autoElevationsAtom } from "src/state/drawing";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useAtomValue } from "jotai";
+import throttle from "lodash/throttle";
 import { UnavailableIcon } from "src/icons";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
 import {
@@ -32,6 +33,15 @@ export const useElevations = (unit: Unit) => {
       }
     },
     [autoElevations, isOffline, sources],
+  );
+
+  const prefetchTileThrottled = useMemo(
+    () => throttle(prefetchTile, 200, { leading: true, trailing: true }),
+    [prefetchTile],
+  );
+  useEffect(
+    () => () => prefetchTileThrottled.cancel(),
+    [prefetchTileThrottled],
   );
 
   const fetchElevation = useCallback(
@@ -95,7 +105,7 @@ export const useElevations = (unit: Unit) => {
     [autoElevations, isOffline, sources, unit, translate],
   );
 
-  return { fetchElevation, fetchElevations, prefetchTile };
+  return { fetchElevation, fetchElevations, prefetchTileThrottled };
 };
 
 const notifyOfflineElevation = (translate: ReturnType<typeof useTranslate>) => {
