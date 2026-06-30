@@ -22,6 +22,7 @@ type CustomAttributesTableProps = {
   onChange: (attributes: CustomAttribute[]) => void;
   makeId: () => string;
   readOnly?: boolean;
+  lockedTypeIds?: Set<string>;
 };
 
 const TYPE_TRANSLATION_KEYS: Record<CustomAttributeType, string> = {
@@ -34,6 +35,7 @@ export const CustomAttributesTable = ({
   onChange,
   makeId,
   readOnly = false,
+  lockedTypeIds,
 }: CustomAttributesTableProps) => {
   const translate = useTranslate();
 
@@ -58,9 +60,11 @@ export const CustomAttributesTable = ({
         size: 120,
         options: typeOptions,
         emptyValue: "text",
+        isReadOnly: (rowIndex) =>
+          lockedTypeIds?.has(attributes[rowIndex]?.id) ?? false,
       }),
     ],
-    [translate, typeOptions],
+    [translate, typeOptions, attributes, lockedTypeIds],
   );
 
   const createRow = useCallback((): CustomAttribute => {

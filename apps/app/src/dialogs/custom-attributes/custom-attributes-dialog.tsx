@@ -81,6 +81,16 @@ export const CustomAttributesDialog = ({
     [edited, selectedAssetType],
   );
 
+  const savedAttributeIds = useMemo(
+    () =>
+      new Set(
+        getAttributes(savedDefinition, selectedAssetType).map(
+          (attribute) => attribute.id,
+        ),
+      ),
+    [savedDefinition, selectedAssetType],
+  );
+
   const handleTableChange = useCallback(
     (attributes: CustomAttribute[]) => {
       setEdited((prev) => setAttributes(prev, selectedAssetType, attributes));
@@ -170,6 +180,7 @@ export const CustomAttributesDialog = ({
               onChange={handleTableChange}
               makeId={makeId}
               readOnly={isEditionBlocked}
+              lockedTypeIds={savedAttributeIds}
             />
           </div>
           <div
