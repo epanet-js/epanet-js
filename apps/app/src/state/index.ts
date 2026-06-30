@@ -116,6 +116,7 @@ export { offlineAtom } from "src/state/offline";
 // Pipe library
 export {
   pipeMaterialsAtom,
+  pipeMaterialLabelsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
 

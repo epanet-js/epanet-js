@@ -72,7 +72,7 @@ import {
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { pipeMaterialsAtom } from "src/state/pipe-library";
+import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 
 interface AssetDataTableProps {
   assetType: AssetType;
@@ -146,7 +146,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
   const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
-  const libraryMaterials = useAtomValue(pipeMaterialsAtom).map((m) => m.label);
+  const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const pipeMaterials = useMemo(
     () =>
       assetType === "pipe"
