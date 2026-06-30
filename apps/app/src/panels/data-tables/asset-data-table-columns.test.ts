@@ -17,6 +17,20 @@ describe("isOptionalColumn", () => {
     expect(isOptionalColumn("roughness")).toBe(false);
     expect(isOptionalColumn("diameter")).toBe(false);
   });
+
+  it("treats EPANET-optional columns as optional only when null values are allowed", () => {
+    for (const key of [
+      "minorLoss",
+      "emitterCoefficient",
+      "minVolume",
+      "mixingFraction",
+      "speed",
+      "initialQuality",
+    ]) {
+      expect(isOptionalColumn(key)).toBe(false);
+      expect(isOptionalColumn(key, true)).toBe(true);
+    }
+  });
 });
 
 describe("isNullableColumn", () => {

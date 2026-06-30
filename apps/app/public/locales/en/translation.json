@@ -1303,6 +1303,15 @@
         "valveDiameterPresent": "Valve diameter missing",
         "valveDiameterPositive": "Valve diameter must be positive",
         "valveSettingPresent": "Valve setting missing",
+        "pipeMinorLossNonNegative": "Pipe minor loss must be zero or greater",
+        "valveMinorLossNonNegative": "Valve minor loss must be zero or greater",
+        "tankMinVolumeNonNegative": "Tank minimum volume must be zero or greater",
+        "pumpSpeedNonNegative": "Pump speed must be zero or greater",
+        "junctionEmitterCoefficientNonNegative": "Junction emitter coefficient should be zero or greater",
+        "nodeInitialQualityNonNegative": "Initial quality should be zero or greater",
+        "tankMixingFractionUnitRange": "Tank mixing fraction should be between 0 and 1",
+        "pumpEnergyPriceNonNegative": "Pump energy price must be zero or greater",
+        "nodeChemicalSourceStrengthNonNegative": "Source strength should be zero or greater",
         "customerPointConnected": "Customer point disconnected"
       }
     }

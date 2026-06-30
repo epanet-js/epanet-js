@@ -355,6 +355,29 @@ describe("parse pipes", () => {
     expect(pipe.initialStatus).toEqual("open");
   });
 
+  it("leaves minor loss undefined when omitted and null values are allowed", () => {
+    const reservoirId = "R1";
+    const junctionId = "J1";
+    const pipeId = "P1";
+    const inp = `
+    [RESERVOIRS]
+    ${reservoirId}\t100
+    [JUNCTIONS]
+    ${junctionId}\t50
+    [PIPES]
+    ${pipeId}\t${reservoirId}\t${junctionId}\t1000\t12\t120
+
+    [COORDINATES]
+    ${reservoirId}\t0\t0
+    ${junctionId}\t10\t0
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
+    expect(pipe.minorLoss).toBeUndefined();
+  });
+
   it("defaults missing roughness to the H-W formula default", () => {
     const pipeId = "P1";
     const inp = `

@@ -171,6 +171,27 @@ describe("parse valves", () => {
     expect(valve.minorLoss).toEqual(0);
   });
 
+  it("leaves minor loss undefined when omitted and null values are allowed", () => {
+    const valveId = "v1";
+    const inp = `
+    [JUNCTIONS]
+    j1\t10
+    j2\t10
+
+    [VALVES]
+    ${valveId}\tj1\tj2\t100\tFCV\t0.5
+
+    [COORDINATES]
+    j1\t10\t20
+    j2\t30\t40
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
+    expect(valve.minorLoss).toBeUndefined();
+  });
+
   it("stores curveId on PCV valve", () => {
     const inp = `
     [JUNCTIONS]

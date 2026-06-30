@@ -21,6 +21,12 @@ import {
   CustomerPoint,
   getActiveCustomerPoints,
   tankVolumeCurveRange,
+  DEFAULT_MINOR_LOSS,
+  DEFAULT_EMITTER_COEFFICIENT,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MIXING_FRACTION,
+  DEFAULT_SPEED,
+  DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
 import {
   Patterns,
@@ -207,7 +213,7 @@ const appendJunctionStats = (
   updateQuantityStats(
     statsMap,
     "emitterCoefficient",
-    junction.emitterCoefficient,
+    junction.emitterCoefficient ?? DEFAULT_EMITTER_COEFFICIENT,
     units,
     formatting,
     id,
@@ -215,7 +221,7 @@ const appendJunctionStats = (
   updateQuantityStats(
     statsMap,
     "initialQuality",
-    junction.initialQuality,
+    junction.initialQuality ?? DEFAULT_INITIAL_QUALITY,
     units,
     formatting,
     id,
@@ -437,7 +443,7 @@ const appendPipeStats = (
   updateQuantityStats(
     statsMap,
     "minorLoss",
-    pipe.minorLoss,
+    pipe.minorLoss ?? DEFAULT_MINOR_LOSS,
     units,
     formatting,
     id,
@@ -611,7 +617,14 @@ const appendPumpStats = (
     id,
   );
 
-  updateQuantityStats(statsMap, "speed", pump.speed, units, formatting, id);
+  updateQuantityStats(
+    statsMap,
+    "speed",
+    pump.speed ?? DEFAULT_SPEED,
+    units,
+    formatting,
+    id,
+  );
   const speedPattern =
     pump.speedPatternId !== undefined
       ? patterns.get(pump.speedPatternId)
@@ -877,7 +890,7 @@ const appendValveStats = (
   updateQuantityStats(
     statsMap,
     "minorLoss",
-    valve.minorLoss,
+    valve.minorLoss ?? DEFAULT_MINOR_LOSS,
     units,
     formatting,
     id,
@@ -981,7 +994,7 @@ const appendReservoirStats = (
   updateQuantityStats(
     statsMap,
     "initialQuality",
-    reservoir.initialQuality,
+    reservoir.initialQuality ?? DEFAULT_INITIAL_QUALITY,
     units,
     formatting,
     id,
@@ -1160,7 +1173,7 @@ const appendTankStats = (
     updateQuantityStats(
       statsMap,
       "minVolume",
-      tank.minVolume,
+      tank.minVolume ?? DEFAULT_MIN_VOLUME,
       units,
       formatting,
       id,
@@ -1221,7 +1234,7 @@ const appendTankStats = (
   updateQuantityStats(
     statsMap,
     "initialQuality",
-    tank.initialQuality,
+    tank.initialQuality ?? DEFAULT_INITIAL_QUALITY,
     units,
     formatting,
     id,
@@ -1270,7 +1283,7 @@ const appendTankStats = (
   updateQuantityStats(
     statsMap,
     "mixingFraction",
-    tank.mixingFraction,
+    tank.mixingFraction ?? DEFAULT_MIXING_FRACTION,
     units,
     formatting,
     id,

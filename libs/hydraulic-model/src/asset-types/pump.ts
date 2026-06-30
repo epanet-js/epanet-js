@@ -15,12 +15,14 @@ export const pumpDefinitionTypes = [
 ] as const;
 export type PumpDefinitionType = (typeof pumpDefinitionTypes)[number];
 
+export const DEFAULT_SPEED = 1;
+
 export type PumpProperties = {
   type: "pump";
   initialStatus: PumpStatus;
   definitionType: PumpDefinitionType;
   power: number;
-  speed: number;
+  speed?: number;
   speedPatternId?: PatternId;
   curveId?: CurveId;
   curve?: CurvePoint[];

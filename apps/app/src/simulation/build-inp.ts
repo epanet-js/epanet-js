@@ -29,6 +29,12 @@ import {
   CurveId,
   ICurve,
   PumpStatus,
+  DEFAULT_MINOR_LOSS,
+  DEFAULT_EMITTER_COEFFICIENT,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MIXING_FRACTION,
+  DEFAULT_SPEED,
+  DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
 import { checksum } from "src/infra/checksum";
 import {
@@ -739,7 +745,7 @@ const appendInitialQuality = (
 ) => {
   const typedNode = node as Junction | Tank | Reservoir;
   const value = typedNode.initialQuality;
-  if (value !== undefined && value !== 0) {
+  if (value !== undefined && value !== DEFAULT_INITIAL_QUALITY) {
     sections.quality.push(`${idMap.nodeId(node)}\t${value}`);
   }
 };
@@ -756,7 +762,7 @@ const appendMixing = (sections: InpSections, idMap: EpanetIds, tank: Tank) => {
   const model = MIXING_MODEL_TO_INP[tank.mixingModel] ?? "MIXED";
   const row =
     tank.mixingModel === "2comp"
-      ? `${idMap.nodeId(tank)}\t${model}\t${tank.mixingFraction}`
+      ? `${idMap.nodeId(tank)}\t${model}\t${optionalValue(tank.mixingFraction, DEFAULT_MIXING_FRACTION)}`
       : `${idMap.nodeId(tank)}\t${model}`;
   sections.mixing.push(row);
 };
@@ -880,7 +886,7 @@ const appendTank = (
         tank.volumeCurveId
           ? (tank.diameter ?? 0)
           : requiredValue(tank.diameter),
-        tank.minVolume,
+        optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
         tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
         tank.overflow ? "YES" : "NO",
       ].join("\t"),
@@ -963,7 +969,10 @@ const appendJunction = (
     }
   }
 
-  if (junction.emitterCoefficient > 0) {
+  if (
+    junction.emitterCoefficient != null &&
+    junction.emitterCoefficient > DEFAULT_EMITTER_COEFFICIENT
+  ) {
     sections.emitters.push(
       commentPrefix + [junctionId, junction.emitterCoefficient].join("\t"),
     );
@@ -1006,8 +1015,9 @@ const appendPipe = (
     pipe.diameter,
     requiredValue(pipe.roughness),
   ];
-  if (pipe.minorLoss !== 0 || status !== "Open") {
-    columns.push(pipe.minorLoss, status);
+  const minorLoss = optionalValue(pipe.minorLoss, DEFAULT_MINOR_LOSS);
+  if (minorLoss !== DEFAULT_MINOR_LOSS || status !== "Open") {
+    columns.push(minorLoss, status);
   }
 
   sections.pipes.push(commentPrefix + columns.join("\t"));
@@ -1040,6 +1050,8 @@ const appendPump = (
     speedPatternParts.push(`PATTERN ${idMap.patternId(pump.speedPatternId)}`);
     usedPatternIds.add(pump.speedPatternId);
   }
+  // EPANET defaults relative speed to 1.0; omit the SPEED keyword when empty.
+  const speedParts = pump.speed != null ? [`SPEED ${pump.speed}`] : [];
   switch (pump.definitionType) {
     case "power":
       sections.pumps.push(
@@ -1049,7 +1061,7 @@ const appendPump = (
             startId,
             endId,
             `POWER ${pump.power}`,
-            `SPEED ${pump.speed}`,
+            ...speedParts,
             ...speedPatternParts,
           ].join("\t"),
       );
@@ -1064,7 +1076,7 @@ const appendPump = (
             startId,
             endId,
             `HEAD ${localCurveId}`,
-            `SPEED ${pump.speed}`,
+            ...speedParts,
             ...speedPatternParts,
           ].join("\t"),
       );
@@ -1084,7 +1096,7 @@ const appendPump = (
           startId,
           endId,
           `HEAD ${curveId}`,
-          `SPEED ${pump.speed}`,
+          ...speedParts,
           ...speedPatternParts,
         ].join("\t"),
       );
@@ -1140,7 +1152,7 @@ const appendValve = (
     String(requiredValue(valve.diameter)),
     kindFor(valve),
     valve.kind === "gpv" ? valveCurveId : String(requiredValue(valve.setting)),
-    String(valve.minorLoss),
+    String(optionalValue(valve.minorLoss, DEFAULT_MINOR_LOSS)),
   ];
   if (valve.kind === "pcv") {
     valveData.push(valveCurveId);
@@ -1232,7 +1244,7 @@ const pumpSettingFor = (
 };
 
 const pumpStatusFor = (pump: Pump): SimulationPumpStatus | number =>
-  pumpSettingFor(pump.initialStatus, pump.speed);
+  pumpSettingFor(pump.initialStatus, optionalValue(pump.speed, DEFAULT_SPEED));
 
 const valveFixedStatusFor = (valve: Valve): SimulationValveStatus => {
   switch (valve.initialStatus) {
@@ -1463,3 +1475,6 @@ const appendCustomerPoint = (
 
 const requiredValue = <T>(value: T | undefined | null): T | string =>
   value == null ? MISSING_VALUE : value;
+
+const optionalValue = <T>(value: T | undefined | null, fallback: T): T =>
+  value == null ? fallback : value;

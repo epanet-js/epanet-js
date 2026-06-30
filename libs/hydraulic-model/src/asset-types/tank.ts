@@ -6,16 +6,19 @@ export type TankMixingModel = (typeof tankMixingModels)[number];
 export const TANK_TWO_COMPARTMENT_MIXING =
   "2comp" as const satisfies TankMixingModel;
 
+export const DEFAULT_MIN_VOLUME = 0;
+export const DEFAULT_MIXING_FRACTION = 1;
+
 export type TankProperties = {
   type: "tank";
   initialLevel: number | null;
   minLevel: number;
   maxLevel: number;
-  minVolume: number;
+  minVolume?: number;
   diameter: number | null;
   overflow: boolean;
   mixingModel: TankMixingModel;
-  mixingFraction: number;
+  mixingFraction?: number;
   bulkReactionCoeff?: number;
   volumeCurveId?: CurveId;
 } & NodeProperties;

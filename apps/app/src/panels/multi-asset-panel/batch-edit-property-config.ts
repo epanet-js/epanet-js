@@ -8,6 +8,12 @@ import {
   chemicalSourceTypes,
   type CurveType,
   type PatternType,
+  DEFAULT_MINOR_LOSS,
+  DEFAULT_EMITTER_COEFFICIENT,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MIXING_FRACTION,
+  DEFAULT_SPEED,
+  DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { PaywallFeature } from "src/state/dialog";
@@ -370,6 +376,40 @@ const NULLABLE_BATCH_KEYS = new Set([
   "diameter",
 ]);
 
+const FLAG_OPTIONAL_BATCH_KEYS = new Set([
+  "minorLoss",
+  "emitterCoefficient",
+  "minVolume",
+  "mixingFraction",
+  "speed",
+  "initialQuality",
+]);
+
+const ALWAYS_OPTIONAL_VALIDATED_KEYS = new Set([
+  "energyPrice",
+  "chemicalSourceStrength",
+]);
+
+// EPANET default shown as a placeholder for an empty optional field.
+const optionalFieldPlaceholder = (key: string): string | undefined => {
+  switch (key) {
+    case "minorLoss":
+      return String(DEFAULT_MINOR_LOSS);
+    case "emitterCoefficient":
+      return String(DEFAULT_EMITTER_COEFFICIENT);
+    case "minVolume":
+      return String(DEFAULT_MIN_VOLUME);
+    case "mixingFraction":
+      return String(DEFAULT_MIXING_FRACTION);
+    case "speed":
+      return String(DEFAULT_SPEED);
+    case "initialQuality":
+      return String(DEFAULT_INITIAL_QUALITY);
+    default:
+      return undefined;
+  }
+};
+
 export const withNullableProperties = (
   properties: EditableProperties,
   allowsNullValues: boolean,
@@ -381,10 +421,32 @@ export const withNullableProperties = (
     const nullable =
       NULLABLE_BATCH_KEYS.has(key) &&
       !(key === "diameter" && assetType === "pipe");
-    result[key] =
-      config.fieldType === "quantity" && nullable
-        ? { ...config, isNullable: true }
-        : config;
+    // The base config's `validate` stays the single authority. The flag only
+    // makes a failing value warn-and-commit instead of blocking
+    // (`commitInvalidValues`), and relaxes empty handling (nullable/optional).
+    if (config.fieldType === "quantity" && nullable) {
+      result[key] = { ...config, isNullable: true, commitInvalidValues: true };
+    } else if (
+      config.fieldType === "quantity" &&
+      FLAG_OPTIONAL_BATCH_KEYS.has(key)
+    ) {
+      // Show the EPANET default as a placeholder when not in a mixed situation.
+      result[key] = {
+        ...config,
+        isOptional: true,
+        placeholder: optionalFieldPlaceholder(key) ?? config.placeholder,
+        commitInvalidValues: true,
+      };
+    } else if (
+      config.fieldType === "quantity" &&
+      ALWAYS_OPTIONAL_VALIDATED_KEYS.has(key)
+    ) {
+      // Already optional in the base config; the flag only flips its sign check
+      // from blocking to informational.
+      result[key] = { ...config, commitInvalidValues: true };
+    } else {
+      result[key] = config;
+    }
   }
   return result;
 };

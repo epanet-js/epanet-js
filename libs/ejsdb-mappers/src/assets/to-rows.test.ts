@@ -3,9 +3,12 @@ import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   LabelManager,
   initializeModelFactories,
+  initializeModelFactoriesWithNullValues,
   type Junction,
   type Pipe,
   type Pump,
+  type Tank,
+  type Valve,
 } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
 import { assetsToRows } from "./to-rows";
@@ -13,6 +16,13 @@ import { buildAssetsData } from "./builders";
 
 const makeFactories = () =>
   initializeModelFactories({
+    idGenerator: new ConsecutiveIdsGenerator(),
+    labelManager: new LabelManager(),
+    defaults: presets.LPS.defaults,
+  });
+
+const makeNullValuesFactories = () =>
+  initializeModelFactoriesWithNullValues({
     idGenerator: new ConsecutiveIdsGenerator(),
     labelManager: new LabelManager(),
     defaults: presets.LPS.defaults,
@@ -132,6 +142,71 @@ describe("assetsToRows", () => {
       id: 6,
       valve_kind: "prv",
     });
+  });
+
+  it("serializes unset EPANET-optional attributes as null", () => {
+    const { assetFactory } = makeNullValuesFactories();
+    const assets: AssetsMap = new Map();
+
+    const junction = assetFactory.createJunction({ id: 1, label: "J1" });
+    const tank = assetFactory.createTank({ id: 2, label: "T1" });
+    const pipe = assetFactory.createPipe({
+      id: 3,
+      label: "P1",
+      connections: [1, 2],
+    });
+    const pump = assetFactory.createPump({
+      id: 4,
+      label: "PU1",
+      connections: [1, 2],
+      definitionType: "power",
+      power: 50,
+    });
+    const valve = assetFactory.createValve({
+      id: 5,
+      label: "V1",
+      connections: [1, 2],
+    });
+    for (const asset of [junction, tank, pipe, pump, valve]) {
+      assets.set(asset.id, asset);
+    }
+
+    const rows = assetsToRows(assets.values());
+
+    expect(rows.junctions[0].initial_quality).toBeNull();
+    expect(rows.junctions[0].emitter_coefficient).toBeNull();
+    expect(rows.tanks[0].initial_quality).toBeNull();
+    expect(rows.tanks[0].min_volume).toBeNull();
+    expect(rows.tanks[0].mixing_fraction).toBeNull();
+    expect(rows.pipes[0].minor_loss).toBeNull();
+    expect(rows.pumps[0].speed).toBeNull();
+    expect(rows.valves[0].minor_loss).toBeNull();
+  });
+
+  it("round-trips unset EPANET-optional attributes back to undefined", () => {
+    const { assetFactory } = makeNullValuesFactories();
+    const original: AssetsMap = new Map();
+    const junction = assetFactory.createJunction({ id: 1, label: "J1" });
+    const tank = assetFactory.createTank({ id: 2, label: "T1" });
+    const valve = assetFactory.createValve({
+      id: 3,
+      label: "V1",
+      connections: [1, 2],
+    });
+    for (const asset of [junction, tank, valve]) {
+      original.set(asset.id, asset);
+    }
+
+    const { assets: rebuilt } = buildAssetsData(
+      assetsToRows(original.values()),
+      makeNullValuesFactories(),
+    );
+
+    expect((rebuilt.get(1) as Junction).emitterCoefficient).toBeUndefined();
+    expect((rebuilt.get(1) as Junction).initialQuality).toBeUndefined();
+    expect((rebuilt.get(2) as Tank).minVolume).toBeUndefined();
+    expect((rebuilt.get(2) as Tank).mixingFraction).toBeUndefined();
+    expect((rebuilt.get(3) as Valve).minorLoss).toBeUndefined();
   });
 
   it("serializes isActive=false as 0", () => {

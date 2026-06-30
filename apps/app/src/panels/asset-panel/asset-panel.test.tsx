@@ -142,6 +142,81 @@ describe("AssetPanel", () => {
       const updated = store.get(stagingModelDerivedAtom);
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBe(120);
     });
+
+    it("keeps an explicit optional value even when it equals the default", async () => {
+      stubFeatureOn("FLAG_NULL_VALUES");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { minorLoss: 5 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: loss coeff/i,
+      });
+      await user.clear(field);
+      await user.keyboard("0{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(0);
+    });
+
+    it("clears an optional field to undefined when emptied", async () => {
+      stubFeatureOn("FLAG_NULL_VALUES");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { minorLoss: 5 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: loss coeff/i,
+      });
+      await user.clear(field);
+      await user.keyboard("{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect(
+        (getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss,
+      ).toBeUndefined();
+    });
+
+    it("commits a negative optional value (informational) when validation is enabled", async () => {
+      stubFeatureOn("FLAG_NULL_VALUES");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { minorLoss: 5 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: loss coeff/i,
+      });
+      await user.clear(field);
+      await user.keyboard("-3{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(-3);
+    });
+
     it("blocks a negative value when validation is disabled (commit reverts)", async () => {
       stubFeatureOff("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
@@ -166,6 +241,57 @@ describe("AssetPanel", () => {
       // validation, so the commit is blocked and the original value is kept.
       const updated = store.get(stagingModelDerivedAtom);
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(5);
+    });
+
+    it("keeps an optional value that differs from its default", async () => {
+      stubFeatureOn("FLAG_NULL_VALUES");
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1, { minorLoss: 5 })
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: loss coeff/i,
+      });
+      await user.clear(field);
+      await user.keyboard("3{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(3);
+    });
+
+    it("keeps an explicit value matching a changeable setting default", async () => {
+      // The global bulk reaction coefficient defaults to 0; typing 0 must stay
+      // explicit (not normalized to undefined) so it survives a setting change.
+      const IDS = { PIPE1: 1 };
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aPipe(IDS.PIPE1)
+        .build();
+      const store = setInitialState({
+        hydraulicModel,
+        selectedAssetId: IDS.PIPE1,
+      });
+      const user = userEvent.setup();
+
+      renderComponent(store);
+
+      const field = screen.getByRole("textbox", {
+        name: /value for: bulk reaction coefficient/i,
+      });
+      await user.clear(field);
+      await user.keyboard("0{Enter}");
+
+      const updated = store.get(stagingModelDerivedAtom);
+      expect(
+        (getPipe(updated.assets, IDS.PIPE1) as Pipe).bulkReactionCoeff,
+      ).toBe(0);
     });
 
     it("can show simulation results", async () => {
@@ -1615,7 +1741,7 @@ describe("AssetPanel", () => {
   });
 
   describe("validations", () => {
-    it("rejects a negative value in a positive-validated field", async () => {
+    it("blocks a negative value in a positive field when validation is disabled", async () => {
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { diameter: 20 })
@@ -1635,8 +1761,9 @@ describe("AssetPanel", () => {
       await user.type(field, "-10");
       await user.keyboard("{Enter}");
 
-      // `validate` (isGreaterThanZero) governs; a negative is rejected and the
-      // non-nullable field reverts to its previous value rather than coercing.
+      // With the flag off, `validate` supersedes the legacy positiveOnly block:
+      // the negative fails validation, so the commit is blocked and the field
+      // reverts to the original value.
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });

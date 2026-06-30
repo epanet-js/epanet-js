@@ -12,10 +12,12 @@ export const chemicalSourceTypes = [
 
 export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
 
+export const DEFAULT_INITIAL_QUALITY = 0;
+
 export type NodeProperties = {
   elevation: number;
   type: NodeType;
-  initialQuality: number;
+  initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;

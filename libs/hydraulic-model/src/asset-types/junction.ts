@@ -1,8 +1,10 @@
 import { Node, NodeProperties } from "./node";
 
+export const DEFAULT_EMITTER_COEFFICIENT = 0;
+
 export type JunctionProperties = {
   type: "junction";
-  emitterCoefficient: number;
+  emitterCoefficient?: number;
 } & NodeProperties;
 
 export const junctionQuantities = [

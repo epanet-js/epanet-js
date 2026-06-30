@@ -16,6 +16,8 @@ export const nullConnections: LinkConnections = [NO_ASSET_ID, NO_ASSET_ID];
 import { LinkType } from "./types";
 export type { LinkType };
 
+export const DEFAULT_MINOR_LOSS = 0;
+
 export type LinkProperties = {
   type: LinkType;
   connections: LinkConnections;

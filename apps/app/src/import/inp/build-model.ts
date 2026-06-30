@@ -717,7 +717,7 @@ const addPump = (
   }
 
   let initialStatus: PumpStatus = "on";
-  let speed = pumpData.speed !== undefined ? pumpData.speed : 1;
+  let speed: number | undefined = pumpData.speed;
 
   if (inpData.status.has(pumpData.id)) {
     const statusValue = inpData.status.get(pumpData.id) as string;

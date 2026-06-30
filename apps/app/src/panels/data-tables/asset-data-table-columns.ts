@@ -24,6 +24,12 @@ import {
   type Curves,
   type CurveType,
   LabelManager,
+  DEFAULT_MINOR_LOSS,
+  DEFAULT_EMITTER_COEFFICIENT,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MIXING_FRACTION,
+  DEFAULT_SPEED,
+  DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
 import type { TranslateFn } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -158,8 +164,34 @@ const NULLABLE_KEYS = new Set([
   "diameter",
 ]);
 
-export const isOptionalColumn = (key: string): boolean =>
-  OPTIONAL_KEYS.has(key);
+const FLAG_OPTIONAL_KEYS = new Set([
+  "minorLoss",
+  "emitterCoefficient",
+  "minVolume",
+  "mixingFraction",
+  "speed",
+  "initialQuality",
+]);
+
+// EPANET default shown as a placeholder for an empty optional column.
+const optionalColumnPlaceholder = (key: string): string | undefined => {
+  switch (key) {
+    case "minorLoss":
+      return String(DEFAULT_MINOR_LOSS);
+    case "emitterCoefficient":
+      return String(DEFAULT_EMITTER_COEFFICIENT);
+    case "minVolume":
+      return String(DEFAULT_MIN_VOLUME);
+    case "mixingFraction":
+      return String(DEFAULT_MIXING_FRACTION);
+    case "speed":
+      return String(DEFAULT_SPEED);
+    case "initialQuality":
+      return String(DEFAULT_INITIAL_QUALITY);
+    default:
+      return undefined;
+  }
+};
 
 const numericValidatorFor = (
   key: string,
@@ -170,6 +202,12 @@ const numericValidatorFor = (
   return undefined;
 };
 
+export const isOptionalColumn = (
+  key: string,
+  allowsNullValues?: boolean,
+): boolean =>
+  OPTIONAL_KEYS.has(key) || (!!allowsNullValues && FLAG_OPTIONAL_KEYS.has(key));
+
 export const isNullableColumn = (
   key: string,
   allowsNullValues?: boolean,
@@ -178,7 +216,9 @@ export const isNullableColumn = (
 export const isEmptiableColumn = (
   key: string,
   allowsNullValues?: boolean,
-): boolean => isOptionalColumn(key) || isNullableColumn(key, allowsNullValues);
+): boolean =>
+  isOptionalColumn(key, allowsNullValues) ||
+  isNullableColumn(key, allowsNullValues);
 
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
 export type QualityAnalysisType = "none" | "age" | "trace" | "chemical";
@@ -569,6 +609,8 @@ function _buildColumns(
     const nullable =
       isNullableColumn(key, allowsNullValues) &&
       !(key === "diameter" && type === "pipe");
+    const flagOptional = !!allowsNullValues && FLAG_OPTIONAL_KEYS.has(key);
+    const emptiable = isOptionalColumn(key, allowsNullValues) || nullable;
     return floatColumn(ck(key), {
       header: headerLabel(name, unit),
       decimals:
@@ -576,15 +618,12 @@ function _buildColumns(
           ? getDecimals(formatting, property)
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
-      placeholder,
-      emptyValue:
-        isOptionalColumn(key) || nullable
-          ? null
-          : NON_ZERO_KEYS.has(key)
-            ? undefined
-            : 0,
       validate: numericValidatorFor(key),
       commitInvalidValues,
+      placeholder: flagOptional
+        ? (optionalColumnPlaceholder(key) ?? placeholder)
+        : placeholder,
+      emptyValue: emptiable ? null : NON_ZERO_KEYS.has(key) ? undefined : 0,
     });
   };
 
@@ -704,6 +743,7 @@ function _buildColumns(
         numericCol("emitterCoefficient", translate("emitterCoefficient"), {
           unit: units.emitterCoefficient,
           property: "emitterCoefficient",
+          commitInvalidValues: allowsNullValues,
         }),
         floatColumn(ck("avgDemand"), {
           header: headerLabel(translate("directDemand"), units.baseDemand),
@@ -730,7 +770,9 @@ function _buildColumns(
           decimals: getDecimals(formatting, "baseDemand"),
           isReadOnly: true,
         }),
-        numericCol("initialQuality", translate("initialQuality")),
+        numericCol("initialQuality", translate("initialQuality"), {
+          commitInvalidValues: allowsNullValues,
+        }),
         ...chemicalSourceTypeCols(),
         ...simCols,
       ];
@@ -773,6 +815,7 @@ function _buildColumns(
         numericCol("minorLoss", translate("minorLoss"), {
           unit: units.minorLoss,
           property: "minorLoss",
+          commitInvalidValues: allowsNullValues,
         }),
         floatColumn(ck("customerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
@@ -854,6 +897,7 @@ function _buildColumns(
         numericCol("speed", translate("initialSpeed"), {
           unit: units.speed,
           property: "speed",
+          commitInvalidValues: allowsNullValues,
         }),
         patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
         curveCol(
@@ -929,6 +973,7 @@ function _buildColumns(
         numericCol("minorLoss", translate("minorLoss"), {
           unit: units.minorLoss,
           property: "minorLoss",
+          commitInvalidValues: allowsNullValues,
         }),
         ...simCols,
       ];
@@ -950,7 +995,9 @@ function _buildColumns(
           commitInvalidValues: allowsNullValues,
         }),
         patternCol("headPatternId", translate("headPattern"), "reservoirHead"),
-        numericCol("initialQuality", translate("initialQuality")),
+        numericCol("initialQuality", translate("initialQuality"), {
+          commitInvalidValues: allowsNullValues,
+        }),
         ...chemicalSourceTypeCols(),
         ...simCols,
       ];
@@ -985,6 +1032,7 @@ function _buildColumns(
           unit: units.minVolume,
           property: "minVolume",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+          commitInvalidValues: allowsNullValues,
         }),
         floatColumn(ck("maxVolume"), {
           header: headerLabel(translate("maxVolume"), units.minVolume),
@@ -1010,8 +1058,11 @@ function _buildColumns(
         numericCol("mixingFraction", translate("mixingFraction"), {
           isReadOnly: (rowIndex) =>
             getRow?.(rowIndex)?.mixingModel !== TANK_TWO_COMPARTMENT_MIXING,
+          commitInvalidValues: allowsNullValues,
         }),
-        numericCol("initialQuality", translate("initialQuality")),
+        numericCol("initialQuality", translate("initialQuality"), {
+          commitInvalidValues: allowsNullValues,
+        }),
         floatColumn("bulkReactionCoeff", {
           header: translate("bulkReactionCoeff"),
           decimals: formatting.defaultDecimals,

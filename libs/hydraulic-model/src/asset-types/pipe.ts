@@ -7,7 +7,7 @@ export type PipeProperties = {
   type: "pipe";
   diameter: number;
   roughness: number | null;
-  minorLoss: number;
+  minorLoss?: number;
   initialStatus: PipeStatus;
   bulkReactionCoeff?: number;
   wallReactionCoeff?: number;

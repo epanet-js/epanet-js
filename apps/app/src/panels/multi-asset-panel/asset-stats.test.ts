@@ -283,6 +283,37 @@ describe("computeMultiAssetData", () => {
     expect(materialStat.emptyBucket?.ids).toEqual([IDS.P2, IDS.P3]);
   });
 
+  it("counts an unset fixed-default optional field as its default value, not an empty bucket", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2, minorLoss: 2 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2, minorLoss: 5 })
+      .build();
+    // Simulate a value cleared in the editors (minor loss defaults to 0).
+    hydraulicModel.assets.get(IDS.P2)!.setProperty("minorLoss", undefined);
+
+    const assets = Array.from(hydraulicModel.assets.values());
+    const result = computeAssetsStats(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+    );
+
+    const minorLossStat = findQuantityStat(
+      result.data.pipe.modelAttributes,
+      "minorLoss",
+    );
+    expect(minorLossStat.values.get(2)).toEqual([IDS.P1]);
+    expect(minorLossStat.values.get(0)).toEqual([IDS.P2]);
+    expect(minorLossStat.min).toBe(0);
+    expect(minorLossStat.max).toBe(2);
+    expect(minorLossStat.times).toBe(2);
+    expect(minorLossStat.emptyBucket).toBeUndefined();
+  });
+
   it("counts pipes with unset year in emptyBucket and excludes them from min/max/mean", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()

@@ -1,5 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { validateModelAttributes } from "./run-check";
+import { groupIssues } from "./issues";
 import { RULES } from "./rules";
 
 describe("validateModelAttributes", () => {
@@ -190,6 +191,116 @@ describe("validateModelAttributes", () => {
       expect(
         (await validateModelAttributes(missing)).map((i) => i.ruleId),
       ).toContain("tank.initialLevel.present");
+    });
+  });
+
+  describe("optional attribute value checks", () => {
+    it("flags a negative minor loss as an error (EPANET rejects it)", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, { minorLoss: -5 })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        ruleId: "pipe.minorLoss.nonNegative",
+        severity: "error",
+      });
+    });
+
+    it("accepts a zero minor loss", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, { minorLoss: 0 })
+        .build();
+
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).not.toContain("pipe.minorLoss.nonNegative");
+    });
+
+    it("flags a negative emitter coefficient as a warning (EPANET runs)", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(1, { emitterCoefficient: -5 })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toHaveLength(1);
+      expect(issues[0]).toMatchObject({
+        ruleId: "junction.emitterCoefficient.nonNegative",
+        severity: "warning",
+      });
+    });
+
+    it("warns on an out-of-range mixing fraction only for 2comp tanks", async () => {
+      const twoComp = HydraulicModelBuilder.with()
+        .aTank(1, { mixingModel: "2comp", mixingFraction: 1.5 })
+        .build();
+      expect(
+        (await validateModelAttributes(twoComp)).map((i) => i.ruleId),
+      ).toContain("tank.mixingFraction.unitRange");
+
+      const mixed = HydraulicModelBuilder.with()
+        .aTank(2, { mixingModel: "mixed", mixingFraction: 1.5 })
+        .build();
+      expect(
+        (await validateModelAttributes(mixed)).map((i) => i.ruleId),
+      ).not.toContain("tank.mixingFraction.unitRange");
+    });
+
+    it("flags a negative energy price as an error (EPANET rejects it)", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, { startNodeId: 2, endNodeId: 3, energyPrice: -5 })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+      const energyPriceIssue = issues.find(
+        (i) => i.ruleId === "pump.energyPrice.nonNegative",
+      );
+      expect(energyPriceIssue?.severity).toBe("error");
+    });
+
+    it("warns on a negative source strength only when a source is active", async () => {
+      const withSource = HydraulicModelBuilder.with()
+        .aJunction(1, {
+          chemicalSourceType: "concen",
+          chemicalSourceStrength: -5,
+        })
+        .build();
+      const issues = await validateModelAttributes(withSource);
+      const strengthIssue = issues.find(
+        (i) => i.ruleId === "node.chemicalSourceStrength.nonNegative",
+      );
+      expect(strengthIssue?.severity).toBe("warning");
+
+      const noSource = HydraulicModelBuilder.with()
+        .aJunction(2, { chemicalSourceStrength: -5 })
+        .build();
+      expect(
+        (await validateModelAttributes(noSource)).map((i) => i.ruleId),
+      ).not.toContain("node.chemicalSourceStrength.nonNegative");
+    });
+
+    it("groups negative source strength across node types into one rule", async () => {
+      const source = {
+        chemicalSourceType: "concen" as const,
+        chemicalSourceStrength: -5,
+      };
+      const model = HydraulicModelBuilder.with()
+        .aJunction(1, source)
+        .aReservoir(2, source)
+        .aTank(3, source)
+        .build();
+
+      const groups = groupIssues(await validateModelAttributes(model));
+      const strengthGroups = groups.filter(
+        (g) => g.ruleId === "node.chemicalSourceStrength.nonNegative",
+      );
+      expect(strengthGroups).toHaveLength(1);
+      expect(strengthGroups[0].issues).toHaveLength(3);
     });
   });
 

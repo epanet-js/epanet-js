@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import { EntityType, Rule, ValidatableEntity } from "./types";
+import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 
 const fromSchema =
   (schema: z.ZodTypeAny) =>
@@ -62,8 +62,38 @@ const requiredNumeric = (
   return rules;
 };
 
-// First batch of nullable attributes. Deferred (map/HGL/arrow/control coupled):
-// pipe.diameter, pipe.length, *.elevation, tank.minLevel, tank.maxLevel.
+type OptionalCheck = "nonNegative" | "unitRange";
+
+const optionalCheckSchema: Record<OptionalCheck, z.ZodTypeAny> = {
+  nonNegative: z.number().nonnegative(),
+  unitRange: z.number().min(0).max(1),
+};
+
+const optionalCheckMessage: Record<OptionalCheck, string> = {
+  nonNegative: "mustBeNonNegative",
+  unitRange: "mustBeWithinUnitRange",
+};
+
+const optionalNumeric = (
+  entityType: EntityType,
+  fieldName: string,
+  check: OptionalCheck,
+  severity: Severity,
+  when?: When,
+): Rule => ({
+  id: `${entityType}.${fieldName}.${check}`,
+  entityType,
+  field: fieldName,
+  accessor: field(fieldName),
+  validate: (value, entity, model) => {
+    if (when && !when(entity, model)) return true;
+    if (value == null) return true; // empty is allowed for optional attributes
+    return fromSchema(optionalCheckSchema[check])(value);
+  },
+  severity,
+  message: optionalCheckMessage[check],
+});
+
 export const RULES: Rule[] = [
   // Pipes
   ...requiredNumeric("pipe", "roughness", "positive"),
@@ -85,6 +115,42 @@ export const RULES: Rule[] = [
     "setting",
     undefined,
     (entity) => prop(entity, "kind") !== "gpv",
+  ),
+  optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
+  optionalNumeric("valve", "minorLoss", "nonNegative", "error"),
+  optionalNumeric("tank", "minVolume", "nonNegative", "error"),
+  optionalNumeric("pump", "speed", "nonNegative", "error"),
+  optionalNumeric("junction", "emitterCoefficient", "nonNegative", "warning"),
+  ...(["junction", "reservoir", "tank"] as const).map(
+    (entityType): Rule => ({
+      ...optionalNumeric(
+        entityType,
+        "initialQuality",
+        "nonNegative",
+        "warning",
+      ),
+      id: "node.initialQuality.nonNegative",
+    }),
+  ),
+  optionalNumeric(
+    "tank",
+    "mixingFraction",
+    "unitRange",
+    "warning",
+    (entity) => prop(entity, "mixingModel") === "2comp",
+  ),
+  optionalNumeric("pump", "energyPrice", "nonNegative", "error"),
+  ...(["junction", "reservoir", "tank"] as const).map(
+    (entityType): Rule => ({
+      ...optionalNumeric(
+        entityType,
+        "chemicalSourceStrength",
+        "nonNegative",
+        "warning",
+        (entity) => prop(entity, "chemicalSourceType") != null,
+      ),
+      id: "node.chemicalSourceStrength.nonNegative",
+    }),
   ),
   // Customer points
   {

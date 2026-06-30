@@ -683,6 +683,29 @@ describe("Parse inp with", () => {
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
+    it("leaves emitter coefficient and initial quality undefined when omitted and null values are allowed", () => {
+      const inp = `
+      [JUNCTIONS]
+      J1  100
+      J2  200
+
+      [COORDINATES]
+      J1  10  20
+      J2  30  40
+
+      [EMITTERS]
+      J1  0.5
+      `;
+
+      const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+      const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
+      const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
+
+      expect(j1.emitterCoefficient).toBe(0.5);
+      expect(j2.emitterCoefficient).toBeUndefined();
+      expect(j1.initialQuality).toBeUndefined();
+    });
+
     it("parses [REACTIONS] section with non-default values", () => {
       const inp = `
       [REACTIONS]

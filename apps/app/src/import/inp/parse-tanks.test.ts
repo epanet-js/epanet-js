@@ -222,6 +222,36 @@ describe("parse tanks", () => {
     expect(tank.minVolume).toEqual(0);
   });
 
+  it("leaves min volume undefined when omitted and null values are allowed", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.minVolume).toBeUndefined();
+  });
+
+  it("leaves mixing fraction undefined when no MIXING section and null values are allowed", () => {
+    const inp = `
+    [TANKS]
+    T1    100     15       5       25     120   0
+
+    [COORDINATES]
+    T1\t10\t20
+    `;
+
+    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+
+    const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
+    expect(tank.mixingFraction).toBeUndefined();
+  });
+
   const getByLabel = (assets: AssetsMap, label: string): Asset | undefined => {
     return [...assets.values()].find((a) => a.label === label);
   };

@@ -166,7 +166,7 @@ const sharedLinkMap: ColumnMap = {
 
 const junctionMap: ColumnMap = {
   ...sharedNodeMap,
-  emitterCoefficient: { col: "emitter_coefficient" },
+  emitterCoefficient: { col: "emitter_coefficient", transform: toNullable },
 };
 
 const reservoirMap: ColumnMap = {

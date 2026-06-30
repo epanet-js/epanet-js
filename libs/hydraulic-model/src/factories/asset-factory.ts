@@ -418,41 +418,78 @@ export class AssetFactory {
   }
 }
 
-// Leaves attributes null when the build data does not provide them, instead of
-// applying a factory preset. Used by imports (e.g. GIS column mapping) under the
-// null-values feature; required attributes left null are caught by the
-// pre-simulation check. Reservoir head is handled separately (see
-// createReservoir) because it can be derived from elevation + relativeHead.
-const nullifyUnmapped = <
+const emptyUnmapped = <
   T extends { setProperty: (name: string, value: unknown) => void },
 >(
   asset: T,
   data: Record<string, unknown>,
   fields: readonly string[],
+  emptyValue: null | undefined,
 ): T => {
   for (const field of fields) {
-    if (data[field] == null) asset.setProperty(field, null);
+    if (data[field] == null) asset.setProperty(field, emptyValue);
   }
   return asset;
 };
 
+// EPANET-optional attributes: when unmapped they map to `undefined` (use the
+// EPANET default), in contrast to required attributes that map to `null`.
+const OPTIONAL_FIELDS = {
+  pipe: ["minorLoss"],
+  valve: ["minorLoss"],
+  junction: ["emitterCoefficient", "initialQuality"],
+  reservoir: ["initialQuality"],
+  tank: ["minVolume", "mixingFraction", "initialQuality"],
+  pump: ["speed"],
+} as const;
+
 export class AssetFactoryWithNullValues extends AssetFactory {
   createPipe(data: PipeBuildData = {}): Pipe {
-    return nullifyUnmapped(super.createPipe(data), data, ["roughness"]);
+    const pipe = emptyUnmapped(
+      super.createPipe(data),
+      data,
+      ["roughness"],
+      null,
+    );
+    return emptyUnmapped(pipe, data, OPTIONAL_FIELDS.pipe, undefined);
   }
 
   createValve(data: ValveBuildData = {}): Valve {
-    return nullifyUnmapped(super.createValve(data), data, [
-      "diameter",
-      "setting",
-    ]);
+    const valve = emptyUnmapped(
+      super.createValve(data),
+      data,
+      ["diameter", "setting"],
+      null,
+    );
+    return emptyUnmapped(valve, data, OPTIONAL_FIELDS.valve, undefined);
+  }
+
+  createJunction(data: JunctionBuildData = {}): Junction {
+    return emptyUnmapped(
+      super.createJunction(data),
+      data,
+      OPTIONAL_FIELDS.junction,
+      undefined,
+    );
+  }
+
+  createPump(data: PumpBuildData = {}): Pump {
+    return emptyUnmapped(
+      super.createPump(data),
+      data,
+      OPTIONAL_FIELDS.pump,
+      undefined,
+    );
   }
 
   createTank(data: TankBuildData = {}): Tank {
-    return nullifyUnmapped(super.createTank(data), data, [
-      "initialLevel",
-      "diameter",
-    ]);
+    const tank = emptyUnmapped(
+      super.createTank(data),
+      data,
+      ["initialLevel", "diameter"],
+      null,
+    );
+    return emptyUnmapped(tank, data, OPTIONAL_FIELDS.tank, undefined);
   }
 
   createReservoir(data: ReservoirBuildData = {}): Reservoir {
@@ -463,6 +500,6 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     if (data.head == null && data.relativeHead == null) {
       reservoir.setProperty("head", null);
     }
-    return reservoir;
+    return emptyUnmapped(reservoir, data, OPTIONAL_FIELDS.reservoir, undefined);
   }
 }

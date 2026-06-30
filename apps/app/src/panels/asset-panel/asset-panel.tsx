@@ -40,6 +40,12 @@ import {
   CurveId,
   Curves,
   ICurve,
+  DEFAULT_MINOR_LOSS,
+  DEFAULT_EMITTER_COEFFICIENT,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MIXING_FRACTION,
+  DEFAULT_SPEED,
+  DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
 import { UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { getMinorLossUnit } from "src/lib/project-settings";
@@ -430,6 +436,7 @@ const JunctionEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
@@ -532,6 +539,8 @@ const JunctionEditor = ({
         <QuantityRow
           name="emitterCoefficient"
           value={junction.emitterCoefficient}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_EMITTER_COEFFICIENT)}
           unit={units.emitterCoefficient}
           comparison={getComparison(
             "emitterCoefficient",
@@ -591,6 +600,8 @@ const JunctionEditor = ({
         <QuantityRow
           name="initialQuality"
           value={junction.initialQuality}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
               ? units.waterAge
@@ -889,6 +900,8 @@ const PipeEditor = ({
           validate={isZeroOrGreater}
           unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_MINOR_LOSS)}
           onChange={onPropertyChange}
           readOnly={readonly}
         />
@@ -1038,6 +1051,7 @@ const ReservoirEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
@@ -1112,6 +1126,8 @@ const ReservoirEditor = ({
         <QuantityRow
           name="initialQuality"
           value={reservoir.initialQuality}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
               ? units.waterAge
@@ -1330,6 +1346,8 @@ const TankEditor = ({
         <QuantityRow
           name="initialQuality"
           value={tank.initialQuality}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
               ? units.waterAge
@@ -1375,6 +1393,8 @@ const TankEditor = ({
             <QuantityRow
               name="mixingFraction"
               value={tank.mixingFraction}
+              isOptional={allowsNullValues}
+              placeholder={String(DEFAULT_MIXING_FRACTION)}
               unit={null}
               onChange={onPropertyChange}
               validate={isWithinUnitRange}
@@ -1546,7 +1566,7 @@ const TankDefinitionField = ({
     const lines: string[] = [];
     if (baseIsCircular) {
       const baseDiameter = diameterComp.baseValue ?? tank.diameter;
-      const baseMinVolume = minVolumeComp.baseValue ?? tank.minVolume;
+      const baseMinVolume = minVolumeComp.baseValue ?? tank.minVolume ?? 0;
       const baseMinLevel = minLevelComp.baseValue ?? tank.minLevel;
       const baseMaxLevel = maxLevelComp.baseValue ?? tank.maxLevel;
       const baseMaxVolume = tankVolumeFor(
@@ -1751,12 +1771,20 @@ const TankDefinitionField = ({
                   },
                   {
                     label: translate("minVolume"),
-                    value: tank.minVolume,
+                    value: tank.minVolume ?? null,
                     validate: isZeroOrGreater,
-                    isNullable: false,
+                    isNullable: allowsNullValues,
+                    commitInvalidValues: allowsNullValues,
+                    placeholder: allowsNullValues
+                      ? String(DEFAULT_MIN_VOLUME)
+                      : undefined,
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("minVolume", v, tank.minVolume),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "minVolume",
+                        allowsNullValues && isEmpty ? undefined : v,
+                        tank.minVolume,
+                      ),
                   },
                 ],
               ]}
@@ -1805,12 +1833,20 @@ const TankDefinitionField = ({
                   },
                   {
                     label: translate("minVolume"),
-                    value: tank.minVolume,
+                    value: tank.minVolume ?? null,
                     validate: isZeroOrGreater,
-                    isNullable: false,
+                    isNullable: allowsNullValues,
+                    commitInvalidValues: allowsNullValues,
+                    placeholder: allowsNullValues
+                      ? String(DEFAULT_MIN_VOLUME)
+                      : undefined,
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("minVolume", v, tank.minVolume),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "minVolume",
+                        allowsNullValues && isEmpty ? undefined : v,
+                        tank.minVolume,
+                      ),
                   },
                 ],
               ]}
@@ -1850,7 +1886,7 @@ const TankDefinitionField = ({
                 },
                 {
                   label: translate("minVolume"),
-                  value: tank.minVolume,
+                  value: tank.minVolume ?? null,
                   validate: isZeroOrGreater,
                   isNullable: false,
                   readOnly,
@@ -2119,6 +2155,8 @@ const ValveEditor = ({
           name="minorLoss"
           value={valve.minorLoss}
           validate={isZeroOrGreater}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_MINOR_LOSS)}
           unit={units.minorLoss}
           comparison={getComparison("minorLoss", valve.minorLoss)}
           onChange={onPropertyChange}
@@ -2221,6 +2259,7 @@ const PumpEditor = ({
 }) => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
@@ -2352,6 +2391,8 @@ const PumpEditor = ({
           name="initialSpeed"
           value={pump.speed}
           validate={isZeroOrGreater}
+          isOptional={allowsNullValues}
+          placeholder={String(DEFAULT_SPEED)}
           unit={units.speed}
           comparison={getComparison("speed", pump.speed)}
           onChange={(_, newValue, oldValue) =>
@@ -2409,6 +2450,7 @@ const PumpEditor = ({
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
           validate={isZeroOrGreater}
+          commitInvalidValues={allowsNullValues}
           isOptional
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
@@ -2791,6 +2833,7 @@ const ChemicalSourceEditor = ({
   const translateUnit = useTranslateUnit();
   const showPatternsLibrary = useShowPatternsLibrary();
   const { getComparison, getPatternComparison } = useAssetComparison(node);
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const typedNode = node as Junction | Tank | Reservoir;
 
   const strengthUnit =
@@ -2910,6 +2953,7 @@ const ChemicalSourceEditor = ({
             unit={null}
             onChange={onPropertyChange}
             validate={isZeroOrGreater}
+            commitInvalidValues={allowsNullValues}
             isOptional
             placeholder={localizeDecimal(0)}
             readOnly={readOnly}
