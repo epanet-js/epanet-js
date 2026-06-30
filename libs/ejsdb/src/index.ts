@@ -8,6 +8,7 @@ export { timed, timedWith } from "./perf-log";
 export type {
   OpenDbResult,
   ApplyMomentPayload,
+  CustomAttributesDataSave,
   CustomerPointDemandUpdate,
   JunctionDemandUpdate,
 } from "./types";

@@ -7,6 +7,7 @@ import type {
 import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
+import type { CustomAttributesDataRow } from "./schema/custom-attributes-data";
 
 export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }
@@ -29,6 +30,11 @@ export type CustomerPointDemandUpdate = {
 export type JunctionDemandUpdate = {
   junctionId: number;
   demands: JunctionDemandRow[];
+};
+
+export type CustomAttributesDataSave = {
+  upserts: CustomAttributesDataRow[];
+  deleteIds: number[];
 };
 
 export type ApplyMomentPayload = {
