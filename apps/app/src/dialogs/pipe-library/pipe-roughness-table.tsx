@@ -203,6 +203,8 @@ export const PipeRoughnessTable = ({
   const handleDelete = useCallback(
     (rowsToDelete: RoughnessEntry[]) => {
       const toRemove = new Set(rowsToDelete);
+      toRemove.delete(rowData[0]);
+      if (toRemove.size === 0) return;
       handleChange(rowData.filter((row) => !toRemove.has(row)));
       userTracking.capture({
         name: "pipeLibrary.roughnessRow.changed",
