@@ -190,6 +190,7 @@ export const PipeLibraryDialog = () => {
     const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
     if (moment.patchAssetsAttributes!.length === 0) {
       notify({
+        id: "pipe-library-notification",
         variant: "default",
         title: translate("pipeLibrary.noAssetsChanged"),
       });
@@ -201,6 +202,7 @@ export const PipeLibraryDialog = () => {
       pipesUpdated: moment.patchAssetsAttributes!.length,
     });
     notify({
+      id: "pipe-library-notification",
       variant: "success",
       title: translate(
         "pipeLibrary.appliedRoughness",
