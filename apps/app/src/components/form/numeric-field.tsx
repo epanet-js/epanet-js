@@ -10,6 +10,10 @@ import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
 import { normalizeNumericInput } from "./numeric-input-utils";
 import clsx from "clsx";
 
+// Default validator when a caller doesn't provide one: the value just has to be
+// a number, so a non-numeric entry (parsed as NaN) fails it.
+const isNumber = (value: number) => !Number.isNaN(value);
+
 type StyleOptions = {
   textSize?: "xs" | "sm" | "md";
   padding?: "md" | "sm";
@@ -25,7 +29,7 @@ export const NumericField = ({
   onChangeValue,
   readOnly = false,
   disabled = false,
-  isNullable = true,
+  isRequired = false,
   commitInvalidValues = false,
   placeholder,
   styleOptions = {},
@@ -35,7 +39,7 @@ export const NumericField = ({
   label: string;
   displayValue: string;
   onChangeValue?: (newValue: number, isEmpty: boolean) => void;
-  isNullable?: boolean;
+  isRequired?: boolean;
   commitInvalidValues?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
@@ -57,8 +61,15 @@ export const NumericField = ({
   useEffect(() => {
     if (!isDirty && document.activeElement !== inputRef.current) {
       setInputValue(displayValue);
+      const { hasError, isBlocked } = validationStateFor(displayValue, {
+        isRequired,
+        commitInvalidValues,
+        validate,
+      });
+      setError(hasError);
+      setBlocked(isBlocked);
     }
-  }, [displayValue, isDirty]);
+  }, [displayValue, isDirty, isRequired, commitInvalidValues, validate]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Escape") {
@@ -106,7 +117,7 @@ export const NumericField = ({
   const handleCommitLastChange = () => {
     const numericValue = parseLocaleNumber(inputValue);
     const isEmpty = inputValue.trim() === "";
-    setInputValue(isNullable && isEmpty ? "" : String(numericValue));
+    setInputValue(isEmpty ? "" : String(numericValue));
     onChangeValue && onChangeValue(numericValue, isEmpty);
 
     setDirty(false);
@@ -127,19 +138,13 @@ export const NumericField = ({
     if (newInputValue === inputValue) return;
     if (rawValue.length > 0 && newInputValue.length === 0) return;
     setInputValue(newInputValue);
-    const isEmpty = newInputValue.trim() === "";
-    const numericValue = parseLocaleNumber(newInputValue);
-    const isInvalidNumber = isEmpty ? !isNullable : isNaN(numericValue);
-    const failsValidation =
-      !isEmpty &&
-      !isInvalidNumber &&
-      validate !== undefined &&
-      !validate(numericValue);
-    setError(isInvalidNumber || failsValidation);
-    // A failed domain validation blocks the commit unless the field commits
-    // invalid values (informational, driven by the flag). An unparseable number
-    // always blocks.
-    setBlocked(isInvalidNumber || (failsValidation && !commitInvalidValues));
+    const { hasError, isBlocked } = validationStateFor(newInputValue, {
+      isRequired,
+      commitInvalidValues,
+      validate,
+    });
+    setError(hasError);
+    setBlocked(isBlocked);
     setDirty(true);
   };
 
@@ -172,6 +177,36 @@ export const NumericField = ({
       className={styledInput({ ...styleOptions, disabled })}
     />
   );
+};
+
+// Warning + blocking state for a given input string, from three orthogonal
+// inputs — there is no separate "clearable" concept:
+//   - isRequired → an empty value is invalid (e.g. an unmapped roughness, or
+//                  reservoir head which is required but has no range validator)
+//   - validate   → check for non-empty values; defaults to "is a number"
+//   - commitInvalidValues → commit invalid values (out-of-range or empty-but-
+//                  required) with a warning instead of reverting; a non-numeric
+//                  value always reverts
+//
+// "Can the user commit empty" then falls out as `!isRequired || commitInvalidValues`.
+const validationStateFor = (
+  value: string,
+  {
+    isRequired,
+    commitInvalidValues,
+    validate = isNumber,
+  }: {
+    isRequired: boolean;
+    commitInvalidValues: boolean;
+    validate?: (value: number) => boolean;
+  },
+) => {
+  const isEmpty = value.trim() === "";
+  const numericValue = parseLocaleNumber(value);
+  const isNonNumeric = !isEmpty && isNaN(numericValue);
+  const hasError = isEmpty ? isRequired : !validate(numericValue);
+  const isBlocked = isNonNumeric || (hasError && !commitInvalidValues);
+  return { hasError, isBlocked };
 };
 
 function styledInput({

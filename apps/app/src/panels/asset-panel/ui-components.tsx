@@ -256,7 +256,6 @@ export const QuantityRow = <
   value,
   unit,
   readOnly = false,
-  isNullable = false,
   isOptional = false,
   commitInvalidValues,
   placeholder = "",
@@ -269,7 +268,6 @@ export const QuantityRow = <
   name: P;
   value: V;
   unit: Unit;
-  isNullable?: boolean;
   isOptional?: boolean;
   commitInvalidValues?: boolean;
   readOnly?: boolean;
@@ -303,7 +301,7 @@ export const QuantityRow = <
     lastChange.current = Date.now();
     if (isEmpty) {
       if (isOptional) onChange && onChange(name, undefined as V, value);
-      else if (isNullable) onChange && onChange(name, null as V, value);
+      else onChange && onChange(name, null as V, value);
       return;
     }
     onChange && onChange(name, newValue as V, value);
@@ -323,10 +321,8 @@ export const QuantityRow = <
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
-          isNullable={isNullable || isOptional}
-          commitInvalidValues={
-            commitInvalidValues ?? (isNullable || isOptional)
-          }
+          isRequired={!isOptional}
+          commitInvalidValues={commitInvalidValues}
           validate={validate}
           readOnly={readOnly}
           displayValue={displayValue}
@@ -350,8 +346,8 @@ export const IntegerRow = <
   name,
   value,
   readOnly = false,
-  isNullable = true,
   isOptional = false,
+  commitInvalidValues = false,
   placeholder = "",
   comparison,
   onChange,
@@ -361,8 +357,8 @@ export const IntegerRow = <
 }: {
   name: P;
   value: V;
-  isNullable?: boolean;
   isOptional?: boolean;
+  commitInvalidValues?: boolean;
   readOnly?: boolean;
   placeholder?: string;
   comparison?: PropertyComparison;
@@ -387,7 +383,7 @@ export const IntegerRow = <
     lastChange.current = Date.now();
     if (isEmpty) {
       if (isOptional) onChange && onChange(name, undefined as V, value);
-      else if (isNullable) onChange && onChange(name, null as V, value);
+      else onChange && onChange(name, null as V, value);
       return;
     }
     if (!Number.isFinite(newValue)) return;
@@ -409,7 +405,8 @@ export const IntegerRow = <
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
-          isNullable={isNullable || isOptional}
+          isRequired={!isOptional}
+          commitInvalidValues={commitInvalidValues}
           readOnly={readOnly}
           displayValue={displayValue}
           placeholder={placeholder}

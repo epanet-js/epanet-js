@@ -85,7 +85,7 @@ export const MapToolbarPipeDrawing = () => {
             key={lastDiameterChange.current + diameterDisplay}
             label={diameterLabel}
             validate={isGreaterThanZero}
-            isNullable={false}
+            isRequired={true}
             displayValue={diameterDisplay}
             onChangeValue={handleDiameterChange}
             styleOptions={{
@@ -104,7 +104,8 @@ export const MapToolbarPipeDrawing = () => {
             key={lastRoughnessChange.current + roughnessDisplay}
             label={roughnessLabel}
             validate={isGreaterThanZero}
-            isNullable={allowsNullValues}
+            isRequired={true}
+            commitInvalidValues={allowsNullValues}
             displayValue={roughnessDisplay}
             onChangeValue={handleRoughnessChange}
             styleOptions={{

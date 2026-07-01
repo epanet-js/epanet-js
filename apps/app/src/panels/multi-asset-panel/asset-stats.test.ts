@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { computeAssetsStats } from "./asset-stats";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type {
   QuantityStats,
   CategoryStats,
@@ -75,6 +76,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     expect(result.data.junction).toBeDefined();
@@ -98,6 +101,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const junctionData = result.data.junction;
@@ -134,6 +139,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const simulationStats = result.data.junction.simulationResults;
@@ -159,6 +166,7 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
       simulationResults,
     );
 
@@ -198,6 +206,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const pipeData = result.data.pipe;
@@ -235,6 +245,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const materialStat = findCategoryStat(
@@ -272,6 +284,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const materialStat = findCategoryStat(
@@ -300,6 +314,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const minorLossStat = findQuantityStat(
@@ -338,6 +354,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const yearStat = findQuantityStat(result.data.pipe.modelAttributes, "year");
@@ -377,6 +395,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const roughnessStat = findQuantityStat(
@@ -411,6 +431,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const roughnessStat = findQuantityStat(
@@ -436,6 +458,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const materialStat = findCategoryStat(
@@ -463,6 +487,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const typeStat = findCategoryStat(
@@ -506,6 +532,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const bulkStat = findQuantityStat(
@@ -539,6 +567,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const headPatternStat = findLiteralCategoryStat(
@@ -585,6 +615,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const speedPatternStat = findLiteralCategoryStat(
@@ -633,6 +665,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const speedStat = findQuantityStat(
@@ -663,6 +697,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const speedPatternStat = findLiteralCategoryStat(
@@ -703,6 +739,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const statusStat = findCategoryStat(
@@ -715,7 +753,14 @@ describe("computeMultiAssetData", () => {
 
   it("handles empty asset arrays", () => {
     const hydraulicModel = HydraulicModelBuilder.empty();
-    const result = computeAssetsStats([], units, formatting, hydraulicModel);
+    const result = computeAssetsStats(
+      [],
+      units,
+      formatting,
+      hydraulicModel,
+      defaultSimulationSettings,
+      null,
+    );
 
     expect(result.data.junction.modelAttributes).toEqual([]);
     expect(result.data.junction.demands).toEqual([]);
@@ -736,6 +781,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     expect(result.data.junction.modelAttributes.length).toBeGreaterThan(0);
@@ -762,6 +809,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const pumpData = result.data.pump;
@@ -806,6 +855,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const typeStat = findCategoryStat(
@@ -840,6 +891,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const typeStat = findCategoryStat(
@@ -878,6 +931,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const curveStat = findLiteralCategoryStat(
@@ -907,6 +962,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const nameStat = result.data.pump.modelAttributes.find(
@@ -956,6 +1013,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const curveStat = findLiteralCategoryStat(
@@ -987,6 +1046,7 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
       simulationResults,
     );
 
@@ -1017,6 +1077,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const valveData = result.data.valve;
@@ -1042,6 +1104,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const tankData = result.data.tank;
@@ -1073,6 +1137,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const curveStat = result.data.tank.modelAttributes.find(
@@ -1094,6 +1160,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const reservoirData = result.data.reservoir;
@@ -1127,6 +1195,8 @@ describe("computeMultiAssetData", () => {
       units,
       formatting,
       hydraulicModel,
+      defaultSimulationSettings,
+      null,
     );
 
     const isEnabledStat = findBooleanStat(
@@ -1153,6 +1223,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1180,6 +1252,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1206,6 +1280,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1234,6 +1310,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1256,6 +1334,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1279,6 +1359,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1308,6 +1390,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1332,6 +1416,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1356,6 +1442,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const demandStat = findQuantityStat(
@@ -1391,6 +1479,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1426,6 +1516,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1461,6 +1553,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1499,6 +1593,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1533,6 +1629,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1563,6 +1661,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1593,6 +1693,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const customerDemandStat = findQuantityStat(
@@ -1623,6 +1725,8 @@ describe("computeMultiAssetData", () => {
         units,
         formatting,
         hydraulicModel,
+        defaultSimulationSettings,
+        null,
       );
 
       const diameterStat = findQuantityStat(

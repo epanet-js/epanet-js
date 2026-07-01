@@ -20,6 +20,7 @@ import {
   QuantityStatsBaseFields,
   SortableValuesList,
   formatValue,
+  formatEmptyBucket,
 } from "./multi-value-row";
 import { AssetId } from "src/hydraulic-model";
 
@@ -89,7 +90,7 @@ export function ReadOnlyMultiValueRow({
   const displayValue = hasMultipleValues
     ? null
     : isOnlyEmpty
-      ? translate(emptyBucket.label)
+      ? formatEmptyBucket(emptyBucket, translate, decimals)
       : formatValue(firstValue, translate, decimals);
 
   return (

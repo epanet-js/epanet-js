@@ -540,6 +540,7 @@ const JunctionEditor = ({
           name="emitterCoefficient"
           value={junction.emitterCoefficient}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_EMITTER_COEFFICIENT)}
           unit={units.emitterCoefficient}
           comparison={getComparison(
@@ -601,6 +602,7 @@ const JunctionEditor = ({
           name="initialQuality"
           value={junction.initialQuality}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -878,6 +880,7 @@ const PipeEditor = ({
           displayName={translate("yearOfInstallation")}
           value={pipe.year}
           isOptional
+          commitInvalidValues={allowsNullValues}
           comparison={getComparison("year", pipe.year ?? null)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -891,7 +894,7 @@ const PipeEditor = ({
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          isNullable={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           validate={isGreaterThanZero}
         />
         <QuantityRow
@@ -901,6 +904,7 @@ const PipeEditor = ({
           unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_MINOR_LOSS)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1127,6 +1131,7 @@ const ReservoirEditor = ({
           name="initialQuality"
           value={reservoir.initialQuality}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -1322,7 +1327,7 @@ const TankEditor = ({
           onChange={onPropertyChange}
           validate={isZeroOrGreater}
           readOnly={readonly}
-          isNullable={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
         />
         <TankDefinitionField
           tank={tank}
@@ -1347,6 +1352,7 @@ const TankEditor = ({
           name="initialQuality"
           value={tank.initialQuality}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -1394,6 +1400,7 @@ const TankEditor = ({
               name="mixingFraction"
               value={tank.mixingFraction}
               isOptional={allowsNullValues}
+              commitInvalidValues={allowsNullValues}
               placeholder={String(DEFAULT_MIXING_FRACTION)}
               unit={null}
               onChange={onPropertyChange}
@@ -1737,7 +1744,7 @@ const TankDefinitionField = ({
               onChange={onPropertyChange}
               validate={isGreaterThanZero}
               readOnly={readOnly}
-              isNullable={allowsNullValues}
+              commitInvalidValues={allowsNullValues}
             />
             <hr className=" my-1" />
             <NumericTable
@@ -1747,7 +1754,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
-                    isNullable: false,
+                    isRequired: true,
                     validate: isGreaterThanZero,
                     readOnly,
                     handler: (v) =>
@@ -1764,7 +1771,7 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     validate: isZeroOrGreater,
-                    isNullable: false,
+                    isRequired: true,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1773,16 +1780,14 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
                     validate: isZeroOrGreater,
-                    isNullable: allowsNullValues,
+                    isRequired: !allowsNullValues,
                     commitInvalidValues: allowsNullValues,
-                    placeholder: allowsNullValues
-                      ? String(DEFAULT_MIN_VOLUME)
-                      : undefined,
+                    placeholder: String(DEFAULT_MIN_VOLUME),
                     readOnly,
                     handler: (v, isEmpty) =>
                       onPropertyChange(
                         "minVolume",
-                        allowsNullValues && isEmpty ? undefined : v,
+                        isEmpty ? undefined : v,
                         tank.minVolume,
                       ),
                   },
@@ -1809,7 +1814,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
-                    isNullable: false,
+                    isRequired: true,
                     validate: isGreaterThanZero,
                     readOnly,
                     handler: (v) =>
@@ -1826,7 +1831,7 @@ const TankDefinitionField = ({
                     label: translate("minLevel"),
                     value: tank.minLevel,
                     validate: isZeroOrGreater,
-                    isNullable: false,
+                    isRequired: true,
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("minLevel", v, tank.minLevel),
@@ -1835,16 +1840,14 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
                     validate: isZeroOrGreater,
-                    isNullable: allowsNullValues,
+                    isRequired: !allowsNullValues,
                     commitInvalidValues: allowsNullValues,
-                    placeholder: allowsNullValues
-                      ? String(DEFAULT_MIN_VOLUME)
-                      : undefined,
+                    placeholder: String(DEFAULT_MIN_VOLUME),
                     readOnly,
                     handler: (v, isEmpty) =>
                       onPropertyChange(
                         "minVolume",
-                        allowsNullValues && isEmpty ? undefined : v,
+                        isEmpty ? undefined : v,
                         tank.minVolume,
                       ),
                   },
@@ -1861,7 +1864,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("maxLevel"),
                   value: tank.maxLevel,
-                  isNullable: false,
+                  isRequired: true,
                   validate: isGreaterThanZero,
                   readOnly,
                   handler: (v) => handleMaxLevelChange("maxLevel", v),
@@ -1869,7 +1872,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
-                  isNullable: false,
+                  isRequired: true,
                   validate: isGreaterThanZero,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
@@ -1880,7 +1883,7 @@ const TankDefinitionField = ({
                   label: translate("minLevel"),
                   value: tank.minLevel,
                   validate: isZeroOrGreater,
-                  isNullable: false,
+                  isRequired: true,
                   readOnly,
                   handler: (v) => handleMinLevelChange("minLevel", v),
                 },
@@ -1888,7 +1891,7 @@ const TankDefinitionField = ({
                   label: translate("minVolume"),
                   value: tank.minVolume ?? null,
                   validate: isZeroOrGreater,
-                  isNullable: false,
+                  isRequired: true,
                   readOnly,
                   handler: (v) => handleMinVolumeChange("minVolume", v),
                 },
@@ -2112,7 +2115,7 @@ const ValveEditor = ({
             comparison={getComparison("setting", valve.setting)}
             onChange={onPropertyChange}
             readOnly={readonly}
-            isNullable={allowsNullValues}
+            commitInvalidValues={allowsNullValues}
           />
         )}
         {valve.kind === "gpv" && (
@@ -2149,13 +2152,14 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           validate={isGreaterThanZero}
-          isNullable={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
         />
         <QuantityRow
           name="minorLoss"
           value={valve.minorLoss}
           validate={isZeroOrGreater}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_MINOR_LOSS)}
           unit={units.minorLoss}
           comparison={getComparison("minorLoss", valve.minorLoss)}
@@ -2392,6 +2396,7 @@ const PumpEditor = ({
           value={pump.speed}
           validate={isZeroOrGreater}
           isOptional={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_SPEED)}
           unit={units.speed}
           comparison={getComparison("speed", pump.speed)}
@@ -3184,7 +3189,7 @@ const ReservoirHeadField = ({
           unit={headUnit}
           onChange={onPropertyChange}
           readOnly={readOnly}
-          isNullable={allowsNullValues}
+          commitInvalidValues={allowsNullValues}
         />
 
         <LibrarySelectRow

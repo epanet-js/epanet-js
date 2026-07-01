@@ -355,7 +355,8 @@ export const PumpCurveTable = ({
       value: point.flow ?? null,
       readOnly: !isEditable(index, "flow"),
       validate: isZeroOrGreater,
-      isNullable: true,
+      isRequired: true,
+      commitInvalidValues: true,
       decimals: flowDecimals,
       hasError: hasError(index, "flow"),
       handler: (newValue: number, isEmpty: boolean) =>
@@ -366,7 +367,8 @@ export const PumpCurveTable = ({
       value: point.head ?? null,
       readOnly: !isEditable(index, "head"),
       validate: isZeroOrGreater,
-      isNullable: true,
+      isRequired: true,
+      commitInvalidValues: true,
       decimals: headDecimals,
       hasError: hasError(index, "head"),
       handler: (newValue: number, isEmpty: boolean) =>
@@ -425,7 +427,6 @@ const PowerDefinition = ({
       readOnly={readOnly}
       onChange={handlePowerChange}
       validate={isGreaterThanZero}
-      isNullable={false}
     />
   );
 };

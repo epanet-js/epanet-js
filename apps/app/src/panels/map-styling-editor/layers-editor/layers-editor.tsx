@@ -1345,7 +1345,7 @@ const VectorFileItem = ({
                     label={translate("customLayers.lineWidth")}
                     displayValue={localizeDecimal(layerConfig.lineWidth)}
                     validate={isGreaterThanZero}
-                    isNullable={false}
+                    isRequired={true}
                     styleOptions={{ padding: "sm" }}
                     onChangeValue={(v) =>
                       applyChanges({
@@ -1373,7 +1373,7 @@ const VectorFileItem = ({
                 label={translate("customLayers.opacity")}
                 displayValue={String(Math.round(layerConfig.opacity * 100))}
                 validate={isGreaterThanZero}
-                isNullable={false}
+                isRequired={true}
                 styleOptions={{ padding: "sm" }}
                 onChangeValue={(v) =>
                   applyChanges({

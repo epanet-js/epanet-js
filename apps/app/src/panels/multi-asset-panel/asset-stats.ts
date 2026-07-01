@@ -4,6 +4,7 @@ import {
   FormattingSpec,
 } from "src/lib/project-settings/quantities-spec";
 import type { ResultsReader } from "src/simulation/results-reader";
+import type { SimulationSettings } from "src/simulation/simulation-settings";
 import {
   Asset,
   AssetId,
@@ -79,7 +80,8 @@ export const computeAssetsStats = (
   units: UnitsSpec,
   formatting: FormattingSpec,
   hydraulicModel: HydraulicModel,
-  simulationResults?: ResultsReader | null,
+  simulationSettings: SimulationSettings,
+  simulationResults: ResultsReader | null,
 ): ComputedMultiAssetData => {
   const counts: AssetCounts = {
     junction: 0,
@@ -125,6 +127,7 @@ export const computeAssetsStats = (
           hydraulicModel.customerPointsLookup,
           hydraulicModel.demands,
           hydraulicModel.patterns,
+          simulationSettings,
           simulationResults,
         );
         break;
@@ -137,6 +140,7 @@ export const computeAssetsStats = (
           formatting,
           hydraulicModel.curves,
           hydraulicModel.patterns,
+          simulationSettings,
           simulationResults,
         );
         break;
@@ -170,6 +174,7 @@ export const computeAssetsStats = (
           formatting,
           hydraulicModel.curves,
           hydraulicModel.patterns,
+          simulationSettings,
           simulationResults,
         );
         break;
@@ -405,6 +410,7 @@ const appendPipeStats = (
   customerPointsLookup: CustomerPointsLookup,
   demands: Demands,
   patterns: Patterns,
+  simulationSettings: SimulationSettings,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pipe.id;
@@ -455,7 +461,10 @@ const appendPipeStats = (
     units,
     formatting,
     id,
-    { emptyLabel: "globalDefault" },
+    {
+      emptyLabel: "globalDefault",
+      emptyValue: simulationSettings.reactionGlobalBulk,
+    },
   );
   updateQuantityStats(
     statsMap,
@@ -464,7 +473,10 @@ const appendPipeStats = (
     units,
     formatting,
     id,
-    { emptyLabel: "globalDefault" },
+    {
+      emptyLabel: "globalDefault",
+      emptyValue: simulationSettings.reactionGlobalWall,
+    },
   );
 
   const customerPoints = customerPointsLookup.getCustomerPoints(pipe.id);
@@ -595,6 +607,7 @@ const appendPumpStats = (
   formatting: FormattingSpec,
   curves: Curves,
   patterns: Patterns,
+  simulationSettings: SimulationSettings,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = pump.id;
@@ -656,7 +669,12 @@ const appendPumpStats = (
     units,
     formatting,
     id,
-    { decimals: 4, unit: null as Unit, emptyLabel: "globalDefault" },
+    {
+      decimals: 4,
+      unit: null as Unit,
+      emptyLabel: "globalDefault",
+      emptyValue: simulationSettings.energyGlobalPrice,
+    },
   );
 
   const energyPattern = pump.energyPricePatternId
@@ -1123,6 +1141,7 @@ const appendTankStats = (
   formatting: FormattingSpec,
   curves: Curves,
   patterns: Patterns,
+  simulationSettings: SimulationSettings,
   simulationResults?: ResultsReader | null,
 ) => {
   const id = tank.id;
@@ -1246,7 +1265,10 @@ const appendTankStats = (
     units,
     formatting,
     id,
-    { emptyLabel: "globalDefault" },
+    {
+      emptyLabel: "globalDefault",
+      emptyValue: simulationSettings.reactionGlobalBulk,
+    },
   );
   updateCategoryStats(
     statsMap,

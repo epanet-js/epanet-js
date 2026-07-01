@@ -7,6 +7,7 @@ import { getDecimals } from "src/lib/project-settings";
 
 export type EmptyBucket = {
   label: string;
+  value?: number | null;
   ids: number[];
 };
 
@@ -80,6 +81,7 @@ export const updateQuantityStats = (
     decimals?: number;
     isInteger?: boolean;
     emptyLabel?: string;
+    emptyValue?: number | null;
   },
 ) => {
   const isEmpty = value === null || value === undefined;
@@ -114,7 +116,11 @@ export const updateQuantityStats = (
 
   if (isEmpty) {
     if (!stats.emptyBucket) {
-      stats.emptyBucket = { label: overrides!.emptyLabel!, ids: [] };
+      stats.emptyBucket = {
+        label: overrides!.emptyLabel!,
+        value: overrides?.emptyValue,
+        ids: [],
+      };
     }
     stats.emptyBucket.ids.push(id);
     return;

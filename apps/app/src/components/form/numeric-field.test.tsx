@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NumericField } from "./numeric-field";
 
@@ -13,7 +13,6 @@ describe("NumericField", () => {
           label="test"
           displayValue="42"
           onChangeValue={onChangeValue}
-          isNullable={true}
         />,
       );
 
@@ -34,7 +33,6 @@ describe("NumericField", () => {
           label="test"
           displayValue=""
           onChangeValue={onChangeValue}
-          isNullable={true}
         />,
       );
 
@@ -55,7 +53,6 @@ describe("NumericField", () => {
           label="test"
           displayValue=""
           onChangeValue={onChangeValue}
-          isNullable={true}
         />,
       );
 
@@ -67,7 +64,7 @@ describe("NumericField", () => {
       expect(onChangeValue).toHaveBeenCalledWith(42, false);
     });
 
-    it("sets input to empty string when isNullable=true and display value is empty", () => {
+    it("sets input to empty string when display value is empty", () => {
       const onChangeValue = vi.fn();
 
       render(
@@ -75,7 +72,6 @@ describe("NumericField", () => {
           label="test"
           displayValue=""
           onChangeValue={onChangeValue}
-          isNullable={true}
         />,
       );
 
@@ -88,7 +84,7 @@ describe("NumericField", () => {
     it("ignores non-numeric characters typed into a field with a value", async () => {
       const user = userEvent.setup();
 
-      render(<NumericField label="test" displayValue="42" isNullable={true} />);
+      render(<NumericField label="test" displayValue="42" />);
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
@@ -100,7 +96,7 @@ describe("NumericField", () => {
     it("does not clear the field when selecting all and typing a letter", async () => {
       const user = userEvent.setup();
 
-      render(<NumericField label="test" displayValue="42" isNullable={true} />);
+      render(<NumericField label="test" displayValue="42" />);
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
@@ -116,7 +112,7 @@ describe("NumericField", () => {
     it("still allows clearing the field with backspace", async () => {
       const user = userEvent.setup();
 
-      render(<NumericField label="test" displayValue="5" isNullable={true} />);
+      render(<NumericField label="test" displayValue="5" />);
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
@@ -128,7 +124,7 @@ describe("NumericField", () => {
     it("allows typing valid numbers after rejecting invalid input", async () => {
       const user = userEvent.setup();
 
-      render(<NumericField label="test" displayValue="10" isNullable={true} />);
+      render(<NumericField label="test" displayValue="10" />);
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await user.click(input);
@@ -154,7 +150,6 @@ describe("NumericField", () => {
           displayValue="5"
           onChangeValue={onChangeValue}
           validate={nonNegative}
-          isNullable={false}
           commitInvalidValues={false}
         />,
       );
@@ -181,7 +176,6 @@ describe("NumericField", () => {
           displayValue="5"
           onChangeValue={onChangeValue}
           validate={nonNegative}
-          isNullable={false}
           commitInvalidValues={true}
         />,
       );
@@ -193,6 +187,104 @@ describe("NumericField", () => {
       expect(input).toHaveValue("-3");
       await user.keyboard("{Enter}");
       expect(onChangeValue).toHaveBeenCalledWith(-3, false);
+    });
+  });
+
+  describe("validation on load", () => {
+    const nonNegative = (n: number) => n >= 0;
+
+    it("shows the warning style when the initial value fails validation", async () => {
+      render(
+        <NumericField
+          label="test"
+          displayValue="-3"
+          validate={nonNegative}
+          commitInvalidValues={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input.className).toContain("border-orange-500");
+      });
+    });
+
+    it("shows the warning style when a required field loads empty", async () => {
+      render(<NumericField label="test" displayValue="" isRequired={true} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input.className).toContain("border-orange-500");
+      });
+    });
+
+    it("does not show the warning style when the initial value is valid", async () => {
+      render(
+        <NumericField
+          label="test"
+          displayValue="5"
+          validate={nonNegative}
+          isRequired={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input).toHaveValue("5");
+      });
+      expect(input.className).not.toContain("border-orange-500");
+    });
+  });
+
+  describe("isRequired (required vs optional empty)", () => {
+    it("warns on empty for a required field that still allows committing", async () => {
+      render(
+        <NumericField
+          label="test"
+          displayValue=""
+          isRequired={true}
+          commitInvalidValues={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input.className).toContain("border-orange-500");
+      });
+    });
+
+    it("does not block the empty commit for a required-nullable field", async () => {
+      const user = userEvent.setup();
+      const onChangeValue = vi.fn();
+
+      render(
+        <NumericField
+          label="test"
+          displayValue="5"
+          onChangeValue={onChangeValue}
+          isRequired={true}
+          commitInvalidValues={true}
+        />,
+      );
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await user.click(input);
+      await user.clear(input);
+      await user.keyboard("{Enter}");
+
+      // Missing-but-required still commits (as empty/null) — enforcement is
+      // deferred to the pre-simulation check; it only warns in the input.
+      expect(onChangeValue).toHaveBeenCalledWith(expect.anything(), true);
+    });
+
+    it("does not warn on empty for an optional field", async () => {
+      render(<NumericField label="test" displayValue="" isRequired={false} />);
+
+      const input = screen.getByRole("textbox", { name: /value for: test/i });
+      await waitFor(() => {
+        expect(input).toHaveValue("");
+      });
+      expect(input.className).not.toContain("border-orange-500");
     });
   });
 });

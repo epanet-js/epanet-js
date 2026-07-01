@@ -1,6 +1,5 @@
 import { useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { pluralize } from "src/lib/utils";
 import { CollapsibleSection, SectionList } from "src/components/form/fields";
 import { MultiAssetActions } from "./actions";
@@ -19,6 +18,7 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import {
   simulationDerivedAtom,
   simulationResultsDerivedAtom,
+  simulationSettingsDerivedAtom,
   stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
@@ -26,10 +26,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
-import {
-  BATCH_EDITABLE_PROPERTIES,
-  withNullableProperties,
-} from "./batch-edit-property-config";
+import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -53,6 +50,7 @@ export function MultiAssetPanel({
   const translate = useTranslate();
   const simulationState = useAtomValue(simulationDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
+  const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const hasSimulation = simulationState.status !== "idle";
@@ -69,9 +67,17 @@ export function MultiAssetPanel({
       units,
       formatting,
       hydraulicModel,
+      simulationSettings,
       simulationResults,
     );
-  }, [selectedAssets, units, formatting, hydraulicModel, simulationResults]);
+  }, [
+    selectedAssets,
+    units,
+    formatting,
+    hydraulicModel,
+    simulationResults,
+    simulationSettings,
+  ]);
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -88,59 +94,14 @@ export function MultiAssetPanel({
     return map;
   }, [selectedAssets]);
 
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
-  const junctionEditableProperties = useMemo(
-    () =>
-      withNullableProperties(
-        BATCH_EDITABLE_PROPERTIES.junction,
-        allowsNullValues,
-        "junction",
-      ),
-    [allowsNullValues],
-  );
-  const pipeEditableProperties = useMemo(
-    () =>
-      withNullableProperties(
-        BATCH_EDITABLE_PROPERTIES.pipe,
-        allowsNullValues,
-        "pipe",
-      ),
-    [allowsNullValues],
-  );
-  const pumpEditableProperties = useMemo(
-    () =>
-      withNullableProperties(
-        BATCH_EDITABLE_PROPERTIES.pump,
-        allowsNullValues,
-        "pump",
-      ),
-    [allowsNullValues],
-  );
-  const valveEditableProperties = useMemo(
-    () =>
-      withNullableProperties(
-        BATCH_EDITABLE_PROPERTIES.valve,
-        allowsNullValues,
-        "valve",
-      ),
-    [allowsNullValues],
-  );
-  const reservoirEditableProperties = useMemo(
-    () =>
-      withNullableProperties(
-        BATCH_EDITABLE_PROPERTIES.reservoir,
-        allowsNullValues,
-        "reservoir",
-      ),
-    [allowsNullValues],
-  );
+  const junctionEditableProperties = BATCH_EDITABLE_PROPERTIES.junction;
+  const pipeEditableProperties = BATCH_EDITABLE_PROPERTIES.pipe;
+  const pumpEditableProperties = BATCH_EDITABLE_PROPERTIES.pump;
+  const valveEditableProperties = BATCH_EDITABLE_PROPERTIES.valve;
+  const reservoirEditableProperties = BATCH_EDITABLE_PROPERTIES.reservoir;
 
   const tankEditableProperties = useMemo(() => {
-    const base = withNullableProperties(
-      BATCH_EDITABLE_PROPERTIES.tank,
-      allowsNullValues,
-      "tank",
-    );
+    const base = BATCH_EDITABLE_PROPERTIES.tank;
     const hasCurveTanks = assetIdsByType.tank.some((id) => {
       const tank = hydraulicModel.assets.get(id) as Tank;
       return !!tank.volumeCurveId;
@@ -150,7 +111,7 @@ export function MultiAssetPanel({
       return rest;
     }
     return base;
-  }, [assetIdsByType.tank, hydraulicModel.assets, allowsNullValues]);
+  }, [assetIdsByType.tank, hydraulicModel.assets]);
 
   const distinctKindsSelected =
     Object.values(assetCounts).filter((c) => c > 0).length +

@@ -435,7 +435,7 @@ const IntervalsEditor = ({
               <NumericField
                 key={`break-${i}`}
                 label={`break ${i}`}
-                isNullable={true}
+                isRequired={true}
                 readOnly={false}
                 displayValue={localizeDecimal(breakValue)}
                 onChangeValue={(value) => {

@@ -4,6 +4,7 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 import * as P from "@radix-ui/react-popover";
@@ -23,7 +24,10 @@ import {
   getDistinctBucketCount,
   getEmptyBucket,
 } from "./stats";
-import { BatchEditPropertyConfig } from "./batch-edit-property-config";
+import {
+  BatchEditPropertyConfig,
+  isOptionalProperty,
+} from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import {
   type Curves,
@@ -237,6 +241,7 @@ const EditableField = ({
   ) => void;
 }) => {
   const translate = useTranslate();
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const isOnlyEmpty =
     !isMixed && propertyStats.values.size === 0 && !!emptyBucket;
@@ -254,31 +259,34 @@ const EditableField = ({
           ? String(firstValue)
           : localizeDecimal(firstValue, { decimals: stats.decimals });
 
+    const isRequired = !isOptionalProperty(
+      config.modelProperty,
+      allowsNullValues,
+    );
+    const commitInvalidValues = !!config.hasModelValidation && allowsNullValues;
     const quantityPlaceholder = !isOnlyEmpty
       ? mixedPlaceholder
-      : config.isNullable
-        ? ""
-        : (config.placeholder ?? mixedPlaceholder);
+      : emptyBucket?.value != null
+        ? localizeDecimal(emptyBucket.value, { decimals: stats.decimals })
+        : "";
 
     return (
       <NumericField
         label={label}
         displayValue={displayValue}
         placeholder={quantityPlaceholder}
-        isNullable={Boolean(config.isNullable || config.isOptional)}
-        commitInvalidValues={
-          config.commitInvalidValues ??
-          Boolean(config.isNullable || config.isOptional)
-        }
+        isRequired={isRequired && !isMixed}
+        commitInvalidValues={commitInvalidValues}
         validate={config.validate}
         disabled={readonly}
         styleOptions={{}}
         onChangeValue={(newValue, isEmpty) => {
           if (isEmpty) {
-            if (config.isOptional)
+            if (!isRequired) {
               onPropertyChange(config.modelProperty, undefined);
-            else if (config.isNullable)
+            } else if (commitInvalidValues) {
               onPropertyChange(config.modelProperty, null);
+            }
             return;
           }
           onPropertyChange(config.modelProperty, newValue);
@@ -510,6 +518,17 @@ export const QuantityStatsBaseFields = ({
 type SortColumn = "value" | "count";
 type SortDirection = "asc" | "desc";
 
+export const formatEmptyBucket = (
+  emptyBucket: EmptyBucket,
+  translate: (key: string) => string,
+  decimals?: number,
+): string =>
+  emptyBucket.value != null
+    ? `${translate(emptyBucket.label)} (${localizeDecimal(emptyBucket.value, {
+        decimals,
+      })})`
+    : translate(emptyBucket.label);
+
 export const SortableValuesList = ({
   values,
   decimals,
@@ -526,6 +545,10 @@ export const SortableValuesList = ({
   emptyBucket?: EmptyBucket;
 }) => {
   const translate = useTranslate();
+
+  const emptyBucketLabel = emptyBucket
+    ? formatEmptyBucket(emptyBucket, translate, decimals)
+    : "";
 
   const [sortColumn, setSortColumn] = useState<SortColumn>(
     type === "quantity" ? "value" : "count",
@@ -650,11 +673,11 @@ export const SortableValuesList = ({
               }
             >
               <div
-                title={translate(emptyBucket.label)}
+                title={emptyBucketLabel}
                 className="flex-auto font-mono text-size-small truncate italic text-subtle"
                 role="cell"
               >
-                {translate(emptyBucket.label)}
+                {emptyBucketLabel}
               </div>
               <div
                 className="text-size-small font-mono"
