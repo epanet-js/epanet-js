@@ -53,10 +53,14 @@ vi.mock("src/lib/pipe-library/rename-materials", async (importOriginal) => {
 import { applyRoughnessMoment } from "src/lib/pipe-library/apply-roughness";
 import { renameMaterialsMoment } from "src/lib/pipe-library/rename-materials";
 
+vi.mock("src/lib/pipe-library/export-csv", () => ({
+  exportCsv: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("src/lib/pipe-library/export-xlsx", () => ({
   exportXlsx: vi.fn().mockResolvedValue(undefined),
 }));
 
+import { exportCsv } from "src/lib/pipe-library/export-csv";
 import { exportXlsx } from "src/lib/pipe-library/export-xlsx";
 
 vi.mock("src/components/notifications", async (importOriginal) => {
@@ -376,6 +380,30 @@ describe("PipeLibraryDialog", () => {
     );
 
     expect(exportXlsx).toHaveBeenCalledWith(materials, "my-network");
+  });
+
+  it("calls exportCsv when csv menu item is clicked", async () => {
+    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
+    const user = setupUser();
+    const store = setInitialState();
+    const materials = [
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+    ];
+    store.set(pipeMaterialsAtom, materials);
+    store.set(projectFileInfoAtom, {
+      name: "my-network.inp",
+      modelVersion: "1",
+    });
+    renderDialog(store);
+
+    await user.click(screen.getByRole("button", { name: /export/i }));
+    await user.click(
+      screen.getByRole("menuitem", {
+        name: /csv/i,
+      }),
+    );
+
+    expect(exportCsv).toHaveBeenCalledWith(materials, "my-network");
   });
 
   it("disables apply roughness when a material fails validation", async () => {

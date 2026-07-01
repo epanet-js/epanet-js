@@ -25,6 +25,7 @@ import {
 import {
   applyRoughnessMoment,
   renameMaterialsMoment,
+  exportCsv,
   exportXlsx,
 } from "src/lib/pipe-library";
 import {
@@ -271,6 +272,11 @@ export const PipeLibraryDialog = () => {
     });
   }, [hydraulicModel, defaultRoughness, userTracking]);
 
+  const handleExportCsv = useCallback(async () => {
+    await exportCsv(draftMaterials, networkName);
+    userTracking.capture({ name: "pipeLibrary.exported", format: "csv" });
+  }, [draftMaterials, networkName, userTracking]);
+
   const handleExportXlsx = useCallback(async () => {
     await exportXlsx(draftMaterials, networkName);
     userTracking.capture({ name: "pipeLibrary.exported", format: "xlsx" });
@@ -307,7 +313,10 @@ export const PipeLibraryDialog = () => {
             {translate("pipeLibrary.applyRoughness")}
           </Button>
           <div className="flex items-center gap-2">
-            <ExportSubmenu handleExportXlsx={handleExportXlsx} />
+            <ExportSubmenu
+              handleExportCsv={handleExportCsv}
+              handleExportXlsx={handleExportXlsx}
+            />
             <Button variant="default" size="sm" onClick={handleImportFromModel}>
               {translate("pipeLibrary.importFromModel")}
             </Button>
@@ -360,8 +369,10 @@ export const PipeLibraryDialog = () => {
 };
 
 const ExportSubmenu = ({
+  handleExportCsv,
   handleExportXlsx,
 }: {
+  handleExportCsv: () => void;
   handleExportXlsx: () => void;
 }) => {
   const translate = useTranslate();
@@ -378,6 +389,9 @@ const ExportSubmenu = ({
         </Button>
       </DD.Trigger>
       <DDContent align="end">
+        <StyledItem onSelect={handleExportCsv}>
+          {translate("pipeLibrary.exportCsv")}
+        </StyledItem>
         <StyledItem onSelect={handleExportXlsx}>
           {translate("pipeLibrary.exportXlsx")}
         </StyledItem>

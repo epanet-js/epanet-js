@@ -1674,6 +1674,7 @@
     "appliedRoughness": "Updated {{count}} pipes",
     "noAssetsChanged": "No assets changed",
     "export": "Export",
+    "exportCsv": "Comma-Separated Values (.csv)",
     "exportXlsx": "Microsoft Excel Spreadsheet (.xlsx)",
     "importFromModel": "Import from model",
     "validation": {
