@@ -1,6 +1,5 @@
 import {
-  type CustomAttributesData,
-  type CustomAttributesDefinition,
+  type CustomAttributes,
   type CustomAttributeValues,
   getAttributeIds,
 } from "@epanet-js/custom-attributes";
@@ -10,13 +9,8 @@ import type {
   CustomAttributeValueChange,
 } from "./moment";
 
-export type CustomAttributesModel = {
-  definition: CustomAttributesDefinition;
-  data: CustomAttributesData;
-};
-
 export const changeCustomAttributes = (
-  { definition, data }: CustomAttributesModel,
+  { definition, data }: CustomAttributes,
   changes: CustomAttributeValueChange[],
 ): Moment => {
   const validAttributeIds = getAttributeIds(definition);

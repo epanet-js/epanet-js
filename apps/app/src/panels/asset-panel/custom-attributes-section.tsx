@@ -1,19 +1,16 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import type {
-  CustomAttributeAssetType,
-  CustomAttributeId,
-  CustomAttributeValue,
-  ResolvedCustomAttribute,
+import {
+  type CustomAttributeAssetType,
+  type CustomAttributeId,
+  type CustomAttributeValue,
+  type ResolvedCustomAttribute,
+  resolveAttributesFor,
 } from "@epanet-js/custom-attributes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
-import {
-  customAttributesAtom,
-  customAttributesDataAtom,
-  customAttributesDefinitionAtom,
-} from "src/state/custom-attributes";
+import { customAttributesAtom } from "src/state/custom-attributes";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { EditableTextField } from "src/components/form/editable-text-field";
@@ -28,14 +25,12 @@ export const CustomAttributesSection = ({
 }) => {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const customAttributes = useAtomValue(customAttributesAtom);
-  const definition = useAtomValue(customAttributesDefinitionAtom);
-  const data = useAtomValue(customAttributesDataAtom);
   const { transact } = useModelTransaction();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
       transact(
-        changeCustomAttributes({ definition, data }, [
+        changeCustomAttributes(customAttributes, [
           {
             assetId: id,
             attributeId,
@@ -44,12 +39,15 @@ export const CustomAttributesSection = ({
         ]),
       );
     },
-    [transact, id, definition, data],
+    [transact, id, customAttributes],
+  );
+
+  const attributes = useMemo(
+    () => resolveAttributesFor(customAttributes, id, type),
+    [customAttributes, id, type],
   );
 
   if (!isCustomAttributesOn) return null;
-
-  const attributes = customAttributes.getAttributesFor(id, type);
   if (attributes.length === 0) return null;
 
   return (

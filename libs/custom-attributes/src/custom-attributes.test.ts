@@ -1,4 +1,7 @@
-import { CustomAttributes } from "./custom-attributes";
+import {
+  emptyCustomAttributes,
+  resolveAttributesFor,
+} from "./custom-attributes";
 import {
   CustomAttribute,
   emptyCustomAttributesDefinition,
@@ -12,16 +15,16 @@ const attr = (
   type: CustomAttribute["type"] = "text",
 ): CustomAttribute => ({ id, label, type });
 
-describe("CustomAttributes", () => {
+describe("resolveAttributesFor", () => {
   it("resolves the attributes defined for a type with a null value", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
       [attr("ca-1", "Owner", "text"), attr("ca-2", "Age", "number")],
     );
-    const customAttributes = new CustomAttributes(definition);
+    const customAttributes = { definition, data: emptyCustomAttributesData() };
 
-    expect(customAttributes.getAttributesFor(7, "junction")).toEqual([
+    expect(resolveAttributesFor(customAttributes, 7, "junction")).toEqual([
       { id: "ca-1", type: "text", label: "Owner", value: null },
       { id: "ca-2", type: "number", label: "Age", value: null },
     ]);
@@ -36,23 +39,21 @@ describe("CustomAttributes", () => {
     let data = emptyCustomAttributesData();
     data = setValue(data, 7, "ca-1", "Alice");
     data = setValue(data, 7, "ca-2", 42);
-    const customAttributes = new CustomAttributes(definition, data);
+    const customAttributes = { definition, data };
 
-    expect(customAttributes.getAttributesFor(7, "junction")).toEqual([
+    expect(resolveAttributesFor(customAttributes, 7, "junction")).toEqual([
       { id: "ca-1", type: "text", label: "Owner", value: "Alice" },
       { id: "ca-2", type: "number", label: "Age", value: 42 },
     ]);
-    expect(customAttributes.getAttributesFor(8, "junction")).toEqual([
+    expect(resolveAttributesFor(customAttributes, 8, "junction")).toEqual([
       { id: "ca-1", type: "text", label: "Owner", value: null },
       { id: "ca-2", type: "number", label: "Age", value: null },
     ]);
   });
 
   it("returns an empty list when the type has no attributes", () => {
-    const customAttributes = new CustomAttributes(
-      emptyCustomAttributesDefinition(),
+    expect(resolveAttributesFor(emptyCustomAttributes(), 7, "pipe")).toEqual(
+      [],
     );
-
-    expect(customAttributes.getAttributesFor(7, "pipe")).toEqual([]);
   });
 });

@@ -12,10 +12,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
-import {
-  customAttributesDataAtom,
-  customAttributesDefinitionAtom,
-} from "src/state/custom-attributes";
+import { customAttributesAtom } from "src/state/custom-attributes";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
@@ -36,15 +33,14 @@ export function MultiCustomAttributesSection({
   onSelectAssets?: (assetIds: number[], property: string) => void;
 }) {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
-  const definition = useAtomValue(customAttributesDefinitionAtom);
-  const data = useAtomValue(customAttributesDataAtom);
+  const customAttributes = useAtomValue(customAttributesAtom);
   const { transact } = useModelTransaction();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
       transact(
         changeCustomAttributes(
-          { definition, data },
+          customAttributes,
           assetIds.map((assetId) => ({
             assetId,
             attributeId,
@@ -53,12 +49,12 @@ export function MultiCustomAttributesSection({
         ),
       );
     },
-    [transact, assetIds, definition, data],
+    [transact, assetIds, customAttributes],
   );
 
   if (!isCustomAttributesOn) return null;
 
-  const attributes = getAttributes(definition, assetType);
+  const attributes = getAttributes(customAttributes.definition, assetType);
   if (attributes.length === 0 || assetIds.length === 0) return null;
 
   return (
@@ -95,7 +91,7 @@ const MultiCustomAttributeRow = ({
 }) => {
   const translate = useTranslate();
   const { units, formatting } = useAtomValue(projectSettingsAtom);
-  const data = useAtomValue(customAttributesDataAtom);
+  const { data } = useAtomValue(customAttributesAtom);
 
   const valuesById = assetIds.map(
     (id) =>

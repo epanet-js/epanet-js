@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import {
   type CustomAttributesDefinition,
   type CustomAttributesData,
-  CustomAttributes,
+  type CustomAttributes,
   emptyCustomAttributesDefinition,
   emptyCustomAttributesData,
 } from "@epanet-js/custom-attributes";
@@ -15,10 +15,7 @@ export const customAttributesDataAtom = atom<CustomAttributesData>(
   emptyCustomAttributesData(),
 );
 
-export const customAttributesAtom = atom(
-  (get) =>
-    new CustomAttributes(
-      get(customAttributesDefinitionAtom),
-      get(customAttributesDataAtom),
-    ),
-);
+export const customAttributesAtom = atom<CustomAttributes>((get) => ({
+  definition: get(customAttributesDefinitionAtom),
+  data: get(customAttributesDataAtom),
+}));
