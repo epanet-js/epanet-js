@@ -1084,6 +1084,12 @@ type PipeLibraryExported = {
   format: string;
 };
 
+type PipeLibraryImportedFromFile = {
+  name: "pipeLibrary.importedFromFile";
+  materialsCount: number;
+  format: "csv" | "xlsx";
+};
+
 type PipeLibraryClosed = {
   name: "pipeLibrary.closed";
   hadChanges: boolean;
@@ -1593,6 +1599,7 @@ export type UserEvent =
   | PipeLibraryImportedFromModel
   | PipeLibrarySaved
   | PipeLibraryExported
+  | PipeLibraryImportedFromFile
   | PipeLibraryClosed
   | PumpLibraryOpened
   | CurveLibraryOpened

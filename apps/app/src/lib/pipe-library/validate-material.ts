@@ -22,6 +22,20 @@ export const validateEntry = (
     return errors;
   }
 
+  if (typeof entry.age === "number" && isNaN(entry.age)) {
+    errors.push({
+      field: "age",
+      message: "pipeLibrary.validation.mustBeNumber",
+    });
+  }
+  if (typeof entry.roughness === "number" && isNaN(entry.roughness)) {
+    errors.push({
+      field: "roughness",
+      message: "pipeLibrary.validation.mustBeNumber",
+    });
+  }
+  if (errors.length > 0) return errors;
+
   if (entry.roughness !== null && entry.roughness <= 0) {
     errors.push({
       field: "roughness",

@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "../../components/dialog";
-import { useTranslate } from "src/hooks/use-translate";
+import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
@@ -29,6 +29,8 @@ import {
   validateMaterial,
   exportCsv,
   exportXlsx,
+  importFromFile,
+  ImportPipeLibraryResult,
 } from "src/lib/pipe-library";
 import {
   DEFAULT_ROUGHNESS_HW,
@@ -222,6 +224,39 @@ export const PipeLibraryDialog = () => {
     });
   }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
 
+  const handleImportFromFile = useCallback(async () => {
+    const result = await importFromFile();
+    if (!result) return;
+
+    if (result.status === "success" && result.pipeLibrary) {
+      setDraftMaterials(result.pipeLibrary);
+      setSelectedLabel(null);
+      pendingRenamesRef.current.clear();
+      userTracking.capture({
+        name: "pipeLibrary.importedFromFile",
+        materialsCount: result.pipeLibrary.length,
+        format: result.format,
+      });
+      notify({
+        id: "pipe-library-notification",
+        variant: "success",
+        title: translate(
+          "pipeLibrary.import.success",
+          result.pipeLibrary.length,
+        ),
+      });
+    } else {
+      notify({
+        id: "pipe-library-notification",
+        variant: "error",
+        title: translate("pipeLibrary.import.errorTitle"),
+        description: translate("pipeLibrary.import.errorDescription"),
+        details: formatErrors(result, translate),
+        duration: 10000,
+      });
+    }
+  }, [setSelectedLabel, translate, userTracking]);
+
   const handleImportFromModel = useCallback(() => {
     const detected = detectModelMaterials(hydraulicModel.assets);
     if (detected.length === 0) return;
@@ -317,9 +352,10 @@ export const PipeLibraryDialog = () => {
               handleExportCsv={handleExportCsv}
               handleExportXlsx={handleExportXlsx}
             />
-            <Button variant="default" size="sm" onClick={handleImportFromModel}>
-              {translate("pipeLibrary.importFromModel")}
-            </Button>
+            <ImportSubmenu
+              handleImportFromModel={handleImportFromModel}
+              handleImportFromFile={handleImportFromFile}
+            />
           </div>
         </div>
         <div className="flex-1 flex min-h-0">
@@ -365,6 +401,54 @@ export const PipeLibraryDialog = () => {
         </div>
       </div>
     </BaseDialog>
+  );
+};
+
+const formatErrors = (
+  result: ImportPipeLibraryResult,
+  translate: TranslateFn,
+) =>
+  result.errors
+    .map(
+      (e) => `· ${e.material ? e.material + ": " : ""}${translate(e.message)}`,
+    )
+    .join("\n");
+
+const ImportSubmenu = ({
+  handleImportFromFile,
+  handleImportFromModel,
+}: {
+  handleImportFromFile: () => void;
+  handleImportFromModel: () => void;
+}) => {
+  const translate = useTranslate();
+  const isExportOn = useFeatureFlag("FLAG_EXPORT_PIPE_LIBRARY");
+
+  if (!isExportOn) {
+    return (
+      <Button variant="default" size="sm" onClick={handleImportFromModel}>
+        {translate("pipeLibrary.importFromModel")}
+      </Button>
+    );
+  }
+
+  return (
+    <DD.Root>
+      <DD.Trigger asChild>
+        <Button variant="default" size="sm">
+          {translate("pipeLibrary.importMenu")}
+          <ChevronDownIcon />
+        </Button>
+      </DD.Trigger>
+      <DDContent align="end">
+        <StyledItem onSelect={handleImportFromModel}>
+          {translate("pipeLibrary.importFromModel")}
+        </StyledItem>
+        <StyledItem onSelect={handleImportFromFile}>
+          {translate("pipeLibrary.importFromFile")}
+        </StyledItem>
+      </DDContent>
+    </DD.Root>
   );
 };
 

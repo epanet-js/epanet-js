@@ -1676,13 +1676,26 @@
     "export": "Export",
     "exportCsv": "Comma-Separated Values (.csv)",
     "exportXlsx": "Microsoft Excel Spreadsheet (.xlsx)",
+    "importMenu": "Import",
     "importFromModel": "Import from model",
+    "importFromFile": "Import from file",
+    "import": {
+      "confirmTitle": "Import pipe library",
+      "confirmMessage": "Importing a library from file will overwrite the existing library. Do you want to continue?",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "success": "Imported {{count}} materials from file",
+      "errorTitle": "Failed to import pipe library",
+      "errorDescription": "The selected file contains invalid entries. Check the full error list in the details.",
+      "emptyFile": "The file contains no materials"
+    },
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
       "roughnessPositive": "Roughness must be greater than zero",
       "agePositive": "Age must not be negative",
       "roughnessRequired": "Roughness must be set",
       "ageRequired": "Age must be set",
+      "mustBeNumber": "Value should be a number",
       "emptyEntries": "Empty entries are not valid",
       "zeroAge": "An entry for new pipes (age 0) should exist",
       "duplicateAge": "Each age value must be unique"

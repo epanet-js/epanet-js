@@ -1,0 +1,115 @@
+import * as XLSX from "xlsx";
+import Papa from "papaparse";
+import { fileOpen } from "browser-fs-access";
+import type { PipeMaterial } from "@epanet-js/pipe-library";
+import { validateMaterial } from "./validate-material";
+
+export type ImportError = {
+  material: string;
+  message: string;
+};
+
+export type ImportPipeLibraryResult = {
+  status: "success" | "error";
+  format: "csv" | "xlsx";
+  pipeLibrary?: PipeMaterial[];
+  errors: ImportError[];
+};
+
+export const importFromFile =
+  async (): Promise<ImportPipeLibraryResult | null> => {
+    const file = await openFilePicker();
+    if (!file) return null;
+
+    const format: "csv" | "xlsx" = file.name.endsWith(".csv") ? "csv" : "xlsx";
+    const materials =
+      format === "csv" ? await parseCsv(file) : await parseXlsx(file);
+
+    if (materials.length === 0) {
+      return {
+        status: "error",
+        format,
+        errors: [{ material: "", message: "pipeLibrary.import.emptyFile" }],
+      };
+    }
+
+    const errors: ImportError[] = [];
+    for (const material of materials) {
+      const error = validateMaterial(material);
+      if (error !== null) {
+        errors.push({ material: material.label, message: error });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { status: "error", format, errors };
+    }
+
+    return { status: "success", format, pipeLibrary: materials, errors: [] };
+  };
+
+const openFilePicker = async (): Promise<File | null> => {
+  try {
+    return await fileOpen({
+      extensions: [".csv", ".xlsx"],
+      description: "Pipe library file",
+      mimeTypes: [
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ],
+    });
+  } catch (error) {
+    if ((error as Error).name === "AbortError") return null;
+    throw error;
+  }
+};
+
+const parseCsv = async (file: File): Promise<PipeMaterial[]> => {
+  const text = await file.text();
+  const result = Papa.parse<string[]>(text, {
+    header: false,
+    skipEmptyLines: true,
+  });
+  const rows = result.data;
+
+  if (rows.length <= 1) return [];
+
+  const materialsMap = new Map<string, PipeMaterial>();
+
+  for (let i = 1; i < rows.length; i++) {
+    const [name, ageStr, roughnessStr] = rows[i];
+    if (!name) continue;
+
+    let material = materialsMap.get(name);
+    if (!material) {
+      material = { label: name, entries: [] };
+      materialsMap.set(name, material);
+    }
+
+    material.entries.push({
+      age: ageStr ? Number(ageStr) : null,
+      roughness: roughnessStr ? Number(roughnessStr) : null,
+    });
+  }
+
+  return [...materialsMap.values()];
+};
+
+const parseXlsx = async (file: File): Promise<PipeMaterial[]> => {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: "array" });
+
+  return workbook.SheetNames.map((sheetName) => {
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json<(string | number | null)[]>(sheet, {
+      header: 1,
+    });
+
+    const entries = rows.slice(1).map((row) => ({
+      age: row[0] != null ? Number(row[0]) : null,
+      roughness: row[1] != null ? Number(row[1]) : null,
+    }));
+
+    return { label: sheetName, entries };
+  });
+};

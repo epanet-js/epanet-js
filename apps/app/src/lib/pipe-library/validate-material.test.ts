@@ -62,4 +62,23 @@ describe("validateEntry", () => {
       { field: "age", message: "pipeLibrary.validation.agePositive" },
     ]);
   });
+
+  it("flags age when it is NaN", () => {
+    expect(validateEntry({ age: NaN, roughness: 140 })).toEqual([
+      { field: "age", message: "pipeLibrary.validation.mustBeNumber" },
+    ]);
+  });
+
+  it("flags roughness when it is NaN", () => {
+    expect(validateEntry({ age: 0, roughness: NaN })).toEqual([
+      { field: "roughness", message: "pipeLibrary.validation.mustBeNumber" },
+    ]);
+  });
+
+  it("flags both fields when both are NaN", () => {
+    expect(validateEntry({ age: NaN, roughness: NaN })).toEqual([
+      { field: "age", message: "pipeLibrary.validation.mustBeNumber" },
+      { field: "roughness", message: "pipeLibrary.validation.mustBeNumber" },
+    ]);
+  });
 });
