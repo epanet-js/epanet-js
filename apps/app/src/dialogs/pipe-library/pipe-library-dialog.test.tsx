@@ -5,10 +5,12 @@ import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
+import { projectFileInfoAtom } from "src/state/file-system";
 import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
 
@@ -50,6 +52,12 @@ vi.mock("src/lib/pipe-library/rename-materials", async (importOriginal) => {
 
 import { applyRoughnessMoment } from "src/lib/pipe-library/apply-roughness";
 import { renameMaterialsMoment } from "src/lib/pipe-library/rename-materials";
+
+vi.mock("src/lib/pipe-library/export-xlsx", () => ({
+  exportXlsx: vi.fn().mockResolvedValue(undefined),
+}));
+
+import { exportXlsx } from "src/lib/pipe-library/export-xlsx";
 
 vi.mock("src/components/notifications", async (importOriginal) => {
   const original =
@@ -344,6 +352,30 @@ describe("PipeLibraryDialog", () => {
     expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
     expect(getCell(0, 0)).not.toHaveClass("bg-warning-subtle");
     expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
+  });
+
+  it("calls exportXlsx when xlsx menu item is clicked", async () => {
+    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
+    const user = setupUser();
+    const store = setInitialState();
+    const materials = [
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+    ];
+    store.set(pipeMaterialsAtom, materials);
+    store.set(projectFileInfoAtom, {
+      name: "my-network.inp",
+      modelVersion: "1",
+    });
+    renderDialog(store);
+
+    await user.click(screen.getByRole("button", { name: /export/i }));
+    await user.click(
+      screen.getByRole("menuitem", {
+        name: /microsoft excel spreadsheet/i,
+      }),
+    );
+
+    expect(exportXlsx).toHaveBeenCalledWith(materials, "my-network");
   });
 
   it("disables apply roughness when a material fails validation", async () => {

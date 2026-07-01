@@ -1079,6 +1079,11 @@ type PipeLibrarySaved = {
   materialsCount: number;
 };
 
+type PipeLibraryExported = {
+  name: "pipeLibrary.exported";
+  format: string;
+};
+
 type PipeLibraryClosed = {
   name: "pipeLibrary.closed";
   hadChanges: boolean;
@@ -1587,6 +1592,7 @@ export type UserEvent =
   | PipeLibraryRoughnessApplied
   | PipeLibraryImportedFromModel
   | PipeLibrarySaved
+  | PipeLibraryExported
   | PipeLibraryClosed
   | PumpLibraryOpened
   | CurveLibraryOpened

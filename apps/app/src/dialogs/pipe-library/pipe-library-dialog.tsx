@@ -1,19 +1,22 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
+import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
-import { PipeLibraryIcon } from "src/icons";
-import { Button } from "src/components/elements";
+import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
+import { Button, DDContent, StyledItem } from "src/components/elements";
 import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { currentFileNameAtom } from "src/state/file-system";
 import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
 import {
   pipeMaterialsAtom,
@@ -22,6 +25,7 @@ import {
 import {
   applyRoughnessMoment,
   renameMaterialsMoment,
+  exportXlsx,
 } from "src/lib/pipe-library";
 import {
   validateMaterial,
@@ -45,6 +49,12 @@ export const PipeLibraryDialog = () => {
     useState<PipeMaterial[]>(savedMaterials);
   const [sidebarWidth, setSidebarWidth] = useState(224);
   const pendingRenamesRef = useRef(new Map<string, string>());
+
+  const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
+  const networkName = useMemo(() => {
+    const dot = fullNetworkName.lastIndexOf(".");
+    return fullNetworkName.substring(0, dot < 0 ? fullNetworkName.length : dot);
+  }, [fullNetworkName]);
 
   const defaultRoughness = useMemo(
     () =>
@@ -261,6 +271,11 @@ export const PipeLibraryDialog = () => {
     });
   }, [hydraulicModel, defaultRoughness, userTracking]);
 
+  const handleExportXlsx = useCallback(async () => {
+    await exportXlsx(draftMaterials, networkName);
+    userTracking.capture({ name: "pipeLibrary.exported", format: "xlsx" });
+  }, [draftMaterials, networkName, userTracking]);
+
   return (
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
@@ -291,9 +306,12 @@ export const PipeLibraryDialog = () => {
           >
             {translate("pipeLibrary.applyRoughness")}
           </Button>
-          <Button variant="default" size="sm" onClick={handleImportFromModel}>
-            {translate("pipeLibrary.importFromModel")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportSubmenu handleExportXlsx={handleExportXlsx} />
+            <Button variant="default" size="sm" onClick={handleImportFromModel}>
+              {translate("pipeLibrary.importFromModel")}
+            </Button>
+          </div>
         </div>
         <div className="flex-1 flex min-h-0">
           <div className="shrink-0 flex">
@@ -338,6 +356,33 @@ export const PipeLibraryDialog = () => {
         </div>
       </div>
     </BaseDialog>
+  );
+};
+
+const ExportSubmenu = ({
+  handleExportXlsx,
+}: {
+  handleExportXlsx: () => void;
+}) => {
+  const translate = useTranslate();
+  const isExportOn = useFeatureFlag("FLAG_EXPORT_PIPE_LIBRARY");
+
+  if (!isExportOn) return null;
+
+  return (
+    <DD.Root>
+      <DD.Trigger asChild>
+        <Button variant="default" size="sm">
+          {translate("pipeLibrary.export")}
+          <ChevronDownIcon />
+        </Button>
+      </DD.Trigger>
+      <DDContent align="end">
+        <StyledItem onSelect={handleExportXlsx}>
+          {translate("pipeLibrary.exportXlsx")}
+        </StyledItem>
+      </DDContent>
+    </DD.Root>
   );
 };
 

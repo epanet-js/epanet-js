@@ -1673,6 +1673,8 @@
     "emptyDescription": "Add a pipe material to get started",
     "appliedRoughness": "Updated {{count}} pipes",
     "noAssetsChanged": "No assets changed",
+    "export": "Export",
+    "exportXlsx": "Microsoft Excel Spreadsheet (.xlsx)",
     "importFromModel": "Import from model",
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
