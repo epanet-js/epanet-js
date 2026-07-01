@@ -554,7 +554,9 @@ const FirstScenarioDialog = dynamic<{
 );
 
 const FilePermissionsInfoDialog = dynamic<{
+  intent?: "read" | "write";
   onAcknowledge: () => void;
+  onCancel?: () => void;
   onClose: () => void;
 }>(
   () =>
@@ -880,7 +882,9 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "filePermissionsInfo") {
     return (
       <FilePermissionsInfoDialog
+        intent={dialog.intent}
         onAcknowledge={dialog.onAcknowledge}
+        onCancel={dialog.onCancel}
         onClose={onClose}
       />
     );

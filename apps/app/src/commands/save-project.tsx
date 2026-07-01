@@ -16,6 +16,7 @@ import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import * as db from "src/lib/db";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { MapContext, captureThumbnail } from "src/map";
@@ -40,6 +41,7 @@ export const useSaveProject = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const isFilePermissionsFlagOn = useFeatureFlag("FLAG_FILE_PERMISSIONS");
 
   const performSave = useAtomCallback(
     useCallback(
@@ -138,7 +140,9 @@ export const useSaveProject = ({
               id: saveProjectToastId,
               size: "sm",
             });
-            captureWarning("Save project: permission denied", err);
+            if (!isFilePermissionsFlagOn) {
+              captureWarning("Save project: permission denied", err);
+            }
             return false;
           }
           captureError(err);
@@ -153,7 +157,7 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [getFsAccess, addRecent, translate, map],
+      [getFsAccess, addRecent, translate, map, isFilePermissionsFlagOn],
     ),
   );
 
@@ -179,9 +183,32 @@ export const useSaveProject = ({
           });
         }
 
+        if (
+          isFilePermissionsFlagOn &&
+          projectInfo &&
+          !isSaveAs &&
+          get(userSettingsAtom).showFilePermissionsInfo
+        ) {
+          const permissionState = await (
+            projectInfo.handle as FileSystemFileHandle
+          ).queryPermission({ mode: "readwrite" });
+          if (permissionState === "prompt") {
+            return new Promise<boolean>((resolve) => {
+              set(dialogAtom, {
+                type: "filePermissionsInfo",
+                intent: "write",
+                onAcknowledge: () => {
+                  void performSave({ isSaveAs }).then(resolve);
+                },
+                onCancel: () => resolve(false),
+              });
+            });
+          }
+        }
+
         return performSave({ isSaveAs });
       },
-      [performSave, userTracking],
+      [performSave, userTracking, isFilePermissionsFlagOn],
     ),
   );
 };

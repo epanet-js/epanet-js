@@ -244,7 +244,9 @@ export type FirstScenarioDialogState = {
 
 export type FilePermissionsInfoDialogState = {
   type: "filePermissionsInfo";
+  intent?: "read" | "write";
   onAcknowledge: () => void;
+  onCancel?: () => void;
 };
 
 export type AlertScenariosNotSavedState = {
