@@ -29,8 +29,8 @@ import {
 import { Store } from "src/state";
 import { USelection } from "src/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
-import { changeCustomAttributes } from "./change-custom-attribute";
+import { changeCustomAttributes } from "./moment-operations/change-custom-attribute";
+import { updateCustomAttributesDefinition } from "./moment-operations/update-custom-attributes-definition";
 
 vi.mock("src/lib/db", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/lib/db")>()),
@@ -111,16 +111,12 @@ describe("custom attribute removal", () => {
 
   it("removes definition + values atomically; undo restores both; redo removes again", () => {
     const store = buildStore();
-    const { result } = renderHook(
-      () => ({
-        model: useMomentTransaction(),
-        definition: useCustomAttributesDefinitionTransaction(),
-      }),
-      { wrapper: createWrapper(store) },
-    );
+    const { result } = renderHook(() => useMomentTransaction(), {
+      wrapper: createWrapper(store),
+    });
 
     act(() => {
-      result.current.model.transact(
+      result.current.transact(
         changeCustomAttributes(
           {
             definition: store.get(customAttributesDefinitionAtom),
@@ -135,7 +131,15 @@ describe("custom attribute removal", () => {
     ).toEqual(42);
 
     act(() => {
-      result.current.definition.transact(emptyCustomAttributesDefinition());
+      result.current.transact(
+        updateCustomAttributesDefinition(
+          {
+            definition: store.get(customAttributesDefinitionAtom),
+            data: store.get(customAttributesDataAtom),
+          },
+          emptyCustomAttributesDefinition(),
+        ),
+      );
     });
     expect(
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),

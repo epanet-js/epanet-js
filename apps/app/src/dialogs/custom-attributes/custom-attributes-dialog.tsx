@@ -5,8 +5,9 @@ import { TriangleAlert } from "lucide-react";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
-import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
-import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
+import { customAttributesAtom } from "src/state/custom-attributes";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { updateCustomAttributesDefinition } from "src/lib/custom-attributes/moment-operations/update-custom-attributes-definition";
 import { useUserTracking } from "src/infra/user-tracking";
 import { NotificationBanner } from "src/components/notifications";
 import { VerticalResizer } from "../vertical-resizer";
@@ -58,8 +59,9 @@ export const CustomAttributesDialog = ({
   initialAssetType?: CustomAttributeAssetType;
 }) => {
   const translate = useTranslate();
-  const savedDefinition = useAtomValue(customAttributesDefinitionAtom);
-  const { transact } = useCustomAttributesDefinitionTransaction();
+  const customAttributes = useAtomValue(customAttributesAtom);
+  const savedDefinition = customAttributes.definition;
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const isEditionBlocked = useIsEditionBlocked();
 
@@ -132,14 +134,16 @@ export const CustomAttributesDialog = ({
   );
 
   const handleSave = useCallback(() => {
-    const applied = transact(edited);
+    const applied = transact(
+      updateCustomAttributesDefinition(customAttributes, edited),
+    );
     if (!applied) return;
 
     userTracking.capture({
       name: "customAttributes.updated",
       count: totalAttributesCount(edited),
     });
-  }, [edited, transact, userTracking]);
+  }, [customAttributes, edited, transact, userTracking]);
 
   return (
     <BaseDialog

@@ -16,7 +16,7 @@ import { importProject } from "./import-project";
 import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { saveCustomAttributes } from "./save-custom-attributes";
 import { saveCustomAttributesData } from "./save-custom-attributes-data";
-import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
+import { changeCustomAttributes } from "src/lib/custom-attributes/moment-operations/change-custom-attribute";
 import {
   emptyCustomAttributesData,
   emptyCustomAttributesDefinition,

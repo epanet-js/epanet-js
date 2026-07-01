@@ -7,7 +7,7 @@ import type { Moment } from "src/lib/persistence/moment";
 import type {
   CustomAttributeAssetValues,
   CustomAttributeValueChange,
-} from "./moment";
+} from "../moment";
 
 export const changeCustomAttributes = (
   { definition, data }: CustomAttributes,

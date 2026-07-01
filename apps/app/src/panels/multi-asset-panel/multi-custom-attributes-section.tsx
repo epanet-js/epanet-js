@@ -11,7 +11,7 @@ import {
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
+import { changeCustomAttributes } from "src/lib/custom-attributes/moment-operations/change-custom-attribute";
 import { customAttributesAtom } from "src/state/custom-attributes";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";

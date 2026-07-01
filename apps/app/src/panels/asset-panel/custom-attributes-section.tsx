@@ -9,7 +9,7 @@ import {
 } from "@epanet-js/custom-attributes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
+import { changeCustomAttributes } from "src/lib/custom-attributes/moment-operations/change-custom-attribute";
 import { customAttributesAtom } from "src/state/custom-attributes";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";

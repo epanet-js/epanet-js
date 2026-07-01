@@ -22,8 +22,8 @@ import { Store } from "src/state";
 import { USelection } from "src/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
-import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
-import { changeCustomAttributes } from "./change-custom-attribute";
+import { changeCustomAttributes } from "./moment-operations/change-custom-attribute";
+import { updateCustomAttributesDefinition } from "./moment-operations/update-custom-attributes-definition";
 
 vi.mock("src/lib/db", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/lib/db")>()),
@@ -101,10 +101,9 @@ describe("custom attribute value persistence", () => {
 
   it("persists a definition-only edit in the moment payload without value rows", () => {
     const store = buildStore();
-    const { result } = renderHook(
-      () => useCustomAttributesDefinitionTransaction(),
-      { wrapper: createWrapper(store) },
-    );
+    const { result } = renderHook(() => useMomentTransaction(), {
+      wrapper: createWrapper(store),
+    });
 
     const next = setAttributes(
       store.get(customAttributesDefinitionAtom),
@@ -116,7 +115,9 @@ describe("custom attribute value persistence", () => {
     );
 
     act(() => {
-      result.current.transact(next);
+      result.current.transact(
+        updateCustomAttributesDefinition(modelOf(store), next),
+      );
     });
 
     expect(applyMomentToDb).toHaveBeenCalledWith(
