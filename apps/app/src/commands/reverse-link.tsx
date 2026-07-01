@@ -6,7 +6,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export const reverseLinkShortcut = "r";
 
@@ -14,7 +14,7 @@ export const useReverseLink = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const userTracking = useUserTracking();
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
 
   const reverseLinkAction = useCallback(
     ({ source }: { source: "shortcut" | "toolbar" | "context-menu" }) => {

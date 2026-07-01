@@ -28,7 +28,7 @@ import {
 } from "src/lib/persistence/transaction-helpers";
 import { Store } from "src/state";
 import { USelection } from "src/selection";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
 import { changeCustomAttributes } from "./change-custom-attribute";
 
@@ -113,7 +113,7 @@ describe("custom attribute removal", () => {
     const store = buildStore();
     const { result } = renderHook(
       () => ({
-        model: useModelTransaction(),
+        model: useMomentTransaction(),
         definition: useCustomAttributesDefinitionTransaction(),
       }),
       { wrapper: createWrapper(store) },

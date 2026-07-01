@@ -9,7 +9,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export function useDrawCustomerPointHandlers({
   hydraulicModel,
@@ -19,7 +19,7 @@ export function useDrawCustomerPointHandlers({
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
   const { customerPointFactory } = useAtomValue(modelFactoriesAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const { selectCustomerPoint } = useSelection(selection);
 

@@ -6,7 +6,7 @@ import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { disconnectCustomers } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export const connectCustomersShortcut = "shift+c";
 export const disconnectCustomersShortcut = "shift+d";
@@ -50,7 +50,7 @@ export const useConnectCustomerPoints = () => {
 export const useDisconnectCustomerPoints = () => {
   const selection = useAtomValue(selectionAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
 
   const disconnectCustomerPoints = useCallback(

@@ -8,7 +8,7 @@ import {
   resolveAttributesFor,
 } from "@epanet-js/custom-attributes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
 import { customAttributesAtom } from "src/state/custom-attributes";
 import { InlineField } from "src/components/form/fields";
@@ -25,7 +25,7 @@ export const CustomAttributesSection = ({
 }) => {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const customAttributes = useAtomValue(customAttributesAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {

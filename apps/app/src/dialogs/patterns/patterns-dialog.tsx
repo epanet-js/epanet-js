@@ -18,7 +18,7 @@ import {
 import { PatternsIcon } from "src/icons";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { simulationSettingsAtom } from "src/state/simulation-settings";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir, Pump } from "@epanet-js/hydraulic-model";
 import { notify } from "src/components/notifications";
@@ -163,7 +163,7 @@ export const PatternsDialog = ({
     ],
   );
 
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
 
   const unsavedChanges = useMemo(
     () => differentPatternsCount(hydraulicModel.patterns, editedPatterns),

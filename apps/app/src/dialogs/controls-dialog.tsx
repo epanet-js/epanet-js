@@ -19,7 +19,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { changeRawControls } from "src/hydraulic-model/model-operations";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Message } from "@epanet-js/ui-kit";
 
@@ -38,7 +38,7 @@ export const ControlsDialog = () => {
   const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
 
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
 
   const { rawControls, assets } = hydraulicModel;

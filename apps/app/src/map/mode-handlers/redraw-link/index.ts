@@ -9,14 +9,14 @@ import { replaceLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import measureLength from "@turf/length";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export function useRedrawLinkHandlers(
   handlerContext: HandlerContext,
 ): Handlers {
   const selection = useAtomValue(selectionAtom);
   const setMode = useSetAtom(modeAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const { hydraulicModel } = handlerContext;
   const { assets } = hydraulicModel;

@@ -25,7 +25,7 @@ import { useSnapping } from "../hooks/use-snapping";
 import throttle from "lodash/throttle";
 import { useClickedAsset } from "../utils";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 const stateUpdateTime = 16;
 
@@ -83,7 +83,7 @@ export function useNoneHandlers({
   const { fetchElevation, prefetchTileThrottled } = useElevations(
     units.elevation,
   );
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const {
     setStartPoint: setCustomerPointStartPoint,

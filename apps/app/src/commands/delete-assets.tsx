@@ -2,7 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useCallback } from "react";
 import { AssetId } from "src/hydraulic-model";
 import { deleteAssets } from "src/hydraulic-model/model-operations";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { AssetDeleted, useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -11,7 +11,7 @@ import { selectionAtom } from "src/state/selection";
 export const useDeleteAssets = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [selection, setSelection] = useAtom(selectionAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
 
   return useCallback(

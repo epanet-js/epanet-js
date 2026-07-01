@@ -12,7 +12,7 @@ import {
   customAttributesDefinitionAtom,
 } from "src/state/custom-attributes";
 import type { CustomAttributeAssetValues } from "src/lib/custom-attributes/moment";
-import { useModelTransaction } from "./use-model-transaction";
+import { useMomentTransaction } from "./use-moment-transaction";
 
 type RemovalEffect = {
   removedAssetIds: Set<number>;
@@ -21,7 +21,7 @@ type RemovalEffect = {
 };
 
 export const useCustomAttributesDefinitionTransaction = () => {
-  const { transact: transactModel } = useModelTransaction();
+  const { transact: transactModel } = useMomentTransaction();
 
   const computeRemoval = useAtomCallback(
     useCallback(

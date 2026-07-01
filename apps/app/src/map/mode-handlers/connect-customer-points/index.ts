@@ -10,7 +10,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { useKeyboardState } from "src/keyboard/use-keyboard-state";
 import throttle from "lodash/throttle";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export function useConnectCustomerPointsHandlers({
   hydraulicModel,
@@ -18,7 +18,7 @@ export function useConnectCustomerPointsHandlers({
 }: HandlerContext): Handlers {
   const mode = useAtomValue(modeAtom);
   const setMode = useSetAtom(modeAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const { isShiftHeld } = useKeyboardState();
   const {

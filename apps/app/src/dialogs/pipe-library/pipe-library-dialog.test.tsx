@@ -13,8 +13,8 @@ import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
 
 const mockTransact = vi.fn();
-vi.mock("src/hooks/persistence/use-model-transaction", () => ({
-  useModelTransaction: () => ({ transact: mockTransact }),
+vi.mock("src/hooks/persistence/use-moment-transaction", () => ({
+  useMomentTransaction: () => ({ transact: mockTransact }),
 }));
 
 let activeStore: Store | null = null;

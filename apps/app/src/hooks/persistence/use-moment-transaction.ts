@@ -24,7 +24,7 @@ import {
   findStoreInconsistencies,
 } from "src/hydraulic-model/validate-moment-integrity";
 
-export const useModelTransaction = () => {
+export const useMomentTransaction = () => {
   const transact = useAtomCallback(
     useCallback((get: Getter, set: Setter, moment: Moment) => {
       const momentLog = get(momentLogDerivedAtom).copy();

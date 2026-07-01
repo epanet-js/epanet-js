@@ -6,7 +6,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { USelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 export const changeActiveTopologyShortcut = "a";
 
@@ -14,7 +14,7 @@ export const useChangeSelectedAssetsActiveTopologyStatus = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const userTracking = useUserTracking();
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
 
   const selectedIds = USelection.getAssetIds(selection);
 

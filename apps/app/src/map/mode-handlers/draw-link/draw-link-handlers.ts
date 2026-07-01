@@ -26,7 +26,7 @@ import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 const MIN_VERTEX_PIXEL_DISTANCE = 8;
 
@@ -167,7 +167,7 @@ export function useDrawLinkHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
   const { selectAsset } = useSelection(selection);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);

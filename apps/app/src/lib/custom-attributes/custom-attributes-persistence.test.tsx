@@ -20,7 +20,7 @@ import {
 } from "src/state/custom-attributes";
 import { Store } from "src/state";
 import { USelection } from "src/selection";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
 import { changeCustomAttributes } from "./change-custom-attribute";
@@ -74,7 +74,7 @@ describe("custom attribute value persistence", () => {
 
   it("persists the affected asset's values in the moment payload on a value edit", () => {
     const store = buildStore();
-    const { result } = renderHook(() => useModelTransaction(), {
+    const { result } = renderHook(() => useMomentTransaction(), {
       wrapper: createWrapper(store),
     });
 
@@ -129,7 +129,7 @@ describe("custom attribute value persistence", () => {
 
   it("rejects invalid data before mutating and shows changeNotApplied", () => {
     const store = buildStore();
-    const { result } = renderHook(() => useModelTransaction(), {
+    const { result } = renderHook(() => useMomentTransaction(), {
       wrapper: createWrapper(store),
     });
 
@@ -158,7 +158,7 @@ describe("custom attribute value persistence", () => {
     const store = buildStore();
     const { result } = renderHook(
       () => ({
-        model: useModelTransaction(),
+        model: useMomentTransaction(),
         history: useUndoableTransactions(),
       }),
       { wrapper: createWrapper(store) },

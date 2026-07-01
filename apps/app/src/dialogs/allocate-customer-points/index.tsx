@@ -6,7 +6,7 @@ import { applyCustomerPointAllocation } from "src/hydraulic-model/model-operatio
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useAtomValue } from "jotai";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { AllocationDialog } from "./allocation-dialog";
 
@@ -22,7 +22,7 @@ export const AllocateCustomerPointsDialog: React.FC<
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
 
   const {
     allocationResult,

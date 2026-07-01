@@ -13,7 +13,7 @@ import { Button } from "src/components/elements";
 import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
 import {
   pipeMaterialsAtom,
@@ -37,7 +37,7 @@ export const PipeLibraryDialog = () => {
   const dialogActions = useRef<DialogActionsHandle>(null);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const savedMaterials = useAtomValue(pipeMaterialsAtom);
   const { transact: transactPipeLibrary } = usePipeLibraryTransaction();
   const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);

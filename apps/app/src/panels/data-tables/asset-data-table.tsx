@@ -6,7 +6,7 @@ import {
   simulationResultsDerivedAtom,
   simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
   changeProperties,
   changeLabel,
@@ -88,7 +88,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const isEditionBlocked = useIsEditionBlocked();

@@ -21,7 +21,7 @@ import { CustomAttributesSection } from "./asset-panel/custom-attributes-section
 import { EditableTextField } from "src/components/form/editable-text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
+import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
   getCustomerPointDemands,
   calculateAverageDemand,
@@ -40,7 +40,7 @@ export function CustomerPointPanel() {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
-  const { transact } = useModelTransaction();
+  const { transact } = useMomentTransaction();
   const zoomTo = useZoomTo();
   const { units } = useAtomValue(projectSettingsAtom);
   const selectedCustomerPointId = USelection.singleCustomerPointId(selection);
