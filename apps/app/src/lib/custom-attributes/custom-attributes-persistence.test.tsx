@@ -31,6 +31,11 @@ vi.mock("src/lib/db", async (importOriginal) => ({
 
 const IDS = { J1: 1 };
 
+const modelOf = (store: Store) => ({
+  definition: store.get(customAttributesDefinitionAtom),
+  data: store.get(customAttributesDataAtom),
+});
+
 const createWrapper = (store: Store) => {
   const persistence = new Persistence(store);
   return ({ children }: { children: React.ReactNode }) => (
@@ -74,7 +79,7 @@ describe("custom attribute value persistence", () => {
 
     act(() => {
       result.current.transact(
-        changeCustomAttributes([
+        changeCustomAttributes(modelOf(store), [
           { assetId: IDS.J1, attributeId: "ca-1", value: 42 },
         ]),
       );
@@ -102,7 +107,7 @@ describe("custom attribute value persistence", () => {
     let applied: boolean | undefined;
     act(() => {
       applied = result.current.transact(
-        changeCustomAttributes([
+        changeCustomAttributes(modelOf(store), [
           {
             assetId: IDS.J1,
             attributeId: "ca-1",
@@ -132,7 +137,7 @@ describe("custom attribute value persistence", () => {
 
     act(() => {
       result.current.model.transact(
-        changeCustomAttributes([
+        changeCustomAttributes(modelOf(store), [
           { assetId: IDS.J1, attributeId: "ca-1", value: 42 },
         ]),
       );

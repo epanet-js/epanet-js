@@ -37,12 +37,14 @@ export function MultiCustomAttributesSection({
 }) {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const definition = useAtomValue(customAttributesDefinitionAtom);
+  const data = useAtomValue(customAttributesDataAtom);
   const { transact } = useModelTransaction();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
       transact(
         changeCustomAttributes(
+          { definition, data },
           assetIds.map((assetId) => ({
             assetId,
             attributeId,
@@ -51,7 +53,7 @@ export function MultiCustomAttributesSection({
         ),
       );
     },
-    [transact, assetIds],
+    [transact, assetIds, definition, data],
   );
 
   if (!isCustomAttributesOn) return null;

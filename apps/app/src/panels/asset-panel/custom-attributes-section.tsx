@@ -9,7 +9,11 @@ import type {
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { changeCustomAttributes } from "src/lib/custom-attributes/change-custom-attribute";
-import { customAttributesAtom } from "src/state/custom-attributes";
+import {
+  customAttributesAtom,
+  customAttributesDataAtom,
+  customAttributesDefinitionAtom,
+} from "src/state/custom-attributes";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { EditableTextField } from "src/components/form/editable-text-field";
@@ -24,12 +28,14 @@ export const CustomAttributesSection = ({
 }) => {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const customAttributes = useAtomValue(customAttributesAtom);
+  const definition = useAtomValue(customAttributesDefinitionAtom);
+  const data = useAtomValue(customAttributesDataAtom);
   const { transact } = useModelTransaction();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
       transact(
-        changeCustomAttributes([
+        changeCustomAttributes({ definition, data }, [
           {
             assetId: id,
             attributeId,
@@ -38,7 +44,7 @@ export const CustomAttributesSection = ({
         ]),
       );
     },
-    [transact, id],
+    [transact, id, definition, data],
   );
 
   if (!isCustomAttributesOn) return null;

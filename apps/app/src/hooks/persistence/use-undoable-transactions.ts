@@ -12,10 +12,8 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
-import {
-  customAttributesDataAtom,
-  customAttributesDefinitionAtom,
-} from "src/state/custom-attributes";
+import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
+import { getAttributeIds } from "@epanet-js/custom-attributes";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 
@@ -35,10 +33,10 @@ export const useUndoableTransactions = () => {
       let payload: ApplyMomentPayload | null = null;
       if (willPersist) {
         try {
-          payload = buildMomentPayload(action.moment, {
-            data: get(customAttributesDataAtom),
-            definition: get(customAttributesDefinitionAtom),
-          });
+          payload = buildMomentPayload(
+            action.moment,
+            getAttributeIds(get(customAttributesDefinitionAtom)),
+          );
         } catch (error) {
           captureError(
             error instanceof Error ? error : new Error(String(error)),

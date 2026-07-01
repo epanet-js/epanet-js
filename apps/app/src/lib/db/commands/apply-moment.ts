@@ -7,7 +7,7 @@ import {
 import {
   type CustomAttributeId,
   type CustomAttributesData,
-  getAttributeIds,
+  filterValues,
 } from "@epanet-js/custom-attributes";
 import {
   getWorker,
@@ -28,39 +28,30 @@ import {
   serializeControls,
   serializeCustomAttributesData,
 } from "@epanet-js/ejsdb-mappers";
-import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,
 } from "../mappers/assets/patches";
 import type { CustomerPointRow } from "@epanet-js/ejsdb";
 
-export type CustomAttributesContext = {
-  data: CustomAttributesData;
-  definition: Parameters<typeof getAttributeIds>[0];
-};
-
 const buildCustomAttributesDataSave = (
   moment: Moment,
-  context: CustomAttributesContext,
+  validAttributeIds: Set<CustomAttributeId>,
 ): CustomAttributesDataSave | null => {
   if (!moment.customAttributes) return null;
 
-  const affected = new Set<number>(
-    moment.customAttributes.putValues.map((change) => change.assetId),
-  );
-  if (affected.size === 0) return null;
+  const changes = moment.customAttributes.putValues;
+  if (changes.length === 0) return null;
 
-  const validAttributeIds: Set<CustomAttributeId> = getAttributeIds(
-    context.definition,
-  );
-  const { data } = applyMomentToCustomAttributes(
-    context.data,
-    moment.customAttributes,
-    validAttributeIds,
-  );
+  const affected = new Set<number>();
+  const resolved: CustomAttributesData = new Map();
+  for (const { assetId, values } of changes) {
+    affected.add(assetId);
+    const kept = filterValues(values, validAttributeIds);
+    if (kept.size > 0) resolved.set(assetId, kept);
+  }
 
-  const upserts = serializeCustomAttributesData(data, affected);
+  const upserts = serializeCustomAttributesData(resolved, affected);
   const presentIds = new Set(upserts.map((row) => row.asset_id));
   const deleteIds = [...affected].filter((id) => !presentIds.has(id));
   return { upserts, deleteIds };
@@ -68,7 +59,7 @@ const buildCustomAttributesDataSave = (
 
 export const buildMomentPayload = (
   moment: Moment,
-  customAttributes?: CustomAttributesContext,
+  validAttributeIds?: Set<CustomAttributeId>,
 ): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
@@ -129,9 +120,10 @@ export const buildMomentPayload = (
     ? serializeControls(moment.putControls)
     : null;
 
-  const customAttributesData = customAttributes
-    ? buildCustomAttributesDataSave(moment, customAttributes)
-    : null;
+  const customAttributesData =
+    moment.customAttributes && validAttributeIds
+      ? buildCustomAttributesDataSave(moment, validAttributeIds)
+      : null;
 
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],

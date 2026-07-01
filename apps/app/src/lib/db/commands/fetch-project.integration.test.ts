@@ -21,6 +21,7 @@ import {
   emptyCustomAttributesData,
   emptyCustomAttributesDefinition,
   getAttributes,
+  getAttributeIds,
   getValue,
   setAttributes,
   setValue,
@@ -246,8 +247,11 @@ describe("fetch-project integration", () => {
     );
 
     const payload = buildMomentPayload(
-      changeCustomAttributes([{ assetId: 1, attributeId: "ca-1", value: 42 }]),
-      { data: emptyCustomAttributesData(), definition },
+      changeCustomAttributes(
+        { definition, data: emptyCustomAttributesData() },
+        [{ assetId: 1, attributeId: "ca-1", value: 42 }],
+      ),
+      getAttributeIds(definition),
     );
     await applyMomentToDb(payload);
 

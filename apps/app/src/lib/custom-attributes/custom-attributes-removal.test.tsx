@@ -104,9 +104,13 @@ describe("custom attribute removal", () => {
 
     act(() => {
       result.current.model.transact(
-        changeCustomAttributes([
-          { assetId: IDS.J1, attributeId: "ca-1", value: 42 },
-        ]),
+        changeCustomAttributes(
+          {
+            definition: store.get(customAttributesDefinitionAtom),
+            data: store.get(customAttributesDataAtom),
+          },
+          [{ assetId: IDS.J1, attributeId: "ca-1", value: 42 }],
+        ),
       );
     });
     expect(

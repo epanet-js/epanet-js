@@ -36,6 +36,36 @@ export const setValue = (
   return next;
 };
 
+export const setAssetValues = (
+  data: CustomAttributesData,
+  assetId: number,
+  values: CustomAttributeValues,
+): CustomAttributesData => {
+  const next: CustomAttributesData = new Map(data);
+  if (values.size === 0) {
+    next.delete(assetId);
+  } else {
+    next.set(assetId, new Map(values));
+  }
+  return next;
+};
+
+export const filterValues = (
+  values: CustomAttributeValues,
+  attributeIds: Set<CustomAttributeId>,
+): CustomAttributeValues => {
+  let changed = false;
+  const next: CustomAttributeValues = new Map();
+  for (const [attributeId, value] of values) {
+    if (attributeIds.has(attributeId)) {
+      next.set(attributeId, value);
+    } else {
+      changed = true;
+    }
+  }
+  return changed ? next : values;
+};
+
 export const removeAttributes = (
   data: CustomAttributesData,
   attributeIds: Set<CustomAttributeId>,

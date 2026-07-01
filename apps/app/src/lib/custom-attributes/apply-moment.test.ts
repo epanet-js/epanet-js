@@ -12,15 +12,7 @@ describe("applyMomentToCustomAttributes", () => {
 
     const { data, reverse } = applyMomentToCustomAttributes(
       initial,
-      {
-        putValues: [
-          {
-            assetId: 7,
-            attributeId: "ca-1",
-            value: "Bob",
-          },
-        ],
-      },
+      { putValues: [{ assetId: 7, values: new Map([["ca-1", "Bob"]]) }] },
       validIds,
     );
 
@@ -34,30 +26,23 @@ describe("applyMomentToCustomAttributes", () => {
   it("captures null as the prior value when none was set", () => {
     const { reverse } = applyMomentToCustomAttributes(
       emptyCustomAttributesData(),
-      {
-        putValues: [{ assetId: 3, attributeId: "ca-2", value: 42 }],
-      },
+      { putValues: [{ assetId: 3, values: new Map([["ca-2", 42]]) }] },
       new Set(["ca-2"]),
     );
 
     expect(reverse.putValues).toEqual([
-      { assetId: 3, attributeId: "ca-2", value: null },
+      { assetId: 3, values: new Map([["ca-2", null]]) },
     ]);
   });
 
-  it("skips changes for attributes no longer in the definition", () => {
-    const initial = setValue(emptyCustomAttributesData(), 7, "ca-1", "Alice");
-
-    const { data, reverse } = applyMomentToCustomAttributes(
-      initial,
-      {
-        putValues: [{ assetId: 7, attributeId: "ca-1", value: "Bob" }],
-      },
+  it("drops values for attributes no longer in the definition", () => {
+    const { data } = applyMomentToCustomAttributes(
+      emptyCustomAttributesData(),
+      { putValues: [{ assetId: 7, values: new Map([["ca-1", "Bob"]]) }] },
       new Set(),
     );
 
-    expect(data).toBe(initial);
-    expect(getValue(data, 7, "ca-1")).toEqual("Alice");
-    expect(reverse.putValues).toEqual([]);
+    expect(getValue(data, 7, "ca-1")).toBeNull();
+    expect(data.size).toBe(0);
   });
 });

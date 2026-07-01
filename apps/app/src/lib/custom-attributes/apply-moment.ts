@@ -1,12 +1,13 @@
 import {
   type CustomAttributeId,
   type CustomAttributesData,
-  getValue,
-  setValue,
+  type CustomAttributeValues,
+  filterValues,
+  setAssetValues,
 } from "@epanet-js/custom-attributes";
 import type {
+  CustomAttributeAssetValues,
   CustomAttributesMoment,
-  CustomAttributeValueChange,
 } from "./moment";
 
 export const applyMomentToCustomAttributes = (
@@ -15,18 +16,27 @@ export const applyMomentToCustomAttributes = (
   validAttributeIds: Set<CustomAttributeId>,
 ): { data: CustomAttributesData; reverse: CustomAttributesMoment } => {
   let nextData = data;
-  const reverseValues: CustomAttributeValueChange[] = [];
+  const reverseValues: CustomAttributeAssetValues[] = [];
 
-  for (const change of moment.putValues) {
-    const { assetId, attributeId } = change;
-    if (!validAttributeIds.has(attributeId)) continue;
+  for (const { assetId, values } of moment.putValues) {
+    const current = nextData.get(assetId);
 
+    const reverseMap: CustomAttributeValues = new Map(current);
+    for (const attributeId of values.keys()) {
+      if (!reverseMap.has(attributeId)) {
+        reverseMap.set(attributeId, null);
+      }
+    }
     reverseValues.push({
       assetId,
-      attributeId,
-      value: getValue(nextData, assetId, attributeId),
+      values: filterValues(reverseMap, validAttributeIds),
     });
-    nextData = setValue(nextData, assetId, attributeId, change.value);
+
+    nextData = setAssetValues(
+      nextData,
+      assetId,
+      filterValues(values, validAttributeIds),
+    );
   }
 
   return { data: nextData, reverse: { putValues: reverseValues } };

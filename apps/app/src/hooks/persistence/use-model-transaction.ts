@@ -17,10 +17,8 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
-import {
-  customAttributesDataAtom,
-  customAttributesDefinitionAtom,
-} from "src/state/custom-attributes";
+import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
+import { getAttributeIds } from "@epanet-js/custom-attributes";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import {
@@ -41,10 +39,10 @@ export const useModelTransaction = () => {
       let payload: ApplyMomentPayload | undefined;
       if (willPersist) {
         try {
-          payload = buildMomentPayload(moment, {
-            data: get(customAttributesDataAtom),
-            definition: get(customAttributesDefinitionAtom),
-          });
+          payload = buildMomentPayload(
+            moment,
+            getAttributeIds(get(customAttributesDefinitionAtom)),
+          );
         } catch (error) {
           captureError(
             error instanceof Error ? error : new Error(String(error)),
