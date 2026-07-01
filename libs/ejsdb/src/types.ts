@@ -50,4 +50,5 @@ export type ApplyMomentPayload = {
   rawControlsReplacement: string | null;
   controlsReplacement: string | null;
   customAttributesData: CustomAttributesDataSave | null;
+  customAttributesDefinition: string | null;
 };

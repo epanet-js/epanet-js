@@ -17,7 +17,6 @@ import {
   customAttributesDataAtom,
   customAttributesDefinitionAtom,
 } from "src/state/custom-attributes";
-import { getAttributeIds } from "@epanet-js/custom-attributes";
 import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
 import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
@@ -106,15 +105,13 @@ export function applyMoment(
   });
 
   if (forwardMoment.customAttributes) {
-    const validAttributeIds = getAttributeIds(
-      get(customAttributesDefinitionAtom),
-    );
-    const { data, reverse } = applyMomentToCustomAttributes(
+    const { data, definition, reverse } = applyMomentToCustomAttributes(
       get(customAttributesDataAtom),
+      get(customAttributesDefinitionAtom),
       forwardMoment.customAttributes,
-      validAttributeIds,
     );
     set(customAttributesDataAtom, data);
+    set(customAttributesDefinitionAtom, definition);
     return { ...reverseMoment, customAttributes: reverse };
   }
 

@@ -10,6 +10,13 @@ import { defaultProjectSettings } from "src/lib/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
+import {
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  getValue,
+  setAttributes,
+} from "@epanet-js/custom-attributes";
+import type { Moment } from "src/lib/persistence/moment";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { fetchProject } from "./fetch-project";
@@ -483,6 +490,36 @@ describe("apply-moment integration", () => {
 
     const project = await fetchProject();
     expect(project.hydraulicModel.controls).toEqual([]);
+  });
+
+  it("writes the custom attributes definition and values in one moment", async () => {
+    const IDS = { J1: 1 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with().aJunction(IDS.J1, { label: "J1" }).build(),
+    );
+
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "junction",
+      [{ id: "ca-1", label: "Age", type: "number" }],
+    );
+
+    const moment: Moment = {
+      note: "define and assign custom attribute",
+      customAttributes: {
+        putDefinition: definition,
+        putValues: [{ assetId: IDS.J1, values: new Map([["ca-1", 42]]) }],
+      },
+    };
+
+    await applyMomentToDb(buildMomentPayload(moment));
+
+    const project = await fetchProject();
+    expect(getAttributes(project.customAttributes, "junction")).toEqual([
+      { id: "ca-1", label: "Age", type: "number" },
+    ]);
+    expect(getValue(project.customAttributesData, IDS.J1, "ca-1")).toEqual(42);
   });
 
   it("does not change DB state for a noop moment", async () => {

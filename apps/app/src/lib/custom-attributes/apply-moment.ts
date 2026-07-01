@@ -1,8 +1,7 @@
 import {
-  type CustomAttributeId,
   type CustomAttributesData,
+  type CustomAttributesDefinition,
   type CustomAttributeValues,
-  filterValues,
   setAssetValues,
 } from "@epanet-js/custom-attributes";
 import type {
@@ -12,9 +11,15 @@ import type {
 
 export const applyMomentToCustomAttributes = (
   data: CustomAttributesData,
+  definition: CustomAttributesDefinition,
   moment: CustomAttributesMoment,
-  validAttributeIds: Set<CustomAttributeId>,
-): { data: CustomAttributesData; reverse: CustomAttributesMoment } => {
+): {
+  data: CustomAttributesData;
+  definition: CustomAttributesDefinition;
+  reverse: CustomAttributesMoment;
+} => {
+  const nextDefinition = moment.putDefinition ?? definition;
+
   let nextData = data;
   const reverseValues: CustomAttributeAssetValues[] = [];
 
@@ -27,17 +32,17 @@ export const applyMomentToCustomAttributes = (
         reverseMap.set(attributeId, null);
       }
     }
-    reverseValues.push({
-      assetId,
-      values: filterValues(reverseMap, validAttributeIds),
-    });
+    reverseValues.push({ assetId, values: reverseMap });
 
-    nextData = setAssetValues(
-      nextData,
-      assetId,
-      filterValues(values, validAttributeIds),
-    );
+    nextData = setAssetValues(nextData, assetId, values);
   }
 
-  return { data: nextData, reverse: { putValues: reverseValues } };
+  return {
+    data: nextData,
+    definition: nextDefinition,
+    reverse: {
+      putValues: reverseValues,
+      putDefinition: moment.putDefinition ? definition : undefined,
+    },
+  };
 };

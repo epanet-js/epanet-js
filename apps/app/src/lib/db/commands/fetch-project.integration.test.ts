@@ -21,7 +21,6 @@ import {
   emptyCustomAttributesData,
   emptyCustomAttributesDefinition,
   getAttributes,
-  getAttributeIds,
   getValue,
   setAttributes,
   setValue,
@@ -251,7 +250,6 @@ describe("fetch-project integration", () => {
         { definition, data: emptyCustomAttributesData() },
         [{ assetId: 1, attributeId: "ca-1", value: 42 }],
       ),
-      getAttributeIds(definition),
     );
     await applyMomentToDb(payload);
 

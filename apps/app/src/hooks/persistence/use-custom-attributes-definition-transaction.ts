@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { useSetAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import {
   type CustomAttributesData,
   type CustomAttributesDefinition,
+  type CustomAttributeValues,
   getAttributeIds,
   removeAttributes,
 } from "@epanet-js/custom-attributes";
@@ -11,13 +11,8 @@ import {
   customAttributesDataAtom,
   customAttributesDefinitionAtom,
 } from "src/state/custom-attributes";
-import { dialogAtom } from "src/state/dialog";
-import { saveCustomAttributes, saveCustomAttributesData } from "src/lib/db";
-import {
-  serializeCustomAttributesData,
-  serializeCustomAttributesDefinition,
-} from "@epanet-js/ejsdb-mappers";
-import { captureError } from "src/infra/error-tracking";
+import type { CustomAttributeAssetValues } from "src/lib/custom-attributes/moment";
+import { useModelTransaction } from "./use-model-transaction";
 
 type RemovalEffect = {
   removedAssetIds: Set<number>;
@@ -26,7 +21,7 @@ type RemovalEffect = {
 };
 
 export const useCustomAttributesDefinitionTransaction = () => {
-  const setDialog = useSetAtom(dialogAtom);
+  const { transact: transactModel } = useModelTransaction();
 
   const computeRemoval = useAtomCallback(
     useCallback(
@@ -65,48 +60,25 @@ export const useCustomAttributesDefinitionTransaction = () => {
     ),
   );
 
-  const applyEffect = useAtomCallback(
-    useCallback(
-      (
-        _get,
-        set,
-        next: CustomAttributesDefinition,
-        effect: RemovalEffect,
-      ): void => {
-        set(customAttributesDefinitionAtom, next);
-        if (effect.changed) {
-          set(customAttributesDataAtom, effect.data);
-        }
-      },
-      [],
-    ),
-  );
-
   const transact = useCallback(
-    async (next: CustomAttributesDefinition): Promise<boolean> => {
+    (next: CustomAttributesDefinition): boolean => {
       const effect = computeRemoval(next);
 
-      try {
-        serializeCustomAttributesDefinition(next);
-        if (effect.changed) {
-          serializeCustomAttributesData(effect.data, effect.removedAssetIds);
-        }
-      } catch (error) {
-        captureError(error instanceof Error ? error : new Error(String(error)));
-        setDialog({ type: "changeNotApplied" });
-        return false;
-      }
-
-      applyEffect(next, effect);
-
-      await saveCustomAttributes(next);
+      const putValues: CustomAttributeAssetValues[] = [];
       if (effect.changed) {
-        await saveCustomAttributesData(effect.data, effect.removedAssetIds);
+        for (const assetId of effect.removedAssetIds) {
+          const values: CustomAttributeValues =
+            effect.data.get(assetId) ?? new Map();
+          putValues.push({ assetId, values });
+        }
       }
 
-      return true;
+      return transactModel({
+        note: "Update custom attributes",
+        customAttributes: { putDefinition: next, putValues },
+      });
     },
-    [computeRemoval, applyEffect, setDialog],
+    [computeRemoval, transactModel],
   );
 
   return { transact };

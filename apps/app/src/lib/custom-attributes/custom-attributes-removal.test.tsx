@@ -4,6 +4,7 @@ import { Provider as JotaiProvider } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   emptyCustomAttributesDefinition,
+  getAttributeIds,
   getValue,
   setAttributes,
 } from "@epanet-js/custom-attributes";
@@ -12,7 +13,6 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { saveCustomAttributesData } from "src/lib/db";
 import {
   customAttributesDataAtom,
   customAttributesDefinitionAtom,
@@ -58,6 +58,23 @@ const undo = (store: Store) => {
   store.set(mapSyncMomentAtom, computeSyncMoment(mapSyncMoment, momentLog));
 };
 
+const redo = (store: Store) => {
+  const momentLog = store.get(momentLogDerivedAtom).copy();
+  const mapSyncMoment = store.get(mapSyncMomentAtom);
+  const action = momentLog.nextRedo();
+  if (!action) return;
+  applyMoment(
+    store.get,
+    store.set,
+    action.stateId,
+    action.moment,
+    stagingModelDerivedAtom,
+  );
+  momentLog.redo();
+  store.set(momentLogDerivedAtom, momentLog);
+  store.set(mapSyncMomentAtom, computeSyncMoment(mapSyncMoment, momentLog));
+};
+
 const createWrapper = (store: Store) => {
   const persistence = new Persistence(store);
   return ({ children }: { children: React.ReactNode }) => (
@@ -92,7 +109,7 @@ describe("custom attribute removal", () => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
   });
 
-  it("prunes data on removal and makes undo of the value edit a no-op", async () => {
+  it("removes definition + values atomically; undo restores both; redo removes again", () => {
     const store = buildStore();
     const { result } = renderHook(
       () => ({
@@ -117,21 +134,28 @@ describe("custom attribute removal", () => {
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
     ).toEqual(42);
 
-    await act(async () => {
-      await result.current.definition.transact(
-        emptyCustomAttributesDefinition(),
-      );
+    act(() => {
+      result.current.definition.transact(emptyCustomAttributesDefinition());
     });
     expect(
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
     ).toBeNull();
-
-    expect(saveCustomAttributesData).toHaveBeenCalledWith(
-      store.get(customAttributesDataAtom),
-      new Set([IDS.J1]),
-    );
+    expect(
+      getAttributeIds(store.get(customAttributesDefinitionAtom)).has("ca-1"),
+    ).toBe(false);
 
     act(() => undo(store));
+    expect(
+      getAttributeIds(store.get(customAttributesDefinitionAtom)).has("ca-1"),
+    ).toBe(true);
+    expect(
+      getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
+    ).toEqual(42);
+
+    act(() => redo(store));
+    expect(
+      getAttributeIds(store.get(customAttributesDefinitionAtom)).has("ca-1"),
+    ).toBe(false);
     expect(
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
     ).toBeNull();

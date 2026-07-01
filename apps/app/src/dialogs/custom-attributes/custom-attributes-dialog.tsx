@@ -131,8 +131,8 @@ export const CustomAttributesDialog = ({
     [selectedAttributes],
   );
 
-  const handleSave = useCallback(async () => {
-    const applied = await transact(edited);
+  const handleSave = useCallback(() => {
+    const applied = transact(edited);
     if (!applied) return;
 
     userTracking.capture({

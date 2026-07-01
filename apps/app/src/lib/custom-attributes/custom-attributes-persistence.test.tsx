@@ -22,6 +22,7 @@ import { Store } from "src/state";
 import { USelection } from "src/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
 import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
+import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
 import { changeCustomAttributes } from "./change-custom-attribute";
 
 vi.mock("src/lib/db", async (importOriginal) => ({
@@ -96,6 +97,34 @@ describe("custom attribute value persistence", () => {
     expect(
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
     ).toEqual(42);
+  });
+
+  it("persists a definition-only edit in the moment payload without value rows", () => {
+    const store = buildStore();
+    const { result } = renderHook(
+      () => useCustomAttributesDefinitionTransaction(),
+      { wrapper: createWrapper(store) },
+    );
+
+    const next = setAttributes(
+      store.get(customAttributesDefinitionAtom),
+      "junction",
+      [
+        { id: "ca-1", label: "Age", type: "number" },
+        { id: "ca-2", label: "Name", type: "text" },
+      ],
+    );
+
+    act(() => {
+      result.current.transact(next);
+    });
+
+    expect(applyMomentToDb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customAttributesData: null,
+        customAttributesDefinition: expect.any(String),
+      }),
+    );
   });
 
   it("rejects invalid data before mutating and shows changeNotApplied", () => {

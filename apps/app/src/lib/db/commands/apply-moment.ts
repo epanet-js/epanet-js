@@ -4,11 +4,7 @@ import {
   type AssetId,
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
-import {
-  type CustomAttributeId,
-  type CustomAttributesData,
-  filterValues,
-} from "@epanet-js/custom-attributes";
+import type { CustomAttributesData } from "@epanet-js/custom-attributes";
 import {
   getWorker,
   timed,
@@ -27,6 +23,7 @@ import {
   serializeRawControls,
   serializeControls,
   serializeCustomAttributesData,
+  serializeCustomAttributesDefinition,
 } from "@epanet-js/ejsdb-mappers";
 import {
   assetPatchesToRows,
@@ -36,7 +33,6 @@ import type { CustomerPointRow } from "@epanet-js/ejsdb";
 
 const buildCustomAttributesDataSave = (
   moment: Moment,
-  validAttributeIds: Set<CustomAttributeId>,
 ): CustomAttributesDataSave | null => {
   if (!moment.customAttributes) return null;
 
@@ -47,8 +43,7 @@ const buildCustomAttributesDataSave = (
   const resolved: CustomAttributesData = new Map();
   for (const { assetId, values } of changes) {
     affected.add(assetId);
-    const kept = filterValues(values, validAttributeIds);
-    if (kept.size > 0) resolved.set(assetId, kept);
+    if (values.size > 0) resolved.set(assetId, values);
   }
 
   const upserts = serializeCustomAttributesData(resolved, affected);
@@ -57,10 +52,7 @@ const buildCustomAttributesDataSave = (
   return { upserts, deleteIds };
 };
 
-export const buildMomentPayload = (
-  moment: Moment,
-  validAttributeIds?: Set<CustomAttributeId>,
-): ApplyMomentPayload => {
+export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
     const byId = new Map<AssetId, Asset>();
@@ -120,10 +112,13 @@ export const buildMomentPayload = (
     ? serializeControls(moment.putControls)
     : null;
 
-  const customAttributesData =
-    moment.customAttributes && validAttributeIds
-      ? buildCustomAttributesDataSave(moment, validAttributeIds)
-      : null;
+  const customAttributesData = moment.customAttributes
+    ? buildCustomAttributesDataSave(moment)
+    : null;
+
+  const customAttributesDefinition = moment.customAttributes?.putDefinition
+    ? serializeCustomAttributesDefinition(moment.customAttributes.putDefinition)
+    : null;
 
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
@@ -138,6 +133,7 @@ export const buildMomentPayload = (
     rawControlsReplacement,
     controlsReplacement,
     customAttributesData,
+    customAttributesDefinition,
   };
 };
 
@@ -167,6 +163,7 @@ export const applyMomentToDb = async (
       payload.curvesReplacement === null &&
       payload.rawControlsReplacement === null &&
       payload.controlsReplacement === null &&
+      payload.customAttributesDefinition === null &&
       (payload.customAttributesData === null ||
         (payload.customAttributesData.upserts.length === 0 &&
           payload.customAttributesData.deleteIds.length === 0))

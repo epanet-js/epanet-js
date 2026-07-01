@@ -2,6 +2,7 @@ import type {
   CustomAttributeId,
   CustomAttributeValue,
   CustomAttributeValues,
+  CustomAttributesDefinition,
 } from "@epanet-js/custom-attributes";
 
 export type CustomAttributeValueChange = {
@@ -17,4 +18,5 @@ export type CustomAttributeAssetValues = {
 
 export type CustomAttributesMoment = {
   putValues: CustomAttributeAssetValues[];
+  putDefinition?: CustomAttributesDefinition;
 };

@@ -1211,6 +1211,12 @@ export const api = {
             ]);
             bulkInsertCustomAttributesData(ca.upserts);
           }
+          if (payload.customAttributesDefinition !== null) {
+            db.exec(
+              "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
+              { bind: [payload.customAttributesDefinition] },
+            );
+          }
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");
