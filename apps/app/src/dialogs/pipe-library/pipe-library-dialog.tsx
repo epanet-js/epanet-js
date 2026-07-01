@@ -24,13 +24,13 @@ import {
 } from "src/state/pipe-library";
 import {
   applyRoughnessMoment,
+  detectModelMaterials,
   renameMaterialsMoment,
+  validateMaterial,
   exportCsv,
   exportXlsx,
 } from "src/lib/pipe-library";
 import {
-  validateMaterial,
-  detectModelMaterials,
   DEFAULT_ROUGHNESS_HW,
   DEFAULT_ROUGHNESS_DW_CM,
 } from "@epanet-js/pipe-library";
