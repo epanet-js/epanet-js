@@ -1691,14 +1691,14 @@
     },
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
-      "roughnessPositive": "Roughness must be greater than zero",
-      "agePositive": "Age must not be negative",
+      "roughnessPositive": "Value \"{{1}}\" must be greater than zero",
+      "agePositive": "Value \"{{1}}\" must not be negative",
       "roughnessRequired": "Roughness must be set",
       "ageRequired": "Age must be set",
-      "mustBeNumber": "Value should be a number",
+      "mustBeNumber": "Contains a non-numeric value",
       "emptyEntries": "Empty entries are not valid",
       "zeroAge": "An entry for new pipes (age 0) should exist",
-      "duplicateAge": "Each age value must be unique"
+      "duplicateAge": "All age values must be unique"
     },
     "paywall": {
       "title": "Upgrade to use the pipe library",

@@ -410,7 +410,8 @@ const formatErrors = (
 ) =>
   result.errors
     .map(
-      (e) => `· ${e.material ? e.material + ": " : ""}${translate(e.message)}`,
+      (e) =>
+        `· ${e.material ? e.material + ": " : ""}${translate(e.message, e.value ?? "")}`,
     )
     .join("\n");
 

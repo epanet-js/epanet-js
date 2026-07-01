@@ -9,8 +9,14 @@ describe("validateEntry", () => {
   it("flags both fields when both are null", () => {
     const errors = validateEntry({ age: null, roughness: null });
     expect(errors).toEqual([
-      { field: "age", message: "pipeLibrary.validation.emptyEntries" },
-      { field: "roughness", message: "pipeLibrary.validation.emptyEntries" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.emptyEntries",
+      },
+      {
+        field: "roughness",
+        message: "pipeLibrary.validation.emptyEntries",
+      },
     ]);
   });
 
@@ -19,6 +25,7 @@ describe("validateEntry", () => {
       {
         field: "roughness",
         message: "pipeLibrary.validation.roughnessPositive",
+        value: "0",
       },
     ]);
   });
@@ -28,13 +35,18 @@ describe("validateEntry", () => {
       {
         field: "roughness",
         message: "pipeLibrary.validation.roughnessPositive",
+        value: "-5",
       },
     ]);
   });
 
   it("flags age when it is negative", () => {
     expect(validateEntry({ age: -1, roughness: 140 })).toEqual([
-      { field: "age", message: "pipeLibrary.validation.agePositive" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.agePositive",
+        value: "-1",
+      },
     ]);
   });
 
@@ -49,7 +61,10 @@ describe("validateEntry", () => {
 
   it("flags age when roughness is present but age is null", () => {
     expect(validateEntry({ age: null, roughness: 140 })).toEqual([
-      { field: "age", message: "pipeLibrary.validation.ageRequired" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.ageRequired",
+      },
     ]);
   });
 
@@ -58,27 +73,48 @@ describe("validateEntry", () => {
       {
         field: "roughness",
         message: "pipeLibrary.validation.roughnessPositive",
+        value: "-5",
       },
-      { field: "age", message: "pipeLibrary.validation.agePositive" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.agePositive",
+        value: "-1",
+      },
     ]);
   });
 
   it("flags age when it is NaN", () => {
     expect(validateEntry({ age: NaN, roughness: 140 })).toEqual([
-      { field: "age", message: "pipeLibrary.validation.mustBeNumber" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.mustBeNumber",
+        value: "NaN",
+      },
     ]);
   });
 
   it("flags roughness when it is NaN", () => {
     expect(validateEntry({ age: 0, roughness: NaN })).toEqual([
-      { field: "roughness", message: "pipeLibrary.validation.mustBeNumber" },
+      {
+        field: "roughness",
+        message: "pipeLibrary.validation.mustBeNumber",
+        value: "NaN",
+      },
     ]);
   });
 
   it("flags both fields when both are NaN", () => {
     expect(validateEntry({ age: NaN, roughness: NaN })).toEqual([
-      { field: "age", message: "pipeLibrary.validation.mustBeNumber" },
-      { field: "roughness", message: "pipeLibrary.validation.mustBeNumber" },
+      {
+        field: "age",
+        message: "pipeLibrary.validation.mustBeNumber",
+        value: "NaN",
+      },
+      {
+        field: "roughness",
+        message: "pipeLibrary.validation.mustBeNumber",
+        value: "NaN",
+      },
     ]);
   });
 });

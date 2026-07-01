@@ -7,6 +7,7 @@ import { validateMaterial } from "./validate-material";
 export type ImportError = {
   material: string;
   message: string;
+  value?: string;
 };
 
 export type ImportPipeLibraryResult = {
@@ -29,7 +30,9 @@ export const importFromFile =
       return {
         status: "error",
         format,
-        errors: [{ material: "", message: "pipeLibrary.import.emptyFile" }],
+        errors: [
+          { material: "", message: "pipeLibrary.import.emptyFile", value: "" },
+        ],
       };
     }
 
@@ -37,7 +40,11 @@ export const importFromFile =
     for (const material of materials) {
       const error = validateMaterial(material);
       if (error !== null) {
-        errors.push({ material: material.label, message: error });
+        errors.push({
+          material: material.label,
+          message: error.message,
+          value: error.value,
+        });
       }
     }
 

@@ -3,6 +3,7 @@ import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
 export type EntryValidationError = {
   field: "age" | "roughness";
   message: string;
+  value?: string;
 };
 
 export const validateEntry = (
@@ -26,12 +27,14 @@ export const validateEntry = (
     errors.push({
       field: "age",
       message: "pipeLibrary.validation.mustBeNumber",
+      value: String(entry.age),
     });
   }
   if (typeof entry.roughness === "number" && isNaN(entry.roughness)) {
     errors.push({
       field: "roughness",
       message: "pipeLibrary.validation.mustBeNumber",
+      value: String(entry.roughness),
     });
   }
   if (errors.length > 0) return errors;
@@ -40,12 +43,14 @@ export const validateEntry = (
     errors.push({
       field: "roughness",
       message: "pipeLibrary.validation.roughnessPositive",
+      value: String(entry.roughness),
     });
   }
   if (entry.age !== null && entry.age < 0) {
     errors.push({
       field: "age",
       message: "pipeLibrary.validation.agePositive",
+      value: String(entry.age),
     });
   }
   if (entry.age !== null && entry.roughness === null) {
@@ -64,25 +69,32 @@ export const validateEntry = (
   return errors;
 };
 
-export const validateMaterial = (material: PipeMaterial): string | null => {
+export type MaterialValidationError = {
+  message: string;
+  value?: string;
+};
+
+export const validateMaterial = (
+  material: PipeMaterial,
+): MaterialValidationError | null => {
   if (material.entries.length === 0) {
-    return "pipeLibrary.validation.emptyEntries";
+    return { message: "pipeLibrary.validation.emptyEntries" };
   }
 
   for (const entry of material.entries) {
     const errors = validateEntry(entry);
     if (errors.length > 0) {
-      return errors[0].message;
+      return { message: errors[0].message, value: errors[0].value };
     }
   }
 
   if (material.entries.find((e) => e.age === 0) === undefined) {
-    return "pipeLibrary.validation.zeroAge";
+    return { message: "pipeLibrary.validation.zeroAge" };
   }
 
   const ages = material.entries.map((e) => e.age).filter((a) => a !== null);
   if (new Set(ages).size !== ages.length) {
-    return "pipeLibrary.validation.duplicateAge";
+    return { message: "pipeLibrary.validation.duplicateAge" };
   }
 
   return null;
