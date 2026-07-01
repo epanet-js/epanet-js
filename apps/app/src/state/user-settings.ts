@@ -5,12 +5,14 @@ export type UserSettings = {
   showFirstScenarioDialog: boolean;
   showProjectSavedInfo: boolean;
   showFileFormatUpdated: boolean;
+  showFilePermissionsInfo: boolean;
 };
 
 export const defaultUserSettings: UserSettings = {
   showFirstScenarioDialog: true,
   showProjectSavedInfo: true,
   showFileFormatUpdated: true,
+  showFilePermissionsInfo: true,
 };
 
 const userSettingsStorageAtom = atomWithStorage<Partial<UserSettings>>(

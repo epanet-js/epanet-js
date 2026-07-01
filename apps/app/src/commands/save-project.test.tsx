@@ -32,6 +32,7 @@ const skipProjectSavedInfo = (store: Store) => {
     showFirstScenarioDialog: true,
     showProjectSavedInfo: false,
     showFileFormatUpdated: true,
+    showFilePermissionsInfo: true,
   });
 };
 

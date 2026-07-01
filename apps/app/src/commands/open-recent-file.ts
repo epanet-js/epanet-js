@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useImportInp } from "src/commands/import-inp";
 import { projectExtension } from "src/commands/save-project";
 import { useOpenProjectFile } from "src/commands/open-project";
@@ -10,6 +11,9 @@ import { RecentFileOpened, useUserTracking } from "src/infra/user-tracking";
 import type { FileWithHandle } from "browser-fs-access";
 import type { RecentFileEntry } from "src/lib/recent-files";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { dialogAtom } from "src/state/dialog";
+import { userSettingsAtom } from "src/state/user-settings";
 
 export const useOpenRecentFile = () => {
   const translate = useTranslate();
@@ -18,10 +22,13 @@ export const useOpenRecentFile = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { removeRecent } = useRecentFiles();
   const userTracking = useUserTracking();
+  const isFilePermissionsFlagOn = useFeatureFlag("FLAG_FILE_PERMISSIONS");
+  const setDialogState = useSetAtom(dialogAtom);
+  const userSettings = useAtomValue(userSettingsAtom);
 
   return useCallback(
     (entry: RecentFileEntry, source: RecentFileOpened["source"]) => {
-      checkUnsavedChanges(async () => {
+      const proceedToOpen = async () => {
         try {
           const permission = await entry.handle.requestPermission({
             mode: "read",
@@ -76,6 +83,29 @@ export const useOpenRecentFile = () => {
           captureWarning("Could not open recent file", err);
           void removeRecent(entry.id);
         }
+      };
+
+      checkUnsavedChanges(async () => {
+        const permissionState = await entry.handle.queryPermission({
+          mode: "read",
+        });
+        const willPrompt = permissionState === "prompt";
+
+        if (
+          isFilePermissionsFlagOn &&
+          userSettings.showFilePermissionsInfo &&
+          willPrompt
+        ) {
+          setDialogState({
+            type: "filePermissionsInfo",
+            onAcknowledge: () => {
+              void proceedToOpen();
+            },
+          });
+          return;
+        }
+
+        await proceedToOpen();
       });
     },
     [
@@ -85,6 +115,9 @@ export const useOpenRecentFile = () => {
       removeRecent,
       translate,
       userTracking,
+      isFilePermissionsFlagOn,
+      setDialogState,
+      userSettings.showFilePermissionsInfo,
     ],
   );
 };
