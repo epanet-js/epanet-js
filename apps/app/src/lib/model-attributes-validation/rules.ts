@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 
 const fromSchema =
@@ -97,6 +98,18 @@ const optionalNumeric = (
 export const RULES: Rule[] = [
   // Pipes
   ...requiredNumeric("pipe", "roughness", "positive"),
+  // Year and material are optional informational attributes (used for roughness
+  // inference), so empty is allowed; only an out-of-range/non-integer year warns.
+  {
+    id: "pipe.year.valid",
+    entityType: "pipe",
+    field: "year",
+    accessor: field("year"),
+    validate: (value) =>
+      value == null || isValidInstallationYear(value as number),
+    severity: "warning",
+    message: "invalidYear",
+  },
   // Reservoirs
   ...requiredNumeric("reservoir", "head"),
   // Tanks

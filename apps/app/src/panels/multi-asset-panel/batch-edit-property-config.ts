@@ -11,10 +11,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { PaywallFeature } from "src/state/dialog";
-import {
-  isValidInstallationYear,
-  isValidMaterial,
-} from "src/hydraulic-model/property-validators";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import {
   isGreaterThanZero,
   isZeroOrGreater,
@@ -137,12 +134,12 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
       fieldType: "openCategory",
       modelProperty: "material",
       paywall: "pipeAttributes",
-      validateNew: isValidMaterial,
     },
     year: {
       fieldType: "quantity",
       modelProperty: "year",
       validate: isValidInstallationYear,
+      hasModelValidation: true,
       labelKey: "yearOfInstallation",
       paywall: "pipeAttributes",
     },

@@ -65,20 +65,12 @@ describe("asset row schemas", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts pipe rows with material at the 200 character limit", () => {
+  it("accepts pipe rows with an arbitrarily long material", () => {
     const result = pipeRowSchema.safeParse({
       ...validPipe,
-      material: "a".repeat(200),
+      material: "a".repeat(1000),
     });
     expect(result.success).toBe(true);
-  });
-
-  it("rejects pipe rows with material longer than 200 characters", () => {
-    const result = pipeRowSchema.safeParse({
-      ...validPipe,
-      material: "a".repeat(201),
-    });
-    expect(result.success).toBe(false);
   });
 
   it("accepts pipe rows with year at the 1000 lower bound", () => {
@@ -93,33 +85,15 @@ describe("asset row schemas", () => {
     );
   });
 
-  it("rejects pipe rows with a year below 1000", () => {
-    expect(pipeRowSchema.safeParse({ ...validPipe, year: 999 }).success).toBe(
-      false,
-    );
-  });
-
-  it("rejects pipe rows with a year above 9999", () => {
-    expect(pipeRowSchema.safeParse({ ...validPipe, year: 10000 }).success).toBe(
-      false,
-    );
-  });
-
-  it("rejects pipe rows with year 0", () => {
-    expect(pipeRowSchema.safeParse({ ...validPipe, year: 0 }).success).toBe(
-      false,
-    );
-  });
-
-  it("rejects pipe rows with a negative year", () => {
-    expect(pipeRowSchema.safeParse({ ...validPipe, year: -1 }).success).toBe(
-      false,
-    );
-  });
-
-  it("rejects pipe rows with non-integer year", () => {
-    const result = pipeRowSchema.safeParse({ ...validPipe, year: 1995.5 });
-    expect(result.success).toBe(false);
+  // The persisted schema is intentionally permissive for year: range/integer
+  // validation is an informational input warning (isValidInstallationYear), so
+  // out-of-range values never crash the commit.
+  it("accepts pipe rows with an out-of-range or non-integer year", () => {
+    for (const year of [999, 10000, 0, -1, 1995.5]) {
+      expect(pipeRowSchema.safeParse({ ...validPipe, year }).success).toBe(
+        true,
+      );
+    }
   });
 
   it("rejects pump rows with an unknown definition_type", () => {

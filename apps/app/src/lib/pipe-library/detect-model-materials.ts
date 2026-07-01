@@ -2,6 +2,9 @@ import type { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 
 const AGE_STEP = 10;
 
+const isValidInstallationYear = (year: number): boolean =>
+  Number.isInteger(year) && year >= 1000 && year <= 9999;
+
 const bucketByDecade = (ages: Set<number>): Set<number> => {
   const buckets = new Set<number>();
   for (const age of ages) {
@@ -30,7 +33,7 @@ export const detectModelMaterials = (assets: AssetsMap): DetectedMaterial[] => {
       rawAges.set(pipe.material, ages);
     }
 
-    if (pipe.year != null) {
+    if (pipe.year !== undefined && isValidInstallationYear(pipe.year)) {
       ages.add(Math.max(0, currentYear - pipe.year));
     }
   }

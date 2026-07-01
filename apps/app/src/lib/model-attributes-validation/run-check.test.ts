@@ -313,6 +313,54 @@ describe("validateModelAttributes", () => {
     expect(await validateModelAttributes(model)).toEqual([]);
   });
 
+  describe("pipe installation year", () => {
+    it("flags an out-of-range year as a warning", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, { label: "P1", year: 999, roughness: 100 })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toEqual([
+        {
+          ruleId: "pipe.year.valid",
+          entityType: "pipe",
+          entityId: 1,
+          label: "P1",
+          field: "year",
+          severity: "warning",
+          message: "invalidYear",
+        },
+      ]);
+    });
+
+    it("flags a non-integer year as a warning", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, { year: 1995.5, roughness: 100 })
+        .build();
+
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).toContain("pipe.year.valid");
+    });
+
+    it("accepts a valid year and an empty year", async () => {
+      const withYear = HydraulicModelBuilder.with()
+        .aPipe(1, { year: 1995, roughness: 100 })
+        .build();
+      const withoutYear = HydraulicModelBuilder.with()
+        .aPipe(2, { roughness: 100 })
+        .build();
+
+      expect(
+        (await validateModelAttributes(withYear)).map((i) => i.ruleId),
+      ).not.toContain("pipe.year.valid");
+      expect(
+        (await validateModelAttributes(withoutYear)).map((i) => i.ruleId),
+      ).not.toContain("pipe.year.valid");
+    });
+  });
+
   describe("customer point connection", () => {
     it("flags a disconnected customer point as a warning", async () => {
       const model = HydraulicModelBuilder.with()

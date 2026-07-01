@@ -92,6 +92,17 @@ describe("detectModelMaterials", () => {
     const result = detectModelMaterials(assets);
     expect(result[0].ages).toEqual(new Set([0]));
   });
+
+  it("ignores out-of-range or non-integer years when bucketing ages", () => {
+    const assets = makeAssets(
+      makePipe(1, { material: "Cast Iron", year: 999 }),
+      makePipe(2, { material: "Cast Iron", year: 10000 }),
+      makePipe(3, { material: "Cast Iron", year: 1995.5 }),
+    );
+    const result = detectModelMaterials(assets);
+    expect(result[0].label).toBe("Cast Iron");
+    expect(result[0].ages).toEqual(new Set());
+  });
 });
 
 const makePipe = (

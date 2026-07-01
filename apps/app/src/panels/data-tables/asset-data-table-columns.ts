@@ -47,10 +47,7 @@ import {
   assetAccessor,
   isAssetComputedKey,
 } from "./data";
-import {
-  isValidInstallationYear,
-  isValidMaterial,
-} from "src/hydraulic-model/property-validators";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import {
   isGreaterThanZero,
   isZeroOrGreater,
@@ -501,6 +498,7 @@ type BuildColumnsArgs = [
 type ExtraPipeColsFn = (
   translate: TranslateFn,
   formatting: FormattingSpec,
+  allowsNullValues?: boolean,
 ) => GridColumn<AssetRow>[];
 
 type PipeAttributesLock = {
@@ -512,7 +510,7 @@ function pipeAttributeColsFor(
   materials: string[],
   lock?: PipeAttributesLock,
 ): ExtraPipeColsFn {
-  return (translate): GridColumn<AssetRow>[] => {
+  return (translate, _formatting, allowsNullValues): GridColumn<AssetRow>[] => {
     const cols: GridColumn<AssetRow>[] = [
       filterableSelectColumn("material", {
         header: translate("material"),
@@ -522,13 +520,13 @@ function pipeAttributeColsFor(
         emptyValue: null,
         allowNew: true,
         createLabel: (query) => translate("addNewValue", query),
-        validateNew: isValidMaterial,
         isReadOnly: !!lock,
       }),
       integerColumn("year", {
         header: translate("yearOfInstallation"),
         emptyValue: null,
         validate: isValidInstallationYear,
+        commitInvalidValues: allowsNullValues,
         placeholder: "",
         isReadOnly: !!lock,
       }),
@@ -807,7 +805,7 @@ function _buildColumns(
           unit: units.length,
           property: "length",
         }),
-        ...buildExtraPipeCols(translate, formatting),
+        ...buildExtraPipeCols(translate, formatting, allowsNullValues),
         numericCol("roughness", translate("roughness"), {
           unit: units.roughness,
           commitInvalidValues: allowsNullValues,

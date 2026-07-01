@@ -5,6 +5,7 @@ import type {
   ModelMoment,
 } from "src/hydraulic-model/model-operation";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
 
 export const applyRoughnessMoment = (
@@ -26,6 +27,8 @@ export const applyRoughnessMoment = (
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
     if (pipe.roughness != null || !pipe.material) continue;
+    if (pipe.year !== undefined && !isValidInstallationYear(pipe.year))
+      continue;
 
     const entries = materialMap.get(pipe.material);
     if (!entries) continue;
