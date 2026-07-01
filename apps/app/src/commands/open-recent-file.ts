@@ -64,7 +64,9 @@ export const useOpenRecentFile = () => {
               variant: "warning",
               title: translate("recentFilePermissionDenied"),
             });
-            captureWarning("Recent file: permission denied", err);
+            if (!isFilePermissionsFlagOn) {
+              captureWarning("Recent file: permission denied", err);
+            }
             return;
           }
           if (err.name === "NotFoundError") {
