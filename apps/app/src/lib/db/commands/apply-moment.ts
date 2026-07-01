@@ -1,13 +1,19 @@
-import type { ModelMoment } from "src/hydraulic-model/model-operation";
+import type { Moment } from "src/lib/persistence/moment";
 import {
   type Asset,
   type AssetId,
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
 import {
+  type CustomAttributeId,
+  type CustomAttributesData,
+  getAttributeIds,
+} from "@epanet-js/custom-attributes";
+import {
   getWorker,
   timed,
   type ApplyMomentPayload,
+  type CustomAttributesDataSave,
   type CustomerPointDemandUpdate,
   type JunctionDemandUpdate,
 } from "@epanet-js/ejsdb";
@@ -20,14 +26,50 @@ import {
   curvesToRows,
   serializeRawControls,
   serializeControls,
+  serializeCustomAttributesData,
 } from "@epanet-js/ejsdb-mappers";
+import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
 import {
   assetPatchesToRows,
   emptyAssetPatchRows,
 } from "../mappers/assets/patches";
 import type { CustomerPointRow } from "@epanet-js/ejsdb";
 
-export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
+export type CustomAttributesContext = {
+  data: CustomAttributesData;
+  definition: Parameters<typeof getAttributeIds>[0];
+};
+
+const buildCustomAttributesDataSave = (
+  moment: Moment,
+  context: CustomAttributesContext,
+): CustomAttributesDataSave | null => {
+  if (!moment.customAttributes) return null;
+
+  const affected = new Set<number>(
+    moment.customAttributes.putValues.map((change) => change.assetId),
+  );
+  if (affected.size === 0) return null;
+
+  const validAttributeIds: Set<CustomAttributeId> = getAttributeIds(
+    context.definition,
+  );
+  const { data } = applyMomentToCustomAttributes(
+    context.data,
+    moment.customAttributes,
+    validAttributeIds,
+  );
+
+  const upserts = serializeCustomAttributesData(data, affected);
+  const presentIds = new Set(upserts.map((row) => row.asset_id));
+  const deleteIds = [...affected].filter((id) => !presentIds.has(id));
+  return { upserts, deleteIds };
+};
+
+export const buildMomentPayload = (
+  moment: Moment,
+  customAttributes?: CustomAttributesContext,
+): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
   if (moment.putAssets) {
     const byId = new Map<AssetId, Asset>();
@@ -87,6 +129,10 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     ? serializeControls(moment.putControls)
     : null;
 
+  const customAttributesData = customAttributes
+    ? buildCustomAttributesDataSave(moment, customAttributes)
+    : null;
+
   return {
     assetDeleteIds: [...(moment.deleteAssets ?? [])],
     assetUpserts: assetsToRows(upsertAssets),
@@ -99,6 +145,7 @@ export const buildMomentPayload = (moment: ModelMoment): ApplyMomentPayload => {
     curvesReplacement,
     rawControlsReplacement,
     controlsReplacement,
+    customAttributesData,
   };
 };
 
@@ -127,7 +174,10 @@ export const applyMomentToDb = async (
       payload.patternsReplacement === null &&
       payload.curvesReplacement === null &&
       payload.rawControlsReplacement === null &&
-      payload.controlsReplacement === null
+      payload.controlsReplacement === null &&
+      (payload.customAttributesData === null ||
+        (payload.customAttributesData.upserts.length === 0 &&
+          payload.customAttributesData.deleteIds.length === 0))
     ) {
       return;
     }

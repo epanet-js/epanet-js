@@ -1203,6 +1203,14 @@ export const api = {
           if (payload.controlsReplacement !== null) {
             upsertControls(payload.controlsReplacement);
           }
+          if (payload.customAttributesData !== null) {
+            const ca = payload.customAttributesData;
+            bulkDelete(["custom_attributes_data"], "asset_id", [
+              ...ca.deleteIds,
+              ...ca.upserts.map((r) => r.asset_id),
+            ]);
+            bulkInsertCustomAttributesData(ca.upserts);
+          }
           db.exec("COMMIT");
         } catch (e) {
           db.exec("ROLLBACK");

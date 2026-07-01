@@ -12,51 +12,24 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { saveCustomAttributesData } from "src/lib/db";
+import { applyMomentToDb } from "src/lib/db";
+import { dialogAtom } from "src/state/dialog";
 import {
   customAttributesDataAtom,
   customAttributesDefinitionAtom,
 } from "src/state/custom-attributes";
-import {
-  stagingModelDerivedAtom,
-  momentLogDerivedAtom,
-} from "src/state/derived-branch-state";
-import { mapSyncMomentAtom } from "src/state/map";
-import {
-  applyMoment,
-  computeSyncMoment,
-} from "src/lib/persistence/transaction-helpers";
 import { Store } from "src/state";
 import { USelection } from "src/selection";
 import { useModelTransaction } from "src/hooks/persistence/use-model-transaction";
-import { useCustomAttributesDefinitionTransaction } from "src/hooks/persistence/use-custom-attributes-definition-transaction";
+import { useUndoableTransactions } from "src/hooks/persistence/use-undoable-transactions";
 import { changeCustomAttributes } from "./change-custom-attribute";
 
 vi.mock("src/lib/db", async (importOriginal) => ({
   ...(await importOriginal<typeof import("src/lib/db")>()),
   applyMomentToDb: vi.fn().mockResolvedValue(undefined),
-  saveCustomAttributes: vi.fn().mockResolvedValue(undefined),
-  saveCustomAttributesData: vi.fn().mockResolvedValue(undefined),
 }));
 
 const IDS = { J1: 1 };
-
-const undo = (store: Store) => {
-  const momentLog = store.get(momentLogDerivedAtom).copy();
-  const mapSyncMoment = store.get(mapSyncMomentAtom);
-  const action = momentLog.nextUndo();
-  if (!action) return;
-  applyMoment(
-    store.get,
-    store.set,
-    action.stateId,
-    action.moment,
-    stagingModelDerivedAtom,
-  );
-  momentLog.undo();
-  store.set(momentLogDerivedAtom, momentLog);
-  store.set(mapSyncMomentAtom, computeSyncMoment(mapSyncMoment, momentLog));
-};
 
 const createWrapper = (store: Store) => {
   const persistence = new Persistence(store);
@@ -87,17 +60,72 @@ const buildStore = (): Store => {
   return store;
 };
 
-describe("custom attribute removal", () => {
+describe("custom attribute value persistence", () => {
   beforeEach(() => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    vi.mocked(applyMomentToDb).mockClear();
   });
 
-  it("prunes data on removal and makes undo of the value edit a no-op", async () => {
+  it("persists the affected asset's values in the moment payload on a value edit", () => {
+    const store = buildStore();
+    const { result } = renderHook(() => useModelTransaction(), {
+      wrapper: createWrapper(store),
+    });
+
+    act(() => {
+      result.current.transact(
+        changeCustomAttributes([
+          { assetId: IDS.J1, attributeId: "ca-1", value: 42 },
+        ]),
+      );
+    });
+
+    expect(applyMomentToDb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customAttributesData: {
+          upserts: [{ asset_id: IDS.J1, data: JSON.stringify({ "ca-1": 42 }) }],
+          deleteIds: [],
+        },
+      }),
+    );
+    expect(
+      getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
+    ).toEqual(42);
+  });
+
+  it("rejects invalid data before mutating and shows changeNotApplied", () => {
+    const store = buildStore();
+    const { result } = renderHook(() => useModelTransaction(), {
+      wrapper: createWrapper(store),
+    });
+
+    let applied: boolean | undefined;
+    act(() => {
+      applied = result.current.transact(
+        changeCustomAttributes([
+          {
+            assetId: IDS.J1,
+            attributeId: "ca-1",
+            value: true as unknown as number,
+          },
+        ]),
+      );
+    });
+
+    expect(applied).toBe(false);
+    expect(store.get(dialogAtom)).toEqual({ type: "changeNotApplied" });
+    expect(
+      getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
+    ).toBeNull();
+    expect(applyMomentToDb).not.toHaveBeenCalled();
+  });
+
+  it("persists the reverted value in the moment payload on undo", () => {
     const store = buildStore();
     const { result } = renderHook(
       () => ({
         model: useModelTransaction(),
-        definition: useCustomAttributesDefinitionTransaction(),
+        history: useUndoableTransactions(),
       }),
       { wrapper: createWrapper(store) },
     );
@@ -109,25 +137,22 @@ describe("custom attribute removal", () => {
         ]),
       );
     });
-    expect(
-      getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
-    ).toEqual(42);
+    vi.mocked(applyMomentToDb).mockClear();
 
-    await act(async () => {
-      await result.current.definition.transact(
-        emptyCustomAttributesDefinition(),
-      );
+    act(() => {
+      result.current.history.historyControl("undo");
     });
-    expect(
-      getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
-    ).toBeNull();
 
-    expect(saveCustomAttributesData).toHaveBeenCalledWith(
-      store.get(customAttributesDataAtom),
-      new Set([IDS.J1]),
+    expect(applyMomentToDb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customAttributesData: {
+          upserts: [
+            { asset_id: IDS.J1, data: JSON.stringify({ "ca-1": null }) },
+          ],
+          deleteIds: [],
+        },
+      }),
     );
-
-    act(() => undo(store));
     expect(
       getValue(store.get(customAttributesDataAtom), IDS.J1, "ca-1"),
     ).toBeNull();

@@ -49,4 +49,5 @@ export type ApplyMomentPayload = {
   curvesReplacement: CurveRow[] | null;
   rawControlsReplacement: string | null;
   controlsReplacement: string | null;
+  customAttributesData: CustomAttributesDataSave | null;
 };

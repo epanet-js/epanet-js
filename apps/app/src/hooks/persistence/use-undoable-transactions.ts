@@ -12,6 +12,11 @@ import {
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
 import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
+import {
+  customAttributesDataAtom,
+  customAttributesDefinitionAtom,
+} from "src/state/custom-attributes";
+import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 
 export const useUndoableTransactions = () => {
@@ -24,6 +29,23 @@ export const useUndoableTransactions = () => {
       const action = isUndo ? momentLog.nextUndo() : momentLog.nextRedo();
       if (!action) return;
 
+      const worktree = get(worktreeAtom);
+      const willPersist = worktree.activeBranchId === worktree.mainId;
+
+      let payload: ApplyMomentPayload | null = null;
+      if (willPersist) {
+        try {
+          payload = buildMomentPayload(action.moment, {
+            data: get(customAttributesDataAtom),
+            definition: get(customAttributesDefinitionAtom),
+          });
+        } catch (error) {
+          captureError(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
+
       applyMoment(
         get,
         set,
@@ -32,12 +54,8 @@ export const useUndoableTransactions = () => {
         stagingModelDerivedAtom,
       );
 
-      const worktree = get(worktreeAtom);
-      if (worktree.activeBranchId === worktree.mainId) {
-        void (async () =>
-          applyMomentToDb(buildMomentPayload(action.moment)))().catch(
-          captureError,
-        );
+      if (payload) {
+        void applyMomentToDb(payload).catch(captureError);
       }
 
       isUndo ? momentLog.undo() : momentLog.redo();
