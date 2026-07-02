@@ -15,6 +15,7 @@ export { changeRawControls } from "./change-raw-controls";
 export { changeAssetControl } from "./change-asset-control";
 export { changeCurves } from "./change-curves";
 export { changePatterns } from "./change-patterns";
+export { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
 export { changeDemandAssignment } from "./change-demand-assignment";
 export { addCustomerPoint } from "./add-customer-point";
 export { removeCustomerPoints } from "./remove-customer-points";

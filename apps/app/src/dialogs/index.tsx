@@ -395,6 +395,18 @@ const CustomAttributesDialog = dynamic<{
   },
 );
 
+const CustomAttributesInAssetDialog = dynamic<{
+  initialAssetType?: CustomAttributeAssetType;
+}>(
+  () =>
+    import("src/dialogs/custom-attributes-in-asset").then(
+      (r) => r.CustomAttributesInAssetDialog,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const DeleteScenarioConfirmationDialog = dynamic<{
   scenarioId: string;
   scenarioName: string;
@@ -811,6 +823,13 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "customAttributes") {
     return (
       <CustomAttributesDialog initialAssetType={dialog.initialAssetType} />
+    );
+  }
+  if (dialog.type === "customAttributesInAsset") {
+    return (
+      <CustomAttributesInAssetDialog
+        initialAssetType={dialog.initialAssetType}
+      />
     );
   }
 

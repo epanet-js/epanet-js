@@ -11,6 +11,7 @@ import { Demand, Demands } from "@epanet-js/hydraulic-model";
 import { RawControls } from "@epanet-js/hydraulic-model";
 import { Controls } from "@epanet-js/hydraulic-model";
 import type { AssetId } from "@epanet-js/hydraulic-model";
+import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 
 type NonPatchableKeys = "type" | "connections";
 
@@ -58,6 +59,7 @@ export type OptionalMomentFields = {
   deleteCustomerPoints?: CustomerPointId[];
   putCurves?: Curves;
   putPatterns?: Patterns;
+  putCustomAttributesDefinition?: CustomAttributesDefinition;
 };
 
 export type ModelMoment = OptionalMomentFields & {

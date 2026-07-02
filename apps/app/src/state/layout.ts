@@ -101,6 +101,7 @@ export type AssetPanelSectionExpanded = {
   activeTopology: boolean;
   modelAttributes: boolean;
   customAttributes: boolean;
+  customAttributesInAsset: boolean;
   controls: boolean;
   demands: boolean;
   quality: boolean;
@@ -115,6 +116,7 @@ export const assetPanelSectionsExpandedAtom =
     activeTopology: true,
     modelAttributes: true,
     customAttributes: true,
+    customAttributesInAsset: true,
     controls: true,
     demands: true,
     quality: true,

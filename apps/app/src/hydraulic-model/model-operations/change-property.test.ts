@@ -1,5 +1,10 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { changeProperty, changeProperties } from "./change-property";
+import {
+  changeProperty,
+  changeProperties,
+  type ChangeableProperty,
+  type PropertyChange,
+} from "./change-property";
 
 describe("change property", () => {
   it("changes a property of an asset", () => {
@@ -179,5 +184,46 @@ describe("change properties", () => {
         changes: [{ property: "elevation", value: 20 }],
       }),
     ).toThrow("Invalid asset id 999");
+  });
+});
+
+describe("custom attribute properties", () => {
+  it("patches a custom-<id> property even when the asset does not have it yet", () => {
+    const IDS = { J1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+
+    const { patchAssetsAttributes } = changeProperty(hydraulicModel, {
+      assetIds: [IDS.J1],
+      property: "custom-1" as ChangeableProperty,
+      value: "high" as never,
+    });
+
+    expect(patchAssetsAttributes).toEqual([
+      { id: IDS.J1, type: "junction", properties: { "custom-1": "high" } },
+    ]);
+  });
+
+  it("keeps mapped keys while carrying the custom key in a mixed change", () => {
+    const IDS = { J1: 1 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { elevation: 15 })
+      .build();
+
+    const { patchAssetsAttributes } = changeProperties(hydraulicModel, {
+      assetIds: [IDS.J1],
+      changes: [
+        { property: "elevation", value: 20 },
+        { property: "custom-2", value: 5 },
+      ] as PropertyChange[],
+    });
+
+    expect(patchAssetsAttributes).toHaveLength(1);
+    expect(patchAssetsAttributes![0]).toEqual({
+      id: IDS.J1,
+      type: "junction",
+      properties: { elevation: 20, "custom-2": 5 },
+    });
   });
 });

@@ -197,6 +197,11 @@ export type CustomAttributesDialogState = {
   initialAssetType?: CustomAttributeAssetType;
 };
 
+export type CustomAttributesInAssetDialogState = {
+  type: "customAttributesInAsset";
+  initialAssetType?: CustomAttributeAssetType;
+};
+
 export type DeleteScenarioConfirmationDialogState = {
   type: "deleteScenarioConfirmation";
   scenarioId: string;
@@ -336,6 +341,7 @@ export type DialogState =
   | PumpLibraryDialogState
   | CurveLibraryDialogState
   | CustomAttributesDialogState
+  | CustomAttributesInAssetDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState
   | FeaturePaywallDialogState

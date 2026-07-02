@@ -22,6 +22,14 @@ export type CustomAttributesDefinition = Map<
 export const emptyCustomAttributesDefinition = (): CustomAttributesDefinition =>
   new Map();
 
+export const CUSTOM_PROPERTY_PREFIX = "custom-";
+
+export const customPropertyKey = (id: CustomAttributeId): string =>
+  `${CUSTOM_PROPERTY_PREFIX}${id}`;
+
+export const isCustomProperty = (property: string): boolean =>
+  property.startsWith(CUSTOM_PROPERTY_PREFIX);
+
 export const getAttributes = (
   definition: CustomAttributesDefinition,
   assetType: CustomAttributeAssetType,

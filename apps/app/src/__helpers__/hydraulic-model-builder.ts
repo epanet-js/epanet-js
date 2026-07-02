@@ -45,6 +45,14 @@ import {
   Curves,
   ICurve,
 } from "@epanet-js/hydraulic-model";
+import {
+  CustomAttribute,
+  CustomAttributeAssetType,
+  CustomAttributesDefinition,
+  emptyCustomAttributesDefinition,
+  getAttributes,
+  setAttributes,
+} from "@epanet-js/custom-attributes";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import {
   AssetQuantitiesSpec,
@@ -178,6 +186,7 @@ export class HydraulicModelBuilder {
   private patterns: Patterns;
   private rawControlsValue: RawControls;
   private controlsValue: Controls;
+  private customAttributesValue: CustomAttributesDefinition;
 
   static with(
     options: {
@@ -221,6 +230,19 @@ export class HydraulicModelBuilder {
     this.patterns = new Map();
     this.rawControlsValue = createEmptyRawControls();
     this.controlsValue = createEmptyControls();
+    this.customAttributesValue = emptyCustomAttributesDefinition();
+  }
+
+  aCustomAttribute(
+    assetType: CustomAttributeAssetType,
+    attribute: CustomAttribute,
+  ) {
+    this.customAttributesValue = setAttributes(
+      this.customAttributesValue,
+      assetType,
+      [...getAttributes(this.customAttributesValue, assetType), attribute],
+    );
+    return this;
   }
 
   aNode(id: number, coordinates: Position = [0, 0]) {
@@ -551,6 +573,7 @@ export class HydraulicModelBuilder {
       rawControls: this.rawControlsValue,
       controls: this.controlsValue,
       controlsLookup: buildControlsLookup(this.controlsValue),
+      customAttributes: this.customAttributesValue,
     };
   }
 

@@ -61,6 +61,10 @@ export const applyMomentToModel = (
   if (moment.putPatterns) {
     reverseMoment.putPatterns = hydraulicModel.patterns;
   }
+  if (moment.putCustomAttributesDefinition) {
+    reverseMoment.putCustomAttributesDefinition =
+      hydraulicModel.customAttributes;
+  }
 
   for (const id of moment.deleteAssets || []) {
     const deleted = deleteAsset(hydraulicModel, id, labelManager);
@@ -123,6 +127,10 @@ export const applyMomentToModel = (
 
   if (moment.putPatterns) {
     putPatterns(hydraulicModel, moment.putPatterns, labelManager);
+  }
+
+  if (moment.putCustomAttributesDefinition) {
+    hydraulicModel.customAttributes = moment.putCustomAttributesDefinition;
   }
 
   return reverseMoment;

@@ -1,4 +1,5 @@
 import { AssetId, AssetPropertiesMap } from "@epanet-js/hydraulic-model";
+import { isCustomProperty } from "@epanet-js/custom-attributes";
 import type { AssetPatch, ModelMoment } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
@@ -75,7 +76,7 @@ function buildPatches(
     const properties: Record<string, unknown> = {};
     for (const { property, value } of changes) {
       if (property === "isActive") continue;
-      if (!asset.hasProperty(property)) continue;
+      if (!isCustomProperty(property) && !asset.hasProperty(property)) continue;
       properties[property] = value;
     }
 

@@ -113,6 +113,7 @@ import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CustomAttributesSection } from "./custom-attributes-section";
+import { CustomAttributesInAssetSection } from "./custom-attributes-in-asset-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
@@ -553,6 +554,11 @@ const JunctionEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={junction.id} type="junction" />
+      <CustomAttributesInAssetSection
+        asset={junction}
+        type="junction"
+        onPropertyChange={onPropertyChange}
+      />
       <SectionWrapper
         title={translate("demands")}
         section="demands"
@@ -911,6 +917,11 @@ const PipeEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={pipe.id} type="pipe" />
+      <CustomAttributesInAssetSection
+        asset={pipe}
+        type="pipe"
+        onPropertyChange={onPropertyChange}
+      />
       {(customerCount > 0 ||
         getCustomerCountComparison(customerCount).hasChanged) && (
         <SectionWrapper
@@ -1126,6 +1137,11 @@ const ReservoirEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={reservoir.id} type="reservoir" />
+      <CustomAttributesInAssetSection
+        asset={reservoir}
+        type="reservoir"
+        onPropertyChange={onPropertyChange}
+      />
       <SectionWrapper title={translate("quality")} section="quality">
         <QuantityRow
           name="initialQuality"
@@ -1347,6 +1363,11 @@ const TankEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={tank.id} type="tank" />
+      <CustomAttributesInAssetSection
+        asset={tank}
+        type="tank"
+        onPropertyChange={onPropertyChange}
+      />
       <SectionWrapper title={translate("quality")} section="quality">
         <QuantityRow
           name="initialQuality"
@@ -2168,6 +2189,11 @@ const ValveEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={valve.id} type="valve" />
+      <CustomAttributesInAssetSection
+        asset={valve}
+        type="valve"
+        onPropertyChange={onPropertyChange}
+      />
       <SectionWrapper
         title={translate("simulationResults")}
         section="simulationResults"
@@ -2421,6 +2447,11 @@ const PumpEditor = ({
         />
       </SectionWrapper>
       <CustomAttributesSection id={pump.id} type="pump" />
+      <CustomAttributesInAssetSection
+        asset={pump}
+        type="pump"
+        onPropertyChange={onPropertyChange}
+      />
       {isPumpControlsOn && (
         <SectionWrapper title={translate("controls.title")} section="controls">
           <PumpControlsEditor

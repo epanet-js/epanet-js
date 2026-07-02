@@ -120,6 +120,62 @@ describe("apply-moment integration", () => {
     expect(j1.label).toBe("J1");
   });
 
+  it("drops custom-<id> keys at the DB boundary while persisting mapped keys", async () => {
+    const IDS = { J1: 1 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "J1", elevation: 10 })
+        .build(),
+    );
+
+    const moment: ModelMoment = {
+      note: "patch elevation and custom attribute",
+      patchAssetsAttributes: [
+        {
+          id: IDS.J1,
+          type: "junction",
+          properties: { elevation: 50, "custom-1": "north" } as never,
+        },
+      ],
+    };
+
+    await persistMoment(moment);
+
+    const project = await fetchProject();
+    const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
+    expect(j1.elevation).toBe(50);
+    expect(j1.hasProperty("custom-1")).toBe(false);
+  });
+
+  it("writes no row when a moment only patches custom-<id> keys", async () => {
+    const IDS = { J1: 1 } as const;
+
+    await seed(
+      HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "J1", elevation: 10 })
+        .build(),
+    );
+
+    const moment: ModelMoment = {
+      note: "patch only custom attribute",
+      patchAssetsAttributes: [
+        {
+          id: IDS.J1,
+          type: "junction",
+          properties: { "custom-1": "north" } as never,
+        },
+      ],
+    };
+
+    await expect(persistMoment(moment)).resolves.not.toThrow();
+
+    const project = await fetchProject();
+    const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
+    expect(j1.elevation).toBe(10);
+    expect(j1.hasProperty("custom-1")).toBe(false);
+  });
+
   it("patches a pipe boolean property through to the fetched asset", async () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 

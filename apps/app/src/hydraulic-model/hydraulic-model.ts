@@ -23,6 +23,11 @@ import {
   ControlsLookup,
   buildControlsLookup,
 } from "@epanet-js/hydraulic-model";
+import {
+  CustomAttributesDefinition,
+  emptyCustomAttributesDefinition,
+  deepCloneCustomAttributes,
+} from "@epanet-js/custom-attributes";
 
 export type HydraulicModel = {
   version: string;
@@ -37,6 +42,7 @@ export type HydraulicModel = {
   rawControls: RawControls;
   controls: Controls;
   controlsLookup: ControlsLookup;
+  customAttributes: CustomAttributesDefinition;
 };
 
 export { AssetsMap };
@@ -53,6 +59,7 @@ export const initializeHydraulicModel = ({
   customerPointsLookup,
   patterns,
   curves,
+  customAttributes,
 }: {
   demands?: Demands;
   rawControls?: RawControls;
@@ -65,6 +72,7 @@ export const initializeHydraulicModel = ({
   customerPointsLookup?: CustomerPointsLookup;
   patterns?: Patterns;
   curves?: Curves;
+  customAttributes?: CustomAttributesDefinition;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
   const resolvedAssets = assets ?? new Map();
@@ -81,6 +89,7 @@ export const initializeHydraulicModel = ({
     rawControls,
     controls,
     controlsLookup: buildControlsLookup(controls),
+    customAttributes: customAttributes ?? emptyCustomAttributesDefinition(),
   };
 };
 
@@ -104,6 +113,7 @@ export const copyModel = (source: HydraulicModel): HydraulicModel => {
     rawControls: { ...source.rawControls },
     controls,
     controlsLookup: buildControlsLookup(controls),
+    customAttributes: deepCloneCustomAttributes(source.customAttributes),
   };
 };
 
