@@ -10,7 +10,7 @@ import {
   type PatternType,
 } from "@epanet-js/hydraulic-model";
 import { AssetTypeSections } from "./sections";
-import { MultiCustomAttributesInAssetSection } from "./multi-custom-attributes-in-asset-section";
+import { MultiCustomAttributesSection } from "./multi-custom-attributes-section";
 import { CustomerPointPanelSection } from "./customer-point-panel-section";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -223,7 +223,7 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="junction"
                 assetIds={assetIdsByType.junction}
                 readonly={readonly}
@@ -260,7 +260,7 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="pipe"
                 assetIds={assetIdsByType.pipe}
                 readonly={readonly}
@@ -299,7 +299,7 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="pump"
                 assetIds={assetIdsByType.pump}
                 readonly={readonly}
@@ -336,7 +336,7 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="valve"
                 assetIds={assetIdsByType.valve}
                 readonly={readonly}
@@ -375,7 +375,7 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="reservoir"
                 assetIds={assetIdsByType.reservoir}
                 readonly={readonly}
@@ -416,7 +416,7 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesInAssetSection
+              <MultiCustomAttributesSection
                 assetType="tank"
                 assetIds={assetIdsByType.tank}
                 readonly={readonly}

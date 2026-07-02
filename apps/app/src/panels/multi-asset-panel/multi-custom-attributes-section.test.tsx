@@ -86,9 +86,9 @@ const renderComponent = (store: Store) => {
   );
 };
 
-describe("MultiCustomAttributesInAssetSection", () => {
+describe("MultiCustomAttributesSection", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_CA_IN_ASSET");
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
   });
 
   it("shows the section after the model attributes section", () => {
@@ -107,7 +107,7 @@ describe("MultiCustomAttributesInAssetSection", () => {
   });
 
   it("does not show the section when the flag is off", () => {
-    stubFeatureOff("FLAG_CA_IN_ASSET");
+    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
     const store = setInitialState();
 
     renderComponent(store);

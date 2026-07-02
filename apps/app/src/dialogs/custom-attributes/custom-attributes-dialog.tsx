@@ -12,8 +12,8 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { NotificationBanner } from "src/components/notifications";
 import { VerticalResizer } from "../vertical-resizer";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
-import { CustomAttributesSidebar } from "../custom-attributes/custom-attributes-sidebar";
-import { CustomAttributesTable } from "../custom-attributes/custom-attributes-table";
+import { CustomAttributesSidebar } from "./custom-attributes-sidebar";
+import { CustomAttributesTable } from "./custom-attributes-table";
 import {
   CustomAttribute,
   CustomAttributeAssetType,
@@ -53,7 +53,7 @@ const serialize = (definition: CustomAttributesDefinition): string =>
 const hasEmptyLabel = (attributes: CustomAttribute[]): boolean =>
   attributes.some((attribute) => !attribute.label.trim());
 
-export const CustomAttributesInAssetDialog = ({
+export const CustomAttributesDialog = ({
   initialAssetType,
 }: {
   initialAssetType?: CustomAttributeAssetType;

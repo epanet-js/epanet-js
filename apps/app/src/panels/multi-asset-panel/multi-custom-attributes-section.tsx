@@ -22,7 +22,7 @@ import { buildCustomAttributeStats } from "./custom-attributes-stats";
 import { getDistinctBucketCount, getEmptyBucket } from "./stats";
 import { StatsPopoverButton } from "./multi-value-row";
 
-export function MultiCustomAttributesInAssetSection({
+export function MultiCustomAttributesSection({
   assetType,
   assetIds,
   readonly = false,
@@ -33,7 +33,7 @@ export function MultiCustomAttributesInAssetSection({
   readonly?: boolean;
   onSelectAssets?: (assetIds: number[], property: string) => void;
 }) {
-  const isCustomAttributesInAssetOn = useFeatureFlag("FLAG_CA_IN_ASSET");
+  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
 
@@ -50,7 +50,7 @@ export function MultiCustomAttributesInAssetSection({
     [transact, assetIds, hydraulicModel],
   );
 
-  if (!isCustomAttributesInAssetOn) return null;
+  if (!isCustomAttributesOn) return null;
 
   const attributes = getAttributes(hydraulicModel.customAttributes, assetType);
   if (attributes.length === 0 || assetIds.length === 0) return null;
@@ -58,7 +58,7 @@ export function MultiCustomAttributesInAssetSection({
   return (
     <Section title="Custom attributes" variant="secondary">
       {attributes.map((attribute) => (
-        <MultiCustomAttributeInAssetRow
+        <MultiCustomAttributeRow
           key={attribute.id}
           attribute={attribute}
           assetIds={assetIds}
@@ -71,7 +71,7 @@ export function MultiCustomAttributesInAssetSection({
   );
 }
 
-const MultiCustomAttributeInAssetRow = ({
+const MultiCustomAttributeRow = ({
   attribute,
   assetIds,
   readonly,

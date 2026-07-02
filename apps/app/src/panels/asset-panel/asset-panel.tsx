@@ -112,7 +112,7 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CustomAttributesInAssetSection } from "./custom-attributes-in-asset-section";
+import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
@@ -552,7 +552,7 @@ const JunctionEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={junction}
         type="junction"
         onPropertyChange={onPropertyChange}
@@ -914,7 +914,7 @@ const PipeEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={pipe}
         type="pipe"
         onPropertyChange={onPropertyChange}
@@ -1133,7 +1133,7 @@ const ReservoirEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={reservoir}
         type="reservoir"
         onPropertyChange={onPropertyChange}
@@ -1358,7 +1358,7 @@ const TankEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={tank}
         type="tank"
         onPropertyChange={onPropertyChange}
@@ -2183,7 +2183,7 @@ const ValveEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={valve}
         type="valve"
         onPropertyChange={onPropertyChange}
@@ -2440,7 +2440,7 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesInAssetSection
+      <CustomAttributesSection
         asset={pump}
         type="pump"
         onPropertyChange={onPropertyChange}

@@ -32,7 +32,7 @@ type CustomChange = (
   oldValue: CustomAttributeValue,
 ) => void;
 
-export const CustomAttributesInAssetSection = ({
+export const CustomAttributesSection = ({
   asset,
   type,
   onPropertyChange,
@@ -41,7 +41,7 @@ export const CustomAttributesInAssetSection = ({
   type: CustomAttributeAssetType;
   onPropertyChange: OnPropertyChange;
 }) => {
-  const isCustomAttributesInAssetOn = useFeatureFlag("FLAG_CA_IN_ASSET");
+  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const { customAttributes } = useAtomValue(stagingModelDerivedAtom);
 
   const attributes = useMemo(
@@ -58,11 +58,11 @@ export const CustomAttributesInAssetSection = ({
     [asset, onPropertyChange],
   );
 
-  if (!isCustomAttributesInAssetOn) return null;
+  if (!isCustomAttributesOn) return null;
   if (attributes.length === 0) return null;
 
   return (
-    <SectionWrapper title="Custom attributes" section="customAttributesInAsset">
+    <SectionWrapper title="Custom attributes" section="customAttributes">
       {attributes.map((attribute) => (
         <CustomAttributeRow
           key={attribute.id}

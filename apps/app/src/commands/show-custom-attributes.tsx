@@ -4,11 +4,11 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { dialogAtom } from "src/state/dialog";
 import type { CustomAttributeAssetType } from "@epanet-js/custom-attributes";
 
-export const useShowCustomAttributesInAsset = () => {
+export const useShowCustomAttributes = () => {
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
 
-  const showCustomAttributesInAsset = useCallback(
+  const showCustomAttributes = useCallback(
     ({
       source,
       initialAssetType,
@@ -21,12 +21,12 @@ export const useShowCustomAttributesInAsset = () => {
         source,
       });
       setDialogState({
-        type: "customAttributesInAsset",
+        type: "customAttributes",
         initialAssetType,
       });
     },
     [setDialogState, userTracking],
   );
 
-  return showCustomAttributesInAsset;
+  return showCustomAttributes;
 };
