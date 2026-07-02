@@ -13,11 +13,6 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { worktreeAtom } from "src/state/scenarios";
 import { type MomentPointer } from "src/state/map";
 import { branchStateAtom } from "src/state/branch-state";
-import {
-  customAttributesDataAtom,
-  customAttributesDefinitionAtom,
-} from "src/state/custom-attributes";
-import { applyMomentToCustomAttributes } from "src/lib/custom-attributes/apply-moment";
 import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
@@ -103,17 +98,6 @@ export function applyMoment(
     customerPoints: updatedCustomerPoints,
     curves: updatedCurves,
   });
-
-  if (forwardMoment.customAttributes) {
-    const { data, definition, reverse } = applyMomentToCustomAttributes(
-      get(customAttributesDataAtom),
-      get(customAttributesDefinitionAtom),
-      forwardMoment.customAttributes,
-    );
-    set(customAttributesDataAtom, data);
-    set(customAttributesDefinitionAtom, definition);
-    return { ...reverseMoment, customAttributes: reverse };
-  }
 
   return reverseMoment;
 }

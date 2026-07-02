@@ -25,20 +25,17 @@ import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
 import { useShowPipeLibrary } from "src/commands/show-pipe-library";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import { useShowCurveLibrary } from "src/commands/show-curve-library";
-import { useShowCustomAttributes } from "src/commands/show-custom-attributes";
 import { useShowCustomAttributesInAsset } from "src/commands/show-custom-attributes-in-asset";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
   const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const isCustomAttributesInAssetOn = useFeatureFlag("FLAG_CA_IN_ASSET");
   const showControls = useShowControls();
   const showPatternsLibrary = useShowPatternsLibrary();
   const showPipeLibrary = useShowPipeLibrary();
   const showPumpLibrary = useShowPumpLibrary();
   const showCurveLibrary = useShowCurveLibrary();
-  const showCustomAttributes = useShowCustomAttributes();
   const showCustomAttributesInAsset = useShowCustomAttributesInAsset();
 
   return (
@@ -93,15 +90,6 @@ export const OperationalDataDropdown = () => {
                 <ControlsIcon />
                 {translate("controls.title")}
               </StyledItem>
-
-              {isCustomAttributesOn && (
-                <StyledItem
-                  onSelect={() => showCustomAttributes({ source: "toolbar" })}
-                >
-                  <CustomAttributesIcon />
-                  {translate("customAttributes.title")}
-                </StyledItem>
-              )}
 
               {isCustomAttributesInAssetOn && (
                 <StyledItem

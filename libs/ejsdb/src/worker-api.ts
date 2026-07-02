@@ -19,11 +19,9 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
-import type { CustomAttributesDataRow } from "./schema/custom-attributes-data";
 import type { AssetPatchRow } from "./schema/patches";
 import type {
   ApplyMomentPayload,
-  CustomAttributesDataSave,
   CustomAttributeValueUpdate,
   OpenDbResult,
 } from "./types";
@@ -230,7 +228,6 @@ const BULK_TABLES = [
   "customer_point_demands",
   "junction_demands",
   "zones",
-  "custom_attributes_data",
 ] as const;
 
 const BULK_CHUNK_SIZES = {
@@ -244,7 +241,6 @@ const BULK_CHUNK_SIZES = {
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
-  custom_attributes_data: 7500, //  2 cols × 7500 = 15000 params
 } as const satisfies Record<(typeof BULK_TABLES)[number], number>;
 
 const buildBulkInsertSql = (
@@ -782,20 +778,6 @@ const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   );
 };
 
-const bulkInsertCustomAttributesData = (
-  rows: readonly CustomAttributesDataRow[],
-) => {
-  bulkInsert(
-    "custom_attributes_data",
-    ["asset_id", "data"],
-    rows,
-    (row, params) => {
-      params.push(row.asset_id, row.data);
-    },
-    BULK_CHUNK_SIZES.custom_attributes_data,
-  );
-};
-
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
   delAssets: payload.assetDeleteIds.length,
   upJ: payload.assetUpserts.junctions.length,
@@ -1085,35 +1067,6 @@ export const api = {
     );
   },
 
-  async getCustomAttributesData(): Promise<unknown[]> {
-    return timed("getCustomAttributesData", () =>
-      readAll("SELECT * FROM custom_attributes_data"),
-    );
-  },
-
-  async saveCustomAttributesData(
-    save: CustomAttributesDataSave,
-  ): Promise<void> {
-    return timed(
-      "saveCustomAttributesData",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        const ids = [...save.deleteIds, ...save.upserts.map((r) => r.asset_id)];
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          bulkDelete(["custom_attributes_data"], "asset_id", ids);
-          bulkInsertCustomAttributesData(save.upserts);
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
-      },
-      { upserts: save.upserts.length, deletes: save.deleteIds.length },
-    );
-  },
-
   async getMaxId(): Promise<number> {
     return timed("getMaxId", async () => {
       await ready;
@@ -1251,14 +1204,6 @@ export const api = {
           }
           if (payload.controlsReplacement !== null) {
             upsertControls(payload.controlsReplacement);
-          }
-          if (payload.customAttributesData !== null) {
-            const ca = payload.customAttributesData;
-            bulkDelete(["custom_attributes_data"], "asset_id", [
-              ...ca.deleteIds,
-              ...ca.upserts.map((r) => r.asset_id),
-            ]);
-            bulkInsertCustomAttributesData(ca.upserts);
           }
           if (payload.customAttributesDefinition !== null) {
             db.exec(

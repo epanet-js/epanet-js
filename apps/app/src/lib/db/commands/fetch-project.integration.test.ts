@@ -13,17 +13,11 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { fetchProject, fetchProjectWithNullValues } from "./fetch-project";
 import { importProject } from "./import-project";
-import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { saveCustomAttributes } from "./save-custom-attributes";
-import { saveCustomAttributesData } from "./save-custom-attributes-data";
-import { changeCustomAttributes } from "src/lib/custom-attributes/moment-operations/change-custom-attribute";
 import {
-  emptyCustomAttributesData,
   emptyCustomAttributesDefinition,
   getAttributes,
-  getValue,
   setAttributes,
-  setValue,
 } from "@epanet-js/custom-attributes";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
@@ -209,83 +203,6 @@ describe("fetch-project integration", () => {
 
     const project = await fetchProject();
     expect(project.customAttributes.size).toBe(0);
-  });
-
-  it("round-trips custom attribute values", async () => {
-    await importProject({
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    let data = emptyCustomAttributesData();
-    data = setValue(data, 1, "ca-1", "PVC");
-    data = setValue(data, 2, "ca-1", 42);
-    data = setValue(data, 2, "ca-2", null);
-    await saveCustomAttributesData(data, new Set([1, 2]));
-
-    const project = await fetchProject();
-    expect(getValue(project.customAttributesData, 1, "ca-1")).toEqual("PVC");
-    expect(getValue(project.customAttributesData, 2, "ca-1")).toEqual(42);
-    expect(getValue(project.customAttributesData, 2, "ca-2")).toBeNull();
-  });
-
-  it("round-trips custom attribute values through the moment payload", async () => {
-    await importProject({
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    const definition = setAttributes(
-      emptyCustomAttributesDefinition(),
-      "junction",
-      [{ id: "ca-1", label: "Age", type: "number" }],
-    );
-
-    const payload = buildMomentPayload(
-      changeCustomAttributes(
-        { definition, data: emptyCustomAttributesData() },
-        [{ assetId: 1, attributeId: "ca-1", value: 42 }],
-      ),
-    );
-    await applyMomentToDb(payload);
-
-    const project = await fetchProject();
-    expect(getValue(project.customAttributesData, 1, "ca-1")).toEqual(42);
-  });
-
-  it("deletes the row when an asset is left without values", async () => {
-    await importProject({
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    let data = emptyCustomAttributesData();
-    data = setValue(data, 1, "ca-1", "PVC");
-    await saveCustomAttributesData(data, new Set([1]));
-
-    // Asset 1 now has no values — the row must be removed, not left stale.
-    await saveCustomAttributesData(emptyCustomAttributesData(), new Set([1]));
-
-    const project = await fetchProject();
-    expect(project.customAttributesData.size).toBe(0);
-  });
-
-  it("returns empty data when none was saved (migrated default)", async () => {
-    await importProject({
-      newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
-      projectSettings: defaultProjectSettings,
-      simulationSettings: defaultSimulationSettings,
-    });
-
-    const project = await fetchProject();
-    expect(project.customAttributesData.size).toBe(0);
   });
 
   describe("when the roughness column is null", () => {

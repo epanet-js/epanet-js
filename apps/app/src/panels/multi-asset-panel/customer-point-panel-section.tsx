@@ -16,7 +16,6 @@ import { useSelection } from "src/selection";
 import { useUserTracking } from "src/infra/user-tracking";
 import { computeCustomerPointsStats } from "./customer-point-stats";
 import { CustomerPointSection } from "./sections";
-import { MultiCustomAttributesSection } from "./multi-custom-attributes-section";
 import { SelectOnlyCustomerPointsButton } from "./select-only-button";
 
 export function CustomerPointPanelSection({
@@ -88,13 +87,6 @@ export function CustomerPointPanelSection({
           <CustomerPointSection
             sections={data}
             onSelectCustomerPoints={handleSelect}
-            customAttributes={
-              <MultiCustomAttributesSection
-                assetType="customerPoint"
-                assetIds={customerPointIds}
-                onSelectAssets={handleSelect}
-              />
-            }
           />
         )
       )}

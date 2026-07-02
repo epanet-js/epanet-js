@@ -383,18 +383,6 @@ const CurveLibraryDialog = dynamic<{
   loading: () => <LoadingDialog />,
 });
 
-const CustomAttributesDialog = dynamic<{
-  initialAssetType?: CustomAttributeAssetType;
-}>(
-  () =>
-    import("src/dialogs/custom-attributes").then(
-      (r) => r.CustomAttributesDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
 const CustomAttributesInAssetDialog = dynamic<{
   initialAssetType?: CustomAttributeAssetType;
 }>(
@@ -818,11 +806,6 @@ export const Dialogs = memo(function Dialogs() {
         initialCurveId={dialog.initialCurveId}
         initialSection={dialog.initialSection}
       />
-    );
-  }
-  if (dialog.type === "customAttributes") {
-    return (
-      <CustomAttributesDialog initialAssetType={dialog.initialAssetType} />
     );
   }
   if (dialog.type === "customAttributesInAsset") {

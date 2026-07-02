@@ -14,12 +14,3 @@ export const customAttributesDataSchema = z.record(
 export type CustomAttributesDataObject = z.infer<
   typeof customAttributesDataSchema
 >;
-
-export const customAttributesDataRowSchema = z.object({
-  asset_id: z.number().int(),
-  data: z.string(),
-});
-
-export type CustomAttributesDataRow = z.infer<
-  typeof customAttributesDataRowSchema
->;

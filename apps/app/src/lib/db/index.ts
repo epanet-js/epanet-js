@@ -10,7 +10,6 @@ export { saveProjectSettings } from "./commands/save-project-settings";
 export { serializeProjectSettings } from "./mappers/project-settings/to-rows";
 export { savePipeLibrary } from "./commands/save-pipe-library";
 export { saveCustomAttributes } from "./commands/save-custom-attributes";
-export { saveCustomAttributesData } from "./commands/save-custom-attributes-data";
 export { saveZones } from "./commands/save-zones";
 export { serializeZones } from "./mappers/zones/to-rows";
 export { setAllSimulationSettings } from "./commands/set-all-simulation-settings";

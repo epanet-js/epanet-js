@@ -1,9 +1,6 @@
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
-import type {
-  CustomAttributesData,
-  CustomAttributesDefinition,
-} from "@epanet-js/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
@@ -24,7 +21,6 @@ import {
   buildControlsData,
   buildJunctionDemandsData,
   buildCustomAttributesDefinition,
-  buildCustomAttributesData,
   buildPipeLibraryData,
 } from "@epanet-js/ejsdb-mappers";
 import { buildSimulationSettingsData } from "../mappers/simulation-settings/builders";
@@ -35,7 +31,6 @@ export type Project = {
   projectSettings: ProjectSettings;
   pipeLibrary: PipeMaterial[];
   customAttributes: CustomAttributesDefinition;
-  customAttributesData: CustomAttributesData;
   zones: Zones;
   hydraulicModel: HydraulicModel;
   factories: ModelFactories;
@@ -96,7 +91,6 @@ const fetchProjectWith = async (
       settingsJson,
       pipeLibraryJson,
       customAttributesJson,
-      customAttributesDataRaw,
       zonesRaw,
       patternsRaw,
       junctionDemandsRaw,
@@ -110,7 +104,6 @@ const fetchProjectWith = async (
         worker.getProjectSettings(),
         worker.getPipeLibrary(),
         worker.getCustomAttributesDefinition(),
-        worker.getCustomAttributesData(),
         worker.getZones(),
         worker.getPatterns(),
         worker.getJunctionDemands(),
@@ -133,9 +126,6 @@ const fetchProjectWith = async (
         const pipeLibrary = buildPipeLibraryData(pipeLibraryJson);
         const customAttributes =
           buildCustomAttributesDefinition(customAttributesJson);
-        const customAttributesData = buildCustomAttributesData(
-          customAttributesDataRaw,
-        );
         const zones = buildZonesData(zonesRaw);
 
         const idGenerator = new ConsecutiveIdsGenerator(maxId);
@@ -195,7 +185,6 @@ const fetchProjectWith = async (
           projectSettings,
           pipeLibrary,
           customAttributes,
-          customAttributesData,
           zones,
           hydraulicModel,
           factories,

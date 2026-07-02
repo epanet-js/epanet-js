@@ -12,6 +12,7 @@ import m0011 from "./0011_pipe_library.sql?raw";
 import m0012 from "./0012_custom_attributes_definition.sql?raw";
 import m0013 from "./0013_custom_attributes_data.sql?raw";
 import m0014 from "./0014_asset_custom_attributes.sql?raw";
+import m0015 from "./0015_drop_custom_attributes_data.sql?raw";
 
 export type MigrationDB = Parameters<typeof m0006>[0];
 
@@ -32,6 +33,7 @@ export const migrations: Migration[] = [
   m0012,
   m0013,
   m0014,
+  m0015,
 ];
 
 export const APP_VERSION = migrations.length;

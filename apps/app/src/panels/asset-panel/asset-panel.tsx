@@ -112,7 +112,6 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { CustomAttributesSection } from "./custom-attributes-section";
 import { CustomAttributesInAssetSection } from "./custom-attributes-in-asset-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -553,7 +552,6 @@ const JunctionEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={junction.id} type="junction" />
       <CustomAttributesInAssetSection
         asset={junction}
         type="junction"
@@ -916,7 +914,6 @@ const PipeEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={pipe.id} type="pipe" />
       <CustomAttributesInAssetSection
         asset={pipe}
         type="pipe"
@@ -1136,7 +1133,6 @@ const ReservoirEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={reservoir.id} type="reservoir" />
       <CustomAttributesInAssetSection
         asset={reservoir}
         type="reservoir"
@@ -1362,7 +1358,6 @@ const TankEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={tank.id} type="tank" />
       <CustomAttributesInAssetSection
         asset={tank}
         type="tank"
@@ -2188,7 +2183,6 @@ const ValveEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={valve.id} type="valve" />
       <CustomAttributesInAssetSection
         asset={valve}
         type="valve"
@@ -2446,7 +2440,6 @@ const PumpEditor = ({
           readOnly={readonly}
         />
       </SectionWrapper>
-      <CustomAttributesSection id={pump.id} type="pump" />
       <CustomAttributesInAssetSection
         asset={pump}
         type="pump"

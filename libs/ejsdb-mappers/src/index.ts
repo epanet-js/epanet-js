@@ -15,7 +15,5 @@ export * from "./patterns/to-rows";
 export * from "./patterns/builders";
 export * from "./custom-attributes-definition/to-rows";
 export * from "./custom-attributes-definition/builders";
-export * from "./custom-attributes-data/to-rows";
-export * from "./custom-attributes-data/builders";
 export * from "./pipe-library/to-rows";
 export * from "./pipe-library/builders";

@@ -192,11 +192,6 @@ export type CurveLibraryDialogState = {
   initialSection?: "volume" | "valve" | "headloss";
 };
 
-export type CustomAttributesDialogState = {
-  type: "customAttributes";
-  initialAssetType?: CustomAttributeAssetType;
-};
-
 export type CustomAttributesInAssetDialogState = {
   type: "customAttributesInAsset";
   initialAssetType?: CustomAttributeAssetType;
@@ -340,7 +335,6 @@ export type DialogState =
   | PipeLibraryDialogState
   | PumpLibraryDialogState
   | CurveLibraryDialogState
-  | CustomAttributesDialogState
   | CustomAttributesInAssetDialogState
   | DeleteScenarioConfirmationDialogState
   | RenameScenarioDialogState

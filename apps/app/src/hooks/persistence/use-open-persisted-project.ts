@@ -55,8 +55,6 @@ export const useOpenPersistedProject = () => {
         const {
           projectSettings,
           pipeLibrary,
-          customAttributes,
-          customAttributesData,
           zones,
           hydraulicModel,
           factories,
@@ -70,8 +68,6 @@ export const useOpenPersistedProject = () => {
           factories,
           projectSettings,
           pipeLibrary,
-          customAttributes,
-          customAttributesData,
           zones,
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",

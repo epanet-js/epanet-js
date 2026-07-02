@@ -34,11 +34,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { USelection } from "src/selection";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
-import {
-  emptyCustomAttributesDefinition,
-  setAttributes,
-} from "@epanet-js/custom-attributes";
-import { customAttributesDefinitionAtom } from "src/state/custom-attributes";
 
 describe("AssetPanel", () => {
   beforeEach(() => {
@@ -1961,79 +1956,6 @@ describe("AssetPanel", () => {
 
     expectPropertyDisplayed("diameter (mm)", "300");
     expectPropertyDisplayed("length (m)", "1,000");
-  });
-
-  describe("custom attributes", () => {
-    beforeEach(() => {
-      stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-    });
-
-    it("shows the defined attributes for the asset type", () => {
-      const IDS = { J1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "J1" })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.J1,
-      });
-      store.set(
-        customAttributesDefinitionAtom,
-        setAttributes(emptyCustomAttributesDefinition(), "junction", [
-          { id: "ca-1", label: "Owner", type: "text" },
-          { id: "ca-2", label: "Age", type: "number" },
-        ]),
-      );
-
-      renderComponent(store);
-
-      expect(screen.getByText("Custom attributes")).toBeInTheDocument();
-      expect(screen.getByLabelText(/value for: Owner/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/value for: Age/i)).toBeInTheDocument();
-    });
-
-    it("does not show the section when the type has no attributes", () => {
-      const IDS = { J1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "J1" })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.J1,
-      });
-      store.set(
-        customAttributesDefinitionAtom,
-        setAttributes(emptyCustomAttributesDefinition(), "pipe", [
-          { id: "ca-1", label: "Owner", type: "text" },
-        ]),
-      );
-
-      renderComponent(store);
-
-      expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
-    });
-
-    it("does not show the section when the flag is off", () => {
-      stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
-      const IDS = { J1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { label: "J1" })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.J1,
-      });
-      store.set(
-        customAttributesDefinitionAtom,
-        setAttributes(emptyCustomAttributesDefinition(), "junction", [
-          { id: "ca-1", label: "Owner", type: "text" },
-        ]),
-      );
-
-      renderComponent(store);
-
-      expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
-    });
   });
 
   const setInitialState = ({
