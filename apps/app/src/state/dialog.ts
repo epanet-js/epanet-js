@@ -242,13 +242,6 @@ export type FirstScenarioDialogState = {
   onConfirm: () => void;
 };
 
-export type FilePermissionsInfoDialogState = {
-  type: "filePermissionsInfo";
-  intent?: "read" | "write";
-  onAcknowledge: () => void;
-  onCancel?: () => void;
-};
-
 export type AlertScenariosNotSavedState = {
   type: "alertScenariosNotSaved";
   onContinue: () => void;
@@ -349,7 +342,6 @@ export type DialogState =
   | ElevationTileErrorsDialogState
   | GisImportErrorsDialogState
   | FirstScenarioDialogState
-  | FilePermissionsInfoDialogState
   | AlertScenariosNotSavedState
   | AlertNetworkRequiredState
   | ActivatingTrialDialogState

@@ -553,21 +553,6 @@ const FirstScenarioDialog = dynamic<{
   },
 );
 
-const FilePermissionsInfoDialog = dynamic<{
-  intent?: "read" | "write";
-  onAcknowledge: () => void;
-  onCancel?: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/file-permissions-info").then(
-      (r) => r.FilePermissionsInfoDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
 const ProfileNoPathDialog = dynamic<{
   onClose: () => void;
 }>(
@@ -876,17 +861,6 @@ export const Dialogs = memo(function Dialogs() {
   if (dialog.type === "firstScenario") {
     return (
       <FirstScenarioDialog onConfirm={dialog.onConfirm} onClose={onClose} />
-    );
-  }
-
-  if (dialog.type === "filePermissionsInfo") {
-    return (
-      <FilePermissionsInfoDialog
-        intent={dialog.intent}
-        onAcknowledge={dialog.onAcknowledge}
-        onCancel={dialog.onCancel}
-        onClose={onClose}
-      />
     );
   }
 

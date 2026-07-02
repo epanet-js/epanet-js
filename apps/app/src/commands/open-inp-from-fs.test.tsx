@@ -207,7 +207,6 @@ describe("openInpFromFs", () => {
       showFirstScenarioDialog: true,
       showProjectSavedInfo: false,
       showFileFormatUpdated: false,
-      showFilePermissionsInfo: true,
     });
     await db.importProject({
       newDb: true,
@@ -371,7 +370,6 @@ describe("file format updated dialog", () => {
       showFirstScenarioDialog: true,
       showProjectSavedInfo: true,
       showFileFormatUpdated: false,
-      showFilePermissionsInfo: true,
     });
     const file = aTestFile({
       filename: "my-network.inp",

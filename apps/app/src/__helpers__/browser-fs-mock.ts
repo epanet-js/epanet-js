@@ -129,10 +129,6 @@ export const buildFileSystemHandleMock = ({
   const handle: FileSystemFileHandle = {
     name: fileName,
     kind: "file",
-    queryPermission: vi.fn(() => Promise.resolve("granted" as PermissionState)),
-    requestPermission: vi.fn(() =>
-      Promise.resolve("granted" as PermissionState),
-    ),
     getFile: vi.fn(() =>
       Promise.resolve(
         new File(["mock content"], fileName, { type: "text/plain" }),
