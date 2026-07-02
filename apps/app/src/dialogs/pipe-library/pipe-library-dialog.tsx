@@ -307,6 +307,32 @@ export const PipeLibraryDialog = () => {
     });
   }, [hydraulicModel, defaultRoughness, userTracking]);
 
+  const [pendingImport, setPendingImport] = useState<"file" | "model" | null>(
+    null,
+  );
+
+  const requestImportFromFile = useCallback(() => {
+    if (draftMaterials.length > 0) {
+      setPendingImport("file");
+    } else {
+      void handleImportFromFile();
+    }
+  }, [draftMaterials.length, handleImportFromFile]);
+
+  const requestImportFromModel = useCallback(() => {
+    if (draftMaterials.length > 0) {
+      setPendingImport("model");
+    } else {
+      handleImportFromModel();
+    }
+  }, [draftMaterials.length, handleImportFromModel]);
+
+  const handleAcceptImport = useCallback(() => {
+    setPendingImport(null);
+    if (pendingImport === "file") void handleImportFromFile();
+    else handleImportFromModel();
+  }, [handleImportFromFile, handleImportFromModel, pendingImport]);
+
   const handleExportCsv = useCallback(async () => {
     await exportCsv(draftMaterials, networkName);
     userTracking.capture({ name: "pipeLibrary.exported", format: "csv" });
@@ -353,11 +379,17 @@ export const PipeLibraryDialog = () => {
               handleExportXlsx={handleExportXlsx}
             />
             <ImportSubmenu
-              handleImportFromModel={handleImportFromModel}
-              handleImportFromFile={handleImportFromFile}
+              handleImportFromModel={requestImportFromModel}
+              handleImportFromFile={requestImportFromFile}
             />
           </div>
         </div>
+        {pendingImport !== null && (
+          <ImportWarningBanner
+            onAccept={handleAcceptImport}
+            onCancel={() => setPendingImport(null)}
+          />
+        )}
         <div className="flex-1 flex min-h-0">
           <div className="shrink-0 flex">
             <PipeLibrarySidebar
@@ -414,6 +446,31 @@ const formatErrors = (
         `· ${e.material ? e.material + ": " : ""}${translate(e.message, e.value ?? "")}`,
     )
     .join("\n");
+
+const ImportWarningBanner = ({
+  onAccept,
+  onCancel,
+}: {
+  onAccept: () => void;
+  onCancel: () => void;
+}) => {
+  const translate = useTranslate();
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle">
+      <p className="text-size-base">
+        {translate("pipeLibrary.import.confirmMessage")}
+      </p>
+      <div className="flex gap-2">
+        <Button variant="default" size="sm" disabled={false} onClick={onCancel}>
+          {translate("pipeLibrary.import.cancel")}
+        </Button>
+        <Button variant="danger" size="sm" disabled={false} onClick={onAccept}>
+          {translate("pipeLibrary.import.continue")}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const ImportSubmenu = ({
   handleImportFromFile,

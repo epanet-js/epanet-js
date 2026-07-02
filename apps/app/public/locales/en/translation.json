@@ -1675,7 +1675,7 @@
     "importFromFile": "Import from file",
     "import": {
       "confirmTitle": "Import pipe library",
-      "confirmMessage": "Importing a library from file will overwrite the existing library. Do you want to continue?",
+      "confirmMessage": "Importing a pipe library will replace existing content. Do you want to continue?",
       "cancel": "Cancel",
       "continue": "Continue",
       "success": "Imported {{count}} materials from file",
