@@ -26,6 +26,7 @@ import { useSelection } from "src/selection";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
+import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 
 const MIN_VERTEX_PIXEL_DISTANCE = 8;
@@ -177,6 +178,7 @@ export function useDrawLinkHandlers({
   const { isShiftHeld, isControlHeld } = useKeyboardState();
   const setCursor = useSetAtom(cursorStyleAtom);
   const pipeDrawingDefaults = useAtomValue(pipeDrawingDefaultsAtom);
+  const { defaults } = useAtomValue(projectSettingsAtom);
 
   const createLinkForType = (coordinates: Position[] = []) => {
     const startProperties = {
@@ -190,9 +192,12 @@ export function useDrawLinkHandlers({
           ...(pipeDrawingDefaults.diameter && {
             diameter: pipeDrawingDefaults.diameter,
           }),
-          ...(pipeDrawingDefaults.roughness && {
-            roughness: pipeDrawingDefaults.roughness,
-          }),
+          ...(pipeDrawingDefaults.roughness === null
+            ? {}
+            : {
+                roughness:
+                  pipeDrawingDefaults.roughness ?? defaults.pipe.roughness ?? 0,
+              }),
         });
       case "pump":
         return assetFactory.createPump({
