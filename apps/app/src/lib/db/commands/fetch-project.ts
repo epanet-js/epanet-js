@@ -188,6 +188,7 @@ const fetchProjectWith = async (
             junctions: junctionDemands,
             customerPoints: customerDemands,
           },
+          customAttributes,
         });
 
         return {

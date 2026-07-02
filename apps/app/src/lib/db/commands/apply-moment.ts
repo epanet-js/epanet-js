@@ -116,8 +116,11 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     ? buildCustomAttributesDataSave(moment)
     : null;
 
-  const customAttributesDefinition = moment.customAttributes?.putDefinition
-    ? serializeCustomAttributesDefinition(moment.customAttributes.putDefinition)
+  const putDefinition =
+    moment.putCustomAttributesDefinition ??
+    moment.customAttributes?.putDefinition;
+  const customAttributesDefinition = putDefinition
+    ? serializeCustomAttributesDefinition(putDefinition)
     : null;
 
   return {

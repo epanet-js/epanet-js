@@ -16,8 +16,10 @@ import {
   getValue,
   setAttributes,
 } from "@epanet-js/custom-attributes";
+import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import type { Moment } from "src/lib/persistence/moment";
 import type { HydraulicModel } from "src/hydraulic-model";
+import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
 import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
@@ -576,6 +578,72 @@ describe("apply-moment integration", () => {
       { id: "ca-1", label: "Age", type: "number" },
     ]);
     expect(getValue(project.customAttributesData, IDS.J1, "ca-1")).toEqual(42);
+  });
+
+  it("serializes putCustomAttributesDefinition into the payload", () => {
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "junction",
+      [{ id: "ca-1", label: "Zone", type: "text" }],
+    );
+
+    const payload = buildMomentPayload({
+      note: "define custom attribute",
+      putCustomAttributesDefinition: definition,
+    });
+    expect(payload.customAttributesDefinition).toBe(
+      serializeCustomAttributesDefinition(definition),
+    );
+
+    expect(
+      buildMomentPayload({ note: "noop" }).customAttributesDefinition,
+    ).toBeNull();
+  });
+
+  it("persists the model definition and restores it onto the model on fetch", async () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .build();
+    await seed(model);
+
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "junction",
+      [{ id: "ca-1", label: "Zone", type: "text" }],
+    );
+    await persistMoment(changeCustomAttributesDefinition(model, definition));
+
+    const project = await fetchProject();
+    expect(
+      getAttributes(project.hydraulicModel.customAttributes, "junction"),
+    ).toEqual([{ id: "ca-1", label: "Zone", type: "text" }]);
+  });
+
+  it("persists an emptied definition (removal) onto the model", async () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .build();
+    await seed(model);
+
+    const definition = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "junction",
+      [{ id: "ca-1", label: "Zone", type: "text" }],
+    );
+    await persistMoment(changeCustomAttributesDefinition(model, definition));
+    await persistMoment(
+      changeCustomAttributesDefinition(
+        model,
+        emptyCustomAttributesDefinition(),
+      ),
+    );
+
+    const project = await fetchProject();
+    expect(
+      getAttributes(project.hydraulicModel.customAttributes, "junction"),
+    ).toEqual([]);
   });
 
   it("does not change DB state for a noop moment", async () => {
