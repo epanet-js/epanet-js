@@ -11,6 +11,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import { AssetTypeSections } from "./sections";
 import { MultiCustomAttributesSection } from "./multi-custom-attributes-section";
+import { MultiCustomAttributesInAssetSection } from "./multi-custom-attributes-in-asset-section";
 import { CustomerPointPanelSection } from "./customer-point-panel-section";
 import { SelectOnlyButton } from "./select-only-button";
 import { useAtom, useAtomValue } from "jotai";
@@ -223,14 +224,24 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="junction"
-                assetIds={assetIdsByType.junction}
-                readonly={readonly}
-                onSelectAssets={(ids, p) =>
-                  handleSelectAssets(ids, p, "junction")
-                }
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="junction"
+                  assetIds={assetIdsByType.junction}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "junction")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="junction"
+                  assetIds={assetIdsByType.junction}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "junction")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
@@ -260,12 +271,24 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="pipe"
-                assetIds={assetIdsByType.pipe}
-                readonly={readonly}
-                onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pipe")}
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="pipe"
+                  assetIds={assetIdsByType.pipe}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "pipe")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="pipe"
+                  assetIds={assetIdsByType.pipe}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "pipe")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
@@ -299,12 +322,24 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="pump"
-                assetIds={assetIdsByType.pump}
-                readonly={readonly}
-                onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "pump")}
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="pump"
+                  assetIds={assetIdsByType.pump}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "pump")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="pump"
+                  assetIds={assetIdsByType.pump}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "pump")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
@@ -336,12 +371,24 @@ export function MultiAssetPanel({
             readonly={readonly}
             onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="valve"
-                assetIds={assetIdsByType.valve}
-                readonly={readonly}
-                onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "valve")}
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="valve"
+                  assetIds={assetIdsByType.valve}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "valve")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="valve"
+                  assetIds={assetIdsByType.valve}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "valve")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
@@ -375,14 +422,24 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="reservoir"
-                assetIds={assetIdsByType.reservoir}
-                readonly={readonly}
-                onSelectAssets={(ids, p) =>
-                  handleSelectAssets(ids, p, "reservoir")
-                }
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="reservoir"
+                  assetIds={assetIdsByType.reservoir}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "reservoir")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="reservoir"
+                  assetIds={assetIdsByType.reservoir}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "reservoir")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
@@ -416,12 +473,24 @@ export function MultiAssetPanel({
             labelManager={labelManager}
             onOpenLibrary={handleOpenLibrary}
             customAttributes={
-              <MultiCustomAttributesSection
-                assetType="tank"
-                assetIds={assetIdsByType.tank}
-                readonly={readonly}
-                onSelectAssets={(ids, p) => handleSelectAssets(ids, p, "tank")}
-              />
+              <>
+                <MultiCustomAttributesSection
+                  assetType="tank"
+                  assetIds={assetIdsByType.tank}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "tank")
+                  }
+                />
+                <MultiCustomAttributesInAssetSection
+                  assetType="tank"
+                  assetIds={assetIdsByType.tank}
+                  readonly={readonly}
+                  onSelectAssets={(ids, p) =>
+                    handleSelectAssets(ids, p, "tank")
+                  }
+                />
+              </>
             }
           />
         </CollapsibleSection>
