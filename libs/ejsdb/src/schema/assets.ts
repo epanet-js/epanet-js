@@ -29,6 +29,7 @@ const nodeRowShared = {
   chemical_source_type: chemicalSourceTypeSchema,
   chemical_source_strength: nullableNumber,
   chemical_source_pattern_id: fkId,
+  custom_attributes: z.string().nullable().default(null),
 } as const;
 
 const linkRowShared = {
@@ -39,6 +40,7 @@ const linkRowShared = {
   end_node_id: id,
   coords: z.string(),
   length: nullableNumber,
+  custom_attributes: z.string().nullable().default(null),
 } as const;
 
 export const junctionRowSchema = z.object({

@@ -1,5 +1,6 @@
 export * from "./assets/to-rows";
 export * from "./assets/builders";
+export * from "./assets/custom-attributes";
 export * from "./raw-controls/to-rows";
 export * from "./raw-controls/builders";
 export * from "./controls/to-rows";

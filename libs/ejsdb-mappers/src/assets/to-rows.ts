@@ -26,6 +26,7 @@ import {
   type PumpRow,
   type ValveRow,
 } from "@epanet-js/ejsdb";
+import { serializeAssetCustomAttributes } from "./custom-attributes";
 
 export const assetsToRows = (assets: Iterable<Asset>): AssetRows => {
   const rows: AssetRows = {
@@ -94,6 +95,7 @@ const toJunctionRow = (junction: Junction): JunctionRow =>
       chemical_source_strength: junction.chemicalSourceStrength ?? null,
       chemical_source_pattern_id: toDbId(junction.chemicalSourcePatternId),
       emitter_coefficient: junction.emitterCoefficient ?? null,
+      custom_attributes: serializeAssetCustomAttributes(junction),
     },
     "Junction",
     junction.id,
@@ -116,6 +118,7 @@ const toReservoirRow = (reservoir: Reservoir): ReservoirRow =>
       chemical_source_pattern_id: toDbId(reservoir.chemicalSourcePatternId),
       head: reservoir.head,
       head_pattern_id: toDbId(reservoir.headPatternId),
+      custom_attributes: serializeAssetCustomAttributes(reservoir),
     },
     "Reservoir",
     reservoir.id,
@@ -146,6 +149,7 @@ const toTankRow = (tank: Tank): TankRow =>
       mixing_fraction: tank.mixingFraction ?? null,
       bulk_reaction_coeff: tank.bulkReactionCoeff ?? null,
       volume_curve_id: toDbId(tank.volumeCurveId),
+      custom_attributes: serializeAssetCustomAttributes(tank),
     },
     "Tank",
     tank.id,
@@ -171,6 +175,7 @@ const toPipeRow = (pipe: Pipe): PipeRow =>
       wall_reaction_coeff: pipe.wallReactionCoeff ?? null,
       material: pipe.material ?? null,
       year: pipe.year ?? null,
+      custom_attributes: serializeAssetCustomAttributes(pipe),
     },
     "Pipe",
     pipe.id,
@@ -198,6 +203,7 @@ const toPumpRow = (pump: Pump): PumpRow =>
       energy_price_pattern_id: toDbId(pump.energyPricePatternId),
       curve_id: toDbId(pump.curveId),
       curve_points: toDbCurvePoints(pump),
+      custom_attributes: serializeAssetCustomAttributes(pump),
     },
     "Pump",
     pump.id,
@@ -221,6 +227,7 @@ const toValveRow = (valve: Valve): ValveRow =>
       valve_kind: valve.kind,
       setting: valve.setting,
       curve_id: toDbId(valve.curveId),
+      custom_attributes: serializeAssetCustomAttributes(valve),
     },
     "Valve",
     valve.id,

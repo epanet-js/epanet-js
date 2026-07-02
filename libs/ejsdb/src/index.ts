@@ -9,7 +9,10 @@ export type {
   OpenDbResult,
   ApplyMomentPayload,
   CustomAttributesDataSave,
+  CustomAttributeValueUpdate,
+  AssetCustomAttributeUpdates,
   CustomerPointDemandUpdate,
   JunctionDemandUpdate,
 } from "./types";
+export { emptyAssetCustomAttributeUpdates } from "./types";
 export * from "./schema";

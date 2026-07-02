@@ -24,6 +24,7 @@ import type { AssetPatchRow } from "./schema/patches";
 import type {
   ApplyMomentPayload,
   CustomAttributesDataSave,
+  CustomAttributeValueUpdate,
   OpenDbResult,
 } from "./types";
 
@@ -233,12 +234,12 @@ const BULK_TABLES = [
 ] as const;
 
 const BULK_CHUNK_SIZES = {
-  junctions: 2700, // 11 cols × 2700 = 29700 params
-  reservoirs: 2500, // 12 cols × 2500 = 30000 params
-  tanks: 1500, // 20 cols × 1500 = 30000 params
-  pipes: 2000, // 15 cols × 2000 = 30000 params
-  pumps: 1700, // 17 cols × 1700 = 28900 params
-  valves: 2300, // 13 cols × 2300 = 29900 params
+  junctions: 2500, // 12 cols × 2500 = 30000 params
+  reservoirs: 2300, // 13 cols × 2300 = 29900 params
+  tanks: 1400, // 21 cols × 1400 = 29400 params
+  pipes: 1800, // 16 cols × 1800 = 28800 params
+  pumps: 1600, // 18 cols × 1600 = 28800 params
+  valves: 2100, // 14 cols × 2100 = 29400 params
   customer_points: 3700, //  8 cols × 3700 = 29600 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
@@ -420,6 +421,17 @@ const appendUpdateParams = (
   }
 };
 
+const applyCustomAttributeValues = (
+  table: (typeof ASSET_TYPE_TABLES)[number],
+  updates: readonly CustomAttributeValueUpdate[],
+): void => {
+  if (updates.length === 0) return;
+  const sql = `UPDATE ${table} SET custom_attributes = json_patch(coalesce(custom_attributes, '{}'), ?) WHERE id = ?`;
+  for (const { id, delta } of updates) {
+    getStmt(sql).bind([delta, id]).stepReset();
+  }
+};
+
 const bulkInsertJunctions = (rows: readonly JunctionRow[]) => {
   bulkInsert(
     "junctions",
@@ -435,6 +447,7 @@ const bulkInsertJunctions = (rows: readonly JunctionRow[]) => {
       "chemical_source_strength",
       "chemical_source_pattern_id",
       "emitter_coefficient",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -450,6 +463,7 @@ const bulkInsertJunctions = (rows: readonly JunctionRow[]) => {
         row.chemical_source_strength,
         row.chemical_source_pattern_id,
         row.emitter_coefficient,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.junctions,
@@ -472,6 +486,7 @@ const bulkInsertReservoirs = (rows: readonly ReservoirRow[]) => {
       "chemical_source_pattern_id",
       "head",
       "head_pattern_id",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -488,6 +503,7 @@ const bulkInsertReservoirs = (rows: readonly ReservoirRow[]) => {
         row.chemical_source_pattern_id,
         row.head,
         row.head_pattern_id,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.reservoirs,
@@ -518,6 +534,7 @@ const bulkInsertTanks = (rows: readonly TankRow[]) => {
       "mixing_fraction",
       "bulk_reaction_coeff",
       "volume_curve_id",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -542,6 +559,7 @@ const bulkInsertTanks = (rows: readonly TankRow[]) => {
         row.mixing_fraction,
         row.bulk_reaction_coeff,
         row.volume_curve_id,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.tanks,
@@ -567,6 +585,7 @@ const bulkInsertPipes = (rows: readonly PipeRow[]) => {
       "wall_reaction_coeff",
       "material",
       "year",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -586,6 +605,7 @@ const bulkInsertPipes = (rows: readonly PipeRow[]) => {
         row.wall_reaction_coeff,
         row.material,
         row.year,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.pipes,
@@ -613,6 +633,7 @@ const bulkInsertPumps = (rows: readonly PumpRow[]) => {
       "energy_price_pattern_id",
       "curve_id",
       "curve_points",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -634,6 +655,7 @@ const bulkInsertPumps = (rows: readonly PumpRow[]) => {
         row.energy_price_pattern_id,
         row.curve_id,
         row.curve_points,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.pumps,
@@ -657,6 +679,7 @@ const bulkInsertValves = (rows: readonly ValveRow[]) => {
       "valve_kind",
       "setting",
       "curve_id",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -674,6 +697,7 @@ const bulkInsertValves = (rows: readonly ValveRow[]) => {
         row.valve_kind,
         row.setting,
         row.curve_id,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.valves,
@@ -1150,6 +1174,31 @@ export const api = {
           bulkUpdate("pipes", payload.assetPatches.pipes);
           bulkUpdate("pumps", payload.assetPatches.pumps);
           bulkUpdate("valves", payload.assetPatches.valves);
+
+          applyCustomAttributeValues(
+            "junctions",
+            payload.customAttributeValues.junctions,
+          );
+          applyCustomAttributeValues(
+            "reservoirs",
+            payload.customAttributeValues.reservoirs,
+          );
+          applyCustomAttributeValues(
+            "tanks",
+            payload.customAttributeValues.tanks,
+          );
+          applyCustomAttributeValues(
+            "pipes",
+            payload.customAttributeValues.pipes,
+          );
+          applyCustomAttributeValues(
+            "pumps",
+            payload.customAttributeValues.pumps,
+          );
+          applyCustomAttributeValues(
+            "valves",
+            payload.customAttributeValues.valves,
+          );
 
           const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
           for (const u of payload.customerPointDemandUpdates) {

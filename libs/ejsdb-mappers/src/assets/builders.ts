@@ -37,6 +37,7 @@ import {
   type PumpRow,
   type ValveRow,
 } from "@epanet-js/ejsdb";
+import { applyAssetCustomAttributes } from "./custom-attributes";
 
 export type RawAssetRows = {
   junctions: unknown[];
@@ -73,24 +74,28 @@ export const buildAssetsData = (
 
   for (const row of junctions) {
     const junction = buildJunction(row, assetFactory);
+    applyAssetCustomAttributes(junction, row.custom_attributes);
     assets.set(junction.id, junction);
     assetIndex.addNode(junction.id);
   }
 
   for (const row of reservoirs) {
     const reservoir = buildReservoir(row, assetFactory);
+    applyAssetCustomAttributes(reservoir, row.custom_attributes);
     assets.set(reservoir.id, reservoir);
     assetIndex.addNode(reservoir.id);
   }
 
   for (const row of tanks) {
     const tank = buildTank(row, assetFactory);
+    applyAssetCustomAttributes(tank, row.custom_attributes);
     assets.set(tank.id, tank);
     assetIndex.addNode(tank.id);
   }
 
   for (const row of pipes) {
     const pipe = buildPipe(row, assetFactory);
+    applyAssetCustomAttributes(pipe, row.custom_attributes);
     assets.set(pipe.id, pipe);
     assetIndex.addLink(pipe.id);
     topology.addLink(pipe.id, row.start_node_id, row.end_node_id);
@@ -98,6 +103,7 @@ export const buildAssetsData = (
 
   for (const row of pumps) {
     const pump = buildPump(row, assetFactory);
+    applyAssetCustomAttributes(pump, row.custom_attributes);
     assets.set(pump.id, pump);
     assetIndex.addLink(pump.id);
     topology.addLink(pump.id, row.start_node_id, row.end_node_id);
@@ -105,6 +111,7 @@ export const buildAssetsData = (
 
   for (const row of valves) {
     const valve = buildValve(row, assetFactory);
+    applyAssetCustomAttributes(valve, row.custom_attributes);
     assets.set(valve.id, valve);
     assetIndex.addLink(valve.id);
     topology.addLink(valve.id, row.start_node_id, row.end_node_id);

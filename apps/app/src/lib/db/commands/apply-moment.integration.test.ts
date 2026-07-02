@@ -11,6 +11,7 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import {
+  customPropertyKey,
   emptyCustomAttributesDefinition,
   getAttributes,
   getValue,
@@ -19,7 +20,11 @@ import {
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import type { Moment } from "src/lib/persistence/moment";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
+import {
+  changeCustomAttributesDefinition,
+  changeProperty,
+} from "src/hydraulic-model/model-operations";
+import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import { applyMomentToDb, buildMomentPayload } from "./apply-moment";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
@@ -122,7 +127,7 @@ describe("apply-moment integration", () => {
     expect(j1.label).toBe("J1");
   });
 
-  it("drops custom-<id> keys at the DB boundary while persisting mapped keys", async () => {
+  it("persists custom-<id> keys alongside mapped keys in one patch", async () => {
     const IDS = { J1: 1 } as const;
 
     await seed(
@@ -147,10 +152,10 @@ describe("apply-moment integration", () => {
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
     expect(j1.elevation).toBe(50);
-    expect(j1.hasProperty("custom-1")).toBe(false);
+    expect(j1.getProperty("custom-1")).toBe("north");
   });
 
-  it("writes no row when a moment only patches custom-<id> keys", async () => {
+  it("persists a moment that only patches custom-<id> keys", async () => {
     const IDS = { J1: 1 } as const;
 
     await seed(
@@ -175,7 +180,7 @@ describe("apply-moment integration", () => {
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
     expect(j1.elevation).toBe(10);
-    expect(j1.hasProperty("custom-1")).toBe(false);
+    expect(j1.getProperty("custom-1")).toBe("north");
   });
 
   it("patches a pipe boolean property through to the fetched asset", async () => {
@@ -644,6 +649,135 @@ describe("apply-moment integration", () => {
     expect(
       getAttributes(project.hydraulicModel.customAttributes, "junction"),
     ).toEqual([]);
+  });
+
+  const customKey = (id: string) => customPropertyKey(id) as ChangeableProperty;
+
+  it("persists a custom-<id> asset value into the new column", async () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .build();
+    await seed(model);
+
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1],
+        property: customKey("ca-1"),
+        value: "north" as never,
+      }),
+    );
+
+    const project = await fetchProject();
+    const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
+    expect(j1.getProperty(customPropertyKey("ca-1"))).toBe("north");
+  });
+
+  it("clears a custom value when set to null", async () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .build();
+    await seed(model);
+
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1],
+        property: customKey("ca-1"),
+        value: "north" as never,
+      }),
+    );
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1],
+        property: customKey("ca-1"),
+        value: null as never,
+      }),
+    );
+
+    const project = await fetchProject();
+    const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
+    expect(j1.getProperty(customPropertyKey("ca-1"))).toBeUndefined();
+  });
+
+  it("merges separate custom attributes on the same asset", async () => {
+    const IDS = { J1: 1 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .build();
+    await seed(model);
+
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1],
+        property: customKey("ca-1"),
+        value: "north" as never,
+      }),
+    );
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1],
+        property: customKey("ca-2"),
+        value: 42 as never,
+      }),
+    );
+
+    const project = await fetchProject();
+    const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
+    expect(j1.getProperty(customPropertyKey("ca-1"))).toBe("north");
+    expect(j1.getProperty(customPropertyKey("ca-2"))).toBe(42);
+  });
+
+  it("persists a batch value edit across multiple assets", async () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { label: "J1" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .build();
+    await seed(model);
+
+    await persistMoment(
+      changeProperty(model, {
+        assetIds: [IDS.J1, IDS.J2],
+        property: customKey("ca-1"),
+        value: "shared" as never,
+      }),
+    );
+
+    const project = await fetchProject();
+    expect(
+      (project.hydraulicModel.assets.get(IDS.J1) as Junction).getProperty(
+        customPropertyKey("ca-1"),
+      ),
+    ).toBe("shared");
+    expect(
+      (project.hydraulicModel.assets.get(IDS.J2) as Junction).getProperty(
+        customPropertyKey("ca-1"),
+      ),
+    ).toBe("shared");
+  });
+
+  it("serializes custom values on a full asset upsert", async () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+    await seed(
+      HydraulicModelBuilder.with().aJunction(IDS.J1, { label: "J1" }).build(),
+    );
+
+    const j2 = buildJunction({
+      id: IDS.J2,
+      label: "J2",
+      coordinates: [10, 0],
+    });
+    j2.setProperty(customPropertyKey("ca-1"), "upserted");
+
+    await persistMoment({ note: "add junction", putAssets: [j2] });
+
+    const project = await fetchProject();
+    expect(
+      (project.hydraulicModel.assets.get(IDS.J2) as Junction).getProperty(
+        customPropertyKey("ca-1"),
+      ),
+    ).toBe("upserted");
   });
 
   it("does not change DB state for a noop moment", async () => {

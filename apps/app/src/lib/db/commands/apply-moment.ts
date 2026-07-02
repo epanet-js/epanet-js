@@ -4,11 +4,18 @@ import {
   type AssetId,
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
-import type { CustomAttributesData } from "@epanet-js/custom-attributes";
+import {
+  type CustomAttributesData,
+  isCustomProperty,
+  customAttributeIdFromKey,
+} from "@epanet-js/custom-attributes";
+import type { AssetPatch } from "src/hydraulic-model/model-operation";
 import {
   getWorker,
   timed,
+  emptyAssetCustomAttributeUpdates,
   type ApplyMomentPayload,
+  type AssetCustomAttributeUpdates,
   type CustomAttributesDataSave,
   type CustomerPointDemandUpdate,
   type JunctionDemandUpdate,
@@ -51,6 +58,56 @@ const buildCustomAttributesDataSave = (
   const deleteIds = [...affected].filter((id) => !presentIds.has(id));
   return { upserts, deleteIds };
 };
+
+const ASSET_TYPE_TO_TABLE: Record<
+  AssetPatch["type"],
+  keyof AssetCustomAttributeUpdates
+> = {
+  junction: "junctions",
+  reservoir: "reservoirs",
+  tank: "tanks",
+  pipe: "pipes",
+  pump: "pumps",
+  valve: "valves",
+};
+
+const buildCustomAttributeValues = (
+  patches: AssetPatch[] | undefined,
+): AssetCustomAttributeUpdates => {
+  const updates = emptyAssetCustomAttributeUpdates();
+  if (!patches) return updates;
+
+  for (const patch of patches) {
+    const properties = patch.properties as Record<string, unknown>;
+    const delta: Record<string, string | number | null> = {};
+    let hasCustom = false;
+    for (const key in properties) {
+      if (!isCustomProperty(key)) continue;
+      const value = properties[key];
+      delta[customAttributeIdFromKey(key)] =
+        value === undefined ? null : (value as string | number | null);
+      hasCustom = true;
+    }
+    if (hasCustom) {
+      updates[ASSET_TYPE_TO_TABLE[patch.type]].push({
+        id: patch.id,
+        delta: JSON.stringify(delta),
+      });
+    }
+  }
+
+  return updates;
+};
+
+const isEmptyCustomAttributeValues = (
+  updates: AssetCustomAttributeUpdates,
+): boolean =>
+  updates.junctions.length === 0 &&
+  updates.reservoirs.length === 0 &&
+  updates.tanks.length === 0 &&
+  updates.pipes.length === 0 &&
+  updates.pumps.length === 0 &&
+  updates.valves.length === 0;
 
 export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
   const upsertAssets: Asset[] = [];
@@ -137,6 +194,9 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     controlsReplacement,
     customAttributesData,
     customAttributesDefinition,
+    customAttributeValues: buildCustomAttributeValues(
+      moment.patchAssetsAttributes,
+    ),
   };
 };
 
@@ -167,6 +227,7 @@ export const applyMomentToDb = async (
       payload.rawControlsReplacement === null &&
       payload.controlsReplacement === null &&
       payload.customAttributesDefinition === null &&
+      isEmptyCustomAttributeValues(payload.customAttributeValues) &&
       (payload.customAttributesData === null ||
         (payload.customAttributesData.upserts.length === 0 &&
           payload.customAttributesData.deleteIds.length === 0))

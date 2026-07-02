@@ -43,6 +43,7 @@ const makeJunction = (overrides: Partial<JunctionRow>): JunctionRow => ({
   chemical_source_strength: null,
   chemical_source_pattern_id: null,
   emitter_coefficient: null,
+  custom_attributes: null,
   ...overrides,
 });
 
@@ -62,6 +63,7 @@ const makePipe = (overrides: Partial<PipeRow>): PipeRow => ({
   wall_reaction_coeff: null,
   material: null,
   year: null,
+  custom_attributes: null,
   ...overrides,
 });
 
@@ -83,6 +85,7 @@ const makePump = (overrides: Partial<PumpRow>): PumpRow => ({
   energy_price_pattern_id: null,
   curve_id: null,
   curve_points: null,
+  custom_attributes: null,
   ...overrides,
 });
 

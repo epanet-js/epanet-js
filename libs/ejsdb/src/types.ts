@@ -37,6 +37,30 @@ export type CustomAttributesDataSave = {
   deleteIds: number[];
 };
 
+export type CustomAttributeValueUpdate = {
+  id: number;
+  delta: string;
+};
+
+export type AssetCustomAttributeUpdates = {
+  junctions: CustomAttributeValueUpdate[];
+  reservoirs: CustomAttributeValueUpdate[];
+  tanks: CustomAttributeValueUpdate[];
+  pipes: CustomAttributeValueUpdate[];
+  pumps: CustomAttributeValueUpdate[];
+  valves: CustomAttributeValueUpdate[];
+};
+
+export const emptyAssetCustomAttributeUpdates =
+  (): AssetCustomAttributeUpdates => ({
+    junctions: [],
+    reservoirs: [],
+    tanks: [],
+    pipes: [],
+    pumps: [],
+    valves: [],
+  });
+
 export type ApplyMomentPayload = {
   assetDeleteIds: number[];
   assetUpserts: AssetRows;
@@ -51,4 +75,5 @@ export type ApplyMomentPayload = {
   controlsReplacement: string | null;
   customAttributesData: CustomAttributesDataSave | null;
   customAttributesDefinition: string | null;
+  customAttributeValues: AssetCustomAttributeUpdates;
 };
