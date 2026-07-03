@@ -2,34 +2,45 @@ import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import { detectModelMaterials } from "./detect-model-materials";
 
 const CURRENT_YEAR = new Date().getFullYear();
+const DEFAULT_ROUGHNESS = 130;
 
 describe("detectModelMaterials", () => {
-  it("returns empty array when model has no pipes", () => {
+  it("returns empty pipeLibrary when model has no pipes", () => {
     const assets = makeAssets();
-    expect(detectModelMaterials(assets)).toEqual([]);
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.status).toBe("success");
+    expect(result.pipeLibrary).toEqual([]);
   });
 
   it("skips pipes without a material", () => {
     const assets = makeAssets(makePipe(1, { year: CURRENT_YEAR - 5 }));
-    expect(detectModelMaterials(assets)).toEqual([]);
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toEqual([]);
   });
 
   it("detects a material without a year", () => {
     const assets = makeAssets(makePipe(1, { material: "Cast Iron" }));
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(1);
-    expect(result[0].label).toBe("Cast Iron");
-    expect(result[0].ages).toEqual(new Set());
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0]).toEqual({
+      label: "Cast Iron",
+      entries: [{ age: 0, roughness: DEFAULT_ROUGHNESS }],
+    });
   });
 
   it("detects a material with a year", () => {
     const assets = makeAssets(
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 10 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(1);
-    expect(result[0].label).toBe("Cast Iron");
-    expect(result[0].ages).toEqual(new Set([10]));
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0]).toEqual({
+      label: "Cast Iron",
+      entries: [
+        { age: 0, roughness: DEFAULT_ROUGHNESS },
+        { age: 10, roughness: DEFAULT_ROUGHNESS },
+      ],
+    });
   });
 
   it("deduplicates pipes with the same material", () => {
@@ -37,9 +48,11 @@ describe("detectModelMaterials", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
       makePipe(2, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(1);
-    expect(result[0].ages).toEqual(new Set([0]));
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: DEFAULT_ROUGHNESS },
+    ]);
   });
 
   it("collects distinct age buckets for the same material", () => {
@@ -47,9 +60,12 @@ describe("detectModelMaterials", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
       makePipe(2, { material: "Cast Iron", year: CURRENT_YEAR - 15 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(1);
-    expect(result[0].ages).toEqual(new Set([0, 10]));
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: DEFAULT_ROUGHNESS },
+      { age: 10, roughness: DEFAULT_ROUGHNESS },
+    ]);
   });
 
   it("detects multiple materials", () => {
@@ -57,10 +73,10 @@ describe("detectModelMaterials", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
       makePipe(2, { material: "PVC", year: CURRENT_YEAR - 3 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(2);
-    expect(result[0].label).toBe("Cast Iron");
-    expect(result[1].label).toBe("PVC");
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(2);
+    expect(result.pipeLibrary![0].label).toBe("Cast Iron");
+    expect(result.pipeLibrary![1].label).toBe("PVC");
   });
 
   it("buckets ages in 10-year steps", () => {
@@ -70,9 +86,13 @@ describe("detectModelMaterials", () => {
         makePipe(i + 1, { material: "Cast Iron", year: CURRENT_YEAR - age }),
       ),
     );
-    const result = detectModelMaterials(assets);
-    expect(result).toHaveLength(1);
-    expect(result[0].ages).toEqual(new Set([0, 10, 20]));
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: DEFAULT_ROUGHNESS },
+      { age: 10, roughness: DEFAULT_ROUGHNESS },
+      { age: 20, roughness: DEFAULT_ROUGHNESS },
+    ]);
   });
 
   it("sorts results alphabetically by label", () => {
@@ -81,7 +101,10 @@ describe("detectModelMaterials", () => {
       makePipe(2, { material: "Cast Iron" }),
       makePipe(3, { material: "Ductile Iron" }),
     );
-    const labels = detectModelMaterials(model).map((m) => m.label);
+    const labels = detectModelMaterials(
+      model,
+      DEFAULT_ROUGHNESS,
+    ).pipeLibrary!.map((m) => m.label);
     expect(labels).toEqual(["Cast Iron", "Ductile Iron", "PVC"]);
   });
 
@@ -89,8 +112,10 @@ describe("detectModelMaterials", () => {
     const assets = makeAssets(
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR + 5 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result[0].ages).toEqual(new Set([0]));
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: DEFAULT_ROUGHNESS },
+    ]);
   });
 
   it("ignores out-of-range or non-integer years when bucketing ages", () => {
@@ -99,9 +124,17 @@ describe("detectModelMaterials", () => {
       makePipe(2, { material: "Cast Iron", year: 10000 }),
       makePipe(3, { material: "Cast Iron", year: 1995.5 }),
     );
-    const result = detectModelMaterials(assets);
-    expect(result[0].label).toBe("Cast Iron");
-    expect(result[0].ages).toEqual(new Set());
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+    expect(result.pipeLibrary![0].label).toBe("Cast Iron");
+    expect(result.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: DEFAULT_ROUGHNESS },
+    ]);
+  });
+
+  it("uses the provided default roughness", () => {
+    const assets = makeAssets(makePipe(1, { material: "PVC" }));
+    const result = detectModelMaterials(assets, 42);
+    expect(result.pipeLibrary![0].entries[0].roughness).toBe(42);
   });
 });
 

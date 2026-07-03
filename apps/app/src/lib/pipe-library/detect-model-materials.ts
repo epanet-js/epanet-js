@@ -1,4 +1,6 @@
 import type { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
+import type { ImportPipeLibraryResult } from "./import-from-file";
 
 const AGE_STEP = 10;
 
@@ -13,12 +15,10 @@ const bucketByDecade = (ages: Set<number>): Set<number> => {
   return buckets;
 };
 
-export type DetectedMaterial = {
-  label: string;
-  ages: Set<number>;
-};
-
-export const detectModelMaterials = (assets: AssetsMap): DetectedMaterial[] => {
+export const detectModelMaterials = (
+  assets: AssetsMap,
+  defaultRoughness: number,
+): ImportPipeLibraryResult => {
   const rawAges = new Map<string, Set<number>>();
   const currentYear = new Date().getFullYear();
 
@@ -38,10 +38,25 @@ export const detectModelMaterials = (assets: AssetsMap): DetectedMaterial[] => {
     }
   }
 
-  return [...rawAges.entries()]
-    .map(([label, ages]) => ({
-      label,
-      ages: bucketByDecade(ages),
-    }))
+  if (rawAges.size === 0) {
+    return { status: "success", pipeLibrary: [], errors: [] };
+  }
+
+  const pipeLibrary: PipeMaterial[] = [...rawAges.entries()]
+    .map(([label, ages]) => {
+      const buckets = bucketByDecade(ages);
+      const entries: RoughnessEntry[] = [
+        { age: 0, roughness: defaultRoughness },
+      ];
+      for (const age of buckets) {
+        if (age !== 0) {
+          entries.push({ age, roughness: defaultRoughness });
+        }
+      }
+      entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
+      return { label, entries };
+    })
     .sort((a, b) => a.label.localeCompare(b.label));
+
+  return { status: "success", pipeLibrary, errors: [] };
 };

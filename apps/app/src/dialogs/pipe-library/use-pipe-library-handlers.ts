@@ -288,31 +288,30 @@ export const usePipeLibraryHandlers = () => {
   }, [notifyImport, setSelectedLabel, userTracking]);
 
   const handleImportFromModel = useCallback(() => {
-    const detected = detectModelMaterials(hydraulicModel.assets);
-    if (detected.length === 0) return;
+    const result = detectModelMaterials(
+      hydraulicModel.assets,
+      defaultRoughness,
+    );
+
+    if (!result.pipeLibrary) return;
+
+    setDraftMaterials(result.pipeLibrary);
+    setSelectedLabel(null);
+    pendingRenamesRef.current.clear();
 
     userTracking.capture({
       name: "pipeLibrary.importedFromModel",
-      materialsDetected: detected.length,
+      materialsDetected: result.pipeLibrary.length,
     });
 
-    const materials: PipeMaterial[] = detected.map((det) => {
-      const entries: RoughnessEntry[] = [
-        { age: 0, roughness: defaultRoughness },
-      ];
-      for (const age of det.ages) {
-        if (age !== 0) {
-          entries.push({ age, roughness: defaultRoughness });
-        }
-      }
-      entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
-      return { label: det.label, entries };
-    });
-
-    setDraftMaterials(materials);
-    setSelectedLabel(null);
-    pendingRenamesRef.current.clear();
-  }, [hydraulicModel, defaultRoughness, setSelectedLabel, userTracking]);
+    notifyImport(result);
+  }, [
+    hydraulicModel,
+    defaultRoughness,
+    setSelectedLabel,
+    notifyImport,
+    userTracking,
+  ]);
 
   const requestImportFromFile = useCallback(() => {
     if (draftMaterials.length > 0) {
