@@ -381,49 +381,7 @@ export const TContent = classed(Tooltip.Content)(
   ],
 );
 
-export function styledPropertyInput(
-  side: "left" | "right" | "table",
-  missing = false,
-) {
-  return clsx(
-    {
-      "pl-3": side === "left",
-      "pl-2": side === "right",
-      "px-2": side === "table",
-    },
-    missing
-      ? "text-gray-700 dark:text-gray-100 opacity-70"
-      : "text-gray-700 dark:text-gray-100",
-    `bg-transparent block tabular-nums text-xs border-none pr-1 py-2
-    overflow-hidden text-wrap
-    focus-visible:ring-inset w-full
-    focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40
-    dark:focus-visible:ring-purple-700 focus-visible:ring-purple-500`,
-  );
-}
-
-export function styledPropertyInputWithError(
-  side: "left" | "right" | "table",
-  missing = false,
-) {
-  return clsx(
-    {
-      "pl-3": side === "left",
-      "pl-2": side === "right",
-      "px-2": side === "table",
-    },
-    missing
-      ? "text-gray-700 dark:text-gray-100 opacity-70"
-      : "text-gray-700 dark:text-gray-100",
-    `bg-transparent block tabular-nums text-xs border-none pr-1 py-2
-    w-full
-    focus-visible:ring-inset
-    focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40
-    dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500`,
-  );
-}
-
-export const styledTd = "border-gray-200 dark:border-gray-600";
+export const styledTd = "border-base";
 
 const arrowLike = "text-white dark:text-gray-900 fill-current";
 

@@ -205,7 +205,7 @@ describe("NumericField", () => {
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await waitFor(() => {
-        expect(input.className).toContain("border-orange-500");
+        expect(input.className).toContain("border-warning");
       });
     });
 
@@ -214,7 +214,7 @@ describe("NumericField", () => {
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await waitFor(() => {
-        expect(input.className).toContain("border-orange-500");
+        expect(input.className).toContain("border-warning");
       });
     });
 
@@ -232,7 +232,7 @@ describe("NumericField", () => {
       await waitFor(() => {
         expect(input).toHaveValue("5");
       });
-      expect(input.className).not.toContain("border-orange-500");
+      expect(input.className).not.toContain("border-warning");
     });
   });
 
@@ -249,7 +249,7 @@ describe("NumericField", () => {
 
       const input = screen.getByRole("textbox", { name: /value for: test/i });
       await waitFor(() => {
-        expect(input.className).toContain("border-orange-500");
+        expect(input.className).toContain("border-warning");
       });
     });
 
@@ -284,7 +284,7 @@ describe("NumericField", () => {
       await waitFor(() => {
         expect(input).toHaveValue("");
       });
-      expect(input.className).not.toContain("border-orange-500");
+      expect(input.className).not.toContain("border-warning");
     });
   });
 });

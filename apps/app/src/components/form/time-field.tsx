@@ -203,13 +203,11 @@ function styledInput({
     "text-default",
     "p-2",
     "border focus-visible:border-transparent",
-    variant === "warning"
-      ? "border-orange-500 dark:border-orange-700"
-      : "border-strong hover:border",
+    variant === "warning" ? "border-warning" : "border-strong hover:border",
     {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-accent":
         variant === "default",
-      "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
+      "focus-visible:bg-warning-subtle focus-visible:ring-warning":
         variant === "warning",
     },
     "text-size-small",

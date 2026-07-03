@@ -102,9 +102,7 @@ export function TimeCell({
     <div
       className={clsx(
         "w-full h-full flex items-center",
-        hasError &&
-          editMode &&
-          "z-2 bg-orange-100 dark:bg-orange-900/30 ring-1 ring-orange-500 dark:ring-orange-700",
+        hasError && editMode && "z-2 bg-warning-subtle ring-1 ring-warning",
       )}
     >
       <input

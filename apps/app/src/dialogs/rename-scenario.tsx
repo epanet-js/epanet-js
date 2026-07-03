@@ -132,7 +132,7 @@ function RenameField({
         className={clsx(
           "w-full px-3 py-2 border rounded-sm text-size-base",
           meta.error && meta.touched
-            ? "border-orange-500 dark:border-orange-700 focus-visible:ring-orange-500"
+            ? "border-warning focus-visible:ring-warning"
             : "border-strong focus-visible:ring-accent",
         )}
         placeholder={placeholder}

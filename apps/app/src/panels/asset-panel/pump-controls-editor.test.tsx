@@ -528,7 +528,7 @@ describe("PumpControlsEditor", () => {
       const input = await startEditingTime(user, 1);
       await user.keyboard("3:00");
 
-      expect(input.parentElement).toHaveClass("bg-orange-100");
+      expect(input.parentElement).toHaveClass("bg-warning-subtle");
 
       await user.click(getCell(0, 0));
 
@@ -542,7 +542,7 @@ describe("PumpControlsEditor", () => {
       const input = await startEditingTime(user, 2);
       await user.keyboard("0:30");
 
-      expect(input.parentElement).toHaveClass("bg-orange-100");
+      expect(input.parentElement).toHaveClass("bg-warning-subtle");
 
       await user.click(getCell(0, 0));
 
@@ -556,7 +556,7 @@ describe("PumpControlsEditor", () => {
       const input = await startEditingTime(user, 1);
       await user.keyboard("1:30{Enter}");
 
-      expect(input.parentElement).not.toHaveClass("bg-orange-100");
+      expect(input.parentElement).not.toHaveClass("bg-warning-subtle");
       expect(getTimeInputValue(1)).toBe("1:30");
     });
 

@@ -146,8 +146,7 @@ export default function Notifications({
       containerClassName=""
       containerStyle={{}}
       toastOptions={{
-        className:
-          "dark:bg-base dark:text-white dark:ring-1 dark:ring-gray-500 rounded-md",
+        className: "bg-base text-default ring-1 ring-subtle rounded-md",
         duration,
         success: {
           duration: successDuration,

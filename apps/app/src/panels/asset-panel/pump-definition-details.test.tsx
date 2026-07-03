@@ -173,8 +173,8 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getFlowInput("Design")).toHaveClass("border-orange-500");
-      expect(getHeadInput("Design")).toHaveClass("border-orange-500");
+      expect(getFlowInput("Design")).toHaveClass("border-warning");
+      expect(getHeadInput("Design")).toHaveClass("border-warning");
     });
 
     it("calls onCurveChange with single point when valid", async () => {
@@ -257,11 +257,11 @@ describe("PumpCurveTable", () => {
         />,
       );
 
-      expect(getHeadInput("Shutoff")).toHaveClass("border-orange-500");
-      expect(getFlowInput("Design")).toHaveClass("border-orange-500");
-      expect(getHeadInput("Design")).toHaveClass("border-orange-500");
-      expect(getFlowInput("Max Operating")).toHaveClass("border-orange-500");
-      expect(getHeadInput("Max Operating")).toHaveClass("border-orange-500");
+      expect(getHeadInput("Shutoff")).toHaveClass("border-warning");
+      expect(getFlowInput("Design")).toHaveClass("border-warning");
+      expect(getHeadInput("Design")).toHaveClass("border-warning");
+      expect(getFlowInput("Max Operating")).toHaveClass("border-warning");
+      expect(getHeadInput("Max Operating")).toHaveClass("border-warning");
     });
 
     it("shows validation error when flows are not in ascending order", async () => {
@@ -346,7 +346,7 @@ describe("PumpCurveTable", () => {
       await user.keyboard("{Enter}");
 
       expect(headInput).toHaveValue("");
-      expect(headInput).toHaveClass("border-orange-500");
+      expect(headInput).toHaveClass("border-warning");
     });
 
     it("clearing design point in design-point mode clears derived values", async () => {
@@ -400,9 +400,9 @@ describe("PumpCurveTable", () => {
     it("does not show warning styling in read-only mode when curve is invalid", () => {
       render(<PumpCurveTable curveType="standardCurve" units={units} />);
 
-      expect(getHeadSpan("Shutoff")).not.toHaveClass("border-orange-500");
-      expect(getFlowSpan("Design")).not.toHaveClass("border-orange-500");
-      expect(getHeadSpan("Design")).not.toHaveClass("border-orange-500");
+      expect(getHeadSpan("Shutoff")).not.toHaveClass("border-warning");
+      expect(getFlowSpan("Design")).not.toHaveClass("border-warning");
+      expect(getHeadSpan("Design")).not.toHaveClass("border-warning");
     });
   });
 });

@@ -480,7 +480,7 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
           >
             {demoNetwork.name}
           </span>
-          <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full shrink-0 leading-none">
+          <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-warning-subtle text-warning rounded-full shrink-0 leading-none">
             {translate("demoShort")}
           </span>
         </div>

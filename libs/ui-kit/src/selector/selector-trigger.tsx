@@ -34,7 +34,7 @@ export const triggerStylesFor = (
       "focus:justify-between hover:border hover:rounded-xs hover:justify-between min-w-[90px]",
     "border rounded-xs justify-between",
     isWarning
-      ? "border-orange-500 dark:border-orange-700"
+      ? "border-warning"
       : !effectiveStyleOptions.border && "border-transparent",
     `px-${effectiveStyleOptions.paddingX} py-${effectiveStyleOptions.paddingY}`,
     effectiveStyleOptions.textSize,
@@ -42,7 +42,7 @@ export const triggerStylesFor = (
     !disabled &&
       !effectiveStyleOptions.disableHoverEffects &&
       (isWarning
-        ? "focus:ring-inset focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
+        ? "focus:ring-inset focus:ring-1 focus:ring-warning"
         : "focus:ring-inset focus:ring-1 focus:ring-accent focus:bg-purple-300/10"),
   );
 };

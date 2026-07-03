@@ -206,13 +206,13 @@ function styledInput({
     ghostBorder && variant !== "warning"
       ? "border-transparent bg-transparent"
       : variant === "warning"
-        ? "border-orange-500 dark:border-orange-700"
+        ? "border-warning"
         : "border-strong hover:border",
     !disabled && !ghostBorder && variant !== "warning" && "bg-base",
     !disabled && {
       "focus-visible:bg-purple-300/10 dark:focus-visible:bg-purple-700/40 focus-visible:ring-accent":
         variant === "default",
-      "focus-visible:bg-orange-300/10 dark:focus-visible:bg-orange-700/40 dark:focus-visible:ring-orange-700 focus-visible:ring-orange-500":
+      "focus-visible:bg-warning-subtle focus-visible:ring-warning":
         variant === "warning",
     },
     {

@@ -34,7 +34,7 @@ export function FileInfo() {
       </div>
       {showUnsavedIndicator ? <UnsavedChangesIcon /> : ""}
       {isDemo && (
-        <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-orange-100 text-orange-700 rounded-full">
+        <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-warning-subtle text-warning rounded-full">
           {translate("demoShort")}
         </span>
       )}

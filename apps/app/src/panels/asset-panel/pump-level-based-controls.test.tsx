@@ -107,8 +107,8 @@ describe("PumpLevelBasedControls", () => {
 
       await editValue(user, onLevelInput(), "1");
 
-      expect(onLevelInput()).toHaveClass("border-orange-500");
-      expect(offLevelInput()).not.toHaveClass("border-orange-500");
+      expect(onLevelInput()).toHaveClass("border-warning");
+      expect(offLevelInput()).not.toHaveClass("border-warning");
       expect(screen.getByText(/must be between/i)).toBeInTheDocument();
       expect(onChange).toHaveBeenLastCalledWith({
         id: "ctrl-1",
@@ -126,8 +126,8 @@ describe("PumpLevelBasedControls", () => {
 
       await editValue(user, onLevelInput(), "9");
 
-      expect(onLevelInput()).toHaveClass("border-orange-500");
-      expect(offLevelInput()).toHaveClass("border-orange-500");
+      expect(onLevelInput()).toHaveClass("border-warning");
+      expect(offLevelInput()).toHaveClass("border-warning");
       expect(
         screen.getByText(/on level must be below the off level/i),
       ).toBeInTheDocument();
@@ -147,8 +147,8 @@ describe("PumpLevelBasedControls", () => {
 
       await editValue(user, offLevelInput(), "2");
 
-      expect(onLevelInput()).toHaveClass("border-orange-500");
-      expect(offLevelInput()).toHaveClass("border-orange-500");
+      expect(onLevelInput()).toHaveClass("border-warning");
+      expect(offLevelInput()).toHaveClass("border-warning");
       expect(
         screen.getByText(/on level must be below the off level/i),
       ).toBeInTheDocument();
@@ -172,7 +172,7 @@ describe("PumpLevelBasedControls", () => {
       await editValue(user, onLevelInput(), "3");
 
       expect(screen.queryByText(/must be between/i)).not.toBeInTheDocument();
-      expect(onLevelInput()).not.toHaveClass("border-orange-500");
+      expect(onLevelInput()).not.toHaveClass("border-warning");
       expect(onChange).toHaveBeenLastCalledWith({
         id: "ctrl-1",
         type: "level-setting",

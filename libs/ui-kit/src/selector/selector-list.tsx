@@ -449,7 +449,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
             className={clsx(
               "w-full h-8 px-2 text-size-base border rounded-sm outline-hidden",
               isNewQueryInvalid
-                ? "border-orange-500 dark:border-orange-700 focus:border-orange-500 dark:focus:border-orange-700 focus:ring-1 focus:ring-orange-500 dark:focus:ring-orange-700"
+                ? "border-warning focus:border-warning focus:ring-1 focus:ring-warning"
                 : "border-strong focus:border-accent focus:ring-1 focus:ring-accent",
             )}
           />
