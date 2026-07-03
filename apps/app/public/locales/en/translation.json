@@ -1657,7 +1657,7 @@
   },
   "pipeLibrary": {
     "menuLabel": "Pipe library",
-    "applyRoughness": "Apply roughness to assets...",
+    "applyRoughness": "Apply roughness to assets",
     "materials": "Pipe materials",
     "age": "Age",
     "roughness": "Roughness",
@@ -1672,28 +1672,28 @@
     "exportXlsx": "Microsoft Excel Spreadsheet (.xlsx)",
     "importMenu": "Import",
     "importFromModel": "Import from model",
-    "importFromFile": "Import from file",
+    "importFromFile": "Import from file...",
     "import": {
       "confirmTitle": "Import pipe library",
-      "confirmMessage": "Importing a pipe library will replace existing content. Do you want to continue?",
+      "confirmMessage": "Importing a pipe library will replace the current library. Do you want to continue?",
       "cancel": "Cancel",
       "continue": "Continue",
       "success": "Imported {{count}} materials from file",
       "errorTitle": "Failed to import pipe library",
-      "errorDescription": "The selected file contains invalid entries. Check the full error list in the details.",
+      "errorDescription": "The selected file contains invalid entries. See the details for the full list of errors.",
       "emptyFile": "The file contains no materials",
-      "importedWithErrors": "Imported materials contain errors. Fix them to allow saving the library."
+      "importedWithErrors": "Some imported materials contain errors. Fix them before saving the library."
     },
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
-      "roughnessPositive": "Value \"{{1}}\" must be greater than zero",
-      "agePositive": "Value \"{{1}}\" must not be negative",
-      "roughnessRequired": "Roughness must be set",
-      "ageRequired": "Age must be set",
-      "mustBeNumber": "Contains a non-numeric value",
-      "emptyEntries": "Empty entries are not valid",
-      "zeroAge": "An entry for new pipes (age 0) should exist",
-      "duplicateAge": "All age values must be unique"
+      "roughnessPositive": "Value \"{{1}}\" cannot be negative",
+      "agePositive": "Value \"{{1}}\" cannot be negative",
+      "roughnessRequired": "Roughness is required",
+      "ageRequired": "Age is required",
+      "mustBeNumber": "Value must be numeric",
+      "emptyEntries": "Empty entries are not allowed",
+      "zeroAge": "An entry for new pipes (age 0) is required",
+      "duplicateAge": "Age values must be unique"
     },
     "paywall": {
       "title": "Upgrade to use the pipe library",
