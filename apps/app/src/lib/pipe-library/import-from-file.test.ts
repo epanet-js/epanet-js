@@ -14,13 +14,14 @@ describe("importFromFile", () => {
     vi.clearAllMocks();
   });
 
-  it("returns null when the user cancels the file picker", async () => {
+  it("returns error when the user cancels the file picker", async () => {
     vi.mocked(fileOpen).mockRejectedValue(
       Object.assign(new Error(), { name: "AbortError" }),
     );
 
     const result = await importFromFile();
-    expect(result).toBeNull();
+    expect(result.status).toBe("error");
+    expect(result.errors[0].message).toBe("pipeLibrary.import.invalidFile");
   });
 
   it("parses a valid CSV file", async () => {

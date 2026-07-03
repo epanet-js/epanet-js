@@ -1683,6 +1683,9 @@
       "errorTitle": "Failed to import pipe library",
       "errorDescription": "The selected file contains invalid entries. See the details for the full list of errors.",
       "emptyFile": "The file contains no materials",
+      "unsupportedFormat": "Selected file format is unsupported",
+      "invalidFile": "Selected file is not valid",
+      "exception": "There as an unexpected error while importing the file",
       "importedWithErrors": "Some imported materials contain errors. Fix them before saving the library."
     },
     "validation": {

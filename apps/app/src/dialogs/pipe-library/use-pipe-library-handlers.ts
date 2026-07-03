@@ -217,6 +217,50 @@ export const usePipeLibraryHandlers = () => {
     });
   }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
 
+  const notifyImport = useCallback(
+    (result: ImportPipeLibraryResult) => {
+      const title = (() => {
+        if (!result || result?.status === "error") {
+          return translate("pipeLibrary.import.errorTitle");
+        }
+
+        const numMaterials = result.pipeLibrary?.length ?? 0;
+
+        if (result.status === "partial") {
+          return translate("pipeLibrary.import.partialTitle", numMaterials);
+        }
+
+        return translate("pipeLibrary.import.success", numMaterials);
+      })();
+
+      const variant = (() => {
+        if (result.status === "partial") return "warning";
+        if (result.status === "error") return "error";
+        return "success";
+      })();
+
+      const details =
+        result.status !== "success"
+          ? formatErrors(result, translate)
+          : undefined;
+
+      const description =
+        result.status !== "success"
+          ? translate("pipeLibrary.import.errorDescription")
+          : undefined;
+
+      notify({
+        id: "pipe-library-notification",
+        variant,
+        title,
+        description,
+        details,
+        duration: 10000,
+      });
+    },
+    [translate],
+  );
+
   const handleImportFromFile = useCallback(async () => {
     const result = await importFromFile();
     if (!result) return;
@@ -225,47 +269,23 @@ export const usePipeLibraryHandlers = () => {
       setDraftMaterials(result.pipeLibrary);
       setSelectedLabel(null);
       pendingRenamesRef.current.clear();
-      userTracking.capture({
-        name: "pipeLibrary.importedFromFile",
-        materialsCount: result.pipeLibrary.length,
-        format: result.format,
-      });
 
       if (result.status === "partial") {
         setShowImportErrors(true);
-        notify({
-          id: "pipe-library-notification",
-          variant: "warning",
-          title: translate(
-            "pipeLibrary.import.partialTitle",
-            result.pipeLibrary.length,
-          ),
-          description: translate("pipeLibrary.import.errorDescription"),
-          details: formatErrors(result, translate),
-          duration: 10000,
-        });
       } else {
         setShowImportErrors(false);
-        notify({
-          id: "pipe-library-notification",
-          variant: "success",
-          title: translate(
-            "pipeLibrary.import.success",
-            result.pipeLibrary.length,
-          ),
-        });
       }
-    } else {
-      notify({
-        id: "pipe-library-notification",
-        variant: "error",
-        title: translate("pipeLibrary.import.errorTitle"),
-        description: translate("pipeLibrary.import.errorDescription"),
-        details: formatErrors(result, translate),
-        duration: 10000,
-      });
     }
-  }, [setSelectedLabel, translate, userTracking]);
+
+    userTracking.capture({
+      name: "pipeLibrary.importedFromFile",
+      status: result.status,
+      materialsCount: result.pipeLibrary?.length ?? 0,
+      format: result.format,
+    });
+
+    notifyImport(result);
+  }, [notifyImport, setSelectedLabel, userTracking]);
 
   const handleImportFromModel = useCallback(() => {
     const detected = detectModelMaterials(hydraulicModel.assets);
@@ -276,46 +296,23 @@ export const usePipeLibraryHandlers = () => {
       materialsDetected: detected.length,
     });
 
-    setDraftMaterials((prev) => {
-      const updated = [...prev];
-
-      for (const det of detected) {
-        const existingIndex = updated.findIndex((m) => m.label === det.label);
-
-        if (existingIndex === -1) {
-          const entries: RoughnessEntry[] = [
-            { age: 0, roughness: defaultRoughness },
-          ];
-          for (const age of det.ages) {
-            if (age !== 0) {
-              entries.push({ age, roughness: defaultRoughness });
-            }
-          }
-          entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
-          updated.push({ label: det.label, entries });
-        } else {
-          const existing = updated[existingIndex];
-          const existingAges = new Set(
-            existing.entries
-              .map((e) => e.age)
-              .filter((a): a is number => a !== null),
-          );
-          const newEntries = [...existing.entries];
-          for (const age of det.ages) {
-            if (!existingAges.has(age)) {
-              newEntries.push({ age, roughness: defaultRoughness });
-            }
-          }
-          if (newEntries.length !== existing.entries.length) {
-            newEntries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
-            updated[existingIndex] = { ...existing, entries: newEntries };
-          }
+    const materials: PipeMaterial[] = detected.map((det) => {
+      const entries: RoughnessEntry[] = [
+        { age: 0, roughness: defaultRoughness },
+      ];
+      for (const age of det.ages) {
+        if (age !== 0) {
+          entries.push({ age, roughness: defaultRoughness });
         }
       }
-
-      return updated;
+      entries.sort((a, b) => (a.age ?? 0) - (b.age ?? 0));
+      return { label: det.label, entries };
     });
-  }, [hydraulicModel, defaultRoughness, userTracking]);
+
+    setDraftMaterials(materials);
+    setSelectedLabel(null);
+    pendingRenamesRef.current.clear();
+  }, [hydraulicModel, defaultRoughness, setSelectedLabel, userTracking]);
 
   const requestImportFromFile = useCallback(() => {
     if (draftMaterials.length > 0) {

@@ -5,68 +5,89 @@ import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { validateEntry, validateMaterial } from "./validate-material";
 
 export type ImportError = {
-  material: string;
   message: string;
+  material?: string;
   value?: string;
 };
 
 export type ImportPipeLibraryResult = {
   status: "success" | "error" | "partial";
-  format: "csv" | "xlsx";
+  format?: "csv" | "xlsx";
   pipeLibrary?: PipeMaterial[];
   errors: ImportError[];
 };
 
-export const importFromFile =
-  async (): Promise<ImportPipeLibraryResult | null> => {
-    const file = await openFilePicker();
-    if (!file) return null;
+export const importFromFile = async (): Promise<ImportPipeLibraryResult> => {
+  const file = await openFilePicker();
+  if (!file) {
+    return {
+      status: "error",
+      errors: [{ message: "pipeLibrary.import.invalidFile" }],
+    };
+  }
 
-    const format: "csv" | "xlsx" = file.name.endsWith(".csv") ? "csv" : "xlsx";
-    const materials =
-      format === "csv" ? await parseCsv(file) : await parseXlsx(file);
+  const extension = file.name.slice(file.name.lastIndexOf("."));
+  if (extension !== ".csv" && extension !== ".xlsx") {
+    return {
+      status: "error",
+      errors: [{ message: "pipeLibrary.import.unsupportedFormat" }],
+    };
+  }
 
-    if (materials.length === 0) {
-      return {
-        status: "error",
-        format,
-        errors: [
-          { material: "", message: "pipeLibrary.import.emptyFile", value: "" },
-        ],
-      };
-    }
+  const format: "csv" | "xlsx" = file.name.endsWith(".csv") ? "csv" : "xlsx";
+  const parseMaterials = file.name.endsWith(".csv") ? parseCsv : parseXlsx;
+  let materials: PipeMaterial[] = [];
 
-    const errors: ImportError[] = [];
-    const sanitized: PipeMaterial[] = materials.map((material) => {
-      const error = validateMaterial(material);
-      if (error === null) return material;
+  try {
+    materials = await parseMaterials(file);
+  } catch (e) {
+    return {
+      status: "error",
+      errors: [{ message: "pipeLibrary.import.exception" }],
+    };
+  }
 
-      errors.push({
-        material: material.label,
-        message: error.message,
-        value: error.value,
-      });
+  if (materials.length === 0) {
+    return {
+      status: "error",
+      format,
+      errors: [
+        { material: "", message: "pipeLibrary.import.emptyFile", value: "" },
+      ],
+    };
+  }
 
-      return {
-        label: material.label,
-        entries: material.entries.map((entry) => {
-          const entryErrors = validateEntry(entry);
-          if (entryErrors.length === 0) return entry;
-          const patched = { ...entry };
-          for (const e of entryErrors) {
-            patched[e.field] = null;
-          }
-          return patched;
-        }),
-      };
+  const errors: ImportError[] = [];
+  const sanitized: PipeMaterial[] = materials.map((material) => {
+    const error = validateMaterial(material);
+    if (error === null) return material;
+
+    errors.push({
+      material: material.label,
+      message: error.message,
+      value: error.value,
     });
 
-    if (errors.length > 0) {
-      return { status: "partial", format, pipeLibrary: sanitized, errors };
-    }
+    return {
+      label: material.label,
+      entries: material.entries.map((entry) => {
+        const entryErrors = validateEntry(entry);
+        if (entryErrors.length === 0) return entry;
+        const patched = { ...entry };
+        for (const e of entryErrors) {
+          patched[e.field] = null;
+        }
+        return patched;
+      }),
+    };
+  });
 
-    return { status: "success", format, pipeLibrary: sanitized, errors: [] };
-  };
+  if (errors.length > 0) {
+    return { status: "partial", format, pipeLibrary: sanitized, errors };
+  }
+
+  return { status: "success", format, pipeLibrary: sanitized, errors: [] };
+};
 
 const openFilePicker = async (): Promise<File | null> => {
   try {

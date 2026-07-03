@@ -1081,13 +1081,14 @@ type PipeLibrarySaved = {
 
 type PipeLibraryExported = {
   name: "pipeLibrary.exported";
-  format: string;
+  format: "csv" | "xlsx";
 };
 
 type PipeLibraryImportedFromFile = {
   name: "pipeLibrary.importedFromFile";
   materialsCount: number;
-  format: "csv" | "xlsx";
+  status: "success" | "partial" | "error";
+  format?: "csv" | "xlsx";
 };
 
 type PipeLibraryClosed = {
