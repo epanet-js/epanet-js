@@ -14,6 +14,11 @@ import type {
   ChangeablePropertyValue,
 } from "src/hydraulic-model/model-operations/change-property";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useTranslate } from "src/hooks/use-translate";
+import {
+  useAssetComparison,
+  type PropertyComparison,
+} from "src/hooks/use-asset-comparison";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
@@ -43,11 +48,17 @@ export const CustomAttributesSection = ({
 }) => {
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const { customAttributes } = useAtomValue(stagingModelDerivedAtom);
+  const { getComparison } = useAssetComparison(asset);
 
   const attributes = useMemo(
     () => getAttributes(customAttributes, type),
     [customAttributes, type],
   );
+
+  const hasChanged = attributes.some((attribute) => {
+    const key = customPropertyKey(attribute.id);
+    return getComparison(key, asset.getProperty(key) ?? null).hasChanged;
+  });
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
@@ -62,18 +73,24 @@ export const CustomAttributesSection = ({
   if (attributes.length === 0) return null;
 
   return (
-    <SectionWrapper title="Custom attributes" section="customAttributes">
-      {attributes.map((attribute) => (
-        <CustomAttributeRow
-          key={attribute.id}
-          attribute={attribute}
-          value={
-            (asset.getProperty(customPropertyKey(attribute.id)) ??
-              null) as CustomAttributeValue
-          }
-          onChange={handleChange}
-        />
-      ))}
+    <SectionWrapper
+      title="Custom attributes"
+      section="customAttributes"
+      hasChanged={hasChanged}
+    >
+      {attributes.map((attribute) => {
+        const value = (asset.getProperty(customPropertyKey(attribute.id)) ??
+          null) as CustomAttributeValue;
+        return (
+          <CustomAttributeRow
+            key={attribute.id}
+            attribute={attribute}
+            value={value}
+            comparison={getComparison(customPropertyKey(attribute.id), value)}
+            onChange={handleChange}
+          />
+        );
+      })}
     </SectionWrapper>
   );
 };
@@ -81,19 +98,33 @@ export const CustomAttributesSection = ({
 const CustomAttributeRow = ({
   attribute,
   value,
+  comparison,
   onChange,
 }: {
   attribute: CustomAttribute;
   value: CustomAttributeValue;
+  comparison: PropertyComparison;
   onChange: (
     attributeId: CustomAttributeId,
     value: CustomAttributeValue,
   ) => void;
 }) => {
+  const translate = useTranslate();
   const displayValue = value == null ? "" : String(value);
 
+  const baseDisplayValue = comparison.hasChanged
+    ? comparison.baseValue != null
+      ? String(comparison.baseValue)
+      : translate("none")
+    : undefined;
+
   return (
-    <InlineField name={attribute.label} labelSize="md">
+    <InlineField
+      name={attribute.label}
+      labelSize="md"
+      hasChanged={comparison.hasChanged}
+      baseDisplayValue={baseDisplayValue}
+    >
       {attribute.type === "number" ? (
         <NumericField
           key={displayValue}
