@@ -121,7 +121,7 @@ describe("PipeLibraryDialog", () => {
     );
   });
 
-  it("renames a material and values stay in place", async () => {
+  it("renames a material, preserves values, and propagates to pipes on save", async () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
@@ -135,6 +135,14 @@ describe("PipeLibraryDialog", () => {
     ]);
     store.set(selectedMaterialLabelAtom, "Cast Iron");
     renderDialog(store);
+
+    const mockMoment = {
+      note: "Rename pipe materials",
+      patchAssetsAttributes: [
+        { id: 1, type: "pipe", properties: { material: "Ductile Iron" } },
+      ],
+    };
+    vi.mocked(renameMaterialsMoment).mockReturnValue(mockMoment as never);
 
     await openActionsMenu(user, "Cast Iron");
     await user.click(screen.getByRole("menuitem", { name: /rename/i }));
@@ -152,6 +160,9 @@ describe("PipeLibraryDialog", () => {
       { age: 0, roughness: 100 },
       { age: 5, roughness: 120 },
     ]);
+
+    expect(renameMaterialsMoment).toHaveBeenCalled();
+    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 
   it("duplicates a material with the same values", async () => {
@@ -308,105 +319,7 @@ describe("PipeLibraryDialog", () => {
     expect(mockTransact).toHaveBeenCalledWith(mockMoment);
   });
 
-  it("propagates material renames to pipes on save", async () => {
-    const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
-    renderDialog(store);
-
-    const mockMoment = {
-      note: "Rename pipe materials",
-      patchAssetsAttributes: [
-        { id: 1, type: "pipe", properties: { material: "Ductile Iron" } },
-      ],
-    };
-    vi.mocked(renameMaterialsMoment).mockReturnValue(mockMoment as never);
-
-    await openActionsMenu(user, "Cast Iron");
-    await user.click(screen.getByRole("menuitem", { name: /rename/i }));
-
-    const input = screen.getByPlaceholderText("Pipe materials");
-    fireEvent.change(input, { target: { value: "Ductile Iron" } });
-    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
-
-    await clickSave(user);
-
-    expect(renameMaterialsMoment).toHaveBeenCalled();
-    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
-  });
-
-  it("highlights cells that fail validation", () => {
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 10, roughness: null },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
-    renderDialog(store);
-
-    expect(getCell(1, 1)).toHaveClass("bg-warning-subtle");
-    expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
-    expect(getCell(0, 0)).not.toHaveClass("bg-warning-subtle");
-    expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
-  });
-
-  it("calls exportXlsx when xlsx menu item is clicked", async () => {
-    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
-    const user = setupUser();
-    const store = setInitialState();
-    const materials = [
-      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
-    ];
-    store.set(pipeMaterialsAtom, materials);
-    store.set(projectFileInfoAtom, {
-      name: "my-network.inp",
-      modelVersion: "1",
-    });
-    renderDialog(store);
-
-    await user.click(screen.getByRole("button", { name: /export/i }));
-    await user.click(
-      screen.getByRole("menuitem", {
-        name: /microsoft excel spreadsheet/i,
-      }),
-    );
-
-    expect(exportXlsx).toHaveBeenCalledWith(materials, "my-network");
-  });
-
-  it("calls exportCsv when csv menu item is clicked", async () => {
-    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
-    const user = setupUser();
-    const store = setInitialState();
-    const materials = [
-      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
-    ];
-    store.set(pipeMaterialsAtom, materials);
-    store.set(projectFileInfoAtom, {
-      name: "my-network.inp",
-      modelVersion: "1",
-    });
-    renderDialog(store);
-
-    await user.click(screen.getByRole("button", { name: /export/i }));
-    await user.click(
-      screen.getByRole("menuitem", {
-        name: /csv/i,
-      }),
-    );
-
-    expect(exportCsv).toHaveBeenCalledWith(materials, "my-network");
-  });
-
-  it("disables apply roughness when a material fails validation", async () => {
+  it("highlights invalid cells and disables apply roughness until fixed", async () => {
     const user = setupUser();
     const store = setInitialState();
     store.set(pipeMaterialsAtom, [
@@ -422,6 +335,11 @@ describe("PipeLibraryDialog", () => {
     store.set(selectedMaterialLabelAtom, "Cast Iron");
     renderDialog(store);
 
+    expect(getCell(2, 1)).toHaveClass("bg-warning-subtle");
+    expect(getCell(0, 0)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(0, 1)).not.toHaveClass("bg-warning-subtle");
+    expect(getCell(1, 0)).not.toHaveClass("bg-warning-subtle");
+
     expect(
       screen.getByRole("button", { name: /apply roughness/i }),
     ).toBeDisabled();
@@ -436,6 +354,33 @@ describe("PipeLibraryDialog", () => {
         screen.getByRole("button", { name: /apply roughness/i }),
       ).toBeEnabled();
     });
+  });
+
+  it("exports in csv and xlsx formats", async () => {
+    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
+    const user = setupUser();
+    const store = setInitialState();
+    const materials = [
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+    ];
+    store.set(pipeMaterialsAtom, materials);
+    store.set(projectFileInfoAtom, {
+      name: "my-network.inp",
+      modelVersion: "1",
+    });
+    renderDialog(store);
+
+    await user.click(screen.getByRole("button", { name: /export/i }));
+    await user.click(screen.getByRole("menuitem", { name: /csv/i }));
+    expect(exportCsv).toHaveBeenCalledWith(materials, "my-network");
+
+    await user.click(screen.getByRole("button", { name: /export/i }));
+    await user.click(
+      screen.getByRole("menuitem", {
+        name: /microsoft excel spreadsheet/i,
+      }),
+    );
+    expect(exportXlsx).toHaveBeenCalledWith(materials, "my-network");
   });
 });
 
