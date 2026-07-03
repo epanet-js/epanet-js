@@ -1681,7 +1681,8 @@
       "success": "Imported {{count}} materials from file",
       "errorTitle": "Failed to import pipe library",
       "errorDescription": "The selected file contains invalid entries. Check the full error list in the details.",
-      "emptyFile": "The file contains no materials"
+      "emptyFile": "The file contains no materials",
+      "importedWithErrors": "Imported materials contain errors. Fix them to allow saving the library."
     },
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",

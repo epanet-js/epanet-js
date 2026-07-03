@@ -8,7 +8,7 @@ import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
-import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
+import { ChevronDownIcon, CloseIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { validateMaterial } from "src/lib/pipe-library";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
@@ -42,6 +42,8 @@ export const PipeLibraryDialog = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
+    showImportErrors,
+    handleDismissImportErrors,
   } = usePipeLibraryHandlers();
 
   return (
@@ -83,6 +85,9 @@ export const PipeLibraryDialog = () => {
             />
           </div>
         </div>
+        {showImportErrors && (
+          <ImportWithErrorsBanner onDismiss={handleDismissImportErrors} />
+        )}
         {pendingImport !== null && (
           <ImportWarningBanner
             onAccept={handleAcceptImport}
@@ -154,6 +159,22 @@ const ImportWarningBanner = ({
         </Button>
         <Button variant="danger" size="sm" disabled={false} onClick={onAccept}>
           {translate("pipeLibrary.import.continue")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const ImportWithErrorsBanner = ({ onDismiss }: { onDismiss: () => void }) => {
+  const translate = useTranslate();
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle">
+      <p className="text-size-base">
+        {translate("pipeLibrary.import.importedWithErrors")}
+      </p>
+      <div className="flex gap-2">
+        <Button variant="quiet" size="sm" disabled={false} onClick={onDismiss}>
+          <CloseIcon />
         </Button>
       </div>
     </div>

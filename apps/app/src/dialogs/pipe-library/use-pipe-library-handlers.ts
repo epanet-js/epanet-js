@@ -43,6 +43,7 @@ export const usePipeLibraryHandlers = () => {
   const [pendingImport, setPendingImport] = useState<"file" | "model" | null>(
     null,
   );
+  const [showImportErrors, setShowImportErrors] = useState(false);
   const pendingRenamesRef = useRef(new Map<string, string>());
 
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
@@ -220,7 +221,7 @@ export const usePipeLibraryHandlers = () => {
     const result = await importFromFile();
     if (!result) return;
 
-    if (result.status === "success" && result.pipeLibrary) {
+    if (result.pipeLibrary) {
       setDraftMaterials(result.pipeLibrary);
       setSelectedLabel(null);
       pendingRenamesRef.current.clear();
@@ -229,14 +230,28 @@ export const usePipeLibraryHandlers = () => {
         materialsCount: result.pipeLibrary.length,
         format: result.format,
       });
-      notify({
-        id: "pipe-library-notification",
-        variant: "success",
-        title: translate(
-          "pipeLibrary.import.success",
-          result.pipeLibrary.length,
-        ),
-      });
+
+      if (result.status === "partial") {
+        setShowImportErrors(true);
+        notify({
+          id: "pipe-library-notification",
+          variant: "warning",
+          title: translate("pipeLibrary.import.errorTitle"),
+          description: translate("pipeLibrary.import.errorDescription"),
+          details: formatErrors(result, translate),
+          duration: 10000,
+        });
+      } else {
+        setShowImportErrors(false);
+        notify({
+          id: "pipe-library-notification",
+          variant: "success",
+          title: translate(
+            "pipeLibrary.import.success",
+            result.pipeLibrary.length,
+          ),
+        });
+      }
     } else {
       notify({
         id: "pipe-library-notification",
@@ -325,6 +340,10 @@ export const usePipeLibraryHandlers = () => {
     setPendingImport(null);
   }, []);
 
+  const handleDismissImportErrors = useCallback(() => {
+    setShowImportErrors(false);
+  }, []);
+
   const handleExportCsv = useCallback(async () => {
     await exportCsv(draftMaterials, networkName);
     userTracking.capture({ name: "pipeLibrary.exported", format: "csv" });
@@ -369,6 +388,8 @@ export const usePipeLibraryHandlers = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
+    showImportErrors,
+    handleDismissImportErrors,
   };
 };
 

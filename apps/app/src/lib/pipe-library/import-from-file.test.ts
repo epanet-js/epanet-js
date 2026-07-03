@@ -100,7 +100,7 @@ describe("importFromFile", () => {
     expect(result?.errors[0].message).toBe("pipeLibrary.import.emptyFile");
   });
 
-  it("returns validation errors for invalid entries", async () => {
+  it("returns partial result with sanitized entries for invalid values", async () => {
     const csv = Papa.unparse({
       fields: ["Material Name", "Age", "Roughness"],
       data: [
@@ -114,10 +114,41 @@ describe("importFromFile", () => {
 
     const result = await importFromFile();
 
-    expect(result?.status).toBe("error");
+    expect(result?.status).toBe("partial");
     expect(result?.errors).toHaveLength(2);
     expect(result?.errors[0].material).toBe("Cast Iron");
     expect(result?.errors[1].material).toBe("PVC");
+    expect(result?.pipeLibrary).toHaveLength(2);
+    expect(result?.pipeLibrary![0]).toEqual({
+      label: "Cast Iron",
+      entries: [{ age: 0, roughness: null }],
+    });
+    expect(result?.pipeLibrary![1]).toEqual({
+      label: "PVC",
+      entries: [{ age: null, roughness: 150 }],
+    });
+  });
+
+  it("keeps valid entries alongside invalid ones in the same material", async () => {
+    const csv = Papa.unparse({
+      fields: ["Material Name", "Age", "Roughness"],
+      data: [
+        ["Cast Iron", 0, 100],
+        ["Cast Iron", 10, -5],
+      ],
+    });
+    vi.mocked(fileOpen).mockResolvedValue(
+      createFile(csv, "mixed.csv", "text/csv"),
+    );
+
+    const result = await importFromFile();
+
+    expect(result?.status).toBe("partial");
+    expect(result?.errors).toHaveLength(1);
+    expect(result?.pipeLibrary![0].entries).toEqual([
+      { age: 0, roughness: 100 },
+      { age: 10, roughness: null },
+    ]);
   });
 });
 

@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import Papa from "papaparse";
 import { fileOpen } from "browser-fs-access";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
-import { validateMaterial } from "./validate-material";
+import { validateEntry, validateMaterial } from "./validate-material";
 
 export type ImportError = {
   material: string;
@@ -11,7 +11,7 @@ export type ImportError = {
 };
 
 export type ImportPipeLibraryResult = {
-  status: "success" | "error";
+  status: "success" | "error" | "partial";
   format: "csv" | "xlsx";
   pipeLibrary?: PipeMaterial[];
   errors: ImportError[];
@@ -37,22 +37,35 @@ export const importFromFile =
     }
 
     const errors: ImportError[] = [];
-    for (const material of materials) {
+    const sanitized: PipeMaterial[] = materials.map((material) => {
       const error = validateMaterial(material);
-      if (error !== null) {
-        errors.push({
-          material: material.label,
-          message: error.message,
-          value: error.value,
-        });
-      }
-    }
+      if (error === null) return material;
+
+      errors.push({
+        material: material.label,
+        message: error.message,
+        value: error.value,
+      });
+
+      return {
+        label: material.label,
+        entries: material.entries.map((entry) => {
+          const entryErrors = validateEntry(entry);
+          if (entryErrors.length === 0) return entry;
+          const patched = { ...entry };
+          for (const e of entryErrors) {
+            patched[e.field] = null;
+          }
+          return patched;
+        }),
+      };
+    });
 
     if (errors.length > 0) {
-      return { status: "error", format, errors };
+      return { status: "partial", format, pipeLibrary: sanitized, errors };
     }
 
-    return { status: "success", format, pipeLibrary: materials, errors: [] };
+    return { status: "success", format, pipeLibrary: sanitized, errors: [] };
   };
 
 const openFilePicker = async (): Promise<File | null> => {
