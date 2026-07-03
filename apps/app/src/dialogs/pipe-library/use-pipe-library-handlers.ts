@@ -236,7 +236,10 @@ export const usePipeLibraryHandlers = () => {
         notify({
           id: "pipe-library-notification",
           variant: "warning",
-          title: translate("pipeLibrary.import.errorTitle"),
+          title: translate(
+            "pipeLibrary.import.partialTitle",
+            result.pipeLibrary.length,
+          ),
           description: translate("pipeLibrary.import.errorDescription"),
           details: formatErrors(result, translate),
           duration: 10000,
