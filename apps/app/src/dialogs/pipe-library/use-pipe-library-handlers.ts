@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { TranslateFn, useTranslate } from "src/hooks/use-translate";
+import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -43,7 +43,10 @@ export const usePipeLibraryHandlers = () => {
   const [pendingImport, setPendingImport] = useState<"file" | "model" | null>(
     null,
   );
-  const [showImportErrors, setShowImportErrors] = useState(false);
+  const [importBanner, setImportBanner] = useState<{
+    description: string;
+    variant: "default" | "warning" | "error" | "success";
+  } | null>(null);
   const pendingRenamesRef = useRef(new Map<string, string>());
 
   const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
@@ -219,7 +222,7 @@ export const usePipeLibraryHandlers = () => {
 
   const notifyImport = useCallback(
     (result: ImportPipeLibraryResult) => {
-      const title = (() => {
+      const description = (() => {
         if (!result || result?.status === "error") {
           return translate("pipeLibrary.import.errorTitle");
         }
@@ -244,24 +247,7 @@ export const usePipeLibraryHandlers = () => {
         return "success";
       })();
 
-      const details =
-        result.status !== "success"
-          ? formatErrors(result, translate)
-          : undefined;
-
-      const description =
-        result.status !== "success"
-          ? translate("pipeLibrary.import.errorDescription")
-          : undefined;
-
-      notify({
-        id: "pipe-library-notification",
-        variant,
-        title,
-        description,
-        details,
-        duration: 10000,
-      });
+      setImportBanner({ description, variant });
     },
     [translate],
   );
@@ -274,12 +260,6 @@ export const usePipeLibraryHandlers = () => {
       setDraftMaterials(result.pipeLibrary);
       setSelectedLabel(null);
       pendingRenamesRef.current.clear();
-
-      if (result.status === "partial") {
-        setShowImportErrors(true);
-      } else {
-        setShowImportErrors(false);
-      }
     }
 
     userTracking.capture({
@@ -344,8 +324,8 @@ export const usePipeLibraryHandlers = () => {
     setPendingImport(null);
   }, []);
 
-  const handleDismissImportErrors = useCallback(() => {
-    setShowImportErrors(false);
+  const handleDismissImportBanner = useCallback(() => {
+    setImportBanner(null);
   }, []);
 
   const handleExportCsv = useCallback(async () => {
@@ -392,18 +372,7 @@ export const usePipeLibraryHandlers = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    showImportErrors,
-    handleDismissImportErrors,
+    importBanner,
+    handleDismissImportBanner,
   };
 };
-
-const formatErrors = (
-  result: ImportPipeLibraryResult,
-  translate: TranslateFn,
-) =>
-  result.errors
-    .map(
-      (e) =>
-        `· ${e.material ? e.material + ": " : ""}${translate(e.message, e.value ?? "")}`,
-    )
-    .join("\n");

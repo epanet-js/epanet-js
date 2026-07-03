@@ -42,8 +42,8 @@ export const PipeLibraryDialog = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    showImportErrors,
-    handleDismissImportErrors,
+    importBanner,
+    handleDismissImportBanner,
   } = usePipeLibraryHandlers();
 
   return (
@@ -85,8 +85,12 @@ export const PipeLibraryDialog = () => {
             />
           </div>
         </div>
-        {showImportErrors && (
-          <ImportWithErrorsBanner onDismiss={handleDismissImportErrors} />
+        {importBanner && (
+          <DismissableBanner
+            description={importBanner.description}
+            variant={importBanner.variant}
+            onDismiss={handleDismissImportBanner}
+          />
         )}
         {pendingImport !== null && (
           <ImportWarningBanner
@@ -166,21 +170,26 @@ const ImportWarningBanner = ({
   );
 };
 
-const ImportWithErrorsBanner = ({ onDismiss }: { onDismiss: () => void }) => {
-  const translate = useTranslate();
-  return (
-    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle">
-      <p className="text-size-base">
-        {translate("pipeLibrary.import.importedWithErrors")}
-      </p>
-      <div className="flex gap-2">
-        <Button variant="quiet" size="sm" disabled={false} onClick={onDismiss}>
-          <CloseIcon />
-        </Button>
-      </div>
+const DismissableBanner = ({
+  description,
+  variant,
+  onDismiss,
+}: {
+  description: string;
+  variant: "default" | "warning" | "error" | "success";
+  onDismiss: () => void;
+}) => (
+  <div
+    className={`flex items-center justify-between px-4 py-2 border-b bg-${variant}-subtle`}
+  >
+    <p className="text-size-base">{description}</p>
+    <div className="flex gap-2">
+      <Button variant="quiet" size="sm" disabled={false} onClick={onDismiss}>
+        <CloseIcon />
+      </Button>
     </div>
-  );
-};
+  </div>
+);
 
 const ImportSubmenu = ({
   handleImportFromFile,
