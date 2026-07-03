@@ -116,6 +116,7 @@ export const PipeLibraryDialog = () => {
             {selectedMaterial ? (
               <>
                 <PipeRoughnessTable
+                  key={selectedMaterial.label}
                   entries={selectedMaterial.entries}
                   onChange={handleEntriesChange}
                 />

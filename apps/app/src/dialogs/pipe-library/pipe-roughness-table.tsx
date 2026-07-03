@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef, useEffect } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import {
   DataGrid,
   type DataGridRef,
@@ -64,20 +64,9 @@ export const PipeRoughnessTable = ({
   );
 
   const rowData = useMemo(
-    () => (entries.length === 0 ? [{ ...DEFAULT_ROW }] : entries),
+    () => (entries.length === 0 ? [{ ...DEFAULT_ROW }] : sortByAge(entries)),
     [entries],
   );
-
-  useEffect(() => {
-    gridRef.current?.clearSelection();
-  }, [entries]);
-
-  useEffect(() => {
-    const sorted = sortByAge(entries);
-    if (sorted.some((entry, i) => entry !== entries[i])) {
-      onChange(sorted);
-    }
-  }, [entries, onChange]);
 
   const selectRow = useCallback((rowIndex: number) => {
     gridRef.current?.selectCells({ rowIndex });
@@ -202,7 +191,8 @@ export const PipeRoughnessTable = ({
 
   const handleChange = useCallback(
     (newRows: RoughnessEntry[]) => {
-      onChange(newRows.length === 0 ? [{ ...DEFAULT_ROW }] : newRows);
+      const rows = newRows.length === 0 ? [{ ...DEFAULT_ROW }] : newRows;
+      onChange(sortByAge(rows));
     },
     [onChange],
   );
