@@ -24,3 +24,25 @@ export function formatNumericDisplay(value: number | null | undefined): string {
   if (value === null || value === undefined) return "";
   return new Intl.NumberFormat().format(value);
 }
+
+export const isNumber = (value: number) => !Number.isNaN(value);
+
+export const validationStateFor = (
+  value: string,
+  {
+    isRequired,
+    commitInvalidValues,
+    validate = isNumber,
+  }: {
+    isRequired: boolean;
+    commitInvalidValues: boolean;
+    validate?: (value: number) => boolean;
+  },
+) => {
+  const isEmpty = value.trim() === "";
+  const numericValue = parseLocaleNumber(value);
+  const isNonNumeric = !isEmpty && isNaN(numericValue);
+  const hasError = isEmpty ? isRequired : !validate(numericValue);
+  const isBlocked = isNonNumeric || (hasError && !commitInvalidValues);
+  return { hasError, isBlocked };
+};

@@ -176,6 +176,7 @@ export function floatColumn<TData extends RowData = RowData>(
     emptyValue?: number | null;
     validate?: (value: number) => boolean;
     commitInvalidValues?: boolean;
+    required?: boolean;
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
@@ -187,6 +188,7 @@ export function floatColumn<TData extends RowData = RowData>(
     emptyValue,
     validate,
     commitInvalidValues,
+    required,
     decimals,
     isReadOnly: readonly,
     placeholder,
@@ -247,6 +249,12 @@ export function floatColumn<TData extends RowData = RowData>(
       deleteValue: emptyValue,
       placeholder,
       isReadOnly: readonly,
+      ...(required !== undefined
+        ? {
+            hasWarning: (value: number | null): boolean =>
+              value == null ? required : validate ? !validate(value) : false,
+          }
+        : {}),
     },
   };
   return column as GridColumn<TData>;

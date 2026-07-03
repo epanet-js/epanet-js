@@ -147,6 +147,7 @@ export function integerColumn<TData extends RowData = RowData>(
     emptyValue?: number | null;
     validate?: (value: number) => boolean;
     commitInvalidValues?: boolean;
+    required?: boolean;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
     placeholder?: string;
   },
@@ -155,6 +156,7 @@ export function integerColumn<TData extends RowData = RowData>(
     emptyValue,
     validate,
     commitInvalidValues,
+    required,
     isReadOnly: readonly,
     placeholder,
   } = options;
@@ -203,6 +205,12 @@ export function integerColumn<TData extends RowData = RowData>(
       deleteValue: emptyValue,
       placeholder,
       isReadOnly: readonly,
+      ...(required !== undefined
+        ? {
+            hasWarning: (value: number | null): boolean =>
+              value == null ? required : validate ? !validate(value) : false,
+          }
+        : {}),
     },
   };
   return column as GridColumn<TData>;

@@ -7,12 +7,11 @@ import {
   useEffect,
 } from "react";
 import { parseLocaleNumber, reformatWithoutGroups } from "src/infra/i18n";
-import { normalizeNumericInput } from "./numeric-input-utils";
+import {
+  normalizeNumericInput,
+  validationStateFor,
+} from "./numeric-input-utils";
 import clsx from "clsx";
-
-// Default validator when a caller doesn't provide one: the value just has to be
-// a number, so a non-numeric entry (parsed as NaN) fails it.
-const isNumber = (value: number) => !Number.isNaN(value);
 
 type StyleOptions = {
   textSize?: "xs" | "sm" | "md";
@@ -177,36 +176,6 @@ export const NumericField = ({
       className={styledInput({ ...styleOptions, disabled })}
     />
   );
-};
-
-// Warning + blocking state for a given input string, from three orthogonal
-// inputs — there is no separate "clearable" concept:
-//   - isRequired → an empty value is invalid (e.g. an unmapped roughness, or
-//                  reservoir head which is required but has no range validator)
-//   - validate   → check for non-empty values; defaults to "is a number"
-//   - commitInvalidValues → commit invalid values (out-of-range or empty-but-
-//                  required) with a warning instead of reverting; a non-numeric
-//                  value always reverts
-//
-// "Can the user commit empty" then falls out as `!isRequired || commitInvalidValues`.
-const validationStateFor = (
-  value: string,
-  {
-    isRequired,
-    commitInvalidValues,
-    validate = isNumber,
-  }: {
-    isRequired: boolean;
-    commitInvalidValues: boolean;
-    validate?: (value: number) => boolean;
-  },
-) => {
-  const isEmpty = value.trim() === "";
-  const numericValue = parseLocaleNumber(value);
-  const isNonNumeric = !isEmpty && isNaN(numericValue);
-  const hasError = isEmpty ? isRequired : !validate(numericValue);
-  const isBlocked = isNonNumeric || (hasError && !commitInvalidValues);
-  return { hasError, isBlocked };
 };
 
 function styledInput({

@@ -504,6 +504,7 @@ function pipeAttributeColsFor(
         emptyValue: null,
         validate: fieldValidator("pipe", "year"),
         commitInvalidValues: allowsNullValues,
+        required: false,
         placeholder: "",
         isReadOnly: !!lock,
       }),
@@ -622,6 +623,7 @@ function _buildColumns(
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       validate: fieldValidator(type, key),
       commitInvalidValues,
+      required: !isOptionalColumn(key, allowsNullValues),
       placeholder: flagOptional
         ? (optionalColumnPlaceholder(key) ?? placeholder)
         : placeholder,

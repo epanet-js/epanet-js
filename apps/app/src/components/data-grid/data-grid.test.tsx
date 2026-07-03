@@ -2008,4 +2008,67 @@ describe("DataGrid", () => {
       );
     });
   });
+
+  describe("on-load validation highlight (floatColumn required/validate)", () => {
+    const data: TestRow[] = [
+      { id: 1, label: "A", value: -5, category: null, active: null },
+      { id: 2, label: "B", value: 10, category: null, active: null },
+      { id: 3, label: "C", value: 20, category: null, active: null },
+    ];
+    const isWarned = (value: string) =>
+      screen.getByDisplayValue(value).closest(".bg-warning-subtle") !== null;
+
+    it("highlights an invalid value on load and tracks it after sorting", async () => {
+      const user = setupUser();
+      const warnColumns = [...columns];
+      warnColumns[1] = floatColumn("value", {
+        header: "Value",
+        size: 100,
+        emptyValue: null,
+        required: false,
+        validate: (v) => v >= 0,
+      });
+      render(
+        <DataGrid
+          data={data}
+          columns={warnColumns}
+          createRow={createRow}
+          onChange={() => {}}
+          sortable
+        />,
+      );
+
+      // On load, without interaction, only the failing value (-5) is highlighted.
+      expect(isWarned("-5")).toBe(true);
+      expect(isWarned("10")).toBe(false);
+
+      // Sorting reorders rows; the highlight follows the value's data row.
+      await user.click(screen.getByText("Value"));
+      expect(isWarned("-5")).toBe(true);
+      expect(isWarned("10")).toBe(false);
+    });
+
+    it("does not highlight a read-only cell", () => {
+      const warnColumns = [...columns];
+      warnColumns[1] = floatColumn("value", {
+        header: "Value",
+        size: 100,
+        emptyValue: null,
+        required: true,
+        validate: (v) => v >= 0,
+        isReadOnly: true,
+      });
+      const { container } = render(
+        <DataGrid
+          data={data}
+          columns={warnColumns}
+          createRow={createRow}
+          onChange={() => {}}
+        />,
+      );
+
+      // The only warn-worthy cell (-5) is read-only, so nothing is highlighted.
+      expect(container.querySelectorAll(".bg-warning-subtle")).toHaveLength(0);
+    });
+  });
 });

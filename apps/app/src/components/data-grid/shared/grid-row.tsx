@@ -69,11 +69,12 @@ export function GridRow<TData extends Record<string, unknown>>({
         const isPinnedLeft = cell.column.getIsPinned() === "left";
         const pinnedLeftOffset = isPinnedLeft ? pinnedLeftCursor : undefined;
         if (isPinnedLeft) pinnedLeftCursor += cell.column.getSize();
+        const readOnly = cell.column.isReadOnly(cell.row.index);
         return (
           <GridDataCell
             key={cell.id}
             cell={cell}
-            readOnly={cell.column.isReadOnly(cell.row.index)}
+            readOnly={readOnly}
             onMouseDown={(e) => onCellMouseDown(colIndex, rowIndex, e)}
             onMouseEnter={() => onCellMouseEnter(colIndex, rowIndex)}
             onDoubleClick={() => onCellDoubleClick(colIndex)}
@@ -89,9 +90,10 @@ export function GridRow<TData extends Record<string, unknown>>({
             isLastRow={cellsIsLastRow}
             isLastCol={colIndex === cells.length - 1}
             hasWarning={
-              accessorKey
-                ? (cellHasWarning?.(rowIndex, accessorKey) ?? false)
-                : false
+              (!readOnly && cell.column.hasWarning(cell.getValue())) ||
+              (accessorKey
+                ? (cellHasWarning?.(cell.row.index, accessorKey) ?? false)
+                : false)
             }
             pinnedLeftOffset={pinnedLeftOffset}
           />
