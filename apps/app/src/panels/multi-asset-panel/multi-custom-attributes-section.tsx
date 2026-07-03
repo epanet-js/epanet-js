@@ -133,7 +133,7 @@ const MultiCustomAttributeRow = ({
         placeholder={isMixed ? mixedPlaceholder : undefined}
         allowEmpty
         disabled={readonly}
-        styleOptions={{}}
+        styleOptions={{ textSize: "sm" }}
         onChangeValue={(newValue) => {
           onChange(attribute.id, newValue === "" ? null : newValue);
           return false;
