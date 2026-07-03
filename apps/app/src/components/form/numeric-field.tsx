@@ -94,8 +94,13 @@ export const NumericField = ({
   const resetInput = () => {
     setInputValue(displayValue);
     setDirty(false);
-    setError(false);
-    setBlocked(false);
+    const { hasError, isBlocked } = validationStateFor(displayValue, {
+      isRequired,
+      commitInvalidValues,
+      validate,
+    });
+    setError(hasError);
+    setBlocked(isBlocked);
     blurInput();
   };
 
