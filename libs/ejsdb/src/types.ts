@@ -70,4 +70,5 @@ export type ApplyMomentPayload = {
   controlsReplacement: string | null;
   customAttributesDefinition: string | null;
   customAttributeValues: AssetCustomAttributeUpdates;
+  customerPointCustomAttributeValues: CustomAttributeValueUpdate[];
 };

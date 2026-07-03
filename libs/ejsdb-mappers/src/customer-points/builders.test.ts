@@ -32,6 +32,7 @@ const makeCpRow = (overrides: Partial<CustomerPointRow>): CustomerPointRow => ({
   junction_id: null,
   snap_x: null,
   snap_y: null,
+  custom_attributes: null,
   ...overrides,
 });
 

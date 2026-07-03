@@ -14,6 +14,7 @@ import {
   type CustomerPointDemandRow,
   type CustomerPointsData,
 } from "@epanet-js/ejsdb";
+import { serializeCustomerPointCustomAttributes } from "./custom-attributes";
 
 export const toCustomerPointRow = (
   customerPoint: CustomerPoint,
@@ -28,6 +29,7 @@ export const toCustomerPointRow = (
     junction_id: connection ? connection.junctionId : null,
     snap_x: connection ? connection.snapPoint[0] : null,
     snap_y: connection ? connection.snapPoint[1] : null,
+    custom_attributes: serializeCustomerPointCustomAttributes(customerPoint),
   };
   const result = customerPointRowSchema.safeParse(candidate);
   if (!result.success) {

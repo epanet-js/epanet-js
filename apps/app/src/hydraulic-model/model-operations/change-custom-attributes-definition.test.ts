@@ -51,6 +51,34 @@ describe("change custom attributes definition", () => {
     ]);
   });
 
+  it("clears removed attribute values on customer points too", () => {
+    const IDS = { CP1: 1 } as const;
+    const previous = setAttributes(
+      emptyCustomAttributesDefinition(),
+      "customerPoint",
+      [{ id: "custom-1", label: "Zone", type: "text" }],
+    );
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("customerPoint", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aCustomerPoint(IDS.CP1, { label: "CP1" })
+      .build();
+    hydraulicModel.customAttributes = previous;
+    hydraulicModel.customerPoints
+      .get(IDS.CP1)!
+      .setProperty("custom-1", "north");
+
+    const next = emptyCustomAttributesDefinition();
+    const moment = changeCustomAttributesDefinition(hydraulicModel, next);
+
+    expect(moment.patchCustomerPointsAttributes).toEqual([
+      { id: IDS.CP1, properties: { "custom-1": null } },
+    ]);
+  });
+
   it("emits no patches when only renaming an attribute", () => {
     const previous = setAttributes(
       emptyCustomAttributesDefinition(),

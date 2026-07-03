@@ -9,6 +9,7 @@ export * from "./curves/to-rows";
 export * from "./curves/builders";
 export * from "./customer-points/to-rows";
 export * from "./customer-points/builders";
+export * from "./customer-points/custom-attributes";
 export * from "./junction-demands/to-rows";
 export * from "./junction-demands/builders";
 export * from "./patterns/to-rows";

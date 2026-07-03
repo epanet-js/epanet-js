@@ -1,5 +1,5 @@
 import { Position } from "src/types";
-import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
+import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
 
 type InputData = {
@@ -16,13 +16,7 @@ export const moveCustomerPoint: ModelOperation<InputData> = (
     throw new Error(`Customer point ${customerPointId} not found`);
   }
 
-  const movedCopy = new CustomerPoint(customerPointId, newCoordinates, {
-    label: customerPoint.label,
-  });
-
-  if (customerPoint.connection) {
-    movedCopy.connect(customerPoint.connection);
-  }
+  const movedCopy = customerPoint.copyWithCoordinates(newCoordinates);
 
   return {
     note: "Move customer point",

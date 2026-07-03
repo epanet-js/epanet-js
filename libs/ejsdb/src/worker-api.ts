@@ -239,7 +239,7 @@ const BULK_CHUNK_SIZES = {
   pipes: 1800, // 16 cols × 1800 = 28800 params
   pumps: 1600, // 18 cols × 1600 = 28800 params
   valves: 2100, // 14 cols × 2100 = 29400 params
-  customer_points: 3700, //  8 cols × 3700 = 29600 params
+  customer_points: 3200, //  9 cols × 3200 = 28800 params
   customer_point_demands: 7500, //  4 cols × 7500 = 30000 params
   junction_demands: 7500, //  4 cols × 7500 = 30000 params
   zones: 6000, // 5 cols × 6000 = 30000 params
@@ -417,7 +417,7 @@ const appendUpdateParams = (
 };
 
 const applyCustomAttributeValues = (
-  table: (typeof ASSET_TYPE_TABLES)[number],
+  table: (typeof ASSET_TYPE_TABLES)[number] | "customer_points",
   updates: readonly CustomAttributeValueUpdate[],
 ): void => {
   if (updates.length === 0) return;
@@ -711,6 +711,7 @@ const bulkInsertCustomerPoints = (rows: readonly CustomerPointRow[]) => {
       "junction_id",
       "snap_x",
       "snap_y",
+      "custom_attributes",
     ],
     rows,
     (row, params) => {
@@ -723,6 +724,7 @@ const bulkInsertCustomerPoints = (rows: readonly CustomerPointRow[]) => {
         row.junction_id,
         row.snap_x,
         row.snap_y,
+        row.custom_attributes,
       );
     },
     BULK_CHUNK_SIZES.customer_points,
@@ -1169,6 +1171,11 @@ export const api = {
           bulkInsertCustomerPoints(payload.customerPointUpserts);
 
           bulkUpdate("customer_points", payload.customerPointPatches);
+
+          applyCustomAttributeValues(
+            "customer_points",
+            payload.customerPointCustomAttributeValues,
+          );
 
           const cpDemandRows: CustomerPointDemandRow[] = [];
           for (const u of payload.customerPointDemandUpdates) {

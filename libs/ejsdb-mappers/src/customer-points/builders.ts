@@ -11,6 +11,7 @@ import {
   customerPointRowSchema,
   customerPointDemandRowSchema,
 } from "@epanet-js/ejsdb";
+import { applyCustomerPointCustomAttributes } from "./custom-attributes";
 
 export type RawCustomerPointsData = {
   customerPoints: unknown[];
@@ -46,6 +47,7 @@ export const buildCustomerPointsData = (
       coordinates: [row.coord_x, row.coord_y],
       label: row.label,
     });
+    applyCustomerPointCustomAttributes(customerPoint, row.custom_attributes);
     if (
       row.pipe_id !== null &&
       row.junction_id !== null &&

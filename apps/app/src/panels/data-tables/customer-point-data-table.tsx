@@ -5,9 +5,12 @@ import { dialogAtom } from "src/state/dialog";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import {
   changeCustomerPointLabel,
+  changeCustomerPointProperties,
   changeDemandAssignment,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
+import { getAttributes } from "@epanet-js/custom-attributes";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
 import { createTimeSlicer } from "src/infra/yield-to-main";
@@ -54,6 +57,7 @@ export const CustomerPointDataTable = memo(
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
+    const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
     const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
     const zoomTo = useZoomTo();
@@ -84,6 +88,14 @@ export const CustomerPointDataTable = memo(
       [hydraulicModel, units],
     );
 
+    const customAttributes = useMemo(
+      () =>
+        isCustomAttributesOn
+          ? getAttributes(hydraulicModel.customAttributes, "customerPoint")
+          : [],
+      [isCustomAttributesOn, hydraulicModel.customAttributes],
+    );
+
     const columns = useMemo(
       () =>
         buildCustomerPointColumns(
@@ -98,6 +110,7 @@ export const CustomerPointDataTable = memo(
             return labelManager.isLabelAvailable(label, "customerPoint", cpId);
           },
           accessorCtx,
+          customAttributes,
         ),
       [
         translate,
@@ -107,6 +120,7 @@ export const CustomerPointDataTable = memo(
         patternOptions,
         labelManager,
         accessorCtx,
+        customAttributes,
       ],
     );
 
@@ -176,6 +190,27 @@ export const CustomerPointDataTable = memo(
             oldDemandsTotal += existing.length;
             newDemandsTotal += newDemands.length;
           }
+
+          if (customAttributes.length > 0) {
+            const customChanges = [];
+            for (const attribute of customAttributes) {
+              const key = attribute.id;
+              if (!Object.prototype.hasOwnProperty.call(newRow, key)) continue;
+              const value = (newRow as Record<string, unknown>)[key];
+              customChanges.push({
+                property: key,
+                value: value === undefined ? null : value,
+              });
+            }
+            if (customChanges.length > 0) {
+              moments.push(
+                changeCustomerPointProperties(hydraulicModel, {
+                  customerPointIds: [newRow.id],
+                  changes: customChanges,
+                }),
+              );
+            }
+          }
         }
 
         if (demandAssignments.length > 0) {
@@ -202,7 +237,7 @@ export const CustomerPointDataTable = memo(
           });
         }
       },
-      [hydraulicModel, labelManager, transact, userTracking],
+      [hydraulicModel, labelManager, transact, userTracking, customAttributes],
     );
 
     const getCpIdsFromRange = useCallback(

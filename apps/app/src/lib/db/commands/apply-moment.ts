@@ -5,13 +5,17 @@ import {
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
 import { isCustomProperty } from "@epanet-js/custom-attributes";
-import type { AssetPatch } from "src/hydraulic-model/model-operation";
+import type {
+  AssetPatch,
+  CustomerPointPatch,
+} from "src/hydraulic-model/model-operation";
 import {
   getWorker,
   timed,
   emptyAssetCustomAttributeUpdates,
   type ApplyMomentPayload,
   type AssetCustomAttributeUpdates,
+  type CustomAttributeValueUpdate,
   type CustomerPointDemandUpdate,
   type JunctionDemandUpdate,
 } from "@epanet-js/ejsdb";
@@ -67,6 +71,31 @@ const buildCustomAttributeValues = (
         id: patch.id,
         delta: JSON.stringify(delta),
       });
+    }
+  }
+
+  return updates;
+};
+
+const buildCustomerPointCustomAttributeValues = (
+  patches: CustomerPointPatch[] | undefined,
+): CustomAttributeValueUpdate[] => {
+  const updates: CustomAttributeValueUpdate[] = [];
+  if (!patches) return updates;
+
+  for (const patch of patches) {
+    const properties = patch.properties;
+    const delta: Record<string, string | number | null> = {};
+    let hasCustom = false;
+    for (const key in properties) {
+      if (!isCustomProperty(key)) continue;
+      const value = properties[key];
+      delta[key] =
+        value === undefined ? null : (value as string | number | null);
+      hasCustom = true;
+    }
+    if (hasCustom) {
+      updates.push({ id: patch.id, delta: JSON.stringify(delta) });
     }
   }
 
@@ -166,6 +195,9 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     customAttributeValues: buildCustomAttributeValues(
       moment.patchAssetsAttributes,
     ),
+    customerPointCustomAttributeValues: buildCustomerPointCustomAttributeValues(
+      moment.patchCustomerPointsAttributes,
+    ),
   };
 };
 
@@ -197,7 +229,8 @@ export const applyMomentToDb = async (
       payload.rawControlsReplacement === null &&
       payload.controlsReplacement === null &&
       payload.customAttributesDefinition === null &&
-      isEmptyCustomAttributeValues(payload.customAttributeValues)
+      isEmptyCustomAttributeValues(payload.customAttributeValues) &&
+      payload.customerPointCustomAttributeValues.length === 0
     ) {
       return;
     }

@@ -20,6 +20,7 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import {
   changeCustomAttributesDefinition,
   changeCustomerPointProperty,
+  moveCustomerPoint,
   changeProperty,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
@@ -323,6 +324,85 @@ describe("apply-moment integration", () => {
     expect(project.hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe(
       "new",
     );
+  });
+
+  it("round-trips customer point custom attribute values", async () => {
+    const IDS = { CP1: 10 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("customerPoint", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aCustomAttribute("customerPoint", {
+        id: "custom-2",
+        label: "Age",
+        type: "number",
+      })
+      .aCustomerPoint(IDS.CP1, { coordinates: [1, 1], label: "CP1" })
+      .build();
+
+    await seed(model);
+
+    await persistMoment(
+      changeCustomerPointProperty(model, {
+        customerPointIds: [IDS.CP1],
+        property: "custom-1",
+        value: "north",
+      }),
+    );
+    await persistMoment(
+      changeCustomerPointProperty(model, {
+        customerPointIds: [IDS.CP1],
+        property: "custom-2",
+        value: 42,
+      }),
+    );
+
+    const project = await fetchProject();
+    const cp = project.hydraulicModel.customerPoints.get(IDS.CP1)!;
+    // Second json_patch edit must not clobber the first.
+    expect(cp.getProperty("custom-1")).toBe("north");
+    expect(cp.getProperty("custom-2")).toBe(42);
+  });
+
+  it("preserves customer point custom values across a full upsert (move)", async () => {
+    const IDS = { CP1: 10 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("customerPoint", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aCustomerPoint(IDS.CP1, { coordinates: [1, 1], label: "CP1" })
+      .build();
+
+    await seed(model);
+
+    await persistMoment(
+      changeCustomerPointProperty(model, {
+        customerPointIds: [IDS.CP1],
+        property: "custom-1",
+        value: "north",
+      }),
+    );
+    // Apply the edit to the in-memory model too, so the subsequent move
+    // (whole-object upsert) carries the custom value.
+    model.customerPoints.get(IDS.CP1)!.setProperty("custom-1", "north");
+
+    await persistMoment(
+      moveCustomerPoint(model, {
+        customerPointId: IDS.CP1,
+        newCoordinates: [2, 2],
+      }),
+    );
+
+    const project = await fetchProject();
+    const cp = project.hydraulicModel.customerPoints.get(IDS.CP1)!;
+    expect(cp.coordinates).toEqual([2, 2]);
+    expect(cp.getProperty("custom-1")).toBe("north");
   });
 
   it("assigns junction demands via putDemands", async () => {

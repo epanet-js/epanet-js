@@ -85,7 +85,11 @@ export class CustomerPoint {
   }
 
   copy(): CustomerPoint {
-    const copied = new CustomerPoint(this.id, [...this.coordinates], {
+    return this.copyWithCoordinates(this.coordinates);
+  }
+
+  copyWithCoordinates(coordinates: Position): CustomerPoint {
+    const copied = new CustomerPoint(this.id, [...coordinates], {
       ...this.properties,
     });
     if (this.connectionData) {

@@ -6,7 +6,8 @@ import {
   type GridColumn,
   type ColumnKey,
 } from "src/components/data-grid";
-import { LabelManager } from "@epanet-js/hydraulic-model";
+import { LabelManager, type CustomerPoint } from "@epanet-js/hydraulic-model";
+import type { CustomAttribute } from "@epanet-js/custom-attributes";
 import { convertTo } from "@epanet-js/quantity";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";
@@ -48,6 +49,7 @@ export function buildCustomerPointColumns(
   patternOptions: PatternOption[],
   validateLabel: (label: string, row: CustomerPointRow) => boolean,
   accessorCtx?: CpAccessorCtx,
+  customAttributes: CustomAttribute[] = [],
 ): GridColumn<CustomerPointRow>[] {
   const ck = makeCk(accessorCtx);
   const headerLabel = (
@@ -113,7 +115,34 @@ export function buildCustomerPointColumns(
       emptyOptionLabel: translate("constant"),
       emptyValue: null,
     }),
+    ...customAttributeColumns(customAttributes, formatting),
   ];
 
   return columns;
+}
+
+function customAttributeColumns(
+  attributes: CustomAttribute[],
+  formatting: FormattingSpec,
+): GridColumn<CustomerPointRow>[] {
+  return attributes.map((attribute) => {
+    const key = attribute.id;
+    const columnKey: ColumnKey<CustomerPointRow, never> = {
+      id: key,
+      accessorFn: ((row: CustomerPointRow) =>
+        (row as unknown as CustomerPoint).getProperty(key) ?? null) as (
+        row: CustomerPointRow,
+      ) => never,
+    };
+    return attribute.type === "number"
+      ? floatColumn(columnKey, {
+          header: attribute.label,
+          decimals: formatting.defaultDecimals,
+          emptyValue: null,
+        })
+      : textColumn(columnKey, {
+          header: attribute.label,
+          emptyValue: null,
+        });
+  });
 }

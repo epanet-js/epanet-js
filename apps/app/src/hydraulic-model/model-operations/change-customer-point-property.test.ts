@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { changeCustomerPointProperty } from "./change-customer-point-property";
+import {
+  changeCustomerPointProperty,
+  changeCustomerPointProperties,
+} from "./change-customer-point-property";
 import { changeCustomerPointLabel } from "./change-customer-point-label";
 
 const IDS = { CP1: 1 } as const;
@@ -48,6 +51,36 @@ describe("changeCustomerPointProperty", () => {
         value: "new",
       }),
     ).toThrow(/Customer point 1 not found/);
+  });
+});
+
+describe("changeCustomerPointProperties", () => {
+  it("builds a single patch with multiple custom changes", () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("customerPoint", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aCustomAttribute("customerPoint", {
+        id: "custom-2",
+        label: "Age",
+        type: "number",
+      })
+      .aCustomerPoint(IDS.CP1, { label: "old" })
+      .build();
+
+    const moment = changeCustomerPointProperties(model, {
+      customerPointIds: [IDS.CP1],
+      changes: [
+        { property: "custom-1", value: "north" },
+        { property: "custom-2", value: 5 },
+      ],
+    });
+
+    expect(moment.patchCustomerPointsAttributes).toEqual([
+      { id: IDS.CP1, properties: { "custom-1": "north", "custom-2": 5 } },
+    ]);
   });
 });
 

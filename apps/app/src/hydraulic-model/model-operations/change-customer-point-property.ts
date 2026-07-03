@@ -4,6 +4,11 @@ import type { CustomerPointPatch, ModelMoment } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
 
+export type CustomerPointPropertyChange = {
+  property: string;
+  value: unknown;
+};
+
 export function changeCustomerPointProperty(
   { customerPoints }: HydraulicModel,
   {
@@ -21,6 +26,23 @@ export function changeCustomerPointProperty(
   ]);
   return {
     note: "Change customer point property",
+    patchCustomerPointsAttributes: patches,
+  };
+}
+
+export function changeCustomerPointProperties(
+  { customerPoints }: HydraulicModel,
+  {
+    customerPointIds,
+    changes,
+  }: {
+    customerPointIds: CustomerPointId[];
+    changes: CustomerPointPropertyChange[];
+  },
+): ModelMoment {
+  const patches = buildPatches(customerPoints, customerPointIds, changes);
+  return {
+    note: "Change customer point properties",
     patchCustomerPointsAttributes: patches,
   };
 }

@@ -14,6 +14,7 @@ export const customerPointRowSchema = z.object({
   junction_id: fkId,
   snap_x: finiteCoordNullable,
   snap_y: finiteCoordNullable,
+  custom_attributes: z.string().nullable().default(null),
 });
 
 export const customerPointDemandRowSchema = z.object({

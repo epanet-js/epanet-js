@@ -17,6 +17,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { computeCustomerPointsStats } from "./customer-point-stats";
 import { CustomerPointSection } from "./sections";
 import { SelectOnlyCustomerPointsButton } from "./select-only-button";
+import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
 
 export function CustomerPointPanelSection({
   customerPoints,
@@ -87,6 +88,12 @@ export function CustomerPointPanelSection({
           <CustomerPointSection
             sections={data}
             onSelectCustomerPoints={handleSelect}
+            customAttributes={
+              <MultiCustomerPointCustomAttributesSection
+                customerPointIds={customerPointIds}
+                onSelectCustomerPoints={handleSelect}
+              />
+            }
           />
         )
       )}
