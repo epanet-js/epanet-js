@@ -275,7 +275,10 @@ export const usePipeLibraryHandlers = () => {
       defaultRoughness,
     );
 
-    if (!result.pipeLibrary) return;
+    if (!result.pipeLibrary || result.pipeLibrary.length === 0) {
+      notifyImport(result);
+      return;
+    }
 
     setDraftMaterials(result.pipeLibrary);
     setSelectedLabel(null);
