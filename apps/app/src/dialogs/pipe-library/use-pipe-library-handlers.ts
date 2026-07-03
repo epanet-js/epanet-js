@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
-import { notify } from "src/components/notifications";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -43,7 +42,7 @@ export const usePipeLibraryHandlers = () => {
   const [pendingImport, setPendingImport] = useState<"file" | "model" | null>(
     null,
   );
-  const [importBanner, setImportBanner] = useState<{
+  const [showBanner, setBanner] = useState<{
     description: string;
     variant: "default" | "warning" | "error" | "success";
   } | null>(null);
@@ -198,10 +197,9 @@ export const usePipeLibraryHandlers = () => {
   const handleApplyRoughness = useCallback(() => {
     const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
     if (moment.patchAssetsAttributes!.length === 0) {
-      notify({
-        id: "pipe-library-notification",
+      setBanner({
+        description: translate("pipeLibrary.noAssetsChanged"),
         variant: "default",
-        title: translate("pipeLibrary.noAssetsChanged"),
       });
       return;
     }
@@ -210,13 +208,12 @@ export const usePipeLibraryHandlers = () => {
       name: "pipeLibrary.roughnessApplied",
       pipesUpdated: moment.patchAssetsAttributes!.length,
     });
-    notify({
-      id: "pipe-library-notification",
-      variant: "success",
-      title: translate(
+    setBanner({
+      description: translate(
         "pipeLibrary.appliedRoughness",
         moment.patchAssetsAttributes!.length,
       ),
+      variant: "success",
     });
   }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
 
@@ -247,7 +244,7 @@ export const usePipeLibraryHandlers = () => {
         return "success";
       })();
 
-      setImportBanner({ description, variant });
+      setBanner({ description, variant });
     },
     [translate],
   );
@@ -324,8 +321,8 @@ export const usePipeLibraryHandlers = () => {
     setPendingImport(null);
   }, []);
 
-  const handleDismissImportBanner = useCallback(() => {
-    setImportBanner(null);
+  const handleDismissBanner = useCallback(() => {
+    setBanner(null);
   }, []);
 
   const handleExportCsv = useCallback(async () => {
@@ -372,7 +369,7 @@ export const usePipeLibraryHandlers = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    importBanner,
-    handleDismissImportBanner,
+    showBanner,
+    handleDismissBanner,
   };
 };

@@ -42,8 +42,8 @@ export const PipeLibraryDialog = () => {
     handleAcceptImport,
     handleCancelImport,
     handleClose,
-    importBanner,
-    handleDismissImportBanner,
+    showBanner,
+    handleDismissBanner,
   } = usePipeLibraryHandlers();
 
   return (
@@ -85,11 +85,11 @@ export const PipeLibraryDialog = () => {
             />
           </div>
         </div>
-        {importBanner && (
+        {showBanner && (
           <DismissableBanner
-            description={importBanner.description}
-            variant={importBanner.variant}
-            onDismiss={handleDismissImportBanner}
+            description={showBanner.description}
+            variant={showBanner.variant}
+            onDismiss={handleDismissBanner}
           />
         )}
         {pendingImport !== null && (
