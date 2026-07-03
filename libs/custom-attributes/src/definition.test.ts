@@ -37,22 +37,22 @@ describe("setAttributes", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "pipe",
-      [attr("ca-7", "Diameter")],
+      [attr("custom-7", "Diameter")],
     );
 
-    expect(definition.get("pipe")?.get("ca-7")).toEqual(
-      attr("ca-7", "Diameter"),
+    expect(definition.get("pipe")?.get("custom-7")).toEqual(
+      attr("custom-7", "Diameter"),
     );
   });
 
   it("replaces the attributes of the given asset type only", () => {
     const definition = withAttributes({
-      pipe: [attr("ca-1", "Diameter")],
-      junction: [attr("ca-2", "Owner")],
+      pipe: [attr("custom-1", "Diameter")],
+      junction: [attr("custom-2", "Owner")],
     });
 
     const updated = setAttributes(definition, "pipe", [
-      attr("ca-3", "Material"),
+      attr("custom-3", "Material"),
     ]);
 
     expect(getAttributes(updated, "pipe").map((a) => a.label)).toEqual([
@@ -64,9 +64,9 @@ describe("setAttributes", () => {
   });
 
   it("does not mutate the source definition", () => {
-    const definition = withAttributes({ pipe: [attr("ca-1", "Diameter")] });
+    const definition = withAttributes({ pipe: [attr("custom-1", "Diameter")] });
 
-    setAttributes(definition, "pipe", [attr("ca-2", "Material")]);
+    setAttributes(definition, "pipe", [attr("custom-2", "Material")]);
 
     expect(getAttributes(definition, "pipe").map((a) => a.label)).toEqual([
       "Diameter",
@@ -77,49 +77,59 @@ describe("setAttributes", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "pipe",
-      [attr("ca-1", "First"), attr("ca-1", "Second")],
+      [attr("custom-1", "First"), attr("custom-1", "Second")],
     );
 
-    expect(getAttributes(definition, "pipe")).toEqual([attr("ca-1", "Second")]);
+    expect(getAttributes(definition, "pipe")).toEqual([
+      attr("custom-1", "Second"),
+    ]);
   });
 });
 
 describe("hasDuplicateLabel", () => {
   it("detects duplicates ignoring case and surrounding whitespace", () => {
     expect(
-      hasDuplicateLabel([attr("ca-1", "Diameter"), attr("ca-2", " diameter ")]),
+      hasDuplicateLabel([
+        attr("custom-1", "Diameter"),
+        attr("custom-2", " diameter "),
+      ]),
     ).toBe(true);
   });
 
   it("ignores empty labels", () => {
-    expect(hasDuplicateLabel([attr("ca-1", "   "), attr("ca-2", "")])).toBe(
-      false,
-    );
+    expect(
+      hasDuplicateLabel([attr("custom-1", "   "), attr("custom-2", "")]),
+    ).toBe(false);
   });
 
   it("returns false for distinct labels", () => {
     expect(
-      hasDuplicateLabel([attr("ca-1", "Diameter"), attr("ca-2", "Material")]),
+      hasDuplicateLabel([
+        attr("custom-1", "Diameter"),
+        attr("custom-2", "Material"),
+      ]),
     ).toBe(false);
   });
 });
 
 describe("hasTooLongLabel", () => {
   it("returns false for a label at the maximum length", () => {
-    expect(hasTooLongLabel([attr("ca-1", "a".repeat(MAX_LABEL_LENGTH))])).toBe(
-      false,
-    );
+    expect(
+      hasTooLongLabel([attr("custom-1", "a".repeat(MAX_LABEL_LENGTH))]),
+    ).toBe(false);
   });
 
   it("returns true for a label over the maximum length", () => {
     expect(
-      hasTooLongLabel([attr("ca-1", "a".repeat(MAX_LABEL_LENGTH + 1))]),
+      hasTooLongLabel([attr("custom-1", "a".repeat(MAX_LABEL_LENGTH + 1))]),
     ).toBe(true);
   });
 
   it("trims surrounding whitespace before measuring", () => {
     expect(
-      hasTooLongLabel([attr("ca-1", `  ${"a".repeat(MAX_LABEL_LENGTH)}  `)]),
+      hasTooLongLabel([
+        attr("custom-1", `  ${"a".repeat(MAX_LABEL_LENGTH)}  `),
+      ]),
     ).toBe(false);
   });
 });
@@ -127,9 +137,9 @@ describe("hasTooLongLabel", () => {
 describe("duplicateLabelKeys", () => {
   it("returns the normalized keys that appear more than once", () => {
     const keys = duplicateLabelKeys([
-      attr("ca-1", "Diameter"),
-      attr("ca-2", "DIAMETER "),
-      attr("ca-3", "Material"),
+      attr("custom-1", "Diameter"),
+      attr("custom-2", "DIAMETER "),
+      attr("custom-3", "Material"),
     ]);
 
     expect([...keys]).toEqual(["diameter"]);
@@ -139,12 +149,12 @@ describe("duplicateLabelKeys", () => {
 describe("getAttributeIds", () => {
   it("returns every attribute id flattened across asset types", () => {
     const definition = withAttributes({
-      pipe: [attr("ca-1", "Diameter"), attr("ca-2", "Material")],
-      junction: [attr("ca-3", "Elevation")],
+      pipe: [attr("custom-1", "Diameter"), attr("custom-2", "Material")],
+      junction: [attr("custom-3", "Elevation")],
     });
 
     expect(getAttributeIds(definition)).toEqual(
-      new Set(["ca-1", "ca-2", "ca-3"]),
+      new Set(["custom-1", "custom-2", "custom-3"]),
     );
   });
 

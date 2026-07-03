@@ -183,13 +183,13 @@ describe("fetch-project integration", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "pipe",
-      [{ id: "ca-1", label: "Material", type: "text" }],
+      [{ id: "custom-1", label: "Material", type: "text" }],
     );
     await saveCustomAttributes(definition);
 
     const project = await fetchProject();
     expect(getAttributes(project.customAttributes, "pipe")).toEqual([
-      { id: "ca-1", label: "Material", type: "text" },
+      { id: "custom-1", label: "Material", type: "text" },
     ]);
   });
 

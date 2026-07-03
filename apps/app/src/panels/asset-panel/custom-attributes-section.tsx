@@ -5,7 +5,6 @@ import {
   type CustomAttributeAssetType,
   type CustomAttributeId,
   type CustomAttributeValue,
-  customPropertyKey,
   getAttributes,
 } from "@epanet-js/custom-attributes";
 import { Asset } from "src/hydraulic-model";
@@ -56,13 +55,13 @@ export const CustomAttributesSection = ({
   );
 
   const hasChanged = attributes.some((attribute) => {
-    const key = customPropertyKey(attribute.id);
+    const key = attribute.id;
     return getComparison(key, asset.getProperty(key) ?? null).hasChanged;
   });
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
-      const key = customPropertyKey(attributeId);
+      const key = attributeId;
       const oldValue = (asset.getProperty(key) ?? null) as CustomAttributeValue;
       (onPropertyChange as unknown as CustomChange)(key, value, oldValue);
     },
@@ -79,14 +78,14 @@ export const CustomAttributesSection = ({
       hasChanged={hasChanged}
     >
       {attributes.map((attribute) => {
-        const value = (asset.getProperty(customPropertyKey(attribute.id)) ??
+        const value = (asset.getProperty(attribute.id) ??
           null) as CustomAttributeValue;
         return (
           <CustomAttributeRow
             key={attribute.id}
             attribute={attribute}
             value={value}
-            comparison={getComparison(customPropertyKey(attribute.id), value)}
+            comparison={getComparison(attribute.id, value)}
             onChange={handleChange}
           />
         );

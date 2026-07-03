@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  customPropertyKey,
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
@@ -20,14 +19,14 @@ describe("applyMomentToModel with custom attributes definition", () => {
       .build();
 
     const next = setAttributes(emptyCustomAttributesDefinition(), "junction", [
-      { id: "ca-1", label: "Zone", type: "text" },
+      { id: "custom-1", label: "Zone", type: "text" },
     ]);
     const moment = changeCustomAttributesDefinition(model, next);
 
     const reverse = applyMomentToModel(model, moment, labelManager);
 
     expect(getAttributes(model.customAttributes, "junction")).toEqual([
-      { id: "ca-1", label: "Zone", type: "text" },
+      { id: "custom-1", label: "Zone", type: "text" },
     ]);
 
     applyMomentToModel(
@@ -44,10 +43,14 @@ describe("applyMomentToModel with custom attributes definition", () => {
 
   it("round-trips a custom-<id> value through undo then redo", () => {
     const IDS = { J1: 1 } as const;
-    const key = customPropertyKey("ca-1") as ChangeableProperty;
+    const key = "custom-1" as ChangeableProperty;
     const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
-      .aCustomAttribute("junction", { id: "ca-1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(IDS.J1)
       .build();
 
@@ -80,10 +83,14 @@ describe("applyMomentToModel with custom attributes definition", () => {
 
   it("clears custom values across assets when an attribute is removed", () => {
     const IDS = { J1: 1 } as const;
-    const key = customPropertyKey("ca-1");
+    const key = "custom-1";
     const { labelManager } = buildTestFactories();
     const model = HydraulicModelBuilder.with({ labelManager })
-      .aCustomAttribute("junction", { id: "ca-1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(IDS.J1)
       .build();
     model.assets.get(IDS.J1)!.setProperty(key, "north");

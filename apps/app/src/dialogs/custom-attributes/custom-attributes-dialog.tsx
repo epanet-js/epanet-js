@@ -15,6 +15,7 @@ import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { CustomAttributesSidebar } from "./custom-attributes-sidebar";
 import { CustomAttributesTable } from "./custom-attributes-table";
 import {
+  buildCustomAttributeId,
   CustomAttribute,
   CustomAttributeAssetType,
   CustomAttributesDefinition,
@@ -76,7 +77,10 @@ export const CustomAttributesDialog = ({
   const idCounterRef = useRef<number>(nextIdSeed(savedDefinition));
   const dialogActions = useRef<DialogActionsHandle>(null);
 
-  const makeId = useCallback(() => `ca-${idCounterRef.current++}`, []);
+  const makeId = useCallback(
+    () => buildCustomAttributeId(idCounterRef.current++),
+    [],
+  );
 
   const selectedAttributes = useMemo(
     () => getAttributes(edited, selectedAssetType),

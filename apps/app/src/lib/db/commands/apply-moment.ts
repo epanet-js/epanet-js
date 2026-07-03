@@ -4,10 +4,7 @@ import {
   type AssetId,
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
-import {
-  isCustomProperty,
-  customAttributeIdFromKey,
-} from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/custom-attributes";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
 import {
   getWorker,
@@ -60,7 +57,7 @@ const buildCustomAttributeValues = (
     for (const key in properties) {
       if (!isCustomProperty(key)) continue;
       const value = properties[key];
-      delta[customAttributeIdFromKey(key)] =
+      delta[key] =
         value === undefined ? null : (value as string | number | null);
       hasCustom = true;
     }

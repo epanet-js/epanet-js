@@ -3,7 +3,6 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { customPropertyKey } from "@epanet-js/custom-attributes";
 import { LabelManager } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
@@ -23,11 +22,15 @@ import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { J1: 1 };
-const KEY = customPropertyKey("ca-1");
+const KEY = "custom-1";
 
 const buildModel = (customValue: number | null): HydraulicModel => {
   const model = HydraulicModelBuilder.with()
-    .aCustomAttribute("junction", { id: "ca-1", label: "Age", type: "number" })
+    .aCustomAttribute("junction", {
+      id: "custom-1",
+      label: "Age",
+      type: "number",
+    })
     .aJunction(IDS.J1, { label: "J1" })
     .build();
   if (customValue !== null) {

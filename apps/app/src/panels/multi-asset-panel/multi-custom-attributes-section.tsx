@@ -5,7 +5,6 @@ import {
   type CustomAttributeAssetType,
   type CustomAttributeId,
   type CustomAttributeValue,
-  customPropertyKey,
   getAttributes,
 } from "@epanet-js/custom-attributes";
 import { useTranslate } from "src/hooks/use-translate";
@@ -42,7 +41,7 @@ export function MultiCustomAttributesSection({
       transact(
         changeProperty(hydraulicModel, {
           assetIds,
-          property: customPropertyKey(attributeId) as ChangeableProperty,
+          property: attributeId as ChangeableProperty,
           value: value as never,
         }),
       );
@@ -95,7 +94,7 @@ const MultiCustomAttributeRow = ({
     (id) =>
       [
         id,
-        (assets.get(id)?.getProperty(customPropertyKey(attribute.id)) ??
+        (assets.get(id)?.getProperty(attribute.id) ??
           null) as CustomAttributeValue,
       ] as [number, CustomAttributeValue],
   );

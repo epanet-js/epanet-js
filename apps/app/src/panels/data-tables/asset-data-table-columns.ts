@@ -9,10 +9,7 @@ import {
 } from "src/components/data-grid";
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
-import {
-  type CustomAttribute,
-  customPropertyKey,
-} from "@epanet-js/custom-attributes";
+import { type CustomAttribute } from "@epanet-js/custom-attributes";
 import { type Asset } from "@epanet-js/hydraulic-model";
 import {
   type AssetType,
@@ -563,7 +560,7 @@ function customAttributeColumns(
   formatting: FormattingSpec,
 ): GridColumn<AssetRow>[] {
   return attributes.map((attribute) => {
-    const key = customPropertyKey(attribute.id);
+    const key = attribute.id;
     const columnKey: ColumnKey<AssetRow, never> = {
       id: key,
       accessorFn: ((row: AssetRow) =>

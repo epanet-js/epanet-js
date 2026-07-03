@@ -1,5 +1,4 @@
 import {
-  customPropertyKey,
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
@@ -11,7 +10,7 @@ describe("change custom attributes definition", () => {
   it("sets the next definition and emits no patches when adding attributes", () => {
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     const next = setAttributes(emptyCustomAttributesDefinition(), "junction", [
-      { id: "ca-1", label: "Zone", type: "text" },
+      { id: "custom-1", label: "Zone", type: "text" },
     ]);
 
     const moment = changeCustomAttributesDefinition(hydraulicModel, next);
@@ -25,17 +24,19 @@ describe("change custom attributes definition", () => {
     const previous = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
-      [{ id: "ca-1", label: "Zone", type: "text" }],
+      [{ id: "custom-1", label: "Zone", type: "text" }],
     );
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aCustomAttribute("junction", { id: "ca-1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(IDS.WITH)
       .aJunction(IDS.WITHOUT)
       .build();
     hydraulicModel.customAttributes = previous;
-    hydraulicModel.assets
-      .get(IDS.WITH)!
-      .setProperty(customPropertyKey("ca-1"), "north");
+    hydraulicModel.assets.get(IDS.WITH)!.setProperty("custom-1", "north");
 
     const next = emptyCustomAttributesDefinition();
     const moment = changeCustomAttributesDefinition(hydraulicModel, next);
@@ -45,7 +46,7 @@ describe("change custom attributes definition", () => {
       {
         id: IDS.WITH,
         type: "junction",
-        properties: { [customPropertyKey("ca-1")]: null },
+        properties: { "custom-1": null },
       },
     ]);
   });
@@ -54,19 +55,19 @@ describe("change custom attributes definition", () => {
     const previous = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
-      [{ id: "ca-1", label: "Zone", type: "text" }],
+      [{ id: "custom-1", label: "Zone", type: "text" }],
     );
     const hydraulicModel = HydraulicModelBuilder.with().aJunction(1).build();
     hydraulicModel.customAttributes = previous;
 
     const next = setAttributes(emptyCustomAttributesDefinition(), "junction", [
-      { id: "ca-1", label: "District", type: "text" },
+      { id: "custom-1", label: "District", type: "text" },
     ]);
     const moment = changeCustomAttributesDefinition(hydraulicModel, next);
 
     expect(moment.patchAssetsAttributes).toHaveLength(0);
     expect(
       getAttributes(moment.putCustomAttributesDefinition!, "junction"),
-    ).toEqual([{ id: "ca-1", label: "District", type: "text" }]);
+    ).toEqual([{ id: "custom-1", label: "District", type: "text" }]);
   });
 });

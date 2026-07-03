@@ -35,11 +35,7 @@ import {
   type ChemicalSourceType,
   type CurveId,
 } from "@epanet-js/hydraulic-model";
-import {
-  getAttributes,
-  customPropertyKey,
-  isCustomProperty,
-} from "@epanet-js/custom-attributes";
+import { getAttributes, isCustomProperty } from "@epanet-js/custom-attributes";
 import {
   DataGrid,
   type DataGridRef,
@@ -230,7 +226,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       const editableKeys = [
         ...EDITABLE_NUMERIC_KEYS[assetType],
         ...EDITABLE_SELECT_KEYS[assetType],
-        ...customAttributes.map((a) => customPropertyKey(a.id)),
+        ...customAttributes.map((a) => a.id),
       ];
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();

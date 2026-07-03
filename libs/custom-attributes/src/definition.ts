@@ -24,14 +24,11 @@ export const emptyCustomAttributesDefinition = (): CustomAttributesDefinition =>
 
 export const CUSTOM_PROPERTY_PREFIX = "custom-";
 
-export const customPropertyKey = (id: CustomAttributeId): string =>
-  `${CUSTOM_PROPERTY_PREFIX}${id}`;
+export const buildCustomAttributeId = (seed: number): CustomAttributeId =>
+  `${CUSTOM_PROPERTY_PREFIX}${seed}`;
 
 export const isCustomProperty = (property: string): boolean =>
   property.startsWith(CUSTOM_PROPERTY_PREFIX);
-
-export const customAttributeIdFromKey = (property: string): CustomAttributeId =>
-  property.slice(CUSTOM_PROPERTY_PREFIX.length);
 
 export const getAttributes = (
   definition: CustomAttributesDefinition,

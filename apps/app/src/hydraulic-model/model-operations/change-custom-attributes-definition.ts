@@ -1,6 +1,5 @@
 import {
   CustomAttributesDefinition,
-  customPropertyKey,
   getAttributeIds,
 } from "@epanet-js/custom-attributes";
 import type { AssetPatch, ModelMoment } from "../model-operation";
@@ -18,8 +17,7 @@ export const changeCustomAttributesDefinition = (
   if (removedIds.length > 0) {
     for (const asset of assets.values()) {
       const properties: Record<string, unknown> = {};
-      for (const id of removedIds) {
-        const key = customPropertyKey(id);
+      for (const key of removedIds) {
         if (asset.hasProperty(key)) {
           properties[key] = null;
         }

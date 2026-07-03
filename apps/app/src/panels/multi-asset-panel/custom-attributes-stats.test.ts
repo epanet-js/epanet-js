@@ -23,12 +23,12 @@ describe("buildCustomAttributeStats", () => {
   ) => buildCustomAttributeStats(attribute, valuesById, units, formatting);
 
   const numberAttribute: CustomAttribute = {
-    id: "ca-1",
+    id: "custom-1",
     label: "Age",
     type: "number",
   };
   const textAttribute: CustomAttribute = {
-    id: "ca-2",
+    id: "custom-2",
     label: "Owner",
     type: "text",
   };

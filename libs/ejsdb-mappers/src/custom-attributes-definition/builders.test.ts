@@ -33,12 +33,12 @@ describe("buildCustomAttributesDefinition", () => {
   it("builds a nested map keyed by asset type and id", () => {
     const definition = buildCustomAttributesDefinition(
       JSON.stringify({
-        pipe: [{ id: "ca-1", label: "Material", type: "text" }],
+        pipe: [{ id: "custom-1", label: "Material", type: "text" }],
       }),
     );
 
     expect([...definition.get("pipe")!.values()]).toEqual([
-      attr("ca-1", "Material"),
+      attr("custom-1", "Material"),
     ]);
   });
 
@@ -51,15 +51,15 @@ describe("buildCustomAttributesDefinition", () => {
   it("throws when data does not match the schema", () => {
     expect(() =>
       buildCustomAttributesDefinition(
-        JSON.stringify({ pipe: [{ id: "ca-1", label: "", type: "text" }] }),
+        JSON.stringify({ pipe: [{ id: "custom-1", label: "", type: "text" }] }),
       ),
     ).toThrow(/Custom attributes: data does not match schema/);
   });
 
   it("round-trips with the serializer", () => {
     const definition = definitionOf([
-      ["pipe", [attr("ca-1", "Material")]],
-      ["customerPoint", [attr("ca-2", "Owner")]],
+      ["pipe", [attr("custom-1", "Material")]],
+      ["customerPoint", [attr("custom-2", "Owner")]],
     ]);
 
     const restored = buildCustomAttributesDefinition(
@@ -67,10 +67,10 @@ describe("buildCustomAttributesDefinition", () => {
     );
 
     expect([...restored.get("pipe")!.values()]).toEqual([
-      attr("ca-1", "Material"),
+      attr("custom-1", "Material"),
     ]);
     expect([...restored.get("customerPoint")!.values()]).toEqual([
-      attr("ca-2", "Owner"),
+      attr("custom-2", "Owner"),
     ]);
   });
 });

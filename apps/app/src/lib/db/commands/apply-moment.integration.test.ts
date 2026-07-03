@@ -11,7 +11,6 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { type Junction, type Pipe } from "@epanet-js/hydraulic-model";
 import {
-  customPropertyKey,
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
@@ -557,7 +556,7 @@ describe("apply-moment integration", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
-      [{ id: "ca-1", label: "Zone", type: "text" }],
+      [{ id: "custom-1", label: "Zone", type: "text" }],
     );
 
     const payload = buildMomentPayload({
@@ -583,14 +582,14 @@ describe("apply-moment integration", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
-      [{ id: "ca-1", label: "Zone", type: "text" }],
+      [{ id: "custom-1", label: "Zone", type: "text" }],
     );
     await persistMoment(changeCustomAttributesDefinition(model, definition));
 
     const project = await fetchProject();
     expect(
       getAttributes(project.hydraulicModel.customAttributes, "junction"),
-    ).toEqual([{ id: "ca-1", label: "Zone", type: "text" }]);
+    ).toEqual([{ id: "custom-1", label: "Zone", type: "text" }]);
   });
 
   it("persists an emptied definition (removal) onto the model", async () => {
@@ -603,7 +602,7 @@ describe("apply-moment integration", () => {
     const definition = setAttributes(
       emptyCustomAttributesDefinition(),
       "junction",
-      [{ id: "ca-1", label: "Zone", type: "text" }],
+      [{ id: "custom-1", label: "Zone", type: "text" }],
     );
     await persistMoment(changeCustomAttributesDefinition(model, definition));
     await persistMoment(
@@ -619,7 +618,7 @@ describe("apply-moment integration", () => {
     ).toEqual([]);
   });
 
-  const customKey = (id: string) => customPropertyKey(id) as ChangeableProperty;
+  const customKey = (id: string) => id as ChangeableProperty;
 
   it("persists a custom-<id> asset value into the new column", async () => {
     const IDS = { J1: 1 } as const;
@@ -631,14 +630,14 @@ describe("apply-moment integration", () => {
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1],
-        property: customKey("ca-1"),
+        property: customKey("custom-1"),
         value: "north" as never,
       }),
     );
 
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
-    expect(j1.getProperty(customPropertyKey("ca-1"))).toBe("north");
+    expect(j1.getProperty("custom-1")).toBe("north");
   });
 
   it("clears a custom value when set to null", async () => {
@@ -651,21 +650,21 @@ describe("apply-moment integration", () => {
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1],
-        property: customKey("ca-1"),
+        property: customKey("custom-1"),
         value: "north" as never,
       }),
     );
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1],
-        property: customKey("ca-1"),
+        property: customKey("custom-1"),
         value: null as never,
       }),
     );
 
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
-    expect(j1.getProperty(customPropertyKey("ca-1"))).toBeUndefined();
+    expect(j1.getProperty("custom-1")).toBeUndefined();
   });
 
   it("merges separate custom attributes on the same asset", async () => {
@@ -678,22 +677,22 @@ describe("apply-moment integration", () => {
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1],
-        property: customKey("ca-1"),
+        property: customKey("custom-1"),
         value: "north" as never,
       }),
     );
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1],
-        property: customKey("ca-2"),
+        property: customKey("custom-2"),
         value: 42 as never,
       }),
     );
 
     const project = await fetchProject();
     const j1 = project.hydraulicModel.assets.get(IDS.J1) as Junction;
-    expect(j1.getProperty(customPropertyKey("ca-1"))).toBe("north");
-    expect(j1.getProperty(customPropertyKey("ca-2"))).toBe(42);
+    expect(j1.getProperty("custom-1")).toBe("north");
+    expect(j1.getProperty("custom-2")).toBe(42);
   });
 
   it("persists a batch value edit across multiple assets", async () => {
@@ -707,7 +706,7 @@ describe("apply-moment integration", () => {
     await persistMoment(
       changeProperty(model, {
         assetIds: [IDS.J1, IDS.J2],
-        property: customKey("ca-1"),
+        property: customKey("custom-1"),
         value: "shared" as never,
       }),
     );
@@ -715,12 +714,12 @@ describe("apply-moment integration", () => {
     const project = await fetchProject();
     expect(
       (project.hydraulicModel.assets.get(IDS.J1) as Junction).getProperty(
-        customPropertyKey("ca-1"),
+        "custom-1",
       ),
     ).toBe("shared");
     expect(
       (project.hydraulicModel.assets.get(IDS.J2) as Junction).getProperty(
-        customPropertyKey("ca-1"),
+        "custom-1",
       ),
     ).toBe("shared");
   });
@@ -736,14 +735,14 @@ describe("apply-moment integration", () => {
       label: "J2",
       coordinates: [10, 0],
     });
-    j2.setProperty(customPropertyKey("ca-1"), "upserted");
+    j2.setProperty("custom-1", "upserted");
 
     await persistMoment({ note: "add junction", putAssets: [j2] });
 
     const project = await fetchProject();
     expect(
       (project.hydraulicModel.assets.get(IDS.J2) as Junction).getProperty(
-        customPropertyKey("ca-1"),
+        "custom-1",
       ),
     ).toBe("upserted");
   });

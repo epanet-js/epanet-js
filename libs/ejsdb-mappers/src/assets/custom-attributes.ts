@@ -1,9 +1,5 @@
 import { Asset } from "@epanet-js/hydraulic-model";
-import {
-  customAttributeIdFromKey,
-  customPropertyKey,
-  isCustomProperty,
-} from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/custom-attributes";
 import { customAttributesDataSchema } from "@epanet-js/ejsdb";
 
 export const serializeAssetCustomAttributes = (asset: Asset): string | null => {
@@ -13,7 +9,7 @@ export const serializeAssetCustomAttributes = (asset: Asset): string | null => {
     if (!isCustomProperty(key)) continue;
     const value = asset.getProperty(key);
     if (value === null || value === undefined) continue;
-    data[customAttributeIdFromKey(key)] = value as string | number;
+    data[key] = value as string | number;
     hasValues = true;
   }
   return hasValues ? JSON.stringify(data) : null;
@@ -38,8 +34,8 @@ export const applyAssetCustomAttributes = (
       `Custom attributes: data does not match schema — ${result.error.message}`,
     );
   }
-  for (const [id, value] of Object.entries(result.data)) {
+  for (const [key, value] of Object.entries(result.data)) {
     if (value === null) continue;
-    asset.setProperty(customPropertyKey(id), value);
+    asset.setProperty(key, value);
   }
 };

@@ -26,11 +26,11 @@ const definitionOf = (
 
 describe("serializeCustomAttributesDefinition", () => {
   it("serializes the definition map to a JSON object keyed by asset type", () => {
-    const definition = definitionOf([["pipe", [attr("ca-1", "Material")]]]);
+    const definition = definitionOf([["pipe", [attr("custom-1", "Material")]]]);
 
     expect(JSON.parse(serializeCustomAttributesDefinition(definition))).toEqual(
       {
-        pipe: [{ id: "ca-1", label: "Material", type: "text" }],
+        pipe: [{ id: "custom-1", label: "Material", type: "text" }],
       },
     );
   });
@@ -50,7 +50,9 @@ describe("serializeCustomAttributesDefinition", () => {
   });
 
   it("throws when a label exceeds the maximum length", () => {
-    const definition = definitionOf([["pipe", [attr("ca-1", "x".repeat(51))]]]);
+    const definition = definitionOf([
+      ["pipe", [attr("custom-1", "x".repeat(51))]],
+    ]);
 
     expect(() => serializeCustomAttributesDefinition(definition)).toThrow(
       /Custom attributes: data does not match schema/,

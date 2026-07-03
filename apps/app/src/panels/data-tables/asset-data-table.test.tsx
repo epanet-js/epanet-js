@@ -13,7 +13,6 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
-import { customPropertyKey } from "@epanet-js/custom-attributes";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
@@ -176,8 +175,16 @@ describe("AssetDataTable", () => {
   it("renders custom-attribute columns when the flag is on", async () => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
-      .aCustomAttribute("junction", { id: "2", label: "Score", type: "number" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aCustomAttribute("junction", {
+        id: "custom-2",
+        label: "Score",
+        type: "number",
+      })
       .aJunction(1, { label: "J1" })
       .build();
     const store = setInitialState({ hydraulicModel });
@@ -191,7 +198,11 @@ describe("AssetDataTable", () => {
   it("hides custom-attribute columns when the flag is off", async () => {
     stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(1, { label: "J1" })
       .build();
     const store = setInitialState({ hydraulicModel });
@@ -206,10 +217,14 @@ describe("AssetDataTable", () => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
     const user = setupUser();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(1, { label: "J1" })
       .build();
-    hydraulicModel.assets.get(1)?.setProperty(customPropertyKey("1"), "A");
+    hydraulicModel.assets.get(1)?.setProperty("custom-1", "A");
     const store = setInitialState({ hydraulicModel });
 
     renderTable(store);
@@ -226,9 +241,7 @@ describe("AssetDataTable", () => {
 
     await waitFor(() => {
       const model = store.get(stagingModelDerivedAtom);
-      expect(model.assets.get(1)?.getProperty(customPropertyKey("1"))).toBe(
-        "B",
-      );
+      expect(model.assets.get(1)?.getProperty("custom-1")).toBe("B");
     });
   });
 
@@ -236,10 +249,14 @@ describe("AssetDataTable", () => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
     const user = setupUser();
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
       .aJunction(1, { label: "J1" })
       .build();
-    hydraulicModel.assets.get(1)?.setProperty(customPropertyKey("1"), "A");
+    hydraulicModel.assets.get(1)?.setProperty("custom-1", "A");
     const store = setInitialState({ hydraulicModel });
 
     renderTable(store);
@@ -256,9 +273,7 @@ describe("AssetDataTable", () => {
 
     await waitFor(() => {
       const model = store.get(stagingModelDerivedAtom);
-      expect(
-        model.assets.get(1)?.getProperty(customPropertyKey("1")) ?? null,
-      ).toBeNull();
+      expect(model.assets.get(1)?.getProperty("custom-1") ?? null).toBeNull();
     });
   });
 });
