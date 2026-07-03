@@ -49,12 +49,7 @@ import {
   assetAccessor,
   isAssetComputedKey,
 } from "./data";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
-import {
-  isGreaterThanZero,
-  isZeroOrGreater,
-  isWithinUnitRange,
-} from "src/components/form/numeric-input-utils";
+import { fieldValidator } from "src/lib/model-attributes-validation";
 
 function makeCk(type: AssetType, accessorCtx?: AssetAccessorCtx) {
   return (key: string): ColumnKey<AssetRow, never> => {
@@ -143,18 +138,6 @@ export const NON_ZERO_KEYS = new Set([
   "power",
 ]);
 
-const ZERO_OR_GREATER_KEYS = new Set([
-  "minorLoss",
-  "emitterCoefficient",
-  "minVolume",
-  "initialQuality",
-  "initialLevel",
-  "minLevel",
-  "speed",
-  "energyPrice",
-  "chemicalSourceStrength",
-]);
-
 const NULLABLE_KEYS = new Set([
   "roughness",
   "head",
@@ -190,15 +173,6 @@ const optionalColumnPlaceholder = (key: string): string | undefined => {
     default:
       return undefined;
   }
-};
-
-const numericValidatorFor = (
-  key: string,
-): ((value: number) => boolean) | undefined => {
-  if (key === "mixingFraction") return isWithinUnitRange;
-  if (NON_ZERO_KEYS.has(key)) return isGreaterThanZero;
-  if (ZERO_OR_GREATER_KEYS.has(key)) return isZeroOrGreater;
-  return undefined;
 };
 
 export const isOptionalColumn = (
@@ -528,7 +502,7 @@ function pipeAttributeColsFor(
       integerColumn("year", {
         header: translate("yearOfInstallation"),
         emptyValue: null,
-        validate: isValidInstallationYear,
+        validate: fieldValidator("pipe", "year"),
         commitInvalidValues: allowsNullValues,
         placeholder: "",
         isReadOnly: !!lock,
@@ -646,7 +620,7 @@ function _buildColumns(
           ? getDecimals(formatting, property)
           : formatting.defaultDecimals,
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
-      validate: numericValidatorFor(key),
+      validate: fieldValidator(type, key),
       commitInvalidValues,
       placeholder: flagOptional
         ? (optionalColumnPlaceholder(key) ?? placeholder)

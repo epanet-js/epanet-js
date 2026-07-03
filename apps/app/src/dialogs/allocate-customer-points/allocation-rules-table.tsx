@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
+import { numericChecks } from "src/lib/model-attributes-validation";
 import {
   CustomerPointAllocationRule,
   defaultAllocationRules,
@@ -153,7 +153,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                       onChangeValue={(value) =>
                         handleRuleChange(index, "maxDiameter", value)
                       }
-                      validate={isGreaterThanZero}
+                      validate={numericChecks.positive}
                       styleOptions={{
                         padding: "sm",
                         border: "sm",
@@ -175,7 +175,7 @@ export const AllocationRulesTable: React.FC<AllocationRulesTableProps> = ({
                       onChangeValue={(value) =>
                         handleRuleChange(index, "maxDistance", value)
                       }
-                      validate={isGreaterThanZero}
+                      validate={numericChecks.positive}
                       styleOptions={{
                         padding: "sm",
                         border: "sm",

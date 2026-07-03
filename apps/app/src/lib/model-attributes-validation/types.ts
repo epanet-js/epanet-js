@@ -36,11 +36,8 @@ export type Rule = {
   entityType: EntityType;
   field?: string;
   accessor: (entity: ValidatableEntity, model: HydraulicModel) => unknown;
-  validate: (
-    value: unknown,
-    entity: ValidatableEntity,
-    model: HydraulicModel,
-  ) => boolean;
+  appliesWhen?: (entity: ValidatableEntity, model: HydraulicModel) => boolean;
+  check: (value: unknown) => boolean;
   severity: Severity;
   message: string;
 };

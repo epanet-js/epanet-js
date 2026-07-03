@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
+import { numericChecks } from "src/lib/model-attributes-validation";
 import { useSetAtom } from "jotai";
 import { Selector } from "@epanet-js/ui-kit";
 import {
@@ -141,7 +141,7 @@ export const PumpLevelBasedControls = ({
       {
         label: `${translate("pump.on")} ${translate("speed")}`,
         value: control.on.setting,
-        validate: isGreaterThanZero,
+        validate: numericChecks.positive,
         handler: handleSettingChange,
         readOnly,
       },

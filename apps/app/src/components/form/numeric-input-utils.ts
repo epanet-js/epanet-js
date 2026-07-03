@@ -24,9 +24,3 @@ export function formatNumericDisplay(value: number | null | undefined): string {
   if (value === null || value === undefined) return "";
   return new Intl.NumberFormat().format(value);
 }
-
-export const isGreaterThanZero = (value: number) => value > 0;
-
-export const isZeroOrGreater = (value: number) => value >= 0;
-
-export const isWithinUnitRange = (value: number) => value >= 0 && value <= 1;

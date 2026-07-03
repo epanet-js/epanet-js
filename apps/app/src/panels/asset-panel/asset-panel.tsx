@@ -69,12 +69,10 @@ import type {
 } from "src/hydraulic-model/model-operations/change-property";
 import { activateAssets } from "src/hydraulic-model/model-operations/activate-assets";
 import { deactivateAssets } from "src/hydraulic-model/model-operations/deactivate-assets";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import {
-  isGreaterThanZero,
-  isZeroOrGreater,
-  isWithinUnitRange,
-} from "src/components/form/numeric-input-utils";
+  fieldValidator,
+  numericChecks,
+} from "src/lib/model-attributes-validation";
 import { getLinkNodes } from "@epanet-js/hydraulic-model";
 import { type AssetId, type Control } from "@epanet-js/hydraulic-model";
 import { changeAssetControl } from "src/hydraulic-model/model-operations";
@@ -548,7 +546,7 @@ const JunctionEditor = ({
             junction.emitterCoefficient,
           )}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("junction", "emitterCoefficient")}
           readOnly={readonly}
         />
       </SectionWrapper>
@@ -617,7 +615,7 @@ const JunctionEditor = ({
           }
           comparison={getComparison("initialQuality", junction.initialQuality)}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("junction", "initialQuality")}
           readOnly={readonly}
         />
         <ChemicalSourceEditor
@@ -857,7 +855,7 @@ const PipeEditor = ({
         <QuantityRow
           name="diameter"
           value={pipe.diameter}
-          validate={isGreaterThanZero}
+          validate={fieldValidator("pipe", "diameter")}
           unit={units.diameter}
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
@@ -866,7 +864,7 @@ const PipeEditor = ({
         <QuantityRow
           name="length"
           value={pipe.length}
-          validate={isGreaterThanZero}
+          validate={fieldValidator("pipe", "length")}
           unit={units.length}
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
@@ -889,7 +887,7 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           paywall="pipeAttributes"
-          validate={isValidInstallationYear}
+          validate={fieldValidator("pipe", "year")}
         />
         <QuantityRow
           name="roughness"
@@ -899,12 +897,12 @@ const PipeEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           commitInvalidValues={allowsNullValues}
-          validate={isGreaterThanZero}
+          validate={fieldValidator("pipe", "roughness")}
         />
         <QuantityRow
           name="minorLoss"
           value={pipe.minorLoss}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("pipe", "minorLoss")}
           unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
           isOptional={allowsNullValues}
@@ -1154,7 +1152,7 @@ const ReservoirEditor = ({
           }
           comparison={getComparison("initialQuality", reservoir.initialQuality)}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("reservoir", "initialQuality")}
           readOnly={readonly}
         />
         <ChemicalSourceEditor
@@ -1337,7 +1335,7 @@ const TankEditor = ({
           unit={units.initialLevel}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("tank", "initialLevel")}
           readOnly={readonly}
           commitInvalidValues={allowsNullValues}
         />
@@ -1379,7 +1377,7 @@ const TankEditor = ({
           }
           comparison={getComparison("initialQuality", tank.initialQuality)}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("tank", "initialQuality")}
           readOnly={readonly}
         />
         <QuantityRow
@@ -1420,7 +1418,7 @@ const TankEditor = ({
               placeholder={String(DEFAULT_MIXING_FRACTION)}
               unit={null}
               onChange={onPropertyChange}
-              validate={isWithinUnitRange}
+              validate={fieldValidator("tank", "mixingFraction")}
               readOnly={readonly}
             />
           </NestedSection>
@@ -1758,7 +1756,7 @@ const TankDefinitionField = ({
               value={tank.diameter}
               unit={units.tankDiameter}
               onChange={onPropertyChange}
-              validate={isGreaterThanZero}
+              validate={fieldValidator("tank", "diameter")}
               readOnly={readOnly}
               commitInvalidValues={allowsNullValues}
             />
@@ -1771,7 +1769,7 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    validate: isGreaterThanZero,
+                    validate: fieldValidator("tank", "maxLevel"),
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1786,7 +1784,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    validate: isZeroOrGreater,
+                    validate: fieldValidator("tank", "minLevel"),
                     isRequired: true,
                     readOnly,
                     handler: (v) =>
@@ -1795,7 +1793,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
-                    validate: isZeroOrGreater,
+                    validate: fieldValidator("tank", "minVolume"),
                     isRequired: !allowsNullValues,
                     commitInvalidValues: allowsNullValues,
                     placeholder: String(DEFAULT_MIN_VOLUME),
@@ -1820,7 +1818,7 @@ const TankDefinitionField = ({
               unit={units.tankArea}
               onChange={handleAreaChange}
               readOnly={readOnly}
-              validate={isGreaterThanZero}
+              validate={numericChecks.positive}
             />
             <hr className=" my-1" />
             <NumericTable
@@ -1831,7 +1829,7 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    validate: isGreaterThanZero,
+                    validate: fieldValidator("tank", "maxLevel"),
                     readOnly,
                     handler: (v) =>
                       onPropertyChange("maxLevel", v, tank.maxLevel),
@@ -1846,7 +1844,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    validate: isZeroOrGreater,
+                    validate: fieldValidator("tank", "minLevel"),
                     isRequired: true,
                     readOnly,
                     handler: (v) =>
@@ -1855,7 +1853,7 @@ const TankDefinitionField = ({
                   {
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
-                    validate: isZeroOrGreater,
+                    validate: fieldValidator("tank", "minVolume"),
                     isRequired: !allowsNullValues,
                     commitInvalidValues: allowsNullValues,
                     placeholder: String(DEFAULT_MIN_VOLUME),
@@ -1881,7 +1879,7 @@ const TankDefinitionField = ({
                   label: translate("maxLevel"),
                   value: tank.maxLevel,
                   isRequired: true,
-                  validate: isGreaterThanZero,
+                  validate: fieldValidator("tank", "maxLevel"),
                   readOnly,
                   handler: (v) => handleMaxLevelChange("maxLevel", v),
                 },
@@ -1889,7 +1887,7 @@ const TankDefinitionField = ({
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
                   isRequired: true,
-                  validate: isGreaterThanZero,
+                  validate: numericChecks.positive,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
                 },
@@ -1898,7 +1896,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("minLevel"),
                   value: tank.minLevel,
-                  validate: isZeroOrGreater,
+                  validate: fieldValidator("tank", "minLevel"),
                   isRequired: true,
                   readOnly,
                   handler: (v) => handleMinLevelChange("minLevel", v),
@@ -1906,7 +1904,7 @@ const TankDefinitionField = ({
                 {
                   label: translate("minVolume"),
                   value: tank.minVolume ?? null,
-                  validate: isZeroOrGreater,
+                  validate: fieldValidator("tank", "minVolume"),
                   isRequired: true,
                   readOnly,
                   handler: (v) => handleMinVolumeChange("minVolume", v),
@@ -2167,13 +2165,13 @@ const ValveEditor = ({
           comparison={getComparison("diameter", valve.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          validate={isGreaterThanZero}
+          validate={fieldValidator("valve", "diameter")}
           commitInvalidValues={allowsNullValues}
         />
         <QuantityRow
           name="minorLoss"
           value={valve.minorLoss}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("valve", "minorLoss")}
           isOptional={allowsNullValues}
           commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_MINOR_LOSS)}
@@ -2414,7 +2412,7 @@ const PumpEditor = ({
         <QuantityRow
           name="initialSpeed"
           value={pump.speed}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("pump", "speed")}
           isOptional={allowsNullValues}
           commitInvalidValues={allowsNullValues}
           placeholder={String(DEFAULT_SPEED)}
@@ -2478,7 +2476,7 @@ const PumpEditor = ({
           unit={null}
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
-          validate={isZeroOrGreater}
+          validate={fieldValidator("pump", "energyPrice")}
           commitInvalidValues={allowsNullValues}
           isOptional
           readOnly={readonly}
@@ -2981,7 +2979,7 @@ const ChemicalSourceEditor = ({
             value={typedNode.chemicalSourceStrength}
             unit={null}
             onChange={onPropertyChange}
-            validate={isZeroOrGreater}
+            validate={fieldValidator(node.type, "chemicalSourceStrength")}
             commitInvalidValues={allowsNullValues}
             isOptional
             placeholder={localizeDecimal(0)}

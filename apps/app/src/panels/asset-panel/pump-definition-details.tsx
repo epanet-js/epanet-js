@@ -19,9 +19,9 @@ import { getDecimals } from "src/lib/project-settings";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { SelectRow, LibrarySelectRow, QuantityRow } from "./ui-components";
 import {
-  isGreaterThanZero,
-  isZeroOrGreater,
-} from "src/components/form/numeric-input-utils";
+  fieldValidator,
+  numericChecks,
+} from "src/lib/model-attributes-validation";
 import type {
   PropertyComparison,
   PumpCurveComparison,
@@ -354,7 +354,7 @@ export const PumpCurveTable = ({
       label: `${pointLabels[index]}-x`,
       value: point.flow ?? null,
       readOnly: !isEditable(index, "flow"),
-      validate: isZeroOrGreater,
+      validate: numericChecks.nonNegative,
       isRequired: true,
       commitInvalidValues: true,
       decimals: flowDecimals,
@@ -366,7 +366,7 @@ export const PumpCurveTable = ({
       label: `${pointLabels[index]}-y`,
       value: point.head ?? null,
       readOnly: !isEditable(index, "head"),
-      validate: isZeroOrGreater,
+      validate: numericChecks.nonNegative,
       isRequired: true,
       commitInvalidValues: true,
       decimals: headDecimals,
@@ -426,7 +426,7 @@ const PowerDefinition = ({
       unit={units.power}
       readOnly={readOnly}
       onChange={handlePowerChange}
-      validate={isGreaterThanZero}
+      validate={fieldValidator("pump", "power")}
     />
   );
 };

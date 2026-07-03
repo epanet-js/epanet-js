@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
+import { numericChecks } from "src/lib/model-attributes-validation";
 import {
   PumpStatus,
   pumpStatuses,
@@ -95,7 +95,7 @@ export const PumpTimeBasedControls = ({
       floatColumn("setting", {
         header: translate("speed"),
         size: 80,
-        validate: isGreaterThanZero,
+        validate: numericChecks.positive,
         emptyValue: initialSpeed,
         isReadOnly: (rowIndex) =>
           rowIndex === 0 || data[rowIndex]?.status === "off",

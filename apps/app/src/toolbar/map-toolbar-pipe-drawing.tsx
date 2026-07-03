@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
-import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
+import { numericChecks } from "src/lib/model-attributes-validation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { pipeDrawingDefaultsAtom } from "src/state/drawing";
 import { Mode, modeAtom } from "src/state/mode";
@@ -84,7 +84,7 @@ export const MapToolbarPipeDrawing = () => {
           <NumericField
             key={lastDiameterChange.current + diameterDisplay}
             label={diameterLabel}
-            validate={isGreaterThanZero}
+            validate={numericChecks.positive}
             isRequired={true}
             displayValue={diameterDisplay}
             onChangeValue={handleDiameterChange}
@@ -103,7 +103,7 @@ export const MapToolbarPipeDrawing = () => {
           <NumericField
             key={lastRoughnessChange.current + roughnessDisplay}
             label={roughnessLabel}
-            validate={isGreaterThanZero}
+            validate={numericChecks.positive}
             isRequired={true}
             commitInvalidValues={allowsNullValues}
             displayValue={roughnessDisplay}

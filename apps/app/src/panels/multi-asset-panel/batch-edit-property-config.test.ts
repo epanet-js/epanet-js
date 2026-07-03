@@ -82,11 +82,12 @@ describe("BATCH_EDITABLE_PROPERTIES", () => {
     expect(hasModelValidation(tank, "maxLevel")).toBe(false);
   });
 
-  it("keeps the validator as the single authority on the base config", () => {
+  it("sources each quantity field's validator from the rules repository", () => {
     expect(validatorFor(tank, "minVolume")?.(-1)).toBe(false);
     expect(validatorFor(tank, "minVolume")?.(0)).toBe(true);
     expect(validatorFor(tank, "mixingFraction")?.(1.5)).toBe(false);
     expect(validatorFor(tank, "mixingFraction")?.(0.5)).toBe(true);
     expect(validatorFor(pump, "energyPrice")?.(-1)).toBe(false);
+    expect(validatorFor(pipe, "diameter")?.(0)).toBe(false);
   });
 });

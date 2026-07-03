@@ -1,13 +1,38 @@
 import { z } from "zod";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 
 const fromSchema =
   (schema: z.ZodTypeAny) =>
   (value: unknown): boolean =>
     schema.safeParse(value).success;
+
+const range = ({
+  min,
+  max,
+  int = false,
+}: {
+  min?: number;
+  max?: number;
+  int?: boolean;
+}): ((value: unknown) => boolean) => {
+  let schema = int ? z.number().int() : z.number();
+  if (min !== undefined) schema = schema.min(min);
+  if (max !== undefined) schema = schema.max(max);
+  return fromSchema(schema);
+};
+
+export const numericChecks = {
+  positive: fromSchema(z.number().positive()),
+  nonNegative: fromSchema(z.number().nonnegative()),
+  unitRange: range({ min: 0, max: 1 }),
+  year: range({ min: 1000, max: 9999, int: true }),
+} satisfies Record<string, (value: number) => boolean>;
+
+type NumericCheckName = keyof typeof numericChecks;
+
+const isNumber = fromSchema(z.number());
 
 const field =
   (name: string) =>
@@ -17,87 +42,79 @@ const field =
 const prop = (entity: ValidatableEntity, name: string): unknown =>
   (entity as unknown as Record<string, unknown>)[name];
 
-type NumericCheck = "present" | "positive" | "nonNegative";
-
-const checkSchema: Record<NumericCheck, z.ZodTypeAny> = {
-  present: z.number(),
-  positive: z.number().positive(),
-  nonNegative: z.number().nonnegative(),
-};
-
-const checkMessage: Record<NumericCheck, string> = {
-  present: "required",
+const checkMessage: Record<NumericCheckName, string> = {
   positive: "mustBePositive",
   nonNegative: "mustBeNonNegative",
+  unitRange: "mustBeWithinUnitRange",
+  year: "invalidYear",
 };
 
 type When = (entity: ValidatableEntity, model: HydraulicModel) => boolean;
 
-const numericRule = (
+const presence = (
   entityType: EntityType,
   fieldName: string,
-  check: NumericCheck,
-  when?: When,
+  appliesWhen?: When,
 ): Rule => ({
-  id: `${entityType}.${fieldName}.${check}`,
+  id: `${entityType}.${fieldName}.present`,
   entityType,
   field: fieldName,
   accessor: field(fieldName),
-  validate: (value, entity, model) =>
-    (when ? !when(entity, model) : false) ||
-    fromSchema(checkSchema[check])(value),
+  appliesWhen,
+  check: isNumber,
   severity: "error",
-  message: checkMessage[check],
+  message: "required",
 });
 
-// Emits the presence rule followed by the optional sign rule, in that order so
-// the field group's fail-fast reports "required" before "mustBePositive".
+const valueRule = (
+  entityType: EntityType,
+  fieldName: string,
+  checkName: NumericCheckName,
+  severity: Severity,
+  appliesWhen?: When,
+  { optional = false }: { optional?: boolean } = {},
+): Rule => {
+  const predicate = numericChecks[checkName];
+  return {
+    id: `${entityType}.${fieldName}.${checkName}`,
+    entityType,
+    field: fieldName,
+    accessor: field(fieldName),
+    appliesWhen,
+    check: (value) => (optional && value == null) || predicate(value),
+    severity,
+    message: checkMessage[checkName],
+  };
+};
+
 const requiredNumeric = (
   entityType: EntityType,
   fieldName: string,
   sign?: "positive" | "nonNegative",
-  when?: When,
+  appliesWhen?: When,
 ): Rule[] => {
-  const rules = [numericRule(entityType, fieldName, "present", when)];
-  if (sign) rules.push(numericRule(entityType, fieldName, sign, when));
+  const rules = [presence(entityType, fieldName, appliesWhen)];
+  if (sign)
+    rules.push(valueRule(entityType, fieldName, sign, "error", appliesWhen));
   return rules;
-};
-
-type OptionalCheck = "nonNegative" | "unitRange";
-
-const optionalCheckSchema: Record<OptionalCheck, z.ZodTypeAny> = {
-  nonNegative: z.number().nonnegative(),
-  unitRange: z.number().min(0).max(1),
-};
-
-const optionalCheckMessage: Record<OptionalCheck, string> = {
-  nonNegative: "mustBeNonNegative",
-  unitRange: "mustBeWithinUnitRange",
 };
 
 const optionalNumeric = (
   entityType: EntityType,
   fieldName: string,
-  check: OptionalCheck,
+  checkName: "nonNegative" | "unitRange",
   severity: Severity,
-  when?: When,
-): Rule => ({
-  id: `${entityType}.${fieldName}.${check}`,
-  entityType,
-  field: fieldName,
-  accessor: field(fieldName),
-  validate: (value, entity, model) => {
-    if (when && !when(entity, model)) return true;
-    if (value == null) return true; // empty is allowed for optional attributes
-    return fromSchema(optionalCheckSchema[check])(value);
-  },
-  severity,
-  message: optionalCheckMessage[check],
-});
+  appliesWhen?: When,
+): Rule =>
+  valueRule(entityType, fieldName, checkName, severity, appliesWhen, {
+    optional: true,
+  });
 
 export const RULES: Rule[] = [
   // Pipes
+  ...requiredNumeric("pipe", "diameter", "positive"),
   ...requiredNumeric("pipe", "roughness", "positive"),
+  ...requiredNumeric("pipe", "length", "positive"),
   // Year and material are optional informational attributes (used for roughness
   // inference), so empty is allowed; only an out-of-range/non-integer year warns.
   {
@@ -105,8 +122,7 @@ export const RULES: Rule[] = [
     entityType: "pipe",
     field: "year",
     accessor: field("year"),
-    validate: (value) =>
-      value == null || isValidInstallationYear(value as number),
+    check: (value) => value == undefined || numericChecks.year(value),
     severity: "warning",
     message: "invalidYear",
   },
@@ -120,6 +136,20 @@ export const RULES: Rule[] = [
     "positive",
     (entity) => prop(entity, "volumeCurveId") == null,
   ),
+  // Tank levels only apply in diameter (cylindrical) mode; curve-based tanks
+  // derive them from the volume curve.
+  ...requiredNumeric(
+    "tank",
+    "maxLevel",
+    "positive",
+    (entity) => prop(entity, "volumeCurveId") == null,
+  ),
+  ...requiredNumeric(
+    "tank",
+    "minLevel",
+    "nonNegative",
+    (entity) => prop(entity, "volumeCurveId") == null,
+  ),
   // Valves
   ...requiredNumeric("valve", "diameter", "positive"),
   // All valve kinds need a numeric setting except gpv, which uses a curve.
@@ -128,6 +158,13 @@ export const RULES: Rule[] = [
     "setting",
     undefined,
     (entity) => prop(entity, "kind") !== "gpv",
+  ),
+  // Power only applies to constant-power pumps; curve-defined pumps ignore it.
+  ...requiredNumeric(
+    "pump",
+    "power",
+    "positive",
+    (entity) => prop(entity, "definitionType") === "power",
   ),
   optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
   optionalNumeric("valve", "minorLoss", "nonNegative", "error"),
@@ -170,7 +207,7 @@ export const RULES: Rule[] = [
     id: "customerPoint.connected",
     entityType: "customerPoint",
     accessor: (entity) => entity,
-    validate: (_value, entity) => (entity as CustomerPoint).connection !== null,
+    check: (value) => (value as CustomerPoint).connection !== null,
     severity: "warning",
     message: "disconnected",
   },

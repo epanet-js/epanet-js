@@ -11,12 +11,7 @@ import {
 } from "@epanet-js/hydraulic-model";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
 import type { PaywallFeature } from "src/state/dialog";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
-import {
-  isGreaterThanZero,
-  isZeroOrGreater,
-  isWithinUnitRange,
-} from "src/components/form/numeric-input-utils";
+import { fieldValidator } from "src/lib/model-attributes-validation";
 
 type CommonConfig = {
   paywall?: PaywallFeature;
@@ -81,13 +76,13 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     emitterCoefficient: {
       fieldType: "quantity",
       modelProperty: "emitterCoefficient",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("junction", "emitterCoefficient"),
       hasModelValidation: true,
     },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("junction", "initialQuality"),
       hasModelValidation: true,
     },
     chemicalSourceType: {
@@ -100,7 +95,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("junction", "chemicalSourceStrength"),
       hasModelValidation: true,
     },
     chemicalSourcePattern: {
@@ -123,12 +118,12 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("pipe", "diameter"),
     },
     length: {
       fieldType: "quantity",
       modelProperty: "length",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("pipe", "length"),
     },
     material: {
       fieldType: "openCategory",
@@ -138,7 +133,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     year: {
       fieldType: "quantity",
       modelProperty: "year",
-      validate: isValidInstallationYear,
+      validate: fieldValidator("pipe", "year"),
       hasModelValidation: true,
       labelKey: "yearOfInstallation",
       paywall: "pipeAttributes",
@@ -146,13 +141,13 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     roughness: {
       fieldType: "quantity",
       modelProperty: "roughness",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("pipe", "roughness"),
       hasModelValidation: true,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("pipe", "minorLoss"),
       hasModelValidation: true,
     },
     bulkReactionCoeff: {
@@ -175,7 +170,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     speed: {
       fieldType: "quantity",
       modelProperty: "speed",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("pump", "speed"),
       labelKey: "initialSpeed",
       hasModelValidation: true,
     },
@@ -198,7 +193,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     energyPrice: {
       fieldType: "quantity",
       modelProperty: "energyPrice",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("pump", "energyPrice"),
       hasModelValidation: true,
     },
     energyPricePattern: {
@@ -233,13 +228,13 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("valve", "diameter"),
       hasModelValidation: true,
     },
     minorLoss: {
       fieldType: "quantity",
       modelProperty: "minorLoss",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("valve", "minorLoss"),
       hasModelValidation: true,
     },
   },
@@ -258,7 +253,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("reservoir", "initialQuality"),
       hasModelValidation: true,
     },
     chemicalSourceType: {
@@ -271,7 +266,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("reservoir", "chemicalSourceStrength"),
       hasModelValidation: true,
     },
     chemicalSourcePattern: {
@@ -291,36 +286,36 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     initialLevel: {
       fieldType: "quantity",
       modelProperty: "initialLevel",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("tank", "initialLevel"),
       hasModelValidation: true,
     },
     minLevel: {
       fieldType: "quantity",
       modelProperty: "minLevel",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("tank", "minLevel"),
     },
     maxLevel: {
       fieldType: "quantity",
       modelProperty: "maxLevel",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("tank", "maxLevel"),
     },
     diameter: {
       fieldType: "quantity",
       modelProperty: "diameter",
-      validate: isGreaterThanZero,
+      validate: fieldValidator("tank", "diameter"),
       hasModelValidation: true,
     },
     minVolume: {
       fieldType: "quantity",
       modelProperty: "minVolume",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("tank", "minVolume"),
       hasModelValidation: true,
     },
     canOverflow: { fieldType: "boolean", modelProperty: "overflow" },
     initialQuality: {
       fieldType: "quantity",
       modelProperty: "initialQuality",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("tank", "initialQuality"),
       hasModelValidation: true,
     },
     mixingModel: {
@@ -332,7 +327,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     mixingFraction: {
       fieldType: "quantity",
       modelProperty: "mixingFraction",
-      validate: isWithinUnitRange,
+      validate: fieldValidator("tank", "mixingFraction"),
       hasModelValidation: true,
     },
     bulkReactionCoeff: {
@@ -349,7 +344,7 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
     chemicalSourceStrength: {
       fieldType: "quantity",
       modelProperty: "chemicalSourceStrength",
-      validate: isZeroOrGreater,
+      validate: fieldValidator("tank", "chemicalSourceStrength"),
       hasModelValidation: true,
     },
     chemicalSourcePattern: {

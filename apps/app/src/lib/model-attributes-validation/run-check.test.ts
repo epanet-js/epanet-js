@@ -192,6 +192,65 @@ describe("validateModelAttributes", () => {
         (await validateModelAttributes(missing)).map((i) => i.ruleId),
       ).toContain("tank.initialLevel.present");
     });
+
+    it("flags a zero pipe length", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, { length: 0, roughness: 100 })
+        .build();
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).toContain("pipe.length.positive");
+    });
+
+    it("flags pump power only for constant-power pumps", async () => {
+      const powerPump = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "power",
+          power: 0,
+        })
+        .build();
+      expect(
+        (await validateModelAttributes(powerPump)).map((i) => i.ruleId),
+      ).toContain("pump.power.positive");
+
+      const curvePump = HydraulicModelBuilder.with()
+        .aJunction(4)
+        .aJunction(5)
+        .aPump(2, {
+          startNodeId: 4,
+          endNodeId: 5,
+          definitionType: "designPointCurve",
+          power: 0,
+        })
+        .build();
+      expect(
+        (await validateModelAttributes(curvePump)).map((i) => i.ruleId),
+      ).not.toContain("pump.power.positive");
+    });
+
+    it("flags tank max/min levels only when no volume curve is set", async () => {
+      const diameterTank = HydraulicModelBuilder.with()
+        .aTank(1, { maxLevel: 0, minLevel: -1 })
+        .build();
+      const ruleIds = (await validateModelAttributes(diameterTank)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).toContain("tank.maxLevel.positive");
+      expect(ruleIds).toContain("tank.minLevel.nonNegative");
+
+      const curveTank = HydraulicModelBuilder.with()
+        .aTank(2, { maxLevel: 0, minLevel: -1, volumeCurveId: 9 })
+        .build();
+      const curveRuleIds = (await validateModelAttributes(curveTank)).map(
+        (i) => i.ruleId,
+      );
+      expect(curveRuleIds).not.toContain("tank.maxLevel.positive");
+      expect(curveRuleIds).not.toContain("tank.minLevel.nonNegative");
+    });
   });
 
   describe("optional attribute value checks", () => {

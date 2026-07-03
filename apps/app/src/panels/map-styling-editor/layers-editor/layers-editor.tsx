@@ -1,5 +1,5 @@
 import debounce from "lodash/debounce";
-import { isGreaterThanZero } from "src/components/form/numeric-input-utils";
+import { numericChecks } from "src/lib/model-attributes-validation";
 import * as T from "@radix-ui/react-tooltip";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -1344,7 +1344,7 @@ const VectorFileItem = ({
                   <NumericField
                     label={translate("customLayers.lineWidth")}
                     displayValue={localizeDecimal(layerConfig.lineWidth)}
-                    validate={isGreaterThanZero}
+                    validate={numericChecks.positive}
                     isRequired={true}
                     styleOptions={{ padding: "sm" }}
                     onChangeValue={(v) =>
@@ -1372,7 +1372,7 @@ const VectorFileItem = ({
               <NumericField
                 label={translate("customLayers.opacity")}
                 displayValue={String(Math.round(layerConfig.opacity * 100))}
-                validate={isGreaterThanZero}
+                validate={numericChecks.positive}
                 isRequired={true}
                 styleOptions={{ padding: "sm" }}
                 onChangeValue={(v) =>
