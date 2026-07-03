@@ -1680,7 +1680,7 @@
       "continue": "Continue",
       "success": "Imported {{count}} materials from file",
       "noMaterialsImported": "No materials were imported",
-      "partialTitle": "Imported {{count}} valid materials from file",
+      "partialTitle": "Library contained invalid entries. Imported {{count}} valid materials",
       "errorTitle": "Failed to import pipe library",
       "errorDescription": "The selected file contains invalid entries. See the details for the full list of errors.",
       "emptyFile": "The file contains no materials",
