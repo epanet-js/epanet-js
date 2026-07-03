@@ -69,6 +69,10 @@ export const PipeRoughnessTable = ({
   );
 
   useEffect(() => {
+    gridRef.current?.clearSelection();
+  }, [entries]);
+
+  useEffect(() => {
     const sorted = sortByAge(entries);
     if (sorted.some((entry, i) => entry !== entries[i])) {
       onChange(sorted);
