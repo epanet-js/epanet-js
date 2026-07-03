@@ -226,6 +226,10 @@ export const usePipeLibraryHandlers = () => {
 
         const numMaterials = result.pipeLibrary?.length ?? 0;
 
+        if (numMaterials === 0) {
+          return translate("pipeLibrary.import.noMaterialsImported");
+        }
+
         if (result.status === "partial") {
           return translate("pipeLibrary.import.partialTitle", numMaterials);
         }
@@ -236,6 +240,7 @@ export const usePipeLibraryHandlers = () => {
       const variant = (() => {
         if (result.status === "partial") return "warning";
         if (result.status === "error") return "error";
+        if (result.pipeLibrary?.length === 0) return "default";
         return "success";
       })();
 
