@@ -32,22 +32,44 @@ export interface CustomerPointConnection {
   junctionId: AssetId;
 }
 
+export type CustomerPointProperties = {
+  label: string;
+};
+
 export class CustomerPoint {
   public readonly id: CustomerPointId;
-  public readonly label: string;
   public readonly coordinates: Position;
+  private readonly properties: CustomerPointProperties;
   private connectionData: CustomerPointConnection | null = null;
 
   constructor(
     id: CustomerPointId,
     coordinates: Position,
-    properties: {
-      label: string;
-    },
+    properties: CustomerPointProperties,
   ) {
     this.id = id;
-    this.label = properties.label;
     this.coordinates = coordinates;
+    this.properties = { ...properties };
+  }
+
+  get label() {
+    return this.properties.label;
+  }
+
+  setProperty(name: string, value: unknown) {
+    this.properties[name as keyof CustomerPointProperties] = value as never;
+  }
+
+  getProperty(name: string) {
+    return this.properties[name as keyof CustomerPointProperties];
+  }
+
+  listProperties() {
+    return Object.keys(this.properties);
+  }
+
+  hasProperty(name: string): boolean {
+    return name in this.properties;
   }
 
   get snapPosition(): Position | null {
@@ -62,9 +84,19 @@ export class CustomerPoint {
     this.connectionData = connection;
   }
 
+  copy(): CustomerPoint {
+    const copied = new CustomerPoint(this.id, [...this.coordinates], {
+      ...this.properties,
+    });
+    if (this.connectionData) {
+      copied.connect(this.connectionData);
+    }
+    return copied;
+  }
+
   copyDisconnected(): CustomerPoint {
     return new CustomerPoint(this.id, [...this.coordinates], {
-      label: this.label,
+      ...this.properties,
     });
   }
 }

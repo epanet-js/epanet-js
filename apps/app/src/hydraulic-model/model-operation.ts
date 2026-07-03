@@ -23,6 +23,11 @@ export type AssetPatch = {
   };
 }[keyof AssetPropertiesMap];
 
+export type CustomerPointPatch = {
+  id: CustomerPointId;
+  properties: Record<string, unknown>;
+};
+
 export type JunctionDemandAssignment = {
   junctionId: AssetId;
   demands: Demand[];
@@ -67,6 +72,7 @@ export type ModelMoment = OptionalMomentFields & {
   deleteAssets?: AssetId[];
   putAssets?: Asset[];
   patchAssetsAttributes?: AssetPatch[];
+  patchCustomerPointsAttributes?: CustomerPointPatch[];
 };
 
 export type ReverseMoment = OptionalMomentFields & {
@@ -75,6 +81,7 @@ export type ReverseMoment = OptionalMomentFields & {
   putAssets: Asset[];
   patchAssetsAttributes: AssetPatch[];
   putCustomerPoints: CustomerPoint[];
+  patchCustomerPointsAttributes: CustomerPointPatch[];
 };
 
 export type ModelOperation<T> = (model: HydraulicModel, data: T) => ModelMoment;

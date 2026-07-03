@@ -1,5 +1,6 @@
-import { CustomerPoint, CustomerPointId } from "@epanet-js/hydraulic-model";
+import { CustomerPointId } from "@epanet-js/hydraulic-model";
 import { ModelOperation } from "../model-operation";
+import { changeCustomerPointProperty } from "./change-customer-point-property";
 
 type InputData = {
   customerPointId: CustomerPointId;
@@ -7,28 +8,12 @@ type InputData = {
 };
 
 export const changeCustomerPointLabel: ModelOperation<InputData> = (
-  { customerPoints },
+  hydraulicModel,
   { customerPointId, newLabel },
 ) => {
-  const customerPoint = customerPoints.get(customerPointId);
-  if (!customerPoint) {
-    throw new Error(`Customer point ${customerPointId} not found`);
-  }
-
-  const updated = new CustomerPoint(
-    customerPointId,
-    customerPoint.coordinates,
-    {
-      label: newLabel,
-    },
-  );
-
-  if (customerPoint.connection) {
-    updated.connect(customerPoint.connection);
-  }
-
-  return {
-    note: "Change customer point label",
-    putCustomerPoints: [updated],
-  };
+  return changeCustomerPointProperty(hydraulicModel, {
+    customerPointIds: [customerPointId],
+    property: "label",
+    value: newLabel,
+  });
 };

@@ -1,6 +1,10 @@
 import { HydraulicModel } from "../hydraulic-model";
 import { ModelMoment, ReverseMoment } from "../model-operation";
-import type { AssetPatch, DemandAssignment } from "../model-operation";
+import type {
+  AssetPatch,
+  CustomerPointPatch,
+  DemandAssignment,
+} from "../model-operation";
 import {
   Asset,
   LinkAsset,
@@ -38,6 +42,7 @@ export const applyMomentToModel = (
     deleteAssets: [],
     patchAssetsAttributes: [],
     putCustomerPoints: [],
+    patchCustomerPointsAttributes: [],
   };
 
   if (moment.putDemands) {
@@ -109,6 +114,17 @@ export const applyMomentToModel = (
     const deletedCp = deleteCustomerPoint(hydraulicModel, cpId, labelManager);
     if (deletedCp) {
       reverseMoment.putCustomerPoints.push(deletedCp);
+    }
+  }
+
+  for (const patch of moment.patchCustomerPointsAttributes || []) {
+    const reversePatch = patchCustomerPointAttributes(
+      hydraulicModel,
+      patch,
+      labelManager,
+    );
+    if (reversePatch) {
+      reverseMoment.patchCustomerPointsAttributes.push(reversePatch);
     }
   }
 
@@ -280,6 +296,42 @@ const patchAssetAttributes = (
   } as AssetPatch;
 };
 
+const patchCustomerPointAttributes = (
+  hydraulicModel: HydraulicModel,
+  patch: CustomerPointPatch,
+  labelManager: LabelManager,
+): CustomerPointPatch | undefined => {
+  const customerPoint = hydraulicModel.customerPoints.get(patch.id);
+  if (!customerPoint) return undefined;
+
+  const reverseProperties: Record<string, unknown> = {};
+  for (const [key] of Object.entries(patch.properties)) {
+    reverseProperties[key] = customerPoint.getProperty(key);
+  }
+
+  const updated = customerPoint.copy();
+  for (const [key, value] of Object.entries(patch.properties)) {
+    updated.setProperty(key, value);
+  }
+  hydraulicModel.customerPointsLookup.removeConnection(customerPoint);
+  hydraulicModel.customerPointsLookup.addConnection(updated);
+  hydraulicModel.customerPoints.set(patch.id, updated);
+
+  if ("label" in patch.properties) {
+    labelManager.remove(
+      reverseProperties.label as string,
+      "customerPoint",
+      customerPoint.id,
+    );
+    labelManager.register(updated.label, "customerPoint", updated.id);
+  }
+
+  return {
+    id: patch.id,
+    properties: reverseProperties,
+  };
+};
+
 const putPatterns = (
   hydraulicModel: HydraulicModel,
   patterns: Patterns,
@@ -355,14 +407,27 @@ const putDemandAssignments = (
 const assertNoPutPatchOverlap = (moment: ModelMoment): void => {
   const putAssets = moment.putAssets;
   const patchAssets = moment.patchAssetsAttributes;
-  if (!putAssets?.length || !patchAssets?.length) return;
+  if (putAssets?.length && patchAssets?.length) {
+    const putIds = new Set(putAssets.map((a) => a.id));
+    for (const patch of patchAssets) {
+      if (putIds.has(patch.id)) {
+        throw new Error(
+          `Moment "${moment.note}" has both putAssets and patchAssetsAttributes for asset ${patch.id}`,
+        );
+      }
+    }
+  }
 
-  const putIds = new Set(putAssets.map((a) => a.id));
-  for (const patch of patchAssets) {
-    if (putIds.has(patch.id)) {
-      throw new Error(
-        `Moment "${moment.note}" has both putAssets and patchAssetsAttributes for asset ${patch.id}`,
-      );
+  const putCustomerPoints = moment.putCustomerPoints;
+  const patchCustomerPoints = moment.patchCustomerPointsAttributes;
+  if (putCustomerPoints?.length && patchCustomerPoints?.length) {
+    const putIds = new Set(putCustomerPoints.map((cp) => cp.id));
+    for (const patch of patchCustomerPoints) {
+      if (putIds.has(patch.id)) {
+        throw new Error(
+          `Moment "${moment.note}" has both putCustomerPoints and patchCustomerPointsAttributes for customer point ${patch.id}`,
+        );
+      }
     }
   }
 };

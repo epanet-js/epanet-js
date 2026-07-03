@@ -30,6 +30,7 @@ import {
   assetPatchesToRows,
   emptyAssetPatchRows,
 } from "../mappers/assets/patches";
+import { customerPointPatchesToRows } from "../mappers/customer-points/patches";
 import type { CustomerPointRow } from "@epanet-js/ejsdb";
 
 const ASSET_TYPE_TO_TABLE: Record<
@@ -152,6 +153,9 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     assetPatches,
     customerPointDeleteIds,
     customerPointUpserts,
+    customerPointPatches: moment.patchCustomerPointsAttributes
+      ? customerPointPatchesToRows(moment.patchCustomerPointsAttributes)
+      : [],
     customerPointDemandUpdates,
     junctionDemandUpdates,
     patternsReplacement,
@@ -185,6 +189,7 @@ export const applyMomentToDb = async (
       payload.assetPatches.valves.length === 0 &&
       payload.customerPointDeleteIds.length === 0 &&
       payload.customerPointUpserts.length === 0 &&
+      payload.customerPointPatches.length === 0 &&
       payload.customerPointDemandUpdates.length === 0 &&
       payload.junctionDemandUpdates.length === 0 &&
       payload.patternsReplacement === null &&

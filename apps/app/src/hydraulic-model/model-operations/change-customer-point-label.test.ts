@@ -29,14 +29,15 @@ describe("changeCustomerPointLabel", () => {
       newLabel: "MyCustomer",
     });
 
-    expect(result.putCustomerPoints).toHaveLength(1);
-    expect(result.putCustomerPoints![0].label).toBe("MyCustomer");
-    expect(result.putCustomerPoints![0].id).toBe(IDS.CP1);
+    expect(result.patchCustomerPointsAttributes).toEqual([
+      { id: IDS.CP1, properties: { label: "MyCustomer" } },
+    ]);
   });
 
-  it("preserves connection data", () => {
+  it("preserves connection data after apply", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
-    const hydraulicModel = HydraulicModelBuilder.with()
+    const { labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
       .aJunction(IDS.J1, { coordinates: [0, 0] })
       .aJunction(IDS.J2, { coordinates: [10, 0] })
       .aPipe(IDS.P1, {
@@ -53,12 +54,14 @@ describe("changeCustomerPointLabel", () => {
       })
       .build();
 
-    const result = changeCustomerPointLabel(hydraulicModel, {
+    const moment = changeCustomerPointLabel(hydraulicModel, {
       customerPointId: IDS.CP1,
       newLabel: "Renamed",
     });
+    applyMomentToModel(hydraulicModel, moment, labelManager);
 
-    const updated = result.putCustomerPoints![0];
+    const updated = hydraulicModel.customerPoints.get(IDS.CP1)!;
+    expect(updated.label).toBe("Renamed");
     expect(updated.connection).not.toBeNull();
     expect(updated.connection!.pipeId).toBe(IDS.P1);
     expect(updated.connection!.junctionId).toBe(IDS.J1);

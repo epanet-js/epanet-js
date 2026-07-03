@@ -19,7 +19,9 @@ import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
-import type { AssetPatchRow } from "./schema/patches";
+import type { AssetPatchRow, CustomerPointPatchRow } from "./schema/patches";
+
+type PatchRow = AssetPatchRow | CustomerPointPatchRow;
 import type {
   ApplyMomentPayload,
   CustomAttributeValueUpdate,
@@ -330,13 +332,10 @@ const bulkDelete = (
  */
 const BULK_UPDATE_MAX_PARAMS = 30000;
 
-const bulkUpdate = (table: string, rows: readonly AssetPatchRow[]): void => {
+const bulkUpdate = (table: string, rows: readonly PatchRow[]): void => {
   if (rows.length === 0) return;
 
-  const groups = new Map<
-    string,
-    { columns: string[]; rows: AssetPatchRow[] }
-  >();
+  const groups = new Map<string, { columns: string[]; rows: PatchRow[] }>();
   for (const row of rows) {
     const cols: string[] = [];
     for (const key in row) {
@@ -361,7 +360,7 @@ const bulkUpdate = (table: string, rows: readonly AssetPatchRow[]): void => {
 const applyBulkUpdateGroup = (
   table: string,
   columns: readonly string[],
-  rows: readonly AssetPatchRow[],
+  rows: readonly PatchRow[],
 ): void => {
   const paramsPerRow = 1 + columns.length;
   const chunkSize = Math.max(
@@ -407,13 +406,13 @@ const buildBulkUpdateSql = (
 };
 
 const appendUpdateParams = (
-  row: AssetPatchRow,
+  row: PatchRow,
   columns: readonly string[],
   params: unknown[],
 ): void => {
   params.push(row.id);
   for (const col of columns) {
-    params.push(row[col]);
+    params.push((row as Record<string, unknown>)[col]);
   }
 };
 
@@ -1168,6 +1167,8 @@ export const api = {
           bulkDelete(["customer_points"], "id", cpIds);
 
           bulkInsertCustomerPoints(payload.customerPointUpserts);
+
+          bulkUpdate("customer_points", payload.customerPointPatches);
 
           const cpDemandRows: CustomerPointDemandRow[] = [];
           for (const u of payload.customerPointDemandUpdates) {

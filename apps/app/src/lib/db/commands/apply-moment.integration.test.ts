@@ -19,6 +19,7 @@ import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {
   changeCustomAttributesDefinition,
+  changeCustomerPointProperty,
   changeProperty,
 } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
@@ -296,6 +297,32 @@ describe("apply-moment integration", () => {
     expect(project.hydraulicModel.customerPoints.size).toBe(1);
     expect(project.hydraulicModel.customerPoints.get(IDS.CP1)).toBeUndefined();
     expect(project.hydraulicModel.customerPoints.get(IDS.CP2)).toBeDefined();
+  });
+
+  it("patches a customer point label via patchCustomerPointsAttributes", async () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, CP1: 10 } as const;
+
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .aCustomerPoint(IDS.CP1, { coordinates: [1, 1], label: "old" })
+      .build();
+
+    await seed(model);
+
+    await persistMoment(
+      changeCustomerPointProperty(model, {
+        customerPointIds: [IDS.CP1],
+        property: "label",
+        value: "new",
+      }),
+    );
+
+    const project = await fetchProject();
+    expect(project.hydraulicModel.customerPoints.get(IDS.CP1)!.label).toBe(
+      "new",
+    );
   });
 
   it("assigns junction demands via putDemands", async () => {

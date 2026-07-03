@@ -1,5 +1,5 @@
 import type { AssetRows } from "./schema/assets";
-import type { AssetPatchRows } from "./schema/patches";
+import type { AssetPatchRows, CustomerPointPatchRow } from "./schema/patches";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
@@ -61,6 +61,7 @@ export type ApplyMomentPayload = {
   assetPatches: AssetPatchRows;
   customerPointDeleteIds: number[];
   customerPointUpserts: CustomerPointRow[];
+  customerPointPatches: CustomerPointPatchRow[];
   customerPointDemandUpdates: CustomerPointDemandUpdate[];
   junctionDemandUpdates: JunctionDemandUpdate[];
   patternsReplacement: PatternRow[] | null;
