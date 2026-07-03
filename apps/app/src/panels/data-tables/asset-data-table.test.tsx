@@ -12,6 +12,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { customPropertyKey } from "@epanet-js/custom-attributes";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
@@ -52,6 +54,7 @@ describe("AssetDataTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     stubUserTracking();
+    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
     // jsdom has no navigator.clipboard; stub it so the copy path doesn't
     // throw before reaching the notify call.
     Object.defineProperty(navigator, "clipboard", {
@@ -167,6 +170,95 @@ describe("AssetDataTable", () => {
     await waitFor(() => {
       const model = store.get(stagingModelDerivedAtom);
       expect(model.assets.get(1)?.label).toBe("J9");
+    });
+  });
+
+  it("renders custom-attribute columns when the flag is on", async () => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aCustomAttribute("junction", { id: "2", label: "Score", type: "number" })
+      .aJunction(1, { label: "J1" })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    expect(await screen.findByText("Zone")).toBeInTheDocument();
+    expect(screen.getByText("Score")).toBeInTheDocument();
+  });
+
+  it("hides custom-attribute columns when the flag is off", async () => {
+    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aJunction(1, { label: "J1" })
+      .build();
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    await screen.findByDisplayValue("J1");
+    expect(screen.queryByText("Zone")).not.toBeInTheDocument();
+  });
+
+  it("edits a custom-attribute value and writes it back to the model", async () => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aJunction(1, { label: "J1" })
+      .build();
+    hydraulicModel.assets.get(1)?.setProperty(customPropertyKey("1"), "A");
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    const cell = await screen.findByDisplayValue("A");
+    await user.dblClick(cell);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("A")).not.toHaveAttribute("readonly");
+    });
+
+    const input = screen.getByDisplayValue("A");
+    await user.clear(input);
+    await user.type(input, "B{Enter}");
+
+    await waitFor(() => {
+      const model = store.get(stagingModelDerivedAtom);
+      expect(model.assets.get(1)?.getProperty(customPropertyKey("1"))).toBe(
+        "B",
+      );
+    });
+  });
+
+  it("clears a custom-attribute value back to empty", async () => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", { id: "1", label: "Zone", type: "text" })
+      .aJunction(1, { label: "J1" })
+      .build();
+    hydraulicModel.assets.get(1)?.setProperty(customPropertyKey("1"), "A");
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    const cell = await screen.findByDisplayValue("A");
+    await user.dblClick(cell);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("A")).not.toHaveAttribute("readonly");
+    });
+
+    const input = screen.getByDisplayValue("A");
+    await user.clear(input);
+    await user.type(input, "{Enter}");
+
+    await waitFor(() => {
+      const model = store.get(stagingModelDerivedAtom);
+      expect(
+        model.assets.get(1)?.getProperty(customPropertyKey("1")) ?? null,
+      ).toBeNull();
     });
   });
 });

@@ -36,6 +36,11 @@ import {
   type CurveId,
 } from "@epanet-js/hydraulic-model";
 import {
+  getAttributes,
+  customPropertyKey,
+  isCustomProperty,
+} from "@epanet-js/custom-attributes";
+import {
   DataGrid,
   type DataGridRef,
   type CellContextAction,
@@ -162,6 +167,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [hydraulicModel, simulation, translate],
   );
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
+  const customAttributes = useMemo(
+    () =>
+      isCustomAttributesOn
+        ? getAttributes(hydraulicModel.customAttributes, assetType)
+        : [],
+    [isCustomAttributesOn, hydraulicModel.customAttributes, assetType],
+  );
 
   const columns = useMemo(() => {
     const validateLabel = (label: string, row: AssetRow) =>
@@ -190,6 +203,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       getRow,
       accessorCtx,
       allowsNullValues,
+      customAttributes,
     );
   }, [
     assetType,
@@ -208,6 +222,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     units,
     accessorCtx,
     allowsNullValues,
+    customAttributes,
   ]);
 
   const onChange = useCallback(
@@ -215,6 +230,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       const editableKeys = [
         ...EDITABLE_NUMERIC_KEYS[assetType],
         ...EDITABLE_SELECT_KEYS[assetType],
+        ...customAttributes.map((a) => customPropertyKey(a.id)),
       ];
       const moments: ModelMoment[] = [];
       const editedProperties = new Map<string, number>();
@@ -363,7 +379,8 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
         const normalizedChanges: PropertyChange[] = changes.map((change) =>
           change.value === null &&
-          !isNullableColumn(change.property, allowsNullValues)
+          !isNullableColumn(change.property, allowsNullValues) &&
+          !isCustomProperty(change.property)
             ? ({ ...change, value: undefined } as unknown as PropertyChange)
             : change,
         );
@@ -402,6 +419,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       transact,
       userTracking,
       allowsNullValues,
+      customAttributes,
     ],
   );
 

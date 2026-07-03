@@ -10,6 +10,11 @@ import {
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import {
+  type CustomAttribute,
+  customPropertyKey,
+} from "@epanet-js/custom-attributes";
+import { type Asset } from "@epanet-js/hydraulic-model";
+import {
   type AssetType,
   pipeStatuses,
   pumpStatuses,
@@ -493,6 +498,7 @@ type BuildColumnsArgs = [
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
   allowsNullValues?: boolean,
+  customAttributes?: CustomAttribute[],
 ];
 
 type ExtraPipeColsFn = (
@@ -552,6 +558,32 @@ function pipeAttributeColsFor(
   };
 }
 
+function customAttributeColumns(
+  attributes: CustomAttribute[],
+  formatting: FormattingSpec,
+): GridColumn<AssetRow>[] {
+  return attributes.map((attribute) => {
+    const key = customPropertyKey(attribute.id);
+    const columnKey: ColumnKey<AssetRow, never> = {
+      id: key,
+      accessorFn: ((row: AssetRow) =>
+        (row as unknown as Asset).getProperty(key) ?? null) as (
+        row: AssetRow,
+      ) => never,
+    };
+    return attribute.type === "number"
+      ? floatColumn(columnKey, {
+          header: attribute.label,
+          decimals: formatting.defaultDecimals,
+          emptyValue: null,
+        })
+      : textColumn(columnKey, {
+          header: attribute.label,
+          emptyValue: null,
+        });
+  });
+}
+
 function _buildColumns(
   buildExtraPipeCols: ExtraPipeColsFn,
   type: AssetType,
@@ -568,6 +600,7 @@ function _buildColumns(
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
   allowsNullValues?: boolean,
+  customAttributes: CustomAttribute[] = [],
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -725,6 +758,11 @@ function _buildColumns(
       )
     : [];
 
+  const trailingCols = [
+    ...customAttributeColumns(customAttributes, formatting),
+    ...simCols,
+  ];
+
   switch (type) {
     case "junction":
       return [
@@ -772,7 +810,7 @@ function _buildColumns(
           commitInvalidValues: allowsNullValues,
         }),
         ...chemicalSourceTypeCols(),
-        ...simCols,
+        ...trailingCols,
       ];
     case "pipe":
       return [
@@ -837,7 +875,7 @@ function _buildColumns(
           emptyValue: null,
           placeholder: localizeDecimal(reactionGlobalWall),
         }),
-        ...simCols,
+        ...trailingCols,
       ];
     case "pump":
       return [
@@ -916,7 +954,7 @@ function _buildColumns(
           undefined,
           energyGlobalPatternId ?? undefined,
         ),
-        ...simCols,
+        ...trailingCols,
       ];
     case "valve":
       return [
@@ -973,7 +1011,7 @@ function _buildColumns(
           property: "minorLoss",
           commitInvalidValues: allowsNullValues,
         }),
-        ...simCols,
+        ...trailingCols,
       ];
     case "reservoir":
       return [
@@ -997,7 +1035,7 @@ function _buildColumns(
           commitInvalidValues: allowsNullValues,
         }),
         ...chemicalSourceTypeCols(),
-        ...simCols,
+        ...trailingCols,
       ];
     case "tank":
       return [
@@ -1068,7 +1106,7 @@ function _buildColumns(
           placeholder: localizeDecimal(reactionGlobalBulk),
         }),
         ...chemicalSourceTypeCols(),
-        ...simCols,
+        ...trailingCols,
       ];
   }
 }
