@@ -29,10 +29,10 @@ import {
 } from "@epanet-js/custom-attributes";
 
 const ASSET_TYPE_ORDER: CustomAttributeAssetType[] = [
+  "junction",
   "pipe",
   "pump",
   "valve",
-  "junction",
   "reservoir",
   "tank",
   "customerPoint",
