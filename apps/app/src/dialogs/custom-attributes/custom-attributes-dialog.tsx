@@ -5,6 +5,7 @@ import { TriangleAlert } from "lucide-react";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { hasScenariosAtom } from "src/state/scenarios";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { changeCustomAttributesDefinition } from "src/hydraulic-model/model-operations";
@@ -64,7 +65,8 @@ export const CustomAttributesDialog = ({
   const savedDefinition = hydraulicModel.customAttributes;
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
-  const isEditionBlocked = useIsEditionBlocked();
+  const hasScenarios = useAtomValue(hasScenariosAtom);
+  const isEditionBlocked = useIsEditionBlocked() || hasScenarios;
 
   const savedSnapshotRef = useRef<string>(serialize(savedDefinition));
 
