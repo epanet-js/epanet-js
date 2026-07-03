@@ -130,13 +130,9 @@ export const PipeLibraryDialog = () => {
                 />
               </>
             ) : isEmpty ? (
-              <div className="flex-1 flex items-center justify-center p-2">
-                <EmptyState />
-              </div>
+              <EmptyState />
             ) : (
-              <div className="flex-1 flex items-center justify-center p-2">
-                <NoSelectionState />
-              </div>
+              <NoSelectionState />
             )}
           </div>
         </div>
@@ -183,11 +179,13 @@ const DismissableBanner = ({
     className={`flex items-center justify-between px-4 py-2 border-b bg-${variant}-subtle`}
   >
     <p className="text-size-base">{description}</p>
-    <div className="flex gap-2">
-      <Button variant="quiet" size="sm" disabled={false} onClick={onDismiss}>
-        <CloseIcon />
-      </Button>
-    </div>
+    <button
+      className="flex gap-2 text-subtle shrink-0 focus:bg-base-hover hover:text-default"
+      onClick={onDismiss}
+      type="button"
+    >
+      <CloseIcon />
+    </button>
   </div>
 );
 
@@ -264,13 +262,15 @@ const ExportSubmenu = ({
 const NoSelectionState = () => {
   const translate = useTranslate();
   return (
-    <div className="flex flex-col items-center justify-center px-4">
-      <div className="text-subtle">
-        <PipeLibraryIcon size={96} />
+    <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex flex-col items-center justify-center px-4">
+        <div className="text-subtle">
+          <PipeLibraryIcon size={96} />
+        </div>
+        <p className="text-size-base text-subtle text-center max-w-64 py-4">
+          {translate("pipeLibrary.noSelection")}
+        </p>
       </div>
-      <p className="text-size-base text-subtle text-center max-w-64 py-4">
-        {translate("pipeLibrary.noSelection")}
-      </p>
     </div>
   );
 };
@@ -278,16 +278,18 @@ const NoSelectionState = () => {
 const EmptyState = () => {
   const translate = useTranslate();
   return (
-    <div className="flex flex-col items-center justify-center px-4">
-      <div className="text-subtle">
-        <PipeLibraryIcon size={96} />
+    <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex flex-col items-center justify-center px-4">
+        <div className="text-subtle">
+          <PipeLibraryIcon size={96} />
+        </div>
+        <p className="text-size-base font-semibold py-4 text-subtle">
+          {translate("pipeLibrary.emptyTitle")}
+        </p>
+        <p className="text-size-base text-subtle text-center max-w-64">
+          {translate("pipeLibrary.emptyDescription")}
+        </p>
       </div>
-      <p className="text-size-base font-semibold py-4 text-subtle">
-        {translate("pipeLibrary.emptyTitle")}
-      </p>
-      <p className="text-size-base text-subtle text-center max-w-64">
-        {translate("pipeLibrary.emptyDescription")}
-      </p>
     </div>
   );
 };
