@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
 import type { PropertyComparison } from "./use-asset-comparison";
@@ -20,6 +21,25 @@ export function useCustomerPointComparison(
     customerPointId != null &&
     !baseModel.customerPoints.has(customerPointId);
 
+  const getComparison = <T>(
+    propertyName: string,
+    currentValue: T,
+  ): PropertyComparison<T> => {
+    if (!isInScenario || customerPointId == null || isNew) {
+      return { hasChanged: false };
+    }
+
+    const baseCustomerPoint = baseModel.customerPoints.get(customerPointId);
+    if (!baseCustomerPoint) {
+      return { hasChanged: false };
+    }
+
+    const baseValue = baseCustomerPoint.getProperty(propertyName) as T;
+    const hasChanged = !isEqual(currentValue ?? null, baseValue ?? null);
+
+    return { hasChanged, baseValue };
+  };
+
   const getDemandComparison = (
     currentAverageDemand: number,
   ): PropertyComparison<number> => {
@@ -36,5 +56,5 @@ export function useCustomerPointComparison(
     };
   };
 
-  return { isInScenario, isNew, getDemandComparison };
+  return { isInScenario, isNew, getComparison, getDemandComparison };
 }
