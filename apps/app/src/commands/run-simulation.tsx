@@ -41,6 +41,7 @@ export const useRunSimulation = () => {
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const validationEnabled = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
+  const isRemoveControlsOn = useFeatureFlag("FLAG_REMOVE_CONTROLS");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -71,6 +72,7 @@ export const useRunSimulation = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
+            excludeInactiveControls: isRemoveControlsOn,
           });
           const start = performance.now();
 
@@ -234,6 +236,7 @@ export const useRunSimulation = () => {
         userTracking,
         toggleNetworkReview,
         validationEnabled,
+        isRemoveControlsOn,
       ],
     ),
   );

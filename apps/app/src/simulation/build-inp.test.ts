@@ -1980,6 +1980,159 @@ describe("build inp", () => {
         );
       });
     });
+
+    describe("excludeInactiveControls", () => {
+      it("excludes a simple control referencing an inactive asset", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, {
+            startNodeId: IDS.N1,
+            endNodeId: IDS.N2,
+            isActive: false,
+          })
+          .aSimpleControl({
+            template: "LINK {{0}} OPEN AT TIME 6",
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+          excludeInactiveControls: true,
+        });
+
+        expect(inp).not.toContain("[CONTROLS]");
+        expect(inp).not.toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
+      });
+
+      it("keeps the control when the flag is off (default)", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, {
+            startNodeId: IDS.N1,
+            endNodeId: IDS.N2,
+            isActive: false,
+          })
+          .aSimpleControl({
+            template: "LINK {{0}} OPEN AT TIME 6",
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+        });
+
+        expect(inp).toContain("[CONTROLS]");
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
+      });
+
+      it("keeps a control referencing only active assets when the flag is on", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aSimpleControl({
+            template: "LINK {{0}} OPEN AT TIME 6",
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+          excludeInactiveControls: true,
+        });
+
+        expect(inp).toContain(`LINK ${IDS.PU1} OPEN AT TIME 6`);
+      });
+
+      it("excludes a rule referencing an inactive asset", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, {
+            startNodeId: IDS.N1,
+            endNodeId: IDS.N2,
+            isActive: false,
+          })
+          .aRule({
+            ruleId: "1",
+            template: `RULE {{id}}
+IF SYSTEM TIME > 6
+THEN LINK {{0}} STATUS IS OPEN`,
+            assetReferences: [{ assetId: IDS.PU1, isActionTarget: true }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+          excludeInactiveControls: true,
+        });
+
+        expect(inp).not.toContain("[RULES]");
+      });
+
+      it("excludes a timed-setting control referencing an inactive link", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aPump(IDS.PU1, {
+            startNodeId: IDS.N1,
+            endNodeId: IDS.N2,
+            isActive: false,
+          })
+          .aTimedSettingControl({
+            linkId: IDS.PU1,
+            steps: [{ time: 3600, status: "on", setting: 1 }],
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+          excludeInactiveControls: true,
+        });
+
+        expect(inp).not.toContain(`LINK ${IDS.PU1} OPEN AT TIME 1`);
+      });
+
+      it("excludes a level-setting control when its tank is inactive", () => {
+        const IDS = { N1: 1, N2: 2, PU1: 3, T1: 4 } as const;
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aNode(IDS.N1)
+          .aNode(IDS.N2)
+          .aTank(IDS.T1, { isActive: false })
+          .aPump(IDS.PU1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+          .aLevelSettingControl({
+            linkId: IDS.PU1,
+            tankId: IDS.T1,
+            on: { level: 2, setting: 1 },
+            off: { level: 9 },
+          })
+          .build();
+
+        const inp = buildInp(hydraulicModel, {
+          units: presets.LPS.units,
+          simulationSettings: defaultSimulationSettings,
+          excludeInactiveControls: true,
+        });
+
+        expect(inp).not.toContain(
+          `LINK ${IDS.PU1} OPEN IF NODE ${IDS.T1} BELOW 2`,
+        );
+      });
+    });
   });
 
   describe("rules section", () => {

@@ -49,6 +49,7 @@ import {
   formatSimpleControl,
   formatRuleBasedControl,
   IdResolver,
+  AssetReference,
 } from "@epanet-js/hydraulic-model";
 import {
   Pattern,
@@ -370,6 +371,7 @@ type BuildOptions = {
   reservoirElevations?: boolean;
   includeQuality?: boolean;
   projection?: Projection;
+  excludeInactiveControls?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -386,6 +388,7 @@ export const buildInp = withDebugInstrumentation(
       usedCurves: false,
       reservoirElevations: false,
       includeQuality: false,
+      excludeInactiveControls: false,
       ...options,
     };
     const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
@@ -664,6 +667,7 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel.rawControls,
       idMap,
       hydraulicModel,
+      opts.excludeInactiveControls,
     );
 
     appendTimedSettingControls(
@@ -671,6 +675,7 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel.controls,
       idMap,
       hydraulicModel,
+      opts.excludeInactiveControls,
     );
 
     appendLevelSettingControls(
@@ -678,6 +683,7 @@ export const buildInp = withDebugInstrumentation(
       hydraulicModel.controls,
       idMap,
       hydraulicModel,
+      opts.excludeInactiveControls,
     );
 
     const hasControls = sections.controls.length > 1;
@@ -1261,11 +1267,20 @@ const kindFor = (valve: Valve): EpanetValveType => {
   return valve.kind.toUpperCase() as EpanetValveType;
 };
 
+const isAssetInSimulation = (
+  hydraulicModel: HydraulicModel,
+  assetId: AssetId,
+): boolean => {
+  const asset = hydraulicModel.assets.get(assetId);
+  return !!asset && asset.isActive;
+};
+
 const appendRawControls = (
   sections: InpSections,
   rawControls: HydraulicModel["rawControls"],
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
+  excludeInactiveControls: boolean,
 ) => {
   const idResolver: IdResolver = (assetId: AssetId) => {
     const asset = hydraulicModel.assets.get(assetId);
@@ -1279,11 +1294,28 @@ const appendRawControls = (
     }
   };
 
+  const referencesInactiveAsset = (references: AssetReference[]) =>
+    references.some(
+      (reference) => !isAssetInSimulation(hydraulicModel, reference.assetId),
+    );
+
   for (const control of rawControls.simple) {
+    if (
+      excludeInactiveControls &&
+      referencesInactiveAsset(control.assetReferences)
+    ) {
+      continue;
+    }
     sections.controls.push(formatSimpleControl(control, idResolver));
   }
 
   for (const rule of rawControls.rules) {
+    if (
+      excludeInactiveControls &&
+      referencesInactiveAsset(rule.assetReferences)
+    ) {
+      continue;
+    }
     sections.rules.push(formatRuleBasedControl(rule, idResolver));
   }
 };
@@ -1293,6 +1325,7 @@ const appendTimedSettingControls = (
   controls: HydraulicModel["controls"],
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
+  excludeInactiveControls: boolean,
 ) => {
   const resolveLinkId = (linkId: AssetId): string => {
     const asset = hydraulicModel.assets.get(linkId);
@@ -1302,6 +1335,12 @@ const appendTimedSettingControls = (
 
   for (const control of controls) {
     if (control.type !== "timed-setting") continue;
+    if (
+      excludeInactiveControls &&
+      !isAssetInSimulation(hydraulicModel, control.linkId)
+    ) {
+      continue;
+    }
 
     const linkId = resolveLinkId(control.linkId);
     for (const step of control.steps) {
@@ -1320,6 +1359,7 @@ const appendLevelSettingControls = (
   controls: HydraulicModel["controls"],
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
+  excludeInactiveControls: boolean,
 ) => {
   const resolveLinkId = (linkId: AssetId): string => {
     const asset = hydraulicModel.assets.get(linkId);
@@ -1335,6 +1375,13 @@ const appendLevelSettingControls = (
 
   for (const control of controls) {
     if (control.type !== "level-setting") continue;
+    if (
+      excludeInactiveControls &&
+      (!isAssetInSimulation(hydraulicModel, control.linkId) ||
+        !isAssetInSimulation(hydraulicModel, control.tankId))
+    ) {
+      continue;
+    }
 
     const linkId = resolveLinkId(control.linkId);
     const tankId = resolveNodeId(control.tankId);

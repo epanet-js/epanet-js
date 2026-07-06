@@ -320,6 +320,59 @@ describe("Run simulation", () => {
     });
   });
 
+  describe("FLAG_REMOVE_CONTROLS", () => {
+    const aModelWithControlOnInactiveAsset = () => {
+      const IDS = { r1: 1, j1: 2, p1: 3, n1: 4, n2: 5, pu1: 6 } as const;
+      return HydraulicModelBuilder.with()
+        .aReservoir(IDS.r1)
+        .aJunction(IDS.j1)
+        .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
+        .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
+        .aNode(IDS.n1)
+        .aNode(IDS.n2)
+        .aPump(IDS.pu1, {
+          startNodeId: IDS.n1,
+          endNodeId: IDS.n2,
+          isActive: false,
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN AT TIME 6",
+          assetReferences: [{ assetId: IDS.pu1, isActionTarget: true }],
+        })
+        .build();
+    };
+
+    it("excludes controls referencing inactive assets from the INP when on", async () => {
+      stubFeatureOn("FLAG_REMOVE_CONTROLS");
+      const store = setInitialState({
+        hydraulicModel: aModelWithControlOnInactiveAsset(),
+      });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => expect(lib.runSimulation).toHaveBeenCalled());
+      const inp = (lib.runSimulation as unknown as Mock).mock
+        .calls[0][0] as string;
+      expect(inp).not.toContain("LINK 6 OPEN AT TIME 6");
+    });
+
+    it("keeps the control in the INP when off", async () => {
+      stubFeatureOff("FLAG_REMOVE_CONTROLS");
+      const store = setInitialState({
+        hydraulicModel: aModelWithControlOnInactiveAsset(),
+      });
+      renderComponent({ store });
+
+      await triggerRun();
+
+      await waitFor(() => expect(lib.runSimulation).toHaveBeenCalled());
+      const inp = (lib.runSimulation as unknown as Mock).mock
+        .calls[0][0] as string;
+      expect(inp).toContain("LINK 6 OPEN AT TIME 6");
+    });
+  });
+
   const triggerRun = async () => {
     await userEvent.click(
       screen.getByRole("button", { name: "runSimulation" }),
