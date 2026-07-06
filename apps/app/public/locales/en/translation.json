@@ -1695,7 +1695,7 @@
       "unsupportedFormat": "Selected file format is unsupported",
       "invalidFile": "Selected file is not valid",
       "exception": "There as an unexpected error while importing the file",
-      "importedWithErrors": "Some imported materials contain errors. Fix them before saving the library."
+      "importedWithErrors": "File contains invalid entries. Please fix them before being able to save."
     },
     "validation": {
       "invalidMaterial": "Material {{1}} contains invalid values",
