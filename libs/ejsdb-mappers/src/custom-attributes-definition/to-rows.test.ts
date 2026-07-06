@@ -51,7 +51,7 @@ describe("serializeCustomAttributesDefinition", () => {
 
   it("throws when a label exceeds the maximum length", () => {
     const definition = definitionOf([
-      ["pipe", [attr("custom-1", "x".repeat(51))]],
+      ["pipe", [attr("custom-1", "x".repeat(65))]],
     ]);
 
     expect(() => serializeCustomAttributesDefinition(definition)).toThrow(
