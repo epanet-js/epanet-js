@@ -1840,11 +1840,11 @@ describe("AssetPanel", () => {
       await user.type(field, "0");
       expect(
         screen.getByRole("textbox", { name: /value for: length/i }),
-      ).toHaveClass(/orange/i);
+      ).toHaveClass(/warning/i);
       await user.type(field, "10");
       expect(
         screen.getByRole("textbox", { name: /value for: length/i }),
-      ).not.toHaveClass(/orange/i);
+      ).not.toHaveClass(/warning/i);
       await user.keyboard("{Enter}");
 
       const updatedField = screen.getByRole("textbox", {
@@ -1874,7 +1874,7 @@ describe("AssetPanel", () => {
       await user.type(field, "0");
       expect(
         screen.getByRole("textbox", { name: /value for: diameter/i }),
-      ).toHaveClass(/orange/i);
+      ).toHaveClass(/warning/i);
       await user.keyboard("{Enter}");
 
       const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
