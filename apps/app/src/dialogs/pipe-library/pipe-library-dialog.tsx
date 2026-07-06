@@ -46,6 +46,8 @@ export const PipeLibraryDialog = () => {
     handleDismissBanner,
   } = usePipeLibraryHandlers();
 
+  const showMenuBar = !showBanner && pendingImport === null;
+
   return (
     <BaseDialog
       title={translate("pipeLibrary.menuLabel")}
@@ -65,26 +67,28 @@ export const PipeLibraryDialog = () => {
       }
     >
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <Button
-            variant="default"
-            size="sm"
-            disabled={isEmpty || hasValidationErrors}
-            onClick={handleApplyRoughness}
-          >
-            {translate("pipeLibrary.applyRoughness")}
-          </Button>
-          <div className="flex items-center gap-2">
-            <ExportSubmenu
-              handleExportCsv={handleExportCsv}
-              handleExportXlsx={handleExportXlsx}
-            />
-            <ImportSubmenu
-              handleImportFromModel={requestImportFromModel}
-              handleImportFromFile={requestImportFromFile}
-            />
+        {showMenuBar && (
+          <div className="flex items-center justify-between px-4 py-2 border-b h-12">
+            <Button
+              variant="default"
+              size="sm"
+              disabled={isEmpty || hasValidationErrors}
+              onClick={handleApplyRoughness}
+            >
+              {translate("pipeLibrary.applyRoughness")}
+            </Button>
+            <div className="flex items-center gap-2">
+              <ExportSubmenu
+                handleExportCsv={handleExportCsv}
+                handleExportXlsx={handleExportXlsx}
+              />
+              <ImportSubmenu
+                handleImportFromModel={requestImportFromModel}
+                handleImportFromFile={requestImportFromFile}
+              />
+            </div>
           </div>
-        </div>
+        )}
         {showBanner && (
           <DismissableBanner
             description={showBanner.description}
@@ -150,7 +154,7 @@ const ImportWarningBanner = ({
 }) => {
   const translate = useTranslate();
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle">
+    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle h-12">
       <p className="text-size-base">
         {translate("pipeLibrary.import.confirmMessage")}
       </p>
@@ -176,7 +180,7 @@ const DismissableBanner = ({
   onDismiss: () => void;
 }) => (
   <div
-    className={`flex items-center justify-between px-4 py-2 border-b bg-${variant}-subtle`}
+    className={`flex items-center justify-between px-4 py-2 border-b bg-${variant}-subtle h-12`}
   >
     <p className="text-size-base">{description}</p>
     <button
