@@ -1462,7 +1462,14 @@
     "invalidLabel": "Invalid attribute",
     "emptyLabelError": "Attribute labels cannot be empty.",
     "duplicateLabelError": "Attribute labels must be unique within an asset type.",
-    "labelTooLongError": "Attribute labels cannot exceed {{1}} characters."
+    "labelTooLongError": "Attribute labels cannot exceed {{1}} characters.",
+    "paywall": {
+      "title": "Upgrade to use custom attributes",
+      "description1": "Define your own attributes for pipes, pumps, valves, junctions, reservoirs, tanks and customer points.",
+      "description2": "Capture the data that matters to your organization and keep it alongside your model.",
+      "plans": "Custom attributes are available on paid plans.",
+      "trial": "Custom attributes are a paid feature. Activate your free trial to get full access for 14 days—no credit card required."
+    }
   },
   "percentOpen": "% Open",
   "percentFullFlow": "% Full flow",

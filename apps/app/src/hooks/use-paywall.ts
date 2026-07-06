@@ -34,6 +34,10 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUsePipeLibrary",
     dialog: { type: "featurePaywall", feature: "pipeLibrary" },
   },
+  customAttributes: {
+    permission: "canUseCustomAttributes",
+    dialog: { type: "featurePaywall", feature: "customAttributes" },
+  },
   modelAttributesValidation: {
     permission: "canValidateModelAttributes",
     dialog: {

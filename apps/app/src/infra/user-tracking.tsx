@@ -1138,6 +1138,7 @@ type CurveChanged = {
 type CustomAttributesOpened = {
   name: "customAttributes.opened";
   source: "toolbar";
+  canUseCustomAttributes: boolean;
 };
 
 type CustomAttributesUpdated = {

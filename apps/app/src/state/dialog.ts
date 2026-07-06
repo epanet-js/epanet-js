@@ -218,6 +218,7 @@ export type PaywallFeature =
   | "pipeAttributes"
   | "zones"
   | "pipeLibrary"
+  | "customAttributes"
   | "modelAttributesValidation";
 
 export type FeaturePaywallDialogState = {

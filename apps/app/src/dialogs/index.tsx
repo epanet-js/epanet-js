@@ -483,6 +483,18 @@ const PipeLibraryPaywallConnector = dynamic<{
   },
 );
 
+const CustomAttributesPaywallConnector = dynamic<{
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/paywall/custom-attributes-connector").then(
+      (r) => r.CustomAttributesPaywallConnector,
+    ),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const ElevationTileErrorsDialog = dynamic<{
   totalCount: number;
   errors: { fileName: string; error: string }[];
@@ -830,6 +842,9 @@ export const Dialogs = memo(function Dialogs() {
     }
     if (dialog.feature === "pipeLibrary") {
       return <PipeLibraryPaywallConnector onClose={onClose} />;
+    }
+    if (dialog.feature === "customAttributes") {
+      return <CustomAttributesPaywallConnector onClose={onClose} />;
     }
     return <ElevationsPaywallConnector onClose={onClose} />;
   }

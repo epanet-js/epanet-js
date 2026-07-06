@@ -12,6 +12,7 @@ const defaultPermissions: Permissions = {
   canUseModelBuildV2: false,
   canValidateModelAttributes: false,
   canUsePipeLibrary: false,
+  canUseCustomAttributes: false,
   canUpgrade: true,
   canManageOrganization: false,
 };
@@ -78,6 +79,21 @@ describe("usePaywall", () => {
     expect(captureDialog("customLayers")).toEqual({
       type: "featurePaywall",
       feature: "customLayers",
+    });
+  });
+
+  it("returns null for customAttributes when the user has the permission", () => {
+    permissionsRef.current = {
+      ...defaultPermissions,
+      canUseCustomAttributes: true,
+    };
+    expect(captureDialog("customAttributes")).toBeNull();
+  });
+
+  it("returns the featurePaywall dialog for customAttributes when locked", () => {
+    expect(captureDialog("customAttributes")).toEqual({
+      type: "featurePaywall",
+      feature: "customAttributes",
     });
   });
 });
