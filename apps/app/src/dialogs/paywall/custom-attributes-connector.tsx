@@ -7,7 +7,7 @@ export const CustomAttributesPaywallConnector = ({
 }) => {
   const config: FeaturePaywallConfig = {
     feature: "customAttributes",
-    imageSrc: "/images/pipe-library-paywall.webp",
+    imageSrc: "/images/custom-attributes-paywall-screenshot.webp",
     titleKey: "customAttributes.paywall.title",
     descriptionKeys: [
       "customAttributes.paywall.description1",
