@@ -146,17 +146,13 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     isLocked: pipeAttributesLocked,
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
-  const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
   const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const pipeMaterials = useMemo(
     () =>
       assetType === "pipe"
-        ? listPipeMaterials(
-            hydraulicModel.assets,
-            isPipeLibraryOn ? libraryMaterials : [],
-          )
+        ? listPipeMaterials(hydraulicModel.assets, libraryMaterials)
         : [],
-    [assetType, hydraulicModel.assets, isPipeLibraryOn, libraryMaterials],
+    [assetType, hydraulicModel.assets, libraryMaterials],
   );
   const accessorCtx = useMemo<AssetAccessorCtx>(
     () => ({ model: hydraulicModel, simulation, translate }),

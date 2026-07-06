@@ -29,7 +29,6 @@ import { useShowCustomAttributes } from "src/commands/show-custom-attributes";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
-  const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const showControls = useShowControls();
   const showPatternsLibrary = useShowPatternsLibrary();
@@ -77,14 +76,12 @@ export const OperationalDataDropdown = () => {
                 {translate("pumpLibrary")}
               </StyledItem>
 
-              {isPipeLibraryOn && (
-                <StyledItem
-                  onSelect={() => showPipeLibrary({ source: "toolbar" })}
-                >
-                  <PipeLibraryIcon />
-                  {translate("pipeLibrary.menuLabel")}
-                </StyledItem>
-              )}
+              <StyledItem
+                onSelect={() => showPipeLibrary({ source: "toolbar" })}
+              >
+                <PipeLibraryIcon />
+                {translate("pipeLibrary.menuLabel")}
+              </StyledItem>
 
               <StyledItem onSelect={() => showControls({ source: "toolbar" })}>
                 <ControlsIcon />

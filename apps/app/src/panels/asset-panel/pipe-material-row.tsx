@@ -4,7 +4,6 @@ import type { HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
 import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 import { CreatableTextRow } from "./ui-components";
 
@@ -27,15 +26,10 @@ export const PipeMaterialRow = ({
   onChange?: OnMaterialChange;
   readOnly?: boolean;
 }) => {
-  const isPipeLibraryOn = useFeatureFlag("FLAG_PIPE_LIBRARY");
   const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const existingMaterials = useMemo(
-    () =>
-      listPipeMaterials(
-        hydraulicModel.assets,
-        isPipeLibraryOn ? libraryMaterials : [],
-      ),
-    [hydraulicModel.assets, isPipeLibraryOn, libraryMaterials],
+    () => listPipeMaterials(hydraulicModel.assets, libraryMaterials),
+    [hydraulicModel.assets, libraryMaterials],
   );
 
   return (
