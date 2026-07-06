@@ -322,6 +322,11 @@ const PersonalPlan = ({
                 iconColor: "text-red-500",
               },
               {
+                feature: translate("customAttributesItem"),
+                Icon: CheckIcon,
+                iconColor: "text-success",
+              },
+              {
                 feature: translate("customMapLayers"),
                 Icon: CheckIcon,
                 iconColor: "text-success",
@@ -474,6 +479,11 @@ const ProPlan = ({
                 : []),
               {
                 feature: translate("professionalSupport"),
+                Icon: CheckIcon,
+                iconColor: "text-success",
+              },
+              {
+                feature: translate("customAttributesItem"),
                 Icon: CheckIcon,
                 iconColor: "text-success",
               },
