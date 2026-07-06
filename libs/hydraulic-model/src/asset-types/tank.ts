@@ -12,8 +12,8 @@ export const DEFAULT_MIXING_FRACTION = 1;
 export type TankProperties = {
   type: "tank";
   initialLevel: number | null;
-  minLevel: number;
-  maxLevel: number;
+  minLevel: number | null;
+  maxLevel: number | null;
   minVolume?: number;
   diameter: number | null;
   overflow: boolean;
@@ -85,15 +85,13 @@ export class Tank extends Node<TankProperties> {
     return this.properties.volumeCurveId;
   }
 
-  // Derived display values; missing diameter/minVolume fall back to 0. The
-  // simulation reads the raw attributes, validated by the pre-simulation check.
   get area() {
-    return tankAreaFromDiameter(this.diameter ?? 0);
+    return tankAreaFromDiameter(this.diameter);
   }
 
   get maxVolume() {
     return tankVolumeFor(
-      this.diameter ?? 0,
+      this.diameter,
       this.maxLevel,
       this.minVolume,
       this.minLevel,
@@ -115,22 +113,24 @@ export const getTankCurveVolumeRange = (
 };
 
 export const tankVolumeFor = (
-  diameter: number,
-  maxLevel: number,
+  diameter: number | null,
+  maxLevel: number | null,
   minVolume: number = 0,
-  minLevel: number = 0,
-): number => {
+  minLevel: number | null,
+): number | null => {
+  if (diameter == null || maxLevel == null || minLevel == null) return null;
   const area = tankAreaFromDiameter(diameter);
   const vMin = minVolume > 0 ? minVolume : area * minLevel;
   return vMin + area * (maxLevel - minLevel);
 };
 
 export const tankDiameterFor = (
-  maxVolume: number,
-  maxLevel: number,
+  maxVolume: number | null,
+  maxLevel: number | null,
   minVolume: number = 0,
-  minLevel: number = 0,
-): number => {
+  minLevel: number | null,
+): number | null => {
+  if (maxVolume == null || maxLevel == null || minLevel == null) return null;
   const area =
     minVolume > 0
       ? (maxVolume - minVolume) / (maxLevel - minLevel)
@@ -139,13 +139,15 @@ export const tankDiameterFor = (
   return tankDiameterFromArea(area);
 };
 
-export const tankAreaFromDiameter = (diameter: number): number => {
-  return Math.PI * (diameter / 2) ** 2;
-};
+export function tankAreaFromDiameter(diameter: number): number;
+export function tankAreaFromDiameter(diameter: number | null): number | null;
+export function tankAreaFromDiameter(diameter: number | null): number | null {
+  return diameter == null ? null : Math.PI * (diameter / 2) ** 2;
+}
 
-export const tankDiameterFromArea = (area: number): number => {
-  return 2 * Math.sqrt(area / Math.PI);
-};
+export function tankDiameterFromArea(area: number | null): number | null {
+  return area == null ? null : 2 * Math.sqrt(area / Math.PI);
+}
 
 export const tankVolumeCurveRange = (curve: ICurve) => ({
   minLevel: curve.points[0].x,

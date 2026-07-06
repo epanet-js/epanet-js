@@ -251,6 +251,68 @@ describe("validateModelAttributes", () => {
       expect(curveRuleIds).not.toContain("tank.maxLevel.positive");
       expect(curveRuleIds).not.toContain("tank.minLevel.nonNegative");
     });
+
+    it("flags a missing (null) min or max level as a present error", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aTank(1, { minLevel: null, maxLevel: null })
+        .build();
+      const ruleIds = (await validateModelAttributes(model)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).toContain("tank.minLevel.present");
+      expect(ruleIds).toContain("tank.maxLevel.present");
+    });
+
+    it("flags an initial level outside the min/max range as an error", async () => {
+      const aboveMax = HydraulicModelBuilder.with()
+        .aTank(1, { minLevel: 0, maxLevel: 10, initialLevel: 15 })
+        .build();
+      expect(
+        (await validateModelAttributes(aboveMax)).map((i) => i.ruleId),
+      ).toContain("tank.initialLevel.withinLevelRange");
+
+      const belowMin = HydraulicModelBuilder.with()
+        .aTank(2, { minLevel: 5, maxLevel: 10, initialLevel: 2 })
+        .build();
+      expect(
+        (await validateModelAttributes(belowMin)).map((i) => i.ruleId),
+      ).toContain("tank.initialLevel.withinLevelRange");
+    });
+
+    it("allows an initial level at the range boundaries", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aTank(1, { minLevel: 0, maxLevel: 10, initialLevel: 10 })
+        .build();
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).not.toContain("tank.initialLevel.withinLevelRange");
+    });
+
+    it("does not flag the level range for curve-based tanks", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aTank(1, {
+          minLevel: 0,
+          maxLevel: 10,
+          initialLevel: 15,
+          volumeCurveId: 9,
+        })
+        .build();
+      const ruleIds = (await validateModelAttributes(model)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).not.toContain("tank.initialLevel.withinLevelRange");
+    });
+
+    it("warns about a zero-storage tank (minLevel == maxLevel)", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aTank(1, { minLevel: 10, maxLevel: 10, initialLevel: 10 })
+        .build();
+      const issues = await validateModelAttributes(model);
+      const aboveMin = issues.find(
+        (i) => i.ruleId === "tank.maxLevel.aboveMinLevel",
+      );
+      expect(aboveMin?.severity).toEqual("warning");
+    });
   });
 
   describe("optional attribute value checks", () => {

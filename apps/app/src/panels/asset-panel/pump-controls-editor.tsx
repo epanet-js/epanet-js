@@ -89,8 +89,8 @@ export const PumpControlsEditor = ({
         buildDefaultLevelSetting(
           linkId,
           tank.id,
-          tank.minLevel,
-          tank.maxLevel,
+          tank.minLevel ?? 0,
+          tank.maxLevel ?? 0,
           initialSpeed,
         ),
       );

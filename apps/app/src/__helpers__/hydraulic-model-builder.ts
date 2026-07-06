@@ -68,7 +68,7 @@ const NULLABLE_BUILD_FIELDS = {
   pipe: ["roughness"],
   valve: ["diameter", "setting"],
   reservoir: ["head"],
-  tank: ["initialLevel", "diameter"],
+  tank: ["initialLevel", "diameter", "minLevel", "maxLevel"],
 } as const;
 
 const stripNulls = <D extends Record<string, unknown>>(
@@ -290,7 +290,10 @@ export class HydraulicModelBuilder {
   aTank(
     id: number,
     data: Partial<
-      WithNullable<TankBuildData, "initialLevel" | "diameter">
+      WithNullable<
+        TankBuildData,
+        "initialLevel" | "diameter" | "minLevel" | "maxLevel"
+      >
     > = {},
   ) {
     const tank = this.assetFactory.createTank({

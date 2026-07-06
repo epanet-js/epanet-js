@@ -486,7 +486,7 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     const tank = emptyUnmapped(
       super.createTank(data),
       data,
-      ["initialLevel", "diameter"],
+      ["initialLevel", "minLevel", "maxLevel", "diameter"],
       null,
     );
     return emptyUnmapped(tank, data, OPTIONAL_FIELDS.tank, undefined);

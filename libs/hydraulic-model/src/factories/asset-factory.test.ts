@@ -40,6 +40,31 @@ describe("AssetFactoryWithNullValues createPipe roughness", () => {
   });
 });
 
+describe("AssetFactoryWithNullValues tank dimensions", () => {
+  it("leaves tank dimensions empty when unmapped", () => {
+    const tank = assetFactoryWithNullValues().createTank({});
+
+    expect(tank.initialLevel).toBeNull();
+    expect(tank.minLevel).toBeNull();
+    expect(tank.maxLevel).toBeNull();
+    expect(tank.diameter).toBeNull();
+  });
+
+  it("keeps provided tank dimensions", () => {
+    const tank = assetFactoryWithNullValues().createTank({
+      initialLevel: 3,
+      minLevel: 1,
+      maxLevel: 8,
+      diameter: 5,
+    });
+
+    expect(tank.initialLevel).toEqual(3);
+    expect(tank.minLevel).toEqual(1);
+    expect(tank.maxLevel).toEqual(8);
+    expect(tank.diameter).toEqual(5);
+  });
+});
+
 describe("AssetFactoryWithNullValues optional attributes", () => {
   it("leaves EPANET-optional attributes undefined when none is provided", () => {
     const factory = assetFactoryWithNullValues();

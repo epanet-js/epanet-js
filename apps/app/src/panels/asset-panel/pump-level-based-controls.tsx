@@ -64,8 +64,8 @@ export const PumpLevelBasedControls = ({
     ? validateLevelSetting({
         onLevel: control.on.level,
         offLevel: control.off.level,
-        minLevel: selectedTank.minLevel,
-        maxLevel: selectedTank.maxLevel,
+        minLevel: selectedTank.minLevel ?? 0,
+        maxLevel: selectedTank.maxLevel ?? 0,
       })
     : [];
 
@@ -94,8 +94,8 @@ export const PumpLevelBasedControls = ({
       buildDefaultLevelSetting(
         control.linkId,
         tank.id,
-        tank.minLevel,
-        tank.maxLevel,
+        tank.minLevel ?? 0,
+        tank.maxLevel ?? 0,
         control.on.setting,
         control.id,
       ),
@@ -171,8 +171,8 @@ export const PumpLevelBasedControls = ({
     messageParts.push(
       translate(
         "controls.levelValidation.outOfRange",
-        localizeDecimal(selectedTank.minLevel),
-        localizeDecimal(selectedTank.maxLevel),
+        localizeDecimal(selectedTank.minLevel ?? 0),
+        localizeDecimal(selectedTank.maxLevel ?? 0),
       ),
     );
   }

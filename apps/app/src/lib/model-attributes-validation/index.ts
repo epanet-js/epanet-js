@@ -1,6 +1,7 @@
 export { validateModelAttributes } from "./run-check";
 export { groupIssues } from "./issues";
-export { RULES, numericChecks } from "./rules";
+export { RULES } from "./rules";
+export { numericChecks } from "./checks";
 export {
   rulesFor,
   fieldGroupsFor,

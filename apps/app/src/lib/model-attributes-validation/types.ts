@@ -31,13 +31,17 @@ export type ValidationGroup = {
   issues: ValidationIssue[];
 };
 
+export type RuleType = "field" | "entity";
+
 export type Rule = {
   id: string;
+  type: RuleType;
   entityType: EntityType;
   field?: string;
   accessor: (entity: ValidatableEntity, model: HydraulicModel) => unknown;
-  appliesWhen?: (entity: ValidatableEntity, model: HydraulicModel) => boolean;
-  check: (value: unknown) => boolean;
+  appliesWhen?: (entity: ValidatableEntity, model?: HydraulicModel) => boolean;
+  // entity arg only needed for entity-scoped checks.
+  check: (value: unknown, entity?: ValidatableEntity) => boolean;
   severity: Severity;
   message: string;
 };

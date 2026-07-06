@@ -550,7 +550,9 @@ export const buildInp = withDebugInstrumentation(
       }
 
       if (asset.type === "tank") {
-        appendTank(
+        const isEps = opts.simulationSettings.timing.duration > 0;
+        const append = isEps ? appendTank : appendTankInSteadyState;
+        append(
           sections,
           idMap,
           opts.geolocation,
@@ -864,7 +866,9 @@ const appendReservoir = (
   }
 };
 
-const appendTank = (
+type TankDimension = (value: number | null) => number | string;
+
+const appendTankRow = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
@@ -872,6 +876,7 @@ const appendTank = (
   usedCurveIds: Set<number>,
   tank: Tank,
   transformCoord: (p: Position) => Position,
+  dimension: TankDimension,
 ) => {
   if (!tank.isActive && !inactiveAssets) {
     return;
@@ -885,13 +890,11 @@ const appendTank = (
       [
         tankId,
         tank.elevation,
-        requiredValue(tank.initialLevel),
-        tank.minLevel,
-        tank.maxLevel,
+        dimension(tank.initialLevel),
+        dimension(tank.minLevel),
+        dimension(tank.maxLevel),
         // Diameter is required unless a volume curve defines the geometry.
-        tank.volumeCurveId
-          ? (tank.diameter ?? 0)
-          : requiredValue(tank.diameter),
+        tank.volumeCurveId ? (tank.diameter ?? 0) : dimension(tank.diameter),
         optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
         tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
         tank.overflow ? "YES" : "NO",
@@ -902,6 +905,48 @@ const appendTank = (
   }
   if (tank.volumeCurveId) usedCurveIds.add(tank.volumeCurveId);
 };
+
+const appendTank = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  geolocation: boolean,
+  inactiveAssets: boolean,
+  usedCurveIds: Set<number>,
+  tank: Tank,
+  transformCoord: (p: Position) => Position,
+) =>
+  appendTankRow(
+    sections,
+    idMap,
+    geolocation,
+    inactiveAssets,
+    usedCurveIds,
+    tank,
+    transformCoord,
+    requiredValue,
+  );
+
+// A steady-state snapshot ignores tank storage geometry, so a missing level or
+// diameter is coalesced to 0 to let the run proceed instead of writing MISSING.
+const appendTankInSteadyState = (
+  sections: InpSections,
+  idMap: EpanetIds,
+  geolocation: boolean,
+  inactiveAssets: boolean,
+  usedCurveIds: Set<number>,
+  tank: Tank,
+  transformCoord: (p: Position) => Position,
+) =>
+  appendTankRow(
+    sections,
+    idMap,
+    geolocation,
+    inactiveAssets,
+    usedCurveIds,
+    tank,
+    transformCoord,
+    (value) => optionalValue(value, 0),
+  );
 
 const appendJunction = (
   sections: InpSections,

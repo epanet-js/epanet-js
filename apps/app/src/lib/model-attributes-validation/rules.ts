@@ -1,55 +1,23 @@
-import { z } from "zod";
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
-
-const fromSchema =
-  (schema: z.ZodTypeAny) =>
-  (value: unknown): boolean =>
-    schema.safeParse(value).success;
-
-const range = ({
-  min,
-  max,
-  int = false,
-}: {
-  min?: number;
-  max?: number;
-  int?: boolean;
-}): ((value: unknown) => boolean) => {
-  let schema = int ? z.number().int() : z.number();
-  if (min !== undefined) schema = schema.min(min);
-  if (max !== undefined) schema = schema.max(max);
-  return fromSchema(schema);
-};
-
-export const numericChecks = {
-  positive: fromSchema(z.number().positive()),
-  nonNegative: fromSchema(z.number().nonnegative()),
-  unitRange: range({ min: 0, max: 1 }),
-  year: range({ min: 1000, max: 9999, int: true }),
-} satisfies Record<string, (value: number) => boolean>;
-
-type NumericCheckName = keyof typeof numericChecks;
-
-const isNumber = fromSchema(z.number());
+import {
+  NumericCheckName,
+  checkMessage,
+  isFiniteNumber,
+  isNumber,
+  numericChecks,
+} from "./checks";
 
 const field =
   (name: string) =>
   (entity: ValidatableEntity): unknown =>
     (entity as unknown as Record<string, unknown>)[name];
 
-const prop = (entity: ValidatableEntity, name: string): unknown =>
+const readEntityProp = (entity: ValidatableEntity, name: string): unknown =>
   (entity as unknown as Record<string, unknown>)[name];
 
-const checkMessage: Record<NumericCheckName, string> = {
-  positive: "mustBePositive",
-  nonNegative: "mustBeNonNegative",
-  unitRange: "mustBeWithinUnitRange",
-  year: "invalidYear",
-};
-
-type When = (entity: ValidatableEntity, model: HydraulicModel) => boolean;
+type When = (entity: ValidatableEntity, model?: HydraulicModel) => boolean;
 
 const presence = (
   entityType: EntityType,
@@ -57,6 +25,7 @@ const presence = (
   appliesWhen?: When,
 ): Rule => ({
   id: `${entityType}.${fieldName}.present`,
+  type: "field",
   entityType,
   field: fieldName,
   accessor: field(fieldName),
@@ -77,6 +46,7 @@ const valueRule = (
   const predicate = numericChecks[checkName];
   return {
     id: `${entityType}.${fieldName}.${checkName}`,
+    type: "field",
     entityType,
     field: fieldName,
     accessor: field(fieldName),
@@ -110,15 +80,43 @@ const optionalNumeric = (
     optional: true,
   });
 
+const tankVolumeCurveless: When = (entity) =>
+  readEntityProp(entity, "volumeCurveId") == null;
+
+const tankLevelsOrdered = (
+  initialLevel: unknown,
+  entity?: ValidatableEntity,
+): boolean => {
+  if (!entity) return true;
+  const min = readEntityProp(entity, "minLevel");
+  const max = readEntityProp(entity, "maxLevel");
+  if (![initialLevel, min, max].every(isFiniteNumber)) return true;
+  // Negative bounds are already reported by their own sign rules.
+  if ((min as number) < 0 || (max as number) < 0) return true;
+  return (
+    (min as number) <= (initialLevel as number) &&
+    (initialLevel as number) <= (max as number)
+  );
+};
+
+const tankHasStorageRange = (
+  maxLevel: unknown,
+  entity?: ValidatableEntity,
+): boolean => {
+  if (!entity) return true;
+  const min = readEntityProp(entity, "minLevel");
+  if (![maxLevel, min].every(isFiniteNumber)) return true;
+  return (maxLevel as number) > (min as number);
+};
+
 export const RULES: Rule[] = [
   // Pipes
   ...requiredNumeric("pipe", "diameter", "positive"),
   ...requiredNumeric("pipe", "roughness", "positive"),
   ...requiredNumeric("pipe", "length", "positive"),
-  // Year and material are optional informational attributes (used for roughness
-  // inference), so empty is allowed; only an out-of-range/non-integer year warns.
   {
     id: "pipe.year.valid",
+    type: "field",
     entityType: "pipe",
     field: "year",
     accessor: field("year"),
@@ -130,41 +128,44 @@ export const RULES: Rule[] = [
   ...requiredNumeric("reservoir", "head"),
   // Tanks
   ...requiredNumeric("tank", "initialLevel", "nonNegative"),
-  ...requiredNumeric(
-    "tank",
-    "diameter",
-    "positive",
-    (entity) => prop(entity, "volumeCurveId") == null,
-  ),
-  // Tank levels only apply in diameter (cylindrical) mode; curve-based tanks
-  // derive them from the volume curve.
-  ...requiredNumeric(
-    "tank",
-    "maxLevel",
-    "positive",
-    (entity) => prop(entity, "volumeCurveId") == null,
-  ),
-  ...requiredNumeric(
-    "tank",
-    "minLevel",
-    "nonNegative",
-    (entity) => prop(entity, "volumeCurveId") == null,
-  ),
+  {
+    id: "tank.initialLevel.withinLevelRange",
+    type: "entity",
+    entityType: "tank",
+    field: "initialLevel",
+    accessor: field("initialLevel"),
+    appliesWhen: tankVolumeCurveless,
+    check: tankLevelsOrdered,
+    severity: "error",
+    message: "mustBeWithinLevelRange",
+  },
+  ...requiredNumeric("tank", "diameter", "positive", tankVolumeCurveless),
+  ...requiredNumeric("tank", "maxLevel", "positive", tankVolumeCurveless),
+  {
+    id: "tank.maxLevel.aboveMinLevel",
+    type: "entity",
+    entityType: "tank",
+    field: "maxLevel",
+    accessor: field("maxLevel"),
+    appliesWhen: tankVolumeCurveless,
+    check: tankHasStorageRange,
+    severity: "warning",
+    message: "mustBeAboveMinLevel",
+  },
+  ...requiredNumeric("tank", "minLevel", "nonNegative", tankVolumeCurveless),
   // Valves
   ...requiredNumeric("valve", "diameter", "positive"),
-  // All valve kinds need a numeric setting except gpv, which uses a curve.
   ...requiredNumeric(
     "valve",
     "setting",
     undefined,
-    (entity) => prop(entity, "kind") !== "gpv",
+    (entity) => readEntityProp(entity, "kind") !== "gpv",
   ),
-  // Power only applies to constant-power pumps; curve-defined pumps ignore it.
   ...requiredNumeric(
     "pump",
     "power",
     "positive",
-    (entity) => prop(entity, "definitionType") === "power",
+    (entity) => readEntityProp(entity, "definitionType") === "power",
   ),
   optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
   optionalNumeric("valve", "minorLoss", "nonNegative", "error"),
@@ -187,7 +188,7 @@ export const RULES: Rule[] = [
     "mixingFraction",
     "unitRange",
     "warning",
-    (entity) => prop(entity, "mixingModel") === "2comp",
+    (entity) => readEntityProp(entity, "mixingModel") === "2comp",
   ),
   optionalNumeric("pump", "energyPrice", "nonNegative", "error"),
   ...(["junction", "reservoir", "tank"] as const).map(
@@ -197,7 +198,7 @@ export const RULES: Rule[] = [
         "chemicalSourceStrength",
         "nonNegative",
         "warning",
-        (entity) => prop(entity, "chemicalSourceType") != null,
+        (entity) => readEntityProp(entity, "chemicalSourceType") != null,
       ),
       id: "node.chemicalSourceStrength.nonNegative",
     }),
@@ -205,6 +206,7 @@ export const RULES: Rule[] = [
   // Customer points
   {
     id: "customerPoint.connected",
+    type: "field",
     entityType: "customerPoint",
     accessor: (entity) => entity,
     check: (value) => (value as CustomerPoint).connection !== null,

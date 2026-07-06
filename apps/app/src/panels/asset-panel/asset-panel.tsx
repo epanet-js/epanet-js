@@ -1335,7 +1335,11 @@ const TankEditor = ({
           unit={units.initialLevel}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
-          validate={fieldValidator("tank", "initialLevel")}
+          validate={fieldValidator(
+            "tank",
+            "initialLevel",
+            allowsNullValues ? tank : undefined,
+          )}
           readOnly={readonly}
           commitInvalidValues={allowsNullValues}
         />
@@ -1529,6 +1533,7 @@ const TankDefinitionField = ({
   const showCurveLibrary = useShowCurveLibrary();
   const { getComparison, getCurveComparison } = useAssetComparison(tank);
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+  const levelValidationContext = allowsNullValues ? tank : undefined;
 
   const [definitionMode, setDefinitionMode] = useState<TankDefinitionMode>(
     tank.volumeCurveId != null ? "curveBased" : "diameterBased",
@@ -1584,6 +1589,9 @@ const TankDefinitionField = ({
     const volumeUnit = translateUnit(units.minVolume);
     const levelUnit = translateUnit(units.minLevel);
 
+    const labelFor = (value: number | null, unit: string) =>
+      value != null ? `${localizeDecimal(value)} ${unit}` : translate("none");
+
     const lines: string[] = [];
     if (baseIsCircular) {
       const baseDiameter = diameterComp.baseValue ?? tank.diameter;
@@ -1591,28 +1599,25 @@ const TankDefinitionField = ({
       const baseMinLevel = minLevelComp.baseValue ?? tank.minLevel;
       const baseMaxLevel = maxLevelComp.baseValue ?? tank.maxLevel;
       const baseMaxVolume = tankVolumeFor(
-        baseDiameter ?? 0,
+        baseDiameter,
         baseMaxLevel,
         baseMinVolume,
         baseMinLevel,
       );
-      // A null base diameter is shown as "None" rather than coerced to 0.
-      const baseDiameterLabel =
-        baseDiameter != null
-          ? `${localizeDecimal(baseDiameter)} ${diameterUnit}`
-          : translate("none");
-      lines.push(`${translate("diameter")}: ${baseDiameterLabel}`);
       lines.push(
-        `${translate("minLevel")}: ${localizeDecimal(baseMinLevel)} ${levelUnit}`,
+        `${translate("diameter")}: ${labelFor(baseDiameter, diameterUnit)}`,
       );
       lines.push(
-        `${translate("maxLevel")}: ${localizeDecimal(baseMaxLevel)} ${levelUnit}`,
+        `${translate("minLevel")}: ${labelFor(baseMinLevel, levelUnit)}`,
       );
       lines.push(
-        `${translate("minVolume")}: ${localizeDecimal(baseMinVolume)} ${volumeUnit}`,
+        `${translate("maxLevel")}: ${labelFor(baseMaxLevel, levelUnit)}`,
       );
       lines.push(
-        `${translate("maxVolume")}: ${localizeDecimal(baseMaxVolume)} ${volumeUnit}`,
+        `${translate("minVolume")}: ${labelFor(baseMinVolume, volumeUnit)}`,
+      );
+      lines.push(
+        `${translate("maxVolume")}: ${labelFor(baseMaxVolume, volumeUnit)}`,
       );
     } else {
       const baseCurve = curveComp.baseValue;
@@ -1673,7 +1678,7 @@ const TankDefinitionField = ({
   );
 
   const handleAreaChange = (_name: string, area: number | null) => {
-    const diameter = tankDiameterFromArea(area ?? 0);
+    const diameter = tankDiameterFromArea(area);
     if (diameter !== tank.diameter) {
       onPropertyChange("diameter", diameter, tank.diameter);
     }
@@ -1683,7 +1688,7 @@ const TankDefinitionField = ({
     const diameter = tankDiameterFor(
       maxVolume,
       tank.maxLevel,
-      tank.minVolume ?? 0,
+      tank.minVolume,
       tank.minLevel,
     );
     if (diameter !== tank.diameter) {
@@ -1691,11 +1696,14 @@ const TankDefinitionField = ({
     }
   };
 
+  const validateMaxVolume = (maxVolume: number) =>
+    numericChecks.positive(maxVolume) && maxVolume > (tank.minVolume ?? 0);
+
   const handleMaxLevelChange = (_name: string, maxLevel: number) => {
     const diameter = tankDiameterFor(
       tank.maxVolume,
       maxLevel,
-      tank.minVolume ?? 0,
+      tank.minVolume,
       tank.minLevel,
     );
     onBatchPropertyChange([
@@ -1708,7 +1716,7 @@ const TankDefinitionField = ({
     const diameter = tankDiameterFor(
       tank.maxVolume,
       tank.maxLevel,
-      tank.minVolume ?? 0,
+      tank.minVolume,
       minLevel,
     );
     onBatchPropertyChange([
@@ -1769,10 +1777,19 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    validate: fieldValidator("tank", "maxLevel"),
+                    commitInvalidValues: allowsNullValues,
+                    validate: fieldValidator(
+                      "tank",
+                      "maxLevel",
+                      levelValidationContext,
+                    ),
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "maxLevel",
+                        isEmpty ? null : v,
+                        tank.maxLevel,
+                      ),
                   },
                   {
                     label: translate("maxVolume"),
@@ -1784,11 +1801,20 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    validate: fieldValidator("tank", "minLevel"),
+                    validate: fieldValidator(
+                      "tank",
+                      "minLevel",
+                      levelValidationContext,
+                    ),
                     isRequired: true,
+                    commitInvalidValues: allowsNullValues,
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("minLevel", v, tank.minLevel),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "minLevel",
+                        isEmpty ? null : v,
+                        tank.minLevel,
+                      ),
                   },
                   {
                     label: translate("minVolume"),
@@ -1829,10 +1855,19 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    validate: fieldValidator("tank", "maxLevel"),
+                    commitInvalidValues: allowsNullValues,
+                    validate: fieldValidator(
+                      "tank",
+                      "maxLevel",
+                      levelValidationContext,
+                    ),
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("maxLevel", v, tank.maxLevel),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "maxLevel",
+                        isEmpty ? null : v,
+                        tank.maxLevel,
+                      ),
                   },
                   {
                     label: translate("maxVolume"),
@@ -1844,11 +1879,20 @@ const TankDefinitionField = ({
                   {
                     label: translate("minLevel"),
                     value: tank.minLevel,
-                    validate: fieldValidator("tank", "minLevel"),
+                    validate: fieldValidator(
+                      "tank",
+                      "minLevel",
+                      levelValidationContext,
+                    ),
                     isRequired: true,
+                    commitInvalidValues: allowsNullValues,
                     readOnly,
-                    handler: (v) =>
-                      onPropertyChange("minLevel", v, tank.minLevel),
+                    handler: (v, isEmpty) =>
+                      onPropertyChange(
+                        "minLevel",
+                        isEmpty ? null : v,
+                        tank.minLevel,
+                      ),
                   },
                   {
                     label: translate("minVolume"),
@@ -1887,7 +1931,7 @@ const TankDefinitionField = ({
                   label: translate("maxVolume"),
                   value: tank.maxVolume,
                   isRequired: true,
-                  validate: numericChecks.positive,
+                  validate: validateMaxVolume,
                   readOnly,
                   handler: (v) => handleMaxVolumeChange("maxVolume", v),
                 },

@@ -464,6 +464,43 @@ describe("build inp", () => {
     expect(inp.split("\n").at(-1)).toEqual("[END]");
   });
 
+  describe("missing tank levels", () => {
+    const tankWithMissingLevels = () =>
+      HydraulicModelBuilder.with()
+        .aTank(1, {
+          elevation: 50,
+          initialLevel: null,
+          minLevel: null,
+          maxLevel: null,
+          diameter: null,
+        })
+        .build();
+
+    it("coalesces missing tank levels to 0 in a steady-state run", () => {
+      const inp = buildInp(tankWithMissingLevels(), {
+        units: presets.LPS.units,
+        simulationSettings: SimulationSettingsBuilder.with()
+          .timing({ duration: 0 })
+          .build(),
+      });
+
+      expect(inp).toContain("[TANKS]");
+      expect(inp).toContain("1\t50\t0\t0\t0\t0");
+      expect(inp).not.toContain("MISSING");
+    });
+
+    it("writes MISSING for missing tank levels in an EPS run", () => {
+      const inp = buildInp(tankWithMissingLevels(), {
+        units: presets.LPS.units,
+        simulationSettings: SimulationSettingsBuilder.with()
+          .timing({ duration: 3600 })
+          .build(),
+      });
+
+      expect(inp).toContain("1\t50\tMISSING\tMISSING\tMISSING\tMISSING");
+    });
+  });
+
   it("includes demand model DDA without pressure fields", () => {
     const hydraulicModel = HydraulicModelBuilder.with().build();
 
