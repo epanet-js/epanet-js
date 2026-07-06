@@ -93,7 +93,7 @@ export const totalAttributesCount = (
   return total;
 };
 
-export const MAX_LABEL_LENGTH = 50;
+export const MAX_LABEL_LENGTH = 64;
 
 export const normalizeLabel = (label: string): string =>
   label.trim().toLowerCase();

@@ -12,7 +12,7 @@ export const customAttributeAssetTypes = [
 
 export const customAttributeTypes = ["text", "number"] as const;
 
-const MAX_LABEL_LENGTH = 50;
+const MAX_LABEL_LENGTH = 64;
 
 const labelSchema = z
   .string()

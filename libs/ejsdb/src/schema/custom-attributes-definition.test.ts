@@ -29,16 +29,16 @@ describe("customAttributesDefinitionSchema", () => {
     ).toBe(false);
   });
 
-  it("rejects a label longer than 50 characters", () => {
+  it("rejects a label longer than 64 characters", () => {
     const result = customAttributesDefinitionSchema.safeParse({
-      pipe: [{ id: "custom-1", label: "x".repeat(51), type: "text" }],
+      pipe: [{ id: "custom-1", label: "x".repeat(65), type: "text" }],
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts a label of exactly 50 characters", () => {
+  it("accepts a label of exactly 64 characters", () => {
     const result = customAttributesDefinitionSchema.safeParse({
-      pipe: [{ id: "custom-1", label: "x".repeat(50), type: "text" }],
+      pipe: [{ id: "custom-1", label: "x".repeat(64), type: "text" }],
     });
     expect(result.success).toBe(true);
   });
