@@ -228,6 +228,51 @@ describe("splitPipe", () => {
     expect(pipe2.getProperty("initialStatus")).toBe("open");
   });
 
+  it("copies custom attributes to both segments", () => {
+    const IDS = { J1: 1, J2: 2 } as const;
+
+    const { assetFactory, labelManager } = buildTestFactories();
+    const hydraulicModel = HydraulicModelBuilder.with({
+      assetFactory,
+      labelManager,
+    })
+      .aNode(IDS.J1, [0, 0])
+      .aNode(IDS.J2, [10, 0])
+      .build();
+
+    const originalPipe = assetFactory.createPipe({
+      label: "SpecialPipe",
+      coordinates: [
+        [0, 0],
+        [10, 0],
+      ],
+    });
+    originalPipe.setProperty("custom-1", 42);
+    originalPipe.setProperty("custom-2", "abc");
+
+    hydraulicModel.assets.set(originalPipe.id, originalPipe);
+
+    const splitNode = assetFactory.createJunction({
+      label: "J3",
+      coordinates: [5, 0],
+    });
+
+    const { putAssets } = splitPipe(hydraulicModel, {
+      assetFactory,
+      labelManager,
+      lengthUnit: "m",
+      pipe: originalPipe,
+      splits: [splitNode],
+    });
+
+    const [pipe1, pipe2] = putAssets!;
+
+    expect(pipe1.getProperty("custom-1")).toBe(42);
+    expect(pipe1.getProperty("custom-2")).toBe("abc");
+    expect(pipe2.getProperty("custom-1")).toBe(42);
+    expect(pipe2.getProperty("custom-2")).toBe("abc");
+  });
+
   it("updates lengths for split pipes", () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 
