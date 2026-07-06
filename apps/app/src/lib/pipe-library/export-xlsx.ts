@@ -8,15 +8,14 @@ export const exportXlsx = async (
 ): Promise<void> => {
   const workbook = XLSX.utils.book_new();
 
-  for (const material of materials) {
-    const data: (string | number | null)[][] = [
-      ["Age", "Roughness"],
-      ...material.entries.map((e) => [e.age, e.roughness]),
-    ];
-    const sheet = XLSX.utils.aoa_to_sheet(data);
-    const name = sanitizeSheetName(material.label);
-    XLSX.utils.book_append_sheet(workbook, sheet, name);
-  }
+  const data: (string | number | null)[][] = [
+    ["Material Name", "Age", "Roughness"],
+    ...materials.flatMap((material) =>
+      material.entries.map((e) => [material.label, e.age, e.roughness]),
+    ),
+  ];
+  const sheet = XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(workbook, sheet, "Materials");
 
   const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   const fileName = `${networkName}-pipe-library.xlsx`;
@@ -27,8 +26,3 @@ export const exportXlsx = async (
   await writable.close();
   await FileSystemHelpers.triggerDownload(fileName, handle);
 };
-
-// Excel forbids [ ] : * ? / \ in sheet names and caps length at 31 chars.
-// The xlsx library throws on violations instead of sanitizing.
-const sanitizeSheetName = (label: string): string =>
-  label.replace(/[[\]:*?/\\]/g, "_").slice(0, 31);

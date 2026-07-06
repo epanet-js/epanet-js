@@ -140,17 +140,32 @@ const parseXlsx = async (file: File): Promise<PipeMaterial[]> => {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
 
-  return workbook.SheetNames.map((sheetName) => {
-    const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json<(string | number | null)[]>(sheet, {
-      header: 1,
-    });
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) return [];
 
-    const entries = rows.slice(1).map((row) => ({
-      age: row[0] != null ? Number(row[0]) : null,
-      roughness: row[1] != null ? Number(row[1]) : null,
-    }));
-
-    return { label: sheetName, entries };
+  const sheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json<(string | number | null)[]>(sheet, {
+    header: 1,
   });
+
+  const materialsMap = new Map<string, PipeMaterial>();
+
+  for (const row of rows.slice(1)) {
+    const name = row[0];
+    if (!name) continue;
+
+    const label = String(name);
+    let material = materialsMap.get(label);
+    if (!material) {
+      material = { label, entries: [] };
+      materialsMap.set(label, material);
+    }
+
+    material.entries.push({
+      age: row[1] != null ? Number(row[1]) : null,
+      roughness: row[2] != null ? Number(row[2]) : null,
+    });
+  }
+
+  return [...materialsMap.values()];
 };

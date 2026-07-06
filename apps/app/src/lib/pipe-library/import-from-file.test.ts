@@ -56,17 +56,13 @@ describe("importFromFile", () => {
 
   it("parses a valid XLSX file", async () => {
     const workbook = XLSX.utils.book_new();
-    const sheet1 = XLSX.utils.aoa_to_sheet([
-      ["Age", "Roughness"],
-      [0, 100],
-      [10, 120],
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["Material Name", "Age", "Roughness"],
+      ["Cast Iron", 0, 100],
+      ["Cast Iron", 10, 120],
+      ["PVC", 0, 150],
     ]);
-    const sheet2 = XLSX.utils.aoa_to_sheet([
-      ["Age", "Roughness"],
-      [0, 150],
-    ]);
-    XLSX.utils.book_append_sheet(workbook, sheet1, "Cast Iron");
-    XLSX.utils.book_append_sheet(workbook, sheet2, "PVC");
+    XLSX.utils.book_append_sheet(workbook, sheet, "Materials");
     const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
     vi.mocked(fileOpen).mockResolvedValue(

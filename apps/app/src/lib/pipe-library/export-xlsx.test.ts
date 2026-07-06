@@ -29,7 +29,7 @@ describe("exportXlsx", () => {
     vi.clearAllMocks();
   });
 
-  it("creates one worksheet per material", async () => {
+  it("creates a single Materials worksheet", async () => {
     const materials: PipeMaterial[] = [
       { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
       { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
@@ -40,10 +40,10 @@ describe("exportXlsx", () => {
     const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
     const workbook = XLSX.read(buffer, { type: "array" });
 
-    expect(workbook.SheetNames).toEqual(["Cast Iron", "PVC"]);
+    expect(workbook.SheetNames).toEqual(["Materials"]);
   });
 
-  it("writes header and data rows", async () => {
+  it("writes header and data rows for all materials", async () => {
     const materials: PipeMaterial[] = [
       {
         label: "Cast Iron",
@@ -52,6 +52,10 @@ describe("exportXlsx", () => {
           { age: 10, roughness: 120 },
         ],
       },
+      {
+        label: "PVC",
+        entries: [{ age: 0, roughness: 150 }],
+      },
     ];
 
     await exportXlsx(materials, "net");
@@ -59,13 +63,14 @@ describe("exportXlsx", () => {
     const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
     const workbook = XLSX.read(buffer, { type: "array" });
     const rows = XLSX.utils.sheet_to_json<(string | number)[]>(
-      workbook.Sheets["Cast Iron"],
+      workbook.Sheets["Materials"],
       { header: 1 },
     );
 
-    expect(rows[0]).toEqual(["Age", "Roughness"]);
-    expect(rows[1]).toEqual([0, 100]);
-    expect(rows[2]).toEqual([10, 120]);
+    expect(rows[0]).toEqual(["Material Name", "Age", "Roughness"]);
+    expect(rows[1]).toEqual(["Cast Iron", 0, 100]);
+    expect(rows[2]).toEqual(["Cast Iron", 10, 120]);
+    expect(rows[3]).toEqual(["PVC", 0, 150]);
   });
 
   it("handles null values in entries", async () => {
@@ -81,29 +86,11 @@ describe("exportXlsx", () => {
     const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
     const workbook = XLSX.read(buffer, { type: "array" });
     const rows = XLSX.utils.sheet_to_json<(string | number | undefined)[]>(
-      workbook.Sheets["M1"],
+      workbook.Sheets["Materials"],
       { header: 1 },
     );
 
-    expect(rows[1]).toEqual([]);
-  });
-
-  it("sanitizes sheet names containing unsupported characters in worksheet names", async () => {
-    const materials: PipeMaterial[] = [
-      { label: "Cast [Iron]:Test", entries: [{ age: 0, roughness: 100 }] },
-      {
-        label: "A".repeat(40),
-        entries: [{ age: 0, roughness: 100 }],
-      },
-    ];
-
-    await exportXlsx(materials, "net");
-
-    const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
-    const workbook = XLSX.read(buffer, { type: "array" });
-
-    expect(workbook.SheetNames[0]).toBe("Cast _Iron__Test");
-    expect(workbook.SheetNames[1]).toHaveLength(31);
+    expect(rows[1]).toEqual(["M1"]);
   });
 
   it("uses correct file name format", async () => {
