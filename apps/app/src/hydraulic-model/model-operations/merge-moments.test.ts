@@ -43,6 +43,57 @@ describe("mergeMoments", () => {
     ]);
   });
 
+  it("forwards putControls from a merged asset delete", () => {
+    const IDS = {
+      N1: 1,
+      N2: 2,
+      PUMP1: 3,
+      J1: 4,
+      J2: 5,
+      PIPE1: 6,
+      CP1: 7,
+    } as const;
+    const model = HydraulicModelBuilder.with()
+      .aJunction(IDS.N1, { coordinates: [0, 0] })
+      .aJunction(IDS.N2, { coordinates: [10, 0] })
+      .aPump(IDS.PUMP1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+      .aTimedSettingControl({
+        linkId: IDS.PUMP1,
+        steps: [{ time: 3600, status: "off", setting: 1 }],
+      })
+      .aJunction(IDS.J1, { coordinates: [0, 10] })
+      .aJunction(IDS.J2, { coordinates: [10, 10] })
+      .aPipe(IDS.PIPE1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        coordinates: [
+          [0, 10],
+          [10, 10],
+        ],
+      })
+      .aCustomerPoint(IDS.CP1, {
+        coordinates: [2, 11],
+        connection: { pipeId: IDS.PIPE1, junctionId: IDS.J1 },
+      })
+      .build();
+
+    const deleteMoment = deleteAssets(model, {
+      assetIds: [IDS.PUMP1],
+      shouldUpdateCustomerPoints: true,
+    });
+    expect(deleteMoment.putControls).toBeDefined();
+
+    const merged = mergeMoments(
+      [
+        deleteMoment,
+        removeCustomerPoints(model, { customerPointIds: [IDS.CP1] }),
+      ],
+      "Delete pump + CP",
+    );
+
+    expect(merged?.putControls).toEqual(deleteMoment.putControls);
+  });
+
   it("undoes a mixed asset+CP delete restoring the CP allocation", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4 } as const;
     const { labelManager } = buildTestFactories();
