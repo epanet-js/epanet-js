@@ -7,16 +7,12 @@ import * as DD from "@radix-ui/react-dropdown-menu";
 import * as CM from "@radix-ui/react-context-menu";
 import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import * as S from "@radix-ui/react-switch";
-import { ErrorBoundary, captureError } from "src/infra/error-tracking";
-import * as Select from "@radix-ui/react-select";
+import { ErrorBoundary } from "src/infra/error-tracking";
 import React from "react";
 import { SUPPORT_EMAIL } from "src/lib/constants";
-import { Portal } from "@radix-ui/react-portal";
 import { useTranslate } from "src/hooks/use-translate";
 import {
-  CloseIcon,
   HelpIcon,
   RefreshIcon,
   LabelsIcon,
@@ -37,20 +33,6 @@ export function Hint({ children }: { children: React.ReactNode }) {
         </TContent>
       </Tooltip.Portal>
     </Tooltip.Root>
-  );
-}
-
-export function StyledDropOverlayIndex({
-  children,
-}: React.PropsWithChildren<Record<string, unknown>>) {
-  return (
-    <Portal>
-      <div className="absolute bottom-10 left-1/2">
-        <div className="px-3 py-2 text-white bg-gray-500 rounded-md w-48 -m-24">
-          {children}
-        </div>
-      </div>
-    </Portal>
   );
 }
 
@@ -233,16 +215,9 @@ export const LogoIconAndWordmarkIcon: React.FC<{ size: number }> = ({
   );
 };
 
-export const CapsLabel = classed.label(
-  "block uppercase font-semibold text-gray-500 dark:text-gray-500 text-xs",
-);
-
 const overlayClasses =
   "fixed inset-0 bg-black/20 dark:bg-white/20 z-40 placemark-fadein";
 
-export const StyledAlertDialogOverlay = classed(AlertDialog.Overlay)(
-  overlayClasses,
-);
 export const StyledDialogOverlay = classed(Dialog.Overlay)(overlayClasses);
 
 type DialogSize =
@@ -298,27 +273,6 @@ export const styledDialogContent = ({
   );
 };
 
-const customWelcomeDialogContent = () => {
-  return clsx(
-    `fixed inline-block
-      max-h-[720px]
-      h-full
-      max-w-[1024px]
-      w-full
-      text-left
-      align-bottom
-      bg-base
-      dark:text-white
-      shadow-md dark:shadow-none dark:border dark:border-black
-      sm:rounded-sm sm:align-middle w-full
-      left-2/4 top-2/4 -translate-x-1/2 -translate-y-1/2
-      overflow-y-auto placemark-scrollbar
-      p-0
-      z-40
-      `,
-  );
-};
-
 // Wrapper to prevent widthClasses and fillMode from being passed to DOM
 const FilteredDialogContent = React.forwardRef<
   HTMLDivElement,
@@ -332,10 +286,6 @@ const FilteredDialogContent = React.forwardRef<
 export const StyledDialogContent = classed(FilteredDialogContent)(
   styledDialogContent,
 );
-export const WelcomeDialogContent = classed(Dialog.Content)(
-  customWelcomeDialogContent,
-);
-
 export const styledCheckbox = ({
   variant = "default",
 }: {
@@ -352,16 +302,6 @@ export const styledCheckbox = ({
   ]);
 
 export const FieldCheckbox = classed(Field)(styledCheckbox);
-
-export const StyledDialogClose = () => (
-  <Dialog.Close
-    aria-label="Close"
-    className="absolute top-4 right-4 text-subtle"
-    style={{ outline: "2px solid red" }}
-  >
-    <CloseIcon />
-  </Dialog.Close>
-);
 
 export const TContent = classed(Tooltip.Content)(
   ({ size = "sm" }: { size?: B3Size }) => [
@@ -380,8 +320,6 @@ export const TContent = classed(Tooltip.Content)(
   `,
   ],
 );
-
-export const styledTd = "border-base";
 
 const arrowLike = "text-white dark:text-gray-900 fill-current";
 
@@ -404,22 +342,10 @@ export const StyledPopoverArrow = () => (
   </Popover.Arrow>
 );
 
-export const StyledPopoverClose = () => (
-  <Popover.Close asChild>
-    <CloseIcon />
-  </Popover.Close>
-);
-
 export const StyledTooltipArrow = () => (
   <Tooltip.Arrow offset={5} width={11} height={5} className={arrowLike} asChild>
     {ArrowSVG}
   </Tooltip.Arrow>
-);
-
-export const StyledDropDownArrow = () => (
-  <DD.Arrow offset={5} width={11} height={5} className={arrowLike} asChild>
-    {ArrowSVG}
-  </DD.Arrow>
 );
 
 export const StyledPopoverContent = classed(Popover.Content)(
@@ -461,11 +387,6 @@ export function PopoverContent2({
   );
 }
 
-export const styledTextarea =
-  "block w-full mt-1 text-sm font-mono border-strong dark:bg-transparent dark:text-white rounded-xs focus-visible:border-strong overflow-auto focus:ring-accent";
-
-export const StyledFieldTextareaCode = classed(Field)(styledTextarea);
-
 export const StyledLabelSpan = classed.span(
   ({ size = "sm" }: { size?: B3Size }) =>
     clsx(
@@ -474,23 +395,6 @@ export const StyledLabelSpan = classed.span(
         "text-xs": size === "xs",
       },
       "text-gray-700 dark:text-gray-300 select-none",
-    ),
-);
-
-export const StyledFieldTextareaProse = classed(Field)(
-  (
-    {
-      size = "md",
-      variant = "default",
-    }: { size: B3Size; variant: B3Variant } = {
-      size: "sm",
-      variant: "default",
-    },
-  ) =>
-    clsx(
-      sharedEqualPadding(size),
-      sharedOutline(variant),
-      "block w-full mt-1 focus-visible:border-gray-300 dark:bg-transparent dark:text-white",
     ),
 );
 
@@ -504,21 +408,13 @@ export const contentLike = `p-1
 export const DDContent = classed(DD.Content)(contentLike);
 export const DDSubContent = classed(DD.SubContent)(contentLike);
 export const CMContent = classed(CM.Content)(contentLike);
-export const CMSubContent = classed(CM.SubContent)(contentLike);
-
 const styledLabel =
   "block py-1 pl-3 pr-4 text-xs text-gray-500 dark:text-gray-300";
 
-export const DivLabel = classed.div(styledLabel);
 export const DDLabel = classed(DD.Label)(styledLabel);
-export const StyledSelectLabel = classed(Select.Label)(styledLabel);
-
 const styledSeparator = "border-t border-gray-100 dark:border-gray-700 my-1";
 
-export const DivSeparator = classed.div(styledSeparator);
 export const DDSeparator = classed(DD.Separator)(styledSeparator);
-export const StyledSelectSeparator = classed(Select.Separator)(styledSeparator);
-
 export const styledInlineA = "text-accent-hover underline hover:text-default";
 
 export const menuItemLike = ({
@@ -542,65 +438,10 @@ export const menuItemLike = ({
     data-[state=checked]:bg-accent-tint`,
   ]);
 
-export const StyledButtonItem = classed.div(menuItemLike);
 export const StyledRadioItem = classed(DD.RadioItem)(menuItemLike);
 export const StyledItem = classed(DD.Item)(menuItemLike);
-export const StyledSelectItem = classed(Select.Item)(menuItemLike);
-export const StyledMenuLink = React.forwardRef(
-  (
-    {
-      children,
-      variant = "default",
-      ...attributes
-    }: {
-      children: React.ReactNode;
-      variant?: B3Variant;
-    } & React.HTMLAttributes<HTMLAnchorElement>,
-    ref: React.ForwardedRef<HTMLAnchorElement>,
-  ) => {
-    return (
-      <a
-        className={menuItemLike({ variant })}
-        ref={ref}
-        {...attributes}
-        onClick={(e) => {
-          attributes.onClick?.(e);
-          try {
-            document.dispatchEvent(
-              new KeyboardEvent("keydown", { key: "Escape" }),
-            );
-          } catch (e) {
-            captureError(e as Error);
-          }
-        }}
-      >
-        {children}
-      </a>
-    );
-  },
-);
 export const DDSubTriggerItem = classed(DD.SubTrigger)(menuItemLike);
-export const CMSubTriggerItem = classed(CM.SubTrigger)(
-  menuItemLike({ variant: "default" }) + " justify-between",
-);
 export const CMItem = classed(CM.Item)(menuItemLike);
-
-export const StyledPopoverCross = () => (
-  <Popover.Close
-    className="flex
-  focus-visible:text-default
-  text-subtle
-  hover:text-default"
-  >
-    <CloseIcon />
-  </Popover.Close>
-);
-
-export const PopoverTitleAndClose = ({ title }: { title: string }) => (
-  <div className="flex items-start justify-between pb-2">
-    <StyledLabelSpan>{title}</StyledLabelSpan>
-  </div>
-);
 
 export type B3Size = "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
 export type B3Variant =
@@ -631,20 +472,6 @@ export const sharedPadding = (
   "rounded-none": side === "middle",
 });
 
-export const sharedEqualPadding = (size: B3Size): ClassValue => ({
-  "p-1.5 text-xs rounded-xs": size === "xs",
-  "p-2 text-sm rounded-sm": size === "sm",
-  "p-3 text-md rounded-sm": size === "md",
-});
-
-export const styledRadio = clsx(
-  "text-accent focus:ring-accent",
-  sharedOutline("primary"),
-);
-
-/**
- * Shared by select and buttons
- */
 export function sharedOutline(
   variant: B3Variant,
   disabled = false,
@@ -810,20 +637,6 @@ export const styledButton = ({
       `[&>svg]:text-error [&>svg]:hover:text-red-600 dark:[&>svg]:hover:text-red-400`,
   );
 
-export const styledPanelTitle = ({
-  interactive = false,
-}: {
-  interactive?: boolean;
-}) =>
-  clsx(
-    `text-sm
-  w-full
-  text-gray-700 dark:text-gray-300
-  flex justify-between items-center`,
-    "px-3 py-3",
-    interactive && `hover:text-gray-900 dark:hover:text-white`,
-  );
-
 export const Button = classed.button(styledButton);
 
 // TODO: all kinds of issues with select. Change to styled soon.
@@ -881,8 +694,6 @@ export const Keycap = classed.div(({ size = "sm" }: { size?: B3Size }) => [
 ]);
 
 export const Input = classed.input(inputClass);
-export const StyledField = classed(Field)(inputClass);
-
 export const TextWell = classed.div(
   ({
     size = "sm",
@@ -917,72 +728,6 @@ export const StyledThumb = classed(S.Thumb)(
   border-gray-200 dark:border-black
   data-[state=checked]:border-purple-300 dark:data-[state=checked]:border-purple-400
   rounded-full bg-white block shadow-xs data-[state=checked]:translate-x-5`,
-);
-
-export const StyledPopoverTrigger = classed(Popover.Trigger)(
-  clsx(
-    `aria-expanded:bg-base-hover
-    data-[state=on]:bg-base-hover`,
-    "disabled:opacity-50 disabled:cursor-not-allowed",
-    // Focus
-    `focus-visible:outline-hidden`,
-    // Sizing
-    `py-1 px-1 rounded-sm text-sm`,
-    // Display
-    `relative w-full flex items-center gap-x-1`,
-    // Transition
-    // `transition-all`,
-    // Text
-    sharedText("default"),
-    // Outline
-    sharedOutline("default", false),
-    sharedBackground("default", false),
-    // Colored variants
-    {},
-  ),
-);
-
-export const H1 = classed.h2("font-bold text-2xl");
-export const H2 = classed.h2("font-bold text-xl");
-
-export function Table({ children }: React.PropsWithChildren<unknown>) {
-  return (
-    <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-      <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-        <div className="overflow-hidden ring-1 ring-gray-300 dark:ring-gray-500 md:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-            {children}
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function TableHead({ children }: React.PropsWithChildren<unknown>) {
-  return (
-    <thead className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-      <tr>{children}</tr>
-    </thead>
-  );
-}
-
-export const Th = classed.td(({ first = false }: { first?: boolean }) =>
-  clsx(
-    "py-2 pr-3 text-left text-sm font-semibold",
-    first ? "pl-4 sm:pl-6" : "px-3",
-  ),
-);
-
-export const Td = classed.td(({ first = false }: { first?: boolean }) => {
-  return clsx(
-    "whitespace-nowrap py-3 pl-4 pr-3 text-sm font-medium",
-    first && "sm:pl-6",
-  );
-});
-
-export const Tbody = classed.tbody(
-  "divide-y divide-gray-200 dark:divide-gray-500 bg-popover",
 );
 
 export const VisibilityToggleIcon = ({
