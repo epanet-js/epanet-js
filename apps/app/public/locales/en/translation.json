@@ -29,6 +29,8 @@
   },
   "operationalData": "Operational data",
   "analysisTools": "Analysis tools",
+  "continue": "Continue",
+  "cancel": "Cancel",
   "select": "Select",
   "selection": "Selection",
   "junction": "Junction",
@@ -1684,8 +1686,6 @@
     "import": {
       "confirmTitle": "Import pipe library",
       "confirmMessage": "Importing a pipe library will replace the current library. Do you want to continue?",
-      "cancel": "Cancel",
-      "continue": "Continue",
       "success": "Imported {{count}} materials from file",
       "noMaterialsImported": "No materials were imported",
       "partialTitle": "Library contained invalid entries. Imported {{count}} valid materials",

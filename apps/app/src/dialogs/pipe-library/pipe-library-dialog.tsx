@@ -8,7 +8,9 @@ import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
 import { PipeErrorBanner } from "./pipe-error-banner";
 import { VerticalResizer } from "../vertical-resizer";
-import { ChevronDownIcon, CloseIcon, PipeLibraryIcon } from "src/icons";
+import { DismissableBanner } from "../dismissable-banner";
+import { WarningActionBanner } from "../warning-action-banner";
+import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
 import { validateMaterial } from "src/lib/pipe-library";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
@@ -97,8 +99,9 @@ export const PipeLibraryDialog = () => {
           />
         )}
         {pendingImport !== null && (
-          <ImportWarningBanner
-            onAccept={handleAcceptImport}
+          <WarningActionBanner
+            description={translate("pipeLibrary.import.confirmMessage")}
+            onContinue={handleAcceptImport}
             onCancel={handleCancelImport}
           />
         )}
@@ -144,54 +147,6 @@ export const PipeLibraryDialog = () => {
     </BaseDialog>
   );
 };
-
-const ImportWarningBanner = ({
-  onAccept,
-  onCancel,
-}: {
-  onAccept: () => void;
-  onCancel: () => void;
-}) => {
-  const translate = useTranslate();
-  return (
-    <div className="flex items-center justify-between px-4 py-2 border-b bg-error-subtle h-12">
-      <p className="text-size-base">
-        {translate("pipeLibrary.import.confirmMessage")}
-      </p>
-      <div className="flex gap-2">
-        <Button variant="default" size="sm" disabled={false} onClick={onCancel}>
-          {translate("pipeLibrary.import.cancel")}
-        </Button>
-        <Button variant="danger" size="sm" disabled={false} onClick={onAccept}>
-          {translate("pipeLibrary.import.continue")}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const DismissableBanner = ({
-  description,
-  variant,
-  onDismiss,
-}: {
-  description: string;
-  variant: "default" | "warning" | "error" | "success";
-  onDismiss: () => void;
-}) => (
-  <div
-    className={`flex items-center justify-between px-4 py-2 border-b bg-${variant}-subtle h-12`}
-  >
-    <p className="text-size-base">{description}</p>
-    <button
-      className="flex gap-2 text-subtle shrink-0 focus:bg-base-hover hover:text-default"
-      onClick={onDismiss}
-      type="button"
-    >
-      <CloseIcon />
-    </button>
-  </div>
-);
 
 const ImportSubmenu = ({
   handleImportFromFile,
