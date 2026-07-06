@@ -414,4 +414,200 @@ describe("deleteAssets", () => {
       expect(hydraulicModel.assets.has(IDS.T1)).toBe(true);
     });
   });
+
+  describe("raw controls cleanup", () => {
+    it("removes a simple control referencing a deleted link", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4, P2: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aPump(IDS.P2, { startNodeId: IDS.N2, endNodeId: IDS.T1 })
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .aSimpleControl({
+          template: "LINK {{0}} CLOSED IF NODE {{1}} BELOW 50",
+          assetReferences: [
+            { assetId: IDS.P2, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const { putRawControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+        shouldRemoveRawControls: true,
+      });
+
+      expect(putRawControls).toBeDefined();
+      expect(putRawControls!.simple).toHaveLength(1);
+      expect(putRawControls!.simple[0].assetReferences).toEqual([
+        { assetId: IDS.P2, isActionTarget: true },
+        { assetId: IDS.T1, isActionTarget: false },
+      ]);
+    });
+
+    it("removes a simple control referencing a deleted node", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const { putRawControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.T1],
+        shouldRemoveRawControls: true,
+      });
+
+      expect(putRawControls).toBeDefined();
+      expect(putRawControls!.simple).toHaveLength(0);
+    });
+
+    it("removes a control whose link is pulled in by deleting a connected node", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const { deleteAssets: deletedAssetIds, putRawControls } = deleteAssets(
+        hydraulicModel,
+        { assetIds: [IDS.N1], shouldRemoveRawControls: true },
+      );
+
+      expect(deletedAssetIds).toEqual(expect.arrayContaining([IDS.N1, IDS.P1]));
+      expect(putRawControls).toBeDefined();
+      expect(putRawControls!.simple).toHaveLength(0);
+    });
+
+    it("removes a rule referencing a deleted asset", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aRule({
+          ruleId: "1",
+          template:
+            "RULE {{id}}\nIF NODE {{0}} LEVEL > 100\nTHEN LINK {{1}} STATUS IS OPEN",
+          assetReferences: [
+            { assetId: IDS.T1 },
+            { assetId: IDS.P1, isActionTarget: true },
+          ],
+        })
+        .build();
+
+      const { putRawControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+        shouldRemoveRawControls: true,
+      });
+
+      expect(putRawControls).toBeDefined();
+      expect(putRawControls!.rules).toHaveLength(0);
+    });
+
+    it("keeps controls that only reference surviving assets", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4, J1: 5 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aJunction(IDS.J1)
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const { putRawControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.J1],
+        shouldRemoveRawControls: true,
+      });
+
+      expect(putRawControls).toBeUndefined();
+    });
+
+    it("does not touch raw controls when the flag boolean is off", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const { putRawControls } = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.P1],
+      });
+
+      expect(putRawControls).toBeUndefined();
+    });
+
+    it("applies and undoes the raw control removal through the moment", () => {
+      const IDS = { N1: 1, N2: 2, P1: 3, T1: 4 } as const;
+      const { labelManager } = buildTestFactories();
+      const hydraulicModel = HydraulicModelBuilder.with({ labelManager })
+        .aJunction(IDS.N1)
+        .aJunction(IDS.N2)
+        .aPump(IDS.P1, { startNodeId: IDS.N1, endNodeId: IDS.N2 })
+        .aTank(IDS.T1)
+        .aSimpleControl({
+          template: "LINK {{0}} OPEN IF NODE {{1}} ABOVE 100",
+          assetReferences: [
+            { assetId: IDS.P1, isActionTarget: true },
+            { assetId: IDS.T1 },
+          ],
+        })
+        .build();
+
+      const moment = deleteAssets(hydraulicModel, {
+        assetIds: [IDS.T1],
+        shouldRemoveRawControls: true,
+      });
+      const reverse = applyMomentToModel(hydraulicModel, moment, labelManager);
+
+      expect(hydraulicModel.rawControls.simple).toHaveLength(0);
+
+      applyMomentToModel(hydraulicModel, reverse, labelManager);
+
+      expect(hydraulicModel.rawControls.simple).toHaveLength(1);
+      expect(hydraulicModel.assets.has(IDS.T1)).toBe(true);
+    });
+  });
 });

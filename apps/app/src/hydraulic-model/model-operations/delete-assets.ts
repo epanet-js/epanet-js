@@ -7,6 +7,7 @@ import {
   CustomerPoint,
   CustomerPointsLookup,
   Control,
+  AssetReference,
 } from "@epanet-js/hydraulic-model";
 import type {
   AssetPatch,
@@ -21,14 +22,25 @@ import { Demands, getJunctionDemands } from "@epanet-js/hydraulic-model";
 type InputData = {
   assetIds: readonly AssetId[];
   shouldUpdateCustomerPoints?: boolean;
+  shouldRemoveRawControls?: boolean;
 };
 
 export const deleteAssets: ModelOperation<InputData> = (
   hydraulicModel,
-  { assetIds, shouldUpdateCustomerPoints = false },
+  {
+    assetIds,
+    shouldUpdateCustomerPoints = false,
+    shouldRemoveRawControls = false,
+  },
 ) => {
-  const { topology, assets, customerPointsLookup, controlsLookup, controls } =
-    hydraulicModel;
+  const {
+    topology,
+    assets,
+    customerPointsLookup,
+    controlsLookup,
+    controls,
+    rawControls,
+  } = hydraulicModel;
   const affectedIds = new Set(assetIds);
   const disconnectedCustomerPoints = new Map<number, CustomerPoint>();
 
@@ -75,6 +87,10 @@ export const deleteAssets: ModelOperation<InputData> = (
       ? controls.filter((control) => !controlsToRemove.has(control))
       : undefined;
 
+  const putRawControls = shouldRemoveRawControls
+    ? removeRawControlsReferencing(rawControls, affectedIds)
+    : undefined;
+
   return {
     note: "Delete assets",
     deleteAssets: Array.from(affectedIds),
@@ -86,7 +102,29 @@ export const deleteAssets: ModelOperation<InputData> = (
         : undefined,
     ...(putDemands && { putDemands }),
     ...(putControls && { putControls }),
+    ...(putRawControls && { putRawControls }),
   };
+};
+
+const removeRawControlsReferencing = (
+  rawControls: HydraulicModel["rawControls"],
+  deletedIds: Set<AssetId>,
+): HydraulicModel["rawControls"] | undefined => {
+  const referencesDeleted = (references: AssetReference[]) =>
+    references.some((reference) => deletedIds.has(reference.assetId));
+
+  const simple = rawControls.simple.filter(
+    (control) => !referencesDeleted(control.assetReferences),
+  );
+  const rules = rawControls.rules.filter(
+    (rule) => !referencesDeleted(rule.assetReferences),
+  );
+
+  const changed =
+    simple.length !== rawControls.simple.length ||
+    rules.length !== rawControls.rules.length;
+
+  return changed ? { simple, rules } : undefined;
 };
 
 const addCustomerPointsToDisconnect = (
