@@ -191,6 +191,33 @@ export function MultiAssetPanel({
     [selectAssets, userTracking],
   );
 
+  const computeDetailedStats = useCallback(
+    (assetType: Asset["type"], property: string) => {
+      const assetsOfType = selectedAssets.filter((a) => a.type === assetType);
+      const { data } = computeAssetsStatsDeprecated(
+        assetsOfType,
+        units,
+        formatting,
+        hydraulicModel,
+        simulationSettings,
+        simulationResults,
+      );
+      for (const stats of Object.values(data[assetType])) {
+        const found = stats.find((s) => s.property === property);
+        if (found) return found;
+      }
+      return null;
+    },
+    [
+      selectedAssets,
+      units,
+      formatting,
+      hydraulicModel,
+      simulationSettings,
+      simulationResults,
+    ],
+  );
+
   const handleOpenLibrary = useCallback(
     (
       library: "curves" | "patterns" | "pumps",
@@ -241,6 +268,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.junction}
             sectionsDeprecated={multiAssetDataDeprecated.junction}
+            onRequestDetails={(p) => computeDetailedStats("junction", p)}
             editableProperties={junctionEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
@@ -284,6 +312,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.pipe}
             sectionsDeprecated={multiAssetDataDeprecated.pipe}
+            onRequestDetails={(p) => computeDetailedStats("pipe", p)}
             editableProperties={pipeEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pipe", p, v)}
@@ -320,6 +349,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.pump}
             sectionsDeprecated={multiAssetDataDeprecated.pump}
+            onRequestDetails={(p) => computeDetailedStats("pump", p)}
             editableProperties={pumpEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("pump", p, v)}
@@ -360,6 +390,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.valve}
             sectionsDeprecated={multiAssetDataDeprecated.valve}
+            onRequestDetails={(p) => computeDetailedStats("valve", p)}
             editableProperties={valveEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) =>
@@ -398,6 +429,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.reservoir}
             sectionsDeprecated={multiAssetDataDeprecated.reservoir}
+            onRequestDetails={(p) => computeDetailedStats("reservoir", p)}
             editableProperties={reservoirEditableProperties}
             onPropertyChange={(p, v) =>
               handleBatchPropertyChange("reservoir", p, v)
@@ -440,6 +472,7 @@ export function MultiAssetPanel({
           <AssetTypeSections
             sections={multiAssetData.tank}
             sectionsDeprecated={multiAssetDataDeprecated.tank}
+            onRequestDetails={(p) => computeDetailedStats("tank", p)}
             editableProperties={tankEditableProperties}
             hasSimulation={hasSimulation}
             onPropertyChange={(p, v) => handleBatchPropertyChange("tank", p, v)}

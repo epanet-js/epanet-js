@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -89,10 +90,27 @@ describe("multi-asset summary rows with FLAG_STATS_PERF", () => {
     expect(inputs[0]).toHaveDisplayValue(/100/);
   });
 
-  it("does not render the stats popover button (deferred)", () => {
+  it("computes the stats lazily when the popover opens", async () => {
     renderComponent(setInitialState(buildModel([100, 150])));
 
-    expect(screen.queryByLabelText(/stats for:/i)).not.toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: /stats for: elevation/i }),
+    );
+
+    const minField = screen.getByLabelText<HTMLInputElement>(/value for: min/i);
+    const maxField = screen.getByLabelText<HTMLInputElement>(/value for: max/i);
+    expect(minField.value).toMatch(/^100(\.0+)?$/);
+    expect(maxField.value).toMatch(/^150(\.0+)?$/);
+  });
+
+  it("renders the (virtualized) value list in the popover", async () => {
+    renderComponent(setInitialState(buildModel([100, 150])));
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /stats for: elevation/i }),
+    );
+
+    expect(screen.getByRole("table", { name: /values/i })).toBeInTheDocument();
   });
 
   it("keeps the stats popover button when the flag is off", () => {

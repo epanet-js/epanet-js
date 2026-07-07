@@ -6,6 +6,7 @@ import { MultiValueRow } from "./multi-value-row";
 import { SummaryValueRow, ReadOnlySummaryValueRow } from "./summary-value-row";
 import { AssetPropertySections } from "./asset-stats";
 import type { AssetPropertySectionsDeprecated } from "./asset-stats-deprecated";
+import type { PropertyStats as DetailedPropertyStats } from "./stats";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { CustomerPointPropertySections } from "./customer-point-stats";
 import type { EditableProperties } from "./batch-edit-property-config";
@@ -30,6 +31,7 @@ type AssetSectionProps = {
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
@@ -48,6 +50,7 @@ export function AssetTypeSections({
   onPropertyChange,
   readonly = false,
   onSelectAssets,
+  onRequestDetails,
   curves,
   patterns,
   labelManager,
@@ -93,6 +96,8 @@ export function AssetTypeSections({
                   config={config}
                   onPropertyChange={onPropertyChange}
                   readonly={readonly}
+                  onSelectAssets={onSelectAssets}
+                  onRequestDetails={onRequestDetails}
                   curves={curves}
                   patterns={patterns}
                   labelManager={labelManager}
@@ -102,6 +107,8 @@ export function AssetTypeSections({
                 <ReadOnlySummaryValueRow
                   key={stat.property}
                   propertyStats={stat}
+                  onSelectAssets={onSelectAssets}
+                  onRequestDetails={onRequestDetails}
                 />
               );
             })

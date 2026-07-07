@@ -1,4 +1,5 @@
-import { useState, KeyboardEventHandler } from "react";
+import { useState, useRef, useMemo, KeyboardEventHandler } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { localizeDecimal } from "src/infra/i18n/numbers";
@@ -589,22 +590,44 @@ export const SortableValuesList = ({
     }
   };
 
-  const valueEntries = Array.from(values.entries()).sort(
-    ([a, idsA], [b, idsB]) => {
-      const multiplier = sortDirection === "asc" ? 1 : -1;
-      if (sortColumn === "value") {
-        if (type === "quantity") {
-          return ((a as number) - (b as number)) * multiplier;
-        } else {
+  const sortedRows = useMemo(() => {
+    const entries = Array.from(values.entries()).sort(
+      ([a, idsA], [b, idsB]) => {
+        const multiplier = sortDirection === "asc" ? 1 : -1;
+        if (sortColumn === "value") {
+          if (type === "quantity") {
+            return ((a as number) - (b as number)) * multiplier;
+          }
           return String(a).localeCompare(String(b)) * multiplier;
         }
-      } else {
         return (idsA.length - idsB.length) * multiplier;
-      }
-    },
-  );
+      },
+    );
+
+    const result: {
+      value: JsonValue | null;
+      assetIds: AssetId[];
+      isEmpty: boolean;
+    }[] = entries.map(([value, assetIds]) => ({
+      value,
+      assetIds,
+      isEmpty: false,
+    }));
+    if (emptyBucket) {
+      result.push({ value: null, assetIds: emptyBucket.ids, isEmpty: true });
+    }
+    return result;
+  }, [values, sortColumn, sortDirection, type, emptyBucket]);
 
   const isClickable = !!onSelectAssets;
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: sortedRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 34,
+    overscan: 8,
+  });
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     const isActive = sortColumn === column;
@@ -649,28 +672,33 @@ export const SortableValuesList = ({
           <SortIndicator column="count" />
         </button>
       </div>
-      <div className="max-h-32 overflow-y-auto" role="rowgroup">
-        <div className="w-full">
-          {valueEntries.map(([value, assetIds], index) => {
-            const label = formatValue(
-              value,
-              translate,
-              decimals,
-              type,
-              isInteger,
-            );
+      <div ref={parentRef} className="max-h-32 overflow-y-auto" role="rowgroup">
+        <div
+          className="w-full relative"
+          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = sortedRows[virtualRow.index];
+            const label = row.isEmpty
+              ? emptyBucketLabel
+              : formatValue(row.value, translate, decimals, type, isInteger);
+            const striped = virtualRow.index % 2 === 1;
             return (
               <div
-                key={index}
-                className={`py-2 px-2 flex items-center hover:bg-base-hover gap-x-2 even:bg-panel ${isClickable ? "cursor-pointer" : ""}`}
+                key={virtualRow.index}
+                className={`absolute top-0 left-0 w-full py-2 px-2 flex items-center hover:bg-base-hover gap-x-2 ${striped ? "bg-panel" : ""} ${isClickable ? "cursor-pointer" : ""}`}
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
                 role="row"
                 onClick={
-                  isClickable ? () => onSelectAssets(assetIds) : undefined
+                  isClickable ? () => onSelectAssets(row.assetIds) : undefined
                 }
               >
                 <div
                   title={label}
-                  className="flex-auto font-mono text-size-small truncate"
+                  className={`flex-auto font-mono text-size-small truncate ${row.isEmpty ? "italic text-subtle" : ""}`}
                   role="cell"
                 >
                   {label}
@@ -680,35 +708,11 @@ export const SortableValuesList = ({
                   title={translate("assets")}
                   role="cell"
                 >
-                  ({localizeDecimal(assetIds.length)})
+                  ({localizeDecimal(row.assetIds.length)})
                 </div>
               </div>
             );
           })}
-          {emptyBucket && (
-            <div
-              className={`py-2 px-2 flex items-center hover:bg-base-hover gap-x-2 even:bg-panel ${isClickable ? "cursor-pointer" : ""}`}
-              role="row"
-              onClick={
-                isClickable ? () => onSelectAssets(emptyBucket.ids) : undefined
-              }
-            >
-              <div
-                title={emptyBucketLabel}
-                className="flex-auto font-mono text-size-small truncate italic text-subtle"
-                role="cell"
-              >
-                {emptyBucketLabel}
-              </div>
-              <div
-                className="text-size-small font-mono"
-                title={translate("assets")}
-                role="cell"
-              >
-                ({localizeDecimal(emptyBucket.ids.length)})
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

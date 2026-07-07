@@ -1,19 +1,33 @@
+import { useState, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
+import * as P from "@radix-ui/react-popover";
+import {
+  StyledPopoverArrow,
+  StyledPopoverContent,
+} from "src/components/elements";
+import { MultipleValuesIcon } from "src/icons";
 import {
   EditableField,
   formatValue,
   formatEmptyBucket,
+  QuantityStatsBaseFields,
+  SortableValuesList,
 } from "./multi-value-row";
 import {
   PropertyStats,
   getDistinctBucketCount,
   getEmptyBucket,
 } from "./summary-stats";
+import {
+  type PropertyStats as DetailedPropertyStats,
+  getEmptyBucket as getDetailedEmptyBucket,
+} from "./stats";
 import { BatchEditPropertyConfig } from "./batch-edit-property-config";
+import { AssetId } from "src/hydraulic-model";
 import {
   type Curves,
   type CurveType,
@@ -54,6 +68,74 @@ const useSummaryPrimitives = (propertyStats: PropertyStats) => {
   };
 };
 
+const LazyStatsPopoverButton = ({
+  label,
+  property,
+  loadDetails,
+  onSelectAssets,
+}: {
+  label: string;
+  property: string;
+  loadDetails: () => DetailedPropertyStats | null;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [details, setDetails] = useState<DetailedPropertyStats | null>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    setDetails(open ? loadDetails() : null);
+  };
+
+  const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
+    event,
+  ) => {
+    if (event.code === "Escape" || event.code === "Enter") {
+      event.stopPropagation();
+      handleOpenChange(false);
+    }
+  };
+
+  return (
+    <P.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <P.Trigger
+        aria-label={`Stats for: ${label}`}
+        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-xs text-subtle hover:text-default hover:bg-base-hover"
+      >
+        <MultipleValuesIcon />
+      </P.Trigger>
+      <P.Portal>
+        <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
+          <StyledPopoverArrow />
+          {details && (
+            <>
+              {details.type === "quantity" && (
+                <QuantityStatsBaseFields quantityStats={details} />
+              )}
+              <SortableValuesList
+                values={details.values}
+                decimals={
+                  details.type === "quantity" ? details.decimals : undefined
+                }
+                isInteger={
+                  details.type === "quantity" ? details.isInteger : undefined
+                }
+                type={details.type}
+                onSelectAssets={
+                  onSelectAssets
+                    ? (ids) => onSelectAssets(ids, property)
+                    : undefined
+                }
+                emptyBucket={getDetailedEmptyBucket(details)}
+              />
+            </>
+          )}
+        </StyledPopoverContent>
+      </P.Portal>
+    </P.Root>
+  );
+};
+
 type SummaryValueRowProps = {
   propertyStats: PropertyStats;
   config: BatchEditPropertyConfig;
@@ -62,6 +144,8 @@ type SummaryValueRowProps = {
     value: number | string | boolean | null | undefined,
   ) => void;
   readonly?: boolean;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
@@ -71,11 +155,39 @@ type SummaryValueRowProps = {
   ) => void;
 };
 
+const StatsButton = ({
+  label,
+  property,
+  isMixed,
+  onRequestDetails,
+  onSelectAssets,
+}: {
+  label: string;
+  property: string;
+  isMixed: boolean;
+  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+}) => {
+  if (!isMixed || !onRequestDetails) {
+    return <div className="shrink-0 w-7" />;
+  }
+  return (
+    <LazyStatsPopoverButton
+      label={label}
+      property={property}
+      loadDetails={() => onRequestDetails(property)}
+      onSelectAssets={onSelectAssets}
+    />
+  );
+};
+
 export function SummaryValueRow({
   propertyStats,
   config,
   onPropertyChange,
   readonly = false,
+  onSelectAssets,
+  onRequestDetails,
   curves,
   patterns,
   labelManager,
@@ -142,7 +254,13 @@ export function SummaryValueRow({
       }
     >
       <div className="flex items-center gap-1">
-        <div className="shrink-0 w-7" />
+        <StatsButton
+          label={label}
+          property={propertyStats.property}
+          isMixed={isMixed}
+          onRequestDetails={onRequestDetails}
+          onSelectAssets={onSelectAssets}
+        />
         <div className="flex-1 min-w-0">
           {paywall ? (
             <PaywallOverlay feature={paywall} ariaLabel={label}>
@@ -159,8 +277,12 @@ export function SummaryValueRow({
 
 export function ReadOnlySummaryValueRow({
   propertyStats,
+  onSelectAssets,
+  onRequestDetails,
 }: {
   propertyStats: PropertyStats;
+  onSelectAssets?: (assetIds: AssetId[], property: string) => void;
+  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
 }) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
@@ -173,13 +295,23 @@ export function ReadOnlySummaryValueRow({
   const { emptyBucket, isMixed, singleValue, hasOnlyEmpty, decimals } =
     useSummaryPrimitives(propertyStats);
 
+  const statsButton = (
+    <StatsButton
+      label={label}
+      property={propertyStats.property}
+      isMixed={isMixed}
+      onRequestDetails={onRequestDetails}
+      onSelectAssets={onSelectAssets}
+    />
+  );
+
   if (propertyStats.type === "boolean") {
     const isChecked = !isMixed && singleValue === "yes";
 
     return (
       <InlineField name={label} labelSize="md">
         <div className="flex items-center gap-1">
-          <div className="shrink-0 w-7" />
+          {statsButton}
           <div className="p-2 flex items-center h-[38px]">
             <TriStateCheckbox
               checked={isChecked}
@@ -203,7 +335,7 @@ export function ReadOnlySummaryValueRow({
   return (
     <InlineField name={label} labelSize="md">
       <div className="flex items-center gap-1">
-        <div className="shrink-0 w-7" />
+        {statsButton}
         <div className="flex-1 min-w-0">
           {isMixed ? (
             <TextField padding="md" className="italic text-subtle">
