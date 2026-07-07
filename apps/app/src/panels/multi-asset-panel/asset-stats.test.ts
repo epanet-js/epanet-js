@@ -203,4 +203,25 @@ describe("computeAssetsStats (light summary)", () => {
     ) as QuantityStats;
     expect(pressure.distinctCount).toBe(2);
   });
+
+  it("counts pipes with null length in the empty bucket", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2, length: 1000 })
+      .aPipe(IDS.P2, { startNodeId: IDS.J1, endNodeId: IDS.J2, length: 500 })
+      .aPipe(IDS.P3, { startNodeId: IDS.J1, endNodeId: IDS.J2, length: null })
+      .build();
+
+    const result = compute(hydraulicModel);
+    const length = find(
+      result.data.pipe.modelAttributes,
+      "length",
+    ) as QuantityStats;
+
+    expect(length.distinctCount).toBe(2);
+    expect(length.emptyBucket?.label).toBe("none");
+    expect(length.emptyBucket?.count).toBe(1);
+  });
 });
