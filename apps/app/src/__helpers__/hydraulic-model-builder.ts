@@ -65,7 +65,7 @@ type WithNullable<T, K extends keyof T> = Omit<T, K> & {
 };
 
 const NULLABLE_BUILD_FIELDS = {
-  pipe: ["roughness"],
+  pipe: ["roughness", "length"],
   valve: ["diameter", "setting"],
   reservoir: ["head"],
   tank: ["initialLevel", "diameter", "minLevel", "maxLevel"],
@@ -309,7 +309,7 @@ export class HydraulicModelBuilder {
   aPipe(
     id: number,
     data: Partial<
-      WithNullable<PipeBuildData, "roughness"> & {
+      WithNullable<PipeBuildData, "roughness" | "length"> & {
         startNodeId: number;
         endNodeId: number;
       }

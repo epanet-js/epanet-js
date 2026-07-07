@@ -302,8 +302,8 @@ describe("splitPipe", () => {
 
     const [pipe1, pipe2] = putAssets!;
 
-    const length1 = (pipe1 as Pipe).length;
-    const length2 = (pipe2 as Pipe).length;
+    const length1 = (pipe1 as Pipe).length!;
+    const length2 = (pipe2 as Pipe).length!;
 
     expect(length1).toBeGreaterThan(0);
     expect(length2).toBeGreaterThan(0);
@@ -434,7 +434,7 @@ describe("splitPipe", () => {
       [0.00009, 0],
     ]);
 
-    const totalLength = pipe1.length + pipe2.length + pipe3.length;
+    const totalLength = pipe1.length! + pipe2.length! + pipe3.length!;
     expect(totalLength).toBeCloseTo(10, 0);
     expect(pipe1.length).toBeCloseTo(3, 0);
     expect(pipe2.length).toBeCloseTo(4, 0);

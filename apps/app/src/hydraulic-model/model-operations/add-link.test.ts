@@ -221,7 +221,7 @@ describe("addLink", () => {
       ]);
     });
 
-    it("calculates pump length", () => {
+    it("keeps pump length null (zero-length links)", () => {
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({
         labelManager,
@@ -253,7 +253,8 @@ describe("addLink", () => {
 
       const pumpToCreate = putAssets![0] as Pump;
       expect(pumpToCreate.id).toEqual(link.id);
-      expect(pumpToCreate.length).toBeCloseTo(195.04);
+      // Pumps are zero-length links in EPANET: no geometric length is derived.
+      expect(pumpToCreate.length).toBeNull();
     });
 
     it("adds a label to the pump", () => {

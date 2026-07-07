@@ -869,6 +869,7 @@ const PipeEditor = ({
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          commitInvalidValues={allowsNullValues}
         />
         <PipeMaterialRow
           pipe={pipe}

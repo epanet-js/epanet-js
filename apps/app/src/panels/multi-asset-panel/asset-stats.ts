@@ -428,8 +428,11 @@ const appendPipeStats = (
     units,
     formatting,
     id,
+    { emptyLabel: "none" },
   );
-  updateQuantityStats(statsMap, "length", pipe.length, units, formatting, id);
+  updateQuantityStats(statsMap, "length", pipe.length, units, formatting, id, {
+    emptyLabel: "none",
+  });
   updateCategoryStats(statsMap, "material", pipe.material, id, "none");
   updateQuantityStats(statsMap, "year", pipe.year, units, formatting, id, {
     unit: null,
@@ -1171,6 +1174,7 @@ const appendTankStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
     updateQuantityStats(
       statsMap,
@@ -1179,6 +1183,7 @@ const appendTankStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
     updateQuantityStats(
       statsMap,
@@ -1204,6 +1209,7 @@ const appendTankStats = (
       units,
       formatting,
       id,
+      { emptyLabel: "none" },
     );
     updateLinkStats(statsMap, "volumeCurve", null, id, "none");
   } else {

@@ -31,20 +31,7 @@ import {
   useLoadingStatus,
   VirtualizedIssuesList,
 } from "./common";
-
-// Rule ids map to a camelCase translation key under the rule namespace, e.g.
-// "pipe.diameter.present" -> "...rule.pipeDiameterPresent". Every rule in
-// lib/model-attributes-validation/rules.ts must have a matching entry.
-const toRuleLabelToken = (ruleId: string) =>
-  ruleId
-    .split(".")
-    .map((part, index) =>
-      index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1),
-    )
-    .join("");
-
-const ruleLabelKey = (ruleId: string) =>
-  `networkReview.modelAttributesValidation.rule.${toRuleLabelToken(ruleId)}`;
+import { ruleLabelKey } from "./rule-labels";
 
 const countIssues = (groups: ValidationGroup[]): number =>
   groups.reduce((total, group) => total + group.issues.length, 0);

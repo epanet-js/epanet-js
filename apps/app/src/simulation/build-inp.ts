@@ -1062,7 +1062,7 @@ const appendPipe = (
     linkId,
     startId,
     endId,
-    pipe.length,
+    requiredValue(pipe.length),
     pipe.diameter,
     requiredValue(pipe.roughness),
   ];

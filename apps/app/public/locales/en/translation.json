@@ -1289,6 +1289,10 @@
         "description": "Review the detailed list of assets with issues and access automated fixes"
       },
       "rule": {
+        "pipeDiameterPresent": "Pipe diameter missing",
+        "pipeDiameterPositive": "Pipe diameter must be positive",
+        "pipeLengthPresent": "Pipe length missing",
+        "pipeLengthPositive": "Pipe length must be positive",
         "pipeRoughnessPresent": "Pipe roughness missing",
         "pipeRoughnessPositive": "Pipe roughness must be positive",
         "pipeYearValid": "Pipe installation year invalid",
@@ -1309,6 +1313,8 @@
         "pipeMinorLossNonNegative": "Pipe minor loss must be zero or greater",
         "valveMinorLossNonNegative": "Valve minor loss must be zero or greater",
         "tankMinVolumeNonNegative": "Tank minimum volume must be zero or greater",
+        "pumpPowerPresent": "Pump power missing",
+        "pumpPowerPositive": "Pump power must be positive",
         "pumpSpeedNonNegative": "Pump speed must be zero or greater",
         "junctionEmitterCoefficientNonNegative": "Junction emitter coefficient should be zero or greater",
         "nodeInitialQualityNonNegative": "Initial quality should be zero or greater",

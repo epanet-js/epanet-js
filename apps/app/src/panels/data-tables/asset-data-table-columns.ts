@@ -144,6 +144,7 @@ const NULLABLE_KEYS = new Set([
   "initialLevel",
   "setting",
   "diameter",
+  "length",
 ]);
 
 const FLAG_OPTIONAL_KEYS = new Set([

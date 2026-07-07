@@ -21,7 +21,7 @@ export const DEFAULT_MINOR_LOSS = 0;
 export type LinkProperties = {
   type: LinkType;
   connections: LinkConnections;
-  length: number;
+  length: number | null;
 } & AssetProperties;
 
 export class Link<T> extends BaseAsset<T & LinkProperties> {
@@ -116,7 +116,9 @@ export class Link<T> extends BaseAsset<T & LinkProperties> {
 export const computeLinkLength = (
   link: Link<unknown>,
   lengthUnit: Unit,
-): number => {
+): number | null => {
+  if (link.type !== "pipe") return null;
+
   const lengthInMeters =
     measureLength(link.feature, { units: "kilometers" }) * 1000;
   return parseFloat(

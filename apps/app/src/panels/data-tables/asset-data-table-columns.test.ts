@@ -106,8 +106,12 @@ describe("isNullableColumn", () => {
     expect(isNullableColumn("initialLevel", true)).toBe(true);
   });
 
+  it("treats pipe length as nullable only when null values are allowed", () => {
+    expect(isNullableColumn("length", false)).toBe(false);
+    expect(isNullableColumn("length", true)).toBe(true);
+  });
+
   it("leaves deferred and optional-bound columns non-nullable", () => {
-    expect(isNullableColumn("length", true)).toBe(false);
     expect(isNullableColumn("elevation", true)).toBe(false);
     expect(isNullableColumn("minLevel", true)).toBe(false);
     // EPANET-optional attributes are excluded from the nullable batch.
@@ -134,8 +138,9 @@ describe("isEmptiableColumn", () => {
     expect(isEmptiableColumn("diameter", true)).toBe(true);
   });
 
-  it("keeps deferred required columns non-emptiable", () => {
-    expect(isEmptiableColumn("length", true)).toBe(false);
+  it("lets pipe length render empty only when null values are allowed", () => {
+    expect(isEmptiableColumn("length", false)).toBe(false);
+    expect(isEmptiableColumn("length", true)).toBe(true);
   });
 });
 

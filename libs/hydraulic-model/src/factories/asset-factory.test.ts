@@ -40,6 +40,15 @@ describe("AssetFactoryWithNullValues createPipe roughness", () => {
   });
 });
 
+describe("pump and valve length", () => {
+  it("is always null (pumps and valves are zero-length links)", () => {
+    expect(assetFactory().createPump({}).length).toBeNull();
+    expect(assetFactory().createValve({}).length).toBeNull();
+    expect(assetFactoryWithNullValues().createPump({}).length).toBeNull();
+    expect(assetFactoryWithNullValues().createValve({}).length).toBeNull();
+  });
+});
+
 describe("AssetFactoryWithNullValues tank dimensions", () => {
   it("leaves tank dimensions empty when unmapped", () => {
     const tank = assetFactoryWithNullValues().createTank({});

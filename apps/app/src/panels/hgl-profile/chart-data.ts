@@ -347,7 +347,8 @@ function computeProfilePoints(
       if (linkId !== undefined) {
         const link = assets.get(linkId);
         if (link && link.isLink) {
-          cumulativeLength += (link as unknown as { length: number }).length;
+          cumulativeLength +=
+            (link as unknown as { length: number | null }).length ?? 0;
         }
       }
     }
@@ -370,7 +371,8 @@ function computeProfileLinks(
       const link = assets.get(linkId);
       if (!link || !link.isLink) continue;
 
-      const linkLength = (link as unknown as { length: number }).length;
+      const linkLength =
+        (link as unknown as { length: number | null }).length ?? 0;
       const startLength = cumulativeLength;
       const endLength = cumulativeLength + linkLength;
       const midLength = startLength + linkLength / 2;
