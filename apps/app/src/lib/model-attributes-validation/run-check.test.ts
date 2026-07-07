@@ -266,6 +266,24 @@ describe("validateModelAttributes", () => {
       ).toContain("pump.curve.present");
     });
 
+    it("flags a curve-based pump with an invalid curve", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "designPointCurve",
+          curve: [{ x: 0, y: 100 }],
+        })
+        .build();
+      const ruleIds = (await validateModelAttributes(model)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).toContain("pump.curve.valid");
+      expect(ruleIds).not.toContain("pump.curve.present");
+    });
+
     it("flags a named-curve pump that has no curveId", async () => {
       const missing = HydraulicModelBuilder.with()
         .aJunction(2)
@@ -283,6 +301,13 @@ describe("validateModelAttributes", () => {
       const withCurveId = HydraulicModelBuilder.with()
         .aJunction(4)
         .aJunction(5)
+        .aPumpCurve({
+          id: 9,
+          points: [
+            { x: 0, y: 200 },
+            { x: 1, y: 100 },
+          ],
+        })
         .aPump(1, {
           startNodeId: 4,
           endNodeId: 5,
@@ -290,9 +315,54 @@ describe("validateModelAttributes", () => {
           curveId: 9,
         })
         .build();
-      expect(
-        (await validateModelAttributes(withCurveId)).map((i) => i.ruleId),
-      ).not.toContain("pump.curveId.present");
+      const withCurveIdRuleIds = (
+        await validateModelAttributes(withCurveId)
+      ).map((i) => i.ruleId);
+      expect(withCurveIdRuleIds).not.toContain("pump.curveId.present");
+      expect(withCurveIdRuleIds).not.toContain("pump.curveId.valid");
+    });
+
+    it("flags a named-curve pump whose curveId does not resolve to a curve", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "curveId",
+          curveId: 9,
+        })
+        .build();
+      const ruleIds = (await validateModelAttributes(model)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).toContain("pump.curveId.valid");
+      expect(ruleIds).not.toContain("pump.curveId.present");
+    });
+
+    it("flags a named-curve pump whose resolved curve is not monotonic", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPumpCurve({
+          id: 9,
+          points: [
+            { x: 0, y: 100 },
+            { x: 1, y: 200 },
+          ],
+        })
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "curveId",
+          curveId: 9,
+        })
+        .build();
+      const ruleIds = (await validateModelAttributes(model)).map(
+        (i) => i.ruleId,
+      );
+      expect(ruleIds).toContain("pump.curveId.valid");
+      expect(ruleIds).not.toContain("pump.curveId.present");
     });
 
     it("flags tank max/min levels only when no volume curve is set", async () => {

@@ -1,4 +1,4 @@
-import { CustomerPoint } from "@epanet-js/hydraulic-model";
+import { CurvePoint, getPumpCurveErrors } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import {
@@ -176,7 +176,7 @@ export const RULES: Rule[] = [
   ),
   {
     id: "pump.curve.present",
-    type: "entity",
+    type: "field",
     entityType: "pump",
     field: "curve",
     accessor: field("curve"),
@@ -186,16 +186,47 @@ export const RULES: Rule[] = [
     message: "required",
   },
   {
+    id: "pump.curve.valid",
+    type: "field",
+    entityType: "pump",
+    field: "curve",
+    accessor: field("curve"),
+    appliesWhen: pumpCurveBased,
+    check: (value) =>
+      !Array.isArray(value) ||
+      value.length === 0 ||
+      getPumpCurveErrors(value as CurvePoint[]).length === 0,
+    severity: "error",
+    message: "invalidCurve",
+  },
+  {
     id: "pump.curveId.present",
-    type: "entity",
+    type: "field",
     entityType: "pump",
     field: "curveId",
-    accessor: (entity) => readEntityProp(entity, "curveId"),
+    accessor: field("curveId"),
     appliesWhen: (entity) =>
       readEntityProp(entity, "definitionType") === "curveId",
     check: isFiniteNumber,
     severity: "error",
     message: "required",
+  },
+  {
+    id: "pump.curveId.valid",
+    type: "model",
+    entityType: "pump",
+    field: "curveId",
+    accessor: field("curveId"),
+    appliesWhen: (entity) =>
+      readEntityProp(entity, "definitionType") === "curveId",
+    check: (value, _entity, model) => {
+      if (!model || !isFiniteNumber(value)) return true;
+      const points = model.curves.get(value)?.points;
+      if (points === undefined) return false;
+      return points.length === 0 || getPumpCurveErrors(points).length === 0;
+    },
+    severity: "error",
+    message: "invalidCurve",
   },
   optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
   optionalNumeric("valve", "minorLoss", "nonNegative", "error"),
@@ -238,8 +269,8 @@ export const RULES: Rule[] = [
     id: "customerPoint.connected",
     type: "field",
     entityType: "customerPoint",
-    accessor: (entity) => entity,
-    check: (value) => (value as CustomerPoint).connection !== null,
+    accessor: field("connection"),
+    check: (value) => value !== null,
     severity: "warning",
     message: "disconnected",
   },

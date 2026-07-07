@@ -45,7 +45,7 @@ export const firstFailure = (
   for (const rule of rules) {
     const applies = rule.appliesWhen ? rule.appliesWhen(entity, model) : true;
     if (!applies) continue;
-    if (!rule.check(rule.accessor(entity, model), entity)) return rule;
+    if (!rule.check(rule.accessor(entity, model), entity, model)) return rule;
   }
   return null;
 };
@@ -54,12 +54,14 @@ export const fieldValidator = (
   entityType: EntityType,
   field: string,
   entity?: ValidatableEntity,
-): ((value: number) => boolean) | undefined => {
+  model?: HydraulicModel,
+): ((value: unknown) => boolean) | undefined => {
   const rules = rulesFor(entityType, field);
   if (rules.length === 0) return undefined;
-  return (value: number) =>
+  return (value: unknown) =>
     rules.every((rule) => {
-      if (entity && rule.appliesWhen && !rule.appliesWhen(entity)) return true;
-      return rule.check(value, entity);
+      if (entity && rule.appliesWhen && !rule.appliesWhen(entity, model))
+        return true;
+      return rule.check(value, entity, model);
     });
 };

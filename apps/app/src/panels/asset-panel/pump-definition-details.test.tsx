@@ -206,6 +206,57 @@ describe("PumpCurveTable", () => {
 
       expect(onCurveChange).toHaveBeenCalledWith([{ flow: 50, head: 100 }]);
     });
+
+    it("does not commit an invalid single-point curve by default", async () => {
+      const user = userEvent.setup();
+      const onCurveChange = vi.fn();
+
+      render(
+        <PumpCurveTable
+          curveType="designPointCurve"
+          units={units}
+          onCurveChange={onCurveChange}
+        />,
+      );
+
+      const flowInput = getFlowInput("Design");
+      await user.click(flowInput);
+      await user.type(flowInput, "50");
+      await user.keyboard("{Enter}");
+
+      const headInput = getHeadInput("Design");
+      await user.click(headInput);
+      await user.type(headInput, "0");
+      await user.keyboard("{Enter}");
+
+      expect(onCurveChange).not.toHaveBeenCalled();
+    });
+
+    it("commits an invalid single-point curve when null values are allowed", async () => {
+      const user = userEvent.setup();
+      const onCurveChange = vi.fn();
+
+      render(
+        <PumpCurveTable
+          curveType="designPointCurve"
+          units={units}
+          onCurveChange={onCurveChange}
+          commitInvalidValues
+        />,
+      );
+
+      const flowInput = getFlowInput("Design");
+      await user.click(flowInput);
+      await user.type(flowInput, "50");
+      await user.keyboard("{Enter}");
+
+      const headInput = getHeadInput("Design");
+      await user.click(headInput);
+      await user.type(headInput, "0");
+      await user.keyboard("{Enter}");
+
+      expect(onCurveChange).toHaveBeenCalledWith([{ flow: 50, head: 0 }]);
+    });
   });
 
   describe("standard mode", () => {

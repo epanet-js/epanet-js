@@ -159,11 +159,14 @@ const PumpDefinitionDetailsInner = ({
           (oldValue === "designPointCurve" || oldValue === "standardCurve")
         ) {
           const currentPoints = initialPointsFromCurve(curve, oldValue);
-          const validPoints = extractValidPoints(currentPoints, newValue);
+          const curvePoints = extractPointsForCurveType(
+            currentPoints,
+            newValue,
+          );
           onChange([
             { property: "definitionType", value: newValue },
-            ...(validPoints
-              ? [{ property: "curve", value: validPoints } as PropertyChange]
+            ...(curvePoints
+              ? [{ property: "curve", value: curvePoints } as PropertyChange]
               : []),
           ]);
           return;
@@ -194,7 +197,7 @@ const PumpDefinitionDetailsInner = ({
               return ct === "multiPointCurve" ? "designPointCurve" : ct;
             })();
       const currentPoints = initialPointsFromCurve(curve, curveType);
-      const validPoints = extractValidPoints(currentPoints, newValue);
+      const validPoints = extractPointsForCurveType(currentPoints, newValue);
 
       if (!validPoints || getPumpCurveErrors(validPoints).length > 0) {
         return;
@@ -266,6 +269,7 @@ const PumpDefinitionDetailsInner = ({
               curveType={localDefinitionType}
               units={units}
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
+              commitInvalidValues={allowsNullValues}
             />
           )}
       </NestedSection>
@@ -280,11 +284,13 @@ export const PumpCurveTable = ({
   curveType,
   units,
   onCurveChange,
+  commitInvalidValues = false,
 }: {
   curve?: CurvePoint[];
   curveType: CurvePointsType;
   units: UnitsSpec;
   onCurveChange?: OnCurveChange;
+  commitInvalidValues?: boolean;
 }) => {
   const translate = useTranslate();
   const { formatting } = useAtomValue(projectSettingsAtom);
@@ -299,7 +305,7 @@ export const PumpCurveTable = ({
   const displayPoints = calculateCurvePoints(editingPoints, curveType);
 
   const validatedPoints = useMemo(
-    () => extractValidPoints(displayPoints, curveType),
+    () => extractPointsForCurveType(displayPoints, curveType),
     [displayPoints, curveType],
   );
 
@@ -333,18 +339,20 @@ export const PumpCurveTable = ({
           newPoints = calculateCurvePoints([{}, designPoint, {}], curveType);
         }
 
-        const validPoints = extractValidPoints(newPoints, curveType);
-        if (validPoints && onCurveChange) {
-          const errors = getPumpCurveErrors(validPoints);
-          if (errors.length === 0) {
-            onCurveChange(validPoints.map((p) => ({ flow: p.x, head: p.y })));
+        const curvePoints = extractPointsForCurveType(newPoints, curveType);
+        if (curvePoints && onCurveChange) {
+          if (
+            commitInvalidValues ||
+            getPumpCurveErrors(curvePoints).length === 0
+          ) {
+            onCurveChange(curvePoints.map((p) => ({ flow: p.x, head: p.y })));
           }
         }
 
         return newPoints;
       });
     },
-    [curveType, onCurveChange, setEditingPoints],
+    [curveType, onCurveChange, setEditingPoints, commitInvalidValues],
   );
 
   const isEditable = (index: number, field: "flow" | "head"): boolean => {
@@ -668,7 +676,7 @@ const calculateCurvePoints = (
   return editingPoints;
 };
 
-const extractValidPoints = (
+const extractPointsForCurveType = (
   displayPoints: MaybePumpCurvePoint[],
   curveType: CurvePointsType,
 ): CurvePoint[] | null => {
