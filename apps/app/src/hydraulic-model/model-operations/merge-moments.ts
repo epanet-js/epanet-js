@@ -19,6 +19,9 @@ export const mergeMoments = (
   const patchAssetsAttributes: NonNullable<
     ModelMoment["patchAssetsAttributes"]
   > = [];
+  const patchCustomerPointsAttributes: NonNullable<
+    ModelMoment["patchCustomerPointsAttributes"]
+  > = [];
   const putCustomerPoints: NonNullable<ModelMoment["putCustomerPoints"]> = [];
   const deleteCustomerPoints: NonNullable<ModelMoment["deleteCustomerPoints"]> =
     [];
@@ -27,6 +30,7 @@ export const mergeMoments = (
     append(deleteAssets, m.deleteAssets);
     append(putAssets, m.putAssets);
     append(patchAssetsAttributes, m.patchAssetsAttributes);
+    append(patchCustomerPointsAttributes, m.patchCustomerPointsAttributes);
     append(putCustomerPoints, m.putCustomerPoints);
     append(deleteCustomerPoints, m.deleteCustomerPoints);
     if (m.putDemands) merged.putDemands = m.putDemands;
@@ -40,6 +44,9 @@ export const mergeMoments = (
   if (putAssets.length) merged.putAssets = putAssets;
   if (patchAssetsAttributes.length) {
     merged.patchAssetsAttributes = patchAssetsAttributes;
+  }
+  if (patchCustomerPointsAttributes.length) {
+    merged.patchCustomerPointsAttributes = patchCustomerPointsAttributes;
   }
   if (putCustomerPoints.length) merged.putCustomerPoints = putCustomerPoints;
   if (deleteCustomerPoints.length) {

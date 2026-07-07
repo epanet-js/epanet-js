@@ -43,6 +43,19 @@ describe("mergeMoments", () => {
     ]);
   });
 
+  it("concatenates patchCustomerPointsAttributes from many moments in order", () => {
+    const moments = Array.from({ length: 5 }, (_, i) => ({
+      note: `patch ${i}`,
+      patchCustomerPointsAttributes: [{ id: i, properties: {} }],
+    }));
+
+    const merged = mergeMoments(moments, "Bulk CP patch");
+
+    expect(merged?.patchCustomerPointsAttributes?.map((p) => p.id)).toEqual([
+      0, 1, 2, 3, 4,
+    ]);
+  });
+
   it("forwards putControls from a merged asset delete", () => {
     const IDS = {
       N1: 1,
