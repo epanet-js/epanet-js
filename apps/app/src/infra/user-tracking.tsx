@@ -1166,6 +1166,7 @@ type CustomAttributesUpdated = {
   name: "customAttributes.updated";
   count: number;
   newLabels: string[];
+  newAttributeTypes: CustomAttributeType[];
 };
 
 type AssetDataExported = {

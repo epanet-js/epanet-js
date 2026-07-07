@@ -55,11 +55,11 @@ const serialize = (definition: CustomAttributesDefinition): string =>
 const hasEmptyLabel = (attributes: CustomAttribute[]): boolean =>
   attributes.some((attribute) => !attribute.label.trim());
 
-const collectNewLabels = (
+const collectNewAttributes = (
   saved: CustomAttributesDefinition,
   edited: CustomAttributesDefinition,
-): string[] => {
-  const labels: string[] = [];
+): CustomAttribute[] => {
+  const attributes: CustomAttribute[] = [];
   for (const assetType of ASSET_TYPE_ORDER) {
     const savedLabelsById = new Map(
       getAttributes(saved, assetType).map((attribute) => [
@@ -70,11 +70,11 @@ const collectNewLabels = (
     for (const attribute of getAttributes(edited, assetType)) {
       const previousLabel = savedLabelsById.get(attribute.id);
       if (previousLabel === undefined || previousLabel !== attribute.label) {
-        labels.push(attribute.label);
+        attributes.push(attribute);
       }
     }
   }
-  return labels;
+  return attributes;
 };
 
 export const CustomAttributesDialog = ({
@@ -167,10 +167,12 @@ export const CustomAttributesDialog = ({
     );
     if (!applied) return;
 
+    const newAttributes = collectNewAttributes(savedDefinition, edited);
     userTracking.capture({
       name: "customAttributes.updated",
       count: totalAttributesCount(edited),
-      newLabels: collectNewLabels(savedDefinition, edited),
+      newLabels: newAttributes.map((attribute) => attribute.label),
+      newAttributeTypes: newAttributes.map((attribute) => attribute.type),
     });
   }, [hydraulicModel, savedDefinition, edited, transact, userTracking]);
 
