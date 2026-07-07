@@ -110,7 +110,7 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { getAttributes, isCustomProperty } from "@epanet-js/custom-attributes";
+import { getAttribute, isCustomProperty } from "@epanet-js/custom-attributes";
 import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";
@@ -164,10 +164,11 @@ export function AssetPanel({
       });
       transact(moment);
       if (isCustomProperty(property)) {
-        const attribute = getAttributes(
+        const attribute = getAttribute(
           hydraulicModel.customAttributes,
           asset.type,
-        ).find((attribute) => attribute.id === property);
+          property,
+        );
         userTracking.capture({
           name: "customAttribute.edited",
           assetType: asset.type,

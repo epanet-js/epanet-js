@@ -38,6 +38,12 @@ export const getAttributes = (
   return byId ? [...byId.values()] : [];
 };
 
+export const getAttribute = (
+  definition: CustomAttributesDefinition,
+  assetType: CustomAttributeAssetType,
+  id: CustomAttributeId,
+): CustomAttribute | undefined => definition.get(assetType)?.get(id);
+
 export const countFor = (
   definition: CustomAttributesDefinition,
   assetType: CustomAttributeAssetType,

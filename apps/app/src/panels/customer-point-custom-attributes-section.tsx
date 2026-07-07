@@ -4,6 +4,7 @@ import {
   type CustomAttribute,
   type CustomAttributeId,
   type CustomAttributeValue,
+  getAttribute,
   getAttributes,
 } from "@epanet-js/custom-attributes";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
@@ -44,10 +45,11 @@ export const CustomerPointCustomAttributesSection = ({
           value,
         }),
       );
-      const attribute = getAttributes(
+      const attribute = getAttribute(
         hydraulicModel.customAttributes,
         "customerPoint",
-      ).find((attribute) => attribute.id === attributeId);
+        attributeId,
+      );
       userTracking.capture({
         name: "customAttribute.edited",
         assetType: "customerPoint",

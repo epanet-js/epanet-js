@@ -35,7 +35,11 @@ import {
   type ChemicalSourceType,
   type CurveId,
 } from "@epanet-js/hydraulic-model";
-import { getAttributes, isCustomProperty } from "@epanet-js/custom-attributes";
+import {
+  getAttribute,
+  getAttributes,
+  isCustomProperty,
+} from "@epanet-js/custom-attributes";
 import {
   DataGrid,
   type DataGridRef,
@@ -409,8 +413,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
         transact(merged);
         for (const [property, count] of editedProperties) {
           if (isCustomProperty(property)) {
-            const attribute = customAttributes.find(
-              (attribute) => attribute.id === property,
+            const attribute = getAttribute(
+              hydraulicModel.customAttributes,
+              assetType,
+              property,
             );
             userTracking.capture({
               name: "customAttribute.batchEdited",

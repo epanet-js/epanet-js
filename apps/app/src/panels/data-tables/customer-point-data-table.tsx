@@ -9,7 +9,7 @@ import {
   changeDemandAssignment,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
-import { getAttributes } from "@epanet-js/custom-attributes";
+import { getAttribute, getAttributes } from "@epanet-js/custom-attributes";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
@@ -252,8 +252,10 @@ export const CustomerPointDataTable = memo(
           });
         }
         for (const [property, count] of customEditCounts) {
-          const attribute = customAttributes.find(
-            (attribute) => attribute.id === property,
+          const attribute = getAttribute(
+            hydraulicModel.customAttributes,
+            "customerPoint",
+            property,
           );
           userTracking.capture({
             name: "customAttribute.batchEdited",

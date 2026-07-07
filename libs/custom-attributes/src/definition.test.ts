@@ -4,6 +4,7 @@ import {
   CustomAttributesDefinition,
   duplicateLabelKeys,
   emptyCustomAttributesDefinition,
+  getAttribute,
   getAttributeIds,
   getAttributes,
   hasDuplicateLabel,
@@ -162,5 +163,33 @@ describe("getAttributeIds", () => {
     expect(getAttributeIds(emptyCustomAttributesDefinition())).toEqual(
       new Set(),
     );
+  });
+});
+
+describe("getAttribute", () => {
+  it("returns the attribute matching the asset type and id", () => {
+    const definition = withAttributes({
+      pipe: [attr("custom-1", "Diameter"), attr("custom-2", "Material")],
+      junction: [attr("custom-1", "Elevation")],
+    });
+
+    expect(getAttribute(definition, "pipe", "custom-2")).toEqual(
+      attr("custom-2", "Material"),
+    );
+  });
+
+  it("returns undefined when the id belongs to another asset type", () => {
+    const definition = withAttributes({
+      pipe: [attr("custom-1", "Diameter")],
+      junction: [attr("custom-2", "Elevation")],
+    });
+
+    expect(getAttribute(definition, "pipe", "custom-2")).toBeUndefined();
+  });
+
+  it("returns undefined for an unknown asset type", () => {
+    const definition = withAttributes({ pipe: [attr("custom-1", "Diameter")] });
+
+    expect(getAttribute(definition, "junction", "custom-1")).toBeUndefined();
   });
 });

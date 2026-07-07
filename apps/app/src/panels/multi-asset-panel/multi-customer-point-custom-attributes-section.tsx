@@ -4,6 +4,7 @@ import {
   type CustomAttribute,
   type CustomAttributeId,
   type CustomAttributeValue,
+  getAttribute,
   getAttributes,
 } from "@epanet-js/custom-attributes";
 import { useTranslate } from "src/hooks/use-translate";
@@ -56,10 +57,11 @@ export function MultiCustomerPointCustomAttributesSection({
           value,
         }),
       );
-      const attribute = getAttributes(
+      const attribute = getAttribute(
         hydraulicModel.customAttributes,
         "customerPoint",
-      ).find((attribute) => attribute.id === attributeId);
+        attributeId,
+      );
       userTracking.capture({
         name: "customAttribute.batchEdited",
         assetType: "customerPoint",
