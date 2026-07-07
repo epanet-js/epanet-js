@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   floatColumn,
   integerColumn,
@@ -6,6 +7,7 @@ import {
   type GridColumn,
   type ColumnKey,
 } from "src/components/data-grid";
+import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { LabelManager, type CustomerPoint } from "@epanet-js/hydraulic-model";
 import type { CustomAttribute } from "@epanet-js/custom-attributes";
 import { convertTo } from "@epanet-js/quantity";
@@ -26,6 +28,11 @@ import {
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
 
 export type PatternOption = { value: number; label: string };
+
+type AttributesLock = {
+  openPaywall: () => void;
+  icon: ReactNode;
+};
 
 function makeCk(accessorCtx?: CpAccessorCtx) {
   return (key: keyof CustomerPointRow): ColumnKey<CustomerPointRow, never> => {
@@ -50,6 +57,7 @@ export function buildCustomerPointColumns(
   validateLabel: (label: string, row: CustomerPointRow) => boolean,
   accessorCtx?: CpAccessorCtx,
   customAttributes: CustomAttribute[] = [],
+  customAttributesLock?: AttributesLock,
 ): GridColumn<CustomerPointRow>[] {
   const ck = makeCk(accessorCtx);
   const headerLabel = (
@@ -115,7 +123,12 @@ export function buildCustomerPointColumns(
       emptyOptionLabel: translate("constant"),
       emptyValue: null,
     }),
-    ...customAttributeColumns(customAttributes, formatting),
+    ...customAttributeColumns(
+      customAttributes,
+      formatting,
+      translate,
+      customAttributesLock,
+    ),
   ];
 
   return columns;
@@ -124,7 +137,18 @@ export function buildCustomerPointColumns(
 function customAttributeColumns(
   attributes: CustomAttribute[],
   formatting: FormattingSpec,
+  translate: TranslateFn,
+  lock?: AttributesLock,
 ): GridColumn<CustomerPointRow>[] {
+  const headerAction: CustomHeaderAction | undefined = lock
+    ? {
+        icon: lock.icon,
+        ariaLabel: translate("paywall.tooltip"),
+        tooltip: translate("paywall.tooltip"),
+        onClick: lock.openPaywall,
+        alwaysVisible: true,
+      }
+    : undefined;
   return attributes.map((attribute) => {
     const key = attribute.id;
     const columnKey: ColumnKey<CustomerPointRow, never> = {
@@ -134,15 +158,25 @@ function customAttributeColumns(
         row: CustomerPointRow,
       ) => never,
     };
-    return attribute.type === "number"
-      ? floatColumn(columnKey, {
-          header: attribute.label,
-          decimals: formatting.defaultDecimals,
-          emptyValue: null,
-        })
-      : textColumn(columnKey, {
-          header: attribute.label,
-          emptyValue: null,
-        });
+    const column =
+      attribute.type === "number"
+        ? floatColumn(columnKey, {
+            header: attribute.label,
+            decimals: formatting.defaultDecimals,
+            emptyValue: null,
+            isReadOnly: !!lock,
+          })
+        : textColumn(columnKey, {
+            header: attribute.label,
+            emptyValue: null,
+            isReadOnly: !!lock,
+          });
+    if (headerAction) {
+      column.meta = {
+        ...column.meta,
+        customHeaderActions: [headerAction],
+      };
+    }
+    return column;
   });
 }

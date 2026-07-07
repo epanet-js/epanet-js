@@ -14,9 +14,12 @@ import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
+import type { User } from "src/auth-types";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
+import { dialogAtom } from "src/state/dialog";
 import type { Store } from "src/state";
 
 import { AssetDataTable } from "./asset-data-table";
@@ -34,18 +37,20 @@ import { notify } from "src/components/notifications";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
-const renderTable = (store: Store) => {
+const renderTable = (store: Store, user: User = aUser({ plan: "pro" })) => {
   const persistence = new Persistence(store);
   return render(
-    <QueryClientProvider client={new QueryClient()}>
-      <JotaiProvider store={store}>
-        <PersistenceContext.Provider value={persistence}>
-          <TooltipProvider>
-            <AssetDataTable assetType="junction" />
-          </TooltipProvider>
-        </PersistenceContext.Provider>
-      </JotaiProvider>
-    </QueryClientProvider>,
+    <AuthMockProvider user={user} isSignedIn={true}>
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={persistence}>
+            <TooltipProvider>
+              <AssetDataTable assetType="junction" />
+            </TooltipProvider>
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>
+    </AuthMockProvider>,
   );
 };
 
@@ -193,6 +198,36 @@ describe("AssetDataTable", () => {
 
     expect(await screen.findByText("Zone")).toBeInTheDocument();
     expect(screen.getByText("Score")).toBeInTheDocument();
+  });
+
+  it("locks custom-attribute columns and opens the paywall for a free plan", async () => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    hydraulicModel.assets.get(1)?.setProperty("custom-1", "A");
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store, aUser({ plan: "free" }));
+
+    await screen.findByText("Zone");
+    // Read-only cells render the value as static text rather than an input.
+    expect(screen.queryByDisplayValue("A")).not.toBeInTheDocument();
+
+    const locks = screen.getAllByRole("button", { name: "Paid feature" });
+    expect(locks.length).toBeGreaterThan(0);
+
+    await user.click(locks[0]);
+    expect(store.get(dialogAtom)).toEqual({
+      type: "featurePaywall",
+      feature: "customAttributes",
+    });
   });
 
   it("hides custom-attribute columns when the flag is off", async () => {

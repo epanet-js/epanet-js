@@ -189,7 +189,7 @@ type PaywalledInlineFieldProps = Omit<
   paywall?: PaywallFeature;
 };
 
-const PaywalledInlineField = ({
+export const PaywalledInlineField = ({
   paywall,
   children,
   ...inlineFieldProps

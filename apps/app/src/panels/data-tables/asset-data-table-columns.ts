@@ -470,6 +470,7 @@ type BuildColumnsArgs = [
   accessorCtx?: AssetAccessorCtx,
   allowsNullValues?: boolean,
   customAttributes?: CustomAttribute[],
+  customAttributesLock?: AttributesLock,
 ];
 
 type ExtraPipeColsFn = (
@@ -478,14 +479,14 @@ type ExtraPipeColsFn = (
   allowsNullValues?: boolean,
 ) => GridColumn<AssetRow>[];
 
-type PipeAttributesLock = {
+type AttributesLock = {
   openPaywall: () => void;
   icon: ReactNode;
 };
 
 function pipeAttributeColsFor(
   materials: string[],
-  lock?: PipeAttributesLock,
+  lock?: AttributesLock,
 ): ExtraPipeColsFn {
   return (translate, _formatting, allowsNullValues): GridColumn<AssetRow>[] => {
     const cols: GridColumn<AssetRow>[] = [
@@ -533,7 +534,18 @@ function pipeAttributeColsFor(
 function customAttributeColumns(
   attributes: CustomAttribute[],
   formatting: FormattingSpec,
+  translate: TranslateFn,
+  lock?: AttributesLock,
 ): GridColumn<AssetRow>[] {
+  const headerAction: CustomHeaderAction | undefined = lock
+    ? {
+        icon: lock.icon,
+        ariaLabel: translate("paywall.tooltip"),
+        tooltip: translate("paywall.tooltip"),
+        onClick: lock.openPaywall,
+        alwaysVisible: true,
+      }
+    : undefined;
   return attributes.map((attribute) => {
     const key = attribute.id;
     const columnKey: ColumnKey<AssetRow, never> = {
@@ -543,16 +555,26 @@ function customAttributeColumns(
         row: AssetRow,
       ) => never,
     };
-    return attribute.type === "number"
-      ? floatColumn(columnKey, {
-          header: attribute.label,
-          decimals: formatting.defaultDecimals,
-          emptyValue: null,
-        })
-      : textColumn(columnKey, {
-          header: attribute.label,
-          emptyValue: null,
-        });
+    const column =
+      attribute.type === "number"
+        ? floatColumn(columnKey, {
+            header: attribute.label,
+            decimals: formatting.defaultDecimals,
+            emptyValue: null,
+            isReadOnly: !!lock,
+          })
+        : textColumn(columnKey, {
+            header: attribute.label,
+            emptyValue: null,
+            isReadOnly: !!lock,
+          });
+    if (headerAction) {
+      column.meta = {
+        ...column.meta,
+        customHeaderActions: [headerAction],
+      };
+    }
+    return column;
   });
 }
 
@@ -573,6 +595,7 @@ function _buildColumns(
   accessorCtx?: AssetAccessorCtx,
   allowsNullValues?: boolean,
   customAttributes: CustomAttribute[] = [],
+  customAttributesLock?: AttributesLock,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -732,7 +755,12 @@ function _buildColumns(
     : [];
 
   const trailingCols = [
-    ...customAttributeColumns(customAttributes, formatting),
+    ...customAttributeColumns(
+      customAttributes,
+      formatting,
+      translate,
+      customAttributesLock,
+    ),
     ...simCols,
   ];
 
@@ -1086,7 +1114,7 @@ function _buildColumns(
 
 export function buildColumns(
   materials: string[],
-  lock: PipeAttributesLock | undefined,
+  lock: AttributesLock | undefined,
   ...args: BuildColumnsArgs
 ): GridColumn<AssetRow>[] {
   return _buildColumns(pipeAttributeColsFor(materials, lock), ...args);

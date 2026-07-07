@@ -36,6 +36,8 @@ import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { customerPointsVisibleAtom } from "src/state/map-symbology";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
+import { useFeatureLock } from "src/components/form/paywall";
+import { PaywallLockIcon } from "src/icons";
 import { RingSpinner } from "src/components/ring-spinner";
 import {
   buildCustomerPointModelRows,
@@ -58,6 +60,10 @@ export const CustomerPointDataTable = memo(
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
     const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
+    const {
+      isLocked: customAttributesLocked,
+      openPaywall: openCustomAttributesPaywall,
+    } = useFeatureLock("customAttributes");
     const customerPointsVisible = useAtomValue(customerPointsVisibleAtom);
     const selectCustomerPointsInApp = useSelectCustomerPointsInApp();
     const zoomTo = useZoomTo();
@@ -96,33 +102,40 @@ export const CustomerPointDataTable = memo(
       [isCustomAttributesOn, hydraulicModel.customAttributes],
     );
 
-    const columns = useMemo(
-      () =>
-        buildCustomerPointColumns(
-          translate,
-          translateUnit,
-          units,
-          formatting,
-          patternOptions,
-          (label, row) => {
-            const cpId = row.id;
-            if (cpId === undefined) return true;
-            return labelManager.isLabelAvailable(label, "customerPoint", cpId);
-          },
-          accessorCtx,
-          customAttributes,
-        ),
-      [
+    const columns = useMemo(() => {
+      const customAttributesLock = customAttributesLocked
+        ? {
+            openPaywall: openCustomAttributesPaywall,
+            icon: <PaywallLockIcon />,
+          }
+        : undefined;
+      return buildCustomerPointColumns(
         translate,
         translateUnit,
         units,
         formatting,
         patternOptions,
-        labelManager,
+        (label, row) => {
+          const cpId = row.id;
+          if (cpId === undefined) return true;
+          return labelManager.isLabelAvailable(label, "customerPoint", cpId);
+        },
         accessorCtx,
         customAttributes,
-      ],
-    );
+        customAttributesLock,
+      );
+    }, [
+      translate,
+      translateUnit,
+      units,
+      formatting,
+      patternOptions,
+      labelManager,
+      accessorCtx,
+      customAttributes,
+      customAttributesLocked,
+      openCustomAttributesPaywall,
+    ]);
 
     const onChange = useCallback(
       async (newRows: CustomerPointRow[]) => {

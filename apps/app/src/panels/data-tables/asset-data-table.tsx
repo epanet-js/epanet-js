@@ -146,6 +146,10 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     isLocked: pipeAttributesLocked,
     openPaywall: openPipeAttributesPaywall,
   } = useFeatureLock("pipeAttributes");
+  const {
+    isLocked: customAttributesLocked,
+    openPaywall: openCustomAttributesPaywall,
+  } = useFeatureLock("customAttributes");
   const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const pipeMaterials = useMemo(
     () =>
@@ -178,6 +182,12 @@ export const AssetDataTable = memo(function AssetDataTableInner({
           icon: <PaywallLockIcon />,
         }
       : undefined;
+    const customAttributesLock = customAttributesLocked
+      ? {
+          openPaywall: openCustomAttributesPaywall,
+          icon: <PaywallLockIcon />,
+        }
+      : undefined;
     return buildColumns(
       pipeMaterials,
       lock,
@@ -196,11 +206,14 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       accessorCtx,
       allowsNullValues,
       customAttributes,
+      customAttributesLock,
     );
   }, [
     assetType,
     pipeAttributesLocked,
     openPipeAttributesPaywall,
+    customAttributesLocked,
+    openCustomAttributesPaywall,
     pipeMaterials,
     formatting,
     hasSimulation,

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,9 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
+import type { User } from "src/auth-types";
+import { dialogAtom } from "src/state/dialog";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { J1: 1 };
@@ -109,18 +113,20 @@ const setMainState = ({
   return store;
 };
 
-const renderComponent = (store: Store) => {
+const renderComponent = (store: Store, user: User = aUser({ plan: "pro" })) => {
   const persistence = new Persistence(store);
   return render(
-    <QueryClientProvider client={new QueryClient()}>
-      <JotaiProvider store={store}>
-        <PersistenceContext.Provider value={persistence}>
-          <TooltipProvider>
-            <FeatureEditor />
-          </TooltipProvider>
-        </PersistenceContext.Provider>
-      </JotaiProvider>
-    </QueryClientProvider>,
+    <AuthMockProvider user={user} isSignedIn={true}>
+      <QueryClientProvider client={new QueryClient()}>
+        <JotaiProvider store={store}>
+          <PersistenceContext.Provider value={persistence}>
+            <TooltipProvider>
+              <FeatureEditor />
+            </TooltipProvider>
+          </PersistenceContext.Provider>
+        </JotaiProvider>
+      </QueryClientProvider>
+    </AuthMockProvider>,
   );
 };
 
@@ -172,5 +178,48 @@ describe("CustomAttributesSection scenario highlighting", () => {
     renderComponent(store);
 
     expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
+  });
+});
+
+describe("CustomAttributesSection paywall", () => {
+  beforeEach(() => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+  });
+
+  it("shows a padlock and keeps the value read-only for a free plan", () => {
+    const store = setMainState({ hydraulicModel: buildModel(10) });
+
+    renderComponent(store, aUser({ plan: "free" }));
+
+    expect(
+      screen.getAllByRole("button", { name: "Paid feature: Age" }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/value for: Age/i)).toHaveValue("10");
+  });
+
+  it("opens the custom-attributes paywall when the padlock is clicked", async () => {
+    const user = userEvent.setup();
+    const store = setMainState({ hydraulicModel: buildModel(10) });
+
+    renderComponent(store, aUser({ plan: "free" }));
+
+    await user.click(
+      screen.getAllByRole("button", { name: "Paid feature: Age" })[0],
+    );
+
+    expect(store.get(dialogAtom)).toEqual({
+      type: "featurePaywall",
+      feature: "customAttributes",
+    });
+  });
+
+  it("does not show a padlock for a paid plan", () => {
+    const store = setMainState({ hydraulicModel: buildModel(10) });
+
+    renderComponent(store, aUser({ plan: "pro" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Paid feature: Age" }),
+    ).not.toBeInTheDocument();
   });
 });

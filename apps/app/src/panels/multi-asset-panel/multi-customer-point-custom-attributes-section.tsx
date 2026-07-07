@@ -15,6 +15,11 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import { Section, InlineField } from "src/components/form/fields";
 import { NumericField } from "src/components/form/numeric-field";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import {
+  PaywallLockButton,
+  PaywallOverlay,
+  useFeatureLock,
+} from "src/components/form/paywall";
 import { buildCustomAttributeStats } from "./custom-attributes-stats";
 import { getDistinctBucketCount, getEmptyBucket } from "./stats";
 import { StatsPopoverButton } from "./multi-value-row";
@@ -94,6 +99,8 @@ const MultiCustomAttributeRow = ({
   const translate = useTranslate();
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { customerPoints } = useAtomValue(stagingModelDerivedAtom);
+  const { isLocked } = useFeatureLock("customAttributes");
+  const paywall = isLocked ? "customAttributes" : undefined;
 
   const valuesById = customerPointIds.map(
     (id) =>
@@ -147,7 +154,15 @@ const MultiCustomAttributeRow = ({
     );
 
   return (
-    <InlineField name={attribute.label} labelSize="md">
+    <InlineField
+      name={attribute.label}
+      labelSize="md"
+      labelAction={
+        paywall ? (
+          <PaywallLockButton feature={paywall} label={attribute.label} />
+        ) : undefined
+      }
+    >
       <div className="flex items-center gap-1">
         {isMixed ? (
           <StatsPopoverButton
@@ -159,7 +174,15 @@ const MultiCustomAttributeRow = ({
         ) : (
           <div className="shrink-0 w-7" />
         )}
-        <div className="flex-1 min-w-0">{field}</div>
+        <div className="flex-1 min-w-0">
+          {paywall ? (
+            <PaywallOverlay feature={paywall} ariaLabel={attribute.label}>
+              {field}
+            </PaywallOverlay>
+          ) : (
+            field
+          )}
+        </div>
       </div>
     </InlineField>
   );
