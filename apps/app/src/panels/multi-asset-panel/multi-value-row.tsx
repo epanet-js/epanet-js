@@ -79,6 +79,18 @@ export function MultiValueRow({
   const distinctBuckets = getDistinctBucketCount(propertyStats);
   const emptyBucket = getEmptyBucket(propertyStats);
   const isMixed = distinctBuckets > 1;
+  const singleValue =
+    (propertyStats.values.keys().next().value as number | string | undefined) ??
+    null;
+  const distinctValues = Array.from(
+    propertyStats.values.keys() as Iterable<string>,
+  );
+  const hasOnlyEmpty =
+    !isMixed && propertyStats.values.size === 0 && !!emptyBucket;
+  const decimals =
+    propertyStats.type === "quantity" ? propertyStats.decimals : undefined;
+  const isInteger =
+    propertyStats.type === "quantity" ? propertyStats.isInteger : undefined;
   const labelKey =
     "labelKey" in config && config.labelKey
       ? config.labelKey
@@ -95,11 +107,16 @@ export function MultiValueRow({
 
   const editable = (
     <EditableField
-      propertyStats={propertyStats}
       config={config}
       isMixed={isMixed}
       distinctBuckets={distinctBuckets}
-      emptyBucket={emptyBucket}
+      singleValue={singleValue}
+      distinctValues={distinctValues}
+      hasOnlyEmpty={hasOnlyEmpty}
+      emptyLabel={emptyBucket?.label}
+      emptyValue={emptyBucket?.value}
+      decimals={decimals}
+      isInteger={isInteger}
       onPropertyChange={onPropertyChange}
       label={label}
       readonly={readonly}
@@ -207,12 +224,17 @@ export const StatsPopoverButton = ({
   );
 };
 
-const EditableField = ({
-  propertyStats,
+export const EditableField = ({
   config,
   isMixed,
   distinctBuckets,
-  emptyBucket,
+  singleValue,
+  distinctValues,
+  hasOnlyEmpty,
+  emptyLabel,
+  emptyValue,
+  decimals,
+  isInteger,
   onPropertyChange,
   label,
   readonly,
@@ -221,11 +243,16 @@ const EditableField = ({
   labelManager,
   onOpenLibrary,
 }: {
-  propertyStats: PropertyStats;
   config: BatchEditPropertyConfig;
   isMixed: boolean;
   distinctBuckets: number;
-  emptyBucket?: EmptyBucket;
+  singleValue: number | string | null;
+  distinctValues: string[];
+  hasOnlyEmpty: boolean;
+  emptyLabel?: string;
+  emptyValue?: number | null;
+  decimals?: number;
+  isInteger?: boolean;
   onPropertyChange: (
     modelProperty: ChangeableProperty,
     value: number | string | boolean | null | undefined,
@@ -243,31 +270,29 @@ const EditableField = ({
   const translate = useTranslate();
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
-  const isOnlyEmpty =
-    !isMixed && propertyStats.values.size === 0 && !!emptyBucket;
-  const mixedPlaceholder = isOnlyEmpty
-    ? translate(emptyBucket.label)
+  const mixedPlaceholder = hasOnlyEmpty
+    ? translate(emptyLabel!)
     : `${distinctBuckets} ${translate("values").toLowerCase()}`;
 
   if (config.fieldType === "quantity") {
-    const stats = propertyStats as QuantityStats;
-    const firstValue = stats.values.keys().next().value as number | undefined;
+    const firstValue =
+      typeof singleValue === "number" ? singleValue : undefined;
     const displayValue =
       isMixed || firstValue === undefined
         ? ""
-        : stats.isInteger
+        : isInteger
           ? String(firstValue)
-          : localizeDecimal(firstValue, { decimals: stats.decimals });
+          : localizeDecimal(firstValue, { decimals });
 
     const isRequired = !isOptionalProperty(
       config.modelProperty,
       allowsNullValues,
     );
     const commitInvalidValues = !!config.hasModelValidation && allowsNullValues;
-    const quantityPlaceholder = !isOnlyEmpty
+    const quantityPlaceholder = !hasOnlyEmpty
       ? mixedPlaceholder
-      : emptyBucket?.value != null
-        ? localizeDecimal(emptyBucket.value, { decimals: stats.decimals })
+      : emptyValue != null
+        ? localizeDecimal(emptyValue, { decimals })
         : "";
 
     return (
@@ -296,9 +321,7 @@ const EditableField = ({
   }
 
   if (config.fieldType === "category") {
-    const firstKey = propertyStats.values.keys().next().value as
-      | string
-      | undefined;
+    const firstKey = typeof singleValue === "string" ? singleValue : undefined;
     const currentValue =
       isMixed || firstKey === undefined
         ? null
@@ -372,9 +395,8 @@ const EditableField = ({
     }
 
     // Stats store labels; resolve to ID via labelManager
-    const firstLabel = propertyStats.values.keys().next().value as
-      | string
-      | undefined;
+    const firstLabel =
+      typeof singleValue === "string" ? singleValue : undefined;
     const resolvedId = firstLabel
       ? labelManager?.getIdByLabel(firstLabel, labelType)
       : undefined;
@@ -417,7 +439,7 @@ const EditableField = ({
   }
 
   if (config.fieldType === "openCategory") {
-    const options = Array.from(propertyStats.values.keys() as Iterable<string>);
+    const options = distinctValues;
     const currentValue = isMixed ? null : (options[0] ?? null);
     const placeholder = isMixed
       ? mixedPlaceholder
@@ -448,8 +470,7 @@ const EditableField = ({
   }
 
   // Boolean field (e.g. canOverflow)
-  const firstKey = propertyStats.values.keys().next().value as string;
-  const isChecked = !isMixed && firstKey === "yes";
+  const isChecked = !isMixed && singleValue === "yes";
 
   return (
     <div className="p-2 flex items-center h-[38px]">
@@ -519,7 +540,7 @@ type SortColumn = "value" | "count";
 type SortDirection = "asc" | "desc";
 
 export const formatEmptyBucket = (
-  emptyBucket: EmptyBucket,
+  emptyBucket: { label: string; value?: number | null },
   translate: (key: string) => string,
   decimals?: number,
 ): string =>

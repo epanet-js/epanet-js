@@ -3,6 +3,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Section, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
+import { SummaryValueRow, ReadOnlySummaryValueRow } from "./summary-value-row";
 import { AssetPropertySections } from "./asset-stats";
 import type { AssetPropertySectionsDeprecated } from "./asset-stats-deprecated";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
@@ -55,16 +56,21 @@ export function AssetTypeSections({
 }: AssetSectionProps) {
   const translate = useTranslate();
   const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
-  const activeSections: AssetPropertySections = isStatsPerfOn
-    ? sections
-    : sectionsDeprecated;
+
+  const isEditableSection = (sectionKey: keyof AssetPropertySections) =>
+    sectionKey === "modelAttributes" ||
+    sectionKey === "activeTopology" ||
+    sectionKey === "quality" ||
+    sectionKey === "energy";
 
   const renderStatSection = (sectionKey: keyof AssetPropertySections) => {
-    const stats = activeSections[sectionKey];
+    const length = isStatsPerfOn
+      ? sections[sectionKey].length
+      : sectionsDeprecated[sectionKey].length;
 
     const isResults =
       sectionKey === "simulationResults" || sectionKey === "energyResults";
-    const sectionEmpty = stats.length === 0 || (isResults && !hasSimulation);
+    const sectionEmpty = length === 0 || (isResults && !hasSimulation);
 
     if (sectionEmpty) return null;
 
@@ -74,40 +80,57 @@ export function AssetTypeSections({
         title={translate(sectionKey)}
         variant="secondary"
       >
-        {stats.map((stat) => {
-          const config =
-            sectionKey === "modelAttributes" ||
-            sectionKey === "activeTopology" ||
-            sectionKey === "quality" ||
-            sectionKey === "energy"
-              ? editableProperties[stat.property]
-              : undefined;
+        {isStatsPerfOn
+          ? sections[sectionKey].map((stat) => {
+              const config = isEditableSection(sectionKey)
+                ? editableProperties[stat.property]
+                : undefined;
 
-          if (config) {
-            return (
-              <MultiValueRow
-                key={stat.property}
-                propertyStats={stat}
-                config={config}
-                onPropertyChange={onPropertyChange}
-                readonly={readonly}
-                onSelectAssets={onSelectAssets}
-                curves={curves}
-                patterns={patterns}
-                labelManager={labelManager}
-                onOpenLibrary={onOpenLibrary}
-              />
-            );
-          }
+              return config ? (
+                <SummaryValueRow
+                  key={stat.property}
+                  propertyStats={stat}
+                  config={config}
+                  onPropertyChange={onPropertyChange}
+                  readonly={readonly}
+                  curves={curves}
+                  patterns={patterns}
+                  labelManager={labelManager}
+                  onOpenLibrary={onOpenLibrary}
+                />
+              ) : (
+                <ReadOnlySummaryValueRow
+                  key={stat.property}
+                  propertyStats={stat}
+                />
+              );
+            })
+          : sectionsDeprecated[sectionKey].map((stat) => {
+              const config = isEditableSection(sectionKey)
+                ? editableProperties[stat.property]
+                : undefined;
 
-          return (
-            <ReadOnlyMultiValueRow
-              key={stat.property}
-              propertyStats={stat}
-              onSelectAssets={onSelectAssets}
-            />
-          );
-        })}
+              return config ? (
+                <MultiValueRow
+                  key={stat.property}
+                  propertyStats={stat}
+                  config={config}
+                  onPropertyChange={onPropertyChange}
+                  readonly={readonly}
+                  onSelectAssets={onSelectAssets}
+                  curves={curves}
+                  patterns={patterns}
+                  labelManager={labelManager}
+                  onOpenLibrary={onOpenLibrary}
+                />
+              ) : (
+                <ReadOnlyMultiValueRow
+                  key={stat.property}
+                  propertyStats={stat}
+                  onSelectAssets={onSelectAssets}
+                />
+              );
+            })}
       </Section>
     );
   };
