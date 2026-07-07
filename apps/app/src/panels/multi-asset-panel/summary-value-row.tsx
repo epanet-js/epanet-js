@@ -1,9 +1,10 @@
-import { useState, KeyboardEventHandler } from "react";
+import { useState, useRef, KeyboardEventHandler } from "react";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import { InlineField } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
+import { RingSpinner } from "src/components/ring-spinner";
 import * as P from "@radix-ui/react-popover";
 import {
   StyledPopoverArrow,
@@ -76,15 +77,46 @@ export const LazyStatsPopoverButton = ({
 }: {
   label: string;
   property: string;
-  loadDetails: () => DetailedPropertyStats | null;
+  loadDetails: () =>
+    | DetailedPropertyStats
+    | null
+    | Promise<DetailedPropertyStats | null>;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [details, setDetails] = useState<DetailedPropertyStats | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const requestRef = useRef(0);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    setDetails(open ? loadDetails() : null);
+    const token = ++requestRef.current;
+
+    if (!open) {
+      setDetails(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const result = loadDetails();
+    if (result instanceof Promise) {
+      setDetails(null);
+      setIsLoading(true);
+      result.then(
+        (resolved) => {
+          if (requestRef.current !== token) return;
+          setDetails(resolved);
+          setIsLoading(false);
+        },
+        () => {
+          if (requestRef.current !== token) return;
+          setIsLoading(false);
+        },
+      );
+    } else {
+      setDetails(result);
+      setIsLoading(false);
+    }
   };
 
   const handleContentKeyDown: KeyboardEventHandler<HTMLDivElement> = (
@@ -107,28 +139,34 @@ export const LazyStatsPopoverButton = ({
       <P.Portal>
         <StyledPopoverContent onKeyDown={handleContentKeyDown} align="end">
           <StyledPopoverArrow />
-          {details && (
-            <>
-              {details.type === "quantity" && (
-                <QuantityStatsBaseFields quantityStats={details} />
-              )}
-              <SortableValuesList
-                values={details.values}
-                decimals={
-                  details.type === "quantity" ? details.decimals : undefined
-                }
-                isInteger={
-                  details.type === "quantity" ? details.isInteger : undefined
-                }
-                type={details.type}
-                onSelectAssets={
-                  onSelectAssets
-                    ? (ids) => onSelectAssets(ids, property)
-                    : undefined
-                }
-                emptyBucket={getDetailedEmptyBucket(details)}
-              />
-            </>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <RingSpinner />
+            </div>
+          ) : (
+            details && (
+              <>
+                {details.type === "quantity" && (
+                  <QuantityStatsBaseFields quantityStats={details} />
+                )}
+                <SortableValuesList
+                  values={details.values}
+                  decimals={
+                    details.type === "quantity" ? details.decimals : undefined
+                  }
+                  isInteger={
+                    details.type === "quantity" ? details.isInteger : undefined
+                  }
+                  type={details.type}
+                  onSelectAssets={
+                    onSelectAssets
+                      ? (ids) => onSelectAssets(ids, property)
+                      : undefined
+                  }
+                  emptyBucket={getDetailedEmptyBucket(details)}
+                />
+              </>
+            )
           )}
         </StyledPopoverContent>
       </P.Portal>
@@ -145,7 +183,9 @@ type SummaryValueRowProps = {
   ) => void;
   readonly?: boolean;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
-  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
+  onRequestDetails?: (
+    property: string,
+  ) => DetailedPropertyStats | null | Promise<DetailedPropertyStats | null>;
   curves?: Curves;
   patterns?: Patterns;
   labelManager?: LabelManager;
@@ -165,7 +205,9 @@ const StatsButton = ({
   label: string;
   property: string;
   isMixed: boolean;
-  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
+  onRequestDetails?: (
+    property: string,
+  ) => DetailedPropertyStats | null | Promise<DetailedPropertyStats | null>;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
 }) => {
   if (!isMixed || !onRequestDetails) {
@@ -282,7 +324,9 @@ export function ReadOnlySummaryValueRow({
 }: {
   propertyStats: PropertyStats;
   onSelectAssets?: (assetIds: AssetId[], property: string) => void;
-  onRequestDetails?: (property: string) => DetailedPropertyStats | null;
+  onRequestDetails?: (
+    property: string,
+  ) => DetailedPropertyStats | null | Promise<DetailedPropertyStats | null>;
 }) {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();

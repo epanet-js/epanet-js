@@ -7,8 +7,12 @@ import { SummaryValueRow, ReadOnlySummaryValueRow } from "./summary-value-row";
 import { AssetPropertySections } from "./asset-stats";
 import type { AssetPropertySectionsDeprecated } from "./asset-stats-deprecated";
 import type { PropertyStats as DetailedPropertyStats } from "./stats";
+import type { PropertyStats as SummaryPropertyStats } from "./summary-stats";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import type { CustomerPointPropertySections } from "./customer-point-stats";
+import type {
+  CustomerPointPropertySections,
+  CustomerPointPropertySummarySections,
+} from "./customer-point-stats";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
 import {
@@ -159,13 +163,20 @@ export function AssetTypeSections({
 export function CustomerPointSection({
   sections,
   onSelectCustomerPoints,
+  onRequestDetails,
   customAttributes,
 }: {
-  sections: CustomerPointPropertySections;
+  sections:
+    | CustomerPointPropertySections
+    | CustomerPointPropertySummarySections;
   onSelectCustomerPoints?: (ids: number[], property: string) => void;
+  onRequestDetails?: (
+    property: string,
+  ) => Promise<DetailedPropertyStats | null>;
   customAttributes?: ReactNode;
 }) {
   const translate = useTranslate();
+  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
 
   const renderStatSection = (
     sectionKey: keyof CustomerPointPropertySections,
@@ -180,13 +191,22 @@ export function CustomerPointSection({
         title={translate(sectionKey)}
         variant="secondary"
       >
-        {stats.map((stat) => (
-          <ReadOnlyMultiValueRow
-            key={stat.property}
-            propertyStats={stat}
-            onSelectAssets={onSelectCustomerPoints}
-          />
-        ))}
+        {isStatsPerfOn
+          ? (stats as SummaryPropertyStats[]).map((stat) => (
+              <ReadOnlySummaryValueRow
+                key={stat.property}
+                propertyStats={stat}
+                onSelectAssets={onSelectCustomerPoints}
+                onRequestDetails={onRequestDetails}
+              />
+            ))
+          : (stats as DetailedPropertyStats[]).map((stat) => (
+              <ReadOnlyMultiValueRow
+                key={stat.property}
+                propertyStats={stat}
+                onSelectAssets={onSelectCustomerPoints}
+              />
+            ))}
       </Section>
     );
   };

@@ -4,6 +4,7 @@ import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { CollapsibleSection } from "src/components/form/fields";
 import { RingSpinner } from "src/components/ring-spinner";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAsyncCompute } from "src/hooks/use-async-compute";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -14,7 +15,12 @@ import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { useSelection } from "src/selection";
 import { useUserTracking } from "src/infra/user-tracking";
-import { computeCustomerPointsStats } from "./customer-point-stats";
+import {
+  computeCustomerPointsStats,
+  computeCustomerPointsSummary,
+  type CustomerPointPropertySections,
+  type CustomerPointPropertySummarySections,
+} from "./customer-point-stats";
 import { CustomerPointSection } from "./sections";
 import { SelectOnlyCustomerPointsButton } from "./select-only-button";
 import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
@@ -25,6 +31,7 @@ export function CustomerPointPanelSection({
   customerPoints: CustomerPoint[];
 }) {
   const translate = useTranslate();
+  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [collapseState, setCollapseState] = useAtom(
@@ -41,8 +48,20 @@ export function CustomerPointPanelSection({
   );
   const showSelectOnly = selectedAssets.length > 0;
 
-  const { data, isLoading } = useAsyncCompute(
-    computeCustomerPointsStats,
+  const compute = isStatsPerfOn
+    ? computeCustomerPointsSummary
+    : computeCustomerPointsStats;
+  const { data, isLoading } = useAsyncCompute<
+    [
+      CustomerPoint[],
+      typeof hydraulicModel.demands,
+      typeof hydraulicModel.patterns,
+      typeof units,
+      typeof formatting,
+    ],
+    CustomerPointPropertySections | CustomerPointPropertySummarySections
+  >(
+    compute,
     [
       customerPoints,
       hydraulicModel.demands,
@@ -64,6 +83,30 @@ export function CustomerPointPanelSection({
       selectCustomerPoints(ids);
     },
     [selectCustomerPoints, userTracking],
+  );
+
+  const handleRequestDetails = useCallback(
+    (property: string) =>
+      computeCustomerPointsStats(
+        customerPoints,
+        hydraulicModel.demands,
+        hydraulicModel.patterns,
+        units,
+        formatting,
+      ).then((sections) => {
+        for (const stats of [sections.connections, sections.demands]) {
+          const found = stats.find((s) => s.property === property);
+          if (found) return found;
+        }
+        return null;
+      }),
+    [
+      customerPoints,
+      hydraulicModel.demands,
+      hydraulicModel.patterns,
+      units,
+      formatting,
+    ],
   );
 
   return (
@@ -88,6 +131,7 @@ export function CustomerPointPanelSection({
           <CustomerPointSection
             sections={data}
             onSelectCustomerPoints={handleSelect}
+            onRequestDetails={handleRequestDetails}
             customAttributes={
               <MultiCustomerPointCustomAttributesSection
                 customerPointIds={customerPointIds}
