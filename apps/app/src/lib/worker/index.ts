@@ -15,6 +15,9 @@ const hasWebWorker = () => {
 
 export const lib = hasWebWorker()
   ? Comlink.wrap<Lib>(
-      new Worker(new URL("./worker.ts", import.meta.url), { type: "module" }),
+      new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+        name: "SimulationWorker",
+      }),
     )
   : syncLib;

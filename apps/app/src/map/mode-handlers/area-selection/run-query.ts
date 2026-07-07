@@ -86,6 +86,7 @@ const runQueryWithWorker = async (
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
+    name: "SpatialQueryWorker",
   });
 
   const workerAPI = Comlink.wrap<SpatialQueryWorkerAPI>(worker);

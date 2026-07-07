@@ -112,6 +112,7 @@ const runAllocationWithWorkers = async (
     for (let i = 0; i < workerCount; i++) {
       const worker = new Worker(new URL("./worker.ts", import.meta.url), {
         type: "module",
+        name: "CustomerPointsWorker",
       });
       workers.push(worker);
       workerAPIs.push(Comlink.wrap<AllocationWorkerAPI>(worker));

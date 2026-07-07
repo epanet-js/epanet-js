@@ -93,6 +93,7 @@ const runWithWorker = async (
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
+    name: "TraceToolWorker",
   });
 
   const workerAPI = Comlink.wrap<TraceWorkerAPI>(worker);

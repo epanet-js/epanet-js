@@ -61,6 +61,7 @@ const runWithWorker = async (
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
+    name: "ProximityAnomaliesWorker",
   });
 
   const workerAPI = Comlink.wrap<ProximityCheckWorkerAPI>(worker);

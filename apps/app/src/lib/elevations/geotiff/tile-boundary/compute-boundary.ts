@@ -47,7 +47,7 @@ async function runBatchWithWorker(
 ): Promise<void> {
   const worker = new Worker(
     new URL("./compute-boundary-worker.ts", import.meta.url),
-    { type: "module" },
+    { type: "module", name: "ElevationBoundaryWorker" },
   );
   const api = Comlink.wrap<BoundaryWorkerAPI>(worker);
 
