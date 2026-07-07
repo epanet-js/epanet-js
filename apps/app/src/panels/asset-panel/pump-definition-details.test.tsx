@@ -549,6 +549,43 @@ describe("PumpDefinitionDetails", () => {
         expect(getHeadInput("Max Operating")).toHaveValue("0");
       });
 
+      it("transforms the curve with null values on (design-point to standard)", async () => {
+        stubFeatureOn("FLAG_NULL_VALUES");
+        const user = userEvent.setup();
+        const onChange = vi.fn();
+        const pump = buildPump({
+          definitionType: "designPointCurve",
+          curve: [{ x: 50, y: 100 }],
+        });
+
+        render(
+          <PumpDefinitionDetails
+            pump={pump}
+            curves={curves}
+            units={units}
+            onChange={onChange}
+          />,
+        );
+
+        const select = screen.getByRole("combobox", { name: /pump type/i });
+        await user.click(select);
+        await user.click(
+          screen.getByRole("option", { name: /standard curve/i }),
+        );
+
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "standardCurve" },
+          {
+            property: "curve",
+            value: [
+              { x: 0, y: 133 },
+              { x: 50, y: 100 },
+              { x: 100, y: 0 },
+            ],
+          },
+        ]);
+      });
+
       it("emits onChange when changing from standard to design-point", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();

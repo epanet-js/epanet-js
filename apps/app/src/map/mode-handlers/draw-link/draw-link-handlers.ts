@@ -206,7 +206,6 @@ export function useDrawLinkHandlers({
         return assetFactory.createPump({
           ...startProperties,
           definitionType: "designPointCurve",
-          curve: [{ x: 1, y: 1 }],
         });
       case "valve":
         return assetFactory.createValve(startProperties);

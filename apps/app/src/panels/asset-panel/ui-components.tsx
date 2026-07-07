@@ -540,6 +540,7 @@ type LibrarySelectRowProps<P extends string> = {
   readOnly?: boolean;
   comparison?: PropertyComparison;
   paywall?: PaywallFeature;
+  isOptional?: boolean;
 };
 
 type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
@@ -552,6 +553,7 @@ type SelectRowPropsBase<P extends string, T extends SelectRowValue> = {
   comparison?: PropertyComparison;
   readOnly?: boolean;
   paywall?: PaywallFeature;
+  isOptional?: boolean;
 };
 
 type SelectRowPropsNonNullable<
@@ -595,9 +597,12 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
   placeholder = undefined,
   clearLabel,
   onChange,
+  isOptional = true,
 }: SelectorRowProps<P, T>) {
   const translate = useTranslate();
   const actualLabel = label || translate(name);
+
+  const hasError = !isOptional && selected === null;
 
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
@@ -637,6 +642,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
               border: true,
               textSize: "text-size-base",
               paddingY: 2,
+              variant: hasError ? "warning" : "default",
             }}
           />
         </div>
@@ -674,6 +680,7 @@ export function LibrarySelectRow<P extends string>({
   readOnly,
   comparison,
   paywall,
+  isOptional,
 }: LibrarySelectRowProps<P>) {
   const translate = useTranslate();
   const items = useLibraryItems(collection, filterByType, excludeId);
@@ -696,6 +703,7 @@ export function LibrarySelectRow<P extends string>({
       readOnly={readOnly}
       comparison={comparison}
       paywall={paywall}
+      isOptional={isOptional}
     />
   );
 }

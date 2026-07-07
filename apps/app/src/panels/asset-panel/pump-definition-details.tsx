@@ -154,6 +154,20 @@ const PumpDefinitionDetailsInner = ({
       setLocalDefinitionType(newValue);
 
       if (allowsNullValues) {
+        if (
+          (newValue === "designPointCurve" || newValue === "standardCurve") &&
+          (oldValue === "designPointCurve" || oldValue === "standardCurve")
+        ) {
+          const currentPoints = initialPointsFromCurve(curve, oldValue);
+          const validPoints = extractValidPoints(currentPoints, newValue);
+          onChange([
+            { property: "definitionType", value: newValue },
+            ...(validPoints
+              ? [{ property: "curve", value: validPoints } as PropertyChange]
+              : []),
+          ]);
+          return;
+        }
         onChange([{ property: "definitionType", value: newValue }]);
         return;
       }
@@ -489,6 +503,7 @@ const CurveIdSelector = ({
         selected={selectedCurve}
         readOnly={readOnly}
         onChange={handleChange}
+        isOptional={false}
       />
       {curveType && (
         <InlineField name={translate("curveType")} labelSize="md">
