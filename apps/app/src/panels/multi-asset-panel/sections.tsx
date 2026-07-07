@@ -4,6 +4,8 @@ import { Section, SectionList } from "src/components/form/fields";
 import { ReadOnlyMultiValueRow } from "./readonly-multi-value-row";
 import { MultiValueRow } from "./multi-value-row";
 import { AssetPropertySections } from "./asset-stats";
+import type { AssetPropertySectionsDeprecated } from "./asset-stats-deprecated";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { CustomerPointPropertySections } from "./customer-point-stats";
 import type { EditableProperties } from "./batch-edit-property-config";
 import { AssetId } from "src/hydraulic-model";
@@ -18,6 +20,7 @@ import type { ChangeableProperty } from "src/hydraulic-model/model-operations/ch
 
 type AssetSectionProps = {
   sections: AssetPropertySections;
+  sectionsDeprecated: AssetPropertySectionsDeprecated;
   editableProperties: EditableProperties;
   hasSimulation?: boolean;
   onPropertyChange: (
@@ -38,6 +41,7 @@ type AssetSectionProps = {
 
 export function AssetTypeSections({
   sections,
+  sectionsDeprecated,
   editableProperties,
   hasSimulation = false,
   onPropertyChange,
@@ -50,9 +54,13 @@ export function AssetTypeSections({
   customAttributes,
 }: AssetSectionProps) {
   const translate = useTranslate();
+  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
+  const activeSections: AssetPropertySections = isStatsPerfOn
+    ? sections
+    : sectionsDeprecated;
 
   const renderStatSection = (sectionKey: keyof AssetPropertySections) => {
-    const stats = sections[sectionKey];
+    const stats = activeSections[sectionKey];
 
     const isResults =
       sectionKey === "simulationResults" || sectionKey === "energyResults";
