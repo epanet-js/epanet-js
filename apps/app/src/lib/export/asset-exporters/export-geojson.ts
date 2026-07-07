@@ -10,6 +10,8 @@ import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
+import { resolveExportProperties } from "./optional-field-defaults";
+import { isExportableField } from "./excluded-fields";
 
 const GEOJSON_END = `]}`;
 
@@ -245,10 +247,19 @@ const assetToGeoJson = (
     type: "Feature",
     geometry: transformedGeometry as Feature["geometry"],
     properties: {
-      ...asset?.feature.properties,
+      ...resolveExportProperties(
+        asset.type,
+        asset.feature.properties as Record<string, unknown>,
+      ),
       ...prefixSimulationKeys(simulationResults),
     },
   };
+
+  if (mapped.properties !== null) {
+    for (const key of Object.keys(mapped.properties)) {
+      if (!isExportableField(asset.type, key)) delete mapped.properties[key];
+    }
+  }
 
   if (
     "properties" in mapped &&

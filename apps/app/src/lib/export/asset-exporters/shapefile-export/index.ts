@@ -16,6 +16,8 @@ import { writePoint, writePolyLine } from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
 import { FILE_NAMES } from "../constants";
+import { resolveExportProperties } from "../optional-field-defaults";
+import { isExportableField } from "../excluded-fields";
 import { createProjectionMapper } from "src/lib/projections";
 import { type Position } from "geojson";
 import { getEsriWktString } from "src/lib/projections";
@@ -79,6 +81,7 @@ export const exportShapefiles = async (
     const props = asset.feature.properties as Record<string, unknown>;
     for (const key in props) {
       if (key === "type") continue;
+      if (!isExportableField(asset.type, key)) continue;
       if (key === "connections") {
         seenFields[asset.type].add("startNode");
         seenFields[asset.type].add("endNode");
@@ -142,7 +145,10 @@ export const exportShapefiles = async (
     writer.shxView.setUint32(writer.shxCursor + 4, contentLengthWords, false);
     writer.shxCursor += 8;
 
-    const props = { ...asset.feature.properties } as Record<string, unknown>;
+    const props = resolveExportProperties(
+      asset.type,
+      asset.feature.properties as Record<string, unknown>,
+    );
     if ("connections" in props) {
       const [firstId, secondId] = props.connections as number[];
       props.startNode = hydraulicModel.assets.get(firstId)?.label ?? "";

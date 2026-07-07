@@ -24,6 +24,35 @@ function fileNames(files: { fileName: string }[]) {
   return files.map((f) => f.fileName);
 }
 
+// Minimal DBF reader: returns the trimmed value of a named field for a record.
+function readDbfField(
+  bytes: Uint8Array,
+  recordIndex: number,
+  fieldName: string,
+): string {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const headerLength = view.getUint16(8, true);
+  const recordLength = view.getUint16(10, true);
+
+  let fieldOffset = 1; // skip the record deletion flag
+  let found: { offset: number; length: number } | null = null;
+  for (let pos = 32; bytes[pos] !== 0x0d; pos += 32) {
+    const name = new TextDecoder("latin1")
+      .decode(bytes.subarray(pos, pos + 11))
+      .replace(/\0.*$/, "");
+    const length = bytes[pos + 16];
+    if (name === fieldName) found = { offset: fieldOffset, length };
+    fieldOffset += length;
+  }
+  if (!found) throw new Error(`field ${fieldName} not found`);
+
+  const recordStart = headerLength + recordIndex * recordLength;
+  const start = recordStart + found.offset;
+  return new TextDecoder("latin1")
+    .decode(bytes.subarray(start, start + found.length))
+    .trim();
+}
+
 describe("exportShapefiles", () => {
   beforeAll(() => {
     setProjectionsBaseUrl(TEST_BASE_URL);
@@ -189,6 +218,43 @@ describe("exportShapefiles", () => {
     expect(text).toContain("ENDNODE");
     expect(text).toContain("J1");
     expect(text).toContain("J2");
+  });
+
+  it("omits the LENGTH field for valves and pumps but keeps it for pipes", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aJunction(2, { coordinates: [1, 1] })
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aValve(4, { startNodeId: 1, endNodeId: 2 })
+      .aPump(5, { startNodeId: 1, endNodeId: 2 })
+      .build();
+
+    const files = await exportShapefiles(model, WGS84);
+    const dbfText = async (name: string) =>
+      new TextDecoder("latin1").decode(
+        await blobBytes(files.find((f) => f.fileName === name)!.blob),
+      );
+
+    expect(await dbfText("pipes.dbf")).toContain("LENGTH");
+    expect(await dbfText("valves.dbf")).not.toContain("LENGTH");
+    expect(await dbfText("pumps.dbf")).not.toContain("LENGTH");
+  });
+
+  it("writes EPANET defaults for unmapped optional fields, blank for required nulls", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aJunction(2, { coordinates: [1, 1] })
+      .aPipe(3, { startNodeId: 1, endNodeId: 2, diameter: null })
+      .build();
+    const pipe = model.assets.get(3)!;
+    pipe.setProperty("minorLoss", undefined);
+
+    const files = await exportShapefiles(model, WGS84);
+    const dbf = files.find((f) => f.fileName === "pipes.dbf")!;
+    const bytes = await blobBytes(dbf.blob);
+
+    expect(readDbfField(bytes, 0, "MINORLOSS")).toBe("0.000000");
+    expect(readDbfField(bytes, 0, "DIAMETER")).toBe("");
   });
 
   it("includes simulation result fields when includeSimulationResults=true", async () => {

@@ -190,6 +190,39 @@ describe("export-csv", () => {
     expect(cpRow.connectionX).not.toBe("1.0000");
   });
 
+  it("exports EPANET defaults for unmapped optional fields, blank for required nulls", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aPipe(1, { label: "P1", diameter: null })
+      .build();
+    const pipe = model.assets.get(1)!;
+    pipe.setProperty("minorLoss", undefined);
+
+    const files = exportCsv(model, WGS84);
+    const lines = await readCsv(findFile(files, "pipes.csv"));
+    const [row] = parseCsvRows(lines);
+
+    expect(row.minorLoss).toBe("0");
+    expect(row.diameter).toBe("");
+  });
+
+  it("omits the length column for valves and pumps but keeps it for pipes", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1)
+      .aJunction(2)
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aValve(4, { startNodeId: 1, endNodeId: 2 })
+      .aPump(5, { startNodeId: 1, endNodeId: 2 })
+      .build();
+    const files = exportCsv(model, WGS84);
+
+    const headerOf = async (name: string) =>
+      (await readCsv(findFile(files, name)))[0].split(",");
+
+    expect(await headerOf("pipes.csv")).toContain("length");
+    expect(await headerOf("valves.csv")).not.toContain("length");
+    expect(await headerOf("pumps.csv")).not.toContain("length");
+  });
+
   it("only exports selected assets when selectedAssets is non-empty", async () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })

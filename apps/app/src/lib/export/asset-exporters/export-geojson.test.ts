@@ -273,6 +273,40 @@ describe("export-geojson", () => {
       properties: { name: "urn:ogc:def:crs:EPSG::28355" },
     });
   });
+
+  it("omits the length property for valves and pumps but keeps it for pipes", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1)
+      .aJunction(2)
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aValve(4, { startNodeId: 1, endNodeId: 2 })
+      .aPump(5, { startNodeId: 1, endNodeId: 2 })
+      .build();
+    const files = exportGeoJson(model, WGS84);
+
+    const propsOf = async (name: string) =>
+      (await parseGeoJson(findFile(files, name))).features[0].properties;
+
+    expect("length" in (await propsOf("pipes.geojson"))).toBe(true);
+    expect("length" in (await propsOf("valves.geojson"))).toBe(false);
+    expect("length" in (await propsOf("pumps.geojson"))).toBe(false);
+  });
+
+  it("exports EPANET defaults for unmapped optional fields, omits required nulls", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aPipe(1, { label: "P1", diameter: null })
+      .build();
+    const pipe = model.assets.get(1)!;
+    pipe.setProperty("minorLoss", undefined);
+
+    const geoJson = await parseGeoJson(
+      findFile(exportGeoJson(model, WGS84), "pipes.geojson"),
+    );
+    const properties = geoJson.features[0].properties;
+
+    expect(properties.minorLoss).toBe(0);
+    expect("diameter" in properties).toBe(false);
+  });
 });
 
 const findFile = (files: ExportedFile[], name: string) =>

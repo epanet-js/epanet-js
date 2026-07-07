@@ -301,6 +301,45 @@ describe("exportXlsx", () => {
     expect(cp2Row[pipeIdx] ?? "").toBe("");
   });
 
+  it("omits the length column for valves and pumps but keeps it for pipes", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1)
+      .aJunction(2)
+      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aValve(4, { startNodeId: 1, endNodeId: 2 })
+      .aPump(5, { startNodeId: 1, endNodeId: 2 })
+      .build();
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84);
+    const wb = getWorkbook();
+
+    expect(sheetRows(wb, "pipes")[0]).toContain("length");
+    expect(sheetRows(wb, "valves")[0]).not.toContain("length");
+    expect(sheetRows(wb, "pumps")[0]).not.toContain("length");
+  });
+
+  it("exports EPANET defaults for unmapped optional fields, blank for required nulls", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aPipe(1, { label: "P1", diameter: null })
+      .build();
+    const pipe = model.assets.get(1)!;
+    pipe.setProperty("minorLoss", undefined);
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84);
+
+    const rows = sheetRows(getWorkbook(), "pipes");
+    const headers = rows[0];
+    const dataRow = rows[1];
+
+    const minorLossIdx = headers.indexOf("minorLoss");
+    const diameterIdx = headers.indexOf("diameter");
+
+    expect(String(dataRow[minorLossIdx])).toBe("0");
+    expect(dataRow[diameterIdx] ?? "").toBe("");
+  });
+
   it("transforms coordinates using the given projection", async () => {
     const xyGrid = {
       type: "xy-grid" as const,
