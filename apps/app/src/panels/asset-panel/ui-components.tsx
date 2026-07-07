@@ -294,7 +294,9 @@ export const QuantityRow = <
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
       ? formatValue(comparison.baseValue as number, name as QuantityProperty)
-      : translate("none")
+      : isOptional && placeholder !== ""
+        ? placeholder
+        : translate("none")
     : undefined;
 
   const handleChange = (newValue: number, isEmpty: boolean) => {
@@ -376,7 +378,9 @@ export const IntegerRow = <
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
       ? String(comparison.baseValue)
-      : translate("none")
+      : isOptional && placeholder !== ""
+        ? placeholder
+        : translate("none")
     : undefined;
 
   const handleChange = (newValue: number, isEmpty: boolean) => {

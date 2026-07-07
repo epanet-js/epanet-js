@@ -569,15 +569,14 @@ const getDiffWithBaseModel = ({
 
   const lines: string[] = [];
 
-  if (
-    baseDefinitionType === "power" &&
-    powerComparison?.baseValue != undefined
-  ) {
+  if (baseDefinitionType === "power") {
     const powerUnit = units.power;
     lines.push(
-      `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`,
+      powerComparison?.baseValue != undefined
+        ? `${translate("power")}: ${localizeDecimal(powerComparison.baseValue as number)} ${powerUnit}`
+        : `${translate("power")}: ${translate("none")}`,
     );
-  } else if (baseDefinitionType !== "power") {
+  } else {
     if (baseCurveLabel) {
       lines.push(`${translate("curve")}: ${baseCurveLabel}`);
     }
