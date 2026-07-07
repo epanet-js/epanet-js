@@ -83,6 +83,13 @@ const optionalNumeric = (
 const tankVolumeCurveless: When = (entity) =>
   readEntityProp(entity, "volumeCurveId") == null;
 
+const pumpCurveBased: When = (entity) => {
+  const definitionType = readEntityProp(entity, "definitionType");
+  return (
+    definitionType === "designPointCurve" || definitionType === "standardCurve"
+  );
+};
+
 const tankLevelsOrdered = (
   initialLevel: unknown,
   entity?: ValidatableEntity,
@@ -167,6 +174,29 @@ export const RULES: Rule[] = [
     "positive",
     (entity) => readEntityProp(entity, "definitionType") === "power",
   ),
+  {
+    id: "pump.curve.present",
+    type: "entity",
+    entityType: "pump",
+    field: "curve",
+    accessor: field("curve"),
+    appliesWhen: pumpCurveBased,
+    check: (value) => Array.isArray(value) && value.length > 0,
+    severity: "error",
+    message: "required",
+  },
+  {
+    id: "pump.curveId.present",
+    type: "entity",
+    entityType: "pump",
+    field: "curveId",
+    accessor: (entity) => readEntityProp(entity, "curveId"),
+    appliesWhen: (entity) =>
+      readEntityProp(entity, "definitionType") === "curveId",
+    check: isFiniteNumber,
+    severity: "error",
+    message: "required",
+  },
   optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
   optionalNumeric("valve", "minorLoss", "nonNegative", "error"),
   optionalNumeric("tank", "minVolume", "nonNegative", "error"),

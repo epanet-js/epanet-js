@@ -127,7 +127,7 @@ const isProvided = (value: number | undefined): value is number =>
 
 export class AssetFactory {
   private defaults: DefaultsSpec;
-  private idGenerator: IdGenerator;
+  protected idGenerator: IdGenerator;
   private labelManager: LabelManager;
 
   constructor(
@@ -240,12 +240,12 @@ export class AssetFactory {
       power: this.getPumpValue("power", power),
       speed,
       speedPatternId,
-      curveId,
+      curveId: curveId ?? null,
       curve: curve
         ? curve
         : definitionType === "designPointCurve"
           ? defaultCurvePoints("pump")
-          : undefined,
+          : null,
       efficiencyCurveId,
       energyPrice,
       energyPricePatternId,
@@ -364,7 +364,7 @@ export class AssetFactory {
     });
   }
 
-  private resolveLabel(type: LabelType, id: number, label?: string): string {
+  protected resolveLabel(type: LabelType, id: number, label?: string): string {
     if (label !== undefined) {
       this.labelManager.register(label, type, id);
       return label;
@@ -440,7 +440,6 @@ const OPTIONAL_FIELDS = {
   junction: ["emitterCoefficient", "initialQuality"],
   reservoir: ["initialQuality"],
   tank: ["minVolume", "mixingFraction", "initialQuality"],
-  pump: ["speed"],
 } as const;
 
 export class AssetFactoryWithNullValues extends AssetFactory {
@@ -473,13 +472,44 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     );
   }
 
-  createPump(data: PumpBuildData = {}): Pump {
-    return emptyUnmapped(
-      super.createPump(data),
-      data,
-      OPTIONAL_FIELDS.pump,
-      undefined,
-    );
+  createPump({
+    id,
+    label,
+    coordinates = [
+      [0, 0],
+      [0, 0],
+    ],
+    initialStatus = "on",
+    connections = nullConnections,
+    definitionType = "designPointCurve",
+    curveId,
+    curve,
+    power,
+    speed,
+    speedPatternId,
+    efficiencyCurveId,
+    energyPrice,
+    energyPricePatternId,
+    isActive = true,
+  }: PumpBuildData = {}): Pump {
+    const internalId = id ?? this.idGenerator.newId();
+    return new Pump(internalId, coordinates, {
+      type: "pump",
+      label: this.resolveLabel("pump", internalId, label),
+      connections,
+      length: null,
+      initialStatus,
+      definitionType,
+      power: power ?? null,
+      speed,
+      speedPatternId,
+      curveId: curveId ?? null,
+      curve: curve ?? null,
+      efficiencyCurveId,
+      energyPrice,
+      energyPricePatternId,
+      isActive,
+    });
   }
 
   createTank(data: TankBuildData = {}): Tank {

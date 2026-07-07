@@ -426,6 +426,74 @@ describe("build inp", () => {
     expect(inp).toContain("4\t1\t2\tPOWER 100\tSPEED 0.7");
   });
 
+  it("writes MISSING for a missing power on a power pump", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PUMP1: 4 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPump(IDS.PUMP1, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        initialStatus: "on",
+        definitionType: "power",
+        speed: 0.7,
+      })
+      .build();
+    hydraulicModel.assets.get(IDS.PUMP1)!.setProperty("power", undefined);
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("4\t1\t2\tPOWER MISSING\tSPEED 0.7");
+  });
+
+  it("writes HEAD MISSING for a curve pump that has no curve", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PUMP1: 4 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPump(IDS.PUMP1, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        initialStatus: "on",
+        definitionType: "designPointCurve",
+        curve: [],
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("4\t1\t2\tHEAD MISSING");
+    // No curve rows are emitted for a missing curve.
+    expect(inp).not.toContain(";PUMP:");
+  });
+
+  it("writes HEAD MISSING for a named-curve pump that has no curveId", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PUMP1: 4 };
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aNode(IDS.NODE1)
+      .aNode(IDS.NODE2)
+      .aPump(IDS.PUMP1, {
+        startNodeId: IDS.NODE1,
+        endNodeId: IDS.NODE2,
+        initialStatus: "on",
+        definitionType: "curveId",
+      })
+      .build();
+
+    const inp = buildInp(hydraulicModel, {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect(inp).toContain("4\t1\t2\tHEAD MISSING");
+  });
+
   it("does not include status for pumps when speed not 1", () => {
     const IDS = {
       NODE1: 1,

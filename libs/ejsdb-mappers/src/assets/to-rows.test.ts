@@ -160,7 +160,6 @@ describe("assetsToRows", () => {
       label: "PU1",
       connections: [1, 2],
       definitionType: "power",
-      power: 50,
     });
     const valve = assetFactory.createValve({
       id: 5,
@@ -180,6 +179,7 @@ describe("assetsToRows", () => {
     expect(rows.tanks[0].mixing_fraction).toBeNull();
     expect(rows.pipes[0].minor_loss).toBeNull();
     expect(rows.pumps[0].speed).toBeNull();
+    expect(rows.pumps[0].power).toBeNull();
     expect(rows.valves[0].minor_loss).toBeNull();
   });
 
@@ -193,7 +193,13 @@ describe("assetsToRows", () => {
       label: "V1",
       connections: [1, 2],
     });
-    for (const asset of [junction, tank, valve]) {
+    const pump = assetFactory.createPump({
+      id: 4,
+      label: "PU1",
+      connections: [1, 2],
+      definitionType: "power",
+    });
+    for (const asset of [junction, tank, valve, pump]) {
       original.set(asset.id, asset);
     }
 
@@ -207,6 +213,8 @@ describe("assetsToRows", () => {
     expect((rebuilt.get(2) as Tank).minVolume).toBeUndefined();
     expect((rebuilt.get(2) as Tank).mixingFraction).toBeUndefined();
     expect((rebuilt.get(3) as Valve).minorLoss).toBeUndefined();
+    // Power is nullable (required-for-definition), so it round-trips to null.
+    expect((rebuilt.get(4) as Pump).power).toBeNull();
   });
 
   it("serializes isActive=false as 0", () => {

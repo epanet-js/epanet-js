@@ -96,6 +96,54 @@ describe("AssetFactoryWithNullValues tank dimensions", () => {
   });
 });
 
+describe("AssetFactory createPump curve", () => {
+  it("applies the default curve for a design-point pump when none is provided", () => {
+    expect(
+      assetFactory().createPump({ definitionType: "designPointCurve" }).curve,
+    ).toEqual([{ x: 1, y: 1 }]);
+  });
+
+  it("keeps the provided curve", () => {
+    expect(
+      assetFactory().createPump({
+        definitionType: "designPointCurve",
+        curve: [{ x: 5, y: 10 }],
+      }).curve,
+    ).toEqual([{ x: 5, y: 10 }]);
+  });
+});
+
+describe("AssetFactoryWithNullValues createPump curve", () => {
+  it("leaves a curve-based pump's curve empty when unmapped", () => {
+    expect(
+      assetFactoryWithNullValues().createPump({
+        definitionType: "designPointCurve",
+      }).curve,
+    ).toBeNull();
+  });
+
+  it("keeps the provided curve", () => {
+    expect(
+      assetFactoryWithNullValues().createPump({
+        definitionType: "designPointCurve",
+        curve: [{ x: 5, y: 10 }],
+      }).curve,
+    ).toEqual([{ x: 5, y: 10 }]);
+  });
+});
+
+describe("AssetFactoryWithNullValues createPump power", () => {
+  it("leaves power empty when none is provided", () => {
+    expect(assetFactoryWithNullValues().createPump({}).power).toBeNull();
+  });
+
+  it("keeps the provided power value", () => {
+    expect(
+      assetFactoryWithNullValues().createPump({ power: 25 }).power,
+    ).toEqual(25);
+  });
+});
+
 describe("AssetFactoryWithNullValues optional attributes", () => {
   it("leaves EPANET-optional attributes undefined when none is provided", () => {
     const factory = assetFactoryWithNullValues();

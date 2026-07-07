@@ -1111,15 +1111,19 @@ const appendPump = (
             linkId,
             startId,
             endId,
-            `POWER ${pump.power}`,
+            `POWER ${requiredValue(pump.power)}`,
             ...speedParts,
             ...speedPatternParts,
           ].join("\t"),
       );
       break;
     case "designPointCurve":
-    case "standardCurve":
-      const localCurveId = idMap.localCurveId(pump.label);
+    case "standardCurve": {
+      const curvePoints = pump.curve ?? [];
+      const hasCurve = curvePoints.length > 0;
+      const localCurveId = hasCurve
+        ? idMap.localCurveId(pump.label)
+        : MISSING_VALUE;
       sections.pumps.push(
         commentPrefix +
           [
@@ -1131,15 +1135,20 @@ const appendPump = (
             ...speedPatternParts,
           ].join("\t"),
       );
-      sections.curves.push(";PUMP:");
-      pump.curve!.forEach((point) =>
-        sections.curves.push(
-          [localCurveId, String(point.x), String(point.y)].join("\t"),
-        ),
-      );
+      if (hasCurve) {
+        sections.curves.push(";PUMP:");
+        curvePoints.forEach((point) =>
+          sections.curves.push(
+            [localCurveId, String(point.x), String(point.y)].join("\t"),
+          ),
+        );
+      }
       break;
+    }
     case "curveId":
-      const curveId = pump.curveId ? idMap.curveId(pump.curveId) : "";
+      const curveId = pump.curveId
+        ? idMap.curveId(pump.curveId)
+        : MISSING_VALUE;
 
       sections.pumps.push(
         [

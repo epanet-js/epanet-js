@@ -232,6 +232,69 @@ describe("validateModelAttributes", () => {
       ).not.toContain("pump.power.positive");
     });
 
+    it("flags a missing power as a present error", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "power",
+        })
+        .build();
+      // The standard factory fills a default power; clear it to model an
+      // unmapped/empty power (as the null-values import factory produces).
+      model.assets.get(1)!.setProperty("power", undefined);
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).toContain("pump.power.present");
+    });
+
+    it("flags a curve-based pump that has no curve", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "designPointCurve",
+          curve: [],
+        })
+        .build();
+      expect(
+        (await validateModelAttributes(model)).map((i) => i.ruleId),
+      ).toContain("pump.curve.present");
+    });
+
+    it("flags a named-curve pump that has no curveId", async () => {
+      const missing = HydraulicModelBuilder.with()
+        .aJunction(2)
+        .aJunction(3)
+        .aPump(1, {
+          startNodeId: 2,
+          endNodeId: 3,
+          definitionType: "curveId",
+        })
+        .build();
+      expect(
+        (await validateModelAttributes(missing)).map((i) => i.ruleId),
+      ).toContain("pump.curveId.present");
+
+      const withCurveId = HydraulicModelBuilder.with()
+        .aJunction(4)
+        .aJunction(5)
+        .aPump(1, {
+          startNodeId: 4,
+          endNodeId: 5,
+          definitionType: "curveId",
+          curveId: 9,
+        })
+        .build();
+      expect(
+        (await validateModelAttributes(withCurveId)).map((i) => i.ruleId),
+      ).not.toContain("pump.curveId.present");
+    });
+
     it("flags tank max/min levels only when no volume curve is set", async () => {
       const diameterTank = HydraulicModelBuilder.with()
         .aTank(1, { maxLevel: 0, minLevel: -1 })

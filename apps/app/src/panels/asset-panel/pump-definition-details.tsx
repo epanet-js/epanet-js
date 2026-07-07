@@ -35,6 +35,7 @@ import {
   NestedSection,
 } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -73,11 +74,10 @@ export const PumpDefinitionDetails = ({
       }
     }
     if (
-      (pump.definitionType === "designPointCurve" ||
-        pump.definitionType === "standardCurve") &&
-      pump.curve
+      pump.definitionType === "designPointCurve" ||
+      pump.definitionType === "standardCurve"
     )
-      return pump.curve;
+      return pump.curve ?? [];
     return [{ x: 1, y: 1 }];
   }, [pump.curve, pump.curveId, pump.definitionType, curves]);
 
@@ -119,6 +119,7 @@ const PumpDefinitionDetailsInner = ({
     value: CurvePoint[] | undefined,
   ) => PumpCurveComparison;
 }) => {
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const translate = useTranslate();
 
   const [localDefinitionType, setLocalDefinitionType] =
@@ -152,6 +153,11 @@ const PumpDefinitionDetailsInner = ({
     ) => {
       setLocalDefinitionType(newValue);
 
+      if (allowsNullValues) {
+        onChange([{ property: "definitionType", value: newValue }]);
+        return;
+      }
+
       if (newValue === "power") {
         return onChange(
           pumpDefinitionTypeChanges("power", { power: pump.power }),
@@ -180,9 +186,11 @@ const PumpDefinitionDetailsInner = ({
         return;
       }
 
-      onChange(pumpDefinitionTypeChanges(newValue, { curve: validPoints }));
+      onChange(
+        pumpDefinitionTypeChanges(newValue, { curve: validPoints ?? null }),
+      );
     },
-    [curve, onChange, pump.power, pump.curveId],
+    [curve, onChange, pump.power, pump.curveId, allowsNullValues],
   );
 
   const handleCurvePointsChange = useCallback(
@@ -225,6 +233,7 @@ const PumpDefinitionDetailsInner = ({
             power={pump.power}
             units={units}
             readOnly={readonly}
+            allowsNullValues={allowsNullValues}
             onChange={onChange}
           />
         )}
@@ -405,16 +414,18 @@ const PowerDefinition = ({
   power,
   units,
   readOnly,
+  allowsNullValues,
   onChange,
 }: {
-  power: number;
+  power: number | null;
   units: UnitsSpec;
   onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
+  allowsNullValues?: boolean;
 }) => {
   const handlePowerChange = useCallback(
     (_name: string, newValue: number | null, _oldValue: number | null) => {
-      onChange([{ property: "power", value: newValue ?? 0 }]);
+      onChange([{ property: "power", value: newValue }]);
     },
     [onChange],
   );
@@ -425,6 +436,7 @@ const PowerDefinition = ({
       value={power}
       unit={units.power}
       readOnly={readOnly}
+      commitInvalidValues={allowsNullValues}
       onChange={handlePowerChange}
       validate={fieldValidator("pump", "power")}
     />
@@ -437,7 +449,7 @@ const CurveIdSelector = ({
   onChange,
   readOnly,
 }: {
-  curveId?: CurveId;
+  curveId?: CurveId | null;
   curves: Curves;
   onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
@@ -445,7 +457,7 @@ const CurveIdSelector = ({
   const translate = useTranslate();
   const showPumpLibrary = useShowPumpLibrary();
 
-  const selectedCurve = curveId === undefined ? null : curveId;
+  const selectedCurve = curveId ?? null;
   const curve = selectedCurve ? curves.get(selectedCurve) : undefined;
   const curveType = curve ? getCurvePointsType(curve.points) : undefined;
 
@@ -470,7 +482,7 @@ const CurveIdSelector = ({
         onOpenLibrary={() =>
           showPumpLibrary({
             source: "pump",
-            curveId,
+            curveId: curveId ?? undefined,
             initialSection: "pump",
           })
         }

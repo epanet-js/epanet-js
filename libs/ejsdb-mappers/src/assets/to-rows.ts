@@ -6,7 +6,6 @@ import {
   type Pipe,
   type Pump,
   type Valve,
-  type CurvePoint,
 } from "@epanet-js/hydraulic-model";
 import type { ZodTypeAny } from "zod";
 import {
@@ -192,10 +191,10 @@ const toPumpRow = (pump: Pump): PumpRow =>
       start_node_id: pump.connections[0],
       end_node_id: pump.connections[1],
       coords: toDbLinkCoordinates(pump, "Pump"),
-      length: pump.length,
+      length: null,
       initial_status: pump.initialStatus,
       definition_type: pump.definitionType,
-      power: pump.power,
+      power: pump.power ?? null,
       speed: pump.speed ?? null,
       speed_pattern_id: toDbId(pump.speedPatternId),
       efficiency_curve_id: toDbId(pump.efficiencyCurveId),
@@ -220,7 +219,7 @@ const toValveRow = (valve: Valve): ValveRow =>
       start_node_id: valve.connections[0],
       end_node_id: valve.connections[1],
       coords: toDbLinkCoordinates(valve, "Valve"),
-      length: valve.length,
+      length: null,
       initial_status: valve.initialStatus,
       diameter: valve.diameter,
       minor_loss: valve.minorLoss ?? null,
@@ -248,7 +247,7 @@ const toDbLinkCoordinates = (
 };
 
 const toDbCurvePoints = (pump: Pump): string | null => {
-  const points: CurvePoint[] | undefined = pump.curve;
+  const points = pump.curve;
   if (!points) return null;
   const result = pointsSchema.safeParse(points);
   if (!result.success) {
@@ -261,7 +260,7 @@ const toDbCurvePoints = (pump: Pump): string | null => {
 
 const toDbBool = (v: boolean): number => (v ? 1 : 0);
 
-const toDbId = (v: number | undefined): number | null => v ?? null;
+const toDbId = (v: number | null | undefined): number | null => v ?? null;
 
 const unreachable = (asset: Asset): never => {
   throw new Error(`Unknown asset type: ${asset.type as string}`);

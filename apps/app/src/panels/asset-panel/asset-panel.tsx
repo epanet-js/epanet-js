@@ -2391,8 +2391,11 @@ const PumpEditor = ({
     ["definitionType", "power", "speed", "initialStatus"].some(
       (p) => getComparison(p, pump.getProperty(p)).hasChanged,
     ) ||
-    getCurveComparison("curveId", pump.curveId, hydraulicModel.curves)
-      .hasChanged ||
+    getCurveComparison(
+      "curveId",
+      pump.curveId ?? undefined,
+      hydraulicModel.curves,
+    ).hasChanged ||
     getPatternComparison(
       "speedPatternId",
       pump.speedPatternId,

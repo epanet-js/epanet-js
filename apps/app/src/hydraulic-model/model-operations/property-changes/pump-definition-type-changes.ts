@@ -6,9 +6,9 @@ import {
 } from "@epanet-js/hydraulic-model";
 
 export type PumpDefinitionOptions = {
-  power?: number;
-  curveId?: CurveId;
-  curve?: CurvePoint[];
+  power?: number | null;
+  curveId?: CurveId | null;
+  curve?: CurvePoint[] | null;
 };
 
 export function pumpDefinitionTypeChanges(
@@ -22,7 +22,7 @@ export function pumpDefinitionTypeChanges(
         ...(options?.power !== undefined
           ? [{ property: "power", value: options.power } as PropertyChange]
           : []),
-        { property: "curveId", value: undefined },
+        { property: "curveId", value: null },
       ];
     case "curveId":
       return [
@@ -38,7 +38,7 @@ export function pumpDefinitionTypeChanges(
         ...(options?.curve !== undefined
           ? [{ property: "curve", value: options.curve } as PropertyChange]
           : []),
-        { property: "curveId", value: undefined },
+        { property: "curveId", value: null },
       ];
   }
 }

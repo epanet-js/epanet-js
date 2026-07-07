@@ -21,11 +21,11 @@ export type PumpProperties = {
   type: "pump";
   initialStatus: PumpStatus;
   definitionType: PumpDefinitionType;
-  power: number;
+  power: number | null;
   speed?: number;
   speedPatternId?: PatternId;
-  curveId?: CurveId;
-  curve?: CurvePoint[];
+  curveId: CurveId | null;
+  curve: CurvePoint[] | null;
   efficiencyCurveId?: CurveId;
   energyPrice?: number;
   energyPricePatternId?: PatternId;
@@ -81,7 +81,7 @@ export class Pump extends Link<PumpProperties> {
       this.definitionType === "designPointCurve" ||
       this.definitionType === "standardCurve"
     )
-      return this.curve;
+      return this.curve ?? undefined;
     if (!this.curveId) return undefined;
     const curve = curves.get(this.curveId);
     return curve;
@@ -95,7 +95,7 @@ export class Pump extends Link<PumpProperties> {
   copy() {
     return new Pump(this.id, [...this.coordinates], {
       ...this.properties,
-      curve: this.properties.curve?.map((p) => ({ ...p })),
+      curve: this.properties.curve?.map((p) => ({ ...p })) ?? null,
     });
   }
 }
