@@ -15,6 +15,13 @@ export const stubFeatureOn = (name: string) => {
   (useFeatureFlags.useFeatureFlag as Mock).mockImplementation(mockImpl);
 };
 
+export const stubFeaturesOn = (names: string[]) => {
+  const enabled = new Set(names);
+  (useFeatureFlags.useFeatureFlag as Mock).mockImplementation((flag: string) =>
+    enabled.has(flag),
+  );
+};
+
 export const stubFeatureOff = (name: string) => {
   const mockImpl = (flag: string) => {
     if (flag === name) return false;

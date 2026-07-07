@@ -16,7 +16,11 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import {
+  stubFeatureOn,
+  stubFeatureOff,
+  stubFeaturesOn,
+} from "src/__helpers__/feature-flags";
 import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
 
 const IDS = { CP1: 1, CP2: 2 };
@@ -105,6 +109,47 @@ describe("MultiCustomerPointCustomAttributesSection", () => {
     renderSection(store, [IDS.CP1, IDS.CP2]);
 
     expect(screen.getByPlaceholderText("2 values")).toBeInTheDocument();
+  });
+
+  it("writes the edited value to every selected customer point", async () => {
+    const store = setInitialState();
+    renderSection(store, [IDS.CP1, IDS.CP2]);
+
+    const input = screen.getByLabelText(/value for: Age/i);
+    await userEvent.click(input);
+    await userEvent.keyboard("99{Enter}");
+
+    await waitFor(() => {
+      const model = store.get(stagingModelDerivedAtom);
+      expect(model.customerPoints.get(IDS.CP1)!.getProperty("custom-1")).toBe(
+        99,
+      );
+      expect(model.customerPoints.get(IDS.CP2)!.getProperty("custom-1")).toBe(
+        99,
+      );
+    });
+  });
+});
+
+describe("MultiCustomerPointCustomAttributesSection with FLAG_STATS_PERF", () => {
+  beforeEach(() => {
+    stubFeaturesOn(["FLAG_CUSTOM_ATTRIBUTES", "FLAG_STATS_PERF"]);
+  });
+
+  it("shows a mixed placeholder and computes stats lazily on open", async () => {
+    const store = setInitialState(buildModel({ [IDS.CP1]: 10, [IDS.CP2]: 20 }));
+    renderSection(store, [IDS.CP1, IDS.CP2]);
+
+    expect(screen.getByPlaceholderText("2 values")).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /stats for: Age/i }),
+    );
+
+    const minField = screen.getByLabelText<HTMLInputElement>(/value for: min/i);
+    const maxField = screen.getByLabelText<HTMLInputElement>(/value for: max/i);
+    expect(minField.value).toMatch(/^10(\.0+)?$/);
+    expect(maxField.value).toMatch(/^20(\.0+)?$/);
   });
 
   it("writes the edited value to every selected customer point", async () => {

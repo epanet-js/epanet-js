@@ -68,7 +68,7 @@ const useSummaryPrimitives = (propertyStats: PropertyStats) => {
   };
 };
 
-const LazyStatsPopoverButton = ({
+export const LazyStatsPopoverButton = ({
   label,
   property,
   loadDetails,

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
 import {
   type CustomAttribute,
@@ -20,9 +20,14 @@ import {
   PaywallOverlay,
   useFeatureLock,
 } from "src/components/form/paywall";
-import { buildCustomAttributeStats } from "./custom-attributes-stats";
+import {
+  buildCustomAttributeStats,
+  buildCustomAttributeSummary,
+} from "./custom-attributes-stats";
 import { getDistinctBucketCount, getEmptyBucket } from "./stats";
+import { getDistinctBucketCount as getSummaryDistinctBucketCount } from "./summary-stats";
 import { StatsPopoverButton } from "./multi-value-row";
+import { LazyStatsPopoverButton } from "./summary-value-row";
 
 export function MultiCustomerPointCustomAttributesSection({
   customerPointIds,
@@ -97,6 +102,7 @@ const MultiCustomAttributeRow = ({
   ) => void;
 }) => {
   const translate = useTranslate();
+  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { customerPoints } = useAtomValue(stagingModelDerivedAtom);
   const { isLocked } = useFeatureLock("customAttributes");
@@ -110,14 +116,52 @@ const MultiCustomAttributeRow = ({
           null) as CustomAttributeValue,
       ] as [number, CustomAttributeValue],
   );
-  const propertyStats = buildCustomAttributeStats(
-    attribute,
-    valuesById,
-    units,
-    formatting,
-  );
-  const distinctBuckets = getDistinctBucketCount(propertyStats);
-  const emptyBucket = getEmptyBucket(propertyStats);
+
+  let distinctBuckets: number;
+  let statsButton: ReactNode;
+  if (isStatsPerfOn) {
+    const summary = buildCustomAttributeSummary(
+      attribute,
+      valuesById,
+      units,
+      formatting,
+    );
+    distinctBuckets = getSummaryDistinctBucketCount(summary);
+    statsButton =
+      distinctBuckets > 1 ? (
+        <LazyStatsPopoverButton
+          label={attribute.label}
+          property={attribute.id}
+          loadDetails={() =>
+            buildCustomAttributeStats(attribute, valuesById, units, formatting)
+          }
+          onSelectAssets={onSelectCustomerPoints}
+        />
+      ) : (
+        <div className="shrink-0 w-7" />
+      );
+  } else {
+    const propertyStats = buildCustomAttributeStats(
+      attribute,
+      valuesById,
+      units,
+      formatting,
+    );
+    distinctBuckets = getDistinctBucketCount(propertyStats);
+    const emptyBucket = getEmptyBucket(propertyStats);
+    statsButton =
+      distinctBuckets > 1 ? (
+        <StatsPopoverButton
+          propertyStats={propertyStats}
+          label={attribute.label}
+          onSelectAssets={onSelectCustomerPoints}
+          emptyBucket={emptyBucket}
+        />
+      ) : (
+        <div className="shrink-0 w-7" />
+      );
+  }
+
   const isMixed = distinctBuckets > 1;
 
   const representative = isMixed
@@ -164,16 +208,7 @@ const MultiCustomAttributeRow = ({
       }
     >
       <div className="flex items-center gap-1">
-        {isMixed ? (
-          <StatsPopoverButton
-            propertyStats={propertyStats}
-            label={attribute.label}
-            onSelectAssets={onSelectCustomerPoints}
-            emptyBucket={emptyBucket}
-          />
-        ) : (
-          <div className="shrink-0 w-7" />
-        )}
+        {statsButton}
         <div className="flex-1 min-w-0">
           {paywall ? (
             <PaywallOverlay feature={paywall} ariaLabel={attribute.label}>
