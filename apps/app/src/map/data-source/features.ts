@@ -68,8 +68,6 @@ export const buildOptimizedAssetsSource = (
           feature,
           symbology.link,
           units,
-          formatting,
-          translateUnit,
           simulationResults,
         );
         break;
@@ -78,9 +76,6 @@ export const buildOptimizedAssetsSource = (
           asset as Junction,
           feature,
           symbology.node,
-          units,
-          formatting,
-          translateUnit,
           simulationResults,
         );
         break;
@@ -105,8 +100,6 @@ const appendPipeProps = (
   feature: Feature,
   linkSymbology: LinkSymbology,
   units: UnitsSpec,
-  formatting: FormattingSpec,
-  translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
   appendPipeStatus(pipe, feature, simulationResults);
@@ -115,8 +108,6 @@ const appendPipeProps = (
     feature,
     linkSymbology,
     units,
-    formatting,
-    translateUnit,
     simulationResults,
   );
 };
@@ -125,18 +116,12 @@ const appendJunctionProps = (
   junction: Junction,
   feature: Feature,
   nodeSymbology: NodeSymbology,
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
   appendJunctionSymbologyProps(
     junction,
     feature,
     nodeSymbology,
-    units,
-    formatting,
-    translateUnit,
     simulationResults,
   );
 };
@@ -198,7 +183,7 @@ export const appendPipeArrowProps = (
   const flow = pipeSimulation?.flow ?? null;
   const isReverse = flow && flow < 0;
   feature.properties!.length = convertTo(
-    { value: pipe.length, unit: units.length },
+    { value: pipe.length ?? 0, unit: units.length },
     "m",
   );
   feature.properties!.hasArrow =
@@ -211,16 +196,15 @@ const appendPipeSymbologyProps = (
   feature: Feature,
   linkSymbology: LinkSymbology,
   units: UnitsSpec,
-  formatting: FormattingSpec,
-  translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
   if (!linkSymbology.colorRule) return;
 
   const property = linkSymbology.colorRule.property;
+  const isSimProperty = isSimulationProperty(property);
 
   let value: number | null;
-  if (isSimulationProperty(property)) {
+  if (isSimProperty) {
     const pipeSimulation = simulationResults?.getPipe(pipe.id);
     value = pipeSimulation
       ? (pipeSimulation[property as keyof PipeSimulation] as number)
@@ -228,9 +212,9 @@ const appendPipeSymbologyProps = (
   } else {
     value = pipe[property as keyof Pipe] as number | null;
   }
-  const numericValue = value !== null ? value : 0;
-
-  feature.properties!.color = colorFor(linkSymbology.colorRule, numericValue);
+  if (isSimProperty || value !== null) {
+    feature.properties!.color = colorFor(linkSymbology.colorRule, value ?? 0);
+  }
   appendPipeArrowProps(pipe, feature, units, simulationResults);
 };
 
@@ -244,17 +228,15 @@ const appendJunctionSymbologyProps = (
   junction: Junction,
   feature: Feature,
   nodeSymbology: NodeSymbology,
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
 ) => {
   if (!nodeSymbology.colorRule) return;
 
   const property = nodeSymbology.colorRule.property;
+  const isSimProperty = isSimulationProperty(property);
 
   let value: number | null;
-  if (isSimulationProperty(property)) {
+  if (isSimProperty) {
     const junctionSimulation = simulationResults?.getJunction(junction.id);
     const simProperty = getJunctionSimProperty(property);
     value = junctionSimulation
@@ -263,13 +245,11 @@ const appendJunctionSymbologyProps = (
   } else {
     value = junction[property as keyof Junction] as number | null;
   }
-  const numericValue = value !== null ? value : 0;
-
-  const fillColor = colorFor(nodeSymbology.colorRule, numericValue);
-  const strokeColor = strokeColorFor(fillColor);
-
-  feature.properties!.color = fillColor;
-  feature.properties!.strokeColor = strokeColor;
+  if (isSimProperty || value !== null) {
+    const fillColor = colorFor(nodeSymbology.colorRule, value ?? 0);
+    feature.properties!.color = fillColor;
+    feature.properties!.strokeColor = strokeColorFor(fillColor);
+  }
 };
 
 const appendLabel = (
@@ -305,9 +285,10 @@ const appendLabel = (
       (asset as unknown as Record<string, number | null>)[property] ?? null;
   }
 
-  const numericValue = value !== null ? value : 0;
+  if (value === null) return;
+
   const unit = units[property as QuantityProperty];
-  const localizedNumber = localizeDecimal(numericValue, {
+  const localizedNumber = localizeDecimal(value, {
     decimals: getDecimals(formatting, property as QuantityProperty),
   });
   const unitText = unit ? translateUnit(unit) : "";

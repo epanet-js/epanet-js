@@ -148,6 +148,44 @@ describe("build optimized source", () => {
       expect(junction.properties!.strokeColor).not.toBeUndefined();
     });
 
+    it("assigns same value to 0 and missing simulation results", () => {
+      const IDS = { J1: 1, J2: 2 } as const;
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        node: aNodeSymbology({
+          colorRule: aRangeColorRule({
+            breaks: [10, 20, 30],
+            property: "pressure",
+            unit: "m",
+            colors: getColors("Temps", 4),
+          }),
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 15 })
+        .aJunction(IDS.J2, { elevation: 15 })
+        .build();
+      const simulationResults = createMockResultsReader({
+        junctions: { [IDS.J1]: { pressure: 0 } },
+      });
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        symbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+        simulationResults,
+      );
+
+      const [j1, j2] = features;
+      // A missing simulation result falls back to the lowest bracket, same as
+      // a real 0, rather than the default color.
+      expect(j1.properties!.color).toEqual(expect.stringMatching("#"));
+      expect(j2.properties!.color).toEqual(expect.stringMatching("#"));
+      expect(j1.properties!.color).toEqual(j2.properties!.color);
+    });
+
     it("includes labels when specified", () => {
       const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
@@ -174,6 +212,31 @@ describe("build optimized source", () => {
 
       const [junction] = features;
       expect(junction.properties!.label).toEqual("10 m");
+    });
+
+    it("omits the label when the value is missing", () => {
+      const IDS = { J1: 1 } as const;
+      const symbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        node: aNodeSymbology({
+          labelRule: "pressure",
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { elevation: 15 })
+        .build();
+
+      // No simulation results provided → no pressure value.
+      const features = buildOptimizedAssetsSource(
+        assets,
+        symbology,
+        defaultUnits,
+        defaultFormatting,
+        () => "m",
+      );
+
+      const [junction] = features;
+      expect(junction.properties!.label).toBeUndefined();
     });
   });
 
@@ -325,7 +388,7 @@ describe("build optimized source", () => {
       });
     });
 
-    it("assigns same value to 0 and missing results", () => {
+    it("assigns same value to 0 and missing simulation results", () => {
       const IDS = { p1: 1, p2: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aPipe(IDS.p1)
@@ -345,6 +408,8 @@ describe("build optimized source", () => {
       );
 
       const [p1, p2] = features;
+      // A missing simulation result falls back to the lowest bracket, same as
+      // a real 0, rather than the default color.
       expect(p1.properties).toMatchObject({
         color: expect.stringMatching("#"),
         hasArrow: true,
@@ -354,6 +419,34 @@ describe("build optimized source", () => {
         hasArrow: false,
       });
       expect(p1.properties!.color).toEqual(p2.properties!.color);
+    });
+
+    it("leaves a null static attribute uncolored so it uses the default color", () => {
+      const IDS = { p1: 1 } as const;
+      const staticSymbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        link: aLinkSymbology({
+          colorRule: aRangeColorRule({
+            breaks: [10, 20, 30],
+            property: "roughness",
+            colors: getColors("Temps", 4),
+          }),
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe(IDS.p1, { roughness: null })
+        .build();
+
+      const features = buildOptimizedAssetsSource(
+        assets,
+        staticSymbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties!.color).toBeUndefined();
     });
 
     it("assigns lengths in meters", () => {
