@@ -12,8 +12,6 @@ export const getWorker = (): Comlink.Remote<DbWorkerApi> => {
 
   const worker = new Worker(new URL("./worker.ts", import.meta.url), {
     type: "module",
-    // Static name so the thread is identifiable in devtools instead of an opaque
-    // UUID. Must be a literal: bundlers statically analyse these worker options.
     name: "DBWorker",
   });
   const remote = Comlink.wrap<DbWorkerApi>(worker);
