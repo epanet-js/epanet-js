@@ -1144,6 +1144,7 @@ type CustomAttributesOpened = {
 type CustomAttributesUpdated = {
   name: "customAttributes.updated";
   count: number;
+  newLabels: string[];
 };
 
 type AssetDataExported = {
