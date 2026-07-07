@@ -5,7 +5,7 @@ export type PipeStatus = (typeof pipeStatuses)[number];
 
 export type PipeProperties = {
   type: "pipe";
-  diameter: number;
+  diameter: number | null;
   roughness: number | null;
   minorLoss?: number;
   initialStatus: PipeStatus;

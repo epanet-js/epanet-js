@@ -1063,7 +1063,7 @@ const appendPipe = (
     startId,
     endId,
     requiredValue(pipe.length),
-    pipe.diameter,
+    requiredValue(pipe.diameter),
     requiredValue(pipe.roughness),
   ];
   const minorLoss = optionalValue(pipe.minorLoss, DEFAULT_MINOR_LOSS);

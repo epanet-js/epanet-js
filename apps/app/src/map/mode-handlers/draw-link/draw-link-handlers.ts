@@ -189,9 +189,12 @@ export function useDrawLinkHandlers({
       case "pipe":
         return assetFactory.createPipe({
           ...startProperties,
-          ...(pipeDrawingDefaults.diameter && {
-            diameter: pipeDrawingDefaults.diameter,
-          }),
+          ...(pipeDrawingDefaults.diameter === null
+            ? {}
+            : {
+                diameter:
+                  pipeDrawingDefaults.diameter ?? defaults.pipe.diameter,
+              }),
           ...(pipeDrawingDefaults.roughness === null
             ? {}
             : {

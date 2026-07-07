@@ -31,6 +31,8 @@ export const MapToolbarPipeDrawing = () => {
   }
 
   const systemDefaults = defaults.pipe;
+  const isDiameterEmpty =
+    allowsNullValues && pipeDrawingDefaults.diameter === null;
   const currentDiameter =
     pipeDrawingDefaults.diameter ?? systemDefaults.diameter ?? 0;
   const isRoughnessEmpty =
@@ -38,13 +40,14 @@ export const MapToolbarPipeDrawing = () => {
   const currentRoughness =
     pipeDrawingDefaults.roughness ?? systemDefaults.roughness ?? 0;
 
-  const handleDiameterChange = (newValue: number) => {
+  const handleDiameterChange = (newValue: number, isEmpty: boolean) => {
     lastDiameterChange.current = Date.now();
-    setPipeDrawingDefaults((prev) => ({ ...prev, diameter: newValue }));
+    const diameter = isEmpty ? null : newValue;
+    setPipeDrawingDefaults((prev) => ({ ...prev, diameter }));
     userTracking.capture({
       name: "pipeDrawingDefaults.changed",
       property: "diameter",
-      newValue,
+      newValue: diameter,
     });
   };
 
@@ -69,7 +72,9 @@ export const MapToolbarPipeDrawing = () => {
     ? `${translate("roughness")} (${translateUnit(roughnessUnit)})`
     : translate("roughness");
 
-  const diameterDisplay = displayValue(currentDiameter, "diameter");
+  const diameterDisplay = isDiameterEmpty
+    ? ""
+    : displayValue(currentDiameter, "diameter");
   const roughnessDisplay = isRoughnessEmpty
     ? ""
     : displayValue(currentRoughness, "roughness");
@@ -86,6 +91,7 @@ export const MapToolbarPipeDrawing = () => {
             label={diameterLabel}
             validate={numericChecks.positive}
             isRequired={true}
+            commitInvalidValues={allowsNullValues}
             displayValue={diameterDisplay}
             onChangeValue={handleDiameterChange}
             styleOptions={{

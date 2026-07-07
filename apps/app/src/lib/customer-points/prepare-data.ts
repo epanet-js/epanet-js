@@ -234,7 +234,7 @@ export const prepareWorkerData = (
       if (selectedPipes && !selectedPipes.has(asset.id)) continue;
       const pipe = asset as Pipe;
       const [startNodeId, endNodeId] = pipe.connections;
-      pipesBuilder.addPipe(pipe.id, pipe.diameter, startNodeId, endNodeId);
+      pipesBuilder.addPipe(pipe.id, pipe.diameter ?? 0, startNodeId, endNodeId);
 
       if (pipe.feature.geometry.type === "LineString") {
         const pipeFeature = {

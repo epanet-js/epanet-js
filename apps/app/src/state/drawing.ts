@@ -51,7 +51,7 @@ export type EphemeralEditingState =
 export const ephemeralStateAtom = atom<EphemeralEditingState>({ type: "none" });
 
 export const pipeDrawingDefaultsAtom = atom<{
-  diameter?: number;
+  diameter?: number | null;
   roughness?: number | null;
 }>({});
 

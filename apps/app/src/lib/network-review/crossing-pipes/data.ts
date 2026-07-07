@@ -41,15 +41,17 @@ export function decodeCrossingPipes(
     const pipe1B = model.assets.get(b.pipe1Id) as Pipe;
     const pipe2B = model.assets.get(b.pipe2Id) as Pipe;
 
-    if (pipe1A.diameter === pipe1B.diameter) {
-      if (pipe2A.diameter === pipe2B.diameter) {
+    if (diameterOrZero(pipe1A) === diameterOrZero(pipe1B)) {
+      if (diameterOrZero(pipe2A) === diameterOrZero(pipe2B)) {
         return pipe1A.label.toUpperCase() < pipe1B.label.toUpperCase() ? -1 : 1;
       }
-      return pipe2A.diameter - pipe2B.diameter;
+      return diameterOrZero(pipe2A) - diameterOrZero(pipe2B);
     }
-    return pipe1A.diameter - pipe1B.diameter;
+    return diameterOrZero(pipe1A) - diameterOrZero(pipe1B);
   });
 }
+
+const diameterOrZero = (pipe: Pipe): number => pipe.diameter ?? 0;
 
 function sortByDiameterAndLabel(
   model: HydraulicModel,
@@ -62,13 +64,13 @@ function sortByDiameterAndLabel(
   const pipeA = pipeAAsset as Pipe;
   const pipeB = pipeBAsset as Pipe;
 
-  if (pipeA.diameter === pipeB.diameter) {
+  if (diameterOrZero(pipeA) === diameterOrZero(pipeB)) {
     return pipeA.label.toUpperCase() < pipeB.label.toUpperCase()
       ? [pipeAId, pipeBId]
       : [pipeBId, pipeAId];
   }
 
-  return pipeA.diameter < pipeB.diameter
+  return diameterOrZero(pipeA) < diameterOrZero(pipeB)
     ? [pipeAId, pipeBId]
     : [pipeBId, pipeAId];
 }

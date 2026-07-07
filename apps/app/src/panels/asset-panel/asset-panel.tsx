@@ -860,6 +860,7 @@ const PipeEditor = ({
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          commitInvalidValues={allowsNullValues}
         />
         <QuantityRow
           name="length"

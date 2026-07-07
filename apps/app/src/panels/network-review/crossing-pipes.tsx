@@ -209,8 +209,10 @@ const CrossingPipeItem = ({
   const pipe1 = pipe1Asset as Pipe;
   const pipe2 = pipe2Asset as Pipe;
 
-  const diameter1Formatted = localizeDecimal(pipe1.diameter);
-  const diameter2Formatted = localizeDecimal(pipe2.diameter);
+  const diameter1Formatted =
+    pipe1.diameter === null ? "—" : localizeDecimal(pipe1.diameter);
+  const diameter2Formatted =
+    pipe2.diameter === null ? "—" : localizeDecimal(pipe2.diameter);
 
   return (
     <Button

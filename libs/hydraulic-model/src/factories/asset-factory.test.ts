@@ -40,6 +40,28 @@ describe("AssetFactoryWithNullValues createPipe roughness", () => {
   });
 });
 
+describe("AssetFactory createPipe diameter", () => {
+  it("applies the default diameter when none is provided", () => {
+    expect(assetFactory().createPipe({}).diameter).toEqual(300);
+  });
+
+  it("keeps the provided diameter value", () => {
+    expect(assetFactory().createPipe({ diameter: 150 }).diameter).toEqual(150);
+  });
+});
+
+describe("AssetFactoryWithNullValues createPipe diameter", () => {
+  it("leaves diameter empty when none is provided", () => {
+    expect(assetFactoryWithNullValues().createPipe({}).diameter).toBeNull();
+  });
+
+  it("keeps the provided diameter value", () => {
+    expect(
+      assetFactoryWithNullValues().createPipe({ diameter: 150 }).diameter,
+    ).toEqual(150);
+  });
+});
+
 describe("pump and valve length", () => {
   it("is always null (pumps and valves are zero-length links)", () => {
     expect(assetFactory().createPump({}).length).toBeNull();

@@ -631,11 +631,7 @@ function _buildColumns(
       commitInvalidValues?: boolean;
     } = {},
   ): GridColumn<AssetRow> => {
-    // "diameter" is shared across types; pipe diameter is deferred from the
-    // first nullable batch, so exclude it here.
-    const nullable =
-      isNullableColumn(key, allowsNullValues) &&
-      !(key === "diameter" && type === "pipe");
+    const nullable = isNullableColumn(key, allowsNullValues);
     const flagOptional = !!allowsNullValues && FLAG_OPTIONAL_KEYS.has(key);
     const emptiable = isOptionalColumn(key, allowsNullValues) || nullable;
     return floatColumn(ck(key), {

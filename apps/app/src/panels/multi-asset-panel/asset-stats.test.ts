@@ -449,6 +449,47 @@ describe("computeMultiAssetData", () => {
     expect(lengthStat.emptyBucket?.ids).toEqual([IDS.P3]);
   });
 
+  it("counts pipes with null diameter in emptyBucket and excludes them from min/max/mean", () => {
+    const IDS = { J1: 1, J2: 2, P1: 3, P2: 4, P3: 5 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .aJunction(IDS.J2)
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 300,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: 150,
+      })
+      .aPipe(IDS.P3, {
+        startNodeId: IDS.J1,
+        endNodeId: IDS.J2,
+        diameter: null,
+      })
+      .build();
+    const assets = Array.from(hydraulicModel.assets.values());
+
+    const result = computeAssetsStats(
+      assets,
+      units,
+      formatting,
+      hydraulicModel,
+      defaultSimulationSettings,
+      null,
+    );
+
+    const diameterStat = findQuantityStat(
+      result.data.pipe.modelAttributes,
+      "diameter",
+    );
+    expect(diameterStat.times).toBe(2);
+    expect(diameterStat.emptyBucket?.label).toBe("none");
+    expect(diameterStat.emptyBucket?.ids).toEqual([IDS.P3]);
+  });
+
   it("surfaces roughness stat with only emptyBucket when every pipe is null", () => {
     const IDS = { J1: 1, J2: 2, P1: 3, P2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()

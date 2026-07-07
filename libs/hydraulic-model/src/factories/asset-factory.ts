@@ -448,7 +448,7 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     const pipe = emptyUnmapped(
       super.createPipe(data),
       data,
-      ["roughness"],
+      ["roughness", "diameter"],
       null,
     );
     return emptyUnmapped(pipe, data, OPTIONAL_FIELDS.pipe, undefined);
