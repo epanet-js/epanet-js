@@ -104,6 +104,9 @@ describe("isNullableColumn", () => {
     expect(isNullableColumn("setting", true)).toBe(true);
     expect(isNullableColumn("head", true)).toBe(true);
     expect(isNullableColumn("initialLevel", true)).toBe(true);
+    expect(isNullableColumn("minLevel", true)).toBe(true);
+    expect(isNullableColumn("maxLevel", true)).toBe(true);
+    expect(isNullableColumn("power", true)).toBe(true);
   });
 
   it("treats pipe length as nullable only when null values are allowed", () => {
@@ -112,13 +115,12 @@ describe("isNullableColumn", () => {
   });
 
   it("leaves deferred and optional-bound columns non-nullable", () => {
+    // elevation is still deferred (not yet nullable).
     expect(isNullableColumn("elevation", true)).toBe(false);
-    expect(isNullableColumn("minLevel", true)).toBe(false);
     // EPANET-optional attributes are excluded from the nullable batch.
     expect(isNullableColumn("minorLoss", true)).toBe(false);
     expect(isNullableColumn("minVolume", true)).toBe(false);
     expect(isNullableColumn("emitterCoefficient", true)).toBe(false);
-    expect(isNullableColumn("power", true)).toBe(false);
   });
 });
 

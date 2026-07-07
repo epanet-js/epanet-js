@@ -142,9 +142,12 @@ const NULLABLE_KEYS = new Set([
   "roughness",
   "head",
   "initialLevel",
+  "minLevel",
+  "maxLevel",
   "setting",
   "diameter",
   "length",
+  "power",
 ]);
 
 const FLAG_OPTIONAL_KEYS = new Set([
@@ -836,10 +839,12 @@ function _buildColumns(
         numericCol("diameter", translate("diameter"), {
           unit: units.diameter,
           property: "diameter",
+          commitInvalidValues: allowsNullValues,
         }),
         numericCol("length", translate("length"), {
           unit: units.length,
           property: "length",
+          commitInvalidValues: allowsNullValues,
         }),
         ...buildExtraPipeCols(translate, formatting, allowsNullValues),
         numericCol("roughness", translate("roughness"), {
@@ -927,6 +932,7 @@ function _buildColumns(
           property: "power",
           isReadOnly: (rowIndex) =>
             getRow?.(rowIndex)?.definitionType !== "power",
+          commitInvalidValues: allowsNullValues,
         }),
         numericCol("speed", translate("initialSpeed"), {
           unit: units.speed,
@@ -1056,11 +1062,13 @@ function _buildColumns(
           unit: units.minLevel,
           property: "minLevel",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+          commitInvalidValues: allowsNullValues,
         }),
         numericCol("maxLevel", translate("maxLevel"), {
           unit: units.maxLevel,
           property: "maxLevel",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
+          commitInvalidValues: allowsNullValues,
         }),
         numericCol("minVolume", translate("minVolume"), {
           unit: units.minVolume,
