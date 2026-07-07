@@ -33,10 +33,9 @@ export class Reservoir extends Node<ReservoirProperties> {
 export const calculateAverageHead = (
   reservoir: Reservoir,
   patterns: Patterns,
-): number => {
-  // Derived display value; a missing head falls back to 0 (the simulation reads
-  // the raw head, which is validated by the pre-simulation check).
-  const head = reservoir.head ?? 0;
+): number | null => {
+  const head = reservoir.head;
+  if (head === null) return null;
   if (reservoir.headPatternId) {
     const pattern = patterns.get(reservoir.headPatternId);
     if (pattern && pattern.multipliers.length > 0) {

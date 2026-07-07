@@ -1,4 +1,5 @@
 import { buildReservoir } from "../test-helpers";
+import { calculateAverageHead } from "./reservoir";
 
 describe("Reservoir", () => {
   it("stores the headPatternId", () => {
@@ -45,5 +46,18 @@ describe("Reservoir", () => {
       head: 0,
     });
     expect(withCustomNullHead.head).toEqual(0);
+  });
+
+  describe("calculateAverageHead", () => {
+    it("returns the head when there is no pattern", () => {
+      const reservoir = buildReservoir({ head: 100 });
+      expect(calculateAverageHead(reservoir, new Map())).toEqual(100);
+    });
+
+    it("returns null when the head is empty (cannot compute)", () => {
+      const reservoir = buildReservoir({ head: 100 });
+      reservoir.setProperty("head", null);
+      expect(calculateAverageHead(reservoir, new Map())).toBeNull();
+    });
   });
 });
