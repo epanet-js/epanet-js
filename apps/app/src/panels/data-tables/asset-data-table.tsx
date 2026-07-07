@@ -408,6 +408,20 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       if (merged) {
         transact(merged);
         for (const [property, count] of editedProperties) {
+          if (isCustomProperty(property)) {
+            const attribute = customAttributes.find(
+              (attribute) => attribute.id === property,
+            );
+            userTracking.capture({
+              name: "customAttribute.batchEdited",
+              assetType,
+              attributeType: attribute?.type ?? "text",
+              property,
+              label: attribute?.label ?? "",
+              count,
+            });
+            continue;
+          }
           userTracking.capture({
             name: "dataTables.cellEdited",
             type: assetType,

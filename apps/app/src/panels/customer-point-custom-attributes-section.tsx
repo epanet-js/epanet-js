@@ -9,6 +9,7 @@ import {
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useCustomerPointComparison } from "src/hooks/use-customer-point-comparison";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
@@ -31,6 +32,7 @@ export const CustomerPointCustomAttributesSection = ({
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
+  const userTracking = useUserTracking();
   const { getComparison } = useCustomerPointComparison(customerPoint.id);
 
   const handleChange = useCallback(
@@ -42,8 +44,19 @@ export const CustomerPointCustomAttributesSection = ({
           value,
         }),
       );
+      const attribute = getAttributes(
+        hydraulicModel.customAttributes,
+        "customerPoint",
+      ).find((attribute) => attribute.id === attributeId);
+      userTracking.capture({
+        name: "customAttribute.edited",
+        assetType: "customerPoint",
+        attributeType: attribute?.type ?? "text",
+        property: attributeId,
+        label: attribute?.label ?? "",
+      });
     },
-    [transact, hydraulicModel, customerPoint.id],
+    [transact, hydraulicModel, customerPoint.id, userTracking],
   );
 
   if (!isCustomAttributesOn) return null;

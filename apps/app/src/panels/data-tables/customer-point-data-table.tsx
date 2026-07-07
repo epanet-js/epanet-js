@@ -141,6 +141,7 @@ export const CustomerPointDataTable = memo(
       async (newRows: CustomerPointRow[]) => {
         const moments: ModelMoment[] = [];
         const demandAssignments: CustomerDemandAssignment[] = [];
+        const customEditCounts = new Map<string, number>();
         let labelChanges = 0;
         let oldDemandsTotal = 0;
         let newDemandsTotal = 0;
@@ -214,6 +215,7 @@ export const CustomerPointDataTable = memo(
                 property: key,
                 value: value === undefined ? null : value,
               });
+              customEditCounts.set(key, (customEditCounts.get(key) ?? 0) + 1);
             }
             if (customChanges.length > 0) {
               moments.push(
@@ -247,6 +249,19 @@ export const CustomerPointDataTable = memo(
             name: "customerPointDemands.edited",
             oldCount: oldDemandsTotal,
             newCount: newDemandsTotal,
+          });
+        }
+        for (const [property, count] of customEditCounts) {
+          const attribute = customAttributes.find(
+            (attribute) => attribute.id === property,
+          );
+          userTracking.capture({
+            name: "customAttribute.batchEdited",
+            assetType: "customerPoint",
+            attributeType: attribute?.type ?? "text",
+            property,
+            label: attribute?.label ?? "",
+            count,
           });
         }
       },

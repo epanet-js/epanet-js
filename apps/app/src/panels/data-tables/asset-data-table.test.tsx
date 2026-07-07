@@ -280,6 +280,47 @@ describe("AssetDataTable", () => {
     });
   });
 
+  it("reports a custom-attribute edit under a distinct event", async () => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    const tracking = stubUserTracking();
+    const user = setupUser();
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    hydraulicModel.assets.get(1)?.setProperty("custom-1", "A");
+    const store = setInitialState({ hydraulicModel });
+
+    renderTable(store);
+
+    const cell = await screen.findByDisplayValue("A");
+    await user.dblClick(cell);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("A")).not.toHaveAttribute("readonly");
+    });
+    const input = screen.getByDisplayValue("A");
+    await user.clear(input);
+    await user.type(input, "B{Enter}");
+
+    await waitFor(() => {
+      expect(tracking.capture).toHaveBeenCalledWith({
+        name: "customAttribute.batchEdited",
+        assetType: "junction",
+        attributeType: "text",
+        property: "custom-1",
+        label: "Zone",
+        count: 1,
+      });
+    });
+    expect(tracking.capture).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "dataTables.cellEdited" }),
+    );
+  });
+
   it("clears a custom-attribute value back to empty", async () => {
     stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
     const user = setupUser();

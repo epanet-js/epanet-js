@@ -19,6 +19,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CustomerPointCustomAttributesSection } from "./customer-point-custom-attributes-section";
 
 const IDS = { CP1: 1 };
@@ -154,6 +155,26 @@ describe("CustomerPointCustomAttributesSection", () => {
       expect(model.customerPoints.get(IDS.CP1)!.getProperty("custom-1")).toBe(
         "south",
       );
+    });
+  });
+
+  it("reports the edit under a distinct custom-attribute event", async () => {
+    const tracking = stubUserTracking();
+    const store = setInitialState(buildModel());
+    renderSection(store);
+
+    const input = screen.getByLabelText(/value for: Zone/i);
+    await userEvent.click(input);
+    await userEvent.keyboard("south{Enter}");
+
+    await waitFor(() => {
+      expect(tracking.capture).toHaveBeenCalledWith({
+        name: "customAttribute.edited",
+        assetType: "customerPoint",
+        attributeType: "text",
+        property: "custom-1",
+        label: "Zone",
+      });
     });
   });
 });

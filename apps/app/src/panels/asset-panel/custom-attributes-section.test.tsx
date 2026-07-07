@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
@@ -20,6 +20,7 @@ import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
 import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
+import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import type { User } from "src/auth-types";
 import { dialogAtom } from "src/state/dialog";
@@ -221,5 +222,37 @@ describe("CustomAttributesSection paywall", () => {
     expect(
       screen.queryByRole("button", { name: "Paid feature: Age" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("CustomAttributesSection tracking", () => {
+  beforeEach(() => {
+    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+  });
+
+  it("reports a custom-attribute edit under a distinct event", async () => {
+    const tracking = stubUserTracking();
+    const user = userEvent.setup();
+    const store = setMainState({ hydraulicModel: buildModel(10) });
+
+    renderComponent(store, aUser({ plan: "pro" }));
+
+    const input = screen.getByLabelText(/value for: Age/i);
+    await user.clear(input);
+    await user.type(input, "20");
+    await user.tab();
+
+    await waitFor(() => {
+      expect(tracking.capture).toHaveBeenCalledWith({
+        name: "customAttribute.edited",
+        assetType: "junction",
+        attributeType: "number",
+        property: "custom-1",
+        label: "Age",
+      });
+    });
+    expect(tracking.capture).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "assetProperty.edited" }),
+    );
   });
 });

@@ -9,6 +9,7 @@ import {
 } from "@epanet-js/custom-attributes";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { changeProperty } from "src/hydraulic-model/model-operations";
 import type { ChangeableProperty } from "src/hydraulic-model/model-operations/change-property";
@@ -45,6 +46,7 @@ export function MultiCustomAttributesSection({
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
+  const userTracking = useUserTracking();
 
   const handleChange = useCallback(
     (attributeId: CustomAttributeId, value: CustomAttributeValue) => {
@@ -55,8 +57,20 @@ export function MultiCustomAttributesSection({
           value: value as never,
         }),
       );
+      const attribute = getAttributes(
+        hydraulicModel.customAttributes,
+        assetType,
+      ).find((attribute) => attribute.id === attributeId);
+      userTracking.capture({
+        name: "customAttribute.batchEdited",
+        assetType,
+        attributeType: attribute?.type ?? "text",
+        property: attributeId,
+        label: attribute?.label ?? "",
+        count: assetIds.length,
+      });
     },
-    [transact, assetIds, hydraulicModel],
+    [transact, assetIds, assetType, hydraulicModel, userTracking],
   );
 
   if (!isCustomAttributesOn) return null;
