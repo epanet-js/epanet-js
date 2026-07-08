@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, Lock } from "lucide-react";
 import { Button } from "src/components/elements";
@@ -13,7 +13,10 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
-import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
+import {
+  modelAttributesValidationIssuesAtom,
+  selectedReviewCheckAtom,
+} from "src/state/network-review";
 import {
   EntityType,
   groupIssues,
@@ -67,6 +70,9 @@ export const ModelAttributesValidation = ({
   const zoomTo = useZoomTo();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [detailRuleId, setDetailRuleId] = useState<string | null>(null);
+  const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
+    selectedReviewCheckAtom,
+  );
 
   const issuesCount = countIssues(groups);
   const lastIssuesCount = useRef(0);
@@ -148,6 +154,16 @@ export const ModelAttributesValidation = ({
       }
     },
     [isReady, detailRuleId, detailGroup],
+  );
+
+  useEffect(
+    function showIssuesListWhenDeepLinked() {
+      if (selectedReviewCheck === CheckType.modelAttributesValidation) {
+        setDetailRuleId(null);
+        setSelectedReviewCheck(null);
+      }
+    },
+    [selectedReviewCheck, setSelectedReviewCheck],
   );
 
   const headerProps = useCheckHeader(
