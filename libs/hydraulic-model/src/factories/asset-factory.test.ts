@@ -62,6 +62,18 @@ describe("AssetFactoryWithNullValues createPipe diameter", () => {
   });
 });
 
+describe("AssetFactoryWithNullValues createPipe length", () => {
+  it("leaves length empty when none is provided", () => {
+    expect(assetFactoryWithNullValues().createPipe({}).length).toBeNull();
+  });
+
+  it("keeps the provided length value", () => {
+    expect(
+      assetFactoryWithNullValues().createPipe({ length: 500 }).length,
+    ).toEqual(500);
+  });
+});
+
 describe("pump and valve length", () => {
   it("is always null (pumps and valves are zero-length links)", () => {
     expect(assetFactory().createPump({}).length).toBeNull();

@@ -7,6 +7,7 @@ import {
   type Junction,
   type Pipe,
   type Pump,
+  type Reservoir,
   type Tank,
   type Valve,
 } from "@epanet-js/hydraulic-model";
@@ -215,6 +216,45 @@ describe("assetsToRows", () => {
     expect((rebuilt.get(3) as Valve).minorLoss).toBeUndefined();
     // Power is nullable (required-for-definition), so it round-trips to null.
     expect((rebuilt.get(4) as Pump).power).toBeNull();
+  });
+
+  it("round-trips unmapped nullable attributes back to null", () => {
+    const { assetFactory } = makeNullValuesFactories();
+    const original: AssetsMap = new Map();
+    const pipe = assetFactory.createPipe({
+      id: 1,
+      label: "P1",
+      connections: [10, 11],
+    });
+    const reservoir = assetFactory.createReservoir({ id: 2, label: "R1" });
+    const tank = assetFactory.createTank({ id: 3, label: "T1" });
+    const valve = assetFactory.createValve({
+      id: 4,
+      label: "V1",
+      connections: [10, 11],
+    });
+    for (const asset of [pipe, reservoir, tank, valve]) {
+      original.set(asset.id, asset);
+    }
+
+    const { assets: rebuilt } = buildAssetsData(
+      assetsToRows(original.values()),
+      makeNullValuesFactories(),
+    );
+
+    const rebuiltPipe = rebuilt.get(1) as Pipe;
+    expect(rebuiltPipe.length).toBeNull();
+    expect(rebuiltPipe.diameter).toBeNull();
+    expect(rebuiltPipe.roughness).toBeNull();
+    expect((rebuilt.get(2) as Reservoir).head).toBeNull();
+    const rebuiltTank = rebuilt.get(3) as Tank;
+    expect(rebuiltTank.initialLevel).toBeNull();
+    expect(rebuiltTank.minLevel).toBeNull();
+    expect(rebuiltTank.maxLevel).toBeNull();
+    expect(rebuiltTank.diameter).toBeNull();
+    const rebuiltValve = rebuilt.get(4) as Valve;
+    expect(rebuiltValve.diameter).toBeNull();
+    expect(rebuiltValve.setting).toBeNull();
   });
 
   it("serializes isActive=false as 0", () => {
