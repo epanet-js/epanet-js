@@ -177,6 +177,89 @@ Node 19 and Pipe 56`;
     });
   });
 
+  it("replaces IDs with labels in PCV VALVES section rows", () => {
+    const IDS = { V7: 7, J2: 2, J3: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aValve(IDS.V7, { label: "V7" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .aJunction(IDS.J3, { label: "J3" })
+      .build().assets;
+
+    const report = ` 7\t2\t3\t300\tPCV\t0\t0`;
+
+    const { processedReport } = processReportWithSlots(report, assets);
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: " {{0}}\t{{1}}\t{{2}}\t300\tPCV\t0\t0",
+      assetSlots: [IDS.V7, IDS.J2, IDS.J3],
+    });
+  });
+
+  it("matches remaining valve ids without flagging a MISSING node column", () => {
+    const IDS = { V7: 7, J2: 2 };
+    const assets = HydraulicModelBuilder.with()
+      .aValve(IDS.V7, { label: "V7" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .build().assets;
+
+    const report = ` 7\t2\tMISSING\t300\tTCV\t0\t0`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: " {{0}}\t{{1}}\tMISSING\t300\tTCV\t0\t0",
+      assetSlots: [IDS.V7, IDS.J2],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("replaces IDs with labels in space-aligned VALVES section rows", () => {
+    const IDS = { V7: 7, J2: 2, J3: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aValve(IDS.V7, { label: "V7" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .aJunction(IDS.J3, { label: "J3" })
+      .build().assets;
+
+    const report = ` 7    2     3     300     TCV     0     0`;
+
+    const { processedReport } = processReportWithSlots(report, assets);
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: " {{0}}    {{1}}     {{2}}     300     TCV     0     0",
+      assetSlots: [IDS.V7, IDS.J2, IDS.J3],
+    });
+  });
+
+  it("replaces IDs with labels in VALVES section rows with a missing diameter", () => {
+    const IDS = { V7: 7, J2: 2, J3: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aValve(IDS.V7, { label: "V7" })
+      .aJunction(IDS.J2, { label: "J2" })
+      .aJunction(IDS.J3, { label: "J3" })
+      .build().assets;
+
+    const report = ` 7\t2\t3\tMISSING\tTCV\t0\t0`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: " {{0}}\t{{1}}\t{{2}}\tMISSING\tTCV\t0\t0",
+      assetSlots: [IDS.V7, IDS.J2, IDS.J3],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
   it("replaces IDs with labels in PIPES section rows", () => {
     const IDS = { P1: 1, J1: 2, J2: 3 };
     const assets = HydraulicModelBuilder.with()
@@ -213,6 +296,90 @@ Node 19 and Pipe 56`;
       text: "{{0}}\t{{1}}\t{{2}}\t1000\t300\tMISSING",
       assetSlots: [IDS.P1, IDS.J1, IDS.J2],
     });
+  });
+
+  it("replaces IDs with labels in PIPES section rows with a missing length", () => {
+    const IDS = { P1: 1, J1: 2, J2: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2, { label: "Junction2" })
+      .build().assets;
+
+    const report = `1\t2\t3\tMISSING\t300\t130`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: "{{0}}\t{{1}}\t{{2}}\tMISSING\t300\t130",
+      assetSlots: [IDS.P1, IDS.J1, IDS.J2],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("replaces IDs with labels in PIPES section rows with a missing diameter", () => {
+    const IDS = { P1: 1, J1: 2, J2: 3 };
+    const assets = HydraulicModelBuilder.with()
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .aJunction(IDS.J2, { label: "Junction2" })
+      .build().assets;
+
+    const report = `1\t2\t3\t1000\tMISSING\t130`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: "{{0}}\t{{1}}\t{{2}}\t1000\tMISSING\t130",
+      assetSlots: [IDS.P1, IDS.J1, IDS.J2],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("matches remaining asset ids without flagging a MISSING node as an error", () => {
+    const IDS = { P1: 3, J1: 1 };
+    const assets = HydraulicModelBuilder.with()
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .build().assets;
+
+    const report = `3\t1\tMISSING\t10\t100\t130`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: "{{0}}\t{{1}}\tMISSING\t10\t100\t130",
+      assetSlots: [IDS.P1, IDS.J1],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("still flags a genuinely missing numeric node id as an error", () => {
+    const IDS = { P1: 3, J1: 1 };
+    const assets = HydraulicModelBuilder.with()
+      .aPipe(IDS.P1, { label: "Pipe1" })
+      .aJunction(IDS.J1, { label: "Junction1" })
+      .build().assets;
+
+    // Node 2 is not "MISSING" but is absent from the model: a real issue.
+    const report = `3\t1\t2\t10\t100\t130`;
+
+    const { errorCollector } = processReportWithSlots(report, assets);
+
+    expect(errorCollector.hasErrors()).toBe(true);
+    expect(errorCollector.getErrors()).toMatchObject([{ id: "2" }]);
   });
 
   it("replaces IDs with labels in PUMPS section rows", () => {

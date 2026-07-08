@@ -13,13 +13,20 @@ export type ProcessReportResult = {
   errorCollector: ReportErrorCollector;
 };
 
-const valvesSectionRowRegExp =
-  /^\s*(\d+)\t(\d+)\t(\d+)\t[\d.]+\t(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\t/i;
-const pipesSectionRowRegExp =
-  /^\s*(\S+)\s+(\S+)\s+(\S+)\s+[\d.]+\s+[\d.]+\s+\S+/;
+const MISSING_VALUE = "MISSING";
+
+const numberOrMissing = `(?:[\\d.]+|${MISSING_VALUE})`;
+const valvesSectionRowRegExp = new RegExp(
+  `^\\s*(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+${numberOrMissing}\\s+(?:PRV|PSV|TCV|FCV|PBV|GPV|PCV|CV)\\s+`,
+  "i",
+);
+const pipesSectionRowRegExp = new RegExp(
+  `^\\s*(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+${numberOrMissing}\\s+${numberOrMissing}\\s+\\S+`,
+);
 const pumpsSectionRowRegExp =
   /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(?:HEAD|POWER|SPEED|PATTERN)\b/i;
-const valveTypeRegExp = /(?:PRV|PSV|TCV|FCV|PBV|GPV|CV)\s+(\d+)(?=\s+[a-z])/i;
+const valveTypeRegExp =
+  /(?:PRV|PSV|TCV|FCV|PBV|GPV|PCV|CV)\s+(\d+)(?=\s+[a-z])/i;
 const nonAssetNumberPrefixes =
   "Rule|line|value|level|trial|trials|step|section|curve";
 const errorMessageRegExp = new RegExp(
@@ -73,6 +80,10 @@ export const processReportWithSlots = (
         );
 
         for (const id of actualCapturedIds) {
+          if (id === MISSING_VALUE) {
+            continue;
+          }
+
           const numericId = parseInt(id, 10);
           const asset = assets.get(numericId) as Asset;
           if (!asset) {
