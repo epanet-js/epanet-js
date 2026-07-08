@@ -513,7 +513,6 @@ const ElevationOffsetField = ({
           displayValue={localizeDecimal(displayValue)}
           onChangeValue={(v) => actions.updateOffset(source.id, v)}
           styleOptions={{ padding: "md", textSize: "sm" }}
-          tabIndex={0}
         />
       )}
     </InlineField>

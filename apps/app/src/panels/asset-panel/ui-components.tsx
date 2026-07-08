@@ -93,26 +93,28 @@ export const AssetEditorContent = ({
   );
 
   return (
-    <SectionList
-      header={
-        <Header
-          label={label}
-          type={type}
-          labelType={labelType}
-          isNew={isNew}
-          onLabelChange={onLabelChange}
-          readOnly={readOnly}
-        />
-      }
-      footer={footer}
-      isStickyFooter={footerState.isPinned}
-      stickyFooterHeight={footerState.height}
-      onStickyFooterHeightChange={handleFooterHeightChange}
-      padding={3}
-      overflow={true}
-    >
-      {children}
-    </SectionList>
+    <div className="contents" data-asset-panel>
+      <SectionList
+        header={
+          <Header
+            label={label}
+            type={type}
+            labelType={labelType}
+            isNew={isNew}
+            onLabelChange={onLabelChange}
+            readOnly={readOnly}
+          />
+        }
+        footer={footer}
+        isStickyFooter={footerState.isPinned}
+        stickyFooterHeight={footerState.height}
+        onStickyFooterHeightChange={handleFooterHeightChange}
+        padding={3}
+        overflow={true}
+      >
+        {children}
+      </SectionList>
+    </div>
   );
 };
 
@@ -633,6 +635,7 @@ export function SelectRow<P extends string, T extends SelectRowValue>({
             ariaLabel={actualLabel}
             options={options}
             selected={selected}
+            invalid={hasError}
             nullable={nullable as true}
             onChange={(newValue, oldValue) =>
               onChange?.(name, newValue as T, oldValue as T)

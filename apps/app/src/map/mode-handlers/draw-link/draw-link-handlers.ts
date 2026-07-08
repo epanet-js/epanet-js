@@ -17,12 +17,14 @@ import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
 import { captureError } from "src/infra/error-tracking";
 import { nextTick } from "process";
-import { AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
+import { Asset, AssetId, LinkAsset, NodeAsset } from "src/hydraulic-model";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LinkType } from "src/hydraulic-model";
 import { useElevations } from "src/map/elevations/use-elevations";
 import { LngLat, MapMouseEvent, MapTouchEvent } from "mapbox-gl";
 import { useSelection } from "src/selection";
+import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
+import { validateAsset } from "src/lib/model-attributes-validation";
 import { DEFAULT_SNAP_DISTANCE_PIXELS } from "../../search";
 import { addLink } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -168,6 +170,13 @@ export function useDrawLinkHandlers({
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
   const { selectAsset } = useSelection(selection);
+  const focusAssetPanel = useFocusAssetPanel();
+
+  const selectAndFocusIfInvalid = (asset: Asset) => {
+    selectAsset(asset.id);
+    const hasIssues = validateAsset(asset, hydraulicModel).length > 0;
+    if (hasIssues) focusAssetPanel(true);
+  };
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const usingTouchEvents = useRef<boolean>(false);
@@ -375,8 +384,7 @@ export function useDrawLinkHandlers({
     userTracking.capture({ name: "asset.created", type: link.type });
 
     if (moment.putAssets && moment.putAssets.length > 0) {
-      const newLinkId = moment.putAssets[0].id;
-      selectAsset(newLinkId);
+      selectAndFocusIfInvalid(moment.putAssets[0]);
     }
 
     const [, , endNodeUpdated] = moment.putAssets || [];

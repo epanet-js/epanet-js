@@ -202,7 +202,6 @@ const DistanceInput = ({
           displayValue={localizeDecimal(distance.value)}
           onChangeValue={onChange}
           styleOptions={{ padding: "md", textSize: "sm" }}
-          tabIndex={0}
           disabled={disabled}
         />
       </InlineField>

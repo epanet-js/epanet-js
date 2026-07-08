@@ -1714,17 +1714,10 @@ describe("AssetPanel", () => {
 
     renderComponent(store);
 
-    await user.tab();
-    // First tab focuses the label input field
-    const labelInput = screen.getByRole("textbox", {
-      name: /value for: P1/i,
-    });
-    expect(labelInput).toHaveFocus();
-
-    await user.tab();
     const selector = screen.getByRole("combobox", {
       name: /initial status/i,
     });
+    selector.focus();
     expect(selector).toHaveFocus();
 
     await user.keyboard("[ArrowDown]");

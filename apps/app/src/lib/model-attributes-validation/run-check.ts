@@ -1,3 +1,4 @@
+import { Asset } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { EntityType, Rule, ValidatableEntity, ValidationIssue } from "./types";
@@ -32,6 +33,14 @@ const validateEntity = (
   }
   return issues;
 };
+
+// Runs the attribute validation rules for a single asset. Useful for reacting
+// to one asset (e.g. a freshly drawn one) without validating the whole model.
+export const validateAsset = (
+  asset: Asset,
+  model: HydraulicModel,
+): ValidationIssue[] =>
+  validateEntity(asset.type, asset.id, asset, model, RULES_INDEX);
 
 const throwIfAborted = (signal?: AbortSignal) => {
   if (signal?.aborted) {

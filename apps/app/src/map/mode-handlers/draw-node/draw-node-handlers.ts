@@ -14,6 +14,9 @@ import { useElevations } from "../../elevations/use-elevations";
 import { useSnapping } from "../hooks/use-snapping";
 import { useSelection } from "src/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
+import { useFocusAssetPanel } from "src/hooks/use-focus-asset-panel";
+import { validateAsset } from "src/lib/model-attributes-validation";
+import { Asset } from "src/hydraulic-model";
 
 type NodeType = "junction" | "reservoir" | "tank";
 
@@ -36,6 +39,13 @@ export function useDrawNodeHandlers({
   );
   const { findSnappingCandidate } = useSnapping(map, hydraulicModel.assets);
   const { selectAsset } = useSelection(selection);
+  const focusAssetPanel = useFocusAssetPanel();
+
+  const selectAndFocusIfInvalid = (asset: Asset) => {
+    selectAsset(asset.id);
+    const hasIssues = validateAsset(asset, hydraulicModel).length > 0;
+    if (hasIssues) focusAssetPanel(true);
+  };
 
   const submitNode = (
     nodeType: NodeType,
@@ -58,8 +68,7 @@ export function useDrawNodeHandlers({
     userTracking.capture({ name: "asset.created", type: nodeType });
 
     if (moment.putAssets && moment.putAssets.length > 0) {
-      const newNodeId = moment.putAssets[0].id;
-      selectAsset(newNodeId);
+      selectAndFocusIfInvalid(moment.putAssets[0]);
     }
   };
 
@@ -84,8 +93,7 @@ export function useDrawNodeHandlers({
           });
 
           if (moment.putAssets && moment.putAssets.length > 0) {
-            const newNodeId = moment.putAssets[0].id;
-            selectAsset(newNodeId);
+            selectAndFocusIfInvalid(moment.putAssets[0]);
           }
         }
 

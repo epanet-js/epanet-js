@@ -25,7 +25,7 @@ export const EditableTextField = ({
   readOnly = false,
   disabled = false,
   styleOptions = {},
-  tabIndex = 1,
+  tabIndex = 0,
   sanitize,
   onDirty,
   onReset,
@@ -140,6 +140,7 @@ export const EditableTextField = ({
       spellCheck="false"
       type="text"
       aria-label={`Value for: ${label}`}
+      aria-invalid={hasError || undefined}
       readOnly={readOnly}
       disabled={disabled}
       onBlur={handleBlur}

@@ -1,4 +1,4 @@
-export { validateModelAttributes } from "./run-check";
+export { validateModelAttributes, validateAsset } from "./run-check";
 export { groupIssues } from "./issues";
 export { RULES } from "./rules";
 export { numericChecks } from "./checks";

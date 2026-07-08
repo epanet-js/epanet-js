@@ -16,6 +16,7 @@ type SelectorPropsBase<T extends string | number> = {
   options: SelectorOption<T>[];
   ariaLabel?: string;
   tabIndex?: number;
+  invalid?: boolean;
   styleOptions?: StyleOptions;
   disabled?: boolean;
   searchPlaceholder?: string;
@@ -63,7 +64,8 @@ export function BaseSelector<T extends string | number>({
   selected,
   onChange,
   ariaLabel,
-  tabIndex = 1,
+  tabIndex = 0,
+  invalid = false,
   styleOptions = {},
   disabled = false,
   searchPlaceholder,
@@ -143,6 +145,7 @@ export function BaseSelector<T extends string | number>({
           aria-label={ariaLabel}
           aria-expanded={open}
           aria-haspopup="listbox"
+          aria-invalid={invalid || undefined}
           tabIndex={tabIndex}
           disabled={effectiveDisabled}
           onClick={handleTriggerClick}

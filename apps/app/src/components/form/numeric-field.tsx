@@ -32,7 +32,7 @@ export const NumericField = ({
   commitInvalidValues = false,
   placeholder,
   styleOptions = {},
-  tabIndex = 1,
+  tabIndex = 0,
   validate,
 }: {
   label: string;
@@ -170,6 +170,7 @@ export const NumericField = ({
       spellCheck="false"
       type="text"
       aria-label={`Value for: ${label}`}
+      aria-invalid={hasError || undefined}
       readOnly={readOnly}
       disabled={disabled}
       placeholder={placeholder}
@@ -177,7 +178,7 @@ export const NumericField = ({
       ref={inputRef}
       value={inputValue}
       onFocus={handleFocus}
-      tabIndex={tabIndex}
+      tabIndex={readOnly ? -1 : tabIndex}
       className={styledInput({ ...styleOptions, disabled })}
     />
   );

@@ -347,7 +347,6 @@ const FlowUnitsSelector = ({
     >
       <Selector
         options={options}
-        tabIndex={0}
         selected={selected}
         onChange={onChange}
         ariaLabel={translate("simulationSettings.flowUnits")}
@@ -377,7 +376,6 @@ const HeadlossFormulaSelector = ({
     >
       <Selector
         options={options}
-        tabIndex={0}
         selected={selected}
         onChange={onChange}
         ariaLabel={translate("headlossFormula")}
@@ -409,7 +407,6 @@ const PressureUnitSelector = ({
     >
       <Selector
         options={options}
-        tabIndex={0}
         selected={selected as string}
         onChange={(value) => onChange(value as Unit)}
         ariaLabel={translate("simulationSettings.pressureUnits")}

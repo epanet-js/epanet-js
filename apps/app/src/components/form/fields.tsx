@@ -358,6 +358,7 @@ export const CollapsibleSection = ({
               className={clsx(
                 "flex gap-1 items-center h-8 cursor-pointer",
                 "px-1 -mx-1 rounded-sm hover:bg-base-hover",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent",
                 {
                   "text-size-base font-semibold": variant === "primary",
                   "text-size-base font-semibold text-subtle":
@@ -367,6 +368,14 @@ export const CollapsibleSection = ({
               )}
               role="button"
               tabIndex={0}
+              onKeyDown={(e) => {
+                // Needs explicit keyboard handling since trigger is not a button
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleOpenChange(!open);
+                }
+              }}
             >
               {indicatorPosition === "left" ? (
                 open ? (
