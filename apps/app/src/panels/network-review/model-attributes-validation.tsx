@@ -10,7 +10,7 @@ import { pluralize } from "src/lib/utils";
 import { usePermissions } from "src/hooks/use-permissions";
 import { PaywallFade, PaywallUpgradeBox } from "src/components/form/paywall";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useSelection } from "src/selection";
+import { USelection, useSelection } from "src/selection";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import {
@@ -68,7 +68,6 @@ export const ModelAttributesValidation = ({
     selectCustomerPoints,
   } = useSelection(selection);
   const zoomTo = useZoomTo();
-  const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [detailRuleId, setDetailRuleId] = useState<string | null>(null);
   const [selectedReviewCheck, setSelectedReviewCheck] = useAtom(
     selectedReviewCheckAtom,
@@ -88,38 +87,39 @@ export const ModelAttributesValidation = ({
     [checkModelAttributesValidation],
   );
 
-  const zoomToAssets = useCallback(
-    (entityIds: number[]) => {
-      const assets = entityIds
-        .map((id) => hydraulicModel.assets.get(id))
-        .filter((asset): asset is NonNullable<typeof asset> => Boolean(asset));
-      if (assets.length > 0) zoomTo(assets);
+  const zoomToEntities = useCallback(
+    (entityType: EntityType, entityIds: number[]) => {
+      const selection =
+        entityType === "customerPoint"
+          ? USelection.fromIds([], entityIds)
+          : USelection.fromIds(entityIds, []);
+      zoomTo(selection);
     },
-    [hydraulicModel, zoomTo],
+    [zoomTo],
   );
 
   const selectEntities = useCallback(
     (entityType: EntityType, entityIds: number[]) => {
       if (entityType === "customerPoint") {
         selectCustomerPoints(entityIds);
-        return;
+      } else {
+        selectAssets(entityIds);
       }
-      selectAssets(entityIds);
-      zoomToAssets(entityIds);
+      zoomToEntities(entityType, entityIds);
     },
-    [selectAssets, selectCustomerPoints, zoomToAssets],
+    [selectAssets, selectCustomerPoints, zoomToEntities],
   );
 
   const selectEntity = useCallback(
     (entityType: EntityType, entityId: number) => {
       if (entityType === "customerPoint") {
         selectCustomerPoint(entityId);
-        return;
+      } else {
+        selectAsset(entityId);
       }
-      selectAsset(entityId);
-      zoomToAssets([entityId]);
+      zoomToEntities(entityType, [entityId]);
     },
-    [selectAsset, selectCustomerPoint, zoomToAssets],
+    [selectAsset, selectCustomerPoint, zoomToEntities],
   );
 
   const openGroup = useCallback(
