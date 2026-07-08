@@ -87,7 +87,7 @@ const SimulationSummaryDialogNew = ({
       }
     >
       <div className="p-4 text-size-base text-default">
-        <p className="flex items-start gap-2">
+        <div className="flex items-start gap-2">
           <div className={`m-width-0 mt-0.5 ${config.iconClass}`}>
             {modal.status === "success" && <SuccessIcon />}
             {modal.status === "warning" && <WarningIcon />}
@@ -106,7 +106,7 @@ const SimulationSummaryDialogNew = ({
                     ? "simulationStoppedExplain"
                     : "simulationFailureExplain",
               )}
-        </p>
+        </div>
       </div>
     </BaseDialog>
   );

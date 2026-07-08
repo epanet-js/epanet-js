@@ -306,6 +306,7 @@ type SimulationExecuted = {
 type SimulationValidationIssuesFound = {
   name: "simulation.validation.issuesFound";
   issueCount: number;
+  rules: string[];
 };
 
 type SimulationValidationResolved = {
@@ -962,8 +963,7 @@ type NetworkReviewChanged =
       name:
         | "networkReview.orphanAssets.changed"
         | "networkReview.connectivityTrace.changed"
-        | "networkReview.crossingPipes.changed"
-        | "networkReview.modelAttributesValidation.changed";
+        | "networkReview.crossingPipes.changed";
       count: number;
     }
   | {
@@ -973,6 +973,12 @@ type NetworkReviewChanged =
       units: string;
     };
 
+type ModelAttributesValidationChanged = {
+  name: "networkReview.modelAttributesValidation.changed";
+  count: number;
+  rules: string[];
+};
+
 type NetworkReviewBack = {
   name:
     | "networkReview.orphanAssets.back"
@@ -980,6 +986,19 @@ type NetworkReviewBack = {
     | "networkReview.connectivityTrace.back"
     | "networkReview.crossingPipes.back"
     | "networkReview.modelAttributesValidation.back";
+  count: number;
+};
+
+type ModelAttributesValidationGroupOpened = {
+  name: "networkReview.modelAttributesValidation.groupOpened";
+  ruleId: string;
+  severity: "error" | "warning";
+  count: number;
+};
+
+type ModelAttributesValidationBulkSelected = {
+  name: "networkReview.modelAttributesValidation.bulkSelected";
+  ruleId: string;
   count: number;
 };
 
@@ -1357,6 +1376,9 @@ export type UserEvent =
   | NetworkReviewChecked
   | NetworkReviewBack
   | NetworkReviewChanged
+  | ModelAttributesValidationChanged
+  | ModelAttributesValidationGroupOpened
+  | ModelAttributesValidationBulkSelected
   | SidePanelOpened
   | SidePanelClosed
   | ScenarioSwitcherOpened

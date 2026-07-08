@@ -129,8 +129,14 @@ export const ModelAttributesValidation = ({
         group.issues.map((issue) => issue.entityId),
       );
       setDetailRuleId(group.ruleId);
+      userTracking.capture({
+        name: "networkReview.modelAttributesValidation.groupOpened",
+        ruleId: group.ruleId,
+        severity: group.severity,
+        count: group.issues.length,
+      });
     },
-    [selectEntities],
+    [selectEntities, userTracking],
   );
 
   useEffect(() => {
@@ -139,9 +145,10 @@ export const ModelAttributesValidation = ({
       userTracking.capture({
         name: "networkReview.modelAttributesValidation.changed",
         count: issuesCount,
+        rules: groups.map((group) => group.ruleId),
       });
     }
-  }, [issuesCount, userTracking]);
+  }, [issuesCount, groups, userTracking]);
 
   const detailGroup = detailRuleId
     ? (groups.find((group) => group.ruleId === detailRuleId) ?? null)
@@ -180,12 +187,17 @@ export const ModelAttributesValidation = ({
         onSelectIssue={(issue) =>
           selectEntity(detailGroup.entityType, issue.entityId)
         }
-        onSelectAll={() =>
+        onSelectAll={() => {
           selectEntities(
             detailGroup.entityType,
             detailGroup.issues.map((issue) => issue.entityId),
-          )
-        }
+          );
+          userTracking.capture({
+            name: "networkReview.modelAttributesValidation.bulkSelected",
+            ruleId: detailGroup.ruleId,
+            count: detailGroup.issues.length,
+          });
+        }}
       />
     );
   }

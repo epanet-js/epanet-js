@@ -198,6 +198,7 @@ export const useRunSimulation = () => {
             userTracking.capture({
               name: "simulation.validation.issuesFound",
               issueCount: issues.length,
+              rules: [...new Set(issues.map((issue) => issue.ruleId))],
             });
             setDialogState({
               type: "modelAttributesValidation",
