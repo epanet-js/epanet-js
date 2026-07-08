@@ -114,9 +114,12 @@ describe("isNullableColumn", () => {
     expect(isNullableColumn("length", true)).toBe(true);
   });
 
-  it("leaves deferred and optional-bound columns non-nullable", () => {
-    // elevation is still deferred (not yet nullable).
-    expect(isNullableColumn("elevation", true)).toBe(false);
+  it("treats node elevation as nullable only when null values are allowed", () => {
+    expect(isNullableColumn("elevation", false)).toBe(false);
+    expect(isNullableColumn("elevation", true)).toBe(true);
+  });
+
+  it("leaves optional-bound columns non-nullable", () => {
     // EPANET-optional attributes are excluded from the nullable batch.
     expect(isNullableColumn("minorLoss", true)).toBe(false);
     expect(isNullableColumn("minVolume", true)).toBe(false);

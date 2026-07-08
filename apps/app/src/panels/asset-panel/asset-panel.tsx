@@ -549,6 +549,8 @@ const JunctionEditor = ({
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          commitInvalidValues={allowsNullValues}
+          validate={fieldValidator("junction", "elevation")}
         />
         <QuantityRow
           name="emitterCoefficient"
@@ -1138,6 +1140,8 @@ const ReservoirEditor = ({
           value={reservoir.elevation}
           unit={units.elevation}
           comparison={getComparison("elevation", reservoir.elevation)}
+          commitInvalidValues={allowsNullValues}
+          validate={fieldValidator("reservoir", "elevation")}
           onChange={onPropertyChange}
           readOnly={readonly}
         />
@@ -1346,6 +1350,8 @@ const TankEditor = ({
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
+          commitInvalidValues={allowsNullValues}
+          validate={fieldValidator("tank", "elevation")}
         />
         <QuantityRow
           name="initialLevel"

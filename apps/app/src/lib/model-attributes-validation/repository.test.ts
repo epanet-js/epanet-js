@@ -85,7 +85,7 @@ describe("fieldValidator", () => {
   });
 
   it("returns undefined for a field with no rules", () => {
-    expect(fieldValidator("junction", "elevation")).toBeUndefined();
+    expect(fieldValidator("pump", "kind")).toBeUndefined();
   });
 
   it("gives presence-only fields a permissive validator (any number passes)", () => {

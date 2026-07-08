@@ -107,6 +107,44 @@ describe("validateModelAttributes", () => {
       ]);
     });
 
+    it("flags a missing junction elevation", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aJunction(1, { label: "J1", elevation: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues).toEqual([
+        {
+          ruleId: "node.elevation.present",
+          entityType: "junction",
+          entityId: 1,
+          label: "J1",
+          field: "elevation",
+          severity: "error",
+          message: "required",
+        },
+      ]);
+    });
+
+    it("flags a missing tank elevation", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aTank(1, { elevation: null })
+        .build();
+
+      const issues = await validateModelAttributes(model);
+
+      expect(issues.map((i) => i.ruleId)).toContain("node.elevation.present");
+    });
+
+    it("does not require an elevation on a reservoir (it uses head)", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aReservoir(1, { head: 100, elevation: null })
+        .build();
+
+      expect(await validateModelAttributes(model)).toEqual([]);
+    });
+
     it("flags a missing valve diameter", async () => {
       const model = HydraulicModelBuilder.with()
         .aValve(1, { diameter: null })

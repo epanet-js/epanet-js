@@ -139,6 +139,7 @@ export const NON_ZERO_KEYS = new Set([
 ]);
 
 const NULLABLE_KEYS = new Set([
+  "elevation",
   "roughness",
   "head",
   "initialLevel",

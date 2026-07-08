@@ -464,12 +464,13 @@ export class AssetFactoryWithNullValues extends AssetFactory {
   }
 
   createJunction(data: JunctionBuildData = {}): Junction {
-    return emptyUnmapped(
+    const junction = emptyUnmapped(
       super.createJunction(data),
       data,
-      OPTIONAL_FIELDS.junction,
-      undefined,
+      ["elevation"],
+      null,
     );
+    return emptyUnmapped(junction, data, OPTIONAL_FIELDS.junction, undefined);
   }
 
   createPump({
@@ -516,14 +517,19 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     const tank = emptyUnmapped(
       super.createTank(data),
       data,
-      ["initialLevel", "minLevel", "maxLevel", "diameter"],
+      ["elevation", "initialLevel", "minLevel", "maxLevel", "diameter"],
       null,
     );
     return emptyUnmapped(tank, data, OPTIONAL_FIELDS.tank, undefined);
   }
 
   createReservoir(data: ReservoirBuildData = {}): Reservoir {
-    const reservoir = super.createReservoir(data);
+    const reservoir = emptyUnmapped(
+      super.createReservoir(data),
+      data,
+      ["elevation"],
+      null,
+    );
     // Head can be derived from elevation + relativeHead; only null it when
     // neither head nor relativeHead was provided (otherwise the derived value
     // stands rather than being discarded).

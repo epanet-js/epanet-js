@@ -108,6 +108,31 @@ describe("AssetFactoryWithNullValues tank dimensions", () => {
   });
 });
 
+describe("AssetFactoryWithNullValues node elevation", () => {
+  it("leaves elevation empty when unmapped", () => {
+    const factory = assetFactoryWithNullValues();
+
+    expect(factory.createJunction({}).elevation).toBeNull();
+    expect(factory.createReservoir({}).elevation).toBeNull();
+    expect(factory.createTank({}).elevation).toBeNull();
+  });
+
+  it("keeps the provided elevation value", () => {
+    const factory = assetFactoryWithNullValues();
+
+    expect(factory.createJunction({ elevation: 42 }).elevation).toEqual(42);
+    expect(factory.createReservoir({ elevation: 42 }).elevation).toEqual(42);
+    expect(factory.createTank({ elevation: 42 }).elevation).toEqual(42);
+  });
+});
+
+describe("AssetFactory node elevation", () => {
+  it("applies the default elevation when none is provided", () => {
+    expect(assetFactory().createJunction({}).elevation).toEqual(0);
+    expect(assetFactory().createTank({}).elevation).toEqual(0);
+  });
+});
+
 describe("AssetFactory createPump curve", () => {
   it("applies the default curve for a design-point pump when none is provided", () => {
     expect(

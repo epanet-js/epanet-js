@@ -117,20 +117,13 @@ const tankHasStorageRange = (
 };
 
 export const RULES: Rule[] = [
-  // Pipes
-  ...requiredNumeric("pipe", "diameter", "positive"),
-  ...requiredNumeric("pipe", "roughness", "positive"),
-  ...requiredNumeric("pipe", "length", "positive"),
-  {
-    id: "pipe.year.valid",
-    type: "field",
-    entityType: "pipe",
-    field: "year",
-    accessor: field("year"),
-    check: (value) => value == undefined || numericChecks.year(value),
-    severity: "warning",
-    message: "invalidYear",
-  },
+  // Node elevation (reservoirs use head, not elevation, so are excluded)
+  ...(["junction", "tank"] as const).map(
+    (entityType): Rule => ({
+      ...presence(entityType, "elevation"),
+      id: "node.elevation.present",
+    }),
+  ),
   // Reservoirs
   ...requiredNumeric("reservoir", "head"),
   // Tanks
@@ -227,6 +220,20 @@ export const RULES: Rule[] = [
     },
     severity: "error",
     message: "invalidCurve",
+  },
+  // Pipes
+  ...requiredNumeric("pipe", "diameter", "positive"),
+  ...requiredNumeric("pipe", "length", "positive"),
+  ...requiredNumeric("pipe", "roughness", "positive"),
+  {
+    id: "pipe.year.valid",
+    type: "field",
+    entityType: "pipe",
+    field: "year",
+    accessor: field("year"),
+    check: (value) => value == undefined || numericChecks.year(value),
+    severity: "warning",
+    message: "invalidYear",
   },
   optionalNumeric("pipe", "minorLoss", "nonNegative", "error"),
   optionalNumeric("valve", "minorLoss", "nonNegative", "error"),

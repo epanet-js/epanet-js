@@ -15,7 +15,7 @@ export type ChemicalSourceType = (typeof chemicalSourceTypes)[number];
 export const DEFAULT_INITIAL_QUALITY = 0;
 
 export type NodeProperties = {
-  elevation: number;
+  elevation: number | null;
   type: NodeType;
   initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
@@ -52,7 +52,7 @@ export class Node<T> extends BaseAsset<T & NodeProperties> {
     this.geometry.coordinates = newCoordinates;
   }
 
-  setElevation(elevation: number) {
+  setElevation(elevation: number | null) {
     this.properties.elevation = elevation;
   }
 

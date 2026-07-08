@@ -233,7 +233,8 @@ describe("assetsToRows", () => {
       label: "V1",
       connections: [10, 11],
     });
-    for (const asset of [pipe, reservoir, tank, valve]) {
+    const junction = assetFactory.createJunction({ id: 5, label: "J1" });
+    for (const asset of [pipe, reservoir, tank, valve, junction]) {
       original.set(asset.id, asset);
     }
 
@@ -246,15 +247,19 @@ describe("assetsToRows", () => {
     expect(rebuiltPipe.length).toBeNull();
     expect(rebuiltPipe.diameter).toBeNull();
     expect(rebuiltPipe.roughness).toBeNull();
-    expect((rebuilt.get(2) as Reservoir).head).toBeNull();
+    const rebuiltReservoir = rebuilt.get(2) as Reservoir;
+    expect(rebuiltReservoir.head).toBeNull();
+    expect(rebuiltReservoir.elevation).toBeNull();
     const rebuiltTank = rebuilt.get(3) as Tank;
     expect(rebuiltTank.initialLevel).toBeNull();
     expect(rebuiltTank.minLevel).toBeNull();
     expect(rebuiltTank.maxLevel).toBeNull();
     expect(rebuiltTank.diameter).toBeNull();
+    expect(rebuiltTank.elevation).toBeNull();
     const rebuiltValve = rebuilt.get(4) as Valve;
     expect(rebuiltValve.diameter).toBeNull();
     expect(rebuiltValve.setting).toBeNull();
+    expect((rebuilt.get(5) as Junction).elevation).toBeNull();
   });
 
   it("serializes isActive=false as 0", () => {

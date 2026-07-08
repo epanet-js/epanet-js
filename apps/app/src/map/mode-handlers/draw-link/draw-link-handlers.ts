@@ -508,7 +508,7 @@ export function useDrawLinkHandlers({
           : getMapCoord(e);
         const pointElevation =
           snappingCandidate && snappingCandidate.type !== "pipe"
-            ? snappingCandidate.elevation
+            ? (snappingCandidate.elevation ?? (await fetchElevation(e.lngLat)))
             : await fetchElevation(e.lngLat);
 
         if (snappingCandidate) {

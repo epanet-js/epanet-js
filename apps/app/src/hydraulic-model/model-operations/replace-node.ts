@@ -19,11 +19,12 @@ type InputData = {
   oldNodeId: AssetId;
   newNodeType: NodeType;
   assetFactory: AssetFactory;
+  elevation?: number;
 };
 
 export const replaceNode: ModelOperation<InputData> = (
   hydraulicModel,
-  { oldNodeId, newNodeType, assetFactory },
+  { oldNodeId, newNodeType, assetFactory, elevation },
 ) => {
   const { assets, topology, customerPointsLookup } = hydraulicModel;
 
@@ -33,7 +34,7 @@ export const replaceNode: ModelOperation<InputData> = (
   }
 
   const oldCoordinates = oldNode.coordinates;
-  const oldElevation = oldNode.elevation;
+  const oldElevation = oldNode.elevation ?? elevation;
   const oldIsActive = oldNode.isActive;
 
   const newNode = createNode(
@@ -94,7 +95,7 @@ const createNode = (
   assetFactory: AssetFactory,
   nodeType: NodeType,
   coordinates: Position,
-  elevation: number,
+  elevation: number | undefined,
   isActive: boolean,
 ): NodeAsset => {
   switch (nodeType) {

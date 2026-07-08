@@ -36,6 +36,42 @@ describe("replaceNode", () => {
     expect(updatedPipe.connections[1]).toBe(IDS.J2);
   });
 
+  it("uses the provided elevation when the replaced node has none", () => {
+    const IDS = { J1: 1 } as const;
+    const { assetFactory, labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ assetFactory, labelManager })
+      .aJunction(IDS.J1, { coordinates: [10, 20], elevation: null })
+      .build();
+
+    const moment = replaceNode(model, {
+      assetFactory,
+      oldNodeId: IDS.J1,
+      newNodeType: "tank",
+      elevation: 42,
+    });
+
+    const newNode = moment.putAssets![0] as NodeAsset;
+    expect(newNode.elevation).toBe(42);
+  });
+
+  it("keeps the existing elevation and ignores the provided fallback", () => {
+    const IDS = { J1: 1 } as const;
+    const { assetFactory, labelManager } = buildTestFactories();
+    const model = HydraulicModelBuilder.with({ assetFactory, labelManager })
+      .aJunction(IDS.J1, { coordinates: [10, 20], elevation: 100 })
+      .build();
+
+    const moment = replaceNode(model, {
+      assetFactory,
+      oldNodeId: IDS.J1,
+      newNodeType: "tank",
+      elevation: 42,
+    });
+
+    const newNode = moment.putAssets![0] as NodeAsset;
+    expect(newNode.elevation).toBe(100);
+  });
+
   it("replaces reservoir with junction and preserves connections", () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const { assetFactory, labelManager } = buildTestFactories();

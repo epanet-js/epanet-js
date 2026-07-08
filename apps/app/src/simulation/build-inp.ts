@@ -889,7 +889,7 @@ const appendTankRow = (
     commentPrefix +
       [
         tankId,
-        tank.elevation,
+        requiredValue(tank.elevation),
         dimension(tank.initialLevel),
         dimension(tank.minLevel),
         dimension(tank.maxLevel),
@@ -969,7 +969,7 @@ const appendJunction = (
   const commentPrefix = !junction.isActive ? ";" : "";
 
   sections.junctions.push(
-    commentPrefix + [junctionId, junction.elevation].join("\t"),
+    commentPrefix + [junctionId, requiredValue(junction.elevation)].join("\t"),
   );
 
   const junctionDemands = getJunctionDemands(demands, junction.id);

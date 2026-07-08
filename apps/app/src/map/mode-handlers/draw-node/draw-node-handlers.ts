@@ -80,10 +80,15 @@ export function useDrawNodeHandlers({
       const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
       if (snappingCandidate && snappingCandidate.type !== "pipe") {
+        const [lng, lat] = snappingCandidate.coordinates;
+        const elevation =
+          snappingCandidate.elevation ??
+          (await fetchElevation({ lng, lat } as mapboxgl.LngLat));
         const moment = replaceNode(hydraulicModel, {
           oldNodeId: snappingCandidate.id,
           newNodeType: nodeType,
           assetFactory,
+          elevation,
         });
         const applied = transact(moment);
         if (applied) {

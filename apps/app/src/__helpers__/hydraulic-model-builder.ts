@@ -67,8 +67,9 @@ type WithNullable<T, K extends keyof T> = Omit<T, K> & {
 const NULLABLE_BUILD_FIELDS = {
   pipe: ["roughness", "length", "diameter"],
   valve: ["diameter", "setting"],
-  reservoir: ["head"],
-  tank: ["initialLevel", "diameter", "minLevel", "maxLevel"],
+  junction: ["elevation"],
+  reservoir: ["head", "elevation"],
+  tank: ["initialLevel", "diameter", "minLevel", "maxLevel", "elevation"],
 } as const;
 
 const stripNulls = <D extends Record<string, unknown>>(
@@ -255,11 +256,18 @@ export class HydraulicModelBuilder {
     return this;
   }
 
-  aJunction(id: number, data: Partial<JunctionBuildData> = {}) {
+  aJunction(
+    id: number,
+    data: Partial<WithNullable<JunctionBuildData, "elevation">> = {},
+  ) {
     const junction = this.assetFactory.createJunction({
       id,
-      ...data,
+      ...(stripNulls(
+        data,
+        NULLABLE_BUILD_FIELDS.junction,
+      ) as JunctionBuildData),
     });
+    applyNulls(junction, data, NULLABLE_BUILD_FIELDS.junction);
     this.assets.set(id, junction);
     this.idGenerator.addId(id);
     return this;
@@ -272,7 +280,9 @@ export class HydraulicModelBuilder {
 
   aReservoir(
     id: number,
-    properties: Partial<WithNullable<ReservoirBuildData, "head">> = {},
+    properties: Partial<
+      WithNullable<ReservoirBuildData, "head" | "elevation">
+    > = {},
   ) {
     const reservoir = this.assetFactory.createReservoir({
       id,
@@ -292,7 +302,7 @@ export class HydraulicModelBuilder {
     data: Partial<
       WithNullable<
         TankBuildData,
-        "initialLevel" | "diameter" | "minLevel" | "maxLevel"
+        "initialLevel" | "diameter" | "minLevel" | "maxLevel" | "elevation"
       >
     > = {},
   ) {
