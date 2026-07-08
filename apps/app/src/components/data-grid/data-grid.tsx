@@ -394,9 +394,16 @@ export const DataGrid = forwardRef(function DataGrid<
       const onScrollbar =
         e.clientX > rect.left + e.currentTarget.clientWidth ||
         e.clientY > rect.top + e.currentTarget.clientHeight;
-      if (!onScrollbar) {
-        clearSelection();
+      if (onScrollbar) {
+        // Clicking/dragging the native scrollbar would otherwise blur the
+        // grid container, which owns keyboard nav, copy/paste and Escape.
+        // Prevent the default focus shift so the current cell range stays
+        // usable while scrolling. preventDefault does not block the native
+        // scrollbar drag itself.
+        e.preventDefault();
+        return;
       }
+      clearSelection();
     },
     [clearSelection],
   );

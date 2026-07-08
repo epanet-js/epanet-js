@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createRef, useState } from "react";
 import { DataGrid, type DataGridRef } from "./data-grid";
 import { booleanColumn } from "./cells/boolean-cell";
@@ -855,6 +855,90 @@ describe("DataGrid", () => {
       });
 
       // Verify no cells are selected via aria-selected
+      expect(
+        container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
+          .length,
+      ).toBe(0);
+    });
+
+    it("keeps the selection and grid focus when pressing on the scrollbar", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      // Select a cell so there is a range to preserve.
+      await user.click(screen.getByText("Row 1"));
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+
+      const grid = screen.getByRole("grid");
+      grid.focus();
+      const scrollArea = container.querySelector(".datagrid-scroll-area")!;
+
+      // jsdom reports a zero-sized rect, so any positive clientX lands past
+      // the (empty) content box and is treated as the scrollbar region.
+      const notCancelled = fireEvent.mouseDown(scrollArea, {
+        clientX: 10,
+        clientY: 0,
+      });
+
+      // The mousedown is prevent-defaulted so the grid does not blur, and the
+      // selection is left untouched.
+      expect(notCancelled).toBe(false);
+      expect(document.activeElement).toBe(grid);
+      expect(
+        container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
+          .length,
+      ).toBe(1);
+      expect(onSelectionChange).toHaveBeenLastCalledWith({
+        min: { col: 0, row: 0 },
+        max: { col: 0, row: 0 },
+      });
+    });
+
+    it("clears the selection when pressing the empty area below the rows", async () => {
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      const { container } = render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      await user.click(screen.getByText("Row 1"));
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenCalledWith({
+          min: { col: 0, row: 0 },
+          max: { col: 0, row: 0 },
+        });
+      });
+
+      const scrollArea = container.querySelector(".datagrid-scroll-area")!;
+      // Origin click stays within the content box (not the scrollbar), so it
+      // clears the selection as before.
+      fireEvent.mouseDown(scrollArea, { clientX: 0, clientY: 0 });
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith(null);
+      });
       expect(
         container.querySelectorAll('[role="gridcell"][aria-selected="true"]')
           .length,
