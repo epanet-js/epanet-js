@@ -17,8 +17,13 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
-import { captureError, captureWarning } from "src/infra/error-tracking";
+import {
+  captureError,
+  captureInfo,
+  captureWarning,
+} from "src/infra/error-tracking";
 import { MapContext, captureThumbnail } from "src/map";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
@@ -40,6 +45,7 @@ export const useSaveProject = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
+  const dbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
 
   const performSave = useAtomCallback(
     useCallback(
@@ -109,7 +115,13 @@ export const useSaveProject = ({
           duration: Infinity,
         });
         try {
+          const startTime = performance.now();
           await asyncSave();
+          captureInfo("saveProject() performance", {
+            elapsedTimeMs: performance.now() - startTime,
+            dbInOpfsOn,
+          });
+
           notify({
             variant: "success",
             title: translate("saved"),
@@ -153,7 +165,7 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [getFsAccess, addRecent, translate, map],
+      [getFsAccess, addRecent, translate, map, dbInOpfsOn],
     ),
   );
 

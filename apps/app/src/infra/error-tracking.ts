@@ -31,6 +31,16 @@ export const captureWarning = (
   });
 };
 
+export const captureInfo = (
+  message: string,
+  extra?: Record<string, unknown>,
+) => {
+  // eslint-disable-next-line no-console
+  if (isDebugMode()) console.info(message, extra);
+
+  Sentry.captureMessage(message, { level: "info", extra });
+};
+
 export const addToErrorLog = (breadcrumbs: Sentry.Breadcrumb) => {
   Sentry.addBreadcrumb(breadcrumbs);
 };

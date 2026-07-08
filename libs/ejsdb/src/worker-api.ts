@@ -1,6 +1,8 @@
 import sqliteWasmPkg from "@sqlite.org/sqlite-wasm/package.json";
+import type { SAHPoolUtil } from "@sqlite.org/sqlite-wasm";
 import { APP_VERSION, migrations } from "./migrations";
 import { setPerfLogging, timed } from "./perf-log";
+import { sahpoolDirectory, sahpoolPoolName } from "./sahpool-storage";
 import type {
   AssetRows,
   JunctionRow,
@@ -77,11 +79,36 @@ type Sqlite3 = {
     SQLITE_DESERIALIZE_FREEONCLOSE: number;
     SQLITE_DESERIALIZE_RESIZEABLE: number;
   };
+  installOpfsSAHPoolVfs: (opts: {
+    name?: string;
+    directory?: string;
+    initialCapacity?: number;
+    clearOnInit?: boolean;
+  }) => Promise<SAHPoolUtil>;
 };
 
 let sqlite3: Sqlite3 | null = null;
 let db: OoDb | null = null;
 const stmtCache = new Map<string, Stmt>();
+
+type StorageMode = "memory" | "sahpool";
+let storageMode: StorageMode = "memory";
+let poolUtil: SAHPoolUtil | null = null;
+const SAHPOOL_DB_PATH = "/main.sqlite3";
+
+const ensureSahpool = async (appId: string): Promise<boolean> => {
+  if (poolUtil) return true;
+  try {
+    poolUtil = await sqlite3!.installOpfsSAHPoolVfs({
+      name: sahpoolPoolName(appId),
+      directory: sahpoolDirectory(appId),
+      initialCapacity: 6,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const ready = (async () => {
   const mod = await import("@sqlite.org/sqlite-wasm");
@@ -808,11 +835,31 @@ export const api = {
     setPerfLogging(enabled, "db [worker]");
   },
 
+  async configure({
+    mode,
+    sahpoolId,
+  }: {
+    mode: StorageMode;
+    sahpoolId: string;
+  }): Promise<StorageMode> {
+    await ready;
+    storageMode =
+      mode === "sahpool" && (await ensureSahpool(sahpoolId))
+        ? "sahpool"
+        : "memory";
+    return storageMode;
+  },
+
   async newDb() {
     return timed("newDb", async () => {
       await ready;
       closeExistingDb();
-      db = new sqlite3!.oo1.DB(":memory:", "c");
+      if (storageMode === "sahpool") {
+        await poolUtil!.wipeFiles();
+        db = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
+      } else {
+        db = new sqlite3!.oo1.DB(":memory:", "c");
+      }
       runMigrations();
       db.exec(`PRAGMA application_id = ${APP_VERSION}`);
     });
@@ -826,19 +873,26 @@ export const api = {
         closeExistingDb();
 
         try {
-          db = new sqlite3!.oo1.DB(":memory:", "c");
-          const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
-          const flags =
-            sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
-            sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
-          sqlite3!.capi.sqlite3_deserialize(
-            db.pointer!,
-            "main",
-            p,
-            fileBytes.length,
-            fileBytes.length,
-            flags,
-          );
+          if (storageMode === "sahpool") {
+            await poolUtil!.importDb(SAHPOOL_DB_PATH, fileBytes);
+            db = new poolUtil!.OpfsSAHPoolDb(
+              SAHPOOL_DB_PATH,
+            ) as unknown as OoDb;
+          } else {
+            db = new sqlite3!.oo1.DB(":memory:", "c");
+            const p = sqlite3!.wasm.allocFromTypedArray(fileBytes);
+            const flags =
+              sqlite3!.capi.SQLITE_DESERIALIZE_FREEONCLOSE |
+              sqlite3!.capi.SQLITE_DESERIALIZE_RESIZEABLE;
+            sqlite3!.capi.sqlite3_deserialize(
+              db.pointer!,
+              "main",
+              p,
+              fileBytes.length,
+              fileBytes.length,
+              flags,
+            );
+          }
 
           let fileVersion: number;
           try {

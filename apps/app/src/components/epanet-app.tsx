@@ -65,6 +65,8 @@ import { initStorage } from "src/infra/storage";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 import { useIsCustomerAllocationDisabled } from "src/hooks/use-is-customer-allocation-disabled";
 import { useSeedDefaultProjectDb } from "src/hooks/persistence/use-start-new-project";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { configureDbStorage } from "src/lib/db/commands/configure-storage";
 
 type ResolvedLayout = "HORIZONTAL" | "VERTICAL" | "FLOATING";
 
@@ -90,6 +92,7 @@ export function EpanetApp() {
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
   const seedDefaultProjectDb = useSeedDefaultProjectDb();
+  const isDbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
   const dbInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -100,8 +103,8 @@ export function EpanetApp() {
     if (dbInitializedRef.current) return;
     if (!isReady) return;
     dbInitializedRef.current = true;
-    seedDefaultProjectDb();
-  }, [isReady, seedDefaultProjectDb]);
+    void configureDbStorage(isDbInOpfsOn).then(() => seedDefaultProjectDb());
+  }, [isReady, seedDefaultProjectDb, isDbInOpfsOn]);
 
   useEffect(() => {
     if (isSignedIn && user && !hasIdentifiedRef.current) {

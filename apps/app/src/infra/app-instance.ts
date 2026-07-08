@@ -10,3 +10,9 @@ export const getAppId = (): string => {
   }
   return id;
 };
+
+export const resetAppId = (): string => {
+  const id = nanoid();
+  sessionStorage.setItem(APP_ID_KEY, id);
+  return id;
+};

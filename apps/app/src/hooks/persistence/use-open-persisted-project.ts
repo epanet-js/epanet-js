@@ -11,6 +11,7 @@ import {
   loadModel,
   resetAppState,
 } from "./use-start-new-project";
+import { captureInfo } from "src/infra/error-tracking";
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
 
@@ -37,6 +38,7 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+  const dbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
 
   const openPersistedProject = useAtomCallback(
     useCallback(
@@ -45,7 +47,13 @@ export const useOpenPersistedProject = () => {
         set: Setter,
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
+        const start_time = performance.now();
         const result = await db.openProject(file);
+        captureInfo("openProject() performance", {
+          elapsedTimeMs: performance.now() - start_time,
+          dbInOpfsOn,
+        });
+
         if (result.status !== "ok" && result.status !== "migrated") {
           return result;
         }
@@ -79,7 +87,7 @@ export const useOpenPersistedProject = () => {
           projectSettings,
         };
       },
-      [allowsNullValues],
+      [allowsNullValues, dbInOpfsOn],
     ),
   );
 
