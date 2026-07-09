@@ -19,26 +19,13 @@ import {
 import type { Unit } from "@epanet-js/quantity";
 import { defaultProjectName, ProjectSettings } from "src/lib/project-settings";
 import { type Projection, WGS84 } from "src/lib/projections";
-import {
-  HeadlossFormula,
-  headlossFormulas,
-  initializeHydraulicModel,
-} from "src/hydraulic-model";
-import {
-  initializeModelFactories,
-  initializeModelFactoriesWithNullValues,
-  LabelManager,
-  headlossFormulasFullNames,
-} from "@epanet-js/hydraulic-model";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { HeadlossFormula, headlossFormulas } from "src/hydraulic-model";
+import { headlossFormulasFullNames } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
-import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
+import { useStartBlankProject } from "src/hooks/persistence/use-start-new-project";
 import { Selector } from "@epanet-js/ui-kit";
 
 import { useAtomValue, useSetAtom } from "jotai";
-import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { dialogAtom } from "src/state/dialog";
 import { captureError } from "src/infra/error-tracking";
 import {
@@ -74,16 +61,13 @@ type SubmitProps = {
 
 export const CreateNew = () => {
   const translate = useTranslate();
-  const { startNewProject } = useStartNewProject();
-  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
-  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const startBlankProject = useStartBlankProject();
   const setDialog = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
 
   const setGridPreview = useSetAtom(gridPreviewAtom);
   const setGridHidden = useSetAtom(gridHiddenAtom);
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const isCurrentProjectUnprojected = useAtomValue(isUnprojectedAtom);
   const { closeDialog } = useDialogState();
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
@@ -128,26 +112,11 @@ export const CreateNew = () => {
         formatting: { decimals: spec.decimals, defaultDecimals: 3 },
         projection: buildNewProjection(projection),
       };
-      const idGenerator = new ConsecutiveIdsGenerator();
-      const hydraulicModel = initializeHydraulicModel({
-        idGenerator,
-      });
-      const initializeFactories = allowsNullValues
-        ? initializeModelFactoriesWithNullValues
-        : initializeModelFactories;
-      const factories = initializeFactories({
-        idGenerator,
-        labelManager: new LabelManager(),
-        defaults,
-      });
       setGridPreview(false);
       setGridHidden(false);
       try {
-        await startNewProject({
-          hydraulicModel,
-          factories,
+        await startBlankProject({
           projectSettings,
-          simulationSettings: defaultSimulationSettings,
           autoElevations: projection.id !== "xy-grid",
         });
       } catch (error) {
@@ -165,21 +134,16 @@ export const CreateNew = () => {
         location: location?.name || "",
         projection: projection.id,
       });
-      setInpFileInfo(null);
-      setProjectFileInfo(null);
       closeDialog();
     },
     [
       closeDialog,
-      startNewProject,
+      startBlankProject,
       map,
-      setInpFileInfo,
-      setProjectFileInfo,
       setDialog,
       setGridPreview,
       setGridHidden,
       userTracking,
-      allowsNullValues,
     ],
   );
 

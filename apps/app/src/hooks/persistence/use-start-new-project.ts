@@ -1,11 +1,27 @@
 import { useCallback } from "react";
 import { useAtomCallback } from "jotai/utils";
+import { useSetAtom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
-import type { HydraulicModel } from "src/hydraulic-model";
-import { type ModelFactories } from "@epanet-js/hydraulic-model";
-import type { ProjectSettings } from "src/lib/project-settings";
+import {
+  type HydraulicModel,
+  initializeHydraulicModel,
+} from "src/hydraulic-model";
+import {
+  type ModelFactories,
+  initializeModelFactories,
+  initializeModelFactoriesWithNullValues,
+  LabelManager,
+} from "@epanet-js/hydraulic-model";
+import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
+import {
+  type ProjectSettings,
+  defaultProjectSettings,
+} from "src/lib/project-settings";
+import { defaultSimulationSettings } from "src/simulation/simulation-settings";
+import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";
@@ -172,6 +188,44 @@ export const useStartNewProject = () => {
   );
 
   return { startNewProject };
+};
+
+export const useStartBlankProject = () => {
+  const { startNewProject } = useStartNewProject();
+  const setInpFileInfo = useSetAtom(inpFileInfoAtom);
+  const setProjectFileInfo = useSetAtom(projectFileInfoAtom);
+  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+
+  return useCallback(
+    async ({
+      projectSettings = defaultProjectSettings,
+      autoElevations,
+    }: {
+      projectSettings?: ProjectSettings;
+      autoElevations?: boolean;
+    } = {}) => {
+      const idGenerator = new ConsecutiveIdsGenerator();
+      const hydraulicModel = initializeHydraulicModel({ idGenerator });
+      const initializeFactories = allowsNullValues
+        ? initializeModelFactoriesWithNullValues
+        : initializeModelFactories;
+      const factories = initializeFactories({
+        idGenerator,
+        labelManager: new LabelManager(),
+        defaults: projectSettings.defaults,
+      });
+      await startNewProject({
+        hydraulicModel,
+        factories,
+        projectSettings,
+        simulationSettings: defaultSimulationSettings,
+        autoElevations,
+      });
+      setInpFileInfo(null);
+      setProjectFileInfo(null);
+    },
+    [startNewProject, setInpFileInfo, setProjectFileInfo, allowsNullValues],
+  );
 };
 
 export const useSeedDefaultProjectDb = () => {

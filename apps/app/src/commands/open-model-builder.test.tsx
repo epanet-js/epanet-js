@@ -18,6 +18,14 @@ vi.mock("src/hooks/use-permissions", () => ({
   usePermissions: () => ({ canUseModelBuildV2 }),
 }));
 
+const startBlankProject = vi.fn().mockResolvedValue(undefined);
+vi.mock("src/hooks/persistence/use-start-new-project", () => ({
+  useStartBlankProject: () => startBlankProject,
+}));
+
+const flushMicrotasks = () =>
+  new Promise<void>((resolve) => setTimeout(resolve, 0));
+
 const renderOpen = (store: ReturnType<typeof createStore>) =>
   renderHook(() => useOpenModelBuilder(), {
     wrapper: ({ children }) => (
@@ -28,40 +36,70 @@ const renderOpen = (store: ReturnType<typeof createStore>) =>
 describe("useOpenModelBuilder", () => {
   beforeEach(() => {
     canUseModelBuildV2 = false;
+    startBlankProject.mockClear();
   });
 
-  it("opens the legacy (v1) dialog when FLAG_BUILD_V2 is off", () => {
+  it("opens the legacy (v1) dialog when FLAG_BUILD_V2 is off", async () => {
     stubFeatureOff("FLAG_BUILD_V2");
     const store = createStore();
 
     const { result } = renderOpen(store);
-    act(() => result.current({ source: "toolbar" }));
+    await act(async () => {
+      result.current({ source: "toolbar" });
+      await flushMicrotasks();
+    });
 
     expect(store.get(dialogAtom)).toEqual({ type: "modelBuilderIframe" });
   });
 
-  it("opens the v2 dialog when FLAG_BUILD_V2 is on and the user can use it", () => {
+  it("opens the v2 dialog when FLAG_BUILD_V2 is on and the user can use it", async () => {
     stubFeatureOn("FLAG_BUILD_V2");
     canUseModelBuildV2 = true;
     const store = createStore();
 
     const { result } = renderOpen(store);
-    act(() => result.current({ source: "toolbar" }));
+    await act(async () => {
+      result.current({ source: "toolbar" });
+      await flushMicrotasks();
+    });
 
     expect(store.get(dialogAtom)).toEqual({ type: "modelBuilderV2Iframe" });
   });
 
-  it("opens the paywall when FLAG_BUILD_V2 is on and the user cannot use it", () => {
+  it("clears the project to empty before opening the dialog", async () => {
+    stubFeatureOn("FLAG_BUILD_V2");
+    canUseModelBuildV2 = true;
+    const store = createStore();
+    startBlankProject.mockImplementation(() => {
+      expect(store.get(dialogAtom)).toBeNull();
+      return Promise.resolve();
+    });
+
+    const { result } = renderOpen(store);
+    await act(async () => {
+      result.current({ source: "toolbar" });
+      await flushMicrotasks();
+    });
+
+    expect(startBlankProject).toHaveBeenCalledTimes(1);
+    expect(store.get(dialogAtom)).toEqual({ type: "modelBuilderV2Iframe" });
+  });
+
+  it("opens the paywall without clearing the project", async () => {
     stubFeatureOn("FLAG_BUILD_V2");
     canUseModelBuildV2 = false;
     const store = createStore();
 
     const { result } = renderOpen(store);
-    act(() => result.current({ source: "toolbar" }));
+    await act(async () => {
+      result.current({ source: "toolbar" });
+      await flushMicrotasks();
+    });
 
     expect(store.get(dialogAtom)).toEqual({
       type: "modelBuilderPaywall",
       source: "toolbar",
     });
+    expect(startBlankProject).not.toHaveBeenCalled();
   });
 });
