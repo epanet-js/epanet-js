@@ -215,4 +215,60 @@ describe("MultiSelector", () => {
       });
     });
   });
+
+  describe("atomic callbacks", () => {
+    it("calls onOptionSelected with the value when an option is added", async () => {
+      const onOptionSelected = vi.fn();
+      render(
+        <MultiSelector
+          ariaLabel="Pick some"
+          options={[opt("Apple"), opt("Banana")]}
+          selected={[]}
+          onOptionSelected={onOptionSelected}
+          valueLabel="0 selected"
+          placeholder="Choose…"
+        />,
+      );
+      const user = await openMultiSelector();
+      await user.click(screen.getByRole("option", { name: "Banana" }));
+      expect(onOptionSelected).toHaveBeenCalledWith("Banana");
+    });
+
+    it("calls onOptionRemoved with the value when an option is deselected", async () => {
+      const onOptionRemoved = vi.fn();
+      render(
+        <MultiSelector
+          ariaLabel="Pick some"
+          options={[opt("Apple"), opt("Banana")]}
+          selected={["Apple"]}
+          onOptionRemoved={onOptionRemoved}
+          valueLabel="1 selected"
+          placeholder="Choose…"
+        />,
+      );
+      const user = await openMultiSelector();
+      await user.click(screen.getByRole("option", { name: "Apple" }));
+      expect(onOptionRemoved).toHaveBeenCalledWith("Apple");
+    });
+
+    it("still calls onChange alongside the atomic callbacks", async () => {
+      const onChange = vi.fn();
+      const onOptionSelected = vi.fn();
+      render(
+        <MultiSelector
+          ariaLabel="Pick some"
+          options={[opt("Apple"), opt("Banana")]}
+          selected={[]}
+          onChange={onChange}
+          onOptionSelected={onOptionSelected}
+          valueLabel="0 selected"
+          placeholder="Choose…"
+        />,
+      );
+      const user = await openMultiSelector();
+      await user.click(screen.getByRole("option", { name: "Apple" }));
+      expect(onChange).toHaveBeenCalledWith(["Apple"]);
+      expect(onOptionSelected).toHaveBeenCalledWith("Apple");
+    });
+  });
 });

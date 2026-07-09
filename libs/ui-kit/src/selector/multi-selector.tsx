@@ -13,7 +13,9 @@ export type MultiSelectorOption<T extends string | number> =
 export type MultiSelectorProps<T extends string | number> = {
   options: MultiSelectorOption<T>[];
   selected: T[];
-  onChange: (next: T[]) => void;
+  onChange?: (next: T[]) => void;
+  onOptionSelected?: (value: T) => void;
+  onOptionRemoved?: (value: T) => void;
   /** Resolved trigger text when selected.length > 0, e.g. "3 selected". The
    *  consuming app composes/pluralizes/translates it (ui-kit is string-pure). */
   valueLabel: string;
@@ -34,6 +36,8 @@ export function BaseMultiSelector<T extends string | number>({
   options,
   selected,
   onChange,
+  onOptionSelected,
+  onOptionRemoved,
   valueLabel,
   placeholder,
   ariaLabel,
@@ -77,12 +81,15 @@ export function BaseMultiSelector<T extends string | number>({
 
   const handleToggle = useCallback(
     (value: T) => {
-      const next = selected.includes(value)
-        ? selected.filter((v) => v !== value)
-        : [...selected, value];
-      onChange(next);
+      if (selected.includes(value)) {
+        onChange?.(selected.filter((v) => v !== value));
+        onOptionRemoved?.(value);
+      } else {
+        onChange?.([...selected, value]);
+        onOptionSelected?.(value);
+      }
     },
-    [selected, onChange],
+    [selected, onChange, onOptionSelected, onOptionRemoved],
   );
 
   const isEmpty = selected.length === 0;
