@@ -164,7 +164,7 @@ export const ModelBuilderV2IframeDialog = ({
       onClose={_onClose}
       badge={<EarlyAccessBadge />}
     >
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base z-10">
             <Loading />
