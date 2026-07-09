@@ -247,3 +247,30 @@ describe("AssetFactoryWithNullValues createReservoir head", () => {
     expect(reservoir.head).toEqual(110);
   });
 });
+
+describe("AssetFactory createPipe customAttributes", () => {
+  it("sets each non-null custom attribute as a property", () => {
+    const pipe = assetFactory().createPipe({
+      customAttributes: { "custom-1": 100, "custom-2": "PVC" },
+    });
+
+    expect(pipe.getProperty("custom-1")).toEqual(100);
+    expect(pipe.getProperty("custom-2")).toEqual("PVC");
+  });
+
+  it("skips null custom attribute values", () => {
+    const pipe = assetFactory().createPipe({
+      customAttributes: { "custom-1": null },
+    });
+
+    expect(pipe.hasProperty("custom-1")).toBe(false);
+  });
+
+  it("applies custom attributes on the null-values factory too", () => {
+    const pipe = assetFactoryWithNullValues().createPipe({
+      customAttributes: { "custom-1": 250 },
+    });
+
+    expect(pipe.getProperty("custom-1")).toEqual(250);
+  });
+});

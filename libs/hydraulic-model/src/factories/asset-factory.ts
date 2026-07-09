@@ -35,6 +35,7 @@ export type PipeBuildData = {
   material?: string;
   year?: number;
   isActive?: boolean;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 export type PumpBuildData = {
@@ -158,9 +159,10 @@ export class AssetFactory {
     material,
     year,
     isActive = true,
+    customAttributes,
   }: PipeBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
-    return new Pipe(internalId, coordinates, {
+    const pipe = new Pipe(internalId, coordinates, {
       type: "pipe",
       label: this.resolveLabel("pipe", internalId, label),
       connections,
@@ -175,6 +177,7 @@ export class AssetFactory {
       year,
       isActive,
     });
+    return applyCustomAttributes(pipe, customAttributes);
   }
 
   createValve({
@@ -417,6 +420,18 @@ export class AssetFactory {
     return this.defaults.tank[name] || 0;
   }
 }
+
+const applyCustomAttributes = <
+  T extends { setProperty: (name: string, value: unknown) => void },
+>(
+  asset: T,
+  customAttributes?: Record<string, string | number | null>,
+): T => {
+  for (const [id, value] of Object.entries(customAttributes ?? {})) {
+    if (value !== null) asset.setProperty(id, value);
+  }
+  return asset;
+};
 
 const emptyUnmapped = <
   T extends { setProperty: (name: string, value: unknown) => void },
