@@ -66,3 +66,15 @@ export const useRecoverSession = () => {
     ),
   );
 };
+
+export const useDiscardRecoverableSession = () => {
+  const setRecoverable = useSetAtom(recoverableSessionAtom);
+  const userTracking = useUserTracking();
+
+  return useCallback(() => {
+    setRecoverable(null);
+    clearRecoveryFingerprint();
+    void cleanupStaleDbPools(getAppId());
+    userTracking.capture({ name: "sessionRecovery.discarded" });
+  }, [setRecoverable, userTracking]);
+};

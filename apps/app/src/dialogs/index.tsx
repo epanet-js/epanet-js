@@ -1,7 +1,8 @@
 import dynamic from "next/dynamic";
 import { memo, useCallback, useRef } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
+import { recoverableSessionAtom } from "src/state/session-recovery";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import type { Projection } from "src/lib/projections";
@@ -10,6 +11,7 @@ import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
+import { SessionRecoveryDialog } from "./session-recovery";
 import { AppLoadFailedDialog } from "./app-load-failed";
 
 const SimulationSettingsDialog = dynamic(
@@ -649,6 +651,7 @@ const ImportZonesDialog = dynamic<{
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
+  const recoverableSession = useAtomValue(recoverableSessionAtom);
   const userTracking = useUserTracking();
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -664,7 +667,7 @@ export const Dialogs = memo(function Dialogs() {
 
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {
-      if (dialog.type === "welcome") {
+      if (dialog.type === "welcome" && !recoverableSession) {
         userTracking.capture({ name: "welcome.seen" });
       }
       if (dialog.type === "unsavedChanges") {
@@ -779,7 +782,7 @@ export const Dialogs = memo(function Dialogs() {
     return <ChangeNotAppliedDialog onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
-    return <WelcomeDialog />;
+    return recoverableSession ? <SessionRecoveryDialog /> : <WelcomeDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;

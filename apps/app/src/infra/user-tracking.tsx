@@ -440,6 +440,10 @@ export type SessionRecoveryFailed = {
   name: "sessionRecovery.failed";
 };
 
+export type SessionRecoveryDiscarded = {
+  name: "sessionRecovery.discarded";
+};
+
 export type ProjectFileOpened = {
   name: "projectFile.opened";
   source: string;
@@ -1679,7 +1683,8 @@ export type UserEvent =
   | CustomGraphPropertySelected
   | SessionRecoveryOffered
   | SessionRecoveryRecovered
-  | SessionRecoveryFailed;
+  | SessionRecoveryFailed
+  | SessionRecoveryDiscarded;
 
 const debugPostHog = {
   capture: (...data: any[]) => {
