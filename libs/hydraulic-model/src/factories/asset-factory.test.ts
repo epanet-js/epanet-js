@@ -274,3 +274,41 @@ describe("AssetFactory createPipe customAttributes", () => {
     expect(pipe.getProperty("custom-1")).toEqual(250);
   });
 });
+
+describe("custom attributes on other asset types", () => {
+  it("sets custom attributes on a junction", () => {
+    const junction = assetFactory().createJunction({
+      customAttributes: { "custom-3": "zone-A" },
+    });
+
+    expect(junction.getProperty("custom-3")).toEqual("zone-A");
+  });
+
+  it("sets custom attributes on a reservoir, tank and valve", () => {
+    const factory = assetFactory();
+
+    expect(
+      factory
+        .createReservoir({ customAttributes: { "custom-1": 1 } })
+        .getProperty("custom-1"),
+    ).toEqual(1);
+    expect(
+      factory
+        .createTank({ customAttributes: { "custom-2": 2 } })
+        .getProperty("custom-2"),
+    ).toEqual(2);
+    expect(
+      factory
+        .createValve({ customAttributes: { "custom-3": 3 } })
+        .getProperty("custom-3"),
+    ).toEqual(3);
+  });
+
+  it("applies custom attributes on the null-values pump (no super delegation)", () => {
+    const pump = assetFactoryWithNullValues().createPump({
+      customAttributes: { "custom-4": "diesel" },
+    });
+
+    expect(pump.getProperty("custom-4")).toEqual("diesel");
+  });
+});

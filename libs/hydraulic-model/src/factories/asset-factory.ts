@@ -18,6 +18,7 @@ export type JunctionBuildData = {
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 export type PipeBuildData = {
@@ -54,6 +55,7 @@ export type PumpBuildData = {
   energyPrice?: number;
   energyPricePatternId?: PatternId;
   isActive?: boolean;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 export type ValveBuildData = {
@@ -68,6 +70,7 @@ export type ValveBuildData = {
   initialStatus?: ValveStatus;
   isActive?: boolean;
   curveId?: CurveId;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 export type ReservoirBuildData = {
@@ -83,6 +86,7 @@ export type ReservoirBuildData = {
   chemicalSourceStrength?: number;
   chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 export type TankBuildData = {
@@ -105,6 +109,7 @@ export type TankBuildData = {
   chemicalSourcePatternId?: PatternId;
   isActive?: boolean;
   volumeCurveId?: CurveId;
+  customAttributes?: Record<string, string | number | null>;
 };
 
 import { IdGenerator } from "@epanet-js/id-generator";
@@ -195,9 +200,10 @@ export class AssetFactory {
     initialStatus = "active",
     isActive = true,
     curveId,
+    customAttributes,
   }: ValveBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
-    return new Valve(internalId, coordinates, {
+    const valve = new Valve(internalId, coordinates, {
       type: "valve",
       label: this.resolveLabel("valve", internalId, label),
       connections,
@@ -210,6 +216,7 @@ export class AssetFactory {
       isActive,
       curveId,
     });
+    return applyCustomAttributes(valve, customAttributes);
   }
 
   createPump({
@@ -231,9 +238,10 @@ export class AssetFactory {
     energyPrice,
     energyPricePatternId,
     isActive = true,
+    customAttributes,
   }: PumpBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
-    return new Pump(internalId, coordinates, {
+    const pump = new Pump(internalId, coordinates, {
       type: "pump",
       label: this.resolveLabel("pump", internalId, label),
       connections,
@@ -254,6 +262,7 @@ export class AssetFactory {
       energyPricePatternId,
       isActive,
     });
+    return applyCustomAttributes(pump, customAttributes);
   }
 
   createJunction({
@@ -267,9 +276,10 @@ export class AssetFactory {
     chemicalSourceStrength,
     chemicalSourcePatternId,
     isActive = true,
+    customAttributes,
   }: JunctionBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
-    return new Junction(internalId, coordinates, {
+    const junction = new Junction(internalId, coordinates, {
       type: "junction",
       label: this.resolveLabel("junction", internalId, label),
       elevation: this.getJunctionValue("elevation", elevation),
@@ -280,6 +290,7 @@ export class AssetFactory {
       chemicalSourcePatternId,
       isActive,
     });
+    return applyCustomAttributes(junction, customAttributes);
   }
 
   createReservoir({
@@ -295,6 +306,7 @@ export class AssetFactory {
     chemicalSourceStrength,
     chemicalSourcePatternId,
     isActive = true,
+    customAttributes,
   }: ReservoirBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
     const elevationValue = this.getReservoirValue("elevation", elevation);
@@ -309,7 +321,7 @@ export class AssetFactory {
       headValue = relativeHeadValue + elevationValue;
     }
 
-    return new Reservoir(internalId, coordinates, {
+    const reservoir = new Reservoir(internalId, coordinates, {
       type: "reservoir",
       label: this.resolveLabel("reservoir", internalId, label),
       head: headValue,
@@ -321,6 +333,7 @@ export class AssetFactory {
       chemicalSourcePatternId,
       isActive,
     });
+    return applyCustomAttributes(reservoir, customAttributes);
   }
 
   createTank({
@@ -343,9 +356,10 @@ export class AssetFactory {
     chemicalSourcePatternId,
     isActive = true,
     volumeCurveId,
+    customAttributes,
   }: TankBuildData = {}) {
     const internalId = id ?? this.idGenerator.newId();
-    return new Tank(internalId, coordinates, {
+    const tank = new Tank(internalId, coordinates, {
       type: "tank",
       label: this.resolveLabel("tank", internalId, label),
       elevation: this.getTankValue("elevation", elevation),
@@ -365,6 +379,7 @@ export class AssetFactory {
       chemicalSourcePatternId,
       isActive,
     });
+    return applyCustomAttributes(tank, customAttributes);
   }
 
   protected resolveLabel(type: LabelType, id: number, label?: string): string {
@@ -507,9 +522,10 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     energyPrice,
     energyPricePatternId,
     isActive = true,
+    customAttributes,
   }: PumpBuildData = {}): Pump {
     const internalId = id ?? this.idGenerator.newId();
-    return new Pump(internalId, coordinates, {
+    const pump = new Pump(internalId, coordinates, {
       type: "pump",
       label: this.resolveLabel("pump", internalId, label),
       connections,
@@ -526,6 +542,7 @@ export class AssetFactoryWithNullValues extends AssetFactory {
       energyPricePatternId,
       isActive,
     });
+    return applyCustomAttributes(pump, customAttributes);
   }
 
   createTank(data: TankBuildData = {}): Tank {
