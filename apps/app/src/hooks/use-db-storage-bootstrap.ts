@@ -8,6 +8,7 @@ import { configureDbStorage } from "src/lib/db/commands/configure-storage";
 import {
   recoverableSessionAtom,
   sessionRecoveryActiveAtom,
+  sessionRecoveryResolvedAtom,
 } from "src/state/session-recovery";
 import {
   readRecoveryFingerprint,
@@ -20,6 +21,7 @@ export const useDbStorageBootstrap = (isReady: boolean): void => {
   const isSessionRecoveryOn = useFeatureFlag("FLAG_SESSION_RECOVERY");
   const setSessionRecoveryActive = useSetAtom(sessionRecoveryActiveAtom);
   const setRecoverableSession = useSetAtom(recoverableSessionAtom);
+  const setSessionRecoveryResolved = useSetAtom(sessionRecoveryResolvedAtom);
   const userTracking = useUserTracking();
   const dbInitializedRef = useRef(false);
 
@@ -27,8 +29,8 @@ export const useDbStorageBootstrap = (isReady: boolean): void => {
     if (dbInitializedRef.current) return;
     if (!isReady) return;
     dbInitializedRef.current = true;
-    void configureDbStorage(isDbInOpfsOn, isSessionRecoveryOn).then(
-      async (effective) => {
+    void configureDbStorage(isDbInOpfsOn, isSessionRecoveryOn)
+      .then(async (effective) => {
         const recoveryActive = isSessionRecoveryOn && effective === "sahpool";
         setSessionRecoveryActive(recoveryActive);
 
@@ -45,8 +47,10 @@ export const useDbStorageBootstrap = (isReady: boolean): void => {
         }
 
         seedDefaultProjectDb();
-      },
-    );
+      })
+      .finally(() => {
+        setSessionRecoveryResolved(true);
+      });
   }, [
     isReady,
     seedDefaultProjectDb,
@@ -54,6 +58,7 @@ export const useDbStorageBootstrap = (isReady: boolean): void => {
     isSessionRecoveryOn,
     setSessionRecoveryActive,
     setRecoverableSession,
+    setSessionRecoveryResolved,
     userTracking,
   ]);
 };
