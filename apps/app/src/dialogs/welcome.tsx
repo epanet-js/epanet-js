@@ -1,4 +1,7 @@
+import { useAtomValue } from "jotai";
 import { useNewProject } from "src/commands/create-new-project";
+import { useRecoverSession } from "src/commands/recover-session";
+import { recoverableSessionAtom } from "src/state/session-recovery";
 import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenProject } from "src/commands/open-project";
@@ -24,6 +27,7 @@ import {
   ArrowRightIcon,
   CloseIcon,
   FileIcon,
+  RefreshIcon,
   FileSpreadsheetIcon,
   FolderOpenIcon,
   GlobeIcon,
@@ -45,6 +49,8 @@ export const WelcomeDialog = () => {
   const createNew = useNewProject();
   const openProject = useOpenProject();
   const openModelBuilder = useOpenModelBuilder();
+  const recoverSession = useRecoverSession();
+  const recoverableSession = useAtomValue(recoverableSessionAtom);
   const userTracking = useUserTracking();
 
   const currentLocale = useLocale();
@@ -70,6 +76,18 @@ export const WelcomeDialog = () => {
               <SmallDeviceWarning />
             </div>
             <div className="h-full flex flex-col gap-2">
+              {recoverableSession && (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    void recoverSession();
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <RefreshIcon />
+                  {translate("recoverUnsavedModel")}
+                </Button>
+              )}
               <Button
                 variant="quiet"
                 onClick={() => {

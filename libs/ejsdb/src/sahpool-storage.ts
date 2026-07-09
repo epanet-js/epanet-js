@@ -6,13 +6,15 @@ export const sahpoolPoolName = (id: string): string =>
 export const sahpoolDirectory = (id: string): string =>
   `/${SAHPOOL_ROOT_DIR}/${id}`;
 
-export const cleanupStaleDbPools = async (currentId: string): Promise<void> => {
-  const isOpfsAvailable =
-    navigator && navigator.storage.getDirectory !== undefined;
-
-  if (!isOpfsAvailable) {
+export const cleanupStaleDbPools = async (
+  currentId: string,
+  protectedIds: string[] = [],
+): Promise<void> => {
+  if (!isOpfsAvailable()) {
     return;
   }
+
+  const keepIds = new Set([currentId, ...protectedIds]);
 
   try {
     const root = await navigator.storage.getDirectory();
@@ -22,7 +24,7 @@ export const cleanupStaleDbPools = async (currentId: string): Promise<void> => {
 
     const staleIds: string[] = [];
     for await (const id of poolRoot.keys()) {
-      if (id !== currentId) staleIds.push(id);
+      if (!keepIds.has(id)) staleIds.push(id);
     }
 
     for (const id of staleIds) {
@@ -32,3 +34,22 @@ export const cleanupStaleDbPools = async (currentId: string): Promise<void> => {
     }
   } catch {}
 };
+
+export const dbPoolExists = async (id: string): Promise<boolean> => {
+  if (!isOpfsAvailable()) {
+    return false;
+  }
+
+  try {
+    const root = await navigator.storage.getDirectory();
+    const poolRoot = await root.getDirectoryHandle(SAHPOOL_ROOT_DIR);
+    await poolRoot.getDirectoryHandle(id);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isOpfsAvailable = (): boolean =>
+  typeof navigator !== "undefined" &&
+  navigator.storage?.getDirectory !== undefined;

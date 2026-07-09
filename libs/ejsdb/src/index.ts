@@ -1,5 +1,5 @@
 export { getWorker, setWorkerForTest, resetWorkerForTest } from "./get-worker";
-export { cleanupStaleDbPools } from "./sahpool-storage";
+export { cleanupStaleDbPools, dbPoolExists } from "./sahpool-storage";
 // Note: `api` is intentionally not re-exported here. It lives in worker-api.ts,
 // whose top-level SQLite-WASM init must not run on the server during SSR. Import
 // it via the "@epanet-js/ejsdb/worker-api" subpath (worker + tests only).

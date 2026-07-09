@@ -428,6 +428,18 @@ export type OpenProjectStarted = {
   source: string;
 };
 
+export type SessionRecoveryOffered = {
+  name: "sessionRecovery.offered";
+};
+
+export type SessionRecoveryRecovered = {
+  name: "sessionRecovery.recovered";
+};
+
+export type SessionRecoveryFailed = {
+  name: "sessionRecovery.failed";
+};
+
 export type ProjectFileOpened = {
   name: "projectFile.opened";
   source: string;
@@ -1664,7 +1676,10 @@ export type UserEvent =
   | SimulationResultsExported
   | CustomGraphExported
   | CustomGraphOpened
-  | CustomGraphPropertySelected;
+  | CustomGraphPropertySelected
+  | SessionRecoveryOffered
+  | SessionRecoveryRecovered
+  | SessionRecoveryFailed;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

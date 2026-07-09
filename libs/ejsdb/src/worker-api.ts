@@ -930,6 +930,31 @@ export const api = {
     );
   },
 
+  async exportDbFromPool(poolId: string): Promise<Uint8Array | null> {
+    return timed("exportDbFromPool", async () => {
+      await ready;
+      if (!sqlite3) return null;
+      let pool: SAHPoolUtil | null = null;
+      try {
+        pool = await sqlite3.installOpfsSAHPoolVfs({
+          name: sahpoolPoolName(poolId),
+          directory: sahpoolDirectory(poolId),
+          initialCapacity: 6,
+        });
+        const bytes = await pool.exportFile(SAHPOOL_DB_PATH);
+        return bytes.length > 0 ? bytes : null;
+      } catch {
+        return null;
+      } finally {
+        if (pool) {
+          try {
+            await pool.removeVfs();
+          } catch {}
+        }
+      }
+    });
+  },
+
   async getProjectSettings(): Promise<string | null> {
     return timed("getProjectSettings", async () => {
       await ready;

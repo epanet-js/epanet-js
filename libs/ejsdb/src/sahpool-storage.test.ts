@@ -1,5 +1,6 @@
 import {
   cleanupStaleDbPools,
+  dbPoolExists,
   sahpoolDirectory,
   sahpoolPoolName,
 } from "./sahpool-storage";
@@ -60,6 +61,26 @@ describe("cleanupStaleDbPools", () => {
     );
   });
 
+  it("keeps protected pool directories alongside the current id", async () => {
+    mockPoolRoot.keys.mockReturnValue(
+      asyncNames(["recoverable-tab", "current-tab", "old-tab"]),
+    );
+
+    await cleanupStaleDbPools("current-tab", ["recoverable-tab"]);
+
+    expect(mockPoolRoot.removeEntry).toHaveBeenCalledWith("old-tab", {
+      recursive: true,
+    });
+    expect(mockPoolRoot.removeEntry).not.toHaveBeenCalledWith(
+      "recoverable-tab",
+      expect.anything(),
+    );
+    expect(mockPoolRoot.removeEntry).not.toHaveBeenCalledWith(
+      "current-tab",
+      expect.anything(),
+    );
+  });
+
   it("does nothing when the pool root does not exist yet", async () => {
     mockRoot.getDirectoryHandle.mockRejectedValue(new Error("NotFoundError"));
 
@@ -82,5 +103,46 @@ describe("cleanupStaleDbPools", () => {
     await cleanupStaleDbPools("current-tab");
 
     expect(mockPoolRoot.removeEntry).not.toHaveBeenCalled();
+  });
+});
+
+describe("dbPoolExists", () => {
+  let mockPoolRoot: { getDirectoryHandle: ReturnType<typeof vi.fn> };
+  let mockRoot: { getDirectoryHandle: ReturnType<typeof vi.fn> };
+
+  beforeEach(() => {
+    mockPoolRoot = {
+      getDirectoryHandle: vi.fn().mockResolvedValue({}),
+    };
+    mockRoot = {
+      getDirectoryHandle: vi.fn().mockResolvedValue(mockPoolRoot),
+    };
+    vi.stubGlobal("navigator", {
+      storage: { getDirectory: vi.fn().mockResolvedValue(mockRoot) },
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("resolves true when the pool directory is present", async () => {
+    await expect(dbPoolExists("tab-a")).resolves.toBe(true);
+    expect(mockRoot.getDirectoryHandle).toHaveBeenCalledWith("epanet-db");
+    expect(mockPoolRoot.getDirectoryHandle).toHaveBeenCalledWith("tab-a");
+  });
+
+  it("resolves false when the pool directory is missing", async () => {
+    mockPoolRoot.getDirectoryHandle.mockRejectedValue(
+      new Error("NotFoundError"),
+    );
+
+    await expect(dbPoolExists("tab-a")).resolves.toBe(false);
+  });
+
+  it("resolves false when OPFS is unavailable", async () => {
+    vi.stubGlobal("navigator", undefined);
+
+    await expect(dbPoolExists("tab-a")).resolves.toBe(false);
   });
 });
