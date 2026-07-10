@@ -46,7 +46,6 @@ export function BaseMultiSelectorList<T extends string | number>({
   maxVisibleOptions = 5,
 }: MultiSelectorListProps<T>) {
   const ui = useUIConfig();
-  const maxListHeight = `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`;
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number>(NO_INDEX);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +64,16 @@ export function BaseMultiSelectorList<T extends string | number>({
 
   const showList = filtered.length > 0;
   const totalEntries = filtered.length;
+
+  // While searching, reserve the height of the original (unfiltered) list capped
+  // at the visible max, so filtering never resizes the popover and Radix can't
+  // flip it to the other side mid-search. Without a search box the list can't be
+  // filtered, so it just sizes to content up to the cap.
+  const capRem = (maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM;
+  const fullRem = options.length * ROW_REM + LIST_TOP_PAD_REM;
+  const listAreaStyle = showSearch
+    ? { height: `min(${capRem}rem, ${fullRem}rem)` }
+    : { maxHeight: `${capRem}rem` };
 
   useLayoutEffect(
     function focusOnMount() {
@@ -221,7 +230,7 @@ export function BaseMultiSelectorList<T extends string | number>({
       className="outline-hidden flex flex-col min-h-0"
     >
       {showSearch && (
-        <div className={clsx("p-2", showList && "border-b")}>
+        <div className={clsx("p-2", (showList || showSearch) && "border-b")}>
           <input
             ref={inputRef}
             type="text"
@@ -235,11 +244,14 @@ export function BaseMultiSelectorList<T extends string | number>({
           />
         </div>
       )}
-      {showList && (
+      {(showList || showSearch) && (
         <div
-          style={{ maxHeight: maxListHeight }}
+          style={listAreaStyle}
           className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
         >
+          {!showList && (
+            <div className="px-2 py-2 text-subtle">{ui.noResultsLabel}</div>
+          )}
           <ul
             role="listbox"
             aria-multiselectable="true"

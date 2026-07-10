@@ -276,8 +276,10 @@ describe("MultiSelector", () => {
   });
 
   describe("options list height", () => {
+    // 6 options < the default search threshold (8), so no search box renders and
+    // the list sizes to content up to the cap via `max-height`.
     it("caps the scrollable options container at 5.5 rows by default", async () => {
-      render(<Harness options={manyOpts(12)} />);
+      render(<Harness options={manyOpts(6)} />);
       await openMultiSelector();
 
       const container = screen.getByRole("listbox").parentElement;
@@ -287,7 +289,7 @@ describe("MultiSelector", () => {
     });
 
     it("sizes the cap from maxVisibleOptions", async () => {
-      render(<Harness options={manyOpts(12)} maxVisibleOptions={3} />);
+      render(<Harness options={manyOpts(6)} maxVisibleOptions={3} />);
       await openMultiSelector();
 
       expect(screen.getByRole("listbox").parentElement).toHaveStyle({
@@ -295,4 +297,35 @@ describe("MultiSelector", () => {
       });
     });
   });
+
+  describe("reserved height while searching", () => {
+    // With a search box the list area keeps a reserved height and stays mounted
+    // even on a no-match query, so the popover never resizes (and Radix never
+    // flips it) as the query narrows results.
+    it("keeps the list area mounted and shows no-results on an empty match", async () => {
+      const user = await openMultiSelectorWith(manyOpts(12));
+
+      await user.type(screen.getByRole("textbox"), "zzzzz");
+
+      expect(screen.getByText("No results")).toBeInTheDocument();
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    // With the search box shown the list uses a reserved fixed `height`, not the
+    // capped `max-height`, so the popover can't resize while filtering. (jsdom's
+    // CSSOM drops `min()` values, so we assert the branch — no max-height — rather
+    // than the computed value, which is checked visually.)
+    it("uses a reserved height (not max-height) once the search box shows", async () => {
+      await openMultiSelectorWith(manyOpts(12));
+
+      const container = screen.getByRole("listbox").parentElement;
+      expect(container).toHaveClass("scroll-shadows");
+      expect(container?.style.maxHeight).toBe("");
+    });
+  });
 });
+
+async function openMultiSelectorWith(options: MultiSelectorOption<string>[]) {
+  render(<Harness options={options} />);
+  return openMultiSelector();
+}
