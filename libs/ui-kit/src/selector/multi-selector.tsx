@@ -29,6 +29,9 @@ export type MultiSelectorProps<T extends string | number> = {
   minOptionsForSearch?: number;
   listClassName?: string;
   maxVisibleOptions?: number;
+  /** Where the dropdown opens: "auto" (default) lets it flip to fit the
+   *  viewport; "top"/"bottom" pin it to that side and never flip. */
+  side?: "top" | "bottom" | "auto";
 };
 
 export const MultiSelector = BaseMultiSelector;
@@ -49,6 +52,7 @@ export function BaseMultiSelector<T extends string | number>({
   minOptionsForSearch,
   listClassName,
   maxVisibleOptions,
+  side = "auto",
 }: MultiSelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -130,7 +134,8 @@ export function BaseMultiSelector<T extends string | number>({
       </Popover.Trigger>
       <Popover.Portal container={portalContainer ?? undefined}>
         <Popover.Content
-          side="bottom"
+          side={side === "auto" ? "bottom" : side}
+          avoidCollisions={side === "auto"}
           align="start"
           collisionPadding={8}
           className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"
