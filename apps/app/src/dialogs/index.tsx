@@ -2,12 +2,7 @@ import dynamic from "next/dynamic";
 import { memo, useCallback, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import {
-  recoverableSessionAtom,
-  sessionRecoveryResolvedAtom,
-} from "src/state/session-recovery";
-import { readRecoveryFingerprint } from "src/infra/session-recovery";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { recoverableSessionAtom } from "src/state/session-recovery";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import type { Projection } from "src/lib/projections";
@@ -657,20 +652,12 @@ const ImportZonesDialog = dynamic<{
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
   const recoverableSession = useAtomValue(recoverableSessionAtom);
-  const isSessionRecoveryResolved = useAtomValue(sessionRecoveryResolvedAtom);
-  const isSessionRecoveryOn = useFeatureFlag("FLAG_SESSION_RECOVERY");
   const userTracking = useUserTracking();
   const onClose = useCallback(() => {
     setDialogState(null);
   }, [setDialogState]);
 
   const previousDialog = useRef<dialogState.DialogState>(null);
-
-  const isRecoveryPending =
-    !recoverableSession &&
-    !isSessionRecoveryResolved &&
-    isSessionRecoveryOn &&
-    readRecoveryFingerprint() !== null;
 
   if (dialog === null) return null;
 
@@ -680,11 +667,7 @@ export const Dialogs = memo(function Dialogs() {
 
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {
-      if (
-        dialog.type === "welcome" &&
-        !recoverableSession &&
-        !isRecoveryPending
-      ) {
+      if (dialog.type === "welcome" && !recoverableSession) {
         userTracking.capture({ name: "welcome.seen" });
       }
       if (dialog.type === "unsavedChanges") {
@@ -799,13 +782,7 @@ export const Dialogs = memo(function Dialogs() {
     return <ChangeNotAppliedDialog onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
-    if (recoverableSession) {
-      return <SessionRecoveryDialog />;
-    }
-    if (isRecoveryPending) {
-      return <LoadingDialog />;
-    }
-    return <WelcomeDialog />;
+    return recoverableSession ? <SessionRecoveryDialog /> : <WelcomeDialog />;
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;

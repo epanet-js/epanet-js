@@ -230,7 +230,7 @@ export const useStartBlankProject = () => {
 
 export const useSeedDefaultProjectDb = () => {
   return useAtomCallback(
-    useCallback((get: Getter, set: Setter) => {
+    useCallback((get: Getter, set: Setter): Promise<void> => {
       const projectSettings = get(projectSettingsAtom);
       const hydraulicModel = get(stagingModelAtom);
       const simulationSettings = get(simulationSettingsAtom);
@@ -243,7 +243,7 @@ export const useSeedDefaultProjectDb = () => {
         simulationSettings,
       });
 
-      void db
+      return db
         .importProject({
           newDb: true,
           projectSettings,

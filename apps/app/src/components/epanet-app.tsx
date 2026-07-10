@@ -58,6 +58,7 @@ import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { NotificationFromUrl } from "./notification-from-url";
 import { setUserContext } from "src/infra/error-tracking";
 import { useAppReady } from "src/hooks/use-app-ready";
+import { useFeatureFlagsReady } from "src/hooks/use-feature-flags";
 import { AppLoader } from "./app-loader";
 import { PrivacyBanner } from "./privacy-banner";
 import { usePrivacySettings } from "src/hooks/use-privacy-settings";
@@ -80,7 +81,9 @@ const persistentTransformAtom = atom<Transform>({
 });
 
 export function EpanetApp() {
-  const { isReady, progress } = useAppReady();
+  const areFeatureFlagsReady = useFeatureFlagsReady();
+  const isDbReady = useDbStorageBootstrap(areFeatureFlagsReady);
+  const { isReady, progress } = useAppReady(isDbReady);
   const [map, setMap] = useState<MapEngine | null>(null);
   useWindowResizeSplits();
   const userTracking = useUserTracking();
@@ -90,7 +93,6 @@ export function EpanetApp() {
 
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
-  useDbStorageBootstrap(isReady);
 
   useEffect(() => {
     void initStorage();

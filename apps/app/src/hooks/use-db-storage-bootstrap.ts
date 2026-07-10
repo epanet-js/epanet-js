@@ -1,36 +1,41 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSetAtom } from "jotai";
 import { dbPoolExists } from "@epanet-js/ejsdb";
 import { useSeedDefaultProjectDb } from "src/hooks/persistence/use-start-new-project";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
+import { captureError } from "src/infra/error-tracking";
 import { configureDbStorage } from "src/lib/db/commands/configure-storage";
 import {
   recoverableSessionAtom,
   sessionRecoveryActiveAtom,
-  sessionRecoveryResolvedAtom,
 } from "src/state/session-recovery";
 import {
   readRecoveryFingerprint,
   clearRecoveryFingerprint,
 } from "src/infra/session-recovery";
 
-export const useDbStorageBootstrap = (isReady: boolean): void => {
+export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
+  const [isDbReady, setIsDbReady] = useState(false);
   const seedDefaultProjectDb = useSeedDefaultProjectDb();
   const isDbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
   const isSessionRecoveryOn = useFeatureFlag("FLAG_SESSION_RECOVERY");
   const setSessionRecoveryActive = useSetAtom(sessionRecoveryActiveAtom);
   const setRecoverableSession = useSetAtom(recoverableSessionAtom);
-  const setSessionRecoveryResolved = useSetAtom(sessionRecoveryResolvedAtom);
   const userTracking = useUserTracking();
   const dbInitializedRef = useRef(false);
 
   useEffect(() => {
     if (dbInitializedRef.current) return;
-    if (!isReady) return;
+    if (!isEnabled) return;
     dbInitializedRef.current = true;
-    void configureDbStorage(isDbInOpfsOn, isSessionRecoveryOn)
-      .then(async (effective) => {
+
+    const bootstrap = async () => {
+      try {
+        const effective = await configureDbStorage(
+          isDbInOpfsOn,
+          isSessionRecoveryOn,
+        );
         const recoveryActive = isSessionRecoveryOn && effective === "sahpool";
         setSessionRecoveryActive(recoveryActive);
 
@@ -45,20 +50,25 @@ export const useDbStorageBootstrap = (isReady: boolean): void => {
             }
           }
         }
+      } catch (error) {
+        captureError(error as Error);
+      }
 
-        seedDefaultProjectDb();
-      })
-      .finally(() => {
-        setSessionRecoveryResolved(true);
-      });
+      await seedDefaultProjectDb();
+    };
+
+    void bootstrap().finally(() => {
+      setIsDbReady(true);
+    });
   }, [
-    isReady,
+    isEnabled,
     seedDefaultProjectDb,
     isDbInOpfsOn,
     isSessionRecoveryOn,
     setSessionRecoveryActive,
     setRecoverableSession,
-    setSessionRecoveryResolved,
     userTracking,
   ]);
+
+  return isDbReady;
 };
