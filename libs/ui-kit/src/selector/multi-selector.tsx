@@ -28,6 +28,7 @@ export type MultiSelectorProps<T extends string | number> = {
   searchPlaceholder?: string;
   minOptionsForSearch?: number;
   listClassName?: string;
+  maxVisibleOptions?: number;
 };
 
 export const MultiSelector = BaseMultiSelector;
@@ -47,6 +48,7 @@ export function BaseMultiSelector<T extends string | number>({
   searchPlaceholder,
   minOptionsForSearch,
   listClassName,
+  maxVisibleOptions,
 }: MultiSelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -149,6 +151,7 @@ export function BaseMultiSelector<T extends string | number>({
               minOptionsForSearch={minOptionsForSearch}
               searchPlaceholder={searchPlaceholder}
               listClassName={listClassName}
+              maxVisibleOptions={maxVisibleOptions}
             />
           )}
         </Popover.Content>

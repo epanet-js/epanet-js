@@ -23,11 +23,15 @@ export type MultiSelectorListProps<T extends string | number> = {
   minOptionsForSearch?: number;
   searchPlaceholder?: string;
   listClassName?: string;
+  maxVisibleOptions?: number;
 };
 
 const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
+
+const ROW_REM = 2;
+const LIST_TOP_PAD_REM = 0.25;
 
 export const MultiSelectorList = BaseMultiSelectorList;
 
@@ -39,8 +43,10 @@ export function BaseMultiSelectorList<T extends string | number>({
   minOptionsForSearch = 8,
   searchPlaceholder,
   listClassName,
+  maxVisibleOptions = 5,
 }: MultiSelectorListProps<T>) {
   const ui = useUIConfig();
+  const maxListHeight = `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`;
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number>(NO_INDEX);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -230,7 +236,10 @@ export function BaseMultiSelectorList<T extends string | number>({
         </div>
       )}
       {showList && (
-        <div className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]">
+        <div
+          style={{ maxHeight: maxListHeight }}
+          className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
+        >
           <ul
             role="listbox"
             aria-multiselectable="true"

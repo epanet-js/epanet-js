@@ -143,3 +143,60 @@
   --color-border: var(--color-gray-700);
   --color-border-strong: var(--color-gray-600);
 }
+
+/* Scroll shadows using sticky pseudo-elements + scroll-driven animations.
+   Ships with the kit so the Selector/MultiSelector lists (which apply the
+   `scroll-shadows` class) fade top/bottom when there's more to scroll to in
+   any consuming app. Overlays on top of content, so it stays visible even
+   when children have opaque backgrounds. */
+@keyframes scroll-shadow-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scroll-shadows::before,
+.scroll-shadows::after {
+  content: "";
+  display: block;
+  position: sticky;
+  width: calc(100% + 2 * var(--scroll-shadow-inset, 0px));
+  margin-inline: calc(-1 * var(--scroll-shadow-inset, 0px));
+  height: 10px;
+  z-index: 12;
+  pointer-events: none;
+  opacity: 0;
+  animation-timeline: scroll(nearest block);
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+}
+
+.scroll-shadows::before {
+  top: 0;
+  margin-top: calc(-1 * var(--scroll-shadow-inset, 0px));
+  margin-bottom: calc(var(--scroll-shadow-inset, 0px) - 10px);
+  background: radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.12), transparent);
+  animation-name: scroll-shadow-appear;
+  animation-range: 0px 40px;
+}
+
+.scroll-shadows::after {
+  bottom: 0;
+  margin-top: calc(var(--scroll-shadow-inset, 0px) - 10px);
+  margin-bottom: calc(-1 * var(--scroll-shadow-inset, 0px));
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.12), transparent);
+  animation-name: scroll-shadow-appear;
+  animation-direction: reverse;
+  animation-range: calc(100% - 40px) 100%;
+}
+
+.dark .scroll-shadows::before {
+  background: radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.dark .scroll-shadows::after {
+  background: radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), transparent);
+}

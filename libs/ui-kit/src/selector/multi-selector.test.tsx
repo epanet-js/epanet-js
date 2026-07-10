@@ -29,12 +29,14 @@ function Harness({
   valueLabel,
   placeholder = "Choose…",
   minOptionsForSearch,
+  maxVisibleOptions,
 }: {
   options: MultiSelectorOption<string>[];
   initial?: string[];
   valueLabel?: (selected: string[]) => string;
   placeholder?: string;
   minOptionsForSearch?: number;
+  maxVisibleOptions?: number;
 }) {
   const [selected, setSelected] = useState<string[]>(initial);
   return (
@@ -48,6 +50,7 @@ function Harness({
       }
       placeholder={placeholder}
       minOptionsForSearch={minOptionsForSearch}
+      maxVisibleOptions={maxVisibleOptions}
     />
   );
 }
@@ -269,6 +272,27 @@ describe("MultiSelector", () => {
       await user.click(screen.getByRole("option", { name: "Apple" }));
       expect(onChange).toHaveBeenCalledWith(["Apple"]);
       expect(onOptionSelected).toHaveBeenCalledWith("Apple");
+    });
+  });
+
+  describe("options list height", () => {
+    it("caps the scrollable options container at 5.5 rows by default", async () => {
+      render(<Harness options={manyOpts(12)} />);
+      await openMultiSelector();
+
+      const container = screen.getByRole("listbox").parentElement;
+      expect(container).toHaveClass("overflow-auto");
+      expect(container).toHaveClass("scroll-shadows");
+      expect(container).toHaveStyle({ maxHeight: "11.25rem" });
+    });
+
+    it("sizes the cap from maxVisibleOptions", async () => {
+      render(<Harness options={manyOpts(12)} maxVisibleOptions={3} />);
+      await openMultiSelector();
+
+      expect(screen.getByRole("listbox").parentElement).toHaveStyle({
+        maxHeight: "7.25rem",
+      });
     });
   });
 });
