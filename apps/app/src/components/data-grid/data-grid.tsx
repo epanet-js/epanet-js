@@ -114,6 +114,7 @@ export const DataGrid = forwardRef(function DataGrid<
 ) {
   const gridRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<GridRef>(null);
+  const focusFromPointerRef = useRef(false);
   const dataRef = useRef(data);
   dataRef.current = data;
   const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
@@ -354,6 +355,15 @@ export const DataGrid = forwardRef(function DataGrid<
     [onChange, patchRowFn],
   );
 
+  const handleGridMouseDown = useCallback(() => {
+    // The focus this pointer press triggers fires synchronously right after,
+    // so handleFocus sees the flag set; the rAF resets it afterwards.
+    focusFromPointerRef.current = true;
+    requestAnimationFrame(() => {
+      focusFromPointerRef.current = false;
+    });
+  }, []);
+
   const handleFocus = useCallback(
     (e: React.FocusEvent) => {
       if (activeCell || data.length === 0) return;
@@ -362,6 +372,12 @@ export const DataGrid = forwardRef(function DataGrid<
       // the cell's own focus management; stealing it back to row 0 would
       // race with the click that just selected a cell.
       if (e.target !== gridRef.current) return;
+      // A pointer press focuses the grid before its own click/mousedown
+      // handler selects the target cell or column. Auto-selecting row 0 here
+      // would scroll the grid, moving the target out from under the pending
+      // click so it never lands. Let the pointer handlers do the selecting;
+      // only keyboard Tab-in falls through to focusRow.
+      if (focusFromPointerRef.current) return;
       focusRow(0);
     },
     [activeCell, data.length, focusRow],
@@ -463,6 +479,7 @@ export const DataGrid = forwardRef(function DataGrid<
           aria-multiselectable={true}
           tabIndex={0}
           onKeyDown={handleKeyDown}
+          onMouseDown={handleGridMouseDown}
           onFocus={handleFocus}
           onCopy={handleCopy}
           onPaste={handlePaste}

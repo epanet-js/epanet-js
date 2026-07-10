@@ -6,7 +6,7 @@ import { booleanColumn } from "./cells/boolean-cell";
 import { floatColumn } from "./cells/float-cell";
 import { filterableSelectColumn } from "./cells/filterable-select-cell";
 import { textColumn } from "./cells/text-cell";
-import type { GridColumn } from "./types";
+import type { GridColumn, GridSelection } from "./types";
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 
@@ -596,6 +596,44 @@ describe("DataGrid", () => {
           max: { col: 0, row: 2 },
         });
       });
+    });
+
+    it("selects the clicked column on the first click without bouncing to another column", async () => {
+      // Regression: clicking a header as the very first interaction focuses
+      // the grid, which used to trigger focusRow(0) and select the first
+      // editable column (col 1) before the header's own selection. That
+      // intermediate selection scrolls the grid, moving the header out from
+      // under the pending click so it never lands. The clicked column
+      // (Category, col 3) must be selected directly, with no col-1 detour.
+      const user = setupUser();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          data={defaultData}
+          columns={columns}
+          onChange={vi.fn()}
+          createRow={createRow}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      const categoryHeader = screen.getByRole("columnheader", {
+        name: "Category",
+      });
+      await user.click(categoryHeader);
+
+      await waitFor(() => {
+        expect(onSelectionChange).toHaveBeenLastCalledWith({
+          min: { col: 3, row: 0 },
+          max: { col: 3, row: 2 },
+        });
+      });
+
+      const selectedColumns = onSelectionChange.mock.calls.map(
+        (call) => (call[0] as GridSelection | null)?.min.col,
+      );
+      expect(selectedColumns).toEqual([3]);
     });
 
     it("active cell is at row 0 when selecting a full column", async () => {
