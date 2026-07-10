@@ -173,20 +173,25 @@ export function useCustomGraphExport({
         ...mappedLinkProperty,
       ] as ExportSimulationResultsProperties[];
 
-      await exportSimulationResults({
-        format,
-        fileName,
-        onProgress: (progress) => {
-          onExportProgress?.(progress);
-          if (performance.now() - lastYield >= 100) {
-            lastYield = performance.now();
-            return new Promise<void>((resolve) => setTimeout(resolve, 0));
-          }
-          return Promise.resolve();
-        },
-        properties,
-        selectedAssets,
-      });
+      try {
+        await exportSimulationResults({
+          format,
+          fileName,
+          onProgress: (progress) => {
+            onExportProgress?.(progress);
+            if (performance.now() - lastYield >= 100) {
+              lastYield = performance.now();
+              return new Promise<void>((resolve) => setTimeout(resolve, 0));
+            }
+            return Promise.resolve();
+          },
+          properties,
+          selectedAssets,
+        });
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        throw err;
+      }
 
       trackExport(format);
       notifyExportSucceeded();

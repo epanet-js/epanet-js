@@ -190,6 +190,39 @@ describe("useCustomGraphExport", () => {
         expect.objectContaining({ variant: "success" }),
       );
     });
+
+    it("stays silent when the save picker is dismissed", async () => {
+      const mockExport = vi
+        .fn()
+        .mockRejectedValue(
+          new DOMException("The user aborted a request.", "AbortError"),
+        );
+      vi.mocked(useExportSimulationResults).mockReturnValue(mockExport);
+
+      const { result } = renderHook(() =>
+        useCustomGraphExport(defaultOptions()),
+      );
+
+      await act(() => result.current.exportTabular("csv"));
+
+      expect(tracking.capture).not.toHaveBeenCalled();
+      expect(notify).not.toHaveBeenCalled();
+    });
+
+    it("propagates failures other than a dismissed picker", async () => {
+      const mockExport = vi.fn().mockRejectedValue(new Error("disk full"));
+      vi.mocked(useExportSimulationResults).mockReturnValue(mockExport);
+
+      const { result } = renderHook(() =>
+        useCustomGraphExport(defaultOptions()),
+      );
+
+      await expect(
+        act(() => result.current.exportTabular("csv")),
+      ).rejects.toThrow("disk full");
+
+      expect(notify).not.toHaveBeenCalled();
+    });
   });
 
   describe("exportAsPng", () => {
