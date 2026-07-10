@@ -19,7 +19,6 @@ import {
   initialSimulationState,
   simulationStepAtom,
 } from "src/state/simulation";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { Store } from "src/state";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { Mode } from "src/state/mode";
@@ -101,10 +100,6 @@ export const setInitialState = (
       store.set(simulationStepAtom, 0);
     }
   }
-  if (simulationSettings) {
-    store.set(simulationSettingsAtom, simulationSettings);
-  }
-
   const branchSimulation: SimulationState =
     simulationResults && !("epsResultsReader" in simulation)
       ? ({

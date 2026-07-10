@@ -35,7 +35,7 @@ import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
+import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
 import { mapSyncMomentAtom } from "src/state/map";
@@ -130,7 +130,6 @@ export const loadModel = (
   set(projectSettingsAtom, mergedProjectSettings);
   set(zonesAtom, zones ?? initializeZones());
   set(momentLogAtom, momentLog);
-  set(simulationSettingsAtom, simulationSettings);
   set(pipeMaterialsAtom, input.pipeLibrary ?? []);
   if (autoElevations !== undefined) {
     set(autoElevationsAtom, autoElevations);
@@ -233,7 +232,7 @@ export const useSeedDefaultProjectDb = () => {
     useCallback((get: Getter, set: Setter): Promise<void> => {
       const projectSettings = get(projectSettingsAtom);
       const hydraulicModel = get(stagingModelAtom);
-      const simulationSettings = get(simulationSettingsAtom);
+      const simulationSettings = get(simulationSettingsDerivedAtom);
 
       resetAppState(set);
       loadModel(set, {

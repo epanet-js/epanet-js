@@ -155,9 +155,6 @@ export {
   simulationStepAtom,
 } from "src/state/simulation";
 
-// Simulation settings
-export { simulationSettingsAtom } from "src/state/simulation-settings";
-
 // Translation overrides
 export type { TranslationOverride } from "src/state/translation-overrides";
 export { translationOverridesAtom } from "src/state/translation-overrides";

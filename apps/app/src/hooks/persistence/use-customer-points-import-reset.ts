@@ -10,12 +10,12 @@ import {
   stagingModelDerivedAtom,
   momentLogDerivedAtom,
   simulationDerivedAtom,
+  simulationSettingsDerivedAtom,
 } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { modeAtom, Mode } from "src/state/mode";
 import { ephemeralStateAtom } from "src/state/drawing";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
@@ -50,7 +50,7 @@ const loadModel = (
   void db
     .importProject({
       hydraulicModel,
-      simulationSettings: get(simulationSettingsAtom),
+      simulationSettings: get(simulationSettingsDerivedAtom),
     })
     .catch(captureError);
   set(momentLogDerivedAtom, momentLog);
