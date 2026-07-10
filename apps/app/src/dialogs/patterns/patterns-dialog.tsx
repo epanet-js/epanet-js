@@ -16,8 +16,10 @@ import {
   differentPatternsCount,
 } from "src/hydraulic-model";
 import { PatternsIcon } from "src/icons";
-import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { simulationSettingsAtom } from "src/state/simulation-settings";
+import {
+  stagingModelDerivedAtom,
+  simulationSettingsDerivedAtom,
+} from "src/state/derived-branch-state";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
 import { Reservoir, Pump } from "@epanet-js/hydraulic-model";
@@ -57,7 +59,7 @@ export const PatternsDialog = ({
   );
 
   const { timing, energyGlobalPatternId } = useAtomValue(
-    simulationSettingsAtom,
+    simulationSettingsDerivedAtom,
   );
   const hasPatterns = editedPatterns.size > 0;
   const patternTimestepSeconds = timing.patternTimestep;
