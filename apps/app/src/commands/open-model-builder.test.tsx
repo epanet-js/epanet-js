@@ -2,7 +2,6 @@ import { renderHook, act } from "@testing-library/react";
 import { vi } from "vitest";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { useOpenModelBuilder } from "./open-model-builder";
 
 vi.mock("src/infra/user-tracking", () => ({
@@ -39,21 +38,7 @@ describe("useOpenModelBuilder", () => {
     startBlankProject.mockClear();
   });
 
-  it("opens the legacy (v1) dialog when FLAG_BUILD_V2 is off", async () => {
-    stubFeatureOff("FLAG_BUILD_V2");
-    const store = createStore();
-
-    const { result } = renderOpen(store);
-    await act(async () => {
-      result.current({ source: "toolbar" });
-      await flushMicrotasks();
-    });
-
-    expect(store.get(dialogAtom)).toEqual({ type: "modelBuilderIframe" });
-  });
-
-  it("opens the v2 dialog when FLAG_BUILD_V2 is on and the user can use it", async () => {
-    stubFeatureOn("FLAG_BUILD_V2");
+  it("opens the v2 dialog when the user can use it", async () => {
     canUseModelBuildV2 = true;
     const store = createStore();
 
@@ -67,7 +52,6 @@ describe("useOpenModelBuilder", () => {
   });
 
   it("clears the project to empty before opening the dialog", async () => {
-    stubFeatureOn("FLAG_BUILD_V2");
     canUseModelBuildV2 = true;
     const store = createStore();
     startBlankProject.mockImplementation(() => {
@@ -86,7 +70,6 @@ describe("useOpenModelBuilder", () => {
   });
 
   it("opens the paywall without clearing the project", async () => {
-    stubFeatureOn("FLAG_BUILD_V2");
     canUseModelBuildV2 = false;
     const store = createStore();
 

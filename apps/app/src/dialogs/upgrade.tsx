@@ -31,7 +31,6 @@ import {
   useCheckout,
 } from "src/hooks/use-checkout";
 import { usePermissions } from "src/hooks/use-permissions";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { signUpUrl } from "src/global-config";
 import { CheckIcon, InfoIcon, CloseIcon } from "src/icons";
 import { type UpgradeSource, getSourceFeature } from "src/state/dialog";
@@ -210,7 +209,6 @@ const PlansDialog = ({ source }: { source?: UpgradeSource }) => {
 
 const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
   const translate = useTranslate();
-  const isBuildV2On = useFeatureFlag("FLAG_BUILD_V2");
   return (
     <div className="bg-base border rounded-md shadow-md overflow-hidden flex flex-col justify-between">
       <div className="p-6 grid max-xs:block md:flex md:flex-col grid-cols-2 gap-4 flex-1">
@@ -227,16 +225,12 @@ const FreePlan = ({ paymentType }: { paymentType: PaymentType }) => {
               Icon: CheckIcon,
               iconColor: "text-success",
             },
-            ...(isBuildV2On
-              ? [
-                  {
-                    feature: translate("legacyModelBuilder"),
-                    Icon: CheckIcon,
-                    iconColor: "text-success",
-                    tooltip: translate("modelBuilderInfo"),
-                  },
-                ]
-              : []),
+            {
+              feature: translate("legacyModelBuilder"),
+              Icon: CheckIcon,
+              iconColor: "text-success",
+              tooltip: translate("modelBuilderInfo"),
+            },
             {
               feature: translate("free.backgroundMap"),
               Icon: CheckIcon,
@@ -282,7 +276,6 @@ const PersonalPlan = ({
   source?: UpgradeSource;
 }) => {
   const translate = useTranslate();
-  const isBuildV2On = useFeatureFlag("FLAG_BUILD_V2");
   const price = prices.personal.yearly;
 
   return (
@@ -306,16 +299,12 @@ const PersonalPlan = ({
                 Icon: CheckIcon,
                 iconColor: "text-success",
               },
-              ...(isBuildV2On
-                ? [
-                    {
-                      feature: translate("proModelBuilder"),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                      tooltip: translate("modelBuilderInfo"),
-                    },
-                  ]
-                : []),
+              {
+                feature: translate("proModelBuilder"),
+                Icon: CloseIcon,
+                iconColor: "text-red-500",
+                tooltip: translate("modelBuilderInfo"),
+              },
               {
                 feature: translate("professionalSupport"),
                 Icon: CloseIcon,
@@ -442,7 +431,6 @@ const ProPlan = ({
   source?: UpgradeSource;
 }) => {
   const translate = useTranslate();
-  const isBuildV2On = useFeatureFlag("FLAG_BUILD_V2");
   const price = prices.pro[paymentType];
 
   return (
@@ -467,16 +455,12 @@ const ProPlan = ({
                 Icon: CheckIcon,
                 iconColor: "text-success",
               },
-              ...(isBuildV2On
-                ? [
-                    {
-                      feature: translate("proModelBuilder"),
-                      Icon: CheckIcon,
-                      iconColor: "text-success",
-                      tooltip: translate("modelBuilderInfo"),
-                    },
-                  ]
-                : []),
+              {
+                feature: translate("proModelBuilder"),
+                Icon: CheckIcon,
+                iconColor: "text-success",
+                tooltip: translate("modelBuilderInfo"),
+              },
               {
                 feature: translate("professionalSupport"),
                 Icon: CheckIcon,
