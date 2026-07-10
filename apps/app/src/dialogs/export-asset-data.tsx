@@ -1,10 +1,12 @@
 import { useState, useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
 import { useExportAssetData } from "src/commands/export-asset-data";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { dialogAtom } from "src/state/dialog";
 import { selectionAtom } from "src/state/selection";
@@ -20,7 +22,7 @@ const exportFormats: { value: ExportFormat; labelKey: string }[] = [
 
 export const ExportAssetDataDialog = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
-  const model = useAtomValue(stagingModelAtom);
+  const model = useAtomValue(stagingModelDerivedAtom);
   const exportAssetData = useExportAssetData();
   const setDialogState = useSetAtom(dialogAtom);
   const simulation = useAtomValue(simulationDerivedAtom);

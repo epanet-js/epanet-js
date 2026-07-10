@@ -7,7 +7,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { Store } from "src/state";
 import { PatternsDialog } from "./patterns-dialog";
@@ -117,7 +117,7 @@ describe("PatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       const updatedPattern = hydraulicModel.patterns.get(100);
       expect(updatedPattern?.multipliers[0]).toBe(2.0);
     });
@@ -267,7 +267,7 @@ describe("PatternsDialog", () => {
       });
 
       // Model should not have been updated
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       const pattern = hydraulicModel.patterns.get(100);
       expect(pattern?.multipliers[0]).toBe(1.0);
     });
@@ -340,7 +340,7 @@ describe("PatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated with the new pattern
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       const newPatternId = store
         .get(modelFactoriesAtom)
         .labelManager.getIdByLabel("newpattern", "pattern")!;
@@ -383,7 +383,7 @@ describe("PatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model has all three patterns with unique IDs
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       const patterns = hydraulicModel.patterns;
 
       expect(patterns.size).toBe(3);
@@ -465,7 +465,7 @@ describe("PatternsDialog", () => {
       await user.click(screen.getByRole("button", { name: /save/i }));
 
       // Verify the model was updated
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       expect(hydraulicModel.patterns.has(100)).toBe(false);
       expect(hydraulicModel.patterns.has(200)).toBe(true);
     });

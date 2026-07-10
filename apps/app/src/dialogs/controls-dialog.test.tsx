@@ -6,7 +6,7 @@ import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { ControlsDialog } from "./controls-dialog";
 
@@ -91,7 +91,7 @@ describe("ControlsDialog", () => {
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       expect(hydraulicModel.rawControls.simple).toHaveLength(1);
       expect(hydraulicModel.rawControls.simple[0].template).toBe(
         "LINK {{0}} CLOSED IF NODE {{1}} BELOW 50",
@@ -135,7 +135,7 @@ describe("ControlsDialog", () => {
     await userEvent.click(saveButton);
 
     await waitFor(() => {
-      const hydraulicModel = store.get(stagingModelAtom);
+      const hydraulicModel = store.get(stagingModelDerivedAtom);
       expect(hydraulicModel.rawControls.simple).toHaveLength(1);
       expect(hydraulicModel.rawControls.rules).toHaveLength(1);
     });

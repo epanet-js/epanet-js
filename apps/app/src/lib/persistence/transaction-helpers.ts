@@ -8,11 +8,8 @@ import {
   applyMomentToModel,
 } from "src/hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";
-import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
-import { worktreeAtom } from "src/state/scenarios";
 import { type MomentPointer } from "src/state/map";
-import { branchStateAtom } from "src/state/branch-state";
 import type { Moment } from "./moment";
 import type { MomentLog } from "./moment-log";
 import { getFreshAt } from "./shared";
@@ -56,11 +53,7 @@ export function applyMoment(
   set: Setter,
   stateId: string,
   forwardMoment: Moment,
-  modelAtom: WritableAtom<
-    HydraulicModel,
-    [HydraulicModel],
-    void
-  > = stagingModelAtom,
+  modelAtom: WritableAtom<HydraulicModel, [HydraulicModel], void>,
 ): Moment {
   const hydraulicModel = get(modelAtom);
 
@@ -130,30 +123,4 @@ export function computeSyncMoment(
     };
   }
   return current;
-}
-
-export function syncBranchState(
-  get: Getter,
-  set: Setter,
-  momentLog: MomentLog,
-  version: string,
-): void {
-  const worktree = get(worktreeAtom);
-  const branchStates = get(branchStateAtom);
-  const currentState = branchStates.get(worktree.activeBranchId);
-  if (!currentState) return;
-
-  const updatedModel = get(stagingModelAtom);
-  const updatedStates = new Map(branchStates);
-  updatedStates.set(worktree.activeBranchId, {
-    ...currentState,
-    hydraulicModel: updatedModel,
-    momentLog,
-    version,
-  });
-  set(branchStateAtom, updatedStates);
-
-  if (worktree.activeBranchId === worktree.mainId) {
-    set(baseModelAtom, updatedModel);
-  }
 }

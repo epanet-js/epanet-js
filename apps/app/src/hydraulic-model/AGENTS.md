@@ -355,7 +355,7 @@ Factories hold **stateful creation concerns** (ID generation counters) that are 
 
 #### State management
 
-Factories are stored in `modelFactoriesAtom` (Jotai), initialized alongside `stagingModelAtom`:
+Factories are stored in `modelFactoriesAtom` (Jotai), initialized alongside the hydraulic model (stored per-branch in `branchStateAtom`, read via `stagingModelDerivedAtom`):
 
 - **On import**: `buildModel()` creates and returns factories, which flow through `parseInp()` → `import-inp` → `transactImport()` → atom
 - **On new project**: `initializeModelFactories()` is called alongside `initializeHydraulicModel()`

@@ -6,10 +6,10 @@ import { ExportSimulationResultsProgressDialog } from "./export-simulation-resul
 import { useTranslate } from "src/hooks/use-translate";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   simulationDerivedAtom,
   simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
 } from "src/state/derived-branch-state";
 import { Export } from "src/lib/export";
 import type { ExportSimulationResultsProperties } from "src/lib/export/types";
@@ -79,7 +79,7 @@ export const ExportSimulationResultsDialog = ({
   const selectedIds = USelection.getAssetIds(selection);
   const hasSelection = selectedIds.length > 0;
 
-  const model = useAtomValue(stagingModelAtom);
+  const model = useAtomValue(stagingModelDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const isWaterQualityEnabled =

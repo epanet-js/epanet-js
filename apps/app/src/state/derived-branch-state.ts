@@ -1,14 +1,16 @@
 import { atom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import { unwrap } from "jotai/utils";
-import type { HydraulicModel } from "src/hydraulic-model";
+import {
+  type HydraulicModel,
+  initializeHydraulicModel,
+} from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
-import { nullHydraulicModel } from "src/state/hydraulic-model";
 import { worktreeAtom } from "src/state/scenarios";
 import {
   type SimulationState,
@@ -20,6 +22,8 @@ import {
   type SimulationSettings,
   defaultSimulationSettings,
 } from "src/simulation/simulation-settings";
+
+export const nullHydraulicModel: HydraulicModel = initializeHydraulicModel({});
 
 function getActiveBranchState(get: Getter): BranchState | undefined {
   const worktree = get(worktreeAtom);

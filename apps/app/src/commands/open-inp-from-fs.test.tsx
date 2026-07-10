@@ -4,10 +4,12 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { selectionAtom } from "src/state/selection";
 import { inpFileInfoAtom } from "src/state/file-system";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import {
+  stagingModelDerivedAtom,
+  simulationDerivedAtom,
+} from "src/state/derived-branch-state";
 import { momentLogAtom } from "src/state/model-changes";
 import { SimulationFinished } from "src/state/simulation";
-import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import userEvent from "@testing-library/user-event";
@@ -52,7 +54,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(getByLabel(hydraulicModel.assets, "1")).toBeTruthy();
 
     expect(store.get(inpFileInfoAtom)!.handle).toEqual(newHandle);
@@ -103,7 +105,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
 
     expect(store.get(inpFileInfoAtom)!.handle).toEqual(undefined);
@@ -175,7 +177,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
     );
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     const selection = store.get(selectionAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
     expect(getByLabel(hydraulicModel.assets, "P1")).toBeFalsy();
@@ -242,7 +244,7 @@ describe("openInpFromFs", () => {
 
     await waitForNotLoading();
 
-    const openedModel = store.get(stagingModelAtom);
+    const openedModel = store.get(stagingModelDerivedAtom);
     expect(getByLabel(openedModel.assets, "J1")).toBeTruthy();
 
     expect(store.get(inpFileInfoAtom)!.handle).toEqual(undefined);
@@ -278,7 +280,7 @@ describe("openInpFromFs", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
   });
 
@@ -304,7 +306,7 @@ describe("openInpFromFs", () => {
     await userEvent.click(screen.getByRole("button", { name: /understood/i }));
 
     expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
   });
 
@@ -332,7 +334,7 @@ describe("openInpFromFs", () => {
     await userEvent.click(screen.getByRole("button", { name: /understood/i }));
 
     expect(screen.queryByText(/coordinates missing/i)).not.toBeInTheDocument();
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(getByLabel(hydraulicModel.assets, "J1")).toBeTruthy();
   });
 });
@@ -519,7 +521,7 @@ describe("file format updated dialog", () => {
     expect(
       screen.getByText(/if the error persists, contact support/i),
     ).toBeInTheDocument();
-    expect(store.get(stagingModelAtom)).toBe(previousModel);
+    expect(store.get(stagingModelDerivedAtom)).toBe(previousModel);
     expect(screen.queryByText(/file format updated/i)).not.toBeInTheDocument();
 
     spy.mockRestore();

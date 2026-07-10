@@ -9,7 +9,7 @@ import { Asset, AssetId } from "src/hydraulic-model";
 import { LabelType } from "@epanet-js/hydraulic-model";
 import { USelection } from "src/selection";
 import { useSelection } from "src/selection";
-import { customerPointsAtom } from "src/state/hydraulic-model";
+import { customerPointsDerivedAtom } from "src/state/derived-branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { selectionAtom } from "src/state/selection";
 import { currentFileNameAtom } from "src/state/file-system";
@@ -80,7 +80,7 @@ export const CommandBar = () => {
 const CommandBarModal = ({ onClose }: { onClose: () => void }) => {
   const translate = useTranslate();
   const { labelManager } = useAtomValue(modelFactoriesAtom);
-  const customerPoints = useAtomValue(customerPointsAtom);
+  const customerPoints = useAtomValue(customerPointsDerivedAtom);
   const selection = useAtomValue(selectionAtom);
   const currentFileName = useAtomValue(currentFileNameAtom);
   const { selectAsset, selectCustomerPoint } = useSelection(selection);

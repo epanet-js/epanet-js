@@ -25,14 +25,7 @@ export {
 } from "src/state/file-system";
 
 // Hydraulic model
-export {
-  nullHydraulicModel,
-  stagingModelAtom,
-  baseModelAtom,
-  assetsAtom,
-  patternsAtom,
-  customerPointsAtom,
-} from "src/state/hydraulic-model";
+export { nullHydraulicModel } from "src/state/derived-branch-state";
 
 // Layout
 export type {

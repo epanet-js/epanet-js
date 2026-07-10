@@ -8,7 +8,6 @@ import { LabelManager } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store } from "src/state";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { branchStateAtom } from "src/state/branch-state";
 import { initialSimulationState } from "src/state/simulation";
@@ -45,7 +44,7 @@ const setInitialState = (
   hydraulicModel: HydraulicModel = buildModel(),
 ): Store => {
   const store = createStore();
-  store.set(stagingModelAtom, hydraulicModel);
+  store.set(stagingModelDerivedAtom, hydraulicModel);
   store.set(
     branchStateAtom,
     new Map([

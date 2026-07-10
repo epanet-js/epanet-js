@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React from "react";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import userEvent from "@testing-library/user-event";
 import { aTestFile } from "src/__helpers__/file";
@@ -206,7 +206,7 @@ const runSingleNetworkBenchmark = async ({
 
   const finishTime = performance.now() - stepStartTime;
 
-  const finalModel = store.get(stagingModelAtom);
+  const finalModel = store.get(stagingModelDerivedAtom);
   const totalPoints = finalModel.customerPoints.size;
   const totalTime = uploadTime + previewTime + allocationTime + finishTime;
 

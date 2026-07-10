@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import userEvent from "@testing-library/user-event";
 import { inpFileInfoAtom } from "src/state/file-system";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
 import { Store } from "src/state";
@@ -85,7 +85,7 @@ describe("create new project", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.assets.size).toEqual(0);
     expect(store.get(projectSettingsAtom).units.flow).toEqual("l/s");
 
@@ -115,7 +115,7 @@ describe("create new project", () => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
     });
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.assets.get(IDS.J1)).not.toBeUndefined();
   });
 

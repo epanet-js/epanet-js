@@ -9,7 +9,7 @@ import { HydraulicModel } from "src/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { Store } from "src/state";
 import { selectionAtom } from "src/state/selection";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { branchStateAtom } from "src/state/branch-state";
 import { initialSimulationState } from "src/state/simulation";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -32,7 +32,7 @@ const buildModel = (
 
 const setInitialState = (hydraulicModel: HydraulicModel): Store => {
   const store = createStore();
-  store.set(stagingModelAtom, hydraulicModel);
+  store.set(stagingModelDerivedAtom, hydraulicModel);
   store.set(selectionAtom, USelection.fromAssetIds([IDS.J1, IDS.J2]));
   store.set(
     branchStateAtom,

@@ -18,7 +18,7 @@ import mapboxgl from "mapbox-gl";
 import { act } from "react";
 import { waitFor } from "@testing-library/react";
 import { Asset, LinkAsset } from "src/hydraulic-model";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildFeatureId } from "../data-source/features";
 import type { ClickEvent } from "../types";
 import * as modelOperations from "src/hydraulic-model/model-operations";
@@ -438,7 +438,7 @@ describe("Drawing a pipe", () => {
     expect(modelOperations.addLink).toHaveBeenCalledTimes(1);
 
     // The link was actually created: the end node is now connected.
-    const model = store.get(stagingModelAtom);
+    const model = store.get(stagingModelDerivedAtom);
     const linksOnEndNode = [...model.assets.values()].filter(
       (asset): asset is LinkAsset =>
         asset.isLink && (asset as LinkAsset).connections.includes(IDS.J3),

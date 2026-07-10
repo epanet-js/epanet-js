@@ -3,7 +3,7 @@ import { stubElevation } from "./__helpers__/elevations";
 import { setInitialState } from "src/__helpers__/state";
 import { Mode } from "src/state/mode";
 import { renderMap } from "./__helpers__/map";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { USelection } from "src/selection";
 import { Junction } from "@epanet-js/hydraulic-model";
@@ -45,7 +45,7 @@ describe("Drawing a junction", () => {
 
     await fireMapClick(map, clickPoint);
 
-    const { assets } = store.get(stagingModelAtom);
+    const { assets } = store.get(stagingModelDerivedAtom);
 
     const junctions = getAssetsByType<Junction>(assets, "junction");
 

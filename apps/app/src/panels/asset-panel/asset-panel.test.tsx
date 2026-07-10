@@ -1,7 +1,6 @@
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { stagingModelAtom } from "src/state/hydraulic-model";
 import {
   SimulationState,
   initialSimulationState,
@@ -1962,7 +1961,7 @@ describe("AssetPanel", () => {
     selectedAssetId: AssetId;
     simulationData?: SimulationData;
   }): Store => {
-    store.set(stagingModelAtom, hydraulicModel);
+    store.set(stagingModelDerivedAtom, hydraulicModel);
     store.set(selectionAtom, USelection.fromAssetIds([selectedAssetId]));
 
     let simulation: SimulationState = initialSimulationState;

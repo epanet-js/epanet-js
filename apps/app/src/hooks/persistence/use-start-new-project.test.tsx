@@ -4,7 +4,10 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
 import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
-import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
+import {
+  stagingModelDerivedAtom,
+  baseModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { Store } from "src/state";
 import { useStartBlankProject } from "./use-start-new-project";
@@ -35,15 +38,15 @@ describe("useStartBlankProject", () => {
       modelVersion: "1",
     });
 
-    expect(store.get(stagingModelAtom).assets.size).toBeGreaterThan(0);
+    expect(store.get(stagingModelDerivedAtom).assets.size).toBeGreaterThan(0);
 
     const { result } = renderStartEmptyProject(store);
     await act(async () => {
       await result.current();
     });
 
-    expect(store.get(stagingModelAtom).assets.size).toBe(0);
-    expect(store.get(baseModelAtom).assets.size).toBe(0);
+    expect(store.get(stagingModelDerivedAtom).assets.size).toBe(0);
+    expect(store.get(baseModelDerivedAtom).assets.size).toBe(0);
     expect(store.get(inpFileInfoAtom)).toBeNull();
     expect(store.get(projectFileInfoAtom)).toBeNull();
   });

@@ -7,7 +7,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { Persistence } from "src/lib/persistence/persistence";
 import { PersistenceContext } from "src/lib/persistence/context";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { PumpLibraryDialog } from "./pump-library-dialog";
 
@@ -161,7 +161,7 @@ describe("PumpLibraryDialog — trailing empty rows", () => {
     await user.click(screen.getByRole("button", { name: /save/i }));
 
     // Verify the saved curve has no trailing (0,0) points
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     const savedCurve = hydraulicModel.curves.get(1);
     expect(savedCurve?.points).toEqual([{ x: 5, y: 10 }]);
   });
@@ -200,7 +200,7 @@ describe("PumpLibraryDialog — trailing empty rows", () => {
     await user.click(screen.getByRole("button", { name: /save/i }));
 
     // Verify only the 3 meaningful points are saved
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     const savedCurve = hydraulicModel.curves.get(1);
     expect(savedCurve?.points).toEqual([
       { x: 0, y: 20 },

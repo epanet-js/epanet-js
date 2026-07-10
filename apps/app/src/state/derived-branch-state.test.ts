@@ -7,8 +7,8 @@ import { branchStateAtom, type BranchState } from "src/state/branch-state";
 import {
   canRedoDerivedAtom,
   canUndoDerivedAtom,
+  nullHydraulicModel,
 } from "src/state/derived-branch-state";
-import { nullHydraulicModel } from "src/state/hydraulic-model";
 
 describe("canUndo/canRedo derived atoms", () => {
   it("are both false when the history is empty", () => {

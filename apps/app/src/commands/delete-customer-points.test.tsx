@@ -1,4 +1,4 @@
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { Store } from "src/state";
 import { screen, render } from "@testing-library/react";
@@ -23,7 +23,7 @@ describe("useDeleteCustomerPoints", () => {
 
     await triggerCommand();
 
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP2)).toBeTruthy();
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -63,7 +63,7 @@ describe("useDeleteCustomerPoints", () => {
 
     await triggerCommand();
 
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeTruthy();
     expect(userTracking.capture).not.toHaveBeenCalled();
   });

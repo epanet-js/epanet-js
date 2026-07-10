@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { Junction } from "@epanet-js/hydraulic-model";
 import {
@@ -91,7 +91,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification(2);
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
 
     const customerPoint1 = hydraulicModel.customerPoints.get(IDS.CP1);
@@ -144,7 +144,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification();
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.customerPoints.has(IDS.CP1)).toBe(true);
     expect(hydraulicModel.customerPoints.has(IDS.CP2)).toBe(true);
   });
@@ -180,7 +180,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification(1);
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.customerPoints.size).toBe(1);
     expect(hydraulicModel.customerPoints.get(IDS.CP1)?.coordinates).toEqual([
       0.0004, 0.0004,
@@ -253,7 +253,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification();
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
     expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([
@@ -335,7 +335,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification();
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     const junction = hydraulicModel.assets.get(IDS.J1) as Junction;
 
     expect(getJunctionDemands(hydraulicModel.demands, junction.id)).toBe([]);
@@ -408,7 +408,7 @@ describe.skip("importCustomerPoints", () => {
     );
     await expectSuccessNotification(2);
 
-    const hydraulicModel = store.get(stagingModelAtom);
+    const hydraulicModel = store.get(stagingModelDerivedAtom);
     expect(hydraulicModel.customerPoints.size).toBe(2);
   });
 

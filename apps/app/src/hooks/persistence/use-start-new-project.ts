@@ -31,11 +31,13 @@ import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { initializeWorktree } from "src/lib/worktree";
 import { dialogAtom } from "src/state/dialog";
-import { stagingModelAtom, baseModelAtom } from "src/state/hydraulic-model";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { momentLogAtom } from "src/state/model-changes";
-import { simulationSettingsDerivedAtom } from "src/state/derived-branch-state";
+import {
+  simulationSettingsDerivedAtom,
+  stagingModelDerivedAtom,
+} from "src/state/derived-branch-state";
 import { worktreeAtom } from "src/state/scenarios";
 import { splitsAtom, defaultSplits } from "src/state/layout";
 import { mapSyncMomentAtom } from "src/state/map";
@@ -117,8 +119,6 @@ export const loadModel = (
   } = input;
   const momentLog = new MomentLog(hydraulicModel.version);
 
-  set(stagingModelAtom, hydraulicModel);
-  set(baseModelAtom, hydraulicModel);
   set(modelFactoriesAtom, factories);
   const mergedProjectSettings: ProjectSettings = {
     ...projectSettings,
@@ -231,7 +231,7 @@ export const useSeedDefaultProjectDb = () => {
   return useAtomCallback(
     useCallback((get: Getter, set: Setter): Promise<void> => {
       const projectSettings = get(projectSettingsAtom);
-      const hydraulicModel = get(stagingModelAtom);
+      const hydraulicModel = get(stagingModelDerivedAtom);
       const simulationSettings = get(simulationSettingsDerivedAtom);
 
       resetAppState(set);

@@ -1,4 +1,4 @@
-import { stagingModelAtom } from "src/state/hydraulic-model";
+import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { selectionAtom } from "src/state/selection";
 import { Store } from "src/state";
 import { screen, render } from "@testing-library/react";
@@ -30,7 +30,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.isNone(updatedSelection)).toBe(true);
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "asset.deleted",
@@ -56,7 +56,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.isNone(updatedSelection)).toBe(true);
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(updatedHydraulicModel.assets.has(IDS.J2)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
@@ -80,7 +80,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.isNone(updatedSelection)).toBe(true);
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
     expect(userTracking.capture).toHaveBeenCalledWith({
       name: "customerPointActions.removed",
@@ -104,7 +104,7 @@ describe("delete selected", () => {
 
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.isNone(updatedSelection)).toBe(true);
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.J1)).toBeFalsy();
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
     // A single asset alongside customer points is tracked as a bulk delete,
@@ -144,7 +144,7 @@ describe("delete selected", () => {
     // resurrected as a disconnected copy.
     const updatedSelection = store.get(selectionAtom);
     expect(USelection.isNone(updatedSelection)).toBe(true);
-    const updatedHydraulicModel = store.get(stagingModelAtom);
+    const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
     expect(updatedHydraulicModel.assets.has(IDS.P1)).toBeFalsy();
     expect(updatedHydraulicModel.customerPoints.has(IDS.CP1)).toBeFalsy();
   });
