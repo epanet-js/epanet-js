@@ -2,7 +2,6 @@ import { useRef } from "react";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { BaseDialog } from "../../components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { DialogActions, DialogActionsHandle } from "../dialog-actions-row";
 import { PipeLibrarySidebar } from "./pipe-library-sidebar";
 import { PipeRoughnessTable } from "./pipe-roughness-table";
@@ -156,15 +155,6 @@ const ImportSubmenu = ({
   handleImportFromModel: () => void;
 }) => {
   const translate = useTranslate();
-  const isExportOn = useFeatureFlag("FLAG_EXPORT_PIPE_LIBRARY");
-
-  if (!isExportOn) {
-    return (
-      <Button variant="default" size="sm" onClick={handleImportFromModel}>
-        {translate("pipeLibrary.importFromModel")}
-      </Button>
-    );
-  }
 
   return (
     <DD.Root>
@@ -194,9 +184,6 @@ const ExportSubmenu = ({
   handleExportXlsx: () => void;
 }) => {
   const translate = useTranslate();
-  const isExportOn = useFeatureFlag("FLAG_EXPORT_PIPE_LIBRARY");
-
-  if (!isExportOn) return null;
 
   return (
     <DD.Root>

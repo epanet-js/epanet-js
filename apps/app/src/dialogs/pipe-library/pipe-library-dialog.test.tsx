@@ -5,7 +5,6 @@ import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
 import { setInitialState } from "src/__helpers__/state";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
@@ -357,7 +356,6 @@ describe("PipeLibraryDialog", () => {
   });
 
   it("exports in csv and xlsx formats", async () => {
-    stubFeatureOn("FLAG_EXPORT_PIPE_LIBRARY");
     const user = setupUser();
     const store = setInitialState();
     const materials = [
