@@ -11,6 +11,7 @@ import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
 import type { MapHandlers, MoveEvent } from "./types";
+import { captureWarning } from "src/infra/error-tracking";
 import {
   CustomMapControl,
   CustomMapControlClick,
@@ -45,13 +46,8 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   preserveDrawingBuffer: true,
 };
 
-const sourceUpdateTimeoutFor = (totalFeatures: number): number => {
-  if (totalFeatures === 0) return 200;
-  if (totalFeatures < 1000) return 2000;
-  if (totalFeatures < 10000) return 5000;
-
-  return 10000;
-};
+const MAP_IDLE_POLL_MS = 50;
+const MAP_IDLE_SAFETY_TIMEOUT_MS = 20000;
 
 /**
  * Memoizes a value across calls. The compute function only re-runs when one of
@@ -208,7 +204,7 @@ export class MapEngine {
         type: "FeatureCollection",
         features: sourceFeatures,
       } as IFeatureCollection);
-    }, sourceFeatures.length);
+    });
   }
 
   removeSource(name: DataSource) {
@@ -464,26 +460,37 @@ export class MapEngine {
     }
   }
 
-  async waitForMapIdle(
-    callback: () => void,
-    updateSize: number,
-  ): Promise<void> {
+  async waitForMapIdle(callback: () => void): Promise<void> {
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
     }
 
     return new Promise((resolve) => {
-      const idleTimeoutMs = sourceUpdateTimeoutFor(updateSize);
-      const timeout = setTimeout(() => {
-        resolve();
-      }, idleTimeoutMs);
+      const timers: ReturnType<typeof setTimeout>[] = [];
 
-      this.map.once("idle", () => {
-        clearTimeout(timeout);
+      const settle = () => {
+        this.map.off("idle", settle);
+        timers.forEach(clearTimeout);
         resolve();
-      });
+      };
 
+      const verifyLoaded = () => {
+        // map idle is only sent when switching from active to idle,
+        // so if the map is already idle, we need to check for that too.
+        if (this.map.loaded()) settle();
+        else timers.push(setTimeout(verifyLoaded, MAP_IDLE_POLL_MS));
+      };
+
+      this.map.once("idle", settle);
       callback();
+
+      timers.push(
+        setTimeout(() => {
+          captureWarning("waitForMapIdle timed out before the map settled");
+          settle();
+        }, MAP_IDLE_SAFETY_TIMEOUT_MS),
+      );
+      timers.push(setTimeout(verifyLoaded, MAP_IDLE_POLL_MS));
     });
   }
 }
