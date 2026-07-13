@@ -516,7 +516,7 @@ Node 19 and Pipe 56`;
       match: "Error 225: invalid lower/upper levels for tank node 42",
       id: "42",
       regexp:
-        "/Error \\d{3}:.*?(?<!(?:Rule|line|value|level|trial|trials|step|section|curve)\\s)\\b(\\d+)\\b/",
+        "/Error \\d{3}:.*?(?<!(?:Rule|line|value|level|trial|trials|step|section|curve)\\s)(?<!\\d\\.)\\b(\\d+)\\b(?!\\.\\d)/",
     });
 
     expect(errors[1]).toMatchObject({
@@ -527,5 +527,95 @@ Node 19 and Pipe 56`;
       regexp:
         "/(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\\s+(\\d+)/gi",
     });
+  });
+
+  it("does not flag the decimals of an undefined curve id as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 206: undefined curve 0.0001 in [VALVES] section:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 206: undefined curve 0.0001 in [VALVES] section:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("does not flag decimal option values as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = ` Error 208: illegal PDA pressure limits 0.1 in [OPTIONS] section:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 208: illegal PDA pressure limits 0.1 in [OPTIONS] section:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("skips Error 208 when the option value is an integer", () => {
+    const IDS = { J5: 5 };
+    const assets = HydraulicModelBuilder.with()
+      .aJunction(IDS.J5, { label: "J5" })
+      .build().assets;
+
+    const report = ` Error 208: illegal PDA pressure limits 20 in [OPTIONS] section:`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: ` Error 208: illegal PDA pressure limits 20 in [OPTIONS] section:`,
+      assetSlots: [],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("does not read a rule line as a pumps section row", () => {
+    const IDS = { T1: 12269 };
+    const assets = HydraulicModelBuilder.with()
+      .aTank(IDS.T1, { label: "T1" })
+      .build().assets;
+
+    const report = `  IF TANK 12269 HEAD = 89`;
+
+    const { processedReport, errorCollector } = processReportWithSlots(
+      report,
+      assets,
+    );
+
+    expect(processedReport).toHaveLength(1);
+    expect(processedReport[0]).toEqual({
+      text: "  IF TANK {{0}} HEAD = 89",
+      assetSlots: [IDS.T1],
+    });
+    expect(errorCollector.hasErrors()).toBe(false);
+  });
+
+  it("does not flag rule keywords as missing assets", () => {
+    const assets = HydraulicModelBuilder.with().build().assets;
+
+    const report = `  IF TANK 12269 HEAD = 89`;
+
+    const { errorCollector } = processReportWithSlots(report, assets);
+
+    const flaggedIds = errorCollector.getErrors().map((error) => error.id);
+    expect(flaggedIds).not.toContain("IF");
+    expect(flaggedIds).not.toContain("TANK");
   });
 });

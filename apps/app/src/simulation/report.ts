@@ -16,26 +16,31 @@ export type ProcessReportResult = {
 const MISSING_VALUE = "MISSING";
 
 const numberOrMissing = `(?:[\\d.]+|${MISSING_VALUE})`;
+const assetIdOrMissing = `(\\d+|${MISSING_VALUE})`;
 const valvesSectionRowRegExp = new RegExp(
-  `^\\s*(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+${numberOrMissing}\\s+(?:PRV|PSV|TCV|FCV|PBV|GPV|PCV|CV)\\s+`,
+  `^\\s*${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+${numberOrMissing}\\s+(?:PRV|PSV|TCV|FCV|PBV|GPV|PCV|CV)\\s+`,
   "i",
 );
 const pipesSectionRowRegExp = new RegExp(
-  `^\\s*(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+${numberOrMissing}\\s+${numberOrMissing}\\s+\\S+`,
+  `^\\s*${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+${numberOrMissing}\\s+${numberOrMissing}\\s+\\S+`,
 );
-const pumpsSectionRowRegExp =
-  /^\s*(\S+)\s+(\S+)\s+(\S+)\s+(?:HEAD|POWER|SPEED|PATTERN)\b/i;
+const pumpsSectionRowRegExp = new RegExp(
+  `^\\s*${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+${assetIdOrMissing}\\s+(?:HEAD|POWER|SPEED|PATTERN)\\b`,
+  "i",
+);
 const valveTypeRegExp =
   /(?:PRV|PSV|TCV|FCV|PBV|GPV|PCV|CV)\s+(\d+)(?=\s+[a-z])/i;
 const nonAssetNumberPrefixes =
   "Rule|line|value|level|trial|trials|step|section|curve";
+const notPartOfDecimal = `(?<!\\d\\.)`;
+const notFollowedByDecimals = `(?!\\.\\d)`;
 const errorMessageRegExp = new RegExp(
-  `Error \\d{3}:.*?(?<!(?:${nonAssetNumberPrefixes})\\s)\\b(\\d+)\\b`,
+  `Error \\d{3}:.*?(?<!(?:${nonAssetNumberPrefixes})\\s)${notPartOfDecimal}\\b(\\d+)\\b${notFollowedByDecimals}`,
 );
 const assetReferenceRegExp =
   /(?:Link|Junction|Pipe|Reservoir|Node|Valve|Pump|Tank|node)\s+(\d+)/gi;
 
-const skipRegexp = [/Error 213/, /Error 211/, /Error 202/];
+const skipRegexp = [/Error 213/, /Error 211/, /Error 202/, /Error 208/];
 
 const sectionRowRegExps = [
   valvesSectionRowRegExp,
@@ -75,7 +80,7 @@ export const processReportWithSlots = (
         let offsetAdjustment = 0;
 
         const actualCapturedIds = capturedIds.filter(
-          (arg, index, array) =>
+          (arg, index, array): arg is string =>
             typeof arg === "string" && index < array.length - 2,
         );
 
