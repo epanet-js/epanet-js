@@ -103,11 +103,10 @@ export const SimulationReportDialog = () => {
 
     if (errorCollector.hasErrors()) {
       const errors = errorCollector.getErrors();
-      setErrorContext("Report Processing Issues", {
-        issues: errors.map((e) => JSON.stringify(e)),
-      });
+      const issues = errors.map((e) => JSON.stringify(e));
+      setErrorContext("Report Processing Issues", { issues });
 
-      const errorMessage = `Report processing encountered ${errors.length} lines with issues`;
+      const errorMessage = `Report processing encountered ${errors.length} lines with issues: ${JSON.stringify(issues)}`;
       captureError(new Error(errorMessage));
     }
 
