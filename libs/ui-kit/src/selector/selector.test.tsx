@@ -766,4 +766,39 @@ describe("Selector", () => {
       expect(onActiveOptionChange).toHaveBeenLastCalledWith(null);
     });
   });
+
+  describe("side placement", () => {
+    it("pins the dropdown to the given side", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={vi.fn()}
+          side="top"
+        />,
+      );
+      await openSelector();
+
+      expect(
+        screen.getByRole("listbox").closest("[data-side]"),
+      ).toHaveAttribute("data-side", "top");
+    });
+
+    it("defaults to opening below the trigger", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={[opt("Apple"), opt("Banana")]}
+          selected="Apple"
+          onChange={vi.fn()}
+        />,
+      );
+      await openSelector();
+
+      expect(
+        screen.getByRole("listbox").closest("[data-side]"),
+      ).toHaveAttribute("data-side", "bottom");
+    });
+  });
 });

@@ -28,6 +28,9 @@ type SelectorPropsBase<T extends string | number> = {
   listClassName?: string;
   validateNew?: (query: string) => boolean;
   onActiveOptionChange?: (value: T | null) => void;
+  /** Where the dropdown opens: "auto" (default) lets it flip to fit the
+   *  viewport; "top"/"bottom" pin it to that side and never flip. */
+  side?: "top" | "bottom" | "auto";
 };
 
 type SelectorPropsNonNullable<T extends string | number> =
@@ -80,6 +83,7 @@ export function BaseSelector<T extends string | number>({
   listClassName,
   validateNew,
   onActiveOptionChange,
+  side = "auto",
 }: SelectorProps<T>) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -169,7 +173,8 @@ export function BaseSelector<T extends string | number>({
       </Popover.Trigger>
       <Popover.Portal container={portalContainer ?? undefined}>
         <Popover.Content
-          side="bottom"
+          side={side === "auto" ? "bottom" : side}
+          avoidCollisions={side === "auto"}
           align="start"
           collisionPadding={8}
           className="bg-popover min-w-(--radix-popover-trigger-width) max-h-(--radix-popover-content-available-height) border text-size-base rounded-md shadow-md z-50 mt-1 overflow-hidden flex flex-col"

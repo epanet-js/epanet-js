@@ -20,6 +20,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   autoFocus = false,
   wrapperClassName,
   renderOption,
+  side = "auto",
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -30,6 +31,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   autoFocus?: boolean;
   wrapperClassName?: string;
   renderOption?: (option: T) => React.ReactNode;
+  /** Where the dropdown opens: "auto" (default) lets it flip to fit the
+   *  viewport; "top"/"bottom" pin it to that side and never flip. */
+  side?: "top" | "bottom" | "auto";
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
   const [suggestions, setSuggestions] = useState<T[]>([]);
@@ -195,7 +199,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
 
         <Popover.Portal container={portalContainer ?? undefined}>
           <Popover.Content
-            side="bottom"
+            side={side === "auto" ? "bottom" : side}
+            avoidCollisions={side === "auto"}
             align="start"
             className="bg-popover w-(--anchor-width,100%) min-w-[220px] border text-size-base rounded-md shadow-md z-50 mt-1 max-h-60 overflow-auto p-1"
             onOpenAutoFocus={(e) => e.preventDefault()}
