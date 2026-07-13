@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { IKeyValueStore, IndexedDB } from "src/infra/storage";
+import { catchErrors } from "src/infra/errors";
 
 const STORE_NAME = "recent-files";
 const MAX_ENTRIES = 10;
@@ -49,6 +50,16 @@ export class RecentFilesStore {
     thumbnail?: string,
   ): Promise<void> {
     if (!isSupported()) return;
+    await catchErrors(() => this.persist(name, handle, thumbnail), {
+      as: "RecentFilesStore: failed to write to IndexedDB",
+    });
+  }
+
+  private async persist(
+    name: string,
+    handle: FileSystemFileHandle,
+    thumbnail?: string,
+  ): Promise<void> {
     const all = await this.db.getAll<RecentFileEntry>(STORE_NAME);
 
     let existingId: string | null = null;
