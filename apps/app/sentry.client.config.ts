@@ -28,6 +28,11 @@ Sentry.init({
       );
     if (isPosthogNetworkError) return null;
 
+    const isCssChunkLoadError = event.exception?.values?.some((value) =>
+      /Loading CSS chunk .* failed/.test(value.value ?? ""),
+    );
+    if (isCssChunkLoadError) return null;
+
     if (
       error instanceof Error &&
       "details" in error &&
