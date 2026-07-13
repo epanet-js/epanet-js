@@ -1651,6 +1651,7 @@
     }
   },
   "importZones": {
+    "menuTitle": "Zones",
     "title": "Import zones",
     "dataInputStep": {
       "title": "Data mapping",

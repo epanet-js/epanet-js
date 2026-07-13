@@ -20,6 +20,7 @@ import {
   ImportCustomerPointsIcon,
   FolderInputIcon,
   FolderOutputIcon,
+  ZonesIcon,
 } from "src/icons";
 import { useSetAtom } from "jotai";
 import { dialogAtom } from "src/state/dialog";
@@ -34,6 +35,9 @@ import { projectExtension } from "src/commands/save-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useImportCustomerPoints } from "src/commands/import-customer-points";
+import { useOpenZonesImport } from "src/commands/open-zones-import";
+import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import {
   Button,
@@ -178,6 +182,9 @@ const NewProjectSubmenu = () => {
 
 const ImportSubmenu = () => {
   const importCustomerPoints = useImportCustomerPoints();
+  const openZonesImport = useOpenZonesImport();
+  const importZonesDisabled = useImportZonesDisabled();
+  const isImportZonesMenuOn = useFeatureFlag("FLAG_IMPORT_ZONES_MENU");
   const translate = useTranslate();
 
   return (
@@ -197,6 +204,19 @@ const ImportSubmenu = () => {
             <ImportCustomerPointsIcon />
             {translate("importCustomerPoints.menuEntry")}
           </StyledItem>
+
+          {isImportZonesMenuOn && (
+            <StyledItem
+              disabled={importZonesDisabled}
+              className={importZonesDisabled ? "opacity-60" : undefined}
+              onSelect={() => {
+                openZonesImport({ source: "toolbar" });
+              }}
+            >
+              <ZonesIcon />
+              {translate("importZones.menuTitle")}
+            </StyledItem>
+          )}
         </DDSubContent>
       </DD.Portal>
     </DD.Sub>
