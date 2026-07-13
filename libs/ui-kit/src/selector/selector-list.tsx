@@ -33,6 +33,11 @@ export type SelectorListProps<T extends string | number | boolean> = {
   searchPlaceholder?: string;
   listClassName?: string;
   validateNew?: (query: string) => boolean;
+  /**
+   * Cap the scrollable option list at this many rows before it scrolls.
+   * Leave undefined to let the list size to its content.
+   */
+  maxVisibleOptions?: number;
   /** Seed the search query on mount (used by data-grid type-to-open). */
   initialQuery?: string;
   /**
@@ -46,6 +51,9 @@ export type SelectorListProps<T extends string | number | boolean> = {
 const NO_INDEX = -1;
 const PAGE_SIZE = 5;
 const TYPE_AHEAD_RESET_MS = 500;
+
+const ROW_REM = 2;
+const LIST_TOP_PAD_REM = 0.25;
 
 /**
  * A selector has nothing to show when there are no options and there is no
@@ -82,6 +90,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   searchPlaceholder,
   listClassName,
   validateNew,
+  maxVisibleOptions,
   initialQuery = "",
   onActiveOptionChange,
 }: SelectorListProps<T>) {
@@ -119,6 +128,11 @@ export function BaseSelectorList<T extends string | number | boolean>({
   const showActionRow =
     actionLabel !== undefined && onActionClick !== undefined;
   const showList = filtered.length > 0 || showCreateOption;
+
+  const maxListHeight =
+    maxVisibleOptions !== undefined
+      ? `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`
+      : undefined;
 
   const createIdx = showCreateOption ? filtered.length : -1;
   const clearIdx = showClearRow
@@ -456,7 +470,10 @@ export function BaseSelectorList<T extends string | number | boolean>({
         </div>
       )}
       {showList && (
-        <div className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]">
+        <div
+          style={maxListHeight ? { maxHeight: maxListHeight } : undefined}
+          className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
+        >
           <ul role="listbox" tabIndex={-1} className="p-1">
             {filtered.map((option, i) => {
               const isOptionDisabled = !!option.disabled;

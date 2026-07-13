@@ -9,6 +9,9 @@ const opt = (label: string): SelectorOption<string> => ({
   label,
 });
 
+const manyOpts = (n: number): SelectorOption<string>[] =>
+  Array.from({ length: n }, (_, i) => opt(`Option ${i + 1}`));
+
 const openSelector = async (label = "Pick one") => {
   const user = setupUser();
   await user.click(screen.getByRole("combobox", { name: label }));
@@ -764,6 +767,59 @@ describe("Selector", () => {
 
       await user.click(screen.getByRole("option", { name: "Banana" }));
       expect(onActiveOptionChange).toHaveBeenLastCalledWith(null);
+    });
+  });
+
+  describe("options list height", () => {
+    it("does not cap the options list by default", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={manyOpts(12)}
+          selected="Option 1"
+          onChange={vi.fn()}
+        />,
+      );
+      await openSelector();
+
+      const container = screen.getByRole("listbox")
+        .parentElement as HTMLElement;
+      expect(container).toHaveClass("overflow-auto");
+      expect(container.style.maxHeight).toBe("");
+    });
+
+    it("caps the scrollable options container from maxVisibleOptions", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={manyOpts(12)}
+          selected="Option 1"
+          onChange={vi.fn()}
+          maxVisibleOptions={5}
+        />,
+      );
+      await openSelector();
+
+      expect(screen.getByRole("listbox").parentElement).toHaveStyle({
+        maxHeight: "11.25rem",
+      });
+    });
+
+    it("sizes the cap from maxVisibleOptions", async () => {
+      render(
+        <Selector
+          ariaLabel="Pick one"
+          options={manyOpts(12)}
+          selected="Option 1"
+          onChange={vi.fn()}
+          maxVisibleOptions={3}
+        />,
+      );
+      await openSelector();
+
+      expect(screen.getByRole("listbox").parentElement).toHaveStyle({
+        maxHeight: "7.25rem",
+      });
     });
   });
 

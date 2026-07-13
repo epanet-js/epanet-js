@@ -23,6 +23,7 @@ type SelectorPropsBase<T extends string | number> = {
   allowNew?: boolean;
   createLabel?: (query: string) => string;
   minOptionsForSearch?: number;
+  maxVisibleOptions?: number;
   actionLabel?: string;
   onActionClick?: () => void;
   listClassName?: string;
@@ -75,6 +76,7 @@ export function BaseSelector<T extends string | number>({
   allowNew,
   createLabel,
   minOptionsForSearch,
+  maxVisibleOptions,
   nullable = false,
   placeholder,
   clearLabel,
@@ -199,6 +201,7 @@ export function BaseSelector<T extends string | number>({
               allowNew={allowNew}
               createLabel={createLabel}
               minOptionsForSearch={minOptionsForSearch}
+              maxVisibleOptions={maxVisibleOptions}
               searchPlaceholder={searchPlaceholder}
               listClassName={listClassName}
               validateNew={validateNew}
