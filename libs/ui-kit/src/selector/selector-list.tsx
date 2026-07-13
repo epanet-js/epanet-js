@@ -35,7 +35,7 @@ export type SelectorListProps<T extends string | number | boolean> = {
   validateNew?: (query: string) => boolean;
   /**
    * Cap the scrollable option list at this many rows before it scrolls.
-   * Leave undefined to let the list size to its content.
+   * Defaults to 5.
    */
   maxVisibleOptions?: number;
   /** Seed the search query on mount (used by data-grid type-to-open). */
@@ -90,7 +90,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
   searchPlaceholder,
   listClassName,
   validateNew,
-  maxVisibleOptions,
+  maxVisibleOptions = 5,
   initialQuery = "",
   onActiveOptionChange,
 }: SelectorListProps<T>) {
@@ -129,10 +129,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
     actionLabel !== undefined && onActionClick !== undefined;
   const showList = filtered.length > 0 || showCreateOption;
 
-  const maxListHeight =
-    maxVisibleOptions !== undefined
-      ? `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`
-      : undefined;
+  const maxListHeight = `${(maxVisibleOptions + 0.5) * ROW_REM + LIST_TOP_PAD_REM}rem`;
 
   const createIdx = showCreateOption ? filtered.length : -1;
   const clearIdx = showClearRow
@@ -471,7 +468,7 @@ export function BaseSelectorList<T extends string | number | boolean>({
       )}
       {showList && (
         <div
-          style={maxListHeight ? { maxHeight: maxListHeight } : undefined}
+          style={{ maxHeight: maxListHeight }}
           className="outline-hidden min-h-0 overflow-auto scroll-shadows [scrollbar-width:thin]"
         >
           <ul role="listbox" tabIndex={-1} className="p-1">

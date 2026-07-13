@@ -771,7 +771,7 @@ describe("Selector", () => {
   });
 
   describe("options list height", () => {
-    it("does not cap the options list by default", async () => {
+    it("caps the scrollable options container at 5 rows by default", async () => {
       render(
         <Selector
           ariaLabel="Pick one"
@@ -782,27 +782,9 @@ describe("Selector", () => {
       );
       await openSelector();
 
-      const container = screen.getByRole("listbox")
-        .parentElement as HTMLElement;
+      const container = screen.getByRole("listbox").parentElement;
       expect(container).toHaveClass("overflow-auto");
-      expect(container.style.maxHeight).toBe("");
-    });
-
-    it("caps the scrollable options container from maxVisibleOptions", async () => {
-      render(
-        <Selector
-          ariaLabel="Pick one"
-          options={manyOpts(12)}
-          selected="Option 1"
-          onChange={vi.fn()}
-          maxVisibleOptions={5}
-        />,
-      );
-      await openSelector();
-
-      expect(screen.getByRole("listbox").parentElement).toHaveStyle({
-        maxHeight: "11.25rem",
-      });
+      expect(container).toHaveStyle({ maxHeight: "11.25rem" });
     });
 
     it("sizes the cap from maxVisibleOptions", async () => {

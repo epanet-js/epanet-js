@@ -111,6 +111,27 @@ describe("FilterableSelectCell", () => {
     expect(screen.getByText("Pattern A")).toBeInTheDocument();
   });
 
+  it("caps the options list at 5 rows for long lists", async () => {
+    const manyOptions = Array.from({ length: 12 }, (_, i) => ({
+      value: i,
+      label: `Pattern ${i}`,
+    }));
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        value={0}
+        options={manyOptions}
+        editMode="full"
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+    expect(screen.getByRole("listbox").parentElement).toHaveStyle({
+      maxHeight: "11.25rem",
+    });
+  });
+
   it("renders the clear button at the bottom when emptyOptionLabel is set", async () => {
     render(
       <FilterableSelectCell
