@@ -1,9 +1,12 @@
 import {
-  EpanetUnitSystem,
   defaultAccuracy,
   defaultUnbalanced,
   defaultCustomersPatternId,
 } from "src/simulation/build-inp";
+import {
+  EpanetUnitSystem,
+  epanetUnitSystems,
+} from "@epanet-js/project-settings";
 import { InpData, TankData } from "./inp-data";
 import { IssuesAccumulator } from "./issues";
 import { HeadlossFormula } from "src/hydraulic-model";
@@ -59,9 +62,11 @@ const epanetDefaultOptions = {
   FLOWCHANGE: 0,
 };
 
+const defaultUnitSystem: EpanetUnitSystem = "LPS";
+
 const defaultOptions = {
   ...epanetDefaultOptions,
-  UNITS: "LPS",
+  UNITS: defaultUnitSystem,
   ACCURACY: defaultAccuracy,
   UNBALANCED: defaultUnbalanced,
 };
@@ -726,7 +731,14 @@ export const parseOption: RowParser = ({
   const { name, value, defaultValue } = option;
 
   if (name === "UNITS") {
-    inpData.options.units = value as EpanetUnitSystem;
+    if (typeof value !== "string" || value === "") return;
+
+    if ((epanetUnitSystems as readonly string[]).includes(value)) {
+      inpData.options.units = value as EpanetUnitSystem;
+    } else {
+      inpData.options.units = defaultUnitSystem;
+      issues.addUsedOption(name, defaultUnitSystem);
+    }
     return;
   }
 

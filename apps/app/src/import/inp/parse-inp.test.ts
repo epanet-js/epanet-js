@@ -258,6 +258,68 @@ describe("Parse inp with", () => {
     expect(issues?.nonDefaultOptions?.get("HEADLOSS")).toEqual("H-W");
   });
 
+  it("falls back to LPS and reports an issue when the unit system is unrecognized", () => {
+    const inp = `
+    [OPTIONS]
+    Units\tCMS
+    `;
+
+    const { projectSettings, issues } = parseInp(inp);
+
+    expect(projectSettings.units.flow).toEqual("l/s");
+    expect(issues?.nonDefaultOptions?.get("UNITS")).toEqual("LPS");
+  });
+
+  it("falls back to LPS when the unit system is unrecognized and a pressure unit is set", () => {
+    const inp = `
+    [OPTIONS]
+    Units\tCMS
+    Pressure\tKPA
+    `;
+
+    const { projectSettings, issues } = parseInp(inp);
+
+    expect(projectSettings.units.flow).toEqual("l/s");
+    expect(projectSettings.units.pressure).toEqual("kPa");
+    expect(issues?.nonDefaultOptions?.get("UNITS")).toEqual("LPS");
+  });
+
+  it("keeps GPM when the unit system has no value", () => {
+    const inp = `
+    [OPTIONS]
+    Units
+    Pressure\tKPA
+    `;
+
+    const { projectSettings, issues } = parseInp(inp);
+
+    expect(projectSettings.units.flow).toEqual("gal/min");
+    expect(issues?.nonDefaultOptions?.has("UNITS")).toBeFalsy();
+  });
+
+  it("keeps GPM when no unit system is declared", () => {
+    const inp = `
+    [OPTIONS]
+    Headloss\tH-W
+    `;
+
+    const { projectSettings, issues } = parseInp(inp);
+
+    expect(projectSettings.units.flow).toEqual("gal/min");
+    expect(issues?.nonDefaultOptions?.has("UNITS")).toBeFalsy();
+  });
+
+  it("does not report supported unit systems as non-default", () => {
+    const inp = `
+    [OPTIONS]
+    Units\tGPM
+    `;
+
+    const { issues } = parseInp(inp);
+
+    expect(issues?.nonDefaultOptions?.has("UNITS")).toBeFalsy();
+  });
+
   it("says when inp contains unsupported sections", () => {
     const inp = `
     [LEAKAGE]
