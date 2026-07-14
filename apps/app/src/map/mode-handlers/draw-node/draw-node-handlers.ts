@@ -193,6 +193,8 @@ export function useDrawNodeHandlers({
       (e) => {
         prefetchTileThrottled(e.lngLat);
 
+        if (isUpdatingRef.current) return;
+
         const mouseCoord = getMapCoord(e);
         const snappingCandidate = findSnappingCandidate(e, mouseCoord);
 
@@ -201,12 +203,10 @@ export function useDrawNodeHandlers({
         const isPipeSnapping =
           snappingCandidate && snappingCandidate.type === "pipe";
 
-        if (!isUpdatingRef.current) {
-          if (isNodeSnapping) {
-            setCursor("replace");
-          } else {
-            setCursor("default");
-          }
+        if (isNodeSnapping) {
+          setCursor("replace");
+        } else {
+          setCursor("default");
         }
 
         setEphemeralState({
