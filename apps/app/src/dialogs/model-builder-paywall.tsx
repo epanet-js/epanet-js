@@ -5,6 +5,7 @@ import { dialogAtom } from "src/state/dialog";
 import { useEarlyAccess } from "src/hooks/use-early-access";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { CheckIcon, CloseIcon, WarningIcon } from "src/icons";
 import { FeaturesList } from "./upgrade";
 
@@ -19,6 +20,7 @@ export const ModelBuilderPaywallDialog = ({
   const onlyEarlyAccess = useEarlyAccess();
   const userTracking = useUserTracking();
   const translate = useTranslate();
+  const isBuildCustomAttributesOn = useFeatureFlag("FLAG_BUILD_CA");
 
   const handleDismiss = () => {
     userTracking.capture({ name: "modelBuilder.paywall.dismissed", source });
@@ -89,19 +91,34 @@ export const ModelBuilderPaywallDialog = ({
                       Icon: CloseIcon,
                       iconColor: "text-red-500",
                     },
+                    ...(isBuildCustomAttributesOn
+                      ? [
+                          {
+                            feature: translate(
+                              "modelBuilderPaywall.customAttributes",
+                            ),
+                            Icon: CloseIcon,
+                            iconColor: "text-red-500",
+                          },
+                        ]
+                      : []),
                   ]}
                 />
                 <FeaturesList
                   title={translate("modelBuilderPaywall.notAvailable")}
                   textColor="text-subtle"
                   items={[
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.customAttributes",
-                      ),
-                      Icon: CloseIcon,
-                      iconColor: "text-red-500",
-                    },
+                    ...(isBuildCustomAttributesOn
+                      ? []
+                      : [
+                          {
+                            feature: translate(
+                              "modelBuilderPaywall.customAttributes",
+                            ),
+                            Icon: CloseIcon,
+                            iconColor: "text-red-500",
+                          },
+                        ]),
                     {
                       feature: translate(
                         "modelBuilderPaywall.saveBuildSettings",
@@ -159,19 +176,34 @@ export const ModelBuilderPaywallDialog = ({
                       Icon: CheckIcon,
                       iconColor: "text-success",
                     },
+                    ...(isBuildCustomAttributesOn
+                      ? [
+                          {
+                            feature: translate(
+                              "modelBuilderPaywall.customAttributes",
+                            ),
+                            Icon: CheckIcon,
+                            iconColor: "text-success",
+                          },
+                        ]
+                      : []),
                   ]}
                 />
                 <FeaturesList
                   title={translate("modelBuilderPaywall.comingSoon")}
                   textColor="text-subtle"
                   items={[
-                    {
-                      feature: translate(
-                        "modelBuilderPaywall.customAttributes",
-                      ),
-                      Icon: CheckIcon,
-                      iconColor: "text-subtle",
-                    },
+                    ...(isBuildCustomAttributesOn
+                      ? []
+                      : [
+                          {
+                            feature: translate(
+                              "modelBuilderPaywall.customAttributes",
+                            ),
+                            Icon: CheckIcon,
+                            iconColor: "text-subtle",
+                          },
+                        ]),
                     {
                       feature: translate(
                         "modelBuilderPaywall.saveBuildSettings",
