@@ -57,7 +57,10 @@ export const useRecoverSession = () => {
         const name = fingerprint.projectName ?? translate("recoveredModelName");
         const file = new File([recoveredBlob], name);
 
-        await openProjectFile(file, "recovery", { isUnsaved: true });
+        await openProjectFile(file, "recovery", {
+          isUnsaved: true,
+          lastSavedAt: fingerprint.timestampLastSave,
+        });
 
         void cleanupStaleDbPools(getAppId());
         userTracking.capture({ name: "sessionRecovery.recovered" });

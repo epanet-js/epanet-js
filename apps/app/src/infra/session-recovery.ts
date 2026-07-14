@@ -3,7 +3,8 @@ const RECOVERY_KEY = "epanet-recovery";
 export type RecoveryFingerprint = {
   poolId: string;
   projectName: string | null;
-  timestamp: number;
+  timestampLastModelChange: number;
+  timestampLastSave?: number;
 };
 
 export const writeRecoveryFingerprint = (

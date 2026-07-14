@@ -13,7 +13,9 @@ import {
 export const SessionRecoveryGuard = () => {
   const isActive = useAtomValue(sessionRecoveryActiveAtom);
   const hasUnsavedChanges = useAtomValue(hasUnsavedChangesDerivedAtom);
-  const projectName = useAtomValue(projectFileInfoAtom)?.name ?? null;
+  const projectFileInfo = useAtomValue(projectFileInfoAtom);
+  const projectName = projectFileInfo?.name ?? null;
+  const lastSavedAt = projectFileInfo?.lastSavedAt;
 
   useEffect(() => {
     if (!isActive) return;
@@ -22,12 +24,13 @@ export const SessionRecoveryGuard = () => {
       writeRecoveryFingerprint({
         poolId: getAppId(),
         projectName,
-        timestamp: Date.now(),
+        timestampLastModelChange: Date.now(),
+        timestampLastSave: lastSavedAt,
       });
     } else {
       clearOwnFingerprint();
     }
-  }, [isActive, hasUnsavedChanges, projectName]);
+  }, [isActive, hasUnsavedChanges, projectName, lastSavedAt]);
 
   useEffect(() => {
     if (!isActive) return;

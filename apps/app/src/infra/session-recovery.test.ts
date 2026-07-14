@@ -32,21 +32,37 @@ describe("session recovery fingerprint", () => {
     writeRecoveryFingerprint({
       poolId: "tab-a",
       projectName: "My model.ejsdb",
-      timestamp: 123,
+      timestampLastModelChange: 456,
+      timestampLastSave: 123,
     });
 
     expect(readRecoveryFingerprint()).toEqual({
       poolId: "tab-a",
       projectName: "My model.ejsdb",
-      timestamp: 123,
+      timestampLastModelChange: 456,
+      timestampLastSave: 123,
     });
+  });
+
+  it("round-trips a fingerprint for a project never saved", () => {
+    writeRecoveryFingerprint({
+      poolId: "tab-a",
+      projectName: null,
+      timestampLastModelChange: 456,
+      timestampLastSave: undefined,
+    });
+
+    const fingerprint = readRecoveryFingerprint();
+
+    expect(fingerprint?.timestampLastModelChange).toEqual(456);
+    expect(fingerprint?.timestampLastSave).toBeUndefined();
   });
 
   it("clears a stored fingerprint", () => {
     writeRecoveryFingerprint({
       poolId: "tab-a",
       projectName: null,
-      timestamp: 123,
+      timestampLastModelChange: 456,
     });
 
     clearRecoveryFingerprint();
@@ -61,7 +77,10 @@ describe("session recovery fingerprint", () => {
   });
 
   it("returns null when the stored value lacks a poolId", () => {
-    localStorage.setItem("epanet-recovery", JSON.stringify({ timestamp: 1 }));
+    localStorage.setItem(
+      "epanet-recovery",
+      JSON.stringify({ timestampLastModelChange: 1 }),
+    );
 
     expect(readRecoveryFingerprint()).toBeNull();
   });

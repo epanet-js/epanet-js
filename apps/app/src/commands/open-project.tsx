@@ -43,7 +43,7 @@ export const useOpenProjectFile = () => {
     async (
       file: FileWithHandle,
       source: string,
-      options: { isUnsaved?: boolean } = {},
+      options: { isUnsaved?: boolean; lastSavedAt?: number } = {},
     ) => {
       try {
         setDialogState({ type: "openProjectProgress", phase: "opening" });
@@ -150,6 +150,9 @@ export const useOpenProjectFile = () => {
           handle: file.handle,
           modelVersion: result.modelVersion,
           isUnsaved: options.isUnsaved,
+          lastSavedAt: options.isUnsaved
+            ? options.lastSavedAt
+            : file.lastModified,
         });
         setInpFileInfo(null);
 

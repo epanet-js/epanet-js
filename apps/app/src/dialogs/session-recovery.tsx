@@ -17,7 +17,13 @@ export const SessionRecoveryDialog = () => {
 
   const projectName =
     recoverableSession.projectName ?? translate("recoveredModelName");
-  const lastSave = new Date(recoverableSession.timestamp).toLocaleString();
+  const lastChange = formatTimestamp(
+    recoverableSession.timestampLastModelChange,
+  );
+  const lastSave =
+    recoverableSession.timestampLastSave !== undefined
+      ? formatTimestamp(recoverableSession.timestampLastSave)
+      : translate("restoreUnsavedWorkNeverSaved");
 
   return (
     <BaseDialog
@@ -46,6 +52,10 @@ export const SessionRecoveryDialog = () => {
             {projectName}
           </span>
           <span className="text-subtle">
+            {translate("restoreUnsavedWorkLastChange")}
+          </span>
+          <span className="font-medium">{lastChange}</span>
+          <span className="text-subtle">
             {translate("restoreUnsavedWorkLastSave")}
           </span>
           <span className="font-medium">{lastSave}</span>
@@ -54,3 +64,6 @@ export const SessionRecoveryDialog = () => {
     </BaseDialog>
   );
 };
+
+const formatTimestamp = (timestamp: number): string =>
+  new Date(timestamp).toLocaleString();

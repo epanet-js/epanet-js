@@ -95,6 +95,7 @@ export const useSaveProject = ({
               name: newHandle.name,
               modelVersion: hydraulicModel.version,
               handle: newHandle,
+              lastSavedAt: Date.now(),
             });
             if (!isDemo) {
               const thumbnail = map
