@@ -187,6 +187,10 @@ body:has(.custom-cursor-family) .cursor-move .mapboxgl-canvas-container {
   cursor: url("/cursors/cursor-replace.svg") 10 10, auto !important;
 }
 
+.cursor-wait .mapboxgl-canvas-container {
+  cursor: wait !important;
+}
+
 body:has(.custom-cursor-family) .cursor-ns-resize {
   cursor: var(--cursor-resize-ns) !important;
 }

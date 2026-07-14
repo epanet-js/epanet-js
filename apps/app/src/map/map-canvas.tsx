@@ -377,6 +377,7 @@ export const MapCanvas = memo(function MapCanvas({
     if (cursor === "grab") return "placemark-cursor-grab";
     if (cursor === "not-allowed") return "placemark-cursor-not-allowed";
     if (cursor === "replace") return "placemark-cursor-replace";
+    if (cursor === "wait") return "cursor-wait";
 
     if (cursor === "crosshair") return "cursor-crosshair";
     if (cursor === "crosshair-add") return "cursor-crosshair-add";

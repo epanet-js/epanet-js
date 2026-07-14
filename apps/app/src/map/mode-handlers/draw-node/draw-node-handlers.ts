@@ -5,6 +5,8 @@ import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
+import { useRef } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getMapCoord } from "../utils";
 import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -27,6 +29,8 @@ export function useDrawNodeHandlers({
   units,
   readonly = false,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
+  const isElevationLockOn = useFeatureFlag("FLAG_ELEVATION_LOCK");
+  const isUpdatingRef = useRef(false);
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const setCursor = useSetAtom(cursorStyleAtom);
@@ -72,57 +76,118 @@ export function useDrawNodeHandlers({
     }
   };
 
-  return {
-    click: async (e) => {
-      if (readonly) return;
+  const submitNodeReplacement = (oldNodeId: number, elevation: number) => {
+    const moment = replaceNode(hydraulicModel, {
+      oldNodeId,
+      newNodeType: nodeType,
+      assetFactory,
+      elevation,
+    });
+    const applied = transact(moment);
+    if (applied) {
+      userTracking.capture({
+        name: "asset.created",
+        type: nodeType,
+      });
 
-      const mouseCoord = getMapCoord(e);
-      const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+      if (moment.putAssets && moment.putAssets.length > 0) {
+        selectAndFocusIfInvalid(moment.putAssets[0]);
+      }
+    }
 
-      if (snappingCandidate && snappingCandidate.type !== "pipe") {
-        const [lng, lat] = snappingCandidate.coordinates;
-        const elevation =
-          snappingCandidate.elevation ??
-          (await fetchElevation({ lng, lat } as mapboxgl.LngLat));
-        const moment = replaceNode(hydraulicModel, {
-          oldNodeId: snappingCandidate.id,
-          newNodeType: nodeType,
-          assetFactory,
-          elevation,
-        });
-        const applied = transact(moment);
-        if (applied) {
-          userTracking.capture({
-            name: "asset.created",
-            type: nodeType,
-          });
+    setEphemeralState({ type: "none" });
+  };
 
-          if (moment.putAssets && moment.putAssets.length > 0) {
-            selectAndFocusIfInvalid(moment.putAssets[0]);
-          }
-        }
+  const handleClick: Handlers["click"] = async (e) => {
+    if (readonly) return;
 
-        setEphemeralState({ type: "none" });
+    const mouseCoord = getMapCoord(e);
+    const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+
+    if (snappingCandidate && snappingCandidate.type !== "pipe") {
+      const [lng, lat] = snappingCandidate.coordinates;
+      const elevation =
+        snappingCandidate.elevation ??
+        (await fetchElevation({ lng, lat } as mapboxgl.LngLat));
+      submitNodeReplacement(snappingCandidate.id, elevation);
+      return;
+    }
+
+    let clickPosition = getMapCoord(e);
+    let elevation = await fetchElevation(e.lngLat);
+    let pipeIdToSplit: number | undefined;
+
+    if (
+      ephemeralState.type === "drawNode" &&
+      ephemeralState.pipeSnappingPosition
+    ) {
+      clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
+      pipeIdToSplit = ephemeralState.pipeId ?? undefined;
+      const [lng, lat] = clickPosition;
+      elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
+    }
+
+    submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
+    setEphemeralState({ type: "none" });
+  };
+
+  const startElevationFetch = () => {
+    isUpdatingRef.current = true;
+    setCursor("wait");
+  };
+
+  const finishElevationFetch = () => {
+    isUpdatingRef.current = false;
+    setCursor("default");
+  };
+
+  const handleClickWithElevationLock: Handlers["click"] = (e) => {
+    if (readonly) return;
+
+    const mouseCoord = getMapCoord(e);
+    const snappingCandidate = findSnappingCandidate(e, mouseCoord);
+
+    if (snappingCandidate && snappingCandidate.type !== "pipe") {
+      const knownElevation = snappingCandidate.elevation;
+      if (knownElevation !== null) {
+        submitNodeReplacement(snappingCandidate.id, knownElevation);
         return;
       }
 
-      let clickPosition = getMapCoord(e);
-      let elevation = await fetchElevation(e.lngLat);
-      let pipeIdToSplit: number | undefined;
+      const [lng, lat] = snappingCandidate.coordinates;
+      startElevationFetch();
+      void fetchElevation({ lng, lat } as mapboxgl.LngLat)
+        .then((elevation) =>
+          submitNodeReplacement(snappingCandidate.id, elevation),
+        )
+        .finally(finishElevationFetch);
+      return;
+    }
 
-      if (
-        ephemeralState.type === "drawNode" &&
-        ephemeralState.pipeSnappingPosition
-      ) {
-        clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
-        pipeIdToSplit = ephemeralState.pipeId ?? undefined;
-        const [lng, lat] = clickPosition;
-        elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
-      }
+    const isPipeSplitting =
+      ephemeralState.type === "drawNode" &&
+      !!ephemeralState.pipeSnappingPosition;
+    const clickPosition = isPipeSplitting
+      ? (ephemeralState.pipeSnappingPosition as [number, number])
+      : mouseCoord;
+    const pipeIdToSplit = isPipeSplitting
+      ? (ephemeralState.pipeId ?? undefined)
+      : undefined;
+    const lngLatForElevation = isPipeSplitting
+      ? ({ lng: clickPosition[0], lat: clickPosition[1] } as mapboxgl.LngLat)
+      : e.lngLat;
 
-      submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
-      setEphemeralState({ type: "none" });
-    },
+    startElevationFetch();
+    void fetchElevation(lngLatForElevation)
+      .then((elevation) => {
+        submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
+        setEphemeralState({ type: "none" });
+      })
+      .finally(finishElevationFetch);
+  };
+
+  return {
+    click: isElevationLockOn ? handleClickWithElevationLock : handleClick,
     move: throttle(
       (e) => {
         prefetchTileThrottled(e.lngLat);
@@ -135,10 +200,12 @@ export function useDrawNodeHandlers({
         const isPipeSnapping =
           snappingCandidate && snappingCandidate.type === "pipe";
 
-        if (isNodeSnapping) {
-          setCursor("replace");
-        } else {
-          setCursor("default");
+        if (!isUpdatingRef.current) {
+          if (isNodeSnapping) {
+            setCursor("replace");
+          } else {
+            setCursor("default");
+          }
         }
 
         setEphemeralState({
