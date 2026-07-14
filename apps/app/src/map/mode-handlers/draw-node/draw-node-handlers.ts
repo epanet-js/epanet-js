@@ -143,6 +143,7 @@ export function useDrawNodeHandlers({
 
   const handleClickWithElevationLock: Handlers["click"] = (e) => {
     if (readonly) return;
+    if (isUpdatingRef.current) return;
 
     const mouseCoord = getMapCoord(e);
     const snappingCandidate = findSnappingCandidate(e, mouseCoord);
