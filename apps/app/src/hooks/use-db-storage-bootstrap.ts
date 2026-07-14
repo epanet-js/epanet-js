@@ -5,7 +5,7 @@ import { useSeedDefaultProjectDb } from "src/hooks/persistence/use-start-new-pro
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
-import { configureDbStorage } from "src/lib/db/commands/configure-storage";
+import { configureDbStorage } from "src/lib/db";
 import {
   recoverableSessionAtom,
   sessionRecoveryActiveAtom,

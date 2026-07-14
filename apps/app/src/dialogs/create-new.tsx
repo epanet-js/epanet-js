@@ -36,7 +36,7 @@ import {
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
 import { MapEngine } from "src/map/map-engine";
-import { useContext, useRef, useCallback } from "react";
+import { useContext, useRef, useCallback, useState } from "react";
 
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";
 import NetworkProjectedIllustration from "./network-projection/network-projected";
@@ -72,6 +72,7 @@ export const CreateNew = () => {
   const { closeDialog } = useDialogState();
   const originalMapStateRef = useRef<mapboxgl.LngLatBounds | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (map && !originalMapStateRef.current) {
     originalMapStateRef.current = map.getBounds();
@@ -114,6 +115,8 @@ export const CreateNew = () => {
       };
       setGridPreview(false);
       setGridHidden(false);
+      setIsSubmitting(true);
+      setDialog({ type: "loading" });
       try {
         await startBlankProject({
           projectSettings,
@@ -123,6 +126,8 @@ export const CreateNew = () => {
         captureError(error instanceof Error ? error : new Error(String(error)));
         setDialog({ type: "changeNotApplied" });
         return;
+      } finally {
+        setIsSubmitting(false);
       }
       if (map) {
         centerMapForNewProject(map, projection, location);
@@ -158,6 +163,7 @@ export const CreateNew = () => {
           action={translate("create")}
           onAction={() => formRef.current?.requestSubmit()}
           onClose={handleCancel}
+          isSubmitting={isSubmitting}
         />
       }
     >

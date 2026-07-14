@@ -6,6 +6,7 @@ import { cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import * as db from "src/lib/db";
 import { getAppId } from "src/infra/app-instance";
 import { recoverableSessionAtom } from "src/state/session-recovery";
+import { dialogAtom } from "src/state/dialog";
 import { clearRecoveryFingerprint } from "src/infra/session-recovery";
 import { useOpenProjectFile } from "./open-project";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -18,6 +19,7 @@ import { formatErrorDetails } from "src/lib/errors";
 export const useRecoverSession = () => {
   const openProjectFile = useOpenProjectFile();
   const setRecoverable = useSetAtom(recoverableSessionAtom);
+  const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
 
@@ -28,6 +30,7 @@ export const useRecoverSession = () => {
         if (!fingerprint) return;
 
         setRecoverable(null);
+        setDialogState({ type: "loading" });
 
         let recoveredBlob: Blob | null = null;
         try {
@@ -43,6 +46,7 @@ export const useRecoverSession = () => {
 
         if (!recoveredBlob) {
           clearRecoveryFingerprint();
+          setDialogState({ type: "welcome" });
           notify({
             variant: "warning",
             size: "md",
@@ -65,7 +69,13 @@ export const useRecoverSession = () => {
         void cleanupStaleDbPools(getAppId());
         userTracking.capture({ name: "sessionRecovery.recovered" });
       },
-      [openProjectFile, setRecoverable, userTracking, translate],
+      [
+        openProjectFile,
+        setRecoverable,
+        setDialogState,
+        userTracking,
+        translate,
+      ],
     ),
   );
 };

@@ -19,3 +19,4 @@ export { importProject } from "./commands/import-project";
 export type { ImportProjectInput } from "./commands/import-project";
 export { exportDb } from "./commands/export-db";
 export { exportDbFromPool } from "./commands/recover-db";
+export { configureDbStorage } from "./commands/configure-storage";

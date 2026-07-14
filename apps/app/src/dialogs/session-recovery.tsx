@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAtomValue } from "jotai";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
@@ -12,6 +13,7 @@ export const SessionRecoveryDialog = () => {
   const recoverableSession = useAtomValue(recoverableSessionAtom);
   const recoverSession = useRecoverSession();
   const discardSession = useDiscardRecoverableSession();
+  const [isRecovering, setIsRecovering] = useState(false);
 
   if (!recoverableSession) return null;
 
@@ -34,7 +36,11 @@ export const SessionRecoveryDialog = () => {
       footer={
         <SimpleDialogActions
           action={translate("recoverChangesAction")}
-          onAction={() => void recoverSession()}
+          onAction={() => {
+            setIsRecovering(true);
+            void recoverSession();
+          }}
+          isSubmitting={isRecovering}
           secondary={{
             action: translate("discardChangesAction"),
             onClick: discardSession,
