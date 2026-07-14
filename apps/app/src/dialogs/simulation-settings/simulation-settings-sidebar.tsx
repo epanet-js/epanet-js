@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { useTranslate } from "src/hooks/use-translate";
+import { WarningIcon } from "src/icons";
 import { simulationSettingsCategories } from "./simulation-settings-data";
+import { useInvalidSectionIds } from "./simulation-settings-content";
 
 type Props = {
   activeSection: string;
@@ -20,6 +22,7 @@ export const SimulationSettingsSidebar = ({
   onSelectSection,
 }: Props) => {
   const translate = useTranslate();
+  const invalidSections = useInvalidSectionIds();
   return (
     <nav className="w-64 shrink-0 p-3 overflow-y-auto">
       <ul className="flex flex-col gap-0.5">
@@ -38,13 +41,21 @@ export const SimulationSettingsSidebar = ({
                 type="button"
                 onClick={() => onSelectSection(category.id)}
                 className={clsx(
-                  "w-full text-left px-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
+                  "w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
                   isCategoryActive && !subcategoryIds.includes(activeSection)
                     ? "bg-accent-tint text-default"
                     : "text-default hover:bg-base-hover",
                 )}
               >
-                {translate(category.translationKey)}
+                <span className="truncate">
+                  {translate(category.translationKey)}
+                </span>
+                {invalidSections.has(category.id) && (
+                  <WarningIcon
+                    className="shrink-0 text-warning"
+                    aria-label={translate("simulationSettings.sectionHasError")}
+                  />
+                )}
               </button>
               {category.subcategories && (
                 <ul className="flex flex-col gap-0.5 mt-0.5">
@@ -54,13 +65,23 @@ export const SimulationSettingsSidebar = ({
                         type="button"
                         onClick={() => onSelectSection(sub.id)}
                         className={clsx(
-                          "w-full text-left pl-6 pr-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
+                          "w-full flex items-center justify-between gap-2 pl-6 pr-3 py-1.5 rounded-sm text-size-base transition-colors font-medium",
                           activeSection === sub.id
                             ? "bg-accent-tint text-default"
                             : "text-default hover:bg-base-hover",
                         )}
                       >
-                        {translate(sub.translationKey)}
+                        <span className="truncate">
+                          {translate(sub.translationKey)}
+                        </span>
+                        {invalidSections.has(sub.id) && (
+                          <WarningIcon
+                            className="shrink-0 text-warning"
+                            aria-label={translate(
+                              "simulationSettings.sectionHasError",
+                            )}
+                          />
+                        )}
                       </button>
                     </li>
                   ))}

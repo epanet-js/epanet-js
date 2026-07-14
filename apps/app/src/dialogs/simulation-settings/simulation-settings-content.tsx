@@ -1113,3 +1113,18 @@ export const useQualitySettingsValidation = () => {
 
   return { hasValidationError, fieldErrors };
 };
+
+export const useInvalidSectionIds = (): Set<string> => {
+  const { hasValidationError: timeError } = useTimeSettingsValidation();
+  const { hasValidationError: qualityError } = useQualitySettingsValidation();
+
+  return useMemo(() => {
+    const set = new Set<string>();
+    if (timeError) set.add("times");
+    if (qualityError) {
+      set.add("waterQuality");
+      set.add("waterQuality-analysis");
+    }
+    return set;
+  }, [timeError, qualityError]);
+};

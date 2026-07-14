@@ -801,6 +801,7 @@
   "ckmeans": "Ckmeans",
   "simulationSettings": {
     "title": "Simulation settings",
+    "sectionHasError": "This section has invalid values",
     "demand": "Demand",
     "demandMultiplier": "Demand multiplier",
     "times": "Times",
