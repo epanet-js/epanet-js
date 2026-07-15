@@ -3,6 +3,7 @@ import * as P from "@radix-ui/react-popover";
 import { FieldProps } from "formik";
 import * as E from "./elements";
 import { useRef } from "react";
+import { useTranslate } from "src/hooks/use-translate";
 
 const HEX_PATTERN = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 const fallbackColor = "#000000";
@@ -37,6 +38,7 @@ export function ColorPopover({
   ariaLabel?: string;
   readonly?: boolean;
 }) {
+  const translate = useTranslate();
   const safeColor = isValidHex(color as string)
     ? (color as string)
     : fallbackColor;
@@ -89,7 +91,7 @@ export function ColorPopover({
             aria-label="color input"
           />
           <P.Close asChild>
-            <E.Button>Done</E.Button>
+            <E.Button>{translate("done")}</E.Button>
           </P.Close>
         </div>
       </E.PopoverContent2>
