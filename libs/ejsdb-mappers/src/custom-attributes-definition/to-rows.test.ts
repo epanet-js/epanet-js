@@ -2,7 +2,7 @@ import type {
   CustomAttribute,
   CustomAttributeAssetType,
   CustomAttributesDefinition,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { serializeCustomAttributesDefinition } from "./to-rows";
 
 const attr = (

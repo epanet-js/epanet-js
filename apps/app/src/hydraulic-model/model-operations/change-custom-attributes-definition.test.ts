@@ -2,7 +2,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { changeCustomAttributesDefinition } from "./change-custom-attributes-definition";
 

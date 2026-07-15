@@ -110,7 +110,7 @@ import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { getAttribute, isCustomProperty } from "@epanet-js/custom-attributes";
+import { getAttribute, isCustomProperty } from "@epanet-js/hydraulic-model";
 import { CustomAttributesSection } from "./custom-attributes-section";
 import { NumericTable } from "src/components/form/numeric-table";
 import { useShowPatternsLibrary } from "src/commands/show-patterns-library";

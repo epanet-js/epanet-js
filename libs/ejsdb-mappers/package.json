@@ -14,7 +14,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@epanet-js/custom-attributes": "workspace:*",
     "@epanet-js/ejsdb": "workspace:*",
     "@epanet-js/hydraulic-model": "workspace:*",
     "@epanet-js/pipe-library": "workspace:*",

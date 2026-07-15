@@ -6,7 +6,7 @@ import { recoverableSessionAtom } from "src/state/session-recovery";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import type { Projection } from "src/lib/projections";
-import type { CustomAttributeAssetType } from "@epanet-js/custom-attributes";
+import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
 import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";

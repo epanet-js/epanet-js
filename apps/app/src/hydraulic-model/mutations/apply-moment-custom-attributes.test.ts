@@ -3,7 +3,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { buildTestFactories } from "src/__helpers__/test-factories";
 import { changeProperty } from "../model-operations/change-property";

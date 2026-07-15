@@ -27,7 +27,7 @@ import {
   CustomAttributesDefinition,
   emptyCustomAttributesDefinition,
   deepCloneCustomAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 
 export type HydraulicModel = {
   version: string;

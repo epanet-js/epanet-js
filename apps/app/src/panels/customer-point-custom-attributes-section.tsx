@@ -6,7 +6,7 @@ import {
   type CustomAttributeValue,
   getAttribute,
   getAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";

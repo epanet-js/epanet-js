@@ -1,5 +1,5 @@
 import { CustomerPointId } from "@epanet-js/hydraulic-model";
-import { isCustomProperty } from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/hydraulic-model";
 import type { CustomerPointPatch, ModelMoment } from "../model-operation";
 import { HydraulicModel } from "../hydraulic-model";
 import { CustomerPoints } from "@epanet-js/hydraulic-model";

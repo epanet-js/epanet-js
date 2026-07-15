@@ -1,7 +1,7 @@
 import {
   CustomAttributesDefinition,
   getAttributeIds,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import type {
   AssetPatch,
   CustomerPointPatch,

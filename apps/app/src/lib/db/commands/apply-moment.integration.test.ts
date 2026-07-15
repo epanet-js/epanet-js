@@ -14,7 +14,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { serializeCustomAttributesDefinition } from "@epanet-js/ejsdb-mappers";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {

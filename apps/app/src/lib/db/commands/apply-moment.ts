@@ -4,7 +4,7 @@ import {
   type AssetId,
   type CustomerPointId,
 } from "@epanet-js/hydraulic-model";
-import { isCustomProperty } from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/hydraulic-model";
 import type {
   AssetPatch,
   CustomerPointPatch,

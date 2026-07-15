@@ -1,4 +1,4 @@
-import { AssetType } from "@epanet-js/hydraulic-model";
+import type { AssetType } from "../asset-types/types";
 import {
   CustomAttribute,
   CustomAttributesDefinition,

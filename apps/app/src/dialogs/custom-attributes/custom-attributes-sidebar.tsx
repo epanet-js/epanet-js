@@ -4,7 +4,7 @@ import {
   CustomAttributeAssetType,
   CustomAttributesDefinition,
   countFor,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { WarningIcon } from "src/icons";
 
 type CustomAttributesSidebarProps = {

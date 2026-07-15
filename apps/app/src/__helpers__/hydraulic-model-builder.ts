@@ -52,7 +52,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
 import {
   AssetQuantitiesSpec,

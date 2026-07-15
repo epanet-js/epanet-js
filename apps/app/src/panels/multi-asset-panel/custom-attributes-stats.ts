@@ -1,7 +1,7 @@
 import type {
   CustomAttribute,
   CustomAttributeValue,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import {
   UnitsSpec,
   FormattingSpec,

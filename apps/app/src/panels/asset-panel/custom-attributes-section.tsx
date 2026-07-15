@@ -6,7 +6,7 @@ import {
   type CustomAttributeId,
   type CustomAttributeValue,
   getAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { Asset } from "src/hydraulic-model";
 import type {
   ChangeableProperty,

@@ -28,7 +28,7 @@ import {
   nextIdSeed,
   setAttributes,
   totalAttributesCount,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 
 const ASSET_TYPE_ORDER: CustomAttributeAssetType[] = [
   "junction",

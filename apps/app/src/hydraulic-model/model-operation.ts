@@ -11,7 +11,7 @@ import { Demand, Demands } from "@epanet-js/hydraulic-model";
 import { RawControls } from "@epanet-js/hydraulic-model";
 import { Controls } from "@epanet-js/hydraulic-model";
 import type { AssetId } from "@epanet-js/hydraulic-model";
-import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
 
 type NonPatchableKeys = "type" | "connections";
 

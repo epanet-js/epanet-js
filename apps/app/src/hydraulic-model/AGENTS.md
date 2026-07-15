@@ -20,7 +20,9 @@ The **asset/value layer has been extracted** to `@epanet-js/hydraulic-model`
 (`public/libs/hydraulic-model/`): `asset-types/*` (the asset classes + their
 property/quantity types, `DefaultsSpec`), `factories/*` (`AssetFactory`,
 `CustomerPointFactory`, `initializeModelFactories`), `label-manager`, `curves`,
-`patterns`, `customer-points`, and `customer-points-lookup`. Import these from
+`patterns`, `customer-points`, `customer-points-lookup`, `custom-attributes`,
+`assets-map`, `asset-index`, `demands`, `controls/`, `raw-controls/`, and
+`topology/` (the ngraph `Topology` class + its queries). Import these from
 the **bare package name** `@epanet-js/hydraulic-model` (single root barrel — no
 subpaths; that's how every `@epanet-js/*` lib is consumed here). The guidelines
 below still describe how these pieces work; only their home has changed.
@@ -31,15 +33,23 @@ not exported from the package barrel; import them only from test files inside th
 package via a relative path.
 
 **Still in this directory** (the app side, not yet extracted): `hydraulic-model.ts`
-(the `HydraulicModel` container), `model-operations/`, `mutations/`, `topology/`,
-`asset-index`, `assets-geo`, `assets-map`, `demands`, `controls/`, `spatial-*`,
-`curve-fitting`, and the `index.ts` barrel (which re-exports the moved symbols
-from the package, so `src/hydraulic-model` imports keep working). The full
+(the `HydraulicModel` container), `model-operation.ts` (the moment/patch types),
+`model-operations/`, `mutations/`, `utilities/`, `asset-index-transferable`,
+`assets-geo`, `customer-points-geo`, `topology/`, `spatial-index`,
+`spatial-queries`, `curve-fitting`, `property-validators`,
+`validate-moment-integrity`, and the `index.ts` barrel (which re-exports the moved
+symbols from the package, so `src/hydraulic-model` imports keep working). The full
 `HydraulicModelBuilder` test helper also stays here (`src/__helpers__/`) until the
 remaining layers move.
 
-When changing the asset classes, factories, curves, patterns, label manager, or
-customer-point types, edit them in `public/libs/hydraulic-model/` — not here.
+Note `topology/` exists on **both** sides and they are not the same thing: the
+package holds the ngraph `Topology` class and its queries, while the `topology/`
+here holds only the worker-transferable encoding (`topologyEncoder`,
+`topologyView`, `topology-transferable`).
+
+When changing the asset classes, factories, curves, patterns, label manager,
+custom attributes, or customer-point types, edit them in
+`public/libs/hydraulic-model/` — not here.
 
 ---
 

@@ -9,7 +9,7 @@ import {
 } from "src/components/data-grid";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { LabelManager, type CustomerPoint } from "@epanet-js/hydraulic-model";
-import type { CustomAttribute } from "@epanet-js/custom-attributes";
+import type { CustomAttribute } from "@epanet-js/hydraulic-model";
 import { convertTo } from "@epanet-js/quantity";
 import type { TranslateFn } from "src/hooks/use-translate";
 import type { useTranslateUnit } from "src/hooks/use-translate-unit";

@@ -1,5 +1,5 @@
 import { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { isCustomProperty } from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/hydraulic-model";
 import { customAttributesDataSchema } from "@epanet-js/ejsdb";
 
 export const serializeCustomerPointCustomAttributes = (

@@ -18,7 +18,7 @@ import {
   emptyCustomAttributesDefinition,
   getAttributes,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { useInProcessDb } from "../__test-helpers__/in-process-db";
 
 describe("fetch-project integration", () => {

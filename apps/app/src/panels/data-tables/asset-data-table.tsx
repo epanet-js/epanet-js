@@ -39,7 +39,7 @@ import {
   getAttribute,
   getAttributes,
   isCustomProperty,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import {
   DataGrid,
   type DataGridRef,

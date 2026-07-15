@@ -15,7 +15,7 @@ import {
   duplicateLabelKeys,
   isLabelTooLong,
   normalizeLabel,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 
 type CustomAttributesTableProps = {
   attributes: CustomAttribute[];

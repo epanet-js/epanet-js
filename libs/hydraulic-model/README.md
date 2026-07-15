@@ -30,6 +30,11 @@ workspace libraries. Import everything from the package root
 - **Curves & patterns** — `ICurve`/`Curves` and `Pattern`/`Patterns` value types
   plus their helpers (validation, cloning, default points, next-id, …).
 - **Labels** — `LabelManager` for unique, per-type, auto-generated asset labels.
+- **Custom attributes** — user-defined attributes per asset type: the
+  `CustomAttribute`/`CustomAttributesDefinition` types and their helpers
+  (`getAttributes`/`setAttributes`, `isCustomProperty`, label validation).
+  Attribute *values* are stored on the assets themselves, under property keys
+  prefixed `custom-`.
 
 ```ts
 import {

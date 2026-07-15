@@ -9,7 +9,7 @@ import {
   changeDemandAssignment,
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
-import { getAttribute, getAttributes } from "@epanet-js/custom-attributes";
+import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";

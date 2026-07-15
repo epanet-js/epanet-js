@@ -1,4 +1,4 @@
-import type { AssetType } from "@epanet-js/hydraulic-model";
+import type { AssetType } from "../asset-types/types";
 
 export type CustomAttributeAssetType = AssetType | "customerPoint";
 

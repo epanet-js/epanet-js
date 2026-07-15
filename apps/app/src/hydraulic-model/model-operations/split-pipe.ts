@@ -12,7 +12,7 @@ import { HydraulicModel } from "../hydraulic-model";
 import { findJunctionForCustomerPoint } from "../utilities/junction-assignment";
 import { lineString, point } from "@turf/helpers";
 import { findNearestPointOnLine } from "@epanet-js/geometry";
-import { isCustomProperty } from "@epanet-js/custom-attributes";
+import { isCustomProperty } from "@epanet-js/hydraulic-model";
 import { Position } from "src/types";
 import { Unit } from "@epanet-js/quantity";
 

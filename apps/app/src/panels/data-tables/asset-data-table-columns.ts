@@ -9,7 +9,7 @@ import {
 } from "src/components/data-grid";
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
-import { type CustomAttribute } from "@epanet-js/custom-attributes";
+import { type CustomAttribute } from "@epanet-js/hydraulic-model";
 import { type Asset } from "@epanet-js/hydraulic-model";
 import {
   type AssetType,

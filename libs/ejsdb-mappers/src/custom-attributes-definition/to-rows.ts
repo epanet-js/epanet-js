@@ -1,4 +1,4 @@
-import type { CustomAttributesDefinition } from "@epanet-js/custom-attributes";
+import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
 import {
   customAttributesDefinitionSchema,
   type CustomAttributesDefinitionData,

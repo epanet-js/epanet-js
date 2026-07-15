@@ -3,7 +3,7 @@ import type {
   CustomAttributeAssetType,
   CustomAttributeId,
   CustomAttributesDefinition,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { customAttributesDefinitionSchema } from "@epanet-js/ejsdb";
 
 export const buildCustomAttributesDefinition = (
