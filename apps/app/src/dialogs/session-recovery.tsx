@@ -60,16 +60,18 @@ export const SessionRecoveryDialog = () => {
           <span className="text-subtle">
             {translate("restoreUnsavedWorkLastChange")}
           </span>
-          <span className="font-medium">{lastChange}</span>
+          <span className="font-medium tabular-nums">{lastChange}</span>
           <span className="text-subtle">
             {translate("restoreUnsavedWorkLastSave")}
           </span>
-          <span className="font-medium">{lastSave}</span>
+          <span className="font-medium tabular-nums">{lastSave}</span>
         </div>
       </div>
     </BaseDialog>
   );
 };
 
-const formatTimestamp = (timestamp: number): string =>
-  new Date(timestamp).toLocaleString();
+const formatTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return `${date.toLocaleDateString("en-GB")} ${date.toLocaleTimeString("en-GB")}`;
+};
