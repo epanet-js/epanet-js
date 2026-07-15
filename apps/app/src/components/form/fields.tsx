@@ -121,7 +121,7 @@ export const InlineField = ({
   const indentation = useContext(IndentationContext) ?? 0;
   const nestingDepth = useContext(NestedBlockContext);
   const baseLabelWidth =
-    (labelSize === "sm" ? 90 : labelSize === "md" ? 140 : 180) -
+    (labelSize === "sm" ? 100 : labelSize === "md" ? 140 : 180) -
     indentation * 4 -
     nestingDepth * 2;
 
