@@ -199,6 +199,29 @@ const readAll = async (sql: string): Promise<unknown[]> => {
   }) as unknown[];
 };
 
+const withTransaction = <T>(
+  command: string,
+  fn: (db: OoDb) => T,
+  meta?: Record<string, unknown>,
+): Promise<T> =>
+  timed(
+    command,
+    async () => {
+      await ready;
+      if (!db) throw new Error(`[${command}] No database open`);
+      db.exec("BEGIN IMMEDIATE");
+      try {
+        const result = fn(db);
+        db.exec("COMMIT");
+        return result;
+      } catch (e) {
+        db.exec("ROLLBACK");
+        throw e;
+      }
+    },
+    meta,
+  );
+
 const ASSET_TYPE_TABLES = [
   "junctions",
   "reservoirs",
@@ -968,9 +991,7 @@ export const api = {
   },
 
   async saveProjectSettings(json: string) {
-    return timed("saveProjectSettings", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("saveProjectSettings", (db) => {
       db.exec(
         "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
         { bind: [json] },
@@ -991,9 +1012,7 @@ export const api = {
   },
 
   async savePipeLibrary(json: string) {
-    return timed("savePipeLibrary", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("savePipeLibrary", (db) => {
       db.exec("UPDATE project SET pipe_library = ? WHERE id = 1", {
         bind: [json],
       });
@@ -1016,9 +1035,7 @@ export const api = {
   },
 
   async saveCustomAttributesDefinition(json: string) {
-    return timed("saveCustomAttributesDefinition", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("saveCustomAttributesDefinition", (db) => {
       db.exec(
         "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
         {
@@ -1128,20 +1145,11 @@ export const api = {
   },
 
   async setAllZones(rows: ZoneRow[]): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllZones",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          db.exec("DELETE FROM zones");
-          bulkInsertZones(rows);
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
+      (db) => {
+        db.exec("DELETE FROM zones");
+        bulkInsertZones(rows);
       },
       { rows: rows.length },
     );
@@ -1171,137 +1179,124 @@ export const api = {
   },
 
   async applyMoment(payload: ApplyMomentPayload): Promise<void> {
-    return timed(
+    return withTransaction(
       "applyMoment",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          const touchedAssetIds: number[] = [...payload.assetDeleteIds];
-          for (const r of payload.assetUpserts.junctions)
-            touchedAssetIds.push(r.id);
-          for (const r of payload.assetUpserts.reservoirs)
-            touchedAssetIds.push(r.id);
-          for (const r of payload.assetUpserts.tanks)
-            touchedAssetIds.push(r.id);
-          for (const r of payload.assetUpserts.pipes)
-            touchedAssetIds.push(r.id);
-          for (const r of payload.assetUpserts.pumps)
-            touchedAssetIds.push(r.id);
-          for (const r of payload.assetUpserts.valves)
-            touchedAssetIds.push(r.id);
+      (db) => {
+        const touchedAssetIds: number[] = [...payload.assetDeleteIds];
+        for (const r of payload.assetUpserts.junctions)
+          touchedAssetIds.push(r.id);
+        for (const r of payload.assetUpserts.reservoirs)
+          touchedAssetIds.push(r.id);
+        for (const r of payload.assetUpserts.tanks) touchedAssetIds.push(r.id);
+        for (const r of payload.assetUpserts.pipes) touchedAssetIds.push(r.id);
+        for (const r of payload.assetUpserts.pumps) touchedAssetIds.push(r.id);
+        for (const r of payload.assetUpserts.valves) touchedAssetIds.push(r.id);
 
-          bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
+        bulkDelete(ASSET_TYPE_TABLES, "id", touchedAssetIds);
 
-          bulkInsertJunctions(payload.assetUpserts.junctions);
-          bulkInsertReservoirs(payload.assetUpserts.reservoirs);
-          bulkInsertTanks(payload.assetUpserts.tanks);
-          bulkInsertPipes(payload.assetUpserts.pipes);
-          bulkInsertPumps(payload.assetUpserts.pumps);
-          bulkInsertValves(payload.assetUpserts.valves);
+        bulkInsertJunctions(payload.assetUpserts.junctions);
+        bulkInsertReservoirs(payload.assetUpserts.reservoirs);
+        bulkInsertTanks(payload.assetUpserts.tanks);
+        bulkInsertPipes(payload.assetUpserts.pipes);
+        bulkInsertPumps(payload.assetUpserts.pumps);
+        bulkInsertValves(payload.assetUpserts.valves);
 
-          bulkUpdate("junctions", payload.assetPatches.junctions);
-          bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
-          bulkUpdate("tanks", payload.assetPatches.tanks);
-          bulkUpdate("pipes", payload.assetPatches.pipes);
-          bulkUpdate("pumps", payload.assetPatches.pumps);
-          bulkUpdate("valves", payload.assetPatches.valves);
+        bulkUpdate("junctions", payload.assetPatches.junctions);
+        bulkUpdate("reservoirs", payload.assetPatches.reservoirs);
+        bulkUpdate("tanks", payload.assetPatches.tanks);
+        bulkUpdate("pipes", payload.assetPatches.pipes);
+        bulkUpdate("pumps", payload.assetPatches.pumps);
+        bulkUpdate("valves", payload.assetPatches.valves);
 
-          applyCustomAttributeValues(
-            "junctions",
-            payload.customAttributeValues.junctions,
+        applyCustomAttributeValues(
+          "junctions",
+          payload.customAttributeValues.junctions,
+        );
+        applyCustomAttributeValues(
+          "reservoirs",
+          payload.customAttributeValues.reservoirs,
+        );
+        applyCustomAttributeValues(
+          "tanks",
+          payload.customAttributeValues.tanks,
+        );
+        applyCustomAttributeValues(
+          "pipes",
+          payload.customAttributeValues.pipes,
+        );
+        applyCustomAttributeValues(
+          "pumps",
+          payload.customAttributeValues.pumps,
+        );
+        applyCustomAttributeValues(
+          "valves",
+          payload.customAttributeValues.valves,
+        );
+
+        const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
+        for (const u of payload.customerPointDemandUpdates) {
+          cpDemandCpIds.push(u.customerPointId);
+        }
+        bulkDelete(
+          ["customer_point_demands"],
+          "customer_point_id",
+          cpDemandCpIds,
+        );
+
+        const cpIds: number[] = [...payload.customerPointDeleteIds];
+        for (const r of payload.customerPointUpserts) cpIds.push(r.id);
+        bulkDelete(["customer_points"], "id", cpIds);
+
+        bulkInsertCustomerPoints(payload.customerPointUpserts);
+
+        bulkUpdate("customer_points", payload.customerPointPatches);
+
+        applyCustomAttributeValues(
+          "customer_points",
+          payload.customerPointCustomAttributeValues,
+        );
+
+        const cpDemandRows: CustomerPointDemandRow[] = [];
+        for (const u of payload.customerPointDemandUpdates) {
+          for (const row of u.demands) cpDemandRows.push(row);
+        }
+        bulkInsertCustomerPointDemands(cpDemandRows);
+
+        const jDemandJunctionIds: number[] = [];
+        for (const u of payload.junctionDemandUpdates) {
+          jDemandJunctionIds.push(u.junctionId);
+        }
+        bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
+
+        const jDemandRows: JunctionDemandRow[] = [];
+        for (const u of payload.junctionDemandUpdates) {
+          for (const row of u.demands) jDemandRows.push(row);
+        }
+        bulkInsertJunctionDemands(jDemandRows);
+
+        if (payload.patternsReplacement !== null) {
+          db.exec("DELETE FROM patterns");
+          for (const row of payload.patternsReplacement) {
+            insertPattern(row);
+          }
+        }
+        if (payload.curvesReplacement !== null) {
+          db.exec("DELETE FROM curves");
+          for (const row of payload.curvesReplacement) {
+            insertCurve(row);
+          }
+        }
+        if (payload.rawControlsReplacement !== null) {
+          upsertRawControls(payload.rawControlsReplacement);
+        }
+        if (payload.controlsReplacement !== null) {
+          upsertControls(payload.controlsReplacement);
+        }
+        if (payload.customAttributesDefinition !== null) {
+          db.exec(
+            "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
+            { bind: [payload.customAttributesDefinition] },
           );
-          applyCustomAttributeValues(
-            "reservoirs",
-            payload.customAttributeValues.reservoirs,
-          );
-          applyCustomAttributeValues(
-            "tanks",
-            payload.customAttributeValues.tanks,
-          );
-          applyCustomAttributeValues(
-            "pipes",
-            payload.customAttributeValues.pipes,
-          );
-          applyCustomAttributeValues(
-            "pumps",
-            payload.customAttributeValues.pumps,
-          );
-          applyCustomAttributeValues(
-            "valves",
-            payload.customAttributeValues.valves,
-          );
-
-          const cpDemandCpIds: number[] = [...payload.customerPointDeleteIds];
-          for (const u of payload.customerPointDemandUpdates) {
-            cpDemandCpIds.push(u.customerPointId);
-          }
-          bulkDelete(
-            ["customer_point_demands"],
-            "customer_point_id",
-            cpDemandCpIds,
-          );
-
-          const cpIds: number[] = [...payload.customerPointDeleteIds];
-          for (const r of payload.customerPointUpserts) cpIds.push(r.id);
-          bulkDelete(["customer_points"], "id", cpIds);
-
-          bulkInsertCustomerPoints(payload.customerPointUpserts);
-
-          bulkUpdate("customer_points", payload.customerPointPatches);
-
-          applyCustomAttributeValues(
-            "customer_points",
-            payload.customerPointCustomAttributeValues,
-          );
-
-          const cpDemandRows: CustomerPointDemandRow[] = [];
-          for (const u of payload.customerPointDemandUpdates) {
-            for (const row of u.demands) cpDemandRows.push(row);
-          }
-          bulkInsertCustomerPointDemands(cpDemandRows);
-
-          const jDemandJunctionIds: number[] = [];
-          for (const u of payload.junctionDemandUpdates) {
-            jDemandJunctionIds.push(u.junctionId);
-          }
-          bulkDelete(["junction_demands"], "junction_id", jDemandJunctionIds);
-
-          const jDemandRows: JunctionDemandRow[] = [];
-          for (const u of payload.junctionDemandUpdates) {
-            for (const row of u.demands) jDemandRows.push(row);
-          }
-          bulkInsertJunctionDemands(jDemandRows);
-
-          if (payload.patternsReplacement !== null) {
-            db.exec("DELETE FROM patterns");
-            for (const row of payload.patternsReplacement) {
-              insertPattern(row);
-            }
-          }
-          if (payload.curvesReplacement !== null) {
-            db.exec("DELETE FROM curves");
-            for (const row of payload.curvesReplacement) {
-              insertCurve(row);
-            }
-          }
-          if (payload.rawControlsReplacement !== null) {
-            upsertRawControls(payload.rawControlsReplacement);
-          }
-          if (payload.controlsReplacement !== null) {
-            upsertControls(payload.controlsReplacement);
-          }
-          if (payload.customAttributesDefinition !== null) {
-            db.exec(
-              "UPDATE project SET custom_attributes_definition = ? WHERE id = 1",
-              { bind: [payload.customAttributesDefinition] },
-            );
-          }
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
         }
       },
       countApplyMoment(payload),
@@ -1309,29 +1304,19 @@ export const api = {
   },
 
   async setAllAssets(payload: AssetRows): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllAssets",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          for (const table of ASSET_TYPE_TABLES) {
-            db.exec(`DELETE FROM ${table}`);
-          }
-
-          bulkInsertJunctions(payload.junctions);
-          bulkInsertReservoirs(payload.reservoirs);
-          bulkInsertTanks(payload.tanks);
-          bulkInsertPipes(payload.pipes);
-          bulkInsertPumps(payload.pumps);
-          bulkInsertValves(payload.valves);
-
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
+      (db) => {
+        for (const table of ASSET_TYPE_TABLES) {
+          db.exec(`DELETE FROM ${table}`);
         }
+
+        bulkInsertJunctions(payload.junctions);
+        bulkInsertReservoirs(payload.reservoirs);
+        bulkInsertTanks(payload.tanks);
+        bulkInsertPipes(payload.pipes);
+        bulkInsertPumps(payload.pumps);
+        bulkInsertValves(payload.valves);
       },
       {
         j: payload.junctions.length,
@@ -1345,24 +1330,14 @@ export const api = {
   },
 
   async setAllCustomerPoints(payload: CustomerPointsData): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllCustomerPoints",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          db.exec("DELETE FROM customer_point_demands");
-          db.exec("DELETE FROM customer_points");
+      (db) => {
+        db.exec("DELETE FROM customer_point_demands");
+        db.exec("DELETE FROM customer_points");
 
-          bulkInsertCustomerPoints(payload.customerPoints);
-          bulkInsertCustomerPointDemands(payload.demands);
-
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
+        bulkInsertCustomerPoints(payload.customerPoints);
+        bulkInsertCustomerPointDemands(payload.demands);
       },
       {
         cp: payload.customerPoints.length,
@@ -1372,84 +1347,51 @@ export const api = {
   },
 
   async setAllPatterns(rows: PatternRow[]): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllPatterns",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          db.exec("DELETE FROM patterns");
-          for (const row of rows) insertPattern(row);
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
+      (db) => {
+        db.exec("DELETE FROM patterns");
+        for (const row of rows) insertPattern(row);
       },
       { rows: rows.length },
     );
   },
 
   async setAllCurves(rows: CurveRow[]): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllCurves",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          db.exec("DELETE FROM curves");
-          for (const row of rows) insertCurve(row);
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
+      (db) => {
+        db.exec("DELETE FROM curves");
+        for (const row of rows) insertCurve(row);
       },
       { rows: rows.length },
     );
   },
 
   async setAllRawControls(data: string): Promise<void> {
-    return timed("setAllRawControls", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("setAllRawControls", () => {
       upsertRawControls(data);
     });
   },
 
   async setAllControls(data: string): Promise<void> {
-    return timed("setAllControls", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("setAllControls", () => {
       upsertControls(data);
     });
   },
 
   async setAllSimulationSettings(data: string): Promise<void> {
-    return timed("setAllSimulationSettings", async () => {
-      await ready;
-      if (!db) throw new Error("No database open");
+    return withTransaction("setAllSimulationSettings", () => {
       upsertSimulationSettings(data);
     });
   },
 
   async setAllJunctionDemands(rows: JunctionDemandRow[]): Promise<void> {
-    return timed(
+    return withTransaction(
       "setAllJunctionDemands",
-      async () => {
-        await ready;
-        if (!db) throw new Error("No database open");
-        db.exec("BEGIN IMMEDIATE");
-        try {
-          db.exec("DELETE FROM junction_demands");
-          bulkInsertJunctionDemands(rows);
-          db.exec("COMMIT");
-        } catch (e) {
-          db.exec("ROLLBACK");
-          throw e;
-        }
+      (db) => {
+        db.exec("DELETE FROM junction_demands");
+        bulkInsertJunctionDemands(rows);
       },
       { rows: rows.length },
     );
