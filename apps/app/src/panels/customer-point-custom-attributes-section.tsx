@@ -30,6 +30,7 @@ export const CustomerPointCustomAttributesSection = ({
   customerPoint: CustomerPoint;
   readOnly?: boolean;
 }) => {
+  const translate = useTranslate();
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
@@ -77,7 +78,7 @@ export const CustomerPointCustomAttributesSection = ({
 
   return (
     <SectionWrapper
-      title="Custom attributes"
+      title={translate("customAttributes.title")}
       section="customAttributes"
       hasChanged={hasChanged}
     >

@@ -43,6 +43,7 @@ export function MultiCustomerPointCustomAttributesSection({
     property: string,
   ) => void;
 }) {
+  const translate = useTranslate();
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
@@ -83,7 +84,7 @@ export function MultiCustomerPointCustomAttributesSection({
   if (attributes.length === 0 || customerPointIds.length === 0) return null;
 
   return (
-    <Section title="Custom attributes" variant="secondary">
+    <Section title={translate("customAttributes.title")} variant="secondary">
       {attributes.map((attribute) => (
         <MultiCustomAttributeRow
           key={attribute.id}

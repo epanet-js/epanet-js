@@ -44,6 +44,7 @@ export const CustomAttributesSection = ({
   type: CustomAttributeAssetType;
   onPropertyChange: OnPropertyChange;
 }) => {
+  const translate = useTranslate();
   const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const { customAttributes } = useAtomValue(stagingModelDerivedAtom);
   const { getComparison } = useAssetComparison(asset);
@@ -72,7 +73,7 @@ export const CustomAttributesSection = ({
 
   return (
     <SectionWrapper
-      title="Custom attributes"
+      title={translate("customAttributes.title")}
       section="customAttributes"
       hasChanged={hasChanged}
     >
