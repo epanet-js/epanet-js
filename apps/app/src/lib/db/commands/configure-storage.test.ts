@@ -10,11 +10,9 @@ vi.mock("@epanet-js/ejsdb", async (importActual) => ({
     cleanupStaleDbPools(appId, protectedIds),
 }));
 
-const readRecoveryFingerprint = vi.fn<() => { poolId: string } | null>(
-  () => null,
-);
+const readRecoveryFingerprints = vi.fn<() => { poolId: string }[]>(() => []);
 vi.mock("src/infra/session-recovery", () => ({
-  readRecoveryFingerprint: () => readRecoveryFingerprint(),
+  readRecoveryFingerprints: () => readRecoveryFingerprints(),
 }));
 
 const isOPFSAvailable = vi.fn<() => Promise<boolean>>();
@@ -42,7 +40,7 @@ import { configureDbStorage } from "./configure-storage";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  readRecoveryFingerprint.mockReturnValue(null);
+  readRecoveryFingerprints.mockReturnValue([]);
 });
 
 describe("configureDbStorage", () => {
@@ -114,10 +112,13 @@ describe("configureDbStorage", () => {
     expect(captureInfo).not.toHaveBeenCalled();
   });
 
-  it("protects the recoverable pool from cleanup when recovery is enabled", async () => {
+  it("protects every recoverable pool from cleanup when recovery is enabled", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
-    readRecoveryFingerprint.mockReturnValue({ poolId: "crashed-tab" });
+    readRecoveryFingerprints.mockReturnValue([
+      { poolId: "crashed-tab" },
+      { poolId: "another-crashed-tab" },
+    ]);
 
     await configureDbStorage(true, true);
 
@@ -125,13 +126,19 @@ describe("configureDbStorage", () => {
       mode: "sahpool",
       sahpoolId: "tab-a",
     });
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", ["crashed-tab"]);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", [
+      "crashed-tab",
+      "another-crashed-tab",
+    ]);
   });
 
-  it("rotates the appId so the live pool never reuses the recoverable pool", async () => {
+  it("rotates the appId so the live pool never reuses a recoverable pool", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
-    readRecoveryFingerprint.mockReturnValue({ poolId: "tab-a" });
+    readRecoveryFingerprints.mockReturnValue([
+      { poolId: "other-tab" },
+      { poolId: "tab-a" },
+    ]);
 
     await configureDbStorage(true, true);
 
@@ -140,17 +147,20 @@ describe("configureDbStorage", () => {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
     });
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a-fresh", ["tab-a"]);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a-fresh", [
+      "other-tab",
+      "tab-a",
+    ]);
   });
 
-  it("ignores the fingerprint when recovery is disabled", async () => {
+  it("ignores the fingerprints when recovery is disabled", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
-    readRecoveryFingerprint.mockReturnValue({ poolId: "crashed-tab" });
+    readRecoveryFingerprints.mockReturnValue([{ poolId: "crashed-tab" }]);
 
     await configureDbStorage(true, false);
 
-    expect(readRecoveryFingerprint).not.toHaveBeenCalled();
+    expect(readRecoveryFingerprints).not.toHaveBeenCalled();
     expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", []);
   });
 });

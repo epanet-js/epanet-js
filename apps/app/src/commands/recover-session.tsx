@@ -5,9 +5,15 @@ import type { Getter } from "jotai";
 import { cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import * as db from "src/lib/db";
 import { getAppId } from "src/infra/app-instance";
-import { recoverableSessionAtom } from "src/state/session-recovery";
+import {
+  recoverableSessionAtom,
+  recoverableSessionsAtom,
+} from "src/state/session-recovery";
 import { dialogAtom } from "src/state/dialog";
-import { clearRecoveryFingerprint } from "src/infra/session-recovery";
+import {
+  clearRecoveryFingerprints,
+  readRecoveryFingerprints,
+} from "src/infra/session-recovery";
 import { useOpenProjectFile } from "./open-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
@@ -18,7 +24,7 @@ import { formatErrorDetails } from "src/lib/errors";
 
 export const useRecoverSession = () => {
   const openProjectFile = useOpenProjectFile();
-  const setRecoverable = useSetAtom(recoverableSessionAtom);
+  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
   const setDialogState = useSetAtom(dialogAtom);
   const userTracking = useUserTracking();
   const translate = useTranslate();
@@ -28,8 +34,11 @@ export const useRecoverSession = () => {
       async (get: Getter) => {
         const fingerprint = get(recoverableSessionAtom);
         if (!fingerprint) return;
+        const recoverablePoolIds = get(recoverableSessionsAtom).map(
+          (session) => session.poolId,
+        );
 
-        setRecoverable(null);
+        setRecoverableSessions([]);
         setDialogState({ type: "loading" });
 
         let recoveredBlob: Blob | null = null;
@@ -45,7 +54,8 @@ export const useRecoverSession = () => {
         }
 
         if (!recoveredBlob) {
-          clearRecoveryFingerprint();
+          clearRecoveryFingerprints(recoverablePoolIds);
+          discardRecoverablePools();
           setDialogState({ type: "welcome" });
           notify({
             variant: "warning",
@@ -66,12 +76,13 @@ export const useRecoverSession = () => {
           lastSavedAt: fingerprint.timestampLastSave,
         });
 
-        void cleanupStaleDbPools(getAppId());
+        clearRecoveryFingerprints(recoverablePoolIds);
+        discardRecoverablePools();
         userTracking.capture({ name: "sessionRecovery.recovered" });
       },
       [
         openProjectFile,
-        setRecoverable,
+        setRecoverableSessions,
         setDialogState,
         userTracking,
         translate,
@@ -81,13 +92,28 @@ export const useRecoverSession = () => {
 };
 
 export const useDiscardRecoverableSession = () => {
-  const setRecoverable = useSetAtom(recoverableSessionAtom);
+  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
   const userTracking = useUserTracking();
 
-  return useCallback(() => {
-    setRecoverable(null);
-    clearRecoveryFingerprint();
-    void cleanupStaleDbPools(getAppId());
-    userTracking.capture({ name: "sessionRecovery.discarded" });
-  }, [setRecoverable, userTracking]);
+  return useAtomCallback(
+    useCallback(
+      (get: Getter) => {
+        const recoverablePoolIds = get(recoverableSessionsAtom).map(
+          (session) => session.poolId,
+        );
+        setRecoverableSessions([]);
+        clearRecoveryFingerprints(recoverablePoolIds);
+        discardRecoverablePools();
+        userTracking.capture({ name: "sessionRecovery.discarded" });
+      },
+      [setRecoverableSessions, userTracking],
+    ),
+  );
+};
+
+const discardRecoverablePools = (): void => {
+  const survivingPoolIds = readRecoveryFingerprints().map(
+    (fingerprint) => fingerprint.poolId,
+  );
+  void cleanupStaleDbPools(getAppId(), survivingPoolIds);
 };

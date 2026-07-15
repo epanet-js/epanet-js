@@ -9,7 +9,6 @@ import { sessionRecoveryActiveAtom } from "src/state/session-recovery";
 import { getAppId } from "src/infra/app-instance";
 import {
   writeRecoveryFingerprint,
-  readRecoveryFingerprint,
   clearRecoveryFingerprint,
 } from "src/infra/session-recovery";
 
@@ -32,14 +31,14 @@ export const SessionRecoveryGuard = () => {
         timestampLastSave: lastSavedAt,
       });
     } else {
-      clearOwnFingerprint();
+      clearRecoveryFingerprint(getAppId());
     }
   }, [isActive, hasUnsavedChanges, modelVersion, projectName, lastSavedAt]);
 
   useEffect(() => {
     if (!isActive) return;
 
-    const handlePageHide = () => clearOwnFingerprint();
+    const handlePageHide = () => clearRecoveryFingerprint(getAppId());
     window.addEventListener("pagehide", handlePageHide);
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
@@ -47,11 +46,4 @@ export const SessionRecoveryGuard = () => {
   }, [isActive]);
 
   return null;
-};
-
-const clearOwnFingerprint = (): void => {
-  const fingerprint = readRecoveryFingerprint();
-  if (fingerprint && fingerprint.poolId === getAppId()) {
-    clearRecoveryFingerprint();
-  }
 };

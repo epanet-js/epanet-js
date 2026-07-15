@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
-  readRecoveryFingerprint,
+  readRecoveryFingerprints,
   writeRecoveryFingerprint,
   clearRecoveryFingerprint,
+  clearRecoveryFingerprints,
 } from "./session-recovery";
 
 const createLocalStorageStub = () => {
@@ -24,8 +25,8 @@ describe("session recovery fingerprint", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns null when no fingerprint is stored", () => {
-    expect(readRecoveryFingerprint()).toBeNull();
+  it("returns an empty list when no fingerprint is stored", () => {
+    expect(readRecoveryFingerprints()).toEqual([]);
   });
 
   it("round-trips a written fingerprint", () => {
@@ -36,12 +37,48 @@ describe("session recovery fingerprint", () => {
       timestampLastSave: 123,
     });
 
-    expect(readRecoveryFingerprint()).toEqual({
+    expect(readRecoveryFingerprints()).toEqual([
+      {
+        poolId: "tab-a",
+        projectName: "My model.ejsdb",
+        timestampLastModelChange: 456,
+        timestampLastSave: 123,
+      },
+    ]);
+  });
+
+  it("keeps fingerprints from several tabs at once", () => {
+    writeRecoveryFingerprint({
       poolId: "tab-a",
-      projectName: "My model.ejsdb",
-      timestampLastModelChange: 456,
-      timestampLastSave: 123,
+      projectName: "A.ejsdb",
+      timestampLastModelChange: 100,
     });
+    writeRecoveryFingerprint({
+      poolId: "tab-b",
+      projectName: "B.ejsdb",
+      timestampLastModelChange: 200,
+    });
+
+    const poolIds = readRecoveryFingerprints().map((f) => f.poolId);
+    expect(poolIds).toEqual(expect.arrayContaining(["tab-a", "tab-b"]));
+    expect(poolIds).toHaveLength(2);
+  });
+
+  it("replaces the fingerprint for a pool that is written again", () => {
+    writeRecoveryFingerprint({
+      poolId: "tab-a",
+      projectName: "A.ejsdb",
+      timestampLastModelChange: 100,
+    });
+    writeRecoveryFingerprint({
+      poolId: "tab-a",
+      projectName: "A.ejsdb",
+      timestampLastModelChange: 300,
+    });
+
+    const fingerprints = readRecoveryFingerprints();
+    expect(fingerprints).toHaveLength(1);
+    expect(fingerprints[0].timestampLastModelChange).toEqual(300);
   });
 
   it("round-trips a fingerprint for a project never saved", () => {
@@ -52,36 +89,67 @@ describe("session recovery fingerprint", () => {
       timestampLastSave: undefined,
     });
 
-    const fingerprint = readRecoveryFingerprint();
+    const [fingerprint] = readRecoveryFingerprints();
 
-    expect(fingerprint?.timestampLastModelChange).toEqual(456);
-    expect(fingerprint?.timestampLastSave).toBeUndefined();
+    expect(fingerprint.timestampLastModelChange).toEqual(456);
+    expect(fingerprint.timestampLastSave).toBeUndefined();
   });
 
-  it("clears a stored fingerprint", () => {
+  it("clears a single fingerprint by pool id, leaving the rest", () => {
+    writeRecoveryFingerprint({
+      poolId: "tab-a",
+      projectName: null,
+      timestampLastModelChange: 100,
+    });
+    writeRecoveryFingerprint({
+      poolId: "tab-b",
+      projectName: null,
+      timestampLastModelChange: 200,
+    });
+
+    clearRecoveryFingerprint("tab-a");
+
+    expect(readRecoveryFingerprints().map((f) => f.poolId)).toEqual(["tab-b"]);
+  });
+
+  it("clears several fingerprints at once", () => {
+    for (const poolId of ["tab-a", "tab-b", "tab-c"]) {
+      writeRecoveryFingerprint({
+        poolId,
+        projectName: null,
+        timestampLastModelChange: 1,
+      });
+    }
+
+    clearRecoveryFingerprints(["tab-a", "tab-c"]);
+
+    expect(readRecoveryFingerprints().map((f) => f.poolId)).toEqual(["tab-b"]);
+  });
+
+  it("removes the storage key once the last fingerprint is cleared", () => {
     writeRecoveryFingerprint({
       poolId: "tab-a",
       projectName: null,
       timestampLastModelChange: 456,
     });
 
-    clearRecoveryFingerprint();
+    clearRecoveryFingerprint("tab-a");
 
-    expect(readRecoveryFingerprint()).toBeNull();
+    expect(localStorage.getItem("epanet-recovery")).toBeNull();
   });
 
-  it("returns null for malformed stored values", () => {
+  it("returns an empty list for malformed stored values", () => {
     localStorage.setItem("epanet-recovery", "{not valid json");
 
-    expect(readRecoveryFingerprint()).toBeNull();
+    expect(readRecoveryFingerprints()).toEqual([]);
   });
 
-  it("returns null when the stored value lacks a poolId", () => {
+  it("ignores stored entries that lack a poolId", () => {
     localStorage.setItem(
       "epanet-recovery",
-      JSON.stringify({ timestampLastModelChange: 1 }),
+      JSON.stringify({ "tab-a": { timestampLastModelChange: 1 } }),
     );
 
-    expect(readRecoveryFingerprint()).toBeNull();
+    expect(readRecoveryFingerprints()).toEqual([]);
   });
 });

@@ -1,7 +1,7 @@
 import { getWorker, cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import { getAppId, resetAppId } from "src/infra/app-instance";
 import { isOPFSAvailable } from "src/infra/storage";
-import { readRecoveryFingerprint } from "src/infra/session-recovery";
+import { readRecoveryFingerprints } from "src/infra/session-recovery";
 import { captureWarning, captureInfo } from "src/infra/error-tracking";
 
 export const configureDbStorage = async (
@@ -13,13 +13,13 @@ export const configureDbStorage = async (
   const useSahpool = await isOPFSAvailable();
   const mode = useSahpool ? "sahpool" : "memory";
 
-  const recoverablePoolId = sessionRecoveryEnabled
-    ? (readRecoveryFingerprint()?.poolId ?? null)
-    : null;
+  const recoverablePoolIds = sessionRecoveryEnabled
+    ? readRecoveryFingerprints().map((fingerprint) => fingerprint.poolId)
+    : [];
 
   let appId = getAppId();
 
-  if (recoverablePoolId && recoverablePoolId === appId) {
+  if (recoverablePoolIds.includes(appId)) {
     appId = resetAppId();
   }
 
@@ -31,8 +31,7 @@ export const configureDbStorage = async (
   }
 
   if (effective === "sahpool") {
-    const protectedIds = recoverablePoolId ? [recoverablePoolId] : [];
-    void cleanupStaleDbPools(appId, protectedIds);
+    void cleanupStaleDbPools(appId, recoverablePoolIds);
   }
 
   if (mode === "sahpool" && effective !== "sahpool") {

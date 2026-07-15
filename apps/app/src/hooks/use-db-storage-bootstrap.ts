@@ -7,12 +7,13 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { captureError } from "src/infra/error-tracking";
 import { configureDbStorage } from "src/lib/db";
 import {
-  recoverableSessionAtom,
+  recoverableSessionsAtom,
   sessionRecoveryActiveAtom,
 } from "src/state/session-recovery";
 import {
-  readRecoveryFingerprint,
-  clearRecoveryFingerprint,
+  readRecoveryFingerprints,
+  clearRecoveryFingerprints,
+  type RecoveryFingerprint,
 } from "src/infra/session-recovery";
 import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
 import { getAppId } from "src/infra/app-instance";
@@ -23,7 +24,7 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   const isDbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
   const isSessionRecoveryOn = useFeatureFlag("FLAG_SESSION_RECOVERY");
   const setSessionRecoveryActive = useSetAtom(sessionRecoveryActiveAtom);
-  const setRecoverableSession = useSetAtom(recoverableSessionAtom);
+  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
   const userTracking = useUserTracking();
   const dbInitializedRef = useRef(false);
 
@@ -45,14 +46,22 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
         setSessionRecoveryActive(recoveryActive);
 
         if (recoveryActive) {
-          const fingerprint = readRecoveryFingerprint();
-          if (fingerprint && !(await isSessionAlive(fingerprint.poolId))) {
+          const recoverable: RecoveryFingerprint[] = [];
+          const stalePoolIds: string[] = [];
+          for (const fingerprint of readRecoveryFingerprints()) {
+            if (await isSessionAlive(fingerprint.poolId)) continue;
             if (await dbPoolExists(fingerprint.poolId)) {
-              setRecoverableSession(fingerprint);
-              userTracking.capture({ name: "sessionRecovery.offered" });
+              recoverable.push(fingerprint);
             } else {
-              clearRecoveryFingerprint();
+              stalePoolIds.push(fingerprint.poolId);
             }
+          }
+
+          clearRecoveryFingerprints(stalePoolIds);
+
+          if (recoverable.length > 0) {
+            setRecoverableSessions(recoverable);
+            userTracking.capture({ name: "sessionRecovery.offered" });
           }
         }
       } catch (error) {
@@ -71,7 +80,7 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
     isDbInOpfsOn,
     isSessionRecoveryOn,
     setSessionRecoveryActive,
-    setRecoverableSession,
+    setRecoverableSessions,
     userTracking,
   ]);
 
