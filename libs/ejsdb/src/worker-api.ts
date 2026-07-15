@@ -27,6 +27,7 @@ type PatchRow = AssetPatchRow | CustomerPointPatchRow;
 import type {
   ApplyMomentPayload,
   CustomAttributeValueUpdate,
+  ImportProjectPayload,
   OpenDbResult,
 } from "./types";
 
@@ -161,6 +162,20 @@ const closeExistingDb = () => {
   }
 };
 
+const createNewDb = async (): Promise<void> => {
+  closeExistingDb();
+
+  if (storageMode === "sahpool") {
+    await poolUtil!.wipeFiles();
+    db = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
+  } else {
+    db = new sqlite3!.oo1.DB(":memory:", "c");
+  }
+
+  runMigrations();
+  db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+};
+
 const readUserVersion = (): number => {
   const rows = db!.exec("PRAGMA user_version", {
     returnValue: "resultRows",
@@ -243,6 +258,19 @@ const insertCurve = (row: CurveRow) => {
   getStmt(`INSERT INTO curves (id, label, type, points) VALUES (?, ?, ?, ?)`)
     .bind([row.id, row.label, row.type, row.points])
     .stepReset();
+};
+
+const upsertProjectSettings = (json: string) => {
+  db!.exec(
+    "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
+    { bind: [json] },
+  );
+};
+
+const updatePipeLibrary = (json: string) => {
+  db!.exec("UPDATE project SET pipe_library = ? WHERE id = 1", {
+    bind: [json],
+  });
 };
 
 const upsertRawControls = (data: string) => {
@@ -829,6 +857,24 @@ const bulkInsertZones = (rows: readonly ZoneRow[]) => {
   );
 };
 
+const countImportProject = (payload: ImportProjectPayload) => ({
+  newDb: payload.newDb ? 1 : 0,
+  settings: payload.projectSettings !== null ? 1 : 0,
+  pipeLib: payload.pipeLibrary !== null ? 1 : 0,
+  zones: payload.zones?.length ?? 0,
+  j: payload.assets.junctions.length,
+  r: payload.assets.reservoirs.length,
+  t: payload.assets.tanks.length,
+  p: payload.assets.pipes.length,
+  pu: payload.assets.pumps.length,
+  v: payload.assets.valves.length,
+  cp: payload.customerPoints.customerPoints.length,
+  cpDem: payload.customerPoints.demands.length,
+  pat: payload.patterns.length,
+  cur: payload.curves.length,
+  jDem: payload.junctionDemands.length,
+});
+
 const countApplyMoment = (payload: ApplyMomentPayload) => ({
   delAssets: payload.assetDeleteIds.length,
   upJ: payload.assetUpserts.junctions.length,
@@ -876,15 +922,7 @@ export const api = {
   async newDb() {
     return timed("newDb", async () => {
       await ready;
-      closeExistingDb();
-      if (storageMode === "sahpool") {
-        await poolUtil!.wipeFiles();
-        db = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
-      } else {
-        db = new sqlite3!.oo1.DB(":memory:", "c");
-      }
-      runMigrations();
-      db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+      await createNewDb();
     });
   },
 
@@ -991,11 +1029,8 @@ export const api = {
   },
 
   async saveProjectSettings(json: string) {
-    return withTransaction("saveProjectSettings", (db) => {
-      db.exec(
-        "INSERT INTO project (id, settings) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET settings = excluded.settings",
-        { bind: [json] },
-      );
+    return withTransaction("saveProjectSettings", () => {
+      upsertProjectSettings(json);
     });
   },
 
@@ -1012,10 +1047,8 @@ export const api = {
   },
 
   async savePipeLibrary(json: string) {
-    return withTransaction("savePipeLibrary", (db) => {
-      db.exec("UPDATE project SET pipe_library = ? WHERE id = 1", {
-        bind: [json],
-      });
+    return withTransaction("savePipeLibrary", () => {
+      updatePipeLibrary(json);
     });
   },
 
@@ -1300,6 +1333,57 @@ export const api = {
         }
       },
       countApplyMoment(payload),
+    );
+  },
+
+  async importProject(payload: ImportProjectPayload): Promise<void> {
+    await ready;
+    if (payload.newDb) {
+      await timed("importProject:newDb", createNewDb);
+    }
+    return withTransaction(
+      "importProject",
+      (db) => {
+        if (payload.projectSettings !== null) {
+          upsertProjectSettings(payload.projectSettings);
+        }
+        if (payload.pipeLibrary !== null) {
+          updatePipeLibrary(payload.pipeLibrary);
+        }
+        if (payload.zones !== null) {
+          db.exec("DELETE FROM zones");
+          bulkInsertZones(payload.zones);
+        }
+
+        for (const table of ASSET_TYPE_TABLES) {
+          db.exec(`DELETE FROM ${table}`);
+        }
+        bulkInsertJunctions(payload.assets.junctions);
+        bulkInsertReservoirs(payload.assets.reservoirs);
+        bulkInsertTanks(payload.assets.tanks);
+        bulkInsertPipes(payload.assets.pipes);
+        bulkInsertPumps(payload.assets.pumps);
+        bulkInsertValves(payload.assets.valves);
+
+        db.exec("DELETE FROM customer_point_demands");
+        db.exec("DELETE FROM customer_points");
+        bulkInsertCustomerPoints(payload.customerPoints.customerPoints);
+        bulkInsertCustomerPointDemands(payload.customerPoints.demands);
+
+        db.exec("DELETE FROM patterns");
+        for (const row of payload.patterns) insertPattern(row);
+
+        db.exec("DELETE FROM curves");
+        for (const row of payload.curves) insertCurve(row);
+
+        upsertRawControls(payload.rawControls);
+        upsertControls(payload.controls);
+        upsertSimulationSettings(payload.simulationSettings);
+
+        db.exec("DELETE FROM junction_demands");
+        bulkInsertJunctionDemands(payload.junctionDemands);
+      },
+      countImportProject(payload),
     );
   },
 

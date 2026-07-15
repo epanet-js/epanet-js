@@ -3,10 +3,12 @@ import type { AssetPatchRows, CustomerPointPatchRow } from "./schema/patches";
 import type {
   CustomerPointRow,
   CustomerPointDemandRow,
+  CustomerPointsData,
 } from "./schema/customer-points";
 import type { JunctionDemandRow } from "./schema/junction-demands";
 import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
+import type { ZoneRow } from "./schema/zones";
 
 export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }
@@ -54,6 +56,21 @@ export const emptyAssetCustomAttributeUpdates =
     pumps: [],
     valves: [],
   });
+
+export type ImportProjectPayload = {
+  newDb: boolean;
+  projectSettings: string | null;
+  pipeLibrary: string | null;
+  zones: ZoneRow[] | null;
+  assets: AssetRows;
+  customerPoints: CustomerPointsData;
+  patterns: PatternRow[];
+  curves: CurveRow[];
+  rawControls: string;
+  controls: string;
+  simulationSettings: string;
+  junctionDemands: JunctionDemandRow[];
+};
 
 export type ApplyMomentPayload = {
   assetDeleteIds: number[];
