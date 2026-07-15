@@ -106,7 +106,7 @@ export const ProjectionSection = () => {
   const isReadonly = hasScenarios || isPlaying;
   return (
     <CollapsibleSection
-      title="Projection"
+      title={t("projection")}
       open={sections.projection}
       onOpenChange={(open) =>
         setSections((prev) => ({ ...prev, projection: open }))
