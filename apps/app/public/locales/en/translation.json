@@ -31,6 +31,7 @@
   "analysisTools": "Analysis tools",
   "continue": "Continue",
   "cancel": "Cancel",
+  "done": "Done",
   "select": "Select",
   "selection": "Selection",
   "junction": "Junction",
@@ -592,6 +593,12 @@
   "visible": "Visible",
   "optional": "optional",
   "basemap": "Basemap",
+  "basemapNames": {
+    "monochrome": "Monochrome",
+    "satellite": "Satellite",
+    "outdoors": "Outdoors",
+    "streets": "Streets"
+  },
   "back": "Back",
   "name": "Name",
   "here": "here",
