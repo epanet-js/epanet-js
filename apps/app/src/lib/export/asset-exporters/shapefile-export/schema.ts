@@ -4,7 +4,7 @@ import {
   CustomAttributesDefinition,
   getAttribute,
   isCustomProperty,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 export type Field = {

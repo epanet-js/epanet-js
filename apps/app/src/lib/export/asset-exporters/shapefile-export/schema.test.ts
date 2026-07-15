@@ -1,7 +1,7 @@
 import {
   emptyCustomAttributesDefinition,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { buildSchema } from "./schema";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 

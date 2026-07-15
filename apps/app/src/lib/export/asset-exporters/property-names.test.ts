@@ -1,7 +1,7 @@
 import {
   emptyCustomAttributesDefinition,
   setAttributes,
-} from "@epanet-js/custom-attributes";
+} from "@epanet-js/hydraulic-model";
 import { buildPropertyNameResolver } from "./property-names";
 
 const translations: Record<string, string> = {
