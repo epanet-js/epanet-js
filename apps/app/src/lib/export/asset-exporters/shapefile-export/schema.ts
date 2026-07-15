@@ -1,3 +1,10 @@
+import {
+  CustomAttribute,
+  CustomAttributeAssetType,
+  CustomAttributesDefinition,
+  getAttribute,
+  isCustomProperty,
+} from "@epanet-js/custom-attributes";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
 export type Field = {
@@ -59,12 +66,19 @@ const PROPERTY_SCHEMA: Record<string, PropertyDef> = {
 export function buildSchema(
   keys: Iterable<string>,
   encoder: TextEncoder,
+  assetType?: CustomAttributeAssetType,
+  customAttributes?: CustomAttributesDefinition,
 ): Field[] {
   const fields: Field[] = [];
+  const usedNames = new Set(
+    Object.values(PROPERTY_SCHEMA).map((def) => def.dbfKey),
+  );
   let offset = 1;
 
   for (const key of keys) {
-    const def = PROPERTY_SCHEMA[key];
+    const def = isCustomProperty(key)
+      ? customPropertyDef(key, assetType, customAttributes, usedNames)
+      : PROPERTY_SCHEMA[key];
     if (!def) continue;
 
     const length = (() => {
@@ -95,3 +109,44 @@ export function buildSchema(
 
   return fields;
 }
+
+const DBF_NAME_MAX_LENGTH = 10;
+const CUSTOM_TEXT_LENGTH = 64;
+
+const customPropertyDef = (
+  key: string,
+  assetType: CustomAttributeAssetType | undefined,
+  customAttributes: CustomAttributesDefinition | undefined,
+  usedNames: Set<string>,
+): PropertyDef | undefined => {
+  if (!assetType || !customAttributes) return undefined;
+  const attribute = getAttribute(customAttributes, assetType, key);
+  if (!attribute) return undefined;
+
+  const dbfKey = toDbfName(attribute, usedNames);
+  return attribute.type === "number"
+    ? { dbfKey, type: "N" }
+    : { dbfKey, type: "C", length: CUSTOM_TEXT_LENGTH };
+};
+
+const toDbfName = (
+  attribute: CustomAttribute,
+  usedNames: Set<string>,
+): string => {
+  const base =
+    attribute.label
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]+/g, "_")
+      .replace(/^[^A-Z]+/, "")
+      .slice(0, DBF_NAME_MAX_LENGTH) || "CUSTOM";
+
+  let candidate = base;
+  for (let suffix = 2; usedNames.has(candidate); suffix++) {
+    const digits = String(suffix);
+    candidate = base.slice(0, DBF_NAME_MAX_LENGTH - digits.length) + digits;
+  }
+  usedNames.add(candidate);
+  return candidate;
+};

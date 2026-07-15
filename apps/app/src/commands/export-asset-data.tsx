@@ -71,6 +71,7 @@ export const useExportAssetData = () => {
             options.format,
             hydraulicModel,
             projectSettings.projection,
+            translate,
             {
               includeSimulationResults: options.includeSimulationResults,
               assetIdsFilter: options.assetIdFilter,

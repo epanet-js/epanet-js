@@ -5,10 +5,12 @@ import { exportCsv } from "./export-csv";
 import { WGS84 } from "src/lib/projections";
 import { COORDINATE_DECIMAL_PLACES } from "../constants";
 
+const translate = (key: string) => key;
+
 describe("export-csv", () => {
   it("returns no files for an empty model", () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     expect(files).toHaveLength(0);
   });
@@ -17,7 +19,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     expect(files).toHaveLength(1);
     expect(files[0].fileName).toBe("junctions.csv");
@@ -30,7 +32,7 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 42 })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const headers = lines[0].split(",").filter(Boolean);
@@ -50,7 +52,7 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aPipe(2, { startNodeId: 1 })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const pipeLines = await readCsv(findFile(files, "pipes.csv"));
@@ -59,21 +61,21 @@ describe("export-csv", () => {
     expect(pipeLines).toHaveLength(2);
   });
 
-  it("adds sim_ columns from resultsReader when includeSimulationResults is true", async () => {
+  it("adds marked simulation columns from resultsReader when includeSimulationResults is true", async () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const pressure = 42;
     const demand = 10;
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportCsv(model, WGS84, {
+    const files = exportCsv(model, WGS84, translate, {
       includeSimulationResults: true,
       resultsReader,
     });
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const [row] = parseCsvRows(lines);
 
-    expect(row.sim_pressure).toBe("42");
-    expect(row.sim_demand).toBe("10");
+    expect(row["pressure (simulation)"]).toBe("42");
+    expect(row["demand (simulation)"]).toBe("10");
   });
 
   it("exports customer points with all connection columns", async () => {
@@ -86,7 +88,7 @@ describe("export-csv", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const lines = await readCsv(findFile(files, "customer-points.csv"));
     const headers = lines[0].split(",").filter(Boolean);
@@ -96,16 +98,16 @@ describe("export-csv", () => {
       "label",
       "positionX",
       "positionY",
-      "junctionConnection",
-      "pipeConnection",
+      "junction",
+      "pipe",
       "connectionX",
       "connectionY",
     ]);
     expect(row.label).toBe("CP1");
     expect(row.positionX).toBe((1.1234).toFixed(COORDINATE_DECIMAL_PLACES));
     expect(row.positionY).toBe((2.5678).toFixed(COORDINATE_DECIMAL_PLACES));
-    expect(row.junctionConnection).toBe("J1");
-    expect(row.pipeConnection).toBe("P1");
+    expect(row.junction).toBe("J1");
+    expect(row.pipe).toBe("P1");
     expect(row.connectionX).toBe((1.1234).toFixed(COORDINATE_DECIMAL_PLACES));
     expect(row.connectionY).toBe((2.5678).toFixed(COORDINATE_DECIMAL_PLACES));
   });
@@ -120,7 +122,7 @@ describe("export-csv", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const [jRow] = parseCsvRows(junctionLines);
@@ -151,13 +153,13 @@ describe("export-csv", () => {
     const model = HydraulicModelBuilder.with()
       .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const lines = await readCsv(findFile(files, "customer-points.csv"));
     const [row] = parseCsvRows(lines);
 
-    expect(row.junctionConnection).toBe("");
-    expect(row.pipeConnection).toBe("");
+    expect(row.junction).toBe("");
+    expect(row.pipe).toBe("");
   });
 
   it("transforms coordinates using the given projection", async () => {
@@ -178,7 +180,7 @@ describe("export-csv", () => {
       })
       .build();
 
-    const files = exportCsv(model, xyGrid);
+    const files = exportCsv(model, xyGrid, translate);
 
     const junctionLines = await readCsv(findFile(files, "junctions.csv"));
     const [jRow] = parseCsvRows(junctionLines);
@@ -197,7 +199,7 @@ describe("export-csv", () => {
     const pipe = model.assets.get(1)!;
     pipe.setProperty("minorLoss", undefined);
 
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
     const lines = await readCsv(findFile(files, "pipes.csv"));
     const [row] = parseCsvRows(lines);
 
@@ -213,7 +215,7 @@ describe("export-csv", () => {
       .aValve(4, { startNodeId: 1, endNodeId: 2 })
       .aPump(5, { startNodeId: 1, endNodeId: 2 })
       .build();
-    const files = exportCsv(model, WGS84);
+    const files = exportCsv(model, WGS84, translate);
 
     const headerOf = async (name: string) =>
       (await readCsv(findFile(files, name)))[0].split(",");
@@ -228,7 +230,9 @@ describe("export-csv", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportCsv(model, WGS84, { assetIdsFilter: new Set([1]) });
+    const files = exportCsv(model, WGS84, translate, {
+      assetIdsFilter: new Set([1]),
+    });
 
     const lines = await readCsv(findFile(files, "junctions.csv"));
     const rows = parseCsvRows(lines);
@@ -236,7 +240,88 @@ describe("export-csv", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].label).toBe("J1");
   });
+
+  it("localizes headers", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 42 })
+      .build();
+    const resultsReader = mockResultsReader(42, 10);
+
+    const files = exportCsv(model, WGS84, translateStub, {
+      includeSimulationResults: true,
+      resultsReader,
+    });
+    const lines = await readCsv(findFile(files, "junctions.csv"));
+    const headers = lines[0].split(",").filter(Boolean);
+
+    expect(headers).toContain("Elevación");
+    expect(headers).toContain("Presión (Simulación)");
+    expect(headers).not.toContain("elevation");
+    expect(headers).not.toContain("sim_pressure");
+  });
+
+  it("uses custom attribute labels as headers", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    model.assets.get(1)!.setProperty("custom-1", "north");
+
+    const files = exportCsv(model, WGS84, translate);
+    const lines = await readCsv(findFile(files, "junctions.csv"));
+    const headers = lines[0].split(",").filter(Boolean);
+    const [row] = parseCsvRows(lines);
+
+    expect(headers).toContain("Zone");
+    expect(headers).not.toContain("custom-1");
+    expect(row.Zone).toBe("north");
+  });
+
+  it("quotes localized headers containing commas", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone, area",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    model.assets.get(1)!.setProperty("custom-1", "north");
+
+    const files = exportCsv(model, WGS84, translate);
+    const lines = await readCsv(findFile(files, "junctions.csv"));
+
+    expect(lines[0]).toContain('"Zone, area"');
+  });
+
+  it("localizes customer point headers", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
+      .build();
+
+    const files = exportCsv(model, WGS84, translateStub);
+    const lines = await readCsv(findFile(files, "customer-points.csv"));
+    const headers = lines[0].split(",").filter(Boolean);
+
+    expect(headers).toContain("Etiqueta");
+    expect(headers).toContain("junction");
+    expect(headers).not.toContain("junctionConnection");
+  });
 });
+
+const translateStub = (key: string) => {
+  const translations: Record<string, string> = {
+    elevation: "Elevación",
+    pressure: "Presión",
+    simulation: "Simulación",
+    label: "Etiqueta",
+  };
+  return translations[key] ?? key;
+};
 
 const mockResultsReader = (pressure: number, demand: number) => {
   return {

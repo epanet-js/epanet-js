@@ -31,6 +31,8 @@ function sheetRows(workbook: XLSX.WorkBook, sheetName: string): string[][] {
   return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
 }
 
+const translate = (key: string) => key;
+
 describe("exportXlsx", () => {
   it("produces one sheet per non-empty asset type with correct names and row counts", async () => {
     const IDS = {
@@ -56,7 +58,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
 
     const wb = getWorkbook();
     expect(wb.SheetNames).toEqual([
@@ -66,12 +68,12 @@ describe("exportXlsx", () => {
       "pipes",
       "pumps",
       "valves",
-      "customer-points",
+      "customerPoints",
     ]);
 
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
     expect(sheetRows(wb, "pipes")).toHaveLength(2);
-    expect(sheetRows(wb, "customer-points")).toHaveLength(3);
+    expect(sheetRows(wb, "customerPoints")).toHaveLength(3);
   });
 
   it("omits sheets for asset types with no records", async () => {
@@ -80,7 +82,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
 
     const wb = getWorkbook();
     expect(wb.SheetNames).toEqual(["junctions"]);
@@ -97,7 +99,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84, {
+    await exportXlsx(handle, model, WGS84, translate, {
       assetIdsFilter: new Set([IDS.J1]),
       customerPointIdFilter: new Set([IDS.CP1]),
     });
@@ -106,7 +108,7 @@ describe("exportXlsx", () => {
     // Only J1 exported (J2 filtered).
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
     // Only CP1 exported (CP2 filtered).
-    expect(sheetRows(wb, "customer-points")).toHaveLength(2);
+    expect(sheetRows(wb, "customerPoints")).toHaveLength(2);
   });
 
   it("omits the customer-points sheet when CPs are filtered to an empty set", async () => {
@@ -118,13 +120,13 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84, {
+    await exportXlsx(handle, model, WGS84, translate, {
       assetIdsFilter: new Set([IDS.J1]),
       customerPointIdFilter: new Set(),
     });
 
     const wb = getWorkbook();
-    expect(wb.SheetNames).not.toContain("customer-points");
+    expect(wb.SheetNames).not.toContain("customerPoints");
   });
 
   it("exports all CPs when selectedCustomerPoints is null (independent of asset filter)", async () => {
@@ -137,7 +139,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84, {
+    await exportXlsx(handle, model, WGS84, translate, {
       assetIdsFilter: new Set([IDS.J1]),
       customerPointIdFilter: null,
     });
@@ -146,7 +148,7 @@ describe("exportXlsx", () => {
     // J2 filtered out by selectedAssets…
     expect(sheetRows(wb, "junctions")).toHaveLength(2);
     // …but CPs unfiltered because selectedCustomerPoints is null.
-    expect(sheetRows(wb, "customer-points")).toHaveLength(2);
+    expect(sheetRows(wb, "customerPoints")).toHaveLength(2);
   });
 
   it("formats pipe connections as node labels in startNode and endNode columns", async () => {
@@ -159,7 +161,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
 
     const wb = getWorkbook();
     const rows = sheetRows(wb, "pipes");
@@ -173,7 +175,7 @@ describe("exportXlsx", () => {
     expect(dataRow[endIdx]).toBe("B");
   });
 
-  it("appends sim_ columns when includeSimulationResults is true", async () => {
+  it("appends marked simulation columns when includeSimulationResults is true", async () => {
     const IDS = { J1: 1 } as const;
 
     const model = HydraulicModelBuilder.with()
@@ -190,7 +192,7 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84, {
+    await exportXlsx(handle, model, WGS84, translate, {
       includeSimulationResults: true,
       resultsReader: mockResultsReader,
     });
@@ -200,8 +202,8 @@ describe("exportXlsx", () => {
     const headers = rows[0];
     const dataRow = rows[1];
 
-    const pressureIdx = headers.indexOf("sim_pressure");
-    const demandIdx = headers.indexOf("sim_demand");
+    const pressureIdx = headers.indexOf("pressure (simulation)");
+    const demandIdx = headers.indexOf("demand (simulation)");
 
     expect(pressureIdx).toBeGreaterThanOrEqual(0);
     expect(demandIdx).toBeGreaterThanOrEqual(0);
@@ -228,7 +230,7 @@ describe("exportXlsx", () => {
     } as unknown as ResultsReader;
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84, {
+    await exportXlsx(handle, model, WGS84, translate, {
       includeSimulationResults: true,
       resultsReader: mockResultsReader,
     });
@@ -240,8 +242,8 @@ describe("exportXlsx", () => {
 
     const posXIdx = headers.indexOf("positionX");
     const posYIdx = headers.indexOf("positionY");
-    const pressureIdx = headers.indexOf("sim_pressure");
-    const demandIdx = headers.indexOf("sim_demand");
+    const pressureIdx = headers.indexOf("pressure (simulation)");
+    const demandIdx = headers.indexOf("demand (simulation)");
 
     expect(String(dataRow[posXIdx])).toBe(
       (0.123456789).toFixed(COORDINATE_DECIMAL_PLACES),
@@ -271,26 +273,26 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
 
     const wb = getWorkbook();
-    const rows = sheetRows(wb, "customer-points");
+    const rows = sheetRows(wb, "customerPoints");
     const headers = rows[0];
 
     expect(headers).toEqual([
       "label",
       "positionX",
       "positionY",
-      "junctionConnection",
-      "pipeConnection",
+      "junction",
+      "pipe",
       "connectionX",
       "connectionY",
     ]);
 
     expect(rows).toHaveLength(3);
 
-    const junctionIdx = headers.indexOf("junctionConnection");
-    const pipeIdx = headers.indexOf("pipeConnection");
+    const junctionIdx = headers.indexOf("junction");
+    const pipeIdx = headers.indexOf("pipe");
 
     const cp1Row = rows[1];
     const cp2Row = rows[2];
@@ -311,7 +313,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
     const wb = getWorkbook();
 
     expect(sheetRows(wb, "pipes")[0]).toContain("length");
@@ -327,7 +329,7 @@ describe("exportXlsx", () => {
     pipe.setProperty("minorLoss", undefined);
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, WGS84);
+    await exportXlsx(handle, model, WGS84, translate);
 
     const rows = sheetRows(getWorkbook(), "pipes");
     const headers = rows[0];
@@ -359,7 +361,7 @@ describe("exportXlsx", () => {
       .build();
 
     const { handle, getWorkbook } = makeMockHandle();
-    await exportXlsx(handle, model, xyGrid);
+    await exportXlsx(handle, model, xyGrid, translate);
 
     const wb = getWorkbook();
     const jRows = sheetRows(wb, "junctions");
@@ -368,10 +370,97 @@ describe("exportXlsx", () => {
     const posXIdx = jHeaders.indexOf("positionX");
     expect(String(jData[posXIdx])).not.toBe("1");
 
-    const cpRows = sheetRows(wb, "customer-points");
+    const cpRows = sheetRows(wb, "customerPoints");
     const cpHeaders = cpRows[0];
     const cpData = cpRows[1];
     const cpXIdx = cpHeaders.indexOf("positionX");
     expect(String(cpData[cpXIdx])).not.toBe("1");
+  });
+
+  it("localizes headers", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 42 })
+      .aCustomerPoint(2, { coordinates: [0, 0] })
+      .build();
+    const translations: Record<string, string> = {
+      elevation: "Elevación",
+      label: "Etiqueta",
+    };
+    const translateStub = (key: string) => translations[key] ?? key;
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, translateStub);
+
+    const wb = getWorkbook();
+    const jHeaders = sheetRows(wb, "junctions")[0];
+    expect(jHeaders).toContain("Elevación");
+    expect(jHeaders).toContain("Etiqueta");
+    expect(jHeaders).not.toContain("elevation");
+
+    const cpHeaders = sheetRows(wb, "customerPoints")[0];
+    expect(cpHeaders).toContain("Etiqueta");
+    expect(cpHeaders).not.toContain("junctionConnection");
+  });
+
+  it("uses custom attribute labels as headers", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    model.assets.get(1)!.setProperty("custom-1", "north");
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, translate);
+
+    const wb = getWorkbook();
+    const rows = sheetRows(wb, "junctions");
+    const headers = rows[0];
+    const zoneIdx = headers.indexOf("Zone");
+
+    expect(zoneIdx).toBeGreaterThanOrEqual(0);
+    expect(headers).not.toContain("custom-1");
+    expect(rows[1][zoneIdx]).toBe("north");
+  });
+
+  it("localizes worksheet names", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aPipe(2, { startNodeId: 1 })
+      .aCustomerPoint(3, { coordinates: [0.5, 0.5] })
+      .build();
+    const translations: Record<string, string> = {
+      junctions: "Nudos",
+      pipes: "Tuberías",
+      customerPoints: "Acometidas",
+    };
+    const translateStub = (key: string) => translations[key] ?? key;
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, translateStub);
+
+    const wb = getWorkbook();
+    expect(wb.SheetNames).toEqual(["Nudos", "Tuberías", "Acometidas"]);
+  });
+
+  it("sanitizes and de-duplicates localized worksheet names", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { coordinates: [0, 0] })
+      .aPipe(2, { startNodeId: 1 })
+      .build();
+    const translations: Record<string, string> = {
+      junctions: "Assets: network",
+      pipes: "Assets/ network",
+    };
+    const translateStub = (key: string) => translations[key] ?? key;
+
+    const { handle, getWorkbook } = makeMockHandle();
+    await exportXlsx(handle, model, WGS84, translateStub);
+
+    const wb = getWorkbook();
+    expect(wb.SheetNames).toEqual(["Assets  network", "Assets  network 2"]);
   });
 });

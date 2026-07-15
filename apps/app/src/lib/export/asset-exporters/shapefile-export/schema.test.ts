@@ -1,3 +1,7 @@
+import {
+  emptyCustomAttributesDefinition,
+  setAttributes,
+} from "@epanet-js/custom-attributes";
 import { buildSchema } from "./schema";
 import { DBF_NUMBER_LENGTH, DBF_NUMBER_DECIMALS } from "./constants";
 
@@ -74,5 +78,79 @@ describe("buildSchema", () => {
       const [field] = buildSchema([key], encoder);
       expect(field.dbfName).toBe(expectedDbfKey);
     }
+  });
+
+  describe("custom attributes", () => {
+    const definitionWith = (
+      attributes: { id: string; label: string; type: "text" | "number" }[],
+    ) =>
+      setAttributes(emptyCustomAttributesDefinition(), "junction", attributes);
+
+    it("skips custom keys without a definition", () => {
+      const fields = buildSchema(["custom-1"], encoder, "junction");
+      expect(fields).toHaveLength(0);
+    });
+
+    it("maps a text custom attribute to a C field named after its label", () => {
+      const definition = definitionWith([
+        { id: "custom-1", label: "Zone", type: "text" },
+      ]);
+      const [field] = buildSchema(
+        ["custom-1"],
+        encoder,
+        "junction",
+        definition,
+      );
+
+      expect(field.originalKey).toBe("custom-1");
+      expect(field.dbfName).toBe("ZONE");
+      expect(field.type).toBe("C");
+    });
+
+    it("maps a number custom attribute to an N field", () => {
+      const definition = definitionWith([
+        { id: "custom-1", label: "Install year", type: "number" },
+      ]);
+      const [field] = buildSchema(
+        ["custom-1"],
+        encoder,
+        "junction",
+        definition,
+      );
+
+      expect(field.dbfName).toBe("INSTALL_YE");
+      expect(field.type).toBe("N");
+      expect(field.length).toBe(DBF_NUMBER_LENGTH);
+    });
+
+    it("folds accents and de-duplicates truncated names", () => {
+      const definition = definitionWith([
+        { id: "custom-1", label: "Presión máx A", type: "number" },
+        { id: "custom-2", label: "Presión máx B", type: "number" },
+      ]);
+      const fields = buildSchema(
+        ["custom-1", "custom-2"],
+        encoder,
+        "junction",
+        definition,
+      );
+
+      expect(fields[0].dbfName).toBe("PRESION_MA");
+      expect(fields[1].dbfName).toBe("PRESION_M2");
+    });
+
+    it("avoids colliding with built-in DBF names", () => {
+      const definition = definitionWith([
+        { id: "custom-1", label: "Elevation", type: "number" },
+      ]);
+      const [field] = buildSchema(
+        ["custom-1"],
+        encoder,
+        "junction",
+        definition,
+      );
+
+      expect(field.dbfName).toBe("ELEVATION2");
+    });
   });
 });

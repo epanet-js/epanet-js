@@ -1,3 +1,4 @@
+import { TranslateFn } from "@epanet-js/i18n";
 import { Asset, HydraulicModel, Projection } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation";
 import { AssetExportOptions, ExportedAssetTypes, ExportedFile } from "../types";
@@ -7,11 +8,13 @@ import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { resolveExportValue } from "./optional-field-defaults";
 import { exportableProperties } from "./excluded-fields";
+import { buildPropertyNameResolver } from "./property-names";
 import { Position } from "geojson";
 
 export const exportCsv = (
   hydraulicModel: HydraulicModel,
   projection: Projection,
+  translate: TranslateFn,
   options?: AssetExportOptions,
 ): ExportedFile[] => {
   const includeSimulationResults =
@@ -32,6 +35,12 @@ export const exportCsv = (
   const getSimulationResults = buildSimulationResultsReader(resultsReader);
   const { buffers, offsets } = allocateBuffers(size);
   const { properties, simulationProperties } = allocateProperties();
+  const resolvePropertyName = buildPropertyNameResolver(
+    hydraulicModel.customAttributes,
+    translate,
+  );
+  const headerName = (type: ExportedAssetTypes, property: string) =>
+    escapeCsvField(resolvePropertyName(type, property));
 
   const encode = (type: ExportedAssetTypes) => {
     const buffer = buffers[type];
@@ -61,15 +70,15 @@ export const exportCsv = (
 
     properties[asset.type].forEach((property) => {
       if (property === "connections") {
-        parts[partIdx++] = "startNode";
-        parts[partIdx++] = "endNode";
+        parts[partIdx++] = headerName(asset.type, "startNode");
+        parts[partIdx++] = headerName(asset.type, "endNode");
       } else {
-        parts[partIdx++] = property;
+        parts[partIdx++] = headerName(asset.type, property);
       }
     });
 
     simulationProperties[asset.type].forEach((property) => {
-      parts[partIdx++] = property;
+      parts[partIdx++] = headerName(asset.type, property);
     });
 
     encode(asset.type);
@@ -79,13 +88,13 @@ export const exportCsv = (
     parts.length = 0;
     let partIdx = 0;
 
-    parts[partIdx++] = "label";
-    parts[partIdx++] = "positionX";
-    parts[partIdx++] = "positionY";
-    parts[partIdx++] = "junctionConnection";
-    parts[partIdx++] = "pipeConnection";
-    parts[partIdx++] = "connectionX";
-    parts[partIdx++] = "connectionY";
+    parts[partIdx++] = headerName("customerPoint", "label");
+    parts[partIdx++] = headerName("customerPoint", "positionX");
+    parts[partIdx++] = headerName("customerPoint", "positionY");
+    parts[partIdx++] = headerName("customerPoint", "junctionConnection");
+    parts[partIdx++] = headerName("customerPoint", "pipeConnection");
+    parts[partIdx++] = headerName("customerPoint", "connectionX");
+    parts[partIdx++] = headerName("customerPoint", "connectionY");
 
     encode("customerPoint");
   };
@@ -239,6 +248,9 @@ export const exportCsv = (
       };
     });
 };
+
+const escapeCsvField = (value: string): string =>
+  /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 
 const buildSimulationResultsReader = (resultsReader?: ResultsReader) => {
   if (!resultsReader) {

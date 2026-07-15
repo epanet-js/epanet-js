@@ -1,3 +1,4 @@
+import { type TranslateFn } from "@epanet-js/i18n";
 import {
   Projection,
   type Asset,
@@ -35,6 +36,7 @@ const CUSTOMER_POINT_FIELDS = [
 export const exportShapefiles = async (
   hydraulicModel: HydraulicModel,
   projection: Projection,
+  _translate: TranslateFn,
   options?: AssetExportOptions,
 ): Promise<ExportedFile[]> => {
   const includeSimulationResults =
@@ -112,7 +114,12 @@ export const exportShapefiles = async (
     const writer = writers[t];
     if (writer.recordCount === 0) continue;
 
-    writer.frozenSchema = buildSchema(seenFields[t], encoder);
+    writer.frozenSchema = buildSchema(
+      seenFields[t],
+      encoder,
+      t,
+      hydraulicModel.customAttributes,
+    );
     writer.allocate();
     writeShpHeader(writer);
     writeShxHeader(writer);

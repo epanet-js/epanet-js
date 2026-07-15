@@ -1,3 +1,4 @@
+import { TranslateFn } from "@epanet-js/i18n";
 import {
   Asset,
   AssetType,
@@ -12,6 +13,10 @@ import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
 import { resolveExportProperties } from "./optional-field-defaults";
 import { isExportableField } from "./excluded-fields";
+import {
+  buildPropertyNameResolver,
+  PropertyNameResolver,
+} from "./property-names";
 
 const GEOJSON_END = `]}`;
 
@@ -37,6 +42,7 @@ const buildGeoJsonHeader = (projection: Projection): string =>
 export const exportGeoJson = (
   hydraulicModel: HydraulicModel,
   projection: Projection,
+  translate: TranslateFn,
   options?: AssetExportOptions,
 ): ExportedFile[] => {
   const includeSimulationResults =
@@ -44,7 +50,11 @@ export const exportGeoJson = (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
-  const entrySize = estimateEntrySize(hydraulicModel);
+  const resolvePropertyName = buildPropertyNameResolver(
+    hydraulicModel.customAttributes,
+    translate,
+  );
+  const entrySize = estimateEntrySize(hydraulicModel, resolvePropertyName);
   const size =
     Math.max(hydraulicModel.assets.size, hydraulicModel.customerPoints.size) *
       2 *
@@ -70,6 +80,7 @@ export const exportGeoJson = (
     const geoJson = assetToGeoJson(
       hydraulicModel,
       asset,
+      resolvePropertyName,
       simulationValues,
       transformCoord,
     );
@@ -103,19 +114,23 @@ export const exportGeoJson = (
           Number(y.toFixed(COORDINATE_DECIMAL_PLACES)),
         ],
       },
-      properties: {
-        label: point.label,
-        junctionConnection,
-        pipeConnection,
-        connectionX:
-          cx !== undefined
-            ? Number(cx.toFixed(COORDINATE_DECIMAL_PLACES))
-            : undefined,
-        connectionY:
-          cy !== undefined
-            ? Number(cy.toFixed(COORDINATE_DECIMAL_PLACES))
-            : undefined,
-      },
+      properties: localizePropertyKeys(
+        {
+          label: point.label,
+          junctionConnection,
+          pipeConnection,
+          connectionX:
+            cx !== undefined
+              ? Number(cx.toFixed(COORDINATE_DECIMAL_PLACES))
+              : undefined,
+          connectionY:
+            cy !== undefined
+              ? Number(cy.toFixed(COORDINATE_DECIMAL_PLACES))
+              : undefined,
+        },
+        "customerPoint",
+        resolvePropertyName,
+      ),
     };
 
     const buffer = buffers["customerPoint"];
@@ -205,9 +220,22 @@ const prefixSimulationKeys = (simulationResults: Record<string, unknown>) => {
   return prefixed;
 };
 
+const localizePropertyKeys = (
+  properties: Record<string, unknown>,
+  assetType: ExportedAssetTypes,
+  resolvePropertyName: PropertyNameResolver,
+): Record<string, unknown> => {
+  const localized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(properties)) {
+    localized[resolvePropertyName(assetType, key)] = value;
+  }
+  return localized;
+};
+
 const assetToGeoJson = (
   hydraulicModel: HydraulicModel,
   asset: Asset,
+  resolvePropertyName: PropertyNameResolver,
   simulationResults: Record<string, unknown> = {},
   transformCoord: (p: Position) => Position = (p) => p,
 ) => {
@@ -272,13 +300,24 @@ const assetToGeoJson = (
     mapped.properties["endNode"] = buildConnection(end);
   }
 
+  if (mapped.properties !== null) {
+    mapped.properties = localizePropertyKeys(
+      mapped.properties,
+      asset.type,
+      resolvePropertyName,
+    );
+  }
+
   return JSON.stringify(mapped, replacer);
 };
 
-const estimateEntrySize = (hydraulicModel: HydraulicModel) => {
+const estimateEntrySize = (
+  hydraulicModel: HydraulicModel,
+  resolvePropertyName: PropertyNameResolver,
+) => {
   const asset = hydraulicModel.assets.values().next().value;
   if (!asset) return 0;
-  return assetToGeoJson(hydraulicModel, asset).length;
+  return assetToGeoJson(hydraulicModel, asset, resolvePropertyName).length;
 };
 
 const encodeHeader = (

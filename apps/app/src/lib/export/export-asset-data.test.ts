@@ -7,6 +7,7 @@ import { WGS84 } from "src/lib/projections";
 
 const mockHandle = {} as FileSystemFileHandle;
 const model = HydraulicModelBuilder.empty();
+const translate = (key: string) => key;
 
 describe("export-asset-data", () => {
   beforeEach(() => {
@@ -24,7 +25,7 @@ describe("export-asset-data", () => {
   it("generates ZIP file from exported files", async () => {
     const exportedFiles = mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, WGS84);
+    await exportAssetData("export", "geojson", model, WGS84, translate);
 
     expect(AssetExporters.exportZip).toHaveBeenCalledWith(
       mockHandle,
@@ -38,7 +39,7 @@ describe("export-asset-data", () => {
     );
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, WGS84);
+    await exportAssetData("export", "geojson", model, WGS84, translate);
 
     expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
       "export.zip",
@@ -53,7 +54,7 @@ describe("export-asset-data", () => {
   it("uses OPFS and triggers download when native file system is not supported", async () => {
     mockGeoJsonExporter();
 
-    await exportAssetData("export", "geojson", model, WGS84);
+    await exportAssetData("export", "geojson", model, WGS84, translate);
 
     expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith("export.zip");
     expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
@@ -72,11 +73,19 @@ describe("export-asset-data", () => {
       resultsReader,
     };
 
-    await exportAssetData("export", "geojson", model, WGS84, options);
+    await exportAssetData(
+      "export",
+      "geojson",
+      model,
+      WGS84,
+      translate,
+      options,
+    );
 
     expect(AssetExporters.exportGeoJson).toHaveBeenCalledWith(
       model,
       WGS84,
+      translate,
       options,
     );
   });
@@ -90,11 +99,12 @@ describe("export-asset-data", () => {
       resultsReader,
     };
 
-    await exportAssetData("export", "csv", model, WGS84, options);
+    await exportAssetData("export", "csv", model, WGS84, translate, options);
 
     expect(AssetExporters.exportCsv).toHaveBeenCalledWith(
       model,
       WGS84,
+      translate,
       options,
     );
   });

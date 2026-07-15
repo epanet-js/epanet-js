@@ -5,10 +5,12 @@ import { exportGeoJson } from "./export-geojson";
 import { WGS84 } from "src/lib/projections";
 import { COORDINATE_DECIMAL_PLACES, NUM_DECIMAL_PLACES } from "../constants";
 
+const translate = (key: string) => key;
+
 describe("export-geojson", () => {
   it("returns no files for an empty model", () => {
     const model = HydraulicModelBuilder.empty();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     expect(files).toHaveLength(0);
   });
@@ -17,7 +19,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { coordinates: [0, 0] })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     expect(files).toHaveLength(1);
     const file = files[0];
@@ -34,7 +36,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1", elevation: 10 })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
@@ -53,7 +55,7 @@ describe("export-geojson", () => {
       .aJunction(20, { label: "J2" })
       .aPipe(30, { label: "P1", startNodeId: 10, endNodeId: 20 })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const geoJson = await parseGeoJson(findFile(files, "pipes.geojson"));
 
@@ -72,7 +74,7 @@ describe("export-geojson", () => {
       .aJunction(2, { label: "J2" })
       .aPipe(3, { startNodeId: 1, endNodeId: 2 })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const junctionGeoJson = await parseGeoJson(
       findFile(files, "junctions.geojson"),
@@ -89,15 +91,15 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
     const resultsReader = mockResultsReader(pressure, demand);
 
-    const files = exportGeoJson(model, WGS84, {
+    const files = exportGeoJson(model, WGS84, translate, {
       includeSimulationResults: true,
       resultsReader,
     });
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.features[0].properties).toMatchObject({
-      sim_pressure: 42,
-      sim_demand: 5,
+      "pressure (simulation)": 42,
+      "demand (simulation)": 5,
     });
   });
 
@@ -111,7 +113,7 @@ describe("export-geojson", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const geoJson = await parseGeoJson(
       findFile(files, "customer-points.geojson"),
@@ -125,8 +127,8 @@ describe("export-geojson", () => {
     });
     expect(geoJson.features[0].properties).toMatchObject({
       label: "CP1",
-      junctionConnection: "J1",
-      pipeConnection: "P1",
+      junction: "J1",
+      pipe: "P1",
     });
   });
 
@@ -134,7 +136,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aCustomerPoint(10, { label: "CP1", coordinates: [0, 0] })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const geoJson = await parseGeoJson(
       findFile(files, "customer-points.geojson"),
@@ -160,7 +162,7 @@ describe("export-geojson", () => {
         connection: { pipeId: 2, junctionId: 1 },
       })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const jGeoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     const [jx, jy] = jGeoJson.features[0].geometry.coordinates as number[];
@@ -190,7 +192,9 @@ describe("export-geojson", () => {
       .aJunction(1, { label: "J1" })
       .aJunction(2, { label: "J2" })
       .build();
-    const files = exportGeoJson(model, WGS84, { assetIdsFilter: new Set([1]) });
+    const files = exportGeoJson(model, WGS84, translate, {
+      assetIdsFilter: new Set([1]),
+    });
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
 
@@ -216,7 +220,7 @@ describe("export-geojson", () => {
       })
       .build();
 
-    const files = exportGeoJson(model, xyGrid);
+    const files = exportGeoJson(model, xyGrid, translate);
 
     const jGeoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     const [jx] = jGeoJson.features[0].geometry.coordinates as number[];
@@ -231,7 +235,7 @@ describe("export-geojson", () => {
 
   it("includes a named CRS with the WGS84 EPSG URN for the default projection", async () => {
     const model = HydraulicModelBuilder.with().aJunction(1).build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.crs).toEqual({
@@ -248,7 +252,7 @@ describe("export-geojson", () => {
       centroid: [0, 0] as [number, number],
     };
     const model = HydraulicModelBuilder.with().aJunction(1).build();
-    const files = exportGeoJson(model, xyGrid);
+    const files = exportGeoJson(model, xyGrid, translate);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.crs).toEqual({
@@ -265,7 +269,7 @@ describe("export-geojson", () => {
       code: "+proj=utm +zone=55 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
     };
     const model = HydraulicModelBuilder.with().aJunction(1).build();
-    const files = exportGeoJson(model, proj4);
+    const files = exportGeoJson(model, proj4, translate);
 
     const geoJson = await parseGeoJson(findFile(files, "junctions.geojson"));
     expect(geoJson.crs).toEqual({
@@ -282,7 +286,7 @@ describe("export-geojson", () => {
       .aValve(4, { startNodeId: 1, endNodeId: 2 })
       .aPump(5, { startNodeId: 1, endNodeId: 2 })
       .build();
-    const files = exportGeoJson(model, WGS84);
+    const files = exportGeoJson(model, WGS84, translate);
 
     const propsOf = async (name: string) =>
       (await parseGeoJson(findFile(files, name))).features[0].properties;
@@ -300,12 +304,83 @@ describe("export-geojson", () => {
     pipe.setProperty("minorLoss", undefined);
 
     const geoJson = await parseGeoJson(
-      findFile(exportGeoJson(model, WGS84), "pipes.geojson"),
+      findFile(exportGeoJson(model, WGS84, translate), "pipes.geojson"),
     );
     const properties = geoJson.features[0].properties;
 
     expect(properties.minorLoss).toBe(0);
     expect("diameter" in properties).toBe(false);
+  });
+
+  it("localizes property keys", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aJunction(1, { label: "J1", elevation: 10 })
+      .build();
+    const translations: Record<string, string> = {
+      elevation: "Elevación",
+      label: "Etiqueta",
+    };
+    const translateStub = (key: string) => translations[key] ?? key;
+
+    const geoJson = await parseGeoJson(
+      findFile(exportGeoJson(model, WGS84, translateStub), "junctions.geojson"),
+    );
+    const properties = geoJson.features[0].properties;
+
+    expect(properties["Elevación"]).toBe(10);
+    expect(properties["Etiqueta"]).toBe("J1");
+    expect("elevation" in properties).toBe(false);
+  });
+
+  it("uses custom attribute labels as property keys", async () => {
+    const model = HydraulicModelBuilder.with()
+      .aCustomAttribute("junction", {
+        id: "custom-1",
+        label: "Zone",
+        type: "text",
+      })
+      .aJunction(1, { label: "J1" })
+      .build();
+    model.assets.get(1)!.setProperty("custom-1", "north");
+
+    const geoJson = await parseGeoJson(
+      findFile(exportGeoJson(model, WGS84, translate), "junctions.geojson"),
+    );
+    const properties = geoJson.features[0].properties;
+
+    expect(properties.Zone).toBe("north");
+    expect("custom-1" in properties).toBe(false);
+  });
+
+  it("marks localized simulation properties", async () => {
+    const model = HydraulicModelBuilder.with().aJunction(1).build();
+    const resultsReader = {
+      getJunction: vi.fn().mockReturnValue({ pressure: 42 }),
+      getTank: vi.fn().mockReturnValue({}),
+      getReservoir: vi.fn().mockReturnValue({}),
+      getPipe: vi.fn().mockReturnValue({}),
+      getPump: vi.fn().mockReturnValue({}),
+      getValve: vi.fn().mockReturnValue({}),
+    } as unknown as ResultsReader;
+    const translations: Record<string, string> = {
+      pressure: "Presión",
+      simulation: "Simulación",
+    };
+    const translateStub = (key: string) => translations[key] ?? key;
+
+    const geoJson = await parseGeoJson(
+      findFile(
+        exportGeoJson(model, WGS84, translateStub, {
+          includeSimulationResults: true,
+          resultsReader,
+        }),
+        "junctions.geojson",
+      ),
+    );
+    const properties = geoJson.features[0].properties;
+
+    expect(properties["Presión (Simulación)"]).toBe(42);
+    expect("sim_pressure" in properties).toBe(false);
   });
 });
 
