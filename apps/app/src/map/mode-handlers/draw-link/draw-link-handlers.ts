@@ -12,6 +12,7 @@ import { selectionAtom } from "src/state/selection";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { getMapCoord } from "../utils";
 import { useRef } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useKeyboardState } from "src/keyboard";
 import measureLength from "@turf/length";
 import { useSnapping } from "../hooks/use-snapping";
@@ -60,6 +61,7 @@ type DrawingState =
       isNull: false;
       startNode: NodeAsset;
       startPipeId?: AssetId;
+      startNodeNeedsElevation?: boolean;
       link: LinkAsset;
       snappingCandidate: SnappingCandidate | null;
     }
@@ -166,6 +168,8 @@ export function useDrawLinkHandlers({
   onSubmitLink?: (params: SubmitLinkParams) => NodeAsset | undefined;
   disableEndAndContinue?: boolean;
 }): Handlers {
+  const isElevationLockOn = useFeatureFlag("FLAG_ELEVATION_LOCK");
+  const isUpdatingRef = useRef(false);
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
   const selection = useAtomValue(selectionAtom);
@@ -232,6 +236,7 @@ export function useDrawLinkHandlers({
         isNull: false,
         startNode: ephemeralState.startNode,
         startPipeId: ephemeralState.startPipeId,
+        startNodeNeedsElevation: ephemeralState.startNodeNeedsElevation,
         snappingCandidate: ephemeralState.snappingCandidate || null,
         link: ephemeralState.link as LinkAsset,
       };
@@ -250,12 +255,14 @@ export function useDrawLinkHandlers({
     link,
     snappingCandidate,
     startPipeId,
+    startNodeNeedsElevation,
     draftJunction,
   }: {
     startNode: NodeAsset;
     link: LinkAsset;
     snappingCandidate: SnappingCandidate | null;
     startPipeId?: AssetId;
+    startNodeNeedsElevation?: boolean;
     draftJunction?: NodeAsset;
   }) => {
     setEphemeralState({
@@ -264,6 +271,7 @@ export function useDrawLinkHandlers({
       linkType,
       startNode,
       startPipeId,
+      startNodeNeedsElevation,
       snappingCandidate,
       ...(sourceLink && { sourceLink }),
       ...(draftJunction && { draftJunction }),
@@ -302,9 +310,11 @@ export function useDrawLinkHandlers({
   const startDrawing = ({
     startNode,
     startPipeId,
+    startNodeNeedsElevation,
   }: {
     startNode: NodeAsset;
     startPipeId?: AssetId;
+    startNodeNeedsElevation?: boolean;
   }) => {
     const coordinates = startNode.coordinates;
     const link = sourceLink ? sourceLink.copy() : createLinkForType();
@@ -315,6 +325,7 @@ export function useDrawLinkHandlers({
       link,
       snappingCandidate: null,
       startPipeId,
+      startNodeNeedsElevation,
     });
     setCursor("default");
     return link.id;
@@ -338,6 +349,7 @@ export function useDrawLinkHandlers({
     setDrawing({
       startNode: drawing.startNode,
       startPipeId: drawing.startPipeId,
+      startNodeNeedsElevation: drawing.startNodeNeedsElevation,
       link: linkCopy,
       snappingCandidate: null,
     });
@@ -400,9 +412,8 @@ export function useDrawLinkHandlers({
     const [lng, lat] = coordinates;
     return { lng, lat };
   };
-  const { fetchElevation, prefetchTileThrottled } = useElevations(
-    units.elevation,
-  );
+  const { fetchElevation, fetchElevations, prefetchTileThrottled } =
+    useElevations(units.elevation);
 
   const isClickInProgress = useRef<boolean>(false);
   // A single finishing gesture (e.g. double-click on a snap target) fires
@@ -466,95 +477,344 @@ export function useDrawLinkHandlers({
     }
   };
 
-  const handlers: Handlers = {
-    click: (e) => {
-      if (readonly) return;
+  const startElevationFetch = () => {
+    isUpdatingRef.current = true;
+    setCursor("wait");
+  };
 
-      isClickInProgress.current = true;
+  const finishElevationFetch = () => {
+    setCursor("default");
+    nextTick(() => (isUpdatingRef.current = false));
+  };
 
-      const doAsyncClick = async () => {
-        if (disableEndAndContinue && isControlHeld()) {
-          return;
-        }
+  const createPendingJunction = (coordinates: Position) =>
+    assetFactory.createJunction({
+      label: "",
+      coordinates,
+    });
 
-        if (!drawing.isNull) {
-          const currentPosition = getMapCoord(e);
-          const snappingCandidate = getSnappingCandidateIfEnabled(
-            e,
-            currentPosition,
-            isSnapping,
-            findSnappingCandidate,
-          );
-          const check = checkLoopedLinkConditions(
-            drawing,
-            snappingCandidate,
-            currentPosition,
-            map,
-          );
+  const withElevation = (node: NodeAsset, elevation: number) => {
+    const nodeCopy = node.copy();
+    nodeCopy.setElevation(elevation);
+    return nodeCopy;
+  };
 
-          if (check.shouldPrevent) {
-            return;
-          }
-        }
+  const resolvePendingElevations = (
+    pendingNodes: NodeAsset[],
+    submit: (resolve: (node: NodeAsset) => NodeAsset) => void,
+  ) => {
+    if (!pendingNodes.length) {
+      submit((node) => node);
+      return;
+    }
 
+    startElevationFetch();
+    void fetchElevations(
+      pendingNodes.map(
+        (node) => coordinatesToLngLat(node.coordinates) as LngLat,
+      ),
+    )
+      .then((elevations) => {
+        const byId = new Map(
+          pendingNodes.map((node, index) => [node.id, elevations[index]]),
+        );
+        submit((node) => {
+          const elevation = byId.get(node.id);
+          return elevation === undefined
+            ? node
+            : withElevation(node, elevation);
+        });
+      })
+      .finally(finishElevationFetch);
+  };
+
+  const submitAndContinue = (submitParams: SubmitLinkParams) => {
+    const endNode = onSubmitLink
+      ? onSubmitLink(submitParams)
+      : submitLink(submitParams);
+
+    if (isEndAndContinueOn() && endNode) {
+      startDrawing({ startNode: endNode });
+    } else {
+      resetDrawing();
+    }
+  };
+
+  const handleClickWithElevationLock: Handlers["click"] = (e) => {
+    if (readonly) return;
+    if (isUpdatingRef.current) return;
+    if (disableEndAndContinue && isControlHeld()) return;
+
+    const currentPosition = getMapCoord(e);
+    const snappingCandidate = getSnappingCandidateIfEnabled(
+      e,
+      currentPosition,
+      isSnapping,
+      findSnappingCandidate,
+    );
+
+    if (!drawing.isNull) {
+      const check = checkLoopedLinkConditions(
+        drawing,
+        snappingCandidate,
+        currentPosition,
+        map,
+      );
+      if (check.shouldPrevent) return;
+    }
+
+    const clickPosition = snappingCandidate
+      ? snappingCandidate.coordinates
+      : currentPosition;
+
+    if (drawing.isNull) {
+      if (snappingCandidate && snappingCandidate.type !== "pipe") {
+        startDrawing({ startNode: snappingCandidate });
+        return;
+      }
+
+      startDrawing({
+        startNode: createPendingJunction(clickPosition),
+        startPipeId: snappingCandidate ? snappingCandidate.id : undefined,
+        startNodeNeedsElevation: true,
+      });
+      return;
+    }
+
+    const { startNode, startPipeId, startNodeNeedsElevation, link } = drawing;
+    const pendingNodes = startNodeNeedsElevation ? [startNode] : [];
+
+    if (snappingCandidate && snappingCandidate.type !== "pipe") {
+      resolvePendingElevations(pendingNodes, (resolve) =>
+        submitAndContinue({
+          startNode: resolve(startNode),
+          startPipeId,
+          link,
+          endNode: snappingCandidate,
+        }),
+      );
+      return;
+    }
+
+    if (!snappingCandidate && !isEndAndContinueOn()) {
+      addVertex(clickPosition);
+      return;
+    }
+
+    const endNode = createPendingJunction(clickPosition);
+
+    if (snappingCandidate) {
+      resolvePendingElevations([...pendingNodes, endNode], (resolve) =>
+        submitAndContinue({
+          startNode: resolve(startNode),
+          startPipeId,
+          link,
+          endNode: resolve(endNode),
+          endPipeId: snappingCandidate.id,
+        }),
+      );
+      return;
+    }
+
+    resolvePendingElevations([...pendingNodes, endNode], (resolve) => {
+      const submitParams = {
+        startNode: resolve(startNode),
+        startPipeId,
+        link,
+        endNode: resolve(endNode),
+      };
+      const endJunction = onSubmitLink
+        ? onSubmitLink(submitParams)
+        : submitLink(submitParams);
+      if (endJunction) {
+        startDrawing({ startNode: endJunction });
+      }
+    });
+  };
+
+  const handleDoubleWithElevationLock: Handlers["double"] = (e) => {
+    e.preventDefault();
+
+    if (drawing.isNull) return;
+    if (isUpdatingRef.current) return;
+
+    const currentPosition = getMapCoord(e);
+    const snappingCandidate = getSnappingCandidateIfEnabled(
+      e,
+      currentPosition,
+      isSnapping,
+      findSnappingCandidate,
+    );
+    const check = checkLoopedLinkConditions(
+      drawing,
+      snappingCandidate,
+      currentPosition,
+      map,
+    );
+
+    if (check.shouldPrevent) return;
+
+    const { startNode, startPipeId, startNodeNeedsElevation, link } = drawing;
+    const endNode = createPendingJunction(link.lastVertex);
+    const pendingNodes = startNodeNeedsElevation
+      ? [startNode, endNode]
+      : [endNode];
+
+    resolvePendingElevations(pendingNodes, (resolve) => {
+      const submitParams = {
+        startNode: resolve(startNode),
+        startPipeId,
+        link,
+        endNode: resolve(endNode),
+      };
+      try {
+        onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
+      } catch (error) {
+        captureError(error as Error);
+      }
+      resetDrawing();
+    });
+  };
+
+  const handleDouble: Handlers["double"] = async (e) => {
+    e.preventDefault();
+
+    if (drawing.isNull) return;
+
+    const currentPosition = getMapCoord(e);
+    const snappingCandidate = getSnappingCandidateIfEnabled(
+      e,
+      currentPosition,
+      isSnapping,
+      findSnappingCandidate,
+    );
+    const check = checkLoopedLinkConditions(
+      drawing,
+      snappingCandidate,
+      currentPosition,
+      map,
+    );
+
+    if (check.shouldPrevent) {
+      return;
+    }
+
+    const { startNode, link } = drawing;
+
+    const endJunction = assetFactory.createJunction({
+      label: "",
+      coordinates: link.lastVertex,
+      elevation: await fetchElevation(
+        coordinatesToLngLat(link.lastVertex) as LngLat,
+      ),
+    });
+
+    const submitParams = {
+      startNode,
+      startPipeId: drawing.startPipeId,
+      link,
+      endNode: endJunction,
+    };
+    try {
+      onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
+    } catch (error) {
+      captureError(error as Error);
+    }
+    resetDrawing();
+  };
+
+  const handleClick: Handlers["click"] = (e) => {
+    if (readonly) return;
+
+    isClickInProgress.current = true;
+
+    const doAsyncClick = async () => {
+      if (disableEndAndContinue && isControlHeld()) {
+        return;
+      }
+
+      if (!drawing.isNull) {
+        const currentPosition = getMapCoord(e);
         const snappingCandidate = getSnappingCandidateIfEnabled(
           e,
-          getMapCoord(e),
+          currentPosition,
           isSnapping,
           findSnappingCandidate,
         );
-        const clickPosition = snappingCandidate
-          ? snappingCandidate.coordinates
-          : getMapCoord(e);
-        const pointElevation =
-          snappingCandidate && snappingCandidate.type !== "pipe"
-            ? (snappingCandidate.elevation ?? (await fetchElevation(e.lngLat)))
-            : await fetchElevation(e.lngLat);
+        const check = checkLoopedLinkConditions(
+          drawing,
+          snappingCandidate,
+          currentPosition,
+          map,
+        );
 
-        if (snappingCandidate) {
-          return handleSnappingClick(
-            snappingCandidate,
-            clickPosition,
-            pointElevation,
-          );
+        if (check.shouldPrevent) {
+          return;
         }
+      }
 
-        if (drawing.isNull) {
-          const startNode = createJunction(clickPosition, pointElevation);
-          startDrawing({
-            startNode,
-          });
-        } else if (isEndAndContinueOn()) {
-          const submitParams = {
-            startNode: drawing.startNode,
-            startPipeId: drawing.startPipeId,
-            link: drawing.link,
-            endNode: createJunction(clickPosition, pointElevation),
-          };
-          const endJunction = onSubmitLink
-            ? onSubmitLink(submitParams)
-            : submitLink(submitParams);
-          if (endJunction) {
-            startDrawing({
-              startNode: endJunction,
-            });
-          }
-        } else {
-          addVertex(clickPosition);
-        }
-      };
+      const snappingCandidate = getSnappingCandidateIfEnabled(
+        e,
+        getMapCoord(e),
+        isSnapping,
+        findSnappingCandidate,
+      );
+      const clickPosition = snappingCandidate
+        ? snappingCandidate.coordinates
+        : getMapCoord(e);
+      const pointElevation =
+        snappingCandidate && snappingCandidate.type !== "pipe"
+          ? (snappingCandidate.elevation ?? (await fetchElevation(e.lngLat)))
+          : await fetchElevation(e.lngLat);
 
-      doAsyncClick()
-        .then(() => {
-          nextTick(() => (isClickInProgress.current = false));
-        })
-        .catch((error) => {
-          captureError(error);
-          nextTick(() => (isClickInProgress.current = false));
+      if (snappingCandidate) {
+        return handleSnappingClick(
+          snappingCandidate,
+          clickPosition,
+          pointElevation,
+        );
+      }
+
+      if (drawing.isNull) {
+        const startNode = createJunction(clickPosition, pointElevation);
+        startDrawing({
+          startNode,
         });
-    },
+      } else if (isEndAndContinueOn()) {
+        const submitParams = {
+          startNode: drawing.startNode,
+          startPipeId: drawing.startPipeId,
+          link: drawing.link,
+          endNode: createJunction(clickPosition, pointElevation),
+        };
+        const endJunction = onSubmitLink
+          ? onSubmitLink(submitParams)
+          : submitLink(submitParams);
+        if (endJunction) {
+          startDrawing({
+            startNode: endJunction,
+          });
+        }
+      } else {
+        addVertex(clickPosition);
+      }
+    };
+
+    doAsyncClick()
+      .then(() => {
+        nextTick(() => (isClickInProgress.current = false));
+      })
+      .catch((error) => {
+        captureError(error);
+        nextTick(() => (isClickInProgress.current = false));
+      });
+  };
+
+  const handlers: Handlers = {
+    click: isElevationLockOn ? handleClickWithElevationLock : handleClick,
     move: (e) => {
       if (isClickInProgress.current) return;
+      if (isUpdatingRef.current) return;
 
       const isApplePencil = e.type === "mousemove" && usingTouchEvents.current;
       if (isApplePencil) {
@@ -614,52 +874,7 @@ export function useDrawLinkHandlers({
         });
       }
     },
-    double: async (e) => {
-      e.preventDefault();
-
-      if (drawing.isNull) return;
-
-      const currentPosition = getMapCoord(e);
-      const snappingCandidate = getSnappingCandidateIfEnabled(
-        e,
-        currentPosition,
-        isSnapping,
-        findSnappingCandidate,
-      );
-      const check = checkLoopedLinkConditions(
-        drawing,
-        snappingCandidate,
-        currentPosition,
-        map,
-      );
-
-      if (check.shouldPrevent) {
-        return;
-      }
-
-      const { startNode, link } = drawing;
-
-      const endJunction = assetFactory.createJunction({
-        label: "",
-        coordinates: link.lastVertex,
-        elevation: await fetchElevation(
-          coordinatesToLngLat(link.lastVertex) as LngLat,
-        ),
-      });
-
-      const submitParams = {
-        startNode,
-        startPipeId: drawing.startPipeId,
-        link,
-        endNode: endJunction,
-      };
-      try {
-        onSubmitLink ? onSubmitLink(submitParams) : submitLink(submitParams);
-      } catch (error) {
-        captureError(error as Error);
-      }
-      resetDrawing();
-    },
+    double: isElevationLockOn ? handleDoubleWithElevationLock : handleDouble,
     exit() {
       const currentDrawing = getDrawingState();
 

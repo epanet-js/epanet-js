@@ -7,6 +7,7 @@ export interface EphemeralDrawLink {
   link?: LinkAsset;
   startNode?: NodeAsset;
   startPipeId?: AssetId;
+  startNodeNeedsElevation?: boolean;
   snappingCandidate: SnappingCandidate | null;
   sourceLink?: LinkAsset;
   draftJunction?: NodeAsset;
