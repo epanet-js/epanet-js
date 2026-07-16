@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "copy-wasm": "node scripts/copy-sqlite-wasm.mjs",
-    "dev": "pnpm copy-wasm && next dev",
-    "build": "pnpm copy-wasm && next build",
+    "prebuild": "pnpm copy-wasm",
+    "build": "next build",
+    "dev": "pnpm prebuild && next dev",
     "start": "next start",
     "lint": "eslint --cache --ignore-path .gitignore --ext .js,.ts,.tsx .",
     "lint:fix": "pnpm lint --fix",
