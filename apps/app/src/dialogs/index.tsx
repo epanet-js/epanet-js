@@ -83,6 +83,17 @@ const MissingCoordinatesDialog = dynamic<{
   },
 );
 
+const MalformedCoordinatesDialog = dynamic<{
+  issues: ParserIssues;
+  onClose: () => void;
+}>(
+  () =>
+    import("src/dialogs/inp-issues").then((r) => r.MalformedCoordinatesDialog),
+  {
+    loading: () => <LoadingDialog />,
+  },
+);
+
 const CreateNewDialog = dynamic(
   () => import("src/dialogs/create-new").then((r) => r.CreateNew),
   { loading: () => <LoadingDialog /> },
@@ -676,6 +687,9 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "inpMissingCoordinates") {
         userTracking.capture({ name: "missingCoordinates.seen" });
       }
+      if (dialog.type === "inpMalformedCoordinates") {
+        userTracking.capture({ name: "malformedCoordinates.seen" });
+      }
       if (dialog.type === "networkProjection") {
         userTracking.capture({
           name: "networkProjection.seen",
@@ -987,6 +1001,9 @@ export const Dialogs = memo(function Dialogs() {
     ))
     .with({ type: "inpMissingCoordinates" }, ({ issues }) => (
       <MissingCoordinatesDialog issues={issues} onClose={onClose} />
+    ))
+    .with({ type: "inpMalformedCoordinates" }, ({ issues }) => (
+      <MalformedCoordinatesDialog issues={issues} onClose={onClose} />
     ))
     .with(
       { type: "deleteScenarioConfirmation" },

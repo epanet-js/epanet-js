@@ -53,6 +53,11 @@ export type MissingCoordinatesDialogState = {
   issues: ParserIssues;
 };
 
+export type MalformedCoordinatesDialogState = {
+  type: "inpMalformedCoordinates";
+  issues: ParserIssues;
+};
+
 export type InpIssuesDialogState = {
   type: "inpIssues";
   issues: ParserIssues;
@@ -318,6 +323,7 @@ export type DialogState =
   | ProjectSavedInfoState
   | FileFormatUpdatedDialogState
   | MissingCoordinatesDialogState
+  | MalformedCoordinatesDialogState
   | UpgradeDialogState
   | ImportCustomerPointsWizardState
   | ImportCustomerPointsWarningDialogState

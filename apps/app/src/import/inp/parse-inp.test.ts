@@ -814,6 +814,139 @@ describe("Parse inp with", () => {
     });
   });
 
+  describe("malformed coordinates", () => {
+    it("reports only the node with a non-numeric coordinate", () => {
+      const IDS = { J1: 1, J2: 2 } as const;
+      const inp = `
+      [JUNCTIONS]
+      ${IDS.J1}  100
+      ${IDS.J2}  200
+
+      [COORDINATES]
+      ${IDS.J1}  0.1  CHORIZO
+      ${IDS.J2}  10   10
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(Array.from(issues!.malformedCoordinates!)).toEqual([
+        String(IDS.J1),
+      ]);
+    });
+
+    it("reports a row missing a coordinate value", () => {
+      const IDS = { J1: 1, J2: 2 } as const;
+      const inp = `
+      [JUNCTIONS]
+      ${IDS.J1}  100
+      ${IDS.J2}  200
+
+      [COORDINATES]
+      ${IDS.J1}  0.1
+      ${IDS.J2}  10   10
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(Array.from(issues!.malformedCoordinates!)).toEqual([
+        String(IDS.J1),
+      ]);
+    });
+
+    it("does not also report the node as missing coordinates", () => {
+      const IDS = { J1: 1 } as const;
+      const inp = `
+      [JUNCTIONS]
+      ${IDS.J1}  100
+
+      [COORDINATES]
+      ${IDS.J1}  0.1  CHORIZO
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(issues!.malformedCoordinates).toContain(String(IDS.J1));
+      expect(issues!.nodesMissingCoordinates).toBeUndefined();
+    });
+
+    it("reports a link with a non-numeric vertex", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const inp = `
+      [JUNCTIONS]
+      ${IDS.J1}  100
+      ${IDS.J2}  200
+
+      [PIPES]
+      ${IDS.P1}  ${IDS.J1}  ${IDS.J2}  1000  100  100  0  Open
+
+      [COORDINATES]
+      ${IDS.J1}  0   0
+      ${IDS.J2}  10  10
+
+      [VERTICES]
+      ${IDS.P1}  5  CHORIZO
+      `;
+
+      const { issues } = parseInp(inp);
+
+      expect(Array.from(issues!.malformedVertices!)).toEqual([String(IDS.P1)]);
+      expect(issues!.malformedCoordinates).toBeUndefined();
+    });
+
+    it("reports only the bad node in an xy-grid file", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { coordinates: [0.1, NaN] })
+        .aJunction(IDS.J2, { coordinates: [10, 10] })
+        .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+        .build();
+      const inp = buildInp(hydraulicModel, {
+        simulationSettings: defaultSimulationSettings,
+        units: presets.LPS.units,
+        madeBy: true,
+        geolocation: true,
+        projection: {
+          type: "xy-grid",
+          id: "xy-grid",
+          name: "XY Grid",
+          centroid: [500000, 200000],
+        },
+      });
+
+      const result = parseInp(inp);
+
+      expect(result.isMadeByApp).toBe(true);
+      expect(Array.from(result.issues!.malformedCoordinates!)).toEqual([
+        String(IDS.J1),
+      ]);
+    });
+
+    it("does not report finite coordinates outside the wgs84 range", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const inp = `
+      [JUNCTIONS]
+      ${IDS.J1}  100
+      ${IDS.J2}  200
+
+      [PIPES]
+      ${IDS.P1}  ${IDS.J1}  ${IDS.J2}  1000  100  100  0  Open
+
+      [COORDINATES]
+      ${IDS.J1}  500000  200000
+      ${IDS.J2}  501000  201000
+
+      [VERTICES]
+      ${IDS.P1}  500500  200500
+      `;
+
+      const result = parseInp(inp);
+
+      expect(result.issues?.malformedCoordinates).toBeUndefined();
+      expect(result.issues?.malformedVertices).toBeUndefined();
+      expect(result.projectionStatus).toBe("unknown");
+    });
+  });
+
   describe("projection detection", () => {
     it("returns projectionStatus wgs84 when coordinates are valid", () => {
       const IDS = { J1: 1, J2: 2, P1: 3 } as const;

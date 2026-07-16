@@ -3,6 +3,8 @@ export type WaterQualityType = "age" | "chemical" | "trace";
 export type ParserIssues = {
   unsupportedSections?: Set<string>;
   nodesMissingCoordinates?: Set<string>;
+  malformedCoordinates?: Set<string>;
+  malformedVertices?: Set<string>;
   invalidCoordinates?: Set<string>;
   invalidVertices?: Set<string>;
   nonDefaultOptions?: Map<string, string | number>;
@@ -45,6 +47,20 @@ export class IssuesAccumulator {
       this.issues.nodesMissingCoordinates = new Set<string>();
 
     this.issues.nodesMissingCoordinates.add(nodeId);
+  }
+
+  addMalformedCoordinates(nodeId: string) {
+    if (!this.issues.malformedCoordinates)
+      this.issues.malformedCoordinates = new Set<string>();
+
+    this.issues.malformedCoordinates.add(nodeId);
+  }
+
+  addMalformedVertices(linkId: string) {
+    if (!this.issues.malformedVertices)
+      this.issues.malformedVertices = new Set<string>();
+
+    this.issues.malformedVertices.add(linkId);
   }
 
   addInvalidCoordinates(nodeId: string) {

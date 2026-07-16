@@ -43,7 +43,64 @@ export const MissingCoordinatesDialog = ({
     >
       <div className="p-4 text-size-base">
         <p className="pb-2">{translate("missingCoordinatesDetail")}</p>
-        <CoordinatesIssues issues={issues} />
+        <CoordinatesIssues
+          sections={[
+            {
+              labelKey: "nodesMissingCoordinates",
+              ids: issues.nodesMissingCoordinates,
+            },
+          ]}
+        />
+      </div>
+    </BaseDialog>
+  );
+};
+
+export const MalformedCoordinatesDialog = ({
+  issues,
+  onClose,
+}: {
+  issues: ParserIssues;
+  onClose: () => void;
+}) => {
+  const translate = useTranslate();
+  const showWelcome = useShowWelcome();
+
+  const goToWelcome = () => {
+    showWelcome({ source: "malformedCoordinatesError" });
+  };
+  return (
+    <BaseDialog
+      title={translate("malformedCoordinates")}
+      size="md"
+      isOpen={true}
+      onClose={onClose}
+      footer={
+        <SimpleDialogActions
+          action={translate("understood")}
+          onAction={onClose}
+          autoFocusSubmit={true}
+          secondary={{
+            action: translate("seeDemoNetworks"),
+            onClick: goToWelcome,
+          }}
+        />
+      }
+    >
+      <div className="p-4 text-size-base">
+        <p className="pb-2">{translate("malformedCoordinatesDetail")}</p>
+        <CoordinatesIssues
+          sections={[
+            {
+              labelKey: "nodesMalformedCoordinates",
+              ids: issues.malformedCoordinates,
+            },
+            {
+              labelKey: "linksMalformedVertices",
+              ids: issues.malformedVertices,
+            },
+          ]}
+        />
       </div>
     </BaseDialog>
   );
@@ -119,9 +176,33 @@ export const SubscribeCTA = ({
   );
 };
 
-const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
+const maxDisplayed = 4;
+
+const IdList = ({ labelKey, ids }: { labelKey: string; ids: Set<string> }) => {
   const translate = useTranslate();
-  const maxDisplayed = 4;
+  return (
+    <div>
+      <p>{translate(labelKey)}:</p>
+      <div className="flex flex-col gap-y-1 items-start">
+        {Array.from(ids)
+          .slice(0, maxDisplayed)
+          .map((id) => (
+            <span key={id}>- {id}</span>
+          ))}
+        {ids.size > maxDisplayed && (
+          <span> {translate("andXMore", String(ids.size - maxDisplayed))}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const CoordinatesIssues = ({
+  sections,
+}: {
+  sections: { labelKey: string; ids?: Set<string> }[];
+}) => {
+  const translate = useTranslate();
   const [isExpaned, setExpanded] = useState(false);
   const userTracking = useUserTracking();
   return (
@@ -144,28 +225,9 @@ const CoordinatesIssues = ({ issues }: { issues: ParserIssues }) => {
       </Button>
       {isExpaned && (
         <div className="p-2 flex flex-col gap-y-4 ml-3 mt-2 border font-mono rounded-xs text-size-base bg-panel text-default max-h-75 overflow-y-auto">
-          {issues.nodesMissingCoordinates && (
-            <div>
-              <p>{translate("nodesMissingCoordinates")}:</p>
-              <div className="flex flex-col gap-y-1 items-start">
-                {Array.from(issues.nodesMissingCoordinates)
-                  .slice(0, maxDisplayed)
-                  .map((nodeId) => (
-                    <span key={nodeId}>- {nodeId}</span>
-                  ))}
-                {issues.nodesMissingCoordinates.size > maxDisplayed && (
-                  <span>
-                    {" "}
-                    {translate(
-                      "andXMore",
-                      String(
-                        issues.nodesMissingCoordinates.size - maxDisplayed,
-                      ),
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
+          {sections.map(
+            ({ labelKey, ids }) =>
+              ids && <IdList key={labelKey} labelKey={labelKey} ids={ids} />,
           )}
         </div>
       )}

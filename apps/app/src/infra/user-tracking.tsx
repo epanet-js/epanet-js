@@ -249,6 +249,7 @@ export type WelcomeOpened = {
     | "inpIssues"
     | "geocodeError"
     | "missingCoordinatesError"
+    | "malformedCoordinatesError"
     | "invalidFilesError"
     | "toolbar"
     | "networkRequired";
@@ -367,6 +368,8 @@ export type ImportInpCompleted = {
   issues: (
     | `unsupportedSection-${string}`
     | "nodesMissingCoordinates"
+    | "malformedCoordinates"
+    | "malformedVertices"
     | "invalidVertices"
     | "invalidCoordinates"
     | `nonDefaultOption-${string}`
@@ -534,6 +537,9 @@ type NetworkProjectionClosed = {
 };
 type MissingCoordinatesSeen = {
   name: "missingCoordinates.seen";
+};
+type MalformedCoordinatesSeen = {
+  name: "malformedCoordinates.seen";
 };
 type InvalidFilesErrorSeen = {
   name: "invalidFilesError.seen";
@@ -1299,6 +1305,7 @@ export type UserEvent =
   | InpIssuesExpanded
   | CoordinatesIssuesExpanded
   | MissingCoordinatesSeen
+  | MalformedCoordinatesSeen
   | NetworkProjectionSeen
   | NetworkProjectionSearched
   | NetworkProjectionSelected

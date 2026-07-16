@@ -42,6 +42,7 @@ export const useImportInp = () => {
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
+  const isMalformedCoordsOn = useFeatureFlag("FLAG_MALFORMED_COORDS");
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {
@@ -221,6 +222,15 @@ export const useImportInp = () => {
           buildCompleteEvent(source, projectSettings, issues, stats),
         );
 
+        if (
+          isMalformedCoordsOn &&
+          issues &&
+          (issues.malformedCoordinates || issues.malformedVertices)
+        ) {
+          setDialogState({ type: "inpMalformedCoordinates", issues });
+          return;
+        }
+
         if (projectionStatus === "unknown") {
           const previewGeoJson = parseCoordinatesGeoJson(content);
 
@@ -273,6 +283,7 @@ export const useImportInp = () => {
       userTracking,
       validateAndPrepare,
       allowsNullValues,
+      isMalformedCoordsOn,
     ],
   );
 

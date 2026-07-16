@@ -22,6 +22,7 @@ import {
   headlossFormulas,
 } from "@epanet-js/hydraulic-model";
 import { ParseInpOptions } from "./parse-inp";
+import type { Position } from "geojson";
 
 export type RowParser = (params: {
   sectionName: string;
@@ -76,6 +77,9 @@ const parseOptionalFloat = (input: string | undefined): number | undefined => {
   const parsed = parseFloat(input);
   return Number.isNaN(parsed) ? undefined : parsed;
 };
+
+const isFinitePosition = (position: Position): boolean =>
+  Number.isFinite(position[0]) && Number.isFinite(position[1]);
 
 export const ignore: RowParser = () => {};
 
@@ -526,9 +530,13 @@ export const parseDemand: RowParser = ({ trimmedRow, inpData }) => {
   inpData.demands.set(nodeId, demands);
 };
 
-export const parsePosition: RowParser = ({ trimmedRow, inpData }) => {
+export const parsePosition: RowParser = ({ trimmedRow, inpData, issues }) => {
   const [nodeId, lng, lat] = readValues(trimmedRow);
-  inpData.coordinates.set(nodeId, [parseFloat(lng), parseFloat(lat)]);
+  const position: Position = [parseFloat(lng), parseFloat(lat)];
+  if (!isFinitePosition(position)) {
+    issues.addMalformedCoordinates(nodeId);
+  }
+  inpData.coordinates.set(nodeId, position);
 };
 
 export const parsePattern: RowParser = ({
@@ -553,10 +561,14 @@ export const parsePattern: RowParser = ({
   });
 };
 
-export const parseVertex: RowParser = ({ trimmedRow, inpData }) => {
+export const parseVertex: RowParser = ({ trimmedRow, inpData, issues }) => {
   const [linkId, lng, lat] = readValues(trimmedRow);
+  const position: Position = [parseFloat(lng), parseFloat(lat)];
+  if (!isFinitePosition(position)) {
+    issues.addMalformedVertices(linkId);
+  }
   const vertices = inpData.vertices.get(linkId) || [];
-  vertices.push([parseFloat(lng), parseFloat(lat)]);
+  vertices.push(position);
   inpData.vertices.set(linkId, vertices);
 };
 
