@@ -2,6 +2,8 @@ import type { HandlerContext } from "src/types";
 import { cursorStyleAtom } from "src/state/map";
 import { Mode } from "src/state/mode";
 import { useSetAtom, useAtomValue } from "jotai";
+import { useRef } from "react";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { modeAtom } from "src/state/mode";
 import { getMapCoord } from "../utils";
 import { useSelection, USelection } from "src/selection";
@@ -50,6 +52,8 @@ export function useNoneHandlers({
   units,
   readonly = false,
 }: HandlerContext): Handlers {
+  const isElevationLockOn = useFeatureFlag("FLAG_ELEVATION_LOCK");
+  const isUpdatingRef = useRef(false);
   const { getClickedAsset } = useClickedAsset(map, hydraulicModel.assets);
   const { assetFactory, labelManager } = useAtomValue(modelFactoriesAtom);
 
@@ -129,6 +133,16 @@ export function useNoneHandlers({
     fastMovePointer(e.point);
   };
 
+  const startElevationFetch = () => {
+    isUpdatingRef.current = true;
+    setCursor("wait");
+  };
+
+  const finishElevationFetch = () => {
+    isUpdatingRef.current = false;
+    setCursor("default");
+  };
+
   const getClickedCustomerPoint = (
     e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent,
   ): CustomerPoint | null => {
@@ -160,9 +174,238 @@ export function useNoneHandlers({
     return closest;
   };
 
+  const handleUp: Handlers["up"] = (e) => {
+    if (readonly) {
+      resetMove();
+      resetCustomerPointMove();
+      return;
+    }
+
+    e.preventDefault();
+
+    if (isMovingCustomerPoint) {
+      const movingCustomerPointId = USelection.singleCustomerPointId(selection);
+      if (customerPointMoveActivated && movingCustomerPointId !== null) {
+        const newCoordinates = getMapCoord(e);
+        const moment = moveCustomerPoint(hydraulicModel, {
+          customerPointId: movingCustomerPointId,
+          newCoordinates,
+        });
+        transact(moment);
+      }
+      resetCustomerPointMove();
+      return;
+    }
+
+    if (!USelection.isSingleAsset(selection) || !isMoving) {
+      return skipMove(e);
+    }
+
+    const [assetId] = getSelectionIds();
+    const node = getNode(hydraulicModel.assets, assetId);
+    if (!node) {
+      return skipMove(e);
+    }
+
+    let newCoordinates = getMapCoord(e);
+    let pipeIdToSplit: number | undefined;
+
+    const connectedLinkIds = hydraulicModel.topology.getLinks(assetId);
+    const excludeIds = [assetId, ...connectedLinkIds];
+    const snappingCandidate = findSnappingCandidate(
+      e,
+      newCoordinates,
+      excludeIds,
+    );
+
+    if (snappingCandidate && snappingCandidate.type !== "pipe") {
+      const shareLink = nodesShareLink(
+        hydraulicModel.topology,
+        assetId,
+        snappingCandidate.id,
+      );
+
+      if (!shareLink) {
+        const moment = mergeNodes(hydraulicModel, {
+          sourceNodeId: assetId,
+          targetNodeId: snappingCandidate.id,
+          lengthUnit: units.length,
+        });
+        transact(moment);
+        selectAsset(assetId);
+      }
+      clearSelection();
+      resetMove();
+      return;
+    }
+
+    if (snappingCandidate && snappingCandidate.type === "pipe") {
+      newCoordinates = snappingCandidate.coordinates as [number, number];
+      pipeIdToSplit = snappingCandidate.id;
+    }
+
+    const shouldCommit = moveActivated;
+
+    if (shouldCommit) {
+      startCommit();
+
+      const lngLatForElevation = pipeIdToSplit
+        ? ({
+            lng: newCoordinates[0],
+            lat: newCoordinates[1],
+          } as mapboxgl.LngLat)
+        : e.lngLat;
+
+      fetchElevation(lngLatForElevation)
+        .then((newElevationOrFallback) => {
+          const moment = moveNode(hydraulicModel, {
+            nodeId: assetId,
+            newCoordinates,
+            newElevation: newElevationOrFallback,
+            shouldUpdateCustomerPoints: true,
+            pipeIdToSplit,
+            lengthUnit: units.length,
+            assetFactory,
+            labelManager,
+            precision: map.getPrecision(),
+          });
+          transact(moment);
+          resetMove();
+          setTimeout(finishCommit, stateUpdateTime);
+        })
+        .catch(() => {
+          resetMove();
+          setTimeout(finishCommit, stateUpdateTime);
+        });
+    } else {
+      resetMove();
+    }
+  };
+
+  const handleUpWithElevationLock: Handlers["up"] = (e) => {
+    if (isUpdatingRef.current) return;
+
+    if (readonly) {
+      resetMove();
+      resetCustomerPointMove();
+      return;
+    }
+
+    e.preventDefault();
+
+    if (isMovingCustomerPoint) {
+      const movingCustomerPointId = USelection.singleCustomerPointId(selection);
+      if (customerPointMoveActivated && movingCustomerPointId !== null) {
+        const newCoordinates = getMapCoord(e);
+        const moment = moveCustomerPoint(hydraulicModel, {
+          customerPointId: movingCustomerPointId,
+          newCoordinates,
+        });
+        transact(moment);
+      }
+      resetCustomerPointMove();
+      return;
+    }
+
+    if (!USelection.isSingleAsset(selection) || !isMoving) {
+      return skipMove(e);
+    }
+
+    const [assetId] = getSelectionIds();
+    const node = getNode(hydraulicModel.assets, assetId);
+    if (!node) {
+      return skipMove(e);
+    }
+
+    let newCoordinates = getMapCoord(e);
+    let pipeIdToSplit: number | undefined;
+
+    const connectedLinkIds = hydraulicModel.topology.getLinks(assetId);
+    const excludeIds = [assetId, ...connectedLinkIds];
+    const snappingCandidate = findSnappingCandidate(
+      e,
+      newCoordinates,
+      excludeIds,
+    );
+
+    if (snappingCandidate && snappingCandidate.type !== "pipe") {
+      const shareLink = nodesShareLink(
+        hydraulicModel.topology,
+        assetId,
+        snappingCandidate.id,
+      );
+
+      if (!shareLink) {
+        const moment = mergeNodes(hydraulicModel, {
+          sourceNodeId: assetId,
+          targetNodeId: snappingCandidate.id,
+          lengthUnit: units.length,
+        });
+        transact(moment);
+        selectAsset(assetId);
+      }
+      clearSelection();
+      resetMove();
+      return;
+    }
+
+    if (snappingCandidate && snappingCandidate.type === "pipe") {
+      newCoordinates = snappingCandidate.coordinates as [number, number];
+      pipeIdToSplit = snappingCandidate.id;
+    }
+
+    const shouldCommit = moveActivated;
+
+    if (!shouldCommit) {
+      resetMove();
+      return;
+    }
+
+    const settleCommit = () => {
+      setTimeout(() => {
+        finishCommit();
+        finishElevationFetch();
+      }, stateUpdateTime);
+    };
+
+    startCommit();
+    startElevationFetch();
+
+    const lngLatForElevation = pipeIdToSplit
+      ? ({
+          lng: newCoordinates[0],
+          lat: newCoordinates[1],
+        } as mapboxgl.LngLat)
+      : e.lngLat;
+
+    fetchElevation(lngLatForElevation)
+      .then((newElevationOrFallback) => {
+        const moment = moveNode(hydraulicModel, {
+          nodeId: assetId,
+          newCoordinates,
+          newElevation: newElevationOrFallback,
+          shouldUpdateCustomerPoints: true,
+          pipeIdToSplit,
+          lengthUnit: units.length,
+          assetFactory,
+          labelManager,
+          precision: map.getPrecision(),
+        });
+        transact(moment);
+        resetMove();
+        settleCommit();
+      })
+      .catch(() => {
+        resetMove();
+        settleCommit();
+      });
+  };
+
   const handlers: Handlers = {
     double: noop,
     down: (e) => {
+      if (isUpdatingRef.current) return;
+
       if (USelection.isSingleAsset(selection)) {
         const [assetId] = getSelectionIds();
         const clickedAsset = getClickedAsset(e);
@@ -205,6 +448,8 @@ export function useNoneHandlers({
     move: throttle(
       (e: mapboxgl.MapMouseEvent | mapboxgl.MapTouchEvent) => {
         e.preventDefault();
+
+        if (isUpdatingRef.current) return;
 
         if (isMovingCustomerPoint) {
           if (readonly) {
@@ -318,115 +563,10 @@ export function useNoneHandlers({
       16,
       { trailing: false },
     ),
-    up: (e) => {
-      if (readonly) {
-        resetMove();
-        resetCustomerPointMove();
-        return;
-      }
-
-      e.preventDefault();
-
-      if (isMovingCustomerPoint) {
-        const movingCustomerPointId =
-          USelection.singleCustomerPointId(selection);
-        if (customerPointMoveActivated && movingCustomerPointId !== null) {
-          const newCoordinates = getMapCoord(e);
-          const moment = moveCustomerPoint(hydraulicModel, {
-            customerPointId: movingCustomerPointId,
-            newCoordinates,
-          });
-          transact(moment);
-        }
-        resetCustomerPointMove();
-        return;
-      }
-
-      if (!USelection.isSingleAsset(selection) || !isMoving) {
-        return skipMove(e);
-      }
-
-      const [assetId] = getSelectionIds();
-      const node = getNode(hydraulicModel.assets, assetId);
-      if (!node) {
-        return skipMove(e);
-      }
-
-      let newCoordinates = getMapCoord(e);
-      let pipeIdToSplit: number | undefined;
-
-      const connectedLinkIds = hydraulicModel.topology.getLinks(assetId);
-      const excludeIds = [assetId, ...connectedLinkIds];
-      const snappingCandidate = findSnappingCandidate(
-        e,
-        newCoordinates,
-        excludeIds,
-      );
-
-      if (snappingCandidate && snappingCandidate.type !== "pipe") {
-        const shareLink = nodesShareLink(
-          hydraulicModel.topology,
-          assetId,
-          snappingCandidate.id,
-        );
-
-        if (!shareLink) {
-          const moment = mergeNodes(hydraulicModel, {
-            sourceNodeId: assetId,
-            targetNodeId: snappingCandidate.id,
-            lengthUnit: units.length,
-          });
-          transact(moment);
-          selectAsset(assetId);
-        }
-        clearSelection();
-        resetMove();
-        return;
-      }
-
-      if (snappingCandidate && snappingCandidate.type === "pipe") {
-        newCoordinates = snappingCandidate.coordinates as [number, number];
-        pipeIdToSplit = snappingCandidate.id;
-      }
-
-      const shouldCommit = moveActivated;
-
-      if (shouldCommit) {
-        startCommit();
-
-        const lngLatForElevation = pipeIdToSplit
-          ? ({
-              lng: newCoordinates[0],
-              lat: newCoordinates[1],
-            } as mapboxgl.LngLat)
-          : e.lngLat;
-
-        fetchElevation(lngLatForElevation)
-          .then((newElevationOrFallback) => {
-            const moment = moveNode(hydraulicModel, {
-              nodeId: assetId,
-              newCoordinates,
-              newElevation: newElevationOrFallback,
-              shouldUpdateCustomerPoints: true,
-              pipeIdToSplit,
-              lengthUnit: units.length,
-              assetFactory,
-              labelManager,
-              precision: map.getPrecision(),
-            });
-            transact(moment);
-            resetMove();
-            setTimeout(finishCommit, stateUpdateTime);
-          })
-          .catch(() => {
-            resetMove();
-            setTimeout(finishCommit, stateUpdateTime);
-          });
-      } else {
-        resetMove();
-      }
-    },
+    up: isElevationLockOn ? handleUpWithElevationLock : handleUp,
     click: (e) => {
+      if (isUpdatingRef.current) return;
+
       const clickedAsset = getClickedAsset(e);
       e.preventDefault();
 
