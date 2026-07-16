@@ -57,7 +57,13 @@ import {
  * 5. Trigger test events: stripe trigger invoice.payment_failed
  */
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+let stripeClient: Stripe | null = null;
+const getStripe = (): Stripe => {
+  if (!stripeClient) {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  }
+  return stripeClient;
+};
 
 const getCustomerEmail = async (
   customerId: string | undefined | null,
@@ -65,7 +71,7 @@ const getCustomerEmail = async (
   if (!customerId) return "Unknown";
 
   try {
-    const customer = await stripe.customers.retrieve(customerId);
+    const customer = await getStripe().customers.retrieve(customerId);
     if (customer.deleted) return "Deleted Customer";
     return customer.email || "No email on file";
   } catch (error) {
@@ -92,7 +98,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     const error = err as Error;
     logger.error(

@@ -11,7 +11,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAuth } from "src/hooks/use-auth";
-import { SignInButton as ClerkSignInButton } from "@clerk/nextjs";
+import { SignInButton } from "src/components/auth/sign-in-button";
 import { buildAfterSignupUrl } from "src/hooks/use-early-access";
 import { notify } from "src/components/notifications";
 
@@ -179,7 +179,7 @@ export const FeaturePaywall = ({
                     )}
                   </Button>
                 ) : (
-                  <ClerkSignInButton
+                  <SignInButton
                     forceRedirectUrl={buildAfterSignupUrl("activatingTrial")}
                     signUpForceRedirectUrl={buildAfterSignupUrl(
                       "activatingTrial",
@@ -192,7 +192,7 @@ export const FeaturePaywall = ({
                     >
                       {translate("trial.activateFree")}
                     </Button>
-                  </ClerkSignInButton>
+                  </SignInButton>
                 )}
                 <div className="flex items-center gap-2">
                   <div className="flex-1 border-t" />

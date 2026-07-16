@@ -110,6 +110,8 @@ const nextConfig = {
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
+const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN);
+
 const sentryConfig = {
   org: "iterating",
   project: "epanet-js",
@@ -121,6 +123,7 @@ const sentryConfig = {
   hideSourceMaps: false,
   disableLogger: true,
   automaticVercelMonitors: true,
+  sourcemaps: { disable: !hasSentryAuthToken },
 };
 
 if (process.env.NEXT_PUBLIC_SENTRY_PROXY === "true") {

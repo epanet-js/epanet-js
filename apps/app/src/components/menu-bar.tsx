@@ -20,7 +20,7 @@ import {
 } from "src/global-config";
 import { useAuth } from "src/hooks/use-auth";
 import { SignedIn, SignedOut, UserButton } from "src/components/auth";
-import { useClerk } from "@clerk/nextjs";
+import { useAccountManager } from "src/hooks/use-account-manager";
 import { SignInButton, SignUpButton } from "./auth-buttons";
 import { useShowWelcome } from "src/commands/show-welcome";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -71,7 +71,7 @@ export const MenuBarPlay = memo(function MenuBar() {
   const isSmOrLarger = useBreakpoint("sm");
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const effectivePlan = useEffectivePlan();
-  const { openOrganizationProfile } = useClerk();
+  const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
 
   return (
@@ -263,7 +263,7 @@ export const SideMenu = () => {
   const { user } = useAuth();
   const isActivateTrialOn = useFeatureFlag("FLAG_ACTIVATE_TRIAL");
   const effectivePlan = useEffectivePlan();
-  const { openOrganizationProfile } = useClerk();
+  const { openOrganizationProfile } = useAccountManager();
   const { canManageOrganization } = usePermissions();
   const toggleMenu = () => {
     setIsOpen(!isOpen);
