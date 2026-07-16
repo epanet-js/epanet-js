@@ -28,6 +28,7 @@ import type {
   ApplyMomentPayload,
   CustomAttributeValueUpdate,
   ImportProjectPayload,
+  NewDbResult,
   OpenDbResult,
 } from "./types";
 
@@ -111,6 +112,11 @@ const ensureSahpool = async (appId: string): Promise<boolean> => {
   }
 };
 
+export const setSahpoolForTest = (pool: SAHPoolUtil | null): void => {
+  poolUtil = pool;
+  storageMode = pool ? "sahpool" : "memory";
+};
+
 const ready = (async () => {
   const mod = await import("@sqlite.org/sqlite-wasm");
   const init = mod.default as unknown as (config?: {
@@ -162,18 +168,39 @@ const closeExistingDb = () => {
   }
 };
 
-const createNewDb = async (): Promise<void> => {
+const WIPE_RETRY_DELAY_MS = 100;
+
+// wipeFiles() releases every access handle on the pool directory and
+// reacquires them; another context grabbing a handle inside that window (a
+// duplicate tab installing the same pool, an interleaved reset) makes the
+// reacquire throw NoModificationAllowedError. That contention is usually
+// transient, so retry once before giving up.
+const wipePoolFiles = async (): Promise<void> => {
+  try {
+    await poolUtil!.wipeFiles();
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, WIPE_RETRY_DELAY_MS));
+    await poolUtil!.wipeFiles();
+  }
+};
+
+const createNewDb = async (): Promise<NewDbResult> => {
   closeExistingDb();
 
   if (storageMode === "sahpool") {
-    await poolUtil!.wipeFiles();
-    db = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
+    try {
+      await wipePoolFiles();
+      db = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
+    } catch (e) {
+      return { status: "storage-error", errorDetails: formatErrorDetails(e) };
+    }
   } else {
     db = new sqlite3!.oo1.DB(":memory:", "c");
   }
 
   runMigrations();
   db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+  return { status: "ok" };
 };
 
 const readUserVersion = (): number => {
@@ -919,10 +946,10 @@ export const api = {
     return storageMode;
   },
 
-  async newDb() {
+  async newDb(): Promise<NewDbResult> {
     return timed("newDb", async () => {
       await ready;
-      await createNewDb();
+      return createNewDb();
     });
   },
 
@@ -1336,12 +1363,13 @@ export const api = {
     );
   },
 
-  async importProject(payload: ImportProjectPayload): Promise<void> {
+  async importProject(payload: ImportProjectPayload): Promise<NewDbResult> {
     await ready;
     if (payload.newDb) {
-      await timed("importProject:newDb", createNewDb);
+      const result = await timed("importProject:newDb", createNewDb);
+      if (result.status !== "ok") return result;
     }
-    return withTransaction(
+    await withTransaction(
       "importProject",
       (db) => {
         if (payload.projectSettings !== null) {
@@ -1385,6 +1413,7 @@ export const api = {
       },
       countImportProject(payload),
     );
+    return { status: "ok" };
   },
 
   async setAllAssets(payload: AssetRows): Promise<void> {

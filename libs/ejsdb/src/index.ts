@@ -7,6 +7,7 @@ export type { DbWorkerApi } from "./worker-api";
 export { APP_VERSION } from "./migrations";
 export { timed, timedWith } from "./perf-log";
 export type {
+  NewDbResult,
   OpenDbResult,
   ApplyMomentPayload,
   ImportProjectPayload,

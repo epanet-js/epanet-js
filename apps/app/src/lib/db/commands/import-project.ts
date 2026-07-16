@@ -41,7 +41,7 @@ export const importProject = async (
     const zones = input.zones ? serializeZones(input.zones) : null;
     const assets = assetsToRows(input.hydraulicModel.assets.values());
 
-    await getWorker().importProject({
+    const result = await getWorker().importProject({
       newDb: input.newDb ?? false,
       projectSettings,
       pipeLibrary,
@@ -60,5 +60,8 @@ export const importProject = async (
         input.hydraulicModel.demands.junctions,
       ),
     });
+    if (result.status !== "ok") {
+      throw new Error(`importProject storage error: ${result.errorDetails}`);
+    }
   });
 };

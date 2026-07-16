@@ -10,6 +10,10 @@ import type { PatternRow } from "./schema/patterns";
 import type { CurveRow } from "./schema/curves";
 import type { ZoneRow } from "./schema/zones";
 
+export type NewDbResult =
+  | { status: "ok" }
+  | { status: "storage-error"; errorDetails: string };
+
 export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }
   | { status: "migrated"; fileVersion: number; appVersion: number }
