@@ -81,6 +81,36 @@ describe("cleanupStaleDbPools", () => {
     );
   });
 
+  it("skips pools the liveness probe reports as in use", async () => {
+    mockPoolRoot.keys.mockReturnValue(
+      asyncNames(["live-tab", "dead-tab", "current-tab"]),
+    );
+    const isPoolInUse = vi.fn((id: string) =>
+      Promise.resolve(id === "live-tab"),
+    );
+
+    await cleanupStaleDbPools("current-tab", [], isPoolInUse);
+
+    expect(mockPoolRoot.removeEntry).toHaveBeenCalledWith("dead-tab", {
+      recursive: true,
+    });
+    expect(mockPoolRoot.removeEntry).not.toHaveBeenCalledWith(
+      "live-tab",
+      expect.anything(),
+    );
+    expect(isPoolInUse).not.toHaveBeenCalledWith("current-tab");
+  });
+
+  it("keeps a pool when the liveness probe throws", async () => {
+    mockPoolRoot.keys.mockReturnValue(asyncNames(["unknown-tab"]));
+    const isPoolInUse = vi.fn(() => Promise.reject(new Error("probe failed")));
+
+    await expect(
+      cleanupStaleDbPools("current-tab", [], isPoolInUse),
+    ).resolves.not.toThrow();
+    expect(mockPoolRoot.removeEntry).not.toHaveBeenCalled();
+  });
+
   it("does nothing when the pool root does not exist yet", async () => {
     mockRoot.getDirectoryHandle.mockRejectedValue(new Error("NotFoundError"));
 

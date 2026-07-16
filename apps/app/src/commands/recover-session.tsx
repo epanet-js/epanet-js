@@ -14,6 +14,7 @@ import {
   clearRecoveryFingerprints,
   readRecoveryFingerprints,
 } from "src/infra/session-recovery";
+import { isSessionAlive } from "src/infra/session-lock";
 import { useOpenProjectFile } from "./open-project";
 import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
@@ -115,5 +116,5 @@ const discardRecoverablePools = (): void => {
   const survivingPoolIds = readRecoveryFingerprints().map(
     (fingerprint) => fingerprint.poolId,
   );
-  void cleanupStaleDbPools(getAppId(), survivingPoolIds);
+  void cleanupStaleDbPools(getAppId(), survivingPoolIds, isSessionAlive);
 };

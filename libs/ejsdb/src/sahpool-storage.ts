@@ -9,6 +9,7 @@ export const sahpoolDirectory = (id: string): string =>
 export const cleanupStaleDbPools = async (
   currentId: string,
   protectedIds: string[] = [],
+  isPoolInUse?: (id: string) => Promise<boolean>,
 ): Promise<void> => {
   if (!isOpfsAvailable()) {
     return;
@@ -29,6 +30,7 @@ export const cleanupStaleDbPools = async (
 
     for (const id of staleIds) {
       try {
+        if (isPoolInUse && (await isPoolInUse(id))) continue;
         await poolRoot.removeEntry(id, { recursive: true });
       } catch {}
     }

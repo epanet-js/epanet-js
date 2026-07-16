@@ -2,17 +2,37 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const configure = vi.fn();
 const cleanupStaleDbPools =
-  vi.fn<(appId: string, protectedIds: string[]) => Promise<void>>();
+  vi.fn<
+    (
+      appId: string,
+      protectedIds: string[],
+      isPoolInUse?: (id: string) => Promise<boolean>,
+    ) => Promise<void>
+  >();
 vi.mock("@epanet-js/ejsdb", async (importActual) => ({
   ...(await importActual<typeof import("@epanet-js/ejsdb")>()),
   getWorker: () => ({ configure }),
-  cleanupStaleDbPools: (appId: string, protectedIds: string[]) =>
-    cleanupStaleDbPools(appId, protectedIds),
+  cleanupStaleDbPools: (
+    appId: string,
+    protectedIds: string[],
+    isPoolInUse?: (id: string) => Promise<boolean>,
+  ) => cleanupStaleDbPools(appId, protectedIds, isPoolInUse),
 }));
 
 const readRecoveryFingerprints = vi.fn<() => { poolId: string }[]>(() => []);
 vi.mock("src/infra/session-recovery", () => ({
   readRecoveryFingerprints: () => readRecoveryFingerprints(),
+}));
+
+const isSessionAlive = vi.fn<(appId: string) => Promise<boolean>>(() =>
+  Promise.resolve(false),
+);
+const holdSessionLock = vi.fn<(appId: string) => Promise<void>>(() =>
+  Promise.resolve(),
+);
+vi.mock("src/infra/session-lock", () => ({
+  isSessionAlive: (appId: string) => isSessionAlive(appId),
+  holdSessionLock: (appId: string) => holdSessionLock(appId),
 }));
 
 const isOPFSAvailable = vi.fn<() => Promise<boolean>>();
@@ -60,7 +80,11 @@ describe("configureDbStorage", () => {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
     });
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a-fresh", []);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
+      "tab-a-fresh",
+      [],
+      expect.any(Function),
+    );
     expect(captureWarning).not.toHaveBeenCalled();
   });
 
@@ -72,7 +96,11 @@ describe("configureDbStorage", () => {
 
     expect(configure).toHaveBeenCalledTimes(1);
     expect(resetAppId).not.toHaveBeenCalled();
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", []);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
+      "tab-a",
+      [],
+      expect.any(Function),
+    );
   });
 
   it("warns and stays in memory when the retry also fails", async () => {
@@ -126,10 +154,11 @@ describe("configureDbStorage", () => {
       mode: "sahpool",
       sahpoolId: "tab-a",
     });
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", [
-      "crashed-tab",
-      "another-crashed-tab",
-    ]);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
+      "tab-a",
+      ["crashed-tab", "another-crashed-tab"],
+      expect.any(Function),
+    );
   });
 
   it("rotates the appId so the live pool never reuses a recoverable pool", async () => {
@@ -147,10 +176,11 @@ describe("configureDbStorage", () => {
       mode: "sahpool",
       sahpoolId: "tab-a-fresh",
     });
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a-fresh", [
-      "other-tab",
-      "tab-a",
-    ]);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
+      "tab-a-fresh",
+      ["other-tab", "tab-a"],
+      expect.any(Function),
+    );
   });
 
   it("ignores the fingerprints when recovery is disabled", async () => {
@@ -161,6 +191,57 @@ describe("configureDbStorage", () => {
     await configureDbStorage(true, false);
 
     expect(readRecoveryFingerprints).not.toHaveBeenCalled();
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith("tab-a", []);
+    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
+      "tab-a",
+      [],
+      expect.any(Function),
+    );
+  });
+
+  it("rotates the appId before installing when another live tab holds it", async () => {
+    isOPFSAvailable.mockResolvedValue(true);
+    isSessionAlive.mockResolvedValueOnce(true);
+    configure.mockResolvedValueOnce("sahpool");
+
+    const result = await configureDbStorage(true, false);
+
+    expect(result).toBe("sahpool");
+    expect(isSessionAlive).toHaveBeenCalledWith("tab-a");
+    expect(resetAppId).toHaveBeenCalledTimes(1);
+    expect(configure).toHaveBeenCalledTimes(1);
+    expect(configure).toHaveBeenCalledWith({
+      mode: "sahpool",
+      sahpoolId: "tab-a-fresh",
+    });
+    expect(holdSessionLock).toHaveBeenCalledWith("tab-a-fresh");
+  });
+
+  it("holds the session lock whenever sahpool is effective, even without recovery", async () => {
+    isOPFSAvailable.mockResolvedValue(true);
+    configure.mockResolvedValueOnce("sahpool");
+
+    await configureDbStorage(true, false);
+
+    expect(holdSessionLock).toHaveBeenCalledTimes(1);
+    expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
+  });
+
+  it("does not hold the session lock when falling back to memory", async () => {
+    isOPFSAvailable.mockResolvedValue(true);
+    configure.mockResolvedValue("memory");
+
+    await configureDbStorage(true, false);
+
+    expect(holdSessionLock).not.toHaveBeenCalled();
+  });
+
+  it("does not probe the session lock when OPFS is unavailable", async () => {
+    isOPFSAvailable.mockResolvedValue(false);
+    configure.mockResolvedValueOnce("memory");
+
+    await configureDbStorage(true, false);
+
+    expect(isSessionAlive).not.toHaveBeenCalled();
+    expect(holdSessionLock).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@ import { getWorker, cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import { getAppId, resetAppId } from "src/infra/app-instance";
 import { isOPFSAvailable } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
+import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
 import { captureWarning, captureInfo } from "src/infra/error-tracking";
 
 export const configureDbStorage = async (
@@ -23,6 +24,13 @@ export const configureDbStorage = async (
     appId = resetAppId();
   }
 
+  // A duplicated/restored tab copies sessionStorage and boots with a live
+  // tab's appId; installing on that tab's pool directory can steal its access
+  // handles mid-swap. Rotate before ever touching the pool.
+  if (useSahpool && (await isSessionAlive(appId))) {
+    appId = resetAppId();
+  }
+
   let effective = await getWorker().configure({ mode, sahpoolId: appId });
 
   if (useSahpool && effective !== "sahpool") {
@@ -31,7 +39,8 @@ export const configureDbStorage = async (
   }
 
   if (effective === "sahpool") {
-    void cleanupStaleDbPools(appId, recoverablePoolIds);
+    await holdSessionLock(appId);
+    void cleanupStaleDbPools(appId, recoverablePoolIds, isSessionAlive);
   }
 
   if (mode === "sahpool" && effective !== "sahpool") {

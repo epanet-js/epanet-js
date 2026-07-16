@@ -15,8 +15,7 @@ import {
   clearRecoveryFingerprints,
   type RecoveryFingerprint,
 } from "src/infra/session-recovery";
-import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
-import { getAppId } from "src/infra/app-instance";
+import { isSessionAlive } from "src/infra/session-lock";
 
 export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -40,9 +39,6 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
           isSessionRecoveryOn,
         );
         const recoveryActive = isSessionRecoveryOn && effective === "sahpool";
-        if (recoveryActive) {
-          await holdSessionLock(getAppId());
-        }
         setSessionRecoveryActive(recoveryActive);
 
         if (recoveryActive) {
