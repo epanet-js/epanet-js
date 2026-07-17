@@ -4,6 +4,10 @@
    live in the ui-kit package so other apps can share them. */
 @import "@epanet-js/ui-kit/tokens.css";
 
+/* Scan ui-kit sources so utility classes used only there (e.g. the selector
+   spinner's top-2.5) are generated — see the ui-kit README contract. */
+@source "../../node_modules/@epanet-js/ui-kit/src";
+
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
