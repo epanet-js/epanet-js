@@ -16,7 +16,6 @@ import {
   SearchIcon,
   TableIcon,
   HglProfileIcon,
-  ZonesIcon,
 } from "src/icons";
 import { useAtomValue, useSetAtom } from "jotai";
 import { splitsAtom } from "src/state/layout";
@@ -43,9 +42,6 @@ import {
 } from "src/commands/show-simulation-settings";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
 import { useAllocateCustomerPoints } from "src/commands/allocate-customer-points";
-import { useOpenZonesImport } from "src/commands/open-zones-import";
-import { useImportZonesDisabled } from "src/hooks/use-import-zones-disabled";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { FileDropdown } from "./file-dropdown";
 import { OperationalDataDropdown } from "./operational-data-dropdown";
 import {
@@ -87,9 +83,6 @@ export const Toolbar = ({
   const showDataTables = useShowDataTables();
   const showHglProfile = useShowHglProfile();
   const startProfileSelection = useStartProfileSelection();
-  const openZonesImport = useOpenZonesImport();
-  const importZonesDisabled = useImportZonesDisabled();
-  const isImportZonesMenuOn = useFeatureFlag("FLAG_IMPORT_ZONES_MENU");
   const isOPFSAvailable = useAtomValue(opfsAvailableAtom);
   const { mode: currentMode } = useAtomValue(modeAtom);
 
@@ -123,18 +116,6 @@ export const Toolbar = ({
       >
         <CustomAllocateCustomerPointsIcon />
       </MenuAction>
-      {!isImportZonesMenuOn && (
-        <MenuAction
-          label={translate("importZones.title")}
-          role="button"
-          onClick={() => {
-            openZonesImport({ source: "toolbar" });
-          }}
-          disabled={importZonesDisabled}
-        >
-          <ZonesIcon />
-        </MenuAction>
-      )}
     </>
   );
 
