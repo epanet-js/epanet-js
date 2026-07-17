@@ -8,6 +8,7 @@ function Probe() {
       <li>{ui.searchPlaceholder}</li>
       <li>{ui.selectorAddNewValueTemplate}</li>
       <li>{ui.noResultsLabel}</li>
+      <li>{ui.searchingLabel}</li>
     </ul>
   );
 }
@@ -18,6 +19,7 @@ describe("useUIConfig", () => {
     expect(screen.getByText("Search…")).toBeInTheDocument();
     expect(screen.getByText('Add "{{1}}"')).toBeInTheDocument();
     expect(screen.getByText("No results")).toBeInTheDocument();
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
   it("merges a partial config over the defaults", () => {

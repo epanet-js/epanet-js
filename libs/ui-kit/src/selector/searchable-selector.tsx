@@ -21,6 +21,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   wrapperClassName,
   renderOption,
   side = "auto",
+  searchDebounceMs = 0,
 }: {
   selected?: T;
   onChange: (option: T) => void;
@@ -34,6 +35,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   /** Where the dropdown opens: "auto" (default) lets it flip to fit the
    *  viewport; "top"/"bottom" pin it to that side and never flip. */
   side?: "top" | "bottom" | "auto";
+  /** Wait this long after the last keystroke before calling onSearch;
+   *  the loading state covers both the wait and the search itself. */
+  searchDebounceMs?: number;
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
   const [suggestions, setSuggestions] = useState<T[]>([]);
@@ -43,6 +47,8 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchSeqRef = useRef(0);
   const portalContainer = useSelectorPortalContainer();
   const ui = useUIConfig();
 
@@ -55,21 +61,30 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
     [activeIndex],
   );
 
+  useEffect(function clearPendingSearchOnUnmount() {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const search = useCallback(
     async (query: string) => {
       if (query.trim().length < 2) {
         setSuggestions([]);
         return;
       }
+      const seq = ++searchSeqRef.current;
       setIsSearching(true);
+      setOpen(true);
       try {
         const results = await onSearch(query);
+        if (seq !== searchSeqRef.current) return;
         setSuggestions(results);
-        setOpen(true);
       } catch {
+        if (seq !== searchSeqRef.current) return;
         setSuggestions([]);
       } finally {
-        setIsSearching(false);
+        if (seq === searchSeqRef.current) setIsSearching(false);
       }
     },
     [onSearch],
@@ -80,9 +95,28 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       const value = e.target.value;
       setSearchTerm(value);
       setActiveIndex(-1);
-      void search(value);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+      searchSeqRef.current++;
+      if (value.trim().length < 2) {
+        setSuggestions([]);
+        setIsSearching(false);
+        return;
+      }
+      if (searchDebounceMs > 0) {
+        setIsSearching(true);
+        setOpen(true);
+        debounceRef.current = setTimeout(() => {
+          debounceRef.current = null;
+          void search(value);
+        }, searchDebounceMs);
+      } else {
+        void search(value);
+      }
     },
-    [search],
+    [search, searchDebounceMs],
   );
 
   const commit = useCallback(
@@ -212,7 +246,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               ["--anchor-width" as any]: `${inputRef.current?.offsetWidth ?? 0}px`,
             }}
           >
-            {suggestions.length === 0 && !isSearching ? (
+            {isSearching ? (
+              <div className="px-2 py-2 text-subtle">{ui.searchingLabel}</div>
+            ) : suggestions.length === 0 ? (
               <div className="px-2 py-2 text-subtle">{ui.noResultsLabel}</div>
             ) : (
               <ul

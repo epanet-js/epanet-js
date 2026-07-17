@@ -13,6 +13,7 @@ export function AppUIConfigProvider({
       searchPlaceholder: translate("search"),
       selectorAddNewValueTemplate: translate("addNewValue", "{{1}}"),
       noResultsLabel: translate("noResults"),
+      searchingLabel: translate("loading"),
     }),
     [translate],
   );

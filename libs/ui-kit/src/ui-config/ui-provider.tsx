@@ -4,12 +4,14 @@ export type UIConfig = {
   searchPlaceholder: string;
   selectorAddNewValueTemplate: string;
   noResultsLabel: string;
+  searchingLabel: string;
 };
 
 const defaultUIConfig: UIConfig = {
   searchPlaceholder: "Search…",
   selectorAddNewValueTemplate: 'Add "{{1}}"',
   noResultsLabel: "No results",
+  searchingLabel: "Loading...",
 };
 
 const UIConfigContext = createContext<UIConfig>(defaultUIConfig);
