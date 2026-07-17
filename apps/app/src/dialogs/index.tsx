@@ -1,664 +1,73 @@
-import dynamic from "next/dynamic";
 import { memo, useCallback, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
 import { recoverableSessionAtom } from "src/state/session-recovery";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
-import type { Projection } from "src/lib/projections";
-import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
-import { ParserIssues } from "src/import/inp";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
 import { SessionRecoveryDialog } from "./session-recovery";
 import { AppLoadFailedDialog } from "./app-load-failed";
-
-const SimulationSettingsDialog = dynamic(
-  () =>
-    import("src/dialogs/simulation-settings").then(
-      (r) => r.SimulationSettingsDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const UpgradeDialog = dynamic<{
-  onClose: () => void;
-  source?: dialogState.UpgradeSource;
-}>(() => import("src/dialogs/upgrade").then((r) => r.UpgradeDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const InvalidFilesErrorDialog = dynamic<{
-  modal: dialogState.InvalidFilesErrorDialogState;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/invalid-files-error").then(
-      (r) => r.InvalidFilesErrorDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const InpIssuesDialog = dynamic<{
-  issues: ParserIssues;
-  onClose: () => void;
-}>(() => import("src/dialogs/inp-issues").then((r) => r.InpIssuesDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const NetworkProjectionDialog = dynamic<{
-  source: "import" | "map-panel";
-  previewGeoJson: import("geojson").FeatureCollection;
-  onImportWithProjection: (
-    projection: Projection,
-    extent?: import("geojson").BBox,
-  ) => void;
-  filename: string;
-  flowUnits: string;
-  initialProjection?: import("src/lib/projections").Proj4Projection;
-  suggestedXyScale?: number;
-}>(
-  () =>
-    import("src/dialogs/network-projection").then(
-      (r) => r.NetworkProjectionDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const MissingCoordinatesDialog = dynamic<{
-  issues: ParserIssues;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/inp-issues").then((r) => r.MissingCoordinatesDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const MalformedCoordinatesDialog = dynamic<{
-  issues: ParserIssues;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/inp-issues").then((r) => r.MalformedCoordinatesDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const CreateNewDialog = dynamic(
-  () => import("src/dialogs/create-new").then((r) => r.CreateNew),
-  { loading: () => <LoadingDialog /> },
-);
-
-const SimulationReportDialog = dynamic(
-  () =>
-    import("src/dialogs/simulation-report").then(
-      (r) => r.SimulationReportDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const SimulationSummaryDialog = dynamic<{
-  modal: dialogState.SimulationSummaryState;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/simulation-summary").then(
-      (r) => r.SimulationSummaryDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const SimulationOutOfMemoryDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/simulation-out-of-memory").then(
-      (r) => r.SimulationOutOfMemoryDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const UnsavedChangesDialog = dynamic<{
-  onContinue: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/unsaved-changes").then((r) => r.UnsavedChangesDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AlertInpOutputDialog = dynamic<{
-  onContinue: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/alert-inp-output").then((r) => r.AlertInpOutputDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AlertExportInpDialog = dynamic<{
-  onSaveProject: () => void;
-  onExportAnyway: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/alert-export-inp").then((r) => r.AlertExportInpDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ProjectSavedInfoDialog = dynamic<{
-  onConfirm: () => void;
-  onCancel?: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/project-saved-info").then(
-      (r) => r.ProjectSavedInfoDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const FileFormatUpdatedDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/file-format-updated").then(
-      (r) => r.FileFormatUpdatedDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AlertScenariosNotSavedDialog = dynamic<{
-  onContinue: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/alert-scenarios-not-saved").then(
-      (r) => r.AlertScenariosNotSavedDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AlertNetworkRequiredDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/alert-network-required").then(
-      (r) => r.AlertNetworkRequiredDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const CheatsheetDialog = dynamic<Record<string, never>>(
-  () => import("src/dialogs/cheatsheet").then((r) => r.CheatsheetDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const UnexpectedErrorDialog = dynamic<{
-  modal: dialogState.UnexpectedErrorDialogState;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/unexpected-error").then((r) => r.UnexpectedErrorDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ChangeNotAppliedDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/change-not-applied").then(
-      (r) => r.ChangeNotAppliedDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ImportCustomerPointsWizard = dynamic<{
-  isOpen: boolean;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/import-customer-points-wizard").then(
-      (r) => r.ImportCustomerPointsWizard,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ModelBuilderIframeDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/model-builder-iframe").then(
-      (r) => r.ModelBuilderIframeDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ModelBuilderV2IframeDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/model-builder-v2-iframe").then(
-      (r) => r.ModelBuilderV2IframeDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ModelBuilderPaywallDialog = dynamic<{
-  source: string;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/model-builder-paywall").then(
-      (r) => r.ModelBuilderPaywallDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const EarlyAccessDialog = dynamic<{
-  onContinue: () => void;
-  afterSignupDialog?: string;
-}>(() => import("src/dialogs/early-access").then((r) => r.EarlyAccessDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const ImportCustomerPointsWarningDialog = dynamic<{
-  onContinue: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/import-customer-points-warning").then(
-      (r) => r.ImportCustomerPointsWarningDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ImportZonesWarningDialog = dynamic<{
-  onContinue: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/import-zones-warning").then(
-      (r) => r.ImportZonesWarningDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const SimulationProgressDialog = dynamic<{
-  modal: dialogState.SimulationProgressDialogState;
-}>(
-  () =>
-    import("src/dialogs/simulation-progress").then(
-      (r) => r.SimulationProgressDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const OpenProjectProgressDialog = dynamic<{
-  modal: dialogState.OpenProjectProgressDialogState;
-}>(
-  () =>
-    import("src/dialogs/open-project-progress").then(
-      (r) => r.OpenProjectProgressDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ControlsDialog = dynamic(
-  () => import("src/dialogs/controls-dialog").then((r) => r.ControlsDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const PatternsDialog = dynamic<{
-  initialPatternId?: number;
-  initialSection?:
-    | "demand"
-    | "reservoirHead"
-    | "pumpSpeed"
-    | "qualitySourceStrength"
-    | "energyPrice";
-}>(() => import("src/dialogs/patterns").then((r) => r.PatternsDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const PipeLibraryDialog = dynamic(
-  () => import("src/dialogs/pipe-library").then((r) => r.PipeLibraryDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const PumpLibraryDialog = dynamic<{
-  initialCurveId?: number;
-  initialSection?: "pump" | "efficiency";
-}>(() => import("src/dialogs/pump-library").then((r) => r.PumpLibraryDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const CurveLibraryDialog = dynamic<{
-  initialCurveId?: number;
-  initialSection?: "volume" | "valve" | "headloss";
-}>(() => import("src/dialogs/curves").then((r) => r.CurveLibraryDialog), {
-  loading: () => <LoadingDialog />,
-});
-
-const CustomAttributesDialog = dynamic<{
-  initialAssetType?: CustomAttributeAssetType;
-}>(
-  () =>
-    import("src/dialogs/custom-attributes").then(
-      (r) => r.CustomAttributesDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const DeleteScenarioConfirmationDialog = dynamic<{
-  scenarioId: string;
-  scenarioName: string;
-  onConfirm: (scenarioId: string) => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/delete-scenario-confirmation").then(
-      (r) => r.DeleteScenarioConfirmationDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const RenameScenarioDialog = dynamic<{
-  scenarioId: string;
-  currentName: string;
-  onConfirm: (scenarioId: string, newName: string) => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/rename-scenario").then((r) => r.RenameScenarioDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ScenariosPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/scenarios-connector").then(
-      (r) => r.ScenariosPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ElevationsPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/elevations-connector").then(
-      (r) => r.ElevationsPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const CustomLayersPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/custom-layers-connector").then(
-      (r) => r.CustomLayersPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ZonesPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/zones-connector").then(
-      (r) => r.ZonesPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const PipeLibraryPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/pipe-library-connector").then(
-      (r) => r.PipeLibraryPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const CustomAttributesPaywallConnector = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/paywall/custom-attributes-connector").then(
-      (r) => r.CustomAttributesPaywallConnector,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ElevationTileErrorsDialog = dynamic<{
-  totalCount: number;
-  errors: { fileName: string; error: string }[];
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/elevation-tile-errors").then(
-      (r) => r.ElevationTileErrorsDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const GisImportErrorsDialog = dynamic<{
-  totalCount: number;
-  errors: { fileName: string; error: string }[];
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/gis-import-errors").then(
-      (r) => r.GisImportErrorsDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ActivatingTrialDialog = dynamic(
-  () =>
-    import("src/dialogs/activating-trial").then((r) => r.ActivatingTrialDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ExportAssetDataDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/export-asset-data").then(
-      (r) => r.ExportAssetDataDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ExportTimeSeriesDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/export-simulation-results").then(
-      (r) => r.ExportSimulationResultsDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const FirstScenarioDialog = dynamic<{
-  onConfirm: () => void;
-  onClose: () => void;
-}>(
-  () => import("src/dialogs/first-scenario").then((r) => r.FirstScenarioDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ProfileNoPathDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/profile-no-path").then((r) => r.ProfileNoPathDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const CustomGraphDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/custom-graph-dialog").then((r) => r.CustomGraphDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const PriorityAccessDialog = dynamic<{
-  featureName: string;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/priority-access").then((r) => r.PriorityAccessDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AllocateCustomerPointsDialog = dynamic<{
-  isOpen: boolean;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/allocate-customer-points/index").then(
-      (r) => r.AllocateCustomerPointsDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const AllocateCustomerPointsWarningDialog = dynamic<{
-  onImport: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/allocate-customer-points-warning").then(
-      (r) => r.AllocateCustomerPointsWarningDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ModelAttributesValidationDialog = dynamic<{
-  issueCount: number;
-  onFixFirst: () => void;
-  onRunAnyway: () => void;
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/model-attributes-validation").then(
-      (r) => r.ModelAttributesValidationDialog,
-    ),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
-
-const ImportZonesDialog = dynamic<{
-  onClose: () => void;
-}>(
-  () =>
-    import("src/dialogs/import-zones-wizard").then((r) => r.ImportZonesDialog),
-  {
-    loading: () => <LoadingDialog />,
-  },
-);
+import { SimulationSettingsDialog } from "src/dialogs/simulation-settings";
+import { UpgradeDialog } from "src/dialogs/upgrade";
+import { InvalidFilesErrorDialog } from "src/dialogs/invalid-files-error";
+import {
+  InpIssuesDialog,
+  MissingCoordinatesDialog,
+  MalformedCoordinatesDialog,
+} from "src/dialogs/inp-issues";
+import { NetworkProjectionDialog } from "src/dialogs/network-projection";
+import { CreateNew as CreateNewDialog } from "src/dialogs/create-new";
+import { SimulationReportDialog } from "src/dialogs/simulation-report";
+import { SimulationSummaryDialog } from "src/dialogs/simulation-summary";
+import { SimulationOutOfMemoryDialog } from "src/dialogs/simulation-out-of-memory";
+import { UnsavedChangesDialog } from "src/dialogs/unsaved-changes";
+import { AlertInpOutputDialog } from "src/dialogs/alert-inp-output";
+import { AlertExportInpDialog } from "src/dialogs/alert-export-inp";
+import { ProjectSavedInfoDialog } from "src/dialogs/project-saved-info";
+import { FileFormatUpdatedDialog } from "src/dialogs/file-format-updated";
+import { AlertScenariosNotSavedDialog } from "src/dialogs/alert-scenarios-not-saved";
+import { AlertNetworkRequiredDialog } from "src/dialogs/alert-network-required";
+import { CheatsheetDialog } from "src/dialogs/cheatsheet";
+import { UnexpectedErrorDialog } from "src/dialogs/unexpected-error";
+import { ChangeNotAppliedDialog } from "src/dialogs/change-not-applied";
+import { ImportCustomerPointsWizard } from "src/dialogs/import-customer-points-wizard";
+import { ModelBuilderIframeDialog } from "src/dialogs/model-builder-iframe";
+import { ModelBuilderV2IframeDialog } from "src/dialogs/model-builder-v2-iframe";
+import { ModelBuilderPaywallDialog } from "src/dialogs/model-builder-paywall";
+import { EarlyAccessDialog } from "src/dialogs/early-access";
+import { ImportCustomerPointsWarningDialog } from "src/dialogs/import-customer-points-warning";
+import { ImportZonesWarningDialog } from "src/dialogs/import-zones-warning";
+import { SimulationProgressDialog } from "src/dialogs/simulation-progress";
+import { OpenProjectProgressDialog } from "src/dialogs/open-project-progress";
+import { ControlsDialog } from "src/dialogs/controls-dialog";
+import { PatternsDialog } from "src/dialogs/patterns";
+import { PipeLibraryDialog } from "src/dialogs/pipe-library";
+import { PumpLibraryDialog } from "src/dialogs/pump-library";
+import { CurveLibraryDialog } from "src/dialogs/curves";
+import { CustomAttributesDialog } from "src/dialogs/custom-attributes";
+import { DeleteScenarioConfirmationDialog } from "src/dialogs/delete-scenario-confirmation";
+import { RenameScenarioDialog } from "src/dialogs/rename-scenario";
+import { ScenariosPaywallConnector } from "src/dialogs/paywall/scenarios-connector";
+import { ElevationsPaywallConnector } from "src/dialogs/paywall/elevations-connector";
+import { CustomLayersPaywallConnector } from "src/dialogs/paywall/custom-layers-connector";
+import { ZonesPaywallConnector } from "src/dialogs/paywall/zones-connector";
+import { PipeLibraryPaywallConnector } from "src/dialogs/paywall/pipe-library-connector";
+import { CustomAttributesPaywallConnector } from "src/dialogs/paywall/custom-attributes-connector";
+import { ElevationTileErrorsDialog } from "src/dialogs/elevation-tile-errors";
+import { GisImportErrorsDialog } from "src/dialogs/gis-import-errors";
+import { ActivatingTrialDialog } from "src/dialogs/activating-trial";
+import { ExportAssetDataDialog } from "src/dialogs/export-asset-data";
+import { ExportSimulationResultsDialog as ExportTimeSeriesDialog } from "src/dialogs/export-simulation-results";
+import { FirstScenarioDialog } from "src/dialogs/first-scenario";
+import { ProfileNoPathDialog } from "src/dialogs/profile-no-path";
+import { CustomGraphDialog } from "src/dialogs/custom-graph-dialog";
+import { PriorityAccessDialog } from "src/dialogs/priority-access";
+import { AllocateCustomerPointsDialog } from "src/dialogs/allocate-customer-points";
+import { AllocateCustomerPointsWarningDialog } from "src/dialogs/allocate-customer-points-warning";
+import { ModelAttributesValidationDialog } from "src/dialogs/model-attributes-validation";
+import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
@@ -844,7 +253,7 @@ export const Dialogs = memo(function Dialogs() {
   }
 
   if (dialog.type === "upgrade") {
-    return <UpgradeDialog onClose={onClose} source={dialog.source} />;
+    return <UpgradeDialog source={dialog.source} />;
   }
 
   if (dialog.type === "featurePaywall") {
@@ -986,8 +395,8 @@ export const Dialogs = memo(function Dialogs() {
         onClose={onClose}
       />
     ))
-    .with({ type: "invalidFilesError" }, (modal) => (
-      <InvalidFilesErrorDialog modal={modal} onClose={onClose} />
+    .with({ type: "invalidFilesError" }, () => (
+      <InvalidFilesErrorDialog onClose={onClose} />
     ))
     .with({ type: "cheatsheet" }, () => <CheatsheetDialog />)
     .with({ type: "inpIssues" }, ({ issues, onAfterClose }) => (

@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 import Papa from "papaparse";
 import { fileOpen } from "browser-fs-access";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
@@ -137,6 +136,7 @@ const parseCsv = async (file: File): Promise<PipeMaterial[]> => {
 };
 
 const parseXlsx = async (file: File): Promise<PipeMaterial[]> => {
+  const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
 

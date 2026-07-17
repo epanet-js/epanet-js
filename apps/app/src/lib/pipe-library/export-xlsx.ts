@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 import type { PipeMaterial } from "@epanet-js/pipe-library";
 import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
 
@@ -6,6 +5,7 @@ export const exportXlsx = async (
   materials: PipeMaterial[],
   networkName: string,
 ): Promise<void> => {
+  const XLSX = await import("xlsx");
   const workbook = XLSX.utils.book_new();
 
   const data: (string | number | null)[][] = [
