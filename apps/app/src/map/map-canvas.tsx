@@ -32,7 +32,7 @@ import { modeAtom, Mode } from "src/state/mode";
 import { MapEngine } from "./map-engine";
 import * as CM from "@radix-ui/react-context-menu";
 import { env } from "src/lib/env-client";
-import { ContextInfo, MapContextMenu } from "src/map/ContextMenu";
+import { ContextInfo, MapContextMenu } from "src/map/context-menu";
 import { useModeHandlers } from "./mode-handlers";
 import { wrappedFeaturesFromMapFeatures } from "src/lib/map-component-utils";
 import "mapbox-gl/dist/mapbox-gl.css";

@@ -18,14 +18,17 @@ export const MapContextMenu = memo(function MapContextMenu({
 }: {
   contextInfo: ContextInfo | null;
 }) {
+  const hasSelection =
+    !!contextInfo &&
+    (contextInfo.selectedFeatures.length > 0 ||
+      contextInfo.selectedCustomerPoints.length > 0);
+
+  if (!hasSelection) return null;
+
   return (
     <CM.Portal>
       <CMContent>
-        {contextInfo &&
-        (contextInfo.selectedFeatures.length ||
-          contextInfo.selectedCustomerPoints.length) ? (
-          <GeometryActions as="context-item" />
-        ) : null}
+        <GeometryActions as="context-item" />
       </CMContent>
     </CM.Portal>
   );
