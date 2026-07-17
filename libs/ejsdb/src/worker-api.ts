@@ -30,6 +30,8 @@ import type {
   ImportProjectPayload,
   NewDbResult,
   OpenDbResult,
+  ShadowErrorPhase,
+  ShadowErrorReporter,
 } from "./types";
 
 const formatErrorDetails = (e: unknown): string => {
@@ -91,12 +93,20 @@ type Sqlite3 = {
 
 let sqlite3: Sqlite3 | null = null;
 let db: OoDb | null = null;
-const stmtCache = new Map<string, Stmt>();
+let stmtCache = new Map<string, Stmt>();
 
-type StorageMode = "memory" | "sahpool";
+type StorageMode = "memory" | "shadow" | "sahpool";
 let storageMode: StorageMode = "memory";
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
+
+let shadowDb: OoDb | null = null;
+let shadowStmtCache = new Map<string, Stmt>();
+let shadowReporter: ShadowErrorReporter | null = null;
+let shadowFailureCount = 0;
+let shadowReportCount = 0;
+let reportedShadowKeys = new Set<string>();
+const SHADOW_REPORT_LIMIT = 20;
 
 const ensureSahpool = async (appId: string): Promise<boolean> => {
   if (poolUtil) return true;
@@ -112,10 +122,20 @@ const ensureSahpool = async (appId: string): Promise<boolean> => {
   }
 };
 
-export const setSahpoolForTest = (pool: SAHPoolUtil | null): void => {
+export const setSahpoolForTest = (
+  pool: SAHPoolUtil | null,
+  mode: "sahpool" | "shadow" = "sahpool",
+): void => {
   poolUtil = pool;
-  storageMode = pool ? "sahpool" : "memory";
+  storageMode = pool ? mode : "memory";
 };
+
+export const createMemoryDbForTest = async (): Promise<OoDb> => {
+  await ready;
+  return new sqlite3!.oo1.DB(":memory:", "c");
+};
+
+export type { OoDb };
 
 const ready = (async () => {
   const mod = await import("@sqlite.org/sqlite-wasm");
@@ -145,20 +165,32 @@ const getStmt = (sql: string): Stmt => {
   return stmt;
 };
 
-const finalizeStmts = () => {
-  for (const stmt of stmtCache.values()) {
+const finalizeStmts = (cache: Map<string, Stmt>) => {
+  for (const stmt of cache.values()) {
     try {
       stmt.finalize();
     } catch {
       // ignore
     }
   }
-  stmtCache.clear();
+  cache.clear();
+};
+
+const closeShadowDb = () => {
+  if (shadowDb) {
+    finalizeStmts(shadowStmtCache);
+    try {
+      shadowDb.close();
+    } catch {
+      // ignore
+    }
+    shadowDb = null;
+  }
 };
 
 const closeExistingDb = () => {
   if (db) {
-    finalizeStmts();
+    finalizeStmts(stmtCache);
     try {
       db.close();
     } catch {
@@ -166,6 +198,7 @@ const closeExistingDb = () => {
     }
     db = null;
   }
+  closeShadowDb();
 };
 
 const WIPE_RETRY_DELAY_MS = 100;
@@ -181,6 +214,113 @@ const wipePoolFiles = async (): Promise<void> => {
   } catch {
     await new Promise((resolve) => setTimeout(resolve, WIPE_RETRY_DELAY_MS));
     await poolUtil!.wipeFiles();
+  }
+};
+
+const reportShadowError = (
+  command: string,
+  phase: ShadowErrorPhase,
+  e: unknown,
+  shadowDisabled: boolean,
+) => {
+  shadowFailureCount++;
+  const isFirstFailure = shadowFailureCount === 1;
+  const errorName = e instanceof Error ? e.name : "Error";
+  const errorMessage = e instanceof Error ? e.message : String(e);
+  const dedupKey = `${phase}:${errorName}`;
+  const isDuplicate = reportedShadowKeys.has(dedupKey) && !shadowDisabled;
+  if (
+    !shadowReporter ||
+    isDuplicate ||
+    shadowReportCount >= SHADOW_REPORT_LIMIT
+  )
+    return;
+  reportedShadowKeys.add(dedupKey);
+  shadowReportCount++;
+  try {
+    void Promise.resolve(
+      shadowReporter({
+        command,
+        phase,
+        errorName,
+        errorMessage,
+        errorDetails: formatErrorDetails(e),
+        isFirstFailure,
+        shadowDisabled,
+      }),
+    ).catch(() => undefined);
+  } catch {
+    // ignore
+  }
+};
+
+const disableShadow = (
+  command: string,
+  phase: ShadowErrorPhase,
+  e: unknown,
+) => {
+  closeShadowDb();
+  reportShadowError(command, phase, e, true);
+};
+
+// The swap window must stay synchronous: an await inside fn would let queued
+// RPCs run against the shadow connection.
+const runOnShadow = (fn: () => void): void => {
+  const primary = db;
+  const primaryStmts = stmtCache;
+  db = shadowDb;
+  stmtCache = shadowStmtCache;
+  try {
+    fn();
+  } finally {
+    db = primary;
+    stmtCache = primaryStmts;
+  }
+};
+
+const attachShadow = async (
+  importBytes: Uint8Array | null,
+  phase: "newDb" | "openDb",
+): Promise<void> => {
+  closeShadowDb();
+  try {
+    if (importBytes === null) {
+      await wipePoolFiles();
+    } else {
+      await poolUtil!.importDb(SAHPOOL_DB_PATH, importBytes);
+    }
+    shadowDb = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
+    shadowStmtCache = new Map();
+    runOnShadow(() => {
+      runMigrations();
+      if (importBytes === null) {
+        db!.exec(`PRAGMA application_id = ${APP_VERSION}`);
+      }
+    });
+  } catch (e) {
+    disableShadow(phase, phase, e);
+  }
+};
+
+const replayOnShadow = (command: string, fn: (db: OoDb) => unknown): void => {
+  if (!shadowDb) return;
+  try {
+    runOnShadow(() => {
+      db!.exec("BEGIN IMMEDIATE");
+      try {
+        fn(db!);
+        db!.exec("COMMIT");
+      } catch (e) {
+        try {
+          db!.exec("ROLLBACK");
+        } catch {
+          // ignore
+        }
+        throw e;
+      }
+    });
+  } catch (e) {
+    disableShadow(command, "transaction", e);
   }
 };
 
@@ -200,6 +340,9 @@ const createNewDb = async (): Promise<NewDbResult> => {
 
   runMigrations();
   db.exec(`PRAGMA application_id = ${APP_VERSION}`);
+  if (storageMode === "shadow") {
+    await attachShadow(null, "newDb");
+  }
   return { status: "ok" };
 };
 
@@ -252,14 +395,16 @@ const withTransaction = <T>(
       await ready;
       if (!db) throw new Error(`[${command}] No database open`);
       db.exec("BEGIN IMMEDIATE");
+      let result: T;
       try {
-        const result = fn(db);
+        result = fn(db);
         db.exec("COMMIT");
-        return result;
       } catch (e) {
         db.exec("ROLLBACK");
         throw e;
       }
+      replayOnShadow(command, fn);
+      return result;
     },
     meta,
   );
@@ -940,10 +1085,15 @@ export const api = {
   }): Promise<StorageMode> {
     await ready;
     storageMode =
-      mode === "sahpool" && (await ensureSahpool(sahpoolId))
-        ? "sahpool"
-        : "memory";
+      mode !== "memory" && (await ensureSahpool(sahpoolId)) ? mode : "memory";
     return storageMode;
+  },
+
+  setShadowErrorReporter(reporter: ShadowErrorReporter | null): void {
+    shadowReporter = reporter;
+    shadowFailureCount = 0;
+    shadowReportCount = 0;
+    reportedShadowKeys = new Set();
   },
 
   async newDb(): Promise<NewDbResult> {
@@ -1006,7 +1156,13 @@ export const api = {
                 appVersion: APP_VERSION,
               };
             }
+            if (storageMode === "shadow") {
+              await attachShadow(fileBytes, "openDb");
+            }
             return { status: "migrated", fileVersion, appVersion: APP_VERSION };
+          }
+          if (storageMode === "shadow") {
+            await attachShadow(fileBytes, "openDb");
           }
           return { status: "ok", fileVersion, appVersion: APP_VERSION };
         } catch (e) {

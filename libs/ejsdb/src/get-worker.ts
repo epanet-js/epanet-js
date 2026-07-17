@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
 import type { DbWorkerApi } from "./worker-api";
+import type { ShadowErrorReporter } from "./types";
 import { isPerfLoggingEnabled } from "./perf-log";
 
 let cached: Comlink.Remote<DbWorkerApi> | null = null;
@@ -20,6 +21,12 @@ export const getWorker = (): Comlink.Remote<DbWorkerApi> => {
   }
   cached = remote;
   return cached;
+};
+
+export const registerShadowErrorReporter = async (
+  reporter: ShadowErrorReporter,
+): Promise<void> => {
+  await getWorker().setShadowErrorReporter(Comlink.proxy(reporter));
 };
 
 export const setWorkerForTest = (worker: DbWorkerApi): void => {

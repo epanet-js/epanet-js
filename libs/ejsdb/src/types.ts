@@ -14,6 +14,20 @@ export type NewDbResult =
   | { status: "ok" }
   | { status: "storage-error"; errorDetails: string };
 
+export type ShadowErrorPhase = "newDb" | "openDb" | "transaction";
+
+export type ShadowErrorReport = {
+  command: string;
+  phase: ShadowErrorPhase;
+  errorName: string;
+  errorMessage: string;
+  errorDetails: string;
+  isFirstFailure: boolean;
+  shadowDisabled: boolean;
+};
+
+export type ShadowErrorReporter = (report: ShadowErrorReport) => void;
+
 export type OpenDbResult =
   | { status: "ok"; fileVersion: number; appVersion: number }
   | { status: "migrated"; fileVersion: number; appVersion: number }

@@ -38,7 +38,8 @@ export type OpenPersistedProjectResult =
 
 export const useOpenPersistedProject = () => {
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
-  const dbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
+  const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
+  const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
 
   const openPersistedProject = useAtomCallback(
     useCallback(
@@ -51,7 +52,8 @@ export const useOpenPersistedProject = () => {
         const result = await db.openProject(file);
         captureInfo("openProject() performance", {
           elapsedTimeMs: performance.now() - start_time,
-          dbInOpfsOn,
+          isWriteDbToOpfsOn,
+          isReadDbFromOpfsOn,
         });
 
         if (result.status !== "ok" && result.status !== "migrated") {
@@ -87,7 +89,7 @@ export const useOpenPersistedProject = () => {
           projectSettings,
         };
       },
-      [allowsNullValues, dbInOpfsOn],
+      [allowsNullValues, isWriteDbToOpfsOn, isReadDbFromOpfsOn],
     ),
   );
 

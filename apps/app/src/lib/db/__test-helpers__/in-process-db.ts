@@ -9,6 +9,7 @@ export const useInProcessDb = (): void => {
 
   afterEach(async () => {
     await api.closeDb();
+    api.setShadowErrorReporter(null);
     resetWorkerForTest();
   });
 };

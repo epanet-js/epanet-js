@@ -45,7 +45,8 @@ export const useSaveProject = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const dbInOpfsOn = useFeatureFlag("FLAG_DB_IN_OPFS");
+  const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
+  const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
 
   const performSave = useAtomCallback(
     useCallback(
@@ -120,7 +121,8 @@ export const useSaveProject = ({
           await asyncSave();
           captureInfo("saveProject() performance", {
             elapsedTimeMs: performance.now() - startTime,
-            dbInOpfsOn,
+            isWriteDbToOpfsOn,
+            isReadDbFromOpfsOn,
           });
 
           notify({
@@ -166,7 +168,14 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [getFsAccess, addRecent, translate, map, dbInOpfsOn],
+      [
+        getFsAccess,
+        addRecent,
+        translate,
+        map,
+        isWriteDbToOpfsOn,
+        isReadDbFromOpfsOn,
+      ],
     ),
   );
 
