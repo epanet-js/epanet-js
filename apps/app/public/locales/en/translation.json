@@ -1567,6 +1567,7 @@
     "searchHint": "Search for your network's location or enter a code above to set the correct coordinate system.",
     "noProjectionHint": "Don't need a background map? You can skip this step and continue without a basemap.",
     "searchPlaceholder": "Search by location or code",
+    "searchUnavailable": "Search by location service is unavailable. Try again later or use a EPSG code or projection name",
     "matchingProjections": "Matching projections",
     "searchingProjections": "Searching projections…",
     "fitToExtent": "Fit to extent",

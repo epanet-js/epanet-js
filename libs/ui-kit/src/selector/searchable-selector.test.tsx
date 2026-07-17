@@ -118,6 +118,22 @@ describe("SearchableSelector", () => {
       expect(onSearch).toHaveBeenCalledWith("bana");
     });
 
+    it("does not show the loading label when not debounced", () => {
+      const onSearch = vi.fn(() => new Promise<Option[]>(() => {}));
+      render(
+        <SearchableSelector<Option>
+          label="Fruit"
+          onChange={vi.fn()}
+          onSearch={onSearch}
+        />,
+      );
+
+      typeQuery("an");
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    });
+
     it("cancels a pending search when the query is cleared", async () => {
       const onSearch = vi.fn(search);
       render(

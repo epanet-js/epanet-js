@@ -7,13 +7,17 @@ import {
   type SearchableSelectorOption,
 } from "@epanet-js/ui-kit";
 import type { LocationData } from "src/components/form/location-search";
+import { GeocodingError, searchLocations } from "src/lib/geocoding";
 import type { Proj4Projection } from "src/lib/projections";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   matchesProjection,
   hasExactProjectionMatch,
   projectionMatchRank,
 } from "./match-projection";
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 type SearchResultData =
   | { type: "location"; location: LocationData }
@@ -34,13 +38,16 @@ export const ProjectionSearch = ({
   onLocationSelect,
   onProjectionSelect,
   onSearched,
+  onSearchError,
 }: {
   projections: Proj4Projection[];
   onLocationSelect: (location: LocationData) => void;
   onProjectionSelect: (projection: Proj4Projection) => void;
   onSearched: (metadata: SearchMetadata) => void;
+  onSearchError: (hasError: boolean) => void;
 }) => {
   const t = useTranslate();
+  const isGeocodingResilienceOn = useFeatureFlag("FLAG_GEOCODING_RESILIENCE");
   const lastSearchRef = useRef<{ query: string; resultsCount: number }>({
     query: "",
     resultsCount: 0,
@@ -65,47 +72,21 @@ export const ProjectionSearch = ({
 
       let locationResults: SearchResult[] = [];
       if (!hasExactProjectionMatch(projections, query)) {
-        try {
-          const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-              query,
-            )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
-          );
-
-          if (response.ok) {
-            const data = (await response.json()) as { features?: unknown[] };
-            const features = (data.features || []).filter(isValidMapboxFeature);
-
-            locationResults = features.map(
-              (f: {
-                place_name?: string;
-                text?: string;
-                center: number[];
-                bbox: number[];
-              }) => ({
-                id: `loc-${f.place_name || f.text}`,
-                label: f.place_name || f.text || "",
-                data: {
-                  type: "location" as const,
-                  location: {
-                    name: f.place_name || f.text || "",
-                    coordinates: f.center as [number, number],
-                    bbox: f.bbox as [number, number, number, number],
-                  },
-                },
-              }),
-            );
-          }
-        } catch (error) {
-          captureError(error as Error);
-        }
+        const locations = isGeocodingResilienceOn
+          ? await searchLocationsResilient(query, onSearchError)
+          : await searchLocationsDeprecated(query);
+        locationResults = locations.map((location) => ({
+          id: `loc-${location.name}`,
+          label: location.name,
+          data: { type: "location" as const, location },
+        }));
       }
 
       const allResults = [...locationResults, ...projectionResults];
       lastSearchRef.current = { query, resultsCount: allResults.length };
       return allResults;
     },
-    [projections],
+    [projections, onSearchError, isGeocodingResilienceOn],
   );
 
   const handleChange = useCallback(
@@ -154,8 +135,53 @@ export const ProjectionSearch = ({
       wrapperClassName="block"
       autoFocus
       renderOption={renderOption}
+      searchDebounceMs={isGeocodingResilienceOn ? SEARCH_DEBOUNCE_MS : 0}
     />
   );
+};
+
+const searchLocationsResilient = async (
+  query: string,
+  onSearchError: (hasError: boolean) => void,
+): Promise<LocationData[]> => {
+  try {
+    const locations = await searchLocations(query);
+    onSearchError(false);
+    return locations;
+  } catch (error) {
+    captureError(error as Error, {
+      geocoding:
+        error instanceof GeocodingError
+          ? { query, status: error.status, responseBody: error.responseBody }
+          : { query },
+    });
+    onSearchError(true);
+    return [];
+  }
+};
+
+const searchLocationsDeprecated = async (
+  query: string,
+): Promise<LocationData[]> => {
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        query,
+      )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
+    );
+
+    if (response.ok) {
+      const data = (await response.json()) as { features?: unknown[] };
+      return (data.features || []).filter(isValidMapboxFeature).map((f) => ({
+        name: f.place_name || f.text || "",
+        coordinates: f.center as [number, number],
+        bbox: f.bbox as [number, number, number, number],
+      }));
+    }
+  } catch (error) {
+    captureError(error as Error);
+  }
+  return [];
 };
 
 const isValidMapboxFeature = (

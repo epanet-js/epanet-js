@@ -88,6 +88,7 @@ export const NetworkProjectionDialog = ({
     });
   const [showBasemap, setShowBasemap] = useState(false);
   const [projectionError, setProjectionError] = useState<string | null>(null);
+  const [isSearchUnavailable, setIsSearchUnavailable] = useState(false);
 
   const allCandidatesRef = useRef<ProjectionCandidate[]>([]);
   const abortRef = useRef<AbortController | null>(null);
@@ -405,7 +406,14 @@ export const NetworkProjectionDialog = ({
             onLocationSelect={handleLocationSelect}
             onProjectionSelect={handleProjectionSelectFromSearch}
             onSearched={handleSearched}
+            onSearchError={setIsSearchUnavailable}
           />
+
+          {isSearchUnavailable && (
+            <p className="mt-2 text-size-base p-2 border text-warning border-warning rounded-md bg-warning-subtle shrink-0">
+              {t("networkProjection.searchUnavailable")}
+            </p>
+          )}
 
           {selectedLocation || selectedProjection ? (
             <div className="flex-1 min-h-0 flex flex-col">

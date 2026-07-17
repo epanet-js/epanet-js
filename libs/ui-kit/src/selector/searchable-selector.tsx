@@ -35,8 +35,10 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
   /** Where the dropdown opens: "auto" (default) lets it flip to fit the
    *  viewport; "top"/"bottom" pin it to that side and never flip. */
   side?: "top" | "bottom" | "auto";
-  /** Wait this long after the last keystroke before calling onSearch;
-   *  the loading state covers both the wait and the search itself. */
+  /** Wait this long after the last keystroke before calling onSearch. When
+   *  set (> 0), the dropdown opens as soon as a search is scheduled and shows
+   *  the searching label until results arrive; when 0 (default), search fires
+   *  on every keystroke and the dropdown only opens once results arrive. */
   searchDebounceMs?: number;
 }) => {
   const [searchTerm, setSearchTerm] = useState(selected?.label || "");
@@ -75,11 +77,12 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
       }
       const seq = ++searchSeqRef.current;
       setIsSearching(true);
-      setOpen(true);
+      if (searchDebounceMs > 0) setOpen(true);
       try {
         const results = await onSearch(query);
         if (seq !== searchSeqRef.current) return;
         setSuggestions(results);
+        setOpen(true);
       } catch {
         if (seq !== searchSeqRef.current) return;
         setSuggestions([]);
@@ -87,7 +90,7 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
         if (seq === searchSeqRef.current) setIsSearching(false);
       }
     },
-    [onSearch],
+    [onSearch, searchDebounceMs],
   );
 
   const handleInputChange = useCallback(
@@ -246,9 +249,9 @@ export const SearchableSelector = <T extends SearchableSelectorOption>({
               ["--anchor-width" as any]: `${inputRef.current?.offsetWidth ?? 0}px`,
             }}
           >
-            {isSearching ? (
+            {isSearching && searchDebounceMs > 0 ? (
               <div className="px-2 py-2 text-subtle">{ui.searchingLabel}</div>
-            ) : suggestions.length === 0 ? (
+            ) : suggestions.length === 0 && !isSearching ? (
               <div className="px-2 py-2 text-subtle">{ui.noResultsLabel}</div>
             ) : (
               <ul
