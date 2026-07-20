@@ -1,6 +1,5 @@
 import { useCallback, useRef } from "react";
 import { MapPin, Sparkles } from "lucide-react";
-import { env } from "src/lib/env-client";
 import { captureError } from "src/infra/error-tracking";
 import {
   SearchableSelector,
@@ -9,7 +8,6 @@ import {
 import type { LocationData } from "src/components/form/location-search";
 import { GeocodingError, searchLocations } from "src/lib/geocoding";
 import type { Proj4Projection } from "src/lib/projections";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   matchesProjection,
@@ -47,7 +45,6 @@ export const ProjectionSearch = ({
   onSearchError: (hasError: boolean) => void;
 }) => {
   const t = useTranslate();
-  const isGeocodingResilienceOn = useFeatureFlag("FLAG_GEOCODING_RESILIENCE");
   const lastSearchRef = useRef<{ query: string; resultsCount: number }>({
     query: "",
     resultsCount: 0,
@@ -72,9 +69,7 @@ export const ProjectionSearch = ({
 
       let locationResults: SearchResult[] = [];
       if (!hasExactProjectionMatch(projections, query)) {
-        const locations = isGeocodingResilienceOn
-          ? await searchLocationsResilient(query, onSearchError)
-          : await searchLocationsDeprecated(query);
+        const locations = await doSearchLocations(query, onSearchError);
         locationResults = locations.map((location) => ({
           id: `loc-${location.name}`,
           label: location.name,
@@ -86,7 +81,7 @@ export const ProjectionSearch = ({
       lastSearchRef.current = { query, resultsCount: allResults.length };
       return allResults;
     },
-    [projections, onSearchError, isGeocodingResilienceOn],
+    [projections, onSearchError],
   );
 
   const handleChange = useCallback(
@@ -135,12 +130,12 @@ export const ProjectionSearch = ({
       wrapperClassName="block"
       autoFocus
       renderOption={renderOption}
-      searchDebounceMs={isGeocodingResilienceOn ? SEARCH_DEBOUNCE_MS : 0}
+      searchDebounceMs={SEARCH_DEBOUNCE_MS}
     />
   );
 };
 
-const searchLocationsResilient = async (
+const doSearchLocations = async (
   query: string,
   onSearchError: (hasError: boolean) => void,
 ): Promise<LocationData[]> => {
@@ -158,47 +153,4 @@ const searchLocationsResilient = async (
     onSearchError(true);
     return [];
   }
-};
-
-const searchLocationsDeprecated = async (
-  query: string,
-): Promise<LocationData[]> => {
-  try {
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        query,
-      )}.json?access_token=${env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=place,locality&limit=5`,
-    );
-
-    if (response.ok) {
-      const data = (await response.json()) as { features?: unknown[] };
-      return (data.features || []).filter(isValidMapboxFeature).map((f) => ({
-        name: f.place_name || f.text || "",
-        coordinates: f.center as [number, number],
-        bbox: f.bbox as [number, number, number, number],
-      }));
-    }
-  } catch (error) {
-    captureError(error as Error);
-  }
-  return [];
-};
-
-const isValidMapboxFeature = (
-  feature: unknown,
-): feature is {
-  center: number[];
-  bbox: number[];
-  place_name?: string;
-  text?: string;
-} => {
-  if (!feature || typeof feature !== "object") return false;
-  const obj = feature as Record<string, unknown>;
-  return (
-    "center" in obj &&
-    "bbox" in obj &&
-    Array.isArray(obj.center) &&
-    Array.isArray(obj.bbox) &&
-    ("place_name" in obj || "text" in obj)
-  );
 };

@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { geocodingQueryClient } from "src/lib/geocoding";
 import { captureError } from "src/infra/error-tracking";
 import { ProjectionSearch } from "./projection-search";
@@ -49,7 +48,6 @@ describe("ProjectionSearch", () => {
   beforeEach(() => {
     geocodingQueryClient.clear();
     vi.clearAllMocks();
-    stubFeatureOn("FLAG_GEOCODING_RESILIENCE");
   });
 
   it("debounces typing into a single geocoding request", async () => {
