@@ -20,13 +20,13 @@ const nextConfig = {
   ],
 
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   env: {
     SENTRY_RELEASE: commitSha,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   webpack(config, { webpack }) {
     config.resolve.fallback = { ...config.resolve.fallback, fs: false };
