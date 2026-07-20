@@ -2,7 +2,6 @@ import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import {
   stagingModelDerivedAtom,
@@ -23,10 +22,6 @@ const renderStartEmptyProject = (store: Store) =>
 
 describe("useStartBlankProject", () => {
   useInProcessDb();
-
-  beforeEach(() => {
-    stubFeatureOff("FLAG_NULL_VALUES");
-  });
 
   it("resets the project to an empty model and clears file info", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()

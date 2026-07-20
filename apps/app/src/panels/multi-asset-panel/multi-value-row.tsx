@@ -3,7 +3,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTranslate } from "src/hooks/use-translate";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { NumericField } from "src/components/form/numeric-field";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { Selector, SelectorListOption } from "@epanet-js/ui-kit";
 import { TriStateCheckbox } from "src/components/form/Checkbox";
 
@@ -68,7 +67,6 @@ export const EditableField = ({
   ) => void;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
 
   const mixedPlaceholder = hasOnlyEmpty
     ? translate(emptyLabel!)
@@ -84,11 +82,8 @@ export const EditableField = ({
           ? String(firstValue)
           : localizeDecimal(firstValue, { decimals });
 
-    const isRequired = !isOptionalProperty(
-      config.modelProperty,
-      allowsNullValues,
-    );
-    const commitInvalidValues = !!config.hasModelValidation && allowsNullValues;
+    const isRequired = !isOptionalProperty(config.modelProperty);
+    const commitInvalidValues = !!config.hasModelValidation;
     const quantityPlaceholder = !hasOnlyEmpty
       ? mixedPlaceholder
       : emptyValue != null

@@ -1,11 +1,10 @@
 import { AssetId, DefaultsSpec, Junction, Pump } from "../asset-types";
-import { JunctionQuantity } from "../asset-types/junction";
-import { Pipe, PipeQuantity, PipeStatus } from "../asset-types/pipe";
+import { Pipe, PipeStatus } from "../asset-types/pipe";
 import { ChemicalSourceType } from "../asset-types/node";
 import { LinkConnections, nullConnections } from "../asset-types/link";
 import { Position } from "geojson";
-import { Reservoir, ReservoirQuantity } from "../asset-types/reservoir";
-import { Tank, TankQuantity, type TankMixingModel } from "../asset-types/tank";
+import { Reservoir } from "../asset-types/reservoir";
+import { Tank, type TankMixingModel } from "../asset-types/tank";
 
 export type JunctionBuildData = {
   id?: AssetId;
@@ -114,22 +113,31 @@ export type TankBuildData = {
 
 import { IdGenerator } from "@epanet-js/id-generator";
 import { LabelManager, LabelType } from "../label-manager";
-import {
-  PumpDefinitionType,
-  PumpQuantity,
-  PumpStatus,
-} from "../asset-types/pump";
-import {
-  Valve,
-  ValveQuantity,
-  ValveStatus,
-  ValveKind,
-} from "../asset-types/valve";
-import { CurveId, CurvePoint, defaultCurvePoints } from "../curves";
+import { PumpDefinitionType, PumpStatus } from "../asset-types/pump";
+import { Valve, ValveStatus, ValveKind } from "../asset-types/valve";
+import { CurveId, CurvePoint } from "../curves";
 import { PatternId } from "../patterns";
 
 const isProvided = (value: number | undefined): value is number =>
   value !== undefined && !Number.isNaN(value);
+
+const orNull = (value?: number): number | null =>
+  isProvided(value) ? value : null;
+
+const orUndefined = (value?: number): number | undefined =>
+  isProvided(value) ? value : undefined;
+
+const applyCustomAttributes = <
+  T extends { setProperty: (name: string, value: unknown) => void },
+>(
+  asset: T,
+  customAttributes?: Record<string, string | number | null>,
+): T => {
+  for (const [id, value] of Object.entries(customAttributes ?? {})) {
+    if (value !== null) asset.setProperty(id, value);
+  }
+  return asset;
+};
 
 export class AssetFactory {
   private defaults: DefaultsSpec;
@@ -165,17 +173,17 @@ export class AssetFactory {
     year,
     isActive = true,
     customAttributes,
-  }: PipeBuildData = {}) {
+  }: PipeBuildData = {}): Pipe {
     const internalId = id ?? this.idGenerator.newId();
     const pipe = new Pipe(internalId, coordinates, {
       type: "pipe",
       label: this.resolveLabel("pipe", internalId, label),
       connections,
       initialStatus,
-      length: this.getPipeValue("length", length),
-      diameter: this.getPipeValue("diameter", diameter),
-      minorLoss: this.getPipeValue("minorLoss", minorLoss),
-      roughness: this.getPipeValue("roughness", roughness),
+      length: orNull(length),
+      diameter: orNull(diameter),
+      minorLoss: orUndefined(minorLoss),
+      roughness: orNull(roughness),
       bulkReactionCoeff,
       wallReactionCoeff,
       material,
@@ -201,306 +209,22 @@ export class AssetFactory {
     isActive = true,
     curveId,
     customAttributes,
-  }: ValveBuildData = {}) {
+  }: ValveBuildData = {}): Valve {
     const internalId = id ?? this.idGenerator.newId();
     const valve = new Valve(internalId, coordinates, {
       type: "valve",
       label: this.resolveLabel("valve", internalId, label),
       connections,
       length: null,
-      diameter: this.getValveValue("diameter", diameter),
-      minorLoss: this.getValveValue("minorLoss", minorLoss),
+      diameter: orNull(diameter),
+      minorLoss: orUndefined(minorLoss),
       kind,
-      setting: this.getValveSetting(kind, setting),
+      setting: orNull(setting),
       initialStatus,
       isActive,
       curveId,
     });
     return applyCustomAttributes(valve, customAttributes);
-  }
-
-  createPump({
-    id,
-    label,
-    coordinates = [
-      [0, 0],
-      [0, 0],
-    ],
-    initialStatus = "on",
-    connections = nullConnections,
-    definitionType = "designPointCurve",
-    curveId,
-    curve,
-    power,
-    speed = 1,
-    speedPatternId,
-    efficiencyCurveId,
-    energyPrice,
-    energyPricePatternId,
-    isActive = true,
-    customAttributes,
-  }: PumpBuildData = {}) {
-    const internalId = id ?? this.idGenerator.newId();
-    const pump = new Pump(internalId, coordinates, {
-      type: "pump",
-      label: this.resolveLabel("pump", internalId, label),
-      connections,
-      length: null,
-      initialStatus,
-      definitionType,
-      power: this.getPumpValue("power", power),
-      speed,
-      speedPatternId,
-      curveId: curveId ?? null,
-      curve: curve
-        ? curve
-        : definitionType === "designPointCurve"
-          ? defaultCurvePoints("pump")
-          : null,
-      efficiencyCurveId,
-      energyPrice,
-      energyPricePatternId,
-      isActive,
-    });
-    return applyCustomAttributes(pump, customAttributes);
-  }
-
-  createJunction({
-    id,
-    label,
-    coordinates = [0, 0],
-    elevation,
-    emitterCoefficient,
-    initialQuality,
-    chemicalSourceType,
-    chemicalSourceStrength,
-    chemicalSourcePatternId,
-    isActive = true,
-    customAttributes,
-  }: JunctionBuildData = {}) {
-    const internalId = id ?? this.idGenerator.newId();
-    const junction = new Junction(internalId, coordinates, {
-      type: "junction",
-      label: this.resolveLabel("junction", internalId, label),
-      elevation: this.getJunctionValue("elevation", elevation),
-      emitterCoefficient: emitterCoefficient ?? 0,
-      initialQuality: initialQuality ?? 0,
-      chemicalSourceType,
-      chemicalSourceStrength,
-      chemicalSourcePatternId,
-      isActive,
-    });
-    return applyCustomAttributes(junction, customAttributes);
-  }
-
-  createReservoir({
-    id,
-    label,
-    coordinates = [0, 0],
-    elevation,
-    head,
-    relativeHead,
-    headPatternId,
-    initialQuality,
-    chemicalSourceType,
-    chemicalSourceStrength,
-    chemicalSourcePatternId,
-    isActive = true,
-    customAttributes,
-  }: ReservoirBuildData = {}) {
-    const internalId = id ?? this.idGenerator.newId();
-    const elevationValue = this.getReservoirValue("elevation", elevation);
-    let headValue: number;
-    if (head !== undefined) {
-      headValue = this.getReservoirValue("head", head);
-    } else {
-      const relativeHeadValue = this.getReservoirValue(
-        "relativeHead",
-        relativeHead,
-      );
-      headValue = relativeHeadValue + elevationValue;
-    }
-
-    const reservoir = new Reservoir(internalId, coordinates, {
-      type: "reservoir",
-      label: this.resolveLabel("reservoir", internalId, label),
-      head: headValue,
-      headPatternId,
-      elevation: elevationValue,
-      initialQuality: initialQuality ?? 0,
-      chemicalSourceType,
-      chemicalSourceStrength,
-      chemicalSourcePatternId,
-      isActive,
-    });
-    return applyCustomAttributes(reservoir, customAttributes);
-  }
-
-  createTank({
-    id,
-    label,
-    coordinates = [0, 0],
-    elevation,
-    initialLevel,
-    minLevel,
-    maxLevel,
-    minVolume,
-    diameter,
-    overflow,
-    mixingModel,
-    mixingFraction,
-    initialQuality,
-    bulkReactionCoeff,
-    chemicalSourceType,
-    chemicalSourceStrength,
-    chemicalSourcePatternId,
-    isActive = true,
-    volumeCurveId,
-    customAttributes,
-  }: TankBuildData = {}) {
-    const internalId = id ?? this.idGenerator.newId();
-    const tank = new Tank(internalId, coordinates, {
-      type: "tank",
-      label: this.resolveLabel("tank", internalId, label),
-      elevation: this.getTankValue("elevation", elevation),
-      initialLevel: this.getTankValue("initialLevel", initialLevel),
-      minLevel: this.getTankValue("minLevel", minLevel),
-      maxLevel: this.getTankValue("maxLevel", maxLevel),
-      minVolume: this.getTankValue("minVolume", minVolume),
-      diameter: this.getTankValue("diameter", diameter),
-      volumeCurveId,
-      overflow: overflow ?? false,
-      mixingModel: mixingModel ?? "mixed",
-      mixingFraction: mixingFraction ?? 1.0,
-      initialQuality: initialQuality ?? 0,
-      bulkReactionCoeff,
-      chemicalSourceType,
-      chemicalSourceStrength,
-      chemicalSourcePatternId,
-      isActive,
-    });
-    return applyCustomAttributes(tank, customAttributes);
-  }
-
-  protected resolveLabel(type: LabelType, id: number, label?: string): string {
-    if (label !== undefined) {
-      this.labelManager.register(label, type, id);
-      return label;
-    }
-    return this.labelManager.generateFor(type, id);
-  }
-
-  private getPipeValue(name: PipeQuantity, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.pipe[name] || 0;
-  }
-
-  private getPumpValue(name: PumpQuantity, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.pump[name] || 0;
-  }
-
-  private getValveValue(name: ValveQuantity, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.valve[name] || 0;
-  }
-
-  private getValveSetting(kind: ValveKind, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.valve["tcvSetting"] || 0;
-  }
-
-  private getJunctionValue(name: JunctionQuantity, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.junction[name] || 0;
-  }
-
-  private getReservoirValue(
-    name: ReservoirQuantity | "relativeHead",
-    candidate?: number,
-  ) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.reservoir[name] || 0;
-  }
-
-  private getTankValue(name: TankQuantity, candidate?: number) {
-    if (isProvided(candidate)) return candidate;
-
-    return this.defaults.tank[name] || 0;
-  }
-}
-
-const applyCustomAttributes = <
-  T extends { setProperty: (name: string, value: unknown) => void },
->(
-  asset: T,
-  customAttributes?: Record<string, string | number | null>,
-): T => {
-  for (const [id, value] of Object.entries(customAttributes ?? {})) {
-    if (value !== null) asset.setProperty(id, value);
-  }
-  return asset;
-};
-
-const emptyUnmapped = <
-  T extends { setProperty: (name: string, value: unknown) => void },
->(
-  asset: T,
-  data: Record<string, unknown>,
-  fields: readonly string[],
-  emptyValue: null | undefined,
-): T => {
-  for (const field of fields) {
-    if (data[field] == null) asset.setProperty(field, emptyValue);
-  }
-  return asset;
-};
-
-// EPANET-optional attributes: when unmapped they map to `undefined` (use the
-// EPANET default), in contrast to required attributes that map to `null`.
-const OPTIONAL_FIELDS = {
-  pipe: ["minorLoss"],
-  valve: ["minorLoss"],
-  junction: ["emitterCoefficient", "initialQuality"],
-  reservoir: ["initialQuality"],
-  tank: ["minVolume", "mixingFraction", "initialQuality"],
-} as const;
-
-export class AssetFactoryWithNullValues extends AssetFactory {
-  createPipe(data: PipeBuildData = {}): Pipe {
-    const pipe = emptyUnmapped(
-      super.createPipe(data),
-      data,
-      ["roughness", "diameter", "length"],
-      null,
-    );
-    return emptyUnmapped(pipe, data, OPTIONAL_FIELDS.pipe, undefined);
-  }
-
-  createValve(data: ValveBuildData = {}): Valve {
-    const valve = emptyUnmapped(
-      super.createValve(data),
-      data,
-      ["diameter", "setting"],
-      null,
-    );
-    return emptyUnmapped(valve, data, OPTIONAL_FIELDS.valve, undefined);
-  }
-
-  createJunction(data: JunctionBuildData = {}): Junction {
-    const junction = emptyUnmapped(
-      super.createJunction(data),
-      data,
-      ["elevation"],
-      null,
-    );
-    return emptyUnmapped(junction, data, OPTIONAL_FIELDS.junction, undefined);
   }
 
   createPump({
@@ -545,29 +269,128 @@ export class AssetFactoryWithNullValues extends AssetFactory {
     return applyCustomAttributes(pump, customAttributes);
   }
 
-  createTank(data: TankBuildData = {}): Tank {
-    const tank = emptyUnmapped(
-      super.createTank(data),
-      data,
-      ["elevation", "initialLevel", "minLevel", "maxLevel", "diameter"],
-      null,
-    );
-    return emptyUnmapped(tank, data, OPTIONAL_FIELDS.tank, undefined);
+  createJunction({
+    id,
+    label,
+    coordinates = [0, 0],
+    elevation,
+    emitterCoefficient,
+    initialQuality,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
+    isActive = true,
+    customAttributes,
+  }: JunctionBuildData = {}): Junction {
+    const internalId = id ?? this.idGenerator.newId();
+    const junction = new Junction(internalId, coordinates, {
+      type: "junction",
+      label: this.resolveLabel("junction", internalId, label),
+      elevation: orNull(elevation),
+      emitterCoefficient: orUndefined(emitterCoefficient),
+      initialQuality: orUndefined(initialQuality),
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
+      isActive,
+    });
+    return applyCustomAttributes(junction, customAttributes);
   }
 
-  createReservoir(data: ReservoirBuildData = {}): Reservoir {
-    const reservoir = emptyUnmapped(
-      super.createReservoir(data),
-      data,
-      ["elevation"],
-      null,
-    );
-    // Head can be derived from elevation + relativeHead; only null it when
-    // neither head nor relativeHead was provided (otherwise the derived value
-    // stands rather than being discarded).
-    if (data.head == null && data.relativeHead == null) {
-      reservoir.setProperty("head", null);
+  createReservoir({
+    id,
+    label,
+    coordinates = [0, 0],
+    elevation,
+    head,
+    relativeHead,
+    headPatternId,
+    initialQuality,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
+    isActive = true,
+    customAttributes,
+  }: ReservoirBuildData = {}): Reservoir {
+    const internalId = id ?? this.idGenerator.newId();
+    // Head is derived from elevation + relativeHead when provided; only when
+    // neither head nor relativeHead is given does it stay empty (null).
+    let headValue: number | null;
+    if (isProvided(head)) {
+      headValue = head;
+    } else if (isProvided(relativeHead)) {
+      const elevationBase = elevation ?? this.defaults.reservoir.elevation ?? 0;
+      headValue = relativeHead + elevationBase;
+    } else {
+      headValue = null;
     }
-    return emptyUnmapped(reservoir, data, OPTIONAL_FIELDS.reservoir, undefined);
+
+    const reservoir = new Reservoir(internalId, coordinates, {
+      type: "reservoir",
+      label: this.resolveLabel("reservoir", internalId, label),
+      head: headValue,
+      headPatternId,
+      elevation: orNull(elevation),
+      initialQuality: orUndefined(initialQuality),
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
+      isActive,
+    });
+    return applyCustomAttributes(reservoir, customAttributes);
+  }
+
+  createTank({
+    id,
+    label,
+    coordinates = [0, 0],
+    elevation,
+    initialLevel,
+    minLevel,
+    maxLevel,
+    minVolume,
+    diameter,
+    overflow,
+    mixingModel,
+    mixingFraction,
+    initialQuality,
+    bulkReactionCoeff,
+    chemicalSourceType,
+    chemicalSourceStrength,
+    chemicalSourcePatternId,
+    isActive = true,
+    volumeCurveId,
+    customAttributes,
+  }: TankBuildData = {}): Tank {
+    const internalId = id ?? this.idGenerator.newId();
+    const tank = new Tank(internalId, coordinates, {
+      type: "tank",
+      label: this.resolveLabel("tank", internalId, label),
+      elevation: orNull(elevation),
+      initialLevel: orNull(initialLevel),
+      minLevel: orNull(minLevel),
+      maxLevel: orNull(maxLevel),
+      minVolume: orUndefined(minVolume),
+      diameter: orNull(diameter),
+      volumeCurveId,
+      overflow: overflow ?? false,
+      mixingModel: mixingModel ?? "mixed",
+      mixingFraction: orUndefined(mixingFraction),
+      initialQuality: orUndefined(initialQuality),
+      bulkReactionCoeff,
+      chemicalSourceType,
+      chemicalSourceStrength,
+      chemicalSourcePatternId,
+      isActive,
+    });
+    return applyCustomAttributes(tank, customAttributes);
+  }
+
+  protected resolveLabel(type: LabelType, id: number, label?: string): string {
+    if (label !== undefined) {
+      this.labelManager.register(label, type, id);
+      return label;
+    }
+    return this.labelManager.generateFor(type, id);
   }
 }

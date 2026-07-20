@@ -11,7 +11,7 @@ import {
   type Reservoir,
   type Pipe,
 } from "@epanet-js/hydraulic-model";
-import { fetchProject, fetchProjectWithNullValues } from "./fetch-project";
+import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
 import { saveCustomAttributes } from "./save-custom-attributes";
 import {
@@ -218,20 +218,10 @@ describe("fetch-project integration", () => {
         simulationSettings: defaultSimulationSettings,
       });
 
-    it("fills the default with fetchProject", async () => {
+    it("keeps it empty with fetchProject", async () => {
       await importPipeWithNullRoughness();
 
       const project = await fetchProject();
-
-      expect((project.hydraulicModel.assets.get(3) as Pipe).roughness).toBe(
-        130,
-      );
-    });
-
-    it("keeps it empty with fetchProjectWithNullValues", async () => {
-      await importPipeWithNullRoughness();
-
-      const project = await fetchProjectWithNullValues();
 
       expect(
         (project.hydraulicModel.assets.get(3) as Pipe).roughness,

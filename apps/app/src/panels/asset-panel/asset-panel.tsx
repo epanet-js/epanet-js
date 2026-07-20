@@ -450,7 +450,6 @@ const JunctionEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(junction.id, "junction");
   const {
@@ -549,14 +548,14 @@ const JunctionEditor = ({
           comparison={getComparison("elevation", junction.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           validate={fieldValidator("junction", "elevation")}
         />
         <QuantityRow
           name="emitterCoefficient"
           value={junction.emitterCoefficient}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_EMITTER_COEFFICIENT)}
           unit={units.emitterCoefficient}
           comparison={getComparison(
@@ -621,8 +620,8 @@ const JunctionEditor = ({
         <QuantityRow
           name="initialQuality"
           value={junction.initialQuality}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -747,7 +746,6 @@ const PipeEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(pipe.id, "pipe");
   const {
@@ -878,7 +876,7 @@ const PipeEditor = ({
           comparison={getComparison("diameter", pipe.diameter)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
         />
         <QuantityRow
           name="length"
@@ -888,7 +886,7 @@ const PipeEditor = ({
           comparison={getComparison("length", pipe.length)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
         />
         <PipeMaterialRow
           pipe={pipe}
@@ -902,7 +900,7 @@ const PipeEditor = ({
           displayName={translate("yearOfInstallation")}
           value={pipe.year}
           isOptional
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           comparison={getComparison("year", pipe.year ?? null)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -916,7 +914,7 @@ const PipeEditor = ({
           comparison={getComparison("roughness", pipe.roughness)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           validate={fieldValidator("pipe", "roughness")}
         />
         <QuantityRow
@@ -925,8 +923,8 @@ const PipeEditor = ({
           validate={fieldValidator("pipe", "minorLoss")}
           unit={getMinorLossUnit(headlossFormula, units)}
           comparison={getComparison("minorLoss", pipe.minorLoss)}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_MINOR_LOSS)}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1081,7 +1079,6 @@ const ReservoirEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(reservoir.id, "reservoir");
   const { getComparison, getPatternComparison, isNew } =
@@ -1140,7 +1137,7 @@ const ReservoirEditor = ({
           value={reservoir.elevation}
           unit={units.elevation}
           comparison={getComparison("elevation", reservoir.elevation)}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           validate={fieldValidator("reservoir", "elevation")}
           onChange={onPropertyChange}
           readOnly={readonly}
@@ -1162,8 +1159,8 @@ const ReservoirEditor = ({
         <QuantityRow
           name="initialQuality"
           value={reservoir.initialQuality}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -1275,7 +1272,6 @@ const TankEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(tank.id, "tank");
   const { getComparison, getCurveComparison, isNew } = useAssetComparison(tank);
@@ -1350,7 +1346,7 @@ const TankEditor = ({
           comparison={getComparison("elevation", tank.elevation)}
           onChange={onPropertyChange}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           validate={fieldValidator("tank", "elevation")}
         />
         <QuantityRow
@@ -1359,13 +1355,9 @@ const TankEditor = ({
           unit={units.initialLevel}
           comparison={getComparison("initialLevel", tank.initialLevel)}
           onChange={onPropertyChange}
-          validate={fieldValidator(
-            "tank",
-            "initialLevel",
-            allowsNullValues ? tank : undefined,
-          )}
+          validate={fieldValidator("tank", "initialLevel", tank)}
           readOnly={readonly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
         />
         <TankDefinitionField
           tank={tank}
@@ -1393,8 +1385,8 @@ const TankEditor = ({
         <QuantityRow
           name="initialQuality"
           value={tank.initialQuality}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_INITIAL_QUALITY)}
           unit={
             simulationSettings.qualitySimulationType === "age"
@@ -1441,8 +1433,8 @@ const TankEditor = ({
             <QuantityRow
               name="mixingFraction"
               value={tank.mixingFraction}
-              isOptional={allowsNullValues}
-              commitInvalidValues={allowsNullValues}
+              isOptional
+              commitInvalidValues
               placeholder={String(DEFAULT_MIXING_FRACTION)}
               unit={null}
               onChange={onPropertyChange}
@@ -1556,8 +1548,7 @@ const TankDefinitionField = ({
   const translateUnit = useTranslateUnit();
   const showCurveLibrary = useShowCurveLibrary();
   const { getComparison, getCurveComparison } = useAssetComparison(tank);
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
-  const levelValidationContext = allowsNullValues ? tank : undefined;
+  const levelValidationContext = tank;
 
   const [definitionMode, setDefinitionMode] = useState<TankDefinitionMode>(
     tank.volumeCurveId != null ? "curveBased" : "diameterBased",
@@ -1790,7 +1781,7 @@ const TankDefinitionField = ({
               onChange={onPropertyChange}
               validate={fieldValidator("tank", "diameter")}
               readOnly={readOnly}
-              commitInvalidValues={allowsNullValues}
+              commitInvalidValues
             />
             <hr className=" my-1" />
             <NumericTable
@@ -1801,7 +1792,7 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    commitInvalidValues: allowsNullValues,
+                    commitInvalidValues: true,
                     validate: fieldValidator(
                       "tank",
                       "maxLevel",
@@ -1831,7 +1822,7 @@ const TankDefinitionField = ({
                       levelValidationContext,
                     ),
                     isRequired: true,
-                    commitInvalidValues: allowsNullValues,
+                    commitInvalidValues: true,
                     readOnly,
                     handler: (v, isEmpty) =>
                       onPropertyChange(
@@ -1844,8 +1835,8 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
                     validate: fieldValidator("tank", "minVolume"),
-                    isRequired: !allowsNullValues,
-                    commitInvalidValues: allowsNullValues,
+                    isRequired: false,
+                    commitInvalidValues: true,
                     placeholder: String(DEFAULT_MIN_VOLUME),
                     readOnly,
                     handler: (v, isEmpty) =>
@@ -1879,7 +1870,7 @@ const TankDefinitionField = ({
                     label: translate("maxLevel"),
                     value: tank.maxLevel,
                     isRequired: true,
-                    commitInvalidValues: allowsNullValues,
+                    commitInvalidValues: true,
                     validate: fieldValidator(
                       "tank",
                       "maxLevel",
@@ -1909,7 +1900,7 @@ const TankDefinitionField = ({
                       levelValidationContext,
                     ),
                     isRequired: true,
-                    commitInvalidValues: allowsNullValues,
+                    commitInvalidValues: true,
                     readOnly,
                     handler: (v, isEmpty) =>
                       onPropertyChange(
@@ -1922,8 +1913,8 @@ const TankDefinitionField = ({
                     label: translate("minVolume"),
                     value: tank.minVolume ?? null,
                     validate: fieldValidator("tank", "minVolume"),
-                    isRequired: !allowsNullValues,
-                    commitInvalidValues: allowsNullValues,
+                    isRequired: false,
+                    commitInvalidValues: true,
                     placeholder: String(DEFAULT_MIN_VOLUME),
                     readOnly,
                     handler: (v, isEmpty) =>
@@ -2077,7 +2068,6 @@ const ValveEditor = ({
   readonly?: boolean;
 }) => {
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const { footer } = useQuickGraph(valve.id, "valve");
   const { getComparison, getCurveComparison, isNew } =
     useAssetComparison(valve);
@@ -2197,7 +2187,7 @@ const ValveEditor = ({
             comparison={getComparison("setting", valve.setting)}
             onChange={onPropertyChange}
             readOnly={readonly}
-            commitInvalidValues={allowsNullValues}
+            commitInvalidValues
           />
         )}
         {valve.kind === "gpv" && (
@@ -2234,14 +2224,14 @@ const ValveEditor = ({
           onChange={onPropertyChange}
           readOnly={readonly}
           validate={fieldValidator("valve", "diameter")}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
         />
         <QuantityRow
           name="minorLoss"
           value={valve.minorLoss}
           validate={fieldValidator("valve", "minorLoss")}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_MINOR_LOSS)}
           unit={units.minorLoss}
           comparison={getComparison("minorLoss", valve.minorLoss)}
@@ -2349,7 +2339,6 @@ const PumpEditor = ({
 }) => {
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const translate = useTranslate();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const isPumpControlsOn = useFeatureFlag("FLAG_PUMP_CONTROLS");
   const { footer } = useQuickGraph(pump.id, "pump");
   const {
@@ -2484,8 +2473,8 @@ const PumpEditor = ({
           name="initialSpeed"
           value={pump.speed}
           validate={fieldValidator("pump", "speed")}
-          isOptional={allowsNullValues}
-          commitInvalidValues={allowsNullValues}
+          isOptional
+          commitInvalidValues
           placeholder={String(DEFAULT_SPEED)}
           unit={units.speed}
           comparison={getComparison("speed", pump.speed)}
@@ -2548,7 +2537,7 @@ const PumpEditor = ({
           comparison={getComparison("energyPrice", pump.energyPrice)}
           onChange={onPropertyChange}
           validate={fieldValidator("pump", "energyPrice")}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
           isOptional
           readOnly={readonly}
           placeholder={localizeDecimal(simulationSettings.energyGlobalPrice)}
@@ -2931,7 +2920,6 @@ const ChemicalSourceEditor = ({
   const translateUnit = useTranslateUnit();
   const showPatternsLibrary = useShowPatternsLibrary();
   const { getComparison, getPatternComparison } = useAssetComparison(node);
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const typedNode = node as Junction | Tank | Reservoir;
 
   const strengthUnit =
@@ -3051,7 +3039,7 @@ const ChemicalSourceEditor = ({
             unit={null}
             onChange={onPropertyChange}
             validate={fieldValidator(node.type, "chemicalSourceStrength")}
-            commitInvalidValues={allowsNullValues}
+            commitInvalidValues
             isOptional
             placeholder={localizeDecimal(0)}
             readOnly={readOnly}
@@ -3184,7 +3172,6 @@ const ReservoirHeadField = ({
   const showPatternsLibrary = useShowPatternsLibrary();
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const { getComparison, getPatternComparison } = useAssetComparison(reservoir);
 
   const averageHead = useMemo(
@@ -3282,7 +3269,7 @@ const ReservoirHeadField = ({
           unit={headUnit}
           onChange={onPropertyChange}
           readOnly={readOnly}
-          commitInvalidValues={allowsNullValues}
+          commitInvalidValues
         />
 
         <LibrarySelectRow

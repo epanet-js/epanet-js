@@ -351,7 +351,7 @@ describe("parse pipes", () => {
     expect(pipe.length).toEqual(length);
     expect(pipe.diameter).toEqual(diameter);
     expect(pipe.roughness).toEqual(roughness);
-    expect(pipe.minorLoss).toEqual(0);
+    expect(pipe.minorLoss).toBeUndefined();
     expect(pipe.initialStatus).toEqual("open");
   });
 
@@ -372,34 +372,10 @@ describe("parse pipes", () => {
     ${junctionId}\t10\t0
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
-
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.minorLoss).toBeUndefined();
-  });
-
-  it("defaults missing roughness to the H-W formula default", () => {
-    const pipeId = "P1";
-    const inp = `
-    [OPTIONS]
-    Headloss\tH-W
-    [RESERVOIRS]
-    R1\t100
-    [JUNCTIONS]
-    J1\t50
-    [PIPES]
-    ${pipeId}\tR1\tJ1\t1000\t12
-
-    [COORDINATES]
-    R1\t0\t0
-    J1\t10\t0
-    `;
-
     const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.roughness).toEqual(130);
-    expect(pipe.minorLoss).toEqual(0);
+    expect(pipe.minorLoss).toBeUndefined();
   });
 
   it("stores an invalid roughness as null when null values are allowed", () => {
@@ -417,7 +393,7 @@ describe("parse pipes", () => {
     J1\t10\t0
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
     expect(pipe.roughness).toBeNull();
@@ -440,32 +416,9 @@ describe("parse pipes", () => {
     J1\t10\t0
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
-
-    const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.roughness).toBeNull();
-  });
-
-  it("defaults missing roughness to the D-W formula default", () => {
-    const pipeId = "P1";
-    const inp = `
-    [OPTIONS]
-    Headloss\tD-W
-    [RESERVOIRS]
-    R1\t100
-    [JUNCTIONS]
-    J1\t50
-    [PIPES]
-    ${pipeId}\tR1\tJ1\t1000\t12
-
-    [COORDINATES]
-    R1\t0\t0
-    J1\t10\t0
-    `;
-
     const { hydraulicModel } = parseInp(inp);
 
     const pipe = getByLabel(hydraulicModel.assets, pipeId) as Pipe;
-    expect(pipe.roughness).toEqual(0.1);
+    expect(pipe.roughness).toBeNull();
   });
 });

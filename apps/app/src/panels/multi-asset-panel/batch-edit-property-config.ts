@@ -358,19 +358,14 @@ export const BATCH_EDITABLE_PROPERTIES: Record<
   },
 };
 
-// A default always applies when empty, so these are optional regardless of the
-// null-values flag (mirrors the data table's OPTIONAL_KEYS).
+// Properties that can be cleared to empty in batch edit: either a default
+// always applies, or the value is left empty (null/undefined).
 const OPTIONAL_KEYS = new Set<string>([
   "bulkReactionCoeff",
   "wallReactionCoeff",
   "energyPrice",
   "chemicalSourceStrength",
   "year",
-]);
-
-// Required in strict mode, but optional when the null-values flag is on
-// (mirrors the data table's FLAG_OPTIONAL_KEYS).
-const FLAG_OPTIONAL_KEYS = new Set<string>([
   "minorLoss",
   "emitterCoefficient",
   "minVolume",
@@ -379,9 +374,5 @@ const FLAG_OPTIONAL_KEYS = new Set<string>([
   "initialQuality",
 ]);
 
-export const isOptionalProperty = (
-  modelProperty: string,
-  allowsNullValues: boolean,
-): boolean =>
-  OPTIONAL_KEYS.has(modelProperty) ||
-  (allowsNullValues && FLAG_OPTIONAL_KEYS.has(modelProperty));
+export const isOptionalProperty = (modelProperty: string): boolean =>
+  OPTIONAL_KEYS.has(modelProperty);

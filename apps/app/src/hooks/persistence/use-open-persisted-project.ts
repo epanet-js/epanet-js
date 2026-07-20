@@ -37,7 +37,6 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
   const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
 
@@ -59,9 +58,7 @@ export const useOpenPersistedProject = () => {
         if (result.status !== "ok" && result.status !== "migrated") {
           return result;
         }
-        const fetchProject = allowsNullValues
-          ? db.fetchProjectWithNullValues
-          : db.fetchProject;
+        const fetchProject = db.fetchProject;
         const {
           projectSettings,
           pipeLibrary,
@@ -89,7 +86,7 @@ export const useOpenPersistedProject = () => {
           projectSettings,
         };
       },
-      [allowsNullValues, isWriteDbToOpfsOn, isReadDbFromOpfsOn],
+      [isWriteDbToOpfsOn, isReadDbFromOpfsOn],
     ),
   );
 

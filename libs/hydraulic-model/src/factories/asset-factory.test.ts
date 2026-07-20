@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
+import { AssetFactory } from "./asset-factory";
 import { LabelManager } from "../label-manager";
 import { testDefaults } from "../test-helpers/defaults";
 
@@ -11,16 +11,9 @@ const assetFactory = () =>
     new LabelManager(),
   );
 
-const assetFactoryWithNullValues = () =>
-  new AssetFactoryWithNullValues(
-    testDefaults,
-    new ConsecutiveIdsGenerator(),
-    new LabelManager(),
-  );
-
 describe("AssetFactory createPipe roughness", () => {
-  it("applies the default roughness when none is provided", () => {
-    expect(assetFactory().createPipe({}).roughness).toEqual(130);
+  it("leaves roughness empty when none is provided", () => {
+    expect(assetFactory().createPipe({}).roughness).toBeNull();
   });
 
   it("keeps the provided roughness value", () => {
@@ -28,21 +21,9 @@ describe("AssetFactory createPipe roughness", () => {
   });
 });
 
-describe("AssetFactoryWithNullValues createPipe roughness", () => {
-  it("leaves roughness empty when none is provided", () => {
-    expect(assetFactoryWithNullValues().createPipe({}).roughness).toBeNull();
-  });
-
-  it("keeps the provided roughness value", () => {
-    expect(
-      assetFactoryWithNullValues().createPipe({ roughness: 95 }).roughness,
-    ).toEqual(95);
-  });
-});
-
 describe("AssetFactory createPipe diameter", () => {
-  it("applies the default diameter when none is provided", () => {
-    expect(assetFactory().createPipe({}).diameter).toEqual(300);
+  it("leaves diameter empty when none is provided", () => {
+    expect(assetFactory().createPipe({}).diameter).toBeNull();
   });
 
   it("keeps the provided diameter value", () => {
@@ -50,27 +31,13 @@ describe("AssetFactory createPipe diameter", () => {
   });
 });
 
-describe("AssetFactoryWithNullValues createPipe diameter", () => {
-  it("leaves diameter empty when none is provided", () => {
-    expect(assetFactoryWithNullValues().createPipe({}).diameter).toBeNull();
-  });
-
-  it("keeps the provided diameter value", () => {
-    expect(
-      assetFactoryWithNullValues().createPipe({ diameter: 150 }).diameter,
-    ).toEqual(150);
-  });
-});
-
-describe("AssetFactoryWithNullValues createPipe length", () => {
+describe("AssetFactory createPipe length", () => {
   it("leaves length empty when none is provided", () => {
-    expect(assetFactoryWithNullValues().createPipe({}).length).toBeNull();
+    expect(assetFactory().createPipe({}).length).toBeNull();
   });
 
   it("keeps the provided length value", () => {
-    expect(
-      assetFactoryWithNullValues().createPipe({ length: 500 }).length,
-    ).toEqual(500);
+    expect(assetFactory().createPipe({ length: 500 }).length).toEqual(500);
   });
 });
 
@@ -78,14 +45,14 @@ describe("pump and valve length", () => {
   it("is always null (pumps and valves are zero-length links)", () => {
     expect(assetFactory().createPump({}).length).toBeNull();
     expect(assetFactory().createValve({}).length).toBeNull();
-    expect(assetFactoryWithNullValues().createPump({}).length).toBeNull();
-    expect(assetFactoryWithNullValues().createValve({}).length).toBeNull();
+    expect(assetFactory().createPump({}).length).toBeNull();
+    expect(assetFactory().createValve({}).length).toBeNull();
   });
 });
 
-describe("AssetFactoryWithNullValues tank dimensions", () => {
+describe("AssetFactory tank dimensions", () => {
   it("leaves tank dimensions empty when unmapped", () => {
-    const tank = assetFactoryWithNullValues().createTank({});
+    const tank = assetFactory().createTank({});
 
     expect(tank.initialLevel).toBeNull();
     expect(tank.minLevel).toBeNull();
@@ -94,7 +61,7 @@ describe("AssetFactoryWithNullValues tank dimensions", () => {
   });
 
   it("keeps provided tank dimensions", () => {
-    const tank = assetFactoryWithNullValues().createTank({
+    const tank = assetFactory().createTank({
       initialLevel: 3,
       minLevel: 1,
       maxLevel: 8,
@@ -108,9 +75,9 @@ describe("AssetFactoryWithNullValues tank dimensions", () => {
   });
 });
 
-describe("AssetFactoryWithNullValues node elevation", () => {
+describe("AssetFactory node elevation", () => {
   it("leaves elevation empty when unmapped", () => {
-    const factory = assetFactoryWithNullValues();
+    const factory = assetFactory();
 
     expect(factory.createJunction({}).elevation).toBeNull();
     expect(factory.createReservoir({}).elevation).toBeNull();
@@ -118,7 +85,7 @@ describe("AssetFactoryWithNullValues node elevation", () => {
   });
 
   it("keeps the provided elevation value", () => {
-    const factory = assetFactoryWithNullValues();
+    const factory = assetFactory();
 
     expect(factory.createJunction({ elevation: 42 }).elevation).toEqual(42);
     expect(factory.createReservoir({ elevation: 42 }).elevation).toEqual(42);
@@ -126,18 +93,13 @@ describe("AssetFactoryWithNullValues node elevation", () => {
   });
 });
 
-describe("AssetFactory node elevation", () => {
-  it("applies the default elevation when none is provided", () => {
-    expect(assetFactory().createJunction({}).elevation).toEqual(0);
-    expect(assetFactory().createTank({}).elevation).toEqual(0);
-  });
-});
-
 describe("AssetFactory createPump curve", () => {
-  it("applies the default curve for a design-point pump when none is provided", () => {
+  it("leaves a curve-based pump's curve empty when unmapped", () => {
     expect(
-      assetFactory().createPump({ definitionType: "designPointCurve" }).curve,
-    ).toEqual([{ x: 1, y: 1 }]);
+      assetFactory().createPump({
+        definitionType: "designPointCurve",
+      }).curve,
+    ).toBeNull();
   });
 
   it("keeps the provided curve", () => {
@@ -150,40 +112,19 @@ describe("AssetFactory createPump curve", () => {
   });
 });
 
-describe("AssetFactoryWithNullValues createPump curve", () => {
-  it("leaves a curve-based pump's curve empty when unmapped", () => {
-    expect(
-      assetFactoryWithNullValues().createPump({
-        definitionType: "designPointCurve",
-      }).curve,
-    ).toBeNull();
-  });
-
-  it("keeps the provided curve", () => {
-    expect(
-      assetFactoryWithNullValues().createPump({
-        definitionType: "designPointCurve",
-        curve: [{ x: 5, y: 10 }],
-      }).curve,
-    ).toEqual([{ x: 5, y: 10 }]);
-  });
-});
-
-describe("AssetFactoryWithNullValues createPump power", () => {
+describe("AssetFactory createPump power", () => {
   it("leaves power empty when none is provided", () => {
-    expect(assetFactoryWithNullValues().createPump({}).power).toBeNull();
+    expect(assetFactory().createPump({}).power).toBeNull();
   });
 
   it("keeps the provided power value", () => {
-    expect(
-      assetFactoryWithNullValues().createPump({ power: 25 }).power,
-    ).toEqual(25);
+    expect(assetFactory().createPump({ power: 25 }).power).toEqual(25);
   });
 });
 
-describe("AssetFactoryWithNullValues optional attributes", () => {
+describe("AssetFactory optional attributes", () => {
   it("leaves EPANET-optional attributes undefined when none is provided", () => {
-    const factory = assetFactoryWithNullValues();
+    const factory = assetFactory();
 
     expect(factory.createPipe({}).minorLoss).toBeUndefined();
     expect(factory.createValve({}).minorLoss).toBeUndefined();
@@ -197,7 +138,7 @@ describe("AssetFactoryWithNullValues optional attributes", () => {
   });
 
   it("keeps provided optional values", () => {
-    const factory = assetFactoryWithNullValues();
+    const factory = assetFactory();
 
     expect(factory.createPipe({ minorLoss: 3 }).minorLoss).toEqual(3);
     expect(
@@ -210,37 +151,24 @@ describe("AssetFactoryWithNullValues optional attributes", () => {
   });
 
   it("keeps an explicitly provided default value", () => {
-    const factory = assetFactoryWithNullValues();
+    const factory = assetFactory();
 
     expect(factory.createPipe({ minorLoss: 0 }).minorLoss).toEqual(0);
     expect(factory.createPump({ speed: 1 }).speed).toEqual(1);
   });
 });
 
-describe("AssetFactory optional attributes", () => {
-  it("applies factory presets for EPANET-optional attributes", () => {
-    const factory = assetFactory();
-
-    expect(factory.createPipe({}).minorLoss).toEqual(0);
-    expect(factory.createJunction({}).emitterCoefficient).toEqual(0);
-    expect(factory.createTank({}).mixingFraction).toEqual(1);
-    expect(factory.createPump({}).speed).toEqual(1);
-  });
-});
-
-describe("AssetFactoryWithNullValues createReservoir head", () => {
+describe("AssetFactory createReservoir head", () => {
   it("leaves head empty when neither head nor relativeHead is provided", () => {
-    expect(assetFactoryWithNullValues().createReservoir({}).head).toBeNull();
+    expect(assetFactory().createReservoir({}).head).toBeNull();
   });
 
   it("keeps the provided head value", () => {
-    expect(
-      assetFactoryWithNullValues().createReservoir({ head: 42 }).head,
-    ).toEqual(42);
+    expect(assetFactory().createReservoir({ head: 42 }).head).toEqual(42);
   });
 
   it("derives head from elevation + relativeHead instead of nulling it", () => {
-    const reservoir = assetFactoryWithNullValues().createReservoir({
+    const reservoir = assetFactory().createReservoir({
       elevation: 100,
       relativeHead: 10,
     });
@@ -248,7 +176,7 @@ describe("AssetFactoryWithNullValues createReservoir head", () => {
   });
 });
 
-describe("AssetFactory createPipe customAttributes", () => {
+describe("createPipe customAttributes", () => {
   it("sets each non-null custom attribute as a property", () => {
     const pipe = assetFactory().createPipe({
       customAttributes: { "custom-1": 100, "custom-2": "PVC" },
@@ -267,7 +195,7 @@ describe("AssetFactory createPipe customAttributes", () => {
   });
 
   it("applies custom attributes on the null-values factory too", () => {
-    const pipe = assetFactoryWithNullValues().createPipe({
+    const pipe = assetFactory().createPipe({
       customAttributes: { "custom-1": 250 },
     });
 
@@ -305,7 +233,7 @@ describe("custom attributes on other asset types", () => {
   });
 
   it("applies custom attributes on the null-values pump (no super delegation)", () => {
-    const pump = assetFactoryWithNullValues().createPump({
+    const pump = assetFactory().createPump({
       customAttributes: { "custom-4": "diesel" },
     });
 

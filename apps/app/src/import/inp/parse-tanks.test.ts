@@ -131,7 +131,7 @@ describe("parse tanks", () => {
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.mixingModel).toEqual("mixed");
-    expect(tank.mixingFraction).toEqual(1.0);
+    expect(tank.mixingFraction).toBeUndefined();
   });
 
   it("parses FIFO mixing model", () => {
@@ -207,7 +207,7 @@ describe("parse tanks", () => {
     expect(tank.mixingModel).toEqual("mixed");
   });
 
-  it("defaults missing min volume to zero", () => {
+  it("leaves min volume empty when omitted", () => {
     const inp = `
     [TANKS]
     T1    100     15       5       25     120
@@ -219,7 +219,7 @@ describe("parse tanks", () => {
     const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
-    expect(tank.minVolume).toEqual(0);
+    expect(tank.minVolume).toBeUndefined();
   });
 
   it("leaves min volume undefined when omitted and null values are allowed", () => {
@@ -231,7 +231,7 @@ describe("parse tanks", () => {
     T1\t10\t20
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.minVolume).toBeUndefined();
@@ -246,7 +246,7 @@ describe("parse tanks", () => {
     T1\t10\t20
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const tank = getByLabel(hydraulicModel.assets, "T1") as Tank;
     expect(tank.mixingFraction).toBeUndefined();

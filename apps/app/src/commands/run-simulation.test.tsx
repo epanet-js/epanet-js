@@ -40,10 +40,16 @@ describe("Run simulation", () => {
   it("persists state the simulation when passes", async () => {
     const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1)
-      .aJunction(IDS.j1)
+      .aReservoir(IDS.r1, { head: 100 })
+      .aJunction(IDS.j1, { elevation: 0 })
       .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
+      .aPipe(IDS.p1, {
+        startNodeId: IDS.r1,
+        endNodeId: IDS.j1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const store = setInitialState({ hydraulicModel });
     renderComponent({ store });
@@ -302,15 +308,23 @@ describe("Run simulation", () => {
     const aModelWithControlOnInactiveAsset = () => {
       const IDS = { r1: 1, j1: 2, p1: 3, n1: 4, n2: 5, pu1: 6 } as const;
       return HydraulicModelBuilder.with()
-        .aReservoir(IDS.r1)
-        .aJunction(IDS.j1)
+        .aReservoir(IDS.r1, { head: 100 })
+        .aJunction(IDS.j1, { elevation: 0 })
         .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
-        .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
-        .aNode(IDS.n1)
-        .aNode(IDS.n2)
+        .aPipe(IDS.p1, {
+          startNodeId: IDS.r1,
+          endNodeId: IDS.j1,
+          length: 100,
+          diameter: 100,
+          roughness: 100,
+        })
+        .aJunction(IDS.n1, { elevation: 0 })
+        .aJunction(IDS.n2, { elevation: 0 })
         .aPump(IDS.pu1, {
           startNodeId: IDS.n1,
           endNodeId: IDS.n2,
+          definitionType: "power",
+          power: 10,
           isActive: false,
         })
         .aSimpleControl({
@@ -367,18 +381,22 @@ describe("Run simulation", () => {
 
   const aNonSimulableModel = () => {
     const IDS = { r1: 1 } as const;
-    return HydraulicModelBuilder.with().aReservoir(IDS.r1).build();
+    return HydraulicModelBuilder.with()
+      .aReservoir(IDS.r1, { head: 100 })
+      .build();
   };
 
   const aModelWithEmptyRoughness = () => {
     const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     return HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1)
-      .aJunction(IDS.j1)
+      .aReservoir(IDS.r1, { head: 100 })
+      .aJunction(IDS.j1, { elevation: 0 })
       .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
       .aPipe(IDS.p1, {
         startNodeId: IDS.r1,
         endNodeId: IDS.j1,
+        length: 100,
+        diameter: 100,
         roughness: null,
       })
       .build();
@@ -387,10 +405,16 @@ describe("Run simulation", () => {
   const aSimulableModel = () => {
     const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     return HydraulicModelBuilder.with()
-      .aReservoir(IDS.r1)
-      .aJunction(IDS.j1)
+      .aReservoir(IDS.r1, { head: 100 })
+      .aJunction(IDS.j1, { elevation: 0 })
       .aJunctionDemand(IDS.j1, [{ baseDemand: 1 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
+      .aPipe(IDS.p1, {
+        startNodeId: IDS.r1,
+        endNodeId: IDS.j1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
   };
 
@@ -398,9 +422,15 @@ describe("Run simulation", () => {
     const IDS = { r1: 1, j1: 2, p1: 3 } as const;
     return HydraulicModelBuilder.with()
       .aReservoir(IDS.r1, { head: 0 })
-      .aJunction(IDS.j1)
+      .aJunction(IDS.j1, { elevation: 0 })
       .aJunctionDemand(IDS.j1, [{ baseDemand: 10 }])
-      .aPipe(IDS.p1, { startNodeId: IDS.r1, endNodeId: IDS.j1 })
+      .aPipe(IDS.p1, {
+        startNodeId: IDS.r1,
+        endNodeId: IDS.j1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
   };
 });

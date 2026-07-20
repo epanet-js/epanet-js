@@ -2,7 +2,11 @@ import { buildJunction } from "../test-helpers";
 
 describe("Junction", () => {
   it("some basic operations with junction", () => {
-    const junction = buildJunction({ id: 1, coordinates: [1, 2] });
+    const junction = buildJunction({
+      id: 1,
+      coordinates: [1, 2],
+      elevation: 0,
+    });
 
     expect(junction.elevation).toEqual(0);
 
@@ -16,10 +20,10 @@ describe("Junction", () => {
     expect(junction.elevation).toEqual(10);
   });
 
-  it("assigns default values", () => {
+  it("leaves elevation empty and assigns an id", () => {
     const junction = buildJunction();
 
-    expect(junction.elevation).toEqual(0);
+    expect(junction.elevation).toBeNull();
     expect(junction.id).not.toBeUndefined();
   });
 });

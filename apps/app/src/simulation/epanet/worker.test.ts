@@ -39,9 +39,15 @@ describe("EPS simulation", () => {
   it("returns metadata with timestep count for single timestep", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
@@ -61,9 +67,15 @@ describe("EPS simulation", () => {
   it("returns metadata with multiple timesteps for EPS duration", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
       .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
@@ -91,9 +103,21 @@ describe("EPS simulation", () => {
         maxLevel: 25,
         diameter: 120,
       })
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.T1 })
-      .aPipe(IDS.P2, { startNodeId: IDS.T1, endNodeId: IDS.J1 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.T1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
+      .aPipe(IDS.P2, {
+        startNodeId: IDS.T1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
@@ -110,10 +134,16 @@ describe("EPS simulation", () => {
   it("returns failure status with zero metadata on error", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-      .aJunction(IDS.J2) // Disconnected junction causes error
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
+      .aJunction(IDS.J2, { elevation: 0 }) // Disconnected junction causes error
       .build();
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
@@ -130,10 +160,16 @@ describe("EPS simulation", () => {
   it("includes multiple errors in report", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3, J2: 4 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
-      .aJunction(IDS.J2) // Disconnected junction
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
+      .aJunction(IDS.J2, { elevation: 0 }) // Disconnected junction
       .build();
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
@@ -150,9 +186,15 @@ describe("EPS simulation", () => {
   it("runs quality analysis and sets quality type in metadata when runQuality flag is set", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
       .qualitySimulationType("age")
@@ -179,9 +221,15 @@ describe("EPS simulation", () => {
   it("does not run quality analysis when runQuality flag is not set", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const inp = buildInp(hydraulicModel, {
       units: presets.LPS.units,
@@ -198,9 +246,15 @@ describe("EPS simulation", () => {
   it("calls progress callback during simulation", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
       .timing({ duration: 7200, hydraulicTimestep: 3600 }) // 2 hours, 1 hour timestep
@@ -230,9 +284,15 @@ describe("EPS simulation", () => {
   it("emits a finalizing progress event after the hydraulic loop", async () => {
     const IDS = { R1: 1, J1: 2, P1: 3 } as const;
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1)
-      .aJunction(IDS.J1)
-      .aPipe(IDS.P1, { startNodeId: IDS.R1, endNodeId: IDS.J1 })
+      .aReservoir(IDS.R1, { head: 100 })
+      .aJunction(IDS.J1, { elevation: 0 })
+      .aPipe(IDS.P1, {
+        startNodeId: IDS.R1,
+        endNodeId: IDS.J1,
+        length: 100,
+        diameter: 100,
+        roughness: 100,
+      })
       .build();
     const simulationSettings = SimulationSettingsBuilder.with()
       .timing({ duration: 7200, hydraulicTimestep: 3600 })

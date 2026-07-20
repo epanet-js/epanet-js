@@ -7,7 +7,7 @@ describe("validateModelAttributes", () => {
   describe("pipe roughness", () => {
     it("flags a missing roughness as a present error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { label: "P1", roughness: null })
+        .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -27,7 +27,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a zero roughness as a positive error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { label: "P1", roughness: 0 })
+        .aPipe(1, { label: "P1", roughness: 0, diameter: 100, length: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -42,7 +42,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a negative roughness as a positive error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { roughness: -5 })
+        .aPipe(1, { roughness: -5, diameter: 100, length: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -53,7 +53,7 @@ describe("validateModelAttributes", () => {
 
     it("accepts a positive roughness", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { roughness: 130 })
+        .aPipe(1, { roughness: 130, diameter: 100, length: 100 })
         .build();
 
       expect(await validateModelAttributes(model)).toEqual([]);
@@ -61,7 +61,7 @@ describe("validateModelAttributes", () => {
 
     it("reports a single issue per pipe with fail-fast (present before positive)", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { roughness: null })
+        .aPipe(1, { roughness: null, diameter: 100, length: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -73,7 +73,7 @@ describe("validateModelAttributes", () => {
     it("validates every pipe across the model", async () => {
       const builder = HydraulicModelBuilder.with();
       for (let id = 1; id <= 25; id++) {
-        builder.aPipe(id, { roughness: null });
+        builder.aPipe(id, { roughness: null, diameter: 100, length: 100 });
       }
       const model = builder.build();
 
@@ -129,7 +129,13 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing tank elevation", async () => {
       const model = HydraulicModelBuilder.with()
-        .aTank(1, { elevation: null })
+        .aTank(1, {
+          elevation: null,
+          initialLevel: 5,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -147,7 +153,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing valve diameter", async () => {
       const model = HydraulicModelBuilder.with()
-        .aValve(1, { diameter: null })
+        .aValve(1, { diameter: null, setting: 10 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -158,7 +164,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a zero valve diameter as a positive error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aValve(1, { diameter: 0 })
+        .aValve(1, { diameter: 0, setting: 10 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -169,7 +175,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing valve setting", async () => {
       const model = HydraulicModelBuilder.with()
-        .aValve(1, { kind: "tcv", setting: null })
+        .aValve(1, { kind: "tcv", setting: null, diameter: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -179,7 +185,7 @@ describe("validateModelAttributes", () => {
 
     it("does not require a setting for a gpv valve", async () => {
       const model = HydraulicModelBuilder.with()
-        .aValve(1, { kind: "gpv", setting: null })
+        .aValve(1, { kind: "gpv", setting: null, diameter: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -191,7 +197,7 @@ describe("validateModelAttributes", () => {
 
     it("requires a setting for a pcv valve", async () => {
       const model = HydraulicModelBuilder.with()
-        .aValve(1, { kind: "pcv", setting: null })
+        .aValve(1, { kind: "pcv", setting: null, diameter: 100 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -201,14 +207,25 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing tank diameter unless a volume curve is set", async () => {
       const withoutCurve = HydraulicModelBuilder.with()
-        .aTank(1, { diameter: null })
+        .aTank(1, {
+          diameter: null,
+          elevation: 50,
+          initialLevel: 5,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
       expect(
         (await validateModelAttributes(withoutCurve)).map((i) => i.ruleId),
       ).toContain("tank.diameter.present");
 
       const withCurve = HydraulicModelBuilder.with()
-        .aTank(2, { diameter: null, volumeCurveId: 9 })
+        .aTank(2, {
+          diameter: null,
+          volumeCurveId: 9,
+          elevation: 50,
+          initialLevel: 5,
+        })
         .build();
       expect(
         (await validateModelAttributes(withCurve)).map((i) => i.ruleId),
@@ -217,14 +234,26 @@ describe("validateModelAttributes", () => {
 
     it("allows a zero tank initial level but flags a missing one", async () => {
       const zero = HydraulicModelBuilder.with()
-        .aTank(1, { initialLevel: 0 })
+        .aTank(1, {
+          initialLevel: 0,
+          elevation: 50,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
       expect(
         (await validateModelAttributes(zero)).map((i) => i.ruleId),
       ).not.toContain("tank.initialLevel.nonNegative");
 
       const missing = HydraulicModelBuilder.with()
-        .aTank(2, { initialLevel: null })
+        .aTank(2, {
+          initialLevel: null,
+          elevation: 50,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
       expect(
         (await validateModelAttributes(missing)).map((i) => i.ruleId),
@@ -233,7 +262,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a zero pipe length", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { length: 0, roughness: 100 })
+        .aPipe(1, { length: 0, roughness: 100, diameter: 100 })
         .build();
       expect(
         (await validateModelAttributes(model)).map((i) => i.ruleId),
@@ -242,8 +271,8 @@ describe("validateModelAttributes", () => {
 
     it("flags pump power only for constant-power pumps", async () => {
       const powerPump = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -256,8 +285,8 @@ describe("validateModelAttributes", () => {
       ).toContain("pump.power.positive");
 
       const curvePump = HydraulicModelBuilder.with()
-        .aJunction(4)
-        .aJunction(5)
+        .aJunction(4, { elevation: 50 })
+        .aJunction(5, { elevation: 50 })
         .aPump(2, {
           startNodeId: 4,
           endNodeId: 5,
@@ -272,8 +301,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing power as a present error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -290,8 +319,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a curve-based pump that has no curve", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -306,8 +335,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a curve-based pump with an invalid curve", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -324,8 +353,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a named-curve pump that has no curveId", async () => {
       const missing = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -337,8 +366,8 @@ describe("validateModelAttributes", () => {
       ).toContain("pump.curveId.present");
 
       const withCurveId = HydraulicModelBuilder.with()
-        .aJunction(4)
-        .aJunction(5)
+        .aJunction(4, { elevation: 50 })
+        .aJunction(5, { elevation: 50 })
         .aPumpCurve({
           id: 9,
           points: [
@@ -362,8 +391,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a named-curve pump whose curveId does not resolve to a curve", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, {
           startNodeId: 2,
           endNodeId: 3,
@@ -380,8 +409,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a named-curve pump whose resolved curve is not monotonic", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPumpCurve({
           id: 9,
           points: [
@@ -405,7 +434,13 @@ describe("validateModelAttributes", () => {
 
     it("flags tank max/min levels only when no volume curve is set", async () => {
       const diameterTank = HydraulicModelBuilder.with()
-        .aTank(1, { maxLevel: 0, minLevel: -1 })
+        .aTank(1, {
+          maxLevel: 0,
+          minLevel: -1,
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+        })
         .build();
       const ruleIds = (await validateModelAttributes(diameterTank)).map(
         (i) => i.ruleId,
@@ -414,7 +449,13 @@ describe("validateModelAttributes", () => {
       expect(ruleIds).toContain("tank.minLevel.nonNegative");
 
       const curveTank = HydraulicModelBuilder.with()
-        .aTank(2, { maxLevel: 0, minLevel: -1, volumeCurveId: 9 })
+        .aTank(2, {
+          maxLevel: 0,
+          minLevel: -1,
+          volumeCurveId: 9,
+          elevation: 50,
+          initialLevel: 5,
+        })
         .build();
       const curveRuleIds = (await validateModelAttributes(curveTank)).map(
         (i) => i.ruleId,
@@ -425,7 +466,13 @@ describe("validateModelAttributes", () => {
 
     it("flags a missing (null) min or max level as a present error", async () => {
       const model = HydraulicModelBuilder.with()
-        .aTank(1, { minLevel: null, maxLevel: null })
+        .aTank(1, {
+          minLevel: null,
+          maxLevel: null,
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+        })
         .build();
       const ruleIds = (await validateModelAttributes(model)).map(
         (i) => i.ruleId,
@@ -436,14 +483,26 @@ describe("validateModelAttributes", () => {
 
     it("flags an initial level outside the min/max range as an error", async () => {
       const aboveMax = HydraulicModelBuilder.with()
-        .aTank(1, { minLevel: 0, maxLevel: 10, initialLevel: 15 })
+        .aTank(1, {
+          minLevel: 0,
+          maxLevel: 10,
+          initialLevel: 15,
+          elevation: 50,
+          diameter: 100,
+        })
         .build();
       expect(
         (await validateModelAttributes(aboveMax)).map((i) => i.ruleId),
       ).toContain("tank.initialLevel.withinLevelRange");
 
       const belowMin = HydraulicModelBuilder.with()
-        .aTank(2, { minLevel: 5, maxLevel: 10, initialLevel: 2 })
+        .aTank(2, {
+          minLevel: 5,
+          maxLevel: 10,
+          initialLevel: 2,
+          elevation: 50,
+          diameter: 100,
+        })
         .build();
       expect(
         (await validateModelAttributes(belowMin)).map((i) => i.ruleId),
@@ -452,7 +511,13 @@ describe("validateModelAttributes", () => {
 
     it("allows an initial level at the range boundaries", async () => {
       const model = HydraulicModelBuilder.with()
-        .aTank(1, { minLevel: 0, maxLevel: 10, initialLevel: 10 })
+        .aTank(1, {
+          minLevel: 0,
+          maxLevel: 10,
+          initialLevel: 10,
+          elevation: 50,
+          diameter: 100,
+        })
         .build();
       expect(
         (await validateModelAttributes(model)).map((i) => i.ruleId),
@@ -466,6 +531,7 @@ describe("validateModelAttributes", () => {
           maxLevel: 10,
           initialLevel: 15,
           volumeCurveId: 9,
+          elevation: 50,
         })
         .build();
       const ruleIds = (await validateModelAttributes(model)).map(
@@ -476,7 +542,13 @@ describe("validateModelAttributes", () => {
 
     it("warns about a zero-storage tank (minLevel == maxLevel)", async () => {
       const model = HydraulicModelBuilder.with()
-        .aTank(1, { minLevel: 10, maxLevel: 10, initialLevel: 10 })
+        .aTank(1, {
+          minLevel: 10,
+          maxLevel: 10,
+          initialLevel: 10,
+          elevation: 50,
+          diameter: 100,
+        })
         .build();
       const issues = await validateModelAttributes(model);
       const aboveMin = issues.find(
@@ -489,7 +561,12 @@ describe("validateModelAttributes", () => {
   describe("optional attribute value checks", () => {
     it("flags a negative minor loss as an error (EPANET rejects it)", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { minorLoss: -5 })
+        .aPipe(1, {
+          minorLoss: -5,
+          diameter: 100,
+          length: 100,
+          roughness: 100,
+        })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -503,7 +580,7 @@ describe("validateModelAttributes", () => {
 
     it("accepts a zero minor loss", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { minorLoss: 0 })
+        .aPipe(1, { minorLoss: 0, diameter: 100, length: 100, roughness: 100 })
         .build();
 
       expect(
@@ -513,7 +590,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a negative emitter coefficient as a warning (EPANET runs)", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(1, { emitterCoefficient: -5 })
+        .aJunction(1, { emitterCoefficient: -5, elevation: 50 })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -527,14 +604,30 @@ describe("validateModelAttributes", () => {
 
     it("warns on an out-of-range mixing fraction only for 2comp tanks", async () => {
       const twoComp = HydraulicModelBuilder.with()
-        .aTank(1, { mixingModel: "2comp", mixingFraction: 1.5 })
+        .aTank(1, {
+          mixingModel: "2comp",
+          mixingFraction: 1.5,
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
       expect(
         (await validateModelAttributes(twoComp)).map((i) => i.ruleId),
       ).toContain("tank.mixingFraction.unitRange");
 
       const mixed = HydraulicModelBuilder.with()
-        .aTank(2, { mixingModel: "mixed", mixingFraction: 1.5 })
+        .aTank(2, {
+          mixingModel: "mixed",
+          mixingFraction: 1.5,
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
       expect(
         (await validateModelAttributes(mixed)).map((i) => i.ruleId),
@@ -543,8 +636,8 @@ describe("validateModelAttributes", () => {
 
     it("flags a negative energy price as an error (EPANET rejects it)", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(2)
-        .aJunction(3)
+        .aJunction(2, { elevation: 50 })
+        .aJunction(3, { elevation: 50 })
         .aPump(1, { startNodeId: 2, endNodeId: 3, energyPrice: -5 })
         .build();
 
@@ -560,6 +653,7 @@ describe("validateModelAttributes", () => {
         .aJunction(1, {
           chemicalSourceType: "concen",
           chemicalSourceStrength: -5,
+          elevation: 50,
         })
         .build();
       const issues = await validateModelAttributes(withSource);
@@ -569,7 +663,7 @@ describe("validateModelAttributes", () => {
       expect(strengthIssue?.severity).toBe("warning");
 
       const noSource = HydraulicModelBuilder.with()
-        .aJunction(2, { chemicalSourceStrength: -5 })
+        .aJunction(2, { chemicalSourceStrength: -5, elevation: 50 })
         .build();
       expect(
         (await validateModelAttributes(noSource)).map((i) => i.ruleId),
@@ -582,9 +676,16 @@ describe("validateModelAttributes", () => {
         chemicalSourceStrength: -5,
       };
       const model = HydraulicModelBuilder.with()
-        .aJunction(1, source)
-        .aReservoir(2, source)
-        .aTank(3, source)
+        .aJunction(1, { ...source, elevation: 50 })
+        .aReservoir(2, { ...source, head: 100 })
+        .aTank(3, {
+          ...source,
+          elevation: 50,
+          initialLevel: 5,
+          diameter: 100,
+          maxLevel: 10,
+          minLevel: 0,
+        })
         .build();
 
       const groups = groupIssues(await validateModelAttributes(model));
@@ -598,8 +699,8 @@ describe("validateModelAttributes", () => {
 
   it("ignores assets without rules", async () => {
     const model = HydraulicModelBuilder.with()
-      .aJunction(1, { label: "J1" })
-      .aReservoir(2, { label: "R1" })
+      .aJunction(1, { label: "J1", elevation: 50 })
+      .aReservoir(2, { label: "R1", head: 100 })
       .build();
 
     expect(await validateModelAttributes(model)).toEqual([]);
@@ -608,7 +709,13 @@ describe("validateModelAttributes", () => {
   describe("pipe installation year", () => {
     it("flags an out-of-range year as a warning", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { label: "P1", year: 999, roughness: 100 })
+        .aPipe(1, {
+          label: "P1",
+          year: 999,
+          roughness: 100,
+          diameter: 100,
+          length: 100,
+        })
         .build();
 
       const issues = await validateModelAttributes(model);
@@ -628,7 +735,7 @@ describe("validateModelAttributes", () => {
 
     it("flags a non-integer year as a warning", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { year: 1995.5, roughness: 100 })
+        .aPipe(1, { year: 1995.5, roughness: 100, diameter: 100, length: 100 })
         .build();
 
       expect(
@@ -638,10 +745,10 @@ describe("validateModelAttributes", () => {
 
     it("accepts a valid year and an empty year", async () => {
       const withYear = HydraulicModelBuilder.with()
-        .aPipe(1, { year: 1995, roughness: 100 })
+        .aPipe(1, { year: 1995, roughness: 100, diameter: 100, length: 100 })
         .build();
       const withoutYear = HydraulicModelBuilder.with()
-        .aPipe(2, { roughness: 100 })
+        .aPipe(2, { roughness: 100, diameter: 100, length: 100 })
         .build();
 
       expect(
@@ -676,9 +783,15 @@ describe("validateModelAttributes", () => {
 
     it("accepts a connected customer point", async () => {
       const model = HydraulicModelBuilder.with()
-        .aJunction(1)
-        .aJunction(2, { coordinates: [10, 0] })
-        .aPipe(3, { startNodeId: 1, endNodeId: 2, roughness: 130 })
+        .aJunction(1, { elevation: 50 })
+        .aJunction(2, { coordinates: [10, 0], elevation: 50 })
+        .aPipe(3, {
+          startNodeId: 1,
+          endNodeId: 2,
+          roughness: 130,
+          diameter: 100,
+          length: 100,
+        })
         .aCustomerPoint(4, {
           label: "CP1",
           connection: { pipeId: 3, junctionId: 1 },
@@ -692,7 +805,7 @@ describe("validateModelAttributes", () => {
   describe("rules subset", () => {
     it("runs only the rules provided", async () => {
       const model = HydraulicModelBuilder.with()
-        .aPipe(1, { roughness: null })
+        .aPipe(1, { roughness: null, diameter: 100, length: 100 })
         .aCustomerPoint(2, { label: "CP1" })
         .build();
       const pipeRules = RULES.filter((rule) => rule.entityType === "pipe");

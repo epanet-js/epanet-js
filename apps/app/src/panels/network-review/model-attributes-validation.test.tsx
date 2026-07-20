@@ -59,7 +59,7 @@ describe("ModelAttributesValidation panel", () => {
 
   it("computes issues and shows the count in the header", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(1, { label: "P1", roughness: null })
+      .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
       .build();
     const store = setInitialState({ hydraulicModel });
 
@@ -73,7 +73,7 @@ describe("ModelAttributesValidation panel", () => {
 
   it("shows the empty state when the model has no issues", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(1, { roughness: 130 })
+      .aPipe(1, { roughness: 130, diameter: 100, length: 100 })
       .build();
     const store = setInitialState({ hydraulicModel });
 
@@ -88,8 +88,8 @@ describe("ModelAttributesValidation panel", () => {
 
   it("selects the affected entities and opens the group detail on click", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(1, { label: "P1", roughness: null })
-      .aPipe(2, { label: "P2", roughness: null })
+      .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
+      .aPipe(2, { label: "P2", roughness: null, diameter: 100, length: 100 })
       .build();
     const store = setInitialState({ hydraulicModel });
 
@@ -111,8 +111,8 @@ describe("ModelAttributesValidation panel", () => {
 
   it("re-selects all affected entities from the detail header action", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(1, { label: "P1", roughness: null })
-      .aPipe(2, { label: "P2", roughness: null })
+      .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
+      .aPipe(2, { label: "P2", roughness: null, diameter: 100, length: 100 })
       .build();
     const store = setInitialState({ hydraulicModel });
 
@@ -133,8 +133,8 @@ describe("ModelAttributesValidation panel", () => {
 
   it("returns to the issues list when deep-linked while inside a detail", async () => {
     const hydraulicModel = HydraulicModelBuilder.with()
-      .aPipe(1, { label: "P1", roughness: null })
-      .aPipe(2, { label: "P2", roughness: null })
+      .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
+      .aPipe(2, { label: "P2", roughness: null, diameter: 100, length: 100 })
       .build();
     const store = setInitialState({ hydraulicModel });
 
@@ -163,8 +163,8 @@ describe("ModelAttributesValidation panel", () => {
     it("discloses the first issue and paywalls the rest behind an overlay", async () => {
       canValidateModelAttributes = false;
       const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(1, { label: "P1", roughness: null })
-        .aPipe(2, { label: "P2", roughness: 0 })
+        .aPipe(1, { label: "P1", roughness: null, diameter: 100, length: 100 })
+        .aPipe(2, { label: "P2", roughness: 0, diameter: 100, length: 100 })
         .build();
       const store = setInitialState({ hydraulicModel });
 

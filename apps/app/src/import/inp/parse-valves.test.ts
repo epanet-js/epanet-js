@@ -150,27 +150,6 @@ describe("parse valves", () => {
     expect(v1.curveId).toBeDefined();
   });
 
-  it("defaults missing minor loss to zero", () => {
-    const valveId = "v1";
-    const inp = `
-    [JUNCTIONS]
-    j1\t10
-    j2\t10
-
-    [VALVES]
-    ${valveId}\tj1\tj2\t100\tFCV\t0.5
-
-    [COORDINATES]
-    j1\t10\t20
-    j2\t30\t40
-    `;
-
-    const { hydraulicModel } = parseInp(inp);
-
-    const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
-    expect(valve.minorLoss).toEqual(0);
-  });
-
   it("leaves minor loss undefined when omitted and null values are allowed", () => {
     const valveId = "v1";
     const inp = `
@@ -186,7 +165,7 @@ describe("parse valves", () => {
     j2\t30\t40
     `;
 
-    const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+    const { hydraulicModel } = parseInp(inp);
 
     const valve = getByLabel(hydraulicModel.assets, valveId) as Valve;
     expect(valve.minorLoss).toBeUndefined();

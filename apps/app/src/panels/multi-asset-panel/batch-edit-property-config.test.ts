@@ -26,7 +26,7 @@ const validatorFor = (
 describe("BATCH_EDITABLE_PROPERTIES", () => {
   const { pipe, junction, tank, pump, valve } = BATCH_EDITABLE_PROPERTIES;
 
-  it("keeps genuinely-required fields required with the flag on or off", () => {
+  it("keeps genuinely-required fields required", () => {
     for (const key of [
       "roughness",
       "diameter",
@@ -34,12 +34,11 @@ describe("BATCH_EDITABLE_PROPERTIES", () => {
       "elevation",
       "initialLevel",
     ]) {
-      expect(isOptionalProperty(key, false)).toBe(false);
-      expect(isOptionalProperty(key, true)).toBe(false);
+      expect(isOptionalProperty(key)).toBe(false);
     }
   });
 
-  it("makes EPANET-optional fields optional only when the flag is on", () => {
+  it("makes EPANET-optional fields optional", () => {
     for (const key of [
       "minorLoss",
       "emitterCoefficient",
@@ -48,12 +47,11 @@ describe("BATCH_EDITABLE_PROPERTIES", () => {
       "speed",
       "initialQuality",
     ]) {
-      expect(isOptionalProperty(key, false)).toBe(false);
-      expect(isOptionalProperty(key, true)).toBe(true);
+      expect(isOptionalProperty(key)).toBe(true);
     }
   });
 
-  it("keeps a few fields optional regardless of the flag", () => {
+  it("keeps a few fields optional", () => {
     for (const key of [
       "bulkReactionCoeff",
       "wallReactionCoeff",
@@ -61,8 +59,7 @@ describe("BATCH_EDITABLE_PROPERTIES", () => {
       "chemicalSourceStrength",
       "year",
     ]) {
-      expect(isOptionalProperty(key, false)).toBe(true);
-      expect(isOptionalProperty(key, true)).toBe(true);
+      expect(isOptionalProperty(key)).toBe(true);
     }
   });
 

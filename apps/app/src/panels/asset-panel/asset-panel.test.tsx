@@ -32,13 +32,8 @@ import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { USelection } from "src/selection";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 describe("AssetPanel", () => {
-  beforeEach(() => {
-    stubFeatureOff("FLAG_NULL_VALUES");
-  });
-
   describe("with a pipe", () => {
     it("can show its properties", () => {
       const IDS = { P1: 1, j1: 2, j2: 3 };
@@ -90,7 +85,6 @@ describe("AssetPanel", () => {
     });
 
     it("clears roughness to empty when validation is enabled", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { roughness: 120 })
@@ -113,32 +107,7 @@ describe("AssetPanel", () => {
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBeNull();
     });
 
-    it("keeps roughness when clearing while validation is disabled", async () => {
-      stubFeatureOff("FLAG_NULL_VALUES");
-      const IDS = { PIPE1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(IDS.PIPE1, { roughness: 120 })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.PIPE1,
-      });
-      const user = userEvent.setup();
-
-      renderComponent(store);
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: roughness/i,
-      });
-      await user.clear(field);
-      await user.keyboard("{Enter}");
-
-      const updated = store.get(stagingModelDerivedAtom);
-      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBe(120);
-    });
-
     it("keeps an explicit optional value even when it equals the default", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { minorLoss: 5 })
@@ -162,7 +131,6 @@ describe("AssetPanel", () => {
     });
 
     it("clears an optional field to undefined when emptied", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { minorLoss: 5 })
@@ -188,7 +156,6 @@ describe("AssetPanel", () => {
     });
 
     it("commits a negative optional value (informational) when validation is enabled", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { minorLoss: 5 })
@@ -211,34 +178,7 @@ describe("AssetPanel", () => {
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(-3);
     });
 
-    it("blocks a negative value when validation is disabled (commit reverts)", async () => {
-      stubFeatureOff("FLAG_NULL_VALUES");
-      const IDS = { PIPE1: 1 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aPipe(IDS.PIPE1, { minorLoss: 5 })
-        .build();
-      const store = setInitialState({
-        hydraulicModel,
-        selectedAssetId: IDS.PIPE1,
-      });
-      const user = userEvent.setup();
-
-      renderComponent(store);
-
-      const field = screen.getByRole("textbox", {
-        name: /value for: loss coeff/i,
-      });
-      await user.clear(field);
-      await user.keyboard("-3{Enter}");
-
-      // `validate` supersedes the legacy positiveOnly block: the negative fails
-      // validation, so the commit is blocked and the original value is kept.
-      const updated = store.get(stagingModelDerivedAtom);
-      expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).minorLoss).toBe(5);
-    });
-
     it("keeps an optional value that differs from its default", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { minorLoss: 5 })
@@ -1728,7 +1668,7 @@ describe("AssetPanel", () => {
   });
 
   describe("validations", () => {
-    it("blocks a negative value in a positive field when validation is disabled", async () => {
+    it("commits a negative value in a positive field informationally", async () => {
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { diameter: 20 })
@@ -1748,13 +1688,15 @@ describe("AssetPanel", () => {
       await user.type(field, "-10");
       await user.keyboard("{Enter}");
 
-      // With the flag off, `validate` supersedes the legacy positiveOnly block:
-      // the negative fails validation, so the commit is blocked and the field
-      // reverts to the original value.
+      const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
+      expect(
+        (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
+      ).toEqual(-10);
+
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("20");
+      expect(updatedField).toHaveValue("-10");
       expect(updatedField).not.toHaveFocus();
     });
 
@@ -1846,7 +1788,7 @@ describe("AssetPanel", () => {
       expect(updatedField).not.toHaveFocus();
     });
 
-    it("ignores changes when not a valid number", async () => {
+    it("commits 0 in a positive field informationally", async () => {
       const IDS = { PIPE1: 1 };
       const hydraulicModel = HydraulicModelBuilder.with()
         .aPipe(IDS.PIPE1, { diameter: 10 })
@@ -1872,24 +1814,13 @@ describe("AssetPanel", () => {
       const updatedHydraulicModel = store.get(stagingModelDerivedAtom);
       expect(
         (getPipe(updatedHydraulicModel.assets, IDS.PIPE1) as Pipe).diameter,
-      ).toEqual(10);
-
-      expect(field).toHaveValue("10");
-      expect(field).not.toHaveFocus();
+      ).toEqual(0);
 
       const updatedField = screen.getByRole("textbox", {
         name: /value for: diameter/i,
       });
-      expect(updatedField).toHaveValue("10");
-      expect(updatedField).not.toHaveFocus();
-
-      await user.clear(updatedField);
-      await user.type(updatedField, "0");
       expect(updatedField).toHaveValue("0");
-      await user.tab();
-
       expect(updatedField).not.toHaveFocus();
-      expect(updatedField).toHaveValue("10");
     });
   });
 

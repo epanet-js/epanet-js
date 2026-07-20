@@ -18,10 +18,7 @@ const formatting: FormattingSpec = { decimals: {}, defaultDecimals: 3 };
 const translate = (key: string) => key;
 const translateUnit = ((unit: unknown) => (unit as string) ?? "") as never;
 
-const columnsFor = (
-  type: AssetType,
-  allowsNullValues = true,
-): GridColumn<never>[] => {
+const columnsFor = (type: AssetType): GridColumn<never>[] => {
   const model = HydraulicModelBuilder.with().build();
   return buildColumns(
     [],
@@ -39,7 +36,6 @@ const columnsFor = (
     undefined,
     undefined,
     { model, simulation: null, translate } as never,
-    allowsNullValues,
   ) as never;
 };
 
@@ -72,7 +68,7 @@ describe("isOptionalColumn", () => {
     expect(isOptionalColumn("diameter")).toBe(false);
   });
 
-  it("treats EPANET-optional columns as optional only when null values are allowed", () => {
+  it("treats EPANET-optional columns as optional", () => {
     for (const key of [
       "minorLoss",
       "emitterCoefficient",
@@ -81,71 +77,61 @@ describe("isOptionalColumn", () => {
       "speed",
       "initialQuality",
     ]) {
-      expect(isOptionalColumn(key)).toBe(false);
-      expect(isOptionalColumn(key, true)).toBe(true);
+      expect(isOptionalColumn(key)).toBe(true);
     }
   });
 });
 
 describe("isNullableColumn", () => {
-  it("treats roughness as nullable only when null values are allowed", () => {
-    expect(isNullableColumn("roughness", false)).toBe(false);
-    expect(isNullableColumn("roughness", true)).toBe(true);
+  it("treats roughness as nullable", () => {
+    expect(isNullableColumn("roughness")).toBe(true);
   });
 
   it("does not treat optional columns as nullable (they map to undefined)", () => {
-    expect(isNullableColumn("bulkReactionCoeff", false)).toBe(false);
-    expect(isNullableColumn("bulkReactionCoeff", true)).toBe(false);
+    expect(isNullableColumn("bulkReactionCoeff")).toBe(false);
   });
 
-  it("treats batch-1 nullable columns as nullable when allowed", () => {
-    expect(isNullableColumn("diameter", false)).toBe(false);
-    expect(isNullableColumn("diameter", true)).toBe(true);
-    expect(isNullableColumn("setting", true)).toBe(true);
-    expect(isNullableColumn("head", true)).toBe(true);
-    expect(isNullableColumn("initialLevel", true)).toBe(true);
-    expect(isNullableColumn("minLevel", true)).toBe(true);
-    expect(isNullableColumn("maxLevel", true)).toBe(true);
-    expect(isNullableColumn("power", true)).toBe(true);
+  it("treats batch-1 nullable columns as nullable", () => {
+    expect(isNullableColumn("diameter")).toBe(true);
+    expect(isNullableColumn("setting")).toBe(true);
+    expect(isNullableColumn("head")).toBe(true);
+    expect(isNullableColumn("initialLevel")).toBe(true);
+    expect(isNullableColumn("minLevel")).toBe(true);
+    expect(isNullableColumn("maxLevel")).toBe(true);
+    expect(isNullableColumn("power")).toBe(true);
   });
 
-  it("treats pipe length as nullable only when null values are allowed", () => {
-    expect(isNullableColumn("length", false)).toBe(false);
-    expect(isNullableColumn("length", true)).toBe(true);
+  it("treats pipe length as nullable", () => {
+    expect(isNullableColumn("length")).toBe(true);
   });
 
-  it("treats node elevation as nullable only when null values are allowed", () => {
-    expect(isNullableColumn("elevation", false)).toBe(false);
-    expect(isNullableColumn("elevation", true)).toBe(true);
+  it("treats node elevation as nullable", () => {
+    expect(isNullableColumn("elevation")).toBe(true);
   });
 
   it("leaves optional-bound columns non-nullable", () => {
     // EPANET-optional attributes are excluded from the nullable batch.
-    expect(isNullableColumn("minorLoss", true)).toBe(false);
-    expect(isNullableColumn("minVolume", true)).toBe(false);
-    expect(isNullableColumn("emitterCoefficient", true)).toBe(false);
+    expect(isNullableColumn("minorLoss")).toBe(false);
+    expect(isNullableColumn("minVolume")).toBe(false);
+    expect(isNullableColumn("emitterCoefficient")).toBe(false);
   });
 });
 
 describe("isEmptiableColumn", () => {
-  it("lets optional columns render empty regardless of the flag", () => {
-    expect(isEmptiableColumn("bulkReactionCoeff", false)).toBe(true);
-    expect(isEmptiableColumn("bulkReactionCoeff", true)).toBe(true);
+  it("lets optional columns render empty", () => {
+    expect(isEmptiableColumn("bulkReactionCoeff")).toBe(true);
   });
 
-  it("lets roughness render empty only when null values are allowed", () => {
-    expect(isEmptiableColumn("roughness", false)).toBe(false);
-    expect(isEmptiableColumn("roughness", true)).toBe(true);
+  it("lets roughness render empty", () => {
+    expect(isEmptiableColumn("roughness")).toBe(true);
   });
 
-  it("lets batch-1 nullable columns render empty only when allowed", () => {
-    expect(isEmptiableColumn("diameter", false)).toBe(false);
-    expect(isEmptiableColumn("diameter", true)).toBe(true);
+  it("lets batch-1 nullable columns render empty", () => {
+    expect(isEmptiableColumn("diameter")).toBe(true);
   });
 
-  it("lets pipe length render empty only when null values are allowed", () => {
-    expect(isEmptiableColumn("length", false)).toBe(false);
-    expect(isEmptiableColumn("length", true)).toBe(true);
+  it("lets pipe length render empty", () => {
+    expect(isEmptiableColumn("length")).toBe(true);
   });
 });
 

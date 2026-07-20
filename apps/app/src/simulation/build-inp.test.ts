@@ -1561,6 +1561,7 @@ describe("build inp", () => {
           label: "P1",
           definitionType: "designPointCurve",
           curve: [{ x: 100, y: 50 }],
+          speed: 1,
           isActive: false,
         })
         .build();

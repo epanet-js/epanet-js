@@ -127,6 +127,12 @@ export const OPTIONAL_KEYS = new Set([
   "wallReactionCoeff",
   "energyPrice",
   "chemicalSourceStrength",
+  "minorLoss",
+  "emitterCoefficient",
+  "minVolume",
+  "mixingFraction",
+  "speed",
+  "initialQuality",
 ]);
 
 export const NON_ZERO_KEYS = new Set([
@@ -151,15 +157,6 @@ const NULLABLE_KEYS = new Set([
   "power",
 ]);
 
-const FLAG_OPTIONAL_KEYS = new Set([
-  "minorLoss",
-  "emitterCoefficient",
-  "minVolume",
-  "mixingFraction",
-  "speed",
-  "initialQuality",
-]);
-
 // EPANET default shown as a placeholder for an empty optional column.
 const optionalColumnPlaceholder = (key: string): string | undefined => {
   switch (key) {
@@ -180,23 +177,14 @@ const optionalColumnPlaceholder = (key: string): string | undefined => {
   }
 };
 
-export const isOptionalColumn = (
-  key: string,
-  allowsNullValues?: boolean,
-): boolean =>
-  OPTIONAL_KEYS.has(key) || (!!allowsNullValues && FLAG_OPTIONAL_KEYS.has(key));
+export const isOptionalColumn = (key: string): boolean =>
+  OPTIONAL_KEYS.has(key);
 
-export const isNullableColumn = (
-  key: string,
-  allowsNullValues?: boolean,
-): boolean => !!allowsNullValues && NULLABLE_KEYS.has(key);
+export const isNullableColumn = (key: string): boolean =>
+  NULLABLE_KEYS.has(key);
 
-export const isEmptiableColumn = (
-  key: string,
-  allowsNullValues?: boolean,
-): boolean =>
-  isOptionalColumn(key, allowsNullValues) ||
-  isNullableColumn(key, allowsNullValues);
+export const isEmptiableColumn = (key: string): boolean =>
+  isOptionalColumn(key) || isNullableColumn(key);
 
 type TranslateUnitFn = ReturnType<typeof useTranslateUnit>;
 export type QualityAnalysisType = "none" | "age" | "trace" | "chemical";
@@ -473,7 +461,6 @@ type BuildColumnsArgs = [
   validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
-  allowsNullValues?: boolean,
   customAttributes?: CustomAttribute[],
   customAttributesLock?: AttributesLock,
 ];
@@ -481,7 +468,6 @@ type BuildColumnsArgs = [
 type ExtraPipeColsFn = (
   translate: TranslateFn,
   formatting: FormattingSpec,
-  allowsNullValues?: boolean,
 ) => GridColumn<AssetRow>[];
 
 type AttributesLock = {
@@ -493,7 +479,7 @@ function pipeAttributeColsFor(
   materials: string[],
   lock?: AttributesLock,
 ): ExtraPipeColsFn {
-  return (translate, _formatting, allowsNullValues): GridColumn<AssetRow>[] => {
+  return (translate, _formatting): GridColumn<AssetRow>[] => {
     const cols: GridColumn<AssetRow>[] = [
       filterableSelectColumn("material", {
         header: translate("material"),
@@ -509,7 +495,7 @@ function pipeAttributeColsFor(
         header: translate("yearOfInstallation"),
         emptyValue: null,
         validate: fieldValidator("pipe", "year"),
-        commitInvalidValues: allowsNullValues,
+        commitInvalidValues: true,
         required: false,
         placeholder: "",
         isReadOnly: !!lock,
@@ -598,7 +584,6 @@ function _buildColumns(
   validateLabel?: (label: string, row: AssetRow) => boolean,
   getRow?: (rowIndex: number) => AssetRow | undefined,
   accessorCtx?: AssetAccessorCtx,
-  allowsNullValues?: boolean,
   customAttributes: CustomAttribute[] = [],
   customAttributesLock?: AttributesLock,
 ): GridColumn<AssetRow>[] {
@@ -635,9 +620,8 @@ function _buildColumns(
       commitInvalidValues?: boolean;
     } = {},
   ): GridColumn<AssetRow> => {
-    const nullable = isNullableColumn(key, allowsNullValues);
-    const flagOptional = !!allowsNullValues && FLAG_OPTIONAL_KEYS.has(key);
-    const emptiable = isOptionalColumn(key, allowsNullValues) || nullable;
+    const nullable = isNullableColumn(key);
+    const emptiable = isOptionalColumn(key) || nullable;
     return floatColumn(ck(key), {
       header: headerLabel(name, unit),
       decimals:
@@ -647,10 +631,8 @@ function _buildColumns(
       isReadOnly: !editable.has(key) ? true : (isReadOnly ?? false),
       validate: fieldValidator(type, key),
       commitInvalidValues,
-      required: !isOptionalColumn(key, allowsNullValues),
-      placeholder: flagOptional
-        ? (optionalColumnPlaceholder(key) ?? placeholder)
-        : placeholder,
+      required: !isOptionalColumn(key),
+      placeholder: optionalColumnPlaceholder(key) ?? placeholder,
       emptyValue: emptiable ? null : NON_ZERO_KEYS.has(key) ? undefined : 0,
     });
   };
@@ -732,7 +714,7 @@ function _buildColumns(
     numericCol("chemicalSourceStrength", translate("chemicalSourceStrength"), {
       isReadOnly: isChemicalSourceNone,
       placeholder: localizeDecimal(0),
-      commitInvalidValues: allowsNullValues,
+      commitInvalidValues: true,
     }),
     patternCol(
       "chemicalSourcePatternId",
@@ -781,7 +763,7 @@ function _buildColumns(
         numericCol("emitterCoefficient", translate("emitterCoefficient"), {
           unit: units.emitterCoefficient,
           property: "emitterCoefficient",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         floatColumn(ck("avgDemand"), {
           header: headerLabel(translate("directDemand"), units.baseDemand),
@@ -809,7 +791,7 @@ function _buildColumns(
           isReadOnly: true,
         }),
         numericCol("initialQuality", translate("initialQuality"), {
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         ...chemicalSourceTypeCols(),
         ...trailingCols,
@@ -840,22 +822,22 @@ function _buildColumns(
         numericCol("diameter", translate("diameter"), {
           unit: units.diameter,
           property: "diameter",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("length", translate("length"), {
           unit: units.length,
           property: "length",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
-        ...buildExtraPipeCols(translate, formatting, allowsNullValues),
+        ...buildExtraPipeCols(translate, formatting),
         numericCol("roughness", translate("roughness"), {
           unit: units.roughness,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("minorLoss", translate("minorLoss"), {
           unit: units.minorLoss,
           property: "minorLoss",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         floatColumn(ck("customerDemand"), {
           header: headerLabel(translate("customerDemand"), units.baseDemand),
@@ -933,12 +915,12 @@ function _buildColumns(
           property: "power",
           isReadOnly: (rowIndex) =>
             getRow?.(rowIndex)?.definitionType !== "power",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("speed", translate("initialSpeed"), {
           unit: units.speed,
           property: "speed",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         patternCol("speedPatternId", translate("speedPattern"), "pumpSpeed"),
         curveCol(
@@ -949,7 +931,7 @@ function _buildColumns(
         ),
         numericCol("energyPrice", translate("energyPrice"), {
           placeholder: localizeDecimal(energyGlobalPrice),
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         patternCol(
           "energyPricePatternId",
@@ -986,7 +968,7 @@ function _buildColumns(
         }),
         numericCol("setting", translate("setting"), {
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.kind === "gpv",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         filterableSelectColumn("curveId", {
           header: translate("valveCurve"),
@@ -1009,12 +991,12 @@ function _buildColumns(
         numericCol("diameter", translate("diameter"), {
           unit: units.diameter,
           property: "diameter",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("minorLoss", translate("minorLoss"), {
           unit: units.minorLoss,
           property: "minorLoss",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         ...trailingCols,
       ];
@@ -1033,11 +1015,11 @@ function _buildColumns(
         numericCol("head", translate("head"), {
           unit: units.head,
           property: "head",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         patternCol("headPatternId", translate("headPattern"), "reservoirHead"),
         numericCol("initialQuality", translate("initialQuality"), {
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         ...chemicalSourceTypeCols(),
         ...trailingCols,
@@ -1057,25 +1039,25 @@ function _buildColumns(
         numericCol("initialLevel", translate("initialLevel"), {
           unit: units.initialLevel,
           property: "initialLevel",
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("minLevel", translate("minLevel"), {
           unit: units.minLevel,
           property: "minLevel",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("maxLevel", translate("maxLevel"), {
           unit: units.maxLevel,
           property: "maxLevel",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("minVolume", translate("minVolume"), {
           unit: units.minVolume,
           property: "minVolume",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         floatColumn(ck("maxVolume"), {
           header: headerLabel(translate("maxVolume"), units.minVolume),
@@ -1086,7 +1068,7 @@ function _buildColumns(
           unit: units.tankDiameter,
           property: "tankDiameter",
           isReadOnly: (rowIndex) => getRow?.(rowIndex)?.volumeCurveId != null,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         curveCol("volumeCurveId", translate("volumeCurve"), "volume"),
         booleanCol("overflow", translate("canOverflow")),
@@ -1101,10 +1083,10 @@ function _buildColumns(
         numericCol("mixingFraction", translate("mixingFraction"), {
           isReadOnly: (rowIndex) =>
             getRow?.(rowIndex)?.mixingModel !== TANK_TWO_COMPARTMENT_MIXING,
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         numericCol("initialQuality", translate("initialQuality"), {
-          commitInvalidValues: allowsNullValues,
+          commitInvalidValues: true,
         }),
         floatColumn("bulkReactionCoeff", {
           header: translate("bulkReactionCoeff"),

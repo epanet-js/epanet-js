@@ -741,7 +741,7 @@ describe("Parse inp with", () => {
       const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
       expect(j1.emitterCoefficient).toBe(0.5);
-      expect(j2.emitterCoefficient).toBe(0);
+      expect(j2.emitterCoefficient).toBeUndefined();
       expect(issues?.unsupportedSections?.has("[EMITTERS]")).toBeFalsy();
     });
 
@@ -759,7 +759,7 @@ describe("Parse inp with", () => {
       J1  0.5
       `;
 
-      const { hydraulicModel } = parseInp(inp, { allowsNullValues: true });
+      const { hydraulicModel } = parseInp(inp);
       const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
       const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
@@ -1350,7 +1350,7 @@ describe("quality section", () => {
     const j1 = getByLabel(hydraulicModel.assets, "J1") as Junction;
     const j2 = getByLabel(hydraulicModel.assets, "J2") as Junction;
 
-    expect(j1.initialQuality).toBe(0);
+    expect(j1.initialQuality).toBeUndefined();
     expect(j2.initialQuality).toBe(10);
   });
 

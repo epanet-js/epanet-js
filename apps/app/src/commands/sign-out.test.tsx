@@ -9,7 +9,6 @@ import { recentFilesStoreAtom } from "src/state/file-system";
 import { setInitialState } from "src/__helpers__/state";
 import { AuthMockProvider } from "src/__helpers__/auth-mock";
 import { buildFileSystemHandleMock } from "src/__helpers__/browser-fs-mock";
-import { stubFeatureOff } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { CommandContainer } from "./__helpers__/command-container";
 import { useSignOut } from "./sign-out";
@@ -34,7 +33,6 @@ describe("sign out", () => {
 
   beforeEach(() => {
     importProjectFails = false;
-    stubFeatureOff("FLAG_NULL_VALUES");
   });
 
   it("clears the model", async () => {

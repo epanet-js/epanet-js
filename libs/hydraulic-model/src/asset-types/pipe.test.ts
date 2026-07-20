@@ -84,14 +84,14 @@ describe("Pipe", () => {
     expect(pipe.connections).toEqual([1, 2]);
   });
 
-  it("can assign defaults", () => {
+  it("leaves optional fields empty and assigns an id", () => {
     const pipe = buildPipe();
 
     expect(pipe.id).not.toBeUndefined();
-    expect(pipe.diameter).toEqual(300);
-    expect(pipe.length).toEqual(1000);
-    expect(pipe.roughness).toEqual(130);
-    expect(pipe.minorLoss).toEqual(0);
+    expect(pipe.diameter).toBeNull();
+    expect(pipe.length).toBeNull();
+    expect(pipe.roughness).toBeNull();
+    expect(pipe.minorLoss).toBeUndefined();
   });
 
   it("can assign values", () => {

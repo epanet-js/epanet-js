@@ -286,7 +286,7 @@ describe("addLink", () => {
       expect(pumpToCreate.label).toEqual("PU1");
     });
 
-    it("creates a default curve when adding a pump", () => {
+    it("keeps the pump curve null when adding a pump", () => {
       const labelManager = new LabelManager();
       const hydraulicModel = HydraulicModelBuilder.with({
         labelManager,
@@ -319,7 +319,7 @@ describe("addLink", () => {
 
       const updatedPump = putAssets![0] as Pump;
 
-      expect(updatedPump.curve).toEqual([{ x: 1, y: 1 }]);
+      expect(updatedPump.curve).toBeNull();
     });
 
     it("adds a label to the nodes when missing", () => {

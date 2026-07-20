@@ -282,7 +282,7 @@ describe("export-geojson", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1)
       .aJunction(2)
-      .aPipe(3, { startNodeId: 1, endNodeId: 2 })
+      .aPipe(3, { startNodeId: 1, endNodeId: 2, length: 100 })
       .aValve(4, { startNodeId: 1, endNodeId: 2 })
       .aPump(5, { startNodeId: 1, endNodeId: 2 })
       .build();

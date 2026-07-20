@@ -1,10 +1,7 @@
 export { openProject } from "./commands/open-project";
 export type { OpenProjectResult } from "./commands/open-project";
 export { newProject } from "./commands/new-project";
-export {
-  fetchProject,
-  fetchProjectWithNullValues,
-} from "./commands/fetch-project";
+export { fetchProject } from "./commands/fetch-project";
 export type { Project, FetchProjectPhase } from "./commands/fetch-project";
 export { saveProjectSettings } from "./commands/save-project-settings";
 export { serializeProjectSettings } from "./mappers/project-settings/to-rows";

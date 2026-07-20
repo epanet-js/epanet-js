@@ -21,12 +21,12 @@ describe("Reservoir", () => {
     const reservoir = buildReservoir({
       elevation: 10,
     });
-    expect(reservoir.head).toEqual(20);
+    expect(reservoir.head).toBeNull();
 
     const withNullElevation = buildReservoir({
       elevation: 0,
     });
-    expect(withNullElevation.head).toEqual(10);
+    expect(withNullElevation.head).toBeNull();
 
     const withCustomRelativeHead = buildReservoir({
       relativeHead: -10,

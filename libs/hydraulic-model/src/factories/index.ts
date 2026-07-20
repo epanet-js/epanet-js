@@ -1,14 +1,14 @@
 import { IdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
-import { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
+import { AssetFactory } from "./asset-factory";
 import type { DefaultsSpec } from "../asset-types";
 
 export {
   CustomerPointFactory,
   buildCustomerPointPreviewFactory,
 } from "./customer-point-factory";
-export { AssetFactory, AssetFactoryWithNullValues } from "./asset-factory";
+export { AssetFactory } from "./asset-factory";
 
 export type ModelFactories = {
   customerPointFactory: CustomerPointFactory;
@@ -50,18 +50,6 @@ export const initializeModelFactories = (
   buildModelFactories(
     options,
     new AssetFactory(
-      options.defaults,
-      options.idGenerator,
-      options.labelManager,
-    ),
-  );
-
-export const initializeModelFactoriesWithNullValues = (
-  options: ModelFactoriesOptions,
-): ModelFactories =>
-  buildModelFactories(
-    options,
-    new AssetFactoryWithNullValues(
       options.defaults,
       options.idGenerator,
       options.labelManager,

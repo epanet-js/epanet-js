@@ -7,7 +7,6 @@ import {
 import { presets, UnitsSpec } from "src/lib/project-settings/quantities-spec";
 import { buildPump } from "src/__helpers__/hydraulic-model-builder";
 import { type Curves } from "@epanet-js/hydraulic-model";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 
 const spec = presets.LPS;
 const units: UnitsSpec = spec.units;
@@ -37,10 +36,6 @@ const getHeadSpan = (rowLabel: string) => {
   const headCell = flowCell?.nextElementSibling;
   return headCell?.querySelector("span") as HTMLElement;
 };
-
-beforeEach(() => {
-  stubFeatureOff("FLAG_NULL_VALUES");
-});
 
 describe("PumpCurveTable", () => {
   describe("initialization", () => {
@@ -466,7 +461,6 @@ describe("PumpCurveTable", () => {
 describe("PumpDefinitionDetails", () => {
   describe("editing power", () => {
     it("commits empty (not zero) when the power field is cleared", async () => {
-      stubFeatureOn("FLAG_NULL_VALUES");
       const user = userEvent.setup();
       const onChange = vi.fn();
       const pump = buildPump({ definitionType: "power", power: 50 });
@@ -492,7 +486,7 @@ describe("PumpDefinitionDetails", () => {
 
   describe("definition type changes", () => {
     describe("changing to power type", () => {
-      it("emits onChange with power value when pump has power set", async () => {
+      it("emits just the type change when changing to power", async () => {
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
@@ -518,90 +512,12 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith([
           { property: "definitionType", value: "power" },
-          { property: "power", value: 50 },
-          { property: "curveId", value: null },
-        ]);
-      });
-
-      it("emits onChange with power=0 when pump has no power set", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "designPointCurve",
-          power: 0,
-          curve: [{ x: 50, y: 100 }],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            curves={curves}
-            units={units}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(
-          screen.getByRole("option", { name: /constant power/i }),
-        );
-
-        expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "power" },
-          { property: "power", value: 0 },
-          { property: "curveId", value: null },
         ]);
       });
     });
 
     describe("changing between curve types", () => {
-      it("emits onChange when changing from design-point to standard", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "designPointCurve",
-          curve: [{ x: 50, y: 100 }],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            curves={curves}
-            units={units}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(
-          screen.getByRole("option", { name: /standard curve/i }),
-        );
-
-        expect(onChange).toHaveBeenCalledWith([
-          { property: "definitionType", value: "standardCurve" },
-          {
-            property: "curve",
-            value: [
-              { x: 0, y: 133 },
-              { x: 50, y: 100 },
-              { x: 100, y: 0 },
-            ],
-          },
-          { property: "curveId", value: null },
-        ]);
-
-        expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
-        expect(getHeadInput("Shutoff")).toHaveValue("133");
-        expect(getFlowInput("Design")).toHaveValue("50");
-        expect(getHeadInput("Design")).toHaveValue("100");
-        expect(getFlowInput("Max Operating")).toHaveValue("100");
-        expect(getHeadInput("Max Operating")).toHaveValue("0");
-      });
-
       it("transforms the curve with null values on (design-point to standard)", async () => {
-        stubFeatureOn("FLAG_NULL_VALUES");
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
@@ -668,7 +584,6 @@ describe("PumpDefinitionDetails", () => {
             property: "curve",
             value: [{ x: 50, y: 100 }],
           },
-          { property: "curveId", value: null },
         ]);
 
         expect(getFlowSpan("Shutoff")).toHaveTextContent("0");
@@ -681,32 +596,7 @@ describe("PumpDefinitionDetails", () => {
     });
 
     describe("changing to curveId type", () => {
-      it("does not emit onChange when pump has no curveId", async () => {
-        const user = userEvent.setup();
-        const onChange = vi.fn();
-        const pump = buildPump({
-          definitionType: "designPointCurve",
-          curve: [{ x: 50, y: 100 }],
-        });
-
-        render(
-          <PumpDefinitionDetails
-            pump={pump}
-            curves={curves}
-            units={units}
-            onChange={onChange}
-          />,
-        );
-
-        const select = screen.getByRole("combobox", { name: /pump type/i });
-        await user.click(select);
-        await user.click(screen.getByRole("option", { name: /library pump/i }));
-
-        expect(onChange).not.toHaveBeenCalled();
-      });
-
       it("emits the definition type change with null values on, even without a curveId", async () => {
-        stubFeatureOn("FLAG_NULL_VALUES");
         const user = userEvent.setup();
         const onChange = vi.fn();
         const pump = buildPump({
@@ -765,7 +655,10 @@ describe("PumpDefinitionDetails", () => {
         await user.click(typeSelect);
         await user.click(screen.getByRole("option", { name: /library pump/i }));
 
-        expect(onChange).not.toHaveBeenCalled();
+        expect(onChange).toHaveBeenCalledWith([
+          { property: "definitionType", value: "curveId" },
+        ]);
+        onChange.mockClear();
 
         const curveSelect = screen.getByRole("combobox", {
           name: /pump name/i,
@@ -801,8 +694,6 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith([
           { property: "definitionType", value: "designPointCurve" },
-          { property: "curve", value: [{ x: 1, y: 1 }] },
-          { property: "curveId", value: null },
         ]);
         expect(select).toHaveTextContent(/design point/i);
         expect(screen.getByRole("table")).toBeInTheDocument();
@@ -830,15 +721,6 @@ describe("PumpDefinitionDetails", () => {
 
         expect(onChange).toHaveBeenCalledWith([
           { property: "definitionType", value: "standardCurve" },
-          {
-            property: "curve",
-            value: [
-              { x: 0, y: 1.33 },
-              { x: 1, y: 1 },
-              { x: 2, y: 0 },
-            ],
-          },
-          { property: "curveId", value: null },
         ]);
         expect(select).toHaveTextContent(/standard curve/i);
         expect(screen.getByRole("table")).toBeInTheDocument();

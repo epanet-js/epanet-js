@@ -7,7 +7,6 @@ import { HydraulicModel, initializeHydraulicModel } from "src/hydraulic-model";
 import {
   ModelFactories,
   initializeModelFactories,
-  initializeModelFactoriesWithNullValues,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
@@ -207,8 +206,3 @@ const fetchProjectWith = async (
 export const fetchProject = (
   options: FetchProjectOptions = {},
 ): Promise<Project> => fetchProjectWith(initializeModelFactories, options);
-
-export const fetchProjectWithNullValues = (
-  options: FetchProjectOptions = {},
-): Promise<Project> =>
-  fetchProjectWith(initializeModelFactoriesWithNullValues, options);

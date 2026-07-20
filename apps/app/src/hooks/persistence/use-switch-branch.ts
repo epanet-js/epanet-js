@@ -4,7 +4,6 @@ import type { Getter, Setter } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import {
   initializeModelFactories,
-  initializeModelFactoriesWithNullValues,
   type LabelManager,
 } from "@epanet-js/hydraulic-model";
 import { branchStateAtom } from "src/state/branch-state";
@@ -12,7 +11,6 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapSyncMomentAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
 import { projectSettingsAtom } from "src/state/project-settings";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
@@ -20,15 +18,11 @@ function updateFactories(
   get: Getter,
   set: Setter,
   labelManager: LabelManager,
-  allowsNullValues: boolean,
 ): void {
   const currentFactories = get(modelFactoriesAtom);
-  const initializeFactories = allowsNullValues
-    ? initializeModelFactoriesWithNullValues
-    : initializeModelFactories;
   set(
     modelFactoriesAtom,
-    initializeFactories({
+    initializeModelFactories({
       idGenerator: currentFactories.idGenerator,
       labelManager,
       defaults: get(projectSettingsAtom).defaults,
@@ -60,23 +54,19 @@ function validateSelection(
 }
 
 export const useSwitchBranch = () => {
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const switchBranch = useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter, branchId: string) => {
-        const branchStates = get(branchStateAtom);
+    useCallback((get: Getter, set: Setter, branchId: string) => {
+      const branchStates = get(branchStateAtom);
 
-        const targetState = branchStates.get(branchId);
-        if (!targetState) {
-          throw new Error(`Branch state not found for ${branchId}`);
-        }
+      const targetState = branchStates.get(branchId);
+      if (!targetState) {
+        throw new Error(`Branch state not found for ${branchId}`);
+      }
 
-        updateFactories(get, set, targetState.labelManager, allowsNullValues);
-        syncMapMoment(get, set, targetState.momentLog);
-        validateSelection(get, set, targetState.hydraulicModel);
-      },
-      [allowsNullValues],
-    ),
+      updateFactories(get, set, targetState.labelManager);
+      syncMapMoment(get, set, targetState.momentLog);
+      validateSelection(get, set, targetState.hydraulicModel);
+    }, []),
   );
 
   return { switchBranch };

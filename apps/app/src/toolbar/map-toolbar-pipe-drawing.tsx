@@ -9,14 +9,12 @@ import { NumericField } from "src/components/form/numeric-field";
 import { useValueDisplay } from "src/hooks/use-value-display";
 import { useRef } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const MapToolbarPipeDrawing = () => {
   const { mode: currentMode } = useAtomValue(modeAtom);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const userTracking = useUserTracking();
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const { units, defaults } = useAtomValue(projectSettingsAtom);
   const { displayValue } = useValueDisplay();
   const [pipeDrawingDefaults, setPipeDrawingDefaults] = useAtom(
@@ -31,12 +29,10 @@ export const MapToolbarPipeDrawing = () => {
   }
 
   const systemDefaults = defaults.pipe;
-  const isDiameterEmpty =
-    allowsNullValues && pipeDrawingDefaults.diameter === null;
+  const isDiameterEmpty = pipeDrawingDefaults.diameter === null;
   const currentDiameter =
     pipeDrawingDefaults.diameter ?? systemDefaults.diameter ?? 0;
-  const isRoughnessEmpty =
-    allowsNullValues && pipeDrawingDefaults.roughness === null;
+  const isRoughnessEmpty = pipeDrawingDefaults.roughness === null;
   const currentRoughness =
     pipeDrawingDefaults.roughness ?? systemDefaults.roughness ?? 0;
 
@@ -91,7 +87,7 @@ export const MapToolbarPipeDrawing = () => {
             label={diameterLabel}
             validate={numericChecks.positive}
             isRequired={true}
-            commitInvalidValues={allowsNullValues}
+            commitInvalidValues
             displayValue={diameterDisplay}
             onChangeValue={handleDiameterChange}
             styleOptions={{
@@ -111,7 +107,7 @@ export const MapToolbarPipeDrawing = () => {
             label={roughnessLabel}
             validate={numericChecks.positive}
             isRequired={true}
-            commitInvalidValues={allowsNullValues}
+            commitInvalidValues
             displayValue={roughnessDisplay}
             onChangeValue={handleRoughnessChange}
             styleOptions={{

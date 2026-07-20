@@ -76,7 +76,6 @@ import {
   isNullableColumn,
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 
 interface AssetDataTableProps {
@@ -166,7 +165,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     () => ({ model: hydraulicModel, simulation, translate }),
     [hydraulicModel, simulation, translate],
   );
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const customAttributes = useMemo(
     () => getAttributes(hydraulicModel.customAttributes, assetType),
     [hydraulicModel.customAttributes, assetType],
@@ -204,7 +202,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       validateLabel,
       getRow,
       accessorCtx,
-      allowsNullValues,
       customAttributes,
       customAttributesLock,
     );
@@ -226,7 +223,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     translateUnit,
     units,
     accessorCtx,
-    allowsNullValues,
     customAttributes,
   ]);
 
@@ -384,7 +380,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
 
         const normalizedChanges: PropertyChange[] = changes.map((change) =>
           change.value === null &&
-          !isNullableColumn(change.property, allowsNullValues) &&
+          !isNullableColumn(change.property) &&
           !isCustomProperty(change.property)
             ? ({ ...change, value: undefined } as unknown as PropertyChange)
             : change,
@@ -439,7 +435,6 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       labelManager,
       transact,
       userTracking,
-      allowsNullValues,
       customAttributes,
     ],
   );

@@ -27,7 +27,6 @@ import type {
   PumpCurveComparison,
 } from "src/hooks/use-asset-comparison";
 import type { PropertyChange } from "src/hydraulic-model/model-operations/change-property";
-import { pumpDefinitionTypeChanges } from "src/hydraulic-model/model-operations";
 import { useShowPumpLibrary } from "src/commands/show-pump-library";
 import {
   BlockComparisonField,
@@ -35,7 +34,6 @@ import {
   NestedSection,
 } from "src/components/form/fields";
 import { TextField } from "src/components/form/text-field";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export interface PumpCurvePoint {
   flow: number;
@@ -119,7 +117,6 @@ const PumpDefinitionDetailsInner = ({
     value: CurvePoint[] | undefined,
   ) => PumpCurveComparison;
 }) => {
-  const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
   const translate = useTranslate();
 
   const [localDefinitionType, setLocalDefinitionType] =
@@ -153,61 +150,23 @@ const PumpDefinitionDetailsInner = ({
     ) => {
       setLocalDefinitionType(newValue);
 
-      if (allowsNullValues) {
-        if (
-          (newValue === "designPointCurve" || newValue === "standardCurve") &&
-          (oldValue === "designPointCurve" || oldValue === "standardCurve")
-        ) {
-          const currentPoints = initialPointsFromCurve(curve, oldValue);
-          const curvePoints = extractPointsForCurveType(
-            currentPoints,
-            newValue,
-          );
-          onChange([
-            { property: "definitionType", value: newValue },
-            ...(curvePoints
-              ? [{ property: "curve", value: curvePoints } as PropertyChange]
-              : []),
-          ]);
-          return;
-        }
-        onChange([{ property: "definitionType", value: newValue }]);
+      if (
+        (newValue === "designPointCurve" || newValue === "standardCurve") &&
+        (oldValue === "designPointCurve" || oldValue === "standardCurve")
+      ) {
+        const currentPoints = initialPointsFromCurve(curve, oldValue);
+        const curvePoints = extractPointsForCurveType(currentPoints, newValue);
+        onChange([
+          { property: "definitionType", value: newValue },
+          ...(curvePoints
+            ? [{ property: "curve", value: curvePoints } as PropertyChange]
+            : []),
+        ]);
         return;
       }
-
-      if (newValue === "power") {
-        return onChange(
-          pumpDefinitionTypeChanges("power", { power: pump.power }),
-        );
-      }
-
-      if (newValue === "curveId") {
-        if (pump.curveId)
-          onChange(
-            pumpDefinitionTypeChanges("curveId", { curveId: pump.curveId }),
-          );
-        return;
-      }
-
-      const curveType =
-        oldValue !== "power" && oldValue !== "curveId"
-          ? oldValue
-          : (() => {
-              const ct = getCurvePointsType(curve);
-              return ct === "multiPointCurve" ? "designPointCurve" : ct;
-            })();
-      const currentPoints = initialPointsFromCurve(curve, curveType);
-      const validPoints = extractPointsForCurveType(currentPoints, newValue);
-
-      if (!validPoints || getPumpCurveErrors(validPoints).length > 0) {
-        return;
-      }
-
-      onChange(
-        pumpDefinitionTypeChanges(newValue, { curve: validPoints ?? null }),
-      );
+      onChange([{ property: "definitionType", value: newValue }]);
     },
-    [curve, onChange, pump.power, pump.curveId, allowsNullValues],
+    [curve, onChange],
   );
 
   const handleCurvePointsChange = useCallback(
@@ -250,7 +209,6 @@ const PumpDefinitionDetailsInner = ({
             power={pump.power}
             units={units}
             readOnly={readonly}
-            allowsNullValues={allowsNullValues}
             onChange={onChange}
           />
         )}
@@ -269,7 +227,7 @@ const PumpDefinitionDetailsInner = ({
               curveType={localDefinitionType}
               units={units}
               onCurveChange={readonly ? undefined : handleCurvePointsChange}
-              commitInvalidValues={allowsNullValues}
+              commitInvalidValues
             />
           )}
       </NestedSection>
@@ -436,14 +394,12 @@ const PowerDefinition = ({
   power,
   units,
   readOnly,
-  allowsNullValues,
   onChange,
 }: {
   power: number | null;
   units: UnitsSpec;
   onChange: (changes: PropertyChange[]) => void;
   readOnly: boolean;
-  allowsNullValues?: boolean;
 }) => {
   const handlePowerChange = useCallback(
     (_name: string, newValue: number | null, _oldValue: number | null) => {
@@ -458,7 +414,7 @@ const PowerDefinition = ({
       value={power}
       unit={units.power}
       readOnly={readOnly}
-      commitInvalidValues={allowsNullValues}
+      commitInvalidValues
       onChange={handlePowerChange}
       validate={fieldValidator("pump", "power")}
     />

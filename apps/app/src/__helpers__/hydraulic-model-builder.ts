@@ -6,7 +6,6 @@ import {
   AssetsMap,
   getNode,
   Topology,
-  AssetFactory,
   JunctionBuildData,
   PipeBuildData,
   ReservoirBuildData,
@@ -20,7 +19,11 @@ import {
   Patterns,
   PatternType,
 } from "src/hydraulic-model";
-import { SimpleControl, RuleBasedControl } from "@epanet-js/hydraulic-model";
+import {
+  SimpleControl,
+  RuleBasedControl,
+  AssetFactory,
+} from "@epanet-js/hydraulic-model";
 import {
   Controls,
   LevelSettingControl,
@@ -81,19 +84,6 @@ const stripNulls = <D extends Record<string, unknown>>(
     if (out[field] === null) delete out[field];
   }
   return out;
-};
-
-const applyNulls = <
-  T extends { setProperty: (name: string, value: unknown) => void },
->(
-  asset: T,
-  data: Record<string, unknown>,
-  fields: readonly string[],
-): T => {
-  for (const field of fields) {
-    if (data[field] === null) asset.setProperty(field, null);
-  }
-  return asset;
 };
 
 export const buildPipe = (
@@ -267,7 +257,6 @@ export class HydraulicModelBuilder {
         NULLABLE_BUILD_FIELDS.junction,
       ) as JunctionBuildData),
     });
-    applyNulls(junction, data, NULLABLE_BUILD_FIELDS.junction);
     this.assets.set(id, junction);
     this.idGenerator.addId(id);
     return this;
@@ -291,7 +280,6 @@ export class HydraulicModelBuilder {
         NULLABLE_BUILD_FIELDS.reservoir,
       ) as ReservoirBuildData),
     });
-    applyNulls(reservoir, properties, NULLABLE_BUILD_FIELDS.reservoir);
     this.assets.set(id, reservoir);
     this.idGenerator.addId(id);
     return this;
@@ -310,7 +298,6 @@ export class HydraulicModelBuilder {
       id,
       ...(stripNulls(data, NULLABLE_BUILD_FIELDS.tank) as TankBuildData),
     });
-    applyNulls(tank, data, NULLABLE_BUILD_FIELDS.tank);
     this.assets.set(id, tank);
     this.idGenerator.addId(id);
     return this;
@@ -335,7 +322,6 @@ export class HydraulicModelBuilder {
       id,
       ...(stripNulls(rest, NULLABLE_BUILD_FIELDS.pipe) as PipeBuildData),
     });
-    applyNulls(pipe, rest, NULLABLE_BUILD_FIELDS.pipe);
     this.assets.set(id, pipe);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);
@@ -393,7 +379,6 @@ export class HydraulicModelBuilder {
         NULLABLE_BUILD_FIELDS.valve,
       ) as ValveBuildData),
     });
-    applyNulls(valve, properties, NULLABLE_BUILD_FIELDS.valve);
     this.assets.set(id, valve);
     this.idGenerator.addId(id);
     this.topology.addLink(id, startNode.id, endNode.id);

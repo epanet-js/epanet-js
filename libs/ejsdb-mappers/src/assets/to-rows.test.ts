@@ -3,7 +3,6 @@ import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   LabelManager,
   initializeModelFactories,
-  initializeModelFactoriesWithNullValues,
   type Junction,
   type Pipe,
   type Pump,
@@ -17,13 +16,6 @@ import { buildAssetsData } from "./builders";
 
 const makeFactories = () =>
   initializeModelFactories({
-    idGenerator: new ConsecutiveIdsGenerator(),
-    labelManager: new LabelManager(),
-    defaults: presets.LPS.defaults,
-  });
-
-const makeNullValuesFactories = () =>
-  initializeModelFactoriesWithNullValues({
     idGenerator: new ConsecutiveIdsGenerator(),
     labelManager: new LabelManager(),
     defaults: presets.LPS.defaults,
@@ -146,7 +138,7 @@ describe("assetsToRows", () => {
   });
 
   it("serializes unset EPANET-optional attributes as null", () => {
-    const { assetFactory } = makeNullValuesFactories();
+    const { assetFactory } = makeFactories();
     const assets: AssetsMap = new Map();
 
     const junction = assetFactory.createJunction({ id: 1, label: "J1" });
@@ -185,7 +177,7 @@ describe("assetsToRows", () => {
   });
 
   it("round-trips unset EPANET-optional attributes back to undefined", () => {
-    const { assetFactory } = makeNullValuesFactories();
+    const { assetFactory } = makeFactories();
     const original: AssetsMap = new Map();
     const junction = assetFactory.createJunction({ id: 1, label: "J1" });
     const tank = assetFactory.createTank({ id: 2, label: "T1" });
@@ -206,7 +198,7 @@ describe("assetsToRows", () => {
 
     const { assets: rebuilt } = buildAssetsData(
       assetsToRows(original.values()),
-      makeNullValuesFactories(),
+      makeFactories(),
     );
 
     expect((rebuilt.get(1) as Junction).emitterCoefficient).toBeUndefined();
@@ -219,7 +211,7 @@ describe("assetsToRows", () => {
   });
 
   it("round-trips unmapped nullable attributes back to null", () => {
-    const { assetFactory } = makeNullValuesFactories();
+    const { assetFactory } = makeFactories();
     const original: AssetsMap = new Map();
     const pipe = assetFactory.createPipe({
       id: 1,
@@ -240,7 +232,7 @@ describe("assetsToRows", () => {
 
     const { assets: rebuilt } = buildAssetsData(
       assetsToRows(original.values()),
-      makeNullValuesFactories(),
+      makeFactories(),
     );
 
     const rebuiltPipe = rebuilt.get(1) as Pipe;
