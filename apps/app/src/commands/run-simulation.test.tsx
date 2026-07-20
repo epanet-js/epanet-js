@@ -33,7 +33,6 @@ describe("Run simulation", () => {
   beforeEach(() => {
     wireWebWorker();
     canValidateModelAttributes = false;
-    stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
   });
   afterEach(() => {
     vi.clearAllMocks();
@@ -195,7 +194,6 @@ describe("Run simulation", () => {
   describe("model validation", () => {
     const enableValidation = () => {
       canValidateModelAttributes = true;
-      stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
     };
 
     it("shows the validation dialog and does not run when there are issues", async () => {
@@ -218,7 +216,6 @@ describe("Run simulation", () => {
     });
 
     it("shows the dialog even without the validation permission", async () => {
-      stubFeatureOn("FLAG_ATTRIBUTES_VALIDATION");
       canValidateModelAttributes = false;
       const store = setInitialState({
         hydraulicModel: aModelWithEmptyRoughness(),
@@ -295,24 +292,6 @@ describe("Run simulation", () => {
           simulationDerivedAtom,
         ) as SimulationFinished;
         expect(simulation.status).toEqual("success");
-      });
-      expect(store.get(dialogAtom)).not.toMatchObject({
-        type: "modelAttributesValidation",
-      });
-    });
-
-    it("runs directly without validating when the gate is off", async () => {
-      stubFeatureOff("FLAG_ATTRIBUTES_VALIDATION");
-      canValidateModelAttributes = true;
-      const store = setInitialState({
-        hydraulicModel: aModelWithEmptyRoughness(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-
-      await waitFor(() => {
-        expect(lib.runSimulation).toHaveBeenCalled();
       });
       expect(store.get(dialogAtom)).not.toMatchObject({
         type: "modelAttributesValidation",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtom } from "jotai";
 import { Button } from "src/components/elements";
 import { useTranslate } from "src/hooks/use-translate";
@@ -19,7 +19,6 @@ import { ConnectivityTrace } from "./connectivity-trace";
 import { ModelAttributesValidation } from "./model-attributes-validation";
 import { EarlyAccessBadge } from "src/components/early-access-badge";
 import { useEarlyAccess } from "src/hooks/use-early-access";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { selectedReviewCheckAtom } from "src/state/network-review";
 
 export function NetworkReview() {
@@ -64,11 +63,12 @@ export function NetworkReview() {
   }
 }
 
-const baseChecks = [
+const allChecks = [
   CheckType.orphanAssets,
   CheckType.proximityAnomalies,
   CheckType.crossingPipes,
   CheckType.connectivityTrace,
+  CheckType.modelAttributesValidation,
 ];
 
 function NetworkReviewSummary({
@@ -77,14 +77,6 @@ function NetworkReviewSummary({
   onClick: (check: CheckType) => void;
 }) {
   const translate = useTranslate();
-  const isValidationFlagOn = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
-
-  const allChecks = useMemo(() => {
-    if (isValidationFlagOn) {
-      return [...baseChecks, CheckType.modelAttributesValidation];
-    }
-    return baseChecks;
-  }, [isValidationFlagOn]);
 
   const [selectedCheckType, setSelectedCheckType] = useState<CheckType | null>(
     null,
@@ -128,7 +120,7 @@ function NetworkReviewSummary({
           break;
       }
     },
-    [selectedCheckType, onClick, allChecks],
+    [selectedCheckType, onClick],
   );
 
   return (

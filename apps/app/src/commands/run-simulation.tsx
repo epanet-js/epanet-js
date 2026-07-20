@@ -40,7 +40,6 @@ export const useRunSimulation = () => {
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
-  const validationEnabled = useFeatureFlag("FLAG_ATTRIBUTES_VALIDATION");
   const isRemoveControlsOn = useFeatureFlag("FLAG_REMOVE_CONTROLS");
 
   const runSimulation = useAtomCallback(
@@ -59,7 +58,7 @@ export const useRunSimulation = () => {
         const worktree = get(worktreeAtom);
         const projectSettings = get(projectSettingsAtom);
 
-        const proceed = async () => {
+        const run = async () => {
           const currentSimulation = get(simulationDerivedAtom);
           setSimulationState({ ...currentSimulation, status: "running" });
           const inp = buildInp(hydraulicModel, {
@@ -191,44 +190,43 @@ export const useRunSimulation = () => {
           });
         };
 
-        if (validationEnabled) {
-          const issues = await validateModelAttributes(hydraulicModel);
-          set(modelAttributesValidationIssuesAtom, issues);
-          if (issues.length > 0) {
-            userTracking.capture({
-              name: "simulation.validation.issuesFound",
-              issueCount: issues.length,
-              rules: [...new Set(issues.map((issue) => issue.ruleId))],
-            });
-            setDialogState({
-              type: "modelAttributesValidation",
-              issueCount: issues.length,
-              onFixFirst: () => {
-                setDialogState(null);
-                userTracking.capture({
-                  name: "simulation.validation.resolved",
-                  choice: "fixFirst",
-                });
-                set(
-                  selectedReviewCheckAtom,
-                  CheckType.modelAttributesValidation,
-                );
-                toggleNetworkReview({ source: "auto", state: true });
-              },
-              onRunAnyway: () => {
-                setDialogState(null);
-                userTracking.capture({
-                  name: "simulation.validation.resolved",
-                  choice: "runAnyway",
-                });
-                void proceed();
-              },
-            });
-            return;
-          }
+        const runWithIssues = () => {
+          setDialogState(null);
+          userTracking.capture({
+            name: "simulation.validation.resolved",
+            choice: "runAnyway",
+          });
+          void run();
+        };
+
+        const reviewIssues = () => {
+          setDialogState(null);
+          userTracking.capture({
+            name: "simulation.validation.resolved",
+            choice: "fixFirst",
+          });
+          set(selectedReviewCheckAtom, CheckType.modelAttributesValidation);
+          toggleNetworkReview({ source: "auto", state: true });
+        };
+
+        const issues = await validateModelAttributes(hydraulicModel);
+        set(modelAttributesValidationIssuesAtom, issues);
+        if (issues.length > 0) {
+          userTracking.capture({
+            name: "simulation.validation.issuesFound",
+            issueCount: issues.length,
+            rules: [...new Set(issues.map((issue) => issue.ruleId))],
+          });
+          setDialogState({
+            type: "modelAttributesValidation",
+            issueCount: issues.length,
+            onFixFirst: reviewIssues,
+            onRunAnyway: runWithIssues,
+          });
+          return;
         }
 
-        await proceed();
+        await run();
       },
       [
         setSimulationState,
@@ -236,7 +234,6 @@ export const useRunSimulation = () => {
         setSimulationStep,
         userTracking,
         toggleNetworkReview,
-        validationEnabled,
         isRemoveControlsOn,
       ],
     ),
