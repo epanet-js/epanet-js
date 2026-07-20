@@ -23,7 +23,21 @@ export type LayerId =
   | "icons-reservoirs"
   | "zones-fill"
   | "zones-outline"
-  | "zones-labels";
+  | "zones-labels"
+  // Faceted path (FLAG_MAP_FACETED_SOURCES): delta icon facet + delta selection
+  // overlay. `icons` is the main icon facet; these mirror it for the delta live-set.
+  | "delta-icons-pump-icons"
+  | "delta-icons-valve-icons-control-valves"
+  | "delta-icons-valve-icons-isolation-valves"
+  | "delta-icons-tanks"
+  | "delta-icons-reservoirs"
+  | "delta-selected-pipes"
+  | "delta-selected-pump-lines"
+  | "delta-selected-valve-lines"
+  | "delta-selected-junctions"
+  | "delta-selected-icons"
+  | "delta-selected-icons-halo"
+  | "delta-selected-pipe-arrows";
 
 export const assetLayers: LayerId[] = [
   "delta-features-pipes",
@@ -39,6 +53,12 @@ export const assetLayers: LayerId[] = [
   "main-features-valve-lines",
   "delta-features-valve-lines",
   "icons-tanks",
+  // Faceted path: delta icons must be clickable/selectable like the main icons.
+  "delta-icons-pump-icons",
+  "delta-icons-valve-icons-control-valves",
+  "delta-icons-valve-icons-isolation-valves",
+  "delta-icons-tanks",
+  "delta-icons-reservoirs",
 ];
 
 export const clickableLayers: LayerId[] = assetLayers;

@@ -45,3 +45,32 @@ export const reservoirLayers = ({
     ),
   ];
 };
+
+export const facetedReservoirLayers = ({
+  sources,
+}: {
+  sources: DataSource[];
+}): AnyLayer[] =>
+  reservoirLayers({ sources }).map((layer) => {
+    const symbol = layer as SymbolLayer;
+    return {
+      ...symbol,
+      layout: {
+        ...symbol.layout,
+        "icon-image": [
+          "case",
+          [
+            "all",
+            ["==", ["get", "selected"], true],
+            ["==", ["get", "isActive"], false],
+          ],
+          "reservoir-disabled-selected",
+          ["==", ["get", "selected"], true],
+          "reservoir-selected",
+          ["==", ["get", "isActive"], false],
+          "reservoir-disabled",
+          "reservoir",
+        ],
+      },
+    } as SymbolLayer;
+  });

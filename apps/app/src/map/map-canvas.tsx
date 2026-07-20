@@ -42,6 +42,7 @@ import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
+import { useMapStateUpdates as useMapStateUpdatesFaceted } from "./state-updates-faceted";
 import { useMapStateUpdatesLegacy } from "./state-updates-legacy";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { clickableLayers } from "./layers/layer";
@@ -105,18 +106,24 @@ const MapStateUpdatesSerialized = ({ map }: { map: MapEngine | null }) => {
   return null;
 };
 
+// FLAG_MAP_FACETED_SOURCES is a combined flag: faceted ⟹ serialized-sync. Remove
+// this runner + branch (and the pre-facet MapStateUpdatesSerialized) at promotion.
+const MapStateUpdatesFacetedRunner = ({ map }: { map: MapEngine | null }) => {
+  useMapStateUpdatesFaceted(map);
+  return null;
+};
+
 const MapStateUpdatesLegacyRunner = ({ map }: { map: MapEngine | null }) => {
   useMapStateUpdatesLegacy(map);
   return null;
 };
 
 const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
-  const isV2 = useFeatureFlag("FLAG_MAP_SERIALIZED_SYNC");
-  return isV2 ? (
-    <MapStateUpdatesSerialized map={map} />
-  ) : (
-    <MapStateUpdatesLegacyRunner map={map} />
-  );
+  const isFaceted = useFeatureFlag("FLAG_MAP_FACETED_SOURCES");
+  const isSerialized = useFeatureFlag("FLAG_MAP_SERIALIZED_SYNC");
+  if (isFaceted) return <MapStateUpdatesFacetedRunner map={map} />;
+  if (isSerialized) return <MapStateUpdatesSerialized map={map} />;
+  return <MapStateUpdatesLegacyRunner map={map} />;
 };
 
 export const MapCanvas = memo(function MapCanvas({

@@ -31,10 +31,14 @@ EPANET-JS uses a sophisticated multi-source data architecture optimized for larg
 
   - Updated whenever selection changes
   - Drives selection highlight layers
+  - **Removed on the faceted path** (`FLAG_MAP_FACETED_SOURCES`): selection is merged into the
+    feature layers instead — see "Faceted Source Model" below.
 
 - **`"icons"`** - Optimized point representations with selection states
   - Pumps, valves, tanks, reservoirs
   - Rebuilt when assets or styles change
+  - On the faceted path this is the **main** icon facet, paired with a `"delta-icons"` source — see
+    "Faceted Source Model" below.
 
 #### Additional Sources
 
@@ -201,6 +205,82 @@ const combinedOverlay = [
 map.setOverlay(combinedOverlay);
 ```
 
+## Faceted Source Model (`FLAG_MAP_FACETED_SOURCES`)
+
+A parallel implementation of the map updater, gated by `FLAG_MAP_FACETED_SOURCES`, lives in
+`state-updates-faceted.ts` (a duplicate of the V2 serialized scheduler in `state-updates.ts`).
+`map-canvas.tsx` mounts one or the other. The flag is **combined**: faceted ⟹ serialized-sync, so
+the faceted path does not also check `FLAG_MAP_SERIALIZED_SYNC`. It exists so the fork-critical
+geojson rendering can bake behind a flag before it becomes the default; at promotion, delete the
+pre-facet `state-updates.ts` and rename the faceted file into place.
+
+Its purpose is to converge the geojson rendering with the tile path (the private geo-index-tiles
+engine), so a later `MapSources` interface can have two symmetric implementations. Two changes:
+
+### 1. Icons exploded into a main/delta facet
+
+Instead of one whole-model `"icons"` source, the faceted path mirrors the `main-features` /
+`delta-features` split onto icons:
+
+- **`"icons"`** — the main icon facet (all assets, rebuilt on consolidation like `main-features`).
+- **`"delta-icons"`** — edited-since-consolidation icons (rebuilt per edit like `delta-features`).
+
+The delta-icon layers mirror the main icon layers on the `delta-icons` source. `makeFacetedLayers`
+(in `build-style.ts`) builds this layer set; `defineFacetedSources` registers `delta-icons`.
+
+### 2. Selection merged into the feature layers (no `selected-features` source)
+
+The faceted path **deletes** the dedicated `"selected-features"` source. Selection is instead a
+`selected` prop on the feature/icon sources, and the base layers color/sprite by it — a selected
+pipe/pump/valve/junction differs only in **color**, a tank/reservoir only in **sprite**. This
+mirrors how the tile path patches a `selected` prop column in place.
+
+- **Faceted layer factories** (`facetedPipesLayer`, `facetedJunctionsLayer`, `facetedPumpLines`,
+  `facetedValveLines`, `facetedPipeArrows`, `facetedTankLayers`, `facetedReservoirLayers`) parallel
+  the plain factories, overriding the color/sprite with the selection-merged expression. The
+  expressions are **co-located helpers** next to their non-faceted counterparts
+  (`facetedLinkColorExpression`, `facetedPipeArrowColorExpression` in `layers/pipes.ts`;
+  `facetedJunction{Fill,Stroke}ColorExpression` in `layers/junctions.ts`), shared by the factories
+  **and** by `updateDefaultMapColors` (which re-applies them at runtime — keep them in sync).
+- **Both main and delta layers** carry the faceted expressions, so a selected asset renders
+  highlighted whether it is rendered from main (baked — see below) or from delta.
+- The one selection layer that survives is the pump/valve **halo** (`selectedIconsHaloLayer`,
+  additive geometry that can't merge into a sprite), filtering the icon source on `selected`.
+
+### Selection is an overlay, not a hide/move — avoid the flicker
+
+Selected-but-unedited assets are **not** hidden in main. They stay rendered from `main-features` /
+`icons`, and the delta layers (drawn on top) paint the selection over them. `updateMainSourceVisibility`
+hides **only edited** assets (their main geometry is stale). Hiding a selected asset in main before
+its delta re-render lands is what caused a selection flicker (the asset vanished for a few frames
+because a geojson `setData` reprocess is async while the feature-state hide is immediate) — so we
+don't hide selected assets at all. The delta selected sprite/line/halo covers the main one by
+z-order.
+
+### Delta live-set and large-selection coalescing
+
+- The delta live-set is `editedSinceConsolidation ∪ selectedAssets` (assets, not customer points).
+  Small selections ride delta and are overlaid on top of main.
+- **Coalescing (`SELECTION_BAKE_THRESHOLD`)**: above a fixed count of selected assets, the selection
+  is **baked into main** (`rebuildSources` stamps `selected` into `main-features` / `icons`) instead
+  of going into delta — avoiding double-rendering (main normal + delta selected) and building a
+  delta nearly the size of the whole network on a select-all. `selectionBakedRef` tracks whether
+  main currently holds the baked selection; a selection change while baked (or dropping below the
+  threshold) triggers a main rebuild to re-bake or un-bake. It is a **fixed count**, not a fraction:
+  the threshold caps how large a selection we render via the delta overlay before it is cheaper to
+  fold it into main.
+- Delta **membership** (`selectedForDelta`, empty when baked) is separate from delta **stamping**
+  (the full `selectedIds`): an edited-and-selected asset always lives in delta (its geometry is
+  stale) and must still render selected there, even while the bulk selection is baked into main.
+
+### Relationship to "Feature State vs. Dedicated Sources"
+
+The pre-facet path renders selection with the dedicated `"selected-features"` source specifically
+because feature-state does not scale to large selections (see that section below). The faceted path
+takes a **third** approach: a `selected` prop + delta overlay for small selections, baked into main
+for large ones. It does **not** feature-state-hide selected assets (only edited ones), so it does
+not hit the mass-feature-state problem, and it drops the separate selection source.
+
 ## Performance Optimization Patterns
 
 ### Dual-Source Strategy
@@ -234,6 +314,11 @@ await map.setSource("selected-features", selectedFeatureCollection);
 This is why `"selected-features"` exists as a separate source — it was previously implemented with feature state and caused noticeable performance problems with large selections. The dedicated source approach rebuilds only the small selection subset rather than touching the large `"main-features"` source.
 
 **Rule of thumb**: if the number of affected features is bounded and small (e.g., the one or two features in `"delta-features"` being edited), feature state is fine. If it could scale with network size or user selection, use a dedicated source.
+
+> The faceted path (`FLAG_MAP_FACETED_SOURCES`) takes a **third** approach for selection — a
+> `selected` prop merged into the feature layers with a delta overlay for small selections and a
+> bake into main for large ones, hiding only *edited* assets via feature state. See "Faceted Source
+> Model" above.
 
 ### Preserve Geometry References When Rebuilding Sources
 
@@ -400,6 +485,8 @@ map.setOverlay(combinedOverlay);
   - `buildStyle()` - Primary style builder and configuration
   - `defineEmptySources()` - Initializes all 7 core sources as empty GeoJSON
   - Registers all layers and sources for the map
+  - `makeLayers()` (pre-facet) and `makeFacetedLayers()` (faceted) build the two layer sets;
+    `defineFacetedSources()` adds the `delta-icons` source. See "Faceted Source Model".
 
 ### Data Source Management
 
@@ -426,9 +513,13 @@ map.setOverlay(combinedOverlay);
 
 ### Core Architecture Files
 
-- **`map-canvas.tsx`** - Main React component with Mapbox GL integration
+- **`map-canvas.tsx`** - Main React component with Mapbox GL integration; selects the map updater
+  by flag (`FLAG_MAP_FACETED_SOURCES` → faceted, else `FLAG_MAP_SERIALIZED_SYNC` → V2, else legacy)
 - **`map-engine.ts`** - Mapbox wrapper with data source management
 - **`state-updates.ts`** - **CRITICAL** - Change detection and optimization system
+- **`state-updates-faceted.ts`** - faceted parallel of `state-updates.ts` (`FLAG_MAP_FACETED_SOURCES`);
+  icons main/delta facet, selection-as-`selected`-prop with delta overlay + large-selection
+  coalescing. See "Faceted Source Model".
 
 ### System Overview
 

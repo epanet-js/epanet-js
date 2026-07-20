@@ -11,6 +11,13 @@ const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
 const COLOR_SELECTED_LIGHT = colors.fuchsia300;
 const COLOR_SELECTED_LIGHTER = colors.fuchsia100;
 
+// Faceted path (FLAG_MAP_FACETED_SOURCES): the selection layers read the feature /
+// icon sources and filter on the `selected` prop, instead of a dedicated
+// `selected-features` overlay. On the pre-facet path `filterSelected` is omitted and
+// the filter is unchanged (the source only ever holds selected features).
+const withSelected = (filter: any, filterSelected?: boolean): any =>
+  filterSelected ? ["all", filter, ["==", ["get", "selected"], true]] : filter;
+
 export const selectedPipesLayer = ({
   source,
   layerId,
@@ -204,20 +211,28 @@ export const selectedIconsLayer = ({
 export const selectedIconsHaloLayer = ({
   source,
   layerId,
+  filterSelected,
 }: {
   source: DataSource;
   layerId: LayerId;
+  // Faceted path: the halo is the one selection layer that survives the merge (it is
+  // additive geometry, not a color/sprite change), so it filters the icon source on
+  // `selected` instead of reading a dedicated `selected-features` overlay.
+  filterSelected?: boolean;
 }): CircleLayer => {
   return {
     id: layerId,
     type: "circle",
     source,
     layout: {},
-    filter: [
-      "all",
-      ["==", "$type", "Point"],
-      ["any", ["==", "type", "pump"], ["==", "type", "valve"]],
-    ],
+    filter: withSelected(
+      [
+        "all",
+        ["==", "$type", "Point"],
+        ["any", ["==", "type", "pump"], ["==", "type", "valve"]],
+      ],
+      filterSelected,
+    ),
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 8, 20, 22],
       "circle-color": [

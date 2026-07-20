@@ -4,6 +4,7 @@ import { LayerId } from "./layer";
 import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
+import { facetedLinkColorExpression } from "./pipes";
 
 export const valveIcons = ({
   source,
@@ -100,5 +101,20 @@ export const valveLines = ({
     source,
     filter: ["==", "type", "valve"],
     paint: paint as LinePaint,
+  };
+};
+
+export const facetedValveLines = (params: {
+  source: DataSource;
+  layerId: LayerId;
+  symbology: ISymbology;
+}): LineLayer => {
+  const base = valveLines(params);
+  return {
+    ...base,
+    paint: {
+      ...base.paint,
+      "line-color": facetedLinkColorExpression(colors.orange700),
+    },
   };
 };

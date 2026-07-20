@@ -37,6 +37,7 @@ export const buildOptimizedAssetsSource = async (
   formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
+  selectedIds?: Set<AssetId>,
 ): Promise<Feature[]> => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "isActive"];
@@ -54,6 +55,10 @@ export const buildOptimizedAssetsSource = async (
       properties: pick(asset.feature.properties, keepProperties),
       geometry: asset.feature.geometry,
     };
+
+    if (selectedIds) {
+      feature.properties!.selected = selectedIds.has(asset.id);
+    }
 
     const isLink =
       asset.type === "pipe" || asset.type === "pump" || asset.type === "valve";
