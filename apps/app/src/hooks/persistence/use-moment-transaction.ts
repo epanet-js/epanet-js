@@ -25,8 +25,10 @@ import {
 } from "src/hydraulic-model/validate-moment-integrity";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
-import { notify } from "src/components/notifications";
+import { notify, hideNotification } from "src/components/notifications";
 import { writeQueue } from "src/lib/persistence/write-queue";
+
+const WRITE_FAILED_TOAST_ID = "moment-write-failed";
 
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
@@ -67,6 +69,7 @@ export const useMomentTransaction = () => {
         notify({
           variant: "error",
           size: "md",
+          id: WRITE_FAILED_TOAST_ID,
           title: translate("changeNotSaved"),
           description: translate("changeNotSavedMessage"),
         });
@@ -151,6 +154,7 @@ export const useMomentTransaction = () => {
 
         if (payload) {
           if (isQueueOn) {
+            hideNotification(WRITE_FAILED_TOAST_ID);
             writeQueue.enqueue({
               payload,
               onFailure: (error) => rollback(restoreStateId, error),
