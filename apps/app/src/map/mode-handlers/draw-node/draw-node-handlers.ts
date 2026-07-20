@@ -6,7 +6,6 @@ import { selectionAtom } from "src/state/selection";
 import noop from "lodash/noop";
 import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { useRef } from "react";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getMapCoord } from "../utils";
 import { addNode, replaceNode } from "src/hydraulic-model/model-operations";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -29,7 +28,6 @@ export function useDrawNodeHandlers({
   units,
   readonly = false,
 }: HandlerContext & { nodeType: NodeType }): Handlers {
-  const isElevationLockOn = useFeatureFlag("FLAG_ELEVATION_LOCK");
   const isUpdatingRef = useRef(false);
   const setMode = useSetAtom(modeAtom);
   const [ephemeralState, setEphemeralState] = useAtom(ephemeralStateAtom);
@@ -98,39 +96,6 @@ export function useDrawNodeHandlers({
     setEphemeralState({ type: "none" });
   };
 
-  const handleClick: Handlers["click"] = async (e) => {
-    if (readonly) return;
-
-    const mouseCoord = getMapCoord(e);
-    const snappingCandidate = findSnappingCandidate(e, mouseCoord);
-
-    if (snappingCandidate && snappingCandidate.type !== "pipe") {
-      const [lng, lat] = snappingCandidate.coordinates;
-      const elevation =
-        snappingCandidate.elevation ??
-        (await fetchElevation({ lng, lat } as mapboxgl.LngLat));
-      submitNodeReplacement(snappingCandidate.id, elevation);
-      return;
-    }
-
-    let clickPosition = getMapCoord(e);
-    let elevation = await fetchElevation(e.lngLat);
-    let pipeIdToSplit: number | undefined;
-
-    if (
-      ephemeralState.type === "drawNode" &&
-      ephemeralState.pipeSnappingPosition
-    ) {
-      clickPosition = ephemeralState.pipeSnappingPosition as [number, number];
-      pipeIdToSplit = ephemeralState.pipeId ?? undefined;
-      const [lng, lat] = clickPosition;
-      elevation = await fetchElevation({ lng, lat } as mapboxgl.LngLat);
-    }
-
-    submitNode(nodeType, clickPosition, elevation, pipeIdToSplit);
-    setEphemeralState({ type: "none" });
-  };
-
   const startElevationFetch = () => {
     isUpdatingRef.current = true;
     setCursor("wait");
@@ -141,7 +106,7 @@ export function useDrawNodeHandlers({
     setCursor("default");
   };
 
-  const handleClickWithElevationLock: Handlers["click"] = (e) => {
+  const handleClick: Handlers["click"] = (e) => {
     if (readonly) return;
     if (isUpdatingRef.current) return;
 
@@ -188,7 +153,7 @@ export function useDrawNodeHandlers({
   };
 
   return {
-    click: isElevationLockOn ? handleClickWithElevationLock : handleClick,
+    click: handleClick,
     move: throttle(
       (e) => {
         prefetchTileThrottled(e.lngLat);
