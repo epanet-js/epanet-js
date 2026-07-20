@@ -25,10 +25,16 @@ export default function RootLayout({
 
 import type { Metadata } from "next";
 
+const isIndexingAllowed = process.env.INDEXING_ALLOWED === "true";
+
 export const metadata: Metadata = {
   title: "epanet-js",
   description:
     "Run EPANET in your browser with epanet-js — no download needed. Works on Mac, Linux, or Windows. Save files locally. Modern, enhanced, and built on the trusted EPANET engine.",
+  alternates: {
+    canonical: "https://app.epanetjs.com",
+  },
+  robots: isIndexingAllowed ? undefined : { index: false },
   openGraph: {
     title:
       "epanet-js: EPANET in your browser — start water modeling now, no download required.",
