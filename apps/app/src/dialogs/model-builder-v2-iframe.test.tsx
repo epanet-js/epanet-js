@@ -71,7 +71,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
   });
 
   it("forwards the host's enabled feature flags onto the iframe URL", () => {
-    enabledFlags.value = ["FLAG_TEST_ERRORS", "FLAG_CUSTOM_ATTRIBUTES"];
+    enabledFlags.value = ["FLAG_TEST_ERRORS", "FLAG_STATS_PERF"];
 
     render(<ModelBuilderV2IframeDialog onClose={vi.fn()} />);
 
@@ -80,7 +80,7 @@ describe("ModelBuilderV2IframeDialog (v2)", () => {
     );
     expect(src.searchParams.get("embedded")).toBe("true");
     expect(src.searchParams.get("FLAG_TEST_ERRORS")).toBe("true");
-    expect(src.searchParams.get("FLAG_CUSTOM_ATTRIBUTES")).toBe("true");
+    expect(src.searchParams.get("FLAG_STATS_PERF")).toBe("true");
   });
 
   it("opens the received .ejsdb as a project", async () => {

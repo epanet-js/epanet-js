@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -19,7 +19,6 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { AuthMockProvider, aUser } from "src/__helpers__/auth-mock";
 import type { User } from "src/auth-types";
@@ -132,10 +131,6 @@ const renderComponent = (store: Store, user: User = aUser({ plan: "pro" })) => {
 };
 
 describe("CustomAttributesSection scenario highlighting", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-  });
-
   it("highlights the field when the value differs from main", () => {
     const store = setScenarioState({
       mainModel: buildModel(10),
@@ -168,25 +163,9 @@ describe("CustomAttributesSection scenario highlighting", () => {
     expect(screen.getByText("Custom attributes")).toBeInTheDocument();
     expect(container.querySelector(".bg-accent")).not.toBeInTheDocument();
   });
-
-  it("does not render the section when the flag is off", () => {
-    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
-    const store = setScenarioState({
-      mainModel: buildModel(10),
-      scenarioModel: buildModel(20),
-    });
-
-    renderComponent(store);
-
-    expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
-  });
 });
 
 describe("CustomAttributesSection paywall", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-  });
-
   it("shows a padlock and keeps the value read-only for a free plan", () => {
     const store = setMainState({ hydraulicModel: buildModel(10) });
 
@@ -226,10 +205,6 @@ describe("CustomAttributesSection paywall", () => {
 });
 
 describe("CustomAttributesSection tracking", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-  });
-
   it("reports a custom-attribute edit under a distinct event", async () => {
     const tracking = stubUserTracking();
     const user = userEvent.setup();

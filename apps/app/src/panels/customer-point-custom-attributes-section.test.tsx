@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -17,7 +17,6 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
 import { CustomerPointCustomAttributesSection } from "./customer-point-custom-attributes-section";
 
@@ -121,24 +120,12 @@ const renderSection = (store: Store) => {
 };
 
 describe("CustomerPointCustomAttributesSection", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-  });
-
   it("renders the current value", () => {
     const store = setInitialState(buildModel("north"));
     renderSection(store);
 
     expect(screen.getByText("Custom attributes")).toBeInTheDocument();
     expect(screen.getByLabelText(/value for: Zone/i)).toHaveValue("north");
-  });
-
-  it("does not render when the flag is off", () => {
-    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
-    const store = setInitialState(buildModel());
-    renderSection(store);
-
-    expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
   });
 
   it("writes the edited value to the customer point", async () => {
@@ -179,10 +166,6 @@ describe("CustomerPointCustomAttributesSection", () => {
 });
 
 describe("CustomerPointCustomAttributesSection scenario highlighting", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
-  });
-
   it("highlights the field when the value differs from main", () => {
     const store = setScenarioState({
       mainModel: buildModel("north"),

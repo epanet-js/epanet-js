@@ -8,7 +8,6 @@ import {
   getAttributes,
 } from "@epanet-js/hydraulic-model";
 import type { CustomerPoint } from "@epanet-js/hydraulic-model";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -31,7 +30,6 @@ export const CustomerPointCustomAttributesSection = ({
   readOnly?: boolean;
 }) => {
   const translate = useTranslate();
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
@@ -61,8 +59,6 @@ export const CustomerPointCustomAttributesSection = ({
     },
     [transact, hydraulicModel, customerPoint.id, userTracking],
   );
-
-  if (!isCustomAttributesOn) return null;
 
   const attributes = getAttributes(
     hydraulicModel.customAttributes,

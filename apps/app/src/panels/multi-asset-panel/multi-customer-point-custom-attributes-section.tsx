@@ -44,7 +44,6 @@ export function MultiCustomerPointCustomAttributesSection({
   ) => void;
 }) {
   const translate = useTranslate();
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
@@ -74,8 +73,6 @@ export function MultiCustomerPointCustomAttributesSection({
     },
     [transact, customerPointIds, hydraulicModel, userTracking],
   );
-
-  if (!isCustomAttributesOn) return null;
 
   const attributes = getAttributes(
     hydraulicModel.customAttributes,

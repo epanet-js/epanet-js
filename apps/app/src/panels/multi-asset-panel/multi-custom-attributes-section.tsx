@@ -45,7 +45,6 @@ export function MultiCustomAttributesSection({
   onSelectAssets?: (assetIds: number[], property: string) => void;
 }) {
   const translate = useTranslate();
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
@@ -75,8 +74,6 @@ export function MultiCustomAttributesSection({
     },
     [transact, assetIds, assetType, hydraulicModel, userTracking],
   );
-
-  if (!isCustomAttributesOn) return null;
 
   const attributes = getAttributes(hydraulicModel.customAttributes, assetType);
   if (attributes.length === 0 || assetIds.length === 0) return null;

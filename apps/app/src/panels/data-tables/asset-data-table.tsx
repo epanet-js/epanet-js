@@ -167,13 +167,9 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     [hydraulicModel, simulation, translate],
   );
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const customAttributes = useMemo(
-    () =>
-      isCustomAttributesOn
-        ? getAttributes(hydraulicModel.customAttributes, assetType)
-        : [],
-    [isCustomAttributesOn, hydraulicModel.customAttributes, assetType],
+    () => getAttributes(hydraulicModel.customAttributes, assetType),
+    [hydraulicModel.customAttributes, assetType],
   );
 
   const columns = useMemo(() => {

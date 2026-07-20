@@ -12,7 +12,6 @@ import type {
   ChangeableProperty,
   ChangeablePropertyValue,
 } from "src/hydraulic-model/model-operations/change-property";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useTranslate } from "src/hooks/use-translate";
 import {
   useAssetComparison,
@@ -45,7 +44,6 @@ export const CustomAttributesSection = ({
   onPropertyChange: OnPropertyChange;
 }) => {
   const translate = useTranslate();
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const { customAttributes } = useAtomValue(stagingModelDerivedAtom);
   const { getComparison } = useAssetComparison(asset);
 
@@ -68,7 +66,6 @@ export const CustomAttributesSection = ({
     [asset, onPropertyChange],
   );
 
-  if (!isCustomAttributesOn) return null;
   if (attributes.length === 0) return null;
 
   return (

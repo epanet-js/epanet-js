@@ -17,11 +17,7 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
-import {
-  stubFeatureOn,
-  stubFeatureOff,
-  stubFeaturesOn,
-} from "src/__helpers__/feature-flags";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { J1: 1, J2: 2 };
@@ -94,7 +90,7 @@ const renderComponent = (store: Store) => {
 
 describe("MultiCustomAttributesSection", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    stubFeatureOff("FLAG_STATS_PERF");
   });
 
   it("shows the section after the model attributes section", () => {
@@ -110,15 +106,6 @@ describe("MultiCustomAttributesSection", () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(screen.getByLabelText(/value for: Age/i)).toBeInTheDocument();
-  });
-
-  it("does not show the section when the flag is off", () => {
-    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
-    const store = setInitialState();
-
-    renderComponent(store);
-
-    expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
   });
 
   it("does not show the section when the type has no attributes", () => {
@@ -179,7 +166,7 @@ describe("MultiCustomAttributesSection", () => {
 
 describe("MultiCustomAttributesSection with FLAG_STATS_PERF", () => {
   beforeEach(() => {
-    stubFeaturesOn(["FLAG_CUSTOM_ATTRIBUTES", "FLAG_STATS_PERF"]);
+    stubFeatureOn("FLAG_STATS_PERF");
   });
 
   it("shows a mixed placeholder and computes stats lazily on open", async () => {

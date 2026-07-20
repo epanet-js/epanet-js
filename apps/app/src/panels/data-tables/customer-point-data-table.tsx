@@ -10,7 +10,6 @@ import {
   mergeMoments,
 } from "src/hydraulic-model/model-operations";
 import { getAttribute, getAttributes } from "@epanet-js/hydraulic-model";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { getCustomerPointDemands, type ModelMoment } from "src/hydraulic-model";
 import type { CustomerDemandAssignment } from "src/hydraulic-model/model-operation";
 import { createTimeSlicer } from "src/infra/yield-to-main";
@@ -59,7 +58,6 @@ export const CustomerPointDataTable = memo(
     const translate = useTranslate();
     const translateUnit = useTranslateUnit();
     const isEditionBlocked = useIsEditionBlocked();
-    const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
     const {
       isLocked: customAttributesLocked,
       openPaywall: openCustomAttributesPaywall,
@@ -95,11 +93,8 @@ export const CustomerPointDataTable = memo(
     );
 
     const customAttributes = useMemo(
-      () =>
-        isCustomAttributesOn
-          ? getAttributes(hydraulicModel.customAttributes, "customerPoint")
-          : [],
-      [isCustomAttributesOn, hydraulicModel.customAttributes],
+      () => getAttributes(hydraulicModel.customAttributes, "customerPoint"),
+      [hydraulicModel.customAttributes],
     );
 
     const columns = useMemo(() => {

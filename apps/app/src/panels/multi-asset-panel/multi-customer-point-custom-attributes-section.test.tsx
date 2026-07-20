@@ -15,11 +15,7 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
-import {
-  stubFeatureOn,
-  stubFeatureOff,
-  stubFeaturesOn,
-} from "src/__helpers__/feature-flags";
+import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
 
 const IDS = { CP1: 1, CP2: 2 };
@@ -84,7 +80,7 @@ const renderSection = (store: Store, customerPointIds: number[]) => {
 
 describe("MultiCustomerPointCustomAttributesSection", () => {
   beforeEach(() => {
-    stubFeatureOn("FLAG_CUSTOM_ATTRIBUTES");
+    stubFeatureOff("FLAG_STATS_PERF");
   });
 
   it("shows the section with the custom attribute field", () => {
@@ -93,14 +89,6 @@ describe("MultiCustomerPointCustomAttributesSection", () => {
 
     expect(screen.getByText("Custom attributes")).toBeInTheDocument();
     expect(screen.getByLabelText(/value for: Age/i)).toBeInTheDocument();
-  });
-
-  it("does not render when the flag is off", () => {
-    stubFeatureOff("FLAG_CUSTOM_ATTRIBUTES");
-    const store = setInitialState();
-    renderSection(store, [IDS.CP1, IDS.CP2]);
-
-    expect(screen.queryByText("Custom attributes")).not.toBeInTheDocument();
   });
 
   it("shows a mixed placeholder when values differ", () => {
@@ -132,7 +120,7 @@ describe("MultiCustomerPointCustomAttributesSection", () => {
 
 describe("MultiCustomerPointCustomAttributesSection with FLAG_STATS_PERF", () => {
   beforeEach(() => {
-    stubFeaturesOn(["FLAG_CUSTOM_ATTRIBUTES", "FLAG_STATS_PERF"]);
+    stubFeatureOn("FLAG_STATS_PERF");
   });
 
   it("shows a mixed placeholder and computes stats lazily on open", async () => {

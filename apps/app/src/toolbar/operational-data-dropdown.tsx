@@ -12,7 +12,6 @@ import {
   CustomAttributesIcon,
 } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   Button,
   DDContent,
@@ -29,7 +28,6 @@ import { useShowCustomAttributes } from "src/commands/show-custom-attributes";
 
 export const OperationalDataDropdown = () => {
   const translate = useTranslate();
-  const isCustomAttributesOn = useFeatureFlag("FLAG_CUSTOM_ATTRIBUTES");
   const showControls = useShowControls();
   const showPatternsLibrary = useShowPatternsLibrary();
   const showPipeLibrary = useShowPipeLibrary();
@@ -88,14 +86,12 @@ export const OperationalDataDropdown = () => {
                 {translate("controls.title")}
               </StyledItem>
 
-              {isCustomAttributesOn && (
-                <StyledItem
-                  onSelect={() => showCustomAttributes({ source: "toolbar" })}
-                >
-                  <CustomAttributesIcon />
-                  {translate("customAttributes.title")}
-                </StyledItem>
-              )}
+              <StyledItem
+                onSelect={() => showCustomAttributes({ source: "toolbar" })}
+              >
+                <CustomAttributesIcon />
+                {translate("customAttributes.title")}
+              </StyledItem>
             </DDContent>
           </DD.Portal>
         </DD.Root>
