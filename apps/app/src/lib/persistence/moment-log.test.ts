@@ -202,4 +202,63 @@ describe("MomentLog", () => {
       expect(deltas).toEqual([action1.forward, action2.forward]);
     });
   });
+
+  describe("rollbackTo", () => {
+    it("returns the reverse steps back to a prior state and truncates the log", () => {
+      const momentLog = new MomentLog("s-0");
+      const a = anAction("A");
+      const b = anAction("B");
+      const c = anAction("C");
+      momentLog.append(a.forward, a.reverse, "s-a");
+      momentLog.append(b.forward, b.reverse, "s-b");
+      momentLog.append(c.forward, c.reverse, "s-c");
+
+      const steps = momentLog.rollbackTo("s-a");
+
+      expect(steps).toEqual([
+        { reverse: c.reverse, targetStateId: "s-b" },
+        { reverse: b.reverse, targetStateId: "s-a" },
+      ]);
+      expect(momentLog.last()).toEqual(a.forward);
+      expect(momentLog.nextRedo()).toBeNull();
+      expect(momentLog.nextUndo()).toEqual({
+        moment: a.reverse,
+        stateId: "s-0",
+      });
+    });
+
+    it("rolls back the first delta to the initial state id", () => {
+      const momentLog = new MomentLog("s-0");
+      const a = anAction("A");
+      momentLog.append(a.forward, a.reverse, "s-a");
+
+      const steps = momentLog.rollbackTo("s-0");
+
+      expect(steps).toEqual([{ reverse: a.reverse, targetStateId: "s-0" }]);
+      expect(momentLog.last()).toBeNull();
+      expect(momentLog.nextUndo()).toBeNull();
+      expect(momentLog.nextRedo()).toBeNull();
+    });
+
+    it("returns null and leaves the log untouched when the state id is gone", () => {
+      const momentLog = new MomentLog("s-0");
+      const a = anAction("A");
+      momentLog.append(a.forward, a.reverse, "s-a");
+
+      expect(momentLog.rollbackTo("s-missing")).toBeNull();
+      expect(momentLog.last()).toEqual(a.forward);
+      expect(momentLog.nextRedo()).toBeNull();
+    });
+
+    it("returns no steps when already at the target state", () => {
+      const momentLog = new MomentLog("s-0");
+      const a = anAction("A");
+      momentLog.append(a.forward, a.reverse, "s-a");
+
+      const steps = momentLog.rollbackTo("s-a");
+
+      expect(steps).toEqual([]);
+      expect(momentLog.last()).toEqual(a.forward);
+    });
+  });
 });

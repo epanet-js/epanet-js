@@ -23,93 +23,158 @@ import {
   findOrphanLinkConnections,
   findStoreInconsistencies,
 } from "src/hydraulic-model/validate-moment-integrity";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useTranslate } from "src/hooks/use-translate";
+import { notify } from "src/components/notifications";
+import { writeQueue } from "src/lib/persistence/write-queue";
 
 export const useMomentTransaction = () => {
-  const transact = useAtomCallback(
-    useCallback((get: Getter, set: Setter, moment: Moment) => {
-      const momentLog = get(momentLogDerivedAtom).copy();
-      const mapSyncMoment = get(mapSyncMomentAtom);
-      const isTruncatingHistory = momentLog.nextRedo() !== null;
+  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const translate = useTranslate();
 
-      const worktree = get(worktreeAtom);
-      const willPersist = worktree.activeBranchId === worktree.mainId;
+  const rollback = useAtomCallback(
+    useCallback(
+      (get: Getter, set: Setter, restoreStateId: string, error: unknown) => {
+        const momentLog = get(momentLogDerivedAtom).copy();
+        const steps = momentLog.rollbackTo(restoreStateId);
 
-      let payload: ApplyMomentPayload | undefined;
-      if (willPersist) {
-        try {
-          payload = buildMomentPayload(moment);
-        } catch (error) {
-          captureError(
-            error instanceof Error ? error : new Error(String(error)),
+        if (steps !== null) {
+          for (const step of steps) {
+            applyMoment(
+              get,
+              set,
+              step.targetStateId,
+              step.reverse,
+              stagingModelDerivedAtom,
+            );
+          }
+          set(momentLogDerivedAtom, momentLog);
+          const mapSyncMoment = get(mapSyncMomentAtom);
+          set(
+            mapSyncMomentAtom,
+            computeSyncMoment(mapSyncMoment, momentLog, true),
           );
-          set(dialogAtom, { type: "changeNotApplied" });
-          return false;
         }
-      }
 
-      const orphanLinks = findOrphanLinkConnections(
-        get(stagingModelDerivedAtom),
-        moment,
-      );
-      if (orphanLinks.length > 0) {
-        const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
-        const causes = [...new Set(orphanLinks.map((o) => o.cause))];
-        captureWarning(`Model integrity (orphan link connection)`, undefined, {
-          "model operation": {
-            note: moment.note,
-            mode: MODE_INFO[get(modeAtom).mode].name,
-            linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
-            cause: causes.length === 1 ? causes[0] : causes,
+        captureWarning("Rolled back after DB write failure", error, {
+          rollback: {
+            restoreStateId,
+            restored: steps !== null,
+            steps: steps?.length ?? 0,
           },
         });
-      }
 
-      trackMoment(moment);
-      const newStateId = nanoid();
+        notify({
+          variant: "error",
+          size: "md",
+          title: translate("changeNotSaved"),
+          description: translate("changeNotSavedMessage"),
+        });
+      },
+      [translate],
+    ),
+  );
 
-      const reverseMoment = applyMoment(
-        get,
-        set,
-        newStateId,
-        moment,
-        stagingModelDerivedAtom,
-      );
+  const transact = useAtomCallback(
+    useCallback(
+      (get: Getter, set: Setter, moment: Moment) => {
+        const momentLog = get(momentLogDerivedAtom).copy();
+        const mapSyncMoment = get(mapSyncMomentAtom);
+        const isTruncatingHistory = momentLog.nextRedo() !== null;
 
-      const storeInconsistencies = findStoreInconsistencies(
-        get(stagingModelDerivedAtom),
-        moment,
-      );
-      if (storeInconsistencies.length > 0) {
-        captureWarning(
-          `Model integrity (store desync) after "${moment.note}": ` +
-            storeInconsistencies
-              .map(
-                (i) =>
-                  `id=${i.id} kind=${i.kind} ` +
-                  `assets=${i.inAssets} index=${i.inAssetIndex} ` +
-                  `topology=${i.inTopology}`,
-              )
-              .join("; "),
+        const worktree = get(worktreeAtom);
+        const willPersist = worktree.activeBranchId === worktree.mainId;
+
+        let payload: ApplyMomentPayload | undefined;
+        if (willPersist) {
+          try {
+            payload = buildMomentPayload(moment);
+          } catch (error) {
+            captureError(
+              error instanceof Error ? error : new Error(String(error)),
+            );
+            set(dialogAtom, { type: "changeNotApplied" });
+            return false;
+          }
+        }
+
+        const orphanLinks = findOrphanLinkConnections(
+          get(stagingModelDerivedAtom),
+          moment,
         );
-      }
+        if (orphanLinks.length > 0) {
+          const linkTypes = [...new Set(orphanLinks.map((o) => o.linkType))];
+          const causes = [...new Set(orphanLinks.map((o) => o.cause))];
+          captureWarning(
+            `Model integrity (orphan link connection)`,
+            undefined,
+            {
+              "model operation": {
+                note: moment.note,
+                mode: MODE_INFO[get(modeAtom).mode].name,
+                linkType: linkTypes.length === 1 ? linkTypes[0] : linkTypes,
+                cause: causes.length === 1 ? causes[0] : causes,
+              },
+            },
+          );
+        }
 
-      if (payload) {
-        void applyMomentToDb(payload).catch(captureError);
-      }
+        trackMoment(moment);
+        const newStateId = nanoid();
+        const restoreStateId = get(stagingModelDerivedAtom).version;
 
-      momentLog.append(moment, reverseMoment, newStateId);
+        const reverseMoment = applyMoment(
+          get,
+          set,
+          newStateId,
+          moment,
+          stagingModelDerivedAtom,
+        );
 
-      const newMapSyncMoment = computeSyncMoment(
-        mapSyncMoment,
-        momentLog,
-        isTruncatingHistory,
-      );
+        const storeInconsistencies = findStoreInconsistencies(
+          get(stagingModelDerivedAtom),
+          moment,
+        );
+        if (storeInconsistencies.length > 0) {
+          captureWarning(
+            `Model integrity (store desync) after "${moment.note}": ` +
+              storeInconsistencies
+                .map(
+                  (i) =>
+                    `id=${i.id} kind=${i.kind} ` +
+                    `assets=${i.inAssets} index=${i.inAssetIndex} ` +
+                    `topology=${i.inTopology}`,
+                )
+                .join("; "),
+          );
+        }
 
-      set(momentLogDerivedAtom, momentLog);
-      set(mapSyncMomentAtom, newMapSyncMoment);
+        if (payload) {
+          if (isQueueOn) {
+            writeQueue.enqueue({
+              payload,
+              onFailure: (error) => rollback(restoreStateId, error),
+            });
+          } else {
+            void applyMomentToDb(payload).catch(captureError);
+          }
+        }
 
-      return true;
-    }, []),
+        momentLog.append(moment, reverseMoment, newStateId);
+
+        const newMapSyncMoment = computeSyncMoment(
+          mapSyncMoment,
+          momentLog,
+          isTruncatingHistory,
+        );
+
+        set(momentLogDerivedAtom, momentLog);
+        set(mapSyncMomentAtom, newMapSyncMoment);
+
+        return true;
+      },
+      [isQueueOn, rollback],
+    ),
   );
 
   return { transact };

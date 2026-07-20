@@ -29,6 +29,7 @@ import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { OPFSStorage } from "src/infra/storage";
 import { getAppId } from "src/infra/app-instance";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { writeQueue } from "src/lib/persistence/write-queue";
 import { initializeWorktree } from "src/lib/worktree";
 import { dialogAtom } from "src/state/dialog";
 import { modelFactoriesAtom } from "src/state/model-factories";
@@ -118,6 +119,8 @@ export const loadModel = (
     autoElevations,
   } = input;
   const momentLog = new MomentLog(hydraulicModel.version);
+
+  writeQueue.reset();
 
   set(modelFactoriesAtom, factories);
   const mergedProjectSettings: ProjectSettings = {

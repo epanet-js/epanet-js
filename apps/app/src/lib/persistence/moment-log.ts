@@ -48,6 +48,34 @@ export class MomentLog {
     this.pointer--;
   }
 
+  rollbackTo(
+    stateId: string,
+  ): { reverse: Moment; targetStateId: string }[] | null {
+    let targetIndex: number;
+    if (stateId === this.initialStateId) {
+      targetIndex = START_POINTER;
+    } else {
+      targetIndex = this.deltas.findIndex((delta) => delta.stateId === stateId);
+      if (targetIndex === -1) return null;
+    }
+
+    if (targetIndex > this.pointer) return null;
+
+    const steps: { reverse: Moment; targetStateId: string }[] = [];
+    while (this.pointer > targetIndex) {
+      const action = this.deltas[this.pointer];
+      steps.push({
+        reverse: action.reverse,
+        targetStateId:
+          this.deltas[this.pointer - 1]?.stateId ?? this.initialStateId,
+      });
+      this.pointer--;
+    }
+
+    this.deltas.splice(targetIndex + 1);
+    return steps;
+  }
+
   redo() {
     if (this.pointer >= this.deltas.length - 1) return;
 
