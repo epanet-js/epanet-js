@@ -52,6 +52,7 @@ import { CommandBar } from "./command-bar/command-bar";
 import { SimulationPlaybackController } from "./simulation-playback-controller";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useAuth } from "src/hooks/use-auth";
+import { useEffectivePlan } from "src/hooks/use-effective-plan";
 import { dialogFromUrl } from "src/state/dialog";
 import { OfflineGuard } from "./offline-guard";
 import { useBreakpoint } from "src/hooks/use-breakpoint";
@@ -90,6 +91,8 @@ export function EpanetApp() {
   const { user, isSignedIn } = useAuth();
   const { enableAllTracking } = usePrivacySettings();
   const hasIdentifiedRef = useRef(false);
+  const effectivePlan = useEffectivePlan();
+  const lastReportedPlanRef = useRef<string | null>(null);
 
   const isEditionBlocked = useIsEditionBlocked();
   const isCustomerAllocationDisabled = useIsCustomerAllocationDisabled();
@@ -120,9 +123,18 @@ export function EpanetApp() {
         localStorage.clear();
         setUserContext(null);
         hasIdentifiedRef.current = false;
+        lastReportedPlanRef.current = null;
       }
     }
   }, [isSignedIn, user, userTracking, enableAllTracking]);
+
+  useEffect(() => {
+    if (!isSignedIn || !hasIdentifiedRef.current) return;
+    if (lastReportedPlanRef.current === effectivePlan) return;
+
+    userTracking.setUserProperties({ plan: effectivePlan });
+    lastReportedPlanRef.current = effectivePlan;
+  }, [isSignedIn, effectivePlan, userTracking]);
 
   const isSmOrLarger = useBreakpoint("sm");
   const isMdOrLarger = useBreakpoint("md");

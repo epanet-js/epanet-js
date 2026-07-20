@@ -1712,6 +1712,10 @@ const debugPostHog = {
     // eslint-disable-next-line
     console.log("USER_TRACKING:RESET");
   },
+  setUserProperties: (...data: any[]) => {
+    // eslint-disable-next-line
+    console.log("USER_TRACKING:SET_USER_PROPERTIES", ...data);
+  },
 };
 
 export const useUserTracking = () => {
@@ -1747,6 +1751,14 @@ export const useUserTracking = () => {
     [posthog],
   );
 
+  const setUserProperties = useCallback(
+    (properties: Metadata) => {
+      posthog.setPersonProperties(properties);
+      isDebugOn && debugPostHog.setUserProperties(properties);
+    },
+    [posthog],
+  );
+
   const isIdentified = useCallback(() => {
     return posthog._isIdentified();
   }, [posthog]);
@@ -1763,7 +1775,21 @@ export const useUserTracking = () => {
   }, [posthog]);
 
   return useMemo(
-    () => ({ identify, capture, isIdentified, reset, reloadFeatureFlags }),
-    [identify, capture, isIdentified, reset, reloadFeatureFlags],
+    () => ({
+      identify,
+      capture,
+      isIdentified,
+      reset,
+      reloadFeatureFlags,
+      setUserProperties,
+    }),
+    [
+      identify,
+      capture,
+      isIdentified,
+      reset,
+      reloadFeatureFlags,
+      setUserProperties,
+    ],
   );
 };

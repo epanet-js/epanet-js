@@ -12,6 +12,7 @@ export const stubUserTracking = () => {
     isIdentified: vi.fn(),
     reloadFeatureFlags: vi.fn(),
     reset: vi.fn(),
+    setUserProperties: vi.fn(),
   };
   vi.mocked(userTrackingModule.useUserTracking).mockReturnValue(mockTracking);
   return mockTracking;
