@@ -3,10 +3,15 @@ import { createContext, useContext } from "react";
 import { User, nullUser } from "src/auth-types";
 import { UseAuthHook } from "src/hooks/use-auth";
 
-const AuthMockContext = createContext({
+const AuthMockContext = createContext<{
+  user: User;
+  isSignedIn: boolean;
+  signOut: () => Promise<void>;
+  isLoaded: boolean;
+}>({
   user: nullUser,
   isSignedIn: false,
-  signOut: () => {},
+  signOut: async () => {},
   isLoaded: true,
 });
 
@@ -31,12 +36,12 @@ export const AuthMockProvider = ({
   user = aUser(),
   isSignedIn = true,
   isLoaded = true,
-  signOut = vi.fn(),
+  signOut = vi.fn().mockResolvedValue(undefined),
 }: {
   children: React.ReactNode;
   user?: User;
   isSignedIn?: boolean;
-  signOut?: () => void;
+  signOut?: () => Promise<void>;
   isLoaded?: boolean;
 }) => {
   return (

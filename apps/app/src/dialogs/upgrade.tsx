@@ -392,7 +392,7 @@ const EducationPlan = ({ paymentType }: { paymentType: PaymentType }) => {
               userTracking.capture({ name: "studentLogin.clicked" });
               checkUnsavedChanges(() => {
                 if (isSignedIn) {
-                  signOut({ redirectUrl: signUpUrl });
+                  void signOut({ redirectUrl: signUpUrl });
                 } else {
                   window.location.href = signUpUrl;
                 }

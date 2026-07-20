@@ -8,6 +8,7 @@ vi.mock("src/hooks/use-locale", () => ({
     setLocale: vi.fn(),
     isI18nReady: true,
   })),
+  LocaleProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 export { useLocale };

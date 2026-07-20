@@ -13,7 +13,7 @@ export type UseAuthHook = () => {
   isSignedIn?: boolean;
   userId: string | null | undefined;
   user: User;
-  signOut: ({ redirectUrl }: { redirectUrl?: string }) => void;
+  signOut: (options?: { redirectUrl?: string }) => Promise<void>;
   reload: () => Promise<void>;
 };
 
@@ -105,7 +105,7 @@ const useAuthNull: UseAuthHook = () => {
     isSignedIn: false,
     userId: undefined,
     user: nullUser,
-    signOut: () => {},
+    signOut: async () => {},
     reload: async () => {},
   };
 };

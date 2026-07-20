@@ -602,6 +602,11 @@ type SignUpStarted = {
   source: "menu";
 };
 
+export type SignOutStarted = {
+  name: "signOut.started";
+  source: "userMenu";
+};
+
 type LogOutCompleted = {
   name: "logOut.completed";
 };
@@ -1323,6 +1328,7 @@ export type UserEvent =
   | FoundersPartnerLinkVisited
   | SignUpStarted
   | SignInStarted
+  | SignOutStarted
   | LogOutCompleted
   | SubscriptionStarted
   | PageReloaded

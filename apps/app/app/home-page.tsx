@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "src/styles/globals.css";
 import * as T from "@radix-ui/react-tooltip";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { PersistenceProvider } from "src/lib/persistence";
 import { Provider, createStore } from "jotai";
 import { Store } from "src/state";
@@ -64,7 +64,7 @@ function ScratchpadInner({ store }: { store: Store }) {
 }
 
 const Play = () => {
-  const store = createStore();
+  const [store] = useState(createStore);
 
   return (
     <Provider key="play" store={store}>

@@ -1,30 +1,26 @@
 import React from "react";
-import {
-  SignInButton as ClerkSignInButton,
-  SignUpButton as ClerkSignUpButton,
-} from "@clerk/nextjs";
 import { Button, B3Size } from "./elements";
 import { useTranslate } from "src/hooks/use-translate";
 import { isAuthEnabled } from "src/global-config";
 import { UserIcon } from "src/icons";
+import { SignInButton as AuthSignInButton } from "src/components/auth/sign-in-button";
+import { SignUpButton as AuthSignUpButton } from "src/components/auth/sign-up-button";
 
 export const SignInButton = ({
   onClick,
   autoFocus = false,
   children,
-  forceRedirectUrl,
 }: {
   onClick?: () => void;
   autoFocus?: boolean;
   children?: React.ReactNode;
-  forceRedirectUrl?: string;
 }) => {
   const translate = useTranslate();
 
   if (!isAuthEnabled) return null;
 
   return (
-    <ClerkSignInButton forceRedirectUrl={forceRedirectUrl}>
+    <AuthSignInButton>
       {!children && (
         <Button
           variant="quiet"
@@ -35,7 +31,7 @@ export const SignInButton = ({
           {translate("login")}
         </Button>
       )}
-    </ClerkSignInButton>
+    </AuthSignInButton>
   );
 };
 
@@ -53,7 +49,7 @@ export const SignUpButton = ({
   if (!isAuthEnabled) return null;
 
   return (
-    <ClerkSignUpButton>
+    <AuthSignUpButton>
       <Button
         variant="primary"
         size={size}
@@ -62,6 +58,6 @@ export const SignUpButton = ({
       >
         <UserIcon /> {translate("register")}
       </Button>
-    </ClerkSignUpButton>
+    </AuthSignUpButton>
   );
 };
