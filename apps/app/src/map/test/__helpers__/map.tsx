@@ -6,8 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MapCanvas } from "src/map/map-canvas";
+import { stubFeaturesOn } from "src/__helpers__/feature-flags";
 
 export const renderMap = async (store: Store): Promise<MapTestEngine> => {
+  stubFeaturesOn(["FLAG_MAP_SERIALIZED_SYNC"]);
+
   let mapEngine: MapTestEngine | null = null;
   const persistence = new Persistence(store);
   render(

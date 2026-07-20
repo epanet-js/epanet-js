@@ -15,10 +15,12 @@ export const yieldToMain = (): Promise<void> => {
 
 const MAIN_THREAD_SLICE_MS = 50;
 
-export const createTimeSlicer = (): (() => Promise<void>) => {
+export const createTimeSlicer = (
+  sliceMs: number = MAIN_THREAD_SLICE_MS,
+): (() => Promise<void>) => {
   let sliceStart = performance.now();
   return async () => {
-    if (performance.now() - sliceStart > MAIN_THREAD_SLICE_MS) {
+    if (performance.now() - sliceStart > sliceMs) {
       await yieldToMain();
       sliceStart = performance.now();
     }

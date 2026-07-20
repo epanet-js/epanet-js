@@ -20,7 +20,7 @@ describe("build optimized source", () => {
     defaultDecimals: 3,
   };
   const fakeTranslateUnit = vi.fn();
-  it("preserves core properties", () => {
+  it("preserves core properties", async () => {
     const IDS = { ID: 1, J1: 2 } as const;
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
@@ -31,7 +31,7 @@ describe("build optimized source", () => {
       .aJunction(IDS.J1, { elevation: 15 })
       .build();
 
-    const features = buildOptimizedAssetsSource(
+    const features = await buildOptimizedAssetsSource(
       assets,
       symbology,
       defaultUnits,
@@ -59,7 +59,7 @@ describe("build optimized source", () => {
     expect(pipe.id).not.toEqual(junction.id);
   });
 
-  it("includes isActive property from assets", () => {
+  it("includes isActive property from assets", async () => {
     const IDS = { ID: 1, ID2: 2, J1: 3, J2: 4 } as const;
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
@@ -69,7 +69,7 @@ describe("build optimized source", () => {
       .aJunction(IDS.J2, { elevation: 15, isActive: false })
       .build();
 
-    const features = buildOptimizedAssetsSource(
+    const features = await buildOptimizedAssetsSource(
       assets,
       symbology,
       defaultUnits,
@@ -86,7 +86,7 @@ describe("build optimized source", () => {
     expect(inactiveJunction.properties!.isActive).toEqual(false);
   });
 
-  it("uses pump status when available", () => {
+  it("uses pump status when available", async () => {
     const IDS = { pu1: 1, pu2: 2 } as const;
     const symbology = nullSymbologySpec;
     const { assets } = HydraulicModelBuilder.with()
@@ -97,7 +97,7 @@ describe("build optimized source", () => {
       pumps: { [IDS.pu1]: { status: "on" } },
     });
 
-    const features = buildOptimizedAssetsSource(
+    const features = await buildOptimizedAssetsSource(
       assets,
       symbology,
       defaultUnits,
@@ -113,7 +113,7 @@ describe("build optimized source", () => {
   });
 
   describe("node symbology", () => {
-    it("includes props for styling to junctions", () => {
+    it("includes props for styling to junctions", async () => {
       const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -133,7 +133,7 @@ describe("build optimized source", () => {
         junctions: { [IDS.J1]: { pressure: 10 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -148,7 +148,7 @@ describe("build optimized source", () => {
       expect(junction.properties!.strokeColor).not.toBeUndefined();
     });
 
-    it("assigns same value to 0 and missing simulation results", () => {
+    it("assigns same value to 0 and missing simulation results", async () => {
       const IDS = { J1: 1, J2: 2 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -169,7 +169,7 @@ describe("build optimized source", () => {
         junctions: { [IDS.J1]: { pressure: 0 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -186,7 +186,7 @@ describe("build optimized source", () => {
       expect(j1.properties!.color).toEqual(j2.properties!.color);
     });
 
-    it("includes labels when specified", () => {
+    it("includes labels when specified", async () => {
       const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -201,7 +201,7 @@ describe("build optimized source", () => {
         junctions: { [IDS.J1]: { pressure: 10 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -214,7 +214,7 @@ describe("build optimized source", () => {
       expect(junction.properties!.label).toEqual("10 m");
     });
 
-    it("omits the label when the value is missing", () => {
+    it("omits the label when the value is missing", async () => {
       const IDS = { J1: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -227,7 +227,7 @@ describe("build optimized source", () => {
         .build();
 
       // No simulation results provided → no pressure value.
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -253,7 +253,7 @@ describe("build optimized source", () => {
       }),
     };
 
-    it("includes props for styling to pipes", () => {
+    it("includes props for styling to pipes", async () => {
       const IDS = { ID: 1, J1: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aPipe(IDS.ID, {
@@ -267,7 +267,7 @@ describe("build optimized source", () => {
         pipes: { [IDS.ID]: { flow: 10 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -288,7 +288,7 @@ describe("build optimized source", () => {
       );
     });
 
-    it("includes labels to pipes", () => {
+    it("includes labels to pipes", async () => {
       const IDS = { ID: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -308,7 +308,7 @@ describe("build optimized source", () => {
         pipes: { [IDS.ID]: { flow: -10 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -323,7 +323,7 @@ describe("build optimized source", () => {
       });
     });
 
-    it("reverses arrow when value is negative", () => {
+    it("reverses arrow when value is negative", async () => {
       const IDS = { ID: 1, ID_REVERSE: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aPipe(IDS.ID)
@@ -336,7 +336,7 @@ describe("build optimized source", () => {
         },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -355,7 +355,7 @@ describe("build optimized source", () => {
       expect(pipe.properties!.color).toEqual(reversed.properties!.color);
     });
 
-    it("applies the direction based on the flow", () => {
+    it("applies the direction based on the flow", async () => {
       const IDS = { ID: 1 } as const;
       const symbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -373,7 +373,7 @@ describe("build optimized source", () => {
         pipes: { [IDS.ID]: { flow: -10, velocity: 20 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -388,7 +388,7 @@ describe("build optimized source", () => {
       });
     });
 
-    it("assigns same value to 0 and missing simulation results", () => {
+    it("assigns same value to 0 and missing simulation results", async () => {
       const IDS = { p1: 1, p2: 2 } as const;
       const { assets } = HydraulicModelBuilder.with()
         .aPipe(IDS.p1)
@@ -398,7 +398,7 @@ describe("build optimized source", () => {
         pipes: { [IDS.p1]: { flow: 0 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         defaultUnits,
@@ -421,7 +421,7 @@ describe("build optimized source", () => {
       expect(p1.properties!.color).toEqual(p2.properties!.color);
     });
 
-    it("leaves a null static attribute uncolored so it uses the default color", () => {
+    it("leaves a null static attribute uncolored so it uses the default color", async () => {
       const IDS = { p1: 1 } as const;
       const staticSymbology: SymbologySpec = {
         ...nullSymbologySpec,
@@ -437,7 +437,7 @@ describe("build optimized source", () => {
         .aPipe(IDS.p1, { roughness: null })
         .build();
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         staticSymbology,
         defaultUnits,
@@ -449,7 +449,7 @@ describe("build optimized source", () => {
       expect(pipe.properties!.color).toBeUndefined();
     });
 
-    it("assigns lengths in meters", () => {
+    it("assigns lengths in meters", async () => {
       const IDS = { p1: 1 } as const;
       const gpmUnits = presets.GPM.units;
       const gpmFormatting: FormattingSpec = {
@@ -465,7 +465,7 @@ describe("build optimized source", () => {
         pipes: { [IDS.p1]: { flow: 5 } },
       });
 
-      const features = buildOptimizedAssetsSource(
+      const features = await buildOptimizedAssetsSource(
         assets,
         symbology,
         gpmUnits,

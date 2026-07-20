@@ -20,21 +20,30 @@ import {
 import { isSimulationProperty } from "src/map/symbology/symbology-data-source";
 import { assetLabelRule } from "src/map/symbology/labeling";
 import { LabelRule } from "src/map/symbology/symbology-types";
+import { createTimeSlicer } from "src/infra/yield-to-main";
 
 export const buildFeatureId = (assetId: AssetId) => assetId;
 
-export const buildOptimizedAssetsSource = (
+// Budget per synchronous slice of the asset loop before yielding. Small enough
+// to leave most of a frame for rendering/input so a large network's build
+// (100k+ assets) doesn't freeze pan/zoom; yieldToMain resumes immediately when
+// nothing else is pending, so an idle build stays near full speed.
+const BUILD_SLICE_MS = 8;
+
+export const buildOptimizedAssetsSource = async (
   assets: AssetsMap,
   symbology: SymbologySpec,
   units: UnitsSpec,
   formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
-): Feature[] => {
+): Promise<Feature[]> => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "isActive"];
+  const yieldIfSliceElapsed = createTimeSlicer(BUILD_SLICE_MS);
 
   for (const asset of assets.values()) {
+    await yieldIfSliceElapsed();
     if (asset.feature.properties?.visibility === false) {
       continue;
     }

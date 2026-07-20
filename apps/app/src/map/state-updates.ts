@@ -1,6 +1,6 @@
 import type { Sel } from "src/selection";
 import { useAtomValue, useSetAtom } from "jotai";
-import { type MutableRefObject, useCallback, useRef } from "react";
+import { type MutableRefObject, useRef } from "react";
 import { Unit } from "@epanet-js/quantity";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
@@ -18,10 +18,7 @@ import {
   mapSyncMomentAtom,
   mapLoadingAtom,
 } from "src/state/map";
-import {
-  appendSourceRebuildDurationAtom,
-  lastHiddenAt,
-} from "src/state/performance";
+import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
 import type { ResultsReader } from "src/simulation/results-reader";
 import { MapEngine } from "./map-engine";
@@ -48,7 +45,10 @@ import { LayerId } from "./layers";
 import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { captureError } from "src/infra/error-tracking";
+import { enrichError } from "src/infra/errors";
+import { wasSuspendedSince } from "src/infra/tab-visibility";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
+import { yieldToMain } from "src/infra/yield-to-main";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
 import type {
@@ -93,6 +93,11 @@ const SELECTION_LAYERS: LayerId[] = [
   "selected-icons-halo",
   "selected-icons",
 ];
+
+// An update cycle over this is flagged (debug builds only) — the
+// withDebugInstrumentation warning fires only when isDebugOn.
+const SLOW_UPDATE_WARN_MS = 1000;
+const MAP_STATE_SYNC = "MAP_STATE:SYNC";
 
 const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -179,6 +184,29 @@ const detectChanges = (
   };
 };
 
+const LARGE_SELECTION_SIZE = 500;
+
+const isHeavyUpdate = (
+  changes: ReturnType<typeof detectChanges>,
+  mapState: MapState,
+): boolean => {
+  const { assets, customerPoints } = USelection.countByKind(mapState.selection);
+  const hasLargeSelection = assets + customerPoints > LARGE_SELECTION_SIZE;
+  const hasNewSelection =
+    changes.hasNewAssetsSelection || changes.hasNewCustomerPointsSelection;
+
+  return (
+    changes.hasSyncMomentChanged ||
+    changes.hasNewImport ||
+    changes.hasNewEditions ||
+    changes.hasNewStyles ||
+    changes.hasNewSymbologyRules ||
+    (changes.hasNewSimulation && mapState.simulation.status !== "running") ||
+    changes.hasNewResults ||
+    (hasNewSelection && hasLargeSelection)
+  );
+};
+
 export const useMapStateUpdates = (map: MapEngine | null) => {
   const momentLog = useAtomValue(momentLogDerivedAtom);
   const setMapSyncMoment = useSetAtom(mapSyncMomentAtom);
@@ -194,7 +222,18 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
   const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
-  const previousMapStateRef = useRef<MapState>(nullMapState);
+  const lastAppliedMapStateRef = useRef<MapState>(nullMapState);
+  const freshMapStateRef = useRef<MapState>(mapState);
+  freshMapStateRef.current = mapState;
+  const appliedChangesRef = useRef<ReturnType<typeof detectChanges> | null>(
+    null,
+  );
+  const syncMapStateRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  const isRunningRef = useRef(false);
+  const hasPendingRef = useRef(false);
+  const settleRef = useRef<{ startedAt: number; measurable: boolean } | null>(
+    null,
+  );
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
@@ -203,387 +242,398 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
 
-  const doUpdates = useCallback(() => {
-    if (!map) return;
+  syncMapStateRef.current = withDebugInstrumentation(
+    async () => {
+      if (!map) return;
+      appliedChangesRef.current = null;
 
-    if (mapState === previousMapStateRef.current) return;
+      const previousMapState = lastAppliedMapStateRef.current;
+      if (mapState === previousMapState) return;
 
-    const previousMapState = previousMapStateRef.current;
-    previousMapStateRef.current = mapState;
+      const changes = detectChanges(mapState, previousMapState, map);
+      appliedChangesRef.current = changes;
+      const {
+        hasNewImport,
+        hasNewStyles,
+        hasNewEditions,
+        hasNewAssetsSelection,
+        hasNewCustomerPointsSelection,
+        hasNewEphemeralState,
+        hasEphemeralStateReset,
+        hasNewSymbologyRules,
+        hasNewCustomerPointsSymbology,
+        hasNewDefaultColors,
+        hasNewZoneSymbology,
+        hasNewZoneFeatures,
+        hasNewZoneColorAssignments,
+        hasNewSimulation,
+        hasNewCustomerPoints,
+        hasNewZoom,
+        hasSyncMomentChanged,
+        hasNewResults,
+        hasNewMapOverlay,
+        hasNewHighlights,
+        hasNewNodeSize,
+      } = changes;
 
-    const changes = detectChanges(mapState, previousMapState, map);
-    const {
-      hasNewImport,
-      hasNewStyles,
-      hasNewEditions,
-      hasNewAssetsSelection,
-      hasNewCustomerPointsSelection,
-      hasNewEphemeralState,
-      hasEphemeralStateReset,
-      hasNewSymbologyRules,
-      hasNewCustomerPointsSymbology,
-      hasNewDefaultColors,
-      hasNewZoneSymbology,
-      hasNewZoneFeatures,
-      hasNewZoneColorAssignments,
-      hasNewSimulation,
-      hasNewCustomerPoints,
-      hasNewZoom,
-      hasSyncMomentChanged,
-      hasNewResults,
-      hasNewMapOverlay,
-      hasNewHighlights,
-      hasNewNodeSize,
-    } = changes;
+      if (isHeavyUpdate(changes, mapState)) {
+        setMapLoading(true);
+        settleRef.current = {
+          startedAt: performance.now(),
+          measurable:
+            (hasNewResults || hasNewSymbologyRules) && !document.hidden,
+        };
+      }
 
-    const { assets: selectedAssetsCount, customerPoints: selectedCPcount } =
-      USelection.countByKind(mapState.selection);
-    const selectionSize = selectedAssetsCount + selectedCPcount;
-    const hasLargeSelection = selectionSize > 50;
-    const hasNewSelection =
-      hasNewAssetsSelection || hasNewCustomerPointsSelection;
+      if (hasNewStyles) {
+        map.suspendOverlayStyleReactions();
+        resetMapState(map);
+        await buildBaseStyleAndSetOnMap(map, mapState.stylesConfig, translate);
+        addGisLayersToMap(map, mapState.stylesConfig, gisData);
+        addEditingLayersToMap(
+          map,
+          mapState.stylesConfig,
+          mapState.symbology.node.defaults,
+          mapState.symbology.link.defaults,
+        );
+        await map.addIcons();
+        map.resumeOverlayStyleReactions();
+        toggleAnalysisLayers(map, mapState.symbology);
+      }
 
-    const shouldShowLoader =
-      hasNewImport ||
-      hasNewEditions ||
-      hasNewStyles ||
-      hasNewSymbologyRules ||
-      (hasNewSimulation && mapState.simulation.status !== "running") ||
-      hasNewResults ||
-      (hasNewSelection && hasLargeSelection);
+      if (hasNewDefaultColors && !hasNewStyles) {
+        updateDefaultMapColors(
+          map,
+          mapState.symbology.node.defaults.color,
+          mapState.symbology.link.defaults.color,
+        );
+      }
 
-    if (shouldShowLoader) {
-      setMapLoading(true);
+      if (
+        hasNewZoneSymbology ||
+        hasNewZoneFeatures ||
+        hasNewZoneColorAssignments ||
+        hasNewStyles
+      ) {
+        updateZoneColors(
+          map,
+          mapState.symbology.zone,
+          mapState.zoneColorAssignments,
+        );
+        toggleZoneLayers(map, mapState.symbology.zone);
+      }
+
+      if (hasNewStyles || hasNewNodeSize || hasNewImport) {
+        applyJunctionSize(map, mapState.nodeSize);
+      }
+
+      if (
+        hasSyncMomentChanged ||
+        hasNewImport ||
+        hasNewStyles ||
+        hasNewSymbologyRules ||
+        (hasNewSimulation && mapState.simulation.status !== "running") ||
+        hasNewResults
+      ) {
+        await rebuildSources(
+          map,
+          assets,
+          mapState.symbology,
+          units,
+          formatting,
+          translateUnit,
+          mapState.resultsReader,
+        );
+        lastHiddenFeatures.current = new Set();
+        setMapSyncMoment((prev) => {
+          return { pointer: momentLog.getPointer(), version: prev.version };
+        });
+      }
+
+      if (hasNewImport || hasNewStyles) {
+        updateGrid({
+          map,
+          isGridOn,
+          isPreview: isGridPreview,
+          lengthUnit: units.length === "ft" ? "ft" : "m",
+          gridRef,
+          scaleControlRef,
+        });
+      }
+
+      if (hasNewEditions && !hasSyncMomentChanged) {
+        const { editedAssetIds } = await syncSourcesWithEdits(
+          map,
+          momentLog,
+          mapState.syncMomentPointer,
+          assets,
+          mapState.symbology,
+          units,
+          formatting,
+          translateUnit,
+          mapState.resultsReader,
+        );
+        lastHiddenFeatures.current = editedAssetIds;
+      }
+
+      if (
+        hasNewImport ||
+        hasNewEditions ||
+        hasNewStyles ||
+        hasNewSymbologyRules ||
+        hasNewAssetsSelection ||
+        (hasNewSimulation && mapState.simulation.status !== "running") ||
+        hasNewResults
+      ) {
+        updateIconsSource(
+          map,
+          assets,
+          mapState.selection,
+          mapState.resultsReader,
+        );
+      }
+
+      const movingCustomerPointId =
+        mapState.ephemeralState.type === "moveCustomerPoint"
+          ? mapState.ephemeralState.customerPoint.id
+          : null;
+      const prevMovingCustomerPointId =
+        previousMapState.ephemeralState.type === "moveCustomerPoint"
+          ? previousMapState.ephemeralState.customerPoint.id
+          : null;
+      const customerPointExclusionChanged =
+        movingCustomerPointId !== prevMovingCustomerPointId;
+
+      if (
+        hasNewImport ||
+        hasNewEditions ||
+        hasNewStyles ||
+        hasNewCustomerPoints ||
+        customerPointExclusionChanged
+      ) {
+        const excludedCustomerPointIds = movingCustomerPointId
+          ? new Set([movingCustomerPointId])
+          : undefined;
+
+        customerPointsOverlayRef.current = buildCustomerPointsOverlay(
+          hydraulicModel.customerPoints,
+          assets,
+          mapState.currentZoom,
+          excludedCustomerPointIds,
+        );
+      }
+
+      if (
+        hasNewZoom ||
+        hasNewCustomerPointsSelection ||
+        hasNewSymbologyRules ||
+        hasEphemeralStateReset
+      ) {
+        customerPointsOverlayRef.current =
+          updateCustomerPointsOverlayVisibility(
+            customerPointsOverlayRef.current,
+            mapState.currentZoom,
+          );
+
+        selectionDeckLayersRef.current = updateCustomerPointsOverlayVisibility(
+          selectionDeckLayersRef.current,
+          mapState.currentZoom,
+        );
+
+        ephemeralDeckLayersRef.current = updateCustomerPointsOverlayVisibility(
+          ephemeralDeckLayersRef.current,
+          mapState.currentZoom,
+        );
+      }
+
+      if (hasNewEphemeralState) {
+        ephemeralDeckLayersRef.current = buildCustomerPointsEphemeralOverlay(
+          mapState.ephemeralState,
+          mapState.currentZoom,
+        );
+      }
+
+      if (hasNewCustomerPointsSelection || hasNewCustomerPoints) {
+        selectionDeckLayersRef.current = buildSelectionOverlayForCustomerPoints(
+          mapState.selection,
+          hydraulicModel.assets,
+          hydraulicModel.customerPoints,
+          mapState.currentZoom,
+        );
+      }
+
+      if (hasNewEphemeralState) {
+        updateEditionsVisibility(
+          map,
+          previousMapState.movedAssetIds,
+          mapState.movedAssetIds,
+          lastHiddenFeatures.current,
+        );
+        updateEphemeralStateSource(map, mapState.ephemeralState, assets);
+      }
+
+      if (hasNewMapOverlay) {
+        updateMapOverlaySource(map, mapState.mapOverlayFeatures);
+      }
+
+      if (hasNewZoneFeatures || hasNewStyles) {
+        updateZonesSource(map, mapState.zoneFeatures);
+      }
+
+      const hasAssetHighlights = mapState.highlights.some(
+        (h) => h.type === "asset",
+      );
+      if (hasNewHighlights || (hasAssetHighlights && hasNewEditions)) {
+        updateHighlightsSource(map, mapState.highlights, assets);
+      }
+
+      if (
+        hasNewAssetsSelection ||
+        hasNewStyles ||
+        hasNewEditions ||
+        (hasNewSimulation && mapState.simulation.status !== "running") ||
+        hasNewResults
+      ) {
+        updateSelection(
+          map,
+          mapState.selection,
+          assets,
+          units,
+          mapState.movedAssetIds,
+          mapState.resultsReader,
+        );
+      }
+
+      if (
+        (hasNewSymbologyRules && !hasNewStyles) ||
+        hasNewAssetsSelection ||
+        hasNewEditions
+      ) {
+        toggleAnalysisLayers(map, mapState.symbology);
+      }
+
+      if (
+        hasNewStyles ||
+        hasNewCustomerPointsSymbology ||
+        hasNewZoom ||
+        hasNewCustomerPointsSelection ||
+        hasNewEphemeralState ||
+        hasNewCustomerPoints ||
+        hasNewEditions
+      ) {
+        const shouldHideCustomerPointsOverlay =
+          (mapState.ephemeralState.type === "moveAssets" &&
+            mapState.ephemeralState.targetAssets.length > 0) ||
+          (mapState.ephemeralState.type === "drawLink" &&
+            mapState.ephemeralState.sourceLink);
+
+        const isCustomerPointsVisible =
+          mapState.symbology.customerPoints.visible;
+
+        const shouldHideSelectionDuringMove =
+          mapState.ephemeralState.type === "moveCustomerPoint" &&
+          mapState.ephemeralState.moveActivated;
+
+        const shouldHideCustomerPointSelection =
+          !isCustomerPointsVisible &&
+          USelection.isSingleCustomerPoint(mapState.selection);
+
+        const combinedOverlay = [
+          ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
+            ? []
+            : customerPointsOverlayRef.current),
+          ...(shouldHideSelectionDuringMove || shouldHideCustomerPointSelection
+            ? []
+            : selectionDeckLayersRef.current),
+          ...ephemeralDeckLayersRef.current,
+        ];
+        map.setOverlay(combinedOverlay);
+      }
+
+      lastAppliedMapStateRef.current = mapState;
+    },
+    {
+      name: MAP_STATE_SYNC,
+      maxDurationMs: SLOW_UPDATE_WARN_MS,
+    },
+  );
+
+  const hasOutstandingHeavyUpdate = (): boolean =>
+    !!map &&
+    isHeavyUpdate(
+      detectChanges(
+        freshMapStateRef.current,
+        lastAppliedMapStateRef.current,
+        map,
+      ),
+      freshMapStateRef.current,
+    );
+
+  const onSettled = (settledCleanly: boolean) => {
+    const settle = settleRef.current;
+    if (!settle) return;
+
+    if (hasOutstandingHeavyUpdate()) {
+      settle.measurable = false;
+      return;
     }
 
+    settleRef.current = null;
+    setMapLoading(false);
+    if (
+      settle.measurable &&
+      settledCleanly &&
+      !wasSuspendedSince(settle.startedAt)
+    ) {
+      appendSourceRebuildDuration(performance.now() - settle.startedAt);
+    }
+  };
+
+  const queueUpdate = () => {
+    if (isRunningRef.current) {
+      hasPendingRef.current = true;
+      return;
+    }
+
+    isRunningRef.current = true;
+    // Avoid blocking the main thread
     setTimeout(async () => {
+      let hasRetried = false;
       try {
-        const resultsUpdateStartedAt =
-          (hasNewResults || hasNewSymbologyRules) && !document.hidden
-            ? performance.now()
-            : null;
-
-        if (hasNewStyles) {
-          map.suspendOverlayStyleReactions();
-          resetMapState(map);
-          await buildBaseStyleAndSetOnMap(
-            map,
-            mapState.stylesConfig,
-            translate,
-          );
-          addGisLayersToMap(map, mapState.stylesConfig, gisData);
-          addEditingLayersToMap(
-            map,
-            mapState.stylesConfig,
-            mapState.symbology.node.defaults,
-            mapState.symbology.link.defaults,
-          );
-          await map.addIcons();
-          map.resumeOverlayStyleReactions();
-          toggleAnalysisLayers(map, mapState.symbology);
-        }
-
-        if (hasNewDefaultColors && !hasNewStyles) {
-          updateDefaultMapColors(
-            map,
-            mapState.symbology.node.defaults.color,
-            mapState.symbology.link.defaults.color,
-          );
-        }
-
-        if (
-          hasNewZoneSymbology ||
-          hasNewZoneFeatures ||
-          hasNewZoneColorAssignments ||
-          hasNewStyles
-        ) {
-          updateZoneColors(
-            map,
-            mapState.symbology.zone,
-            mapState.zoneColorAssignments,
-          );
-          toggleZoneLayers(map, mapState.symbology.zone);
-        }
-
-        if (hasNewStyles || hasNewNodeSize || hasNewImport) {
-          applyJunctionSize(map, mapState.nodeSize);
-        }
-
-        if (
-          hasSyncMomentChanged ||
-          hasNewImport ||
-          hasNewStyles ||
-          hasNewSymbologyRules ||
-          (hasNewSimulation && mapState.simulation.status !== "running") ||
-          hasNewResults
-        ) {
-          await rebuildSources(
-            map,
-            assets,
-            mapState.symbology,
-            units,
-            formatting,
-            translateUnit,
-            mapState.resultsReader,
-          );
-          lastHiddenFeatures.current = new Set();
-          setMapSyncMoment((prev) => {
-            return { pointer: momentLog.getPointer(), version: prev.version };
-          });
-        }
-
-        if (hasNewImport || hasNewStyles) {
-          updateGrid({
-            map,
-            isGridOn,
-            isPreview: isGridPreview,
-            lengthUnit: units.length === "ft" ? "ft" : "m",
-            gridRef,
-            scaleControlRef,
-          });
-        }
-
-        if (hasNewEditions && !hasSyncMomentChanged) {
-          const { editedAssetIds } = await syncSourcesWithEdits(
-            map,
-            momentLog,
-            mapState.syncMomentPointer,
-            assets,
-            mapState.symbology,
-            units,
-            formatting,
-            translateUnit,
-            mapState.resultsReader,
-          );
-          lastHiddenFeatures.current = editedAssetIds;
-        }
-
-        if (
-          hasNewImport ||
-          hasNewEditions ||
-          hasNewStyles ||
-          hasNewSymbologyRules ||
-          hasNewAssetsSelection ||
-          (hasNewSimulation && mapState.simulation.status !== "running") ||
-          hasNewResults
-        ) {
-          await updateIconsSource(
-            map,
-            assets,
-            mapState.selection,
-            mapState.resultsReader,
-          );
-
-          if (resultsUpdateStartedAt !== null) {
-            const duration = performance.now() - resultsUpdateStartedAt;
-            const hiddenDuring =
-              lastHiddenAt !== null && lastHiddenAt > resultsUpdateStartedAt;
-            if (!document.hidden && !hiddenDuring) {
-              appendSourceRebuildDuration(duration);
+        do {
+          hasPendingRef.current = false;
+          try {
+            await syncMapStateRef.current();
+            hasRetried = false;
+          } catch (error) {
+            captureError(enrichError(MAP_STATE_SYNC, error), {
+              "Map Changes": { ...appliedChangesRef.current },
+            });
+            // Attempt to re-apply
+            if (!hasRetried) {
+              hasRetried = true;
+              hasPendingRef.current = true;
             }
           }
-        }
-
-        const movingCustomerPointId =
-          mapState.ephemeralState.type === "moveCustomerPoint"
-            ? mapState.ephemeralState.customerPoint.id
-            : null;
-        const prevMovingCustomerPointId =
-          previousMapState.ephemeralState.type === "moveCustomerPoint"
-            ? previousMapState.ephemeralState.customerPoint.id
-            : null;
-        const customerPointExclusionChanged =
-          movingCustomerPointId !== prevMovingCustomerPointId;
-
-        if (
-          hasNewImport ||
-          hasNewEditions ||
-          hasNewStyles ||
-          hasNewCustomerPoints ||
-          customerPointExclusionChanged
-        ) {
-          const excludedCustomerPointIds = movingCustomerPointId
-            ? new Set([movingCustomerPointId])
-            : undefined;
-
-          customerPointsOverlayRef.current = buildCustomerPointsOverlay(
-            hydraulicModel.customerPoints,
-            assets,
-            mapState.currentZoom,
-            excludedCustomerPointIds,
-          );
-        }
-
-        if (
-          hasNewZoom ||
-          hasNewCustomerPointsSelection ||
-          hasNewSymbologyRules ||
-          hasEphemeralStateReset
-        ) {
-          customerPointsOverlayRef.current =
-            updateCustomerPointsOverlayVisibility(
-              customerPointsOverlayRef.current,
-              mapState.currentZoom,
-            );
-
-          selectionDeckLayersRef.current =
-            updateCustomerPointsOverlayVisibility(
-              selectionDeckLayersRef.current,
-              mapState.currentZoom,
-            );
-
-          ephemeralDeckLayersRef.current =
-            updateCustomerPointsOverlayVisibility(
-              ephemeralDeckLayersRef.current,
-              mapState.currentZoom,
-            );
-        }
-
-        if (hasNewEphemeralState) {
-          ephemeralDeckLayersRef.current = buildCustomerPointsEphemeralOverlay(
-            mapState.ephemeralState,
-            mapState.currentZoom,
-          );
-        }
-
-        if (hasNewCustomerPointsSelection || hasNewCustomerPoints) {
-          selectionDeckLayersRef.current =
-            buildSelectionOverlayForCustomerPoints(
-              mapState.selection,
-              hydraulicModel.assets,
-              hydraulicModel.customerPoints,
-              mapState.currentZoom,
-            );
-        }
-
-        if (hasNewEphemeralState) {
-          updateEditionsVisibility(
-            map,
-            previousMapState.movedAssetIds,
-            mapState.movedAssetIds,
-            lastHiddenFeatures.current,
-          );
-          await updateEphemeralStateSource(
-            map,
-            mapState.ephemeralState,
-            assets,
-          );
-        }
-
-        if (hasNewMapOverlay) {
-          await updateMapOverlaySource(map, mapState.mapOverlayFeatures);
-        }
-
-        if (hasNewZoneFeatures || hasNewStyles) {
-          await updateZonesSource(map, mapState.zoneFeatures);
-        }
-
-        const hasAssetHighlights = mapState.highlights.some(
-          (h) => h.type === "asset",
-        );
-        if (hasNewHighlights || (hasAssetHighlights && hasNewEditions)) {
-          await updateHighlightsSource(map, mapState.highlights, assets);
-        }
-
-        if (
-          hasNewAssetsSelection ||
-          hasNewStyles ||
-          hasNewEditions ||
-          (hasNewSimulation && mapState.simulation.status !== "running") ||
-          hasNewResults
-        ) {
-          await updateSelection(
-            map,
-            mapState.selection,
-            assets,
-            units,
-            mapState.movedAssetIds,
-            mapState.resultsReader,
-          );
-        }
-
-        if (
-          (hasNewSymbologyRules && !hasNewStyles) ||
-          hasNewAssetsSelection ||
-          hasNewEditions
-        ) {
-          toggleAnalysisLayers(map, mapState.symbology);
-        }
-
-        if (
-          hasNewStyles ||
-          hasNewCustomerPointsSymbology ||
-          hasNewZoom ||
-          hasNewCustomerPointsSelection ||
-          hasNewEphemeralState ||
-          hasNewCustomerPoints ||
-          hasNewEditions
-        ) {
-          const shouldHideCustomerPointsOverlay =
-            (mapState.ephemeralState.type === "moveAssets" &&
-              mapState.ephemeralState.targetAssets.length > 0) ||
-            (mapState.ephemeralState.type === "drawLink" &&
-              mapState.ephemeralState.sourceLink);
-
-          const isCustomerPointsVisible =
-            mapState.symbology.customerPoints.visible;
-
-          const shouldHideSelectionDuringMove =
-            mapState.ephemeralState.type === "moveCustomerPoint" &&
-            mapState.ephemeralState.moveActivated;
-
-          const shouldHideCustomerPointSelection =
-            !isCustomerPointsVisible &&
-            USelection.isSingleCustomerPoint(mapState.selection);
-
-          const combinedOverlay = [
-            ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
-              ? []
-              : customerPointsOverlayRef.current),
-            ...(shouldHideSelectionDuringMove ||
-            shouldHideCustomerPointSelection
-              ? []
-              : selectionDeckLayersRef.current),
-            ...ephemeralDeckLayersRef.current,
-          ];
-          map.setOverlay(combinedOverlay);
-        }
-
-        setMapLoading(false);
-      } catch (error) {
-        captureError(error as Error);
-        setMapLoading(false);
+          // Yield to the main thread between coalesced applies
+          if (hasPendingRef.current) await yieldToMain();
+        } while (hasPendingRef.current);
+      } finally {
+        isRunningRef.current = false;
+        map?.onNextIdle(onSettled);
       }
     }, 0);
-  }, [
-    mapState,
-    assets,
-    map,
-    momentLog,
-    setMapSyncMoment,
-    units,
-    formatting,
-    setMapLoading,
-    appendSourceRebuildDuration,
-    translate,
-    gisData,
-    translateUnit,
-    hydraulicModel.customerPoints,
-    hydraulicModel.assets,
-    isGridOn,
-    isGridPreview,
-  ]);
+  };
 
-  doUpdates();
+  if (map && mapState !== lastAppliedMapStateRef.current) {
+    queueUpdate();
+  }
 };
 
-const resetMapState = withDebugInstrumentation(
-  (map: MapEngine) => {
-    map.removeSource("delta-features");
-    map.removeSource("main-features");
-  },
-  { name: "MAP_STATE:RESET_SOURCES", maxDurationMs: 100 },
-);
+const resetMapState = (map: MapEngine) => {
+  map.removeSource("delta-features");
+  map.removeSource("main-features");
+};
 
 const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
   async (
@@ -600,72 +650,66 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
   { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
 );
 
-const applyJunctionSize = withDebugInstrumentation(
-  (map: MapEngine, config: NodeSizeConfig) => {
-    const sizeLayers = [
-      "main-features-junctions",
-      "delta-features-junctions",
-      "ephemeral-junction-highlight",
-      "highlights-marker",
-      "selected-junctions",
-    ];
-    const radius = junctionCircleRadius(config);
-    for (const layerId of sizeLayers) {
-      if (!map.map.getLayer(layerId)) continue;
-      map.setLayerPaintRule(layerId, "circle-radius", radius);
-    }
+const applyJunctionSize = (map: MapEngine, config: NodeSizeConfig) => {
+  const sizeLayers = [
+    "main-features-junctions",
+    "delta-features-junctions",
+    "ephemeral-junction-highlight",
+    "highlights-marker",
+    "selected-junctions",
+  ];
+  const radius = junctionCircleRadius(config);
+  for (const layerId of sizeLayers) {
+    if (!map.map.getLayer(layerId)) continue;
+    map.setLayerPaintRule(layerId, "circle-radius", radius);
+  }
 
-    const visibilityLayers = [
-      "main-features-junctions",
-      "delta-features-junctions",
-      "selected-junctions",
-    ];
-    const minzoom = junctionLayerMinZoom(config);
-    for (const layerId of visibilityLayers) {
-      if (!map.map.getLayer(layerId)) continue;
-      map.setLayerMinZoom(layerId, minzoom);
-    }
-  },
-  { name: "MAP_STATE:APPLY_JUNCTION_SIZE", maxDurationMs: 100 },
-);
+  const visibilityLayers = [
+    "main-features-junctions",
+    "delta-features-junctions",
+    "selected-junctions",
+  ];
+  const minzoom = junctionLayerMinZoom(config);
+  for (const layerId of visibilityLayers) {
+    if (!map.map.getLayer(layerId)) continue;
+    map.setLayerMinZoom(layerId, minzoom);
+  }
+};
 
-const toggleAnalysisLayers = withDebugInstrumentation(
-  (map: MapEngine, symbology: SymbologySpec) => {
-    const arrowProperties = ["flow", "velocity", "unitHeadloss"];
-    const showArrows =
-      symbology.link.colorRule &&
-      arrowProperties.includes(symbology.link.colorRule.property);
-    if (!showArrows) {
-      map.hideLayers([
-        "main-features-pipe-arrows",
-        "delta-features-pipe-arrows",
-        "selected-pipe-arrows",
-      ]);
-    } else {
-      map.showLayers([
-        "main-features-pipe-arrows",
-        "delta-features-pipe-arrows",
-        "selected-pipe-arrows",
-      ]);
-    }
-  },
-  { name: "MAP_STATE:TOGGLE_ANALYSIS_LAYERS", maxDurationMs: 100 },
-);
+const toggleAnalysisLayers = (map: MapEngine, symbology: SymbologySpec) => {
+  const arrowProperties = ["flow", "velocity", "unitHeadloss"];
+  const showArrows =
+    symbology.link.colorRule &&
+    arrowProperties.includes(symbology.link.colorRule.property);
+  if (!showArrows) {
+    map.hideLayers([
+      "main-features-pipe-arrows",
+      "delta-features-pipe-arrows",
+      "selected-pipe-arrows",
+    ]);
+  } else {
+    map.showLayers([
+      "main-features-pipe-arrows",
+      "delta-features-pipe-arrows",
+      "selected-pipe-arrows",
+    ]);
+  }
+};
 
 const updateIconsSource = withDebugInstrumentation(
-  async (
+  (
     map: MapEngine,
     assets: AssetsMap,
     selection: Sel,
     simulationResults?: ResultsReader | null,
-  ): Promise<void> => {
+  ): void => {
     const selectionSet = new Set(USelection.getAssetIds(selection));
     const features = buildIconPointsSource(
       assets,
       selectionSet,
       simulationResults,
     );
-    await map.setSource("icons", features);
+    map.setSource("icons", features);
   },
   {
     name: "MAP_STATE:UPDATE_ICONS_SOURCE",
@@ -673,16 +717,16 @@ const updateIconsSource = withDebugInstrumentation(
   },
 );
 
-const updateMainSourceVisibility = withDebugInstrumentation(
-  (map: MapEngine, editedAssetIds: Set<AssetId>): void => {
-    map.clearFeatureState(FeatureSources.MAIN);
+const updateMainSourceVisibility = (
+  map: MapEngine,
+  editedAssetIds: Set<AssetId>,
+): void => {
+  map.clearFeatureState(FeatureSources.MAIN);
 
-    for (const assetId of editedAssetIds) {
-      map.hideFeature(FeatureSources.MAIN, assetId);
-    }
-  },
-  { name: "MAP_STATE:UPDATE_VISIBILITIES", maxDurationMs: 100 },
-);
+  for (const assetId of editedAssetIds) {
+    map.hideFeature(FeatureSources.MAIN, assetId);
+  }
+};
 
 const rebuildSources = withDebugInstrumentation(
   async (
@@ -694,7 +738,7 @@ const rebuildSources = withDebugInstrumentation(
     translateUnit: (unit: Unit) => string,
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
-    const features = buildOptimizedAssetsSource(
+    const features = await buildOptimizedAssetsSource(
       assets,
       symbology,
       units,
@@ -702,12 +746,15 @@ const rebuildSources = withDebugInstrumentation(
       translateUnit,
       simulationResults,
     );
-    await map.setSource(FeatureSources.MAIN, features);
-    await map.setSource(FeatureSources.DELTA, []);
+    map.setSource(FeatureSources.MAIN, features);
+    map.setSource(FeatureSources.DELTA, []);
 
     map.clearFeatureState(FeatureSources.MAIN);
   },
-  { name: "MAP_STATE:UPDATE_MAIN_SOURCE", maxDurationMs: 10000 },
+  {
+    name: "MAP_STATE:UPDATE_MAIN_SOURCE",
+    maxDurationMs: 10000,
+  },
 );
 
 const updateDeltaSource = withDebugInstrumentation(
@@ -722,7 +769,7 @@ const updateDeltaSource = withDebugInstrumentation(
     simulationResults?: ResultsReader | null,
   ): Promise<void> => {
     const editedAssets = filterAssets(assets, editedAssetIds);
-    const features = buildOptimizedAssetsSource(
+    const features = await buildOptimizedAssetsSource(
       editedAssets,
       symbology,
       units,
@@ -730,9 +777,12 @@ const updateDeltaSource = withDebugInstrumentation(
       translateUnit,
       simulationResults,
     );
-    await map.setSource(FeatureSources.DELTA, features);
+    map.setSource(FeatureSources.DELTA, features);
   },
-  { name: "MAP_STATE:UPDATE_DELTA_SOURCE", maxDurationMs: 250 },
+  {
+    name: "MAP_STATE:UPDATE_DELTA_SOURCE",
+    maxDurationMs: 250,
+  },
 );
 
 const syncSourcesWithEdits = async (
@@ -768,52 +818,46 @@ const syncSourcesWithEdits = async (
   };
 };
 
-const updateEditionsVisibility = withDebugInstrumentation(
-  (
-    map: MapEngine,
-    previousMovedAssetIds: Set<AssetId>,
-    movedAssetIds: Set<AssetId>,
-    featuresHiddenFromImport: Set<AssetId>,
-  ) => {
-    for (const assetId of previousMovedAssetIds.values()) {
-      map.showFeature("delta-features", assetId);
-      map.showFeature("icons", assetId);
+const updateEditionsVisibility = (
+  map: MapEngine,
+  previousMovedAssetIds: Set<AssetId>,
+  movedAssetIds: Set<AssetId>,
+  featuresHiddenFromImport: Set<AssetId>,
+) => {
+  for (const assetId of previousMovedAssetIds.values()) {
+    map.showFeature("delta-features", assetId);
+    map.showFeature("icons", assetId);
 
-      if (featuresHiddenFromImport.has(assetId)) continue;
+    if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.showFeature("main-features", assetId);
-    }
+    map.showFeature("main-features", assetId);
+  }
 
-    for (const assetId of movedAssetIds.values()) {
-      map.hideFeature("delta-features", assetId);
-      map.hideFeature("icons", assetId);
+  for (const assetId of movedAssetIds.values()) {
+    map.hideFeature("delta-features", assetId);
+    map.hideFeature("icons", assetId);
 
-      if (featuresHiddenFromImport.has(assetId)) continue;
+    if (featuresHiddenFromImport.has(assetId)) continue;
 
-      map.hideFeature("main-features", assetId);
-    }
+    map.hideFeature("main-features", assetId);
+  }
 
-    if (movedAssetIds.size > 0) {
-      map.hideLayers(SELECTION_LAYERS);
-    } else if (previousMovedAssetIds.size > 0) {
-      map.showLayers(SELECTION_LAYERS);
-    }
-  },
-  {
-    name: "MAP_STATE:UPDATE_EDITIONS_VISIBILITY",
-    maxDurationMs: 100,
-  },
-);
+  if (movedAssetIds.size > 0) {
+    map.hideLayers(SELECTION_LAYERS);
+  } else if (previousMovedAssetIds.size > 0) {
+    map.showLayers(SELECTION_LAYERS);
+  }
+};
 
 const updateSelection = withDebugInstrumentation(
-  async (
+  (
     map: MapEngine,
     selection: Sel,
     assets: AssetsMap,
     units: UnitsSpec,
     movedAssetIds: Set<AssetId>,
     simulationResults?: ResultsReader | null,
-  ): Promise<void> => {
+  ): void => {
     const features = buildSelectionSource(
       assets,
       selection,
@@ -822,9 +866,12 @@ const updateSelection = withDebugInstrumentation(
       simulationResults,
     );
 
-    await map.setSource("selected-features", features);
+    map.setSource("selected-features", features);
   },
-  { name: "MAP_STATE:UPDATE_SELECTION", maxDurationMs: 100 },
+  {
+    name: "MAP_STATE:UPDATE_SELECTION",
+    maxDurationMs: 100,
+  },
 );
 
 function addGisLayersToMap(
@@ -880,78 +927,76 @@ function addGisLayersToMap(
   }
 }
 
-const addEditingLayersToMap = withDebugInstrumentation(
-  (
-    map: MapEngine,
-    stylesConfig: StylesConfig,
-    nodeDefaults: NodeDefaults,
-    linkDefaults: LinkDefaults,
-  ) => {
-    const layers = makeLayers({
-      symbology: stylesConfig.symbology,
-      previewProperty: stylesConfig.previewProperty,
-      nodeDefaults,
-      linkDefaults,
-    });
+const addEditingLayersToMap = (
+  map: MapEngine,
+  stylesConfig: StylesConfig,
+  nodeDefaults: NodeDefaults,
+  linkDefaults: LinkDefaults,
+) => {
+  const layers = makeLayers({
+    symbology: stylesConfig.symbology,
+    previewProperty: stylesConfig.previewProperty,
+    nodeDefaults,
+    linkDefaults,
+  });
 
-    for (const layer of layers) {
-      map.addLayer(layer);
-    }
-  },
-  { name: "MAP_STATE:ADD_EDITING_LAYERS", maxDurationMs: 100 },
-);
+  for (const layer of layers) {
+    map.addLayer(layer);
+  }
+};
 
-const updateDefaultMapColors = withDebugInstrumentation(
-  (map: MapEngine, nodeColor: string, linkColor: string) => {
-    const junctionLayers = [
-      "main-features-junctions",
-      "delta-features-junctions",
-    ];
-    for (const layerId of junctionLayers) {
-      map.setLayerPaintRule(
-        layerId,
-        "circle-color",
-        junctionFillColorExpression(nodeColor),
-      );
-      map.setLayerPaintRule(
-        layerId,
-        "circle-stroke-color",
-        junctionStrokeColorExpression(nodeColor),
-      );
-    }
+const updateDefaultMapColors = (
+  map: MapEngine,
+  nodeColor: string,
+  linkColor: string,
+) => {
+  const junctionLayers = [
+    "main-features-junctions",
+    "delta-features-junctions",
+  ];
+  for (const layerId of junctionLayers) {
+    map.setLayerPaintRule(
+      layerId,
+      "circle-color",
+      junctionFillColorExpression(nodeColor),
+    );
+    map.setLayerPaintRule(
+      layerId,
+      "circle-stroke-color",
+      junctionStrokeColorExpression(nodeColor),
+    );
+  }
 
-    const pipeLayers = ["main-features-pipes", "delta-features-pipes"];
-    for (const layerId of pipeLayers) {
-      map.setLayerPaintRule(
-        layerId,
-        "line-color",
-        pipeLinkColorExpression(linkColor),
-      );
-    }
+  const pipeLayers = ["main-features-pipes", "delta-features-pipes"];
+  for (const layerId of pipeLayers) {
+    map.setLayerPaintRule(
+      layerId,
+      "line-color",
+      pipeLinkColorExpression(linkColor),
+    );
+  }
 
-    const arrowLayers = [
-      "main-features-pipe-arrows",
-      "delta-features-pipe-arrows",
-    ];
-    for (const layerId of arrowLayers) {
-      map.setLayerPaintRule(
-        layerId,
-        "icon-color",
-        pipeArrowColorExpression(linkColor),
-      );
-    }
-  },
-  { name: "MAP_STATE:UPDATE_DEFAULT_MAP_COLORS", maxDurationMs: 100 },
-);
+  const arrowLayers = [
+    "main-features-pipe-arrows",
+    "delta-features-pipe-arrows",
+  ];
+  for (const layerId of arrowLayers) {
+    map.setLayerPaintRule(
+      layerId,
+      "icon-color",
+      pipeArrowColorExpression(linkColor),
+    );
+  }
+};
 
 const updateEphemeralStateSource = withDebugInstrumentation(
-  async (
+  (
     map: MapEngine,
     ephemeralState: EphemeralEditingState,
     assets: AssetsMap,
-  ): Promise<void> => {
+  ): void => {
     const features = buildEphemeralStateSource(ephemeralState, assets);
-    await map.setSource("ephemeral", features);
+    map.setSource("ephemeral", features);
   },
   {
     name: "MAP_STATE:UPDATE_EPHEMERAL_STATE_SOURCE",
@@ -959,11 +1004,11 @@ const updateEphemeralStateSource = withDebugInstrumentation(
   },
 );
 
-const updateMapOverlaySource = async (
+const updateMapOverlaySource = (
   map: MapEngine,
   features: GeoJSON.Feature[],
-): Promise<void> => {
-  await map.setSource(
+): void => {
+  map.setSource(
     "map-overlay",
     features as unknown as import("src/types").Feature[],
   );
@@ -1017,24 +1062,20 @@ const toggleZoneLayers = (
   }
 };
 
-const updateZonesSource = async (
+const updateZonesSource = (
   map: MapEngine,
   features: GeoJSON.Feature[],
-): Promise<void> => {
-  await map.setSource(
-    "zones",
-    features as unknown as import("src/types").Feature[],
-  );
+): void => {
+  map.setSource("zones", features as unknown as import("src/types").Feature[]);
 };
 
-const updateHighlightsSource = async (
-  map: MapEngine,
-  highlights: Highlight[],
-  assets: AssetsMap,
-): Promise<void> => {
-  const features = buildHighlightsSource(highlights, assets);
-  await map.setSource("highlights", features);
-};
+const updateHighlightsSource = withDebugInstrumentation(
+  (map: MapEngine, highlights: Highlight[], assets: AssetsMap): void => {
+    const features = buildHighlightsSource(highlights, assets);
+    map.setSource("highlights", features);
+  },
+  { name: "MAP_STATE:UPDATE_HIGHLIGHTS_SOURCE" },
+);
 
 const buildCustomerPointsEphemeralOverlay = (
   ephemeralState: EphemeralEditingState,

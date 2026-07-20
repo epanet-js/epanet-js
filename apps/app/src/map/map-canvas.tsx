@@ -42,6 +42,8 @@ import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
+import { useMapStateUpdatesLegacy } from "./state-updates-legacy";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { useFitToExtent } from "./use-fit-to-extent";
@@ -97,6 +99,25 @@ const debug = isDebugOn
       );
     }
   : noop;
+
+const MapStateUpdatesSerialized = ({ map }: { map: MapEngine | null }) => {
+  useMapStateUpdates(map);
+  return null;
+};
+
+const MapStateUpdatesLegacyRunner = ({ map }: { map: MapEngine | null }) => {
+  useMapStateUpdatesLegacy(map);
+  return null;
+};
+
+const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
+  const isV2 = useFeatureFlag("FLAG_MAP_SERIALIZED_SYNC");
+  return isV2 ? (
+    <MapStateUpdatesSerialized map={map} />
+  ) : (
+    <MapStateUpdatesLegacyRunner map={map} />
+  );
+};
 
 export const MapCanvas = memo(function MapCanvas({
   setMap,
@@ -157,7 +178,7 @@ export const MapCanvas = memo(function MapCanvas({
     [fitToExtent],
   );
 
-  useMapStateUpdates(mapRef.current);
+  //TODO: Add back the useMapStateUpdates hook once FLAG_MAP_SERIALIZED_SYNC is cleaned up
 
   useEffect(() => {
     if (mapRef.current) return;
@@ -404,6 +425,7 @@ export const MapCanvas = memo(function MapCanvas({
 
   return (
     <CM.Root modal={false} onOpenChange={onOpenChange}>
+      <MapStateUpdates map={mapRef.current} />
       <CM.Trigger asChild onContextMenu={onContextMenu}>
         <div
           className={clsx("w-full h-full mapboxgl-map", cursorStyle)}

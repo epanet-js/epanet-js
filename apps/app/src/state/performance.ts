@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { atomEffect } from "jotai-effect";
+import { lastHiddenAt } from "src/infra/tab-visibility";
 import { simulationStepAtom } from "src/state/simulation";
 import {
   simulationResultsDerivedAtom,
@@ -45,15 +46,6 @@ const resultsFetch = makeRollingDurationAtoms(0.9);
 export const resultsFetchDurationsAtom = resultsFetch.durationsAtom;
 export const estimatedResultsFetchDurationAtom = resultsFetch.estimatedAtom;
 const appendResultsFetchDurationAtom = resultsFetch.appendAtom;
-
-// Module-level timestamp of when the tab was last hidden. Set synchronously by a
-// DOM listener (not jotai), so it's always up-to-date before any atom effects run.
-export let lastHiddenAt: number | null = null;
-if (typeof document !== "undefined") {
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) lastHiddenAt = performance.now();
-  });
-}
 
 const resultsFetchStartedAtAtom = atom<number | null>(null);
 

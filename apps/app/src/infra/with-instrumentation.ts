@@ -1,6 +1,7 @@
 import { isDebugOn } from "./debug-mode";
 import { captureWarning } from "./error-tracking";
 import { monitorFrequency } from "./monitor-frequency";
+import { wasSuspendedSince } from "./tab-visibility";
 
 type Settings = {
   name: string;
@@ -27,11 +28,10 @@ export const withDebugInstrumentation =
         //eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return value;
       }) as ReturnType<T>;
-    } else {
-      if (isDebugOn) checkDuration(settings, start);
-      //eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return result;
     }
+    if (isDebugOn) checkDuration(settings, start);
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return result;
   };
 
 export const traceDuration = <T>(name: string, fn: () => T): T => {
@@ -46,6 +46,10 @@ export const traceDuration = <T>(name: string, fn: () => T): T => {
 };
 
 const checkDuration = (settings: Settings, start: number) => {
+  // A measurement spanning a hidden period was deferred by the browser, so the
+  // duration is meaningless — don't report it.
+  if (wasSuspendedSince(start)) return;
+
   const end = performance.now();
   const duration = end - start;
   const thresholdMs = settings.maxDurationMs;

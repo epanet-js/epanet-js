@@ -11,7 +11,6 @@ import { prepareIconsSprite } from "./icons";
 import { IconImage } from "./icons";
 import { LayerId } from "./layers";
 import type { MapHandlers, MoveEvent } from "./types";
-import { captureWarning } from "src/infra/error-tracking";
 import {
   CustomMapControl,
   CustomMapControlClick,
@@ -46,6 +45,12 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
   preserveDrawingBuffer: true,
 };
 
+// Backstop for a map that never reaches idle. Reset on every re-arm, so an
+// active stream of updates keeps pushing it back.
+const IDLE_TIMEOUT_MS = 10000;
+
+// Legacy scheduler (FLAG_MAP_SERIALIZED_SYNC off) only — used by setSourceAsync
+// / waitForMapIdle. Remove with state-updates-legacy.ts.
 const MAP_IDLE_POLL_MS = 50;
 const MAP_IDLE_SAFETY_TIMEOUT_MS = 20000;
 
@@ -101,6 +106,9 @@ export class MapEngine {
   handlers: React.MutableRefObject<MapHandlers>;
   overlay: MapboxOverlay;
   private icons: IconImage[] = [];
+  private idleCallback: ((settledCleanly: boolean) => void) | null = null;
+  private idleTimer: ReturnType<typeof setTimeout> | null = null;
+  private idleDisturbed = false;
 
   constructor({
     element,
@@ -195,7 +203,23 @@ export class MapEngine {
     }
   }
 
-  setSource(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
+  setSource(name: DataSource, sourceFeatures: Feature[]): void {
+    if (!this.map || !(this.map as any).style) return;
+    const featuresSource = this.map.getSource(name) as
+      | mapboxgl.GeoJSONSource
+      | undefined;
+    if (!featuresSource) return;
+
+    featuresSource.setData({
+      type: "FeatureCollection",
+      features: sourceFeatures,
+    } as IFeatureCollection);
+  }
+
+  // Legacy scheduler only: setData, then resolve once the map has displayed it.
+  // The new scheduler uses the synchronous setSource + out-of-band onNextIdle
+  // instead. Remove with state-updates-legacy.ts.
+  setSourceAsync(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
     return this.waitForMapIdle(() => {
       const featuresSource = this.map.getSource(name) as mapboxgl.GeoJSONSource;
       if (!featuresSource) return;
@@ -460,6 +484,7 @@ export class MapEngine {
     }
   }
 
+  // Legacy scheduler only. Remove with state-updates-legacy.ts.
   async waitForMapIdle(callback: () => void): Promise<void> {
     if (!(this.map && (this.map as any).style)) {
       return Promise.resolve();
@@ -486,11 +511,49 @@ export class MapEngine {
 
       timers.push(
         setTimeout(() => {
-          captureWarning("waitForMapIdle timed out before the map settled");
           settle();
         }, MAP_IDLE_SAFETY_TIMEOUT_MS),
       );
       timers.push(setTimeout(verifyLoaded, MAP_IDLE_POLL_MS));
     });
+  }
+
+  onNextIdle(callback: (settledCleanly: boolean) => void): void {
+    if (!this.map || !(this.map as any).style || this.map.loaded()) {
+      callback(false);
+      return;
+    }
+
+    const alreadyWaiting = this.idleCallback !== null;
+    this.idleCallback = callback;
+    this.idleDisturbed = this.map.isMoving();
+
+    if (this.idleTimer !== null) clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(this.onIdleTimeout, IDLE_TIMEOUT_MS);
+
+    if (!alreadyWaiting) {
+      this.map.once("idle", this.onIdleEvent);
+      this.map.on("movestart", this.markIdleDisturbed);
+    }
+  }
+
+  private markIdleDisturbed = () => {
+    this.idleDisturbed = true;
+  };
+
+  private onIdleEvent = () => this.finishIdleWait(!this.idleDisturbed);
+  private onIdleTimeout = () => this.finishIdleWait(false);
+
+  private finishIdleWait(settledCleanly: boolean): void {
+    const callback = this.idleCallback;
+    this.idleCallback = null;
+    this.idleDisturbed = false;
+    if (this.idleTimer !== null) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+    this.map.off("idle", this.onIdleEvent);
+    this.map.off("movestart", this.markIdleDisturbed);
+    callback?.(settledCleanly);
   }
 }

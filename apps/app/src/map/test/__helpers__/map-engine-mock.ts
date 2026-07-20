@@ -127,7 +127,7 @@ class MapTestEngine {
     return Promise.resolve();
   }
 
-  setSource(name: DataSource, features: Feature[]): Promise<void> {
+  setSource(name: DataSource, features: Feature[]): void {
     const source = this.sources.get(name);
     if (source) {
       source.data = {
@@ -135,8 +135,17 @@ class MapTestEngine {
         features,
       };
     }
-
+  }
+  setSourceAsync(name: DataSource, features: Feature[]): Promise<void> {
+    this.setSource(name, features);
     return Promise.resolve();
+  }
+  waitForMapIdle(callback: () => void): Promise<void> {
+    callback();
+    return Promise.resolve();
+  }
+  onNextIdle(callback: (settledCleanly: boolean) => void): void {
+    callback(false);
   }
   removeSource() {}
   showFeature(sourceName: DataSource, featureId: string) {
@@ -155,6 +164,10 @@ class MapTestEngine {
     return 7;
   }
   suspendOverlayStyleReactions() {}
+  resumeOverlayStyleReactions() {}
+  addLayer() {}
+  setLayerPaintRule() {}
+  setLayerMinZoom() {}
   showLayers() {}
   hideLayers() {}
   showFeatures() {}
@@ -219,11 +232,11 @@ class MapTestEngine {
   safeResize() {}
 }
 
-vi.mock("../../map-engine", () => {
+vi.mock("../../map-engine", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../map-engine")>();
   return {
+    ...actual,
     MapEngine: MapTestEngine,
-    DEFAULT_ZOOM: 15.5,
-    DEFAULT_CENTER: [-4.3800042, 55.914314],
   };
 });
 
