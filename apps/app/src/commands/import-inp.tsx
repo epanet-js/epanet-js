@@ -42,7 +42,6 @@ export const useImportInp = () => {
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
   const allowsNullValues = useFeatureFlag("FLAG_NULL_VALUES");
-  const isMalformedCoordsOn = useFeatureFlag("FLAG_MALFORMED_COORDS");
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {
@@ -223,7 +222,6 @@ export const useImportInp = () => {
         );
 
         if (
-          isMalformedCoordsOn &&
           issues &&
           (issues.malformedCoordinates || issues.malformedVertices)
         ) {
@@ -283,7 +281,6 @@ export const useImportInp = () => {
       userTracking,
       validateAndPrepare,
       allowsNullValues,
-      isMalformedCoordsOn,
     ],
   );
 
