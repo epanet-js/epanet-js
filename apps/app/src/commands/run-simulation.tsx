@@ -23,7 +23,6 @@ import { getAppId } from "src/infra/app-instance";
 import { OPFSStorage } from "src/infra/storage";
 import { worktreeAtom } from "src/state/scenarios";
 import { nanoid } from "src/lib/id";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useToggleNetworkReview } from "src/commands/toggle-network-review";
 import { validateModelAttributes } from "src/lib/model-attributes-validation";
@@ -40,7 +39,6 @@ export const useRunSimulation = () => {
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
-  const isRemoveControlsOn = useFeatureFlag("FLAG_REMOVE_CONTROLS");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -71,7 +69,7 @@ export const useRunSimulation = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
-            excludeInactiveControls: isRemoveControlsOn,
+            excludeInactiveControls: true,
           });
           const start = performance.now();
 
@@ -234,7 +232,6 @@ export const useRunSimulation = () => {
         setSimulationStep,
         userTracking,
         toggleNetworkReview,
-        isRemoveControlsOn,
       ],
     ),
   );

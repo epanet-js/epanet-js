@@ -13,7 +13,6 @@ import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { modeAtom, Mode } from "src/state/mode";
 import { selectionAtom } from "src/state/selection";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const deleteSelectedShortcuts = ["backspace", "del"];
 
 export const useDeleteSelection = () => {
@@ -23,7 +22,6 @@ export const useDeleteSelection = () => {
   const setEphemeralState = useSetAtom(ephemeralStateAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
-  const isRemoveControlsOn = useFeatureFlag("FLAG_REMOVE_CONTROLS");
 
   const clearSelection = useCallback(() => {
     setSelection(USelection.none());
@@ -70,7 +68,7 @@ export const useDeleteSelection = () => {
           deleteAssets(hydraulicModel, {
             assetIds: assetIds.slice(),
             shouldUpdateCustomerPoints: true,
-            shouldRemoveRawControls: isRemoveControlsOn,
+            shouldRemoveRawControls: true,
           }),
         );
       }
@@ -84,13 +82,6 @@ export const useDeleteSelection = () => {
       const merged = mergeMoments(moments, "Delete selection");
       if (merged) transact(merged);
     },
-    [
-      hydraulicModel,
-      selection,
-      transact,
-      clearSelection,
-      userTracking,
-      isRemoveControlsOn,
-    ],
+    [hydraulicModel, selection, transact, clearSelection, userTracking],
   );
 };

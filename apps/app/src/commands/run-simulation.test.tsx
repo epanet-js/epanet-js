@@ -5,7 +5,6 @@ import { simulationDerivedAtom } from "src/state/derived-branch-state";
 import { Store } from "src/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { dialogAtom } from "src/state/dialog";
 import { splitsAtom } from "src/state/layout";
 import { modelAttributesValidationIssuesAtom } from "src/state/network-review";
@@ -299,7 +298,7 @@ describe("Run simulation", () => {
     });
   });
 
-  describe("FLAG_REMOVE_CONTROLS", () => {
+  describe("controls on inactive assets", () => {
     const aModelWithControlOnInactiveAsset = () => {
       const IDS = { r1: 1, j1: 2, p1: 3, n1: 4, n2: 5, pu1: 6 } as const;
       return HydraulicModelBuilder.with()
@@ -321,8 +320,7 @@ describe("Run simulation", () => {
         .build();
     };
 
-    it("excludes controls referencing inactive assets from the INP when on", async () => {
-      stubFeatureOn("FLAG_REMOVE_CONTROLS");
+    it("excludes controls referencing inactive assets from the INP", async () => {
       const store = setInitialState({
         hydraulicModel: aModelWithControlOnInactiveAsset(),
       });
@@ -334,21 +332,6 @@ describe("Run simulation", () => {
       const inp = (lib.runSimulation as unknown as Mock).mock
         .calls[0][0] as string;
       expect(inp).not.toContain("LINK 6 OPEN AT TIME 6");
-    });
-
-    it("keeps the control in the INP when off", async () => {
-      stubFeatureOff("FLAG_REMOVE_CONTROLS");
-      const store = setInitialState({
-        hydraulicModel: aModelWithControlOnInactiveAsset(),
-      });
-      renderComponent({ store });
-
-      await triggerRun();
-
-      await waitFor(() => expect(lib.runSimulation).toHaveBeenCalled());
-      const inp = (lib.runSimulation as unknown as Mock).mock
-        .calls[0][0] as string;
-      expect(inp).toContain("LINK 6 OPEN AT TIME 6");
     });
   });
 
