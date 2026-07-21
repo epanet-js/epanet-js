@@ -230,6 +230,43 @@ describe("parse junctions demands", () => {
     expect(hydraulicModel.patterns.size).toBe(0);
   });
 
+  it("keeps a demand naming a constant pattern as base-demand-only, not the default pattern", () => {
+    const inp = `
+    [JUNCTIONS]
+    J1    100
+
+    [DEMANDS]
+    J1    50    varyingPattern
+    J1    30    constantPattern
+
+    [OPTIONS]
+    Pattern    defaultPattern
+
+    [PATTERNS]
+    varyingPattern     0.5    1.5
+    constantPattern    1.0    1.0    1.0
+    defaultPattern     0.8    1.2
+
+    [COORDINATES]
+    J1    0    0
+
+    [END]
+    `;
+
+    const { hydraulicModel } = parseInp(inp);
+    const junction = getByLabel(hydraulicModel.assets, "J1") as Junction;
+    const demands = hydraulicModel.demands.junctions.get(junction.id) ?? [];
+
+    expect(demands).toHaveLength(2);
+    expect(demands[0].baseDemand).toBe(50);
+    expect(demands[0].patternId).toBe(1);
+    expect(demands[1].baseDemand).toBe(30);
+    expect(demands[1].patternId).toBeUndefined();
+
+    expect(hydraulicModel.patterns.get(1)?.label).toBe("varyingPattern");
+    expect(hydraulicModel.patterns.get(2)?.label).toBe("defaultPattern");
+  });
+
   it("parses constant demand from DEMANDS section (no pattern)", () => {
     const inp = `
     [JUNCTIONS]

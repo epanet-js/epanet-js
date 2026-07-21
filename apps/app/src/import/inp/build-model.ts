@@ -368,6 +368,7 @@ const buildDemand = (
         patternId: effectiveId,
       };
     }
+    return { baseDemand };
   }
 
   if (fallbackPatternId !== undefined) {
