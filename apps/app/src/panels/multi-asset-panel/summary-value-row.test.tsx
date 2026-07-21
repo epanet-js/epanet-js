@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -17,7 +17,6 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { J1: 1, J2: 2 };
@@ -69,11 +68,7 @@ const renderComponent = (store: Store) => {
   );
 };
 
-describe("multi-asset summary rows with FLAG_STATS_PERF", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_STATS_PERF");
-  });
-
+describe("multi-asset summary rows", () => {
   it("shows the mixed placeholder when values differ", () => {
     renderComponent(setInitialState(buildModel([100, 150])));
 
@@ -111,12 +106,5 @@ describe("multi-asset summary rows with FLAG_STATS_PERF", () => {
     );
 
     expect(screen.getByRole("table", { name: /values/i })).toBeInTheDocument();
-  });
-
-  it("keeps the stats popover button when the flag is off", () => {
-    stubFeatureOff("FLAG_STATS_PERF");
-    renderComponent(setInitialState(buildModel([100, 150])));
-
-    expect(screen.getAllByLabelText(/stats for:/i).length).toBeGreaterThan(0);
   });
 });

@@ -26,11 +26,7 @@ import { modelFactoriesAtom } from "src/state/model-factories";
 import { multiAssetPanelCollapseAtom } from "src/state/layout";
 import { selectionAtom } from "src/state/selection";
 import { computeAssetsStats } from "./asset-stats";
-import {
-  computeAssetsStatsDeprecated,
-  emptyComputedMultiAssetDataDeprecated,
-} from "./asset-stats-deprecated";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { computeAssetsStatsDeprecated } from "./asset-stats-deprecated";
 import { BATCH_EDITABLE_PROPERTIES } from "./batch-edit-property-config";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -66,8 +62,7 @@ export function MultiAssetPanel({
   const userTracking = useUserTracking();
   const showPumpLibrary = useShowPumpLibrary();
   const showPatternsLibrary = useShowPatternsLibrary();
-  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
-  const { data: multiAssetData, counts: statsCounts } = useMemo(() => {
+  const { data: multiAssetData, counts: assetCounts } = useMemo(() => {
     return computeAssetsStats(
       selectedAssets,
       units,
@@ -84,28 +79,6 @@ export function MultiAssetPanel({
     simulationResults,
     simulationSettings,
   ]);
-  const { data: multiAssetDataDeprecated, counts: statsCountsDeprecated } =
-    useMemo(() => {
-      if (isStatsPerfOn) return emptyComputedMultiAssetDataDeprecated();
-      return computeAssetsStatsDeprecated(
-        selectedAssets,
-        units,
-        formatting,
-        hydraulicModel,
-        simulationSettings,
-        simulationResults,
-      );
-    }, [
-      isStatsPerfOn,
-      selectedAssets,
-      units,
-      formatting,
-      hydraulicModel,
-      simulationResults,
-      simulationSettings,
-    ]);
-
-  const assetCounts = isStatsPerfOn ? statsCounts : statsCountsDeprecated;
 
   const assetIdsByType = useMemo(() => {
     const map: Record<Asset["type"], Asset["id"][]> = {
@@ -267,7 +240,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.junction}
-            sectionsDeprecated={multiAssetDataDeprecated.junction}
             onRequestDetails={(p) => computeDetailedStats("junction", p)}
             editableProperties={junctionEditableProperties}
             hasSimulation={hasSimulation}
@@ -311,7 +283,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pipe}
-            sectionsDeprecated={multiAssetDataDeprecated.pipe}
             onRequestDetails={(p) => computeDetailedStats("pipe", p)}
             editableProperties={pipeEditableProperties}
             hasSimulation={hasSimulation}
@@ -348,7 +319,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.pump}
-            sectionsDeprecated={multiAssetDataDeprecated.pump}
             onRequestDetails={(p) => computeDetailedStats("pump", p)}
             editableProperties={pumpEditableProperties}
             hasSimulation={hasSimulation}
@@ -389,7 +359,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.valve}
-            sectionsDeprecated={multiAssetDataDeprecated.valve}
             onRequestDetails={(p) => computeDetailedStats("valve", p)}
             editableProperties={valveEditableProperties}
             hasSimulation={hasSimulation}
@@ -428,7 +397,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.reservoir}
-            sectionsDeprecated={multiAssetDataDeprecated.reservoir}
             onRequestDetails={(p) => computeDetailedStats("reservoir", p)}
             editableProperties={reservoirEditableProperties}
             onPropertyChange={(p, v) =>
@@ -471,7 +439,6 @@ export function MultiAssetPanel({
         >
           <AssetTypeSections
             sections={multiAssetData.tank}
-            sectionsDeprecated={multiAssetDataDeprecated.tank}
             onRequestDetails={(p) => computeDetailedStats("tank", p)}
             editableProperties={tankEditableProperties}
             hasSimulation={hasSimulation}

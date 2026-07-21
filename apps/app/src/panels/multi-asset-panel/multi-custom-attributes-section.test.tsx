@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -17,7 +17,6 @@ import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
 import { USelection } from "src/selection";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import FeatureEditor from "../feature-editor";
 
 const IDS = { J1: 1, J2: 2 };
@@ -89,10 +88,6 @@ const renderComponent = (store: Store) => {
 };
 
 describe("MultiCustomAttributesSection", () => {
-  beforeEach(() => {
-    stubFeatureOff("FLAG_STATS_PERF");
-  });
-
   it("shows the section after the model attributes section", () => {
     const store = setInitialState();
 
@@ -145,57 +140,6 @@ describe("MultiCustomAttributesSection", () => {
     const maxField = screen.getByLabelText<HTMLInputElement>(/value for: max/i);
     expect(minField.value).toMatch(/^10(\.0+)?$/);
     expect(maxField.value).toMatch(/^20(\.0+)?$/);
-  });
-
-  it("writes the edited value to every selected asset", async () => {
-    const store = setInitialState();
-
-    renderComponent(store);
-
-    const input = screen.getByLabelText(/value for: Age/i);
-    await userEvent.click(input);
-    await userEvent.keyboard("99{Enter}");
-
-    await waitFor(() => {
-      const model = store.get(stagingModelDerivedAtom);
-      expect(model.assets.get(IDS.J1)!.getProperty(KEY)).toBe(99);
-      expect(model.assets.get(IDS.J2)!.getProperty(KEY)).toBe(99);
-    });
-  });
-});
-
-describe("MultiCustomAttributesSection with FLAG_STATS_PERF", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_STATS_PERF");
-  });
-
-  it("shows a mixed placeholder and computes stats lazily on open", async () => {
-    const store = setInitialState({
-      hydraulicModel: buildModel({ [IDS.J1]: 10, [IDS.J2]: 20 }),
-    });
-
-    renderComponent(store);
-
-    expect(screen.getByPlaceholderText("2 values")).toBeInTheDocument();
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /stats for: Age/i }),
-    );
-
-    const minField = screen.getByLabelText<HTMLInputElement>(/value for: min/i);
-    const maxField = screen.getByLabelText<HTMLInputElement>(/value for: max/i);
-    expect(minField.value).toMatch(/^10(\.0+)?$/);
-    expect(maxField.value).toMatch(/^20(\.0+)?$/);
-  });
-
-  it("shows the shared value when all selected assets match", () => {
-    const store = setInitialState({
-      hydraulicModel: buildModel({ [IDS.J1]: 42, [IDS.J2]: 42 }),
-    });
-
-    renderComponent(store);
-
-    expect(screen.getByLabelText(/value for: Age/i)).toHaveValue("42");
   });
 
   it("writes the edited value to every selected asset", async () => {

@@ -4,7 +4,6 @@ import type { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { CollapsibleSection } from "src/components/form/fields";
 import { RingSpinner } from "src/components/ring-spinner";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useAsyncCompute } from "src/hooks/use-async-compute";
 import { projectSettingsAtom } from "src/state/project-settings";
 import {
@@ -18,7 +17,6 @@ import { useUserTracking } from "src/infra/user-tracking";
 import {
   computeCustomerPointsStats,
   computeCustomerPointsSummary,
-  type CustomerPointPropertySections,
   type CustomerPointPropertySummarySections,
 } from "./customer-point-stats";
 import { CustomerPointSection } from "./sections";
@@ -31,7 +29,6 @@ export function CustomerPointPanelSection({
   customerPoints: CustomerPoint[];
 }) {
   const translate = useTranslate();
-  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const [collapseState, setCollapseState] = useAtom(
@@ -48,9 +45,6 @@ export function CustomerPointPanelSection({
   );
   const showSelectOnly = selectedAssets.length > 0;
 
-  const compute = isStatsPerfOn
-    ? computeCustomerPointsSummary
-    : computeCustomerPointsStats;
   const { data, isLoading } = useAsyncCompute<
     [
       CustomerPoint[],
@@ -59,9 +53,9 @@ export function CustomerPointPanelSection({
       typeof units,
       typeof formatting,
     ],
-    CustomerPointPropertySections | CustomerPointPropertySummarySections
+    CustomerPointPropertySummarySections
   >(
-    compute,
+    computeCustomerPointsSummary,
     [
       customerPoints,
       hydraulicModel.demands,

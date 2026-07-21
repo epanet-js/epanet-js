@@ -9,7 +9,6 @@ import {
   getAttributes,
 } from "@epanet-js/hydraulic-model";
 import { useTranslate } from "src/hooks/use-translate";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { changeProperty } from "src/hydraulic-model/model-operations";
@@ -28,9 +27,7 @@ import {
   buildCustomAttributeStats,
   buildCustomAttributeSummary,
 } from "./custom-attributes-stats";
-import { getDistinctBucketCount, getEmptyBucket } from "./stats";
 import { getDistinctBucketCount as getSummaryDistinctBucketCount } from "./summary-stats";
-import { StatsPopoverButton } from "./multi-value-row";
 import { LazyStatsPopoverButton } from "./summary-value-row";
 
 export function MultiCustomAttributesSection({
@@ -111,7 +108,6 @@ const MultiCustomAttributeRow = ({
   onSelectAssets?: (assetIds: number[], property: string) => void;
 }) => {
   const translate = useTranslate();
-  const isStatsPerfOn = useFeatureFlag("FLAG_STATS_PERF");
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const { assets } = useAtomValue(stagingModelDerivedAtom);
   const { isLocked } = useFeatureLock("customAttributes");
@@ -126,50 +122,26 @@ const MultiCustomAttributeRow = ({
       ] as [number, CustomAttributeValue],
   );
 
-  let distinctBuckets: number;
-  let statsButton: ReactNode;
-  if (isStatsPerfOn) {
-    const summary = buildCustomAttributeSummary(
-      attribute,
-      valuesById,
-      units,
-      formatting,
+  const summary = buildCustomAttributeSummary(
+    attribute,
+    valuesById,
+    units,
+    formatting,
+  );
+  const distinctBuckets = getSummaryDistinctBucketCount(summary);
+  const statsButton: ReactNode =
+    distinctBuckets > 1 ? (
+      <LazyStatsPopoverButton
+        label={attribute.label}
+        property={attribute.id}
+        loadDetails={() =>
+          buildCustomAttributeStats(attribute, valuesById, units, formatting)
+        }
+        onSelectAssets={onSelectAssets}
+      />
+    ) : (
+      <div className="shrink-0 w-7" />
     );
-    distinctBuckets = getSummaryDistinctBucketCount(summary);
-    statsButton =
-      distinctBuckets > 1 ? (
-        <LazyStatsPopoverButton
-          label={attribute.label}
-          property={attribute.id}
-          loadDetails={() =>
-            buildCustomAttributeStats(attribute, valuesById, units, formatting)
-          }
-          onSelectAssets={onSelectAssets}
-        />
-      ) : (
-        <div className="shrink-0 w-7" />
-      );
-  } else {
-    const propertyStats = buildCustomAttributeStats(
-      attribute,
-      valuesById,
-      units,
-      formatting,
-    );
-    distinctBuckets = getDistinctBucketCount(propertyStats);
-    const emptyBucket = getEmptyBucket(propertyStats);
-    statsButton =
-      distinctBuckets > 1 ? (
-        <StatsPopoverButton
-          propertyStats={propertyStats}
-          label={attribute.label}
-          onSelectAssets={onSelectAssets}
-          emptyBucket={emptyBucket}
-        />
-      ) : (
-        <div className="shrink-0 w-7" />
-      );
-  }
 
   const isMixed = distinctBuckets > 1;
 

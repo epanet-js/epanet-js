@@ -75,37 +75,6 @@ export type ComputedMultiAssetDataDeprecated = {
   counts: AssetCountsDeprecated;
 };
 
-const emptyAssetPropertySectionsDeprecated =
-  (): AssetPropertySectionsDeprecated => ({
-    activeTopology: [],
-    modelAttributes: [],
-    quality: [],
-    energy: [],
-    simulationResults: [],
-    demands: [],
-    energyResults: [],
-  });
-
-export const emptyComputedMultiAssetDataDeprecated =
-  (): ComputedMultiAssetDataDeprecated => ({
-    data: {
-      junction: emptyAssetPropertySectionsDeprecated(),
-      pipe: emptyAssetPropertySectionsDeprecated(),
-      pump: emptyAssetPropertySectionsDeprecated(),
-      valve: emptyAssetPropertySectionsDeprecated(),
-      reservoir: emptyAssetPropertySectionsDeprecated(),
-      tank: emptyAssetPropertySectionsDeprecated(),
-    },
-    counts: {
-      junction: 0,
-      pipe: 0,
-      pump: 0,
-      valve: 0,
-      reservoir: 0,
-      tank: 0,
-    },
-  });
-
 export const computeAssetsStatsDeprecated = (
   assets: Asset[],
   units: UnitsSpec,

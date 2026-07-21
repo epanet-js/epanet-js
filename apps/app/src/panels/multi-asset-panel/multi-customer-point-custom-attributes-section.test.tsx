@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -15,7 +15,6 @@ import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { MomentLog } from "src/lib/persistence/moment-log";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { Persistence } from "src/lib/persistence/persistence";
-import { stubFeatureOn, stubFeatureOff } from "src/__helpers__/feature-flags";
 import { MultiCustomerPointCustomAttributesSection } from "./multi-customer-point-custom-attributes-section";
 
 const IDS = { CP1: 1, CP2: 2 };
@@ -79,48 +78,12 @@ const renderSection = (store: Store, customerPointIds: number[]) => {
 };
 
 describe("MultiCustomerPointCustomAttributesSection", () => {
-  beforeEach(() => {
-    stubFeatureOff("FLAG_STATS_PERF");
-  });
-
   it("shows the section with the custom attribute field", () => {
     const store = setInitialState();
     renderSection(store, [IDS.CP1, IDS.CP2]);
 
     expect(screen.getByText("Custom attributes")).toBeInTheDocument();
     expect(screen.getByLabelText(/value for: Age/i)).toBeInTheDocument();
-  });
-
-  it("shows a mixed placeholder when values differ", () => {
-    const store = setInitialState(buildModel({ [IDS.CP1]: 10, [IDS.CP2]: 20 }));
-    renderSection(store, [IDS.CP1, IDS.CP2]);
-
-    expect(screen.getByPlaceholderText("2 values")).toBeInTheDocument();
-  });
-
-  it("writes the edited value to every selected customer point", async () => {
-    const store = setInitialState();
-    renderSection(store, [IDS.CP1, IDS.CP2]);
-
-    const input = screen.getByLabelText(/value for: Age/i);
-    await userEvent.click(input);
-    await userEvent.keyboard("99{Enter}");
-
-    await waitFor(() => {
-      const model = store.get(stagingModelDerivedAtom);
-      expect(model.customerPoints.get(IDS.CP1)!.getProperty("custom-1")).toBe(
-        99,
-      );
-      expect(model.customerPoints.get(IDS.CP2)!.getProperty("custom-1")).toBe(
-        99,
-      );
-    });
-  });
-});
-
-describe("MultiCustomerPointCustomAttributesSection with FLAG_STATS_PERF", () => {
-  beforeEach(() => {
-    stubFeatureOn("FLAG_STATS_PERF");
   });
 
   it("shows a mixed placeholder and computes stats lazily on open", async () => {
