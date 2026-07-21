@@ -214,8 +214,9 @@ the faceted path does not also check `FLAG_MAP_SERIALIZED_SYNC`. It exists so th
 geojson rendering can bake behind a flag before it becomes the default; at promotion, delete the
 pre-facet `state-updates.ts` and rename the faceted file into place.
 
-Its purpose is to converge the geojson rendering with the tile path (the private geo-index-tiles
-engine), so a later `MapSources` interface can have two symmetric implementations. Two changes:
+Its purpose is to converge the rendering onto a uniform main/delta facet decomposition with
+selection carried as a `selected` prop — a cleaner source model that also positions the code for a
+future pluggable source backend behind a common interface. Two changes:
 
 ### 1. Icons exploded into a main/delta facet
 
@@ -232,8 +233,9 @@ The delta-icon layers mirror the main icon layers on the `delta-icons` source. `
 
 The faceted path **deletes** the dedicated `"selected-features"` source. Selection is instead a
 `selected` prop on the feature/icon sources, and the base layers color/sprite by it — a selected
-pipe/pump/valve/junction differs only in **color**, a tank/reservoir only in **sprite**. This
-mirrors how the tile path patches a `selected` prop column in place.
+pipe/pump/valve/junction differs only in **color**, a tank/reservoir only in **sprite**. The
+`selected` prop rides on the same sources as the geometry, so a selection change updates a property
+on existing features instead of rebuilding a separate overlay source.
 
 - **Faceted layer factories** (`facetedPipesLayer`, `facetedJunctionsLayer`, `facetedPumpLines`,
   `facetedValveLines`, `facetedPipeArrows`, `facetedTankLayers`, `facetedReservoirLayers`) parallel
@@ -246,6 +248,11 @@ mirrors how the tile path patches a `selected` prop column in place.
   highlighted whether it is rendered from main (baked — see below) or from delta.
 - The one selection layer that survives is the pump/valve **halo** (`selectedIconsHaloLayer`,
   additive geometry that can't merge into a sprite), filtering the icon source on `selected`.
+  ⚠️ When a layer's filter is composed with the `selected` check (`filterSelected`), the **whole
+  filter must be expression syntax** (`["geometry-type"]`, `["get", …]`) — not legacy (`"$type"`,
+  bare string keys). Mapbox treats a compound filter as legacy if any leaf is legacy and then
+  rejects the `["get", "selected"]` array with "string expected, array found", so the layer never
+  gets added and every visibility toggle on it throws thereafter.
 
 ### Selection is an overlay, not a hide/move — avoid the flicker
 
@@ -272,6 +279,31 @@ z-order.
 - Delta **membership** (`selectedForDelta`, empty when baked) is separate from delta **stamping**
   (the full `selectedIds`): an edited-and-selected asset always lives in delta (its geometry is
   stale) and must still render selected there, even while the bulk selection is baked into main.
+
+### Editing existing assets and the edit-drop handoff
+
+A node move edits the node **and every incident link** (their shared endpoint follows the node — see
+`moveNode` in `hydraulic-model/model-operations/move-node.ts`), so `hiddenInMainRef` on a single-node
+drag holds the node plus its degree in links, all hidden in main and rendered from delta. That is
+correct, not a leak: the set is `editedSinceConsolidation` and is cleared on consolidation.
+
+- **Actively-editing assets are excluded from the delta live-set** (`ephemeralTargetIds` subtracted in
+  `syncSourcesWithEdits`). During a drag the moved asset is rendered by the **ephemeral** source at
+  its live position; if it *also* rode in delta (because it is selected) it would sit there with
+  stale geometry and, on drop, expose that stale geometry for a frame while delta's `setData`
+  reprocess is still in flight. Excluding it makes the faceted delta behave like V2's (which only
+  holds committed edits), so on drop it enters delta **fresh**.
+- Delta is re-synced when the **ephemeral-target set changes** (`hasEphemeralTargetsChanged`, gesture
+  start / end) — *not* on every mousemove (the set is unchanged then, only the ephemeral geometry
+  moves), so there is no per-frame delta rebuild during a drag. `movedAssetIds` (from `getMovedAssets`)
+  holds the move targets **and** the redraw source link, i.e. existing assets whose committed geometry
+  is stale mid-gesture; a brand-new draw isn't in it (nothing to exclude — it enters delta on commit).
+- **Accepted residual:** on drop the ephemeral preview clears immediately while delta's new geometry
+  parses async, so the moved features are on no source for ~1 frame (a faint blank, no old-geometry
+  flash). A gapless ephemeral→delta handoff would require a "delta ready" signal (a `sourcedata` /
+  `idle` listener); that was deliberately **rejected** to avoid coupling the updater to map events.
+  If the gap ever needs closing, the clean fix is to render the move from delta throughout (feed the
+  live drag geometry into delta) rather than a separate ephemeral source — not an event listener.
 
 ### Relationship to "Feature State vs. Dedicated Sources"
 

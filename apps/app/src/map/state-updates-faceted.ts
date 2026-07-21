@@ -118,6 +118,12 @@ const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   return assetIds;
 };
 
+const sameSet = (a: Set<AssetId>, b: Set<AssetId>): boolean => {
+  if (a.size !== b.size) return false;
+  for (const id of a) if (!b.has(id)) return false;
+  return true;
+};
+
 const detectChanges = (
   state: MapState,
   prev: MapState,
@@ -130,6 +136,7 @@ const detectChanges = (
   hasNewCustomerPointsSelection: boolean;
   hasNewEphemeralState: boolean;
   hasEphemeralStateReset: boolean;
+  hasEphemeralTargetsChanged: boolean;
   hasNewSimulation: boolean;
   hasNewSymbologyRules: boolean;
   hasNewCustomerPointsSymbology: boolean;
@@ -162,6 +169,10 @@ const detectChanges = (
     hasEphemeralStateReset:
       prev.ephemeralState.type !== "none" &&
       state.ephemeralState.type === "none",
+    hasEphemeralTargetsChanged: !sameSet(
+      state.movedAssetIds,
+      prev.movedAssetIds,
+    ),
     hasNewSimulation:
       state.simulation !== prev.simulation ||
       state.simulationStep !== prev.simulationStep,
@@ -191,13 +202,8 @@ const detectChanges = (
 
 const LARGE_SELECTION_SIZE = 500;
 
-// Above this many selected assets, bake the selection into main-features (rebuild main
-// with `selected` stamped) instead of putting them in the delta live-set. Selected
-// assets are NOT hidden in main (delta overlays the selection on top), so a large
-// selection would otherwise double-render that many features (main normal + delta
-// selected) and build a delta nearly the size of the whole network. Baking keeps them
-// in main rendered selected — no delta, no double render — the win on a select-all.
-const SELECTION_BAKE_THRESHOLD = 1000;
+// Limit for a consolidation of the main source
+const SELECTION_CONSOLIDATION_THRESHOLD = 1000;
 // Shared empty set (read-only in practice) for the un-baked / no-selection branches.
 const EMPTY_SELECTION: Set<AssetId> = new Set<AssetId>();
 
@@ -236,7 +242,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const gisData = useAtomValue(gisDataAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
-  const lastHiddenFeatures = useRef<Set<AssetId>>(new Set([]));
+  // Assets currently hidden in the main sources (feature-state) because they are
+  // edited-since-consolidation and rendered from delta instead. Lets the next visibility
+  // update diff instead of clearing all feature-state and re-hiding (which flashed stale
+  // geometry on a move-drop). Reset whenever main is fully rebuilt; bounded by the
+  // consolidation threshold (delta is folded back into main at ~MAX_CHANGES_BEFORE_MAP_SYNC).
+  const hiddenInMainRef = useRef<Set<AssetId>>(new Set());
   // Whether the current main-features render has the selection baked in (large-selection
   // coalescing). When true, a selection change requires re-serializing main.
   const selectionBakedRef = useRef(false);
@@ -278,6 +289,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewCustomerPointsSelection,
         hasNewEphemeralState,
         hasEphemeralStateReset,
+        hasEphemeralTargetsChanged,
         hasNewSymbologyRules,
         hasNewCustomerPointsSymbology,
         hasNewDefaultColors,
@@ -351,7 +363,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       // moving the whole network into delta (see SELECTION_BAKE_FRACTION). Small
       // selections ride the delta live-set (`selectedForDelta`); `selectedIds` (full)
       // still stamps `selected` on delta members either way.
-      const isBigSelection = selectedIds.size > SELECTION_BAKE_THRESHOLD;
+      const isBigSelection =
+        selectedIds.size > SELECTION_CONSOLIDATION_THRESHOLD;
       const bakedSelectedIds = isBigSelection ? selectedIds : EMPTY_SELECTION;
       const selectedForDelta = isBigSelection ? EMPTY_SELECTION : selectedIds;
 
@@ -382,8 +395,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         setMapSyncMoment((prev) => {
           return { pointer: momentLog.getPointer(), version: prev.version };
         });
-        // rebuildSources cleared delta; re-derive the live-set (edits are folded into
-        // main, so at head it is just the un-baked selection).
+        // rebuildSources cleared delta and all main feature-state; re-derive the live-set
+        // (edits are folded into main, so at head it is just the un-baked selection). The
+        // previously-hidden set is empty because feature-state was just cleared.
         const { hiddenInMainIds } = await syncSourcesWithEdits(
           map,
           momentLog,
@@ -396,8 +410,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           mapState.resultsReader,
           selectedForDelta,
           selectedIds,
+          EMPTY_SELECTION,
+          mapState.movedAssetIds,
         );
-        lastHiddenFeatures.current = hiddenInMainIds;
+        hiddenInMainRef.current = hiddenInMainIds;
       }
 
       if (hasNewImport || hasNewStyles) {
@@ -411,10 +427,16 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         });
       }
 
-      // Delta sync outside a main rebuild: on new edits or a small selection change,
-      // re-derive delta (edited ∪ un-baked selection); only edited assets are hidden in
-      // main, selected-unedited ones are overlaid by delta on top.
-      if ((hasNewEditions || hasNewAssetsSelection) && !rebuildMain) {
+      // Delta sync outside a main rebuild: on new edits, a small selection change, or the
+      // moved-set changing (drag start / drop). Re-derive delta (edited ∪ un-baked
+      // selection − moving); only edited assets are hidden in main, selected-unedited ones
+      // are overlaid by delta on top.
+      if (
+        (hasNewEditions ||
+          hasNewAssetsSelection ||
+          hasEphemeralTargetsChanged) &&
+        !rebuildMain
+      ) {
         const { hiddenInMainIds } = await syncSourcesWithEdits(
           map,
           momentLog,
@@ -427,8 +449,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           mapState.resultsReader,
           selectedForDelta,
           selectedIds,
+          hiddenInMainRef.current,
+          mapState.movedAssetIds,
         );
-        lastHiddenFeatures.current = hiddenInMainIds;
+        hiddenInMainRef.current = hiddenInMainIds;
       }
 
       const movingCustomerPointId =
@@ -505,7 +529,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           map,
           previousMapState.movedAssetIds,
           mapState.movedAssetIds,
-          lastHiddenFeatures.current,
+          hiddenInMainRef.current,
         );
         updateEphemeralStateSource(map, mapState.ephemeralState, assets);
       }
@@ -706,34 +730,37 @@ const toggleAnalysisLayers = (map: MapEngine, symbology: SymbologySpec) => {
   const showArrows =
     symbology.link.colorRule &&
     arrowProperties.includes(symbology.link.colorRule.property);
+  // Faceted path: there is no `selected-pipe-arrows` overlay — selection color is merged
+  // into the main/delta arrow layers via the faceted expression.
   if (!showArrows) {
-    map.hideLayers([
-      "main-features-pipe-arrows",
-      "delta-features-pipe-arrows",
-      "selected-pipe-arrows",
-    ]);
+    map.hideLayers(["main-features-pipe-arrows", "delta-features-pipe-arrows"]);
   } else {
-    map.showLayers([
-      "main-features-pipe-arrows",
-      "delta-features-pipe-arrows",
-      "selected-pipe-arrows",
-    ]);
+    map.showLayers(["main-features-pipe-arrows", "delta-features-pipe-arrows"]);
   }
 };
 
 // Hide the EDITED assets in the main sources (main-features + icons): their geometry in
 // main is stale, so they render only from delta. Selected-but-unedited assets are NOT
 // hidden — their main geometry is still correct, and the delta layers (drawn on top)
-// paint the selection over them. Hiding a selected asset before its delta re-render
-// lands is what caused the selection flicker, so we don't.
+// paint the selection over them.
+//
+// This diffs against the previously-hidden set rather than clearing all feature-state
+// and re-hiding: `clearFeatureState` un-hides EVERY feature (including an edited asset's
+// stale geometry) for a repaint before we re-hide it, which flashed the old geometry on
+// a move-drop. Diffing only toggles what actually changed, so a still-hidden asset is
+// never un-hidden.
 const updateMainSourceVisibility = (
   map: MapEngine,
   editedAssetIds: Set<AssetId>,
+  previouslyHiddenIds: Set<AssetId>,
 ): void => {
-  map.clearFeatureState(FeatureSources.MAIN);
-  map.clearFeatureState("icons");
-
+  for (const assetId of previouslyHiddenIds) {
+    if (editedAssetIds.has(assetId)) continue;
+    map.showFeature(FeatureSources.MAIN, assetId);
+    map.showFeature("icons", assetId);
+  }
   for (const assetId of editedAssetIds) {
+    if (previouslyHiddenIds.has(assetId)) continue;
     map.hideFeature(FeatureSources.MAIN, assetId);
     map.hideFeature("icons", assetId);
   }
@@ -837,14 +864,24 @@ const syncSourcesWithEdits = async (
   // Full selection, used to stamp `selected` on delta members (so an edited-and-selected
   // asset still renders selected from delta even while the bulk selection is baked).
   selectedIds: Set<AssetId>,
+  // Assets currently hidden in main (from the previous cycle), so the hide can be diffed
+  // rather than cleared-and-reapplied (which flashed stale geometry).
+  previouslyHiddenIds: Set<AssetId>,
+  // Existing assets whose geometry is being previewed live in the ephemeral source (move
+  // targets / redraw source link). They render from the ephemeral source during the
+  // gesture, so they are excluded from the delta live-set: such a *selected* asset would
+  // otherwise sit in delta with stale geometry and, on drop, expose that stale geometry for
+  // a frame while the new delta data reparses.
+  ephemeralTargetIds: Set<AssetId>,
 ): Promise<{ hiddenInMainIds: Set<AssetId> }> => {
   const editedSinceConsolidation = getAssetIdsInMoments(
     momentLog.getDeltas(mapSyncMoment),
   );
-  // Delta live-set = edited-since-consolidation ∪ (selection not baked into main). It
-  // rides in delta so edits and small selections re-serialize only the small delta.
+  // Delta live-set = (edited-since-consolidation ∪ un-baked selection) − ephemeral targets.
+  // It rides in delta so edits and small selections re-serialize only the small delta.
   const liveSetIds = new Set(editedSinceConsolidation);
   for (const assetId of selectedForDelta) liveSetIds.add(assetId);
+  for (const assetId of ephemeralTargetIds) liveSetIds.delete(assetId);
 
   await updateDeltaSource(
     map,
@@ -860,7 +897,11 @@ const syncSourcesWithEdits = async (
 
   // Only the edited assets are hidden in main (selected-unedited overlay from delta on
   // top). This is what the moved-asset visibility logic keys off, so return that set.
-  updateMainSourceVisibility(map, editedSinceConsolidation);
+  updateMainSourceVisibility(
+    map,
+    editedSinceConsolidation,
+    previouslyHiddenIds,
+  );
 
   return { hiddenInMainIds: editedSinceConsolidation };
 };
@@ -869,14 +910,17 @@ const updateEditionsVisibility = (
   map: MapEngine,
   previousMovedAssetIds: Set<AssetId>,
   movedAssetIds: Set<AssetId>,
-  featuresHiddenFromImport: Set<AssetId>,
+  // Assets currently hidden in the main sources because they are edited-since-
+  // consolidation (rendered from delta). A previously-moved asset that is now a committed
+  // edit must stay hidden in main — un-hiding it would flash its stale main geometry.
+  hiddenInMainIds: Set<AssetId>,
 ) => {
   for (const assetId of previousMovedAssetIds.values()) {
     map.showFeature("delta-features", assetId);
     map.showFeature("delta-icons", assetId);
     map.showFeature("icons", assetId);
 
-    if (featuresHiddenFromImport.has(assetId)) continue;
+    if (hiddenInMainIds.has(assetId)) continue;
 
     map.showFeature("main-features", assetId);
   }
@@ -886,7 +930,7 @@ const updateEditionsVisibility = (
     map.hideFeature("delta-icons", assetId);
     map.hideFeature("icons", assetId);
 
-    if (featuresHiddenFromImport.has(assetId)) continue;
+    if (hiddenInMainIds.has(assetId)) continue;
 
     map.hideFeature("main-features", assetId);
   }

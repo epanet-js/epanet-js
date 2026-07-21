@@ -11,10 +11,6 @@ const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
 const COLOR_SELECTED_LIGHT = colors.fuchsia300;
 const COLOR_SELECTED_LIGHTER = colors.fuchsia100;
 
-// Faceted path (FLAG_MAP_FACETED_SOURCES): the selection layers read the feature /
-// icon sources and filter on the `selected` prop, instead of a dedicated
-// `selected-features` overlay. On the pre-facet path `filterSelected` is omitted and
-// the filter is unchanged (the source only ever holds selected features).
 const withSelected = (filter: any, filterSelected?: boolean): any =>
   filterSelected ? ["all", filter, ["==", ["get", "selected"], true]] : filter;
 
@@ -228,8 +224,12 @@ export const selectedIconsHaloLayer = ({
     filter: withSelected(
       [
         "all",
-        ["==", "$type", "Point"],
-        ["any", ["==", "type", "pump"], ["==", "type", "valve"]],
+        ["==", ["geometry-type"], "Point"],
+        [
+          "any",
+          ["==", ["get", "type"], "pump"],
+          ["==", ["get", "type"], "valve"],
+        ],
       ],
       filterSelected,
     ),
