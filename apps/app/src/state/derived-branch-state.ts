@@ -7,6 +7,7 @@ import {
 } from "src/hydraulic-model";
 import type { BranchState } from "src/state/branch-state";
 import { MomentLog } from "src/lib/persistence/moment-log";
+import { catchErrors } from "src/infra/errors";
 import { USelection } from "src/selection";
 import { branchStateAtom } from "src/state/branch-state";
 import { selectionAtom } from "src/state/selection";
@@ -119,9 +120,18 @@ const simulationResultsAsyncDerivedAtom = atom(
       simulationState.epsResultsReader &&
       simulationStep !== null
     ) {
-      return await simulationState.epsResultsReader.getResultsForTimestep(
-        simulationStep,
+      const results = await catchErrors(
+        () =>
+          simulationState.epsResultsReader!.getResultsForTimestep(
+            simulationStep,
+          ),
+        {
+          as: "simulationResults: failed to read results from OPFS",
+          // Ignore the file not being there anymore
+          ignore: ["NotFoundError"],
+        },
       );
+      return results ?? null;
     }
     return null;
   },
