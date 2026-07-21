@@ -12,7 +12,6 @@ import {
   AssetFactory,
   LabelManager,
 } from "@epanet-js/hydraulic-model";
-import { presets } from "src/lib/project-settings/quantities-spec";
 import { IdGenerator } from "@epanet-js/id-generator";
 import { HydraulicModel } from "../hydraulic-model";
 
@@ -36,11 +35,7 @@ function createTestFactories(
 ) {
   const maxId = Math.max(0, ...hydraulicModel.assets.keys());
   return {
-    assetFactory: new AssetFactory(
-      presets.LPS.defaults,
-      new TestIdGenerator(maxId),
-      labelManager,
-    ),
+    assetFactory: new AssetFactory(new TestIdGenerator(maxId), labelManager),
     labelManager,
   };
 }

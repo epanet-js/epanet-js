@@ -207,7 +207,6 @@ export const useStartBlankProject = () => {
       const factories = initializeModelFactories({
         idGenerator,
         labelManager: new LabelManager(),
-        defaults: projectSettings.defaults,
       });
       await startNewProject({
         hydraulicModel,

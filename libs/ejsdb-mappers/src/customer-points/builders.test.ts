@@ -1,4 +1,3 @@
-import { presets } from "@epanet-js/project-settings";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   LabelManager,
@@ -20,7 +19,6 @@ const makeFactories = (maxId = 0) =>
   initializeModelFactories({
     idGenerator: new ConsecutiveIdsGenerator(maxId),
     labelManager: new LabelManager(),
-    defaults: presets.LPS.defaults,
   });
 
 const makeCpRow = (overrides: Partial<CustomerPointRow>): CustomerPointRow => ({

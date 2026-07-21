@@ -57,11 +57,6 @@ import {
   setAttributes,
 } from "@epanet-js/hydraulic-model";
 import { ConsecutiveIdsGenerator, IdGenerator } from "@epanet-js/id-generator";
-import {
-  AssetQuantitiesSpec,
-  UnitsSpec,
-  presets,
-} from "src/lib/project-settings/quantities-spec";
 
 type WithNullable<T, K extends keyof T> = Omit<T, K> & {
   [P in K]?: T[P] | null;
@@ -86,30 +81,14 @@ const stripNulls = <D extends Record<string, unknown>>(
   return out;
 };
 
-export const buildPipe = (
-  data: PipeBuildData = {},
-  unitsOverride: Partial<UnitsSpec> = {},
-) => {
-  const quantitiesSpec: AssetQuantitiesSpec = {
-    ...presets.LPS,
-    units: { ...presets.LPS.units, ...unitsOverride },
-  };
+export const buildPipe = (data: PipeBuildData = {}) => {
   return new AssetFactory(
-    quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).createPipe(data);
 };
-export const buildPump = (
-  data: PumpBuildData = {},
-  unitsOverride: Partial<UnitsSpec> = {},
-) => {
-  const quantitiesSpec: AssetQuantitiesSpec = {
-    ...presets.LPS,
-    units: { ...presets.LPS.units, ...unitsOverride },
-  };
+export const buildPump = (data: PumpBuildData = {}) => {
   return new AssetFactory(
-    quantitiesSpec.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).createPump(data);
@@ -117,14 +96,12 @@ export const buildPump = (
 
 export const buildJunction = (data: JunctionBuildData = {}) => {
   return new AssetFactory(
-    presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).createJunction(data);
 };
 export const buildReservoir = (data: ReservoirBuildData = {}) => {
   return new AssetFactory(
-    presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).createReservoir(data);
@@ -181,7 +158,6 @@ export class HydraulicModelBuilder {
 
   static with(
     options: {
-      quantitiesSpec?: AssetQuantitiesSpec;
       labelManager?: LabelManager;
       assetFactory?: AssetFactory;
       idGenerator?: WritableIdGenerator;
@@ -196,13 +172,11 @@ export class HydraulicModelBuilder {
 
   constructor(
     options: {
-      quantitiesSpec?: AssetQuantitiesSpec;
       labelManager?: LabelManager;
       assetFactory?: AssetFactory;
       idGenerator?: WritableIdGenerator;
     } = {},
   ) {
-    const quantitiesSpec = options.quantitiesSpec ?? presets.LPS;
     this.assets = new Map();
     this.customerPointsMap = initializeCustomerPoints();
     this.labelManager = options.labelManager ?? new LabelManager();
@@ -210,11 +184,7 @@ export class HydraulicModelBuilder {
     this.customerPointIdGenerator = new WritableIdGenerator();
     this.assetFactory =
       options.assetFactory ??
-      new AssetFactory(
-        quantitiesSpec.defaults,
-        this.idGenerator,
-        this.labelManager,
-      );
+      new AssetFactory(this.idGenerator, this.labelManager);
     this.topology = new Topology();
     this.demands = createEmptyDemands();
     this.curves = new Map();

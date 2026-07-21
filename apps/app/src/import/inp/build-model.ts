@@ -114,7 +114,6 @@ export const buildModel = (
   const factories = initializeModelFactories({
     idGenerator,
     labelManager,
-    defaults,
   });
 
   const { assetFactory } = factories;

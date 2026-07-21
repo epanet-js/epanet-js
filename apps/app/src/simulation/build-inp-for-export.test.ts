@@ -152,9 +152,7 @@ describe("build inp export ", () => {
   });
 
   it("detects units based on the flow units of the model", () => {
-    const hydraulicModel = HydraulicModelBuilder.with({
-      quantitiesSpec: presets.GPM,
-    }).build();
+    const hydraulicModel = HydraulicModelBuilder.with({}).build();
 
     const inp = buildInp(hydraulicModel, {
       ...exportOptions,

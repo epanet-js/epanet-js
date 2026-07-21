@@ -456,9 +456,7 @@ describe("build optimized source", () => {
         decimals: presets.GPM.decimals,
         defaultDecimals: 3,
       };
-      const { assets } = HydraulicModelBuilder.with({
-        quantitiesSpec: presets.GPM,
-      })
+      const { assets } = HydraulicModelBuilder.with({})
         .aPipe(IDS.p1, { length: 10 })
         .build();
       const simulationResults = createMockResultsReader({

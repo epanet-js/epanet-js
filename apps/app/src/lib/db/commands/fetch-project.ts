@@ -131,7 +131,6 @@ const fetchProjectWith = async (
         const factories = initializeFactories({
           idGenerator,
           labelManager: new LabelManager(),
-          defaults: projectSettings.defaults,
         });
 
         const { assets, assetIndex, topology } = buildAssetsData(

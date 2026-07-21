@@ -10,7 +10,6 @@ import { branchStateAtom } from "src/state/branch-state";
 import { modelFactoriesAtom } from "src/state/model-factories";
 import { mapSyncMomentAtom } from "src/state/map";
 import { selectionAtom } from "src/state/selection";
-import { projectSettingsAtom } from "src/state/project-settings";
 import { USelection } from "src/selection";
 import type { MomentLog } from "src/lib/persistence/moment-log";
 
@@ -25,7 +24,6 @@ function updateFactories(
     initializeModelFactories({
       idGenerator: currentFactories.idGenerator,
       labelManager,
-      defaults: get(projectSettingsAtom).defaults,
       labelCounters: currentFactories.labelCounters,
     }),
   );

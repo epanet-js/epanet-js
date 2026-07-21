@@ -1,4 +1,4 @@
-import { AssetId, DefaultsSpec, Junction, Pump } from "../asset-types";
+import { AssetId, Junction, Pump } from "../asset-types";
 import { Pipe, PipeStatus } from "../asset-types/pipe";
 import { ChemicalSourceType } from "../asset-types/node";
 import { LinkConnections, nullConnections } from "../asset-types/link";
@@ -140,16 +140,10 @@ const applyCustomAttributes = <
 };
 
 export class AssetFactory {
-  private defaults: DefaultsSpec;
   protected idGenerator: IdGenerator;
   private labelManager: LabelManager;
 
-  constructor(
-    defaults: DefaultsSpec,
-    idGenerator: IdGenerator,
-    labelManager: LabelManager,
-  ) {
-    this.defaults = defaults;
+  constructor(idGenerator: IdGenerator, labelManager: LabelManager) {
     this.idGenerator = idGenerator;
     this.labelManager = labelManager;
   }
@@ -319,8 +313,7 @@ export class AssetFactory {
     if (isProvided(head)) {
       headValue = head;
     } else if (isProvided(relativeHead)) {
-      const elevationBase = elevation ?? this.defaults.reservoir.elevation ?? 0;
-      headValue = relativeHead + elevationBase;
+      headValue = relativeHead + (elevation ?? 0);
     } else {
       headValue = null;
     }

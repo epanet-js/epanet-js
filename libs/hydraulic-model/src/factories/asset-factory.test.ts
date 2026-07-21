@@ -2,14 +2,9 @@ import { describe, it, expect } from "vitest";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import { AssetFactory } from "./asset-factory";
 import { LabelManager } from "../label-manager";
-import { testDefaults } from "../test-helpers/defaults";
 
 const assetFactory = () =>
-  new AssetFactory(
-    testDefaults,
-    new ConsecutiveIdsGenerator(),
-    new LabelManager(),
-  );
+  new AssetFactory(new ConsecutiveIdsGenerator(), new LabelManager());
 
 describe("AssetFactory createPipe roughness", () => {
   it("leaves roughness empty when none is provided", () => {

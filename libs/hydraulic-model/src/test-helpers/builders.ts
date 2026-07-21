@@ -9,14 +9,9 @@ import {
   ReservoirBuildData,
 } from "..";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
-import { testDefaults } from "./defaults";
 
 const factory = () =>
-  new AssetFactory(
-    testDefaults,
-    new ConsecutiveIdsGenerator(),
-    new LabelManager(),
-  );
+  new AssetFactory(new ConsecutiveIdsGenerator(), new LabelManager());
 
 export const buildPipe = (data: PipeBuildData = {}) =>
   factory().createPipe(data);

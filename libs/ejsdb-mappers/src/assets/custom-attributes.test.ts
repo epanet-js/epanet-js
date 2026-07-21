@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { presets } from "@epanet-js/project-settings";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   AssetFactory,
@@ -13,7 +12,6 @@ import {
 
 const makeJunction = (): Junction =>
   new AssetFactory(
-    presets.LPS.defaults,
     new ConsecutiveIdsGenerator(),
     new LabelManager(),
   ).createJunction({ id: 1, label: "J1" });

@@ -2,7 +2,6 @@ import { IdGenerator } from "@epanet-js/id-generator";
 import { CustomerPointFactory } from "./customer-point-factory";
 import { LabelManager, type LabelType } from "../label-manager";
 import { AssetFactory } from "./asset-factory";
-import type { DefaultsSpec } from "../asset-types";
 
 export {
   CustomerPointFactory,
@@ -21,7 +20,6 @@ export type ModelFactories = {
 type ModelFactoriesOptions = {
   idGenerator: IdGenerator;
   labelManager: LabelManager;
-  defaults: DefaultsSpec;
   labelCounters?: Map<LabelType, number>;
 };
 
@@ -49,9 +47,5 @@ export const initializeModelFactories = (
 ): ModelFactories =>
   buildModelFactories(
     options,
-    new AssetFactory(
-      options.defaults,
-      options.idGenerator,
-      options.labelManager,
-    ),
+    new AssetFactory(options.idGenerator, options.labelManager),
   );

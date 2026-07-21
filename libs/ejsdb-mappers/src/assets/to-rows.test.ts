@@ -1,4 +1,3 @@
-import { presets } from "@epanet-js/project-settings";
 import { ConsecutiveIdsGenerator } from "@epanet-js/id-generator";
 import {
   LabelManager,
@@ -18,7 +17,6 @@ const makeFactories = () =>
   initializeModelFactories({
     idGenerator: new ConsecutiveIdsGenerator(),
     labelManager: new LabelManager(),
-    defaults: presets.LPS.defaults,
   });
 
 describe("assetsToRows", () => {
