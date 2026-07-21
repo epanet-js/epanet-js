@@ -55,7 +55,9 @@ export async function addMapboxStyle(
   });
 
   Object.entries(layer.sourceMaxZoom).forEach(([sourceName, maxZoom]) => {
-    (updatedStyle.sources[sourceName] as RasterLayer).maxzoom = maxZoom;
+    const source = updatedStyle.sources[sourceName];
+    if (!source) return;
+    (source as RasterLayer).maxzoom = maxZoom;
     updatedStyle.layers.forEach((layer) => {
       if ((layer as RasterLayer).source === sourceName) {
         const paint = (layer as RasterLayer).paint || {};
