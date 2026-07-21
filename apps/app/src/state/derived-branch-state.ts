@@ -126,9 +126,8 @@ const simulationResultsAsyncDerivedAtom = atom(
             simulationStep,
           ),
         {
-          as: "simulationResults: failed to read results from OPFS",
-          // Ignore the file not being there anymore
-          ignore: ["NotFoundError"],
+          as: "simulationResults: failed to read results",
+          onUnexpected: "warn",
         },
       );
       return results ?? null;

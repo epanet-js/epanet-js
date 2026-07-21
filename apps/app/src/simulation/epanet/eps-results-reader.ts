@@ -26,6 +26,7 @@ import {
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
 import { Asset, AssetId, AssetType } from "src/hydraulic-model";
 
 export type { SimulationIds } from "./simulation-metadata";
@@ -397,7 +398,10 @@ export class EPSResultsReader {
 
       return { pumpPositionByLinkIndex, pumpEnergy };
     } catch (error) {
-      captureError(error as Error);
+      handleError(error, {
+        as: "epsResultsReader: pump energy read failed",
+        onUnexpected: "warn",
+      });
       return emptyResult;
     }
   }
@@ -1096,7 +1100,11 @@ export class EPSResultsReader {
         timestepBlockSize,
       };
     } catch (error) {
-      captureError(error as Error);
+      handleError(error, {
+        as: "epsResultsReader: metadata read failed",
+        warn: ["NotFoundError"],
+        onUnexpected: "warn",
+      });
       return EPSResultsReader.EMPTY_METADATA;
     }
   }
