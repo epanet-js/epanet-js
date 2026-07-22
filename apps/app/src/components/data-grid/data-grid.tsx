@@ -10,6 +10,9 @@ import { getLazyCoreRowModel } from "./models/lazy-core-row-model";
 import { getLazyStickySortedRowModel } from "./models/lazy-sticky-sorted-row-model";
 import { GridBusyProvider } from "./shared/grid-busy";
 import { RingSpinner } from "src/components/ring-spinner";
+import { notify } from "src/components/notifications";
+import { useTranslate } from "src/hooks/use-translate";
+import { WarningIcon } from "src/icons";
 import {
   DataGridVariant,
   RowAction,
@@ -121,6 +124,7 @@ export const DataGrid = forwardRef(function DataGrid<
   const patchRowFn: PatchRowFn = patchRow ?? defaultPatchRow;
 
   const { isBusy, busyApi } = useGridBusyState();
+  const translate = useTranslate();
 
   const table = useReactTable<TData>({
     data,
@@ -145,6 +149,22 @@ export const DataGrid = forwardRef(function DataGrid<
     autoExtendOnPaste: autoAddNewRows,
     onClipboardCopy: onCopy,
     onClipboardPaste: onPaste,
+    onCopyPermissionDenied: () =>
+      notify({
+        variant: "warning",
+        size: "md",
+        title: translate("clipboardPermissionDeniedTitle"),
+        description: translate("clipboardPermissionDenied"),
+        Icon: WarningIcon,
+      }),
+    onPastePermissionDenied: () =>
+      notify({
+        variant: "warning",
+        size: "md",
+        title: translate("clipboardPasteDeniedTitle"),
+        description: translate("clipboardPermissionDenied"),
+        Icon: WarningIcon,
+      }),
     maxClipboardRows,
     patchRow: patchRowFn,
     // Column sizing options

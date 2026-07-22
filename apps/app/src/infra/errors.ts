@@ -4,7 +4,7 @@ export function enrichError(message: string, cause: unknown): Error {
   return new Error(message, { cause });
 }
 
-const errorName = (error: unknown): string | undefined => {
+export const errorName = (error: unknown): string | undefined => {
   if (typeof error !== "object" || error === null || !("name" in error)) {
     return undefined;
   }

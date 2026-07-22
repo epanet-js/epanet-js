@@ -7,6 +7,8 @@ import type {
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
 import type { GridSelection } from "../types";
 import { createTimeSlicer } from "src/infra/yield-to-main";
+import { enrichError, errorName } from "src/infra/errors";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 
 export type CopySelectionOptions = {
   includeHeaders?: boolean;
@@ -39,6 +41,8 @@ declare module "@tanstack/react-table" {
     createRow?: () => TData;
     onClipboardCopy?: (info: ClipboardCopyInfo) => void;
     onClipboardPaste?: (info: ClipboardPasteInfo) => void;
+    onCopyPermissionDenied?: () => void;
+    onPastePermissionDenied?: () => void;
     onDataChange?: (data: TData[]) => void | Promise<void>;
     patchRow?: PatchRowFn;
   }
@@ -97,12 +101,6 @@ const buildHeaderLine = <TData extends RowData>(
   }
   return headers.join("\t");
 };
-
-const selectionsEqual = (a: GridSelection, b: GridSelection): boolean =>
-  a.min.col === b.min.col &&
-  a.min.row === b.min.row &&
-  a.max.col === b.max.col &&
-  a.max.row === b.max.row;
 
 const capRows = (requested: number, max: number | undefined): number =>
   max != null ? Math.min(requested, max) : requested;
@@ -174,34 +172,9 @@ export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
-    let lastHeaderlessCopy: {
-      selection: GridSelection;
-      headerLine: string;
-      bodyLength: number;
-    } | null = null;
-
     const writeSelectionToClipboard = async (includeHeaders: boolean) => {
       const selection = table.getSelection?.();
       if (!selection) return;
-
-      const isSameCopyWithHeaderes =
-        includeHeaders &&
-        lastHeaderlessCopy &&
-        selectionsEqual(lastHeaderlessCopy.selection, selection);
-
-      if (isSameCopyWithHeaderes) {
-        try {
-          const body = await navigator.clipboard.readText();
-          if (body.length === lastHeaderlessCopy!.bodyLength) {
-            await navigator.clipboard.writeText(
-              `${lastHeaderlessCopy!.headerLine}\n${body}`,
-            );
-            return;
-          }
-        } catch {
-          // Clipboard read denied/unavailable — rebuild below.
-        }
-      }
 
       const columns = table.getVisibleLeafColumns();
       const data = getData();
@@ -241,10 +214,6 @@ export const ClipboardFeature: TableFeature = {
         selection.min.col,
         selection.max.col,
       );
-      lastHeaderlessCopy = includeHeaders
-        ? null
-        : { selection, headerLine, bodyLength: dataText.length };
-
       await navigator.clipboard.writeText(
         includeHeaders ? `${headerLine}\n${dataText}` : dataText,
       );
@@ -284,7 +253,17 @@ export const ClipboardFeature: TableFeature = {
       if (!selection) return;
       const includeHeaders = resolveIncludeHeaders(options?.includeHeaders);
 
-      await writeSelectionToClipboard(includeHeaders);
+      try {
+        await writeSelectionToClipboard(includeHeaders);
+      } catch (error) {
+        if (errorName(error) === "NotAllowedError") {
+          captureWarning("Data grid: clipboard write denied", error);
+          table.options.onCopyPermissionDenied?.();
+          return;
+        }
+        captureError(enrichError("Data grid: clipboard write failed", error));
+        return;
+      }
 
       const info = buildCopyInfo(includeHeaders);
       if (info) table.options.onClipboardCopy?.(info);
@@ -373,8 +352,13 @@ export const ClipboardFeature: TableFeature = {
       try {
         const text = await navigator.clipboard.readText();
         await table.applyPaste(text);
-      } catch {
-        // Clipboard access denied or other error
+      } catch (error) {
+        if (errorName(error) === "NotAllowedError") {
+          captureWarning("Data grid: clipboard read denied", error);
+          table.options.onPastePermissionDenied?.();
+          return;
+        }
+        captureError(enrichError("Data grid: paste failed", error));
       }
     };
 

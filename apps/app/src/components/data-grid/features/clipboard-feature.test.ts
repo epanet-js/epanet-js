@@ -174,7 +174,7 @@ describe("ClipboardFeature", () => {
       );
     });
 
-    it("prepends headers by reusing the last copy of the same selection (no re-read)", async () => {
+    it("prepends headers when re-copying the same selection with headers", async () => {
       const clip = stubClipboard();
       const data: TestRow[] = [
         { id: "1", name: "Alice", value: "100" },
@@ -203,8 +203,11 @@ describe("ClipboardFeature", () => {
         await result.current.copySelection({ includeHeaders: true });
       });
       expect(clip.getText()).toBe("Name\nAlice\nBob");
-      // Fast path reused the cached body — no extra accessor reads.
-      expect(nameAccessor.mock.calls.length).toBe(readsAfterFirstCopy);
+      // Rebuilds the payload rather than reading the clipboard, so the cells
+      // are read again.
+      expect(nameAccessor.mock.calls.length).toBeGreaterThan(
+        readsAfterFirstCopy,
+      );
     });
 
     it("rebuilds (does not reuse) when the selection changed since the last copy", async () => {
