@@ -1,5 +1,6 @@
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
 import { useTranslate } from "src/hooks/use-translate";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const AlertExportInpDialog = ({
   onSaveProject,
@@ -11,6 +12,7 @@ export const AlertExportInpDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const isExportLabelsOn = useFeatureFlag("FLAG_EXPORT_LABELS");
 
   return (
     <BaseDialog
@@ -37,6 +39,9 @@ export const AlertExportInpDialog = ({
     >
       <div className="p-4 text-size-base text-default">
         <p className="pb-2">{translate("alertExportInpDetail")}</p>
+        {isExportLabelsOn && (
+          <p className="pb-2">{translate("alertExportInpLabels")}</p>
+        )}
         <p>{translate("alertExportInpRecommendation")}</p>
       </div>
     </BaseDialog>

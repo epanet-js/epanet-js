@@ -568,6 +568,7 @@
   "alertInpOutputDetail": "Please note that some sections and settings may be formatted differently or omitted. We encourage you to save a copy instead of overriding the original content.",
   "alertExportInp": "Some data may be lost",
   "alertExportInpDetail": "The EPANET INP format doesn't support all epanet-js features, such as customer points, custom asset fields and native controls.",
+  "alertExportInpLabels": "Long labels may be shortened and some characters removed to meet EPANET's naming restrictions.",
   "alertExportInpRecommendation": "We recommend using the epanet-js Project (.ejsdb) as your primary save and only exporting to EPANET INP for external compatibility.",
   "saveAsProject": "Save as Project",
   "exportToInp": "Export to INP",
