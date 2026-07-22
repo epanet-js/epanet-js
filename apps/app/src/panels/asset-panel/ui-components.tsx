@@ -11,6 +11,7 @@ import { EditableTextField } from "src/components/form/editable-text-field";
 import { TextField } from "src/components/form/text-field";
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useAssetLabelMaxBytes } from "src/hooks/use-asset-label-max-bytes";
 import { Unit, convertTo } from "@epanet-js/quantity";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import { useValueDisplay } from "src/hooks/use-value-display";
@@ -134,6 +135,7 @@ const Header = ({
   readOnly?: boolean;
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const labelMaxBytes = useAssetLabelMaxBytes();
 
   const handleChange = useCallback(
     (newLabel: string): boolean => {
@@ -163,7 +165,9 @@ const Header = ({
             onDirty={clearError}
             hasError={!!error}
             readOnly={readOnly}
-            sanitize={(raw) => LabelManager.sanitizeLabel(raw, labelType)}
+            sanitize={(raw) =>
+              LabelManager.sanitizeLabel(raw, labelType, labelMaxBytes)
+            }
             styleOptions={{
               padding: "sm",
               ghostBorder: true,

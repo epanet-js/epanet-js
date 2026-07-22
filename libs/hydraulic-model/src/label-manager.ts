@@ -14,6 +14,7 @@ type LabelRule = LabelLengthRule & {
 
 const ASSET_LABEL_ALLOWED_CHARS = /(?![\s;])[\x00-\xFF]/;
 const ASSET_LABEL_MAX_BYTES = 31;
+export const EXTENDED_ASSET_LABEL_MAX_BYTES = 64;
 
 const defaultLabelRule: LabelRule = {
   allowedChars: ASSET_LABEL_ALLOWED_CHARS,
@@ -165,13 +166,20 @@ export class LabelManager {
     );
   }
 
-  static sanitizeLabel(raw: string, type: LabelType): string {
+  static sanitizeLabel(
+    raw: string,
+    type: LabelType,
+    maxByteLength?: number,
+  ): string {
     const rules = rulesForType(type);
+    const byteLimit =
+      maxByteLength !== undefined && rules.maxByteLength !== undefined
+        ? maxByteLength
+        : rules.maxByteLength;
     let next = raw;
     if (rules.allowedChars)
       next = filterByAllowedChars(next, rules.allowedChars);
-    if (rules.maxByteLength !== undefined)
-      next = truncateToByteLength(next, rules.maxByteLength);
+    if (byteLimit !== undefined) next = truncateToByteLength(next, byteLimit);
     if (rules.maxLength !== undefined)
       next = truncateToCharLength(next, rules.maxLength);
     return next;

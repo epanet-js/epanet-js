@@ -77,6 +77,7 @@ import {
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
 import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
+import { useAssetLabelMaxBytes } from "src/hooks/use-asset-label-max-bytes";
 
 interface AssetDataTableProps {
   assetType: AssetType;
@@ -169,6 +170,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     () => getAttributes(hydraulicModel.customAttributes, assetType),
     [hydraulicModel.customAttributes, assetType],
   );
+  const labelMaxBytes = useAssetLabelMaxBytes();
 
   const columns = useMemo(() => {
     const validateLabel = (label: string, row: AssetRow) =>
@@ -204,6 +206,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       accessorCtx,
       customAttributes,
       customAttributesLock,
+      labelMaxBytes,
     );
   }, [
     assetType,
@@ -224,6 +227,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     units,
     accessorCtx,
     customAttributes,
+    labelMaxBytes,
   ]);
 
   const onChange = useCallback(

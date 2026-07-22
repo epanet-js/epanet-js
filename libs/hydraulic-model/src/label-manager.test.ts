@@ -400,6 +400,16 @@ describe("label manager", () => {
         );
       });
 
+      it("caps at a caller-provided byte limit when given", () => {
+        expect(
+          LabelManager.sanitizeLabel("x".repeat(70), "junction", 64),
+        ).toEqual("x".repeat(64));
+        // The override does not apply to char-based rules (customer points).
+        expect(
+          LabelManager.sanitizeLabel("ñ".repeat(60), "customerPoint", 64),
+        ).toEqual("ñ".repeat(50));
+      });
+
       it("applies asset rules to patterns and curves", () => {
         expect(LabelManager.sanitizeLabel("a b;", "pattern")).toEqual("ab");
         expect(LabelManager.sanitizeLabel("a b;", "curve")).toEqual("ab");
