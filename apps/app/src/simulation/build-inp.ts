@@ -235,8 +235,11 @@ const isDefaultPressureForSystem = (
   return pressureUnit === "mwc";
 };
 
+const EPANET_MAX_LABEL_LENGTH = 31;
+
 class EpanetIds {
   private strategy: "id" | "label";
+  private maxLabelLength?: number;
   private assetIds: Map<AssetId, string>;
   private linkIds: Set<string>;
   private nodeIds: Set<string>;
@@ -245,8 +248,15 @@ class EpanetIds {
   private curveIds: Map<CurveId, string>;
   private curveLabels: Set<string>;
 
-  constructor({ strategy }: { strategy: "id" | "label" }) {
+  constructor({
+    strategy,
+    maxLabelLength,
+  }: {
+    strategy: "id" | "label";
+    maxLabelLength?: number;
+  }) {
     this.strategy = strategy;
+    this.maxLabelLength = maxLabelLength;
     this.nodeIds = new Set();
     this.linkIds = new Set();
     this.assetIds = new Map();
@@ -318,12 +328,20 @@ class EpanetIds {
     candidate: string,
     count = 0,
   ): string {
-    const newCandidate = count > 0 ? `${candidate}.${count}` : candidate;
+    const suffix = count > 0 ? `.${count}` : "";
+    const newCandidate = this.fitToLimit(candidate, suffix);
     if (!takenIds.has(newCandidate)) {
       return newCandidate;
     } else {
       return this.ensureUnique(takenIds, candidate, count + 1);
     }
+  }
+
+  private fitToLimit(candidate: string, suffix: string): string {
+    if (this.maxLabelLength === undefined) return `${candidate}${suffix}`;
+    const reserve = suffix.length === 0 ? 0 : Math.max(3, suffix.length);
+    const base = candidate.slice(0, this.maxLabelLength - reserve);
+    return `${base}${suffix}`;
   }
 }
 
@@ -363,6 +381,7 @@ type BuildOptions = {
   geolocation?: boolean;
   madeBy?: boolean;
   labelIds?: boolean;
+  enforceLabelLimit?: boolean;
   customerDemands?: boolean;
   customerPoints?: boolean;
   inactiveAssets?: boolean;
@@ -381,6 +400,7 @@ export const buildInp = withDebugInstrumentation(
       geolocation: false,
       madeBy: false,
       labelIds: false,
+      enforceLabelLimit: false,
       customerDemands: false,
       customerPoints: false,
       inactiveAssets: false,
@@ -391,7 +411,12 @@ export const buildInp = withDebugInstrumentation(
       excludeInactiveControls: false,
       ...options,
     };
-    const idMap = new EpanetIds({ strategy: opts.labelIds ? "label" : "id" });
+    const idMap = new EpanetIds({
+      strategy: opts.labelIds ? "label" : "id",
+      maxLabelLength: opts.enforceLabelLimit
+        ? EPANET_MAX_LABEL_LENGTH
+        : undefined,
+    });
     const units = chooseUnitSystem(opts.units);
     const headlossFormula = opts.headlossFormula;
 
