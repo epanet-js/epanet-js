@@ -2,6 +2,7 @@ import clsx from "clsx";
 import * as DD from "@radix-ui/react-dropdown-menu";
 import { Button, DDContent } from "src/components/elements";
 import { MoreActionsIcon } from "src/icons";
+import { addToErrorLog } from "src/infra/error-tracking";
 import { RowAction } from "../types";
 
 type ActionsCellProps = {
@@ -16,7 +17,16 @@ export function ActionsCell({
   disabled = false,
 }: ActionsCellProps) {
   return (
-    <DD.Root>
+    <DD.Root
+      onOpenChange={(open) =>
+        addToErrorLog({
+          category: "data-grid",
+          level: "info",
+          message: `row actions menu ${open ? "opened" : "closed"}`,
+          data: { rowIndex },
+        })
+      }
+    >
       <DD.Trigger asChild>
         <Button
           variant="quiet"

@@ -21,6 +21,7 @@ import { GridRef } from "./types";
 import { GridContextMenuWrapper } from "./grid-context-menu-shell";
 import { ScrollShadows } from "./scroll-shadows";
 import { VirtualRows } from "./virtual-rows";
+import { recordGridUpdate } from "../update-loop-probe";
 
 export type VirtualGridProps<TData extends Record<string, unknown>> = {
   table: Table<TData>;
@@ -120,6 +121,15 @@ export const VirtualGrid = forwardRef(function VirtualGrid<
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 5,
+    onChange: (instance, sync) => {
+      recordGridUpdate("virtualizer.onChange", {
+        sync,
+        offset: instance.scrollOffset,
+        start: instance.range?.startIndex,
+        end: instance.range?.endIndex,
+        count: instance.options.count,
+      });
+    },
   });
 
   const gutterWidth = gutterColumn ? FIXED_COLUMN_SIZE : 0;
