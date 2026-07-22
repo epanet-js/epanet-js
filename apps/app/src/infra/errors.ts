@@ -4,15 +4,19 @@ export function enrichError(message: string, cause: unknown): Error {
   return new Error(message, { cause });
 }
 
-// Matches a caught error: either an exact `error.name` (e.g. "AbortError") or a
-// custom predicate for anything richer (message, instanceof, ...).
+const errorName = (error: unknown): string | undefined => {
+  if (typeof error !== "object" || error === null || !("name" in error)) {
+    return undefined;
+  }
+  const name = (error as { name: unknown }).name;
+  return typeof name === "string" ? name : undefined;
+};
+
 export type ErrorMatcher = string | ((error: unknown) => boolean);
 
 const matches = (error: unknown, matchers: ErrorMatcher[]): boolean =>
   matchers.some((matcher) =>
-    typeof matcher === "string"
-      ? error instanceof Error && error.name === matcher
-      : matcher(error),
+    typeof matcher === "string" ? errorName(error) === matcher : matcher(error),
   );
 
 export type HandleErrorOptions = {

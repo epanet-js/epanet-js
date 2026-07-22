@@ -5,6 +5,7 @@ import { dialogAtom } from "src/state/dialog";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
 import { userSettingsAtom } from "src/state/user-settings";
 import { captureError } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
 import { FileWithHandle } from "browser-fs-access";
 import { useTranslate } from "src/hooks/use-translate";
 import {
@@ -271,7 +272,11 @@ export const useImportInp = () => {
         const autoElevations = projectSettings.projection.type !== "xy-grid";
         await completeImport(file, isDemo, result, { autoElevations });
       } catch (error) {
-        captureError(error as Error);
+        handleError(error, {
+          as: "Import INP failed",
+          warn: ["NotReadableError"],
+          onUnexpected: "capture",
+        });
         setDialogState({ type: "invalidFilesError" });
       }
     },

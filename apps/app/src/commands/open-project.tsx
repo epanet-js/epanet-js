@@ -15,6 +15,7 @@ import type { Asset } from "src/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError, captureWarning } from "src/infra/error-tracking";
+import { handleError } from "src/infra/errors";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -221,12 +222,11 @@ export const useOpenProjectFile = () => {
         if (err.name === "NotFoundError" || err.name === "NotAllowedError") {
           throw err;
         }
-        captureError(
-          new Error(
-            `openProject exception (${file.name}): ${formatErrorDetails(error)}`,
-            { cause: error },
-          ),
-        );
+        handleError(error, {
+          as: `openProject exception (${file.name}): ${formatErrorDetails(error)}`,
+          warn: ["NotReadableError"],
+          onUnexpected: "capture",
+        });
         notify({
           variant: "warning",
           size: "md",
