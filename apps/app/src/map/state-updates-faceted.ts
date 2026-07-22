@@ -38,11 +38,7 @@ import {
 import type { Highlight } from "src/state/highlights";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
-import {
-  buildBaseStyle,
-  makeFacetedLayers,
-  defineFacetedSources,
-} from "./build-style";
+import { useMapOperations } from "./map-operations";
 import { gisDataAtom } from "src/state/gis-data";
 import {
   gisLayerFill,
@@ -60,12 +56,7 @@ import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { yieldToMain } from "src/infra/yield-to-main";
 import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
-import type {
-  NodeDefaults,
-  LinkDefaults,
-  ZoneSymbology,
-  NodeSizeConfig,
-} from "src/map/symbology";
+import type { ZoneSymbology, NodeSizeConfig } from "src/map/symbology";
 import { buildZoneColorExpression } from "src/map/layers/zones";
 import {
   FormattingSpec,
@@ -103,6 +94,16 @@ const SELECTION_LAYERS: LayerId[] = [
 // withDebugInstrumentation warning fires only when isDebugOn.
 const SLOW_UPDATE_WARN_MS = 1000;
 const MAP_STATE_SYNC = "MAP_STATE:SYNC";
+
+// TEMP: debug logging for the selection consolidation decision. Flip off when done.
+const FACETED_DEBUG = true;
+const dbgIds = (set: Set<AssetId>): string =>
+  set.size > 12 ? `${set.size} ids` : `[${[...set].join(",")}]`;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const flog = (...args: any[]): void => {
+  // eslint-disable-next-line no-console
+  if (FACETED_DEBUG) console.log("[faceted]", ...args);
+};
 
 const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
@@ -204,8 +205,6 @@ const LARGE_SELECTION_SIZE = 500;
 
 // Limit for a consolidation of the main source
 const SELECTION_CONSOLIDATION_THRESHOLD = 1000;
-// Shared empty set (read-only in practice) for the un-baked / no-selection branches.
-const EMPTY_SELECTION: Set<AssetId> = new Set<AssetId>();
 
 const isHeavyUpdate = (
   changes: ReturnType<typeof detectChanges>,
@@ -242,15 +241,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const gisData = useAtomValue(gisDataAtom);
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
-  // Assets currently hidden in the main sources (feature-state) because they are
-  // edited-since-consolidation and rendered from delta instead. Lets the next visibility
-  // update diff instead of clearing all feature-state and re-hiding (which flashed stale
-  // geometry on a move-drop). Reset whenever main is fully rebuilt; bounded by the
-  // consolidation threshold (delta is folded back into main at ~MAX_CHANGES_BEFORE_MAP_SYNC).
   const hiddenInMainRef = useRef<Set<AssetId>>(new Set());
-  // Whether the current main-features render has the selection baked in (large-selection
-  // coalescing). When true, a selection change requires re-serializing main.
-  const selectionBakedRef = useRef(false);
+  const consolidatedSelectionRef = useRef<Set<AssetId>>(new Set());
   const lastAppliedMapStateRef = useRef<MapState>(nullMapState);
   const freshMapStateRef = useRef<MapState>(mapState);
   freshMapStateRef.current = mapState;
@@ -270,6 +262,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
+  const mapOperations = useMapOperations();
 
   syncMapStateRef.current = withDebugInstrumentation(
     async () => {
@@ -317,12 +310,19 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         };
       }
 
+      let consolidated = false;
+
       if (hasNewStyles) {
+        //Reset map
         map.suspendOverlayStyleReactions();
         resetMapState(map);
-        await buildBaseStyleAndSetOnMap(map, mapState.stylesConfig, translate);
+        await mapOperations.setBaseStyleAndEmptyDataSources(
+          map,
+          mapState.stylesConfig,
+          translate,
+        );
         addGisLayersToMap(map, mapState.stylesConfig, gisData);
-        addEditingLayersToMap(
+        mapOperations.registerAssetLayers(
           map,
           mapState.stylesConfig,
           mapState.symbology.node.defaults,
@@ -331,89 +331,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         await map.addIcons();
         map.resumeOverlayStyleReactions();
         toggleAnalysisLayers(map, mapState.symbology);
-      }
-
-      if (hasNewDefaultColors && !hasNewStyles) {
-        updateDefaultMapColors(
-          map,
-          mapState.symbology.node.defaults.color,
-          mapState.symbology.link.defaults.color,
-        );
-      }
-
-      if (
-        hasNewZoneSymbology ||
-        hasNewZoneFeatures ||
-        hasNewZoneColorAssignments ||
-        hasNewStyles
-      ) {
-        updateZoneColors(
-          map,
-          mapState.symbology.zone,
-          mapState.zoneColorAssignments,
-        );
-        toggleZoneLayers(map, mapState.symbology.zone);
-      }
-
-      if (hasNewStyles || hasNewNodeSize || hasNewImport) {
-        applyJunctionSize(map, mapState.nodeSize);
-      }
-
-      // Large-selection coalescing: bake the selection into main-features rather than
-      // moving the whole network into delta (see SELECTION_BAKE_FRACTION). Small
-      // selections ride the delta live-set (`selectedForDelta`); `selectedIds` (full)
-      // still stamps `selected` on delta members either way.
-      const isBigSelection =
-        selectedIds.size > SELECTION_CONSOLIDATION_THRESHOLD;
-      const bakedSelectedIds = isBigSelection ? selectedIds : EMPTY_SELECTION;
-      const selectedForDelta = isBigSelection ? EMPTY_SELECTION : selectedIds;
-
-      // Rebuild main on a consolidation trigger, or when a selection change needs the
-      // bake (re-)applied (large selection) or removed (leaving the baked state).
-      const rebuildMain =
-        hasSyncMomentChanged ||
-        hasNewImport ||
-        hasNewStyles ||
-        hasNewSymbologyRules ||
-        (hasNewSimulation && mapState.simulation.status !== "running") ||
-        hasNewResults ||
-        (hasNewAssetsSelection &&
-          (isBigSelection || selectionBakedRef.current));
-
-      if (rebuildMain) {
-        await rebuildSources(
-          map,
-          assets,
-          mapState.symbology,
-          units,
-          formatting,
-          translateUnit,
-          mapState.resultsReader,
-          bakedSelectedIds,
-        );
-        selectionBakedRef.current = isBigSelection;
-        setMapSyncMoment((prev) => {
-          return { pointer: momentLog.getPointer(), version: prev.version };
-        });
-        // rebuildSources cleared delta and all main feature-state; re-derive the live-set
-        // (edits are folded into main, so at head it is just the un-baked selection). The
-        // previously-hidden set is empty because feature-state was just cleared.
-        const { hiddenInMainIds } = await syncSourcesWithEdits(
-          map,
-          momentLog,
-          momentLog.getPointer(),
-          assets,
-          mapState.symbology,
-          units,
-          formatting,
-          translateUnit,
-          mapState.resultsReader,
-          selectedForDelta,
-          selectedIds,
-          EMPTY_SELECTION,
-          mapState.movedAssetIds,
-        );
-        hiddenInMainRef.current = hiddenInMainIds;
       }
 
       if (hasNewImport || hasNewStyles) {
@@ -427,16 +344,140 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         });
       }
 
-      // Delta sync outside a main rebuild: on new edits, a small selection change, or the
-      // moved-set changing (drag start / drop). Re-derive delta (edited ∪ un-baked
-      // selection − moving); only edited assets are hidden in main, selected-unedited ones
-      // are overlaid by delta on top.
+      if (hasNewDefaultColors && !hasNewStyles) {
+        updateDefaultMapColors(
+          map,
+          mapState.symbology.node.defaults.color,
+          mapState.symbology.link.defaults.color,
+        );
+      }
+
+      if (hasNewZoneColorAssignments || hasNewStyles) {
+        updateZoneColors(
+          map,
+          mapState.symbology.zone,
+          mapState.zoneColorAssignments,
+        );
+      }
+
+      if (hasNewZoneSymbology || hasNewStyles) {
+        toggleZoneLayers(map, mapState.symbology.zone);
+      }
+
+      if (hasNewStyles || hasNewNodeSize || hasNewImport) {
+        applyJunctionSize(map, mapState.nodeSize);
+      }
+
+      const consolidatedSelectedIds = consolidatedSelectionRef.current;
+      const selectionDiff = new Set<AssetId>();
+      for (const id of selectedIds) {
+        if (!consolidatedSelectedIds.has(id)) selectionDiff.add(id); // additions
+      }
+      for (const id of consolidatedSelectedIds) {
+        if (!selectedIds.has(id)) selectionDiff.add(id); // removals
+      }
+      const hasBigSelection =
+        selectionDiff.size > SELECTION_CONSOLIDATION_THRESHOLD;
+
+      const rebuildFamily =
+        hasSyncMomentChanged || hasNewImport || hasNewStyles;
+      const propFamily =
+        hasNewSymbologyRules ||
+        (hasNewSimulation && mapState.simulation.status !== "running") ||
+        hasNewResults ||
+        hasBigSelection;
+      const syncMain = rebuildFamily || propFamily;
+
+      if (syncMain) {
+        const rawData = {
+          assets,
+          symbology: mapState.symbology,
+          units,
+          formatting,
+          translateUnit,
+          simulationResults: mapState.resultsReader,
+          selectedIds,
+        };
+        if (rebuildFamily) {
+          await mapOperations.rebuildDataSources(map, rawData);
+          consolidated = true;
+        } else {
+          ({ consolidated } = await mapOperations.updateDataSources(
+            map,
+            rawData,
+            {
+              symbology: hasNewSymbologyRules,
+              simulation:
+                (hasNewSimulation &&
+                  mapState.simulation.status !== "running") ||
+                hasNewResults,
+              selection: hasBigSelection,
+            },
+          ));
+        }
+
+        flog(
+          consolidated
+            ? "CONSOLIDATED main (rebuilt)"
+            : "main patched (NOT consolidated)",
+          "via",
+          rebuildFamily ? "rebuildDataSources" : "updateDataSources",
+          "| trigger",
+          [
+            hasSyncMomentChanged && "syncMoment",
+            hasNewImport && "import",
+            hasNewStyles && "styles",
+            hasNewSymbologyRules && "symbology",
+            hasNewSimulation && "simulation",
+            hasNewResults && "results",
+            hasBigSelection && "selectionConsolidation",
+          ]
+            .filter(Boolean)
+            .join(",") || "-",
+          "| selected",
+          dbgIds(selectedIds),
+          "| selectionDiff",
+          dbgIds(selectionDiff),
+        );
+
+        if (consolidated) {
+          consolidatedSelectionRef.current = selectedIds;
+          setMapSyncMoment((prev) => {
+            return { pointer: momentLog.getPointer(), version: prev.version };
+          });
+          // NOTE: un-hiding here can briefly flash stale main state (old geometry for an edited
+          // asset, old baked-selection for a deselected one) because setSource(MAIN) reparses
+          // async while feature-state is synchronous. Accepted for now; to be handled by
+          // idle-consolidation (consolidate only when idle, so the reparse is unobserved).
+          mapOperations.cleanUpNonConsolidatedDataSources(map);
+          hiddenInMainRef.current = new Set();
+        }
+      }
+
+      // Delta sync outside a main sync: on new edits, a selection change below the re-bake
+      // threshold, or the moved-set changing (drag start / drop). Re-derive delta (edited ∪
+      // selection diff − moving); edited assets and deselected-baked assets are hidden in main,
+      // additions are overlaid by delta on top.
       if (
         (hasNewEditions ||
           hasNewAssetsSelection ||
           hasEphemeralTargetsChanged) &&
-        !rebuildMain
+        !syncMain
       ) {
+        flog(
+          "delta-only update (NOT consolidated)",
+          "| trigger",
+          [
+            hasNewEditions && "editions",
+            hasNewAssetsSelection && "selection",
+            hasEphemeralTargetsChanged && "ephemeralTargets",
+          ]
+            .filter(Boolean)
+            .join(",") || "-",
+          "| selectionDiff",
+          dbgIds(selectionDiff),
+        );
+        // Apply delta edits
         const { hiddenInMainIds } = await syncSourcesWithEdits(
           map,
           momentLog,
@@ -447,7 +488,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           formatting,
           translateUnit,
           mapState.resultsReader,
-          selectedForDelta,
+          selectionDiff,
           selectedIds,
           hiddenInMainRef.current,
           mapState.movedAssetIds,
@@ -473,6 +514,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewCustomerPoints ||
         customerPointExclusionChanged
       ) {
+        // updateCustomerPointsOverlay
         const excludedCustomerPointIds = movingCustomerPointId
           ? new Set([movingCustomerPointId])
           : undefined;
@@ -491,6 +533,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewSymbologyRules ||
         hasEphemeralStateReset
       ) {
+        // ??
         customerPointsOverlayRef.current =
           updateCustomerPointsOverlayVisibility(
             customerPointsOverlayRef.current,
@@ -509,6 +552,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       }
 
       if (hasNewEphemeralState) {
+        // update customer points ephemeral state
         ephemeralDeckLayersRef.current = buildCustomerPointsEphemeralOverlay(
           mapState.ephemeralState,
           mapState.currentZoom,
@@ -516,6 +560,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       }
 
       if (hasNewCustomerPointsSelection || hasNewCustomerPoints) {
+        // update customer points selection state
         selectionDeckLayersRef.current = buildSelectionOverlayForCustomerPoints(
           mapState.selection,
           hydraulicModel.assets,
@@ -525,6 +570,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       }
 
       if (hasNewEphemeralState) {
+        // update assets ephemeral state
         updateEditionsVisibility(
           map,
           previousMapState.movedAssetIds,
@@ -535,6 +581,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       }
 
       if (hasNewMapOverlay) {
+        // update overlay state
         updateMapOverlaySource(map, mapState.mapOverlayFeatures);
       }
 
@@ -549,14 +596,12 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         updateHighlightsSource(map, mapState.highlights, assets);
       }
 
-      // Selection is no longer a separate overlay source: it rides the delta live-set
-      // (handled above) with the `selected` prop the faceted layers key off.
-
       if (
         (hasNewSymbologyRules && !hasNewStyles) ||
         hasNewAssetsSelection ||
         hasNewEditions
       ) {
+        // update analysis layers visibility
         toggleAnalysisLayers(map, mapState.symbology);
       }
 
@@ -569,6 +614,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         hasNewCustomerPoints ||
         hasNewEditions
       ) {
+        // update customer points overlay visibility
         const shouldHideCustomerPointsOverlay =
           (mapState.ephemeralState.type === "moveAssets" &&
             mapState.ephemeralState.targetAssets.length > 0) ||
@@ -683,22 +729,6 @@ const resetMapState = (map: MapEngine) => {
   map.removeSource("main-features");
 };
 
-const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    styles: StylesConfig,
-    translate: (key: string) => string,
-  ) => {
-    const style = await buildBaseStyle({
-      layerConfigs: styles.layerConfigs,
-      translate,
-    });
-    defineFacetedSources(style);
-    await map.setStyle(style);
-  },
-  { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
-);
-
 const applyJunctionSize = (map: MapEngine, config: NodeSizeConfig) => {
   const sizeLayers = [
     "main-features-junctions",
@@ -766,49 +796,6 @@ const updateMainSourceVisibility = (
   }
 };
 
-const rebuildSources = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    assets: AssetsMap,
-    symbology: SymbologySpec,
-    units: UnitsSpec,
-    formatting: FormattingSpec,
-    translateUnit: (unit: Unit) => string,
-    simulationResults: ResultsReader | null | undefined,
-    // Selection baked into main for large selections (coalescing) — avoids moving the
-    // whole network into delta. Empty for the common (small) case, where selection
-    // rides the delta live-set instead.
-    bakedSelectedIds: Set<AssetId>,
-  ): Promise<void> => {
-    const features = await buildOptimizedAssetsSource(
-      assets,
-      symbology,
-      units,
-      formatting,
-      translateUnit,
-      simulationResults,
-      bakedSelectedIds,
-    );
-    map.setSource(FeatureSources.MAIN, features);
-    map.setSource(FeatureSources.DELTA, []);
-
-    const iconFeatures = buildIconPointsSource(
-      assets,
-      bakedSelectedIds,
-      simulationResults,
-    );
-    map.setSource("icons", iconFeatures);
-    map.setSource("delta-icons", []);
-
-    map.clearFeatureState(FeatureSources.MAIN);
-    map.clearFeatureState("icons");
-  },
-  {
-    name: "MAP_STATE:UPDATE_MAIN_SOURCE",
-    maxDurationMs: 10000,
-  },
-);
-
 const updateDeltaSource = withDebugInstrumentation(
   async (
     map: MapEngine,
@@ -858,29 +845,16 @@ const syncSourcesWithEdits = async (
   formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
   simulationResults: ResultsReader | null | undefined,
-  // Selection added to the delta live-set (the whole selection when it is small; empty
-  // when it is large and baked into main instead — coalescing).
-  selectedForDelta: Set<AssetId>,
-  // Full selection, used to stamp `selected` on delta members (so an edited-and-selected
-  // asset still renders selected from delta even while the bulk selection is baked).
+  selectionDiff: Set<AssetId>,
   selectedIds: Set<AssetId>,
-  // Assets currently hidden in main (from the previous cycle), so the hide can be diffed
-  // rather than cleared-and-reapplied (which flashed stale geometry).
   previouslyHiddenIds: Set<AssetId>,
-  // Existing assets whose geometry is being previewed live in the ephemeral source (move
-  // targets / redraw source link). They render from the ephemeral source during the
-  // gesture, so they are excluded from the delta live-set: such a *selected* asset would
-  // otherwise sit in delta with stale geometry and, on drop, expose that stale geometry for
-  // a frame while the new delta data reparses.
   ephemeralTargetIds: Set<AssetId>,
 ): Promise<{ hiddenInMainIds: Set<AssetId> }> => {
   const editedSinceConsolidation = getAssetIdsInMoments(
     momentLog.getDeltas(mapSyncMoment),
   );
-  // Delta live-set = (edited-since-consolidation ∪ un-baked selection) − ephemeral targets.
-  // It rides in delta so edits and small selections re-serialize only the small delta.
   const liveSetIds = new Set(editedSinceConsolidation);
-  for (const assetId of selectedForDelta) liveSetIds.add(assetId);
+  for (const assetId of selectionDiff) liveSetIds.add(assetId);
   for (const assetId of ephemeralTargetIds) liveSetIds.delete(assetId);
 
   await updateDeltaSource(
@@ -895,15 +869,15 @@ const syncSourcesWithEdits = async (
     selectedIds,
   );
 
-  // Only the edited assets are hidden in main (selected-unedited overlay from delta on
-  // top). This is what the moved-asset visibility logic keys off, so return that set.
-  updateMainSourceVisibility(
-    map,
-    editedSinceConsolidation,
-    previouslyHiddenIds,
-  );
+  // An edited asset needs to be hidden in main
+  const hiddenInMainIds = new Set(editedSinceConsolidation);
+  for (const assetId of selectionDiff) {
+    // A deselected asset that was previously consolidated must be hidden in main
+    if (!selectedIds.has(assetId)) hiddenInMainIds.add(assetId);
+  }
+  updateMainSourceVisibility(map, hiddenInMainIds, previouslyHiddenIds);
 
-  return { hiddenInMainIds: editedSinceConsolidation };
+  return { hiddenInMainIds };
 };
 
 const updateEditionsVisibility = (
@@ -994,24 +968,6 @@ function addGisLayersToMap(
     );
   }
 }
-
-const addEditingLayersToMap = (
-  map: MapEngine,
-  stylesConfig: StylesConfig,
-  nodeDefaults: NodeDefaults,
-  linkDefaults: LinkDefaults,
-) => {
-  const layers = makeFacetedLayers({
-    symbology: stylesConfig.symbology,
-    previewProperty: stylesConfig.previewProperty,
-    nodeDefaults,
-    linkDefaults,
-  });
-
-  for (const layer of layers) {
-    map.addLayer(layer);
-  }
-};
 
 const updateDefaultMapColors = (
   map: MapEngine,
