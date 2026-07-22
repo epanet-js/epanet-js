@@ -136,14 +136,6 @@ class MapTestEngine {
       };
     }
   }
-  setSourceAsync(name: DataSource, features: Feature[]): Promise<void> {
-    this.setSource(name, features);
-    return Promise.resolve();
-  }
-  waitForMapIdle(callback: () => void): Promise<void> {
-    callback();
-    return Promise.resolve();
-  }
   onNextIdle(callback: (settledCleanly: boolean) => void): void {
     callback(false);
   }

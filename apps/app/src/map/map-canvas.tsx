@@ -43,7 +43,6 @@ import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
 import { useMapStateUpdates as useMapStateUpdatesFaceted } from "./state-updates-faceted";
-import { useMapStateUpdatesLegacy } from "./state-updates-legacy";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
@@ -113,17 +112,10 @@ const MapStateUpdatesFacetedRunner = ({ map }: { map: MapEngine | null }) => {
   return null;
 };
 
-const MapStateUpdatesLegacyRunner = ({ map }: { map: MapEngine | null }) => {
-  useMapStateUpdatesLegacy(map);
-  return null;
-};
-
 const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
   const isFaceted = useFeatureFlag("FLAG_MAP_FACETED_SOURCES");
-  const isSerialized = useFeatureFlag("FLAG_MAP_SERIALIZED_SYNC");
   if (isFaceted) return <MapStateUpdatesFacetedRunner map={map} />;
-  if (isSerialized) return <MapStateUpdatesSerialized map={map} />;
-  return <MapStateUpdatesLegacyRunner map={map} />;
+  return <MapStateUpdatesSerialized map={map} />;
 };
 
 export const MapCanvas = memo(function MapCanvas({
@@ -185,7 +177,7 @@ export const MapCanvas = memo(function MapCanvas({
     [fitToExtent],
   );
 
-  //TODO: Add back the useMapStateUpdates hook once FLAG_MAP_SERIALIZED_SYNC is cleaned up
+  //TODO: Add back the useMapStateUpdates hook once FLAG_MAP_FACETED_SOURCES is cleaned up
 
   useEffect(() => {
     if (mapRef.current) return;

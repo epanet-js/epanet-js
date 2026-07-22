@@ -9,7 +9,9 @@ import { MapCanvas } from "src/map/map-canvas";
 import { stubFeaturesOn } from "src/__helpers__/feature-flags";
 
 export const renderMap = async (store: Store): Promise<MapTestEngine> => {
-  stubFeaturesOn(["FLAG_MAP_SERIALIZED_SYNC"]);
+  // Serialized sync is now the default path; start with all flags off so tests
+  // opt into faceted sources explicitly when they need it.
+  stubFeaturesOn([]);
 
   let mapEngine: MapTestEngine | null = null;
   const persistence = new Persistence(store);

@@ -49,11 +49,6 @@ const MAP_OPTIONS: Omit<mapboxgl.MapboxOptions, "container"> = {
 // active stream of updates keeps pushing it back.
 const IDLE_TIMEOUT_MS = 10000;
 
-// Legacy scheduler (FLAG_MAP_SERIALIZED_SYNC off) only — used by setSourceAsync
-// / waitForMapIdle. Remove with state-updates-legacy.ts.
-const MAP_IDLE_POLL_MS = 50;
-const MAP_IDLE_SAFETY_TIMEOUT_MS = 20000;
-
 /**
  * Memoizes a value across calls. The compute function only re-runs when one of
  * its declared dependencies changes (compared with `Object.is`). Inspired by
@@ -214,21 +209,6 @@ export class MapEngine {
       type: "FeatureCollection",
       features: sourceFeatures,
     } as IFeatureCollection);
-  }
-
-  // Legacy scheduler only: setData, then resolve once the map has displayed it.
-  // The new scheduler uses the synchronous setSource + out-of-band onNextIdle
-  // instead. Remove with state-updates-legacy.ts.
-  setSourceAsync(name: DataSource, sourceFeatures: Feature[]): Promise<void> {
-    return this.waitForMapIdle(() => {
-      const featuresSource = this.map.getSource(name) as mapboxgl.GeoJSONSource;
-      if (!featuresSource) return;
-
-      featuresSource.setData({
-        type: "FeatureCollection",
-        features: sourceFeatures,
-      } as IFeatureCollection);
-    });
   }
 
   removeSource(name: DataSource) {
@@ -482,40 +462,6 @@ export class MapEngine {
         (this.overlay as any).deck.redraw(true);
       }
     }
-  }
-
-  // Legacy scheduler only. Remove with state-updates-legacy.ts.
-  async waitForMapIdle(callback: () => void): Promise<void> {
-    if (!(this.map && (this.map as any).style)) {
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve) => {
-      const timers: ReturnType<typeof setTimeout>[] = [];
-
-      const settle = () => {
-        this.map.off("idle", settle);
-        timers.forEach(clearTimeout);
-        resolve();
-      };
-
-      const verifyLoaded = () => {
-        // map idle is only sent when switching from active to idle,
-        // so if the map is already idle, we need to check for that too.
-        if (this.map.loaded()) settle();
-        else timers.push(setTimeout(verifyLoaded, MAP_IDLE_POLL_MS));
-      };
-
-      this.map.once("idle", settle);
-      callback();
-
-      timers.push(
-        setTimeout(() => {
-          settle();
-        }, MAP_IDLE_SAFETY_TIMEOUT_MS),
-      );
-      timers.push(setTimeout(verifyLoaded, MAP_IDLE_POLL_MS));
-    });
   }
 
   onNextIdle(callback: (settledCleanly: boolean) => void): void {
