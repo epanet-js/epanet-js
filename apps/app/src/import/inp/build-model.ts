@@ -21,6 +21,7 @@ import {
   isValidCurve,
   getCurvePointsType,
   LabelManager,
+  LabelType,
   AssetFactory,
   PumpBuildData,
 } from "@epanet-js/hydraulic-model";
@@ -101,6 +102,7 @@ export const buildModel = (
   );
   const skipWgs84Validation = options?.skipWgs84Validation ?? false;
   const populateAssetIndex = options?.populateAssetIndex ?? false;
+  const labelMaxLength = options?.labelMaxLength;
   const nodeIds = new ItemData<AssetId>();
   const linkIds = new ItemData<AssetId>();
 
@@ -137,6 +139,7 @@ export const buildModel = (
       patternContext,
       skipWgs84Validation,
       populateAssetIndex,
+      labelMaxLength,
     });
   }
 
@@ -148,6 +151,7 @@ export const buildModel = (
       patternContext,
       skipWgs84Validation,
       populateAssetIndex,
+      labelMaxLength,
     });
   }
 
@@ -159,6 +163,7 @@ export const buildModel = (
       patternContext,
       skipWgs84Validation,
       populateAssetIndex,
+      labelMaxLength,
     });
   }
 
@@ -176,6 +181,7 @@ export const buildModel = (
         linkIds,
         skipWgs84Validation,
         populateAssetIndex,
+        labelMaxLength,
       },
     );
   }
@@ -188,6 +194,7 @@ export const buildModel = (
       linkIds,
       skipWgs84Validation,
       populateAssetIndex,
+      labelMaxLength,
     });
   }
 
@@ -199,6 +206,7 @@ export const buildModel = (
       linkIds,
       skipWgs84Validation,
       populateAssetIndex,
+      labelMaxLength,
     });
   }
 
@@ -389,6 +397,15 @@ const isConstantPattern = (pattern: PatternMultipliers): boolean => {
   return pattern.every((value) => value === 1);
 };
 
+const resolveImportLabel = (
+  rawId: string,
+  type: LabelType,
+  labelMaxLength?: number,
+): string =>
+  labelMaxLength !== undefined
+    ? LabelManager.sanitizeLabel(rawId, type, labelMaxLength)
+    : rawId;
+
 const addJunction = (
   assetFactory: AssetFactory,
   hydraulicModel: HydraulicModel,
@@ -400,6 +417,7 @@ const addJunction = (
     patternContext,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -407,6 +425,7 @@ const addJunction = (
     patternContext: PatternsContext;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const coordinates = getNodeCoordinates(
@@ -455,7 +474,7 @@ const addJunction = (
   }
 
   const junction = assetFactory.createJunction({
-    label: junctionData.id,
+    label: resolveImportLabel(junctionData.id, "junction", labelMaxLength),
     coordinates,
     elevation: junctionData.elevation,
     emitterCoefficient,
@@ -482,6 +501,7 @@ const addReservoir = (
     patternContext,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -489,6 +509,7 @@ const addReservoir = (
     patternContext: PatternsContext;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const coordinates = getNodeCoordinates(
@@ -533,7 +554,7 @@ const addReservoir = (
   }
 
   const reservoir = assetFactory.createReservoir({
-    label: reservoirData.id,
+    label: resolveImportLabel(reservoirData.id, "reservoir", labelMaxLength),
     coordinates,
     head: reservoirData.baseHead,
     elevation: reservoirData.elevation,
@@ -561,6 +582,7 @@ const addTank = (
     patternContext,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -568,6 +590,7 @@ const addTank = (
     patternContext: PatternsContext;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const coordinates = getNodeCoordinates(
@@ -613,7 +636,7 @@ const addTank = (
   const mixingModel = mixingData?.model as TankMixingModel | undefined;
 
   const tank = assetFactory.createTank({
-    label: tankData.id,
+    label: resolveImportLabel(tankData.id, "tank", labelMaxLength),
     coordinates,
     elevation: tankData.elevation,
     initialLevel: tankData.initialLevel,
@@ -650,6 +673,7 @@ const addPump = (
     linkIds,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -657,6 +681,7 @@ const addPump = (
     linkIds: ItemData<AssetId>;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const linkProperties = getLinkProperties(
@@ -769,7 +794,7 @@ const addPump = (
   const energyPrice = pumpEnergyData?.price;
 
   const pump = assetFactory.createPump({
-    label: pumpData.id,
+    label: resolveImportLabel(pumpData.id, "pump", labelMaxLength),
     connections,
     ...definitionProps,
     initialStatus,
@@ -805,6 +830,7 @@ const addValve = (
     linkIds,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -812,6 +838,7 @@ const addValve = (
     linkIds: ItemData<AssetId>;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const linkProperties = getLinkProperties(
@@ -843,7 +870,7 @@ const addValve = (
     }
   }
   const valve = assetFactory.createValve({
-    label: valveData.id,
+    label: resolveImportLabel(valveData.id, "valve", labelMaxLength),
     diameter: valveData.diameter,
     minorLoss: valveData.minorLoss,
     kind: valveData.kind,
@@ -871,6 +898,7 @@ const addPipe = (
     linkIds,
     skipWgs84Validation,
     populateAssetIndex,
+    labelMaxLength,
   }: {
     inpData: InpData;
     issues: IssuesAccumulator;
@@ -878,6 +906,7 @@ const addPipe = (
     linkIds: ItemData<AssetId>;
     skipWgs84Validation: boolean;
     populateAssetIndex: boolean;
+    labelMaxLength?: number;
   },
 ) => {
   const linkProperties = getLinkProperties(
@@ -904,7 +933,7 @@ const addPipe = (
   const bulkReactionCoeff = inpData.reactions.pipeBulk.get(pipeData.id);
   const wallReactionCoeff = inpData.reactions.pipeWall.get(pipeData.id);
   const pipe = assetFactory.createPipe({
-    label: pipeData.id,
+    label: resolveImportLabel(pipeData.id, "pipe", labelMaxLength),
     length: pipeData.length,
     diameter: pipeData.diameter,
     minorLoss: pipeData.minorLoss,
