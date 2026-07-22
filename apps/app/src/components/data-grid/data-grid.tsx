@@ -38,7 +38,6 @@ import type { CellPosition } from "./types";
 import { InlineGrid, GridRef, VirtualGrid, AddRowButton } from "./shared";
 import { defaultPatchRow, type PatchRowFn } from "./utils/patch-row";
 import { resolveDataIndex } from "./utils/data-index";
-import { recordGridUpdate } from "./update-loop-probe";
 
 export type DataGridRef = {
   selectCells: (options?: {
@@ -192,7 +191,6 @@ export const DataGrid = forwardRef(function DataGrid<
   const selectCells = useCallback(
     (options?: { colIndex?: number; rowIndex?: number; extend?: boolean }) => {
       const { colIndex, rowIndex, extend = false } = options ?? {};
-      recordGridUpdate("selectCells", { colIndex, rowIndex, extend });
       const result = table.updateSelection({
         col: colIndex,
         row: rowIndex,

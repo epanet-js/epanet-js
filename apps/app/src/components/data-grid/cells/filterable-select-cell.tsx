@@ -16,7 +16,6 @@ import {
 } from "@epanet-js/ui-kit";
 import { CellProps, GridColumn } from "../types";
 import { type ColumnKey, resolveColumnKey } from "./column-key";
-import { recordGridUpdate } from "../update-loop-probe";
 
 export type FilterableSelectOption<
   T extends string | number | boolean = string,
@@ -81,7 +80,6 @@ export function FilterableSelectCell({
   useEffect(
     function syncCellIsActive() {
       if (isActive) {
-        recordGridUpdate("select.syncActiveFocus");
         buttonRef.current?.focus();
       }
     },
@@ -139,7 +137,6 @@ export function FilterableSelectCell({
       <Popover.Root
         open={isOpen}
         onOpenChange={(open) => {
-          recordGridUpdate("select.onOpenChange", { open });
           if (open) startEditing();
           else stopEditing();
         }}

@@ -1,16 +1,14 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { CellPosition, EditMode } from "../types";
+
+type SelectOptions = { colIndex?: number; rowIndex?: number; extend?: boolean };
 
 type UseRowsNavigationOptions = {
   activeCell: CellPosition | null;
   rowCount: number;
   colCount: number;
   editMode: EditMode;
-  selectCells: (options?: {
-    colIndex?: number;
-    rowIndex?: number;
-    extend?: boolean;
-  }) => void;
+  selectCells: (options?: SelectOptions) => void;
   clearSelection: () => void;
   blurGrid: () => void;
   visibleRowCount: number;
@@ -26,6 +24,38 @@ export function useRowsNavigation({
   blurGrid,
   visibleRowCount,
 }: UseRowsNavigationOptions) {
+  // Held arrow/page keys auto-repeat faster than React can commit on a slow
+  // client, storming selection updates until React throws "Maximum update depth
+  // exceeded". Apply the first move of a frame immediately (single presses stay
+  // instant) and coalesce any further moves in that frame into one, capping the
+  // update rate to ~one per animation frame.
+  const pendingSelect = useRef<SelectOptions | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  const navigate = useCallback(
+    (options: SelectOptions) => {
+      if (rafId.current !== null) {
+        pendingSelect.current = options;
+        return;
+      }
+      selectCells(options);
+      rafId.current = requestAnimationFrame(function drainNavigation() {
+        rafId.current = null;
+        const next = pendingSelect.current;
+        pendingSelect.current = null;
+        if (next) navigate(next);
+      });
+    },
+    [selectCells],
+  );
+
+  useEffect(
+    () => () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+    },
+    [],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // In full edit mode, skip navigation - let arrow keys move cursor in input
@@ -46,7 +76,7 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newRow = Math.max(0, activeCell.row - 1);
-            selectCells({
+            navigate({
               colIndex: activeCell.col,
               rowIndex: newRow,
               extend: e.shiftKey,
@@ -58,7 +88,7 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newRow = Math.min(rowCount - 1, activeCell.row + 1);
-            selectCells({
+            navigate({
               colIndex: activeCell.col,
               rowIndex: newRow,
               extend: e.shiftKey,
@@ -70,7 +100,7 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newCol = Math.max(0, activeCell.col - 1);
-            selectCells({
+            navigate({
               colIndex: newCol,
               rowIndex: activeCell.row,
               extend: e.shiftKey,
@@ -82,7 +112,7 @@ export function useRowsNavigation({
           if (activeCell) {
             if (shouldPreventDefault) e.preventDefault();
             const newCol = Math.min(colCount - 1, activeCell.col + 1);
-            selectCells({
+            navigate({
               colIndex: newCol,
               rowIndex: activeCell.row,
               extend: e.shiftKey,
@@ -128,7 +158,7 @@ export function useRowsNavigation({
           if (activeCell) {
             e.preventDefault();
             const newRow = Math.max(0, activeCell.row - visibleRowCount);
-            selectCells({
+            navigate({
               colIndex: activeCell.col,
               rowIndex: newRow,
               extend: e.shiftKey,
@@ -143,7 +173,7 @@ export function useRowsNavigation({
               rowCount - 1,
               activeCell.row + visibleRowCount,
             );
-            selectCells({
+            navigate({
               colIndex: activeCell.col,
               rowIndex: newRow,
               extend: e.shiftKey,
@@ -198,6 +228,7 @@ export function useRowsNavigation({
       rowCount,
       colCount,
       visibleRowCount,
+      navigate,
       selectCells,
       clearSelection,
       blurGrid,

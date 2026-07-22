@@ -11,7 +11,6 @@ import {
   type Updater,
 } from "@tanstack/react-table";
 import type { CellPosition, GridSelection } from "../types";
-import { recordGridUpdate } from "../update-loop-probe";
 
 export type CellRangeSelectionInternalState = {
   range: GridSelection | null;
@@ -86,19 +85,6 @@ export const CellRangeSelectionFeature: TableFeature = {
 
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     table.setCellRangeSelection = (updater) => {
-      const range =
-        updater && typeof updater === "object" && "range" in updater
-          ? updater.range
-          : undefined;
-      recordGridUpdate(
-        "setCellRangeSelection",
-        range
-          ? {
-              min: `${range.min.col},${range.min.row}`,
-              max: `${range.max.col},${range.max.row}`,
-            }
-          : { range: range ?? null },
-      );
       table.options.onCellRangeSelectionChange?.(updater);
     };
 
