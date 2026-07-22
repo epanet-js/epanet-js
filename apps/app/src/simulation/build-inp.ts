@@ -237,9 +237,21 @@ const isDefaultPressureForSystem = (
 
 const EPANET_MAX_LABEL_LENGTH = 31;
 
+// EPANET delimits INP tokens on whitespace and treats `;` as a comment; the
+// EPANET desktop UI additionally mis-parses commas and double quotes inside an
+// ID. Strip these on export so labels are portable to any EPANET consumer.
+// Applied only when writing the INP — commas stay fully supported in-app.
+const EPANET_UNSAFE_ID_CHARS = /[\s;,"]/g;
+
+const toSafeEpanetId = (label: string, fallbackId: string): string => {
+  const safe = label.replace(EPANET_UNSAFE_ID_CHARS, "");
+  return safe.length > 0 ? safe : fallbackId;
+};
+
 class EpanetIds {
   private strategy: "id" | "label";
   private maxLabelLength?: number;
+  private sanitizeLabels: boolean;
   private assetIds: Map<AssetId, string>;
   private linkIds: Set<string>;
   private nodeIds: Set<string>;
@@ -251,12 +263,15 @@ class EpanetIds {
   constructor({
     strategy,
     maxLabelLength,
+    sanitizeLabels = false,
   }: {
     strategy: "id" | "label";
     maxLabelLength?: number;
+    sanitizeLabels?: boolean;
   }) {
     this.strategy = strategy;
     this.maxLabelLength = maxLabelLength;
+    this.sanitizeLabels = sanitizeLabels;
     this.nodeIds = new Set();
     this.linkIds = new Set();
     this.assetIds = new Map();
@@ -272,7 +287,10 @@ class EpanetIds {
         return String(link.id);
       case "label":
         if (this.assetIds.has(link.id)) return this.assetIds.get(link.id)!;
-        const id = this.ensureUnique(this.linkIds, link.label);
+        const id = this.ensureUnique(
+          this.linkIds,
+          this.safeLabel(link.label, String(link.id)),
+        );
         this.linkIds.add(id);
         this.assetIds.set(link.id, id);
         return id;
@@ -285,7 +303,10 @@ class EpanetIds {
         return String(node.id);
       case "label":
         if (this.assetIds.has(node.id)) return this.assetIds.get(node.id)!;
-        const id = this.ensureUnique(this.nodeIds, node.label);
+        const id = this.ensureUnique(
+          this.nodeIds,
+          this.safeLabel(node.label, String(node.id)),
+        );
         this.nodeIds.add(id);
         this.assetIds.set(node.id, id);
         return id;
@@ -294,7 +315,10 @@ class EpanetIds {
 
   registerCurveId(curve: Pick<ICurve, "id" | "label">) {
     if (this.curveIds.has(curve.id)) return this.curveIds.get(curve.id);
-    const label = this.ensureUnique(this.curveLabels, curve.label);
+    const label = this.ensureUnique(
+      this.curveLabels,
+      this.safeLabel(curve.label, String(curve.id)),
+    );
     this.curveLabels.add(label);
     this.curveIds.set(curve.id, label);
     return label;
@@ -304,8 +328,11 @@ class EpanetIds {
     return this.curveIds.get(curveId) ?? "*";
   }
 
-  localCurveId(candidate: string) {
-    const label = this.ensureUnique(this.curveLabels, candidate);
+  localCurveId(candidate: string, fallbackId: string) {
+    const label = this.ensureUnique(
+      this.curveLabels,
+      this.safeLabel(candidate, fallbackId),
+    );
     this.curveLabels.add(label);
     return label;
   }
@@ -313,7 +340,10 @@ class EpanetIds {
   registerPatternId(pattern: Pick<Pattern, "id" | "label">) {
     if (this.patternIds.has(pattern.id))
       return this.patternIds.get(pattern.id)!;
-    const label = this.ensureUnique(this.patternLabels, pattern.label);
+    const label = this.ensureUnique(
+      this.patternLabels,
+      this.safeLabel(pattern.label, String(pattern.id)),
+    );
     this.patternLabels.add(label);
     this.patternIds.set(pattern.id, label);
     return label;
@@ -321,6 +351,10 @@ class EpanetIds {
 
   patternId(patternId: PatternId): string {
     return this.patternIds.get(patternId) ?? "*";
+  }
+
+  private safeLabel(label: string, fallbackId: string): string {
+    return this.sanitizeLabels ? toSafeEpanetId(label, fallbackId) : label;
   }
 
   private ensureUnique(
@@ -416,6 +450,7 @@ export const buildInp = withDebugInstrumentation(
       maxLabelLength: opts.enforceLabelLimit
         ? EPANET_MAX_LABEL_LENGTH
         : undefined,
+      sanitizeLabels: opts.enforceLabelLimit,
     });
     const units = chooseUnitSystem(opts.units);
     const headlossFormula = opts.headlossFormula;
@@ -1147,7 +1182,7 @@ const appendPump = (
       const curvePoints = pump.curve ?? [];
       const hasCurve = curvePoints.length > 0;
       const localCurveId = hasCurve
-        ? idMap.localCurveId(pump.label)
+        ? idMap.localCurveId(pump.label, linkId)
         : MISSING_VALUE;
       sections.pumps.push(
         commentPrefix +

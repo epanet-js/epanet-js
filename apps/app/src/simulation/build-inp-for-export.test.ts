@@ -435,5 +435,68 @@ describe("build inp export ", () => {
     });
   });
 
+  describe("safe labels on export", () => {
+    const exportOptionsWithSafeLabels = {
+      ...exportOptions,
+      enforceLabelLimit: true,
+    };
+
+    it("strips commas from labels and dedupes any resulting collision", () => {
+      const IDS = { J1: 1, J2: 2 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "A,B", elevation: 10 })
+        .aJunction(IDS.J2, { label: "AB", elevation: 20 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, exportOptionsWithSafeLabels);
+
+      expect(inp).not.toContain("A,B");
+      const rows = rowsFrom(inp);
+      expect(rows).toContain("AB\t10");
+      expect(rows).toContain("AB.1\t20");
+    });
+
+    it("keeps link references consistent after stripping a node label comma", () => {
+      const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, {
+          label: "N,1",
+          elevation: 10,
+          coordinates: [10, 10],
+        })
+        .aJunction(IDS.J2, {
+          label: "N2",
+          elevation: 20,
+          coordinates: [20, 20],
+        })
+        .aPipe(IDS.P1, {
+          label: "P,1",
+          startNodeId: IDS.J1,
+          endNodeId: IDS.J2,
+          length: 10,
+          diameter: 100,
+          roughness: 1,
+          initialStatus: "open",
+        })
+        .build();
+
+      const inp = buildInp(hydraulicModel, exportOptionsWithSafeLabels);
+
+      expect(inp).not.toMatch(/[NP],\d/);
+      expect(rowsFrom(inp)).toContain("P1\tN1\tN2\t10\t100\t1");
+    });
+
+    it("leaves commas untouched when the flag/limit is not enforced", () => {
+      const IDS = { J1: 1 } as const;
+      const hydraulicModel = HydraulicModelBuilder.with()
+        .aJunction(IDS.J1, { label: "A,B", elevation: 10 })
+        .build();
+
+      const inp = buildInp(hydraulicModel, exportOptions);
+
+      expect(rowsFrom(inp)).toContain("A,B\t10");
+    });
+  });
+
   const rowsFrom = (inp: string) => inp.split("\n");
 });
