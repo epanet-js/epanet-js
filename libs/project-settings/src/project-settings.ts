@@ -11,6 +11,7 @@ export type ProjectSettings = {
   headlossFormula: HeadlossFormula;
   formatting: FormattingSpec;
   projection: Projection;
+  uniqueId?: string;
 };
 
 export const defaultProjectSettings: ProjectSettings = {

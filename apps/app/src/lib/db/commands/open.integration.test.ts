@@ -11,6 +11,7 @@ import {
   type Reservoir,
   type Pipe,
 } from "@epanet-js/hydraulic-model";
+import { ensureUniqueId } from "./ensure-unique-id";
 import { exportDb } from "./export-db";
 import { fetchProject } from "./fetch-project";
 import { importProject } from "./import-project";
@@ -140,5 +141,82 @@ describe("open integration", () => {
     ]);
 
     expect(project.pipeLibrary).toEqual(pipeLibrary);
+  });
+
+  it("opens a project without a uniqueId as undefined (optional field)", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const blob = await exportDb();
+    const file = new File([blob], "no-id.ejsdb", {
+      type: "application/octet-stream",
+    });
+
+    const openResult = await openProject(file);
+    expect(openResult.status).toBe("ok");
+    expect((await fetchProject()).projectSettings.uniqueId).toBeUndefined();
+  });
+
+  it("preserves the uniqueId across a newDb=false rebuild that leaves settings untouched", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    const id = await ensureUniqueId();
+
+    await importProject({
+      newDb: false,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect((await fetchProject()).projectSettings.uniqueId).toBe(id);
+  });
+
+  it("carries the uniqueId when a newDb=false rebuild rewrites settings that include it", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    const id = await ensureUniqueId();
+    const settingsWithId = (await fetchProject()).projectSettings;
+
+    await importProject({
+      newDb: false,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
+      projectSettings: { ...settingsWithId, name: "renamed" },
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    const project = await fetchProject();
+    expect(project.projectSettings.name).toBe("renamed");
+    expect(project.projectSettings.uniqueId).toBe(id);
+  });
+
+  it("starts a fresh newDb=true project with no uniqueId", async () => {
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+    await ensureUniqueId();
+
+    await importProject({
+      newDb: true,
+      hydraulicModel: HydraulicModelBuilder.with().aJunction(2).build(),
+      projectSettings: defaultProjectSettings,
+      simulationSettings: defaultSimulationSettings,
+    });
+
+    expect((await fetchProject()).projectSettings.uniqueId).toBeUndefined();
   });
 });

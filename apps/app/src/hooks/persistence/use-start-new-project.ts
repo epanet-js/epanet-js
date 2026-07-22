@@ -4,6 +4,7 @@ import { useSetAtom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type HydraulicModel,
   initializeHydraulicModel,
@@ -166,25 +167,47 @@ export const clearSimulationStorage = async () => {
 };
 
 export const useStartNewProject = () => {
+  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
+
   const startNewProject = useAtomCallback(
-    useCallback(async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
-      await clearSimulationStorage();
-      const mergedProjectSettings: ProjectSettings = {
-        ...input.projectSettings,
-        units: {
-          ...input.projectSettings.units,
-          chemicalConcentration: input.simulationSettings.qualityMassUnit,
-        },
-      };
-      await db.importProject({
-        newDb: true,
-        projectSettings: mergedProjectSettings,
-        hydraulicModel: input.hydraulicModel,
-        simulationSettings: input.simulationSettings,
-      });
-      resetAppState(set);
-      loadModel(set, input);
-    }, []),
+    useCallback(
+      async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
+        await clearSimulationStorage();
+        const mergedProjectSettings: ProjectSettings = {
+          ...input.projectSettings,
+          units: {
+            ...input.projectSettings.units,
+            chemicalConcentration: input.simulationSettings.qualityMassUnit,
+          },
+        };
+        await db.importProject({
+          newDb: true,
+          projectSettings: mergedProjectSettings,
+          hydraulicModel: input.hydraulicModel,
+          simulationSettings: input.simulationSettings,
+        });
+
+        let modelInput = input;
+        if (isTrackModelSharingOn) {
+          try {
+            const uniqueId = await db.ensureUniqueId();
+            modelInput = {
+              ...input,
+              projectSettings: { ...input.projectSettings, uniqueId },
+            };
+          } catch (e: unknown) {
+            captureWarning(
+              "Failed to stamp unique id on new project",
+              e instanceof Error ? e : new Error(String(e)),
+            );
+          }
+        }
+
+        resetAppState(set);
+        loadModel(set, modelInput);
+      },
+      [isTrackModelSharingOn],
+    ),
   );
 
   return { startNewProject };
@@ -223,35 +246,56 @@ export const useStartBlankProject = () => {
 };
 
 export const useSeedDefaultProjectDb = () => {
+  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
+
   return useAtomCallback(
-    useCallback((get: Getter, set: Setter): Promise<void> => {
-      const projectSettings = get(projectSettingsAtom);
-      const hydraulicModel = get(stagingModelDerivedAtom);
-      const simulationSettings = get(simulationSettingsDerivedAtom);
+    useCallback(
+      (get: Getter, set: Setter): Promise<void> => {
+        const projectSettings = get(projectSettingsAtom);
+        const hydraulicModel = get(stagingModelDerivedAtom);
+        const simulationSettings = get(simulationSettingsDerivedAtom);
 
-      resetAppState(set);
-      loadModel(set, {
-        hydraulicModel,
-        factories: get(modelFactoriesAtom),
-        projectSettings,
-        simulationSettings,
-      });
-
-      return db
-        .importProject({
-          newDb: true,
-          projectSettings,
+        resetAppState(set);
+        loadModel(set, {
           hydraulicModel,
+          factories: get(modelFactoriesAtom),
+          projectSettings,
           simulationSettings,
-        })
-        .catch((e: unknown) => {
-          const error = e instanceof Error ? e : new Error(String(e));
-          captureWarning("Failed to seed default project db", error);
-          set(dialogAtom, {
-            type: "appLoadFailed",
-            errorMessage: error.message,
-          });
         });
-    }, []),
+
+        return db
+          .importProject({
+            newDb: true,
+            projectSettings,
+            hydraulicModel,
+            simulationSettings,
+          })
+          .then(async () => {
+            if (isTrackModelSharingOn) {
+              try {
+                const uniqueId = await db.ensureUniqueId();
+                set(projectSettingsAtom, {
+                  ...get(projectSettingsAtom),
+                  uniqueId,
+                });
+              } catch (e: unknown) {
+                captureWarning(
+                  "Failed to stamp unique id on default project db",
+                  e instanceof Error ? e : new Error(String(e)),
+                );
+              }
+            }
+          })
+          .catch((e: unknown) => {
+            const error = e instanceof Error ? e : new Error(String(e));
+            captureWarning("Failed to seed default project db", error);
+            set(dialogAtom, {
+              type: "appLoadFailed",
+              errorMessage: error.message,
+            });
+          });
+      },
+      [isTrackModelSharingOn],
+    ),
   );
 };

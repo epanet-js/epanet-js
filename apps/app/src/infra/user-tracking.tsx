@@ -453,6 +453,9 @@ export type ProjectFileOpened = {
   counts: Record<string, number>;
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
+  uniqueId?: string;
+  filename?: string;
+  projectName?: string;
 };
 
 export type ProjectFileOpenFailed = {

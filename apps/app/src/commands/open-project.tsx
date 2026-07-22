@@ -18,6 +18,7 @@ import { captureError, captureWarning } from "src/infra/error-tracking";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 import { useSetAtom } from "jotai";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
@@ -38,6 +39,7 @@ export const useOpenProjectFile = () => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
   const { addRecent } = useRecentFiles();
+  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
 
   return useCallback(
     async (
@@ -205,6 +207,13 @@ export const useOpenProjectFile = () => {
           counts: tallyAssetCounts(result.hydraulicModel.assets),
           headlossFormula: result.projectSettings.headlossFormula,
           units: chooseUnitSystem(result.projectSettings.units),
+          ...(isTrackModelSharingOn && result.uniqueId
+            ? {
+                uniqueId: result.uniqueId,
+                filename: file.name,
+                projectName: result.projectSettings.name,
+              }
+            : {}),
         });
       } catch (error) {
         setDialogState(null);
@@ -242,6 +251,7 @@ export const useOpenProjectFile = () => {
       translate,
       userTracking,
       addRecent,
+      isTrackModelSharingOn,
     ],
   );
 };

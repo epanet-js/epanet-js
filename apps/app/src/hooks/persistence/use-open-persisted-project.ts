@@ -11,7 +11,7 @@ import {
   loadModel,
   resetAppState,
 } from "./use-start-new-project";
-import { captureInfo } from "src/infra/error-tracking";
+import { captureError, captureInfo } from "src/infra/error-tracking";
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
 
@@ -26,6 +26,7 @@ export type OpenPersistedProjectResult =
       modelVersion: string;
       hydraulicModel: HydraulicModel;
       projectSettings: ProjectSettings;
+      uniqueId: string | null;
     }
   | { status: "too-new"; fileVersion: number; appVersion: number }
   | { status: "corrupt" | "internal"; errorDetails: string }
@@ -39,6 +40,7 @@ export type OpenPersistedProjectResult =
 export const useOpenPersistedProject = () => {
   const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
   const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
+  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
 
   const openPersistedProject = useAtomCallback(
     useCallback(
@@ -58,6 +60,16 @@ export const useOpenPersistedProject = () => {
         if (result.status !== "ok" && result.status !== "migrated") {
           return result;
         }
+
+        let uniqueId: string | null = null;
+        if (isTrackModelSharingOn) {
+          try {
+            uniqueId = await db.ensureUniqueId();
+          } catch (error) {
+            captureError(error as Error);
+          }
+        }
+
         const fetchProject = db.fetchProject;
         const {
           projectSettings,
@@ -84,9 +96,10 @@ export const useOpenPersistedProject = () => {
           modelVersion: hydraulicModel.version,
           hydraulicModel,
           projectSettings,
+          uniqueId,
         };
       },
-      [isWriteDbToOpfsOn, isReadDbFromOpfsOn],
+      [isWriteDbToOpfsOn, isReadDbFromOpfsOn, isTrackModelSharingOn],
     ),
   );
 

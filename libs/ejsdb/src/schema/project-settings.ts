@@ -176,6 +176,7 @@ export const projectSettingsSchema = z.object({
   headlossFormula: headlossFormulaSchema,
   formatting: formattingSpecSchema,
   projection: projectionSchema,
+  uniqueId: z.string().optional(),
 });
 
 // Inferred from the schema above so the format layer owns its own type rather
