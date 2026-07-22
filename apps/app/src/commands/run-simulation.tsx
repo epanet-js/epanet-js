@@ -12,6 +12,7 @@ import {
 import { branchStateAtom } from "src/state/branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { simulationStepAtom } from "src/state/simulation";
+import { opfsAvailableAtom } from "src/state/opfs";
 import { clearQuickGraphPropertyAtom } from "src/state/quick-graph";
 import { clearSymbologyForPropertyAtom } from "src/state/map-symbology";
 import {
@@ -51,6 +52,8 @@ export const useRunSimulation = () => {
           ignoreLabel?: string;
         },
       ) => {
+        if (!get(opfsAvailableAtom)) return;
+
         const hydraulicModel = get(stagingModelDerivedAtom);
         const simulationSettings = get(simulationSettingsDerivedAtom);
         const worktree = get(worktreeAtom);
