@@ -1,8 +1,5 @@
 import { Feature, FeatureCollection, Position } from "geojson";
-import {
-  MAX_CUSTOMER_POINT_LABEL_LENGTH,
-  CustomerPointFactory,
-} from "@epanet-js/hydraulic-model";
+import { LabelManager, CustomerPointFactory } from "@epanet-js/hydraulic-model";
 import { CustomerPointsIssuesAccumulator } from "./parse-customer-points-issues";
 import { convertTo, Unit } from "@epanet-js/quantity";
 import { Demand, PatternId } from "src/hydraulic-model";
@@ -22,6 +19,7 @@ export function* parseCustomerPoints(
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
   defaultDemand: number | null = null,
+  labelMaxLength?: number,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   const trimmedContent = fileContent.trim();
 
@@ -39,6 +37,7 @@ export function* parseCustomerPoints(
           labelPropertyName,
           patternId,
           defaultDemand,
+          labelMaxLength,
         );
         return;
       }
@@ -55,6 +54,7 @@ export function* parseCustomerPoints(
     labelPropertyName,
     patternId,
     defaultDemand,
+    labelMaxLength,
   );
 }
 
@@ -68,6 +68,7 @@ function* parseGeoJSONFeatures(
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
   defaultDemand: number | null = null,
+  labelMaxLength?: number,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   if (!geoJson || geoJson.type !== "FeatureCollection") {
     throw new Error("Invalid GeoJSON: must be a FeatureCollection");
@@ -84,6 +85,7 @@ function* parseGeoJSONFeatures(
       labelPropertyName,
       patternId,
       defaultDemand,
+      labelMaxLength,
     );
   }
 }
@@ -98,6 +100,7 @@ function* parseGeoJSONLFeatures(
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
   defaultDemand: number | null = null,
+  labelMaxLength?: number,
 ): Generator<ParsedCustomerPoint | null, void, unknown> {
   const lines = geoJsonLText.split("\n").filter((line) => line.trim());
 
@@ -120,6 +123,7 @@ function* parseGeoJSONLFeatures(
           labelPropertyName,
           patternId,
           defaultDemand,
+          labelMaxLength,
         );
       }
     } catch (error) {
@@ -138,6 +142,7 @@ const processGeoJSONFeature = (
   labelPropertyName: string | null = null,
   patternId: PatternId | null = null,
   defaultDemand: number | null = null,
+  labelMaxLength?: number,
 ): ParsedCustomerPoint | null => {
   if (!feature.geometry || feature.geometry.type !== "Point") {
     if (!feature.geometry) {
@@ -191,9 +196,10 @@ const processGeoJSONFeature = (
     if (labelPropertyName && feature.properties) {
       const labelValue = feature.properties[labelPropertyName];
       if (labelValue != null && labelValue !== "") {
-        label = String(labelValue).substring(
-          0,
-          MAX_CUSTOMER_POINT_LABEL_LENGTH,
+        label = LabelManager.sanitizeLabel(
+          String(labelValue),
+          "customerPoint",
+          labelMaxLength,
         );
       }
     }

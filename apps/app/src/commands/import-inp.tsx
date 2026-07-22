@@ -28,6 +28,7 @@ import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
 import { useStartNewProject } from "src/hooks/persistence/use-start-new-project";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
 export const inpExtension = ".inp";
 
@@ -40,6 +41,7 @@ export const useImportInp = () => {
   const userTracking = useUserTracking();
   const { startNewProject } = useStartNewProject();
   const { addRecent } = useRecentFiles();
+  const labelMaxLength = useLabelMaxLength();
 
   const handleImportComplete = useAtomCallback(
     useCallback((get, set, issues: ParserIssues | null) => {
@@ -203,6 +205,7 @@ export const useImportInp = () => {
           customerPoints: true,
           inactiveAssets: true,
           populateAssetIndex: true,
+          labelMaxLength,
         };
 
         const result = parseInp(content, parseOptions);
@@ -272,7 +275,13 @@ export const useImportInp = () => {
         setDialogState({ type: "invalidFilesError" });
       }
     },
-    [completeImport, setDialogState, userTracking, validateAndPrepare],
+    [
+      completeImport,
+      setDialogState,
+      userTracking,
+      validateAndPrepare,
+      labelMaxLength,
+    ],
   );
 
   return importInp;

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { useAssetLabelMaxBytes } from "src/hooks/use-asset-label-max-bytes";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import {
   Curves,
   ICurve,
@@ -81,7 +81,7 @@ export const PumpLibrarySidebar = ({
   readOnly = false,
 }: PumpLibrarySidebarProps) => {
   const translate = useTranslate();
-  const labelMaxBytes = useAssetLabelMaxBytes();
+  const labelMaxLength = useLabelMaxLength();
   const listRef = useRef<NavigableListHandle>(null);
   const [actionState, setActionState] = useState<ActionState | undefined>(
     undefined,
@@ -312,7 +312,7 @@ export const PumpLibrarySidebar = ({
                     onAction={handleAction}
                     editLabelMode={getEditMode(actionState, curve.id)}
                     sanitize={(raw) =>
-                      LabelManager.sanitizeLabel(raw, "curve", labelMaxBytes)
+                      LabelManager.sanitizeLabel(raw, "curve", labelMaxLength)
                     }
                     onLabelChange={handleCurveLabelChange}
                     placeholder={translate("curves.curveName")}
@@ -327,7 +327,7 @@ export const PumpLibrarySidebar = ({
                   value=""
                   placeholder={translate("curves.curveName")}
                   sanitize={(raw) =>
-                    LabelManager.sanitizeLabel(raw, "curve", labelMaxBytes)
+                    LabelManager.sanitizeLabel(raw, "curve", labelMaxLength)
                   }
                   onCommit={handleCurveLabelChange}
                   onCancel={clearActionState}

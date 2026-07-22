@@ -15,6 +15,7 @@ import {
   MAX_CUSTOMER_POINT_LABEL_LENGTH,
 } from "@epanet-js/hydraulic-model";
 import { parseCustomerPoints } from "src/import/customer-points/parse-customer-points";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import {
   CustomerPointsIssuesAccumulator,
   CustomerPointsParserIssues,
@@ -47,6 +48,7 @@ export const DataMappingStep: React.FC<{
   const projectSettings = useAtomValue(projectSettingsAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
+  const labelMaxLength = useLabelMaxLength();
   const patterns = hydraulicModel.patterns;
   const customerDemandPerDayUnit = projectSettings.units.customerDemandPerDay;
   const {
@@ -115,6 +117,7 @@ export const DataMappingStep: React.FC<{
             labelPropertyName,
             patternId,
             defaultDemandValue,
+            labelMaxLength,
           )) {
             totalCount++;
             if (parsed) {
@@ -166,6 +169,7 @@ export const DataMappingStep: React.FC<{
       userTracking,
       selectedFile,
       translate,
+      labelMaxLength,
     ],
   );
 
@@ -353,7 +357,9 @@ export const DataMappingStep: React.FC<{
                     <p className="text-size-small text-subtle">
                       {translate(
                         "importCustomerPoints.wizard.dataMapping.labelSelector.description",
-                        String(MAX_CUSTOMER_POINT_LABEL_LENGTH),
+                        String(
+                          labelMaxLength ?? MAX_CUSTOMER_POINT_LABEL_LENGTH,
+                        ),
                       )}
                     </p>
                   </div>

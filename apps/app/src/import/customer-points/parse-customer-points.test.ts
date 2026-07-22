@@ -313,4 +313,46 @@ describe("parseCustomerPoints", () => {
       expect(issues.buildResult()?.skippedInvalidDemands).toHaveLength(3);
     });
   });
+
+  describe("label length", () => {
+    const parseLabel = (rawLabel: string, labelMaxLength?: number) => {
+      const geoJson = JSON.stringify({
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0.001, 0.001] },
+            properties: { demand: 100, label: rawLabel },
+          },
+        ],
+      });
+      const issues = new CustomerPointsIssuesAccumulator();
+      const [result] = Array.from(
+        parseCustomerPoints(
+          geoJson,
+          issues,
+          "l/d",
+          "l/d",
+          new CustomerPointFactory(
+            new ConsecutiveIdsGenerator(),
+            new LabelManager(),
+          ),
+          "demand",
+          "label",
+          null,
+          null,
+          labelMaxLength,
+        ),
+      );
+      return result!.customerPoint.label;
+    };
+
+    it("truncates to the default customer-point limit", () => {
+      expect(parseLabel("a".repeat(70))).toEqual("a".repeat(50));
+    });
+
+    it("truncates to a caller-provided limit when given", () => {
+      expect(parseLabel("a".repeat(70), 64)).toEqual("a".repeat(64));
+    });
+  });
 });

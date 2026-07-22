@@ -29,7 +29,7 @@ import {
   parseReport,
   parseSource,
 } from "./row-parsers";
-import { MAX_CUSTOMER_POINT_LABEL_LENGTH } from "@epanet-js/hydraulic-model";
+import { LabelManager } from "@epanet-js/hydraulic-model";
 
 const commentIdentifier = ";";
 
@@ -163,11 +163,19 @@ export const readInpData = (
         continue;
       }
       if (section === "CUSTOMERS_COMMENTED") {
-        parseCommentedCustomerPoint(trimmedRow, inpData);
+        parseCommentedCustomerPoint(
+          trimmedRow,
+          inpData,
+          options?.labelMaxLength,
+        );
         continue;
       }
       if (section === "CUSTOMERS_DEMANDS_COMMENTED") {
-        parseCommentedCustomerDemand(trimmedRow, inpData);
+        parseCommentedCustomerDemand(
+          trimmedRow,
+          inpData,
+          options?.labelMaxLength,
+        );
         continue;
       }
 
@@ -247,7 +255,11 @@ const detectNewSectionName = (
   return sectionName;
 };
 
-const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
+const parseCommentedCustomerPoint = (
+  trimmedRow: string,
+  inpData: InpData,
+  labelMaxLength?: number,
+) => {
   const line = trimmedRow.substring(1);
   if (line.startsWith("Id\t") || line.startsWith("[CUSTOMERS]")) return;
 
@@ -265,7 +277,11 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
     snapY = "",
   ] = parts;
 
-  const label = rawLabel.substring(0, MAX_CUSTOMER_POINT_LABEL_LENGTH);
+  const label = LabelManager.sanitizeLabel(
+    rawLabel,
+    "customerPoint",
+    labelMaxLength,
+  );
 
   const hasConnection = pipeId && junctionId && snapX && snapY;
 
@@ -287,7 +303,11 @@ const parseCommentedCustomerPoint = (trimmedRow: string, inpData: InpData) => {
   }
 };
 
-const parseCommentedCustomerDemand = (trimmedRow: string, inpData: InpData) => {
+const parseCommentedCustomerDemand = (
+  trimmedRow: string,
+  inpData: InpData,
+  labelMaxLength?: number,
+) => {
   const line = trimmedRow.substring(1);
   if (line.startsWith("Id\t") || line.startsWith("[CUSTOMERS_DEMANDS]")) return;
 
@@ -295,7 +315,11 @@ const parseCommentedCustomerDemand = (trimmedRow: string, inpData: InpData) => {
   if (parts.length < 2) return;
 
   const [rawLabel, baseDemand, patternId] = parts;
-  const label = rawLabel.substring(0, MAX_CUSTOMER_POINT_LABEL_LENGTH);
+  const label = LabelManager.sanitizeLabel(
+    rawLabel,
+    "customerPoint",
+    labelMaxLength,
+  );
 
   const demands = inpData.customerDemands.get(label) || [];
   demands.push({

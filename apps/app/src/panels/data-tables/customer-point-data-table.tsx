@@ -45,6 +45,7 @@ import {
 } from "./customer-point-data-table-data";
 import { buildCustomerPointColumns } from "./customer-point-data-table-columns";
 import { useDeferredGridMount } from "./use-deferred-grid-mount";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
 export const CustomerPointDataTable = memo(
   function CustomerPointDataTableInner() {
@@ -67,6 +68,7 @@ export const CustomerPointDataTable = memo(
     const zoomTo = useZoomTo();
     const deleteCustomerPoints = useDeleteCustomerPoints();
     const userTracking = useUserTracking();
+    const labelMaxLength = useLabelMaxLength();
 
     const rows = useMemo(
       () => buildCustomerPointModelRows(hydraulicModel),
@@ -118,6 +120,7 @@ export const CustomerPointDataTable = memo(
         accessorCtx,
         customAttributes,
         customAttributesLock,
+        labelMaxLength,
       );
     }, [
       translate,
@@ -130,6 +133,7 @@ export const CustomerPointDataTable = memo(
       customAttributes,
       customAttributesLocked,
       openCustomAttributesPaywall,
+      labelMaxLength,
     ]);
 
     const onChange = useCallback(

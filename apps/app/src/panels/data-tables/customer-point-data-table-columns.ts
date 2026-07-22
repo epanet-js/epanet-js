@@ -58,6 +58,7 @@ export function buildCustomerPointColumns(
   accessorCtx?: CpAccessorCtx,
   customAttributes: CustomAttribute[] = [],
   customAttributesLock?: AttributesLock,
+  labelMaxLength?: number,
 ): GridColumn<CustomerPointRow>[] {
   const ck = makeCk(accessorCtx);
   const headerLabel = (
@@ -87,7 +88,8 @@ export function buildCustomerPointColumns(
     textColumn<CustomerPointRow>(ck("label"), {
       header: translate("label"),
       validate: validateLabel,
-      cleanLabel: (raw) => LabelManager.sanitizeLabel(raw, "customerPoint"),
+      cleanLabel: (raw) =>
+        LabelManager.sanitizeLabel(raw, "customerPoint", labelMaxLength),
     }),
     textColumn<CustomerPointRow>(ck("connectedPipeLabel"), {
       header: translate("pipe"),

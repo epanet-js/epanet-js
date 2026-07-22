@@ -463,7 +463,7 @@ type BuildColumnsArgs = [
   accessorCtx?: AssetAccessorCtx,
   customAttributes?: CustomAttribute[],
   customAttributesLock?: AttributesLock,
-  labelMaxBytes?: number,
+  labelMaxLength?: number,
 ];
 
 type ExtraPipeColsFn = (
@@ -587,7 +587,7 @@ function _buildColumns(
   accessorCtx?: AssetAccessorCtx,
   customAttributes: CustomAttribute[] = [],
   customAttributesLock?: AttributesLock,
-  labelMaxBytes?: number,
+  labelMaxLength?: number,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -756,7 +756,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol("elevation", translate("elevation"), {
@@ -805,7 +805,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn(ck("startNode"), {
@@ -873,7 +873,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn(ck("startNode"), {
@@ -954,7 +954,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled")),
         textColumn(ck("startNode"), {
@@ -1012,7 +1012,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol("elevation", translate("elevation"), {
@@ -1037,7 +1037,7 @@ function _buildColumns(
           header: translate("label"),
           validate: validateLabel,
           cleanLabel: (raw) =>
-            LabelManager.sanitizeLabel(raw, type, labelMaxBytes),
+            LabelManager.sanitizeLabel(raw, type, labelMaxLength),
         }),
         booleanCol("isActive", translate("isEnabled"), true),
         numericCol("elevation", translate("elevation"), {

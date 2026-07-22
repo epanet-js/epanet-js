@@ -400,13 +400,17 @@ describe("label manager", () => {
         );
       });
 
-      it("caps at a caller-provided byte limit when given", () => {
+      it("caps at a caller-provided limit when given", () => {
         expect(
           LabelManager.sanitizeLabel("x".repeat(70), "junction", 64),
         ).toEqual("x".repeat(64));
-        // The override does not apply to char-based rules (customer points).
+        // The override also lifts the char-based customer-point limit.
         expect(
-          LabelManager.sanitizeLabel("ñ".repeat(60), "customerPoint", 64),
+          LabelManager.sanitizeLabel("ñ".repeat(70), "customerPoint", 64),
+        ).toEqual("ñ".repeat(64));
+        // Without an override, the customer-point default still applies.
+        expect(
+          LabelManager.sanitizeLabel("ñ".repeat(70), "customerPoint"),
         ).toEqual("ñ".repeat(50));
       });
 

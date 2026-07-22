@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useTranslate } from "src/hooks/use-translate";
-import { useAssetLabelMaxBytes } from "src/hooks/use-asset-label-max-bytes";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import {
   Pattern,
   PatternMultipliers,
@@ -86,7 +86,7 @@ export const PatternSidebar = ({
   readOnly = false,
 }: PatternSidebarProps) => {
   const translate = useTranslate();
-  const labelMaxBytes = useAssetLabelMaxBytes();
+  const labelMaxLength = useLabelMaxLength();
   const userTracking = useUserTracking();
   const labelManager = useRef(new LabelManager());
   const listRef = useRef<NavigableListHandle>(null);
@@ -357,7 +357,7 @@ export const PatternSidebar = ({
                     onAction={handleAction}
                     editLabelMode={getEditMode(actionState, pattern.id)}
                     sanitize={(raw) =>
-                      LabelManager.sanitizeLabel(raw, "pattern", labelMaxBytes)
+                      LabelManager.sanitizeLabel(raw, "pattern", labelMaxLength)
                     }
                     onLabelChange={handlePatternLabelChange}
                     placeholder={translate("patterns.patternName")}
@@ -372,7 +372,7 @@ export const PatternSidebar = ({
                   value=""
                   placeholder={translate("patterns.patternName")}
                   sanitize={(raw) =>
-                    LabelManager.sanitizeLabel(raw, "pattern", labelMaxBytes)
+                    LabelManager.sanitizeLabel(raw, "pattern", labelMaxLength)
                   }
                   onCommit={handlePatternLabelChange}
                   onCancel={clearActionState}

@@ -19,6 +19,7 @@ import { TextRow, QuantityRow } from "./asset-panel/ui-components";
 import { DemandCategoriesEditor } from "./asset-panel/demands-editor";
 import { CustomerPointCustomAttributesSection } from "./customer-point-custom-attributes-section";
 import { EditableTextField } from "src/components/form/editable-text-field";
+import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -38,6 +39,7 @@ export function CustomerPointPanel() {
   const selection = useAtomValue(selectionAtom);
   const { labelManager } = useAtomValue(modelFactoriesAtom);
   const translate = useTranslate();
+  const labelMaxLength = useLabelMaxLength();
   const userTracking = useUserTracking();
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const { transact } = useMomentTransaction();
@@ -217,7 +219,7 @@ export function CustomerPointPanel() {
               onDirty={clearLabelError}
               hasError={!!labelError}
               sanitize={(raw) =>
-                LabelManager.sanitizeLabel(raw, "customerPoint")
+                LabelManager.sanitizeLabel(raw, "customerPoint", labelMaxLength)
               }
               styleOptions={{
                 padding: "sm",
