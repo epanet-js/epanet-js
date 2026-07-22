@@ -11,6 +11,7 @@ import {
   type Updater,
 } from "@tanstack/react-table";
 import { defaultPatchRow, type PatchRowFn } from "../utils/patch-row";
+import { recordGridUpdate } from "../update-loop-probe";
 
 export type CellPosition = { col: number; row: number };
 
@@ -101,6 +102,12 @@ export const CellEditingFeature: TableFeature = {
     );
 
     table.setActiveCell = (position) => {
+      recordGridUpdate(
+        "setActiveCell",
+        position
+          ? { col: position.col, row: position.row }
+          : { position: null },
+      );
       table.setCellEditing((prev) => ({ ...prev, activeCell: position }));
     };
 
@@ -118,10 +125,12 @@ export const CellEditingFeature: TableFeature = {
     );
 
     table.startEditing = (mode = "full") => {
+      recordGridUpdate("startEditing", { mode });
       table.setCellEditing((prev) => ({ ...prev, editMode: mode }));
     };
 
     table.stopEditing = () => {
+      recordGridUpdate("stopEditing");
       table.setCellEditing((prev) => {
         if (!prev.editMode) return prev;
         return { ...prev, editMode: false };
