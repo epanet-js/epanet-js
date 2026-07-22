@@ -105,6 +105,24 @@ const buildHeaderLine = <TData extends RowData>(
 const capRows = (requested: number, max: number | undefined): number =>
   max != null ? Math.min(requested, max) : requested;
 
+const selectionsEqual = (a: GridSelection, b: GridSelection): boolean =>
+  a.min.col === b.min.col &&
+  a.min.row === b.min.row &&
+  a.max.col === b.max.col &&
+  a.max.row === b.max.row;
+
+const isClipboardReadGranted = async (): Promise<boolean> => {
+  try {
+    const status = await navigator.permissions.query({
+      name: "clipboard-read" as PermissionName,
+    });
+    return status.state === "granted";
+  } catch {
+    // Not queryable (Safari/Firefox) — don't risk a prompt; rebuild instead.
+    return false;
+  }
+};
+
 type PasteBounds = {
   targetRows: number;
   targetCols: number;
@@ -172,9 +190,39 @@ export const ClipboardFeature: TableFeature = {
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     const getData = (): TData[] => table.options.data;
 
+    let lastHeaderlessCopy: {
+      selection: GridSelection;
+      headerLine: string;
+      bodyLength: number;
+    } | null = null;
+
     const writeSelectionToClipboard = async (includeHeaders: boolean) => {
       const selection = table.getSelection?.();
       if (!selection) return;
+
+      // When re-copying the same selection with headers and clipboard read is
+      // already granted, prepend headers to the clipboard body instead of
+      // rebuilding. Falls back to a rebuild if read is unavailable or the
+      // clipboard no longer holds what we copied.
+      const cached = lastHeaderlessCopy;
+      if (
+        includeHeaders &&
+        cached &&
+        selectionsEqual(cached.selection, selection) &&
+        (await isClipboardReadGranted())
+      ) {
+        try {
+          const body = await navigator.clipboard.readText();
+          if (body.length === cached.bodyLength) {
+            await navigator.clipboard.writeText(
+              `${cached.headerLine}\n${body}`,
+            );
+            return;
+          }
+        } catch {
+          // Read failed unexpectedly — fall through to rebuild.
+        }
+      }
 
       const columns = table.getVisibleLeafColumns();
       const data = getData();
@@ -214,6 +262,9 @@ export const ClipboardFeature: TableFeature = {
         selection.min.col,
         selection.max.col,
       );
+      lastHeaderlessCopy = includeHeaders
+        ? null
+        : { selection, headerLine, bodyLength: dataText.length };
       await navigator.clipboard.writeText(
         includeHeaders ? `${headerLine}\n${dataText}` : dataText,
       );
