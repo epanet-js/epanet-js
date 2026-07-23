@@ -175,6 +175,7 @@ export const useStartNewProject = () => {
         await clearSimulationStorage();
         const mergedProjectSettings: ProjectSettings = {
           ...input.projectSettings,
+          ...(isTrackModelSharingOn ? { uniqueId: db.newUniqueId() } : {}),
           units: {
             ...input.projectSettings.units,
             chemicalConcentration: input.simulationSettings.qualityMassUnit,
@@ -186,25 +187,8 @@ export const useStartNewProject = () => {
           hydraulicModel: input.hydraulicModel,
           simulationSettings: input.simulationSettings,
         });
-
-        let modelInput = input;
-        if (isTrackModelSharingOn) {
-          try {
-            const uniqueId = await db.ensureUniqueId();
-            modelInput = {
-              ...input,
-              projectSettings: { ...input.projectSettings, uniqueId },
-            };
-          } catch (e: unknown) {
-            captureWarning(
-              "Failed to stamp unique id on new project",
-              e instanceof Error ? e : new Error(String(e)),
-            );
-          }
-        }
-
         resetAppState(set);
-        loadModel(set, modelInput);
+        loadModel(set, { ...input, projectSettings: mergedProjectSettings });
       },
       [isTrackModelSharingOn],
     ),
@@ -251,7 +235,10 @@ export const useSeedDefaultProjectDb = () => {
   return useAtomCallback(
     useCallback(
       (get: Getter, set: Setter): Promise<void> => {
-        const projectSettings = get(projectSettingsAtom);
+        const projectSettings: ProjectSettings = {
+          ...get(projectSettingsAtom),
+          ...(isTrackModelSharingOn ? { uniqueId: db.newUniqueId() } : {}),
+        };
         const hydraulicModel = get(stagingModelDerivedAtom);
         const simulationSettings = get(simulationSettingsDerivedAtom);
 
@@ -269,22 +256,6 @@ export const useSeedDefaultProjectDb = () => {
             projectSettings,
             hydraulicModel,
             simulationSettings,
-          })
-          .then(async () => {
-            if (isTrackModelSharingOn) {
-              try {
-                const uniqueId = await db.ensureUniqueId();
-                set(projectSettingsAtom, {
-                  ...get(projectSettingsAtom),
-                  uniqueId,
-                });
-              } catch (e: unknown) {
-                captureWarning(
-                  "Failed to stamp unique id on default project db",
-                  e instanceof Error ? e : new Error(String(e)),
-                );
-              }
-            }
           })
           .catch((e: unknown) => {
             const error = e instanceof Error ? e : new Error(String(e));

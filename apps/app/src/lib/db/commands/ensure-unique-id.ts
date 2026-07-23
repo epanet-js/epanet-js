@@ -3,6 +3,8 @@ import { getWorker, timed } from "@epanet-js/ejsdb";
 import { buildProjectSettingsData } from "../mappers/project-settings/builders";
 import { serializeProjectSettings } from "../mappers/project-settings/to-rows";
 
+export const newUniqueId = (): string => uuidv4();
+
 export const ensureUniqueId = async (): Promise<string> => {
   return timed("ensureUniqueId", async () => {
     const worker = getWorker();
@@ -14,7 +16,7 @@ export const ensureUniqueId = async (): Promise<string> => {
     const settings = buildProjectSettingsData(settingsJson);
     if (settings.uniqueId) return settings.uniqueId;
 
-    const uniqueId = uuidv4();
+    const uniqueId = newUniqueId();
     await worker.saveProjectSettings(
       serializeProjectSettings({ ...settings, uniqueId }),
     );

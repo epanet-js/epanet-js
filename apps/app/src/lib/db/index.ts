@@ -14,7 +14,7 @@ export { serializeSimulationSettings } from "./mappers/simulation-settings/to-ro
 export { applyMomentToDb, buildMomentPayload } from "./commands/apply-moment";
 export { importProject } from "./commands/import-project";
 export type { ImportProjectInput } from "./commands/import-project";
-export { ensureUniqueId } from "./commands/ensure-unique-id";
+export { ensureUniqueId, newUniqueId } from "./commands/ensure-unique-id";
 export { exportDb } from "./commands/export-db";
 export { exportDbFromPool } from "./commands/recover-db";
 export { configureDbStorage } from "./commands/configure-storage";
