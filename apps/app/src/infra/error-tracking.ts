@@ -13,6 +13,27 @@ export const captureError = (
   Sentry.captureException(error, contexts ? { contexts } : undefined);
 };
 
+// Describes any thrown value for Sentry's `extra`. A DOMException (e.g.
+// NotFoundError from OPFS) is not `instanceof Error` but still carries a
+// name/message, so match on shape rather than the Error prototype.
+const describeError = (error: unknown): Record<string, unknown> | undefined => {
+  if (error == null) return undefined;
+  if (error instanceof Error) {
+    return { name: error.name, error: error.message, stack: error.stack };
+  }
+  if (typeof error === "object") {
+    const e = error as { name?: unknown; message?: unknown; stack?: unknown };
+    if (typeof e.name === "string" || typeof e.message === "string") {
+      return {
+        name: typeof e.name === "string" ? e.name : undefined,
+        error: typeof e.message === "string" ? e.message : String(error),
+        stack: typeof e.stack === "string" ? e.stack : undefined,
+      };
+    }
+  }
+  return { error: String(error) };
+};
+
 export const captureWarning = (
   message: string,
   error?: unknown,
@@ -23,10 +44,7 @@ export const captureWarning = (
 
   Sentry.captureMessage(message, {
     level: "warning",
-    extra:
-      error instanceof Error
-        ? { error: error.message, stack: error.stack }
-        : undefined,
+    extra: describeError(error),
     contexts,
   });
 };
