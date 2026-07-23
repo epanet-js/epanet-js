@@ -24,6 +24,8 @@ export type HandleErrorOptions = {
   ignore?: ErrorMatcher[];
   warn?: ErrorMatcher[];
   onUnexpected?: "throw" | "capture" | "warn";
+  // Extra Sentry context attached to warn/capture reports (not the throw path).
+  contexts?: Record<string, Record<string, unknown>>;
 };
 
 // Handles an already-caught error by classification: `ignore` matches are
@@ -45,14 +47,15 @@ export function handleError(error: unknown, options: HandleErrorOptions): void {
     ignore = [],
     warn = [],
     onUnexpected = "throw",
+    contexts,
   } = options;
   if (matches(error, ignore)) return;
   if (onUnexpected === "warn" || matches(error, warn)) {
-    captureWarning(message, error);
+    captureWarning(message, error, contexts);
     return;
   }
   if (onUnexpected === "capture") {
-    captureError(enrichError(message, error));
+    captureError(enrichError(message, error), contexts);
     return;
   }
   throw enrichError(message, error);

@@ -276,6 +276,7 @@ export const useImportInp = () => {
           as: "Import INP failed",
           warn: ["NotReadableError"],
           onUnexpected: "capture",
+          contexts: { "Import file": { name: file.name, size: file.size } },
         });
         setDialogState({ type: "invalidFilesError" });
       }
