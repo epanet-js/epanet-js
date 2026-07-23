@@ -8,10 +8,15 @@ import {
   serializeSimulationSettings,
 } from "src/lib/db";
 import { captureError } from "src/infra/error-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { writeQueue } from "src/lib/persistence/write-queue";
+import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 export const useSimulationSettingsTransaction = () => {
   const setSettings = useSetAtom(simulationSettingsDerivedAtom);
   const setDialog = useSetAtom(dialogAtom);
+  const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const onWriteFailure = useWriteFailureHandler();
 
   const transact = useCallback(
     (next: SimulationSettings): boolean => {
@@ -26,11 +31,18 @@ export const useSimulationSettingsTransaction = () => {
 
       setSettings(next);
 
-      void setAllSimulationSettings(data).catch(captureError);
+      if (isQueueOn) {
+        writeQueue.enqueue(
+          () => setAllSimulationSettings(data),
+          onWriteFailure,
+        );
+      } else {
+        void setAllSimulationSettings(data).catch(captureError);
+      }
 
       return true;
     },
-    [setSettings, setDialog],
+    [setSettings, setDialog, isQueueOn, onWriteFailure],
   );
 
   return { transact };
