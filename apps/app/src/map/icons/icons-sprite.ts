@@ -533,7 +533,7 @@ export const prepareIconsSprite = withDebugInstrumentation(
   async (): Promise<IconImage[]> => {
     const currentIconUrls = buildIconUrls();
     const iconImages = await Promise.all(
-      currentIconUrls.map((iconUrl) => fetchImage(iconUrl)),
+      currentIconUrls.map((iconUrl) => loadImage(iconUrl)),
     );
 
     return iconImages;
@@ -541,15 +541,9 @@ export const prepareIconsSprite = withDebugInstrumentation(
   { name: "GENERATE_ICONS_SPRITE", maxDurationMs: 1000 },
 );
 
-const fetchImage = async ({ id, url, isSdf }: IconUrl): Promise<IconImage> => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.statusText}`);
-  }
-  const blob = await response.blob();
-
+const loadImage = async ({ id, url, isSdf }: IconUrl): Promise<IconImage> => {
   const img = new Image();
-  img.src = URL.createObjectURL(blob);
+  img.src = url;
   await img.decode();
   return { id, image: img, isSdf };
 };
