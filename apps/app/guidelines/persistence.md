@@ -91,6 +91,53 @@ it:
 Do not copy this "validate while saving" shape into interactive edit paths — those have a live atom to
 protect, so they must validate first.
 
+## The write queue & recovery (`FLAG_TRANSACTIONS_QUEUE`)
+
+Interactive persistence writes are funnelled through a single serial queue so they apply in order and share
+one failure path. This is behind `FLAG_TRANSACTIONS_QUEUE`; each call site keeps its pre-flag behavior as
+the flag-off fallback.
+
+| Piece | Where | Responsibility |
+|---|---|---|
+| `writeQueue` (`MemoryWriteQueue`) | `src/lib/persistence/write-queue.ts` | One global FIFO. `enqueue(operation, onFailure)` runs operations one at a time; on the first rejection it clears the queue and calls that item's `onFailure`. `reset()` clears it (called by `loadModel`). |
+| `useWriteFailureHandler` | `src/hooks/persistence/use-write-failure-handler.ts` | The shared `onFailure`: **recover-or-throw** (below). Type-agnostic — one handler for every queued write. |
+
+**Enqueue pattern** — inside a transaction hook, after the atom is set (validate-then-save still applies first):
+
+```typescript
+if (isQueueOn) {
+  writeQueue.enqueue(() => saveX(next), onWriteFailure); // fire-and-forget; atom already set
+} else {
+  await saveX(next); // unchanged flag-off behavior
+}
+```
+
+Queued today: the moment/undo writes (`applyMomentToDb`, in `use-moment-transaction.ts` /
+`use-undoable-transactions.ts` — this also covers custom-attribute definitions and per-asset values, which
+travel in the moment payload) and the four single-edit hooks (`use-zones-transaction`,
+`use-pipe-library-transaction`, `use-project-settings-transaction`, `use-simulation-settings-transaction`).
+
+**Recover-or-throw** (`useWriteFailureHandler`), gated on `sessionRecoveryActiveAtom` (true only when
+`FLAG_SESSION_RECOVERY` is on **and** the DB resolved to an OPFS `sahpool` — i.e. a persisted pool exists):
+
+- **Recovery inactive** → `throw error`. In production this is an unhandled rejection (Sentry only, no UI);
+  the in-memory model stays ahead of the DB. This is the interim placeholder.
+- **Recovery active** → `captureWarning` + a warning toast (`writeFailedRecovered*`), then reload the model
+  from the persisted DB (`exportDb()` → `useOpenPersistedProject`), re-syncing memory to what's saved and
+  dropping the un-persisted change. If that **reload** fails it is a hard `captureError`.
+
+Recovery re-derives the whole model from the DB (the single source of truth) rather than walking the moment
+log back — so it is independent of moment-log state and works for any queued write.
+
+**Do NOT queue** whole-project / bulk writes or order-dependent writes:
+
+- `importProject` (new project, customer-points reset, reprojection reset), `openProject`, `newProject` —
+  recovery-by-reload is circular for a write that itself replaces the DB, and they clash with
+  `loadModel → writeQueue.reset()`.
+- `save-project.tsx`'s `db.saveProjectSettings` — a step in the file-save sequence that must complete before
+  the following `exportDb()`; fire-and-forget would export stale bytes, and reload-on-failure would wipe the
+  model mid-save. (The interactive project-settings edit path *is* queued via its transaction hook.)
+
 ## Adding a new persisted type
 
 1. Define the Zod row/object schema in `@epanet-js/ejsdb` (`src/schema/*.ts`). Adding or changing a

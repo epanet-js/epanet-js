@@ -15,7 +15,7 @@ This is the epanet-js application. The guidance is split in two:
 |---|---|
 | [coding-standards.md](./guidelines/coding-standards.md) | Comments policy, naming, debug logging, code organization |
 | [architecture.md](./guidelines/architecture.md) | The three-layer pattern: Command → Lib → State; directory structure |
-| [persistence.md](./guidelines/persistence.md) | Schema-first persistence: validate-then-save transactions, the import exception, `changeNotApplied` |
+| [persistence.md](./guidelines/persistence.md) | Schema-first persistence: validate-then-save transactions, the import exception, `changeNotApplied`, the write queue & recovery |
 | [react-guidelines.md](./guidelines/react-guidelines.md) | Effects, state, component patterns, anti-patterns |
 | [feature-flags.md](./guidelines/feature-flags.md) | Feature-flag system, `isXOn` / `FLAG_X` naming, rollout |
 | [translation.md](./guidelines/translation.md) | i18n, number/unit localization |
