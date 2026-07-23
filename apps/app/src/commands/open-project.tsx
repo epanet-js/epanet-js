@@ -15,7 +15,7 @@ import type { Asset } from "src/hydraulic-model";
 import { notify } from "src/components/notifications";
 import { SuccessIcon, WarningIcon } from "src/icons";
 import { captureError, captureWarning } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
+import { catchErrors, handleError } from "src/infra/errors";
 import { formatErrorDetails } from "src/lib/errors";
 import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -337,7 +337,12 @@ export const useOpenProject = () => {
 
   return useCallback(
     ({ source }: { source: string }) => {
-      checkUnsavedChanges(() => openProject({ source }));
+      checkUnsavedChanges(() => {
+        void catchErrors(() => openProject({ source }), {
+          as: "openProject: failed to open",
+          onUnexpected: "capture",
+        });
+      });
     },
     [checkUnsavedChanges, openProject],
   );

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 import type { FileWithHandle } from "browser-fs-access";
 import { useTogglePlayback } from "src/commands/toggle-playback";
+import { handleError } from "src/infra/errors";
 
 export interface FileOpenOptions {
   multiple?: boolean;
@@ -13,6 +14,8 @@ export interface FileOpenOptions {
 const getDefaultFsAccess = async () => {
   return import("browser-fs-access");
 };
+
+let isPickerOpen = false;
 
 export const useFileOpen = ({
   getFsAccess = getDefaultFsAccess,
@@ -28,8 +31,10 @@ export const useFileOpen = ({
   const openFile = useCallback(
     async (options: FileOpenOptions): Promise<FileWithHandle | null> => {
       if (!fsAccess) throw new Error("FS not ready");
+      if (isPickerOpen) return null;
 
       stopPlayback("auto");
+      isPickerOpen = true;
       try {
         const result = await fsAccess.fileOpen({
           multiple: options.multiple || false,
@@ -43,10 +48,14 @@ export const useFileOpen = ({
         }
         return result;
       } catch (error) {
-        if ((error as Error).name === "AbortError") {
-          return null;
-        }
-        throw error;
+        handleError(error, {
+          as: "openFile: file picker failed",
+          ignore: ["AbortError"],
+          warn: ["NotAllowedError"],
+        });
+        return null;
+      } finally {
+        isPickerOpen = false;
       }
     },
     [fsAccess, stopPlayback],
