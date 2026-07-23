@@ -464,6 +464,8 @@
   "recoveredModelName": "Recovered model",
   "recoverUnsavedModelFailedTitle": "Couldn't recover the unsaved model",
   "recoverUnsavedModelFailedDescription": "The unsaved model could no longer be read from local storage.",
+  "writeFailedRecoveredTitle": "We couldn't save your last change",
+  "writeFailedRecoveredDescription": "We restored your model to the last saved version. Please try your change again.",
   "importINP": "Import INP",
   "exportINP": "Export INP",
   "deprecatedImportFromGIS": "Import from GIS data",

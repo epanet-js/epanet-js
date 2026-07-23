@@ -16,9 +16,11 @@ import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
+import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 export const useUndoableTransactions = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const onWriteFailure = useWriteFailureHandler();
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -54,7 +56,7 @@ export const useUndoableTransactions = () => {
 
         if (payload) {
           if (isQueueOn) {
-            writeQueue.enqueue(() => applyMomentToDb(payload));
+            writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
           } else {
             void applyMomentToDb(payload).catch(captureError);
           }
@@ -70,7 +72,7 @@ export const useUndoableTransactions = () => {
         set(momentLogDerivedAtom, momentLog);
         set(mapSyncMomentAtom, newMapSyncMoment);
       },
-      [isQueueOn],
+      [isQueueOn, onWriteFailure],
     ),
   );
 

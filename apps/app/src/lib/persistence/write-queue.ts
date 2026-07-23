@@ -1,11 +1,17 @@
 export type WriteOperation = () => Promise<void>;
+export type WriteFailureHandler = (error: unknown) => void;
+
+export type WriteItem = {
+  operation: WriteOperation;
+  onFailure: WriteFailureHandler;
+};
 
 export class MemoryWriteQueue {
-  private queue: WriteOperation[] = [];
+  private queue: WriteItem[] = [];
   private processing = false;
 
-  enqueue(operation: WriteOperation) {
-    this.queue.push(operation);
+  enqueue(operation: WriteOperation, onFailure: WriteFailureHandler) {
+    this.queue.push({ operation, onFailure });
     void this.process();
   }
 
@@ -20,13 +26,15 @@ export class MemoryWriteQueue {
 
     try {
       while (this.queue.length > 0) {
-        const operation = this.queue[0];
+        const item = this.queue[0];
         try {
-          await operation();
+          await item.operation();
           this.queue.shift();
         } catch (error) {
           this.queue = [];
-          throw error;
+          this.processing = false;
+          item.onFailure(error);
+          return;
         }
       }
     } finally {

@@ -25,9 +25,11 @@ import {
 } from "src/hydraulic-model/validate-moment-integrity";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { writeQueue } from "src/lib/persistence/write-queue";
+import { useWriteFailureHandler } from "src/hooks/persistence/use-write-failure-handler";
 
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
+  const onWriteFailure = useWriteFailureHandler();
 
   const transact = useAtomCallback(
     useCallback(
@@ -104,7 +106,7 @@ export const useMomentTransaction = () => {
 
         if (payload) {
           if (isQueueOn) {
-            writeQueue.enqueue(() => applyMomentToDb(payload));
+            writeQueue.enqueue(() => applyMomentToDb(payload), onWriteFailure);
           } else {
             void applyMomentToDb(payload).catch(captureError);
           }
@@ -123,7 +125,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isQueueOn],
+      [isQueueOn, onWriteFailure],
     ),
   );
 
