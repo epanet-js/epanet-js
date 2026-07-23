@@ -12,7 +12,7 @@ import {
   GeoIndexBuilder,
   VariableSizeBufferBuilder,
   VariableSizeBufferView,
-} from "src/lib/buffers";
+} from "@epanet-js/buffers";
 import { AssetIndex, AssetIndexQueries } from "@epanet-js/hydraulic-model";
 import { AssetId, LinkAsset, NodeAsset } from "@epanet-js/hydraulic-model";
 import { LineString, Position } from "geojson";

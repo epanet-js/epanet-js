@@ -5,7 +5,7 @@ import {
   encodeNumber,
   FixedSizeBufferBuilder,
   VariableSizeBufferBuilder,
-} from "src/lib/buffers";
+} from "@epanet-js/buffers";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetIndexQueries } from "@epanet-js/hydraulic-model";
 import { TopologyQueries } from "@epanet-js/hydraulic-model";

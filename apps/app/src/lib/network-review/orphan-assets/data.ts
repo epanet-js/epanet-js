@@ -1,6 +1,6 @@
 import { AssetType, AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
-import { BufferType } from "src/lib/buffers";
+import { BufferType } from "@epanet-js/buffers";
 import {
   TopologyEncoder,
   TopologyBuffers,

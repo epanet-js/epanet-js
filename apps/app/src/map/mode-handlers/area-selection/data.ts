@@ -14,7 +14,7 @@ import {
   cloneCustomerPointsGeoBuffers,
   encodeCustomerPointsGeo,
 } from "src/hydraulic-model/customer-points-geo";
-import { BinaryData, BufferType } from "src/lib/buffers/buffers";
+import { BinaryData, BufferType } from "@epanet-js/buffers";
 
 export const encodeHydraulicModel = (
   hydraulicModel: HydraulicModel,

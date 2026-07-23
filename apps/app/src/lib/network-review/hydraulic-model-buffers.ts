@@ -28,7 +28,7 @@ import {
   IdMapper,
   VariableSizeBufferBuilder,
   VariableSizeBufferView,
-} from "src/lib/buffers";
+} from "@epanet-js/buffers";
 
 export interface EncodedHydraulicModel {
   links: {

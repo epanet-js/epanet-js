@@ -3,7 +3,7 @@ import type { Position } from "geojson";
 import type { CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { SearchOptions } from "./spatial-queries";
 import { toSearchPolygon, containsNode } from "./spatial-queries";
-import { BinaryData, BufferType, createBuffer } from "src/lib/buffers";
+import { BinaryData, BufferType, createBuffer } from "@epanet-js/buffers";
 
 type BoundingBox = [number, number, number, number];
 type CustomerPointFilterFn = (id: number, position: Position) => boolean;

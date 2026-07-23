@@ -1,6 +1,6 @@
 import { HydraulicModel } from "src/hydraulic-model";
 import { ResultsReader } from "src/simulation/results-reader";
-import { BufferType, createBuffer } from "src/lib/buffers";
+import { BufferType, createBuffer } from "@epanet-js/buffers";
 import {
   AssetIndexEncoder,
   AssetIndexBuffers,

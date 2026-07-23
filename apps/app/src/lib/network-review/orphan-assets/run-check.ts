@@ -11,7 +11,7 @@ import { topologyTransferables } from "src/hydraulic-model/topology/topology-tra
 import { assetIndexTransferables } from "src/hydraulic-model/asset-index-transferable";
 import { findOrphanAssets } from "./find-orphan-assets";
 import type { OrphanAssetsWorkerAPI } from "./worker-api";
-import { BufferType } from "src/lib/buffers";
+import { BufferType } from "@epanet-js/buffers";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 
 export const runCheck = async (

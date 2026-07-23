@@ -13,7 +13,7 @@ import {
   decodeType,
   FixedSizeBufferView,
   VariableSizeBufferView,
-} from "src/lib/buffers";
+} from "@epanet-js/buffers";
 
 const createTestModel = () => {
   const IDS = { J1: 1, J2: 2, T1: 3, P1: 4, P2: 5 } as const;

@@ -1,4 +1,4 @@
-import { BinaryData, BufferWithIndex } from "src/lib/buffers";
+import { BinaryData, BufferWithIndex } from "@epanet-js/buffers";
 
 export interface TopologyBuffers {
   linkConnections: BinaryData;

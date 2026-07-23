@@ -1,4 +1,4 @@
-import { BinaryData } from "src/lib/buffers";
+import { BinaryData } from "@epanet-js/buffers";
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { AssetIndexView } from "src/hydraulic-model/asset-index-transferable";
 import {

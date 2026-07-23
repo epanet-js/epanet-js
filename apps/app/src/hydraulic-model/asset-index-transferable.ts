@@ -8,7 +8,7 @@ import {
   decodeType,
   FixedSizeBufferView,
   FixedSizeBufferBuilder,
-} from "src/lib/buffers";
+} from "@epanet-js/buffers";
 import {
   AssetId,
   AssetType,

@@ -22,7 +22,7 @@ import {
   decodeAreaSelectionResult,
   getEncodedAreaSelectionBuffers,
 } from "./data";
-import { BufferType } from "src/lib/buffers";
+import { BufferType } from "@epanet-js/buffers";
 
 export type AreaSelectionResult = {
   assetIds: AssetId[];
