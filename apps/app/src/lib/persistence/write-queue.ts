@@ -1,17 +1,11 @@
-import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
-import { applyMomentToDb } from "src/lib/db";
-
-export type WriteItem = {
-  payload: ApplyMomentPayload;
-  onFailure: (error: unknown) => void;
-};
+export type WriteOperation = () => Promise<void>;
 
 export class MemoryWriteQueue {
-  private queue: WriteItem[] = [];
+  private queue: WriteOperation[] = [];
   private processing = false;
 
-  enqueue(item: WriteItem) {
-    this.queue.push(item);
+  enqueue(operation: WriteOperation) {
+    this.queue.push(operation);
     void this.process();
   }
 
@@ -26,15 +20,13 @@ export class MemoryWriteQueue {
 
     try {
       while (this.queue.length > 0) {
-        const item = this.queue[0];
+        const operation = this.queue[0];
         try {
-          await applyMomentToDb(item.payload);
+          await operation();
           this.queue.shift();
         } catch (error) {
           this.queue = [];
-          this.processing = false;
-          item.onFailure(error);
-          return;
+          throw error;
         }
       }
     } finally {

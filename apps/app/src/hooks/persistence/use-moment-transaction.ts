@@ -24,59 +24,10 @@ import {
   findStoreInconsistencies,
 } from "src/hydraulic-model/validate-moment-integrity";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useTranslate } from "src/hooks/use-translate";
-import { notify, hideNotification } from "src/components/notifications";
 import { writeQueue } from "src/lib/persistence/write-queue";
-
-const WRITE_FAILED_TOAST_ID = "moment-write-failed";
 
 export const useMomentTransaction = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
-  const translate = useTranslate();
-
-  const rollback = useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter, restoreStateId: string, error: unknown) => {
-        const momentLog = get(momentLogDerivedAtom).copy();
-        const steps = momentLog.rollbackTo(restoreStateId);
-
-        if (steps !== null) {
-          for (const step of steps) {
-            applyMoment(
-              get,
-              set,
-              step.targetStateId,
-              step.reverse,
-              stagingModelDerivedAtom,
-            );
-          }
-          set(momentLogDerivedAtom, momentLog);
-          const mapSyncMoment = get(mapSyncMomentAtom);
-          set(
-            mapSyncMomentAtom,
-            computeSyncMoment(mapSyncMoment, momentLog, true),
-          );
-        }
-
-        captureWarning("Rolled back after DB write failure", error, {
-          rollback: {
-            restoreStateId,
-            restored: steps !== null,
-            steps: steps?.length ?? 0,
-          },
-        });
-
-        notify({
-          variant: "error",
-          size: "md",
-          id: WRITE_FAILED_TOAST_ID,
-          title: translate("changeNotSaved"),
-          description: translate("changeNotSavedMessage"),
-        });
-      },
-      [translate],
-    ),
-  );
 
   const transact = useAtomCallback(
     useCallback(
@@ -124,7 +75,6 @@ export const useMomentTransaction = () => {
 
         trackMoment(moment);
         const newStateId = nanoid();
-        const restoreStateId = get(stagingModelDerivedAtom).version;
 
         const reverseMoment = applyMoment(
           get,
@@ -154,11 +104,7 @@ export const useMomentTransaction = () => {
 
         if (payload) {
           if (isQueueOn) {
-            hideNotification(WRITE_FAILED_TOAST_ID);
-            writeQueue.enqueue({
-              payload,
-              onFailure: (error) => rollback(restoreStateId, error),
-            });
+            writeQueue.enqueue(() => applyMomentToDb(payload));
           } else {
             void applyMomentToDb(payload).catch(captureError);
           }
@@ -177,7 +123,7 @@ export const useMomentTransaction = () => {
 
         return true;
       },
-      [isQueueOn, rollback],
+      [isQueueOn],
     ),
   );
 

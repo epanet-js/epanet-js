@@ -15,13 +15,10 @@ import { applyMomentToDb, buildMomentPayload } from "src/lib/db";
 import type { ApplyMomentPayload } from "@epanet-js/ejsdb";
 import { captureError } from "src/infra/error-tracking";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-import { useTranslate } from "src/hooks/use-translate";
-import { notify } from "src/components/notifications";
 import { writeQueue } from "src/lib/persistence/write-queue";
 
 export const useUndoableTransactions = () => {
   const isQueueOn = useFeatureFlag("FLAG_TRANSACTIONS_QUEUE");
-  const translate = useTranslate();
 
   const historyControl = useAtomCallback(
     useCallback(
@@ -57,20 +54,7 @@ export const useUndoableTransactions = () => {
 
         if (payload) {
           if (isQueueOn) {
-            writeQueue.enqueue({
-              payload,
-              onFailure: (error) => {
-                captureError(
-                  error instanceof Error ? error : new Error(String(error)),
-                );
-                notify({
-                  variant: "error",
-                  size: "md",
-                  title: translate("somethingWentWrong"),
-                  description: translate("somethingWentWrongMessage"),
-                });
-              },
-            });
+            writeQueue.enqueue(() => applyMomentToDb(payload));
           } else {
             void applyMomentToDb(payload).catch(captureError);
           }
@@ -86,7 +70,7 @@ export const useUndoableTransactions = () => {
         set(momentLogDerivedAtom, momentLog);
         set(mapSyncMomentAtom, newMapSyncMoment);
       },
-      [isQueueOn, translate],
+      [isQueueOn],
     ),
   );
 
