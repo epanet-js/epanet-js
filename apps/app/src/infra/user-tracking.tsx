@@ -238,6 +238,13 @@ export type AssetsExcludedFromActiveTopology = {
   count: number;
 };
 
+export type ElevationsRecomputed = {
+  name: "elevations.recomputed";
+  mode: "missing" | "all";
+  resolved: number;
+  unresolved: number;
+};
+
 type WelcomeSeen = {
   name: "welcome.seen";
 };
@@ -1272,6 +1279,7 @@ export type UserEvent =
   | AssetDeleted
   | AssetsIncludedInActiveTopology
   | AssetsExcludedFromActiveTopology
+  | ElevationsRecomputed
   | WelcomeSeen
   | WelcomeOpened
   | WelcomeHidden

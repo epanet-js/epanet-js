@@ -47,6 +47,8 @@ import {
   LocateIcon,
   LocateOffIcon,
   MultipleValuesIcon,
+  RefreshIcon,
+  SpinnerIcon,
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "@epanet-js/ui-kit";
@@ -62,6 +64,11 @@ import { notify } from "src/components/notifications";
 import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
 import { usePermissions } from "src/hooks/use-permissions";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import {
+  useElevationTargets,
+  useRecomputeElevations,
+} from "src/commands/recompute-elevations";
 import { dialogAtom } from "src/state/dialog";
 import {
   ElevationSource,
@@ -84,6 +91,7 @@ import { TextField } from "src/components/form/text-field";
 
 export const ElevationsEditor = () => {
   const isPlaying = useAtomValue(isPlayingAtom);
+  const recomputeEnabled = useFeatureFlag("FLAG_RECOMPUTE_ELEVATIONS");
   const translate = useTranslate();
   const overlay = useElevationCoverageOverlay();
   const { getProj4Def } = useProj4Definitions();
@@ -121,6 +129,11 @@ export const ElevationsEditor = () => {
       }
       separator={false}
       variant="primary"
+      action={
+        recomputeEnabled && !isPlaying ? (
+          <RecomputeElevationsButton />
+        ) : undefined
+      }
     >
       <DndContext
         onDragEnd={handleDragEnd}
@@ -614,6 +627,101 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
     </>
   );
 };
+
+const RecomputeElevationsButton = () => {
+  const translate = useTranslate();
+  const { canUseElevations } = usePermissions();
+  const setDialogState = useSetAtom(dialogAtom);
+  const [open, setOpen] = useState(false);
+  const targets = useElevationTargets(open);
+  const { recompute, isRunning } = useRecomputeElevations();
+
+  const handleOpenChange = (next: boolean) => {
+    if (next && !canUseElevations) {
+      setDialogState({ type: "featurePaywall", feature: "elevations" });
+      return;
+    }
+    if (isRunning) return;
+    setOpen(next);
+  };
+
+  return (
+    <Popover.Root open={open} onOpenChange={handleOpenChange}>
+      <Popover.Trigger asChild onClick={(e) => e.stopPropagation()}>
+        <Button
+          variant="quiet/mode"
+          className="h-8"
+          aria-label={translate("elevations.recompute.tooltip")}
+          disabled={isRunning}
+        >
+          {isRunning ? <SpinnerIcon /> : <RefreshIcon />}
+        </Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <StyledPopoverContent
+          size="auto"
+          side="left"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <StyledPopoverArrow />
+          {targets === null ? (
+            <div className="px-2 py-1.5 text-size-base text-subtle">
+              {translate("loading")}
+            </div>
+          ) : (
+            <div className="flex flex-col">
+              <RecomputeElevationsOption
+                label={translate("elevations.recompute.fillMissing")}
+                count={targets.missingIds.length}
+                disabled={targets.missingIds.length === 0}
+                onSelect={() => {
+                  setOpen(false);
+                  void recompute({
+                    assetIds: targets.missingIds,
+                    mode: "missing",
+                  });
+                }}
+              />
+              <RecomputeElevationsOption
+                label={translate("elevations.recompute.recomputeAll")}
+                count={targets.allIds.length}
+                disabled={targets.allIds.length === 0}
+                onSelect={() => {
+                  setOpen(false);
+                  void recompute({ assetIds: targets.allIds, mode: "all" });
+                }}
+              />
+            </div>
+          )}
+        </StyledPopoverContent>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+};
+
+const RecomputeElevationsOption = ({
+  label,
+  count,
+  disabled,
+  onSelect,
+}: {
+  label: string;
+  count: number;
+  disabled?: boolean;
+  onSelect: () => void;
+}) => (
+  <button
+    type="button"
+    disabled={disabled}
+    onClick={onSelect}
+    className="flex items-center justify-between gap-x-6 px-2 py-1.5 text-size-base text-left rounded-sm hover:bg-base-hover disabled:opacity-40 disabled:pointer-events-none"
+  >
+    <span>{label}</span>
+    <span className="text-subtle tabular-nums">{count}</span>
+  </button>
+);
 
 function collectProcessingErrors(results: PromiseSettledResult<GeoTiffTile>[]) {
   return results
