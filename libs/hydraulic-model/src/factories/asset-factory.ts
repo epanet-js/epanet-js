@@ -10,7 +10,7 @@ export type JunctionBuildData = {
   id?: AssetId;
   label?: string;
   coordinates?: Position;
-  elevation?: number;
+  elevation?: number | null;
   emitterCoefficient?: number;
   initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
@@ -78,7 +78,7 @@ export type ReservoirBuildData = {
   coordinates?: Position;
   head?: number;
   relativeHead?: number;
-  elevation?: number;
+  elevation?: number | null;
   headPatternId?: PatternId;
   initialQuality?: number;
   chemicalSourceType?: ChemicalSourceType;
@@ -92,7 +92,7 @@ export type TankBuildData = {
   id?: AssetId;
   label?: string;
   coordinates?: Position;
-  elevation?: number;
+  elevation?: number | null;
   initialLevel?: number;
   minLevel?: number;
   maxLevel?: number;
@@ -118,10 +118,10 @@ import { Valve, ValveStatus, ValveKind } from "../asset-types/valve";
 import { CurveId, CurvePoint } from "../curves";
 import { PatternId } from "../patterns";
 
-const isProvided = (value: number | undefined): value is number =>
+const isProvided = (value: number | null | undefined): value is number =>
   value !== undefined && !Number.isNaN(value);
 
-const orNull = (value?: number): number | null =>
+const orNull = (value?: number | null): number | null =>
   isProvided(value) ? value : null;
 
 const orUndefined = (value?: number): number | undefined =>

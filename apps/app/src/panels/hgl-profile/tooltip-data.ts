@@ -92,6 +92,7 @@ export function interpolateTerrain(
     const a = terrain[i];
     const b = terrain[i + 1];
     if (x >= a.cumulativeLength && x <= b.cumulativeLength) {
+      if (a.elevation === null || b.elevation === null) return null;
       const span = b.cumulativeLength - a.cumulativeLength;
       if (span <= 0) return a.elevation;
       const t = (x - a.cumulativeLength) / span;

@@ -16,7 +16,7 @@ type NodeType = "junction" | "reservoir" | "tank";
 type InputData = {
   nodeType: NodeType;
   coordinates: Position;
-  elevation?: number;
+  elevation?: number | null;
   pipeIdToSplit?: AssetId;
   lengthUnit: Unit;
   assetFactory: AssetFactory;
@@ -70,7 +70,7 @@ const createNode = (
   assetFactory: AssetFactory,
   nodeType: NodeType,
   coordinates: Position,
-  elevation: number,
+  elevation: number | null,
   isActive: boolean,
 ): NodeAsset => {
   switch (nodeType) {

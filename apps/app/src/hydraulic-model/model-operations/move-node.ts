@@ -22,7 +22,7 @@ import { Unit } from "@epanet-js/quantity";
 type InputData = {
   nodeId: AssetId;
   newCoordinates: Position;
-  newElevation: number;
+  newElevation: number | null;
   shouldUpdateCustomerPoints?: boolean;
   pipeIdToSplit?: AssetId;
   lengthUnit: Unit;
@@ -155,7 +155,7 @@ const moveNodeWithPipeSplitting = (
   hydraulicModel: HydraulicModel,
   nodeId: AssetId,
   newCoordinates: Position,
-  newElevation: number,
+  newElevation: number | null,
   shouldUpdateCustomerPoints: boolean,
   pipeIdToSplit: AssetId,
   lengthUnit: Unit,

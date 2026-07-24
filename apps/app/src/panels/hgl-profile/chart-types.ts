@@ -31,7 +31,7 @@ export type TerrainSample = {
 
 export type TerrainPoint = {
   cumulativeLength: number;
-  elevation: number;
+  elevation: number | null;
 };
 
 export type HglRange = {

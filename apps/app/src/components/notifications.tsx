@@ -98,7 +98,11 @@ export const NotificationBanner = ({
               <span className="text-size-base font-semibold">{title}</span>
             )
           ))}
-        {description && <span className="text-size-base">{description}</span>}
+        {description && (
+          <span className="text-size-base whitespace-pre-line">
+            {description}
+          </span>
+        )}
         {details && (
           <details className="text-size-small">
             <summary className="cursor-pointer text-gray-600 hover:text-gray-800">

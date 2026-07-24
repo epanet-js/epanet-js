@@ -19,7 +19,7 @@ type InputData = {
   oldNodeId: AssetId;
   newNodeType: NodeType;
   assetFactory: AssetFactory;
-  elevation?: number;
+  elevation?: number | null;
 };
 
 export const replaceNode: ModelOperation<InputData> = (
@@ -95,7 +95,7 @@ const createNode = (
   assetFactory: AssetFactory,
   nodeType: NodeType,
   coordinates: Position,
-  elevation: number | undefined,
+  elevation: number | null | undefined,
   isActive: boolean,
 ): NodeAsset => {
   switch (nodeType) {

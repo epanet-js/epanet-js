@@ -6,6 +6,7 @@ import { fetchProjections } from "src/lib/projections";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { nanoid } from "nanoid";
 import * as Popover from "@radix-ui/react-popover";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import {
   DndContext,
   closestCenter,
@@ -32,6 +33,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
+  StyledTooltipArrow,
+  TContent,
   Button,
 } from "src/components/elements";
 import {
@@ -647,21 +650,35 @@ const RecomputeElevationsButton = () => {
 
   return (
     <Popover.Root open={open} onOpenChange={handleOpenChange}>
-      <Popover.Trigger asChild onClick={(e) => e.stopPropagation()}>
-        <Button
-          variant="quiet/mode"
-          className="h-8"
-          aria-label={translate("elevations.recompute.tooltip")}
-          disabled={isRunning}
-        >
-          {isRunning ? <SpinnerIcon /> : <RefreshIcon />}
-        </Button>
-      </Popover.Trigger>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <Popover.Trigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="quiet/mode"
+              className="h-8"
+              aria-label={translate("elevations.recompute.tooltip")}
+              disabled={isRunning}
+            >
+              {isRunning ? <SpinnerIcon /> : <RefreshIcon />}
+            </Button>
+          </Popover.Trigger>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TContent side="bottom">
+            <StyledTooltipArrow />
+            <span className="whitespace-nowrap">
+              {translate("elevations.recompute.tooltip")}
+            </span>
+          </TContent>
+        </Tooltip.Portal>
+      </Tooltip.Root>
       <Popover.Portal>
         <StyledPopoverContent
           size="auto"
+          flush="yes"
           side="left"
           align="start"
+          className="p-1"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onClick={(e) => e.stopPropagation()}
         >
@@ -673,7 +690,7 @@ const RecomputeElevationsButton = () => {
           ) : (
             <div className="flex flex-col">
               <RecomputeElevationsOption
-                label={translate("elevations.recompute.fillMissing")}
+                label={translate("elevations.recompute.refreshMissing")}
                 count={targets.missingIds.length}
                 disabled={targets.missingIds.length === 0}
                 onSelect={() => {
@@ -685,7 +702,7 @@ const RecomputeElevationsButton = () => {
                 }}
               />
               <RecomputeElevationsOption
-                label={translate("elevations.recompute.recomputeAll")}
+                label={translate("elevations.recompute.refreshAll")}
                 count={targets.allIds.length}
                 disabled={targets.allIds.length === 0}
                 onSelect={() => {

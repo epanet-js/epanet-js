@@ -11,7 +11,7 @@ export type BuildMainPlotSeriesParams = {
   points: ProfilePoint[];
   elevationData: [number, number][];
   hglData: [number, number | null][];
-  terrainData: [number, number][] | null;
+  terrainData: [number, number | null][] | null;
   hglBandSegments: HglBandSegment[][] | null;
   hglDropsData: ([number, number] | null)[];
   hasSimulation: boolean;
@@ -63,7 +63,7 @@ function buildElevDropsData(
 }
 
 function terrainAreaPlot(
-  terrainData: [number, number][] | null,
+  terrainData: [number, number | null][] | null,
 ): SeriesOption | null {
   if (!terrainData) return null;
   return {

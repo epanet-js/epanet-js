@@ -8,7 +8,7 @@ export type YAxisRange = {
 
 export type ComputeYAxisRangeParams = {
   points: ProfilePoint[];
-  terrainData: [number, number][] | null;
+  terrainData: [number, number | null][] | null;
   hglRanges: (HglRange | null)[] | null;
 };
 

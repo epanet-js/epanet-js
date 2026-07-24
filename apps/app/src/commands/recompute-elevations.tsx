@@ -5,7 +5,7 @@ import { fetchElevationsFromSources } from "src/lib/elevations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
-import { SuccessIcon, UnavailableIcon } from "src/icons";
+import { SuccessIcon, UnavailableIcon, WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -179,22 +179,27 @@ export const useRecomputeElevations = () => {
             ),
             id: "elevations-recompute-summary",
           });
+        } else if (unresolved > 0) {
+          notify({
+            variant: "warning",
+            Icon: WarningIcon,
+            title: translate("elevations.recompute.summaryTitle"),
+            description: translate(
+              "elevations.recompute.summary",
+              String(resolved),
+              String(unresolved),
+            ),
+            id: "elevations-recompute-summary",
+          });
         } else {
           notify({
             variant: "success",
             Icon: SuccessIcon,
             title: translate("elevations.recompute.summaryTitle"),
-            description:
-              unresolved > 0
-                ? translate(
-                    "elevations.recompute.summary",
-                    String(resolved),
-                    String(unresolved),
-                  )
-                : translate(
-                    "elevations.recompute.summaryAllResolved",
-                    String(resolved),
-                  ),
+            description: translate(
+              "elevations.recompute.summaryAllResolved",
+              String(resolved),
+            ),
             id: "elevations-recompute-summary",
           });
         }

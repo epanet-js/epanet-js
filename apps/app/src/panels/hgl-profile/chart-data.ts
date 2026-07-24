@@ -61,7 +61,7 @@ export type HglProfileData = {
   hasSimulation: boolean;
   hglDropsData: ([number, number] | null)[];
   terrain: TerrainPoint[] | null;
-  terrainData: [number, number][] | null;
+  terrainData: [number, number | null][] | null;
   hglRanges: (HglRange | null)[] | null;
   hglBandSegments: HglBandSegment[][] | null;
   elevationUnit: Unit;
@@ -256,9 +256,9 @@ function buildHglDropsData(
 
 function buildTerrainData(
   terrain: TerrainPoint[] | null,
-): [number, number][] | null {
+): [number, number | null][] | null {
   if (!terrain) return null;
-  return terrain.map<[number, number]>((t) => [
+  return terrain.map<[number, number | null]>((t) => [
     t.cumulativeLength,
     t.elevation,
   ]);

@@ -436,7 +436,7 @@ export function useDrawLinkHandlers({
       coordinates,
     });
 
-  const withElevation = (node: NodeAsset, elevation: number) => {
+  const withElevation = (node: NodeAsset, elevation: number | null) => {
     const nodeCopy = node.copy();
     nodeCopy.setElevation(elevation);
     return nodeCopy;

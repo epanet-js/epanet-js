@@ -52,7 +52,7 @@ export function useDrawNodeHandlers({
   const submitNode = (
     nodeType: NodeType,
     coordinates: [number, number],
-    elevation: number,
+    elevation: number | null,
     pipeIdToSplit?: number,
   ) => {
     const moment = addNode(hydraulicModel, {
@@ -74,7 +74,10 @@ export function useDrawNodeHandlers({
     }
   };
 
-  const submitNodeReplacement = (oldNodeId: number, elevation: number) => {
+  const submitNodeReplacement = (
+    oldNodeId: number,
+    elevation: number | null,
+  ) => {
     const moment = replaceNode(hydraulicModel, {
       oldNodeId,
       newNodeType: nodeType,

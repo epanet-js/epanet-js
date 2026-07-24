@@ -10,6 +10,7 @@ import { useAtomValue } from "jotai";
 import throttle from "lodash/throttle";
 import { UnavailableIcon } from "src/icons";
 import { elevationSourcesAtom } from "src/state/elevation-sources";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   fetchElevationFromSources,
   fetchElevationsFromSources,
@@ -22,6 +23,10 @@ export const useElevations = (unit: Unit) => {
   const isOffline = useAtomValue(offlineAtom);
   const autoElevations = useAtomValue(autoElevationsAtom);
   const sources = useAtomValue(elevationSourcesAtom);
+  // When off, unresolved points coalesce to 0 (legacy behavior); when on they
+  // stay null so the model can represent "no elevation".
+  const nullElevationsEnabled = useFeatureFlag("FLAG_RECOMPUTE_ELEVATIONS");
+  const unresolved = nullElevationsEnabled ? null : fallbackElevation;
 
   const prefetchTile = useCallback(
     (lngLat: LngLat) => {
@@ -45,8 +50,8 @@ export const useElevations = (unit: Unit) => {
   );
 
   const fetchElevation = useCallback(
-    async (lngLat: LngLat) => {
-      if (!autoElevations) return fallbackElevation;
+    async (lngLat: LngLat): Promise<number | null> => {
+      if (!autoElevations) return unresolved;
 
       try {
         const availableSources = isOffline
@@ -61,7 +66,7 @@ export const useElevations = (unit: Unit) => {
         if (isOffline && elevation === null) {
           notifyOfflineElevation(translate);
         }
-        return elevation ?? fallbackElevation;
+        return elevation ?? unresolved;
       } catch (error) {
         if ((error as Error).message.includes("Failed to fetch")) {
           notifyOfflineElevation(translate);
@@ -69,15 +74,15 @@ export const useElevations = (unit: Unit) => {
         if ((error as Error).message.includes("Tile not found")) {
           notifyTileNotAvailable(translate);
         }
-        return fallbackElevation;
+        return unresolved;
       }
     },
-    [autoElevations, isOffline, sources, unit, translate],
+    [autoElevations, isOffline, sources, unit, translate, unresolved],
   );
 
   const fetchElevations = useCallback(
-    async (lngLats: LngLat[]): Promise<number[]> => {
-      if (!autoElevations) return lngLats.map(() => fallbackElevation);
+    async (lngLats: LngLat[]): Promise<(number | null)[]> => {
+      if (!autoElevations) return lngLats.map(() => unresolved);
 
       try {
         const availableSources = isOffline
@@ -91,7 +96,7 @@ export const useElevations = (unit: Unit) => {
         if (isOffline && elevations.some((e) => e === null)) {
           notifyOfflineElevation(translate);
         }
-        return elevations.map((e) => e ?? fallbackElevation);
+        return elevations.map((e) => e ?? unresolved);
       } catch (error) {
         if ((error as Error).message.includes("Failed to fetch")) {
           notifyOfflineElevation(translate);
@@ -99,10 +104,10 @@ export const useElevations = (unit: Unit) => {
         if ((error as Error).message.includes("Tile not found")) {
           notifyTileNotAvailable(translate);
         }
-        return lngLats.map(() => fallbackElevation);
+        return lngLats.map(() => unresolved);
       }
     },
-    [autoElevations, isOffline, sources, unit, translate],
+    [autoElevations, isOffline, sources, unit, translate, unresolved],
   );
 
   return { fetchElevation, fetchElevations, prefetchTileThrottled };
