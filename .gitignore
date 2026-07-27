@@ -1,0 +1,74 @@
+# =========================================
+# Dependencies
+# =========================================
+node_modules/
+.pnpm-store/
+
+# =========================================
+# Build Outputs & Caches
+# =========================================
+dist/
+build/
+.next/
+out/
+.turbo/
+.cache/
+
+*/**/.eslintcache
+
+# Keep golden-output test fixtures (test/out/) — the broad out/ above would
+# otherwise ignore them, breaking tests that read committed fixtures.
+!**/test/out/
+!**/test/out/**
+
+# =========================================
+# Vercel & Deployments
+# =========================================
+.vercel/
+
+# =========================================
+# Environment Variables (CRITICAL)
+# =========================================
+# Never commit your actual secrets.
+# It is okay to commit `.env.example` or `.env.template` if you create them.
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# =========================================
+# Logs
+# =========================================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================================
+# OS & Editor/IDE Files
+# =========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.claude/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.eslintcache
+*.patch

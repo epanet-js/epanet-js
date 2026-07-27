@@ -1,3 +1,24 @@
+const fs = require("fs");
+const path = require("path");
+
+// Derive the private workspace lib names from private/libs/* package.json files.
+// This is used to restrict public code from importing private libs.
+const privateLibImportPatterns = (() => {
+  try {
+    const dir = path.resolve(__dirname, "../../../private/libs");
+    if (!fs.existsSync(dir)) return [];
+    return fs
+      .readdirSync(dir)
+      .map((name) => path.join(dir, name, "package.json"))
+      .filter((pkg) => fs.existsSync(pkg))
+      .map((pkg) => JSON.parse(fs.readFileSync(pkg, "utf8")).name)
+      .filter(Boolean)
+      .flatMap((name) => [name, `${name}/**`]);
+  } catch {
+    return [];
+  }
+})();
+
 module.exports = {
   env: {
     browser: true,
@@ -43,6 +64,11 @@ module.exports = {
       {
         paths: ["lodash", "purify-ts", "proj4"],
         patterns: [
+          {
+            group: [...privateLibImportPatterns, "**/private/libs/**"],
+            message:
+              "Public code must not import a private lib. Register private backends in the src/libs.private.ts seam; reference flags by name only.",
+          },
           {
             group: ["src/selection/types", "**/selection/types"],
             message:
@@ -96,6 +122,12 @@ module.exports = {
     ],
   },
   overrides: [
+    {
+      files: ["**/*.private.ts", "**/*.private.tsx"], // Private files can import private libs.
+      rules: {
+        "no-restricted-imports": "off",
+      },
+    },
     {
       files: ["*.ts", "*.tsx"], // Your TypeScript files extension
       parserOptions: {
