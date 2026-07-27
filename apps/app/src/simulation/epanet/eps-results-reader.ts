@@ -9,7 +9,7 @@ import {
   PumpEnergySummary,
   type SimulationProperty,
 } from "@epanet-js/simulation";
-import { IKeyBufferStore } from "src/infra/storage";
+import { IKeyBufferStore, opfsUnavailableErrors } from "src/infra/storage";
 import {
   RESULTS_OUT_KEY,
   TANK_VOLUMES_KEY,
@@ -26,7 +26,7 @@ import {
 } from "./simulation-metadata";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { captureError } from "src/infra/error-tracking";
-import { handleError } from "src/infra/errors";
+import { handleError, errorName } from "src/infra/errors";
 import { Asset, AssetId, AssetType } from "src/hydraulic-model";
 
 export type { SimulationIds } from "./simulation-metadata";
@@ -283,80 +283,90 @@ export class EPSResultsReader {
       );
     }
 
-    switch (assetType) {
-      case "junction":
-        if (
-          property === "waterAge" ||
-          property === "waterTrace" ||
-          property === "chemicalConcentration"
-        )
-          return this._getNodePropertyTimeSeries(assetId, "quality");
-        return this._getNodePropertyTimeSeries(
-          assetId,
-          property as NodeProperty,
-        );
-      case "reservoir":
-        if (property === "netFlow")
-          return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (
-          property === "waterAge" ||
-          property === "waterTrace" ||
-          property === "chemicalConcentration"
-        )
-          return this._getNodePropertyTimeSeries(assetId, "quality");
-        return this._getNodePropertyTimeSeries(
-          assetId,
-          property as NodeProperty,
-        );
-      case "tank":
-        if (property === "volume")
-          return this._getTankVolumeTimeSeries(assetId);
-        if (property === "level") return this._getTankLevelTimeSeries(assetId);
-        if (property === "netFlow")
-          return this._getNodePropertyTimeSeries(assetId, "demand");
-        if (
-          property === "waterAge" ||
-          property === "waterTrace" ||
-          property === "chemicalConcentration"
-        )
-          return this._getNodePropertyTimeSeries(assetId, "quality");
-        return this._getNodePropertyTimeSeries(
-          assetId,
-          property as NodeProperty,
-        );
-      case "pipe":
-      case "valve":
-        if (
-          property === "waterAge" ||
-          property === "waterTrace" ||
-          property === "chemicalConcentration"
-        )
-          return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
-        return this._getLinkPropertyTimeSeries(
-          assetId,
-          property as LinkProperty,
-        );
-      case "pump":
-        if (property === "status")
-          return this._getPumpStatusTimeSeries(assetId);
-        if (
-          property === "waterAge" ||
-          property === "waterTrace" ||
-          property === "chemicalConcentration"
-        )
-          return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
-        if (property === "head") {
-          const headloss = await this._getLinkPropertyTimeSeries(
+    try {
+      switch (assetType) {
+        case "junction":
+          if (
+            property === "waterAge" ||
+            property === "waterTrace" ||
+            property === "chemicalConcentration"
+          )
+            return this._getNodePropertyTimeSeries(assetId, "quality");
+          return this._getNodePropertyTimeSeries(
             assetId,
-            "headloss",
+            property as NodeProperty,
           );
-          if (!headloss) return null;
-          return { ...headloss, values: headloss.values.map((v) => -v) };
-        }
-        return this._getLinkPropertyTimeSeries(
-          assetId,
-          property as LinkProperty,
-        );
+        case "reservoir":
+          if (property === "netFlow")
+            return this._getNodePropertyTimeSeries(assetId, "demand");
+          if (
+            property === "waterAge" ||
+            property === "waterTrace" ||
+            property === "chemicalConcentration"
+          )
+            return this._getNodePropertyTimeSeries(assetId, "quality");
+          return this._getNodePropertyTimeSeries(
+            assetId,
+            property as NodeProperty,
+          );
+        case "tank":
+          if (property === "volume")
+            return this._getTankVolumeTimeSeries(assetId);
+          if (property === "level")
+            return this._getTankLevelTimeSeries(assetId);
+          if (property === "netFlow")
+            return this._getNodePropertyTimeSeries(assetId, "demand");
+          if (
+            property === "waterAge" ||
+            property === "waterTrace" ||
+            property === "chemicalConcentration"
+          )
+            return this._getNodePropertyTimeSeries(assetId, "quality");
+          return this._getNodePropertyTimeSeries(
+            assetId,
+            property as NodeProperty,
+          );
+        case "pipe":
+        case "valve":
+          if (
+            property === "waterAge" ||
+            property === "waterTrace" ||
+            property === "chemicalConcentration"
+          )
+            return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
+          return this._getLinkPropertyTimeSeries(
+            assetId,
+            property as LinkProperty,
+          );
+        case "pump":
+          if (property === "status")
+            return this._getPumpStatusTimeSeries(assetId);
+          if (
+            property === "waterAge" ||
+            property === "waterTrace" ||
+            property === "chemicalConcentration"
+          )
+            return this._getLinkPropertyTimeSeries(assetId, "avgQuality");
+          if (property === "head") {
+            const headloss = await this._getLinkPropertyTimeSeries(
+              assetId,
+              "headloss",
+            );
+            if (!headloss) return null;
+            return { ...headloss, values: headloss.values.map((v) => -v) };
+          }
+          return this._getLinkPropertyTimeSeries(
+            assetId,
+            property as LinkProperty,
+          );
+      }
+    } catch (error) {
+      handleError(error, {
+        as: "epsResultsReader: time series read failed",
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
+      });
+      return null;
     }
   }
 
@@ -400,7 +410,8 @@ export class EPSResultsReader {
     } catch (error) {
       handleError(error, {
         as: "epsResultsReader: pump energy read failed",
-        onUnexpected: "warn",
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
       });
       return emptyResult;
     }
@@ -618,6 +629,29 @@ export class EPSResultsReader {
   }
 
   async iterateTimeSeries<M extends string>(
+    assets: Map<number, Asset>,
+    properties: M[],
+    onResult: (
+      metric: M,
+      asset: Asset,
+      timeSeries: TimeSeries | null,
+    ) => Promise<void>,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    try {
+      await this._iterateTimeSeries(assets, properties, onResult, signal);
+    } catch (error) {
+      // Cancellation must propagate; only OPFS-unavailable reads degrade.
+      if (errorName(error) === "AbortError") throw error;
+      handleError(error, {
+        as: "epsResultsReader: iterate time series read failed",
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
+      });
+    }
+  }
+
+  private async _iterateTimeSeries<M extends string>(
     assets: Map<number, Asset>,
     properties: M[],
     onResult: (
@@ -1017,31 +1051,41 @@ export class EPSResultsReader {
         return new NullResultsReader();
       }
 
-      const timestepOffset =
-        resultsBaseOffset + timestepIndex * timestepBlockSize;
-      const timestepData = await this.storage.readSlice(
-        RESULTS_OUT_KEY,
-        timestepOffset,
-        timestepBlockSize,
-      );
+      try {
+        const timestepOffset =
+          resultsBaseOffset + timestepIndex * timestepBlockSize;
+        const timestepData = await this.storage.readSlice(
+          RESULTS_OUT_KEY,
+          timestepOffset,
+          timestepBlockSize,
+        );
 
-      const tankVolumesForTimestep =
-        await this.readTankVolumesForTimestep(timestepIndex);
+        const tankVolumesForTimestep =
+          await this.readTankVolumesForTimestep(timestepIndex);
 
-      const pumpStatuses = await this.readPumpStatusForTimestep(timestepIndex);
+        const pumpStatuses =
+          await this.readPumpStatusForTimestep(timestepIndex);
 
-      return new TimestepResultsReader(
-        new DataView(timestepData),
-        simulationMetadata,
-        simulationIds,
-        tankVolumesForTimestep,
-        linkLengths,
-        this.pumpPositionByLinkIndex,
-        pumpStatuses,
-        this.pumpEnergy,
-        this.nodeMinPressure,
-        this.nodeMaxPressure,
-      );
+        return new TimestepResultsReader(
+          new DataView(timestepData),
+          simulationMetadata,
+          simulationIds,
+          tankVolumesForTimestep,
+          linkLengths,
+          this.pumpPositionByLinkIndex,
+          pumpStatuses,
+          this.pumpEnergy,
+          this.nodeMinPressure,
+          this.nodeMaxPressure,
+        );
+      } catch (error) {
+        handleError(error, {
+          as: "epsResultsReader: timestep read failed",
+          warn: opfsUnavailableErrors,
+          onUnexpected: "capture",
+        });
+        return new NullResultsReader();
+      }
     },
     { name: "SIMULATION:FETCH_STEP_FROM_STORAGE", maxDurationMs: 100 },
   );
@@ -1102,8 +1146,8 @@ export class EPSResultsReader {
     } catch (error) {
       handleError(error, {
         as: "epsResultsReader: metadata read failed",
-        warn: ["NotFoundError"],
-        onUnexpected: "warn",
+        warn: opfsUnavailableErrors,
+        onUnexpected: "capture",
       });
       return EPSResultsReader.EMPTY_METADATA;
     }

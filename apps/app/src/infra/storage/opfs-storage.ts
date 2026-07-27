@@ -148,6 +148,19 @@ export class OPFSStorage implements IKeyBufferStore {
   }
 }
 
+// DOMException names thrown when OPFS is reachable (the root dir opens) but a
+// specific file operation still can't complete for environmental reasons: the
+// file is gone, its cached handle state was invalidated out-of-band (e.g. an
+// antivirus scan or cloud-sync touching the backing file), the read failed, or
+// access was blocked. These are not app bugs, so they should degrade with a
+// warning rather than crash or be captured as errors.
+export const opfsUnavailableErrors: string[] = [
+  "NotFoundError",
+  "InvalidStateError",
+  "NotReadableError",
+  "SecurityError",
+];
+
 export async function isOPFSAvailable(): Promise<boolean> {
   try {
     await navigator.storage.getDirectory();

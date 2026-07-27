@@ -1,5 +1,9 @@
 export type { IKeyBufferStore, IKeyValueStore } from "./types";
-export { OPFSStorage, isOPFSAvailable } from "./opfs-storage";
+export {
+  OPFSStorage,
+  isOPFSAvailable,
+  opfsUnavailableErrors,
+} from "./opfs-storage";
 export { InMemoryKeyBufferStore as InMemoryStorage } from "./in-memory-key-buffer-store";
 export { initStorage } from "./init";
 export { IndexedDB } from "./indexed-db";
