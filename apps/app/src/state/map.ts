@@ -7,8 +7,8 @@ import {
   LayerConfigMap,
   SYMBOLIZATION_NONE,
 } from "src/types";
-import { DEFAULT_CENTER, DEFAULT_ZOOM } from "src/map/map-engine";
-import type { InitialViewport } from "src/map/map-engine";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@epanet-js/map";
+import type { InitialViewport } from "@epanet-js/map";
 import { basemaps } from "src/map/basemaps";
 import { showGridAtom } from "src/state/map-projection";
 import { memoryMetaAtom } from "src/state/map-symbology";

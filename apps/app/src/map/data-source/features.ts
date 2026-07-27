@@ -1,10 +1,10 @@
-import { SymbologySpec, LinkSymbology, NodeSymbology } from "src/map/symbology";
+import type { RenderSymbology, RenderAssetSymbology } from "@epanet-js/map";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { Unit, convertTo } from "@epanet-js/quantity";
 import { Feature } from "src/types";
 import { Asset, AssetId, Valve } from "@epanet-js/hydraulic-model";
 import { colorFor } from "src/map/symbology/range-color-rule";
-import { strokeColorFor } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 import { localizeDecimal } from "src/infra/i18n/numbers";
 import {
   FormattingSpec,
@@ -32,7 +32,7 @@ const BUILD_SLICE_MS = 8;
 
 export const buildOptimizedAssetsSource = async (
   assets: AssetsMap,
-  symbology: SymbologySpec,
+  symbology: RenderSymbology,
   units: UnitsSpec,
   formatting: FormattingSpec,
   translateUnit: (unit: Unit) => string,
@@ -112,7 +112,7 @@ export const buildOptimizedAssetsSource = async (
 const appendPipeProps = (
   pipe: Pipe,
   feature: Feature,
-  linkSymbology: LinkSymbology,
+  linkSymbology: RenderAssetSymbology,
   units: UnitsSpec,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -129,7 +129,7 @@ const appendPipeProps = (
 const appendJunctionProps = (
   junction: Junction,
   feature: Feature,
-  nodeSymbology: NodeSymbology,
+  nodeSymbology: RenderAssetSymbology,
   simulationResults?: ResultsReader | null,
 ) => {
   appendJunctionSymbologyProps(
@@ -208,7 +208,7 @@ export const appendPipeArrowProps = (
 const appendPipeSymbologyProps = (
   pipe: Pipe,
   feature: Feature,
-  linkSymbology: LinkSymbology,
+  linkSymbology: RenderAssetSymbology,
   units: UnitsSpec,
   simulationResults?: ResultsReader | null,
 ) => {
@@ -241,7 +241,7 @@ const getJunctionSimProperty = (property: string): keyof JunctionSimulation => {
 const appendJunctionSymbologyProps = (
   junction: Junction,
   feature: Feature,
-  nodeSymbology: NodeSymbology,
+  nodeSymbology: RenderAssetSymbology,
   simulationResults?: ResultsReader | null,
 ) => {
   if (!nodeSymbology.colorRule) return;

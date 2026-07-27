@@ -5,6 +5,7 @@ import { calculateEqualIntervalRange } from "./range-modes/equal-intervals";
 import { calculateEqualQuantilesRange } from "./range-modes/equal-quantiles";
 import { calculateCkmeansRange } from "./range-modes/ckmeans";
 import { calculateManualBreaks } from "./range-modes/manual";
+import type { RenderColorRule } from "@epanet-js/map";
 
 export const rangeModesInOrder = [
   "prettyBreaks",
@@ -15,20 +16,15 @@ export const rangeModesInOrder = [
 ] as const;
 export type RangeMode = (typeof rangeModesInOrder)[number];
 
-export type RangeColorRule = {
+export type RangeColorRule = RenderColorRule & {
   type: "range";
   defaultColor: string;
   defaultOpacity: number;
   interpolate: "step" | "linear";
-  property: string;
-  unit: Unit;
   fallbackEndpoints: [number, number];
   mode: RangeMode;
   rampName: string;
-  breaks: number[];
-  colors: string[];
   reversedRamp?: boolean;
-  absValues?: boolean;
 };
 
 export type RangeEndpoints = [number, number];
@@ -362,18 +358,6 @@ export const getColors = (
   return reverse ? [...colors].reverse() : colors;
 };
 
-export const colorFor = (colorRule: RangeColorRule, value: number) => {
-  const { absValues, colors, breaks } = colorRule;
-  const effectiveValue = absValues ? Math.abs(value) : value;
-
-  if (effectiveValue < breaks[0]) return colors[0];
-  if (effectiveValue >= breaks[breaks.length - 1])
-    return colors[colors.length - 1];
-
-  for (let i = 0; i < breaks.length - 1; i++) {
-    if (effectiveValue >= breaks[i] && effectiveValue < breaks[i + 1])
-      return colors[i + 1];
-  }
-
-  throw new Error("Value without color");
-};
+// colorFor moved to @epanet-js/map (pure render logic); re-exported so existing
+// `from "./range-color-rule"` imports keep working.
+export { colorFor } from "@epanet-js/map";

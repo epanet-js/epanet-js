@@ -1,7 +1,7 @@
 import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { strokeColorFor } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 import { junctionCircleSizes, junctionLayerMinZoom } from "./junctions";
 import { colors } from "src/lib/constants";
 import { defaultNodeSizeConfig } from "src/map/symbology";
@@ -25,7 +25,7 @@ export const selectedPipesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: ["==", "type", "pipe"],
+    filter: ["==", ["get", "type"], "pipe"],
     paint: {
       "line-opacity": 1,
       "line-width": [
@@ -64,7 +64,7 @@ export const selectedPumpLinesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: ["==", "type", "pump"],
+    filter: ["==", ["get", "type"], "pump"],
     paint: {
       "line-opacity": 1,
       "line-width": [
@@ -103,7 +103,7 @@ export const selectedValveLinesLayer = ({
     id: layerId,
     type: "line",
     source,
-    filter: ["==", "type", "valve"],
+    filter: ["==", ["get", "type"], "valve"],
     paint: {
       "line-opacity": 1,
       "line-width": [

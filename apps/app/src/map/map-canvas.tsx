@@ -29,7 +29,7 @@ import {
 } from "src/state/map";
 import { useSetAtom } from "jotai";
 import { modeAtom, Mode } from "src/state/mode";
-import { MapEngine } from "./map-engine";
+import { MapEngine } from "@epanet-js/map";
 import * as CM from "@radix-ui/react-context-menu";
 import { env } from "src/lib/env-client";
 import { ContextInfo, MapContextMenu } from "src/map/context-menu";
@@ -47,16 +47,13 @@ import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { useFitToExtent } from "./use-fit-to-extent";
-import {
-  CustomMapControlClick,
-  FIT_TO_EXTENT_CONTROL,
-} from "./custom-map-control";
+import { CustomMapControlClick, FIT_TO_EXTENT_CONTROL } from "@epanet-js/map";
 import { Hints } from "src/components/hints";
 import { useAuth } from "src/hooks/use-auth";
 import { satelliteLimitedZoom } from "src/commands/toggle-satellite";
 import { useTranslate } from "src/hooks/use-translate";
 import { supportEmail } from "src/global-config";
-import { MapHandlers } from "./types";
+import { MapHandlers } from "@epanet-js/map";
 import { useIsEditionBlocked } from "src/hooks/use-is-edition-blocked";
 mapboxgl.accessToken = env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -105,16 +102,20 @@ const MapStateUpdatesSerialized = ({ map }: { map: MapEngine | null }) => {
   return null;
 };
 
-// FLAG_MAP_FACETED_SOURCES is a combined flag: faceted ⟹ serialized-sync. Remove
-// this runner + branch (and the pre-facet MapStateUpdatesSerialized) at promotion.
+// The faceted updater is backend-agnostic: it drives the MAIN source through the
+// MapOperations interface, so `useMapOperations()` picks the geojson-faceted or the tiled
+// backend by flag. FLAG_MAP_FACETED_SOURCES enables the faceted geojson path;
+// FLAG_GEO_INDEX_TILES enables the tiled backend — both run this one updater.
 const MapStateUpdatesFacetedRunner = ({ map }: { map: MapEngine | null }) => {
   useMapStateUpdatesFaceted(map);
   return null;
 };
 
 const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
+  const isGeoIndexTilesOn = useFeatureFlag("FLAG_GEO_INDEX_TILES");
   const isFaceted = useFeatureFlag("FLAG_MAP_FACETED_SOURCES");
-  if (isFaceted) return <MapStateUpdatesFacetedRunner map={map} />;
+  if (isFaceted || isGeoIndexTilesOn)
+    return <MapStateUpdatesFacetedRunner map={map} />;
   return <MapStateUpdatesSerialized map={map} />;
 };
 

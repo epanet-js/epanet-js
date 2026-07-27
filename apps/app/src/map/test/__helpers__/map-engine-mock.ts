@@ -1,7 +1,6 @@
 import mapboxgl from "mapbox-gl";
 import type { GeoJSONSourceRaw, PointLike } from "mapbox-gl";
-import type { MapHandlers, ClickEvent } from "../../types";
-import { DataSource } from "src/map/data-source";
+import type { MapHandlers, ClickEvent } from "@epanet-js/map";
 import { Feature } from "geojson";
 import { vi } from "vitest";
 import { act } from "react";
@@ -127,7 +126,7 @@ class MapTestEngine {
     return Promise.resolve();
   }
 
-  setSource(name: DataSource, features: Feature[]): void {
+  setSource(name: string, features: Feature[]): void {
     const source = this.sources.get(name);
     if (source) {
       source.data = {
@@ -140,13 +139,13 @@ class MapTestEngine {
     callback(false);
   }
   removeSource() {}
-  showFeature(sourceName: DataSource, featureId: string) {
+  showFeature(sourceName: string, featureId: string) {
     this.map.removeFeatureState(
       { source: sourceName, id: featureId },
       "hidden",
     );
   }
-  hideFeature(sourceName: DataSource, featureId: string) {
+  hideFeature(sourceName: string, featureId: string) {
     this.map.setFeatureState(
       { source: sourceName, id: featureId },
       { hidden: true },
@@ -168,7 +167,7 @@ class MapTestEngine {
   isStyleLoaded(): boolean {
     return true;
   }
-  clearFeatureState(sourceName: DataSource): void {
+  clearFeatureState(sourceName: string): void {
     this.map.removeFeatureState({ source: sourceName });
   }
 
@@ -212,11 +211,11 @@ class MapTestEngine {
     );
   }
 
-  getFeatureState(source: DataSource, featureId: string): FeatureState {
+  getFeatureState(source: string, featureId: string): FeatureState {
     return this.map.getFeatureState({ source, id: featureId });
   }
 
-  isFeatureHidden(source: DataSource, featureId: string): boolean {
+  isFeatureHidden(source: string, featureId: string): boolean {
     const featureState = this.getFeatureState(source, featureId);
     return featureState.hidden === true;
   }
@@ -224,8 +223,10 @@ class MapTestEngine {
   safeResize() {}
 }
 
-vi.mock("../../map-engine", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../map-engine")>();
+// The app mocks its dependency: replace MapEngine (from @epanet-js/map) with the
+// test double, keeping the lib's other exports (types, controls, constants).
+vi.mock("@epanet-js/map", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@epanet-js/map")>();
   return {
     ...actual,
     MapEngine: MapTestEngine,

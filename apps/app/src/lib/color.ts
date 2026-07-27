@@ -1,5 +1,4 @@
 import * as d3 from "d3-color";
-import chroma from "chroma-js";
 
 const purple900a: RGBA = [49, 46, 129, 255];
 
@@ -38,29 +37,3 @@ export function linearGradient({
   );
   return `linear-gradient(${angle}, ${steps.join(",")})`;
 }
-
-export const strokeColorFor = (fillColor: string): string => {
-  const minLightness = 0.75;
-  const maxLightness = 0.95;
-  const luminanceThreshold = 0.45;
-  const lightColorSaturation = 35;
-  const darkColorSaturation = 25;
-  const color = chroma(fillColor);
-  const luminance = color.luminance(); // Get luminance (0 = dark, 1 = light)
-
-  let strokeColor = color;
-
-  if (luminance > luminanceThreshold) {
-    // Light color: Darken the stroke
-    strokeColor = strokeColor.set("oklch.l", minLightness);
-    // Adjust saturation
-    strokeColor = strokeColor.set("lch.c", lightColorSaturation);
-  } else {
-    // Dark color: Lighten the stroke
-    strokeColor = strokeColor.set("oklch.l", maxLightness);
-    // Adjust saturation
-    strokeColor = strokeColor.set("lch.c", darkColorSaturation);
-  }
-
-  return strokeColor.hex();
-};

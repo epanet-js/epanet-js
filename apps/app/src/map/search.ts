@@ -1,4 +1,4 @@
-import { MapEngine } from "./map-engine";
+import { MapEngine } from "@epanet-js/map";
 import type { MapboxGeoJSONFeature, Point } from "mapbox-gl";
 import { LayerId } from "./layers";
 

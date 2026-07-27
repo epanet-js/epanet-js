@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { defaultNodeSizeConfig } from "src/map/symbology";
-import { LAYER_MAX_ZOOM } from "src/map/map-engine";
+import { LAYER_MAX_ZOOM } from "@epanet-js/map";
 import { junctionCircleRadius, junctionLayerMinZoom } from "./junctions";
 
 describe("junctionCircleRadius", () => {

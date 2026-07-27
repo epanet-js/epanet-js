@@ -1,144 +1,109 @@
-import type { Unit } from "@epanet-js/quantity";
-import type { AssetId, AssetsMap } from "src/hydraulic-model";
-import type { StylesConfig } from "src/state/map";
-import type { SymbologySpec } from "src/state/map-symbology";
-import type { ResultsReader } from "@epanet-js/simulation";
-import type {
-  FormattingSpec,
-  UnitsSpec,
-} from "src/lib/project-settings/quantities-spec";
-import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
+import type { AssetId } from "src/hydraulic-model";
+import { filterAssets } from "src/hydraulic-model";
+import type { LayerId } from "./layers";
 import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
-import { MapEngine } from "./map-engine";
-import {
-  buildBaseStyle,
-  makeFacetedLayers,
-  defineFacetedSources,
-} from "./build-style";
+import { MapEngine } from "@epanet-js/map";
+import type { MapOperations, RawData, ChangeFlags } from "@epanet-js/map";
+import type { Style } from "mapbox-gl";
 import {
   buildOptimizedAssetsSource,
   buildIconPointsSource,
   FeatureSources,
 } from "./data-source";
 
-export type RawData = {
-  assets: AssetsMap;
-  symbology: SymbologySpec;
-  units: UnitsSpec;
-  formatting: FormattingSpec;
-  translateUnit: (unit: Unit) => string;
-  simulationResults: ResultsReader | null | undefined;
-  selectedIds: Set<AssetId>;
-};
+export type { MapOperations, RawData, ChangeFlags } from "@epanet-js/map";
 
-export type ChangeFlags = {
-  symbology: boolean;
-  simulation: boolean;
-  selection: boolean;
-};
+// The only dedicated selection layers are the pump/valve halos (selection is otherwise
+// merged into the base layers via the `selected` prop) — hidden while an asset is moving.
+const SELECTION_LAYERS: LayerId[] = [
+  "selected-icons-halo",
+  "delta-selected-icons-halo",
+];
 
-export interface MapOperations {
-  setBaseStyleAndEmptyDataSources(
-    map: MapEngine,
-    styles: StylesConfig,
-    translate: (key: string) => string,
-  ): Promise<void>;
-
-  registerAssetLayers(
-    map: MapEngine,
-    styles: StylesConfig,
-    nodeDefaults: NodeDefaults,
-    linkDefaults: LinkDefaults,
-  ): void;
-
-  rebuildDataSources(map: MapEngine, ctx: RawData): Promise<void>;
-
-  cleanUpNonConsolidatedDataSources(map: MapEngine): void;
-
-  updateDataSources(
+export const updateDeltaSource = withDebugInstrumentation(
+  async (
     map: MapEngine,
     ctx: RawData,
-    changeFlags: ChangeFlags,
-  ): Promise<{ consolidated: boolean }>;
-}
+    liveSetIds: Set<AssetId>,
+  ): Promise<void> => {
+    const liveAssets = filterAssets(ctx.assets, liveSetIds);
+    const features = await buildOptimizedAssetsSource(
+      liveAssets,
+      ctx.symbology,
+      ctx.units,
+      ctx.formatting,
+      ctx.translateUnit,
+      ctx.simulationResults,
+      ctx.selectedIds,
+    );
+    map.setSource(FeatureSources.DELTA, features);
+
+    const iconFeatures = buildIconPointsSource(
+      liveAssets,
+      ctx.selectedIds,
+      ctx.simulationResults,
+    );
+    map.setSource("delta-icons", iconFeatures);
+  },
+  { name: "MAP_STATE:UPDATE_DELTA_SOURCE", maxDurationMs: 250 },
+);
+
+export { SELECTION_LAYERS };
 
 // ---- geojson implementation (the public default) ------------------------------------
 
-const setBaseStyleAndEmptyDataSources = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    styles: StylesConfig,
-    translate: (key: string) => string,
-  ) => {
-    const style = await buildBaseStyle({
-      layerConfigs: styles.layerConfigs,
-      translate,
-    });
-    defineFacetedSources(style);
-    await map.setStyle(style);
-  },
-  { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },
-);
-
-const registerAssetLayers = (
-  map: MapEngine,
-  stylesConfig: StylesConfig,
-  nodeDefaults: NodeDefaults,
-  linkDefaults: LinkDefaults,
-) => {
-  const layers = makeFacetedLayers({
-    symbology: stylesConfig.symbology,
-    previewProperty: stylesConfig.previewProperty,
-    nodeDefaults,
-    linkDefaults,
-  });
-
-  for (const layer of layers) {
-    map.addLayer(layer);
-  }
+const applyStyle = async (map: MapEngine, style: Style) => {
+  await map.setStyle(style);
 };
 
-const rebuildDataSources = withDebugInstrumentation(
-  async (map: MapEngine, ctx: RawData): Promise<void> => {
-    const {
-      assets,
-      symbology,
-      units,
-      formatting,
-      translateUnit,
-      simulationResults,
-      selectedIds,
-    } = ctx;
+const rebuildDataSources = async (
+  map: MapEngine,
+  ctx: RawData,
+): Promise<void> => {
+  const {
+    assets,
+    symbology,
+    units,
+    formatting,
+    translateUnit,
+    simulationResults,
+    selectedIds,
+  } = ctx;
 
-    const features = await buildOptimizedAssetsSource(
-      assets,
-      symbology,
-      units,
-      formatting,
-      translateUnit,
-      simulationResults,
-      selectedIds,
-    );
-    map.setSource(FeatureSources.MAIN, features);
-    const iconFeatures = buildIconPointsSource(
-      assets,
-      selectedIds,
-      simulationResults,
-    );
-    map.setSource("icons", iconFeatures);
-  },
-  {
-    name: "MAP_STATE:UPDATE_MAIN_SOURCE",
-    maxDurationMs: 10000,
-  },
-);
+  const features = await buildOptimizedAssetsSource(
+    assets,
+    symbology,
+    units,
+    formatting,
+    translateUnit,
+    simulationResults,
+    selectedIds,
+  );
+  map.setSource(FeatureSources.MAIN, features);
+  const iconFeatures = buildIconPointsSource(
+    assets,
+    selectedIds,
+    simulationResults,
+  );
+  map.setSource("icons", iconFeatures);
+};
 
-const cleanUpNonConsolidatedDataSources = (map: MapEngine) => {
-  map.setSource(FeatureSources.DELTA, []);
-  map.setSource("delta-icons", []);
+const finalizeConsolidation = (
+  map: MapEngine,
+  keepHiddenIds: Set<AssetId>,
+  cleanUpEdits: boolean,
+): void => {
   map.clearFeatureState(FeatureSources.MAIN);
   map.clearFeatureState("icons");
+  for (const assetId of keepHiddenIds) {
+    map.hideFeature(FeatureSources.MAIN, assetId);
+    map.hideFeature("icons", assetId);
+  }
+  if (cleanUpEdits) {
+    map.setSource(FeatureSources.DELTA, []);
+    map.setSource("delta-icons", []);
+  }
 };
 
 const updateDataSources = async (
@@ -150,12 +115,68 @@ const updateDataSources = async (
   return { consolidated: true };
 };
 
+// Hide the edited/deselected assets in MAIN (main-features geometry + icons) so they
+// render only from delta. Diffs against the previously-hidden set rather than clearing
+// all feature-state, so a still-hidden asset is never briefly un-hidden (which flashed
+// stale geometry on a move-drop).
+const syncSourceEdits = (
+  map: MapEngine,
+  hiddenInMainIds: Set<AssetId>,
+  previouslyHiddenIds: Set<AssetId>,
+): Promise<void> => {
+  for (const assetId of previouslyHiddenIds) {
+    if (hiddenInMainIds.has(assetId)) continue;
+    map.showFeature(FeatureSources.MAIN, assetId);
+    map.showFeature("icons", assetId);
+  }
+  for (const assetId of hiddenInMainIds) {
+    if (previouslyHiddenIds.has(assetId)) continue;
+    map.hideFeature(FeatureSources.MAIN, assetId);
+    map.hideFeature("icons", assetId);
+  }
+  return Promise.resolve();
+};
+
+const updateEditionsVisibility = (
+  map: MapEngine,
+  previousMovedAssetIds: Set<AssetId>,
+  movedAssetIds: Set<AssetId>,
+  hiddenInMainIds: Set<AssetId>,
+): void => {
+  for (const assetId of previousMovedAssetIds.values()) {
+    map.showFeature("delta-features", assetId);
+    map.showFeature("delta-icons", assetId);
+    map.showFeature("icons", assetId);
+
+    if (hiddenInMainIds.has(assetId)) continue;
+
+    map.showFeature("main-features", assetId);
+  }
+
+  for (const assetId of movedAssetIds.values()) {
+    map.hideFeature("delta-features", assetId);
+    map.hideFeature("delta-icons", assetId);
+    map.hideFeature("icons", assetId);
+
+    if (hiddenInMainIds.has(assetId)) continue;
+
+    map.hideFeature("main-features", assetId);
+  }
+
+  if (movedAssetIds.size > 0) {
+    map.hideLayers(SELECTION_LAYERS);
+  } else if (previousMovedAssetIds.size > 0) {
+    map.showLayers(SELECTION_LAYERS);
+  }
+};
+
 export const mapOperations: MapOperations = {
-  setBaseStyleAndEmptyDataSources,
-  registerAssetLayers,
+  applyStyle,
   rebuildDataSources,
-  cleanUpNonConsolidatedDataSources,
+  finalizeConsolidation,
   updateDataSources,
+  syncSourceEdits,
+  updateEditionsVisibility,
 };
 
 // ---- backend selection --------------------------------------------------------------

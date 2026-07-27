@@ -208,11 +208,11 @@ map.setOverlay(combinedOverlay);
 ## Faceted Source Model (`FLAG_MAP_FACETED_SOURCES`)
 
 A parallel implementation of the map updater, gated by `FLAG_MAP_FACETED_SOURCES`, lives in
-`state-updates-faceted.ts` (a duplicate of the V2 serialized scheduler in `state-updates.ts`).
-`map-canvas.tsx` mounts one or the other. The flag is **combined**: faceted ⟹ serialized-sync, so
-the faceted path does not also check `FLAG_MAP_SERIALIZED_SYNC`. It exists so the fork-critical
-geojson rendering can bake behind a flag before it becomes the default; at promotion, delete the
-pre-facet `state-updates.ts` and rename the faceted file into place.
+`state-updates-faceted.ts` (a duplicate of the serialized scheduler in `state-updates.ts`).
+`map-canvas.tsx` mounts the faceted updater when the flag is on and the default
+`state-updates.ts` otherwise. It exists so the fork-critical geojson rendering can bake behind a
+flag before it becomes the default; at promotion, delete the pre-facet `state-updates.ts` and
+rename the faceted file into place.
 
 Its purpose is to converge the rendering onto a uniform main/delta facet decomposition with
 selection carried as a `selected` prop — a cleaner source model that also positions the code for a
@@ -227,7 +227,8 @@ Instead of one whole-model `"icons"` source, the faceted path mirrors the `main-
 - **`"delta-icons"`** — edited-since-consolidation icons (rebuilt per edit like `delta-features`).
 
 The delta-icon layers mirror the main icon layers on the `delta-icons` source. `makeFacetedLayers`
-(in `build-style.ts`) builds this layer set; `defineFacetedSources` registers `delta-icons`.
+(in `build-style.ts`) builds this layer set; `defineEmptySourcesFaceted` registers the base
+sources + `delta-icons`.
 
 ### 2. Selection merged into the feature layers (no `selected-features` source)
 
@@ -518,7 +519,8 @@ map.setOverlay(combinedOverlay);
   - `defineEmptySources()` - Initializes all 7 core sources as empty GeoJSON
   - Registers all layers and sources for the map
   - `makeLayers()` (pre-facet) and `makeFacetedLayers()` (faceted) build the two layer sets;
-    `defineFacetedSources()` adds the `delta-icons` source. See "Faceted Source Model".
+    `defineEmptySources()` registers the base sources; `defineEmptySourcesFaceted()` adds
+    those plus `delta-icons`. See "Faceted Source Model".
 
 ### Data Source Management
 

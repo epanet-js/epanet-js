@@ -7,7 +7,6 @@
 import type { Sel } from "src/selection";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useRef } from "react";
-import { Unit } from "@epanet-js/quantity";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
@@ -26,19 +25,26 @@ import {
 } from "src/state/map";
 import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
-import type { ResultsReader } from "@epanet-js/simulation";
-import { MapEngine } from "./map-engine";
+import { MapEngine } from "@epanet-js/map";
+import { prepareIconsSprite, type IconImage } from "./icons";
 import {
-  buildIconPointsSource,
-  buildOptimizedAssetsSource,
   buildEphemeralStateSource,
   buildHighlightsSource,
-  FeatureSources,
 } from "./data-source";
 import type { Highlight } from "src/state/highlights";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
-import { useMapOperations } from "./map-operations";
+import {
+  useMapOperations,
+  updateDeltaSource,
+  type RawData,
+  type MapOperations,
+} from "./map-operations";
+import {
+  buildBaseStyle,
+  defineEmptySourcesFaceted,
+  makeFacetedLayers,
+} from "./build-style";
 import { gisDataAtom } from "src/state/gis-data";
 import {
   gisLayerFill,
@@ -46,9 +52,7 @@ import {
   gisLayerCircle,
   gisLayerLabel,
 } from "./layers/gis-layer";
-import { LayerId } from "./layers";
-import { AssetId, AssetsMap, filterAssets } from "src/hydraulic-model";
-import { MomentLog } from "src/lib/persistence/moment-log";
+import { AssetId, AssetsMap } from "src/hydraulic-model";
 import { captureError } from "src/infra/error-tracking";
 import { enrichError } from "src/infra/errors";
 import { wasSuspendedSince } from "src/infra/tab-visibility";
@@ -58,10 +62,7 @@ import { USelection } from "src/selection";
 import { SymbologySpec } from "src/state/map-symbology";
 import type { ZoneSymbology, NodeSizeConfig } from "src/map/symbology";
 import { buildZoneColorExpression } from "src/map/layers/zones";
-import {
-  FormattingSpec,
-  UnitsSpec,
-} from "src/lib/project-settings/quantities-spec";
+
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
 import {
@@ -84,11 +85,6 @@ import {
   facetedLinkColorExpression,
   facetedPipeArrowColorExpression,
 } from "./layers/pipes";
-
-const SELECTION_LAYERS: LayerId[] = [
-  "selected-icons-halo",
-  "delta-selected-icons-halo",
-];
 
 // An update cycle over this is flagged (debug builds only) — the
 // withDebugInstrumentation warning fires only when isDebugOn.
@@ -242,6 +238,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const isGridOn = useAtomValue(showGridAtom);
   const isGridPreview = useAtomValue(gridPreviewAtom);
   const hiddenInMainRef = useRef<Set<AssetId>>(new Set());
+  // The icon sprite is static; prepare it once per map and reuse across style
+  // rebuilds (the engine no longer prepares icons — the updater passes them in).
+  const iconsRef = useRef<IconImage[] | null>(null);
+  const pendingConsolidationFinalizeRef = useRef(false);
+  const pendingDeltaCleanupRef = useRef(false);
   const consolidatedSelectionRef = useRef<Set<AssetId>>(new Set());
   const lastAppliedMapStateRef = useRef<MapState>(nullMapState);
   const freshMapStateRef = useRef<MapState>(mapState);
@@ -300,6 +301,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       } = changes;
 
       const selectedIds = new Set(USelection.getAssetIds(mapState.selection));
+      const rawData: RawData = {
+        assets,
+        symbology: mapState.symbology,
+        units,
+        formatting,
+        translateUnit,
+        simulationResults: mapState.resultsReader,
+        selectedIds,
+      };
 
       if (isHeavyUpdate(changes, mapState)) {
         setMapLoading(true);
@@ -313,24 +323,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       let consolidated = false;
 
       if (hasNewStyles) {
-        //Reset map
-        map.suspendOverlayStyleReactions();
-        resetMapState(map);
-        await mapOperations.setBaseStyleAndEmptyDataSources(
+        iconsRef.current = await applyStyles(
           map,
-          mapState.stylesConfig,
+          mapState,
+          mapOperations,
           translate,
+          gisData,
+          iconsRef.current,
         );
-        addGisLayersToMap(map, mapState.stylesConfig, gisData);
-        mapOperations.registerAssetLayers(
-          map,
-          mapState.stylesConfig,
-          mapState.symbology.node.defaults,
-          mapState.symbology.link.defaults,
-        );
-        await map.addIcons();
-        map.resumeOverlayStyleReactions();
-        toggleAnalysisLayers(map, mapState.symbology);
       }
 
       if (hasNewImport || hasNewStyles) {
@@ -389,32 +389,30 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const syncMain = rebuildFamily || propFamily;
 
       if (syncMain) {
-        const rawData = {
-          assets,
-          symbology: mapState.symbology,
-          units,
-          formatting,
-          translateUnit,
-          simulationResults: mapState.resultsReader,
-          selectedIds,
-        };
-        if (rebuildFamily) {
-          await mapOperations.rebuildDataSources(map, rawData);
-          consolidated = true;
-        } else {
-          ({ consolidated } = await mapOperations.updateDataSources(
-            map,
-            rawData,
-            {
-              symbology: hasNewSymbologyRules,
-              simulation:
-                (hasNewSimulation &&
-                  mapState.simulation.status !== "running") ||
-                hasNewResults,
-              selection: hasBigSelection,
-            },
-          ));
-        }
+        // Instrumentation lives on the caller (not the backend ops) so the backend impls
+        // stay plain functions — a rebuild or a prop-reflect is one MAIN-sync span either way.
+        await withDebugInstrumentation(
+          async () => {
+            if (rebuildFamily) {
+              await mapOperations.rebuildDataSources(map, rawData);
+              consolidated = true;
+            } else {
+              ({ consolidated } = await mapOperations.updateDataSources(
+                map,
+                rawData,
+                {
+                  symbology: hasNewSymbologyRules,
+                  simulation:
+                    (hasNewSimulation &&
+                      mapState.simulation.status !== "running") ||
+                    hasNewResults,
+                  selection: hasBigSelection,
+                },
+              ));
+            }
+          },
+          { name: "MAP_STATE:UPDATE_MAP_DATA", maxDurationMs: 10000 },
+        )();
 
         flog(
           consolidated
@@ -445,12 +443,9 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           setMapSyncMoment((prev) => {
             return { pointer: momentLog.getPointer(), version: prev.version };
           });
-          // NOTE: un-hiding here can briefly flash stale main state (old geometry for an edited
-          // asset, old baked-selection for a deselected one) because setSource(MAIN) reparses
-          // async while feature-state is synchronous. Accepted for now; to be handled by
-          // idle-consolidation (consolidate only when idle, so the reparse is unobserved).
-          mapOperations.cleanUpNonConsolidatedDataSources(map);
           hiddenInMainRef.current = new Set();
+          pendingConsolidationFinalizeRef.current = true;
+          pendingDeltaCleanupRef.current = true;
         }
       }
 
@@ -477,23 +472,29 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           "| selectionDiff",
           dbgIds(selectionDiff),
         );
-        // Apply delta edits
-        const { hiddenInMainIds } = await syncSourcesWithEdits(
+        // Set math (backend-agnostic): the live-set rides delta (edited ∪ selection diff −
+        // moving); edited and deselected-baked assets are hidden in MAIN, additions overlaid
+        // by delta on top. The backend impl applies it (delta rebuild + MAIN feature-state).
+        const editedSinceConsolidation = getAssetIdsInMoments(
+          momentLog.getDeltas(mapState.syncMomentPointer),
+        );
+        const liveSetIds = new Set(editedSinceConsolidation);
+        for (const id of selectionDiff) liveSetIds.add(id);
+        for (const id of mapState.movedAssetIds) liveSetIds.delete(id);
+
+        const hiddenInMainIds = new Set(editedSinceConsolidation);
+        for (const id of selectionDiff) {
+          if (!selectedIds.has(id)) hiddenInMainIds.add(id);
+        }
+
+        await updateDeltaSource(map, rawData, liveSetIds);
+        await mapOperations.syncSourceEdits(
           map,
-          momentLog,
-          mapState.syncMomentPointer,
-          assets,
-          mapState.symbology,
-          units,
-          formatting,
-          translateUnit,
-          mapState.resultsReader,
-          selectionDiff,
-          selectedIds,
+          hiddenInMainIds,
           hiddenInMainRef.current,
-          mapState.movedAssetIds,
         );
         hiddenInMainRef.current = hiddenInMainIds;
+        pendingDeltaCleanupRef.current = false;
       }
 
       const movingCustomerPointId =
@@ -571,7 +572,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
 
       if (hasNewEphemeralState) {
         // update assets ephemeral state
-        updateEditionsVisibility(
+        mapOperations.updateEditionsVisibility(
           map,
           previousMapState.movedAssetIds,
           mapState.movedAssetIds,
@@ -664,13 +665,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     );
 
   const onSettled = (settledCleanly: boolean) => {
-    const settle = settleRef.current;
-    if (!settle) return;
-
     if (hasOutstandingHeavyUpdate()) {
-      settle.measurable = false;
+      if (settleRef.current) settleRef.current.measurable = false;
       return;
     }
+
+    if (map && pendingConsolidationFinalizeRef.current) {
+      mapOperations.finalizeConsolidation(
+        map,
+        hiddenInMainRef.current,
+        pendingDeltaCleanupRef.current,
+      );
+      pendingConsolidationFinalizeRef.current = false;
+      pendingDeltaCleanupRef.current = false;
+    }
+
+    const settle = settleRef.current;
+    if (!settle) return;
 
     settleRef.current = null;
     setMapLoading(false);
@@ -724,6 +735,50 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   }
 };
 
+const applyStyles = withDebugInstrumentation(
+  async (
+    map: MapEngine,
+    mapState: MapState,
+    mapOperations: MapOperations,
+    translate: (key: string) => string,
+    gisData: Map<string, import("geojson").FeatureCollection>,
+    icons: IconImage[] | null,
+  ): Promise<IconImage[]> => {
+    map.suspendOverlayStyleReactions();
+    resetMapState(map);
+    const style = await buildStyle(mapState, translate, gisData);
+    await mapOperations.applyStyle(map, style);
+    const iconSprites = icons ?? (await prepareIconsSprite());
+    map.addIcons(iconSprites);
+    map.resumeOverlayStyleReactions();
+    toggleAnalysisLayers(map, mapState.symbology);
+    return iconSprites;
+  },
+  { name: "MAP_STATE:APPLY_STYLES", maxDurationMs: 1000 },
+);
+
+const buildStyle = async (
+  mapState: MapState,
+  translate: (key: string) => string,
+  gisData: Map<string, import("geojson").FeatureCollection>,
+): Promise<mapboxgl.Style> => {
+  const style = await buildBaseStyle({
+    layerConfigs: mapState.stylesConfig.layerConfigs,
+    translate,
+  });
+  defineEmptySourcesFaceted(style);
+  addGisLayersToStyle(style, mapState.stylesConfig, gisData);
+  style.layers.push(
+    ...makeFacetedLayers({
+      symbology: mapState.stylesConfig.symbology,
+      previewProperty: mapState.stylesConfig.previewProperty,
+      nodeDefaults: mapState.symbology.node.defaults,
+      linkDefaults: mapState.symbology.link.defaults,
+    }),
+  );
+  return style;
+};
+
 const resetMapState = (map: MapEngine) => {
   map.removeSource("delta-features");
   map.removeSource("main-features");
@@ -769,155 +824,8 @@ const toggleAnalysisLayers = (map: MapEngine, symbology: SymbologySpec) => {
   }
 };
 
-// Hide the EDITED assets in the main sources (main-features + icons): their geometry in
-// main is stale, so they render only from delta. Selected-but-unedited assets are NOT
-// hidden — their main geometry is still correct, and the delta layers (drawn on top)
-// paint the selection over them.
-//
-// This diffs against the previously-hidden set rather than clearing all feature-state
-// and re-hiding: `clearFeatureState` un-hides EVERY feature (including an edited asset's
-// stale geometry) for a repaint before we re-hide it, which flashed the old geometry on
-// a move-drop. Diffing only toggles what actually changed, so a still-hidden asset is
-// never un-hidden.
-const updateMainSourceVisibility = (
-  map: MapEngine,
-  editedAssetIds: Set<AssetId>,
-  previouslyHiddenIds: Set<AssetId>,
-): void => {
-  for (const assetId of previouslyHiddenIds) {
-    if (editedAssetIds.has(assetId)) continue;
-    map.showFeature(FeatureSources.MAIN, assetId);
-    map.showFeature("icons", assetId);
-  }
-  for (const assetId of editedAssetIds) {
-    if (previouslyHiddenIds.has(assetId)) continue;
-    map.hideFeature(FeatureSources.MAIN, assetId);
-    map.hideFeature("icons", assetId);
-  }
-};
-
-const updateDeltaSource = withDebugInstrumentation(
-  async (
-    map: MapEngine,
-    assets: AssetsMap,
-    liveSetIds: Set<AssetId>,
-    symbology: SymbologySpec,
-    units: UnitsSpec,
-    formatting: FormattingSpec,
-    translateUnit: (unit: Unit) => string,
-    simulationResults: ResultsReader | null | undefined,
-    selectedIds: Set<AssetId>,
-  ): Promise<void> => {
-    // Delta holds the live-set (edited ∪ selected). `selected` is stamped so the
-    // faceted layers render the selection highlight for selected members.
-    const liveAssets = filterAssets(assets, liveSetIds);
-    const features = await buildOptimizedAssetsSource(
-      liveAssets,
-      symbology,
-      units,
-      formatting,
-      translateUnit,
-      simulationResults,
-      selectedIds,
-    );
-    map.setSource(FeatureSources.DELTA, features);
-
-    const iconFeatures = buildIconPointsSource(
-      liveAssets,
-      selectedIds,
-      simulationResults,
-    );
-    map.setSource("delta-icons", iconFeatures);
-  },
-  {
-    name: "MAP_STATE:UPDATE_DELTA_SOURCE",
-    maxDurationMs: 250,
-  },
-);
-
-const syncSourcesWithEdits = async (
-  map: MapEngine,
-  momentLog: MomentLog,
-  mapSyncMoment: number,
-  assets: AssetsMap,
-  symbology: SymbologySpec,
-  units: UnitsSpec,
-  formatting: FormattingSpec,
-  translateUnit: (unit: Unit) => string,
-  simulationResults: ResultsReader | null | undefined,
-  selectionDiff: Set<AssetId>,
-  selectedIds: Set<AssetId>,
-  previouslyHiddenIds: Set<AssetId>,
-  ephemeralTargetIds: Set<AssetId>,
-): Promise<{ hiddenInMainIds: Set<AssetId> }> => {
-  const editedSinceConsolidation = getAssetIdsInMoments(
-    momentLog.getDeltas(mapSyncMoment),
-  );
-  const liveSetIds = new Set(editedSinceConsolidation);
-  for (const assetId of selectionDiff) liveSetIds.add(assetId);
-  for (const assetId of ephemeralTargetIds) liveSetIds.delete(assetId);
-
-  await updateDeltaSource(
-    map,
-    assets,
-    liveSetIds,
-    symbology,
-    units,
-    formatting,
-    translateUnit,
-    simulationResults,
-    selectedIds,
-  );
-
-  // An edited asset needs to be hidden in main
-  const hiddenInMainIds = new Set(editedSinceConsolidation);
-  for (const assetId of selectionDiff) {
-    // A deselected asset that was previously consolidated must be hidden in main
-    if (!selectedIds.has(assetId)) hiddenInMainIds.add(assetId);
-  }
-  updateMainSourceVisibility(map, hiddenInMainIds, previouslyHiddenIds);
-
-  return { hiddenInMainIds };
-};
-
-const updateEditionsVisibility = (
-  map: MapEngine,
-  previousMovedAssetIds: Set<AssetId>,
-  movedAssetIds: Set<AssetId>,
-  // Assets currently hidden in the main sources because they are edited-since-
-  // consolidation (rendered from delta). A previously-moved asset that is now a committed
-  // edit must stay hidden in main — un-hiding it would flash its stale main geometry.
-  hiddenInMainIds: Set<AssetId>,
-) => {
-  for (const assetId of previousMovedAssetIds.values()) {
-    map.showFeature("delta-features", assetId);
-    map.showFeature("delta-icons", assetId);
-    map.showFeature("icons", assetId);
-
-    if (hiddenInMainIds.has(assetId)) continue;
-
-    map.showFeature("main-features", assetId);
-  }
-
-  for (const assetId of movedAssetIds.values()) {
-    map.hideFeature("delta-features", assetId);
-    map.hideFeature("delta-icons", assetId);
-    map.hideFeature("icons", assetId);
-
-    if (hiddenInMainIds.has(assetId)) continue;
-
-    map.hideFeature("main-features", assetId);
-  }
-
-  if (movedAssetIds.size > 0) {
-    map.hideLayers(SELECTION_LAYERS);
-  } else if (previousMovedAssetIds.size > 0) {
-    map.showLayers(SELECTION_LAYERS);
-  }
-};
-
-function addGisLayersToMap(
-  map: MapEngine,
+function addGisLayersToStyle(
+  style: mapboxgl.Style,
   stylesConfig: StylesConfig,
   gisData: Map<string, import("geojson").FeatureCollection>,
 ) {
@@ -929,17 +837,15 @@ function addGisLayersToMap(
     if (!data) continue;
 
     const sourceId = `gis-${layerId}`;
-    map.map.addSource(sourceId, { type: "geojson", data });
+    style.sources[sourceId] = { type: "geojson", data };
 
-    map.addLayer(
+    style.layers.push(
       gisLayerFill(
         sourceId,
         layerConfig.color,
         layerConfig.opacity,
         layerConfig.visibility,
       ),
-    );
-    map.addLayer(
       gisLayerLine(
         sourceId,
         layerConfig.color,
@@ -947,8 +853,6 @@ function addGisLayersToMap(
         layerConfig.opacity,
         layerConfig.visibility,
       ),
-    );
-    map.addLayer(
       gisLayerCircle(
         sourceId,
         layerConfig.color,
@@ -956,8 +860,6 @@ function addGisLayersToMap(
         layerConfig.opacity,
         layerConfig.visibility,
       ),
-    );
-    map.addLayer(
       gisLayerLabel(
         sourceId,
         layerConfig.color,

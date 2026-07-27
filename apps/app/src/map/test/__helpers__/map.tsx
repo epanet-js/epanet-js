@@ -7,6 +7,14 @@ import { Provider as JotaiProvider } from "jotai";
 import { PersistenceContext } from "src/lib/persistence/context";
 import { MapCanvas } from "src/map/map-canvas";
 import { stubFeaturesOn } from "src/__helpers__/feature-flags";
+import { vi } from "vitest";
+
+// renderMap mounts the real MapCanvas + updater, which prepares the icon sprite
+// (loading + decoding images — which jsdom can't do). Stub it to an empty sprite.
+vi.mock("../../icons", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../icons")>();
+  return { ...actual, prepareIconsSprite: () => Promise.resolve([]) };
+});
 
 export const renderMap = async (store: Store): Promise<MapTestEngine> => {
   // Serialized sync is now the default path; start with all flags off so tests

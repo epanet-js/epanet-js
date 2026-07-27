@@ -20,7 +20,7 @@ import { waitFor } from "@testing-library/react";
 import { Asset, LinkAsset } from "src/hydraulic-model";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { buildFeatureId } from "../data-source/features";
-import type { ClickEvent } from "../types";
+import type { ClickEvent } from "@epanet-js/map";
 import * as modelOperations from "src/hydraulic-model/model-operations";
 
 // Spy on addLink so we can count how many times a single finishing gesture

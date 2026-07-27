@@ -4,11 +4,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { FeatureCollection } from "geojson";
 import { env } from "src/lib/env-client";
 import { colors, emptyFeatureCollection } from "src/lib/constants";
-import { strokeColorFor } from "src/lib/color";
-import {
-  CustomMapControl,
-  FIT_TO_EXTENT_ICON,
-} from "src/map/custom-map-control";
+import { strokeColorFor } from "@epanet-js/map";
+import { CustomMapControl, FIT_TO_EXTENT_ICON } from "@epanet-js/map";
 import type { Bbox } from "./types";
 import type { MapPreviewHandle } from "./use-map-preview";
 import { useTranslate } from "src/hooks/use-translate";

@@ -1,4 +1,4 @@
-import type { MapEngine } from "./map-engine";
+import type { MapEngine } from "@epanet-js/map";
 
 export function captureThumbnail(
   mapEngine: MapEngine,

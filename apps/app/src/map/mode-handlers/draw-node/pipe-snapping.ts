@@ -1,4 +1,4 @@
-import type { MapEngine } from "../../map-engine";
+import type { MapEngine } from "@epanet-js/map";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, LinkAsset } from "src/hydraulic-model";

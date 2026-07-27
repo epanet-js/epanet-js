@@ -1,5 +1,5 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
-import type { MapEngine } from "../../map-engine";
+import type { MapEngine } from "@epanet-js/map";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode, LinkAsset } from "src/hydraulic-model";
@@ -55,7 +55,13 @@ export const useSnapping = (
       const assetId = decodedId.featureId;
 
       if (assetId && (!excludeIds || !excludeIds.includes(assetId))) {
-        if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
+        if (
+          map.isFeatureHidden(
+            feature.source as DataSource,
+            id as RawId,
+            feature.sourceLayer,
+          )
+        ) {
           continue;
         }
         return assetId;
@@ -89,7 +95,13 @@ export const useSnapping = (
 
       if (excludeIds && excludeIds.includes(assetId)) continue;
 
-      if (map.isFeatureHidden(feature.source as DataSource, id as RawId)) {
+      if (
+        map.isFeatureHidden(
+          feature.source as DataSource,
+          id as RawId,
+          feature.sourceLayer,
+        )
+      ) {
         continue;
       }
 

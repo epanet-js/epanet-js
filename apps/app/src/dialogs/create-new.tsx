@@ -35,7 +35,7 @@ import {
 } from "src/state/map-projection";
 import { useUserTracking } from "src/infra/user-tracking";
 import { MapContext } from "src/map/map-context";
-import { MapEngine } from "src/map/map-engine";
+import { MapEngine } from "@epanet-js/map";
 import { useContext, useRef, useCallback, useState } from "react";
 
 import NetworkUnprojectedIllustration from "./network-projection/network-unprojected";

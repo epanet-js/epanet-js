@@ -68,8 +68,6 @@ export async function buildBaseStyle({
     }
   }
 
-  defineEmptySources(style);
-
   return style;
 }
 
@@ -85,7 +83,9 @@ export function defineEmptySources(style: Style) {
   style.sources["zones"] = emptyGeoJSONSource;
 }
 
-export function defineFacetedSources(style: Style) {
+// The faceted source set: the base empty sources + the delta-icons facet.
+export function defineEmptySourcesFaceted(style: Style) {
+  defineEmptySources(style);
   style.sources["delta-icons"] = emptyGeoJSONSource;
 }
 

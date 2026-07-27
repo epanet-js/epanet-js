@@ -5,7 +5,8 @@ import {
   CustomerPoints,
   Pipe,
 } from "@epanet-js/hydraulic-model";
-import { hexToArray, strokeColorFor } from "src/lib/color";
+import { hexToArray } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 import { colors } from "src/lib/constants";
 import { Position } from "src/types";
 import { AssetsMap } from "src/hydraulic-model";

@@ -1,5 +1,5 @@
 import { MapMouseEvent, MapTouchEvent } from "mapbox-gl";
-import type { MapEngine } from "../../map-engine";
+import type { MapEngine } from "@epanet-js/map";
 import { Position } from "src/types";
 import { decodeId } from "src/lib/id";
 import { AssetsMap, getNode } from "src/hydraulic-model";

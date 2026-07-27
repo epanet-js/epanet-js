@@ -1,6 +1,6 @@
 import type { SeriesOption } from "echarts";
 import { colors } from "src/lib/constants";
-import { strokeColorFor } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { ProfileLink, ProfilePoint } from "../chart-data";
 import type { SldIcons } from "./use-sld-icons";

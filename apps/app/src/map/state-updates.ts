@@ -21,7 +21,7 @@ import {
 import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
 import type { ResultsReader } from "@epanet-js/simulation";
-import { MapEngine } from "./map-engine";
+import { MapEngine } from "@epanet-js/map";
 import {
   buildIconPointsSource,
   buildOptimizedAssetsSource,
@@ -33,7 +33,8 @@ import {
 import type { Highlight } from "src/state/highlights";
 import mapboxgl from "mapbox-gl";
 import { Grid } from "./grid";
-import { buildBaseStyle, makeLayers } from "./build-style";
+import { buildBaseStyle, defineEmptySources, makeLayers } from "./build-style";
+import { prepareIconsSprite, type IconImage } from "./icons";
 import { gisDataAtom } from "src/state/gis-data";
 import {
   gisLayerFill,
@@ -236,6 +237,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   );
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
   const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
+  const iconsRef = useRef<IconImage[] | null>(null);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const gridRef = useRef<Grid | null>(null);
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
@@ -296,7 +298,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           mapState.symbology.node.defaults,
           mapState.symbology.link.defaults,
         );
-        await map.addIcons();
+        if (!iconsRef.current) iconsRef.current = await prepareIconsSprite();
+        map.addIcons(iconsRef.current);
         map.resumeOverlayStyleReactions();
         toggleAnalysisLayers(map, mapState.symbology);
       }
@@ -645,6 +648,7 @@ const buildBaseStyleAndSetOnMap = withDebugInstrumentation(
       layerConfigs: styles.layerConfigs,
       translate,
     });
+    defineEmptySources(style);
     await map.setStyle(style);
   },
   { name: "MAP_STATE:BUILD_BASE_STYLE", maxDurationMs: 1000 },

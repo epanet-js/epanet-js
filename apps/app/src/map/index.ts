@@ -1,3 +1,3 @@
 export { MapContext } from "./map-context";
-export { MapEngine } from "./map-engine";
+export { MapEngine } from "@epanet-js/map";
 export { captureThumbnail } from "./capture-thumbnail";

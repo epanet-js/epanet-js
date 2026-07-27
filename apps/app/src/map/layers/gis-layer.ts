@@ -1,5 +1,5 @@
 import { CircleLayer, FillLayer, LineLayer, SymbolLayer } from "mapbox-gl";
-import { strokeColorFor } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 
 export function gisLayerFill(
   sourceId: string,

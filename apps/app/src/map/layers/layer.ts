@@ -19,6 +19,17 @@ export type LayerId =
   | "valve-icons-isolation-valves"
   | "selected-icons"
   | "selected-icons-halo"
+  // Tile-path selection layers: bound to the `main-features` tile source, filtered by
+  // the baked `selected` prop (no separate `selected-features` source).
+  | "main-features-selected-pipes"
+  | "main-features-selected-pump-lines"
+  | "main-features-selected-valve-lines"
+  | "main-features-selected-junctions"
+  | "main-features-selected-halo"
+  | "delta-features-selected-pipes"
+  | "delta-features-selected-pump-lines"
+  | "delta-features-selected-valve-lines"
+  | "delta-features-selected-junctions"
   | "icons-tanks"
   | "icons-reservoirs"
   | "zones-fill"

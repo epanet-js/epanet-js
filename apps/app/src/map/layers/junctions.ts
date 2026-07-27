@@ -5,10 +5,10 @@ import { asNumberExpression } from "src/lib/symbolization-deprecated";
 import { ISymbology } from "src/types";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { strokeColorFor } from "src/lib/color";
+import { strokeColorFor } from "@epanet-js/map";
 import type { NodeDefaults, NodeSizeConfig } from "src/map/symbology";
 import { defaultNodeSizeConfig } from "src/map/symbology";
-import { LAYER_MAX_ZOOM, MAP_MIN_ZOOM } from "src/map/map-engine";
+import { LAYER_MAX_ZOOM, MAP_MIN_ZOOM } from "@epanet-js/map";
 
 export const junctionLayerMinZoom = ({
   minVisibleZoom,
