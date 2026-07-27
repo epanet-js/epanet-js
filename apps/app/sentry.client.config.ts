@@ -33,6 +33,13 @@ Sentry.init({
     );
     if (isCssChunkLoadError) return null;
 
+    const isAbortedRequest = event.exception?.values?.some(
+      (value) =>
+        value.type === "NS_BINDING_ABORTED" ||
+        /NS_BINDING_ABORTED/.test(value.value ?? ""),
+    );
+    if (isAbortedRequest) return null;
+
     if (
       error instanceof Error &&
       "details" in error &&

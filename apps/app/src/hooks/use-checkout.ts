@@ -6,9 +6,13 @@ import { useTranslate } from "src/hooks/use-translate";
 import { Plan } from "src/lib/account-plans";
 import { ErrorIcon } from "src/icons";
 
-const stripeSDK = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
-);
+// Loaded lazily on first checkout so js.stripe.com is not fetched on every page
+// load (it injects its script as a side effect).
+let stripeSDK: ReturnType<typeof loadStripe> | undefined;
+const getStripe = () =>
+  (stripeSDK ??= loadStripe(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string,
+  ));
 
 export type PaymentType = "monthly" | "yearly";
 
@@ -40,7 +44,7 @@ export const useCheckout = () => {
 };
 
 export const startCheckout = async (plan: Plan, paymentType: PaymentType) => {
-  const stripe = await stripeSDK;
+  const stripe = await getStripe();
   const response = await fetch("/api/stripe-checkout", {
     method: "POST",
     headers: {
