@@ -24,6 +24,7 @@ This is the epanet-js application. The guidance is split in two:
 | [performance.md](./guidelines/performance.md) | Performance budgets and requirements |
 | [ux-patterns.md](./guidelines/ux-patterns.md) | Standard and map-specific UX patterns |
 | [utility-app-integration.md](./guidelines/utility-app-integration.md) | Embedding utility apps (e.g. the model builder iframe): transport, protocol, security |
+| [lib-built-assets.md](./guidelines/lib-built-assets.md) | Libs that emit a build-time asset served from the app's `public/` root: the `build-public-assets.mjs` contract, the `epanet-js-` prefix + single gitignore rule, running `build:lib-assets` |
 
 ## Workspace libraries
 
