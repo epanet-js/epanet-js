@@ -1640,6 +1640,7 @@ export type UserEvent =
     }
   | { name: "unexpectedError.seen" }
   | { name: "simulationOutOfMemory.seen" }
+  | { name: "simulationStorageError.seen" }
   | { name: "fitMapToNetworkExtent.clicked" }
   | {
       name: "controls.changed";

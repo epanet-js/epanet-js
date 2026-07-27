@@ -180,6 +180,11 @@ export const useRunSimulation = () => {
             return;
           }
 
+          if (status === "failure" && errorKind === "storage") {
+            setDialogState({ type: "simulationStorageError" });
+            return;
+          }
+
           setDialogState({
             type: "simulationSummary",
             status: status,

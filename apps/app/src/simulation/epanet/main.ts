@@ -46,6 +46,12 @@ export const runSimulation = withDebugInstrumentation(
         : undefined;
       if (result.errorKind === "oom") {
         captureWarning(`Out of memory: ${result.jsError}`, undefined, contexts);
+      } else if (result.errorKind === "storage") {
+        captureWarning(
+          `Simulation results storage failed: ${result.jsError}`,
+          undefined,
+          contexts,
+        );
       } else {
         captureError(
           new Error(`Simulation JS error: ${result.jsError}`),

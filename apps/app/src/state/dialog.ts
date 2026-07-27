@@ -33,6 +33,10 @@ export type SimulationOutOfMemoryDialogState = {
   type: "simulationOutOfMemory";
 };
 
+export type SimulationStorageErrorDialogState = {
+  type: "simulationStorageError";
+};
+
 export type WelcomeDialogState = {
   type: "welcome";
 };
@@ -315,6 +319,7 @@ export type DialogState =
   | SimulationSummaryState
   | SimulationReportDialogState
   | SimulationOutOfMemoryDialogState
+  | SimulationStorageErrorDialogState
   | WelcomeDialogState
   | InpIssuesDialogState
   | { type: "loading" }

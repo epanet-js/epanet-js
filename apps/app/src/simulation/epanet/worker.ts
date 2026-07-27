@@ -24,7 +24,7 @@ export type EPSSimulationResult = {
   report: string;
   metadata: ArrayBuffer;
   jsError?: string;
-  errorKind?: "oom";
+  errorKind?: "oom" | "storage";
   simulationStats?: { nodeCount: number; linkCount: number; stepCount: number };
 };
 
@@ -130,11 +130,26 @@ export const runSimulation = async (
 
     const { resultsBuffer, metadata } = extractResultsData(ws);
 
-    const storage = new OPFSStorage(appId, scenarioKey, runId);
-    await storage.save(RESULTS_OUT_KEY, resultsBuffer);
-    await storage.save(TANK_VOLUMES_KEY, missingDataAccumulator.tankVolumes());
-    await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
-    await storage.save(NODE_STATS_KEY, missingDataAccumulator.nodeStats());
+    try {
+      const storage = new OPFSStorage(appId, scenarioKey, runId);
+      await storage.save(RESULTS_OUT_KEY, resultsBuffer);
+      await storage.save(
+        TANK_VOLUMES_KEY,
+        missingDataAccumulator.tankVolumes(),
+      );
+      await storage.save(PUMP_STATUS_KEY, missingDataAccumulator.pumpStatus());
+      await storage.save(NODE_STATS_KEY, missingDataAccumulator.nodeStats());
+    } catch (error) {
+      // The simulation succeeded; only persisting results to OPFS failed.
+      return {
+        status: "failure",
+        report: curateReport(report),
+        metadata: new ArrayBuffer(PROLOG_SIZE + EPILOG_SIZE),
+        jsError: (error as Error).message,
+        errorKind: "storage",
+        simulationStats: { nodeCount, linkCount, stepCount: timestepCount },
+      };
+    }
 
     return {
       status: report.includes("WARNING") ? "warning" : "success",

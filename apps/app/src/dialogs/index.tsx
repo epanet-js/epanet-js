@@ -22,6 +22,7 @@ import { CreateNew as CreateNewDialog } from "src/dialogs/create-new";
 import { SimulationReportDialog } from "src/dialogs/simulation-report";
 import { SimulationSummaryDialog } from "src/dialogs/simulation-summary";
 import { SimulationOutOfMemoryDialog } from "src/dialogs/simulation-out-of-memory";
+import { SimulationStorageErrorDialog } from "src/dialogs/simulation-storage-error";
 import { UnsavedChangesDialog } from "src/dialogs/unsaved-changes";
 import { AlertInpOutputDialog } from "src/dialogs/alert-inp-output";
 import { AlertExportInpDialog } from "src/dialogs/alert-export-inp";
@@ -119,6 +120,9 @@ export const Dialogs = memo(function Dialogs() {
       if (dialog.type === "simulationOutOfMemory") {
         userTracking.capture({ name: "simulationOutOfMemory.seen" });
       }
+      if (dialog.type === "simulationStorageError") {
+        userTracking.capture({ name: "simulationStorageError.seen" });
+      }
       if (dialog.type === "unexpectedError") {
         userTracking.capture({ name: "unexpectedError.seen" });
       }
@@ -162,6 +166,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "simulationOutOfMemory") {
     return <SimulationOutOfMemoryDialog onClose={onClose} />;
+  }
+  if (dialog.type === "simulationStorageError") {
+    return <SimulationStorageErrorDialog onClose={onClose} />;
   }
   if (dialog.type === "importCustomerPointsWizard") {
     return <ImportCustomerPointsWizard isOpen={true} onClose={onClose} />;
