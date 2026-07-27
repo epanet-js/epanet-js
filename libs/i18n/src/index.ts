@@ -9,6 +9,8 @@ export type { Locale } from "./locale";
 export { createI18n } from "./create-i18n";
 export type { CreateI18nOptions } from "./create-i18n";
 
+export { localizeDecimal, roundToDecimal } from "./numbers";
+
 export { LocaleProvider, useLocale } from "./locale-provider";
 export type { LocaleProviderProps, LocaleContextType } from "./locale-provider";
 
