@@ -3,7 +3,7 @@ import {
   UnitsSpec,
   FormattingSpec,
 } from "src/lib/project-settings/quantities-spec";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import {
   Asset,

@@ -8,7 +8,7 @@ import {
   ReservoirSimulation,
   PumpEnergySummary,
   type SimulationProperty,
-} from "../results-reader";
+} from "@epanet-js/simulation";
 import { IKeyBufferStore } from "src/infra/storage";
 import {
   RESULTS_OUT_KEY,

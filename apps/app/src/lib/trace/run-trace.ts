@@ -2,7 +2,7 @@ import * as Comlink from "comlink";
 
 import { AssetId } from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model/hydraulic-model";
-import { ResultsReader } from "src/simulation/results-reader";
+import { ResultsReader } from "@epanet-js/simulation";
 import { canUseWorker, enrichWorkerError } from "src/infra/worker";
 import { encodeTraceData } from "./encode-trace-buffers";
 import {

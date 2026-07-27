@@ -19,7 +19,7 @@ import {
   simulationStepAtom,
 } from "src/state/simulation";
 import { Store } from "src/state";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import { Mode } from "src/state/mode";
 import { Asset, HydraulicModel } from "src/hydraulic-model";
 import { ExportOptions } from "src/types/export";

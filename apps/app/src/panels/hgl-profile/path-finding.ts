@@ -6,7 +6,7 @@ import {
   Topology,
 } from "src/hydraulic-model";
 import { PathData } from "@epanet-js/hydraulic-model";
-import { ResultsReader } from "src/simulation/results-reader";
+import { ResultsReader } from "@epanet-js/simulation";
 
 export const findProfilePath = (
   topology: Topology,

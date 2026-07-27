@@ -2,7 +2,7 @@ import type { Unit } from "@epanet-js/quantity";
 import type { AssetId, AssetsMap } from "src/hydraulic-model";
 import type { StylesConfig } from "src/state/map";
 import type { SymbologySpec } from "src/state/map-symbology";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import type {
   FormattingSpec,
   UnitsSpec,

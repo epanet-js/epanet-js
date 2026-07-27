@@ -20,7 +20,7 @@ import {
 } from "src/state/map";
 import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import { MapEngine } from "./map-engine";
 import {
   buildIconPointsSource,

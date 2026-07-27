@@ -9,7 +9,7 @@ import {
 } from "src/state/derived-branch-state";
 import { simulationStepAtom } from "src/state/simulation";
 import { currentFileNameAtom } from "src/state/file-system";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
 

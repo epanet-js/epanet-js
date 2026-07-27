@@ -16,7 +16,7 @@ import {
   type ResultsReader,
   type PipeSimulation,
   type JunctionSimulation,
-} from "src/simulation/results-reader";
+} from "@epanet-js/simulation";
 import { isSimulationProperty } from "src/map/symbology/symbology-data-source";
 import { assetLabelRule } from "src/map/symbology/labeling";
 import { LabelRule } from "src/map/symbology/symbology-types";

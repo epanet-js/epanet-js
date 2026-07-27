@@ -19,7 +19,7 @@ import {
 import { projectSettingsAtom } from "src/state/project-settings";
 import { getDecimals, ProjectSettings } from "src/lib/project-settings";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
-import { ResultsReader } from "src/simulation/results-reader";
+import { ResultsReader } from "@epanet-js/simulation";
 import { Highlight } from "src/state/highlights";
 import { traceDuration } from "src/infra/with-instrumentation";
 import { isDebugOn } from "src/infra/debug-mode";

@@ -18,7 +18,7 @@ import {
   initialSimulationState,
   simulationStepAtom,
 } from "src/state/simulation";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 import {
   type SimulationSettings,
   defaultSimulationSettings,

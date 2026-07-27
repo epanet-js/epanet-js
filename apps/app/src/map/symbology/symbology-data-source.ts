@@ -5,13 +5,13 @@ import {
   type ResultsReader,
   type SimulationProperty,
   isSimulationProperty,
-} from "src/simulation/results-reader";
+} from "@epanet-js/simulation";
 
 export {
   simulationProperties,
   isSimulationProperty,
   type SimulationProperty,
-} from "src/simulation/results-reader";
+} from "@epanet-js/simulation";
 
 export const getSortedSimulationValues = (
   resultsReader: ResultsReader,

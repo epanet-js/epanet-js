@@ -105,7 +105,7 @@ import type {
   PipeSimulation,
   PumpSimulation,
   ValveSimulation,
-} from "src/simulation/results-reader";
+} from "@epanet-js/simulation";
 import { DemandsEditor } from "./demands-editor";
 import { PumpControlsEditor } from "./pump-controls-editor";
 import { PumpDefinitionDetails } from "./pump-definition-details";

@@ -41,7 +41,7 @@ import { USelection } from "src/selection";
 import type { AssetId } from "src/hydraulic-model";
 import { type CustomerPoints } from "@epanet-js/hydraulic-model";
 import type { PreviewProperty } from "src/state/map-symbology";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 
 export type MomentPointer = {
   pointer: number;

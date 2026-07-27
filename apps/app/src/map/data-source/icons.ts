@@ -9,7 +9,7 @@ import {
 import { Feature } from "src/types";
 import calculateMidpoint from "@turf/midpoint";
 import calculateBearing from "@turf/bearing";
-import type { ResultsReader } from "src/simulation/results-reader";
+import type { ResultsReader } from "@epanet-js/simulation";
 
 export const buildIconPointsSource = (
   assets: AssetsMap,

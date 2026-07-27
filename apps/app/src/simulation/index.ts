@@ -11,5 +11,8 @@ export type {
   TankSimulation,
   ResultsReader,
   SimulationProperty,
-} from "./results-reader";
-export { simulationProperties, isSimulationProperty } from "./results-reader";
+} from "@epanet-js/simulation";
+export {
+  simulationProperties,
+  isSimulationProperty,
+} from "@epanet-js/simulation";

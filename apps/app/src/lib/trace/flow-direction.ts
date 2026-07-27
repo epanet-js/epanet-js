@@ -1,6 +1,6 @@
 import { AssetId, Asset, Pipe, Valve } from "@epanet-js/hydraulic-model";
 import { AssetsMap } from "@epanet-js/hydraulic-model";
-import { ResultsReader } from "src/simulation/results-reader";
+import { ResultsReader } from "@epanet-js/simulation";
 import {
   FlowDirectionQueries,
   FlowDirection as FlowDir,
