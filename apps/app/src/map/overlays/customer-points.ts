@@ -66,6 +66,31 @@ const selectionDisabledHaloFillColor = hexToArray(colors.fuchsia300) as [
 export type CustomerPointsLayer = ScatterplotLayer | LineLayer | PathLayer;
 export type CustomerPointsOverlay = CustomerPointsLayer[];
 
+const SELECTED_LINE_WIDTH = 2.5;
+const EMPTY_SELECTION: ReadonlySet<number> = new Set();
+
+const customerPointFillColor =
+  (selectedIds: ReadonlySet<number>) => (d: CustomerPointData) => {
+    if (selectedIds.has(d.id)) {
+      return d.isActive ? selectionFillColor : selectionDisabledFillColor;
+    }
+    return d.isActive ? fillColor : disabledFillColor;
+  };
+
+const customerPointLineColor =
+  (selectedIds: ReadonlySet<number>) => (d: CustomerPointData) => {
+    if (selectedIds.has(d.id)) {
+      return d.isActive
+        ? selectionHaloFillColor
+        : selectionDisabledHaloFillColor;
+    }
+    return d.isActive ? strokeColor : disabledStrokeColor;
+  };
+
+const customerPointLineWidth =
+  (selectedIds: ReadonlySet<number>) => (d: CustomerPointData) =>
+    selectedIds.has(d.id) ? SELECTED_LINE_WIDTH : 1;
+
 export const shouldShowOvelay = (zoom: number) => zoom >= 14;
 
 export const updateCustomerPointsOverlayVisibility = (
@@ -83,6 +108,8 @@ export const buildCustomerPointsOverlay = (
   assets: AssetsMap,
   zoom: number,
   excludedCustomerPointIds?: Set<number>,
+  selectedIds: ReadonlySet<number> = EMPTY_SELECTION,
+  selectionToken: unknown = null,
 ): CustomerPointsOverlay => {
   const customerPointsData: CustomerPointData[] = [];
   const connectionLinesData: Array<ConnectionLineData & { isActive: boolean }> =
@@ -151,13 +178,18 @@ export const buildCustomerPointsOverlay = (
     radiusMinPixels: 0,
     radiusMaxPixels: 4,
 
-    getFillColor: (d) => (d.isActive ? fillColor : disabledFillColor),
+    getFillColor: customerPointFillColor(selectedIds),
     stroked: true,
-    getLineColor: (d) => (d.isActive ? strokeColor : disabledStrokeColor),
-    getLineWidth: 1,
+    getLineColor: customerPointLineColor(selectedIds),
+    getLineWidth: customerPointLineWidth(selectedIds),
     lineWidthUnits: "pixels",
     lineWidthMinPixels: 1,
-    lineWidthMaxPixels: 2,
+    lineWidthMaxPixels: 3,
+    updateTriggers: {
+      getFillColor: selectionToken,
+      getLineColor: selectionToken,
+      getLineWidth: selectionToken,
+    },
     antialiasing: true,
     visible: isVisible,
     pickable: true,
@@ -165,6 +197,26 @@ export const buildCustomerPointsOverlay = (
 
   return [connectionLinesLayer, scatterLayer];
 };
+
+// Re-applies fill/stroke styling to an existing overlay without rebuilding.
+export const applyCustomerPointsStyles = (
+  overlay: CustomerPointsOverlay,
+  selectedIds: ReadonlySet<number>,
+  stylesToken: unknown,
+): CustomerPointsOverlay =>
+  overlay.map((layer) => {
+    if (layer.id !== "customer-points-layer") return layer;
+    return layer.clone({
+      getFillColor: customerPointFillColor(selectedIds),
+      getLineColor: customerPointLineColor(selectedIds),
+      getLineWidth: customerPointLineWidth(selectedIds),
+      updateTriggers: {
+        getFillColor: stylesToken,
+        getLineColor: stylesToken,
+        getLineWidth: stylesToken,
+      },
+    }) as CustomerPointsLayer;
+  });
 
 export const buildCustomerPointsHighlightOverlay = (
   highlightedPoints: CustomerPoint[],

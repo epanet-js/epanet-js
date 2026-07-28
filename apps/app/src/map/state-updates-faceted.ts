@@ -4,7 +4,6 @@
 // converged to a `selected` prop + filtered layers + delta live-set. Kept parallel
 // so the fork-critical geojson rendering can bake behind a flag before promotion.
 // Remove the pre-facet path (state-updates.ts) at promotion and rename this into place.
-import type { Sel } from "src/selection";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type MutableRefObject, useRef } from "react";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
@@ -69,12 +68,11 @@ import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
   buildCustomerPointsHighlightOverlay,
-  buildCustomerPointsSelectionOverlay,
+  applyCustomerPointsStyles,
   buildConnectCustomerPointsPreviewOverlay,
   buildMovingCustomerPointOverlay,
   updateCustomerPointsOverlayVisibility,
 } from "./overlays/customer-points";
-import { CustomerPoints } from "@epanet-js/hydraulic-model";
 import {
   facetedJunctionFillColorExpression,
   facetedJunctionStrokeColorExpression,
@@ -257,7 +255,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     null,
   );
   const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
-  const selectionDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
   const gridRef = useRef<Grid | null>(null);
   const scaleControlRef = useRef<mapboxgl.ScaleControl | null>(null);
@@ -508,6 +505,14 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const customerPointExclusionChanged =
         movingCustomerPointId !== prevMovingCustomerPointId;
 
+      // Selection is stored as an id array; use a Set for O(1) per-point
+      // lookups in the deck.gl accessors. The array reference is stable across
+      // non-selection updates, so it doubles as the updateTrigger.
+      const customerPointsSelectionToken = USelection.getCustomerPointIds(
+        mapState.selection,
+      );
+      const selectedCustomerPointIds = new Set(customerPointsSelectionToken);
+
       if (
         hasNewImport ||
         hasNewEditions ||
@@ -525,6 +530,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           assets,
           mapState.currentZoom,
           excludedCustomerPointIds,
+          selectedCustomerPointIds,
+          customerPointsSelectionToken,
         );
       }
 
@@ -541,11 +548,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             mapState.currentZoom,
           );
 
-        selectionDeckLayersRef.current = updateCustomerPointsOverlayVisibility(
-          selectionDeckLayersRef.current,
-          mapState.currentZoom,
-        );
-
         ephemeralDeckLayersRef.current = updateCustomerPointsOverlayVisibility(
           ephemeralDeckLayersRef.current,
           mapState.currentZoom,
@@ -560,13 +562,15 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         );
       }
 
-      if (hasNewCustomerPointsSelection || hasNewCustomerPoints) {
-        // update customer points selection state
-        selectionDeckLayersRef.current = buildSelectionOverlayForCustomerPoints(
-          mapState.selection,
-          hydraulicModel.assets,
-          hydraulicModel.customerPoints,
-          mapState.currentZoom,
+      // Fold selection into the existing base overlay instead of building a
+      // second full-size overlay: only the fill/stroke attributes recompute
+      // (via updateTriggers), the point buffers are reused. A customer-points
+      // change already re-applies selection through the rebuild above.
+      if (hasNewCustomerPointsSelection) {
+        customerPointsOverlayRef.current = applyCustomerPointsStyles(
+          customerPointsOverlayRef.current,
+          selectedCustomerPointIds,
+          customerPointsSelectionToken,
         );
       }
 
@@ -625,21 +629,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         const isCustomerPointsVisible =
           mapState.symbology.customerPoints.visible;
 
-        const shouldHideSelectionDuringMove =
-          mapState.ephemeralState.type === "moveCustomerPoint" &&
-          mapState.ephemeralState.moveActivated;
-
-        const shouldHideCustomerPointSelection =
-          !isCustomerPointsVisible &&
-          USelection.isSingleCustomerPoint(mapState.selection);
-
         const combinedOverlay = [
           ...(shouldHideCustomerPointsOverlay || !isCustomerPointsVisible
             ? []
             : customerPointsOverlayRef.current),
-          ...(shouldHideSelectionDuringMove || shouldHideCustomerPointSelection
-            ? []
-            : selectionDeckLayersRef.current),
           ...ephemeralDeckLayersRef.current,
         ];
         map.setOverlay(combinedOverlay);
@@ -1026,28 +1019,6 @@ const buildCustomerPointsEphemeralOverlay = (
     return buildMovingCustomerPointOverlay(ephemeralState, zoom);
   }
   return [];
-};
-
-const buildSelectionOverlayForCustomerPoints = (
-  selection: Sel,
-  assets: AssetsMap,
-  customerPoints: CustomerPoints,
-  zoom: number,
-): CustomerPointsOverlay => {
-  const selectedCpIds = USelection.getCustomerPointIds(selection);
-  if (selectedCpIds.length === 0) return [];
-
-  const selectedCps = [];
-  let anyActive = false;
-  for (const id of selectedCpIds) {
-    const customerPoint = customerPoints.get(id);
-    if (!customerPoint) continue;
-    selectedCps.push(customerPoint);
-    const pipeId = customerPoint.connection?.pipeId;
-    if (pipeId && assets.get(pipeId)?.isActive) anyActive = true;
-  }
-  if (selectedCps.length === 0) return [];
-  return buildCustomerPointsSelectionOverlay(selectedCps, anyActive, zoom);
 };
 
 function updateGrid({
