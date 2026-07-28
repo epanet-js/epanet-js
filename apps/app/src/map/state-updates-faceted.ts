@@ -446,32 +446,23 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         }
       }
 
-      // Delta sync outside a main sync: on new edits, a selection change below the re-bake
-      // threshold, or the moved-set changing (drag start / drop). Re-derive delta (edited ∪
-      // selection diff − moving); edited assets and deselected-baked assets are hidden in main,
-      // additions are overlaid by delta on top.
-      if (
-        (hasNewEditions ||
-          hasNewAssetsSelection ||
-          hasEphemeralTargetsChanged) &&
-        !syncMain
-      ) {
+      const syncDelta =
+        hasNewEditions || hasNewAssetsSelection || hasEphemeralTargetsChanged;
+      if (!consolidated && (syncDelta || syncMain)) {
         flog(
-          "delta-only update (NOT consolidated)",
+          "delta re-derive (NOT consolidated)",
           "| trigger",
           [
             hasNewEditions && "editions",
             hasNewAssetsSelection && "selection",
             hasEphemeralTargetsChanged && "ephemeralTargets",
+            syncMain && "propReflect",
           ]
             .filter(Boolean)
             .join(",") || "-",
           "| selectionDiff",
           dbgIds(selectionDiff),
         );
-        // Set math (backend-agnostic): the live-set rides delta (edited ∪ selection diff −
-        // moving); edited and deselected-baked assets are hidden in MAIN, additions overlaid
-        // by delta on top. The backend impl applies it (delta rebuild + MAIN feature-state).
         const editedSinceConsolidation = getAssetIdsInMoments(
           momentLog.getDeltas(mapState.syncMomentPointer),
         );
@@ -505,9 +496,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const customerPointExclusionChanged =
         movingCustomerPointId !== prevMovingCustomerPointId;
 
-      // Selection is stored as an id array; use a Set for O(1) per-point
-      // lookups in the deck.gl accessors. The array reference is stable across
-      // non-selection updates, so it doubles as the updateTrigger.
       const customerPointsSelectionToken = USelection.getCustomerPointIds(
         mapState.selection,
       );
