@@ -345,10 +345,12 @@ export const parseValve: RowParser = ({
     curveId,
   ] = readValues(trimmedRow);
 
-  const rawKind = type.toLowerCase();
-  const isValidKind = (valveKinds as readonly string[]).includes(rawKind);
+  const rawKind = type?.toLowerCase();
+  const isValidKind =
+    rawKind !== undefined &&
+    (valveKinds as readonly string[]).includes(rawKind);
   if (!isValidKind) {
-    issues.addInvalidValveKind(id, type);
+    issues.addInvalidValveKind(id, type ?? "");
   }
   const kind: ValveKind = isValidKind ? (rawKind as ValveKind) : "tcv";
 
