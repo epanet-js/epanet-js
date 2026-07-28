@@ -133,10 +133,11 @@ const buildValveIcon = (
       ? simStatus
       : valve.initialStatus
     : "disabled";
-  return buildDirectionalLinkIcon(valve, selectedAssets, () => ({
+  return buildDirectionalLinkIcon(valve, selectedAssets, (asset) => ({
     kind: valve.kind,
     icon: `valve-${valve.kind}-${status}`,
     isControlValve: controlKinds.includes(valve.kind),
+    isActive: asset.isActive,
   }));
 };
 
