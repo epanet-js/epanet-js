@@ -89,16 +89,6 @@ import {
 const SLOW_UPDATE_WARN_MS = 1000;
 const MAP_STATE_SYNC = "MAP_STATE:SYNC";
 
-// TEMP: debug logging for the selection consolidation decision. Flip off when done.
-const FACETED_DEBUG = true;
-const dbgIds = (set: Set<AssetId>): string =>
-  set.size > 12 ? `${set.size} ids` : `[${[...set].join(",")}]`;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const flog = (...args: any[]): void => {
-  // eslint-disable-next-line no-console
-  if (FACETED_DEBUG) console.log("[faceted]", ...args);
-};
-
 const getAssetIdsInMoments = (moments: ModelMoment[]): Set<AssetId> => {
   const assetIds = new Set<AssetId>();
   moments.forEach((moment) => {
@@ -411,30 +401,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
           { name: "MAP_STATE:UPDATE_MAP_DATA", maxDurationMs: 10000 },
         )();
 
-        flog(
-          consolidated
-            ? "CONSOLIDATED main (rebuilt)"
-            : "main patched (NOT consolidated)",
-          "via",
-          rebuildFamily ? "rebuildDataSources" : "updateDataSources",
-          "| trigger",
-          [
-            hasSyncMomentChanged && "syncMoment",
-            hasNewImport && "import",
-            hasNewStyles && "styles",
-            hasNewSymbologyRules && "symbology",
-            hasNewSimulation && "simulation",
-            hasNewResults && "results",
-            hasBigSelection && "selectionConsolidation",
-          ]
-            .filter(Boolean)
-            .join(",") || "-",
-          "| selected",
-          dbgIds(selectedIds),
-          "| selectionDiff",
-          dbgIds(selectionDiff),
-        );
-
         if (consolidated) {
           consolidatedSelectionRef.current = selectedIds;
           setMapSyncMoment((prev) => {
@@ -449,20 +415,6 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       const syncDelta =
         hasNewEditions || hasNewAssetsSelection || hasEphemeralTargetsChanged;
       if (!consolidated && (syncDelta || syncMain)) {
-        flog(
-          "delta re-derive (NOT consolidated)",
-          "| trigger",
-          [
-            hasNewEditions && "editions",
-            hasNewAssetsSelection && "selection",
-            hasEphemeralTargetsChanged && "ephemeralTargets",
-            syncMain && "propReflect",
-          ]
-            .filter(Boolean)
-            .join(",") || "-",
-          "| selectionDiff",
-          dbgIds(selectionDiff),
-        );
         const editedSinceConsolidation = getAssetIdsInMoments(
           momentLog.getDeltas(mapState.syncMomentPointer),
         );
