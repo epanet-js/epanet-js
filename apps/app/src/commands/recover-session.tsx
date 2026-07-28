@@ -20,7 +20,7 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
 import { useTranslate } from "src/hooks/use-translate";
-import { captureError } from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { formatErrorDetails } from "src/lib/errors";
 
 export const useRecoverSession = () => {
@@ -116,5 +116,7 @@ const discardRecoverablePools = (): void => {
   const survivingPoolIds = readRecoveryFingerprints().map(
     (fingerprint) => fingerprint.poolId,
   );
-  void cleanupStaleDbPools(getAppId(), survivingPoolIds, isSessionAlive);
+  void cleanupStaleDbPools(getAppId(), survivingPoolIds, isSessionAlive).catch(
+    (error) => captureWarning("Stale DB pool cleanup failed (discard)", error),
+  );
 };

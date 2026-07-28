@@ -1,14 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const configure = vi.fn();
-const cleanupStaleDbPools =
-  vi.fn<
-    (
-      appId: string,
-      protectedIds: string[],
-      isPoolInUse?: (id: string) => Promise<boolean>,
-    ) => Promise<void>
-  >();
+const cleanupStaleDbPools = vi.fn<
+  (
+    appId: string,
+    protectedIds: string[],
+    isPoolInUse?: (id: string) => Promise<boolean>,
+  ) => Promise<void>
+>(() => Promise.resolve());
 const registerShadowErrorReporter = vi.fn<
   (reporter: (report: unknown) => void) => Promise<void>
 >(() => Promise.resolve());

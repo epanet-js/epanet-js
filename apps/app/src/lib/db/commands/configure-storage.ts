@@ -53,7 +53,10 @@ export const configureDbStorage = async (
 
   if (effective !== "memory") {
     await holdSessionLock(appId);
-    void cleanupStaleDbPools(appId, recoverablePoolIds, isSessionAlive);
+    void cleanupStaleDbPools(appId, recoverablePoolIds, isSessionAlive).catch(
+      (error) =>
+        captureWarning("Stale DB pool cleanup failed (bootstrap)", error),
+    );
   }
 
   if (effective === "shadow") {
