@@ -71,11 +71,10 @@ export async function buildBaseStyle({
   return style;
 }
 
-export function defineEmptySources(style: Style) {
+function defineSharedEmptySources(style: Style) {
   style.sources["main-features"] = emptyGeoJSONSource;
   style.sources["delta-features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
-  style.sources["selected-features"] = emptyGeoJSONSource;
   style.sources["ephemeral"] = emptyGeoJSONSource;
   style.sources["map-overlay"] = emptyGeoJSONSource;
   style.sources["highlights"] = emptyGeoJSONSource;
@@ -83,9 +82,13 @@ export function defineEmptySources(style: Style) {
   style.sources["zones"] = emptyGeoJSONSource;
 }
 
-// The faceted source set: the base empty sources + the delta-icons facet.
+export function defineEmptySources(style: Style) {
+  defineSharedEmptySources(style);
+  style.sources["selected-features"] = emptyGeoJSONSource;
+}
+
 export function defineEmptySourcesFaceted(style: Style) {
-  defineEmptySources(style);
+  defineSharedEmptySources(style);
   style.sources["delta-icons"] = emptyGeoJSONSource;
 }
 
