@@ -45,6 +45,8 @@ export const useSnapping = (
         "main-features-junctions",
         "icons-tanks",
         "icons-reservoirs",
+        "delta-icons-tanks",
+        "delta-icons-reservoirs",
       ],
     });
     if (!pointFeatures.length) return null;
