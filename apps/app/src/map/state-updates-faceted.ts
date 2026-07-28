@@ -531,10 +531,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       if (
         hasNewZoom ||
         hasNewCustomerPointsSelection ||
-        hasNewSymbologyRules ||
+        hasNewCustomerPointsSymbology ||
         hasEphemeralStateReset
       ) {
-        // ??
+        // Re-clone the overlay layers into fresh deck.gl instances to force the update.
         customerPointsOverlayRef.current =
           updateCustomerPointsOverlayVisibility(
             customerPointsOverlayRef.current,
