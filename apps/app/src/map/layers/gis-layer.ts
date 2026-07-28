@@ -84,7 +84,9 @@ export function gisLayerLabel(
     id: `${sourceId}-label`,
     type: "symbol",
     source: sourceId,
-    filter: labelProperty ? ["has", labelProperty] : ["==", 0, 1],
+    filter: labelProperty
+      ? ["has", labelProperty]
+      : ["==", ["literal", 0], ["literal", 1]],
     layout: {
       "text-field": labelProperty ? ["get", labelProperty] : "",
       "text-font": [
