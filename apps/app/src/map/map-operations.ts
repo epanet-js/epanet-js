@@ -146,21 +146,21 @@ const updateEditionsVisibility = (
   for (const assetId of previousMovedAssetIds.values()) {
     map.showFeature("delta-features", assetId);
     map.showFeature("delta-icons", assetId);
-    map.showFeature("icons", assetId);
 
     if (hiddenInMainIds.has(assetId)) continue;
 
     map.showFeature("main-features", assetId);
+    map.showFeature("icons", assetId);
   }
 
   for (const assetId of movedAssetIds.values()) {
     map.hideFeature("delta-features", assetId);
     map.hideFeature("delta-icons", assetId);
-    map.hideFeature("icons", assetId);
 
     if (hiddenInMainIds.has(assetId)) continue;
 
     map.hideFeature("main-features", assetId);
+    map.hideFeature("icons", assetId);
   }
 
   if (movedAssetIds.size > 0) {

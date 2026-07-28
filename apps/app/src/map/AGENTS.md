@@ -269,15 +269,15 @@ z-order.
 
 - The delta live-set is `editedSinceConsolidation ∪ selectedAssets` (assets, not customer points).
   Small selections ride delta and are overlaid on top of main.
-- **Coalescing (`SELECTION_BAKE_THRESHOLD`)**: above a fixed count of selected assets, the selection
-  is **baked into main** (`rebuildSources` stamps `selected` into `main-features` / `icons`) instead
-  of going into delta — avoiding double-rendering (main normal + delta selected) and building a
-  delta nearly the size of the whole network on a select-all. `selectionBakedRef` tracks whether
+- **Coalescing (`SELECTION_CONSOLIDATION_THRESHOLD`)**: above a fixed count of selected assets, the
+  selection is **baked into main** (`rebuildSources` stamps `selected` into `main-features` / `icons`)
+  instead of going into delta — avoiding double-rendering (main normal + delta selected) and building a
+  delta nearly the size of the whole network on a select-all. `consolidatedSelectionRef` tracks whether
   main currently holds the baked selection; a selection change while baked (or dropping below the
   threshold) triggers a main rebuild to re-bake or un-bake. It is a **fixed count**, not a fraction:
   the threshold caps how large a selection we render via the delta overlay before it is cheaper to
   fold it into main.
-- Delta **membership** (`selectedForDelta`, empty when baked) is separate from delta **stamping**
+- Delta **membership** (empty when the selection is baked into main) is separate from delta **stamping**
   (the full `selectedIds`): an edited-and-selected asset always lives in delta (its geometry is
   stale) and must still render selected there, even while the bulk selection is baked into main.
 
@@ -288,8 +288,8 @@ A node move edits the node **and every incident link** (their shared endpoint fo
 drag holds the node plus its degree in links, all hidden in main and rendered from delta. That is
 correct, not a leak: the set is `editedSinceConsolidation` and is cleared on consolidation.
 
-- **Actively-editing assets are excluded from the delta live-set** (`ephemeralTargetIds` subtracted in
-  `syncSourcesWithEdits`). During a drag the moved asset is rendered by the **ephemeral** source at
+- **Actively-editing assets are excluded from the delta live-set** (`movedAssetIds` subtracted from
+  the live-set). During a drag the moved asset is rendered by the **ephemeral** source at
   its live position; if it *also* rode in delta (because it is selected) it would sit there with
   stale geometry and, on drop, expose that stale geometry for a frame while delta's `setData`
   reprocess is still in flight. Excluding it makes the faceted delta behave like V2's (which only
@@ -515,8 +515,8 @@ map.setOverlay(combinedOverlay);
 ### Core Style Configuration
 
 - **`src/map/build-style.ts`** - **MAIN STYLE CONFIGURATION**
-  - `buildStyle()` - Primary style builder and configuration
-  - `defineEmptySources()` - Initializes all 7 core sources as empty GeoJSON
+  - `buildBaseStyle()` - Primary style builder and configuration
+  - `defineEmptySources()` - Initializes the core sources as empty GeoJSON
   - Registers all layers and sources for the map
   - `makeLayers()` (pre-facet) and `makeFacetedLayers()` (faceted) build the two layer sets;
     `defineEmptySources()` registers the base sources; `defineEmptySourcesFaceted()` adds
@@ -531,9 +531,10 @@ map.setOverlay(combinedOverlay);
 
 ### Layer System
 
-- **`src/map/layers/layer.ts`** - **ALL LAYER DEFINITIONS**
-  - All hydraulic asset layer configurations in one file
-  - Layers for main-features and delta-features (paired per source)
+- **`src/map/layers/layer.ts`** - **`LayerId` REGISTRY** (the union of every layer id)
+  - Per-asset-type layer configs live in sibling files under `layers/` (`pipes.ts`, `junctions.ts`,
+    `pumps.ts`, `valves.ts`, `tank.ts`, `reservoirs.ts`, `selection.ts`, `ephemeral-state.ts`,
+    `highlights.ts`, …), each pairing main-features and delta-features layers
   - Selection layers, icon layers, label layers, ephemeral layers
 
 ### Icon System
@@ -547,24 +548,34 @@ map.setOverlay(combinedOverlay);
 
 ### Core Architecture Files
 
-- **`map-canvas.tsx`** - Main React component with Mapbox GL integration; selects the map updater
-  by flag (`FLAG_MAP_FACETED_SOURCES` → faceted, else `FLAG_MAP_SERIALIZED_SYNC` → V2, else legacy)
-- **`map-engine.ts`** - Mapbox wrapper with data source management
+- **`map-canvas.tsx`** - Main React component with Mapbox GL integration; mounts the faceted updater
+  when `FLAG_MAP_FACETED_SOURCES` is on, otherwise the default serialized `state-updates.ts`
+- **`MapEngine`** (`@epanet-js/map`) - Mapbox wrapper with data source management (imported into `src/map`)
 - **`state-updates.ts`** - **CRITICAL** - Change detection and optimization system
 - **`state-updates-faceted.ts`** - faceted parallel of `state-updates.ts` (`FLAG_MAP_FACETED_SOURCES`);
   icons main/delta facet, selection-as-`selected`-prop with delta overlay + large-selection
   coalescing. See "Faceted Source Model".
 
+### Map backend seam
+
+`src/map/map-operations.ts` defines `registerMapOperations()` / `useMapOperations()` over the
+`MapOperations` contract (from `@epanet-js/map`). The faceted updater drives the main source through
+`useMapOperations()` instead of calling source helpers directly, so the backend is pluggable. The
+default implementation, `mapOperations`, is the geojson one exported here and used unless something
+registers a selector (`(flags) => MapOperations | null`) at startup; `useMapOperations()` falls back
+to `mapOperations` whenever the selector returns `null`. This keeps the rest of `src/map` agnostic to
+which backend is active.
+
 ### System Overview
 
-- Creates 7 core sources: `"main-features"`, `"delta-features"`, `"icons"`, `"selected-features"`, `"ephemeral"`, `"map-overlay"`, `"grid"`
+- Creates the core sources: `"main-features"`, `"delta-features"`, `"icons"`, `"delta-icons"`, `"selected-features"`, `"ephemeral"`, `"map-overlay"`, `"highlights"`, `"grid"`, `"zones"`
 - Dynamic GIS sources created on demand with `"gis-{layerId}"` pattern
 - Icons system generates colored SVG variants and packs into sprite atlas
 - Layer system handles hydraulic network visualization with paint/layout configurations
 
 ### Rendering System
 
-- **`layers/`** - Layer configs for hydraulic assets (`layer.ts` is the main file)
+- **`layers/`** - Layer configs for hydraulic assets (`layer.ts` holds the `LayerId` union; configs are per-asset-type files)
 - **`icons/`** - SVG sprite atlas generation
 - **`symbology/`** - Advanced visualization and color mapping
 - **`overlays/`** - Deck.gl overlay implementations
