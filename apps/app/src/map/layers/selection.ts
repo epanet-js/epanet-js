@@ -241,7 +241,12 @@ export const selectedIconsHaloLayer = ({
         COLOR_SELECTED_LIGHT,
         COLOR_SELECTED_DEFAULT,
       ],
-      "circle-opacity": 0.8,
+      "circle-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hidden"], false],
+        0,
+        0.8,
+      ],
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
     },
   };
