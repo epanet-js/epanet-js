@@ -100,6 +100,7 @@ export const ElevationsEditor = () => {
   const { getProj4Def } = useProj4Definitions();
   const actions = useElevationSourceActions(
     overlay.onSourceTilesUpdated,
+    overlay.syncCoverage,
     getProj4Def,
   );
   const reversedSources = [...actions.sources].reverse();
@@ -771,8 +772,11 @@ type OnSourceTilesUpdated = (
   updatedTiles: GeoTiffTile[],
 ) => void;
 
+type SyncCoverage = (sourceId: string, tiles: GeoTiffTile[]) => void;
+
 const useElevationSourceActions = (
   onSourceTilesUpdated: OnSourceTilesUpdated,
+  syncCoverage: SyncCoverage,
   getProj4Def: (epsgCode: number) => Promise<string | null>,
 ) => {
   const sources = useAtomValue(elevationSourcesAtom);
@@ -839,12 +843,13 @@ const useElevationSourceActions = (
         cancelTiles(source.tiles.map((t) => t.id));
       }
       setSources((prev) => prev.filter((s) => s.id !== sourceId));
+      syncCoverage(sourceId, []);
       userTracking.capture({
         name: "elevationSource.deleted",
         sourceType: source?.type ?? "unknown",
       });
     },
-    [sources, setSources, cancelTiles, userTracking],
+    [sources, setSources, cancelTiles, syncCoverage, userTracking],
   );
 
   const addTiles = useCallback(
@@ -897,6 +902,11 @@ const useElevationSourceActions = (
   const deleteTile = useCallback(
     (sourceId: string, tileId: string) => {
       cancelTiles([tileId]);
+      const source = sources.find((s) => s.id === sourceId);
+      const remainingTiles =
+        source?.type === "geotiff"
+          ? source.tiles.filter((t) => t.id !== tileId)
+          : [];
       setSources((prev) => {
         const updated = prev.map((s) =>
           s.id === sourceId && s.type === "geotiff"
@@ -907,9 +917,10 @@ const useElevationSourceActions = (
           (s) => s.type !== "geotiff" || s.tiles.length > 0,
         );
       });
+      syncCoverage(sourceId, remainingTiles);
       userTracking.capture({ name: "elevationSource.tileDeleted" });
     },
-    [setSources, cancelTiles, userTracking],
+    [sources, setSources, cancelTiles, syncCoverage, userTracking],
   );
 
   const reorderSources = useCallback(
@@ -1124,11 +1135,25 @@ const useElevationCoverageOverlay = () => {
     [rebuildOverlay],
   );
 
+  const syncCoverage: SyncCoverage = useCallback(
+    (sourceId, tiles) => {
+      if (activeSourceIdRef.current !== sourceId) return;
+      if (tiles.length === 0) {
+        hideCoverage();
+        return;
+      }
+      hoveredTileIdRef.current = null;
+      rebuildOverlay(tiles, null);
+    },
+    [rebuildOverlay, hideCoverage],
+  );
+
   return {
     showCoverage,
     hideCoverage,
     highlightTile,
     onSourceTilesUpdated,
+    syncCoverage,
   };
 };
 
