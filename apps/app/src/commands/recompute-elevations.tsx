@@ -3,10 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AssetId, NodeAsset, isNodeAsset } from "@epanet-js/hydraulic-model";
 import { fetchElevationsFromSources } from "src/lib/elevations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
-import { notify } from "src/components/notifications";
 import { captureError } from "src/infra/error-tracking";
-import { SuccessIcon, UnavailableIcon, WarningIcon } from "src/icons";
-import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
@@ -17,14 +14,25 @@ import type { AssetPatch } from "src/hydraulic-model/model-operation";
 
 export type RecomputeElevationsMode = "missing" | "all";
 
+export type RecomputeElevationsResult =
+  | { status: "noSources" }
+  | { status: "error" }
+  | {
+      status: "done";
+      mode: RecomputeElevationsMode;
+      total: number;
+      resolved: number;
+      unresolved: number;
+    };
+
 export type ElevationTargets = {
   missingIds: AssetId[];
   allIds: AssetId[];
 };
 
 // Scans the model for junction/tank ids that can receive an elevation. Runs only
-// while `enabled` (the popover is open) and yields to the main thread between
-// chunks so a large model does not freeze the panel. Returns null while scanning.
+// while `enabled` (the dialog is open) and yields to the main thread between
+// chunks so a large model does not freeze the UI. Returns null while scanning.
 export const useElevationTargets = (
   enabled: boolean,
 ): ElevationTargets | null => {
@@ -69,8 +77,6 @@ export const useRecomputeElevations = () => {
   const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
-  const translate = useTranslate();
-  const [isRunning, setIsRunning] = useState(false);
 
   const recompute = useCallback(
     async ({
@@ -79,24 +85,14 @@ export const useRecomputeElevations = () => {
     }: {
       assetIds: AssetId[];
       mode: RecomputeElevationsMode;
-    }) => {
-      if (assetIds.length === 0) return;
-
+    }): Promise<RecomputeElevationsResult> => {
       const availableSources = isOffline
         ? sources.filter((source) => source.type !== "tile-server")
         : sources;
       if (!availableSources.some((source) => source.enabled)) {
-        notify({
-          variant: "warning",
-          Icon: UnavailableIcon,
-          title: translate("elevations.recompute.noSourcesTitle"),
-          description: translate("elevations.recompute.noSources"),
-          id: "elevations-recompute-summary",
-        });
-        return;
+        return { status: "noSources" };
       }
 
-      setIsRunning(true);
       try {
         const nodes: NodeAsset[] = [];
         const points: { lng: number; lat: number }[] = [];
@@ -108,7 +104,9 @@ export const useRecomputeElevations = () => {
           points.push({ lng, lat });
         }
 
-        // Overwrite mode clears every target first
+        // Overwrite mode clears every target first, as its own committed step, so
+        // that if the fetch fails the user can see which nodes still have no value.
+        // Unresolved nodes then simply stay empty (never refilled below).
         if (mode === "all") {
           const clearIfSliceElapsed = createTimeSlicer();
           const clearPatches: AssetPatch[] = [];
@@ -168,64 +166,20 @@ export const useRecomputeElevations = () => {
           unresolved,
         });
 
-        if (resolved === 0) {
-          notify({
-            variant: "warning",
-            Icon: UnavailableIcon,
-            title: translate("elevations.recompute.noneResolvedTitle"),
-            description: translate(
-              "elevations.recompute.noneResolved",
-              String(nodes.length),
-            ),
-            id: "elevations-recompute-summary",
-          });
-        } else if (unresolved > 0) {
-          notify({
-            variant: "warning",
-            Icon: WarningIcon,
-            title: translate("elevations.recompute.summaryTitle"),
-            description: translate(
-              "elevations.recompute.summary",
-              String(resolved),
-              String(unresolved),
-            ),
-            id: "elevations-recompute-summary",
-          });
-        } else {
-          notify({
-            variant: "success",
-            Icon: SuccessIcon,
-            title: translate("elevations.recompute.summaryTitle"),
-            description: translate(
-              "elevations.recompute.summaryAllResolved",
-              String(resolved),
-            ),
-            id: "elevations-recompute-summary",
-          });
-        }
+        return {
+          status: "done",
+          mode,
+          total: nodes.length,
+          resolved,
+          unresolved,
+        };
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
-        notify({
-          variant: "error",
-          Icon: UnavailableIcon,
-          title: translate("elevations.recompute.failedTitle"),
-          description: translate("elevations.recompute.failed"),
-          id: "elevations-recompute-summary",
-        });
-      } finally {
-        setIsRunning(false);
+        return { status: "error" };
       }
     },
-    [
-      model,
-      sources,
-      isOffline,
-      units.elevation,
-      transact,
-      userTracking,
-      translate,
-    ],
+    [model, sources, isOffline, units.elevation, transact, userTracking],
   );
 
-  return { recompute, isRunning };
+  return { recompute };
 };

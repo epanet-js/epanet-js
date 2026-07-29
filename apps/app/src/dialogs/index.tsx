@@ -66,6 +66,7 @@ import { ProfileNoPathDialog } from "src/dialogs/profile-no-path";
 import { CustomGraphDialog } from "src/dialogs/custom-graph-dialog";
 import { PriorityAccessDialog } from "src/dialogs/priority-access";
 import { AllocateCustomerPointsDialog } from "src/dialogs/allocate-customer-points";
+import { RecomputeElevationsDialog } from "src/dialogs/recompute-elevations-dialog";
 import { AllocateCustomerPointsWarningDialog } from "src/dialogs/allocate-customer-points-warning";
 import { ModelAttributesValidationDialog } from "src/dialogs/model-attributes-validation";
 import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
@@ -175,6 +176,9 @@ export const Dialogs = memo(function Dialogs() {
   }
   if (dialog.type === "allocateCustomerPoints") {
     return <AllocateCustomerPointsDialog isOpen={true} onClose={onClose} />;
+  }
+  if (dialog.type === "recomputeElevations") {
+    return <RecomputeElevationsDialog onClose={onClose} />;
   }
   if (dialog.type === "allocateCustomerPointsWarning") {
     return (

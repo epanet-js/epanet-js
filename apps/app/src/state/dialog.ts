@@ -309,6 +309,10 @@ export type AllocateCustomerPointsWarningDialogState = {
   onImport: () => void;
 };
 
+export type RecomputeElevationsDialogState = {
+  type: "recomputeElevations";
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -341,6 +345,7 @@ export type DialogState =
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState
+  | RecomputeElevationsDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
   | PatternsLibraryDialog
