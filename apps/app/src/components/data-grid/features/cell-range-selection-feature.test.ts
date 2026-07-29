@@ -5,6 +5,7 @@ import { act } from "react";
 import { renderHook } from "@testing-library/react";
 import { useReactTable } from "@tanstack/react-table";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
+import { DefaultValueFeature } from "./default-value-feature";
 import { LazyRowModelFeature } from "./lazy-row-model-feature";
 import { getLazyCoreRowModel } from "../models/lazy-core-row-model";
 import { getLazyStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
@@ -22,7 +23,11 @@ const useFeatureTable = (data: Row[] = []) =>
     data,
     columns: [{ accessorKey: "a" }, { accessorKey: "b" }, { accessorKey: "c" }],
     getCoreRowModel: getLazyCoreRowModel(),
-    _features: [LazyRowModelFeature, CellRangeSelectionFeature],
+    _features: [
+      LazyRowModelFeature,
+      CellRangeSelectionFeature,
+      DefaultValueFeature,
+    ],
   });
 
 const useGridTable = () =>
@@ -356,7 +361,11 @@ describe("sort-aware indexing", () => {
       getCoreRowModel: getLazyCoreRowModel(),
       getSortedRowModel: getLazyStickySortedRowModel(),
       enableSorting: true,
-      _features: [LazyRowModelFeature, CellRangeSelectionFeature],
+      _features: [
+        LazyRowModelFeature,
+        CellRangeSelectionFeature,
+        DefaultValueFeature,
+      ],
     });
 
   // Data is [Bob, Alice, Carol] but sorted asc → [Alice, Bob, Carol].

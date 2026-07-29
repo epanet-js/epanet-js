@@ -29,6 +29,7 @@ import {
   ClipboardFeature,
   ColumnSizingFeature,
   CustomHeaderActionsFeature,
+  DefaultValueFeature,
   LazyRowModelFeature,
   type ClipboardCopyInfo,
   type ClipboardPasteInfo,
@@ -137,6 +138,7 @@ export const DataGrid = forwardRef(function DataGrid<
       CellRenderingFeature,
       ColumnSizingFeature,
       CustomHeaderActionsFeature,
+      DefaultValueFeature,
       LazyRowModelFeature,
     ],
     // Clipboard feature options

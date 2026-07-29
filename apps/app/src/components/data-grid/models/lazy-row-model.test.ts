@@ -13,6 +13,7 @@ import {
 import { getLazyStickySortedRowModel } from "./lazy-sticky-sorted-row-model";
 import { LazyRowModelFeature } from "../features/lazy-row-model-feature";
 import { CellRangeSelectionFeature } from "../features/cell-range-selection-feature";
+import { DefaultValueFeature } from "../features/default-value-feature";
 
 type Row = { id: number; value: number; label: string };
 
@@ -32,7 +33,11 @@ const useGridTable = (data: Row[]) =>
     getCoreRowModel: getLazyCoreRowModel(),
     getSortedRowModel: getLazyStickySortedRowModel(),
     enableSorting: true,
-    _features: [LazyRowModelFeature, CellRangeSelectionFeature],
+    _features: [
+      LazyRowModelFeature,
+      CellRangeSelectionFeature,
+      DefaultValueFeature,
+    ],
   });
 
 // The lazy model is the only model now; the threshold is just the LRU cap, so we
@@ -192,6 +197,66 @@ describe("edit while sorted (sticky, no rebuild)", () => {
     const after = result.current.getLazyRowOrder();
     expect(after).not.toBe(before);
     expect(after.orderByDataIndex?.length).toBe(LARGE - 1);
+  });
+});
+
+describe("sorting by column default (empty cells)", () => {
+  type DefRow = { id: number; value: number | null };
+
+  const useDefaultSortTable = (
+    data: DefRow[],
+    defaultValue: number | ((rowIndex: number) => number),
+  ) =>
+    useReactTable<DefRow>({
+      data,
+      columns: [{ accessorKey: "value", meta: { defaultValue } }],
+      getRowId: (row) => String(row.id),
+      getCoreRowModel: getLazyCoreRowModel(),
+      getSortedRowModel: getLazyStickySortedRowModel(),
+      enableSorting: true,
+      _features: [
+        LazyRowModelFeature,
+        CellRangeSelectionFeature,
+        DefaultValueFeature,
+      ],
+    });
+
+  it("orders empty cells by their resolved default, not as empty", () => {
+    const data: DefRow[] = [
+      { id: 0, value: null }, // effective 3
+      { id: 1, value: 5 },
+      { id: 2, value: null }, // effective 3
+      { id: 3, value: 2 },
+    ];
+    const { result } = renderHook(() => useDefaultSortTable(data, 3));
+    act(() => result.current.setSorting([{ id: "value", desc: false }]));
+
+    // asc effective [3,5,3,2] -> 2(id3), 3(id0), 3(id2 stable tie-break), 5(id1)
+    expect(result.current.getRowModel().rows.map((r) => r.id)).toEqual([
+      "3",
+      "0",
+      "2",
+      "1",
+    ]);
+  });
+
+  it("resolves a function default per data index for sorting", () => {
+    const data: DefRow[] = [
+      { id: 0, value: null }, // effective 10 - 0 = 10
+      { id: 1, value: 4 },
+      { id: 2, value: null }, // effective 10 - 2 = 8
+    ];
+    const { result } = renderHook(() =>
+      useDefaultSortTable(data, (rowIndex) => 10 - rowIndex),
+    );
+    act(() => result.current.setSorting([{ id: "value", desc: false }]));
+
+    // asc effective [10,4,8] -> 4(id1), 8(id2), 10(id0)
+    expect(result.current.getRowModel().rows.map((r) => r.id)).toEqual([
+      "1",
+      "2",
+      "0",
+    ]);
   });
 });
 

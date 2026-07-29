@@ -90,7 +90,13 @@ export function GridRow<TData extends Record<string, unknown>>({
             isLastRow={cellsIsLastRow}
             isLastCol={colIndex === cells.length - 1}
             hasWarning={
-              (!readOnly && cell.column.hasWarning(cell.getValue())) ||
+              (!readOnly &&
+                cell.column.hasWarning(
+                  cell.column.getEffectiveValue(
+                    cell.getValue(),
+                    cell.row.index,
+                  ),
+                )) ||
               (accessorKey
                 ? (cellHasWarning?.(cell.row.index, accessorKey) ?? false)
                 : false)

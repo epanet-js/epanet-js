@@ -41,7 +41,11 @@ export function getSortValue<TData extends RowData>(
   index: number,
 ): unknown {
   const column = table.getColumn(columnId);
-  return column?.accessorFn ? column.accessorFn(original, index) : undefined;
+  if (!column) return undefined;
+  const raw = column.accessorFn
+    ? column.accessorFn(original, index)
+    : undefined;
+  return column.getEffectiveValue(raw, index);
 }
 
 // table-core's RE for "string contains a number" (alphanumeric auto-detection).

@@ -6,6 +6,7 @@ import { renderHook } from "@testing-library/react";
 import { useReactTable } from "@tanstack/react-table";
 import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
+import { DefaultValueFeature } from "./default-value-feature";
 import { LazyRowModelFeature } from "./lazy-row-model-feature";
 import { getLazyCoreRowModel } from "../models/lazy-core-row-model";
 import { getLazyStickySortedRowModel } from "../models/lazy-sticky-sorted-row-model";
@@ -21,6 +22,7 @@ const useFeatureTable = (data: Row[] = []) =>
       LazyRowModelFeature,
       CellEditingFeature,
       CellRangeSelectionFeature,
+      DefaultValueFeature,
     ],
   });
 
@@ -60,6 +62,7 @@ const useEditableTable = (
       LazyRowModelFeature,
       CellEditingFeature,
       CellRangeSelectionFeature,
+      DefaultValueFeature,
     ],
   });
 
@@ -265,6 +268,7 @@ describe("deleteSelection", () => {
           LazyRowModelFeature,
           CellEditingFeature,
           CellRangeSelectionFeature,
+          DefaultValueFeature,
         ],
       }),
     );

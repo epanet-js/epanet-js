@@ -248,10 +248,12 @@ export const ClipboardFeature: TableFeature = {
             cells.push("");
             continue;
           }
-          const value = column.accessorFn
+          const raw = column.accessorFn
             ? column.accessorFn(original, dataIdx)
             : undefined;
-          cells.push(column.getCopyValue(value));
+          cells.push(
+            column.getCopyValue(column.getEffectiveValue(raw, dataIdx)),
+          );
         }
         dataLines.push(cells.join("\t"));
       }

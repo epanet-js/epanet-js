@@ -177,6 +177,7 @@ export function floatColumn<TData extends RowData = RowData>(
     required?: boolean;
     decimals?: number;
     isReadOnly?: boolean | ((rowIndex: number) => boolean);
+    defaultValue?: number | null | ((rowIndex: number) => number | null);
     placeholder?: string;
     toDisplay?: (stored: number) => number;
     fromDisplay?: (displayed: number) => number;
@@ -189,6 +190,7 @@ export function floatColumn<TData extends RowData = RowData>(
     required,
     decimals,
     isReadOnly: readonly,
+    defaultValue,
     placeholder,
     toDisplay,
     fromDisplay,
@@ -197,6 +199,17 @@ export function floatColumn<TData extends RowData = RowData>(
   const isDynamicReadOnly = typeof readonly === "function";
   const resolveReadOnly = (rowIndex: number) =>
     typeof readonly === "function" ? readonly(rowIndex) : (readonly ?? false);
+  const resolvePlaceholder = (rowIndex: number): string | undefined => {
+    const resolved =
+      typeof defaultValue === "function"
+        ? defaultValue(rowIndex)
+        : defaultValue;
+    if (resolved == null) return placeholder;
+    return formatLocaleNumber(
+      toDisplay ? toDisplay(resolved) : resolved,
+      decimals,
+    );
+  };
 
   const CellComponent =
     emptyValue !== undefined ||
@@ -205,6 +218,7 @@ export function floatColumn<TData extends RowData = RowData>(
     decimals !== undefined ||
     isStaticReadOnly ||
     isDynamicReadOnly ||
+    defaultValue !== undefined ||
     placeholder !== undefined ||
     toDisplay !== undefined ||
     fromDisplay !== undefined
@@ -216,7 +230,7 @@ export function floatColumn<TData extends RowData = RowData>(
             commitInvalidValues={commitInvalidValues}
             decimals={decimals}
             readonly={resolveReadOnly(props.rowIndex)}
-            placeholder={placeholder}
+            placeholder={resolvePlaceholder(props.rowIndex)}
             toDisplay={toDisplay}
             fromDisplay={fromDisplay}
           />
@@ -247,6 +261,7 @@ export function floatColumn<TData extends RowData = RowData>(
       deleteValue: emptyValue,
       placeholder,
       isReadOnly: readonly,
+      defaultValue,
       ...(required !== undefined
         ? {
             hasWarning: (value: number | null): boolean =>

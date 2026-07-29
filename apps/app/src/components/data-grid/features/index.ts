@@ -25,3 +25,5 @@ export {
   resolveVisibleHeaderActions,
 } from "./custom-header-actions-feature";
 export type { CustomHeaderAction } from "./custom-header-actions-feature";
+
+export { DefaultValueFeature } from "./default-value-feature";

@@ -7,6 +7,7 @@ import { useReactTable } from "@tanstack/react-table";
 import { CellEditingFeature } from "./cell-editing-feature";
 import { CellRangeSelectionFeature } from "./cell-range-selection-feature";
 import { ClipboardFeature } from "./clipboard-feature";
+import { DefaultValueFeature } from "./default-value-feature";
 import { LazyRowModelFeature } from "./lazy-row-model-feature";
 import {
   type LazyRowModel,
@@ -53,6 +54,7 @@ const useClipboardTable = (options: TableOptions) =>
       CellEditingFeature,
       CellRangeSelectionFeature,
       ClipboardFeature,
+      DefaultValueFeature,
       LazyRowModelFeature,
     ],
     onDataChange: options.onChange,
@@ -405,6 +407,129 @@ describe("ClipboardFeature", () => {
       expect(onClipboardCopy).toHaveBeenCalledWith(
         expect.objectContaining({ includeHeaders: true }),
       );
+    });
+  });
+
+  describe("copying column defaults for empty cells", () => {
+    // The default only substitutes for a null/undefined stored value, so these
+    // rows use nullable fields (an empty string is a present value, not empty).
+    type DefaultRow = { id: string; name: string | null; value: string | null };
+
+    // `name` has a static default, `value` a per-row (data index) default.
+    const defaultValueColumns = [
+      { accessorKey: "id", header: "ID" },
+      { accessorKey: "name", header: "Name", meta: { defaultValue: "N/A" } },
+      {
+        accessorKey: "value",
+        header: "Value",
+        meta: { defaultValue: (rowIndex: number) => `d${rowIndex}` },
+      },
+    ] as GridColumn<DefaultRow>[];
+
+    const useDefaultTable = (data: DefaultRow[], sortable = false) =>
+      useReactTable<DefaultRow>({
+        data,
+        columns: defaultValueColumns,
+        getCoreRowModel: getLazyCoreRowModel(),
+        ...(sortable
+          ? {
+              getSortedRowModel: getLazyStickySortedRowModel(),
+              enableSorting: true,
+            }
+          : {}),
+        _features: [
+          CellEditingFeature,
+          CellRangeSelectionFeature,
+          ClipboardFeature,
+          DefaultValueFeature,
+          LazyRowModelFeature,
+        ],
+      });
+
+    it("copies the static default when the cell is empty", async () => {
+      const clip = stubClipboard();
+      const data: DefaultRow[] = [{ id: "1", name: null, value: null }];
+
+      const { result } = renderHook(() => useDefaultTable(data));
+      act(() => result.current.selectRange(single(1, 0)));
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.writeText).toHaveBeenCalledWith("N/A");
+    });
+
+    it("copies the stored value, not the default, when the cell is filled", async () => {
+      const clip = stubClipboard();
+      const data: DefaultRow[] = [{ id: "1", name: "Alice", value: null }];
+
+      const { result } = renderHook(() => useDefaultTable(data));
+      act(() => result.current.selectRange(single(1, 0)));
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.writeText).toHaveBeenCalledWith("Alice");
+    });
+
+    it("resolves a function default with the row's data index", async () => {
+      const clip = stubClipboard();
+      const data: DefaultRow[] = [
+        { id: "1", name: null, value: null },
+        { id: "2", name: null, value: null },
+      ];
+
+      const { result } = renderHook(() => useDefaultTable(data));
+      act(() => result.current.selectRange(single(2, 1)));
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.writeText).toHaveBeenCalledWith("d1");
+    });
+
+    it("mixes defaults and stored values across a multi-row copy", async () => {
+      const clip = stubClipboard();
+      const data: DefaultRow[] = [
+        { id: "1", name: null, value: null },
+        { id: "2", name: "Bob", value: null },
+      ];
+
+      const { result } = renderHook(() => useDefaultTable(data));
+      act(() =>
+        result.current.selectRange({
+          min: { col: 1, row: 0 },
+          max: { col: 1, row: 1 },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.writeText).toHaveBeenCalledWith("N/A\nBob");
+    });
+
+    it("resolves the default by data index, not visual position, when sorted", async () => {
+      const clip = stubClipboard();
+      const data: DefaultRow[] = [
+        { id: "1", name: "a", value: null },
+        { id: "2", name: "b", value: null },
+      ];
+
+      const { result } = renderHook(() => useDefaultTable(data, true));
+      // Descending name puts id 2 (data index 1) at visual row 0.
+      act(() => result.current.setSorting([{ id: "name", desc: true }]));
+      act(() => result.current.selectRange(single(2, 0)));
+
+      await act(async () => {
+        await result.current.copySelection();
+      });
+
+      expect(clip.writeText).toHaveBeenCalledWith("d1");
     });
   });
 
