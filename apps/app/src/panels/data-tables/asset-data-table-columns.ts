@@ -158,20 +158,20 @@ const NULLABLE_KEYS = new Set([
 ]);
 
 // EPANET default shown as a placeholder for an empty optional column.
-const optionalColumnPlaceholder = (key: string): string | undefined => {
+const optionalColumnDefault = (key: string): number | undefined => {
   switch (key) {
     case "minorLoss":
-      return String(DEFAULT_MINOR_LOSS);
+      return DEFAULT_MINOR_LOSS;
     case "emitterCoefficient":
-      return String(DEFAULT_EMITTER_COEFFICIENT);
+      return DEFAULT_EMITTER_COEFFICIENT;
     case "minVolume":
-      return String(DEFAULT_MIN_VOLUME);
+      return DEFAULT_MIN_VOLUME;
     case "mixingFraction":
-      return String(DEFAULT_MIXING_FRACTION);
+      return DEFAULT_MIXING_FRACTION;
     case "speed":
-      return String(DEFAULT_SPEED);
+      return DEFAULT_SPEED;
     case "initialQuality":
-      return String(DEFAULT_INITIAL_QUALITY);
+      return DEFAULT_INITIAL_QUALITY;
     default:
       return undefined;
   }
@@ -612,13 +612,13 @@ function _buildColumns(
       unit = null,
       property,
       isReadOnly,
-      placeholder,
+      defaultValue,
       commitInvalidValues,
     }: {
       unit?: Parameters<TranslateUnitFn>[0];
       property?: QuantityProperty;
       isReadOnly?: (rowIndex: number) => boolean;
-      placeholder?: string;
+      defaultValue?: number | null | ((rowIndex: number) => number | null);
       commitInvalidValues?: boolean;
     } = {},
   ): GridColumn<AssetRow> => {
@@ -634,7 +634,7 @@ function _buildColumns(
       validate: fieldValidator(type, key),
       commitInvalidValues,
       required: !isOptionalColumn(key),
-      placeholder: optionalColumnPlaceholder(key) ?? placeholder,
+      defaultValue: defaultValue ?? optionalColumnDefault(key),
       emptyValue: emptiable ? null : NON_ZERO_KEYS.has(key) ? undefined : 0,
     });
   };
@@ -715,7 +715,7 @@ function _buildColumns(
     }),
     numericCol("chemicalSourceStrength", translate("chemicalSourceStrength"), {
       isReadOnly: isChemicalSourceNone,
-      placeholder: localizeDecimal(0),
+      defaultValue: 0,
       commitInvalidValues: true,
     }),
     patternCol(
@@ -857,13 +857,13 @@ function _buildColumns(
           header: translate("bulkReactionCoeff"),
           decimals: formatting.defaultDecimals,
           emptyValue: null,
-          placeholder: localizeDecimal(reactionGlobalBulk),
+          defaultValue: reactionGlobalBulk,
         }),
         floatColumn("wallReactionCoeff", {
           header: translate("wallReactionCoeff"),
           decimals: formatting.defaultDecimals,
           emptyValue: null,
-          placeholder: localizeDecimal(reactionGlobalWall),
+          defaultValue: reactionGlobalWall,
         }),
         ...trailingCols,
       ];
@@ -935,7 +935,7 @@ function _buildColumns(
           translate("constantPercent", localizeDecimal(energyGlobalEfficiency)),
         ),
         numericCol("energyPrice", translate("energyPrice"), {
-          placeholder: localizeDecimal(energyGlobalPrice),
+          defaultValue: energyGlobalPrice,
           commitInvalidValues: true,
         }),
         patternCol(
@@ -1100,7 +1100,7 @@ function _buildColumns(
           header: translate("bulkReactionCoeff"),
           decimals: formatting.defaultDecimals,
           emptyValue: null,
-          placeholder: localizeDecimal(reactionGlobalBulk),
+          defaultValue: reactionGlobalBulk,
         }),
         ...chemicalSourceTypeCols(),
         ...trailingCols,
