@@ -3,6 +3,7 @@ export {
   OPFSStorage,
   isOPFSAvailable,
   opfsUnavailableErrors,
+  getAvailableStorageBytes,
 } from "./opfs-storage";
 export { InMemoryKeyBufferStore as InMemoryStorage } from "./in-memory-key-buffer-store";
 export { initStorage } from "./init";

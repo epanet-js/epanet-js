@@ -170,6 +170,17 @@ export async function isOPFSAvailable(): Promise<boolean> {
   }
 }
 
+export async function getAvailableStorageBytes(): Promise<number> {
+  try {
+    if (!navigator.storage?.estimate) return 0;
+    const { quota, usage } = await navigator.storage.estimate();
+    if (quota === undefined) return 0;
+    return quota - (usage ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
 export async function cleanupStaleOPFS(thresholdMs: number): Promise<void> {
   if (!(await isOPFSAvailable())) return;
   const staleAppIds = findStaleAppIds(thresholdMs);

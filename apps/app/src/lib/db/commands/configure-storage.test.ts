@@ -40,9 +40,11 @@ vi.mock("src/infra/session-lock", () => ({
 }));
 
 const isOPFSAvailable = vi.fn<() => Promise<boolean>>();
+const getAvailableStorageBytes = vi.fn<() => Promise<number | null>>();
 vi.mock("src/infra/storage", async (importActual) => ({
   ...(await importActual<typeof import("src/infra/storage")>()),
   isOPFSAvailable: () => isOPFSAvailable(),
+  getAvailableStorageBytes: () => getAvailableStorageBytes(),
 }));
 
 const getAppId = vi.fn(() => "tab-a");
@@ -69,9 +71,15 @@ const readOff = false;
 const recoveryOn = true;
 const recoveryOff = false;
 
+const gibibyte = 1024 * 1024 * 1024;
+
+const fallbackMessage = (reason: string) =>
+  `OPFS db storage requested but fell back to in-memory db: ${reason}`;
+
 beforeEach(() => {
   vi.clearAllMocks();
   readRecoveryFingerprints.mockReturnValue([]);
+  getAvailableStorageBytes.mockResolvedValue(gibibyte);
 });
 
 describe("configureDbStorage", () => {
@@ -123,7 +131,79 @@ describe("configureDbStorage", () => {
     expect(result).toBe("memory");
     expect(configure).toHaveBeenCalledTimes(2);
     expect(captureWarning).toHaveBeenCalledTimes(1);
+    expect(captureWarning).toHaveBeenCalledWith(
+      fallbackMessage("db-worker-fallback"),
+    );
     expect(cleanupStaleDbPools).not.toHaveBeenCalled();
+  });
+
+  describe("storage quota", () => {
+    it("initializes the worker in memory and warns when available space is below the threshold", async () => {
+      isOPFSAvailable.mockResolvedValue(true);
+      getAvailableStorageBytes.mockResolvedValue(256 * 1024 * 1024);
+      configure.mockResolvedValue("memory");
+
+      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+
+      expect(result).toBe("memory");
+      expect(configure).toHaveBeenCalledTimes(1);
+      expect(configure).toHaveBeenCalledWith({
+        mode: "memory",
+        sahpoolId: "tab-a",
+      });
+      expect(captureWarning).toHaveBeenCalledTimes(1);
+      expect(captureWarning).toHaveBeenCalledWith(
+        fallbackMessage("opfs-quota-exceeded"),
+      );
+      expect(holdSessionLock).not.toHaveBeenCalled();
+      expect(cleanupStaleDbPools).not.toHaveBeenCalled();
+    });
+
+    it("uses OPFS when available space meets the threshold", async () => {
+      isOPFSAvailable.mockResolvedValue(true);
+      getAvailableStorageBytes.mockResolvedValue(512 * 1024 * 1024);
+      configure.mockResolvedValueOnce("sahpool");
+
+      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+
+      expect(result).toBe("sahpool");
+      expect(captureWarning).not.toHaveBeenCalled();
+    });
+
+    it("treats an unmeasurable (zero) quota as below the threshold", async () => {
+      isOPFSAvailable.mockResolvedValue(true);
+      getAvailableStorageBytes.mockResolvedValue(0);
+      configure.mockResolvedValue("memory");
+
+      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+
+      expect(result).toBe("memory");
+      expect(configure).toHaveBeenCalledWith({
+        mode: "memory",
+        sahpoolId: "tab-a",
+      });
+      expect(captureWarning).toHaveBeenCalledWith(
+        fallbackMessage("opfs-quota-exceeded"),
+      );
+      expect(holdSessionLock).not.toHaveBeenCalled();
+    });
+
+    it("initializes the worker in memory without measuring the quota when OPFS is unavailable", async () => {
+      isOPFSAvailable.mockResolvedValue(false);
+      configure.mockResolvedValue("memory");
+
+      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+
+      expect(result).toBe("memory");
+      expect(getAvailableStorageBytes).not.toHaveBeenCalled();
+      expect(configure).toHaveBeenCalledWith({
+        mode: "memory",
+        sahpoolId: "tab-a",
+      });
+      expect(captureWarning).toHaveBeenCalledWith(
+        fallbackMessage("opfs-not-available"),
+      );
+    });
   });
 
   it("returns memory without touching the worker when the write flag is off", async () => {
@@ -336,9 +416,9 @@ describe("configureDbStorage", () => {
       expect(holdSessionLock).not.toHaveBeenCalled();
     });
 
-    it("requests memory when the write flag is on but OPFS is unavailable", async () => {
+    it("initializes the worker in memory when the write flag is on but OPFS is unavailable", async () => {
       isOPFSAvailable.mockResolvedValue(false);
-      configure.mockResolvedValueOnce("memory");
+      configure.mockResolvedValue("memory");
 
       const result = await configureDbStorage(writeOn, readOff, recoveryOff);
 
@@ -348,7 +428,9 @@ describe("configureDbStorage", () => {
         sahpoolId: "tab-a",
       });
       expect(registerShadowErrorReporter).not.toHaveBeenCalled();
-      expect(captureWarning).not.toHaveBeenCalled();
+      expect(captureWarning).toHaveBeenCalledWith(
+        fallbackMessage("opfs-not-available"),
+      );
     });
   });
 });

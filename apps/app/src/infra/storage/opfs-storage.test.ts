@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { OPFSStorage, cleanupStaleOPFS } from "./opfs-storage";
+import {
+  OPFSStorage,
+  cleanupStaleOPFS,
+  getAvailableStorageBytes,
+} from "./opfs-storage";
 
 describe("OPFSStorage", () => {
   let mockAppDir: {
@@ -298,5 +302,45 @@ describe("OPFSStorage", () => {
 
       expect(mockSimulationDir.removeEntry).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("getAvailableStorageBytes", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const stubEstimate = (estimate: unknown) => {
+    vi.stubGlobal("navigator", { storage: { estimate } });
+  };
+
+  it("returns quota minus usage", async () => {
+    stubEstimate(vi.fn().mockResolvedValue({ quota: 1000, usage: 200 }));
+
+    expect(await getAvailableStorageBytes()).toBe(800);
+  });
+
+  it("treats missing usage as zero", async () => {
+    stubEstimate(vi.fn().mockResolvedValue({ quota: 1000 }));
+
+    expect(await getAvailableStorageBytes()).toBe(1000);
+  });
+
+  it("returns zero when the quota is undefined", async () => {
+    stubEstimate(vi.fn().mockResolvedValue({ usage: 200 }));
+
+    expect(await getAvailableStorageBytes()).toEqual(0);
+  });
+
+  it("returns zero when estimate is unavailable", async () => {
+    stubEstimate(undefined);
+
+    expect(await getAvailableStorageBytes()).toEqual(0);
+  });
+
+  it("returns zero when estimate throws", async () => {
+    stubEstimate(vi.fn().mockRejectedValue(new Error("nope")));
+
+    expect(await getAvailableStorageBytes()).toEqual(0);
   });
 });

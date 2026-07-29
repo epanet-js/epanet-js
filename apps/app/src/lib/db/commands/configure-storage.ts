@@ -5,7 +5,7 @@ import {
   type ShadowErrorReport,
 } from "@epanet-js/ejsdb";
 import { getAppId, resetAppId } from "src/infra/app-instance";
-import { isOPFSAvailable } from "src/infra/storage";
+import { isOPFSAvailable, getAvailableStorageBytes } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
 import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
 import {
@@ -16,6 +16,8 @@ import {
 
 export type DbStorageMode = "memory" | "shadow" | "sahpool";
 
+const OPFS_MIN_AVAILABLE_BYTES = 512 * 1024 * 1024;
+
 export const configureDbStorage = async (
   isWriteDbToOpfsOn: boolean,
   isReadDbFromOpfsOn: boolean,
@@ -24,8 +26,25 @@ export const configureDbStorage = async (
   if (!isWriteDbToOpfsOn) return "memory";
 
   const opfsAvailable = await isOPFSAvailable();
-  const requested = isReadDbFromOpfsOn ? "sahpool" : "shadow";
-  const mode = opfsAvailable ? requested : "memory";
+  if (!opfsAvailable) {
+    reportFallback("opfs-not-available");
+    return await getWorker().configure({
+      mode: "memory",
+      sahpoolId: getAppId(),
+    });
+  }
+
+  const availableBytes = await getAvailableStorageBytes();
+  const quotaExceeded = availableBytes < OPFS_MIN_AVAILABLE_BYTES;
+  if (quotaExceeded) {
+    reportFallback("opfs-quota-exceeded");
+    return await getWorker().configure({
+      mode: "memory",
+      sahpoolId: getAppId(),
+    });
+  }
+
+  const mode = isReadDbFromOpfsOn ? "sahpool" : "shadow";
 
   const recoverablePoolIds = sessionRecoveryEnabled
     ? readRecoveryFingerprints().map((fingerprint) => fingerprint.poolId)
@@ -40,13 +59,13 @@ export const configureDbStorage = async (
   // A duplicated/restored tab copies sessionStorage and boots with a live
   // tab's appId; installing on that tab's pool directory can steal its access
   // handles mid-swap. Rotate before ever touching the pool.
-  if (mode !== "memory" && (await isSessionAlive(appId))) {
+  if (await isSessionAlive(appId)) {
     appId = resetAppId();
   }
 
   let effective = await getWorker().configure({ mode, sahpoolId: appId });
 
-  if (mode !== "memory" && effective !== mode) {
+  if (effective !== mode) {
     appId = resetAppId();
     effective = await getWorker().configure({ mode, sahpoolId: appId });
   }
@@ -63,14 +82,19 @@ export const configureDbStorage = async (
     await registerShadowErrorReporter(shadowErrorToSentry(appId));
   }
 
-  if (mode !== "memory" && effective !== mode) {
-    captureWarning("OPFS db storage requested but fell back to in-memory db");
-  }
-
   captureInfo("Effective DB storage mode", { mode, effective });
+
+  if (effective !== mode) {
+    reportFallback("db-worker-fallback");
+  }
 
   return effective;
 };
+
+const reportFallback = (reason: string) =>
+  captureWarning(
+    `OPFS db storage requested but fell back to in-memory db: ${reason}`,
+  );
 
 const shadowErrorToSentry =
   (appId: string) =>
