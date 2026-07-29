@@ -6,6 +6,7 @@ const defaultPermissions: Permissions = {
   canAddCustomLayers: false,
   canUseScenarios: false,
   canUseElevations: false,
+  canRefreshElevations: false,
   canUseZones: false,
   canUseControls: false,
   canUsePipeAttributes: false,

@@ -629,16 +629,11 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
 
 const RecomputeElevationsButton = () => {
   const translate = useTranslate();
-  const { canUseElevations } = usePermissions();
   const setDialogState = useSetAtom(dialogAtom);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setDialogState(
-      canUseElevations
-        ? { type: "recomputeElevations" }
-        : { type: "featurePaywall", feature: "elevations" },
-    );
+    setDialogState({ type: "recomputeElevations" });
   };
 
   return (

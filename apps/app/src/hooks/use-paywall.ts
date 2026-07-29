@@ -15,6 +15,13 @@ const FEATURE_CONFIG: Record<PaywallFeature, FeatureConfig> = {
     permission: "canUseElevations",
     dialog: { type: "featurePaywall", feature: "elevations" },
   },
+  refreshElevations: {
+    permission: "canRefreshElevations",
+    dialog: {
+      type: "upgrade",
+      source: { kind: "paywall", feature: "refreshElevations" },
+    },
+  },
   customLayers: {
     permission: "canAddCustomLayers",
     dialog: { type: "featurePaywall", feature: "customLayers" },

@@ -11,6 +11,7 @@ export type Permissions = {
   canAddCustomLayers: boolean;
   canUseScenarios: boolean;
   canUseElevations: boolean;
+  canRefreshElevations: boolean;
   canUseZones: boolean;
   canUseControls: boolean;
   canUsePipeAttributes: boolean;
@@ -34,6 +35,7 @@ export const resolvePermissions = (
     canAddCustomLayers: hasPaidAccess,
     canUseScenarios: hasPaidAccess,
     canUseElevations: hasPaidAccess,
+    canRefreshElevations: hasPaidAccess,
     canUseZones: hasPaidAccess,
     canUseControls: hasPaidAccess,
     canUsePipeAttributes: hasPaidAccess || isDemoNetwork,

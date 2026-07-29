@@ -2,8 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import clsx from "clsx";
 import * as Progress from "@radix-ui/react-progress";
 import { BaseDialog, SimpleDialogActions } from "src/components/dialog";
+import { Button } from "src/components/elements";
+import { useFeatureLock } from "src/components/form/paywall";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
-import { SuccessIcon, UnavailableIcon, WarningIcon } from "src/icons";
+import {
+  PaywallLockIcon,
+  SuccessIcon,
+  UnavailableIcon,
+  WarningIcon,
+} from "src/icons";
 import { RingSpinner } from "src/components/ring-spinner";
 import { NotificationBanner } from "src/components/notifications";
 import {
@@ -22,6 +29,7 @@ export const RecomputeElevationsDialog = ({
   onClose: () => void;
 }) => {
   const translate = useTranslate();
+  const { isLocked, openPaywall } = useFeatureLock("refreshElevations");
   const { recompute } = useRecomputeElevations();
   const targets = useElevationTargets(true);
 
@@ -49,6 +57,14 @@ export const RecomputeElevationsDialog = ({
     setPhase("done");
   }, [targets, mode, recompute]);
 
+  const handleRefresh = () => {
+    if (isLocked) {
+      openPaywall();
+      return;
+    }
+    void run();
+  };
+
   return (
     <BaseDialog
       title={translate("elevations.recompute.dialogTitle")}
@@ -60,12 +76,13 @@ export const RecomputeElevationsDialog = ({
         phase === "done" ? (
           <SimpleDialogActions onClose={onClose} />
         ) : (
-          <SimpleDialogActions
-            action={translate("elevations.recompute.action")}
-            onAction={() => void run()}
+          <RefreshFooter
+            locked={isLocked}
+            isRunning={phase === "running"}
+            disabled={!isLocked && (targets === null || selectedCount === 0)}
+            onRefresh={handleRefresh}
             onClose={onClose}
-            isSubmitting={phase === "running"}
-            isDisabled={targets === null || selectedCount === 0}
+            translate={translate}
           />
         )
       }
@@ -87,6 +104,38 @@ export const RecomputeElevationsDialog = ({
     </BaseDialog>
   );
 };
+
+const RefreshFooter = ({
+  locked,
+  isRunning,
+  disabled,
+  onRefresh,
+  onClose,
+  translate,
+}: {
+  locked: boolean;
+  isRunning: boolean;
+  disabled: boolean;
+  onRefresh: () => void;
+  onClose: () => void;
+  translate: TranslateFn;
+}) => (
+  <footer className="flex flex-col sm:items-center sm:flex-row-reverse gap-3 px-4 py-3 border-t">
+    <Button
+      type="button"
+      variant="primary"
+      autoFocus
+      disabled={isRunning || disabled}
+      onClick={onRefresh}
+    >
+      {locked && <PaywallLockIcon size="sm" />}
+      {translate("elevations.recompute.action")}
+    </Button>
+    <Button type="button" disabled={isRunning} onClick={onClose}>
+      {translate("dialog.cancel")}
+    </Button>
+  </footer>
+);
 
 const ChoicesState = ({
   targets,

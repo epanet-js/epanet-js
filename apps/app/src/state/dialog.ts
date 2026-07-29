@@ -223,6 +223,7 @@ export type RenameScenarioDialogState = {
 export type PaywallFeature =
   | "scenarios"
   | "elevations"
+  | "refreshElevations"
   | "customLayers"
   | "pipeAttributes"
   | "zones"
