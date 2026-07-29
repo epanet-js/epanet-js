@@ -1,766 +1,131 @@
-# Map Architecture Guidelines
+# Map Architecture
 
-## Standard Map Architecture Patterns
+The map renders hydraulic networks that can reach 1M+ features, so the constraint behind every decision here is that we can never re-process the whole network on a routine edit or selection. The network is rendered with Mapbox GL JS; customer points, which are far more numerous, use deck.gl overlays on the same map. All map state is applied by a single updater (`state-updates.ts`) — nothing mutates the map outside it.
 
-### Three-Layer Data System
+## The layer stack
 
-EPANET-JS uses a sophisticated multi-source data architecture optimized for large hydraulic networks (>10k features):
+Everything drawn falls into four bands, painted bottom to top so the network is never hidden by the basemap and interactive feedback is never hidden by the network.
 
-#### Core Data Sources
+- **Base map** — basemap (satellite or vector base styles) and user GIS layers (shapefiles, GeoJSON, DXF). Contextual, drawn first.
+- **Network** — the model and its context: zones, network geometry (Mapbox layers for pipes, junctions, and asset icons, each from both the consolidated and editions states with selection merged in), and the deck.gl customer-point overlays. The only band with the two-state structure.
+- **Editing previews** — transient visuals from the ephemeral state: drawing and move previews, the selection rubber-band, the HGL profile tool, highlight markers. Never committed; drawn above the network so feedback always reads on top.
+- **Generic overlays** — standalone data overlays outside the network model, such as elevations.
 
-- **`"main-features"`** - Full hydraulic network (all assets at last import/consolidation)
+Rationale: distinct bands keep lifecycles independent — basemap changes on style choices, network on edits, previews per interaction, overlays on their own toggles — so a change in one never redraws another, and the fixed z-order keeps feedback above the data it acts on.
 
-  - Contains the base hydraulic network from the latest sync point
-  - Static until a new import or consolidation occurs
-  - Large datasets that should not be frequently updated
+## Two states: consolidated and editions
 
-- **`"delta-features"`** - Features edited since last consolidation
+The network is kept in two states. **Consolidated** is a static snapshot of the whole network, rebuilt only at sync points (an import, or an explicit consolidation). **Editions** holds only what changed since the last consolidation and is the only thing that updates on a routine edit, drawn on top of consolidated.
 
-  - Contains only assets that have changed since the last sync
-  - Much smaller subset than main-features
-  - Updated on each user edit/commit
+Rationale: rebuilding the whole snapshot scales with network size, so doing it per edit would make large networks unusable. Keeping edits in a small separate state means a normal edit rebuilds only a handful of features. At a sync point the editions fold back into the consolidated snapshot and the editions state is emptied — that is what consolidation means.
 
-- **`"ephemeral"`** - Real-time visual feedback
+This split applies to every data category, not just geometry: features, icons, and selection each keep independent consolidated and editions state. That is the key decision. Icons and selection used to be single whole-model representations regenerated as a unit, which tied their cost to the whole network and let them drift out of step with the geometry; giving each category the same structure keeps them independent and consistent. (Implemented as `main-features`/`delta-features` with parallel `icons`/`delta-icons`.)
 
-  - Temporary representation during active user interactions
-  - Shows live changes while user is editing (dragging, drawing)
-  - NOT committed to the hydraulic model
-  - Can be cancelled/reverted without affecting the model
+## Symbology: how features are styled
 
-- **`"selected-features"`** - Currently selected assets
+Symbology is the spec for how network features look: a color rule and a label rule each for nodes and links, plus separate specs for customer points and zones. A color rule maps a chosen property — a static attribute (diameter, elevation) or a simulation result (pressure, flow, velocity, headloss) — through value ranges to colors; a label rule picks which property to print by each feature.
 
-  - Updated whenever selection changes
-  - Drives selection highlight layers
-  - **Removed on the faceted path** (`FLAG_MAP_FACETED_SOURCES`): selection is merged into the
-    feature layers instead — see "Faceted Source Model" below.
+Decision: symbology is resolved into per-feature values when the source is built, not evaluated live. A rule change rebuilds the consolidated snapshot so every feature carries its computed `color` and `label`. Rationale: a live Mapbox expression over raw properties would push styling work into every frame and force every feature to carry all the raw properties the expression reads; baking the resolved values into feature data keeps rendering cheap, uses less memory (each feature carries only its final `color` and `label`), and lets the same two-state machinery carry styling. The exception is default colors (no rule), applied as Mapbox paint expressions on the layers — which is also where selection merges in, overriding only a feature's color or sprite. Directional arrows on links appear only when the link color rule is a directional result (flow, velocity, headloss).
 
-- **`"icons"`** - Optimized point representations with selection states
-  - Pumps, valves, tanks, reservoirs
-  - Rebuilt when assets or styles change
-  - On the faceted path this is the **main** icon facet, paired with a `"delta-icons"` source — see
-    "Faceted Source Model" below.
+## Selection is a property, not a separate state
 
-#### Additional Sources
+Selection is a `selected` property carried on the same data as the geometry (consolidated and editions); layers change color or sprite from it. There is no separate selection source.
 
-- **`"map-overlay"`** - External overlay features (fills, lines, labels from map overlay tools)
-- **`"grid"`** - Grid display features when grid mode is enabled
-- **`"gis-{layerId}"`** - Dynamic pattern for custom GIS layers (shapefiles, GeoJSON, DXF)
-  - Created/removed dynamically via `addGisLayersToMap()` in `state-updates.ts`
+Rationale: we used to keep selection in a dedicated source, but that source can grow to the full size of the network (a select-all), and a second near-whole-network representation is very costly in memory. Per-feature selection flags don't scale either — Mapbox feature state applied to that many features degrades the map badly. A property on data we already maintain means a selection change only restyles existing features.
 
-### Deck.gl Overlay System
+### An overlay, not a hide-and-replace
 
-For specialized rendering requirements that exceed Mapbox GL JS capabilities, EPANET-JS uses deck.gl overlays as a complementary rendering system. Customer points are the primary example of this pattern.
+A selected-but-unedited asset stays rendered by the consolidated snapshot; the editions layers on top paint the selection over it. We don't hide it in the consolidated snapshot to redraw it selected: hiding takes effect immediately but the selected redraw is async (the data reprocess is async), so hide-then-redraw makes the asset vanish for a few frames — a selection flicker. Only genuinely **edited** assets are hidden in the consolidated snapshot, since only their geometry is stale.
 
-#### Why Deck.gl Overlays?
+### Large selections fold into the consolidated snapshot
 
-Customer points require specialized rendering that the standard source system cannot efficiently handle:
+Small selections ride editions, overlaid on consolidated. Above a fixed threshold the selection is baked directly into the consolidated snapshot instead. Rationale: an editions overlay draws each selected asset twice (plain in consolidated, selected in editions) — fine for a few assets, wasteful for very large selections where editions would approach the whole network. Past the threshold it's cheaper to re-encode the consolidated snapshot once with selection baked in. The threshold is a fixed count, not a fraction.
 
-- **Scale**: 10,000 to 1,000,000+ customer points vs hundreds of hydraulic assets
-- **Performance**: WebGL-optimized rendering for high-density point visualization
-- **Dynamic rendering**: Zoom-based visibility and level-of-detail management
-- **Specialized interactions**: Custom hover states and highlighting patterns
+Crossing the threshold is a full consolidation, not just a selection bake: the consolidated snapshot is rebuilt from the current model — folding in every pending edit — and the editions state is emptied. So once baked, edited-and-selected assets live in the consolidated snapshot too. Edits made afterwards re-enter editions and still render selected, because the `selected` property is always stamped from the full selection set wherever an asset is drawn.
 
-#### Integration Architecture
+## Editing in progress: ephemeral state
 
-```typescript
-// Customer points use deck.gl overlays instead of Mapbox sources
-const customerPointsOverlay = buildCustomerPointsOverlay(customerPoints, zoom);
-const ephemeralHighlightOverlay = buildCustomerPointsHighlightOverlay(
-  highlighted,
-  zoom,
-);
+While an interaction is in progress (drawing, dragging), the affected geometry shows from a separate **ephemeral** state at its live position and isn't committed until the interaction completes; on cancel it's discarded.
 
-// Combined overlay system coordinates with Mapbox layers
-const combinedOverlay = [
-  ...customerPointsOverlay,
-  ...ephemeralHighlightOverlay,
-];
-map.setOverlay(combinedOverlay);
-```
+An actively-edited asset is excluded from editions for the duration of the gesture, even if selected. Rationale: it's already shown live by ephemeral; if it also sat in editions with its old committed geometry, then on drop — when the preview clears — the stale editions geometry would flash for a frame before editions reprocessed. Excluding it means editions holds only committed edits, so on drop the asset enters editions fresh. The editions state is recomputed only when the set of in-progress targets changes (gesture start and end), not per mouse-move, so a drag doesn't rebuild editions each frame.
 
-#### Layer Coordination
+Accepted residual: on drop the preview clears immediately while the new editions geometry is still processing, so for ~1 frame the asset is on no layer — a faint blank, no stale flash. Closing it would require the updater to listen for a map "data ready" signal, coupling it to render events; deliberately rejected. If it must be closed, the clean fix is to drive the live drag from editions itself, not an event listener.
 
-Deck.gl overlays integrate with Mapbox layers using `beforeId` positioning:
+## Interaction: modes, handlers, adaptive precision
 
-```typescript
-const scatterLayer = new ScatterplotLayer({
-  id: "customer-points-layer",
-  beforeId: "ephemeral-junction-highlight", // Position relative to Mapbox layers
-  data: [...customerPoints.values()],
-  // ... layer configuration
-});
-```
+User interaction is organized as **modes** — draw junction/pipe/valve, rectangular/polygonal/freehand selection, trace-select, HGL profile, connect customer points, and so on. Exactly one mode is active; each supplies a set of event handlers (click, move, down, up, double, touch, keydown) that the map canvas dispatches the raw Mapbox events to, plus an `exit` handler for teardown. Move is throttled.
 
-#### Overlay Performance Patterns
+Rationale: one handler set active at a time keeps interaction logic isolated per mode instead of a monolithic event switch, and a uniform handler shape lets the canvas stay a thin dispatcher.
 
-**Zoom-based Visibility:**
+**Adaptive precision**: coordinates captured from a user gesture are rounded to a decimal precision chosen from the current zoom, such that the rounding grid is about one pixel on screen. Rationale: storing more precision than the user can see at that zoom is noise — it bloats geometry and creates spurious diffs. Matching stored precision to visible precision keeps coordinates clean with no loss the user could perceive.
 
-```typescript
-const shouldShowOverlay = (zoom: number) => zoom >= 14;
+## Customer points: deck.gl overlays
 
-// Only render customer points at appropriate zoom levels
-const isVisible = shouldShowOverlay(zoom);
-```
+Customer points render through deck.gl overlays layered onto the Mapbox map rather than through the network's sources: a stable main overlay plus a light ephemeral overlay for hover and selection highlighting. Rationale: they reach 1M+ per network — orders of magnitude beyond hydraulic assets — and need GPU-scale point rendering and zoom-based level of detail that the source/layer path isn't suited to. Splitting the stable set from the highlight set means hovering doesn't rebuild the full overlay, and selection restyles it in place.
 
-**Reference-based Updates:**
+## One serialized, coalescing updater
 
-```typescript
-// Use refs to prevent unnecessary overlay rebuilds
-const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
-const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
+All map mutations go through a single updater that never runs two cycles concurrently and coalesces rapid changes into one apply against the newest state.
 
-// Only rebuild when data actually changes
-if (hasNewCustomerPoints) {
-  customerPointsOverlayRef.current = buildCustomerPointsOverlay(data, zoom);
-}
-```
+- **No concurrency.** A style rebuild is multi-step and async; a second cycle interleaving would reset the style's loaded state mid-mutation and throw. Serializing removes that race.
+- **Coalescing.** Under rapid input (dragging, playback) changes arrive faster than the map applies them. Instead of one apply per change, changes arriving mid-cycle mark it dirty; when it finishes it re-runs once against the latest state, skipping every intermediate one. Safe because each change is detected by identity, so diffing newest against last-applied equals replaying every skipped diff — and a value that churned and came back is already on the map.
+- **Non-blocking.** A cycle issues its updates and returns without waiting for the map to render. Blocking on idle stalls the loop whenever idle is delayed (continuous zoom/pan never idles), which used to freeze playback colors until the user stopped. The loading indicator and playback timing resolve out of band instead (see Settling).
+- **Transactional.** The updater records what the map reflects only after an apply fully succeeds. If one throws partway, that record stays at the last good state, so the next run re-derives the same diff and finishes the unfinished work rather than treating a half-applied state as done. This works because every map call sets a value to its target rather than incrementing, so re-applying converges. A deterministic failure retries once, then waits for the next state change — it never spins.
+- **Time-sliced build.** Building the consolidated snapshot walks every asset and dominates a rebuild, and it runs every playback timestep, so it yields periodically to let the browser paint and take input mid-build; uncontended it runs at full speed.
 
-#### Dual Overlay System
+## An update cycle, in order
 
-Customer points use a two-overlay approach for optimal performance:
+One apply runs these steps in sequence and then commits:
 
-1. **Main Overlay** - Stable visualization of all customer points
+1. Diff the new state against the last applied one to get the change flags; if nothing changed, stop.
+2. If the change is heavy, show the loading indicator.
+3. Rebuild the style if it changed — the one asynchronous, multi-step step.
+4. Update the consolidated snapshot: a full rebuild at a sync point, or a prop reflect for symbology, results, or a large selection.
+5. Update editions: rebuild the edited-and-selected live-set, and hide the edited assets in the consolidated snapshot so they render only from editions.
+6. Update the ephemeral state, customer-point overlays, highlights, zones, and map overlay as their flags require.
+7. Commit the applied state on the last line — the transactional point, and the baseline the next cycle diffs against.
 
-   - `ScatterplotLayer` for point visualization
-   - `LineLayer` for connection lines to pipes
-   - Updated only when customer points data changes
+Settling then happens out of band, when the map next goes idle.
 
-2. **Ephemeral Highlight Overlay** - Real-time visual feedback
-   - Separate layers for hover/selection highlighting
-   - Updated frequently during user interactions
-   - Prevents expensive rebuilds of main overlay
+## Settling: loading indicator and playback timing
 
-### Two-State Model
+"Tell the user the map is catching up" and "measure how long a heavy rebuild took, to pace playback" are one question — has the map caught up with the last heavy update? — answered when the map next goes idle. A single predicate defines a heavy update (sync point, import, edits, style, symbology, results, or a large selection). Keeping them one mechanism on one idle signal stops two definitions of "caught up" from drifting apart.
 
-#### Committed State
+- The indicator always has a path to turn off, including when an apply throws — otherwise a failed heavy apply would leave it stuck on.
+- Whether heavy work is still outstanding is derived at settle time by comparing the newest requested state against what the map reflects, covering both queued and in-flight work. If so, the indicator stays up and the timing sample is discarded, since it would span unshown work.
+- None of it blocks. Awaiting a settle to measure was the original cause of the playback and zoom stalls; measuring out of band gives the same number without the stall.
+- A duration measured while the tab was hidden is discarded.
 
-- Features permanently saved in the hydraulic model
-- Stored in `"delta-features"` (user edits since last sync) or `"main-features"` (full network at last sync)
-- Persisted and permanent until explicitly changed
+## The rendering backend is swappable
 
-#### Ephemeral State
+The updater computes *what* the consolidated and editions states should contain but delegates *how* they reach the map to a backend behind a small interface. The default backend renders them as GeoJSON sources and layers in Mapbox GL. Rationale: separating update logic from rendering lets the rendering strategy change without touching any state, selection, or scheduling logic above; the updater stays agnostic to which backend is active.
 
-- Real-time visual feedback during user interaction
-- Temporary representation in `"ephemeral"` source for hydraulic assets
-- Deck.gl ephemeral overlays for customer points highlighting
-- Provides immediate visual feedback without touching the underlying model
-- Must be committed to become permanent
+## Change detection
 
-**Ephemeral State Types:**
+Each cycle diffs the new state against the last-applied state and produces one flag per independently-updatable concern (edits, selection, symbology, results, style, zoom, and so on); only the work whose flag fired runs. Every flag is an identity check — which is what makes coalescing correct, since diffing newest against last-applied equals the sum of skipped diffs only if each flag is an equality check. A flag needing deep comparison would break that.
 
-- **Hydraulic Assets**: Use `"ephemeral"` Mapbox source for drawing, moving, editing
-- **Customer Points**: Use ephemeral deck.gl overlays for hover and selection highlighting
+## Rules
 
-```typescript
-// Customer points ephemeral state example
-type EphemeralCustomerPointsHighlight = {
-  type: "customerPointsHighlight";
-  customerPoints: CustomerPoint[];
-};
+- Never mutate the map outside the updater; go through its change detection and scheduler so ordering and serialization hold.
+- Inside a cycle's apply, never add an early return after the change diff: it skips the end-of-apply commit and would re-apply that state forever. The apply must run straight through to the commit.
+- Never block a cycle on the map finishing rendering (`idle`, `sourcedata`, per-source load state); it stalls the loop during continuous zoom or pan. The loading indicator and playback timing resolve out of band instead.
+- Reach the consolidated and editions states through the backend interface, not by touching Mapbox sources directly — that keeps the backend swappable.
+- Use Mapbox feature state only for small, bounded sets (e.g. hiding the few assets being edited), never for anything that scales with selection or network size.
+- Keep the two-state split intact for every data category (features, icons, selection); don't reintroduce a whole-model representation.
+- Bake per-feature styling (color, label) into the source at build time; don't push it into live per-frame expressions. Default colors and selection are the intended exceptions, carried as layer paint expressions.
+- Keep change-detection flags identity-based, and keep the heavy-update predicate in step with what actually triggers a full rebuild.
 
-// Triggered on hover/selection
-setEphemeralState({
-  type: "customerPointsHighlight",
-  customerPoints: [hoveredCustomerPoint],
-});
-```
-
-### State Transition Management
-
-```typescript
-// User starts interaction (mouse down, begins drag)
-Committed → Ephemeral
-
-// User completes action (mouse up, confirms edit)
-Ephemeral → Committed
-
-// User cancels (ESC, cancels action)
-Ephemeral → Revert (back to original committed state)
-```
-
-#### Visibility Coordination
-
-To prevent visual duplication, features in ephemeral state are handled differently based on their rendering system:
-
-**Hydraulic Assets** (Mapbox sources):
-
-```typescript
-// Hide the single feature being edited (feature state is fine here — just one feature)
-map.hideFeature("delta-features", featureId);
-map.hideFeature("main-features", featureId);
-
-// Show in ephemeral source at new position
-updateEphemeralStateSource(map, ephemeralState, idMap);
-```
-
-**Customer Points** (deck.gl overlays):
-
-```typescript
-// Customer points use additive ephemeral overlays
-// Main overlay remains visible, ephemeral highlight overlay is added
-const combinedOverlay = [
-  ...customerPointsOverlayRef.current, // Main customer points
-  ...ephemeralDeckLayersRef.current, // Ephemeral highlights
-];
-map.setOverlay(combinedOverlay);
-```
-
-## Faceted Source Model (`FLAG_MAP_FACETED_SOURCES`)
-
-A parallel implementation of the map updater, gated by `FLAG_MAP_FACETED_SOURCES`, lives in
-`state-updates-faceted.ts` (a duplicate of the serialized scheduler in `state-updates.ts`).
-`map-canvas.tsx` mounts the faceted updater when the flag is on and the default
-`state-updates.ts` otherwise. It exists so the fork-critical geojson rendering can bake behind a
-flag before it becomes the default; at promotion, delete the pre-facet `state-updates.ts` and
-rename the faceted file into place.
-
-Its purpose is to converge the rendering onto a uniform main/delta facet decomposition with
-selection carried as a `selected` prop — a cleaner source model that also positions the code for a
-future pluggable source backend behind a common interface. Two changes:
-
-### 1. Icons exploded into a main/delta facet
-
-Instead of one whole-model `"icons"` source, the faceted path mirrors the `main-features` /
-`delta-features` split onto icons:
-
-- **`"icons"`** — the main icon facet (all assets, rebuilt on consolidation like `main-features`).
-- **`"delta-icons"`** — edited-since-consolidation icons (rebuilt per edit like `delta-features`).
-
-The delta-icon layers mirror the main icon layers on the `delta-icons` source. `makeFacetedLayers`
-(in `build-style.ts`) builds this layer set; `defineEmptySourcesFaceted` registers the base
-sources + `delta-icons`.
-
-### 2. Selection merged into the feature layers (no `selected-features` source)
-
-The faceted path **deletes** the dedicated `"selected-features"` source. Selection is instead a
-`selected` prop on the feature/icon sources, and the base layers color/sprite by it — a selected
-pipe/pump/valve/junction differs only in **color**, a tank/reservoir only in **sprite**. The
-`selected` prop rides on the same sources as the geometry, so a selection change updates a property
-on existing features instead of rebuilding a separate overlay source.
-
-- **Faceted layer factories** (`facetedPipesLayer`, `facetedJunctionsLayer`, `facetedPumpLines`,
-  `facetedValveLines`, `facetedPipeArrows`, `facetedTankLayers`, `facetedReservoirLayers`) parallel
-  the plain factories, overriding the color/sprite with the selection-merged expression. The
-  expressions are **co-located helpers** next to their non-faceted counterparts
-  (`facetedLinkColorExpression`, `facetedPipeArrowColorExpression` in `layers/pipes.ts`;
-  `facetedJunction{Fill,Stroke}ColorExpression` in `layers/junctions.ts`), shared by the factories
-  **and** by `updateDefaultMapColors` (which re-applies them at runtime — keep them in sync).
-- **Both main and delta layers** carry the faceted expressions, so a selected asset renders
-  highlighted whether it is rendered from main (baked — see below) or from delta.
-- The one selection layer that survives is the pump/valve **halo** (`selectedIconsHaloLayer`,
-  additive geometry that can't merge into a sprite), filtering the icon source on `selected`.
-  ⚠️ When a layer's filter is composed with the `selected` check (`filterSelected`), the **whole
-  filter must be expression syntax** (`["geometry-type"]`, `["get", …]`) — not legacy (`"$type"`,
-  bare string keys). Mapbox treats a compound filter as legacy if any leaf is legacy and then
-  rejects the `["get", "selected"]` array with "string expected, array found", so the layer never
-  gets added and every visibility toggle on it throws thereafter.
-
-### Selection is an overlay, not a hide/move — avoid the flicker
-
-Selected-but-unedited assets are **not** hidden in main. They stay rendered from `main-features` /
-`icons`, and the delta layers (drawn on top) paint the selection over them. `updateMainSourceVisibility`
-hides **only edited** assets (their main geometry is stale). Hiding a selected asset in main before
-its delta re-render lands is what caused a selection flicker (the asset vanished for a few frames
-because a geojson `setData` reprocess is async while the feature-state hide is immediate) — so we
-don't hide selected assets at all. The delta selected sprite/line/halo covers the main one by
-z-order.
-
-### Delta live-set and large-selection coalescing
-
-- The delta live-set is `editedSinceConsolidation ∪ selectedAssets` (assets, not customer points).
-  Small selections ride delta and are overlaid on top of main.
-- **Coalescing (`SELECTION_CONSOLIDATION_THRESHOLD`)**: above a fixed count of selected assets, the
-  selection is **baked into main** (`rebuildSources` stamps `selected` into `main-features` / `icons`)
-  instead of going into delta — avoiding double-rendering (main normal + delta selected) and building a
-  delta nearly the size of the whole network on a select-all. `consolidatedSelectionRef` tracks whether
-  main currently holds the baked selection; a selection change while baked (or dropping below the
-  threshold) triggers a main rebuild to re-bake or un-bake. It is a **fixed count**, not a fraction:
-  the threshold caps how large a selection we render via the delta overlay before it is cheaper to
-  fold it into main.
-- Delta **membership** (empty when the selection is baked into main) is separate from delta **stamping**
-  (the full `selectedIds`): an edited-and-selected asset always lives in delta (its geometry is
-  stale) and must still render selected there, even while the bulk selection is baked into main.
-
-### Editing existing assets and the edit-drop handoff
-
-A node move edits the node **and every incident link** (their shared endpoint follows the node — see
-`moveNode` in `hydraulic-model/model-operations/move-node.ts`), so `hiddenInMainRef` on a single-node
-drag holds the node plus its degree in links, all hidden in main and rendered from delta. That is
-correct, not a leak: the set is `editedSinceConsolidation` and is cleared on consolidation.
-
-- **Actively-editing assets are excluded from the delta live-set** (`movedAssetIds` subtracted from
-  the live-set). During a drag the moved asset is rendered by the **ephemeral** source at
-  its live position; if it *also* rode in delta (because it is selected) it would sit there with
-  stale geometry and, on drop, expose that stale geometry for a frame while delta's `setData`
-  reprocess is still in flight. Excluding it makes the faceted delta behave like V2's (which only
-  holds committed edits), so on drop it enters delta **fresh**.
-- Delta is re-synced when the **ephemeral-target set changes** (`hasEphemeralTargetsChanged`, gesture
-  start / end) — *not* on every mousemove (the set is unchanged then, only the ephemeral geometry
-  moves), so there is no per-frame delta rebuild during a drag. `movedAssetIds` (from `getMovedAssets`)
-  holds the move targets **and** the redraw source link, i.e. existing assets whose committed geometry
-  is stale mid-gesture; a brand-new draw isn't in it (nothing to exclude — it enters delta on commit).
-- **Accepted residual:** on drop the ephemeral preview clears immediately while delta's new geometry
-  parses async, so the moved features are on no source for ~1 frame (a faint blank, no old-geometry
-  flash). A gapless ephemeral→delta handoff would require a "delta ready" signal (a `sourcedata` /
-  `idle` listener); that was deliberately **rejected** to avoid coupling the updater to map events.
-  If the gap ever needs closing, the clean fix is to render the move from delta throughout (feed the
-  live drag geometry into delta) rather than a separate ephemeral source — not an event listener.
-
-### Relationship to "Feature State vs. Dedicated Sources"
-
-The pre-facet path renders selection with the dedicated `"selected-features"` source specifically
-because feature-state does not scale to large selections (see that section below). The faceted path
-takes a **third** approach: a `selected` prop + delta overlay for small selections, baked into main
-for large ones. It does **not** feature-state-hide selected assets (only edited ones), so it does
-not hit the mass-feature-state problem, and it drops the separate selection source.
-
-## Performance Optimization Patterns
-
-### Dual-Source Strategy
-
-Large networks use two sources to minimize expensive updates:
-
-- Full network stays in `"main-features"` (only updated on import/consolidation)
-- Only edited features update in `"delta-features"` (small, frequent updates)
-- Prevents expensive re-rendering of entire network on each edit
-
-### Feature State vs. Dedicated Sources
-
-Feature state is only appropriate for changes affecting a **small number of features**. Applying feature state to many features at once (e.g., a large selection) causes severe performance degradation — the map becomes sluggish and unresponsive.
-
-**Use feature state** for small-scale, targeted changes:
-
-```typescript
-// OK: hiding/showing a single feature being edited
-map.hideFeature("main-features", featureId);
-map.showFeature("main-features", featureId);
-```
-
-**Use a dedicated source** for anything that could affect many features at once:
-
-```typescript
-// Selection uses a dedicated source, not feature state
-// because selections can span thousands of features
-await map.setSource("selected-features", selectedFeatureCollection);
-```
-
-This is why `"selected-features"` exists as a separate source — it was previously implemented with feature state and caused noticeable performance problems with large selections. The dedicated source approach rebuilds only the small selection subset rather than touching the large `"main-features"` source.
-
-**Rule of thumb**: if the number of affected features is bounded and small (e.g., the one or two features in `"delta-features"` being edited), feature state is fine. If it could scale with network size or user selection, use a dedicated source.
-
-> The faceted path (`FLAG_MAP_FACETED_SOURCES`) takes a **third** approach for selection — a
-> `selected` prop merged into the feature layers with a delta overlay for small selections and a
-> bake into main for large ones, hiding only *edited* assets via feature state. See "Faceted Source
-> Model" above.
-
-### Preserve Geometry References When Rebuilding Sources
-
-When a source needs to be rebuilt, reuse existing geometry object references wherever possible. Mapbox can skip re-processing features whose geometry reference hasn't changed, so unnecessarily recreating geometry objects forces redundant work even when nothing visually changed.
-
-```typescript
-// BAD: spreads geometry into a new object on every rebuild — Mapbox sees it as changed
-const feature = {
-  ...existingFeature,
-  geometry: { ...existingFeature.geometry },
-};
-
-// GOOD: reuse the same geometry reference if it hasn't changed
-const feature = {
-  ...existingFeature,
-  geometry: existingFeature.geometry, // same reference = Mapbox can skip it
-};
-```
+## Testing
 
-This matters most in sources that are rebuilt frequently (e.g., `"selected-features"`, `"delta-features"`) or that contain many features. Treat geometry references as stable identities — only replace them when the geometry actually changes.
+Integration tests in `src/map/test/` drive a simulated map engine through real user interactions and assert on the resulting state. Test whole workflows (interaction to resulting map state) rather than individual functions, and prefer the map test helpers over reaching into internals. Run with `pnpm test`.
 
-### Change Detection System
+## Where it lives
 
-The `state-updates.ts` file implements sophisticated change detection:
+Grep the entry symbol to land in the right place:
 
-```typescript
-const changes = detectChanges(mapState, previousMapState, map);
-const {
-  hasNewImport,
-  hasNewEditions,
-  hasNewStyles,
-  hasNewSelection,
-  hasNewEphemeralState,
-  hasEphemeralStateReset,
-  hasNewSimulation,
-  hasNewSymbologyRules,
-  hasNewCustomerPointsSymbology,
-  hasNewDefaultColors,
-  hasNewCustomerPoints,
-  hasNewZoom,
-  hasSyncMomentChanged,
-  hasNewResults,
-  hasNewMapOverlay,
-} = changes;
-```
-
-Only update sources that actually need changes to prevent unnecessary re-rendering.
-
-### Update Scheduling: Coalesce and Serialize
-
-`useMapStateUpdates` never applies map changes synchronously or concurrently. All work runs through a single **serialized, coalescing scheduler** so that rapid state changes collapse into one update against the newest state, and two update cycles can never overlap.
-
-Two refs drive this:
-
-- **`syncMapStateRef.current`** — the `syncMapState` async function, rebound on every render so it stays closed over that render's latest inputs (`assets`, `symbology`, `gisData`, …). It diffs `mapState` against **`lastAppliedMapStateRef`** — the state actually reflected on the map — not the previous render, and commits that ref only after the apply succeeds.
-- **`queueUpdate()`** — the scheduler. If a run is already in flight it just flips `hasPendingRef` and returns; otherwise it schedules one `setTimeout(0)` that drains:
-
-```typescript
-do {
-  hasPendingRef.current = false;
-  await syncMapStateRef.current(); // re-reads the ref → always the NEWEST closure
-  if (hasPendingRef.current) await yieldToMain(); // let input + paint happen
-} while (hasPendingRef.current);
-```
-
-This buys three guarantees:
-
-1. **Coalescing (main-thread safety):** edits arriving during a run don't schedule more timers or more work — they flip `hasPendingRef`, and the drain loop jumps straight to the newest state, skipping every intermediate one. This is the "queue rapid changes, apply the latest on the next free slot" behavior.
-2. **No races:** `isRunningRef` guarantees a single apply in flight. This is critical because the `hasNewStyles` path does `await map.setStyle()` then `await map.addIcons()` — if a second cycle could interleave, its `setStyle` would reset the style's internal loaded flag while the first cycle is still mutating layers, throwing **"Style is not done loading"** from `toggleAnalysisLayers` / `setLayoutProperty`.
-3. **Responsive, non-starving:** when a backlog exists, the loop yields to the main thread (`yieldToMain()` — `scheduler.postTask` at user-visible priority, or `setTimeout(0)`) between applies, so the browser can process input and paint without back-to-back applies starving it. It returns on the next task tick rather than the next animation frame, so it doesn't add rAF's ~16ms/iteration latency (which was visible while drawing). A single, isolated change applies immediately (no pending → no yield).
-
-**Why diff against last-_applied_, not last-render:** skipping intermediate states is only safe because every `hasNewX` is a reference/equality check. Diffing the newest state against the last state actually applied equals OR-ing all the intermediate diffs — and if a field churned and returned to its applied value, the map already shows it, so not re-applying is correct.
-
-**Rules:**
-
-- Never mutate the map outside this scheduler. Reach the map only through the `syncMapState` function so ordering and serialization hold.
-- Within a cycle, source updates are issued **synchronously** — each helper just builds and calls `setData`. **The cycle never blocks on rendering** — blocking on the whole map reaching `idle` stalls the serialized loop whenever `idle` is delayed (continuous zoom/pan never idles; playback colors then freeze until you stop). Don't reintroduce a blocking wait.
-- **An apply is a transaction.** `syncMapState` commits `lastAppliedMapStateRef` on its **last line**, so the ref only advances once every mutation succeeded. If an apply throws midway it rolls back implicitly — the ref still points at what the map actually shows, so the next run re-diffs from there and retries the work this one didn't finish, instead of treating a half-applied state as done. This holds only while the body has **no early returns** after the diff: one would skip the commit and re-apply that state forever. Retrying is safe because every map call is a set-to-desired-value (`setData`, `setStyle`, `setOverlay`, `clearFeatureState`), never an increment, so re-applying a partially-applied state converges.
-- Because the ref stays behind for the duration of an apply, renders landing mid-apply (only possible on the `hasNewStyles` path, which awaits — a synchronous apply can't be interleaved) re-queue and cost one extra no-op iteration that early-returns on `mapState === previousMapState`. That's the price of the rollback, and it's negligible next to a style rebuild.
-- **The drain is the only place that catches.** Helpers let errors propagate — `withDebugInstrumentation` only measures, it never swallows. Don't reintroduce per-helper reporting that returns normally: the apply would carry on and commit, recording success for work that never reached the map, silently defeating the rollback. The drain catches once, reports enriched with `MAP_STATE_SYNC`, and re-runs.
-- **Re-run once, then stop.** The errors that surface here are races (mapbox rejecting a call while the style rebuilds) that a second pass clears. The bound is not optional: a deterministic failure re-applies the same state forever, and since the rollback keeps the baseline behind, every retry re-derives the _same_ diff. Giving up is safe — the next state change picks it up.
-
-### Source Updates: Never Block on Rendering; Time-Slice the Build
-
-A cycle issues its source updates and returns without waiting for the map to render. But it does **not** run the whole apply as one uninterrupted task — the expensive part is broken up so it can't freeze interaction.
-
-- **The feature build is time-sliced.** `buildOptimizedAssetsSource` walks every asset (100k+ on large networks) building GeoJSON with labels + per-asset props — pure main-thread JS, the dominant cost of a rebuild, and it fires on _every_ results timestep during playback. It's `async` and yields via `createTimeSlicer(BUILD_SLICE_MS)` every few ms, so the browser can paint and process pan/zoom mid-build instead of the loop blocking for its full duration. `yieldToMain` resumes immediately when nothing else is pending, so an uncontended build stays near full speed; it only actually cedes time when the user is interacting. Because it's async, `rebuildSources` / `updateDeltaSource` / `syncSourcesWithEdits` are async and the apply `await`s them — ordering and the end-of-apply commit are unchanged.
-- **`setSource()`** is synchronous — it just calls `setData` and returns (`void`); it does **not** wait for the source to load. Feature state may be set before a source loads — mapbox stores it by id and applies it on tile load — so `clearFeatureState`/`hideFeature` right after a `setData` are correct.
-  - **Don't** wait on the per-source `sourcedata` / `isSourceLoaded` signal. **Verified empirically:** for sources with rendered tiles (`main-features`, `icons`) that flag _never_ turns true even after the source loads (the whole-map `idle` fires and `map.loaded()` is true, yet every `sourcedata` for the source reports `isSourceLoaded=false`). It only works for empty/tiny sources.
-
-### Settling: the Loading Indicator and Playback Timing
-
-These are **one mechanism**, not two. Both ask the same question — _has the map caught up with the last heavy update?_ — and both answer it on the same `idle`. Keep them together; splitting them back into two independent waits on the same event is what made this hard to follow before.
-
-**`isHeavyUpdate(changes, mapState)`** is the single definition of "this rebuilds enough that the user should be told the map is catching up" (sync moment, import, editions, styles, symbology, results, large selection). Anything that shows, hides, or defers the indicator asks **that one predicate** — don't grow a second, differently-worded copy. Keep it in step with the `rebuildSources` condition: a flag that triggers a full re-encode belongs here, and must not rely on a neighbouring flag happening to be true at the same time (coalescing breaks that — a field can churn back to its applied value while another survives).
-
-The flow:
-
-- A heavy apply sets `mapLoading` **true** and records `settleRef = { startedAt, measurable }`. `startedAt` is captured at the _top_, before `rebuildSources`, so a sample spans the whole re-encode **plus** the render (the build dominates on large networks). `measurable` marks the results/symbology cycles that playback paces itself from (`appendSourceRebuildDuration` → `estimatedSourceRebuildDurationAtom` → auto speed). A newer heavy apply replacing `settleRef` **is** the discard of the older sample.
-- The drain's `finally` arms **`map.onNextIdle(onSettled)`** — the one primitive. It's single-pending, fires immediately when nothing is pending to display, and has a backstop timeout. It reports `settledCleanly = false` when no real settle happened (nothing pending, the user panned/zoomed, or the map never idled), meaning a duration measured across it can't be trusted.
-- **`onSettled`** drops the indicator and banks the sample. If `hasOutstandingHeavyUpdate()` it instead leaves the indicator up and marks the sample unmeasurable — the settle says nothing about the state the map is heading to, and the duration would span that work. The apply re-arms.
-
-Rules that are load-bearing:
-
-- The `finally` arms **unconditionally**. That is the guarantee the indicator always has a path off, including when an apply throws. Don't gate it. For the same reason `onSettled` keeps `settleRef` when it defers, so a later settle can still clear.
-- Never clear the indicator **synchronously** in the drain. It would batch with the earlier `setMapLoading(true)` in the same task, React would coalesce true→false, and it would never paint.
-- `hasOutstandingHeavyUpdate()` **derives** the answer at settle time — `isHeavyUpdate(mapStateRef vs lastAppliedMapStateRef)` — rather than tracking a flag. Diffing the newest requested state against the state the map actually shows covers **queued and in-flight work in one question**: the commit lands at the end of an apply, so a heavy run still in flight correctly reads as outstanding. Don't "fix" this to diff against the state being applied — that reports nothing heavy _during_ a heavy rebuild, and the indicator would clear mid-flight. The `mapStateRef` matters: `onSettled` is handed to `onNextIdle` and fires later, so its captured `mapState` may be stale.
-- **Don't** make any of this blocking to get the measurement. Awaiting a settle is what caused every stall (drawing latency, colours freezing during zoom). Non-blocking gets the same number.
-
-The rebuild latency itself (re-encoding the whole GeoJSON per timestep) is real but a _separate_ problem — no scheduling hides synchronous work. The lever there is pushing per-timestep results via feature-state / a data-expression instead of rebuilding the whole source; tracked as a follow-up.
-
-### Overlay Management Patterns
-
-For high-volume datasets like customer points, deck.gl overlays provide specialized performance optimizations:
-
-#### Zoom-based Visibility
-
-```typescript
-// Only render customer points at appropriate zoom levels
-const shouldShowOverlay = (zoom: number) => zoom >= 14;
-
-// Apply visibility to all layers in overlay
-const updateOverlayVisibility = (overlay: Layer[], zoom: number) => {
-  return overlay.map((layer) =>
-    layer.clone({ visible: shouldShowOverlay(zoom) }),
-  );
-};
-```
-
-#### Reference-based Update Strategy
-
-```typescript
-// Prevent unnecessary rebuilds with React refs
-const customerPointsOverlayRef = useRef<CustomerPointsOverlay>([]);
-const ephemeralDeckLayersRef = useRef<CustomerPointsOverlay>([]);
-
-// Only rebuild when data changes, not on every render
-if (hasNewCustomerPoints) {
-  const overlay = buildCustomerPointsOverlay(customerPoints, zoom);
-  customerPointsOverlayRef.current = overlay;
-}
-```
-
-#### Dual Overlay Architecture
-
-- **Main Overlay**: Stable visualization, rebuilt only on data changes
-- **Ephemeral Overlay**: High-frequency updates for interactions
-- **Combined**: Merged before setting on map to minimize rendering calls
-
-```typescript
-// Combine overlays efficiently
-const combinedOverlay = [
-  ...stableOverlay, // Infrequently updated
-  ...ephemeralOverlay, // Frequently updated
-];
-map.setOverlay(combinedOverlay);
-```
-
-## Key Architecture Files
-
-### Core Style Configuration
-
-- **`src/map/build-style.ts`** - **MAIN STYLE CONFIGURATION**
-  - `buildBaseStyle()` - Primary style builder and configuration
-  - `defineEmptySources()` - Initializes the core sources as empty GeoJSON
-  - Registers all layers and sources for the map
-  - `makeLayers()` (pre-facet) and `makeFacetedLayers()` (faceted) build the two layer sets;
-    `defineEmptySources()` registers the base sources; `defineEmptySourcesFaceted()` adds
-    those plus `delta-icons`. See "Faceted Source Model".
-
-### Data Source Management
-
-- **`src/map/data-source/`** - **CRITICAL DATA SOURCES**
-  - `types.ts` - Source name constants and type definitions
-  - `buildOptimizedAssetsSource()` - Hydraulic network feature generation
-  - `buildIconPointsSource()` - Point representations (pumps, valves, tanks, reservoirs)
-
-### Layer System
-
-- **`src/map/layers/layer.ts`** - **`LayerId` REGISTRY** (the union of every layer id)
-  - Per-asset-type layer configs live in sibling files under `layers/` (`pipes.ts`, `junctions.ts`,
-    `pumps.ts`, `valves.ts`, `tank.ts`, `reservoirs.ts`, `selection.ts`, `ephemeral-state.ts`,
-    `highlights.ts`, …), each pairing main-features and delta-features layers
-  - Selection layers, icon layers, label layers, ephemeral layers
-
-### Icon System
-
-- **`src/map/icons/icons-sprite.ts`** - **SPRITE ATLAS BUILDER**
-  - Builds complete sprite atlas from SVG icon states
-  - Manages colored variants (active/green, open/gray, closed/red)
-- **`src/map/icons/dynamic-icons.ts`** - **SVG GENERATION FUNCTIONS**
-  - Individual SVG builders for each asset type
-  - Handles state-based coloring and styling
-
-### Core Architecture Files
-
-- **`map-canvas.tsx`** - Main React component with Mapbox GL integration; mounts the faceted updater
-  when `FLAG_MAP_FACETED_SOURCES` is on, otherwise the default serialized `state-updates.ts`
-- **`MapEngine`** (`@epanet-js/map`) - Mapbox wrapper with data source management (imported into `src/map`)
-- **`state-updates.ts`** - **CRITICAL** - Change detection and optimization system
-- **`state-updates-faceted.ts`** - faceted parallel of `state-updates.ts` (`FLAG_MAP_FACETED_SOURCES`);
-  icons main/delta facet, selection-as-`selected`-prop with delta overlay + large-selection
-  coalescing. See "Faceted Source Model".
-
-### Map backend seam
-
-`src/map/map-operations.ts` defines `registerMapOperations()` / `useMapOperations()` over the
-`MapOperations` contract (from `@epanet-js/map`). The faceted updater drives the main source through
-`useMapOperations()` instead of calling source helpers directly, so the backend is pluggable. The
-default implementation, `mapOperations`, is the geojson one exported here and used unless something
-registers a selector (`(flags) => MapOperations | null`) at startup; `useMapOperations()` falls back
-to `mapOperations` whenever the selector returns `null`. This keeps the rest of `src/map` agnostic to
-which backend is active.
-
-### System Overview
-
-- Creates the core sources: `"main-features"`, `"delta-features"`, `"icons"`, `"delta-icons"`, `"selected-features"`, `"ephemeral"`, `"map-overlay"`, `"highlights"`, `"grid"`, `"zones"`
-- Dynamic GIS sources created on demand with `"gis-{layerId}"` pattern
-- Icons system generates colored SVG variants and packs into sprite atlas
-- Layer system handles hydraulic network visualization with paint/layout configurations
-
-### Rendering System
-
-- **`layers/`** - Layer configs for hydraulic assets (`layer.ts` holds the `LayerId` union; configs are per-asset-type files)
-- **`icons/`** - SVG sprite atlas generation
-- **`symbology/`** - Advanced visualization and color mapping
-- **`overlays/`** - Deck.gl overlay implementations
-  - `customer-points.ts` - Customer points visualization and ephemeral highlighting
-
-### Interaction System
-
-- **`mode-handlers/`** - Drawing/interaction state management
-- **`fuzzy-click.ts`** - Click detection and feature selection
-
-## Implementation Guidelines
-
-### Critical Rules
-
-1. **Never bypass the state update system** in `state-updates.ts`
-
-   - It prevents performance issues with large datasets
-   - Always go through proper change detection
-
-2. **Use feature state only for small-scale changes**
-
-   - Feature state is fast for a handful of features (e.g., hiding the one feature being dragged)
-   - Feature state applied to many features at once kills map fluidity — use a dedicated source instead
-   - Selection uses `"selected-features"` source, not feature state, for this reason
-
-3. **Follow existing change detection patterns**
-
-   - Understand the impact of different change types
-   - Respect the source update hierarchy and dependencies
-
-4. **Maintain proper ephemeral state for real-time feedback**
-   - Hide committed features when in ephemeral state
-   - Provide immediate visual feedback without model changes
-
-### Data Source Management
-
-- Use `buildOptimizedAssetsSource()` for hydraulic network features
-- Use `buildIconPointsSource()` for point representations (requires corresponding layer config)
-- Use `buildEphemeralStateSource()` for temporary drawing states
-- Never update sources directly - always go through `MapEngine.setSource()`
-
-#### Icon Rendering Pipeline
-
-Icons require both data source generation AND layer configuration. **Missing either step will result in icons not displaying.**
-
-##### Complete Process for Adding New Asset Type Icons:
-
-1. **Create Icon SVG**: Add `buildXxxSvg()` function to `src/map/icons/dynamic-icons.ts`
-2. **Define Icon Types**: Add icon IDs to `IconId` type in `src/map/icons/icons-sprite.ts`
-3. **Generate Icon URLs**: Add entries to `iconUrls` array using your SVG builder
-4. **Update Data Source**: Add asset logic to `buildIconPointsSource()` in `src/map/data-source/icons.ts`
-5. **Create Layer**: Add layer config to `src/map/layers/layer.ts` with `source: "icons"`
-6. **Register**: Add layer to `src/map/build-style.ts`
-7. **Test**: Write unit tests for data source and verify icon display
-
-##### Example (CV Pipe Icons):
-
-```typescript
-// Step 4: Data source
-if (asset.type === "pipe" && pipe.initialStatus === "cv") {
-  // Generate icon feature with properties
-}
-
-// Step 5: Layer config
-{ id: "check-valve-icons", type: "symbol", source: "icons", filter: ["all", ["==", "type", "pipe"], ["has", "icon"]] }
-```
-
-**Critical**: Icons require BOTH data generation (steps 1-4) AND layer rendering (steps 5-6). Data without layers won't display.
-
-### Performance Requirements
-
-- Profile any changes that affect >1k features
-- Use feature state only for small, bounded changes — never for operations that scale with network or selection size
-- Use dedicated sources for bulk operations (selection, symbology results, etc.)
-- Implement proper visibility management to prevent visual artifacts
-- Monitor instrumentation timings and respect `maxDurationMs` limits
-
-### Mode Handler Integration
-
-- Use existing mode handler patterns for user interactions
-- Maintain proper ephemeral state updates for drawing modes
-- Follow the command pattern for user actions affecting map state
-- Ensure proper cleanup and state transitions
-
-## Testing Strategy
-
-### Integration Tests
-
-Tests are located in `src/map/test/` and use a test map engine that simulates real Mapbox behavior.
-
-#### Test Pattern
-
-```typescript
-// 1. Set initial state
-const store = setInitialState({ mode: Mode.DRAW_JUNCTION });
-
-// 2. Render test map
-const map = await renderMap(store);
-
-// 3. Trigger user events
-await fireMapClick(map, { lng: 10, lat: 20 });
-
-// 4. Assert map state changes
-const features = getSourceFeatures(map, "delta-features");
-expect(features).toHaveLength(1);
-```
-
-#### Test Helpers
-
-- **`renderMap()`** - Creates test map with full React context
-- **`fireMapClick()`**, **`fireMapMove()`** - Simulate user interactions
-- **`getSourceFeatures()`** - Inspect source data
-- **`matchPoint()`**, **`matchLineString()`** - Geometry assertions
-- **`MapTestEngine`** - Mock that tracks sources and feature states
-
-#### Testing Guidelines
-
-- Use helpers from the map namespace to avoid coupling with internal implementation
-- Test the full integration from user interaction to map state changes
-- Focus on testing the complete user workflow, not individual functions
-- Simulate real user behavior with event sequences
-
-## When to Override
-
-### Simple Changes
-
-- Small bug fixes that don't affect the source system
-- Minor styling updates that use existing patterns
-- Feature flag additions following standard patterns
-
-### Complex Features
-
-- Features requiring new data sources (document the performance impact)
-- Custom interaction modes (follow existing mode handler patterns)
-- Advanced symbology requirements (extend existing symbology system)
-- Performance optimizations (thoroughly test with large datasets)
-
-### Never Override
-
-- The dual-source data architecture (`main-features` + `delta-features`)
-- The change detection system in `state-updates.ts`
-- Feature state visibility management patterns
-- The serialized, coalescing update scheduler in `state-updates.ts` (never mutate the map outside it, never let cycles overlap)
-- The non-blocking model in `syncMapState` — cycles never wait on rendering; the indicator and display timing both resolve out-of-band via `map.onNextIdle` (don't reintroduce a blocking wait or per-source awaits)
-- The suspension gate on measurements/warnings (`wasSuspendedSince` — never report a duration or warning across a hidden period)
-
-## Architecture Direction
-
-### Current Strengths
-
-- Handles large datasets (>10k features) efficiently
-- Non-destructive editing with fast undo/redo
-- Real-time visual feedback during interactions
-- Sophisticated change detection prevents unnecessary updates
-
-### Future Considerations
-
-- Viewport-based feature culling for extremely large networks
-- Web Worker integration for heavy computations
-- Enhanced caching strategies for symbols and sprites
-- Progressive loading for massive datasets
-
-## Integration with Mapbox GL JS
-
-### Critical Requirements
-
-- Always check Mapbox GL JS documentation for map-related features
-- Don't rely only on TypeScript interfaces - verify behavior with Mapbox docs
-- Use existing data source patterns established in the codebase
-- Follow established layer visibility and styling patterns
-
-### Common Patterns
-
-```typescript
-// Proper feature state management
-map.setFeatureState(
-  { source: "delta-features", id: featureId },
-  { selected: true },
-);
-
-// Proper source updates
-await map.setSource("delta-features", featureCollection);
-
-// Proper layer visibility
-map.setLayoutProperty(layerId, "visibility", "visible");
-```
-
-Remember: The map architecture is optimized for performance with large hydraulic networks. Any changes must respect the dual-source system and change detection patterns to maintain this performance.
+- Updater and change detection — the `useMapStateUpdates` hook and `detectChanges`, in `state-updates.ts`.
+- Backend interface — the `MapOperations` interface and its default GeoJSON implementation, in `map-operations.ts`.
+- Style, sources, and layers — `build-style.ts`, `data-source/`, `layers/`.
+- Symbology rules and how they resolve to per-feature values — `symbology/`.
+- Interaction modes and handlers — `useModeHandlers` and the per-mode handler sets in `mode-handlers/`.
+- Customer-point overlays — `buildCustomerPointsOverlay` in `overlays/`.
