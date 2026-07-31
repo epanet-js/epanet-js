@@ -67,6 +67,7 @@ import { CustomGraphDialog } from "src/dialogs/custom-graph-dialog";
 import { PriorityAccessDialog } from "src/dialogs/priority-access";
 import { AllocateCustomerPointsDialog } from "src/dialogs/allocate-customer-points";
 import { RecalculateAllElevationsConfirmDialog } from "src/dialogs/recalculate-all-elevations-confirm-dialog";
+import { RecomputeElevationsProgressDialog } from "src/dialogs/recompute-elevations-progress-dialog";
 import { AllocateCustomerPointsWarningDialog } from "src/dialogs/allocate-customer-points-warning";
 import { ModelAttributesValidationDialog } from "src/dialogs/model-attributes-validation";
 import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
@@ -183,6 +184,11 @@ export const Dialogs = memo(function Dialogs() {
         onConfirm={dialog.onConfirm}
         onClose={onClose}
       />
+    );
+  }
+  if (dialog.type === "recomputeElevationsProgress") {
+    return (
+      <RecomputeElevationsProgressDialog modal={dialog} onClose={onClose} />
     );
   }
   if (dialog.type === "allocateCustomerPointsWarning") {

@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { AssetId, NodeAsset, isNodeAsset } from "@epanet-js/hydraulic-model";
 import { fetchElevationsFromSources } from "src/lib/elevations";
@@ -10,10 +10,8 @@ import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import {
-  elevationSourcesAtom,
-  recalculatingElevationsAtom,
-} from "src/state/elevation-sources";
+import { elevationSourcesAtom } from "src/state/elevation-sources";
+import { dialogAtom } from "src/state/dialog";
 import { offlineAtom } from "src/state/offline";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
@@ -75,7 +73,7 @@ export const useRecomputeElevations = () => {
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
   const translate = useTranslate();
-  const [isRunning, setRunning] = useAtom(recalculatingElevationsAtom);
+  const setDialog = useSetAtom(dialogAtom);
 
   const recompute = useCallback(
     async ({
@@ -93,9 +91,8 @@ export const useRecomputeElevations = () => {
         return;
       }
 
-      // Only one recalculation at a time; ignore requests while one is running.
-      if (isRunning) return;
-      setRunning(true);
+      // A blocking progress dialog both signals work and prevents re-entry.
+      setDialog({ type: "recomputeElevationsProgress" });
       try {
         const nodes: NodeAsset[] = [];
         const points: { lng: number; lat: number }[] = [];
@@ -169,12 +166,12 @@ export const useRecomputeElevations = () => {
           unresolved,
         });
 
+        setDialog(null);
         notifyResult(translate, { total: nodes.length, resolved, unresolved });
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
-        notifyError(translate);
-      } finally {
-        setRunning(false);
+        // Keep the dialog open, switched to its error layout.
+        setDialog({ type: "recomputeElevationsProgress", error: true });
       }
     },
     [
@@ -185,12 +182,11 @@ export const useRecomputeElevations = () => {
       transact,
       userTracking,
       translate,
-      isRunning,
-      setRunning,
+      setDialog,
     ],
   );
 
-  return { recompute, isRunning };
+  return { recompute };
 };
 
 const notifyNoSources = (translate: TranslateFn) =>
@@ -199,15 +195,6 @@ const notifyNoSources = (translate: TranslateFn) =>
     Icon: UnavailableIcon,
     title: translate("elevations.recompute.noSourcesTitle"),
     description: translate("elevations.recompute.noSources"),
-    id: NOTIFY_ID,
-  });
-
-const notifyError = (translate: TranslateFn) =>
-  notify({
-    variant: "error",
-    Icon: UnavailableIcon,
-    title: translate("elevations.recompute.failedTitle"),
-    description: translate("elevations.recompute.failed"),
     id: NOTIFY_ID,
   });
 

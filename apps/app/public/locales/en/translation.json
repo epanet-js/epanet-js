@@ -152,6 +152,7 @@
     "verticalUnit": "Elevation unit",
     "recompute": {
       "tooltip": "Elevations actions",
+      "running": "Recalculating elevations…",
       "recalculateMissing": "Recalculate missing elevations",
       "recalculateAll": "Recalculate all elevations",
       "confirmAllTitle": "Recalculate all elevations",

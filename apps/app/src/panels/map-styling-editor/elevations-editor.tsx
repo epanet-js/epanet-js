@@ -51,6 +51,7 @@ import {
   LocateOffIcon,
   MultipleValuesIcon,
   MoreActionsIcon,
+  PaywallLockIcon,
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "@epanet-js/ui-kit";
@@ -636,7 +637,7 @@ const RecomputeElevationsButton = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const { isLocked, openPaywall } = useFeatureLock("refreshElevations");
-  const { recompute, isRunning } = useRecomputeElevations();
+  const { recompute } = useRecomputeElevations();
   const [open, setOpen] = useState(false);
   const targets = useElevationTargets(open);
 
@@ -675,12 +676,10 @@ const RecomputeElevationsButton = () => {
           <DDContent align="end" side="bottom" className="z-50">
             <StyledItem
               className="data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed"
-              disabled={
-                isRunning ||
-                (!isLocked && (targets === null || missingCount === 0))
-              }
+              disabled={!isLocked && (targets === null || missingCount === 0)}
               onSelect={selectMissing}
             >
+              {isLocked && <PaywallLockIcon size="sm" />}
               <span className="grow">
                 {translate("elevations.recompute.recalculateMissing")}
               </span>
@@ -690,11 +689,10 @@ const RecomputeElevationsButton = () => {
             </StyledItem>
             <StyledItem
               className="data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed"
-              disabled={
-                isRunning || (!isLocked && (targets === null || allCount === 0))
-              }
+              disabled={!isLocked && (targets === null || allCount === 0)}
               onSelect={selectAll}
             >
+              {isLocked && <PaywallLockIcon size="sm" />}
               <span className="grow">
                 {translate("elevations.recompute.recalculateAll")}
               </span>

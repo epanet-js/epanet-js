@@ -315,6 +315,11 @@ export type RecalculateAllElevationsConfirmDialogState = {
   onConfirm: () => void;
 };
 
+export type RecomputeElevationsProgressDialogState = {
+  type: "recomputeElevationsProgress";
+  error?: boolean;
+};
+
 export type DialogState =
   | InvalidFilesErrorDialogState
   | {
@@ -348,6 +353,7 @@ export type DialogState =
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState
   | RecalculateAllElevationsConfirmDialogState
+  | RecomputeElevationsProgressDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
   | PatternsLibraryDialog
