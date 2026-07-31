@@ -18,3 +18,5 @@ const defaultMapboxSource: TileServerElevationSource = {
 export const elevationSourcesAtom = atom<ElevationSource[]>([
   defaultMapboxSource,
 ]);
+
+export const recalculatingElevationsAtom = atom(false);

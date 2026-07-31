@@ -1,29 +1,26 @@
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useState } from "react";
 import { AssetId, NodeAsset, isNodeAsset } from "@epanet-js/hydraulic-model";
 import { fetchElevationsFromSources } from "src/lib/elevations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { captureError } from "src/infra/error-tracking";
+import { notify } from "src/components/notifications";
+import { SuccessIcon, UnavailableIcon, WarningIcon } from "src/icons";
+import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
-import { elevationSourcesAtom } from "src/state/elevation-sources";
+import {
+  elevationSourcesAtom,
+  recalculatingElevationsAtom,
+} from "src/state/elevation-sources";
 import { offlineAtom } from "src/state/offline";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { AssetPatch } from "src/hydraulic-model/model-operation";
 
 export type RecomputeElevationsMode = "missing" | "all";
 
-export type RecomputeElevationsResult =
-  | { status: "noSources" }
-  | { status: "error" }
-  | {
-      status: "done";
-      mode: RecomputeElevationsMode;
-      total: number;
-      resolved: number;
-      unresolved: number;
-    };
+const NOTIFY_ID = "elevations-recompute-summary";
 
 export type ElevationTargets = {
   missingIds: AssetId[];
@@ -77,6 +74,8 @@ export const useRecomputeElevations = () => {
   const { units } = useAtomValue(projectSettingsAtom);
   const { transact } = useMomentTransaction();
   const userTracking = useUserTracking();
+  const translate = useTranslate();
+  const [isRunning, setRunning] = useAtom(recalculatingElevationsAtom);
 
   const recompute = useCallback(
     async ({
@@ -85,14 +84,18 @@ export const useRecomputeElevations = () => {
     }: {
       assetIds: AssetId[];
       mode: RecomputeElevationsMode;
-    }): Promise<RecomputeElevationsResult> => {
+    }) => {
       const availableSources = isOffline
         ? sources.filter((source) => source.type !== "tile-server")
         : sources;
       if (!availableSources.some((source) => source.enabled)) {
-        return { status: "noSources" };
+        notifyNoSources(translate);
+        return;
       }
 
+      // Only one recalculation at a time; ignore requests while one is running.
+      if (isRunning) return;
+      setRunning(true);
       try {
         const nodes: NodeAsset[] = [];
         const points: { lng: number; lat: number }[] = [];
@@ -166,20 +169,100 @@ export const useRecomputeElevations = () => {
           unresolved,
         });
 
-        return {
-          status: "done",
-          mode,
-          total: nodes.length,
-          resolved,
-          unresolved,
-        };
+        notifyResult(translate, { total: nodes.length, resolved, unresolved });
       } catch (error) {
         captureError(error instanceof Error ? error : new Error(String(error)));
-        return { status: "error" };
+        notifyError(translate);
+      } finally {
+        setRunning(false);
       }
     },
-    [model, sources, isOffline, units.elevation, transact, userTracking],
+    [
+      model,
+      sources,
+      isOffline,
+      units.elevation,
+      transact,
+      userTracking,
+      translate,
+      isRunning,
+      setRunning,
+    ],
   );
 
-  return { recompute };
+  return { recompute, isRunning };
+};
+
+const notifyNoSources = (translate: TranslateFn) =>
+  notify({
+    variant: "warning",
+    Icon: UnavailableIcon,
+    title: translate("elevations.recompute.noSourcesTitle"),
+    description: translate("elevations.recompute.noSources"),
+    id: NOTIFY_ID,
+  });
+
+const notifyError = (translate: TranslateFn) =>
+  notify({
+    variant: "error",
+    Icon: UnavailableIcon,
+    title: translate("elevations.recompute.failedTitle"),
+    description: translate("elevations.recompute.failed"),
+    id: NOTIFY_ID,
+  });
+
+const notifyResult = (
+  translate: TranslateFn,
+  {
+    total,
+    resolved,
+    unresolved,
+  }: {
+    total: number;
+    resolved: number;
+    unresolved: number;
+  },
+) => {
+  if (resolved === 0) {
+    notify({
+      variant: "warning",
+      Icon: UnavailableIcon,
+      title: translate("elevations.recompute.noneResolvedTitle"),
+      description: translate(
+        "elevations.recompute.noneResolved",
+        String(total),
+      ),
+      id: NOTIFY_ID,
+    });
+    return;
+  }
+
+  if (unresolved > 0) {
+    notify({
+      variant: "warning",
+      Icon: WarningIcon,
+      title: translate("elevations.recompute.summaryTitle"),
+      description:
+        translate(
+          "elevations.recompute.summary",
+          String(resolved),
+          String(unresolved),
+        ) +
+        "\n" +
+        translate("elevations.recompute.reviewHint"),
+      id: NOTIFY_ID,
+    });
+    return;
+  }
+
+  notify({
+    variant: "success",
+    Icon: SuccessIcon,
+    title: translate("elevations.recompute.summaryTitle"),
+    description: translate(
+      "elevations.recompute.summaryAllResolved",
+      String(resolved),
+    ),
+    id: NOTIFY_ID,
+  });
 };

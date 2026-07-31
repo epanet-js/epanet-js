@@ -1458,7 +1458,7 @@ function SortableLayerConfig({
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex gap-x-2 items-start -ml-1 -mr-1"
+      className="group flex gap-x-2 items-start -ml-1"
       key={layerConfig.id}
     >
       {readonly ? (

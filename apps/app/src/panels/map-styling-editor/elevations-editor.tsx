@@ -6,7 +6,7 @@ import { fetchProjections } from "src/lib/projections";
 import { LngLatBoundsLike } from "mapbox-gl";
 import { nanoid } from "nanoid";
 import * as Popover from "@radix-ui/react-popover";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import * as DD from "@radix-ui/react-dropdown-menu";
 import {
   DndContext,
   closestCenter,
@@ -33,8 +33,8 @@ import { projectSettingsAtom } from "src/state/project-settings";
 import {
   StyledPopoverArrow,
   StyledPopoverContent,
-  StyledTooltipArrow,
-  TContent,
+  DDContent,
+  StyledItem,
   Button,
 } from "src/components/elements";
 import {
@@ -50,7 +50,7 @@ import {
   LocateIcon,
   LocateOffIcon,
   MultipleValuesIcon,
-  RefreshIcon,
+  MoreActionsIcon,
 } from "src/icons";
 import { NumericField } from "src/components/form/numeric-field";
 import { Selector } from "@epanet-js/ui-kit";
@@ -67,6 +67,11 @@ import { MapContext } from "src/map";
 import { ActionButton } from "src/components/action-button";
 import { usePermissions } from "src/hooks/use-permissions";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { useFeatureLock } from "src/components/form/paywall";
+import {
+  useElevationTargets,
+  useRecomputeElevations,
+} from "src/commands/recompute-elevations";
 import { dialogAtom } from "src/state/dialog";
 import {
   ElevationSource,
@@ -201,7 +206,7 @@ const ElevationSourceRowShell = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex gap-x-2 items-start -ml-1 -mr-1"
+      className="flex gap-x-2 items-start -ml-1"
     >
       {readonly ? (
         <div className="opacity-20 flex items-center h-8">
@@ -630,32 +635,77 @@ const AddElevationDataButton = ({ actions }: { actions: Actions }) => {
 const RecomputeElevationsButton = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
+  const { isLocked, openPaywall } = useFeatureLock("refreshElevations");
+  const { recompute, isRunning } = useRecomputeElevations();
+  const [open, setOpen] = useState(false);
+  const targets = useElevationTargets(open);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setDialogState({ type: "recomputeElevations" });
+  const missingCount = targets?.missingIds.length ?? 0;
+  const allCount = targets?.allIds.length ?? 0;
+
+  const selectMissing = () => {
+    if (isLocked) return openPaywall();
+    if (!targets) return;
+    void recompute({ assetIds: targets.missingIds, mode: "missing" });
+  };
+
+  const selectAll = () => {
+    if (isLocked) return openPaywall();
+    if (!targets) return;
+    const assetIds = targets.allIds;
+    setDialogState({
+      type: "recalculateAllElevationsConfirm",
+      onConfirm: () => void recompute({ assetIds, mode: "all" }),
+    });
   };
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger asChild onClick={handleClick}>
-        <Button
-          variant="quiet/mode"
-          className="h-8"
-          aria-label={translate("elevations.recompute.tooltip")}
-        >
-          <RefreshIcon />
-        </Button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <TContent side="bottom">
-          <StyledTooltipArrow />
-          <span className="whitespace-nowrap">
-            {translate("elevations.recompute.tooltip")}
-          </span>
-        </TContent>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <div onClick={(e) => e.stopPropagation()}>
+      <DD.Root modal={false} open={open} onOpenChange={setOpen}>
+        <DD.Trigger asChild>
+          <Button
+            variant="quiet/mode"
+            className="h-8 w-8 justify-center"
+            aria-label={translate("elevations.recompute.tooltip")}
+          >
+            <MoreActionsIcon />
+          </Button>
+        </DD.Trigger>
+        <DD.Portal>
+          <DDContent align="end" side="bottom" className="z-50">
+            <StyledItem
+              className="data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed"
+              disabled={
+                isRunning ||
+                (!isLocked && (targets === null || missingCount === 0))
+              }
+              onSelect={selectMissing}
+            >
+              <span className="grow">
+                {translate("elevations.recompute.recalculateMissing")}
+              </span>
+              <span className="text-subtle tabular-nums">
+                {targets === null ? "…" : missingCount}
+              </span>
+            </StyledItem>
+            <StyledItem
+              className="data-[disabled]:opacity-40 data-[disabled]:cursor-not-allowed"
+              disabled={
+                isRunning || (!isLocked && (targets === null || allCount === 0))
+              }
+              onSelect={selectAll}
+            >
+              <span className="grow">
+                {translate("elevations.recompute.recalculateAll")}
+              </span>
+              <span className="text-subtle tabular-nums">
+                {targets === null ? "…" : allCount}
+              </span>
+            </StyledItem>
+          </DDContent>
+        </DD.Portal>
+      </DD.Root>
+    </div>
   );
 };
 

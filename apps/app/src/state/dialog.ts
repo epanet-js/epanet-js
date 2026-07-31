@@ -310,8 +310,9 @@ export type AllocateCustomerPointsWarningDialogState = {
   onImport: () => void;
 };
 
-export type RecomputeElevationsDialogState = {
-  type: "recomputeElevations";
+export type RecalculateAllElevationsConfirmDialogState = {
+  type: "recalculateAllElevationsConfirm";
+  onConfirm: () => void;
 };
 
 export type DialogState =
@@ -346,7 +347,7 @@ export type DialogState =
   | EarlyAccessDialogState
   | SimulationProgressDialogState
   | OpenProjectProgressDialogState
-  | RecomputeElevationsDialogState
+  | RecalculateAllElevationsConfirmDialogState
   | { type: "simulationSettings" }
   | { type: "controls" }
   | PatternsLibraryDialog
