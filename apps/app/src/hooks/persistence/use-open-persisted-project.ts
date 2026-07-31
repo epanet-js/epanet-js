@@ -11,7 +11,7 @@ import {
   loadModel,
   resetAppState,
 } from "./use-start-new-project";
-import { captureError, captureInfo } from "src/infra/error-tracking";
+import { captureError } from "src/infra/error-tracking";
 
 export type OpenPersistedProjectPhase = FetchProjectPhase | "finalizing";
 
@@ -38,8 +38,6 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
-  const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
-  const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
   const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
 
   const openPersistedProject = useAtomCallback(
@@ -49,13 +47,7 @@ export const useOpenPersistedProject = () => {
         set: Setter,
         { file, onProgress }: OpenPersistedProjectInput,
       ): Promise<OpenPersistedProjectResult> => {
-        const start_time = performance.now();
         const result = await db.openProject(file);
-        captureInfo("openProject() performance", {
-          elapsedTimeMs: performance.now() - start_time,
-          isWriteDbToOpfsOn,
-          isReadDbFromOpfsOn,
-        });
 
         if (result.status !== "ok" && result.status !== "migrated") {
           return result;
@@ -99,7 +91,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [isWriteDbToOpfsOn, isReadDbFromOpfsOn, isTrackModelSharingOn],
+      [isTrackModelSharingOn],
     ),
   );
 

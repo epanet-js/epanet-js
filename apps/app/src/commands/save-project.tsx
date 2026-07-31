@@ -17,13 +17,8 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useUserTracking } from "src/infra/user-tracking";
 import * as db from "src/lib/db";
-import {
-  captureError,
-  captureInfo,
-  captureWarning,
-} from "src/infra/error-tracking";
+import { captureError, captureWarning } from "src/infra/error-tracking";
 import { MapContext, captureThumbnail } from "src/map";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export const saveProjectShortcut = "ctrl+s";
 export const saveProjectAsShortcut = "ctrl+shift+s";
@@ -45,8 +40,6 @@ export const useSaveProject = ({
   const { addRecent } = useRecentFiles();
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
-  const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
-  const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
 
   const performSave = useAtomCallback(
     useCallback(
@@ -117,13 +110,7 @@ export const useSaveProject = ({
           duration: Infinity,
         });
         try {
-          const startTime = performance.now();
           await asyncSave();
-          captureInfo("saveProject() performance", {
-            elapsedTimeMs: performance.now() - startTime,
-            isWriteDbToOpfsOn,
-            isReadDbFromOpfsOn,
-          });
 
           notify({
             variant: "success",
@@ -168,14 +155,7 @@ export const useSaveProject = ({
           return false;
         }
       },
-      [
-        getFsAccess,
-        addRecent,
-        translate,
-        map,
-        isWriteDbToOpfsOn,
-        isReadDbFromOpfsOn,
-      ],
+      [getFsAccess, addRecent, translate, map],
     ),
   );
 

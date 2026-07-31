@@ -20,8 +20,6 @@ import { isSessionAlive } from "src/infra/session-lock";
 export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   const [isDbReady, setIsDbReady] = useState(false);
   const seedDefaultProjectDb = useSeedDefaultProjectDb();
-  const isWriteDbToOpfsOn = useFeatureFlag("FLAG_WRITE_DB_TO_OPFS");
-  const isReadDbFromOpfsOn = useFeatureFlag("FLAG_READ_DB_FROM_OPFS");
   const isSessionRecoveryOn = useFeatureFlag("FLAG_SESSION_RECOVERY");
   const setSessionRecoveryActive = useSetAtom(sessionRecoveryActiveAtom);
   const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
@@ -35,11 +33,7 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
 
     const bootstrap = async () => {
       try {
-        const effective = await configureDbStorage(
-          isWriteDbToOpfsOn,
-          isReadDbFromOpfsOn,
-          isSessionRecoveryOn,
-        );
+        const effective = await configureDbStorage(isSessionRecoveryOn);
         const recoveryActive = isSessionRecoveryOn && effective === "sahpool";
         setSessionRecoveryActive(recoveryActive);
 
@@ -75,8 +69,6 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
   }, [
     isEnabled,
     seedDefaultProjectDb,
-    isWriteDbToOpfsOn,
-    isReadDbFromOpfsOn,
     isSessionRecoveryOn,
     setSessionRecoveryActive,
     setRecoverableSessions,

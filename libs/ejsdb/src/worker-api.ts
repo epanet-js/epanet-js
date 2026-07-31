@@ -30,8 +30,6 @@ import type {
   ImportProjectPayload,
   NewDbResult,
   OpenDbResult,
-  ShadowErrorPhase,
-  ShadowErrorReporter,
 } from "./types";
 
 const formatErrorDetails = (e: unknown): string => {
@@ -93,20 +91,12 @@ type Sqlite3 = {
 
 let sqlite3: Sqlite3 | null = null;
 let db: OoDb | null = null;
-let stmtCache = new Map<string, Stmt>();
+const stmtCache = new Map<string, Stmt>();
 
-type StorageMode = "memory" | "shadow" | "sahpool";
+type StorageMode = "memory" | "sahpool";
 let storageMode: StorageMode = "memory";
 let poolUtil: SAHPoolUtil | null = null;
 const SAHPOOL_DB_PATH = "/main.sqlite3";
-
-let shadowDb: OoDb | null = null;
-let shadowStmtCache = new Map<string, Stmt>();
-let shadowReporter: ShadowErrorReporter | null = null;
-let shadowFailureCount = 0;
-let shadowReportCount = 0;
-let reportedShadowKeys = new Set<string>();
-const SHADOW_REPORT_LIMIT = 20;
 
 const ensureSahpool = async (appId: string): Promise<boolean> => {
   if (poolUtil) return true;
@@ -122,12 +112,9 @@ const ensureSahpool = async (appId: string): Promise<boolean> => {
   }
 };
 
-export const setSahpoolForTest = (
-  pool: SAHPoolUtil | null,
-  mode: "sahpool" | "shadow" = "sahpool",
-): void => {
+export const setSahpoolForTest = (pool: SAHPoolUtil | null): void => {
   poolUtil = pool;
-  storageMode = pool ? mode : "memory";
+  storageMode = pool ? "sahpool" : "memory";
 };
 
 export const createMemoryDbForTest = async (): Promise<OoDb> => {
@@ -176,18 +163,6 @@ const finalizeStmts = (cache: Map<string, Stmt>) => {
   cache.clear();
 };
 
-const closeShadowDb = () => {
-  if (shadowDb) {
-    finalizeStmts(shadowStmtCache);
-    try {
-      shadowDb.close();
-    } catch {
-      // ignore
-    }
-    shadowDb = null;
-  }
-};
-
 const closeExistingDb = () => {
   if (db) {
     finalizeStmts(stmtCache);
@@ -198,7 +173,6 @@ const closeExistingDb = () => {
     }
     db = null;
   }
-  closeShadowDb();
 };
 
 const WIPE_RETRY_DELAY_MS = 100;
@@ -214,113 +188,6 @@ const wipePoolFiles = async (): Promise<void> => {
   } catch {
     await new Promise((resolve) => setTimeout(resolve, WIPE_RETRY_DELAY_MS));
     await poolUtil!.wipeFiles();
-  }
-};
-
-const reportShadowError = (
-  command: string,
-  phase: ShadowErrorPhase,
-  e: unknown,
-  shadowDisabled: boolean,
-) => {
-  shadowFailureCount++;
-  const isFirstFailure = shadowFailureCount === 1;
-  const errorName = e instanceof Error ? e.name : "Error";
-  const errorMessage = e instanceof Error ? e.message : String(e);
-  const dedupKey = `${phase}:${errorName}`;
-  const isDuplicate = reportedShadowKeys.has(dedupKey) && !shadowDisabled;
-  if (
-    !shadowReporter ||
-    isDuplicate ||
-    shadowReportCount >= SHADOW_REPORT_LIMIT
-  )
-    return;
-  reportedShadowKeys.add(dedupKey);
-  shadowReportCount++;
-  try {
-    void Promise.resolve(
-      shadowReporter({
-        command,
-        phase,
-        errorName,
-        errorMessage,
-        errorDetails: formatErrorDetails(e),
-        isFirstFailure,
-        shadowDisabled,
-      }),
-    ).catch(() => undefined);
-  } catch {
-    // ignore
-  }
-};
-
-const disableShadow = (
-  command: string,
-  phase: ShadowErrorPhase,
-  e: unknown,
-) => {
-  closeShadowDb();
-  reportShadowError(command, phase, e, true);
-};
-
-// The swap window must stay synchronous: an await inside fn would let queued
-// RPCs run against the shadow connection.
-const runOnShadow = (fn: () => void): void => {
-  const primary = db;
-  const primaryStmts = stmtCache;
-  db = shadowDb;
-  stmtCache = shadowStmtCache;
-  try {
-    fn();
-  } finally {
-    db = primary;
-    stmtCache = primaryStmts;
-  }
-};
-
-const attachShadow = async (
-  importBytes: Uint8Array | null,
-  phase: "newDb" | "openDb",
-): Promise<void> => {
-  closeShadowDb();
-  try {
-    if (importBytes === null) {
-      await wipePoolFiles();
-    } else {
-      await poolUtil!.importDb(SAHPOOL_DB_PATH, importBytes);
-    }
-    shadowDb = new poolUtil!.OpfsSAHPoolDb(SAHPOOL_DB_PATH) as unknown as OoDb;
-    shadowStmtCache = new Map();
-    runOnShadow(() => {
-      runMigrations();
-      if (importBytes === null) {
-        db!.exec(`PRAGMA application_id = ${APP_VERSION}`);
-      }
-    });
-  } catch (e) {
-    disableShadow(phase, phase, e);
-  }
-};
-
-const replayOnShadow = (command: string, fn: (db: OoDb) => unknown): void => {
-  if (!shadowDb) return;
-  try {
-    runOnShadow(() => {
-      db!.exec("BEGIN IMMEDIATE");
-      try {
-        fn(db!);
-        db!.exec("COMMIT");
-      } catch (e) {
-        try {
-          db!.exec("ROLLBACK");
-        } catch {
-          // ignore
-        }
-        throw e;
-      }
-    });
-  } catch (e) {
-    disableShadow(command, "transaction", e);
   }
 };
 
@@ -340,9 +207,7 @@ const createNewDb = async (): Promise<NewDbResult> => {
 
   runMigrations();
   db.exec(`PRAGMA application_id = ${APP_VERSION}`);
-  if (storageMode === "shadow") {
-    await attachShadow(null, "newDb");
-  }
+
   return { status: "ok" };
 };
 
@@ -403,7 +268,6 @@ const withTransaction = <T>(
         db.exec("ROLLBACK");
         throw e;
       }
-      replayOnShadow(command, fn);
       return result;
     },
     meta,
@@ -1089,13 +953,6 @@ export const api = {
     return storageMode;
   },
 
-  setShadowErrorReporter(reporter: ShadowErrorReporter | null): void {
-    shadowReporter = reporter;
-    shadowFailureCount = 0;
-    shadowReportCount = 0;
-    reportedShadowKeys = new Set();
-  },
-
   async newDb(): Promise<NewDbResult> {
     return timed("newDb", async () => {
       await ready;
@@ -1156,14 +1013,10 @@ export const api = {
                 appVersion: APP_VERSION,
               };
             }
-            if (storageMode === "shadow") {
-              await attachShadow(fileBytes, "openDb");
-            }
+
             return { status: "migrated", fileVersion, appVersion: APP_VERSION };
           }
-          if (storageMode === "shadow") {
-            await attachShadow(fileBytes, "openDb");
-          }
+
           return { status: "ok", fileVersion, appVersion: APP_VERSION };
         } catch (e) {
           closeExistingDb();

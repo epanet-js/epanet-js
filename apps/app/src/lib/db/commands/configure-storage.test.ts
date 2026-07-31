@@ -8,9 +8,6 @@ const cleanupStaleDbPools = vi.fn<
     isPoolInUse?: (id: string) => Promise<boolean>,
   ) => Promise<void>
 >(() => Promise.resolve());
-const registerShadowErrorReporter = vi.fn<
-  (reporter: (report: unknown) => void) => Promise<void>
->(() => Promise.resolve());
 vi.mock("@epanet-js/ejsdb", async (importActual) => ({
   ...(await importActual<typeof import("@epanet-js/ejsdb")>()),
   getWorker: () => ({ configure }),
@@ -19,8 +16,6 @@ vi.mock("@epanet-js/ejsdb", async (importActual) => ({
     protectedIds: string[],
     isPoolInUse?: (id: string) => Promise<boolean>,
   ) => cleanupStaleDbPools(appId, protectedIds, isPoolInUse),
-  registerShadowErrorReporter: (reporter: (report: unknown) => void) =>
-    registerShadowErrorReporter(reporter),
 }));
 
 const readRecoveryFingerprints = vi.fn<() => { poolId: string }[]>(() => []);
@@ -64,10 +59,6 @@ vi.mock("src/infra/error-tracking", async (importActual) => ({
 
 import { configureDbStorage } from "./configure-storage";
 
-const writeOn = true;
-const writeOff = false;
-const readOn = true;
-const readOff = false;
 const recoveryOn = true;
 const recoveryOff = false;
 
@@ -87,7 +78,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("memory").mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+    const result = await configureDbStorage(recoveryOff);
 
     expect(result).toBe("sahpool");
     expect(configure).toHaveBeenNthCalledWith(1, {
@@ -111,7 +102,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(configure).toHaveBeenCalledTimes(1);
     expect(resetAppId).not.toHaveBeenCalled();
@@ -126,7 +117,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+    const result = await configureDbStorage(recoveryOff);
 
     expect(result).toBe("memory");
     expect(configure).toHaveBeenCalledTimes(2);
@@ -143,7 +134,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(256 * 1024 * 1024);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+      const result = await configureDbStorage(recoveryOff);
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledTimes(1);
@@ -164,7 +155,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(512 * 1024 * 1024);
       configure.mockResolvedValueOnce("sahpool");
 
-      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+      const result = await configureDbStorage(recoveryOff);
 
       expect(result).toBe("sahpool");
       expect(captureWarning).not.toHaveBeenCalled();
@@ -175,7 +166,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(0);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+      const result = await configureDbStorage(recoveryOff);
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledWith({
@@ -192,7 +183,7 @@ describe("configureDbStorage", () => {
       isOPFSAvailable.mockResolvedValue(false);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+      const result = await configureDbStorage(recoveryOff);
 
       expect(result).toBe("memory");
       expect(getAvailableStorageBytes).not.toHaveBeenCalled();
@@ -206,37 +197,13 @@ describe("configureDbStorage", () => {
     });
   });
 
-  it("returns memory without touching the worker when the write flag is off", async () => {
-    const result = await configureDbStorage(writeOff, readOff, recoveryOff);
-
-    expect(result).toBe("memory");
-    expect(isOPFSAvailable).not.toHaveBeenCalled();
-    expect(configure).not.toHaveBeenCalled();
-    expect(resetAppId).not.toHaveBeenCalled();
-    expect(cleanupStaleDbPools).not.toHaveBeenCalled();
-  });
-
-  it("returns memory without touching the worker when only the read flag is on", async () => {
-    const result = await configureDbStorage(writeOff, readOn, recoveryOff);
-
-    expect(result).toBe("memory");
-    expect(isOPFSAvailable).not.toHaveBeenCalled();
-    expect(configure).not.toHaveBeenCalled();
-  });
-
-  it("captures the effective mode only when the write flag is on", async () => {
+  it("captures the effective mode", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(captureInfo).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not capture the effective mode when the write flag is off", async () => {
-    await configureDbStorage(writeOff, readOff, recoveryOff);
-
-    expect(captureInfo).not.toHaveBeenCalled();
   });
 
   it("protects every recoverable pool from cleanup when recovery is enabled", async () => {
@@ -247,7 +214,7 @@ describe("configureDbStorage", () => {
       { poolId: "another-crashed-tab" },
     ]);
 
-    await configureDbStorage(writeOn, readOn, recoveryOn);
+    await configureDbStorage(recoveryOn);
 
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
@@ -268,7 +235,7 @@ describe("configureDbStorage", () => {
       { poolId: "tab-a" },
     ]);
 
-    await configureDbStorage(writeOn, readOn, recoveryOn);
+    await configureDbStorage(recoveryOn);
 
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenCalledWith({
@@ -287,7 +254,7 @@ describe("configureDbStorage", () => {
     configure.mockResolvedValueOnce("sahpool");
     readRecoveryFingerprints.mockReturnValue([{ poolId: "crashed-tab" }]);
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(readRecoveryFingerprints).not.toHaveBeenCalled();
     expect(cleanupStaleDbPools).toHaveBeenCalledWith(
@@ -302,7 +269,7 @@ describe("configureDbStorage", () => {
     isSessionAlive.mockResolvedValueOnce(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage(writeOn, readOn, recoveryOff);
+    const result = await configureDbStorage(recoveryOff);
 
     expect(result).toBe("sahpool");
     expect(isSessionAlive).toHaveBeenCalledWith("tab-a");
@@ -319,7 +286,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(holdSessionLock).toHaveBeenCalledTimes(1);
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
@@ -329,7 +296,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(holdSessionLock).not.toHaveBeenCalled();
   });
@@ -338,99 +305,9 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(false);
     configure.mockResolvedValueOnce("memory");
 
-    await configureDbStorage(writeOn, readOn, recoveryOff);
+    await configureDbStorage(recoveryOff);
 
     expect(isSessionAlive).not.toHaveBeenCalled();
     expect(holdSessionLock).not.toHaveBeenCalled();
-  });
-
-  it("does not register the shadow reporter in sahpool mode", async () => {
-    isOPFSAvailable.mockResolvedValue(true);
-    configure.mockResolvedValueOnce("sahpool");
-
-    await configureDbStorage(writeOn, readOn, recoveryOff);
-
-    expect(registerShadowErrorReporter).not.toHaveBeenCalled();
-  });
-
-  describe("shadow mode", () => {
-    it("requests shadow mode when only the write flag is on", async () => {
-      isOPFSAvailable.mockResolvedValue(true);
-      configure.mockResolvedValueOnce("shadow");
-
-      const result = await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(result).toBe("shadow");
-      expect(configure).toHaveBeenCalledWith({
-        mode: "shadow",
-        sahpoolId: "tab-a",
-      });
-    });
-
-    it("holds the session lock and cleans stale pools when shadow is effective", async () => {
-      isOPFSAvailable.mockResolvedValue(true);
-      configure.mockResolvedValueOnce("shadow");
-
-      await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
-      expect(cleanupStaleDbPools).toHaveBeenCalledWith(
-        "tab-a",
-        [],
-        expect.any(Function),
-      );
-    });
-
-    it("registers the shadow error reporter when shadow is effective", async () => {
-      isOPFSAvailable.mockResolvedValue(true);
-      configure.mockResolvedValueOnce("shadow");
-
-      await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(registerShadowErrorReporter).toHaveBeenCalledTimes(1);
-    });
-
-    it("regenerates the appId and retries once when the shadow install clashes", async () => {
-      isOPFSAvailable.mockResolvedValue(true);
-      configure.mockResolvedValueOnce("memory").mockResolvedValueOnce("shadow");
-
-      const result = await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(result).toBe("shadow");
-      expect(resetAppId).toHaveBeenCalledTimes(1);
-      expect(configure).toHaveBeenNthCalledWith(2, {
-        mode: "shadow",
-        sahpoolId: "tab-a-fresh",
-      });
-    });
-
-    it("warns and skips the reporter when shadow falls back to memory", async () => {
-      isOPFSAvailable.mockResolvedValue(true);
-      configure.mockResolvedValue("memory");
-
-      const result = await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(result).toBe("memory");
-      expect(captureWarning).toHaveBeenCalledTimes(1);
-      expect(registerShadowErrorReporter).not.toHaveBeenCalled();
-      expect(holdSessionLock).not.toHaveBeenCalled();
-    });
-
-    it("initializes the worker in memory when the write flag is on but OPFS is unavailable", async () => {
-      isOPFSAvailable.mockResolvedValue(false);
-      configure.mockResolvedValue("memory");
-
-      const result = await configureDbStorage(writeOn, readOff, recoveryOff);
-
-      expect(result).toBe("memory");
-      expect(configure).toHaveBeenCalledWith({
-        mode: "memory",
-        sahpoolId: "tab-a",
-      });
-      expect(registerShadowErrorReporter).not.toHaveBeenCalled();
-      expect(captureWarning).toHaveBeenCalledWith(
-        fallbackMessage("opfs-not-available"),
-      );
-    });
   });
 });

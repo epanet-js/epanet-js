@@ -1,9 +1,4 @@
-export {
-  getWorker,
-  registerShadowErrorReporter,
-  setWorkerForTest,
-  resetWorkerForTest,
-} from "./get-worker";
+export { getWorker, setWorkerForTest, resetWorkerForTest } from "./get-worker";
 export { cleanupStaleDbPools, dbPoolExists } from "./sahpool-storage";
 // Note: `api` is intentionally not re-exported here. It lives in worker-api.ts,
 // whose top-level SQLite-WASM init must not run on the server during SSR. Import
@@ -20,9 +15,6 @@ export type {
   AssetCustomAttributeUpdates,
   CustomerPointDemandUpdate,
   JunctionDemandUpdate,
-  ShadowErrorPhase,
-  ShadowErrorReport,
-  ShadowErrorReporter,
 } from "./types";
 export { emptyAssetCustomAttributeUpdates } from "./types";
 export * from "./schema";

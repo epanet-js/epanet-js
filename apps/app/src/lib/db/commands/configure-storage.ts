@@ -1,30 +1,17 @@
-import {
-  getWorker,
-  cleanupStaleDbPools,
-  registerShadowErrorReporter,
-  type ShadowErrorReport,
-} from "@epanet-js/ejsdb";
+import { getWorker, cleanupStaleDbPools } from "@epanet-js/ejsdb";
 import { getAppId, resetAppId } from "src/infra/app-instance";
 import { isOPFSAvailable, getAvailableStorageBytes } from "src/infra/storage";
 import { readRecoveryFingerprints } from "src/infra/session-recovery";
 import { holdSessionLock, isSessionAlive } from "src/infra/session-lock";
-import {
-  captureError,
-  captureWarning,
-  captureInfo,
-} from "src/infra/error-tracking";
+import { captureWarning, captureInfo } from "src/infra/error-tracking";
 
-export type DbStorageMode = "memory" | "shadow" | "sahpool";
+export type DbStorageMode = "memory" | "sahpool";
 
 const OPFS_MIN_AVAILABLE_BYTES = 512 * 1024 * 1024;
 
 export const configureDbStorage = async (
-  isWriteDbToOpfsOn: boolean,
-  isReadDbFromOpfsOn: boolean,
   sessionRecoveryEnabled: boolean,
 ): Promise<DbStorageMode> => {
-  if (!isWriteDbToOpfsOn) return "memory";
-
   const opfsAvailable = await isOPFSAvailable();
   if (!opfsAvailable) {
     reportFallback("opfs-not-available");
@@ -44,8 +31,6 @@ export const configureDbStorage = async (
     });
   }
 
-  const mode = isReadDbFromOpfsOn ? "sahpool" : "shadow";
-
   const recoverablePoolIds = sessionRecoveryEnabled
     ? readRecoveryFingerprints().map((fingerprint) => fingerprint.poolId)
     : [];
@@ -63,6 +48,7 @@ export const configureDbStorage = async (
     appId = resetAppId();
   }
 
+  const mode = "sahpool";
   let effective = await getWorker().configure({ mode, sahpoolId: appId });
 
   if (effective !== mode) {
@@ -78,10 +64,6 @@ export const configureDbStorage = async (
     );
   }
 
-  if (effective === "shadow") {
-    await registerShadowErrorReporter(shadowErrorToSentry(appId));
-  }
-
   captureInfo("Effective DB storage mode", { mode, effective });
 
   if (effective !== mode) {
@@ -95,22 +77,3 @@ const reportFallback = (reason: string) =>
   captureWarning(
     `OPFS db storage requested but fell back to in-memory db: ${reason}`,
   );
-
-const shadowErrorToSentry =
-  (appId: string) =>
-  (report: ShadowErrorReport): void => {
-    const error = new Error(
-      `[shadow-opfs] ${report.command}: ${report.errorMessage}`,
-    );
-    error.name = report.errorName;
-    error.stack = report.errorDetails;
-    captureError(error, {
-      shadowOpfs: {
-        command: report.command,
-        phase: report.phase,
-        appId,
-        isFirstFailure: report.isFirstFailure,
-        shadowDisabled: report.shadowDisabled,
-      },
-    });
-  };
