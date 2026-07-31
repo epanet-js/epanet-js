@@ -5,6 +5,7 @@ import { CurveId } from "@epanet-js/hydraulic-model";
 import type { CustomAttributeAssetType } from "@epanet-js/hydraulic-model";
 import type { BBox, FeatureCollection } from "geojson";
 import type { Proj4Projection, Projection } from "src/lib/projections";
+import type { ElevationFetchStatus } from "src/lib/elevations";
 
 export type InvalidFilesErrorDialogState = {
   type: "invalidFilesError";
@@ -315,9 +316,20 @@ export type RecalculateAllElevationsConfirmDialogState = {
   onConfirm: () => void;
 };
 
+export type RecomputeElevationsSummary = {
+  reason: "noSources" | "error" | "stopped" | "completed";
+  total: number;
+  resolved: number;
+  unresolved: number;
+};
+
 export type RecomputeElevationsProgressDialogState = {
   type: "recomputeElevationsProgress";
-  error?: boolean;
+  resolved?: number;
+  total?: number;
+  status?: ElevationFetchStatus;
+  onStop?: () => void;
+  summary?: RecomputeElevationsSummary;
 };
 
 export type DialogState =

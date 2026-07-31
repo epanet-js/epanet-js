@@ -8,6 +8,10 @@ export {
   fetchElevationFromSources,
   fetchElevationsFromSources,
 } from "./fetch-elevation";
+export type {
+  ElevationFetchStatus,
+  FetchElevationsOptions,
+} from "./fetch-elevation";
 
 export {
   fetchElevationForPoint,

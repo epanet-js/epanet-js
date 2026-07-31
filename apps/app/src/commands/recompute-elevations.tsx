@@ -1,11 +1,15 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useState } from "react";
+import throttle from "lodash/throttle";
 import { AssetId, NodeAsset, isNodeAsset } from "@epanet-js/hydraulic-model";
-import { fetchElevationsFromSources } from "src/lib/elevations";
+import {
+  fetchElevationsFromSources,
+  type ElevationFetchStatus,
+} from "src/lib/elevations";
 import { createTimeSlicer } from "src/infra/yield-to-main";
 import { captureError } from "src/infra/error-tracking";
 import { notify } from "src/components/notifications";
-import { SuccessIcon, UnavailableIcon, WarningIcon } from "src/icons";
+import { SuccessIcon } from "src/icons";
 import { TranslateFn, useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
@@ -87,12 +91,39 @@ export const useRecomputeElevations = () => {
         ? sources.filter((source) => source.type !== "tile-server")
         : sources;
       if (!availableSources.some((source) => source.enabled)) {
-        notifyNoSources(translate);
+        setDialog({
+          type: "recomputeElevationsProgress",
+          summary: {
+            reason: "noSources",
+            total: 0,
+            resolved: 0,
+            unresolved: 0,
+          },
+        });
         return;
       }
 
       // A blocking progress dialog both signals work and prevents re-entry.
-      setDialog({ type: "recomputeElevationsProgress" });
+      // Stopping aborts the fetch and keeps whatever was resolved so far.
+      const abortController = new AbortController();
+      const onStop = () => abortController.abort();
+      setDialog({ type: "recomputeElevationsProgress", onStop });
+
+      // Progress + status fire per tile/bucket (potentially thousands). Keep the
+      // latest of each and throttle the dialog updates into one flush.
+      let latestResolved = 0;
+      let latestTotal = 0;
+      let latestStatus: ElevationFetchStatus | undefined;
+      const flushProgress = throttle(() => {
+        setDialog({
+          type: "recomputeElevationsProgress",
+          resolved: latestResolved,
+          total: latestTotal,
+          status: latestStatus,
+          onStop,
+        });
+      }, 150);
+      let targetCount = 0;
       try {
         const nodes: NodeAsset[] = [];
         const points: { lng: number; lat: number }[] = [];
@@ -103,35 +134,35 @@ export const useRecomputeElevations = () => {
           const [lng, lat] = asset.coordinates;
           points.push({ lng, lat });
         }
+        targetCount = nodes.length;
 
-        // Overwrite mode clears every target first, as its own committed step, so
-        // that if the fetch fails the user can see which nodes still have no value.
-        // Unresolved nodes then simply stay empty (never refilled below).
-        if (mode === "all") {
-          const clearIfSliceElapsed = createTimeSlicer();
-          const clearPatches: AssetPatch[] = [];
-          for (let i = 0; i < nodes.length; i++) {
-            await clearIfSliceElapsed();
-            const node = nodes[i];
-            clearPatches.push({
-              id: node.id,
-              type: node.type,
-              properties: { elevation: null },
-            } as AssetPatch);
-          }
-          if (clearPatches.length > 0) {
-            transact({
-              note: "Clear elevations",
-              patchAssetsAttributes: clearPatches,
-            });
-          }
-        }
-
+        // A source failure keeps whatever resolved first (like stopping); the
+        // fetch resolves with partial results instead of throwing.
+        let fetchFailed = false;
         const elevations = await fetchElevationsFromSources(
           availableSources,
           points,
           units.elevation,
+          {
+            onProgress: (resolved, total) => {
+              latestResolved = resolved;
+              latestTotal = total;
+              flushProgress();
+            },
+            onStatus: (status) => {
+              latestStatus = status;
+              flushProgress();
+            },
+            signal: abortController.signal,
+            onError: (error) => {
+              fetchFailed = true;
+              captureError(
+                error instanceof Error ? error : new Error(String(error)),
+              );
+            },
+          },
         );
+        flushProgress.cancel();
 
         const yieldIfSliceElapsed = createTimeSlicer();
         const patches: AssetPatch[] = [];
@@ -166,12 +197,37 @@ export const useRecomputeElevations = () => {
           unresolved,
         });
 
-        setDialog(null);
-        notifyResult(translate, { total: nodes.length, resolved, unresolved });
+        // Resolved values are applied above regardless of how the run ended.
+        // Fully resolved without interruption closes and confirms; a failure,
+        // stop, or uncovered remainder keeps the dialog open to explain.
+        const stopped = abortController.signal.aborted;
+        if (!fetchFailed && !stopped && unresolved === 0) {
+          setDialog(null);
+          notifyAllResolved(translate, resolved);
+        } else {
+          setDialog({
+            type: "recomputeElevationsProgress",
+            summary: {
+              reason: fetchFailed ? "error" : stopped ? "stopped" : "completed",
+              total: nodes.length,
+              resolved,
+              unresolved,
+            },
+          });
+        }
       } catch (error) {
+        flushProgress.cancel();
         captureError(error instanceof Error ? error : new Error(String(error)));
         // Keep the dialog open, switched to its error layout.
-        setDialog({ type: "recomputeElevationsProgress", error: true });
+        setDialog({
+          type: "recomputeElevationsProgress",
+          summary: {
+            reason: "error",
+            total: targetCount,
+            resolved: latestResolved,
+            unresolved: targetCount - latestResolved,
+          },
+        });
       }
     },
     [
@@ -189,59 +245,7 @@ export const useRecomputeElevations = () => {
   return { recompute };
 };
 
-const notifyNoSources = (translate: TranslateFn) =>
-  notify({
-    variant: "warning",
-    Icon: UnavailableIcon,
-    title: translate("elevations.recompute.noSourcesTitle"),
-    description: translate("elevations.recompute.noSources"),
-    id: NOTIFY_ID,
-  });
-
-const notifyResult = (
-  translate: TranslateFn,
-  {
-    total,
-    resolved,
-    unresolved,
-  }: {
-    total: number;
-    resolved: number;
-    unresolved: number;
-  },
-) => {
-  if (resolved === 0) {
-    notify({
-      variant: "warning",
-      Icon: UnavailableIcon,
-      title: translate("elevations.recompute.noneResolvedTitle"),
-      description: translate(
-        "elevations.recompute.noneResolved",
-        String(total),
-      ),
-      id: NOTIFY_ID,
-    });
-    return;
-  }
-
-  if (unresolved > 0) {
-    notify({
-      variant: "warning",
-      Icon: WarningIcon,
-      title: translate("elevations.recompute.summaryTitle"),
-      description:
-        translate(
-          "elevations.recompute.summary",
-          String(resolved),
-          String(unresolved),
-        ) +
-        "\n" +
-        translate("elevations.recompute.reviewHint"),
-      id: NOTIFY_ID,
-    });
-    return;
-  }
-
+const notifyAllResolved = (translate: TranslateFn, resolved: number) =>
   notify({
     variant: "success",
     Icon: SuccessIcon,
@@ -252,4 +256,3 @@ const notifyResult = (
     ),
     id: NOTIFY_ID,
   });
-};

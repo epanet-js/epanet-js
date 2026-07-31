@@ -15,6 +15,8 @@ export const queryClient = new QueryClient({
 export const tileSize = 512;
 export const tileZoom = 14;
 
+const TILE_FETCH_CONCURRENCY = 12;
+
 const defaultTileUrlTemplate = `https://api.mapbox.com/v4/mapbox.mapbox-terrain-dem-v1/{z}/{x}/{y}@2x.pngraw?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`;
 
 export const fallbackElevation = 0;
@@ -67,29 +69,67 @@ export async function fetchElevationsForPoints(
     unit,
     tileServer,
     setUpCanvas = defaultCanvasSetupFn,
-  }: { unit: Unit; tileServer?: TileServerConfig; setUpCanvas?: CanvasSetupFn },
+    onResolved,
+    onTileProgress,
+    signal,
+    concurrency = TILE_FETCH_CONCURRENCY,
+  }: {
+    unit: Unit;
+    tileServer?: TileServerConfig;
+    setUpCanvas?: CanvasSetupFn;
+    onResolved?: (count: number) => void;
+    onTileProgress?: (completed: number, total: number) => void;
+    signal?: AbortSignal;
+    concurrency?: number;
+  },
 ): Promise<(number | null)[]> {
   const config = resolveTileServerConfig(tileServer);
   const tileGroups = groupPointsByTile(points, config.tileZoom);
   const results: (number | null)[] = points.map(() => null);
 
-  await Promise.all(
-    tileGroups.map(async (group) => {
-      const pixels = await fetchAndDecodeTilePixels(
-        group.tileX,
-        group.tileY,
-        config,
-        setUpCanvas,
-      );
-      if (!pixels) return;
-
+  let tilesCompleted = 0;
+  await runWithConcurrency(tileGroups, concurrency, signal, async (group) => {
+    const pixels = await fetchAndDecodeTilePixels(
+      group.tileX,
+      group.tileY,
+      config,
+      setUpCanvas,
+    );
+    if (pixels) {
       for (const { index, point } of group.entries) {
         results[index] = readElevationFromPixels(pixels, point, config, unit);
       }
-    }),
-  );
+    }
+    // A failed tile resolves nothing; those points stay null (reported as
+    // unresolved). A decoded tile resolves all its points.
+    onResolved?.(pixels ? group.entries.length : 0);
+    tilesCompleted += 1;
+    onTileProgress?.(tilesCompleted, tileGroups.length);
+  });
 
   return results;
+}
+
+/**
+ * Runs `worker` over `items` with at most `limit` in flight at once, via a fixed
+ * pool of runners pulling from a shared cursor. Rejections propagate. When
+ * `signal` aborts, in-flight work finishes but no new items are started.
+ */
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  signal: AbortSignal | undefined,
+  worker: (item: T) => Promise<void>,
+): Promise<void> {
+  let cursor = 0;
+  const runnerCount = Math.max(1, Math.min(limit, items.length));
+  const runners = Array.from({ length: runnerCount }, async () => {
+    while (cursor < items.length && !signal?.aborted) {
+      const index = cursor++;
+      await worker(items[index]);
+    }
+  });
+  await Promise.all(runners);
 }
 
 export async function prefetchElevationsTile(

@@ -90,6 +90,8 @@ export async function fetchGeoTiffTileElevation(
 export async function fetchGeoTiffTileElevationsForPoints(
   tile: GeoTiffTile,
   points: { lng: number; lat: number }[],
+  onResolved?: (count: number) => void,
+  signal?: AbortSignal,
 ): Promise<(GeoTiffElevation | null)[]> {
   const results: (GeoTiffElevation | null)[] = new Array(points.length).fill(
     null,
@@ -99,7 +101,9 @@ export async function fetchGeoTiffTileElevationsForPoints(
   const buckets = bucketPointsByCell(tile, points);
   const unit = CRS_UNIT_TO_APP_UNIT[tile.verticalUnit];
 
+  // One `readRasters` per bucket; report how many points each bucket resolves.
   for (const bucket of buckets.values()) {
+    if (signal?.aborted) break;
     const band = await readRawElevationBand(tile, [
       bucket.left,
       bucket.top,
@@ -107,6 +111,7 @@ export async function fetchGeoTiffTileElevationsForPoints(
       bucket.bottom,
     ]);
 
+    let bucketResolved = 0;
     for (let k = 0; k < bucket.indices.length; k++) {
       const raw = sampleFromBand(band, bucket, bucket.positions[k], tile);
       if (raw === null) continue;
@@ -114,7 +119,9 @@ export async function fetchGeoTiffTileElevationsForPoints(
         value: applyElevationTransform(raw, tile),
         unit,
       };
+      bucketResolved += 1;
     }
+    onResolved?.(bucketResolved);
   }
 
   return results;
