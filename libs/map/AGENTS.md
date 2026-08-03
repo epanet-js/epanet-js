@@ -9,6 +9,7 @@ Public, backend-agnostic map-rendering primitives. This lib is the shared vocabu
 - `RawData` — the per-cycle inputs a backend needs to (re)build sources: assets, render symbology, units/formatting, simulation results, selected ids.
 - `ChangeFlags` — which of symbology / simulation / selection actually changed, so a backend can pick the cheapest update.
 - Methods: `applyStyle`, `rebuildDataSources`, `updateDataSources`, `syncSourceEdits`, `updateEditionsVisibility`, `finalizeConsolidation`. How the updater sequences them is documented in the app's `src/map/AGENTS.md`.
+- `MapBackendUnavailableError` (`errors.ts`) — a backend throws this when it can't run in the current browser (e.g. it needs a browser capability the environment doesn't provide). The app's updater catches it (matched by `name`) to fall back to the default geojson backend. The contract lives here because both the thrower (a backend) and the catcher (the app) depend on this lib.
 
 Keep the contract minimal and backend-neutral — nothing here may assume a particular data-source type.
 

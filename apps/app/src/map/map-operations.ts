@@ -1,7 +1,9 @@
+import { useAtomValue } from "jotai";
 import type { AssetId } from "src/hydraulic-model";
 import { filterAssets } from "src/hydraulic-model";
 import type { LayerId } from "./layers";
 import { useEnabledFeatureFlags } from "src/hooks/use-feature-flags";
+import { mapBackendFallbackAtom } from "src/state/map";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { MapEngine } from "@epanet-js/map";
 import type { MapOperations, RawData, ChangeFlags } from "@epanet-js/map";
@@ -195,6 +197,9 @@ export const registerMapOperations = (next: MapOperationsSelector): void => {
 
 export const useMapOperations = (): MapOperations => {
   const enabledFlags = useEnabledFeatureFlags();
+  const fellBack = useAtomValue(mapBackendFallbackAtom);
   const flags: FlagReader = (name) => enabledFlags.includes(name);
+  // Once a backend has reported itself unavailable, always use the geojson default.
+  if (fellBack) return mapOperations;
   return selector?.(flags) ?? mapOperations;
 };

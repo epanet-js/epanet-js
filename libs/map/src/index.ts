@@ -4,3 +4,4 @@ export * from "./types";
 export * from "./custom-map-control";
 export * from "./symbology";
 export * from "./map-operations";
+export * from "./errors";

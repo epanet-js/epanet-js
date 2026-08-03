@@ -100,6 +100,15 @@ Settling then happens out of band, when the map next goes idle.
 
 The updater computes *what* the consolidated and editions states should contain but delegates *how* they reach the map to a backend behind a small interface. The default backend renders them as GeoJSON sources and layers in Mapbox GL. Rationale: separating update logic from rendering lets the rendering strategy change without touching any state, selection, or scheduling logic above; the updater stays agnostic to which backend is active.
 
+### When a backend can't run: environment gate + runtime fallback
+
+An alternative backend may be unavailable in a given browser — it can depend on a browser capability the environment doesn't provide (some in-app WebViews lack it). Two guards keep that from showing a blank map, and — because forcing the failure is awkward — **neither has automated coverage**; exercise them by hand when changing this path.
+
+- **Environment gate, before selection.** Backend selection is gated on a support check as well as its flag, so an unsupported browser never selects the alternative backend and renders through geojson from the first frame.
+- **Runtime fallback, after selection.** A backend can still fail to initialize *after* it was chosen. On an unrecoverable failure its `applyStyle` throws `MapBackendUnavailableError` (from `@epanet-js/map`) *before* it touches the map style, so no half-applied style is left behind. The updater catches it by name, reports it **once as a warning** (it's handled, not an error), latches `mapBackendFallbackAtom`, and marks the cycle for re-apply. The latch makes `useMapOperations` return the geojson backend, and because the transactional commit never ran on the throw, the re-apply re-derives the same diff and renders the whole map through geojson for the rest of the session. A reload re-attempts the preferred backend.
+
+This leans on two existing invariants — the transactional commit (a throw leaves last-applied untouched, so the retry re-does the work) and the backend seam (swapping `useMapOperations`' return is enough to change *how* state reaches the map). Don't break either without revisiting this fallback.
+
 ## Change detection
 
 Each cycle diffs the new state against the last-applied state and produces one flag per independently-updatable concern (edits, selection, symbology, results, style, zoom, and so on); only the work whose flag fired runs. Every flag is an identity check — which is what makes coalescing correct, since diffing newest against last-applied equals the sum of skipped diffs only if each flag is an equality check. A flag needing deep comparison would break that.
@@ -114,6 +123,7 @@ Each cycle diffs the new state against the last-applied state and produces one f
 - Keep the two-state split intact for every data category (features, icons, selection); don't reintroduce a whole-model representation.
 - Bake per-feature styling (color, label) into the source at build time; don't push it into live per-frame expressions. Default colors and selection are the intended exceptions, carried as layer paint expressions.
 - Keep change-detection flags identity-based, and keep the heavy-update predicate in step with what actually triggers a full rebuild.
+- When a rendering backend can't run in the current browser, fall back to geojson rather than showing a blank map: gate selection on an environment check, and on a terminal runtime failure throw `MapBackendUnavailableError` so the updater reports once (as a warning) and re-applies through geojson. This path has no test coverage — verify by forcing the failure.
 
 ## Testing
 
@@ -125,6 +135,7 @@ Grep the entry symbol to land in the right place:
 
 - Updater and change detection — the `useMapStateUpdates` hook and `detectChanges`, in `state-updates.ts`.
 - Backend interface — the `MapOperations` interface and its default GeoJSON implementation, in `map-operations.ts`.
+- Backend availability + fallback — the support gate applied where an alternative backend is registered, and the `MapBackendUnavailableError` catch that latches `mapBackendFallbackAtom` in the faceted updater (`state-updates-faceted.ts`), which `useMapOperations` reads to return geojson.
 - Style, sources, and layers — `build-style.ts`, `data-source/`, `layers/`.
 - Symbology rules and how they resolve to per-feature values — `symbology/`.
 - Interaction modes and handlers — `useModeHandlers` and the per-mode handler sets in `mode-handlers/`.

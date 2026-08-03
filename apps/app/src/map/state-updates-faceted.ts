@@ -21,6 +21,7 @@ import {
   mapStateDerivedAtom,
   mapSyncMomentAtom,
   mapLoadingAtom,
+  mapBackendFallbackAtom,
 } from "src/state/map";
 import { appendSourceRebuildDurationAtom } from "src/state/performance";
 import { gridPreviewAtom, showGridAtom } from "src/state/map-projection";
@@ -52,8 +53,8 @@ import {
   gisLayerLabel,
 } from "./layers/gis-layer";
 import { AssetId, AssetsMap } from "src/hydraulic-model";
-import { captureError } from "src/infra/error-tracking";
-import { enrichError } from "src/infra/errors";
+import { captureError, captureWarning } from "src/infra/error-tracking";
+import { enrichError, errorName } from "src/infra/errors";
 import { wasSuspendedSince } from "src/infra/tab-visibility";
 import { withDebugInstrumentation } from "src/infra/with-instrumentation";
 import { yieldToMain } from "src/infra/yield-to-main";
@@ -251,6 +252,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   const translate = useTranslate();
   const translateUnit = useTranslateUnit();
   const mapOperations = useMapOperations();
+  const setMapBackendFallback = useSetAtom(mapBackendFallbackAtom);
+  const hasFallenBackRef = useRef(false);
 
   syncMapStateRef.current = withDebugInstrumentation(
     async () => {
@@ -644,13 +647,26 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
             await syncMapStateRef.current();
             hasRetried = false;
           } catch (error) {
-            captureError(enrichError(MAP_STATE_SYNC, error), {
-              "Map Changes": { ...appliedChangesRef.current },
-            });
-            // Attempt to re-apply
-            if (!hasRetried) {
-              hasRetried = true;
+            if (errorName(error) === "MapBackendUnavailableError") {
+              if (!hasFallenBackRef.current) {
+                hasFallenBackRef.current = true;
+                captureWarning(
+                  "Map backend unavailable; fell back to geojson",
+                  error,
+                  { "Map Changes": { ...appliedChangesRef.current } },
+                );
+                setMapBackendFallback(true);
+              }
               hasPendingRef.current = true;
+            } else {
+              captureError(enrichError(MAP_STATE_SYNC, error), {
+                "Map Changes": { ...appliedChangesRef.current },
+              });
+              // Attempt to re-apply
+              if (!hasRetried) {
+                hasRetried = true;
+                hasPendingRef.current = true;
+              }
             }
           }
           // Yield to the main thread between coalesced applies

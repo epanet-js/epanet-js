@@ -55,6 +55,8 @@ export const mapSyncMomentAtom = atom<MomentPointer>({
 
 export const mapLoadingAtom = atom<boolean>(false);
 
+export const mapBackendFallbackAtom = atom<boolean>(false);
+
 export const currentZoomAtom = atom<number>(DEFAULT_ZOOM);
 
 export const mapViewportAtom = atom<InitialViewport>({
