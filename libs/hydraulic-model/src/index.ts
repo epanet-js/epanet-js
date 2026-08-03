@@ -14,6 +14,7 @@ export * from "./asset-types/defaults-spec";
 export * from "./label-manager";
 export * from "./curves";
 export * from "./patterns";
+export * from "./pipe-materials";
 export * from "./customer-points";
 export * from "./customer-points-lookup";
 export * from "./factories";

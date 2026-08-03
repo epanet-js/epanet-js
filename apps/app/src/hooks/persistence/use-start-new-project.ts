@@ -20,7 +20,7 @@ import {
 } from "src/lib/project-settings";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { inpFileInfoAtom, projectFileInfoAtom } from "src/state/file-system";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { Zones } from "src/lib/zones";
 import { initializeZones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";

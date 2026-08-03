@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import * as XLSX from "xlsx";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 
 const mockWrite = vi.fn<(data: BufferSource) => Promise<void>>();
 const mockClose = vi.fn<() => Promise<void>>();

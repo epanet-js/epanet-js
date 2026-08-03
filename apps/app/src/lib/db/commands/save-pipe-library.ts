@@ -1,4 +1,4 @@
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { getWorker, timed } from "@epanet-js/ejsdb";
 import { serializePipeLibrary } from "@epanet-js/ejsdb-mappers";
 

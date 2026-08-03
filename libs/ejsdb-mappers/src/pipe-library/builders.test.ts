@@ -1,4 +1,4 @@
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { buildPipeLibraryData } from "./builders";
 import { serializePipeLibrary } from "./to-rows";
 

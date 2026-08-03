@@ -1,4 +1,4 @@
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
 
 export const exportXlsx = async (

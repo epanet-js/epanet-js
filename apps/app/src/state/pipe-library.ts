@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 
 export const pipeMaterialsAtom = atom<PipeMaterial[]>([]);
 export const pipeMaterialLabelsAtom = atom((get) =>

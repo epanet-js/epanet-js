@@ -11,7 +11,7 @@ import { useTranslate } from "src/hooks/use-translate";
 import { useUserTracking } from "src/infra/user-tracking";
 import { DeleteIcon, AddIcon } from "src/icons";
 import { validateEntry } from "src/lib/pipe-library";
-import type { RoughnessEntry } from "@epanet-js/pipe-library";
+import type { RoughnessEntry } from "@epanet-js/hydraulic-model";
 
 type PipeRoughnessTableProps = {
   entries: RoughnessEntry[];

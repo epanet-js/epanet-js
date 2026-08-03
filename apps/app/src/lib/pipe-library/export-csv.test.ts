@@ -1,6 +1,6 @@
 import { vi } from "vitest";
 import Papa from "papaparse";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 
 const mockWrite = vi.fn<(data: string) => Promise<void>>();
 const mockClose = vi.fn<() => Promise<void>>();

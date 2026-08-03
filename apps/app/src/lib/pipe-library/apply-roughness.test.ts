@@ -1,5 +1,5 @@
 import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { applyRoughnessMoment, findRoughness } from "./apply-roughness";
 

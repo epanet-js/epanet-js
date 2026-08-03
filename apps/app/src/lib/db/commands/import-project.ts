@@ -1,6 +1,6 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";

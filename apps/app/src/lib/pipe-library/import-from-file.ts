@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { fileOpen } from "browser-fs-access";
-import type { PipeMaterial } from "@epanet-js/pipe-library";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { validateEntry, validateMaterial } from "./validate-material";
 
 export type ImportError = {

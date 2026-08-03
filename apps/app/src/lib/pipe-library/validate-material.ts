@@ -1,4 +1,4 @@
-import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 
 export type EntryValidationError = {
   field: "age" | "roughness";

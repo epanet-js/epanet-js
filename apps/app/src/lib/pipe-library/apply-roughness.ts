@@ -6,7 +6,7 @@ import type {
 } from "src/hydraulic-model/model-operation";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
 import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
-import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 
 export const applyRoughnessMoment = (
   hydraulicModel: HydraulicModel,

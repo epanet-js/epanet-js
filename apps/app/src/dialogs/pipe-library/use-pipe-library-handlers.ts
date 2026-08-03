@@ -24,8 +24,8 @@ import {
 import {
   DEFAULT_ROUGHNESS_HW,
   DEFAULT_ROUGHNESS_DW_CM,
-} from "@epanet-js/pipe-library";
-import type { PipeMaterial, RoughnessEntry } from "@epanet-js/pipe-library";
+} from "@epanet-js/hydraulic-model";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 
 export const usePipeLibraryHandlers = () => {
   const translate = useTranslate();
