@@ -11,6 +11,7 @@ import {
   Asset,
   Curves,
   Patterns,
+  PipeMaterial,
 } from "@epanet-js/hydraulic-model";
 import { AssetIndex } from "@epanet-js/hydraulic-model";
 import {
@@ -39,6 +40,7 @@ export type HydraulicModel = {
   demands: Demands;
   curves: Curves;
   patterns: Patterns;
+  pipeMaterials: PipeMaterial[];
   rawControls: RawControls;
   controls: Controls;
   controlsLookup: ControlsLookup;
@@ -59,6 +61,7 @@ export const initializeHydraulicModel = ({
   customerPointsLookup,
   patterns,
   curves,
+  pipeMaterials,
   customAttributes,
 }: {
   demands?: Demands;
@@ -72,6 +75,7 @@ export const initializeHydraulicModel = ({
   customerPointsLookup?: CustomerPointsLookup;
   patterns?: Patterns;
   curves?: Curves;
+  pipeMaterials?: PipeMaterial[];
   customAttributes?: CustomAttributesDefinition;
 } = {}): HydraulicModel => {
   const assetIdGenerator = idGenerator ?? new ConsecutiveIdsGenerator();
@@ -86,6 +90,7 @@ export const initializeHydraulicModel = ({
     demands,
     curves: curves ?? new Map(),
     patterns: patterns ?? new Map(),
+    pipeMaterials: pipeMaterials ?? [],
     rawControls,
     controls,
     controlsLookup: buildControlsLookup(controls),
@@ -110,6 +115,7 @@ export const copyModel = (source: HydraulicModel): HydraulicModel => {
     },
     curves: new Map(source.curves),
     patterns: new Map(source.patterns),
+    pipeMaterials: [...source.pipeMaterials],
     rawControls: { ...source.rawControls },
     controls,
     controlsLookup: buildControlsLookup(controls),

@@ -931,6 +931,7 @@ const countApplyMoment = (payload: ApplyMomentPayload) => ({
   jDem: payload.junctionDemandUpdates.length,
   pat: payload.patternsReplacement?.length ?? 0,
   cur: payload.curvesReplacement?.length ?? 0,
+  pipeLib: payload.pipeLibraryReplacement !== null ? 1 : 0,
   ctrl: payload.rawControlsReplacement !== null ? 1 : 0,
   ctrls: payload.controlsReplacement !== null ? 1 : 0,
 });
@@ -1354,6 +1355,9 @@ export const api = {
           for (const row of payload.curvesReplacement) {
             insertCurve(row);
           }
+        }
+        if (payload.pipeLibraryReplacement !== null) {
+          updatePipeLibrary(payload.pipeLibraryReplacement);
         }
         if (payload.rawControlsReplacement !== null) {
           upsertRawControls(payload.rawControlsReplacement);

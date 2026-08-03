@@ -170,6 +170,7 @@ const fetchProjectWith = async (
           customerPointsLookup,
           patterns,
           curves,
+          pipeMaterials: pipeLibrary,
           rawControls,
           controls,
           demands: {

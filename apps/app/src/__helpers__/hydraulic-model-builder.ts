@@ -538,6 +538,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       curves: this.curves,
       patterns: this.patterns,
+      pipeMaterials: [],
       rawControls: this.rawControlsValue,
       controls: this.controlsValue,
       controlsLookup: buildControlsLookup(this.controlsValue),

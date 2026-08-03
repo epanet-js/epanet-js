@@ -26,6 +26,7 @@ import {
   toJunctionDemandRow,
   patternsToRows,
   curvesToRows,
+  serializePipeLibrary,
   serializeRawControls,
   serializeControls,
   serializeCustomAttributesDefinition,
@@ -164,6 +165,10 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     ? curvesToRows(moment.putCurves)
     : null;
 
+  const pipeLibraryReplacement = moment.putPipeMaterials
+    ? serializePipeLibrary(moment.putPipeMaterials)
+    : null;
+
   const rawControlsReplacement = moment.putRawControls
     ? serializeRawControls(moment.putRawControls)
     : null;
@@ -189,6 +194,7 @@ export const buildMomentPayload = (moment: Moment): ApplyMomentPayload => {
     junctionDemandUpdates,
     patternsReplacement,
     curvesReplacement,
+    pipeLibraryReplacement,
     rawControlsReplacement,
     controlsReplacement,
     customAttributesDefinition,
@@ -226,6 +232,7 @@ export const applyMomentToDb = async (
       payload.junctionDemandUpdates.length === 0 &&
       payload.patternsReplacement === null &&
       payload.curvesReplacement === null &&
+      payload.pipeLibraryReplacement === null &&
       payload.rawControlsReplacement === null &&
       payload.controlsReplacement === null &&
       payload.customAttributesDefinition === null &&

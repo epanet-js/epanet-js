@@ -66,6 +66,9 @@ export const applyMomentToModel = (
   if (moment.putPatterns) {
     reverseMoment.putPatterns = hydraulicModel.patterns;
   }
+  if (moment.putPipeMaterials) {
+    reverseMoment.putPipeMaterials = hydraulicModel.pipeMaterials;
+  }
   if (moment.putCustomAttributesDefinition) {
     reverseMoment.putCustomAttributesDefinition =
       hydraulicModel.customAttributes;
@@ -143,6 +146,10 @@ export const applyMomentToModel = (
 
   if (moment.putPatterns) {
     putPatterns(hydraulicModel, moment.putPatterns, labelManager);
+  }
+
+  if (moment.putPipeMaterials) {
+    hydraulicModel.pipeMaterials = moment.putPipeMaterials;
   }
 
   if (moment.putCustomAttributesDefinition) {

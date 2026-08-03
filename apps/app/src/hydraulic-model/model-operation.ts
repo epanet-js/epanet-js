@@ -6,6 +6,7 @@ import {
   CustomerPointId,
   Curves,
   Patterns,
+  PipeMaterial,
 } from "@epanet-js/hydraulic-model";
 import { Demand, Demands } from "@epanet-js/hydraulic-model";
 import { RawControls } from "@epanet-js/hydraulic-model";
@@ -64,6 +65,7 @@ export type OptionalMomentFields = {
   deleteCustomerPoints?: CustomerPointId[];
   putCurves?: Curves;
   putPatterns?: Patterns;
+  putPipeMaterials?: PipeMaterial[];
   putCustomAttributesDefinition?: CustomAttributesDefinition;
 };
 
