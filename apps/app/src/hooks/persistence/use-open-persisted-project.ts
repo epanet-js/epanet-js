@@ -5,7 +5,6 @@ import * as db from "src/lib/db";
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
 import type { FetchProjectPhase } from "src/lib/db";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   clearSimulationStorage,
   loadModel,
@@ -38,8 +37,6 @@ export type OpenPersistedProjectResult =
     };
 
 export const useOpenPersistedProject = () => {
-  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
-
   const openPersistedProject = useAtomCallback(
     useCallback(
       async (
@@ -54,12 +51,10 @@ export const useOpenPersistedProject = () => {
         }
 
         let uniqueId: string | null = null;
-        if (isTrackModelSharingOn) {
-          try {
-            uniqueId = await db.ensureUniqueId();
-          } catch (error) {
-            captureError(error as Error);
-          }
+        try {
+          uniqueId = await db.ensureUniqueId();
+        } catch (error) {
+          captureError(error as Error);
         }
 
         const fetchProject = db.fetchProject;
@@ -91,7 +86,7 @@ export const useOpenPersistedProject = () => {
           uniqueId,
         };
       },
-      [isTrackModelSharingOn],
+      [],
     ),
   );
 

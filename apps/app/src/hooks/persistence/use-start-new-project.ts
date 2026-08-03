@@ -4,7 +4,6 @@ import { useSetAtom } from "jotai";
 import type { Getter, Setter } from "jotai";
 import * as db from "src/lib/db";
 import { captureWarning } from "src/infra/error-tracking";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   type HydraulicModel,
   initializeHydraulicModel,
@@ -167,31 +166,26 @@ export const clearSimulationStorage = async () => {
 };
 
 export const useStartNewProject = () => {
-  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
-
   const startNewProject = useAtomCallback(
-    useCallback(
-      async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
-        await clearSimulationStorage();
-        const mergedProjectSettings: ProjectSettings = {
-          ...input.projectSettings,
-          ...(isTrackModelSharingOn ? { uniqueId: db.newUniqueId() } : {}),
-          units: {
-            ...input.projectSettings.units,
-            chemicalConcentration: input.simulationSettings.qualityMassUnit,
-          },
-        };
-        await db.importProject({
-          newDb: true,
-          projectSettings: mergedProjectSettings,
-          hydraulicModel: input.hydraulicModel,
-          simulationSettings: input.simulationSettings,
-        });
-        resetAppState(set);
-        loadModel(set, { ...input, projectSettings: mergedProjectSettings });
-      },
-      [isTrackModelSharingOn],
-    ),
+    useCallback(async (_get: Getter, set: Setter, input: ProjectLoadInput) => {
+      await clearSimulationStorage();
+      const mergedProjectSettings: ProjectSettings = {
+        ...input.projectSettings,
+        ...{ uniqueId: db.newUniqueId() },
+        units: {
+          ...input.projectSettings.units,
+          chemicalConcentration: input.simulationSettings.qualityMassUnit,
+        },
+      };
+      await db.importProject({
+        newDb: true,
+        projectSettings: mergedProjectSettings,
+        hydraulicModel: input.hydraulicModel,
+        simulationSettings: input.simulationSettings,
+      });
+      resetAppState(set);
+      loadModel(set, { ...input, projectSettings: mergedProjectSettings });
+    }, []),
   );
 
   return { startNewProject };
@@ -230,43 +224,38 @@ export const useStartBlankProject = () => {
 };
 
 export const useSeedDefaultProjectDb = () => {
-  const isTrackModelSharingOn = useFeatureFlag("FLAG_TRACK_MODEL_SHARING");
-
   return useAtomCallback(
-    useCallback(
-      (get: Getter, set: Setter): Promise<void> => {
-        const projectSettings: ProjectSettings = {
-          ...get(projectSettingsAtom),
-          ...(isTrackModelSharingOn ? { uniqueId: db.newUniqueId() } : {}),
-        };
-        const hydraulicModel = get(stagingModelDerivedAtom);
-        const simulationSettings = get(simulationSettingsDerivedAtom);
+    useCallback((get: Getter, set: Setter): Promise<void> => {
+      const projectSettings: ProjectSettings = {
+        ...get(projectSettingsAtom),
+        ...{ uniqueId: db.newUniqueId() },
+      };
+      const hydraulicModel = get(stagingModelDerivedAtom);
+      const simulationSettings = get(simulationSettingsDerivedAtom);
 
-        resetAppState(set);
-        loadModel(set, {
-          hydraulicModel,
-          factories: get(modelFactoriesAtom),
+      resetAppState(set);
+      loadModel(set, {
+        hydraulicModel,
+        factories: get(modelFactoriesAtom),
+        projectSettings,
+        simulationSettings,
+      });
+
+      return db
+        .importProject({
+          newDb: true,
           projectSettings,
+          hydraulicModel,
           simulationSettings,
-        });
-
-        return db
-          .importProject({
-            newDb: true,
-            projectSettings,
-            hydraulicModel,
-            simulationSettings,
-          })
-          .catch((e: unknown) => {
-            const error = e instanceof Error ? e : new Error(String(e));
-            captureWarning("Failed to seed default project db", error);
-            set(dialogAtom, {
-              type: "appLoadFailed",
-              errorMessage: error.message,
-            });
+        })
+        .catch((e: unknown) => {
+          const error = e instanceof Error ? e : new Error(String(e));
+          captureWarning("Failed to seed default project db", error);
+          set(dialogAtom, {
+            type: "appLoadFailed",
+            errorMessage: error.message,
           });
-      },
-      [isTrackModelSharingOn],
-    ),
+        });
+    }, []),
   );
 };

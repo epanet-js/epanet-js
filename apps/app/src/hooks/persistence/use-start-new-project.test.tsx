@@ -2,7 +2,6 @@ import { renderHook, act } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { setInitialState } from "src/__helpers__/state";
-import { stubFeatureOn } from "src/__helpers__/feature-flags";
 import { useInProcessDb } from "src/lib/db/__test-helpers__/in-process-db";
 import { fetchProject } from "src/lib/db";
 import {
@@ -53,7 +52,6 @@ describe("useStartBlankProject", () => {
   });
 
   it("stamps a uniqueId in project settings", async () => {
-    stubFeatureOn("FLAG_TRACK_MODEL_SHARING");
     const store = setInitialState();
 
     const { result } = renderStartEmptyProject(store);
