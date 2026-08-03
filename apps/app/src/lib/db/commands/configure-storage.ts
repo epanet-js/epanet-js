@@ -9,9 +9,7 @@ export type DbStorageMode = "memory" | "sahpool";
 
 const OPFS_MIN_AVAILABLE_BYTES = 512 * 1024 * 1024;
 
-export const configureDbStorage = async (
-  sessionRecoveryEnabled: boolean,
-): Promise<DbStorageMode> => {
+export const configureDbStorage = async (): Promise<DbStorageMode> => {
   const opfsAvailable = await isOPFSAvailable();
   if (!opfsAvailable) {
     reportFallback("opfs-not-available");
@@ -31,9 +29,9 @@ export const configureDbStorage = async (
     });
   }
 
-  const recoverablePoolIds = sessionRecoveryEnabled
-    ? readRecoveryFingerprints().map((fingerprint) => fingerprint.poolId)
-    : [];
+  const recoverablePoolIds = readRecoveryFingerprints().map(
+    (fingerprint) => fingerprint.poolId,
+  );
 
   let appId = getAppId();
 

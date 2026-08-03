@@ -117,8 +117,8 @@ Queued today: the moment/undo writes (`applyMomentToDb`, in `use-moment-transact
 travel in the moment payload) and the four single-edit hooks (`use-zones-transaction`,
 `use-pipe-library-transaction`, `use-project-settings-transaction`, `use-simulation-settings-transaction`).
 
-**Recover-or-throw** (`useWriteFailureHandler`), gated on `sessionRecoveryActiveAtom` (true only when
-`FLAG_SESSION_RECOVERY` is on **and** the DB resolved to an OPFS `sahpool` — i.e. a persisted pool exists):
+**Recover-or-throw** (`useWriteFailureHandler`), gated on `sessionRecoveryActiveAtom` (true only when 
+the DB resolved to an OPFS `sahpool` — i.e. a persisted pool exists):
 
 - **Recovery inactive** → `throw error`. In production this is an unhandled rejection (Sentry only, no UI);
   the in-memory model stays ahead of the DB. This is the interim placeholder.

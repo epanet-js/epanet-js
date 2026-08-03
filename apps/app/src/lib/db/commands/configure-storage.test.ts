@@ -59,9 +59,6 @@ vi.mock("src/infra/error-tracking", async (importActual) => ({
 
 import { configureDbStorage } from "./configure-storage";
 
-const recoveryOn = true;
-const recoveryOff = false;
-
 const gibibyte = 1024 * 1024 * 1024;
 
 const fallbackMessage = (reason: string) =>
@@ -78,7 +75,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("memory").mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage(recoveryOff);
+    const result = await configureDbStorage();
 
     expect(result).toBe("sahpool");
     expect(configure).toHaveBeenNthCalledWith(1, {
@@ -102,7 +99,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(recoveryOff);
+    await configureDbStorage();
 
     expect(configure).toHaveBeenCalledTimes(1);
     expect(resetAppId).not.toHaveBeenCalled();
@@ -117,7 +114,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    const result = await configureDbStorage(recoveryOff);
+    const result = await configureDbStorage();
 
     expect(result).toBe("memory");
     expect(configure).toHaveBeenCalledTimes(2);
@@ -134,7 +131,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(256 * 1024 * 1024);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(recoveryOff);
+      const result = await configureDbStorage();
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledTimes(1);
@@ -155,7 +152,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(512 * 1024 * 1024);
       configure.mockResolvedValueOnce("sahpool");
 
-      const result = await configureDbStorage(recoveryOff);
+      const result = await configureDbStorage();
 
       expect(result).toBe("sahpool");
       expect(captureWarning).not.toHaveBeenCalled();
@@ -166,7 +163,7 @@ describe("configureDbStorage", () => {
       getAvailableStorageBytes.mockResolvedValue(0);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(recoveryOff);
+      const result = await configureDbStorage();
 
       expect(result).toBe("memory");
       expect(configure).toHaveBeenCalledWith({
@@ -183,7 +180,7 @@ describe("configureDbStorage", () => {
       isOPFSAvailable.mockResolvedValue(false);
       configure.mockResolvedValue("memory");
 
-      const result = await configureDbStorage(recoveryOff);
+      const result = await configureDbStorage();
 
       expect(result).toBe("memory");
       expect(getAvailableStorageBytes).not.toHaveBeenCalled();
@@ -201,12 +198,12 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(recoveryOff);
+    await configureDbStorage();
 
     expect(captureInfo).toHaveBeenCalledTimes(1);
   });
 
-  it("protects every recoverable pool from cleanup when recovery is enabled", async () => {
+  it("protects every recoverable pool from cleanup", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
     readRecoveryFingerprints.mockReturnValue([
@@ -214,7 +211,7 @@ describe("configureDbStorage", () => {
       { poolId: "another-crashed-tab" },
     ]);
 
-    await configureDbStorage(recoveryOn);
+    await configureDbStorage();
 
     expect(configure).toHaveBeenCalledWith({
       mode: "sahpool",
@@ -235,7 +232,7 @@ describe("configureDbStorage", () => {
       { poolId: "tab-a" },
     ]);
 
-    await configureDbStorage(recoveryOn);
+    await configureDbStorage();
 
     expect(resetAppId).toHaveBeenCalledTimes(1);
     expect(configure).toHaveBeenCalledWith({
@@ -249,27 +246,12 @@ describe("configureDbStorage", () => {
     );
   });
 
-  it("ignores the fingerprints when recovery is disabled", async () => {
-    isOPFSAvailable.mockResolvedValue(true);
-    configure.mockResolvedValueOnce("sahpool");
-    readRecoveryFingerprints.mockReturnValue([{ poolId: "crashed-tab" }]);
-
-    await configureDbStorage(recoveryOff);
-
-    expect(readRecoveryFingerprints).not.toHaveBeenCalled();
-    expect(cleanupStaleDbPools).toHaveBeenCalledWith(
-      "tab-a",
-      [],
-      expect.any(Function),
-    );
-  });
-
   it("rotates the appId before installing when another live tab holds it", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     isSessionAlive.mockResolvedValueOnce(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    const result = await configureDbStorage(recoveryOff);
+    const result = await configureDbStorage();
 
     expect(result).toBe("sahpool");
     expect(isSessionAlive).toHaveBeenCalledWith("tab-a");
@@ -282,11 +264,11 @@ describe("configureDbStorage", () => {
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a-fresh");
   });
 
-  it("holds the session lock whenever sahpool is effective, even without recovery", async () => {
+  it("holds the session lock whenever sahpool is effective", async () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValueOnce("sahpool");
 
-    await configureDbStorage(recoveryOff);
+    await configureDbStorage();
 
     expect(holdSessionLock).toHaveBeenCalledTimes(1);
     expect(holdSessionLock).toHaveBeenCalledWith("tab-a");
@@ -296,7 +278,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(true);
     configure.mockResolvedValue("memory");
 
-    await configureDbStorage(recoveryOff);
+    await configureDbStorage();
 
     expect(holdSessionLock).not.toHaveBeenCalled();
   });
@@ -305,7 +287,7 @@ describe("configureDbStorage", () => {
     isOPFSAvailable.mockResolvedValue(false);
     configure.mockResolvedValueOnce("memory");
 
-    await configureDbStorage(recoveryOff);
+    await configureDbStorage();
 
     expect(isSessionAlive).not.toHaveBeenCalled();
     expect(holdSessionLock).not.toHaveBeenCalled();
