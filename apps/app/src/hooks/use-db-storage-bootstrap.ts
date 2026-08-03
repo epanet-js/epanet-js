@@ -51,7 +51,10 @@ export const useDbStorageBootstrap = (isEnabled: boolean): boolean => {
 
           if (recoverable.length > 0) {
             setRecoverableSessions(recoverable);
-            userTracking.capture({ name: "sessionRecovery.offered" });
+            userTracking.capture({
+              name: "sessionRecovery.offered",
+              count: recoverable.length,
+            });
           }
         }
       } catch (error) {

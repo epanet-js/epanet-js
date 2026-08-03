@@ -1,13 +1,18 @@
 import { memo, useCallback, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { dialogAtom } from "src/state/dialog";
-import { recoverableSessionAtom } from "src/state/session-recovery";
+import {
+  recoverableSessionAtom,
+  recoverableSessionsAtom,
+} from "src/state/session-recovery";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { match } from "ts-pattern";
 import * as dialogState from "src/state/dialog";
 import { useUserTracking } from "src/infra/user-tracking";
 import { LoadingDialog } from "../components/dialog";
 import { WelcomeDialog } from "./welcome";
 import { SessionRecoveryDialog } from "./session-recovery";
+import { SessionRecoveryDialogDeprecated } from "./session-recovery-deprecated";
 import { AppLoadFailedDialog } from "./app-load-failed";
 import { SimulationSettingsDialog } from "src/dialogs/simulation-settings";
 import { UpgradeDialog } from "src/dialogs/upgrade";
@@ -74,7 +79,12 @@ import { ImportZonesDialog } from "src/dialogs/import-zones-wizard";
 
 export const Dialogs = memo(function Dialogs() {
   const [dialog, setDialogState] = useAtom(dialogAtom);
+  const isMultiRecoveryOn = useFeatureFlag("FLAG_MULTI_RECOVERY");
   const recoverableSession = useAtomValue(recoverableSessionAtom);
+  const recoverableSessions = useAtomValue(recoverableSessionsAtom);
+  const hasRecoverableSession = isMultiRecoveryOn
+    ? recoverableSessions.length > 0
+    : !!recoverableSession;
   const userTracking = useUserTracking();
   const onClose = useCallback(() => {
     setDialogState(null);
@@ -90,7 +100,7 @@ export const Dialogs = memo(function Dialogs() {
 
   if (previousDialog.current !== dialog && !!dialog) {
     if (previousDialog.current?.type !== dialog.type) {
-      if (dialog.type === "welcome" && !recoverableSession) {
+      if (dialog.type === "welcome" && !hasRecoverableSession) {
         userTracking.capture({ name: "welcome.seen" });
       }
       if (dialog.type === "unsavedChanges") {
@@ -227,7 +237,13 @@ export const Dialogs = memo(function Dialogs() {
     return <ChangeNotAppliedDialog onClose={onClose} />;
   }
   if (dialog.type === "welcome") {
-    return recoverableSession ? <SessionRecoveryDialog /> : <WelcomeDialog />;
+    if (!hasRecoverableSession) return <WelcomeDialog />;
+
+    return isMultiRecoveryOn ? (
+      <SessionRecoveryDialog />
+    ) : (
+      <SessionRecoveryDialogDeprecated />
+    );
   }
   if (dialog.type === "loading") {
     return <LoadingDialog />;

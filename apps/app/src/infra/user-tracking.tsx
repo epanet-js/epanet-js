@@ -440,10 +440,12 @@ export type OpenProjectStarted = {
 
 export type SessionRecoveryOffered = {
   name: "sessionRecovery.offered";
+  count?: number;
 };
 
 export type SessionRecoveryRecovered = {
   name: "sessionRecovery.recovered";
+  count?: number;
 };
 
 export type SessionRecoveryFailed = {
@@ -452,6 +454,11 @@ export type SessionRecoveryFailed = {
 
 export type SessionRecoveryDiscarded = {
   name: "sessionRecovery.discarded";
+};
+
+export type SessionRecoveryIgnored = {
+  name: "sessionRecovery.ignored";
+  count: number;
 };
 
 export type ProjectFileOpened = {
@@ -1709,7 +1716,8 @@ export type UserEvent =
   | SessionRecoveryOffered
   | SessionRecoveryRecovered
   | SessionRecoveryFailed
-  | SessionRecoveryDiscarded;
+  | SessionRecoveryDiscarded
+  | SessionRecoveryIgnored;
 
 const debugPostHog = {
   capture: (...data: any[]) => {

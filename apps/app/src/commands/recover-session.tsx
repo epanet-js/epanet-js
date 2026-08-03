@@ -13,6 +13,7 @@ import { dialogAtom } from "src/state/dialog";
 import {
   clearRecoveryFingerprints,
   readRecoveryFingerprints,
+  type RecoveryFingerprint,
 } from "src/infra/session-recovery";
 import { isSessionAlive } from "src/infra/session-lock";
 import { useOpenProjectFile } from "./open-project";
@@ -24,6 +25,93 @@ import { captureError, captureWarning } from "src/infra/error-tracking";
 import { formatErrorDetails } from "src/lib/errors";
 
 export const useRecoverSession = () => {
+  const openProjectFile = useOpenProjectFile();
+  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
+  const setDialogState = useSetAtom(dialogAtom);
+  const userTracking = useUserTracking();
+  const translate = useTranslate();
+
+  return useAtomCallback(
+    useCallback(
+      async (get: Getter, _set, fingerprint: RecoveryFingerprint) => {
+        const offeredCount = get(recoverableSessionsAtom).length;
+
+        setRecoverableSessions([]);
+        setDialogState({ type: "loading" });
+
+        let recoveredBlob: Blob | null = null;
+        try {
+          recoveredBlob = await db.exportDbFromPool(fingerprint.poolId);
+        } catch (error) {
+          captureError(
+            new Error(
+              `sessionRecovery export failed: ${formatErrorDetails(error)}`,
+              { cause: error },
+            ),
+          );
+        }
+
+        if (!recoveredBlob) {
+          clearRecoveryFingerprints([fingerprint.poolId]);
+          discardRecoverablePools();
+          setDialogState({ type: "welcome" });
+          notify({
+            variant: "warning",
+            size: "md",
+            title: translate("recoverUnsavedModelFailedTitle"),
+            description: translate("recoverUnsavedModelFailedDescription"),
+            Icon: WarningIcon,
+          });
+          userTracking.capture({ name: "sessionRecovery.failed" });
+          return;
+        }
+
+        const name = fingerprint.projectName ?? translate("recoveredModelName");
+        const file = new File([recoveredBlob], name);
+
+        await openProjectFile(file, "recovery", {
+          isUnsaved: true,
+          lastSavedAt: fingerprint.timestampLastSave,
+        });
+
+        clearRecoveryFingerprints([fingerprint.poolId]);
+        discardRecoverablePools();
+        userTracking.capture({
+          name: "sessionRecovery.recovered",
+          count: offeredCount,
+        });
+      },
+      [
+        openProjectFile,
+        setRecoverableSessions,
+        setDialogState,
+        userTracking,
+        translate,
+      ],
+    ),
+  );
+};
+
+export const useIgnoreRecoverableSessions = () => {
+  const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
+  const userTracking = useUserTracking();
+
+  return useAtomCallback(
+    useCallback(
+      (get: Getter) => {
+        const offeredCount = get(recoverableSessionsAtom).length;
+        setRecoverableSessions([]);
+        userTracking.capture({
+          name: "sessionRecovery.ignored",
+          count: offeredCount,
+        });
+      },
+      [setRecoverableSessions, userTracking],
+    ),
+  );
+};
+
+export const useRecoverSessionDeprecated = () => {
   const openProjectFile = useOpenProjectFile();
   const setRecoverableSessions = useSetAtom(recoverableSessionsAtom);
   const setDialogState = useSetAtom(dialogAtom);
