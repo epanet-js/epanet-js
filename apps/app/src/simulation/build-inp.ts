@@ -806,6 +806,20 @@ export const buildInp = withDebugInstrumentation(
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
 
+export const buildInpAsync = (
+  hydraulicModel: HydraulicModel,
+  options: BuildOptions,
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        resolve(buildInp(hydraulicModel, options));
+      } catch (error) {
+        reject(error);
+      }
+    }, 0);
+  });
+
 const appendInitialQuality = (
   sections: InpSections,
   idMap: EpanetIds,

@@ -380,6 +380,7 @@
   "generatingInp": "Generating INP...",
   "exportedAsInp": "Exported as INP",
   "exportInpCanceled": "Canceled exporting INP",
+  "exportInpTooLarge": "Model is too large to export as INP",
   "saved": "Saved",
   "saveAs": "Save as...",
   "saveCanceled": "Canceled saving",

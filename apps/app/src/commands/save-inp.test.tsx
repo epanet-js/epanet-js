@@ -30,7 +30,7 @@ describe("save inp", () => {
     await triggerSave();
 
     const lastSave = lastSaveCall();
-    expect(await lastSave.contentBlob.text()).toContain("J1");
+    expect(await (await lastSave.contentBlob).text()).toContain("J1");
     expect(lastSave.options).toEqual({
       fileName: "my-network.inp",
       extensions: [".inp"],

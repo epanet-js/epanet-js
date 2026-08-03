@@ -11,12 +11,13 @@ import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
 import { MapContext, captureThumbnail } from "src/map";
-import { buildInp } from "src/simulation/build-inp";
+import { buildInpAsync } from "src/simulation/build-inp";
 import { useTranslate } from "src/hooks/use-translate";
 import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notify } from "src/components/notifications";
-import { SpinnerIcon, SuccessIcon, WarningIcon } from "src/icons";
+import { handleError } from "src/infra/errors";
+import { SpinnerIcon, SuccessIcon, WarningIcon, ErrorIcon } from "src/icons";
 import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
@@ -85,8 +86,20 @@ export const useSaveInp = ({
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
           };
-          const inp = buildInp(hydraulicModel, buildOptions);
-          const inpBlob = new Blob([inp], { type: "text/plain" });
+          // Build the INP lazily: `fileSave` opens the save picker first and
+          // only awaits this blob when writing to the chosen file. Building up
+          // front would outlive the browser's transient user activation window
+          // on large models and make the picker throw. buildInpAsync defers the
+          // build so it never runs synchronously ahead of the picker call.
+          const inpBlobPromise = buildInpAsync(
+            hydraulicModel,
+            buildOptions,
+          ).then((inp) => new Blob([inp], { type: "text/plain" }));
+          // Keep a handler attached so that, if the picker is dismissed before
+          // fileSave awaits the blob, a build failure isn't an unhandled
+          // rejection. This does not consume the rejection for fileSave, which
+          // still sees it when writing to the chosen file.
+          inpBlobPromise.catch(() => {});
 
           const suggestedName = fileInfo
             ? fileInfo.name
@@ -95,7 +108,7 @@ export const useSaveInp = ({
               : "my-network.inp";
 
           const newHandle = await fileSave(
-            inpBlob,
+            inpBlobPromise,
             {
               fileName: suggestedName,
               extensions: [".inp"],
@@ -144,12 +157,30 @@ export const useSaveInp = ({
             size: "sm",
           });
           return true;
-        } catch {
+        } catch (error) {
+          handleError(error, {
+            as: "INP export failed",
+            ignore: ["AbortError"],
+            onUnexpected: "capture",
+          });
+
+          if (error instanceof RangeError) {
+            notify({
+              variant: "error",
+              title: translate("exportInpTooLarge"),
+              Icon: ErrorIcon,
+              id: exportInpToastId,
+              size: "sm",
+              duration: Infinity,
+            });
+            return false;
+          }
           notify({
             variant: "warning",
             title: translate("exportInpCanceled"),
             Icon: WarningIcon,
             id: exportInpToastId,
+            duration: Infinity,
             size: "sm",
           });
           return false;

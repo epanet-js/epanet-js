@@ -80,7 +80,7 @@ export const stubFileSavePermissionDenied = () => {
 
 export const lastSaveCall = () => {
   const [contentBlob, options, handle] = (fileSave as Mock).mock.lastCall as [
-    Blob,
+    Blob | Promise<Blob>,
     Record<string, string>,
     FileSystemFileHandle | undefined,
   ];
