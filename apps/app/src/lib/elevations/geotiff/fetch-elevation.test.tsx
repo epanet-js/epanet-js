@@ -320,8 +320,19 @@ describe("fetchGeoTiffTileElevationsForPoints", () => {
  * Synthetic tile factory for cell-bucketing tests. crsToPixel is identity, so
  * lng=lat=k maps to pixel (k, k). Width/height are 2000 to match the user's
  * real tile size and exercise multi-cell behavior.
+ *
+ * `blockWidth`/`blockHeight` model the raster's internal tiling — the read
+ * planner uses them to decide whether scattered per-bucket reads are cheaper
+ * than one union read. Defaults to a 256×256 internally-tiled layout, where
+ * small scattered reads only touch a few blocks; pass the full width/height to
+ * model a single-strip raster, where every window read decodes the whole image.
  */
-function aSyntheticTile(width = 2000, height = 2000): GeoTiffTile {
+function aSyntheticTile(
+  width = 2000,
+  height = 2000,
+  blockWidth = 256,
+  blockHeight = 256,
+): GeoTiffTile {
   return {
     id: "synth",
     file: new File([""], "synth.tif"),
@@ -335,6 +346,8 @@ function aSyntheticTile(width = 2000, height = 2000): GeoTiffTile {
     crsToPixel: [0, 1, 0, 0, 0, 1],
     noDataValue: -9999,
     image: {
+      getTileWidth: () => blockWidth,
+      getTileHeight: () => blockHeight,
       readRasters: vi.fn(
         ({ window }: { window: number[] } = { window: [] }) => {
           const [x0, y0, x1, y1] = window;
@@ -403,6 +416,53 @@ describe("fetchGeoTiffTileElevationsForPoints — cell bucketing", () => {
     // bilinear neighborhood. Stay well under the 2000 px raster size.
     expect(widestRead).toBeLessThan(300);
     expect(readSpy).toHaveBeenCalledTimes(5);
+  });
+
+  it("collapses to one read on a single-strip raster where buckets share the whole-image block", async () => {
+    // One internal block spanning the whole image: every window read decodes
+    // the entire raster, so scattered per-bucket reads would decode it once per
+    // bucket. The planner must collapse them into a single read.
+    const tile = aSyntheticTile(2000, 2000, 2000, 2000);
+    const readSpy = vi.mocked(tile.image.readRasters);
+
+    await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 50, lat: 50 },
+      { lng: 500, lat: 500 },
+      { lng: 1000, lat: 1000 },
+      { lng: 1500, lat: 1500 },
+      { lng: 1950, lat: 1950 },
+    ]);
+
+    expect(readSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("still samples each point from its own pixel after a single-strip merge", async () => {
+    // Single-strip layout forces a merge into one wide window. A band that
+    // encodes each pixel's global (x+y) lets us verify points are indexed at
+    // their own offset within that merged window, not cross-pollinated.
+    const tile = aSyntheticTile(2000, 2000, 2000, 2000);
+    (tile.image as unknown as { readRasters: unknown }).readRasters = ({
+      window,
+    }: {
+      window: number[];
+    }) => {
+      const [x0, y0, x1, y1] = window;
+      const w = x1 - x0;
+      const h = y1 - y0;
+      const band = new Float32Array(w * h);
+      for (let r = 0; r < h; r++) {
+        for (let c = 0; c < w; c++) band[r * w + c] = x0 + c + (y0 + r);
+      }
+      return Promise.resolve([band]);
+    };
+
+    const results = await fetchGeoTiffTileElevationsForPoints(tile, [
+      { lng: 10, lat: 10 }, // bilinear over (9,9)…(10,10) → mean 19
+      { lng: 600, lat: 600 }, // bilinear over (599,599)…(600,600) → mean 1199
+    ]);
+
+    expect(results[0]?.value).toBe(19);
+    expect(results[1]?.value).toBe(1199);
   });
 
   it("preserves point→bucket association so each result reflects its own pixel", async () => {

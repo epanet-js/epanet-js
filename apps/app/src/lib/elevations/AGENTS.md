@@ -14,7 +14,17 @@ The core invariant: **bulk cost scales with the number of distinct resources tou
 
 **GeoTIFF** ([geotiff/fetch-elevation.ts](geotiff/fetch-elevation.ts)): points are grouped by which tile's bbox contains them (earlier tiles win on overlap), then `bucketPointsByCell` groups them into `READ_BUCKET_SIZE` (256 px) raster cells, one `readRasters` per bucket. The bucket is a small multiple of the internal block size, so a read only decompresses the blocks its points live in — critical for a diagonal path, where a single union-window read would decompress the whole raster.
 
-The two are bound by different costs: tile-server is **network-bound** (remote, cacheable); GeoTIFF is **CPU-bound** on a local `File`, so the DTM path issues no request and shows nothing in the network tab.
+The two are bound by different costs: tile-server is **network-bound** (remote, cacheable); GeoTIFF is **local-I/O-bound** on a `File`, so the DTM path issues no request and shows nothing in the network tab.
+
+## GeoTIFF read cost: per-block FileReader I/O, and when we go in-memory
+
+A GeoTIFF opened from a `File` (`fromBlob`) is served one internal block at a time, each via its own async `FileReader` round-trip against the blob. Decode is cheap; this **per-block I/O is what dominates** a bulk read that spans many blocks — recompute-all over a network that blankets a tile touches ~100+ blocks per file, and those round-trips added up to seconds. It is not a decode or a redundant-read problem: each block is already read once.
+
+The mitigation is to stop paying the round-trip. When a tile read will touch enough distinct blocks, we load the whole file into memory once (`fromArrayBuffer`) and read from that — block reads become synchronous in-memory slices. The in-memory image is scoped to the single read, so only the tile currently being read is held. This is **gated by file size**: a source can be a few-MB tile in a multi-file DTM *or* a single multi-GB raster that cannot fit in memory, so above the cap we keep streaming blocks off the blob and never attempt to load it whole (loading it would OOM the tab).
+
+A second, smaller optimization collapses the per-bucket reads into a single read when that read would decode no more internal blocks than the buckets do in aggregate — true for single-strip rasters, where every read decodes the whole strip regardless. For a sparse path across a large tiled raster it keeps the small per-bucket reads.
+
+**Known limitation:** a multi-GB raster stored as narrow strips still incurs occasional multi-second stalls on interactive single-point reads (drawing a node). That is cold disk I/O fetching a strip from a file too big to hold in memory — OS/disk latency the reader cannot eliminate. UX that must stay responsive should resolve elevation asynchronously rather than block on it.
 
 ## No node limit; the scaling risk is fetch concurrency
 
@@ -25,6 +35,7 @@ Nothing caps point count, and nothing needs to — cost tracks distinct tiles/bl
 - Unresolved points are `null`, not `0` — out-of-bounds and nodata stay `null` so the model can represent "no elevation"; callers coalesce to a fallback only behind the feature flag.
 - Any new bulk path must group by locality and touch each tile/block once — never one fetch or `readRasters` per point.
 - Don't raise `READ_BUCKET_SIZE` toward the raster size to "read less often": a larger bucket decompresses *more* blocks per read.
+- The in-memory read is size-gated on purpose: never load a file past `MAX_IN_MEMORY_FILE_BYTES` whole — a multi-GB raster must keep streaming its blocks, or it will OOM the tab.
 
 ## Where it lives
 

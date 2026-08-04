@@ -1,7 +1,12 @@
+import { fromArrayBuffer, type GeoTIFFImage } from "geotiff";
 import { buildPixelTransformers } from "./pixel-transformer";
 import { CRS_UNIT_TO_APP_UNIT } from "./spec";
 import { lngLatToCrs } from "./transform";
 import { CrsUnit, GeoTiffTile } from "./types";
+
+const IN_MEMORY_BLOCK_THRESHOLD = 8;
+const MAX_IN_MEMORY_FILE_BYTES = 64 * 1024 * 1024;
+const MAX_MERGED_READ_PIXELS = 16_000_000;
 
 export type GeoTiffElevation = { value: number; unit: "m" | "ft" };
 
@@ -62,6 +67,10 @@ type ReadBucket = {
   bottom: number;
 };
 
+type PixelWindow = Pick<ReadBucket, "left" | "top" | "right" | "bottom">;
+
+type BlockSize = { width: number; height: number };
+
 /**
  * Reads elevation from a GeoTIFFImage, using bilinear interpolation for
  * coarse grids and nearest-neighbor for fine grids (< ~2m).
@@ -98,33 +107,155 @@ export async function fetchGeoTiffTileElevationsForPoints(
   );
   if (points.length === 0) return results;
 
-  const buckets = bucketPointsByCell(tile, points);
+  const block = internalBlockSize(tile);
+  const reads = planReadWindows(bucketPointsByCell(tile, points), block);
+  const readImage = await readImageFor(tile, countDistinctBlocks(reads, block));
   const unit = CRS_UNIT_TO_APP_UNIT[tile.verticalUnit];
 
-  // One `readRasters` per bucket; report how many points each bucket resolves.
-  for (const bucket of buckets.values()) {
+  for (const read of reads) {
     if (signal?.aborted) break;
-    const band = await readRawElevationBand(tile, [
-      bucket.left,
-      bucket.top,
-      bucket.right,
-      bucket.bottom,
+    const band = await readRawElevationBand(readImage, [
+      read.left,
+      read.top,
+      read.right,
+      read.bottom,
     ]);
 
-    let bucketResolved = 0;
-    for (let k = 0; k < bucket.indices.length; k++) {
-      const raw = sampleFromBand(band, bucket, bucket.positions[k], tile);
+    let resolvedInRead = 0;
+    for (let k = 0; k < read.indices.length; k++) {
+      const raw = sampleFromBand(band, read, read.positions[k], tile);
       if (raw === null) continue;
-      results[bucket.indices[k]] = {
+      results[read.indices[k]] = {
         value: applyElevationTransform(raw, tile),
         unit,
       };
-      bucketResolved += 1;
+      resolvedInRead += 1;
     }
-    onResolved?.(bucketResolved);
+    onResolved?.(resolvedInRead);
   }
 
   return results;
+}
+
+async function readImageFor(
+  tile: GeoTiffTile,
+  distinctBlocks: number,
+): Promise<GeoTIFFImage> {
+  if (!shouldReadInMemory(tile, distinctBlocks)) return tile.image;
+  return (await loadImageInMemory(tile)) ?? tile.image;
+}
+
+function shouldReadInMemory(
+  tile: GeoTiffTile,
+  distinctBlocks: number,
+): boolean {
+  return (
+    distinctBlocks >= IN_MEMORY_BLOCK_THRESHOLD &&
+    tile.file.size <= MAX_IN_MEMORY_FILE_BYTES
+  );
+}
+
+async function loadImageInMemory(
+  tile: GeoTiffTile,
+): Promise<GeoTIFFImage | null> {
+  try {
+    const buffer = await tile.file.arrayBuffer();
+    const tiff = await fromArrayBuffer(buffer);
+    return await tiff.getImage();
+  } catch {
+    return null;
+  }
+}
+
+function internalBlockSize(tile: GeoTiffTile): BlockSize {
+  try {
+    return {
+      width: tile.image.getTileWidth() || tile.width,
+      height: tile.image.getTileHeight() || tile.height,
+    };
+  } catch {
+    return { width: tile.width, height: tile.height };
+  }
+}
+
+function blocksTouched(window: PixelWindow, block: BlockSize): number {
+  const cols =
+    Math.floor((window.right - 1) / block.width) -
+    Math.floor(window.left / block.width) +
+    1;
+  const rows =
+    Math.floor((window.bottom - 1) / block.height) -
+    Math.floor(window.top / block.height) +
+    1;
+  return cols * rows;
+}
+
+function countDistinctBlocks(reads: ReadBucket[], block: BlockSize): number {
+  const distinct = new Set<string>();
+  for (const read of reads) {
+    const bx0 = Math.floor(read.left / block.width);
+    const bx1 = Math.floor((read.right - 1) / block.width);
+    const by0 = Math.floor(read.top / block.height);
+    const by1 = Math.floor((read.bottom - 1) / block.height);
+    for (let by = by0; by <= by1; by++) {
+      for (let bx = bx0; bx <= bx1; bx++) {
+        distinct.add(`${bx},${by}`);
+      }
+    }
+  }
+  return distinct.size;
+}
+
+function planReadWindows(
+  buckets: Map<string, ReadBucket>,
+  block: BlockSize,
+): ReadBucket[] {
+  const reads = [...buckets.values()];
+  if (reads.length <= 1) return reads;
+
+  const union = unionWindow(reads);
+  if (!worthMergingIntoOneRead(reads, union, block)) return reads;
+  return [mergeReads(reads, union)];
+}
+
+function worthMergingIntoOneRead(
+  reads: ReadBucket[],
+  union: PixelWindow,
+  block: BlockSize,
+): boolean {
+  const separateBlocks = reads.reduce(
+    (sum, read) => sum + blocksTouched(read, block),
+    0,
+  );
+  if (blocksTouched(union, block) >= separateBlocks) return false;
+  return windowArea(union) <= MAX_MERGED_READ_PIXELS;
+}
+
+function unionWindow(reads: ReadBucket[]): PixelWindow {
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const read of reads) {
+    if (read.left < left) left = read.left;
+    if (read.top < top) top = read.top;
+    if (read.right > right) right = read.right;
+    if (read.bottom > bottom) bottom = read.bottom;
+  }
+  return { left, top, right, bottom };
+}
+
+function windowArea(window: PixelWindow): number {
+  return (window.right - window.left) * (window.bottom - window.top);
+}
+
+function mergeReads(reads: ReadBucket[], union: PixelWindow): ReadBucket {
+  const merged: ReadBucket = { indices: [], positions: [], ...union };
+  for (const read of reads) {
+    merged.indices.push(...read.indices);
+    merged.positions.push(...read.positions);
+  }
+  return merged;
 }
 
 export function isPointInBbox(
@@ -176,10 +307,10 @@ function getInterpolationWindow(
 
 /** Reads the first raster band for the given pixel window. */
 async function readRawElevationBand(
-  tile: GeoTiffTile,
+  image: GeoTIFFImage,
   window: readonly [number, number, number, number],
 ): Promise<Float32Array | Float64Array> {
-  const rasters = await tile.image.readRasters({ window: [...window] });
+  const rasters = await image.readRasters({ window: [...window] });
   return rasters[0] as Float32Array | Float64Array;
 }
 
