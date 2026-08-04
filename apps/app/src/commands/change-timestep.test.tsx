@@ -18,6 +18,8 @@ vi.mock("src/infra/storage/opfs-storage", () => ({
   isOPFSAvailable: vi.fn().mockResolvedValue(true),
   opfsUnavailableErrors: [],
   getAvailableStorageBytes: vi.fn().mockResolvedValue(Number.MAX_SAFE_INTEGER),
+  createTempFile: vi.fn(),
+  cleanupStaleOPFS: vi.fn(),
 }));
 
 const initialResultsReader = createMockResultsReader();
