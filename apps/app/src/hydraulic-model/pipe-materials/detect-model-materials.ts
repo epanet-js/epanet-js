@@ -1,11 +1,9 @@
 import type { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
+import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import type { ImportPipeLibraryResult } from "./import-result";
 
 const AGE_STEP = 10;
-
-const isValidInstallationYear = (year: number): boolean =>
-  Number.isInteger(year) && year >= 1000 && year <= 9999;
 
 const bucketByDecade = (ages: Set<number>): Set<number> => {
   const buckets = new Set<number>();
