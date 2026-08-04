@@ -1,7 +1,7 @@
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { Pipe, HydraulicModel } from "src/hydraulic-model";
-import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
-import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
+import { inferredRoughness } from "src/hydraulic-model/pipe-materials";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 
 export type RoughnessAssignment = { assetIds: AssetId[]; roughness: number };
 
@@ -9,28 +9,14 @@ export const roughnessAssignments = (
   hydraulicModel: HydraulicModel,
   materials: PipeMaterial[],
 ): RoughnessAssignment[] => {
-  const materialMap = new Map<string, RoughnessEntry[]>();
-  for (const m of materials) {
-    const sorted = m.entries
-      .filter((e) => e.age !== null && e.roughness !== null)
-      .sort((a, b) => a.age! - b.age!);
-    if (sorted.length > 0) materialMap.set(m.label, sorted);
-  }
-
-  const currentYear = new Date().getFullYear();
   const roughnessGroups = new Map<number, AssetId[]>();
 
   for (const [assetId, asset] of hydraulicModel.assets) {
     if (asset.type !== "pipe") continue;
     const pipe = asset as Pipe;
-    if (pipe.roughness != null || !pipe.material) continue;
-    if (pipe.year !== undefined && !isValidInstallationYear(pipe.year))
-      continue;
+    if (pipe.roughness != null) continue;
 
-    const entries = materialMap.get(pipe.material);
-    if (!entries) continue;
-
-    const roughness = resolveRoughness(pipe, entries, currentYear);
+    const roughness = inferredRoughness(pipe, materials);
     if (roughness == null) continue;
 
     const group = roughnessGroups.get(roughness);
@@ -42,28 +28,4 @@ export const roughnessAssignments = (
     assetIds,
     roughness,
   }));
-};
-
-const resolveRoughness = (
-  pipe: Pipe,
-  entries: RoughnessEntry[],
-  currentYear: number,
-): number | null => {
-  if (entries.length === 1) return entries[0].roughness;
-  if (!pipe.year) return null;
-  const pipeAge = Math.max(0, currentYear - pipe.year);
-  return findRoughness(entries, pipeAge);
-};
-
-export const findRoughness = (
-  entries: RoughnessEntry[],
-  pipeAge: number,
-): number | null => {
-  if (entries.length === 0) return null;
-  let result: number | null = entries[0].roughness;
-  for (const entry of entries) {
-    if (entry.age! > pipeAge) break;
-    result = entry.roughness;
-  }
-  return result;
 };

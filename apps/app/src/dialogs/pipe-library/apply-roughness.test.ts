@@ -1,7 +1,7 @@
 import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { roughnessAssignments, findRoughness } from "./apply-roughness";
+import { roughnessAssignments } from "./apply-roughness";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -9,51 +9,6 @@ const toPatches = (assignments: ReturnType<typeof roughnessAssignments>) =>
   assignments.flatMap(({ assetIds, roughness }) =>
     assetIds.map((id) => ({ id, type: "pipe", properties: { roughness } })),
   );
-
-describe("findRoughness", () => {
-  it("returns the roughness when pipe age equals the entry age", () => {
-    const entries = [{ age: 10, roughness: 100 }];
-    expect(findRoughness(entries, 10)).toBe(100);
-  });
-
-  it("returns the roughness when pipe age is below the entry age", () => {
-    const entries = [{ age: 10, roughness: 100 }];
-    expect(findRoughness(entries, 5)).toBe(100);
-  });
-
-  it("returns the roughness when pipe age exceeds the only entry age", () => {
-    const entries = [{ age: 10, roughness: 100 }];
-    expect(findRoughness(entries, 15)).toBe(100);
-  });
-
-  it("selects the correct bracket from multiple entries", () => {
-    const entries = [
-      { age: 10, roughness: 100 },
-      { age: 20, roughness: 200 },
-    ];
-    expect(findRoughness(entries, 5)).toBe(100);
-    expect(findRoughness(entries, 10)).toBe(100);
-    expect(findRoughness(entries, 11)).toBe(100);
-    expect(findRoughness(entries, 20)).toBe(200);
-    expect(findRoughness(entries, 30)).toBe(200);
-  });
-
-  it("handles three brackets", () => {
-    const entries = [
-      { age: 10, roughness: 100 },
-      { age: 20, roughness: 200 },
-      { age: 30, roughness: 300 },
-    ];
-    expect(findRoughness(entries, 1)).toBe(100);
-    expect(findRoughness(entries, 15)).toBe(100);
-    expect(findRoughness(entries, 25)).toBe(200);
-    expect(findRoughness(entries, 50)).toBe(300);
-  });
-
-  it("returns null for an empty entry list", () => {
-    expect(findRoughness([], 10)).toBeNull();
-  });
-});
 
 describe("roughnessAssignments", () => {
   it("applies roughness to a pipe matching material and age", () => {
