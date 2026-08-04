@@ -2,6 +2,7 @@
 import {
   OPFSStorage,
   cleanupStaleOPFS,
+  createTempFile,
   getAvailableStorageBytes,
 } from "./opfs-storage";
 
@@ -15,6 +16,11 @@ describe("OPFSStorage", () => {
     getDirectoryHandle: ReturnType<typeof vi.fn>;
     removeEntry: ReturnType<typeof vi.fn>;
     entries: ReturnType<typeof vi.fn>;
+  };
+  let mockTempDir: {
+    getDirectoryHandle: ReturnType<typeof vi.fn>;
+    keys: ReturnType<typeof vi.fn>;
+    removeEntry: ReturnType<typeof vi.fn>;
   };
   let mockRootDir: {
     getDirectoryHandle: ReturnType<typeof vi.fn>;
@@ -62,8 +68,17 @@ describe("OPFSStorage", () => {
       removeEntry: vi.fn(),
       entries: vi.fn(),
     };
+    mockTempDir = {
+      getDirectoryHandle: vi.fn(),
+      keys: vi.fn(() => toAsyncIterator([])),
+      removeEntry: vi.fn().mockResolvedValue(undefined),
+    };
     mockRootDir = {
-      getDirectoryHandle: vi.fn().mockResolvedValue(mockSimulationDir),
+      getDirectoryHandle: vi.fn((name: string) =>
+        Promise.resolve(
+          name === "epanet-temp" ? mockTempDir : mockSimulationDir,
+        ),
+      ),
     };
 
     vi.stubGlobal("navigator", {
@@ -76,6 +91,10 @@ describe("OPFSStorage", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
+
+  async function* toAsyncIterator(items: string[]) {
+    for (const item of items) yield await Promise.resolve(item);
+  }
 
   const createMockSyncAccessHandle = () => ({
     write: vi.fn(),
@@ -264,6 +283,44 @@ describe("OPFSStorage", () => {
     });
   });
 
+  describe("createTempFile", () => {
+    it("creates the file inside the app's temp directory", async () => {
+      const mockFileHandle = createMockFileHandle(new ArrayBuffer(0));
+      const mockTempAppDir = {
+        getFileHandle: vi.fn().mockResolvedValue(mockFileHandle),
+      };
+      mockTempDir.getDirectoryHandle.mockResolvedValue(mockTempAppDir);
+
+      const handle = await createTempFile("test-app-id", "export.zip");
+
+      expect(mockRootDir.getDirectoryHandle).toHaveBeenCalledWith(
+        "epanet-temp",
+        { create: true },
+      );
+      expect(mockTempDir.getDirectoryHandle).toHaveBeenCalledWith(
+        "test-app-id",
+        { create: true },
+      );
+      expect(mockTempAppDir.getFileHandle).toHaveBeenCalledWith("export.zip", {
+        create: true,
+      });
+      expect(handle).toBe(mockFileHandle);
+    });
+
+    it("does not touch the simulation directory", async () => {
+      mockTempDir.getDirectoryHandle.mockResolvedValue({
+        getFileHandle: vi.fn().mockResolvedValue({}),
+      });
+
+      await createTempFile("test-app-id", "export.zip");
+
+      expect(mockRootDir.getDirectoryHandle).not.toHaveBeenCalledWith(
+        "epanet-simulation",
+        expect.anything(),
+      );
+    });
+  });
+
   describe("cleanupStale", () => {
     const TWO_WEEKS_MS = 1000 * 60 * 60 * 24 * 14;
 
@@ -274,7 +331,7 @@ describe("OPFSStorage", () => {
         JSON.stringify({ timestamp: oldTimestamp }),
       );
 
-      await cleanupStaleOPFS(TWO_WEEKS_MS);
+      await cleanupStaleOPFS(TWO_WEEKS_MS, "current-app");
 
       expect(mockSimulationDir.removeEntry).toHaveBeenCalledWith("stale-app", {
         recursive: true,
@@ -291,16 +348,62 @@ describe("OPFSStorage", () => {
         JSON.stringify({ timestamp: recentTimestamp }),
       );
 
-      await cleanupStaleOPFS(TWO_WEEKS_MS);
+      await cleanupStaleOPFS(TWO_WEEKS_MS, "current-app");
 
       expect(mockSimulationDir.removeEntry).not.toHaveBeenCalled();
       expect(mockLocalStorage.removeItem).not.toHaveBeenCalled();
     });
 
     it("does not remove anything when no last access timestamps exist", async () => {
-      await cleanupStaleOPFS(TWO_WEEKS_MS);
+      await cleanupStaleOPFS(TWO_WEEKS_MS, "current-app");
 
       expect(mockSimulationDir.removeEntry).not.toHaveBeenCalled();
+    });
+
+    it("removes temp directories from other app instances", async () => {
+      mockTempDir.keys.mockReturnValue(
+        toAsyncIterator(["current-app", "other-app", "another-app"]),
+      );
+
+      await cleanupStaleOPFS(TWO_WEEKS_MS, "current-app");
+
+      expect(mockTempDir.removeEntry).toHaveBeenCalledWith("other-app", {
+        recursive: true,
+      });
+      expect(mockTempDir.removeEntry).toHaveBeenCalledWith("another-app", {
+        recursive: true,
+      });
+      expect(mockTempDir.removeEntry).not.toHaveBeenCalledWith(
+        "current-app",
+        expect.anything(),
+      );
+    });
+
+    it("does not throw when the temp directory does not exist", async () => {
+      mockRootDir.getDirectoryHandle.mockImplementation((name: string) =>
+        name === "epanet-temp"
+          ? Promise.reject(new Error("NotFoundError"))
+          : Promise.resolve(mockSimulationDir),
+      );
+
+      await expect(
+        cleanupStaleOPFS(TWO_WEEKS_MS, "current-app"),
+      ).resolves.not.toThrow();
+    });
+
+    it("keeps cleaning temp directories when one removal fails", async () => {
+      mockTempDir.keys.mockReturnValue(
+        toAsyncIterator(["failing-app", "other-app"]),
+      );
+      mockTempDir.removeEntry
+        .mockRejectedValueOnce(new Error("NotFoundError"))
+        .mockResolvedValueOnce(undefined);
+
+      await cleanupStaleOPFS(TWO_WEEKS_MS, "current-app");
+
+      expect(mockTempDir.removeEntry).toHaveBeenCalledWith("other-app", {
+        recursive: true,
+      });
     });
   });
 });

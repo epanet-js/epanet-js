@@ -64,6 +64,20 @@ describe("export-asset-data", () => {
     );
   });
 
+  it("opens the xlsx OPFS file with the xlsx extension", async () => {
+    vi.spyOn(AssetExporters, "exportXlsx").mockResolvedValue(undefined);
+
+    await exportAssetData("export", "xlsx", model, WGS84, translate);
+
+    expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith(
+      "export.xlsx",
+    );
+    expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
+      "export.xlsx",
+      mockHandle,
+    );
+  });
+
   it("calls the geojson exporter for geojson format", async () => {
     const resultsReader = {} as ResultsReader;
     mockGeoJsonExporter();

@@ -62,7 +62,7 @@ const handleXlsx = async (
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ".xlsx",
       )
-    : await FileSystemHelpers.openFileInOpfs(fileName);
+    : await FileSystemHelpers.openFileInOpfs(xlsxFileName);
 
   await AssetExporters.exportXlsx(
     handle,

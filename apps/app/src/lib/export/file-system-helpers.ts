@@ -1,10 +1,10 @@
+import { getAppId } from "src/infra/app-instance";
+import { createTempFile } from "src/infra/storage";
+
 const openFileInOpfs = async (
   fileName: string,
 ): Promise<FileSystemFileHandle> => {
-  const directory = await navigator.storage.getDirectory();
-  return await directory.getFileHandle(fileName, {
-    create: true,
-  });
+  return await createTempFile(getAppId(), fileName);
 };
 
 const openFileInFileSystem = async (

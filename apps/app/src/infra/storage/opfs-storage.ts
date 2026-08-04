@@ -1,6 +1,7 @@
 import { IKeyBufferStore } from "./types";
 
 const ROOT_DIR = "epanet-simulation";
+const TEMP_ROOT_DIR = "epanet-temp";
 const HEARTBEAT_KEY_PREFIX = "last-simulation-access:";
 
 export class OPFSStorage implements IKeyBufferStore {
@@ -181,18 +182,61 @@ export async function getAvailableStorageBytes(): Promise<number> {
   }
 }
 
-export async function cleanupStaleOPFS(thresholdMs: number): Promise<void> {
+export async function createTempFile(
+  appId: string,
+  filename: string,
+): Promise<FileSystemFileHandle> {
+  const tempRoot = await getTempRootDir();
+  const appDir = await tempRoot.getDirectoryHandle(appId, { create: true });
+  return await appDir.getFileHandle(filename, { create: true });
+}
+
+export async function cleanupStaleOPFS(
+  thresholdMs: number,
+  currentAppId: string,
+): Promise<void> {
   if (!(await isOPFSAvailable())) return;
   const staleAppIds = findStaleAppIds(thresholdMs);
 
   for (const appId of staleAppIds) {
     await clearApp(appId);
   }
+
+  await clearOtherTempDirs(currentAppId);
 }
 
 async function getRootDir(): Promise<FileSystemDirectoryHandle> {
   const root = await navigator.storage.getDirectory();
   return await root.getDirectoryHandle(ROOT_DIR, { create: true });
+}
+
+async function getTempRootDir(): Promise<FileSystemDirectoryHandle> {
+  const root = await navigator.storage.getDirectory();
+  return await root.getDirectoryHandle(TEMP_ROOT_DIR, { create: true });
+}
+
+async function clearOtherTempDirs(currentAppId: string): Promise<void> {
+  let tempRoot: FileSystemDirectoryHandle;
+  try {
+    const root = await navigator.storage.getDirectory();
+    tempRoot = await root.getDirectoryHandle(TEMP_ROOT_DIR);
+  } catch {
+    // Temp directory does not exist yet
+    return;
+  }
+
+  const appIds: string[] = [];
+  for await (const appId of tempRoot.keys()) {
+    if (appId !== currentAppId) appIds.push(appId);
+  }
+
+  for (const appId of appIds) {
+    try {
+      await tempRoot.removeEntry(appId, { recursive: true });
+    } catch {
+      // Directory may already be gone
+    }
+  }
 }
 
 async function clearApp(appId: string): Promise<void> {
