@@ -1,8 +1,13 @@
 import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { renameMaterialsMoment } from "./rename-materials";
+import { renameAssignments } from "./rename-materials";
 
-describe("renameMaterialsMoment", () => {
+const toPatches = (assignments: ReturnType<typeof renameAssignments>) =>
+  assignments.flatMap(({ assetIds, material }) =>
+    assetIds.map((id) => ({ id, type: "pipe", properties: { material } })),
+  );
+
+describe("renameAssignments", () => {
   it("renames material on matching pipes", () => {
     const model = makeModel(
       makePipe(1, { material: "CI" }),
@@ -10,9 +15,9 @@ describe("renameMaterialsMoment", () => {
     );
     const renames = new Map([["CI", "Cast Iron"]]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { material: "Cast Iron" } },
       { id: 2, type: "pipe", properties: { material: "Cast Iron" } },
     ]);
@@ -22,18 +27,18 @@ describe("renameMaterialsMoment", () => {
     const model = makeModel(makePipe(1, {}));
     const renames = new Map([["CI", "Cast Iron"]]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("skips pipes whose material is not in the rename map", () => {
     const model = makeModel(makePipe(1, { material: "PVC" }));
     const renames = new Map([["CI", "Cast Iron"]]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("handles multiple renames", () => {
@@ -46,9 +51,9 @@ describe("renameMaterialsMoment", () => {
       ["DI", "Ductile Iron"],
     ]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { material: "Cast Iron" } },
       { id: 2, type: "pipe", properties: { material: "Ductile Iron" } },
     ]);
@@ -58,27 +63,27 @@ describe("renameMaterialsMoment", () => {
     const model = makeModel(makePipe(1, { material: "CI" }));
     const renames = new Map([["CI", "CI"]]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("returns empty patches when there are no pipes", () => {
     const model = makeModel();
     const renames = new Map([["CI", "Cast Iron"]]);
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("returns empty patches when rename map is empty", () => {
     const model = makeModel(makePipe(1, { material: "CI" }));
     const renames = new Map<string, string>();
 
-    const moment = renameMaterialsMoment(model, renames);
+    const assignments = renameAssignments(model, renames);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 });
 

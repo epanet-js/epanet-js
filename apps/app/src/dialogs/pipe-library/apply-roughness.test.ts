@@ -1,9 +1,14 @@
 import { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { HydraulicModel } from "src/hydraulic-model";
-import { applyRoughnessMoment, findRoughness } from "./apply-roughness";
+import { roughnessAssignments, findRoughness } from "./apply-roughness";
 
 const CURRENT_YEAR = new Date().getFullYear();
+
+const toPatches = (assignments: ReturnType<typeof roughnessAssignments>) =>
+  assignments.flatMap(({ assetIds, roughness }) =>
+    assetIds.map((id) => ({ id, type: "pipe", properties: { roughness } })),
+  );
 
 describe("findRoughness", () => {
   it("returns the roughness when pipe age equals the entry age", () => {
@@ -50,7 +55,7 @@ describe("findRoughness", () => {
   });
 });
 
-describe("applyRoughnessMoment", () => {
+describe("roughnessAssignments", () => {
   it("applies roughness to a pipe matching material and age", () => {
     const materials: PipeMaterial[] = [
       { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
@@ -59,9 +64,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 120 } },
     ]);
   });
@@ -72,9 +77,9 @@ describe("applyRoughnessMoment", () => {
     ];
     const model = makeModel(makePipe(1, { year: CURRENT_YEAR - 5 }));
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("skips pipes without a year when material has multiple entries", () => {
@@ -89,9 +94,9 @@ describe("applyRoughnessMoment", () => {
     ];
     const model = makeModel(makePipe(1, { material: "Cast Iron" }));
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("applies roughness to pipes without a year when material has a single entry", () => {
@@ -100,9 +105,9 @@ describe("applyRoughnessMoment", () => {
     ];
     const model = makeModel(makePipe(1, { material: "Cast Iron" }));
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 120 } },
     ]);
   });
@@ -115,9 +120,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "PVC", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("selects the correct roughness bracket per pipe age", () => {
@@ -138,9 +143,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(4, { material: "Cast Iron", year: CURRENT_YEAR - 50 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
       { id: 2, type: "pipe", properties: { roughness: 100 } },
       { id: 3, type: "pipe", properties: { roughness: 200 } },
@@ -158,9 +163,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(2, { material: "PVC", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
       { id: 2, type: "pipe", properties: { roughness: 150 } },
     ]);
@@ -180,9 +185,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 120 } },
     ]);
   });
@@ -198,9 +203,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("returns empty patches when there are no pipes", () => {
@@ -209,9 +214,9 @@ describe("applyRoughnessMoment", () => {
     ];
     const model = makeModel();
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("returns empty patches when materials list is empty", () => {
@@ -219,9 +224,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, []);
+    const assignments = roughnessAssignments(model, []);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("sorts unsorted material entries by age before applying", () => {
@@ -239,9 +244,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(2, { material: "Cast Iron", year: CURRENT_YEAR - 15 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
       { id: 2, type: "pipe", properties: { roughness: 100 } },
     ]);
@@ -259,9 +264,9 @@ describe("applyRoughnessMoment", () => {
       }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("applies roughness to a pipe with age 0", () => {
@@ -272,9 +277,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 120 } },
     ]);
   });
@@ -295,9 +300,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(3, { material: "Cast Iron", year: 1995.5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([]);
+    expect(toPatches(assignments)).toEqual([]);
   });
 
   it("clamps age to 0 for pipes with a future installation year", () => {
@@ -314,9 +319,9 @@ describe("applyRoughnessMoment", () => {
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR + 5 }),
     );
 
-    const moment = applyRoughnessMoment(model, materials);
+    const assignments = roughnessAssignments(model, materials);
 
-    expect(moment.patchAssetsAttributes).toEqual([
+    expect(toPatches(assignments)).toEqual([
       { id: 1, type: "pipe", properties: { roughness: 100 } },
     ]);
   });

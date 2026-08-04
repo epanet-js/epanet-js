@@ -1,7 +1,7 @@
 import { useTranslate } from "src/hooks/use-translate";
 import { NotificationBanner } from "src/components/notifications";
 import { TriangleAlert } from "lucide-react";
-import type { MaterialValidationError } from "src/lib/pipe-library";
+import type { MaterialValidationError } from "src/hydraulic-model/pipe-materials";
 
 interface PipeErrorBannerProps {
   materialLabel: string;

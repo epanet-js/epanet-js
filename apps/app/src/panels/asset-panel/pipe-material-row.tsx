@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
-import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
+import { listPipeMaterials } from "src/hydraulic-model/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
 import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 import { CreatableTextRow } from "./ui-components";

@@ -1,30 +1,11 @@
 import Papa from "papaparse";
-import { fileOpen } from "browser-fs-access";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { validateEntry, validateMaterial } from "./validate-material";
+import type { ImportError, ImportPipeLibraryResult } from "./import-result";
 
-export type ImportError = {
-  message: string;
-  material?: string;
-  value?: string;
-};
-
-export type ImportPipeLibraryResult = {
-  status: "success" | "error" | "partial";
-  format?: "csv" | "xlsx";
-  pipeLibrary?: PipeMaterial[];
-  errors: ImportError[];
-};
-
-export const importFromFile = async (): Promise<ImportPipeLibraryResult> => {
-  const file = await openFilePicker();
-  if (!file) {
-    return {
-      status: "error",
-      errors: [{ message: "pipeLibrary.import.invalidFile" }],
-    };
-  }
-
+export const parsePipeLibraryFile = async (
+  file: File,
+): Promise<ImportPipeLibraryResult> => {
   const extension = file.name.slice(file.name.lastIndexOf("."));
   if (extension !== ".csv" && extension !== ".xlsx") {
     return {
@@ -86,22 +67,6 @@ export const importFromFile = async (): Promise<ImportPipeLibraryResult> => {
   }
 
   return { status: "success", format, pipeLibrary: sanitized, errors: [] };
-};
-
-const openFilePicker = async (): Promise<File | null> => {
-  try {
-    return await fileOpen({
-      extensions: [".csv", ".xlsx"],
-      description: "Pipe library file",
-      mimeTypes: [
-        "text/csv",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ],
-    });
-  } catch (error) {
-    if ((error as Error).name === "AbortError") return null;
-    throw error;
-  }
 };
 
 const parseCsv = async (file: File): Promise<PipeMaterial[]> => {

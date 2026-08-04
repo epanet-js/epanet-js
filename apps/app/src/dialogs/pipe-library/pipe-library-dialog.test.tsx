@@ -27,40 +27,31 @@ vi.mock("src/hooks/persistence/use-pipe-library-transaction", () => ({
   usePipeLibraryTransaction: () => ({ transact: mockPipeLibraryTransact }),
 }));
 
-vi.mock("src/lib/pipe-library/apply-roughness", async (importOriginal) => {
-  const original =
-    await importOriginal<
-      typeof import("src/lib/pipe-library/apply-roughness")
-    >();
-  return {
-    ...original,
-    applyRoughnessMoment: vi.fn(original.applyRoughnessMoment),
-  };
-});
+const { mockRoughnessAssignments, mockRenameAssignments, mockChangeProperty } =
+  vi.hoisted(() => ({
+    mockRoughnessAssignments: vi.fn(),
+    mockRenameAssignments: vi.fn(),
+    mockChangeProperty: vi.fn(),
+  }));
 
-vi.mock("src/lib/pipe-library/rename-materials", async (importOriginal) => {
-  const original =
-    await importOriginal<
-      typeof import("src/lib/pipe-library/rename-materials")
-    >();
-  return {
-    ...original,
-    renameMaterialsMoment: vi.fn(original.renameMaterialsMoment),
-  };
-});
-
-import { applyRoughnessMoment } from "src/lib/pipe-library/apply-roughness";
-import { renameMaterialsMoment } from "src/lib/pipe-library/rename-materials";
-
-vi.mock("src/lib/pipe-library/export-csv", () => ({
-  exportCsv: vi.fn().mockResolvedValue(undefined),
+vi.mock("src/dialogs/pipe-library/apply-roughness", () => ({
+  roughnessAssignments: mockRoughnessAssignments,
 }));
-vi.mock("src/lib/pipe-library/export-xlsx", () => ({
-  exportXlsx: vi.fn().mockResolvedValue(undefined),
+vi.mock("src/dialogs/pipe-library/rename-materials", () => ({
+  renameAssignments: mockRenameAssignments,
+}));
+vi.mock("src/hydraulic-model/model-operations/change-property", () => ({
+  changeProperty: mockChangeProperty,
 }));
 
-import { exportCsv } from "src/lib/pipe-library/export-csv";
-import { exportXlsx } from "src/lib/pipe-library/export-xlsx";
+const mockExportToCsv = vi.fn().mockResolvedValue(undefined);
+const mockExportToXlsx = vi.fn().mockResolvedValue(undefined);
+vi.mock("src/commands/export-pipe-library", () => ({
+  useExportPipeLibrary: () => ({
+    exportToCsv: mockExportToCsv,
+    exportToXlsx: mockExportToXlsx,
+  }),
+}));
 
 vi.mock("src/components/notifications", async (importOriginal) => {
   const original =
@@ -75,6 +66,9 @@ describe("PipeLibraryDialog", () => {
   beforeEach(() => {
     stubUserTracking();
     vi.clearAllMocks();
+    mockRoughnessAssignments.mockReturnValue([]);
+    mockRenameAssignments.mockReturnValue([]);
+    mockChangeProperty.mockReturnValue({ patchAssetsAttributes: [] });
   });
 
   it("creates a material with a default age 0 entry", async () => {
@@ -135,13 +129,15 @@ describe("PipeLibraryDialog", () => {
     store.set(selectedMaterialLabelAtom, "Cast Iron");
     renderDialog(store);
 
-    const mockMoment = {
-      note: "Rename pipe materials",
-      patchAssetsAttributes: [
-        { id: 1, type: "pipe", properties: { material: "Ductile Iron" } },
-      ],
+    const patch = {
+      id: 1,
+      type: "pipe",
+      properties: { material: "Ductile Iron" },
     };
-    vi.mocked(renameMaterialsMoment).mockReturnValue(mockMoment as never);
+    mockRenameAssignments.mockReturnValue([
+      { assetIds: [1], material: "Ductile Iron" },
+    ]);
+    mockChangeProperty.mockReturnValue({ patchAssetsAttributes: [patch] });
 
     await openActionsMenu(user, "Cast Iron");
     await user.click(screen.getByRole("menuitem", { name: /rename/i }));
@@ -160,8 +156,16 @@ describe("PipeLibraryDialog", () => {
       { age: 5, roughness: 120 },
     ]);
 
-    expect(renameMaterialsMoment).toHaveBeenCalled();
-    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
+    expect(mockRenameAssignments).toHaveBeenCalled();
+    expect(mockChangeProperty).toHaveBeenCalledWith(expect.anything(), {
+      assetIds: [1],
+      property: "material",
+      value: "Ductile Iron",
+    });
+    expect(mockTransact).toHaveBeenCalledWith({
+      note: "Rename pipe materials",
+      patchAssetsAttributes: [patch],
+    });
   });
 
   it("duplicates a material with the same values", async () => {
@@ -304,18 +308,24 @@ describe("PipeLibraryDialog", () => {
     ]);
     renderDialog(store);
 
-    const mockMoment = {
-      note: "Apply roughness from pipe library",
-      patchAssetsAttributes: [
-        { id: 1, type: "pipe", properties: { roughness: 120 } },
-      ],
-    };
-    vi.mocked(applyRoughnessMoment).mockReturnValue(mockMoment as never);
+    const patch = { id: 1, type: "pipe", properties: { roughness: 120 } };
+    mockRoughnessAssignments.mockReturnValue([
+      { assetIds: [1], roughness: 120 },
+    ]);
+    mockChangeProperty.mockReturnValue({ patchAssetsAttributes: [patch] });
 
     await user.click(screen.getByRole("button", { name: /apply roughness/i }));
 
-    expect(applyRoughnessMoment).toHaveBeenCalled();
-    expect(mockTransact).toHaveBeenCalledWith(mockMoment);
+    expect(mockRoughnessAssignments).toHaveBeenCalled();
+    expect(mockChangeProperty).toHaveBeenCalledWith(expect.anything(), {
+      assetIds: [1],
+      property: "roughness",
+      value: 120,
+    });
+    expect(mockTransact).toHaveBeenCalledWith({
+      note: "Apply roughness from pipe library",
+      patchAssetsAttributes: [patch],
+    });
   });
 
   it("highlights invalid cells and disables apply roughness until fixed", async () => {
@@ -370,7 +380,7 @@ describe("PipeLibraryDialog", () => {
 
     await user.click(screen.getByRole("button", { name: /export/i }));
     await user.click(screen.getByRole("menuitem", { name: /csv/i }));
-    expect(exportCsv).toHaveBeenCalledWith(materials, "my-network");
+    expect(mockExportToCsv).toHaveBeenCalledWith(materials);
 
     await user.click(screen.getByRole("button", { name: /export/i }));
     await user.click(
@@ -378,7 +388,7 @@ describe("PipeLibraryDialog", () => {
         name: /microsoft excel spreadsheet/i,
       }),
     );
-    expect(exportXlsx).toHaveBeenCalledWith(materials, "my-network");
+    expect(mockExportToXlsx).toHaveBeenCalledWith(materials);
   });
 });
 

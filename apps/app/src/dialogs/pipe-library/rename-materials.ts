@@ -1,15 +1,15 @@
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { Pipe, HydraulicModel } from "src/hydraulic-model";
-import type {
-  AssetPatch,
-  ModelMoment,
-} from "src/hydraulic-model/model-operation";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
 
-export const renameMaterialsMoment = (
+export type MaterialRenameAssignment = {
+  assetIds: AssetId[];
+  material: string;
+};
+
+export const renameAssignments = (
   hydraulicModel: HydraulicModel,
   renames: ReadonlyMap<string, string>,
-): ModelMoment => {
+): MaterialRenameAssignment[] => {
   const groups = new Map<string, AssetId[]>();
 
   for (const [assetId, asset] of hydraulicModel.assets) {
@@ -28,18 +28,8 @@ export const renameMaterialsMoment = (
     group.push(assetId);
   }
 
-  const patches: AssetPatch[] = [];
-  for (const [newLabel, assetIds] of groups) {
-    const moment = changeProperty(hydraulicModel, {
-      assetIds,
-      property: "material",
-      value: newLabel,
-    });
-    patches.push(...moment.patchAssetsAttributes!);
-  }
-
-  return {
-    note: "Rename pipe materials",
-    patchAssetsAttributes: patches,
-  };
+  return [...groups.entries()].map(([material, assetIds]) => ({
+    assetIds,
+    material,
+  }));
 };

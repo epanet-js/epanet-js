@@ -1,17 +1,14 @@
 import type { AssetId } from "@epanet-js/hydraulic-model";
 import type { Pipe, HydraulicModel } from "src/hydraulic-model";
-import type {
-  AssetPatch,
-  ModelMoment,
-} from "src/hydraulic-model/model-operation";
-import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
 import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 
-export const applyRoughnessMoment = (
+export type RoughnessAssignment = { assetIds: AssetId[]; roughness: number };
+
+export const roughnessAssignments = (
   hydraulicModel: HydraulicModel,
   materials: PipeMaterial[],
-): ModelMoment => {
+): RoughnessAssignment[] => {
   const materialMap = new Map<string, RoughnessEntry[]>();
   for (const m of materials) {
     const sorted = m.entries
@@ -41,20 +38,10 @@ export const applyRoughnessMoment = (
     else roughnessGroups.set(roughness, [assetId]);
   }
 
-  const patches: AssetPatch[] = [];
-  for (const [roughness, assetIds] of roughnessGroups) {
-    const moment = changeProperty(hydraulicModel, {
-      assetIds,
-      property: "roughness",
-      value: roughness,
-    });
-    patches.push(...moment.patchAssetsAttributes!);
-  }
-
-  return {
-    note: "Apply roughness from pipe library",
-    patchAssetsAttributes: patches,
-  };
+  return [...roughnessGroups.entries()].map(([roughness, assetIds]) => ({
+    assetIds,
+    roughness,
+  }));
 };
 
 const resolveRoughness = (

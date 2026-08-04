@@ -1,29 +1,8 @@
-import { vi } from "vitest";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
+import { parsePipeLibraryFile } from "./parse-pipe-library-file";
 
-vi.mock("browser-fs-access", () => ({
-  fileOpen: vi.fn(),
-}));
-
-import { fileOpen } from "browser-fs-access";
-import { importFromFile } from "./import-from-file";
-
-describe("importFromFile", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("returns error when the user cancels the file picker", async () => {
-    vi.mocked(fileOpen).mockRejectedValue(
-      Object.assign(new Error(), { name: "AbortError" }),
-    );
-
-    const result = await importFromFile();
-    expect(result.status).toBe("error");
-    expect(result.errors[0].message).toBe("pipeLibrary.import.invalidFile");
-  });
-
+describe("parsePipeLibraryFile", () => {
   it("parses a valid CSV file", async () => {
     const csv = Papa.unparse({
       fields: ["Material Name", "Age", "Roughness"],
@@ -33,11 +12,10 @@ describe("importFromFile", () => {
         ["PVC", 0, 150],
       ],
     });
-    vi.mocked(fileOpen).mockResolvedValue(
+
+    const result = await parsePipeLibraryFile(
       createFile(csv, "library.csv", "text/csv"),
     );
-
-    const result = await importFromFile();
 
     expect(result?.status).toBe("success");
     expect(result?.pipeLibrary).toHaveLength(2);
@@ -65,15 +43,13 @@ describe("importFromFile", () => {
     XLSX.utils.book_append_sheet(workbook, sheet, "Materials");
     const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
-    vi.mocked(fileOpen).mockResolvedValue(
+    const result = await parsePipeLibraryFile(
       createFile(
         buffer,
         "library.xlsx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       ),
     );
-
-    const result = await importFromFile();
 
     expect(result?.status).toBe("success");
     expect(result?.pipeLibrary).toHaveLength(2);
@@ -87,11 +63,10 @@ describe("importFromFile", () => {
 
   it("returns error for an empty CSV", async () => {
     const csv = "Material Name,Age,Roughness\n";
-    vi.mocked(fileOpen).mockResolvedValue(
+
+    const result = await parsePipeLibraryFile(
       createFile(csv, "empty.csv", "text/csv"),
     );
-
-    const result = await importFromFile();
 
     expect(result?.status).toBe("error");
     expect(result?.errors[0].message).toBe("pipeLibrary.import.emptyFile");
@@ -105,11 +80,9 @@ describe("importFromFile", () => {
         ["PVC", -1, 150],
       ],
     });
-    vi.mocked(fileOpen).mockResolvedValue(
+    const result = await parsePipeLibraryFile(
       createFile(csv, "bad.csv", "text/csv"),
     );
-
-    const result = await importFromFile();
 
     expect(result?.status).toBe("partial");
     expect(result?.errors).toHaveLength(2);
@@ -134,11 +107,9 @@ describe("importFromFile", () => {
         ["Cast Iron", 10, -5],
       ],
     });
-    vi.mocked(fileOpen).mockResolvedValue(
+    const result = await parsePipeLibraryFile(
       createFile(csv, "mixed.csv", "text/csv"),
     );
-
-    const result = await importFromFile();
 
     expect(result?.status).toBe("partial");
     expect(result?.errors).toHaveLength(1);

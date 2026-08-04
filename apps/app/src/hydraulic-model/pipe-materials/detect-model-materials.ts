@@ -1,6 +1,6 @@
 import type { Pipe, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
-import type { ImportPipeLibraryResult } from "./import-from-file";
+import type { ImportPipeLibraryResult } from "./import-result";
 
 const AGE_STEP = 10;
 

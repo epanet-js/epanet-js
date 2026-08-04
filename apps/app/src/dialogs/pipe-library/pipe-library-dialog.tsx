@@ -11,7 +11,7 @@ import { DismissableBanner } from "../dismissable-banner";
 import { WarningActionBanner } from "../warning-action-banner";
 import { ChevronDownIcon, PipeLibraryIcon } from "src/icons";
 import { Button, DDContent, StyledItem } from "src/components/elements";
-import { validateMaterial } from "src/lib/pipe-library";
+import { validateMaterial } from "src/hydraulic-model/pipe-materials";
 import { usePipeLibraryHandlers } from "./use-pipe-library-handlers";
 
 export const PipeLibraryDialog = () => {

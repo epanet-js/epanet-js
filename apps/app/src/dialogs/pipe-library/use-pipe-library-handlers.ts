@@ -5,22 +5,21 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { currentFileNameAtom } from "src/state/file-system";
 import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
 import {
   pipeMaterialsAtom,
   selectedMaterialLabelAtom,
 } from "src/state/pipe-library";
+import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { roughnessAssignments } from "./apply-roughness";
+import { renameAssignments } from "./rename-materials";
 import {
-  applyRoughnessMoment,
   detectModelMaterials,
-  renameMaterialsMoment,
   validateMaterial,
-  exportCsv,
-  exportXlsx,
-  importFromFile,
-  ImportPipeLibraryResult,
-} from "src/lib/pipe-library";
+  type ImportPipeLibraryResult,
+} from "src/hydraulic-model/pipe-materials";
+import { useExportPipeLibrary } from "src/commands/export-pipe-library";
+import { useImportPipeLibrary } from "src/commands/import-pipe-library";
 import {
   DEFAULT_ROUGHNESS_HW,
   DEFAULT_ROUGHNESS_DW_CM,
@@ -48,11 +47,8 @@ export const usePipeLibraryHandlers = () => {
   } | null>(null);
   const pendingRenamesRef = useRef(new Map<string, string>());
 
-  const fullNetworkName = useAtomValue(currentFileNameAtom) ?? "";
-  const networkName = useMemo(() => {
-    const dot = fullNetworkName.lastIndexOf(".");
-    return fullNetworkName.substring(0, dot < 0 ? fullNetworkName.length : dot);
-  }, [fullNetworkName]);
+  const { exportToCsv, exportToXlsx } = useExportPipeLibrary();
+  const importPipeLibraryFromFile = useImportPipeLibrary();
 
   const defaultRoughness = useMemo(
     () =>
@@ -82,9 +78,19 @@ export const usePipeLibraryHandlers = () => {
   const handleSave = useCallback(async () => {
     const renames = pendingRenamesRef.current;
     if (renames.size > 0) {
-      const moment = renameMaterialsMoment(hydraulicModel, renames);
-      if (moment.patchAssetsAttributes!.length > 0) {
-        transact(moment);
+      const patches = renameAssignments(hydraulicModel, renames).flatMap(
+        ({ assetIds, material }) =>
+          changeProperty(hydraulicModel, {
+            assetIds,
+            property: "material",
+            value: material,
+          }).patchAssetsAttributes!,
+      );
+      if (patches.length > 0) {
+        transact({
+          note: "Rename pipe materials",
+          patchAssetsAttributes: patches,
+        });
       }
       renames.clear();
     }
@@ -195,24 +201,34 @@ export const usePipeLibraryHandlers = () => {
   );
 
   const handleApplyRoughness = useCallback(() => {
-    const moment = applyRoughnessMoment(hydraulicModel, draftMaterials);
-    if (moment.patchAssetsAttributes!.length === 0) {
+    const patches = roughnessAssignments(
+      hydraulicModel,
+      draftMaterials,
+    ).flatMap(
+      ({ assetIds, roughness }) =>
+        changeProperty(hydraulicModel, {
+          assetIds,
+          property: "roughness",
+          value: roughness,
+        }).patchAssetsAttributes!,
+    );
+    if (patches.length === 0) {
       setBanner({
         description: translate("pipeLibrary.noAssetsChanged"),
         variant: "default",
       });
       return;
     }
-    transact(moment);
+    transact({
+      note: "Apply roughness from pipe library",
+      patchAssetsAttributes: patches,
+    });
     userTracking.capture({
       name: "pipeLibrary.roughnessApplied",
-      pipesUpdated: moment.patchAssetsAttributes!.length,
+      pipesUpdated: patches.length,
     });
     setBanner({
-      description: translate(
-        "pipeLibrary.appliedRoughness",
-        moment.patchAssetsAttributes!.length,
-      ),
+      description: translate("pipeLibrary.appliedRoughness", patches.length),
       variant: "success",
     });
   }, [hydraulicModel, draftMaterials, transact, translate, userTracking]);
@@ -250,7 +266,7 @@ export const usePipeLibraryHandlers = () => {
   );
 
   const handleImportFromFile = useCallback(async () => {
-    const result = await importFromFile();
+    const result = await importPipeLibraryFromFile();
     if (!result) return;
 
     if (result.pipeLibrary) {
@@ -259,15 +275,8 @@ export const usePipeLibraryHandlers = () => {
       pendingRenamesRef.current.clear();
     }
 
-    userTracking.capture({
-      name: "pipeLibrary.importedFromFile",
-      status: result.status,
-      materialsCount: result.pipeLibrary?.length ?? 0,
-      format: result.format,
-    });
-
     notifyImport(result);
-  }, [notifyImport, setSelectedLabel, userTracking]);
+  }, [importPipeLibraryFromFile, notifyImport, setSelectedLabel]);
 
   const handleImportFromModel = useCallback(() => {
     const result = detectModelMaterials(
@@ -329,14 +338,12 @@ export const usePipeLibraryHandlers = () => {
   }, []);
 
   const handleExportCsv = useCallback(async () => {
-    await exportCsv(draftMaterials, networkName);
-    userTracking.capture({ name: "pipeLibrary.exported", format: "csv" });
-  }, [draftMaterials, networkName, userTracking]);
+    await exportToCsv(draftMaterials);
+  }, [draftMaterials, exportToCsv]);
 
   const handleExportXlsx = useCallback(async () => {
-    await exportXlsx(draftMaterials, networkName);
-    userTracking.capture({ name: "pipeLibrary.exported", format: "xlsx" });
-  }, [draftMaterials, networkName, userTracking]);
+    await exportToXlsx(draftMaterials);
+  }, [draftMaterials, exportToXlsx]);
 
   const handleClose = useCallback(
     (hadChanges: boolean) => {

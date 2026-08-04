@@ -1,43 +1,15 @@
-import { vi } from "vitest";
 import * as XLSX from "xlsx";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
+import { serializeMaterialsToXlsx } from "./export-xlsx";
 
-const mockWrite = vi.fn<(data: BufferSource) => Promise<void>>();
-const mockClose = vi.fn<() => Promise<void>>();
-const mockCreateWritable = vi.fn(() =>
-  Promise.resolve({ write: mockWrite, close: mockClose }),
-);
-const mockGetFile = vi.fn(() => Promise.resolve(new File([], "test.xlsx")));
-
-const mockHandle = {
-  createWritable: mockCreateWritable,
-  getFile: mockGetFile,
-} as unknown as FileSystemFileHandle;
-
-vi.mock("src/lib/export/file-system-helpers", () => ({
-  FileSystemHelpers: {
-    openFileInOpfs: vi.fn(() => Promise.resolve(mockHandle)),
-    triggerDownload: vi.fn(() => Promise.resolve()),
-  },
-}));
-
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
-import { exportXlsx } from "./export-xlsx";
-
-describe("exportXlsx", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
+describe("serializeMaterialsToXlsx", () => {
   it("creates a single Materials worksheet", async () => {
     const materials: PipeMaterial[] = [
       { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
       { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
     ];
 
-    await exportXlsx(materials, "my-network");
-
-    const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
+    const buffer = await serializeMaterialsToXlsx(materials);
     const workbook = XLSX.read(buffer, { type: "array" });
 
     expect(workbook.SheetNames).toEqual(["Materials"]);
@@ -58,9 +30,7 @@ describe("exportXlsx", () => {
       },
     ];
 
-    await exportXlsx(materials, "net");
-
-    const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
+    const buffer = await serializeMaterialsToXlsx(materials);
     const workbook = XLSX.read(buffer, { type: "array" });
     const rows = XLSX.utils.sheet_to_json<(string | number)[]>(
       workbook.Sheets["Materials"],
@@ -81,9 +51,7 @@ describe("exportXlsx", () => {
       },
     ];
 
-    await exportXlsx(materials, "net");
-
-    const buffer = mockWrite.mock.calls[0][0] as ArrayBuffer;
+    const buffer = await serializeMaterialsToXlsx(materials);
     const workbook = XLSX.read(buffer, { type: "array" });
     const rows = XLSX.utils.sheet_to_json<(string | number | undefined)[]>(
       workbook.Sheets["Materials"],
@@ -91,20 +59,5 @@ describe("exportXlsx", () => {
     );
 
     expect(rows[1]).toEqual(["M1"]);
-  });
-
-  it("uses correct file name format", async () => {
-    await exportXlsx(
-      [{ label: "M1", entries: [{ age: 0, roughness: 100 }] }],
-      "my-network",
-    );
-
-    expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith(
-      "my-network-pipe-library.xlsx",
-    );
-    expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
-      "my-network-pipe-library.xlsx",
-      mockHandle,
-    );
   });
 });

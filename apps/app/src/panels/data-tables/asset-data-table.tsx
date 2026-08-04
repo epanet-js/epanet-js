@@ -67,7 +67,7 @@ import {
   type AssetAccessorCtx,
   buildAssetModelRows,
 } from "./data";
-import { listPipeMaterials } from "src/hydraulic-model/utilities/pipe-materials";
+import { listPipeMaterials } from "src/hydraulic-model/pipe-materials";
 import { useDeferredGridMount } from "./use-deferred-grid-mount";
 import {
   buildColumns,
