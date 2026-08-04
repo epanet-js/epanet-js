@@ -101,6 +101,7 @@ import {
   type PropertyComparison,
 } from "src/hooks/use-asset-comparison";
 import { useSimulation } from "src/hooks/use-simulation";
+import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 import type {
   PipeSimulation,
   PumpSimulation,
@@ -748,6 +749,7 @@ const PipeEditor = ({
   const translate = useTranslate();
   const simulationSettings = useAtomValue(simulationSettingsDerivedAtom);
   const { footer } = useQuickGraph(pipe.id, "pipe");
+  const inferRoughness = useRoughnessInferrer();
   const {
     getComparison,
     isNew,
@@ -810,18 +812,26 @@ const PipeEditor = ({
   };
 
   const activeTopologyComparison = getComparison("isActive", pipe.isActive);
+  const inferredRoughness = inferRoughness(pipe);
+  // Roughness is compared apart because it is the effective value, not the
+  // stored one, that has to reach getComparison.
+  const roughnessComparison = getComparison(
+    "roughness",
+    pipe.roughness ?? inferredRoughness,
+  );
   const modelAttributeProperties = [
     "initialStatus",
     "diameter",
     "length",
-    "roughness",
     "minorLoss",
     "material",
     "year",
   ];
-  const hasModelAttributesChanges = modelAttributeProperties.some(
-    (p) => getComparison(p, pipe.getProperty(p)).hasChanged,
-  );
+  const hasModelAttributesChanges =
+    roughnessComparison.hasChanged ||
+    modelAttributeProperties.some(
+      (p) => getComparison(p, pipe.getProperty(p)).hasChanged,
+    );
   const hasDemandChanges =
     getCustomerCountComparison(customerCount).hasChanged ||
     getCustomerDemandComparison(totalDemand).hasChanged;
@@ -910,8 +920,9 @@ const PipeEditor = ({
         <QuantityRow
           name="roughness"
           value={pipe.roughness}
+          defaultValue={inferredRoughness}
           unit={units.roughness}
-          comparison={getComparison("roughness", pipe.roughness)}
+          comparison={roughnessComparison}
           onChange={onPropertyChange}
           readOnly={readonly}
           commitInvalidValues

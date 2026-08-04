@@ -2,7 +2,7 @@ import type { Pipe } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 import { isValidInstallationYear } from "src/hydraulic-model/property-validators";
 
-export type RoughnessResolver = (pipe: Pipe) => number | null;
+export type RoughnessInferrer = (pipe: Pipe) => number | null;
 
 export const inferredRoughness = (
   pipe: Pipe,
@@ -27,13 +27,11 @@ export const effectiveRoughness = (
   materials: PipeMaterial[],
 ): number | null => pipe.roughness ?? inferredRoughness(pipe, materials);
 
-export const buildRoughnessResolver = (
+export const buildRoughnessInferrer = (
   materials: PipeMaterial[],
   { enabled }: { enabled: boolean },
-): RoughnessResolver =>
-  enabled
-    ? (pipe) => effectiveRoughness(pipe, materials)
-    : (pipe) => pipe.roughness;
+): RoughnessInferrer =>
+  enabled ? (pipe) => inferredRoughness(pipe, materials) : () => null;
 
 export const findRoughness = (
   entries: RoughnessEntry[],

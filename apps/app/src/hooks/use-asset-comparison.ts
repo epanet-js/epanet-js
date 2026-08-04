@@ -3,7 +3,9 @@ import { useAtomValue } from "jotai";
 import isEqual from "lodash/isEqual";
 import { worktreeAtom } from "src/state/scenarios";
 import { baseModelDerivedAtom } from "src/state/derived-branch-state";
-import type { Asset, Patterns, Pump } from "src/hydraulic-model";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
+import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
+import type { Asset, Patterns, Pipe, Pump } from "src/hydraulic-model";
 import {
   type Pattern,
   type PatternId,
@@ -31,7 +33,16 @@ export type PumpCurveComparison = PropertyComparison<
 export function useAssetComparison(asset: Asset | undefined) {
   const worktree = useAtomValue(worktreeAtom);
   const baseModel = useAtomValue(baseModelDerivedAtom);
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const isInScenario = worktree.activeBranchId !== worktree.mainId;
+
+  const inferBaseRoughness = useMemo(
+    () =>
+      buildRoughnessInferrer(baseModel.pipeMaterials, {
+        enabled: isInferRoughnessOn,
+      }),
+    [baseModel.pipeMaterials, isInferRoughnessOn],
+  );
 
   const baseAsset = useMemo(() => {
     if (!isInScenario || !asset) {
@@ -42,6 +53,18 @@ export function useAssetComparison(asset: Asset | undefined) {
 
   const isNew = isInScenario && asset !== undefined && baseAsset === undefined;
 
+  // Roughness can be inferred from each branch's own pipe library, so the base
+  // side is resolved rather than read: a scenario that only changes the
+  // material or the library still counts as a change. Callers pass the
+  // effective value they display.
+  const baseValueOf = (propertyName: string): unknown => {
+    if (propertyName !== "roughness")
+      return baseAsset!.getProperty(propertyName);
+
+    const basePipe = baseAsset as Pipe;
+    return basePipe.roughness ?? inferBaseRoughness(basePipe);
+  };
+
   const getComparison = <T>(
     propertyName: string,
     currentValue: T,
@@ -50,7 +73,7 @@ export function useAssetComparison(asset: Asset | undefined) {
       return { hasChanged: false };
     }
 
-    const baseValue = baseAsset.getProperty(propertyName) as T;
+    const baseValue = baseValueOf(propertyName) as T;
     const hasChanged = !isEqual(currentValue ?? null, baseValue ?? null);
 
     return { hasChanged, baseValue };

@@ -1,7 +1,7 @@
 import { Pipe } from "@epanet-js/hydraulic-model";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import {
-  buildRoughnessResolver,
+  buildRoughnessInferrer,
   effectiveRoughness,
   findRoughness,
   inferredRoughness,
@@ -194,24 +194,25 @@ describe("effectiveRoughness", () => {
   });
 });
 
-describe("buildRoughnessResolver", () => {
+describe("buildRoughnessInferrer", () => {
   const materials: PipeMaterial[] = [
     { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
   ];
 
-  it("infers when enabled", () => {
-    const resolve = buildRoughnessResolver(materials, { enabled: true });
+  it("infers when enabled, ignoring the value stored on the pipe", () => {
+    const infer = buildRoughnessInferrer(materials, { enabled: true });
 
-    expect(resolve(makePipe({ material: "Cast Iron" }))).toBe(120);
+    expect(infer(makePipe({ material: "Cast Iron" }))).toBe(120);
+    expect(infer(makePipe({ material: "Cast Iron", roughness: 80 }))).toBe(120);
   });
 
-  it("reads the stored value only when disabled", () => {
-    const resolve = buildRoughnessResolver(materials, { enabled: false });
+  it("infers nothing when disabled", () => {
+    const infer = buildRoughnessInferrer(materials, { enabled: false });
 
-    expect(resolve(makePipe({ material: "Cast Iron" }))).toBeNull();
-    expect(resolve(makePipe({ material: "Cast Iron", roughness: 80 }))).toBe(
-      80,
-    );
+    expect(infer(makePipe({ material: "Cast Iron" }))).toBeNull();
+    expect(
+      infer(makePipe({ material: "Cast Iron", roughness: 80 })),
+    ).toBeNull();
   });
 });
 

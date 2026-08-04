@@ -3,10 +3,10 @@ export { listPipeMaterials } from "./list-pipe-materials";
 export {
   inferredRoughness,
   effectiveRoughness,
-  buildRoughnessResolver,
+  buildRoughnessInferrer,
   findRoughness,
 } from "./infer-roughness";
-export type { RoughnessResolver } from "./infer-roughness";
+export type { RoughnessInferrer } from "./infer-roughness";
 export { serializeMaterialsToCsv } from "./export-csv";
 export { serializeMaterialsToXlsx } from "./export-xlsx";
 export { parsePipeLibraryFile } from "./parse-pipe-library-file";

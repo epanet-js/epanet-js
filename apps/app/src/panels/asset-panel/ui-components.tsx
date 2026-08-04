@@ -265,6 +265,7 @@ export const QuantityRow = <
   isOptional = false,
   commitInvalidValues,
   placeholder = "",
+  defaultValue,
   comparison,
   onChange,
   validate,
@@ -278,6 +279,7 @@ export const QuantityRow = <
   commitInvalidValues?: boolean;
   readOnly?: boolean;
   placeholder?: string;
+  defaultValue?: number | null;
   comparison?: PropertyComparison;
   onChange?: (name: P, newValue: V, oldValue: V) => void;
   validate?: (value: number) => boolean;
@@ -292,11 +294,19 @@ export const QuantityRow = <
   const displayValue =
     value == null ? "" : formatValue(value, name as QuantityProperty);
 
+  const hasDefault = defaultValue != null;
+  const displayPlaceholder = hasDefault
+    ? formatValue(defaultValue, name as QuantityProperty)
+    : placeholder;
+
   const translatedName = displayName ?? translate(name);
   const label = unit
     ? `${translatedName} (${translateUnit(unit)})`
     : `${translatedName}`;
 
+  // The base value keeps its own fallback: `placeholder` is a static default
+  // that also holds on the base branch, while `defaultValue` is resolved per
+  // branch and says nothing about what the base branch had.
   const baseDisplayValue = comparison?.hasChanged
     ? comparison.baseValue != null
       ? formatValue(comparison.baseValue as number, name as QuantityProperty)
@@ -324,17 +334,17 @@ export const QuantityRow = <
       paywall={paywall}
     >
       {readOnly ? (
-        <TextField padding="md">{displayValue || placeholder}</TextField>
+        <TextField padding="md">{displayValue || displayPlaceholder}</TextField>
       ) : (
         <NumericField
           key={lastChange.current + displayValue}
           label={label}
-          isRequired={!isOptional}
+          isRequired={!isOptional && !hasDefault}
           commitInvalidValues={commitInvalidValues}
           validate={validate}
           readOnly={readOnly}
           displayValue={displayValue}
-          placeholder={placeholder}
+          placeholder={displayPlaceholder}
           onChangeValue={handleChange}
           styleOptions={{
             padding: "md",
