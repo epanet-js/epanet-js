@@ -652,7 +652,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
                 hasFallenBackRef.current = true;
                 captureWarning(
                   "Map backend unavailable; fell back to geojson",
-                  error,
+                  error instanceof Error && error.cause ? error.cause : error,
                   { "Map Changes": { ...appliedChangesRef.current } },
                 );
                 setMapBackendFallback(true);
