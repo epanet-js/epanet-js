@@ -656,6 +656,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
                   { "Map Changes": { ...appliedChangesRef.current } },
                 );
                 setMapBackendFallback(true);
+                // Force a full re-apply from a clean slate
+                lastAppliedMapStateRef.current = nullMapState;
               }
               hasPendingRef.current = true;
             } else {
