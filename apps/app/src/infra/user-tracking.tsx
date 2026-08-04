@@ -372,6 +372,7 @@ export type ImportInpCompleted = {
   counts: Record<string, number>;
   headlossFormula: HeadlossFormula;
   units: EpanetUnitSystem;
+  isMadeByApp: boolean;
   issues: (
     | `unsupportedSection-${string}`
     | "nodesMissingCoordinates"

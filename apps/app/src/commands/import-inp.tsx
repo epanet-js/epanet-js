@@ -205,9 +205,16 @@ export const useImportInp = () => {
           stats,
           projectionStatus,
           suggestedXyScale,
+          isMadeByApp,
         } = result;
         userTracking.capture(
-          buildCompleteEvent(source, projectSettings, issues, stats),
+          buildCompleteEvent(
+            source,
+            projectSettings,
+            issues,
+            stats,
+            isMadeByApp,
+          ),
         );
 
         if (
@@ -286,6 +293,7 @@ const buildCompleteEvent = (
   projectSettings: ProjectSettings,
   issues: ParserIssues | null,
   stats: InpStats,
+  isMadeByApp: boolean,
 ): ImportInpCompleted => {
   const issueKeys = issues ? Object.keys(issues) : [];
 
@@ -314,6 +322,7 @@ const buildCompleteEvent = (
     counts: Object.fromEntries(stats.counts),
     headlossFormula: projectSettings.headlossFormula,
     units: chooseUnitSystem(projectSettings.units),
+    isMadeByApp,
     issues: processedIssues,
   } as ImportInpCompleted;
 };
