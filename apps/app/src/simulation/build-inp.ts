@@ -21,7 +21,6 @@ import {
   defaultEnergyValues,
 } from "src/simulation/simulation-settings";
 import {
-  CustomerPoint,
   getActiveCustomerPoints,
   CustomerPointsLookup,
   Valve,
@@ -36,7 +35,6 @@ import {
   DEFAULT_SPEED,
   DEFAULT_INITIAL_QUALITY,
 } from "@epanet-js/hydraulic-model";
-import { checksum } from "src/infra/checksum";
 import {
   type Projection,
   createProjectionMapper,
@@ -397,8 +395,6 @@ type InpSections = {
   backdrop: string[];
   coordinates: string[];
   vertices: string[];
-  customers: string[];
-  customersDemands: string[];
   quality: string[];
   mixing: string[];
   sources: string[];
@@ -417,11 +413,8 @@ type BuildOptions = {
   labelIds?: boolean;
   enforceLabelLimit?: boolean;
   customerDemands?: boolean;
-  customerPoints?: boolean;
-  inactiveAssets?: boolean;
   usedPatterns?: boolean;
   usedCurves?: boolean;
-  reservoirElevations?: boolean;
   includeQuality?: boolean;
   projection?: Projection;
   excludeInactiveControls?: boolean;
@@ -436,11 +429,8 @@ export const buildInp = withDebugInstrumentation(
       labelIds: false,
       enforceLabelLimit: false,
       customerDemands: false,
-      customerPoints: false,
-      inactiveAssets: false,
       usedPatterns: false,
       usedCurves: false,
-      reservoirElevations: false,
       includeQuality: false,
       excludeInactiveControls: false,
       ...options,
@@ -570,11 +560,6 @@ export const buildInp = withDebugInstrumentation(
       ],
       coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
       vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
-      customers: [
-        ";[CUSTOMERS]",
-        ";Id\tX-coord\tY-coord\tBaseDemand\tPipeId\tJunctionId\tSnapX\tSnapY",
-      ],
-      customersDemands: [";[CUSTOMERS_DEMANDS]", ";Id\tBaseDemand\tPatternId"],
       quality: ["[QUALITY]", ";Node\tInitialQuality"],
       mixing: ["[MIXING]", ";Tank\tModel\tFraction"],
       sources: ["[SOURCES]", ";Node\tType\tStrength\tPattern"],
@@ -597,8 +582,6 @@ export const buildInp = withDebugInstrumentation(
           sections,
           idMap,
           opts.geolocation,
-          opts.inactiveAssets,
-          opts.reservoirElevations,
           asset as Reservoir,
           usedPatternIds,
           transformCoord,
@@ -616,7 +599,6 @@ export const buildInp = withDebugInstrumentation(
           sections,
           idMap,
           opts.geolocation,
-          opts.inactiveAssets,
           usedCurveIds,
           asset as Tank,
           transformCoord,
@@ -635,7 +617,6 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           opts.geolocation,
           opts.customerDemands,
-          opts.inactiveAssets,
           asset as Junction,
           hydraulicModel.customerPointsLookup,
           hydraulicModel.assets,
@@ -655,7 +636,6 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
-          opts.inactiveAssets,
           asset as Pipe,
           transformCoord,
         );
@@ -670,7 +650,6 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
-          opts.inactiveAssets,
           usedCurveIds,
           usedPatternIds,
           asset as Pump,
@@ -684,29 +663,12 @@ export const buildInp = withDebugInstrumentation(
           idMap,
           hydraulicModel,
           opts.geolocation,
-          opts.inactiveAssets,
           usedCurveIds,
           asset as Valve,
           transformCoord,
         );
       }
     }
-
-    if (opts.customerPoints) {
-      for (const customerPoint of hydraulicModel.customerPoints.values()) {
-        appendCustomerPoint(
-          sections,
-          idMap,
-          hydraulicModel,
-          customerPoint,
-          usedPatternIds,
-          transformCoord,
-        );
-      }
-    }
-
-    const includeCustomerPoints =
-      opts.customerPoints && hydraulicModel.customerPoints.size > 0;
 
     appendPatterns(
       sections,
@@ -780,8 +742,6 @@ export const buildInp = withDebugInstrumentation(
       opts.geolocation && sections.backdrop.join("\n"),
       opts.geolocation && sections.coordinates.join("\n"),
       opts.geolocation && sections.vertices.join("\n"),
-      includeCustomerPoints && sections.customers.join("\n"),
-      includeCustomerPoints && sections.customersDemands.join("\n"),
       hasControls && sections.controls.join("\n"),
       hasRules && sections.rules.join("\n"),
       "[END]",
@@ -790,16 +750,7 @@ export const buildInp = withDebugInstrumentation(
       .join("\n\n");
 
     if (opts.madeBy) {
-      const projection = opts.projection;
-      if (projection && projection.type !== "wgs84") {
-        if (projection.type === "proj4") {
-          content = `;PROJECTION_NAME ${projection.name}\n` + content;
-          content = `;PROJECTION_PROJ4 ${projection.code}\n` + content;
-          content = `;PROJECTION_TYPE ${projection.type}\n` + content;
-        }
-        content = `;PROJECTION ${projection.id}\n` + content;
-      }
-      content = `;MADE BY EPANET-JS [${checksum(content)}]\n` + content;
+      content = `;MADE BY EPANET-JS\n` + content;
     }
     return content;
   },
@@ -901,18 +852,15 @@ const appendReservoir = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
-  inactiveAssets: boolean,
-  elevations: boolean,
   reservoir: Reservoir,
   usedPatternIds: Set<number>,
   transformCoord: (p: Position) => Position,
 ) => {
-  if (!reservoir.isActive && !inactiveAssets) {
+  if (!reservoir.isActive) {
     return;
   }
 
   const reservoirId = idMap.nodeId(reservoir);
-  const commentPrefix = !reservoir.isActive ? ";" : "";
 
   const columns: (string | number)[] = [
     reservoirId,
@@ -922,21 +870,10 @@ const appendReservoir = (
     columns.push(idMap.patternId(reservoir.headPatternId));
     usedPatternIds.add(reservoir.headPatternId);
   }
-  let reservoirLine = commentPrefix + columns.join("\t");
-  if (elevations && reservoir.elevation) {
-    reservoirLine += `\t;Elevation:${reservoir.elevation}`;
-  }
-
-  sections.reservoirs.push(reservoirLine);
+  sections.reservoirs.push(columns.join("\t"));
 
   if (geolocation) {
-    appendNodeCoordinates(
-      sections,
-      idMap,
-      reservoir,
-      transformCoord,
-      commentPrefix,
-    );
+    appendNodeCoordinates(sections, idMap, reservoir, transformCoord);
   }
 };
 
@@ -946,36 +883,33 @@ const appendTankRow = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
-  inactiveAssets: boolean,
   usedCurveIds: Set<number>,
   tank: Tank,
   transformCoord: (p: Position) => Position,
   dimension: TankDimension,
 ) => {
-  if (!tank.isActive && !inactiveAssets) {
+  if (!tank.isActive) {
     return;
   }
 
   const tankId = idMap.nodeId(tank);
-  const commentPrefix = !tank.isActive ? ";" : "";
 
   sections.tanks.push(
-    commentPrefix +
-      [
-        tankId,
-        requiredValue(tank.elevation),
-        dimension(tank.initialLevel),
-        dimension(tank.minLevel),
-        dimension(tank.maxLevel),
-        // Diameter is required unless a volume curve defines the geometry.
-        tank.volumeCurveId ? (tank.diameter ?? 0) : dimension(tank.diameter),
-        optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
-        tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
-        tank.overflow ? "YES" : "NO",
-      ].join("\t"),
+    [
+      tankId,
+      requiredValue(tank.elevation),
+      dimension(tank.initialLevel),
+      dimension(tank.minLevel),
+      dimension(tank.maxLevel),
+      // Diameter is required unless a volume curve defines the geometry.
+      tank.volumeCurveId ? (tank.diameter ?? 0) : dimension(tank.diameter),
+      optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
+      tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
+      tank.overflow ? "YES" : "NO",
+    ].join("\t"),
   );
   if (geolocation) {
-    appendNodeCoordinates(sections, idMap, tank, transformCoord, commentPrefix);
+    appendNodeCoordinates(sections, idMap, tank, transformCoord);
   }
   if (tank.volumeCurveId) usedCurveIds.add(tank.volumeCurveId);
 };
@@ -984,7 +918,6 @@ const appendTank = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
-  inactiveAssets: boolean,
   usedCurveIds: Set<number>,
   tank: Tank,
   transformCoord: (p: Position) => Position,
@@ -993,7 +926,6 @@ const appendTank = (
     sections,
     idMap,
     geolocation,
-    inactiveAssets,
     usedCurveIds,
     tank,
     transformCoord,
@@ -1006,7 +938,6 @@ const appendTankInSteadyState = (
   sections: InpSections,
   idMap: EpanetIds,
   geolocation: boolean,
-  inactiveAssets: boolean,
   usedCurveIds: Set<number>,
   tank: Tank,
   transformCoord: (p: Position) => Position,
@@ -1015,7 +946,6 @@ const appendTankInSteadyState = (
     sections,
     idMap,
     geolocation,
-    inactiveAssets,
     usedCurveIds,
     tank,
     transformCoord,
@@ -1027,7 +957,6 @@ const appendJunction = (
   idMap: EpanetIds,
   geolocation: boolean,
   customerDemands: boolean,
-  inactiveAssets: boolean,
   junction: Junction,
   customerPointsLookup: CustomerPointsLookup,
   assets: HydraulicModel["assets"],
@@ -1035,15 +964,14 @@ const appendJunction = (
   usedPatternIds: Set<number>,
   transformCoord: (p: Position) => Position,
 ) => {
-  if (!junction.isActive && !inactiveAssets) {
+  if (!junction.isActive) {
     return;
   }
 
   const junctionId = idMap.nodeId(junction);
-  const commentPrefix = !junction.isActive ? ";" : "";
 
   sections.junctions.push(
-    commentPrefix + [junctionId, requiredValue(junction.elevation)].join("\t"),
+    [junctionId, requiredValue(junction.elevation)].join("\t"),
   );
 
   const junctionDemands = getJunctionDemands(demands, junction.id);
@@ -1054,7 +982,7 @@ const appendJunction = (
       ? [junctionId, demand.baseDemand, idMap.patternId(demand.patternId)]
       : [junctionId, demand.baseDemand];
 
-    sections.demands.push(commentPrefix + demandLine.join("\t"));
+    sections.demands.push(demandLine.join("\t"));
 
     if (demand.patternId) {
       usedPatternIds.add(demand.patternId);
@@ -1085,8 +1013,7 @@ const appendJunction = (
         ? [junctionId, totalDemand, idMap.patternId(patternId)]
         : [junctionId, totalDemand];
 
-      demandLine.push(";" + defaultCustomersPatternId);
-      sections.demands.push(commentPrefix + demandLine.join("\t"));
+      sections.demands.push(demandLine.join("\t"));
 
       if (patternId) {
         usedPatternIds.add(patternId);
@@ -1099,18 +1026,12 @@ const appendJunction = (
     junction.emitterCoefficient > DEFAULT_EMITTER_COEFFICIENT
   ) {
     sections.emitters.push(
-      commentPrefix + [junctionId, junction.emitterCoefficient].join("\t"),
+      [junctionId, junction.emitterCoefficient].join("\t"),
     );
   }
 
   if (geolocation) {
-    appendNodeCoordinates(
-      sections,
-      idMap,
-      junction,
-      transformCoord,
-      commentPrefix,
-    );
+    appendNodeCoordinates(sections, idMap, junction, transformCoord);
   }
 };
 
@@ -1119,17 +1040,15 @@ const appendPipe = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
-  inactiveAssets: boolean,
   pipe: Pipe,
   transformCoord: (p: Position) => Position,
 ) => {
-  if (!pipe.isActive && !inactiveAssets) {
+  if (!pipe.isActive) {
     return;
   }
 
   const linkId = idMap.linkId(pipe);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
-  const commentPrefix = !pipe.isActive ? ";" : "";
 
   const status = pipeStatusFor(pipe);
   const columns: (string | number)[] = [
@@ -1145,9 +1064,9 @@ const appendPipe = (
     columns.push(minorLoss, status);
   }
 
-  sections.pipes.push(commentPrefix + columns.join("\t"));
+  sections.pipes.push(columns.join("\t"));
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pipe, transformCoord, commentPrefix);
+    appendLinkVertices(sections, idMap, pipe, transformCoord);
   }
 };
 
@@ -1156,19 +1075,17 @@ const appendPump = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
-  inactiveAssets: boolean,
   usedCurveIds: Set<number>,
   usedPatternIds: Set<number>,
   pump: Pump,
   transformCoord: (p: Position) => Position,
 ) => {
-  if (!pump.isActive && !inactiveAssets) {
+  if (!pump.isActive) {
     return;
   }
 
   const linkId = idMap.linkId(pump);
   const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
-  const commentPrefix = !pump.isActive ? ";" : "";
 
   const speedPatternParts: string[] = [];
   if (pump.speedPatternId) {
@@ -1180,15 +1097,14 @@ const appendPump = (
   switch (pump.definitionType) {
     case "power":
       sections.pumps.push(
-        commentPrefix +
-          [
-            linkId,
-            startId,
-            endId,
-            `POWER ${requiredValue(pump.power)}`,
-            ...speedParts,
-            ...speedPatternParts,
-          ].join("\t"),
+        [
+          linkId,
+          startId,
+          endId,
+          `POWER ${requiredValue(pump.power)}`,
+          ...speedParts,
+          ...speedPatternParts,
+        ].join("\t"),
       );
       break;
     case "designPointCurve":
@@ -1199,15 +1115,14 @@ const appendPump = (
         ? idMap.localCurveId(pump.label, linkId)
         : MISSING_VALUE;
       sections.pumps.push(
-        commentPrefix +
-          [
-            linkId,
-            startId,
-            endId,
-            `HEAD ${localCurveId}`,
-            ...speedParts,
-            ...speedPatternParts,
-          ].join("\t"),
+        [
+          linkId,
+          startId,
+          endId,
+          `HEAD ${localCurveId}`,
+          ...speedParts,
+          ...speedPatternParts,
+        ].join("\t"),
       );
       if (hasCurve) {
         sections.curves.push(";PUMP:");
@@ -1237,9 +1152,7 @@ const appendPump = (
       if (pump.curveId) usedCurveIds.add(pump.curveId);
   }
 
-  sections.status.push(
-    commentPrefix + [linkId, pumpStatusFor(pump)].join("\t"),
-  );
+  sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
 
   if (pump.efficiencyCurveId) {
     sections.energy.push(
@@ -1258,7 +1171,7 @@ const appendPump = (
   }
 
   if (geolocation) {
-    appendLinkVertices(sections, idMap, pump, transformCoord, commentPrefix);
+    appendLinkVertices(sections, idMap, pump, transformCoord);
   }
 };
 
@@ -1267,17 +1180,15 @@ const appendValve = (
   idMap: EpanetIds,
   hydraulicModel: HydraulicModel,
   geolocation: boolean,
-  inactiveAssets: boolean,
   usedCurveIds: Set<number>,
   valve: Valve,
   transformCoord: (p: Position) => Position,
 ) => {
-  if (!valve.isActive && !inactiveAssets) {
+  if (!valve.isActive) {
     return;
   }
 
   const linkId = idMap.linkId(valve);
-  const commentPrefix = !valve.isActive ? ";" : "";
   const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "";
 
   const valveData = [
@@ -1293,15 +1204,15 @@ const appendValve = (
   }
   if (valve.curveId) usedCurveIds.add(valve.curveId);
 
-  sections.valves.push(commentPrefix + valveData.join("\t"));
+  sections.valves.push(valveData.join("\t"));
 
   if (valve.initialStatus !== "active") {
     const fixedStatus = valveFixedStatusFor(valve);
-    sections.status.push(commentPrefix + [linkId, fixedStatus].join("\t"));
+    sections.status.push([linkId, fixedStatus].join("\t"));
   }
 
   if (geolocation) {
-    appendLinkVertices(sections, idMap, valve, transformCoord, commentPrefix);
+    appendLinkVertices(sections, idMap, valve, transformCoord);
   }
 };
 
@@ -1332,12 +1243,9 @@ const appendNodeCoordinates = (
   idMap: EpanetIds,
   node: NodeAsset,
   transformCoord: (p: Position) => Position,
-  commentPrefix = "",
 ) => {
   const coords = transformCoord(node.coordinates);
-  sections.coordinates.push(
-    commentPrefix + [idMap.nodeId(node), ...coords].join("\t"),
-  );
+  sections.coordinates.push([idMap.nodeId(node), ...coords].join("\t"));
 };
 
 const appendLinkVertices = (
@@ -1345,13 +1253,10 @@ const appendLinkVertices = (
   idMap: EpanetIds,
   link: LinkAsset,
   transformCoord: (p: Position) => Position,
-  commentPrefix = "",
 ) => {
   for (const vertex of link.intermediateVertices) {
     const coords = transformCoord(vertex);
-    sections.vertices.push(
-      commentPrefix + [idMap.linkId(link), ...coords].join("\t"),
-    );
+    sections.vertices.push([idMap.linkId(link), ...coords].join("\t"));
   }
 };
 
@@ -1557,13 +1462,6 @@ const appendCurves = (
   }
 };
 
-const PATTERN_TYPE_TO_KEYWORD: Record<string, string> = {
-  demand: "DEMAND",
-  reservoirHead: "RESERVOIR",
-  pumpSpeed: "SPEED",
-  energyPrice: "ENERGY_PRICE",
-};
-
 const appendPatterns = (
   sections: InpSections,
   patterns: Patterns,
@@ -1578,72 +1476,10 @@ const appendPatterns = (
     const mappedId = idMap.patternId(pattern.id);
     if (usedPatternsOnly && !usedPatternIds.has(pattern.id)) continue;
 
-    const keyword = pattern.type
-      ? PATTERN_TYPE_TO_KEYWORD[pattern.type]
-      : undefined;
-    if (keyword) sections.patterns.push(`;${keyword}:`);
-
     const FACTORS_PER_LINE = 8;
     for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {
       const chunk = pattern.multipliers.slice(i, i + FACTORS_PER_LINE);
       sections.patterns.push([mappedId, ...chunk.map(String)].join("\t"));
-    }
-  }
-};
-
-const appendCustomerPoint = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  hydraulicModel: HydraulicModel,
-  customerPoint: CustomerPoint,
-  usedPatternIds: Set<number>,
-  transformCoord: (p: Position) => Position,
-) => {
-  const connection = customerPoint.connection;
-  const [x, y] = transformCoord(customerPoint.coordinates);
-
-  if (connection) {
-    const [snapX, snapY] = transformCoord(connection.snapPoint);
-
-    const junction = hydraulicModel.assets.get(
-      connection.junctionId,
-    ) as Junction;
-    const pipe = hydraulicModel.assets.get(connection.pipeId) as LinkAsset;
-    sections.customers.push(
-      ";" +
-        [
-          customerPoint.label,
-          x,
-          y,
-          "",
-          idMap.linkId(pipe),
-          idMap.nodeId(junction),
-          snapX,
-          snapY,
-        ].join("\t"),
-    );
-  } else {
-    sections.customers.push(
-      ";" + [customerPoint.label, x, y, "", "", "", "", ""].join("\t"),
-    );
-  }
-
-  const demands = getCustomerPointDemands(
-    hydraulicModel.demands,
-    customerPoint.id,
-  );
-  for (const demand of demands) {
-    const mappedPatternId = demand.patternId
-      ? idMap.patternId(demand.patternId)
-      : undefined;
-    sections.customersDemands.push(
-      ";" +
-        [customerPoint.label, demand.baseDemand, mappedPatternId ?? ""].join(
-          "\t",
-        ),
-    );
-    if (demand.patternId) {
-      usedPatternIds.add(demand.patternId);
     }
   }
 };

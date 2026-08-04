@@ -23,6 +23,7 @@ import {
   stubFileSave,
 } from "src/__helpers__/browser-fs-mock";
 import { buildInp } from "src/simulation/build-inp";
+import { checksum } from "src/infra/checksum";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 import { getByLabel } from "src/__helpers__/asset-queries";
@@ -588,13 +589,12 @@ const anInpMadeByTheApp = ({ junctionId }: { junctionId: number }) => {
   const hydraulicModel = HydraulicModelBuilder.with()
     .aJunction(junctionId, { coordinates: [10, 10] })
     .build();
-  const inp = buildInp(hydraulicModel, {
+  const content = buildInp(hydraulicModel, {
     simulationSettings: defaultSimulationSettings,
     units: presets.LPS.units,
-    madeBy: true,
     geolocation: true,
   });
-  return inp;
+  return `;MADE BY EPANET-JS [${checksum(content)}]\n${content}`;
 };
 
 const renderComponent = ({ store }: { store: Store }) => {

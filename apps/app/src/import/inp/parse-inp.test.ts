@@ -6,6 +6,12 @@ import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 import { getByLabel } from "src/__helpers__/asset-queries";
 import { Valve } from "@epanet-js/hydraulic-model";
+import { checksum } from "src/infra/checksum";
+
+const legacyAppMadeInp = (content: string, headerLines: string[] = []) => {
+  const body = [...headerLines, content].join("\n");
+  return `;MADE BY EPANET-JS [${checksum(body)}]\n${body}`;
+};
 
 describe("Parse inp with", () => {
   it("can read values separated by spaces", () => {
@@ -506,11 +512,12 @@ describe("Parse inp with", () => {
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1, { coordinates: [10, 1] })
       .build();
-    let inp = buildInp(hydraulicModel, {
-      simulationSettings: defaultSimulationSettings,
-      units: presets.LPS.units,
-      madeBy: true,
-    });
+    let inp = legacyAppMadeInp(
+      buildInp(hydraulicModel, {
+        simulationSettings: defaultSimulationSettings,
+        units: presets.LPS.units,
+      }),
+    );
 
     expect(parseInp(inp).isMadeByApp).toBeTruthy();
 
@@ -900,18 +907,20 @@ describe("Parse inp with", () => {
         .aJunction(IDS.J2, { coordinates: [10, 10] })
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .build();
-      const inp = buildInp(hydraulicModel, {
-        simulationSettings: defaultSimulationSettings,
-        units: presets.LPS.units,
-        madeBy: true,
-        geolocation: true,
-        projection: {
-          type: "xy-grid",
-          id: "xy-grid",
-          name: "XY Grid",
-          centroid: [500000, 200000],
-        },
-      });
+      const inp = legacyAppMadeInp(
+        buildInp(hydraulicModel, {
+          simulationSettings: defaultSimulationSettings,
+          units: presets.LPS.units,
+          geolocation: true,
+          projection: {
+            type: "xy-grid",
+            id: "xy-grid",
+            name: "XY Grid",
+            centroid: [500000, 200000],
+          },
+        }),
+        [";PROJECTION xy-grid"],
+      );
 
       const result = parseInp(inp);
 
@@ -1027,17 +1036,19 @@ describe("Parse inp with", () => {
         .aJunction(IDS.J2, { coordinates: [11, 21] })
         .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
         .build();
-      const inp = buildInp(hydraulicModel, {
-        simulationSettings: defaultSimulationSettings,
-        units: presets.LPS.units,
-        madeBy: true,
-        projection: {
-          type: "xy-grid",
-          id: "xy-grid",
-          name: "XY Grid",
-          centroid: [500000, 200000],
-        },
-      });
+      const inp = legacyAppMadeInp(
+        buildInp(hydraulicModel, {
+          simulationSettings: defaultSimulationSettings,
+          units: presets.LPS.units,
+          projection: {
+            type: "xy-grid",
+            id: "xy-grid",
+            name: "XY Grid",
+            centroid: [500000, 200000],
+          },
+        }),
+        [";PROJECTION xy-grid"],
+      );
 
       const result = parseInp(inp);
 

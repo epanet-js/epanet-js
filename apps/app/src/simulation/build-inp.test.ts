@@ -27,29 +27,6 @@ describe("build inp", () => {
     expect(inp).toContain("2\t20");
   });
 
-  it("adds reservoirs elevation with reservoirElevation option", () => {
-    const IDS = { R1: 1, R2: 2 };
-    const hydraulicModel = HydraulicModelBuilder.with()
-      .aReservoir(IDS.R1, {
-        head: 10,
-      })
-      .aReservoir(IDS.R2, {
-        head: 20,
-        elevation: 55,
-      })
-      .build();
-
-    const inp = buildInp(hydraulicModel, {
-      units: presets.LPS.units,
-      simulationSettings: defaultSimulationSettings,
-      reservoirElevations: true,
-    });
-
-    expect(inp).toContain("[RESERVOIRS]");
-    expect(inp).toContain("1\t10");
-    expect(inp).toContain("2\t20\t;Elevation:55");
-  });
-
   it("adds junctions", () => {
     const IDS = { J1: 1, J2: 2 };
     const hydraulicModel = HydraulicModelBuilder.with()
@@ -943,8 +920,7 @@ describe("build inp", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
-      // Customer demand without pattern should have comment marker
-      expect(inp).toContain("1\t25\t;epanetjs_customers");
+      expect(inp).toContain("1\t25");
     });
 
     it("groups customer demands by pattern", () => {
@@ -1008,41 +984,6 @@ describe("build inp", () => {
       expect(inp).toContain(`commercial\t0.5\t1.5\t1`);
     });
 
-    it("marks customer demands with epanetjs_customers comment for re-import", () => {
-      const IDS = { J1: 1, P1: 2, CP1: 3, PAT1: 100 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J1,
-          coordinates: [
-            [0, 0],
-            [10, 0],
-          ],
-        })
-        .aCustomerPoint(IDS.CP1, {
-          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
-        })
-        .aCustomerPointDemand(IDS.CP1, [
-          { baseDemand: 25, patternId: IDS.PAT1 },
-        ])
-        .aDemandPattern(IDS.PAT1, "residential", [1, 1.2, 0.8])
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        customerDemands: true,
-      });
-
-      // Customer demand should have the comment marker for re-import identification
-      expect(inp).toContain(`1\t25\tresidential\t;epanetjs_customers`);
-      // Junction's own demand should NOT have the comment marker
-      expect(inp).toContain("1\t50");
-      expect(inp).not.toContain("1\t50\t;epanetjs_customers");
-    });
-
     it("handles multiple customer points on same junction without patterns", () => {
       const IDS = { J1: 1, P1: 2, CP1: 3, CP2: 4 };
       const hydraulicModel = HydraulicModelBuilder.with()
@@ -1074,8 +1015,8 @@ describe("build inp", () => {
 
       expect(inp).toContain("[DEMANDS]");
       expect(inp).toContain("1\t50");
-      // Should aggregate to 55 without a pattern, with comment marker
-      expect(inp).toContain("1\t55\t;epanetjs_customers");
+      // Should aggregate to 55 without a pattern
+      expect(inp).toContain("1\t55");
     });
 
     it("does not include customer demands when disabled", () => {
@@ -1167,7 +1108,6 @@ describe("build inp", () => {
         units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
-        customerPoints: true,
       });
 
       // All patterns should be in the output by default
@@ -1202,7 +1142,6 @@ describe("build inp", () => {
         units: presets.LPS.units,
         simulationSettings: defaultSimulationSettings,
         customerDemands: true,
-        customerPoints: true,
         usedPatterns: true,
       });
 
@@ -1210,41 +1149,6 @@ describe("build inp", () => {
       expect(inp).toContain(`daily_pattern\t0.8\t1\t1.2\t1`);
       // Unused pattern should NOT be in the output
       expect(inp).not.toContain(`unused_pattern`);
-    });
-  });
-
-  describe("customer points section", () => {
-    it("includes customers demands section when customer points exist", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3, CP1: 4, PAT1: 100, PAT2: 101 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, coordinates: [1, 2] })
-        .aJunction(IDS.J2, { elevation: 20, coordinates: [3, 4] })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-        })
-        .aCustomerPoint(IDS.CP1, {
-          coordinates: [1.5, 2.5],
-          connection: { pipeId: IDS.P1, junctionId: IDS.J1 },
-        })
-        .aCustomerPointDemand(IDS.CP1, [
-          { baseDemand: 10, patternId: IDS.PAT1 },
-          { baseDemand: 5, patternId: IDS.PAT2 },
-        ])
-        .aDemandPattern(IDS.PAT1, "pat1", [1, 2])
-        .aDemandPattern(IDS.PAT2, "pat2", [0.5, 1.5])
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        customerPoints: true,
-        geolocation: true,
-      });
-
-      expect(inp).toContain(";[CUSTOMERS_DEMANDS]");
-      expect(inp).toContain(`;${IDS.CP1}\t10\tpat1`);
-      expect(inp).toContain(`;${IDS.CP1}\t5\tpat2`);
     });
   });
 
@@ -1411,168 +1315,6 @@ describe("build inp", () => {
       expect(inp).not.toContain("4\t1\t3");
     });
 
-    it("includes inactive assets as comments when inactiveAssets is 'comment'", () => {
-      const IDS = { J1: 1, J2: 2, J3: 3, P1: 4 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10, isActive: true })
-        .aJunction(IDS.J2, { elevation: 20, isActive: false })
-        .aJunction(IDS.J3, { elevation: 30, isActive: true })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J3,
-          isActive: false,
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        inactiveAssets: true,
-      });
-
-      expect(inp).toContain("[JUNCTIONS]");
-      expect(inp).toContain("1\t10");
-      expect(inp).toContain(";2\t20");
-      expect(inp).toContain("3\t30");
-      expect(inp).toContain("[PIPES]");
-      expect(inp).toContain(";4\t1\t3");
-    });
-
-    it("comments out coordinates and vertices for inactive assets", () => {
-      const IDS = { J1: 1, J2: 2, P1: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          elevation: 10,
-          coordinates: [10, 20],
-          isActive: false,
-        })
-        .aJunction(IDS.J2, {
-          elevation: 20,
-          coordinates: [30, 40],
-          isActive: true,
-        })
-        .aPipe(IDS.P1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          coordinates: [
-            [10, 20],
-            [15, 25],
-            [20, 30],
-            [30, 40],
-          ],
-          isActive: false,
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        geolocation: true,
-        inactiveAssets: true,
-      });
-
-      expect(inp).toContain("[COORDINATES]");
-      expect(inp).toContain(";1\t10\t20");
-      expect(inp).toContain("2\t30\t40");
-      expect(inp).toContain("[VERTICES]");
-      expect(inp).toContain(";3\t15\t25");
-      expect(inp).toContain(";3\t20\t30");
-    });
-
-    it("handles inactive reservoirs, tanks, pumps, and valves", () => {
-      const IDS = {
-        R1: 1,
-        T1: 2,
-        J1: 3,
-        J2: 4,
-        J3: 5,
-        J4: 6,
-        PUMP1: 7,
-        VALVE1: 8,
-      };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aReservoir(IDS.R1, { head: 100, isActive: false })
-        .aTank(IDS.T1, { elevation: 200, isActive: false })
-        .aJunction(IDS.J1, { elevation: 10, isActive: true })
-        .aJunction(IDS.J2, { elevation: 20, isActive: true })
-        .aJunction(IDS.J3, { elevation: 30, isActive: true })
-        .aJunction(IDS.J4, { elevation: 40, isActive: true })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          isActive: false,
-          definitionType: "power",
-        })
-        .aValve(IDS.VALVE1, {
-          startNodeId: IDS.J3,
-          endNodeId: IDS.J4,
-          isActive: false,
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        inactiveAssets: true,
-      });
-
-      expect(inp).toContain(";1\t100");
-      expect(inp).toContain(";2\t200");
-      expect(inp).toContain(";7\t3\t4");
-      expect(inp).toContain(";8\t5\t6");
-    });
-
-    it("comments out demands for inactive junctions", () => {
-      const IDS = { J1: 1, J2: 2 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, {
-          elevation: 10,
-          isActive: true,
-        })
-        .aJunctionDemand(IDS.J1, [{ baseDemand: 50 }])
-        .aJunction(IDS.J2, {
-          elevation: 20,
-          isActive: false,
-        })
-        .aJunctionDemand(IDS.J2, [{ baseDemand: 75 }])
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        inactiveAssets: true,
-      });
-
-      expect(inp).toContain("[DEMANDS]");
-      expect(inp).toContain("1\t50");
-      expect(inp).toContain(";2\t75");
-    });
-
-    it("comments out pump status for inactive pumps", () => {
-      const IDS = { J1: 1, J2: 2, PUMP1: 3 };
-      const hydraulicModel = HydraulicModelBuilder.with()
-        .aJunction(IDS.J1, { elevation: 10 })
-        .aJunction(IDS.J2, { elevation: 20 })
-        .aPump(IDS.PUMP1, {
-          startNodeId: IDS.J1,
-          endNodeId: IDS.J2,
-          label: "P1",
-          definitionType: "designPointCurve",
-          curve: [{ x: 100, y: 50 }],
-          speed: 1,
-          isActive: false,
-        })
-        .build();
-
-      const inp = buildInp(hydraulicModel, {
-        units: presets.LPS.units,
-        simulationSettings: defaultSimulationSettings,
-        inactiveAssets: true,
-      });
-
-      expect(inp).toContain(";3\t1\t2\tHEAD P1\tSPEED 1");
-      expect(inp).toContain(";3\tOpen");
-    });
   });
 
   describe("constant pattern", () => {
