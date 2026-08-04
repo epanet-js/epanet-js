@@ -60,7 +60,6 @@ export const useOpenPersistedProject = () => {
         const fetchProject = db.fetchProject;
         const {
           projectSettings,
-          pipeLibrary,
           zones,
           hydraulicModel,
           factories,
@@ -73,7 +72,6 @@ export const useOpenPersistedProject = () => {
           hydraulicModel,
           factories,
           projectSettings,
-          pipeLibrary,
           zones,
           simulationSettings,
           autoElevations: projectSettings.projection.type !== "xy-grid",

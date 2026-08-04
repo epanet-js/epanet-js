@@ -5,12 +5,9 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { stagingModelDerivedAtom } from "src/state/derived-branch-state";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useMomentTransaction } from "src/hooks/persistence/use-moment-transaction";
-import { usePipeLibraryTransaction } from "src/hooks/persistence/use-pipe-library-transaction";
-import {
-  pipeMaterialsAtom,
-  selectedMaterialLabelAtom,
-} from "src/state/pipe-library";
+import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { changeProperty } from "src/hydraulic-model/model-operations/change-property";
+import { changePipeMaterials } from "src/hydraulic-model/model-operations";
 import { roughnessAssignments } from "./apply-roughness";
 import { renameAssignments } from "./rename-materials";
 import {
@@ -32,8 +29,7 @@ export const usePipeLibraryHandlers = () => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const projectSettings = useAtomValue(projectSettingsAtom);
   const { transact } = useMomentTransaction();
-  const savedMaterials = useAtomValue(pipeMaterialsAtom);
-  const { transact: transactPipeLibrary } = usePipeLibraryTransaction();
+  const savedMaterials = hydraulicModel.pipeMaterials;
   const [selectedLabel, setSelectedLabel] = useAtom(selectedMaterialLabelAtom);
   const [draftMaterials, setDraftMaterials] =
     useState<PipeMaterial[]>(savedMaterials);
@@ -75,38 +71,32 @@ export const usePipeLibraryHandlers = () => {
   );
   const hasValidationErrors = invalidMaterialLabels.size > 0;
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(() => {
     const renames = pendingRenamesRef.current;
-    if (renames.size > 0) {
-      const patches = renameAssignments(hydraulicModel, renames).flatMap(
-        ({ assetIds, material }) =>
-          changeProperty(hydraulicModel, {
-            assetIds,
-            property: "material",
-            value: material,
-          }).patchAssetsAttributes!,
-      );
-      if (patches.length > 0) {
-        transact({
-          note: "Rename pipe materials",
-          patchAssetsAttributes: patches,
-        });
-      }
-      renames.clear();
-    }
+    const renamePatches =
+      renames.size > 0
+        ? renameAssignments(hydraulicModel, renames).flatMap(
+            ({ assetIds, material }) =>
+              changeProperty(hydraulicModel, {
+                assetIds,
+                property: "material",
+                value: material,
+              }).patchAssetsAttributes!,
+          )
+        : [];
+    renames.clear();
 
-    await transactPipeLibrary(draftMaterials);
+    const moment = changePipeMaterials(hydraulicModel, draftMaterials);
+    if (renamePatches.length > 0) {
+      moment.patchAssetsAttributes = renamePatches;
+    }
+    transact(moment);
+
     userTracking.capture({
       name: "pipeLibrary.saved",
       materialsCount: draftMaterials.length,
     });
-  }, [
-    draftMaterials,
-    transactPipeLibrary,
-    hydraulicModel,
-    transact,
-    userTracking,
-  ]);
+  }, [draftMaterials, hydraulicModel, transact, userTracking]);
 
   const handleAddMaterial = useCallback(
     (label: string) => {

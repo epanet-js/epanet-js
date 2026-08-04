@@ -107,11 +107,7 @@ export { modelFactoriesAtom } from "src/state/model-factories";
 export { offlineAtom } from "src/state/offline";
 
 // Pipe library
-export {
-  pipeMaterialsAtom,
-  pipeMaterialLabelsAtom,
-  selectedMaterialLabelAtom,
-} from "src/state/pipe-library";
+export { selectedMaterialLabelAtom } from "src/state/pipe-library";
 
 // Quick graph
 export type {

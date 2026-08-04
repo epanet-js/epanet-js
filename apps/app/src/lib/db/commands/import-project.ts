@@ -1,6 +1,5 @@
 import type { HydraulicModel } from "src/hydraulic-model";
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
 import { getWorker, timed } from "@epanet-js/ejsdb";
@@ -21,7 +20,6 @@ import { serializeSimulationSettings } from "../mappers/simulation-settings/to-r
 export type ImportProjectInput = {
   newDb?: boolean;
   projectSettings?: ProjectSettings;
-  pipeLibrary?: PipeMaterial[];
   zones?: Zones;
   hydraulicModel: HydraulicModel;
   simulationSettings: SimulationSettings;
@@ -35,8 +33,8 @@ export const importProject = async (
       ? serializeProjectSettings(input.projectSettings)
       : null;
     const pipeLibrary =
-      input.pipeLibrary && input.pipeLibrary.length > 0
-        ? serializePipeLibrary(input.pipeLibrary)
+      input.hydraulicModel.pipeMaterials.length > 0
+        ? serializePipeLibrary(input.hydraulicModel.pipeMaterials)
         : null;
     const zones = input.zones ? serializeZones(input.zones) : null;
     const assets = assetsToRows(input.hydraulicModel.assets.values());

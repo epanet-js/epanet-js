@@ -47,6 +47,7 @@ import {
   initializeCustomerPoints,
   Curves,
   ICurve,
+  PipeMaterial,
 } from "@epanet-js/hydraulic-model";
 import {
   CustomAttribute,
@@ -152,6 +153,7 @@ export class HydraulicModelBuilder {
   private customerPointIdGenerator: WritableIdGenerator;
   private curves: Curves;
   private patterns: Patterns;
+  private pipeMaterialsValue: PipeMaterial[];
   private rawControlsValue: RawControls;
   private controlsValue: Controls;
   private customAttributesValue: CustomAttributesDefinition;
@@ -189,6 +191,7 @@ export class HydraulicModelBuilder {
     this.demands = createEmptyDemands();
     this.curves = new Map();
     this.patterns = new Map();
+    this.pipeMaterialsValue = [];
     this.rawControlsValue = createEmptyRawControls();
     this.controlsValue = createEmptyControls();
     this.customAttributesValue = emptyCustomAttributesDefinition();
@@ -460,6 +463,11 @@ export class HydraulicModelBuilder {
     return this;
   }
 
+  aPipeMaterial(material: PipeMaterial) {
+    this.pipeMaterialsValue.push(material);
+    return this;
+  }
+
   aSimpleControl(data: {
     template: string;
     assetReferences: { assetId: AssetId; isActionTarget?: boolean }[];
@@ -538,7 +546,7 @@ export class HydraulicModelBuilder {
       demands: this.demands,
       curves: this.curves,
       patterns: this.patterns,
-      pipeMaterials: [],
+      pipeMaterials: this.pipeMaterialsValue,
       rawControls: this.rawControlsValue,
       controls: this.controlsValue,
       controlsLookup: buildControlsLookup(this.controlsValue),

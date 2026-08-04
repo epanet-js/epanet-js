@@ -1,5 +1,4 @@
 import type { ProjectSettings } from "src/lib/project-settings";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import type { CustomAttributesDefinition } from "@epanet-js/hydraulic-model";
 import type { Zones } from "src/lib/zones";
 import type { SimulationSettings } from "src/simulation/simulation-settings";
@@ -28,7 +27,6 @@ import { buildZonesData } from "../mappers/zones/builders";
 
 export type Project = {
   projectSettings: ProjectSettings;
-  pipeLibrary: PipeMaterial[];
   customAttributes: CustomAttributesDefinition;
   zones: Zones;
   hydraulicModel: HydraulicModel;
@@ -182,7 +180,6 @@ const fetchProjectWith = async (
 
         return {
           projectSettings,
-          pipeLibrary,
           customAttributes,
           zones,
           hydraulicModel,

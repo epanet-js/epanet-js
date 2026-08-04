@@ -1,10 +1,8 @@
 import { useMemo } from "react";
-import { useAtomValue } from "jotai";
 import type { HydraulicModel } from "src/hydraulic-model";
 import { Pipe } from "@epanet-js/hydraulic-model";
 import { listPipeMaterials } from "src/hydraulic-model/pipe-materials";
 import type { PropertyComparison } from "src/hooks/use-asset-comparison";
-import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 import { CreatableTextRow } from "./ui-components";
 
 type OnMaterialChange = (
@@ -26,10 +24,13 @@ export const PipeMaterialRow = ({
   onChange?: OnMaterialChange;
   readOnly?: boolean;
 }) => {
-  const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const existingMaterials = useMemo(
-    () => listPipeMaterials(hydraulicModel.assets, libraryMaterials),
-    [hydraulicModel.assets, libraryMaterials],
+    () =>
+      listPipeMaterials(
+        hydraulicModel.assets,
+        hydraulicModel.pipeMaterials.map((m) => m.label),
+      ),
+    [hydraulicModel.assets, hydraulicModel.pipeMaterials],
   );
 
   return (

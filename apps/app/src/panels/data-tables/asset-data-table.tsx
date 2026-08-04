@@ -76,7 +76,6 @@ import {
   isNullableColumn,
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
-import { pipeMaterialLabelsAtom } from "src/state/pipe-library";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
 
 interface AssetDataTableProps {
@@ -154,13 +153,15 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     isLocked: customAttributesLocked,
     openPaywall: openCustomAttributesPaywall,
   } = useFeatureLock("customAttributes");
-  const libraryMaterials = useAtomValue(pipeMaterialLabelsAtom);
   const pipeMaterials = useMemo(
     () =>
       assetType === "pipe"
-        ? listPipeMaterials(hydraulicModel.assets, libraryMaterials)
+        ? listPipeMaterials(
+            hydraulicModel.assets,
+            hydraulicModel.pipeMaterials.map((m) => m.label),
+          )
         : [],
-    [assetType, hydraulicModel.assets, libraryMaterials],
+    [assetType, hydraulicModel.assets, hydraulicModel.pipeMaterials],
   );
   const accessorCtx = useMemo<AssetAccessorCtx>(
     () => ({ model: hydraulicModel, simulation, translate }),

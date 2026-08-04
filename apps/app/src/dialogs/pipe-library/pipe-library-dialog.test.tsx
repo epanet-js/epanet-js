@@ -3,28 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { render } from "@testing-library/react";
 import { Provider as JotaiProvider } from "jotai";
 import { vi } from "vitest";
+import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { setInitialState } from "src/__helpers__/state";
+import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
-import {
-  pipeMaterialsAtom,
-  selectedMaterialLabelAtom,
-} from "src/state/pipe-library";
-import { projectFileInfoAtom } from "src/state/file-system";
+import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
 
 const mockTransact = vi.fn();
 vi.mock("src/hooks/persistence/use-moment-transaction", () => ({
   useMomentTransaction: () => ({ transact: mockTransact }),
-}));
-
-let activeStore: Store | null = null;
-const mockPipeLibraryTransact = vi.fn(async (materials: unknown[]) => {
-  activeStore?.set(pipeMaterialsAtom, materials as never);
-  return Promise.resolve(true);
-});
-vi.mock("src/hooks/persistence/use-pipe-library-transaction", () => ({
-  usePipeLibraryTransaction: () => ({ transact: mockPipeLibraryTransact }),
 }));
 
 const { mockRoughnessAssignments, mockRenameAssignments, mockChangeProperty } =
@@ -62,6 +51,24 @@ vi.mock("src/components/notifications", async (importOriginal) => {
   };
 });
 
+// The library lives on the model now; seed it there and read back the
+// materials from the emitted `putPipeMaterials` moment (transact is mocked).
+const seededStore = (
+  pipeMaterials: PipeMaterial[],
+  selectedLabel?: string,
+): Store => {
+  const builder = HydraulicModelBuilder.with();
+  pipeMaterials.forEach((material) => builder.aPipeMaterial(material));
+  const store = setInitialState({ hydraulicModel: builder.build() });
+  if (selectedLabel) store.set(selectedMaterialLabelAtom, selectedLabel);
+  return store;
+};
+
+const lastSavedMaterials = (): PipeMaterial[] => {
+  const calls = mockTransact.mock.calls;
+  return calls[calls.length - 1][0].putPipeMaterials as PipeMaterial[];
+};
+
 describe("PipeLibraryDialog", () => {
   beforeEach(() => {
     stubUserTracking();
@@ -73,14 +80,14 @@ describe("PipeLibraryDialog", () => {
 
   it("creates a material with a default age 0 entry", async () => {
     const user = setupUser();
-    const store = setInitialState();
+    const store = seededStore([]);
     renderDialog(store);
 
     await addMaterial(user, "Cast Iron");
 
     await clickSave(user);
 
-    const materials = store.get(pipeMaterialsAtom);
+    const materials = lastSavedMaterials();
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Cast Iron");
     expect(materials[0].entries).toEqual([{ age: 0, roughness: 140 }]);
@@ -88,24 +95,25 @@ describe("PipeLibraryDialog", () => {
 
   it("edits roughness and saves", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 10, roughness: 130 },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        {
+          label: "Cast Iron",
+          entries: [
+            { age: 0, roughness: 100 },
+            { age: 10, roughness: 130 },
+          ],
+        },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     await editCell(user, 0, 1, "120");
 
     await clickSave(user);
 
-    const materials = store.get(pipeMaterialsAtom);
+    const materials = lastSavedMaterials();
     expect(materials[0].entries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ age: 0, roughness: 120 }),
@@ -116,17 +124,18 @@ describe("PipeLibraryDialog", () => {
 
   it("renames a material, preserves values, and propagates to pipes on save", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 5, roughness: 120 },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        {
+          label: "Cast Iron",
+          entries: [
+            { age: 0, roughness: 100 },
+            { age: 5, roughness: 120 },
+          ],
+        },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     const patch = {
@@ -148,7 +157,7 @@ describe("PipeLibraryDialog", () => {
 
     await clickSave(user);
 
-    const materials = store.get(pipeMaterialsAtom);
+    const materials = lastSavedMaterials();
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("Ductile Iron");
     expect(materials[0].entries).toEqual([
@@ -162,26 +171,28 @@ describe("PipeLibraryDialog", () => {
       property: "material",
       value: "Ductile Iron",
     });
-    expect(mockTransact).toHaveBeenCalledWith({
-      note: "Rename pipe materials",
-      patchAssetsAttributes: [patch],
-    });
+    // One atomic moment carries both the library replacement and the
+    // material rename patches.
+    expect(mockTransact).toHaveBeenCalledWith(
+      expect.objectContaining({ patchAssetsAttributes: [patch] }),
+    );
   });
 
   it("duplicates a material with the same values", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 5, roughness: 120 },
-          { age: 10, roughness: 130 },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        {
+          label: "Cast Iron",
+          entries: [
+            { age: 0, roughness: 100 },
+            { age: 5, roughness: 120 },
+            { age: 10, roughness: 130 },
+          ],
+        },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     await openActionsMenu(user, "Cast Iron");
@@ -193,7 +204,7 @@ describe("PipeLibraryDialog", () => {
 
     await clickSave(user);
 
-    const materials = store.get(pipeMaterialsAtom);
+    const materials = lastSavedMaterials();
     expect(materials).toHaveLength(2);
     expect(materials[1].label).toBe("Cast Iron Copy");
     expect(materials[1].entries).toEqual([
@@ -205,26 +216,27 @@ describe("PipeLibraryDialog", () => {
 
   it("sorts entries by age ascending", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 20, roughness: 140 },
-          { age: 0, roughness: 100 },
-          { age: 10, roughness: 130 },
-          { age: 5, roughness: 120 },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        {
+          label: "Cast Iron",
+          entries: [
+            { age: 20, roughness: 140 },
+            { age: 0, roughness: 100 },
+            { age: 10, roughness: 130 },
+            { age: 5, roughness: 120 },
+          ],
+        },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     await editCell(user, 0, 1, "999");
 
     await clickSave(user);
 
-    const entries = store.get(pipeMaterialsAtom)[0].entries;
+    const entries = lastSavedMaterials()[0].entries;
     const filled = entries.filter(
       (e) => e.age !== null || e.roughness !== null,
     );
@@ -238,12 +250,13 @@ describe("PipeLibraryDialog", () => {
 
   it("removes a material", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
-      { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
+        { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     await openActionsMenu(user, "Cast Iron");
@@ -255,18 +268,17 @@ describe("PipeLibraryDialog", () => {
 
     await clickSave(user);
 
-    const materials = store.get(pipeMaterialsAtom);
+    const materials = lastSavedMaterials();
     expect(materials).toHaveLength(1);
     expect(materials[0].label).toBe("PVC");
   });
 
   it("does not persist changes when cancel is clicked", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [{ label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] }],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     await openActionsMenu(user, "Cast Iron");
@@ -279,14 +291,11 @@ describe("PipeLibraryDialog", () => {
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     await user.click(screen.getByRole("button", { name: /discard/i }));
 
-    const materials = store.get(pipeMaterialsAtom);
-    expect(materials).toHaveLength(1);
-    expect(materials[0].label).toBe("Cast Iron");
+    expect(mockTransact).not.toHaveBeenCalled();
   });
 
   it("disables save when there are no changes", () => {
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
+    const store = seededStore([
       { label: "Cast Iron", entries: [{ age: 5, roughness: 120 }] },
     ]);
     renderDialog(store);
@@ -296,8 +305,7 @@ describe("PipeLibraryDialog", () => {
 
   it("applies roughness to pipes to hydraulic model when apply button is clicked", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
+    const store = seededStore([
       {
         label: "Cast Iron",
         entries: [
@@ -330,18 +338,19 @@ describe("PipeLibraryDialog", () => {
 
   it("highlights invalid cells and disables apply roughness until fixed", async () => {
     const user = setupUser();
-    const store = setInitialState();
-    store.set(pipeMaterialsAtom, [
-      {
-        label: "Cast Iron",
-        entries: [
-          { age: 0, roughness: 100 },
-          { age: 5, roughness: 120 },
-          { age: 10, roughness: null },
-        ],
-      },
-    ]);
-    store.set(selectedMaterialLabelAtom, "Cast Iron");
+    const store = seededStore(
+      [
+        {
+          label: "Cast Iron",
+          entries: [
+            { age: 0, roughness: 100 },
+            { age: 5, roughness: 120 },
+            { age: 10, roughness: null },
+          ],
+        },
+      ],
+      "Cast Iron",
+    );
     renderDialog(store);
 
     expect(getCell(2, 1)).toHaveClass("bg-warning-subtle");
@@ -367,15 +376,10 @@ describe("PipeLibraryDialog", () => {
 
   it("exports in csv and xlsx formats", async () => {
     const user = setupUser();
-    const store = setInitialState();
     const materials = [
       { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
     ];
-    store.set(pipeMaterialsAtom, materials);
-    store.set(projectFileInfoAtom, {
-      name: "my-network.inp",
-      modelVersion: "1",
-    });
+    const store = seededStore(materials);
     renderDialog(store);
 
     await user.click(screen.getByRole("button", { name: /export/i }));
@@ -392,14 +396,12 @@ describe("PipeLibraryDialog", () => {
   });
 });
 
-const renderDialog = (store: Store) => {
-  activeStore = store;
-  return render(
+const renderDialog = (store: Store) =>
+  render(
     <JotaiProvider store={store}>
       <PipeLibraryDialog />
     </JotaiProvider>,
   );
-};
 
 const setupUser = () => userEvent.setup({ pointerEventsCheck: 0 });
 

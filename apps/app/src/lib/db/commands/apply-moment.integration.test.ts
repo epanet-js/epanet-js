@@ -561,6 +561,41 @@ describe("apply-moment integration", () => {
     ]);
   });
 
+  it("replaces the pipe library via putPipeMaterials", async () => {
+    await seed(
+      HydraulicModelBuilder.with()
+        .aPipeMaterial({
+          label: "Cast Iron",
+          entries: [{ age: 0, roughness: 100 }],
+        })
+        .build(),
+    );
+
+    await persistMoment({
+      note: "replace pipe library",
+      putPipeMaterials: [
+        {
+          label: "Ductile Iron",
+          entries: [
+            { age: 0, roughness: 130 },
+            { age: 20, roughness: 110 },
+          ],
+        },
+      ],
+    });
+
+    const project = await fetchProject();
+    expect(project.hydraulicModel.pipeMaterials).toEqual([
+      {
+        label: "Ductile Iron",
+        entries: [
+          { age: 0, roughness: 130 },
+          { age: 20, roughness: 110 },
+        ],
+      },
+    ]);
+  });
+
   it("replaces controls via putRawControls", async () => {
     const IDS = { J1: 1, J2: 2, P1: 3 } as const;
 

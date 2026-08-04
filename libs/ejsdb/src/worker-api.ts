@@ -1083,12 +1083,6 @@ export const api = {
     });
   },
 
-  async savePipeLibrary(json: string) {
-    return withTransaction("savePipeLibrary", () => {
-      updatePipeLibrary(json);
-    });
-  },
-
   async getCustomAttributesDefinition(): Promise<string | null> {
     return timed("getCustomAttributesDefinition", async () => {
       await ready;

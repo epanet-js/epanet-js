@@ -148,16 +148,18 @@ describe("fetch-project integration", () => {
       },
     ];
 
+    const builder = HydraulicModelBuilder.with().aJunction(1);
+    pipeLibrary.forEach((material) => builder.aPipeMaterial(material));
+
     await importProject({
       newDb: true,
-      hydraulicModel: HydraulicModelBuilder.with().aJunction(1).build(),
+      hydraulicModel: builder.build(),
       projectSettings: defaultProjectSettings,
       simulationSettings: defaultSimulationSettings,
-      pipeLibrary,
     });
 
     const project = await fetchProject();
-    expect(project.pipeLibrary).toEqual(pipeLibrary);
+    expect(project.hydraulicModel.pipeMaterials).toEqual(pipeLibrary);
   });
 
   it("returns empty array when no pipe library was saved", async () => {
@@ -169,7 +171,7 @@ describe("fetch-project integration", () => {
     });
 
     const project = await fetchProject();
-    expect(project.pipeLibrary).toEqual([]);
+    expect(project.hydraulicModel.pipeMaterials).toEqual([]);
   });
 
   it("round-trips the custom attributes definition", async () => {

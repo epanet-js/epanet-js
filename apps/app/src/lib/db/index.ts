@@ -5,7 +5,6 @@ export { fetchProject } from "./commands/fetch-project";
 export type { Project, FetchProjectPhase } from "./commands/fetch-project";
 export { saveProjectSettings } from "./commands/save-project-settings";
 export { serializeProjectSettings } from "./mappers/project-settings/to-rows";
-export { savePipeLibrary } from "./commands/save-pipe-library";
 export { saveCustomAttributes } from "./commands/save-custom-attributes";
 export { saveZones } from "./commands/save-zones";
 export { serializeZones } from "./mappers/zones/to-rows";

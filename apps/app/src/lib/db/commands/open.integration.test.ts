@@ -31,7 +31,18 @@ describe("open integration", () => {
       globalDemandMultiplier: 1.5,
     };
 
+    const pipeLibrary = [
+      {
+        label: "PVC",
+        entries: [
+          { age: 0, roughness: 150 },
+          { age: 20, roughness: 130 },
+        ],
+      },
+    ];
+
     const hydraulicModel = HydraulicModelBuilder.with()
+      .aPipeMaterial(pipeLibrary[0])
       .aJunction(1, { label: "J1", elevation: 10 })
       .aJunction(2, { label: "J2", elevation: 20 })
       .aReservoir(3, { label: "R1", elevation: 100 })
@@ -66,22 +77,11 @@ describe("open integration", () => {
       .aJunctionDemand(1, [{ baseDemand: 2.5, patternId: 6 }])
       .build();
 
-    const pipeLibrary = [
-      {
-        label: "PVC",
-        entries: [
-          { age: 0, roughness: 150 },
-          { age: 20, roughness: 130 },
-        ],
-      },
-    ];
-
     await importProject({
       newDb: true,
       hydraulicModel,
       projectSettings,
       simulationSettings,
-      pipeLibrary,
     });
 
     const blob = await exportDb();
@@ -140,7 +140,7 @@ describe("open integration", () => {
       { baseDemand: 2.5, patternId: 6 },
     ]);
 
-    expect(project.pipeLibrary).toEqual(pipeLibrary);
+    expect(project.hydraulicModel.pipeMaterials).toEqual(pipeLibrary);
   });
 
   it("opens a project without a uniqueId as undefined (optional field)", async () => {
