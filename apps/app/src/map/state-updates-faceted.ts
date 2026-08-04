@@ -616,6 +616,10 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
       pendingDeltaCleanupRef.current = false;
     }
 
+    if (map && freshMapStateRef.current === lastAppliedMapStateRef.current) {
+      map.flushSettleQueue();
+    }
+
     const settle = settleRef.current;
     if (!settle) return;
 

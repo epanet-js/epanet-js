@@ -509,6 +509,19 @@ export class MapEngine {
     }
   }
 
+  private settleQueue: Array<() => void> = [];
+
+  enqueueOnSettle(task: () => void): void {
+    this.settleQueue.push(task);
+  }
+
+  flushSettleQueue(): void {
+    if (this.settleQueue.length === 0) return;
+    const tasks = this.settleQueue;
+    this.settleQueue = [];
+    for (const task of tasks) task();
+  }
+
   onNextIdle(callback: (settledCleanly: boolean) => void): void {
     if (!this.map || !(this.map as any).style || this.map.loaded()) {
       callback(false);

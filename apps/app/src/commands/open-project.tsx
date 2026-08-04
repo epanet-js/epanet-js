@@ -174,19 +174,10 @@ export const useOpenProjectFile = () => {
           const handle = file.handle;
           const name = file.name;
           if (map) {
-            const captureAndSave = () => {
+            map.enqueueOnSettle(() => {
               const thumbnail = captureThumbnail(map) ?? undefined;
               void addRecent(name, handle, thumbnail);
-            };
-            if (map.map.loaded() && !map.map.isMoving()) {
-              captureAndSave();
-            } else {
-              const timeoutId = setTimeout(captureAndSave, 5000);
-              map.map.once("idle", () => {
-                clearTimeout(timeoutId);
-                captureAndSave();
-              });
-            }
+            });
           } else {
             void addRecent(name, file.handle);
           }
