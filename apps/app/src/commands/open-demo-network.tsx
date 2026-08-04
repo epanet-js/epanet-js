@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback } from "react";
 import { dialogAtom } from "src/state/dialog";
-import { useImportInp } from "./import-inp";
+import { useOpenProjectFile } from "./open-project";
 import { captureError } from "src/infra/error-tracking";
 import { useTranslate } from "src/hooks/use-translate";
 import { useUnsavedChangesCheck } from "./check-unsaved-changes";
@@ -9,12 +9,12 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { notify } from "src/components/notifications";
 import { DisconnectIcon } from "src/icons";
 
-export const useOpenInpFromUrl = () => {
+export const useOpenDemoNetwork = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const userTracking = useUserTracking();
-  const importInp = useImportInp();
+  const openProjectFile = useOpenProjectFile();
 
   const handleDownloadError = useCallback(() => {
     notify({
@@ -30,7 +30,7 @@ export const useOpenInpFromUrl = () => {
     setDialogState({ type: "welcome" });
   }, [setDialogState, userTracking, translate]);
 
-  const openInpFromUrl = useCallback(
+  const openDemoNetwork = useCallback(
     async (url: string) => {
       try {
         setDialogState({ type: "loading" });
@@ -41,23 +41,25 @@ export const useOpenInpFromUrl = () => {
         }
 
         const name = parseName(url);
-        const inpFile = new File([await response.blob()], name);
+        const file = new File([await response.blob()], name);
 
-        checkUnsavedChanges(() => importInp([inpFile], "exampleModel"));
+        checkUnsavedChanges(() =>
+          openProjectFile(file, "exampleModel", { isDemoNetwork: true }),
+        );
       } catch (error) {
         captureError(error as Error);
         handleDownloadError();
       }
     },
-    [setDialogState, handleDownloadError, checkUnsavedChanges, importInp],
+    [setDialogState, handleDownloadError, checkUnsavedChanges, openProjectFile],
   );
 
-  return { openInpFromUrl };
+  return { openDemoNetwork };
 };
 
 const parseName = (url: string): string => {
   const fileNameWithParams = url.split("/").pop();
-  if (!fileNameWithParams) return "my-network.inp";
+  if (!fileNameWithParams) return "demo-network.ejsdb";
 
   return fileNameWithParams.split("?")[0];
 };

@@ -24,7 +24,6 @@ import { ProjectSettings } from "src/lib/project-settings";
 import { chooseUnitSystem } from "src/simulation/build-inp";
 import { notify } from "src/components/notifications";
 import { WarningIcon } from "src/icons";
-import { isDemoNetwork } from "src/demo/demo-networks";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { type Projection, createProjectionMapper } from "src/lib/projections";
 import { transformCoordinates } from "src/hydraulic-model/mutations/transform-coordinates";
@@ -67,7 +66,6 @@ export const useImportInp = () => {
   const completeImport = useCallback(
     async (
       file: FileWithHandle,
-      isDemo: boolean,
       result: ParseInpResult,
       options?: { autoElevations?: boolean },
     ) => {
@@ -124,11 +122,11 @@ export const useImportInp = () => {
         handle: isMadeByApp ? file.handle : undefined,
         modelVersion: hydraulicModel.version,
         isMadeByApp,
-        isDemoNetwork: isDemo,
+        isDemoNetwork: false,
         options: { type: "inp" },
       });
       setProjectFileInfo(null);
-      if (!isDemo && file.handle) {
+      if (file.handle) {
         const handle = file.handle;
         const name = file.name;
         if (map) {
@@ -192,7 +190,6 @@ export const useImportInp = () => {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const content = new TextDecoder().decode(arrayBuffer);
-        const isDemo = isDemoNetwork(content);
         const parseOptions = {
           customerPoints: true,
           inactiveAssets: true,
@@ -234,7 +231,7 @@ export const useImportInp = () => {
                 projection,
               };
               const autoElevations = projection.type !== "xy-grid";
-              await completeImport(file, isDemo, result, {
+              await completeImport(file, result, {
                 autoElevations,
               });
             } catch (error) {
@@ -261,7 +258,7 @@ export const useImportInp = () => {
         }
 
         const autoElevations = projectSettings.projection.type !== "xy-grid";
-        await completeImport(file, isDemo, result, { autoElevations });
+        await completeImport(file, result, { autoElevations });
       } catch (error) {
         handleError(error, {
           as: "Import INP failed",

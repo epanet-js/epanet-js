@@ -1,5 +1,5 @@
 import { useNewProject } from "src/commands/create-new-project";
-import { useOpenInpFromUrl } from "src/commands/open-inp-from-url";
+import { useOpenDemoNetwork } from "src/commands/open-demo-network";
 import { useOpenModelBuilder } from "src/commands/open-model-builder";
 import { useOpenProject } from "src/commands/open-project";
 import { useOpenRecentFile } from "src/commands/open-recent-file";
@@ -447,14 +447,14 @@ type DemoModel = {
 const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   const translate = useTranslate();
   const userTracking = useUserTracking();
-  const { openInpFromUrl } = useOpenInpFromUrl();
+  const { openDemoNetwork } = useOpenDemoNetwork();
 
   const handleClick = () => {
     userTracking.capture({
       name: "exampleModel.clicked",
       modelName: demoNetwork.name,
     });
-    void openInpFromUrl(demoNetwork.url);
+    void openDemoNetwork(demoNetwork.url);
   };
 
   return (
@@ -494,14 +494,14 @@ const DemoAsRecentCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
 
 const DemoNetworkCard = ({ demoNetwork }: { demoNetwork: DemoModel }) => {
   const userTracking = useUserTracking();
-  const { openInpFromUrl } = useOpenInpFromUrl();
+  const { openDemoNetwork } = useOpenDemoNetwork();
 
   const handleOpenDemoModel = () => {
     userTracking.capture({
       name: "exampleModel.clicked",
       modelName: demoNetwork.name,
     });
-    void openInpFromUrl(demoNetwork.url);
+    void openDemoNetwork(demoNetwork.url);
   };
   return (
     <div

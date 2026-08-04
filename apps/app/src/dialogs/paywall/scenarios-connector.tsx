@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { FeaturePaywall, type FeaturePaywallConfig } from "./feature-paywall";
 import { useScenarioOperations } from "src/hooks/use-scenario-operations";
-import { useImportInp } from "src/commands/import-inp";
+import { useOpenProjectFile } from "src/commands/open-project";
 import { useUnsavedChangesCheck } from "src/commands/check-unsaved-changes";
 import { useRunSimulation } from "src/commands/run-simulation";
 import { useUserTracking } from "src/infra/user-tracking";
@@ -43,7 +43,7 @@ export const ScenariosPaywallConnector = ({
   const { createNewScenario } = useScenarioOperations();
   const isDemoNetwork = useAtomValue(isDemoNetworkAtom);
   const userSettings = useAtomValue(userSettingsAtom);
-  const importInp = useImportInp();
+  const openProjectFile = useOpenProjectFile();
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const runSimulation = useRunSimulation();
 
@@ -104,10 +104,10 @@ export const ScenariosPaywallConnector = ({
     const file = new File([await response.blob()], name);
 
     checkUnsavedChanges(async () => {
-      await importInp([file], "scenariosPaywall");
+      await openProjectFile(file, "scenariosPaywall", { isDemoNetwork: true });
       runSimulationThenProceed();
     });
-  }, [checkUnsavedChanges, importInp, runSimulationThenProceed]);
+  }, [checkUnsavedChanges, openProjectFile, runSimulationThenProceed]);
 
   const handleTryDemoWithErrorHandling = useCallback(async () => {
     try {

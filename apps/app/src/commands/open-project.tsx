@@ -44,7 +44,11 @@ export const useOpenProjectFile = () => {
     async (
       file: FileWithHandle,
       source: string,
-      options: { isUnsaved?: boolean; lastSavedAt?: number } = {},
+      options: {
+        isUnsaved?: boolean;
+        lastSavedAt?: number;
+        isDemoNetwork?: boolean;
+      } = {},
     ) => {
       try {
         setDialogState({ type: "openProjectProgress", phase: "opening" });
@@ -151,6 +155,7 @@ export const useOpenProjectFile = () => {
           handle: file.handle,
           modelVersion: result.modelVersion,
           isUnsaved: options.isUnsaved,
+          isDemoNetwork: options.isDemoNetwork,
           lastSavedAt: options.isUnsaved
             ? options.lastSavedAt
             : file.lastModified,

@@ -1314,7 +1314,6 @@ describe("build inp", () => {
       expect(inp).toContain("[PIPES]");
       expect(inp).not.toContain("4\t1\t3");
     });
-
   });
 
   describe("constant pattern", () => {

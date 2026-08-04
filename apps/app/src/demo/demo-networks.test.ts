@@ -1,22 +1,16 @@
 import fs from "fs";
 import path from "path";
-import { checksum } from "src/infra/checksum";
-import { DEMO_NETWORKS, DEMO_NETWORK_HASHES } from "./demo-networks";
+import { DEMO_NETWORKS } from "./demo-networks";
 
-describe("demo network hashes", () => {
+describe("demo networks", () => {
+  it.each(DEMO_NETWORKS)("$path exists", ({ path: filePath }) => {
+    expect(fs.existsSync(path.resolve(process.cwd(), filePath))).toBe(true);
+  });
+
   it.each(DEMO_NETWORKS)(
-    "$path matches its hash",
-    ({ path: filePath, hash }) => {
-      const content = fs.readFileSync(
-        path.resolve(process.cwd(), filePath),
-        "utf-8",
-      );
-
-      expect(checksum(content)).toBe(hash);
+    "$url is served from $path",
+    ({ path: filePath, url }) => {
+      expect(filePath).toBe(`public${url}`);
     },
   );
-
-  it("has no stale hashes", () => {
-    expect(DEMO_NETWORK_HASHES.size).toBe(DEMO_NETWORKS.length);
-  });
 });

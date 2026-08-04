@@ -20,6 +20,7 @@ export type ProjectFileInfo = {
   handle?: FileSystemHandle | FileSystemFileHandle;
   isUnsaved?: boolean;
   lastSavedAt?: number;
+  isDemoNetwork?: boolean;
 };
 
 export const projectFileInfoAtom = atom<ProjectFileInfo | null>(null);
@@ -29,7 +30,10 @@ export const currentFileNameAtom = atom<string | null>(
 );
 
 export const isDemoNetworkAtom = atom(
-  (get) => get(inpFileInfoAtom)?.isDemoNetwork ?? false,
+  (get) =>
+    get(projectFileInfoAtom)?.isDemoNetwork ??
+    get(inpFileInfoAtom)?.isDemoNetwork ??
+    false,
 );
 
 export const recentFilesStoreAtom = atom(
