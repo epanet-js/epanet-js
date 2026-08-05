@@ -1,7 +1,42 @@
 import Papa from "papaparse";
-import type { PipeMaterial } from "@epanet-js/hydraulic-model";
+import type { PipeMaterial, RoughnessEntry } from "@epanet-js/hydraulic-model";
 import { validateEntry, validateMaterial } from "./validate-material";
 import type { ImportError, ImportPipeLibraryResult } from "./import-result";
+
+type ParsedFile = { materials: PipeMaterial[]; errors: ImportError[] };
+
+class MaterialRows {
+  private byKey = new Map<string, PipeMaterial>();
+  private reportedLabels = new Set<string>();
+  readonly errors: ImportError[] = [];
+
+  add(label: string, entry: RoughnessEntry) {
+    const key = label.toLowerCase();
+    const material = this.byKey.get(key);
+
+    if (!material) {
+      this.byKey.set(key, { label, entries: [entry] });
+      return;
+    }
+
+    if (material.label !== label) {
+      if (!this.reportedLabels.has(label)) {
+        this.reportedLabels.add(label);
+        this.errors.push({
+          material: label,
+          message: "pipeLibrary.import.duplicateMaterial",
+        });
+      }
+      return;
+    }
+
+    material.entries.push(entry);
+  }
+
+  get materials(): PipeMaterial[] {
+    return [...this.byKey.values()];
+  }
+}
 
 export const parsePipeLibraryFile = async (
   file: File,
@@ -16,16 +51,18 @@ export const parsePipeLibraryFile = async (
 
   const format: "csv" | "xlsx" = file.name.endsWith(".csv") ? "csv" : "xlsx";
   const parseMaterials = file.name.endsWith(".csv") ? parseCsv : parseXlsx;
-  let materials: PipeMaterial[] = [];
+  let parsed: ParsedFile = { materials: [], errors: [] };
 
   try {
-    materials = await parseMaterials(file);
+    parsed = await parseMaterials(file);
   } catch (e) {
     return {
       status: "error",
       errors: [{ message: "pipeLibrary.import.exception" }],
     };
   }
+
+  const materials = parsed.materials;
 
   if (materials.length === 0) {
     return {
@@ -37,7 +74,7 @@ export const parsePipeLibraryFile = async (
     };
   }
 
-  const errors: ImportError[] = [];
+  const errors: ImportError[] = [...parsed.errors];
   const sanitized: PipeMaterial[] = materials.map((material) => {
     const error = validateMaterial(material);
     if (error === null) return material;
@@ -69,7 +106,7 @@ export const parsePipeLibraryFile = async (
   return { status: "success", format, pipeLibrary: sanitized, errors: [] };
 };
 
-const parseCsv = async (file: File): Promise<PipeMaterial[]> => {
+const parseCsv = async (file: File): Promise<ParsedFile> => {
   const text = await file.text();
   const result = Papa.parse<string[]>(text, {
     header: false,
@@ -77,60 +114,47 @@ const parseCsv = async (file: File): Promise<PipeMaterial[]> => {
   });
   const rows = result.data;
 
-  if (rows.length <= 1) return [];
+  if (rows.length <= 1) return { materials: [], errors: [] };
 
-  const materialsMap = new Map<string, PipeMaterial>();
+  const parsedRows = new MaterialRows();
 
   for (let i = 1; i < rows.length; i++) {
     const [name, ageStr, roughnessStr] = rows[i];
     if (!name) continue;
 
-    let material = materialsMap.get(name);
-    if (!material) {
-      material = { label: name, entries: [] };
-      materialsMap.set(name, material);
-    }
-
-    material.entries.push({
+    parsedRows.add(name, {
       age: ageStr ? Number(ageStr) : null,
       roughness: roughnessStr ? Number(roughnessStr) : null,
     });
   }
 
-  return [...materialsMap.values()];
+  return { materials: parsedRows.materials, errors: parsedRows.errors };
 };
 
-const parseXlsx = async (file: File): Promise<PipeMaterial[]> => {
+const parseXlsx = async (file: File): Promise<ParsedFile> => {
   const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
 
   const sheetName = workbook.SheetNames[0];
-  if (!sheetName) return [];
+  if (!sheetName) return { materials: [], errors: [] };
 
   const sheet = workbook.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json<(string | number | null)[]>(sheet, {
     header: 1,
   });
 
-  const materialsMap = new Map<string, PipeMaterial>();
+  const parsedRows = new MaterialRows();
 
   for (const row of rows.slice(1)) {
     const name = row[0];
     if (!name) continue;
 
-    const label = String(name);
-    let material = materialsMap.get(label);
-    if (!material) {
-      material = { label, entries: [] };
-      materialsMap.set(label, material);
-    }
-
-    material.entries.push({
+    parsedRows.add(String(name), {
       age: row[1] != null ? Number(row[1]) : null,
       roughness: row[2] != null ? Number(row[2]) : null,
     });
   }
 
-  return [...materialsMap.values()];
+  return { materials: parsedRows.materials, errors: parsedRows.errors };
 };

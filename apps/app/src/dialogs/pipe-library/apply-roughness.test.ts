@@ -67,6 +67,21 @@ describe("roughnessAssignments", () => {
     ]);
   });
 
+  it("applies roughness when the material label differs only by case", () => {
+    const materials: PipeMaterial[] = [
+      { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },
+    ];
+    const model = makeModel(
+      makePipe(1, { material: "cast iron", year: CURRENT_YEAR - 5 }),
+    );
+
+    const assignments = roughnessAssignments(model, materials);
+
+    expect(toPatches(assignments)).toEqual([
+      { id: 1, type: "pipe", properties: { roughness: 120 } },
+    ]);
+  });
+
   it("skips pipes whose material is not in the library", () => {
     const materials: PipeMaterial[] = [
       { label: "Cast Iron", entries: [{ age: 10, roughness: 120 }] },

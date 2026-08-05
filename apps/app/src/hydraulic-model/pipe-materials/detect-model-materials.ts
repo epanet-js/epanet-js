@@ -17,7 +17,10 @@ export const detectModelMaterials = (
   assets: AssetsMap,
   defaultRoughness: number,
 ): ImportPipeLibraryResult => {
-  const rawAges = new Map<string, Set<number>>();
+  // Labels differing only by case are merged into one material, unlike an
+  // imported file where they are reported: these are the model's own pipes, and
+  // two casings there are the mismatch this detection exists to collapse.
+  const rawAges = new Map<string, { label: string; ages: Set<number> }>();
   const currentYear = new Date().getFullYear();
 
   for (const [, asset] of assets) {
@@ -25,14 +28,15 @@ export const detectModelMaterials = (
     const pipe = asset as Pipe;
     if (!pipe.material) continue;
 
-    let ages = rawAges.get(pipe.material);
-    if (!ages) {
-      ages = new Set();
-      rawAges.set(pipe.material, ages);
+    const key = pipe.material.toLowerCase();
+    let detected = rawAges.get(key);
+    if (!detected) {
+      detected = { label: pipe.material, ages: new Set() };
+      rawAges.set(key, detected);
     }
 
     if (pipe.year !== undefined && isValidInstallationYear(pipe.year)) {
-      ages.add(Math.max(0, currentYear - pipe.year));
+      detected.ages.add(Math.max(0, currentYear - pipe.year));
     }
   }
 
@@ -40,8 +44,8 @@ export const detectModelMaterials = (
     return { status: "success", pipeLibrary: [], errors: [] };
   }
 
-  const pipeLibrary: PipeMaterial[] = [...rawAges.entries()]
-    .map(([label, ages]) => {
+  const pipeLibrary: PipeMaterial[] = [...rawAges.values()]
+    .map(({ label, ages }) => {
       const buckets = bucketByDecade(ages);
       const entries: RoughnessEntry[] = [
         { age: 0, roughness: defaultRoughness },

@@ -32,6 +32,32 @@ describe("renameAssignments", () => {
     expect(toPatches(assignments)).toEqual([]);
   });
 
+  it("renames pipes whose material differs from the library by case", () => {
+    const model = makeModel(
+      makePipe(1, { material: "cast iron" }),
+      makePipe(2, { material: "Cast Iron" }),
+    );
+    const renames = new Map([["Cast Iron", "Steel"]]);
+
+    const assignments = renameAssignments(model, renames);
+
+    expect(toPatches(assignments)).toEqual([
+      { id: 1, type: "pipe", properties: { material: "Steel" } },
+      { id: 2, type: "pipe", properties: { material: "Steel" } },
+    ]);
+  });
+
+  it("normalizes pipes when only the casing of the label changes", () => {
+    const model = makeModel(makePipe(1, { material: "cast iron" }));
+    const renames = new Map([["Cast Iron", "CAST IRON"]]);
+
+    const assignments = renameAssignments(model, renames);
+
+    expect(toPatches(assignments)).toEqual([
+      { id: 1, type: "pipe", properties: { material: "CAST IRON" } },
+    ]);
+  });
+
   it("skips pipes whose material is not in the rename map", () => {
     const model = makeModel(makePipe(1, { material: "PVC" }));
     const renames = new Map([["CI", "Cast Iron"]]);

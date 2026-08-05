@@ -28,6 +28,25 @@ describe("detectModelMaterials", () => {
     });
   });
 
+  it("detects one material for labels differing only by case", () => {
+    const assets = makeAssets(
+      makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 10 }),
+      makePipe(2, { material: "cast iron", year: CURRENT_YEAR - 25 }),
+    );
+
+    const result = detectModelMaterials(assets, DEFAULT_ROUGHNESS);
+
+    expect(result.pipeLibrary).toHaveLength(1);
+    expect(result.pipeLibrary![0]).toEqual({
+      label: "Cast Iron",
+      entries: [
+        { age: 0, roughness: DEFAULT_ROUGHNESS },
+        { age: 10, roughness: DEFAULT_ROUGHNESS },
+        { age: 20, roughness: DEFAULT_ROUGHNESS },
+      ],
+    });
+  });
+
   it("detects a material with a year", () => {
     const assets = makeAssets(
       makePipe(1, { material: "Cast Iron", year: CURRENT_YEAR - 10 }),

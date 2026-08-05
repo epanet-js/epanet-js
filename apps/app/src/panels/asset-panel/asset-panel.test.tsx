@@ -26,7 +26,7 @@ import {
   applyMoment,
   computeSyncMoment,
 } from "src/lib/persistence/transaction-helpers";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { AssetId, getLink, getPipe } from "@epanet-js/hydraulic-model";
 import FeatureEditor from "../feature-editor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -106,6 +106,81 @@ describe("AssetPanel", () => {
 
       const updated = store.get(stagingModelDerivedAtom);
       expect((getPipe(updated.assets, IDS.PIPE1) as Pipe).roughness).toBeNull();
+    });
+
+    describe("material options", () => {
+      const IDS = { P1: 1, P2: 2 };
+
+      const openMaterialOptions = async (user: UserEvent) => {
+        await user.click(screen.getByRole("combobox", { name: /material/i }));
+        return screen
+          .getAllByRole("option")
+          .map((option) => option.textContent);
+      };
+
+      it("hides a label that only differs in casing from a library material", async () => {
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aPipe(IDS.P1, { material: "PVC" })
+          .aPipe(IDS.P2, { material: "cast iron" })
+          .aPipeMaterial({
+            label: "Cast Iron",
+            entries: [{ age: 0, roughness: 120 }],
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        const options = await openMaterialOptions(user);
+        expect(options).toContain("Cast Iron");
+        expect(options).not.toContain("cast iron");
+      });
+
+      it("shows the library label for a material that differs by case", async () => {
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aPipe(IDS.P1, { material: "cast iron" })
+          .aPipeMaterial({
+            label: "Cast Iron",
+            entries: [{ age: 0, roughness: 120 }],
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        expect(
+          screen.getByRole("combobox", { name: /material/i }),
+        ).toHaveTextContent("Cast Iron");
+        expect(await openMaterialOptions(user)).toEqual(["Cast Iron"]);
+      });
+
+      it("offers a pipe material the library does not cover", async () => {
+        const hydraulicModel = HydraulicModelBuilder.with()
+          .aPipe(IDS.P1, { material: "PVC" })
+          .aPipeMaterial({
+            label: "Cast Iron",
+            entries: [{ age: 0, roughness: 120 }],
+          })
+          .build();
+        const store = setInitialState({
+          hydraulicModel,
+          selectedAssetId: IDS.P1,
+        });
+        const user = userEvent.setup();
+
+        renderComponent(store);
+
+        const options = await openMaterialOptions(user);
+        expect(options).toEqual(["Cast Iron", "PVC"]);
+      });
     });
 
     describe("roughness inferred from the pipe library", () => {

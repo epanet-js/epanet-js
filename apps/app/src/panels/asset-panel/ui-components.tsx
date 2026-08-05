@@ -479,6 +479,16 @@ export const CreatableTextRow = <
       : translate("none")
     : undefined;
 
+  // The stored value may differ in case from the option standing for it, so the
+  // option is matched loosely and its own label shown, rather than listing a
+  // near-duplicate that only differs in case.
+  const selectedOption = useMemo(() => {
+    if (!value) return null;
+    return (
+      options.find((o) => o.toLowerCase() === value.toLowerCase()) ?? value
+    );
+  }, [options, value]);
+
   const handleChange = useCallback(
     (newValue: string | null) => {
       const normalized = newValue === null ? null : newValue.trim() || null;
@@ -510,7 +520,7 @@ export const CreatableTextRow = <
       ) : (
         <Selector
           options={options.map((o) => ({ value: o, label: o }))}
-          selected={value ?? null}
+          selected={selectedOption}
           nullable
           allowNew
           onChange={handleChange}

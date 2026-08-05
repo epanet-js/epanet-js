@@ -39,6 +39,23 @@ type FilterableSelectCellProps<
   validateNew?: (query: string) => boolean;
 };
 
+// Creatable columns hold free text, where a value differing only in case is the
+// same one, so it resolves to the option that stands for it.
+const findOption = <T extends string | number | boolean>(
+  options: FilterableSelectOption<T>[],
+  value: T | null,
+  allowNew?: boolean,
+): FilterableSelectOption<T> | undefined => {
+  const exact = options.find((option) => option.value === value);
+  if (exact || !allowNew || typeof value !== "string") return exact;
+
+  const key = value.toLowerCase();
+  return options.find(
+    (option) =>
+      typeof option.value === "string" && option.value.toLowerCase() === key,
+  );
+};
+
 export function FilterableSelectCell({
   value,
   onChange,
@@ -73,9 +90,16 @@ export function FilterableSelectCell({
   );
 
   const selectedOption = useMemo(
-    () => options.find((opt) => opt.value === value),
-    [options, value],
+    () => findOption(options, value, allowNew),
+    [options, value, allowNew],
   );
+
+  // A creatable column can legitimately hold a value the options do not list,
+  // so it shows itself rather than reading as empty.
+  const displayLabel =
+    selectedOption?.label ??
+    (allowNew && value != null && value !== "" ? String(value) : placeholder);
+  const isEmptyValue = !selectedOption && displayLabel === placeholder;
 
   useEffect(
     function syncCellIsActive() {
@@ -123,10 +147,10 @@ export function FilterableSelectCell({
         <span
           className={clsx(
             "truncate",
-            !selectedOption ? "text-subtle" : "text-default",
+            isEmptyValue ? "text-subtle" : "text-default",
           )}
         >
-          {selectedOption?.label ?? placeholder}
+          {displayLabel}
         </span>
       </div>
     );
@@ -149,10 +173,8 @@ export function FilterableSelectCell({
             onKeyDown={handleTriggerKeyDown}
             className="w-full h-full pl-2 flex items-center justify-between gap-1 text-size-base text-default bg-transparent border-none outline-hidden text-left min-w-0"
           >
-            <span
-              className={clsx("truncate", !selectedOption && "text-subtle")}
-            >
-              {selectedOption?.label ?? placeholder}
+            <span className={clsx("truncate", isEmptyValue && "text-subtle")}>
+              {displayLabel}
             </span>
             <div className="pl-1">
               <ChevronDownIcon />
@@ -248,8 +270,9 @@ export function filterableSelectColumn<
       autoSizeExtraWidth: 32,
       placeholder: options.placeholder,
       copyValue: (v: T | null) => {
-        const match = options.options.find((opt) => opt.value === v);
-        return match?.label ?? "";
+        const match = findOption(options.options, v, options.allowNew);
+        if (match) return match.label;
+        return options.allowNew && v != null && v !== "" ? String(v) : "";
       },
       pasteValue: (v: string) => {
         const match = options.options.find(

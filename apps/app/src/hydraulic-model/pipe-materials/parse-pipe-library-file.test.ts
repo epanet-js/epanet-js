@@ -32,6 +32,50 @@ describe("parsePipeLibraryFile", () => {
     });
   });
 
+  it("keeps the first casing and reports rows that redefine it", async () => {
+    const csv = Papa.unparse({
+      fields: ["Material Name", "Age", "Roughness"],
+      data: [
+        ["Cast Iron", 0, 100],
+        ["cast iron", 10, 120],
+        ["PVC", 0, 150],
+      ],
+    });
+
+    const result = await parsePipeLibraryFile(
+      createFile(csv, "library.csv", "text/csv"),
+    );
+
+    expect(result?.status).toBe("partial");
+    expect(result?.errors).toEqual([
+      {
+        material: "cast iron",
+        message: "pipeLibrary.import.duplicateMaterial",
+      },
+    ]);
+    expect(result?.pipeLibrary).toEqual([
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      { label: "PVC", entries: [{ age: 0, roughness: 150 }] },
+    ]);
+  });
+
+  it("reports a duplicated label once however many rows use it", async () => {
+    const csv = Papa.unparse({
+      fields: ["Material Name", "Age", "Roughness"],
+      data: [
+        ["Cast Iron", 0, 100],
+        ["cast iron", 10, 120],
+        ["cast iron", 20, 140],
+      ],
+    });
+
+    const result = await parsePipeLibraryFile(
+      createFile(csv, "library.csv", "text/csv"),
+    );
+
+    expect(result?.errors).toHaveLength(1);
+  });
+
   it("parses a valid XLSX file", async () => {
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.aoa_to_sheet([

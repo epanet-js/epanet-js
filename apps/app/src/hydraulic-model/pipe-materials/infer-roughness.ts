@@ -13,7 +13,7 @@ export const inferredRoughness = (
     return null;
 
   const { entriesByLabel, currentYear } = materialIndex(materials);
-  const entries = entriesByLabel.get(pipe.material);
+  const entries = entriesByLabel.get(pipe.material.toLowerCase());
   if (!entries) return null;
 
   if (entries.length === 1) return entries[0].roughness;
@@ -60,12 +60,19 @@ const materialIndex = (materials: PipeMaterial[]): MaterialIndex => {
   const cached = indexCache.get(materials);
   if (cached) return cached;
 
+  // Keyed case-insensitively, so a pipe carrying another casing still means
+  // that material. Every path that builds a library keeps labels unique that
+  // way, but one saved before that was enforced can hold both, and then the
+  // first material with usable entries wins rather than an arbitrary one.
   const entriesByLabel = new Map<string, RoughnessEntry[]>();
   for (const material of materials) {
+    const key = material.label.toLowerCase();
+    if (entriesByLabel.has(key)) continue;
+
     const sorted = material.entries
       .filter((entry) => entry.age !== null && entry.roughness !== null)
       .sort((a, b) => a.age! - b.age!);
-    if (sorted.length > 0) entriesByLabel.set(material.label, sorted);
+    if (sorted.length > 0) entriesByLabel.set(key, sorted);
   }
 
   const index = { entriesByLabel, currentYear: new Date().getFullYear() };

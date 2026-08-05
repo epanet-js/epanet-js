@@ -33,6 +33,27 @@ describe("filterableSelectColumn", () => {
       expect(column.meta!.copyValue!(999)).toBe("");
     });
 
+    it("returns the raw value for a non-matching value when new ones are allowed", () => {
+      const creatable = filterableSelectColumn("category", {
+        header: "Category",
+        options: [{ value: "Cast Iron", label: "Cast Iron" }],
+        allowNew: true,
+      });
+
+      expect(creatable.meta!.copyValue!("PVC")).toBe("PVC");
+      expect(creatable.meta!.copyValue!(null)).toBe("");
+    });
+
+    it("returns the option label when a creatable value differs only by case", () => {
+      const creatable = filterableSelectColumn("category", {
+        header: "Category",
+        options: [{ value: "Cast Iron", label: "Cast Iron" }],
+        allowNew: true,
+      });
+
+      expect(creatable.meta!.copyValue!("cast iron")).toBe("Cast Iron");
+    });
+
     it("returns empty string for null/undefined", () => {
       expect(column.meta!.copyValue!(null)).toBe("");
       expect(column.meta!.copyValue!(undefined)).toBe("");
@@ -109,6 +130,35 @@ describe("FilterableSelectCell", () => {
   it("renders the selected option label", () => {
     render(<FilterableSelectCell {...defaultProps} />);
     expect(screen.getByText("Pattern A")).toBeInTheDocument();
+  });
+
+  it("renders an unlisted value when the column allows new ones", () => {
+    render(
+      <FilterableSelectCell {...defaultProps} value="cast iron" allowNew />,
+    );
+
+    expect(screen.getByText("cast iron")).toBeInTheDocument();
+    expect(screen.queryByText("Select...")).not.toBeInTheDocument();
+  });
+
+  it("renders the option label when a creatable value differs only by case", () => {
+    render(
+      <FilterableSelectCell
+        {...defaultProps}
+        options={[{ value: "Cast Iron", label: "Cast Iron" }]}
+        value="cast iron"
+        allowNew
+      />,
+    );
+
+    expect(screen.getByText("Cast Iron")).toBeInTheDocument();
+    expect(screen.queryByText("cast iron")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the placeholder for an unlisted value otherwise", () => {
+    render(<FilterableSelectCell {...defaultProps} value="cast iron" />);
+
+    expect(screen.getByText("Select...")).toBeInTheDocument();
   });
 
   it("caps the options list at 5 rows for long lists", async () => {

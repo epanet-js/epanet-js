@@ -100,6 +100,17 @@ describe("inferredRoughness", () => {
     expect(inferredRoughness(pipe, materials)).toBeNull();
   });
 
+  it("matches the material label ignoring case", () => {
+    const materials = castIron([{ age: 0, roughness: 120 }]);
+
+    expect(
+      inferredRoughness(makePipe({ material: "cast iron" }), materials),
+    ).toBe(120);
+    expect(
+      inferredRoughness(makePipe({ material: "CAST IRON" }), materials),
+    ).toBe(120);
+  });
+
   it("does not infer when the installation year is out of range", () => {
     const materials = castIron([
       { age: 0, roughness: 100 },
@@ -161,6 +172,28 @@ describe("inferredRoughness", () => {
     const pipe = makePipe({ material: "Cast Iron", roughness: 80 });
 
     expect(inferredRoughness(pipe, materials)).toBe(120);
+  });
+
+  it("uses the first material when a stored library repeats a label by case", () => {
+    const materials: PipeMaterial[] = [
+      { label: "Cast Iron", entries: [{ age: 0, roughness: 120 }] },
+      { label: "cast iron", entries: [{ age: 0, roughness: 90 }] },
+    ];
+
+    expect(
+      inferredRoughness(makePipe({ material: "CAST IRON" }), materials),
+    ).toBe(120);
+  });
+
+  it("skips a repeated label whose entries are unusable", () => {
+    const materials: PipeMaterial[] = [
+      { label: "Cast Iron", entries: [{ age: null, roughness: null }] },
+      { label: "cast iron", entries: [{ age: 0, roughness: 90 }] },
+    ];
+
+    expect(
+      inferredRoughness(makePipe({ material: "cast iron" }), materials),
+    ).toBe(90);
   });
 
   it("does not infer when the library is empty", () => {

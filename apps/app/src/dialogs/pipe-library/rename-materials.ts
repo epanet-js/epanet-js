@@ -10,6 +10,11 @@ export const renameAssignments = (
   hydraulicModel: HydraulicModel,
   renames: ReadonlyMap<string, string>,
 ): MaterialRenameAssignment[] => {
+  const renamesByKey = new Map<string, string>();
+  for (const [oldLabel, newLabel] of renames) {
+    renamesByKey.set(oldLabel.toLowerCase(), newLabel);
+  }
+
   const groups = new Map<string, AssetId[]>();
 
   for (const [assetId, asset] of hydraulicModel.assets) {
@@ -17,7 +22,7 @@ export const renameAssignments = (
     const pipe = asset as Pipe;
     if (!pipe.material) continue;
 
-    const newLabel = renames.get(pipe.material);
+    const newLabel = renamesByKey.get(pipe.material.toLowerCase());
     if (newLabel == null || newLabel === pipe.material) continue;
 
     let group = groups.get(newLabel);
