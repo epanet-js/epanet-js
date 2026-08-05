@@ -11,9 +11,9 @@ import { ExportOptions } from "src/types/export";
 import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
 import { MapContext, captureThumbnail } from "src/map";
-import { buildInpAsync } from "src/simulation/build-inp";
+import { buildInpToFile } from "src/simulation/build-inp";
+import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
 import { useTranslate } from "src/hooks/use-translate";
-import type { fileSave as fileSaveType } from "browser-fs-access";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notify } from "src/components/notifications";
 import { handleError } from "src/infra/errors";
@@ -22,23 +22,13 @@ import { useUserTracking } from "src/infra/user-tracking";
 import { worktreeAtom } from "src/state/scenarios";
 import { useRecentFiles } from "src/hooks/use-recent-files";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
-const getDefaultFsAccess = async () => {
-  const { fileSave } = await import("browser-fs-access");
-  return { fileSave };
-};
-
-type FileAccess = {
-  fileSave: typeof fileSaveType;
-};
 
 export const saveShortcut = "ctrl+s";
 export const saveAsShortcut = "ctrl+shift+s";
 
 const exportInpToastId = "export-inp";
 
-export const useSaveInp = ({
-  getFsAccess = getDefaultFsAccess,
-}: { getFsAccess?: () => Promise<FileAccess> } = {}) => {
+export const useSaveInp = () => {
   const translate = useTranslate();
   const setDialogState = useSetAtom(dialogAtom);
   const { addRecent } = useRecentFiles();
@@ -60,7 +50,6 @@ export const useSaveInp = ({
         });
         const exportOptions: ExportOptions = { type: "inp" };
         const asyncSave = async () => {
-          const { fileSave } = await getFsAccess();
           const fileInfo = get(inpFileInfoAtom);
           const projectInfo = get(projectFileInfoAtom);
 
@@ -83,20 +72,6 @@ export const useSaveInp = ({
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
           };
-          // Build the INP lazily: `fileSave` opens the save picker first and
-          // only awaits this blob when writing to the chosen file. Building up
-          // front would outlive the browser's transient user activation window
-          // on large models and make the picker throw. buildInpAsync defers the
-          // build so it never runs synchronously ahead of the picker call.
-          const inpBlobPromise = buildInpAsync(
-            hydraulicModel,
-            buildOptions,
-          ).then((inp) => new Blob([inp], { type: "text/plain" }));
-          // Keep a handler attached so that, if the picker is dismissed before
-          // fileSave awaits the blob, a build failure isn't an unhandled
-          // rejection. This does not consume the rejection for fileSave, which
-          // still sees it when writing to the chosen file.
-          inpBlobPromise.catch(() => {});
 
           const suggestedName = fileInfo
             ? fileInfo.name
@@ -104,34 +79,51 @@ export const useSaveInp = ({
               ? `${projectInfo.name.replace(/\.[^.]+$/, "")}.inp`
               : "my-network.inp";
 
-          const newHandle = await fileSave(
-            inpBlobPromise,
-            {
-              fileName: suggestedName,
-              extensions: [".inp"],
-              description: ".INP",
-              mimeTypes: ["text/plain"],
-            },
+          const isNativeFsSupported =
+            FileSystemHelpers.isFileSystemAccessSupported();
+          const previousHandle =
             fileInfo && !isSaveAs
               ? (fileInfo.handle as FileSystemFileHandle)
-              : null,
-          );
-          if (newHandle) {
-            const isDemo = get(isDemoNetworkAtom);
-            set(inpFileInfoAtom, {
-              name: newHandle.name,
-              modelVersion: hydraulicModel.version,
-              handle: newHandle,
-              options: exportOptions,
-              isMadeByApp: true,
-              isDemoNetwork: isDemo,
-            });
-            if (!isDemo) {
-              const thumbnail = map
-                ? (captureThumbnail(map) ?? undefined)
-                : undefined;
-              void addRecent(newHandle.name, newHandle, thumbnail);
-            }
+              : null;
+
+          const handle = isNativeFsSupported
+            ? (previousHandle ??
+              (await FileSystemHelpers.openFileInFileSystem(
+                suggestedName,
+                ".INP",
+                "text/plain",
+                ".inp",
+              )))
+            : await FileSystemHelpers.openFileInOpfs(suggestedName);
+
+          const writable = await handle.createWritable();
+          try {
+            await buildInpToFile(writable, hydraulicModel, buildOptions);
+            await writable.close();
+          } catch (error) {
+            await writable.abort();
+            throw error;
+          }
+
+          if (!isNativeFsSupported) {
+            await FileSystemHelpers.triggerDownload(suggestedName, handle);
+            return;
+          }
+
+          const isDemo = get(isDemoNetworkAtom);
+          set(inpFileInfoAtom, {
+            name: handle.name,
+            modelVersion: hydraulicModel.version,
+            handle,
+            options: exportOptions,
+            isMadeByApp: true,
+            isDemoNetwork: isDemo,
+          });
+          if (!isDemo) {
+            const thumbnail = map
+              ? (captureThumbnail(map) ?? undefined)
+              : undefined;
+            void addRecent(handle.name, handle, thumbnail);
           }
         };
 
@@ -183,7 +175,7 @@ export const useSaveInp = ({
           return false;
         }
       },
-      [userTracking, getFsAccess, addRecent, translate, map, isExportLabelsOn],
+      [userTracking, addRecent, translate, map, isExportLabelsOn],
     ),
   );
 

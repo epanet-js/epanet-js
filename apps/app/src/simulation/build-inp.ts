@@ -8,7 +8,6 @@ import {
   Pump,
   Tank,
   PatternId,
-  Demands,
   HeadlossFormula,
 } from "src/hydraulic-model";
 import type {
@@ -22,7 +21,6 @@ import {
 } from "src/simulation/simulation-settings";
 import {
   getActiveCustomerPoints,
-  CustomerPointsLookup,
   Valve,
   AssetId,
   CurveId,
@@ -101,9 +99,9 @@ const buildQualityValue = (
   return name ? `${name} ${settings.qualityMassUnit}` : "CHEMICAL";
 };
 
-const buildReactionsSection = (settings: SimulationSettings): string[] => {
+const globalReactionRows = (settings: SimulationSettings): string[] => {
   const dq = defaultWaterQualityValues;
-  const lines: string[] = ["[REACTIONS]"];
+  const lines: string[] = [];
   if (settings.reactionBulkOrder !== dq.reactionBulkOrder)
     lines.push(`Order Bulk\t${settings.reactionBulkOrder}`);
   if (settings.reactionWallOrder !== dq.reactionWallOrder)
@@ -123,12 +121,12 @@ const buildReactionsSection = (settings: SimulationSettings): string[] => {
   return lines;
 };
 
-const buildEnergySection = (
+const globalEnergyRows = (
   settings: SimulationSettings,
   idMap: EpanetIds,
 ): string[] => {
   const de = defaultEnergyValues;
-  const lines: string[] = ["[ENERGY]"];
+  const lines: string[] = [];
   if (settings.energyGlobalEfficiency !== de.energyGlobalEfficiency) {
     lines.push(`Global Effic\t${settings.energyGlobalEfficiency}`);
   }
@@ -377,33 +375,6 @@ class EpanetIds {
   }
 }
 
-type InpSections = {
-  junctions: string[];
-  reservoirs: string[];
-  tanks: string[];
-  pipes: string[];
-  pumps: string[];
-  valves: string[];
-  demands: string[];
-  emitters: string[];
-  times: string[];
-  report: string[];
-  status: string[];
-  curves: string[];
-  patterns: string[];
-  options: string[];
-  backdrop: string[];
-  coordinates: string[];
-  vertices: string[];
-  quality: string[];
-  mixing: string[];
-  sources: string[];
-  reactions: string[];
-  energy: string[];
-  controls: string[];
-  rules: string[];
-};
-
 type BuildOptions = {
   simulationSettings: SimulationSettings;
   units: UnitsSpec;
@@ -422,481 +393,542 @@ type BuildOptions = {
 
 export const buildInp = withDebugInstrumentation(
   (hydraulicModel: HydraulicModel, options: BuildOptions): string => {
-    const opts = {
-      headlossFormula: "H-W" as HeadlossFormula,
-      geolocation: false,
-      madeBy: false,
-      labelIds: false,
-      enforceLabelLimit: false,
-      customerDemands: false,
-      usedPatterns: false,
-      usedCurves: false,
-      includeQuality: false,
-      excludeInactiveControls: false,
-      ...options,
-    };
-    const idMap = new EpanetIds({
-      strategy: opts.labelIds ? "label" : "id",
-      maxLabelLength: opts.enforceLabelLimit
-        ? EPANET_MAX_LABEL_LENGTH
-        : undefined,
-      sanitizeLabels: opts.enforceLabelLimit,
-    });
-    const units = chooseUnitSystem(opts.units);
-    const headlossFormula = opts.headlossFormula;
-
-    const transformCoord: (p: Position) => Position = opts.projection
-      ? createProjectionMapper(opts.projection).toSource
-      : (p: Position) => p;
-
-    idMap.registerPatternId({
-      id: defaultConstantPatternId,
-      label: "constant",
-    });
-
-    for (const pattern of hydraulicModel.patterns.values()) {
-      idMap.registerPatternId(pattern);
+    let contents = "";
+    for (const chunk of generateInp(hydraulicModel, options)) {
+      contents += chunk;
     }
-
-    for (const curve of hydraulicModel.curves.values()) {
-      idMap.registerCurveId(curve);
-    }
-
-    const sections: InpSections = {
-      junctions: ["[JUNCTIONS]", ";Id\tElevation"],
-      reservoirs: ["[RESERVOIRS]", ";Id\tHead\tPattern"],
-      tanks: [
-        "[TANKS]",
-        ";Id\tElevation\tInitLevel\tMinLevel\tMaxLevel\tDiameter\tMinVol",
-      ],
-      pipes: [
-        "[PIPES]",
-        ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
-      ],
-      pumps: ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
-      valves: ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
-      demands: ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
-      emitters: ["[EMITTERS]", ";Junction\tCoefficient"],
-      times: buildTimesSection(opts.simulationSettings.timing),
-      report: [
-        "[REPORT]",
-        `Status\t${opts.simulationSettings.statusReport}`,
-        "Summary\tNo",
-        "Page\t0",
-        ...(opts.simulationSettings.reportEnergy ? ["Energy\tYES"] : []),
-      ],
-      status: ["[STATUS]", ";Id\tStatus"],
-      curves: ["[CURVES]", ";Id\tX\tY"],
-      patterns: ["[PATTERNS]", ";Id\tMultiplier"],
-      options: [
-        "[OPTIONS]",
-        `Quality\t${buildQualityValue(opts.simulationSettings, hydraulicModel, idMap)}`,
-        `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
-        `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
-        `Units\t${units}`,
-        ...(!isDefaultPressureForSystem(units, opts.units.pressure as string)
-          ? [`Pressure\t${unitToEpanetPressure[opts.units.pressure as string]}`]
-          : []),
-        `Headloss\t${headlossFormula}`,
-        `Demand Multiplier\t${opts.simulationSettings.globalDemandMultiplier}`,
-        `Demand Model\t${opts.simulationSettings.demandModel}`,
-        ...(opts.simulationSettings.demandModel === "PDA"
-          ? [
-              `Minimum Pressure\t${opts.simulationSettings.minimumPressure}`,
-              `Required Pressure\t${opts.simulationSettings.requiredPressure}`,
-              `Pressure Exponent\t${opts.simulationSettings.pressureExponent}`,
-            ]
-          : []),
-        `Emitter Exponent\t${opts.simulationSettings.emitterExponent}`,
-        ...(!opts.simulationSettings.backflowAllowed
-          ? [`Backflow Allowed\tNO`]
-          : []),
-        ...(opts.simulationSettings.trials !== undefined
-          ? [`Trials\t${opts.simulationSettings.trials}`]
-          : []),
-        ...(opts.simulationSettings.headError !== undefined &&
-        opts.simulationSettings.headError !== defaultHydraulicsValues.headError
-          ? [`Headerror\t${opts.simulationSettings.headError}`]
-          : []),
-        ...(opts.simulationSettings.flowChange !== undefined &&
-        opts.simulationSettings.flowChange !==
-          defaultHydraulicsValues.flowChange
-          ? [`Flowchange\t${opts.simulationSettings.flowChange}`]
-          : []),
-        ...(opts.simulationSettings.checkFreq !== undefined &&
-        opts.simulationSettings.checkFreq !== defaultHydraulicsValues.checkFreq
-          ? [`Checkfreq\t${opts.simulationSettings.checkFreq}`]
-          : []),
-        ...(opts.simulationSettings.maxCheck !== undefined &&
-        opts.simulationSettings.maxCheck !== defaultHydraulicsValues.maxCheck
-          ? [`Maxcheck\t${opts.simulationSettings.maxCheck}`]
-          : []),
-        ...(opts.simulationSettings.dampLimit !== undefined &&
-        opts.simulationSettings.dampLimit !== defaultHydraulicsValues.dampLimit
-          ? [`Damplimit\t${opts.simulationSettings.dampLimit}`]
-          : []),
-        ...(opts.simulationSettings.viscosity !== undefined &&
-        opts.simulationSettings.viscosity !== defaultHydraulicsValues.viscosity
-          ? [`Viscosity\t${opts.simulationSettings.viscosity}`]
-          : []),
-        ...(opts.simulationSettings.specificGravity !== undefined &&
-        opts.simulationSettings.specificGravity !==
-          defaultHydraulicsValues.specificGravity
-          ? [`Specific Gravity\t${opts.simulationSettings.specificGravity}`]
-          : []),
-        ...(opts.simulationSettings.tolerance !==
-        defaultWaterQualityValues.tolerance
-          ? [`Tolerance\t${opts.simulationSettings.tolerance}`]
-          : []),
-        ...(opts.simulationSettings.diffusivity !==
-        defaultWaterQualityValues.diffusivity
-          ? [`Diffusivity\t${opts.simulationSettings.diffusivity}`]
-          : []),
-        `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
-      ],
-      backdrop: [
-        "[BACKDROP]",
-        `Units\t${opts.projection ? getBackdropUnits(opts.projection) : "DEGREES"}`,
-      ],
-      coordinates: ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
-      vertices: ["[VERTICES]", ";link\tX-coord\tY-coord"],
-      quality: ["[QUALITY]", ";Node\tInitialQuality"],
-      mixing: ["[MIXING]", ";Tank\tModel\tFraction"],
-      sources: ["[SOURCES]", ";Node\tType\tStrength\tPattern"],
-      reactions: buildReactionsSection(opts.simulationSettings),
-      energy: buildEnergySection(opts.simulationSettings, idMap),
-      controls: ["[CONTROLS]"],
-      rules: ["[RULES]"],
-    };
-
-    const usedCurveIds = new Set<number>();
-    const usedPatternIds = new Set<number>();
-
-    if (opts.simulationSettings.energyGlobalPatternId !== null) {
-      usedPatternIds.add(opts.simulationSettings.energyGlobalPatternId);
-    }
-
-    for (const asset of hydraulicModel.assets.values()) {
-      if (asset.type === "reservoir") {
-        appendReservoir(
-          sections,
-          idMap,
-          opts.geolocation,
-          asset as Reservoir,
-          usedPatternIds,
-          transformCoord,
-        );
-        if (opts.includeQuality) {
-          appendInitialQuality(sections, idMap, asset as Reservoir);
-          appendSource(sections, idMap, asset as Reservoir, usedPatternIds);
-        }
-      }
-
-      if (asset.type === "tank") {
-        const isEps = opts.simulationSettings.timing.duration > 0;
-        const append = isEps ? appendTank : appendTankInSteadyState;
-        append(
-          sections,
-          idMap,
-          opts.geolocation,
-          usedCurveIds,
-          asset as Tank,
-          transformCoord,
-        );
-        if (opts.includeQuality) {
-          appendInitialQuality(sections, idMap, asset as Tank);
-          appendMixing(sections, idMap, asset as Tank);
-          appendSource(sections, idMap, asset as Tank, usedPatternIds);
-          appendTankReaction(sections, idMap, asset as Tank);
-        }
-      }
-
-      if (asset.type === "junction") {
-        appendJunction(
-          sections,
-          idMap,
-          opts.geolocation,
-          opts.customerDemands,
-          asset as Junction,
-          hydraulicModel.customerPointsLookup,
-          hydraulicModel.assets,
-          hydraulicModel.demands,
-          usedPatternIds,
-          transformCoord,
-        );
-        if (opts.includeQuality) {
-          appendInitialQuality(sections, idMap, asset as Junction);
-          appendSource(sections, idMap, asset as Junction, usedPatternIds);
-        }
-      }
-
-      if (asset.type === "pipe") {
-        appendPipe(
-          sections,
-          idMap,
-          hydraulicModel,
-          opts.geolocation,
-          asset as Pipe,
-          transformCoord,
-        );
-        if (opts.includeQuality) {
-          appendPipeReaction(sections, idMap, asset as Pipe);
-        }
-      }
-
-      if (asset.type === "pump") {
-        appendPump(
-          sections,
-          idMap,
-          hydraulicModel,
-          opts.geolocation,
-          usedCurveIds,
-          usedPatternIds,
-          asset as Pump,
-          transformCoord,
-        );
-      }
-
-      if (asset.type === "valve") {
-        appendValve(
-          sections,
-          idMap,
-          hydraulicModel,
-          opts.geolocation,
-          usedCurveIds,
-          asset as Valve,
-          transformCoord,
-        );
-      }
-    }
-
-    appendPatterns(
-      sections,
-      hydraulicModel.patterns,
-      usedPatternIds,
-      idMap,
-      opts.usedPatterns,
-    );
-
-    appendCurves(
-      sections,
-      hydraulicModel.curves,
-      usedCurveIds,
-      idMap,
-      opts.usedCurves,
-    );
-
-    appendRawControls(
-      sections,
-      hydraulicModel.rawControls,
-      idMap,
-      hydraulicModel,
-      opts.excludeInactiveControls,
-    );
-
-    appendTimedSettingControls(
-      sections,
-      hydraulicModel.controls,
-      idMap,
-      hydraulicModel,
-      opts.excludeInactiveControls,
-    );
-
-    appendLevelSettingControls(
-      sections,
-      hydraulicModel.controls,
-      idMap,
-      hydraulicModel,
-      opts.excludeInactiveControls,
-    );
-
-    const hasControls = sections.controls.length > 1;
-    const hasRules = sections.rules.length > 1;
-    const hasEmitters = sections.emitters.length > 2;
-    const hasQuality = sections.quality.length > 2;
-    const hasMixing = sections.mixing.length > 2;
-    const hasSources = sections.sources.length > 2;
-    const hasReactions = sections.reactions.length > 1;
-    const hasEnergy = sections.energy.length > 1;
-
-    let content = [
-      sections.junctions.join("\n"),
-      sections.reservoirs.join("\n"),
-      sections.tanks.join("\n"),
-      sections.pipes.join("\n"),
-      sections.pumps.join("\n"),
-      sections.valves.join("\n"),
-      sections.demands.join("\n"),
-      hasEmitters && sections.emitters.join("\n"),
-      sections.status.join("\n"),
-      sections.curves.join("\n"),
-      sections.patterns.join("\n"),
-      sections.times.join("\n"),
-      sections.report.join("\n"),
-      sections.options.join("\n"),
-      hasQuality && sections.quality.join("\n"),
-      hasMixing && sections.mixing.join("\n"),
-      hasSources && sections.sources.join("\n"),
-      hasReactions && sections.reactions.join("\n"),
-      hasEnergy && sections.energy.join("\n"),
-      opts.geolocation && sections.backdrop.join("\n"),
-      opts.geolocation && sections.coordinates.join("\n"),
-      opts.geolocation && sections.vertices.join("\n"),
-      hasControls && sections.controls.join("\n"),
-      hasRules && sections.rules.join("\n"),
-      "[END]",
-    ]
-      .filter((f) => !!f)
-      .join("\n\n");
-
-    if (opts.madeBy) {
-      content = `;MADE BY EPANET-JS\n` + content;
-    }
-    return content;
+    return contents;
   },
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
 
-export const buildInpAsync = (
+export const buildInpToFile = withDebugInstrumentation(
+  async (
+    file: FileSystemWritableFileStream,
+    hydraulicModel: HydraulicModel,
+    options: BuildOptions,
+  ): Promise<void> => {
+    for (const chunk of generateInp(hydraulicModel, options)) {
+      await file.write(chunk);
+    }
+  },
+  { name: "BUILD_INP_TO_FILE", maxDurationMs: 1000 },
+);
+
+type ResolvedBuildOptions = BuildOptions &
+  Required<
+    Pick<
+      BuildOptions,
+      | "headlossFormula"
+      | "geolocation"
+      | "madeBy"
+      | "labelIds"
+      | "enforceLabelLimit"
+      | "customerDemands"
+      | "usedPatterns"
+      | "usedCurves"
+      | "includeQuality"
+      | "excludeInactiveControls"
+    >
+  >;
+
+type PumpLocalCurveId = (pump: Pump, linkId: string) => string;
+
+function* generateInp(
   hydraulicModel: HydraulicModel,
   options: BuildOptions,
-): Promise<string> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      try {
-        resolve(buildInp(hydraulicModel, options));
-      } catch (error) {
-        reject(error);
-      }
-    }, 0);
+): Generator<string> {
+  const opts: ResolvedBuildOptions = {
+    headlossFormula: "H-W" as HeadlossFormula,
+    geolocation: false,
+    madeBy: false,
+    labelIds: false,
+    enforceLabelLimit: false,
+    customerDemands: false,
+    usedPatterns: false,
+    usedCurves: false,
+    includeQuality: false,
+    excludeInactiveControls: false,
+    ...options,
+  };
+  const idMap = new EpanetIds({
+    strategy: opts.labelIds ? "label" : "id",
+    maxLabelLength: opts.enforceLabelLimit
+      ? EPANET_MAX_LABEL_LENGTH
+      : undefined,
+    sanitizeLabels: opts.enforceLabelLimit,
+  });
+  const units = chooseUnitSystem(opts.units);
+  const headlossFormula = opts.headlossFormula;
+
+  const transformCoord: (p: Position) => Position = opts.projection
+    ? createProjectionMapper(opts.projection).toSource
+    : (p: Position) => p;
+
+  idMap.registerPatternId({
+    id: defaultConstantPatternId,
+    label: "constant",
   });
 
-const appendInitialQuality = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  node: NodeAsset,
-) => {
-  const typedNode = node as Junction | Tank | Reservoir;
-  const value = typedNode.initialQuality;
-  if (value !== undefined && value !== DEFAULT_INITIAL_QUALITY) {
-    sections.quality.push(`${idMap.nodeId(node)}\t${value}`);
+  for (const pattern of hydraulicModel.patterns.values()) {
+    idMap.registerPatternId(pattern);
   }
-};
 
-const MIXING_MODEL_TO_INP: Record<string, string> = {
-  mixed: "MIXED",
-  "2comp": "2COMP",
-  fifo: "FIFO",
-  lifo: "LIFO",
-};
+  for (const curve of hydraulicModel.curves.values()) {
+    idMap.registerCurveId(curve);
+  }
 
-const appendMixing = (sections: InpSections, idMap: EpanetIds, tank: Tank) => {
-  if (tank.mixingModel === "mixed") return;
-  const model = MIXING_MODEL_TO_INP[tank.mixingModel] ?? "MIXED";
-  const row =
-    tank.mixingModel === "2comp"
-      ? `${idMap.nodeId(tank)}\t${model}\t${optionalValue(tank.mixingFraction, DEFAULT_MIXING_FRACTION)}`
-      : `${idMap.nodeId(tank)}\t${model}`;
-  sections.mixing.push(row);
-};
+  // Pattern and curve usage is contributed by sections written after
+  // [PATTERNS]/[CURVES] (sources, energy), so it must be collected up front.
+  const { usedPatternIds, usedCurveIds } =
+    opts.usedPatterns || opts.usedCurves
+      ? collectUsedIds(hydraulicModel, opts)
+      : { usedPatternIds: new Set<number>(), usedCurveIds: new Set<number>() };
 
-const appendSource = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  node: NodeAsset,
-  usedPatternIds: Set<number>,
-) => {
-  const typedNode = node as Junction | Tank | Reservoir;
-  const sourceType = typedNode.chemicalSourceType;
-  if (!sourceType) return;
-  const inpType = sourceType.toUpperCase();
-  const strength = typedNode.chemicalSourceStrength ?? 0;
-  const patternId = typedNode.chemicalSourcePatternId;
-  if (patternId) usedPatternIds.add(patternId);
-  const row = patternId
-    ? `${idMap.nodeId(node)}\t${inpType}\t${strength}\t${idMap.patternId(patternId)}`
-    : `${idMap.nodeId(node)}\t${inpType}\t${strength}`;
-  sections.sources.push(row);
-};
+  const pumpLocalCurveIds = new Map<AssetId, string>();
+  const pumpLocalCurveId: PumpLocalCurveId = (pump, linkId) => {
+    let id = pumpLocalCurveIds.get(pump.id);
+    if (id === undefined) {
+      id = idMap.localCurveId(pump.label, linkId);
+      pumpLocalCurveIds.set(pump.id, id);
+    }
+    return id;
+  };
 
-const appendPipeReaction = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  pipe: Pipe,
-) => {
-  if (pipe.bulkReactionCoeff !== undefined) {
-    sections.reactions.push(
-      `Bulk\t${idMap.linkId(pipe)}\t${pipe.bulkReactionCoeff}`,
+  const isEps = opts.simulationSettings.timing.duration > 0;
+
+  const state: EmitState = { atFileStart: true };
+
+  if (opts.madeBy) {
+    yield ";MADE BY EPANET-JS\n";
+  }
+
+  yield* emitSection(
+    state,
+    ["[JUNCTIONS]", ";Id\tElevation"],
+    junctionRows(hydraulicModel, idMap),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[RESERVOIRS]", ";Id\tHead\tPattern"],
+    reservoirRows(hydraulicModel, idMap),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    [
+      "[TANKS]",
+      ";Id\tElevation\tInitLevel\tMinLevel\tMaxLevel\tDiameter\tMinVol",
+    ],
+    tankRows(hydraulicModel, idMap, isEps),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    [
+      "[PIPES]",
+      ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
+    ],
+    pipeRows(hydraulicModel, idMap),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[PUMPS]", ";Id\tStart\tEnd\tProperties"],
+    pumpRows(hydraulicModel, idMap, pumpLocalCurveId),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[VALVES]", ";Id\tStart\tEnd\tDiameter\tSetting\tMinorLoss"],
+    valveRows(hydraulicModel, idMap),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[DEMANDS]", ";Id\tDemand\tPattern\tCategory"],
+    demandRows(hydraulicModel, idMap, opts.customerDemands),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[EMITTERS]", ";Junction\tCoefficient"],
+    emitterRows(hydraulicModel, idMap),
+  );
+  yield* emitSection(
+    state,
+    ["[STATUS]", ";Id\tStatus"],
+    statusRows(hydraulicModel, idMap),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[CURVES]", ";Id\tX\tY"],
+    curveRows(
+      hydraulicModel,
+      idMap,
+      usedCurveIds,
+      opts.usedCurves,
+      pumpLocalCurveId,
+    ),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    ["[PATTERNS]", ";Id\tMultiplier"],
+    patternRows(
+      hydraulicModel.patterns,
+      idMap,
+      usedPatternIds,
+      opts.usedPatterns,
+    ),
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    buildTimesSection(opts.simulationSettings.timing),
+    [],
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    [
+      "[REPORT]",
+      `Status\t${opts.simulationSettings.statusReport}`,
+      "Summary\tNo",
+      "Page\t0",
+      ...(opts.simulationSettings.reportEnergy ? ["Energy\tYES"] : []),
+    ],
+    [],
+    { alwaysWrite: true },
+  );
+  yield* emitSection(
+    state,
+    [
+      "[OPTIONS]",
+      `Quality\t${buildQualityValue(opts.simulationSettings, hydraulicModel, idMap)}`,
+      `Unbalanced\t${buildUnbalancedValue(opts.simulationSettings) ?? defaultUnbalanced}`,
+      `Accuracy\t${opts.simulationSettings.accuracy ?? defaultAccuracy}`,
+      `Units\t${units}`,
+      ...(!isDefaultPressureForSystem(units, opts.units.pressure as string)
+        ? [`Pressure\t${unitToEpanetPressure[opts.units.pressure as string]}`]
+        : []),
+      `Headloss\t${headlossFormula}`,
+      `Demand Multiplier\t${opts.simulationSettings.globalDemandMultiplier}`,
+      `Demand Model\t${opts.simulationSettings.demandModel}`,
+      ...(opts.simulationSettings.demandModel === "PDA"
+        ? [
+            `Minimum Pressure\t${opts.simulationSettings.minimumPressure}`,
+            `Required Pressure\t${opts.simulationSettings.requiredPressure}`,
+            `Pressure Exponent\t${opts.simulationSettings.pressureExponent}`,
+          ]
+        : []),
+      `Emitter Exponent\t${opts.simulationSettings.emitterExponent}`,
+      ...(!opts.simulationSettings.backflowAllowed
+        ? [`Backflow Allowed\tNO`]
+        : []),
+      ...(opts.simulationSettings.trials !== undefined
+        ? [`Trials\t${opts.simulationSettings.trials}`]
+        : []),
+      ...(opts.simulationSettings.headError !== undefined &&
+      opts.simulationSettings.headError !== defaultHydraulicsValues.headError
+        ? [`Headerror\t${opts.simulationSettings.headError}`]
+        : []),
+      ...(opts.simulationSettings.flowChange !== undefined &&
+      opts.simulationSettings.flowChange !== defaultHydraulicsValues.flowChange
+        ? [`Flowchange\t${opts.simulationSettings.flowChange}`]
+        : []),
+      ...(opts.simulationSettings.checkFreq !== undefined &&
+      opts.simulationSettings.checkFreq !== defaultHydraulicsValues.checkFreq
+        ? [`Checkfreq\t${opts.simulationSettings.checkFreq}`]
+        : []),
+      ...(opts.simulationSettings.maxCheck !== undefined &&
+      opts.simulationSettings.maxCheck !== defaultHydraulicsValues.maxCheck
+        ? [`Maxcheck\t${opts.simulationSettings.maxCheck}`]
+        : []),
+      ...(opts.simulationSettings.dampLimit !== undefined &&
+      opts.simulationSettings.dampLimit !== defaultHydraulicsValues.dampLimit
+        ? [`Damplimit\t${opts.simulationSettings.dampLimit}`]
+        : []),
+      ...(opts.simulationSettings.viscosity !== undefined &&
+      opts.simulationSettings.viscosity !== defaultHydraulicsValues.viscosity
+        ? [`Viscosity\t${opts.simulationSettings.viscosity}`]
+        : []),
+      ...(opts.simulationSettings.specificGravity !== undefined &&
+      opts.simulationSettings.specificGravity !==
+        defaultHydraulicsValues.specificGravity
+        ? [`Specific Gravity\t${opts.simulationSettings.specificGravity}`]
+        : []),
+      ...(opts.simulationSettings.tolerance !==
+      defaultWaterQualityValues.tolerance
+        ? [`Tolerance\t${opts.simulationSettings.tolerance}`]
+        : []),
+      ...(opts.simulationSettings.diffusivity !==
+      defaultWaterQualityValues.diffusivity
+        ? [`Diffusivity\t${opts.simulationSettings.diffusivity}`]
+        : []),
+      `Pattern\t${idMap.registerPatternId({ id: defaultConstantPatternId, label: "constant" })}`,
+    ],
+    [],
+    { alwaysWrite: true },
+  );
+  if (opts.includeQuality) {
+    yield* emitSection(
+      state,
+      ["[QUALITY]", ";Node\tInitialQuality"],
+      qualityRows(hydraulicModel, idMap),
+    );
+    yield* emitSection(
+      state,
+      ["[MIXING]", ";Tank\tModel\tFraction"],
+      mixingRows(hydraulicModel, idMap),
+    );
+    yield* emitSection(
+      state,
+      ["[SOURCES]", ";Node\tType\tStrength\tPattern"],
+      sourceRows(hydraulicModel, idMap),
     );
   }
-  if (pipe.wallReactionCoeff !== undefined) {
-    sections.reactions.push(
-      `Wall\t${idMap.linkId(pipe)}\t${pipe.wallReactionCoeff}`,
+  yield* emitSection(
+    state,
+    ["[REACTIONS]"],
+    reactionRows(
+      hydraulicModel,
+      idMap,
+      opts.simulationSettings,
+      opts.includeQuality,
+    ),
+  );
+  yield* emitSection(
+    state,
+    ["[ENERGY]"],
+    energyRows(hydraulicModel, idMap, opts.simulationSettings),
+  );
+  if (opts.geolocation) {
+    yield* emitSection(
+      state,
+      [
+        "[BACKDROP]",
+        `Units\t${opts.projection ? getBackdropUnits(opts.projection) : "DEGREES"}`,
+      ],
+      [],
+      { alwaysWrite: true },
+    );
+    yield* emitSection(
+      state,
+      ["[COORDINATES]", ";Node\tX-coord\tY-coord"],
+      coordinateRows(hydraulicModel, idMap, transformCoord),
+      { alwaysWrite: true },
+    );
+    yield* emitSection(
+      state,
+      ["[VERTICES]", ";link\tX-coord\tY-coord"],
+      vertexRows(hydraulicModel, idMap, transformCoord),
+      { alwaysWrite: true },
     );
   }
+  yield* emitSection(
+    state,
+    ["[CONTROLS]"],
+    controlRows(hydraulicModel, idMap, opts.excludeInactiveControls),
+  );
+  yield* emitSection(
+    state,
+    ["[RULES]"],
+    ruleRows(hydraulicModel, idMap, opts.excludeInactiveControls),
+  );
+  yield* emitSection(state, ["[END]"], [], { alwaysWrite: true });
+}
+
+type EmitState = { atFileStart: boolean };
+
+const lineChunk = (
+  state: EmitState,
+  line: string,
+  startsSection: boolean,
+): string => {
+  if (state.atFileStart) {
+    state.atFileStart = false;
+    return line;
+  }
+  return startsSection ? "\n\n" + line : "\n" + line;
 };
 
-const appendTankReaction = (
-  sections: InpSections,
+function* emitHeader(
+  state: EmitState,
+  headerLines: string[],
+): Generator<string> {
+  for (let i = 0; i < headerLines.length; i++) {
+    yield lineChunk(state, headerLines[i], i === 0);
+  }
+}
+
+function* emitSection(
+  state: EmitState,
+  headerLines: string[],
+  rows: Iterable<string>,
+  { alwaysWrite = false }: { alwaysWrite?: boolean } = {},
+): Generator<string> {
+  let headerWritten = false;
+  for (const row of rows) {
+    if (!headerWritten) {
+      yield* emitHeader(state, headerLines);
+      headerWritten = true;
+    }
+    yield lineChunk(state, row, false);
+  }
+  if (alwaysWrite && !headerWritten) {
+    yield* emitHeader(state, headerLines);
+  }
+}
+
+const collectUsedIds = (
+  hydraulicModel: HydraulicModel,
+  opts: ResolvedBuildOptions,
+): { usedPatternIds: Set<number>; usedCurveIds: Set<number> } => {
+  const usedPatternIds = new Set<number>();
+  const usedCurveIds = new Set<number>();
+
+  if (opts.simulationSettings.energyGlobalPatternId !== null) {
+    usedPatternIds.add(opts.simulationSettings.energyGlobalPatternId);
+  }
+
+  const collectSourcePattern = (node: NodeAsset) => {
+    if (!opts.includeQuality) return;
+    const typedNode = node as Junction | Tank | Reservoir;
+    if (!typedNode.chemicalSourceType) return;
+    if (typedNode.chemicalSourcePatternId) {
+      usedPatternIds.add(typedNode.chemicalSourcePatternId);
+    }
+  };
+
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "reservoir") {
+      const reservoir = asset as Reservoir;
+      if (reservoir.isActive && reservoir.headPatternId) {
+        usedPatternIds.add(reservoir.headPatternId);
+      }
+      collectSourcePattern(reservoir);
+    }
+
+    if (asset.type === "tank") {
+      const tank = asset as Tank;
+      if (tank.isActive && tank.volumeCurveId) {
+        usedCurveIds.add(tank.volumeCurveId);
+      }
+      collectSourcePattern(tank);
+    }
+
+    if (asset.type === "junction") {
+      const junction = asset as Junction;
+      if (junction.isActive) {
+        for (const demand of getJunctionDemands(
+          hydraulicModel.demands,
+          junction.id,
+        )) {
+          if (demand.baseDemand === 0 || !demand.patternId) continue;
+          usedPatternIds.add(demand.patternId);
+        }
+        if (opts.customerDemands) {
+          const customerPoints = getActiveCustomerPoints(
+            hydraulicModel.customerPointsLookup,
+            hydraulicModel.assets,
+            junction.id,
+          );
+          for (const cp of customerPoints) {
+            for (const demand of getCustomerPointDemands(
+              hydraulicModel.demands,
+              cp.id,
+            )) {
+              if (demand.baseDemand === 0 || !demand.patternId) continue;
+              usedPatternIds.add(demand.patternId);
+            }
+          }
+        }
+      }
+      collectSourcePattern(junction);
+    }
+
+    if (asset.type === "pump") {
+      const pump = asset as Pump;
+      if (pump.isActive) {
+        if (pump.speedPatternId) usedPatternIds.add(pump.speedPatternId);
+        if (pump.definitionType === "curveId" && pump.curveId) {
+          usedCurveIds.add(pump.curveId);
+        }
+        if (pump.efficiencyCurveId) usedCurveIds.add(pump.efficiencyCurveId);
+        if (pump.energyPricePatternId) {
+          usedPatternIds.add(pump.energyPricePatternId);
+        }
+      }
+    }
+
+    if (asset.type === "valve") {
+      const valve = asset as Valve;
+      if (valve.isActive && valve.curveId) usedCurveIds.add(valve.curveId);
+    }
+  }
+
+  return { usedPatternIds, usedCurveIds };
+};
+
+function* junctionRows(
+  hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  tank: Tank,
-) => {
-  if (tank.bulkReactionCoeff !== undefined) {
-    sections.reactions.push(
-      `Tank\t${idMap.nodeId(tank)}\t${tank.bulkReactionCoeff}`,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "junction") continue;
+    const junction = asset as Junction;
+    if (!junction.isActive) continue;
+
+    yield [idMap.nodeId(junction), requiredValue(junction.elevation)].join(
+      "\t",
     );
   }
-};
+}
 
-const appendReservoir = (
-  sections: InpSections,
+function* reservoirRows(
+  hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  geolocation: boolean,
-  reservoir: Reservoir,
-  usedPatternIds: Set<number>,
-  transformCoord: (p: Position) => Position,
-) => {
-  if (!reservoir.isActive) {
-    return;
-  }
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "reservoir") continue;
+    const reservoir = asset as Reservoir;
+    if (!reservoir.isActive) continue;
 
-  const reservoirId = idMap.nodeId(reservoir);
-
-  const columns: (string | number)[] = [
-    reservoirId,
-    requiredValue(reservoir.head),
-  ];
-  if (reservoir.headPatternId) {
-    columns.push(idMap.patternId(reservoir.headPatternId));
-    usedPatternIds.add(reservoir.headPatternId);
+    const columns: (string | number)[] = [
+      idMap.nodeId(reservoir),
+      requiredValue(reservoir.head),
+    ];
+    if (reservoir.headPatternId) {
+      columns.push(idMap.patternId(reservoir.headPatternId));
+    }
+    yield columns.join("\t");
   }
-  sections.reservoirs.push(columns.join("\t"));
-
-  if (geolocation) {
-    appendNodeCoordinates(sections, idMap, reservoir, transformCoord);
-  }
-};
+}
 
 type TankDimension = (value: number | null) => number | string;
 
-const appendTankRow = (
-  sections: InpSections,
+function* tankRows(
+  hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
-  geolocation: boolean,
-  usedCurveIds: Set<number>,
-  tank: Tank,
-  transformCoord: (p: Position) => Position,
-  dimension: TankDimension,
-) => {
-  if (!tank.isActive) {
-    return;
-  }
+  isEps: boolean,
+): Generator<string> {
+  // A steady-state snapshot ignores tank storage geometry, so a missing level
+  // or diameter is coalesced to 0 to let the run proceed instead of writing
+  // MISSING.
+  const dimension: TankDimension = isEps
+    ? requiredValue
+    : (value) => optionalValue(value, 0);
 
-  const tankId = idMap.nodeId(tank);
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "tank") continue;
+    const tank = asset as Tank;
+    if (!tank.isActive) continue;
 
-  sections.tanks.push(
-    [
-      tankId,
+    yield [
+      idMap.nodeId(tank),
       requiredValue(tank.elevation),
       dimension(tank.initialLevel),
       dimension(tank.minLevel),
@@ -906,314 +938,590 @@ const appendTankRow = (
       optionalValue(tank.minVolume, DEFAULT_MIN_VOLUME),
       tank.volumeCurveId ? idMap.curveId(tank.volumeCurveId) : "*",
       tank.overflow ? "YES" : "NO",
-    ].join("\t"),
-  );
-  if (geolocation) {
-    appendNodeCoordinates(sections, idMap, tank, transformCoord);
+    ].join("\t");
   }
-  if (tank.volumeCurveId) usedCurveIds.add(tank.volumeCurveId);
-};
+}
 
-const appendTank = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  geolocation: boolean,
-  usedCurveIds: Set<number>,
-  tank: Tank,
-  transformCoord: (p: Position) => Position,
-) =>
-  appendTankRow(
-    sections,
-    idMap,
-    geolocation,
-    usedCurveIds,
-    tank,
-    transformCoord,
-    requiredValue,
-  );
-
-// A steady-state snapshot ignores tank storage geometry, so a missing level or
-// diameter is coalesced to 0 to let the run proceed instead of writing MISSING.
-const appendTankInSteadyState = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  geolocation: boolean,
-  usedCurveIds: Set<number>,
-  tank: Tank,
-  transformCoord: (p: Position) => Position,
-) =>
-  appendTankRow(
-    sections,
-    idMap,
-    geolocation,
-    usedCurveIds,
-    tank,
-    transformCoord,
-    (value) => optionalValue(value, 0),
-  );
-
-const appendJunction = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  geolocation: boolean,
-  customerDemands: boolean,
-  junction: Junction,
-  customerPointsLookup: CustomerPointsLookup,
-  assets: HydraulicModel["assets"],
-  demands: Demands,
-  usedPatternIds: Set<number>,
-  transformCoord: (p: Position) => Position,
-) => {
-  if (!junction.isActive) {
-    return;
-  }
-
-  const junctionId = idMap.nodeId(junction);
-
-  sections.junctions.push(
-    [junctionId, requiredValue(junction.elevation)].join("\t"),
-  );
-
-  const junctionDemands = getJunctionDemands(demands, junction.id);
-  for (const demand of junctionDemands) {
-    if (demand.baseDemand === 0) continue;
-
-    const demandLine = demand.patternId
-      ? [junctionId, demand.baseDemand, idMap.patternId(demand.patternId)]
-      : [junctionId, demand.baseDemand];
-
-    sections.demands.push(demandLine.join("\t"));
-
-    if (demand.patternId) {
-      usedPatternIds.add(demand.patternId);
-    }
-  }
-
-  if (customerDemands) {
-    const customerPoints = getActiveCustomerPoints(
-      customerPointsLookup,
-      assets,
-      junction.id,
-    );
-
-    const demandsByPattern = new Map<number | undefined, number>();
-    for (const cp of customerPoints) {
-      for (const demand of getCustomerPointDemands(demands, cp.id)) {
-        if (demand.baseDemand === 0) continue;
-        const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
-        demandsByPattern.set(
-          demand.patternId,
-          currentTotal + demand.baseDemand,
-        );
-      }
-    }
-
-    for (const [patternId, totalDemand] of demandsByPattern) {
-      const demandLine = patternId
-        ? [junctionId, totalDemand, idMap.patternId(patternId)]
-        : [junctionId, totalDemand];
-
-      sections.demands.push(demandLine.join("\t"));
-
-      if (patternId) {
-        usedPatternIds.add(patternId);
-      }
-    }
-  }
-
-  if (
-    junction.emitterCoefficient != null &&
-    junction.emitterCoefficient > DEFAULT_EMITTER_COEFFICIENT
-  ) {
-    sections.emitters.push(
-      [junctionId, junction.emitterCoefficient].join("\t"),
-    );
-  }
-
-  if (geolocation) {
-    appendNodeCoordinates(sections, idMap, junction, transformCoord);
-  }
-};
-
-const appendPipe = (
-  sections: InpSections,
-  idMap: EpanetIds,
+function* pipeRows(
   hydraulicModel: HydraulicModel,
-  geolocation: boolean,
-  pipe: Pipe,
-  transformCoord: (p: Position) => Position,
-) => {
-  if (!pipe.isActive) {
-    return;
-  }
-
-  const linkId = idMap.linkId(pipe);
-  const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
-
-  const status = pipeStatusFor(pipe);
-  const columns: (string | number)[] = [
-    linkId,
-    startId,
-    endId,
-    requiredValue(pipe.length),
-    requiredValue(pipe.diameter),
-    requiredValue(pipe.roughness),
-  ];
-  const minorLoss = optionalValue(pipe.minorLoss, DEFAULT_MINOR_LOSS);
-  if (minorLoss !== DEFAULT_MINOR_LOSS || status !== "Open") {
-    columns.push(minorLoss, status);
-  }
-
-  sections.pipes.push(columns.join("\t"));
-  if (geolocation) {
-    appendLinkVertices(sections, idMap, pipe, transformCoord);
-  }
-};
-
-const appendPump = (
-  sections: InpSections,
   idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "pipe") continue;
+    const pipe = asset as Pipe;
+    if (!pipe.isActive) continue;
+
+    const linkId = idMap.linkId(pipe);
+    const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pipe);
+
+    const status = pipeStatusFor(pipe);
+    const columns: (string | number)[] = [
+      linkId,
+      startId,
+      endId,
+      requiredValue(pipe.length),
+      requiredValue(pipe.diameter),
+      requiredValue(pipe.roughness),
+    ];
+    const minorLoss = optionalValue(pipe.minorLoss, DEFAULT_MINOR_LOSS);
+    if (minorLoss !== DEFAULT_MINOR_LOSS || status !== "Open") {
+      columns.push(minorLoss, status);
+    }
+
+    yield columns.join("\t");
+  }
+}
+
+function* pumpRows(
   hydraulicModel: HydraulicModel,
-  geolocation: boolean,
-  usedCurveIds: Set<number>,
-  usedPatternIds: Set<number>,
-  pump: Pump,
-  transformCoord: (p: Position) => Position,
-) => {
-  if (!pump.isActive) {
-    return;
-  }
+  idMap: EpanetIds,
+  pumpLocalCurveId: PumpLocalCurveId,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "pump") continue;
+    const pump = asset as Pump;
+    if (!pump.isActive) continue;
 
-  const linkId = idMap.linkId(pump);
-  const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
+    const linkId = idMap.linkId(pump);
+    const [startId, endId] = getLinkConnectionIds(hydraulicModel, idMap, pump);
 
-  const speedPatternParts: string[] = [];
-  if (pump.speedPatternId) {
-    speedPatternParts.push(`PATTERN ${idMap.patternId(pump.speedPatternId)}`);
-    usedPatternIds.add(pump.speedPatternId);
-  }
-  // EPANET defaults relative speed to 1.0; omit the SPEED keyword when empty.
-  const speedParts = pump.speed != null ? [`SPEED ${pump.speed}`] : [];
-  switch (pump.definitionType) {
-    case "power":
-      sections.pumps.push(
-        [
+    const speedPatternParts: string[] = [];
+    if (pump.speedPatternId) {
+      speedPatternParts.push(`PATTERN ${idMap.patternId(pump.speedPatternId)}`);
+    }
+    // EPANET defaults relative speed to 1.0; omit the SPEED keyword when empty.
+    const speedParts = pump.speed != null ? [`SPEED ${pump.speed}`] : [];
+    switch (pump.definitionType) {
+      case "power":
+        yield [
           linkId,
           startId,
           endId,
           `POWER ${requiredValue(pump.power)}`,
           ...speedParts,
           ...speedPatternParts,
-        ].join("\t"),
-      );
-      break;
-    case "designPointCurve":
-    case "standardCurve": {
-      const curvePoints = pump.curve ?? [];
-      const hasCurve = curvePoints.length > 0;
-      const localCurveId = hasCurve
-        ? idMap.localCurveId(pump.label, linkId)
-        : MISSING_VALUE;
-      sections.pumps.push(
-        [
+        ].join("\t");
+        break;
+      case "designPointCurve":
+      case "standardCurve": {
+        const curvePoints = pump.curve ?? [];
+        const hasCurve = curvePoints.length > 0;
+        const localCurveId = hasCurve
+          ? pumpLocalCurveId(pump, linkId)
+          : MISSING_VALUE;
+        yield [
           linkId,
           startId,
           endId,
           `HEAD ${localCurveId}`,
           ...speedParts,
           ...speedPatternParts,
-        ].join("\t"),
-      );
-      if (hasCurve) {
-        sections.curves.push(";PUMP:");
-        curvePoints.forEach((point) =>
-          sections.curves.push(
-            [localCurveId, String(point.x), String(point.y)].join("\t"),
-          ),
-        );
+        ].join("\t");
+        break;
       }
-      break;
-    }
-    case "curveId":
-      const curveId = pump.curveId
-        ? idMap.curveId(pump.curveId)
-        : MISSING_VALUE;
+      case "curveId":
+        const curveId = pump.curveId
+          ? idMap.curveId(pump.curveId)
+          : MISSING_VALUE;
 
-      sections.pumps.push(
-        [
+        yield [
           linkId,
           startId,
           endId,
           `HEAD ${curveId}`,
           ...speedParts,
           ...speedPatternParts,
-        ].join("\t"),
+        ].join("\t");
+    }
+  }
+}
+
+function* valveRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "valve") continue;
+    const valve = asset as Valve;
+    if (!valve.isActive) continue;
+
+    const linkId = idMap.linkId(valve);
+    const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "";
+
+    const valveData = [
+      linkId,
+      ...getLinkConnectionIds(hydraulicModel, idMap, valve),
+      String(requiredValue(valve.diameter)),
+      kindFor(valve),
+      valve.kind === "gpv"
+        ? valveCurveId
+        : String(requiredValue(valve.setting)),
+      String(optionalValue(valve.minorLoss, DEFAULT_MINOR_LOSS)),
+    ];
+    if (valve.kind === "pcv") {
+      valveData.push(valveCurveId);
+    }
+
+    yield valveData.join("\t");
+  }
+}
+
+function* demandRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  customerDemands: boolean,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "junction") continue;
+    const junction = asset as Junction;
+    if (!junction.isActive) continue;
+
+    const junctionId = idMap.nodeId(junction);
+
+    for (const demand of getJunctionDemands(
+      hydraulicModel.demands,
+      junction.id,
+    )) {
+      if (demand.baseDemand === 0) continue;
+
+      const demandLine = demand.patternId
+        ? [junctionId, demand.baseDemand, idMap.patternId(demand.patternId)]
+        : [junctionId, demand.baseDemand];
+
+      yield demandLine.join("\t");
+    }
+
+    if (customerDemands) {
+      const customerPoints = getActiveCustomerPoints(
+        hydraulicModel.customerPointsLookup,
+        hydraulicModel.assets,
+        junction.id,
       );
-      if (pump.curveId) usedCurveIds.add(pump.curveId);
-  }
 
-  sections.status.push([linkId, pumpStatusFor(pump)].join("\t"));
+      const demandsByPattern = new Map<number | undefined, number>();
+      for (const cp of customerPoints) {
+        for (const demand of getCustomerPointDemands(
+          hydraulicModel.demands,
+          cp.id,
+        )) {
+          if (demand.baseDemand === 0) continue;
+          const currentTotal = demandsByPattern.get(demand.patternId) ?? 0;
+          demandsByPattern.set(
+            demand.patternId,
+            currentTotal + demand.baseDemand,
+          );
+        }
+      }
 
-  if (pump.efficiencyCurveId) {
-    sections.energy.push(
-      `Pump ${linkId} Efficiency\t${idMap.curveId(pump.efficiencyCurveId)}`,
-    );
-    usedCurveIds.add(pump.efficiencyCurveId);
-  }
-  if (pump.energyPrice !== undefined) {
-    sections.energy.push(`Pump ${linkId} Price\t${pump.energyPrice}`);
-  }
-  if (pump.energyPricePatternId) {
-    sections.energy.push(
-      `Pump ${linkId} Pattern\t${idMap.patternId(pump.energyPricePatternId)}`,
-    );
-    usedPatternIds.add(pump.energyPricePatternId);
-  }
+      for (const [patternId, totalDemand] of demandsByPattern) {
+        const demandLine = patternId
+          ? [junctionId, totalDemand, idMap.patternId(patternId)]
+          : [junctionId, totalDemand];
 
-  if (geolocation) {
-    appendLinkVertices(sections, idMap, pump, transformCoord);
+        yield demandLine.join("\t");
+      }
+    }
   }
+}
+
+function* emitterRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "junction") continue;
+    const junction = asset as Junction;
+    if (!junction.isActive) continue;
+
+    if (
+      junction.emitterCoefficient != null &&
+      junction.emitterCoefficient > DEFAULT_EMITTER_COEFFICIENT
+    ) {
+      yield [idMap.nodeId(junction), junction.emitterCoefficient].join("\t");
+    }
+  }
+}
+
+function* statusRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "pump") {
+      const pump = asset as Pump;
+      if (!pump.isActive) continue;
+      yield [idMap.linkId(pump), pumpStatusFor(pump)].join("\t");
+    }
+
+    if (asset.type === "valve") {
+      const valve = asset as Valve;
+      if (!valve.isActive) continue;
+      if (valve.initialStatus !== "active") {
+        yield [idMap.linkId(valve), valveFixedStatusFor(valve)].join("\t");
+      }
+    }
+  }
+}
+
+const CURVE_TYPE_TO_KEYWORD: Record<string, string> = {
+  pump: "PUMP",
+  efficiency: "EFFICIENCY",
+  volume: "VOLUME",
+  headloss: "HEADLOSS",
+  valve: "VALVE",
 };
 
-const appendValve = (
-  sections: InpSections,
-  idMap: EpanetIds,
+function* curveRows(
   hydraulicModel: HydraulicModel,
-  geolocation: boolean,
+  idMap: EpanetIds,
   usedCurveIds: Set<number>,
-  valve: Valve,
+  usedCurvesOnly: boolean,
+  pumpLocalCurveId: PumpLocalCurveId,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "pump") continue;
+    const pump = asset as Pump;
+    if (!pump.isActive) continue;
+    if (
+      pump.definitionType !== "designPointCurve" &&
+      pump.definitionType !== "standardCurve"
+    ) {
+      continue;
+    }
+
+    const curvePoints = pump.curve ?? [];
+    if (curvePoints.length === 0) continue;
+
+    const localCurveId = pumpLocalCurveId(pump, idMap.linkId(pump));
+    yield ";PUMP:";
+    for (const point of curvePoints) {
+      yield [localCurveId, String(point.x), String(point.y)].join("\t");
+    }
+  }
+
+  for (const curve of hydraulicModel.curves.values()) {
+    if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
+    const curveId = idMap.registerCurveId(curve);
+    const keyword = curve.type ? CURVE_TYPE_TO_KEYWORD[curve.type] : undefined;
+    if (keyword) yield `;${keyword}:`;
+    for (const point of curve.points) {
+      yield [curveId, String(point.x), String(point.y)].join("\t");
+    }
+  }
+}
+
+function* patternRows(
+  patterns: Patterns,
+  idMap: EpanetIds,
+  usedPatternIds: Set<number>,
+  usedPatternsOnly: boolean,
+): Generator<string> {
+  const constantPatternId = idMap.patternId(defaultConstantPatternId);
+  yield [constantPatternId, "1"].join("\t");
+
+  for (const pattern of patterns.values()) {
+    const mappedId = idMap.patternId(pattern.id);
+    if (usedPatternsOnly && !usedPatternIds.has(pattern.id)) continue;
+
+    const FACTORS_PER_LINE = 8;
+    for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {
+      const chunk = pattern.multipliers.slice(i, i + FACTORS_PER_LINE);
+      yield [mappedId, ...chunk.map(String)].join("\t");
+    }
+  }
+}
+
+function* qualityRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (!asset.isNode) continue;
+    const node = asset as Junction | Tank | Reservoir;
+    const value = node.initialQuality;
+    if (value !== undefined && value !== DEFAULT_INITIAL_QUALITY) {
+      yield `${idMap.nodeId(node)}\t${value}`;
+    }
+  }
+}
+
+const MIXING_MODEL_TO_INP: Record<string, string> = {
+  mixed: "MIXED",
+  "2comp": "2COMP",
+  fifo: "FIFO",
+  lifo: "LIFO",
+};
+
+function* mixingRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "tank") continue;
+    const tank = asset as Tank;
+    if (tank.mixingModel === "mixed") continue;
+
+    const model = MIXING_MODEL_TO_INP[tank.mixingModel] ?? "MIXED";
+    yield tank.mixingModel === "2comp"
+      ? `${idMap.nodeId(tank)}\t${model}\t${optionalValue(tank.mixingFraction, DEFAULT_MIXING_FRACTION)}`
+      : `${idMap.nodeId(tank)}\t${model}`;
+  }
+}
+
+function* sourceRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (!asset.isNode) continue;
+    const node = asset as Junction | Tank | Reservoir;
+    const sourceType = node.chemicalSourceType;
+    if (!sourceType) continue;
+
+    const inpType = sourceType.toUpperCase();
+    const strength = node.chemicalSourceStrength ?? 0;
+    const patternId = node.chemicalSourcePatternId;
+    yield patternId
+      ? `${idMap.nodeId(node)}\t${inpType}\t${strength}\t${idMap.patternId(patternId)}`
+      : `${idMap.nodeId(node)}\t${inpType}\t${strength}`;
+  }
+}
+
+function* reactionRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  settings: SimulationSettings,
+  includeQuality: boolean,
+): Generator<string, void, undefined> {
+  yield* globalReactionRows(settings);
+
+  if (!includeQuality) return;
+
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type === "pipe") {
+      const pipe = asset as Pipe;
+      if (pipe.bulkReactionCoeff !== undefined) {
+        yield `Bulk\t${idMap.linkId(pipe)}\t${pipe.bulkReactionCoeff}`;
+      }
+      if (pipe.wallReactionCoeff !== undefined) {
+        yield `Wall\t${idMap.linkId(pipe)}\t${pipe.wallReactionCoeff}`;
+      }
+    }
+
+    if (asset.type === "tank") {
+      const tank = asset as Tank;
+      if (tank.bulkReactionCoeff !== undefined) {
+        yield `Tank\t${idMap.nodeId(tank)}\t${tank.bulkReactionCoeff}`;
+      }
+    }
+  }
+}
+
+function* energyRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  settings: SimulationSettings,
+): Generator<string, void, undefined> {
+  yield* globalEnergyRows(settings, idMap);
+
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "pump") continue;
+    const pump = asset as Pump;
+    if (!pump.isActive) continue;
+
+    const linkId = idMap.linkId(pump);
+    if (pump.efficiencyCurveId) {
+      yield `Pump ${linkId} Efficiency\t${idMap.curveId(pump.efficiencyCurveId)}`;
+    }
+    if (pump.energyPrice !== undefined) {
+      yield `Pump ${linkId} Price\t${pump.energyPrice}`;
+    }
+    if (pump.energyPricePatternId) {
+      yield `Pump ${linkId} Pattern\t${idMap.patternId(pump.energyPricePatternId)}`;
+    }
+  }
+}
+
+function* coordinateRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
   transformCoord: (p: Position) => Position,
-) => {
-  if (!valve.isActive) {
-    return;
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (!asset.isNode) continue;
+    const node = asset as NodeAsset;
+    if (!node.isActive) continue;
+
+    const coords = transformCoord(node.coordinates);
+    yield [idMap.nodeId(node), ...coords].join("\t");
+  }
+}
+
+function* vertexRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  transformCoord: (p: Position) => Position,
+): Generator<string> {
+  for (const asset of hydraulicModel.assets.values()) {
+    if (!asset.isLink) continue;
+    const link = asset as LinkAsset;
+    if (!link.isActive) continue;
+
+    for (const vertex of link.intermediateVertices) {
+      const coords = transformCoord(vertex);
+      yield [idMap.linkId(link), ...coords].join("\t");
+    }
+  }
+}
+
+function* controlRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  excludeInactiveControls: boolean,
+): Generator<string> {
+  const idResolver: IdResolver = (assetId: AssetId) => {
+    const asset = hydraulicModel.assets.get(assetId);
+    if (!asset) {
+      return String(assetId);
+    }
+    if (asset.isLink) {
+      return idMap.linkId(asset as LinkAsset);
+    } else {
+      return idMap.nodeId(asset as NodeAsset);
+    }
+  };
+
+  const referencesInactiveAsset = (references: AssetReference[]) =>
+    references.some(
+      (reference) => !isAssetInSimulation(hydraulicModel, reference.assetId),
+    );
+
+  for (const control of hydraulicModel.rawControls.simple) {
+    if (
+      excludeInactiveControls &&
+      referencesInactiveAsset(control.assetReferences)
+    ) {
+      continue;
+    }
+    yield formatSimpleControl(control, idResolver);
   }
 
-  const linkId = idMap.linkId(valve);
-  const valveCurveId = valve.curveId ? idMap.curveId(valve.curveId) : "";
+  yield* timedSettingControlRows(
+    hydraulicModel,
+    idMap,
+    excludeInactiveControls,
+  );
+  yield* levelSettingControlRows(
+    hydraulicModel,
+    idMap,
+    excludeInactiveControls,
+  );
+}
 
-  const valveData = [
-    linkId,
-    ...getLinkConnectionIds(hydraulicModel, idMap, valve),
-    String(requiredValue(valve.diameter)),
-    kindFor(valve),
-    valve.kind === "gpv" ? valveCurveId : String(requiredValue(valve.setting)),
-    String(optionalValue(valve.minorLoss, DEFAULT_MINOR_LOSS)),
-  ];
-  if (valve.kind === "pcv") {
-    valveData.push(valveCurveId);
+function* timedSettingControlRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  excludeInactiveControls: boolean,
+): Generator<string> {
+  for (const control of hydraulicModel.controls) {
+    if (control.type !== "timed-setting") continue;
+    if (
+      excludeInactiveControls &&
+      !isAssetInSimulation(hydraulicModel, control.linkId)
+    ) {
+      continue;
+    }
+
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    for (const step of control.steps) {
+      const setting = pumpSettingFor(step.status, step.setting);
+      const settingText =
+        typeof setting === "number" ? String(setting) : setting.toUpperCase();
+      yield `LINK ${linkId} ${settingText} AT TIME ${formatSecondsToTime(step.time)}`;
+    }
   }
-  if (valve.curveId) usedCurveIds.add(valve.curveId);
+}
 
-  sections.valves.push(valveData.join("\t"));
+function* levelSettingControlRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  excludeInactiveControls: boolean,
+): Generator<string> {
+  for (const control of hydraulicModel.controls) {
+    if (control.type !== "level-setting") continue;
+    if (
+      excludeInactiveControls &&
+      (!isAssetInSimulation(hydraulicModel, control.linkId) ||
+        !isAssetInSimulation(hydraulicModel, control.tankId))
+    ) {
+      continue;
+    }
 
-  if (valve.initialStatus !== "active") {
-    const fixedStatus = valveFixedStatusFor(valve);
-    sections.status.push([linkId, fixedStatus].join("\t"));
+    const linkId = resolveLinkId(hydraulicModel, idMap, control.linkId);
+    const tankId = resolveNodeId(hydraulicModel, idMap, control.tankId);
+
+    const onSetting = pumpSettingFor("on", control.on.setting);
+    const onSettingText =
+      typeof onSetting === "number"
+        ? String(onSetting)
+        : onSetting.toUpperCase();
+
+    yield `LINK ${linkId} ${onSettingText} IF NODE ${tankId} BELOW ${control.on.level}`;
+    yield `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${control.off.level}`;
   }
+}
 
-  if (geolocation) {
-    appendLinkVertices(sections, idMap, valve, transformCoord);
+function* ruleRows(
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  excludeInactiveControls: boolean,
+): Generator<string> {
+  const idResolver: IdResolver = (assetId: AssetId) => {
+    const asset = hydraulicModel.assets.get(assetId);
+    if (!asset) {
+      return String(assetId);
+    }
+    if (asset.isLink) {
+      return idMap.linkId(asset as LinkAsset);
+    } else {
+      return idMap.nodeId(asset as NodeAsset);
+    }
+  };
+
+  const referencesInactiveAsset = (references: AssetReference[]) =>
+    references.some(
+      (reference) => !isAssetInSimulation(hydraulicModel, reference.assetId),
+    );
+
+  for (const rule of hydraulicModel.rawControls.rules) {
+    if (
+      excludeInactiveControls &&
+      referencesInactiveAsset(rule.assetReferences)
+    ) {
+      continue;
+    }
+    yield formatRuleBasedControl(rule, idResolver);
   }
+}
+
+const resolveLinkId = (
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  linkId: AssetId,
+): string => {
+  const asset = hydraulicModel.assets.get(linkId);
+  if (!asset) return String(linkId);
+  return idMap.linkId(asset as LinkAsset);
+};
+
+const resolveNodeId = (
+  hydraulicModel: HydraulicModel,
+  idMap: EpanetIds,
+  nodeId: AssetId,
+): string => {
+  const asset = hydraulicModel.assets.get(nodeId);
+  if (!asset) return String(nodeId);
+  return idMap.nodeId(asset as NodeAsset);
 };
 
 const getLinkConnectionIds = (
@@ -1236,28 +1544,6 @@ const getLinkConnectionIds = (
       : MISSING_VALUE;
 
   return [startNodeId, endNodeId];
-};
-
-const appendNodeCoordinates = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  node: NodeAsset,
-  transformCoord: (p: Position) => Position,
-) => {
-  const coords = transformCoord(node.coordinates);
-  sections.coordinates.push([idMap.nodeId(node), ...coords].join("\t"));
-};
-
-const appendLinkVertices = (
-  sections: InpSections,
-  idMap: EpanetIds,
-  link: LinkAsset,
-  transformCoord: (p: Position) => Position,
-) => {
-  for (const vertex of link.intermediateVertices) {
-    const coords = transformCoord(vertex);
-    sections.vertices.push([idMap.linkId(link), ...coords].join("\t"));
-  }
 };
 
 const pipeStatusFor = (pipe: Pipe): SimulationPipeStatus => {
@@ -1306,182 +1592,6 @@ const isAssetInSimulation = (
 ): boolean => {
   const asset = hydraulicModel.assets.get(assetId);
   return !!asset && asset.isActive;
-};
-
-const appendRawControls = (
-  sections: InpSections,
-  rawControls: HydraulicModel["rawControls"],
-  idMap: EpanetIds,
-  hydraulicModel: HydraulicModel,
-  excludeInactiveControls: boolean,
-) => {
-  const idResolver: IdResolver = (assetId: AssetId) => {
-    const asset = hydraulicModel.assets.get(assetId);
-    if (!asset) {
-      return String(assetId);
-    }
-    if (asset.isLink) {
-      return idMap.linkId(asset as LinkAsset);
-    } else {
-      return idMap.nodeId(asset as NodeAsset);
-    }
-  };
-
-  const referencesInactiveAsset = (references: AssetReference[]) =>
-    references.some(
-      (reference) => !isAssetInSimulation(hydraulicModel, reference.assetId),
-    );
-
-  for (const control of rawControls.simple) {
-    if (
-      excludeInactiveControls &&
-      referencesInactiveAsset(control.assetReferences)
-    ) {
-      continue;
-    }
-    sections.controls.push(formatSimpleControl(control, idResolver));
-  }
-
-  for (const rule of rawControls.rules) {
-    if (
-      excludeInactiveControls &&
-      referencesInactiveAsset(rule.assetReferences)
-    ) {
-      continue;
-    }
-    sections.rules.push(formatRuleBasedControl(rule, idResolver));
-  }
-};
-
-const appendTimedSettingControls = (
-  sections: InpSections,
-  controls: HydraulicModel["controls"],
-  idMap: EpanetIds,
-  hydraulicModel: HydraulicModel,
-  excludeInactiveControls: boolean,
-) => {
-  const resolveLinkId = (linkId: AssetId): string => {
-    const asset = hydraulicModel.assets.get(linkId);
-    if (!asset) return String(linkId);
-    return idMap.linkId(asset as LinkAsset);
-  };
-
-  for (const control of controls) {
-    if (control.type !== "timed-setting") continue;
-    if (
-      excludeInactiveControls &&
-      !isAssetInSimulation(hydraulicModel, control.linkId)
-    ) {
-      continue;
-    }
-
-    const linkId = resolveLinkId(control.linkId);
-    for (const step of control.steps) {
-      const setting = pumpSettingFor(step.status, step.setting);
-      const settingText =
-        typeof setting === "number" ? String(setting) : setting.toUpperCase();
-      sections.controls.push(
-        `LINK ${linkId} ${settingText} AT TIME ${formatSecondsToTime(step.time)}`,
-      );
-    }
-  }
-};
-
-const appendLevelSettingControls = (
-  sections: InpSections,
-  controls: HydraulicModel["controls"],
-  idMap: EpanetIds,
-  hydraulicModel: HydraulicModel,
-  excludeInactiveControls: boolean,
-) => {
-  const resolveLinkId = (linkId: AssetId): string => {
-    const asset = hydraulicModel.assets.get(linkId);
-    if (!asset) return String(linkId);
-    return idMap.linkId(asset as LinkAsset);
-  };
-
-  const resolveNodeId = (nodeId: AssetId): string => {
-    const asset = hydraulicModel.assets.get(nodeId);
-    if (!asset) return String(nodeId);
-    return idMap.nodeId(asset as NodeAsset);
-  };
-
-  for (const control of controls) {
-    if (control.type !== "level-setting") continue;
-    if (
-      excludeInactiveControls &&
-      (!isAssetInSimulation(hydraulicModel, control.linkId) ||
-        !isAssetInSimulation(hydraulicModel, control.tankId))
-    ) {
-      continue;
-    }
-
-    const linkId = resolveLinkId(control.linkId);
-    const tankId = resolveNodeId(control.tankId);
-
-    const onSetting = pumpSettingFor("on", control.on.setting);
-    const onSettingText =
-      typeof onSetting === "number"
-        ? String(onSetting)
-        : onSetting.toUpperCase();
-
-    sections.controls.push(
-      `LINK ${linkId} ${onSettingText} IF NODE ${tankId} BELOW ${control.on.level}`,
-    );
-    sections.controls.push(
-      `LINK ${linkId} CLOSED IF NODE ${tankId} ABOVE ${control.off.level}`,
-    );
-  }
-};
-
-const CURVE_TYPE_TO_KEYWORD: Record<string, string> = {
-  pump: "PUMP",
-  efficiency: "EFFICIENCY",
-  volume: "VOLUME",
-  headloss: "HEADLOSS",
-  valve: "VALVE",
-};
-
-const appendCurves = (
-  sections: InpSections,
-  curves: HydraulicModel["curves"],
-  usedCurveIds: Set<number>,
-  idMap: EpanetIds,
-  usedCurvesOnly: boolean,
-) => {
-  for (const curve of curves.values()) {
-    if (usedCurvesOnly && !usedCurveIds.has(curve.id)) continue;
-    const curveId = idMap.registerCurveId(curve);
-    const keyword = curve.type ? CURVE_TYPE_TO_KEYWORD[curve.type] : undefined;
-    if (keyword) sections.curves.push(`;${keyword}:`);
-    for (const point of curve.points) {
-      sections.curves.push(
-        [curveId, String(point.x), String(point.y)].join("\t"),
-      );
-    }
-  }
-};
-
-const appendPatterns = (
-  sections: InpSections,
-  patterns: Patterns,
-  usedPatternIds: Set<number>,
-  idMap: EpanetIds,
-  usedPatternsOnly: boolean,
-) => {
-  const constantPatternId = idMap.patternId(defaultConstantPatternId);
-  sections.patterns.push([constantPatternId, "1"].join("\t"));
-
-  for (const pattern of patterns.values()) {
-    const mappedId = idMap.patternId(pattern.id);
-    if (usedPatternsOnly && !usedPatternIds.has(pattern.id)) continue;
-
-    const FACTORS_PER_LINE = 8;
-    for (let i = 0; i < pattern.multipliers.length; i += FACTORS_PER_LINE) {
-      const chunk = pattern.multipliers.slice(i, i + FACTORS_PER_LINE);
-      sections.patterns.push([mappedId, ...chunk.map(String)].join("\t"));
-    }
-  }
 };
 
 const requiredValue = <T>(value: T | undefined | null): T | string =>

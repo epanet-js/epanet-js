@@ -1,6 +1,6 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { SimulationSettingsBuilder } from "src/__helpers__/simulation-settings-builder";
-import { buildInp } from "./build-inp";
+import { buildInp, buildInpToFile } from "./build-inp";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
 
@@ -2691,5 +2691,34 @@ describe("build inp with null attributes", () => {
     const inp = inpFor(hydraulicModel);
 
     expect(inp).toContain("MISSING");
+  });
+});
+
+describe("build inp to file", () => {
+  it("streams the same content as the in-memory build", async () => {
+    const IDS = { J1: 1, J2: 2, P1: 3 } as const;
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1, { elevation: 10 })
+      .aJunction(IDS.J2, { elevation: 20 })
+      .aPipe(IDS.P1, { startNodeId: IDS.J1, endNodeId: IDS.J2 })
+      .build();
+    const buildOptions = {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+      geolocation: true,
+      madeBy: true,
+    };
+    const chunks: string[] = [];
+    const file = {
+      write: (chunk: string) => {
+        chunks.push(chunk);
+        return Promise.resolve();
+      },
+    } as unknown as FileSystemWritableFileStream;
+
+    await buildInpToFile(file, hydraulicModel, buildOptions);
+
+    expect(chunks.join("")).toEqual(buildInp(hydraulicModel, buildOptions));
+    expect(chunks.length).toBeGreaterThan(1);
   });
 });

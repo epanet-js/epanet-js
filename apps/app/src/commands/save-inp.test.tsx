@@ -6,18 +6,25 @@ import userEvent from "@testing-library/user-event";
 import { useSaveInp } from "./save-inp";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import {
-  buildFileSystemHandleMock,
-  lastSaveCall,
-  stubFileSave,
-  stubFileSaveError,
-} from "src/__helpers__/browser-fs-mock";
+import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 
 describe("save inp", () => {
+  beforeEach(() => {
+    vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
+      true,
+    );
+    vi.spyOn(FileSystemHelpers, "triggerDownload").mockResolvedValue(undefined);
+  });
+
   it("serializes the model into an inp representation", async () => {
     const IDS = { J1: 1 } as const;
-    const newHandle = stubFileSave({ fileName: "my-network.inp" });
+    const { handle, chunks } = buildWritableHandleMock({
+      fileName: "my-network.inp",
+    });
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      handle,
+    );
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
@@ -29,21 +36,19 @@ describe("save inp", () => {
 
     await triggerSave();
 
-    const lastSave = lastSaveCall();
-    expect(await (await lastSave.contentBlob).text()).toContain("J1");
-    expect(lastSave.options).toEqual({
-      fileName: "my-network.inp",
-      extensions: [".inp"],
-      description: ".INP",
-      mimeTypes: ["text/plain"],
-    });
-    expect(lastSave.handle).toEqual(null);
+    expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalledWith(
+      "my-network.inp",
+      ".INP",
+      "text/plain",
+      ".inp",
+    );
+    expect(chunks.join("")).toContain("J1");
 
     const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual({
       modelVersion: hydraulicModel.version,
       name: "my-network.inp",
-      handle: newHandle,
+      handle,
       options: { type: "inp" },
       isMadeByApp: true,
       isDemoNetwork: false,
@@ -53,8 +58,12 @@ describe("save inp", () => {
   });
 
   it("reuses previous file handle when available", async () => {
-    const oldHandle = buildFileSystemHandleMock();
-    const newHandle = stubFileSave();
+    const { handle: oldHandle } = buildWritableHandleMock({
+      fileName: "NAME",
+    });
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      buildWritableHandleMock().handle,
+    );
     const store = setInitialState({
       fileInfo: aFileInfo({
         modelVersion: "ANY",
@@ -70,19 +79,25 @@ describe("save inp", () => {
     await triggerSave();
     await waitForNotLoading();
 
-    const lastSave = lastSaveCall();
+    expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
+    expect(oldHandle.createWritable).toHaveBeenCalled();
+
     const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
-        handle: newHandle,
+        handle: oldHandle,
       }),
     );
-    expect(lastSave.handle).toEqual(oldHandle);
   });
 
   it("forces new handle when saving as", async () => {
-    const oldHandle = buildFileSystemHandleMock();
-    const newHandle = stubFileSave();
+    const { handle: oldHandle } = buildWritableHandleMock();
+    const { handle: newHandle } = buildWritableHandleMock({
+      fileName: "other.inp",
+    });
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockResolvedValue(
+      newHandle,
+    );
     const store = setInitialState({
       fileInfo: aFileInfo({
         modelVersion: "ANY",
@@ -96,19 +111,56 @@ describe("save inp", () => {
 
     await triggerSaveAs();
 
-    const lastSave = lastSaveCall();
+    expect(FileSystemHelpers.openFileInFileSystem).toHaveBeenCalled();
+    expect(oldHandle.createWritable).not.toHaveBeenCalled();
+
     const fileInfo = store.get(inpFileInfoAtom);
     expect(fileInfo).toEqual(
       expect.objectContaining({
         handle: newHandle,
       }),
     );
-    expect(lastSave.handle).toBeNull();
+  });
+
+  it("writes to a temporary OPFS file and triggers a download when native FS is unavailable", async () => {
+    const IDS = { J1: 1 } as const;
+    vi.spyOn(FileSystemHelpers, "isFileSystemAccessSupported").mockReturnValue(
+      false,
+    );
+    const { handle, chunks } = buildWritableHandleMock({
+      fileName: "my-network.inp",
+    });
+    vi.spyOn(FileSystemHelpers, "openFileInOpfs").mockResolvedValue(handle);
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem");
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aJunction(IDS.J1)
+      .build();
+    const store = setInitialState({
+      hydraulicModel,
+    });
+
+    renderComponent({ store });
+
+    await triggerSave();
+
+    expect(FileSystemHelpers.openFileInOpfs).toHaveBeenCalledWith(
+      "my-network.inp",
+    );
+    expect(FileSystemHelpers.openFileInFileSystem).not.toHaveBeenCalled();
+    expect(chunks.join("")).toContain("J1");
+    expect(FileSystemHelpers.triggerDownload).toHaveBeenCalledWith(
+      "my-network.inp",
+      handle,
+    );
+    expect(store.get(inpFileInfoAtom)).toBeNull();
+    expect(screen.getByText(/exported as inp/i)).toBeInTheDocument();
   });
 
   it("displays an error when not saved", async () => {
     const IDS = { J1: 1 } as const;
-    stubFileSaveError();
+    vi.spyOn(FileSystemHelpers, "openFileInFileSystem").mockRejectedValue(
+      new Error("Something went wrong"),
+    );
     const hydraulicModel = HydraulicModelBuilder.with()
       .aJunction(IDS.J1)
       .build();
@@ -121,6 +173,27 @@ describe("save inp", () => {
 
     expect(screen.getByText(/canceled exporting inp/i)).toBeInTheDocument();
   });
+
+  const buildWritableHandleMock = ({
+    fileName = "mock.inp",
+  }: { fileName?: string } = {}) => {
+    const chunks: string[] = [];
+    const handle = {
+      name: fileName,
+      kind: "file",
+      createWritable: vi.fn(() =>
+        Promise.resolve({
+          write: vi.fn((chunk: string) => {
+            chunks.push(chunk);
+            return Promise.resolve();
+          }),
+          close: vi.fn(() => Promise.resolve()),
+          abort: vi.fn(() => Promise.resolve()),
+        } as unknown as FileSystemWritableFileStream),
+      ),
+    } as unknown as FileSystemFileHandle;
+    return { handle, chunks };
+  };
 
   const triggerSave = async () => {
     await userEvent.click(screen.getByRole("button", { name: "saveInp" }));
