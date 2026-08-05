@@ -1,9 +1,9 @@
 import { FileSystemHelpers } from "./file-system-helpers";
-import { createTempFile } from "src/infra/storage";
+import { createTempFile } from "./opfs-storage";
 import { getAppId } from "src/infra/app-instance";
 
-vi.mock("src/infra/storage", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("src/infra/storage")>()),
+vi.mock("./opfs-storage", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./opfs-storage")>()),
   createTempFile: vi.fn(),
 }));
 vi.mock("src/infra/app-instance", async (importOriginal) => ({

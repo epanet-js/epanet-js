@@ -6,7 +6,7 @@ import {
   SimulationResultsOptions,
 } from "../types";
 import { EPSResultsReader } from "src/simulation";
-import { FileSystemHelpers } from "../file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
 import { NUM_DECIMAL_PLACES } from "../constants";
 

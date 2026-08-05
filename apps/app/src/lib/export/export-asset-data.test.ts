@@ -2,7 +2,7 @@ import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { ResultsReader } from "src/simulation";
 import { exportAssetData } from "./export-asset-data";
 import { AssetExporters } from "./asset-exporters";
-import { FileSystemHelpers } from "./file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { WGS84 } from "src/lib/projections";
 
 const mockHandle = {} as FileSystemFileHandle;

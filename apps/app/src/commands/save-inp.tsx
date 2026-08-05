@@ -12,7 +12,7 @@ import { useAtomCallback } from "jotai/utils";
 import { useCallback, useContext } from "react";
 import { MapContext, captureThumbnail } from "src/map";
 import { buildInpToFile } from "src/simulation/build-inp";
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { useTranslate } from "src/hooks/use-translate";
 import { useAtomValue, useSetAtom } from "jotai";
 import { notify } from "src/components/notifications";

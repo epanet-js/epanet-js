@@ -14,14 +14,14 @@ const mockHandle = {
   ),
 } as unknown as FileSystemFileHandle;
 
-vi.mock("src/lib/export/file-system-helpers", () => ({
+vi.mock("src/infra/storage/file-system-helpers", () => ({
   FileSystemHelpers: {
     openFileInOpfs: vi.fn(() => Promise.resolve(mockHandle)),
     triggerDownload: vi.fn(() => Promise.resolve()),
   },
 }));
 
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage/file-system-helpers";
 
 const materials: PipeMaterial[] = [
   { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },

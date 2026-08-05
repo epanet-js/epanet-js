@@ -1,5 +1,5 @@
 import { getAppId } from "src/infra/app-instance";
-import { createTempFile } from "src/infra/storage";
+import { createTempFile } from "./opfs-storage";
 
 const openFileInOpfs = async (
   fileName: string,

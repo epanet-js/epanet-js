@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { EPSResultsReader } from "src/simulation";
 import { TimeSeries } from "src/simulation/epanet/eps-results-reader";
-import { FileSystemHelpers } from "../file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { exportXlsxSimulationResults } from "./export-xlsx-simulation-results";
 import { NUM_DECIMAL_PLACES } from "../constants";
 

@@ -6,7 +6,7 @@ import {
   ExportSimulationResultsProperties,
   SimulationResultsOptions,
 } from "../types";
-import { FileSystemHelpers } from "../file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { NUM_DECIMAL_PLACES } from "../constants";
 
 export const exportXlsxSimulationResults = async (

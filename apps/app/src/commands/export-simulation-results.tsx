@@ -1,7 +1,7 @@
 import { useAtomCallback } from "jotai/utils";
 import { useCallback } from "react";
 import { Export } from "src/lib/export";
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import {
   stagingModelDerivedAtom,
   simulationDerivedAtom,

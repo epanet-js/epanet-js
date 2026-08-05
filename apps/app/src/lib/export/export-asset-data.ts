@@ -1,7 +1,7 @@
 import { TranslateFn } from "@epanet-js/i18n";
 import { HydraulicModel, Projection } from "src/hydraulic-model";
 import { AssetExporters } from "./asset-exporters";
-import { FileSystemHelpers } from "./file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import type { AssetExportOptions, ExportFormat } from "./types";
 
 export const exportAssetData = async (

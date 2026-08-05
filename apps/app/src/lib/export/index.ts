@@ -1,4 +1,4 @@
-import { FileSystemHelpers } from "./file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { exportAssetData } from "./export-asset-data";
 import { exportSimulationResults } from "./export-simulation-results";
 import { estimateSimulationResultsSize } from "./simulation-results";

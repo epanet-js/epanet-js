@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { useSaveInp } from "./save-inp";
 import { aFileInfo, setInitialState } from "src/__helpers__/state";
 import { CommandContainer } from "./__helpers__/command-container";
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import { waitForNotLoading } from "src/__helpers__/ui-expects";
 
 describe("save inp", () => {

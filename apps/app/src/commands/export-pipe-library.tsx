@@ -3,7 +3,7 @@ import { useAtomValue } from "jotai";
 import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { currentFileNameAtom } from "src/state/file-system";
 import { useUserTracking } from "src/infra/user-tracking";
-import { FileSystemHelpers } from "src/lib/export/file-system-helpers";
+import { FileSystemHelpers } from "src/infra/storage";
 import {
   serializeMaterialsToCsv,
   serializeMaterialsToXlsx,
