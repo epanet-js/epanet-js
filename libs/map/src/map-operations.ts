@@ -22,6 +22,8 @@ export type ChangeFlags = {
   selection: boolean;
 };
 export interface MapOperations {
+  prepare?(): Promise<void>;
+
   applyStyle(map: MapEngine, style: Style): Promise<void>;
 
   rebuildDataSources(map: MapEngine, ctx: RawData): Promise<void>;

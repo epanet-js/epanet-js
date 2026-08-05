@@ -91,7 +91,7 @@ Settling then happens out of band, when the map next goes idle.
 
 "Tell the user the map is catching up" and "measure how long a heavy rebuild took, to pace playback" are one question — has the map caught up with the last heavy update? — answered when the map next goes idle. A single predicate defines a heavy update (sync point, import, edits, style, symbology, results, or a large selection). Keeping them one mechanism on one idle signal stops two definitions of "caught up" from drifting apart.
 
-- The indicator always has a path to turn off, including when an apply throws — otherwise a failed heavy apply would leave it stuck on.
+- The indicator always has a path to turn off, including when an apply throws — otherwise a failed heavy apply would leave it stuck on. Settling alone isn't that path: an apply that failed on the style leaves `hasOutstandingHeavyUpdate()` permanently true (the style never loaded), so an apply that has exhausted its retry abandons the settle explicitly instead.
 - Whether heavy work is still outstanding is derived at settle time by comparing the newest requested state against what the map reflects, covering both queued and in-flight work. If so, the indicator stays up and the timing sample is discarded, since it would span unshown work.
 - None of it blocks. Awaiting a settle to measure was the original cause of the playback and zoom stalls; measuring out of band gives the same number without the stall.
 - A duration measured while the tab was hidden is discarded.
@@ -104,8 +104,14 @@ The updater computes *what* the consolidated and editions states should contain 
 
 An alternative backend may be unavailable in a given browser — it can depend on a browser capability the environment doesn't provide (some in-app WebViews lack it). Two guards keep that from showing a blank map, and — because forcing the failure is awkward — **neither has automated coverage**; exercise them by hand when changing this path.
 
-- **Environment gate, before selection.** Backend selection is gated on a support check as well as its flag, so an unsupported browser never selects the alternative backend and renders through geojson from the first frame.
-- **Runtime fallback, after selection.** A backend can still fail to initialize *after* it was chosen. On an unrecoverable failure its `applyStyle` throws `MapBackendUnavailableError` (from `@epanet-js/map`) *before* it touches the map style, so no half-applied style is left behind. The updater catches it by name, reports it **once as a warning** (it's handled, not an error), latches `mapBackendFallbackAtom`, and marks the cycle for re-apply. The latch makes `useMapOperations` return the geojson backend, and because the transactional commit never ran on the throw, the re-apply re-derives the same diff and renders the whole map through geojson for the rest of the session. A reload re-attempts the preferred backend.
+- **Environment gate, before selection.** Backend selection is gated on a support check, so an unsupported browser never selects the alternative backend and renders through geojson from the first frame.
+- **Runtime fallback, after selection.** A backend can still fail to initialize *after* it was chosen. On an unrecoverable failure it throws `MapBackendUnavailableError` (from `@epanet-js/map`) *before* it touches the map style, so no half-applied style is left behind — from its optional `prepare()` where it can, since nothing at all has been touched at that point. The updater catches it by name, reports it **once as a warning** (it's handled, not an error), latches `mapBackendFallbackAtom`, and marks the cycle for re-apply. The latch makes `useMapOperations` return the geojson backend, and because the transactional commit never ran on the throw, the re-apply re-derives the same diff and renders the whole map through geojson for the rest of the session. A reload re-attempts the preferred backend.
+
+### Nothing is torn down until the waiting is done
+
+Applying a style is destructive: `resetMapState` strips every layer and both feature sources, so from that point the map is a bare background until the new style lands. Everything that can wait therefore happens *first* — the basemap fetch (`buildStyle`) and the backend's own readiness (`prepare()`, e.g. a service worker taking control) — and only then does the updater reset and apply.
+
+Rationale: awaiting over a torn-down map showed the user a blank page for the whole wait, and a throw in that window left it blank permanently — the style never loads, so `hasNewStyles` stays true and the settle path never turns the loading indicator off. Keep async work ahead of the teardown.
 
 This leans on two existing invariants — the transactional commit (a throw leaves last-applied untouched, so the retry re-does the work) and the backend seam (swapping `useMapOperations`' return is enough to change *how* state reaches the map). Don't break either without revisiting this fallback.
 
@@ -124,6 +130,7 @@ Each cycle diffs the new state against the last-applied state and produces one f
 - Bake per-feature styling (color, label) into the source at build time; don't push it into live per-frame expressions. Default colors and selection are the intended exceptions, carried as layer paint expressions.
 - Keep change-detection flags identity-based, and keep the heavy-update predicate in step with what actually triggers a full rebuild.
 - When a rendering backend can't run in the current browser, fall back to geojson rather than showing a blank map: gate selection on an environment check, and on a terminal runtime failure throw `MapBackendUnavailableError` so the updater reports once (as a warning) and re-applies through geojson. This path has no test coverage — verify by forcing the failure.
+- Never await anything after `resetMapState` that could have been awaited before it; the map is blank for the whole wait and stays blank if the apply then throws.
 
 ## Testing
 
@@ -135,7 +142,7 @@ Grep the entry symbol to land in the right place:
 
 - Updater and change detection — the `useMapStateUpdates` hook and `detectChanges`, in `state-updates.ts`.
 - Backend interface — the `MapOperations` interface and its default GeoJSON implementation, in `map-operations.ts`.
-- Backend availability + fallback — the support gate applied where an alternative backend is registered, and the `MapBackendUnavailableError` catch that latches `mapBackendFallbackAtom` in the faceted updater (`state-updates-faceted.ts`), which `useMapOperations` reads to return geojson.
+- Backend availability + fallback — the support gate applied where an alternative backend is registered (`libs.private.ts`), and the `MapBackendUnavailableError` catch in `queueUpdate` (`state-updates.ts`) that latches `mapBackendFallbackAtom`, which `useMapOperations` reads to return geojson.
 - Style, sources, and layers — `build-style.ts`, `data-source/`, `layers/`.
 - Symbology rules and how they resolve to per-feature values — `symbology/`.
 - Interaction modes and handlers — `useModeHandlers` and the per-mode handler sets in `mode-handlers/`.

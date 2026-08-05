@@ -621,6 +621,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
     }
   };
 
+  const abandonSettle = () => {
+    settleRef.current = null;
+    setMapLoading(false);
+  };
+
   const queueUpdate = () => {
     if (isRunningRef.current) {
       hasPendingRef.current = true;
@@ -659,6 +664,8 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
               if (!hasRetried) {
                 hasRetried = true;
                 hasPendingRef.current = true;
+              } else {
+                abandonSettle();
               }
             }
           }
@@ -686,9 +693,11 @@ const applyStyles = withDebugInstrumentation(
     gisData: Map<string, import("geojson").FeatureCollection>,
     icons: IconImage[] | null,
   ): Promise<IconImage[]> => {
+    const style = await buildStyle(mapState, translate, gisData);
+    await mapOperations.prepare?.();
+
     map.suspendOverlayStyleReactions();
     resetMapState(map);
-    const style = await buildStyle(mapState, translate, gisData);
     await mapOperations.applyStyle(map, style);
     const iconSprites = icons ?? (await prepareIconsSprite());
     map.addIcons(iconSprites);
