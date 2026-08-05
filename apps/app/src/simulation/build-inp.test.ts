@@ -2719,6 +2719,34 @@ describe("build inp to file", () => {
     await buildInpToFile(file, hydraulicModel, buildOptions);
 
     expect(chunks.join("")).toEqual(buildInp(hydraulicModel, buildOptions));
+    expect(chunks.length).toBe(1);
+  });
+
+  it("flushes large models to the file in bounded chunks", async () => {
+    const IDS = { PAT1: 100 } as const;
+    const bufferSize = 64 * 1024;
+    const multipliers = Array.from({ length: 100_000 }, () => 1);
+    const hydraulicModel = HydraulicModelBuilder.with()
+      .aDemandPattern(IDS.PAT1, "big", multipliers)
+      .build();
+    const buildOptions = {
+      units: presets.LPS.units,
+      simulationSettings: defaultSimulationSettings,
+    };
+    const chunks: string[] = [];
+    const file = {
+      write: (chunk: string) => {
+        chunks.push(chunk);
+        return Promise.resolve();
+      },
+    } as unknown as FileSystemWritableFileStream;
+
+    await buildInpToFile(file, hydraulicModel, buildOptions);
+
+    expect(chunks.join("")).toEqual(buildInp(hydraulicModel, buildOptions));
     expect(chunks.length).toBeGreaterThan(1);
+    for (const chunk of chunks) {
+      expect(chunk.length).toBeLessThan(bufferSize + 1024);
+    }
   });
 });

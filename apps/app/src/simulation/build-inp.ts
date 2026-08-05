@@ -402,14 +402,24 @@ export const buildInp = withDebugInstrumentation(
   { name: "BUILD_INP", maxDurationMs: 1000 },
 );
 
+const FILE_WRITE_BUFFER_SIZE = 64 * 1024;
+
 export const buildInpToFile = withDebugInstrumentation(
   async (
     file: FileSystemWritableFileStream,
     hydraulicModel: HydraulicModel,
     options: BuildOptions,
   ): Promise<void> => {
+    let buffer = "";
     for (const chunk of generateInp(hydraulicModel, options)) {
-      await file.write(chunk);
+      buffer += chunk;
+      if (buffer.length >= FILE_WRITE_BUFFER_SIZE) {
+        await file.write(buffer);
+        buffer = "";
+      }
+    }
+    if (buffer.length > 0) {
+      await file.write(buffer);
     }
   },
   { name: "BUILD_INP_TO_FILE", maxDurationMs: 1000 },
