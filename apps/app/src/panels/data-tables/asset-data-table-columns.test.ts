@@ -1,6 +1,7 @@
 import "src/__helpers__/locale";
 import { describe, it, expect } from "vitest";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
+import { buildRoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import { presets } from "src/lib/project-settings/quantities-spec";
 import type { FormattingSpec } from "src/lib/project-settings/quantities-spec";
 import { defaultSimulationSettings } from "src/simulation/simulation-settings";
@@ -156,5 +157,86 @@ describe("cell validation highlight (meta.hasWarning)", () => {
     const columns = columnsFor("pipe");
     expect(warnsWith(columns, "year", -5)).toBe(true);
     expect(warnsWith(columns, "year", null)).toBe(false);
+  });
+});
+
+describe("pipe roughness default (inferred from the pipe library)", () => {
+  const IDS = { P1: 1 } as const;
+
+  const roughnessDefault = ({
+    material,
+    roughness = null,
+    withLibrary = true,
+  }: {
+    material?: string;
+    roughness?: number | null;
+    withLibrary?: boolean;
+  }) => {
+    const builder = HydraulicModelBuilder.with().aPipe(IDS.P1, {
+      roughness,
+      material,
+    });
+    if (withLibrary) {
+      builder.aPipeMaterial({
+        label: "Cast Iron",
+        entries: [{ age: 0, roughness: 120 }],
+      });
+    }
+    const model = builder.build();
+    const rows = [model.assets.get(IDS.P1)];
+
+    const columns = buildColumns(
+      [],
+      undefined,
+      "pipe",
+      translate,
+      false,
+      units,
+      translateUnit,
+      formatting,
+      model.patterns,
+      model.curves,
+      defaultSimulationSettings,
+      "none",
+      undefined,
+      (rowIndex: number) => rows[rowIndex] as never,
+      { model, simulation: null, translate } as never,
+      undefined,
+      undefined,
+      undefined,
+      buildRoughnessInferrer(model.pipeMaterials, { enabled: true }),
+    ) as GridColumn<never>[];
+
+    const column = columns.find(
+      (c) =>
+        (c.id ?? (c as { accessorKey?: string }).accessorKey) === "roughness",
+    );
+    const defaultValue = column?.meta?.defaultValue as
+      | number
+      | null
+      | ((rowIndex: number) => number | null)
+      | undefined;
+    return typeof defaultValue === "function" ? defaultValue(0) : defaultValue;
+  };
+
+  it("offers the library roughness for a pipe without one", () => {
+    expect(roughnessDefault({ material: "Cast Iron" })).toBe(120);
+  });
+
+  it("offers nothing when the material is not in the library", () => {
+    expect(roughnessDefault({ material: "PVC" })).toBeNull();
+  });
+
+  it("offers nothing when there is no library", () => {
+    expect(
+      roughnessDefault({ material: "Cast Iron", withLibrary: false }),
+    ).toBeNull();
+  });
+
+  it("clears the missing-value warning once a default applies", () => {
+    const columns = columnsFor("pipe");
+
+    expect(warnsWith(columns, "roughness", null)).toBe(true);
+    expect(warnsWith(columns, "roughness", 120)).toBe(false);
   });
 });

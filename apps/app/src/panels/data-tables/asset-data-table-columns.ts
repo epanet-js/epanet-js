@@ -10,7 +10,8 @@ import {
 import type { ReactNode } from "react";
 import type { CustomHeaderAction } from "src/components/data-grid/features";
 import { type CustomAttribute } from "@epanet-js/hydraulic-model";
-import { type Asset } from "@epanet-js/hydraulic-model";
+import { type Asset, type Pipe } from "@epanet-js/hydraulic-model";
+import type { RoughnessInferrer } from "src/hydraulic-model/pipe-materials";
 import {
   type AssetType,
   pipeStatuses,
@@ -464,6 +465,7 @@ type BuildColumnsArgs = [
   customAttributes?: CustomAttribute[],
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
+  inferRoughness?: RoughnessInferrer,
 ];
 
 type ExtraPipeColsFn = (
@@ -588,6 +590,7 @@ function _buildColumns(
   customAttributes: CustomAttribute[] = [],
   customAttributesLock?: AttributesLock,
   labelMaxLength?: number,
+  inferRoughness?: RoughnessInferrer,
 ): GridColumn<AssetRow>[] {
   const ck = makeCk(type, accessorCtx);
   const energyGlobalPatternId = simulationSettings.energyGlobalPatternId;
@@ -603,6 +606,15 @@ function _buildColumns(
   ) => {
     const unitLabel = translateUnit(unit);
     return unitLabel ? `${name} (${unitLabel})` : name;
+  };
+
+  // Shown as the roughness placeholder for a pipe that has none of its own,
+  // the way an EPANET default is for the optional columns.
+  const inferredRoughnessFor = (rowIndex: number): number | null => {
+    const row = getRow?.(rowIndex);
+    return row && inferRoughness
+      ? inferRoughness(row as unknown as Pipe)
+      : null;
   };
 
   const numericCol = (
@@ -837,6 +849,7 @@ function _buildColumns(
         numericCol("roughness", translate("roughness"), {
           unit: units.roughness,
           commitInvalidValues: true,
+          defaultValue: (rowIndex) => inferredRoughnessFor(rowIndex),
         }),
         numericCol("minorLoss", translate("minorLoss"), {
           unit: units.minorLoss,

@@ -77,6 +77,7 @@ import {
   type QualityAnalysisType,
 } from "./asset-data-table-columns";
 import { useLabelMaxLength } from "src/hooks/use-label-max-length";
+import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 
 interface AssetDataTableProps {
   assetType: AssetType;
@@ -167,6 +168,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     () => ({ model: hydraulicModel, simulation, translate }),
     [hydraulicModel, simulation, translate],
   );
+  const inferRoughness = useRoughnessInferrer();
   const customAttributes = useMemo(
     () => getAttributes(hydraulicModel.customAttributes, assetType),
     [hydraulicModel.customAttributes, assetType],
@@ -208,6 +210,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
       customAttributes,
       customAttributesLock,
       labelMaxLength,
+      inferRoughness,
     );
   }, [
     assetType,
@@ -229,6 +232,7 @@ export const AssetDataTable = memo(function AssetDataTableInner({
     accessorCtx,
     customAttributes,
     labelMaxLength,
+    inferRoughness,
   ]);
 
   const onChange = useCallback(
