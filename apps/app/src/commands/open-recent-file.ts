@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useImportInp } from "src/commands/import-inp";
 import { projectExtension } from "src/commands/save-project";
 import { useOpenProjectFile } from "src/commands/open-project";
@@ -18,10 +18,15 @@ export const useOpenRecentFile = () => {
   const checkUnsavedChanges = useUnsavedChangesCheck();
   const { removeRecent } = useRecentFiles();
   const userTracking = useUserTracking();
+  const isOpenInFlightRef = useRef(false);
 
   return useCallback(
     (entry: RecentFileEntry, source: RecentFileOpened["source"]) => {
       checkUnsavedChanges(async () => {
+        // Overlapping opens would run two importProject({newDb: true}) calls
+        // over the same OPFS pool and corrupt its access handles.
+        if (isOpenInFlightRef.current) return;
+        isOpenInFlightRef.current = true;
         try {
           const permission = await entry.handle.requestPermission({
             mode: "read",
@@ -75,6 +80,8 @@ export const useOpenRecentFile = () => {
           });
           captureWarning("Could not open recent file", err);
           void removeRecent(entry.id);
+        } finally {
+          isOpenInFlightRef.current = false;
         }
       });
     },
