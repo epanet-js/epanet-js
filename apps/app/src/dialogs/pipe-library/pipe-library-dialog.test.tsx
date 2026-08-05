@@ -7,6 +7,7 @@ import type { PipeMaterial } from "@epanet-js/hydraulic-model";
 import { setInitialState } from "src/__helpers__/state";
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { stubUserTracking } from "src/__helpers__/user-tracking";
+import { stubFeatureOff, stubFeatureOn } from "src/__helpers__/feature-flags";
 import { selectedMaterialLabelAtom } from "src/state/pipe-library";
 import { Store } from "src/state";
 import { PipeLibraryDialog } from "./pipe-library-dialog";
@@ -333,6 +334,41 @@ describe("PipeLibraryDialog", () => {
     expect(mockTransact).toHaveBeenCalledWith({
       note: "Apply roughness from pipe library",
       patchAssetsAttributes: [patch],
+    });
+  });
+
+  describe("with roughness inferred from the library", () => {
+    afterEach(() => {
+      stubFeatureOff("FLAG_INFER_ROUGHNESS");
+    });
+
+    it("hides the apply roughness button", () => {
+      stubFeatureOn("FLAG_INFER_ROUGHNESS");
+      const store = seededStore([
+        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      ]);
+
+      renderDialog(store);
+
+      expect(
+        screen.queryByRole("button", { name: /apply roughness/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /import/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("keeps the button while inference is off", () => {
+      stubFeatureOff("FLAG_INFER_ROUGHNESS");
+      const store = seededStore([
+        { label: "Cast Iron", entries: [{ age: 0, roughness: 100 }] },
+      ]);
+
+      renderDialog(store);
+
+      expect(
+        screen.getByRole("button", { name: /apply roughness/i }),
+      ).toBeInTheDocument();
     });
   });
 
