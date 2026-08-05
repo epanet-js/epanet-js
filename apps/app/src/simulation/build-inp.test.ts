@@ -182,6 +182,73 @@ describe("build inp", () => {
     expect(inp).not.toContain("3\t1\t2\t10\t100\t130");
   });
 
+  describe("roughness inferred from the pipe library", () => {
+    const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
+
+    const modelWith = ({
+      material,
+      roughness = null,
+    }: {
+      material?: string;
+      roughness?: number | null;
+    }) =>
+      HydraulicModelBuilder.with()
+        .aNode(IDS.NODE1)
+        .aNode(IDS.NODE2)
+        .aPipe(IDS.PIPE, {
+          startNodeId: IDS.NODE1,
+          endNodeId: IDS.NODE2,
+          length: 10,
+          diameter: 100,
+          roughness,
+          material,
+          initialStatus: "open",
+        })
+        .aPipeMaterial({
+          label: "Cast Iron",
+          entries: [{ age: 0, roughness: 120 }],
+        })
+        .build();
+
+    const build = (
+      hydraulicModel: ReturnType<HydraulicModelBuilder["build"]>,
+      inferRoughness: boolean,
+    ) =>
+      buildInp(hydraulicModel, {
+        units: presets.LPS.units,
+        simulationSettings: defaultSimulationSettings,
+        headlossFormula: "H-W",
+        inferRoughness,
+      });
+
+    it("writes the inferred roughness instead of MISSING", () => {
+      const inp = build(modelWith({ material: "Cast Iron" }), true);
+
+      expect(inp).toContain("3\t1\t2\t10\t100\t120\n");
+    });
+
+    it("keeps the roughness stored on the pipe", () => {
+      const inp = build(
+        modelWith({ material: "Cast Iron", roughness: 90 }),
+        true,
+      );
+
+      expect(inp).toContain("3\t1\t2\t10\t100\t90\n");
+    });
+
+    it("still writes MISSING when nothing can be inferred", () => {
+      const inp = build(modelWith({ material: "PVC" }), true);
+
+      expect(inp).toContain("3\t1\t2\t10\t100\tMISSING\n");
+    });
+
+    it("writes MISSING when inference is off", () => {
+      const inp = build(modelWith({ material: "Cast Iron" }), false);
+
+      expect(inp).toContain("3\t1\t2\t10\t100\tMISSING\n");
+    });
+  });
+
   it("writes MISSING for a null pipe length", () => {
     const IDS = { NODE1: 1, NODE2: 2, PIPE: 3 };
     const hydraulicModel = HydraulicModelBuilder.with()

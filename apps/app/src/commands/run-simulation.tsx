@@ -32,6 +32,7 @@ import {
   selectedReviewCheckAtom,
 } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
 export const useRunSimulation = () => {
@@ -40,6 +41,7 @@ export const useRunSimulation = () => {
   const setSimulationStep = useSetAtom(simulationStepAtom);
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -73,6 +75,7 @@ export const useRunSimulation = () => {
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
             excludeInactiveControls: true,
+            inferRoughness: isInferRoughnessOn,
           });
           const start = performance.now();
 
@@ -240,6 +243,7 @@ export const useRunSimulation = () => {
         setSimulationStep,
         userTracking,
         toggleNetworkReview,
+        isInferRoughnessOn,
       ],
     ),
   );

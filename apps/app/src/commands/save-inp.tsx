@@ -35,6 +35,7 @@ export const useSaveInp = () => {
   const userTracking = useUserTracking();
   const map = useContext(MapContext);
   const isExportLabelsOn = useFeatureFlag("FLAG_EXPORT_LABELS");
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
 
   const saveInp = useAtomCallback(
     useCallback(
@@ -71,6 +72,7 @@ export const useSaveInp = () => {
             simulationSettings,
             units: projectSettings.units,
             headlossFormula: projectSettings.headlossFormula,
+            inferRoughness: isInferRoughnessOn,
           };
 
           const suggestedName = fileInfo
@@ -175,7 +177,14 @@ export const useSaveInp = () => {
           return false;
         }
       },
-      [userTracking, addRecent, translate, map, isExportLabelsOn],
+      [
+        userTracking,
+        addRecent,
+        translate,
+        map,
+        isExportLabelsOn,
+        isInferRoughnessOn,
+      ],
     ),
   );
 

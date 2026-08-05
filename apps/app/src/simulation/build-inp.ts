@@ -53,6 +53,7 @@ import {
   getCustomerPointDemands,
   getJunctionDemands,
 } from "src/hydraulic-model";
+import { effectiveRoughness } from "src/hydraulic-model/pipe-materials";
 
 type SimulationPipeStatus = "Open" | "Closed" | "CV";
 type SimulationPumpStatus = "Open" | "Closed";
@@ -389,6 +390,7 @@ type BuildOptions = {
   includeQuality?: boolean;
   projection?: Projection;
   excludeInactiveControls?: boolean;
+  inferRoughness?: boolean;
 };
 
 export const buildInp = withDebugInstrumentation(
@@ -459,6 +461,7 @@ function* generateInp(
     usedCurves: false,
     includeQuality: false,
     excludeInactiveControls: false,
+    inferRoughness: false,
     ...options,
   };
   const idMap = new EpanetIds({
@@ -540,7 +543,7 @@ function* generateInp(
       "[PIPES]",
       ";Id\tStart\tEnd\tLength\tDiameter\tRoughness\tMinorLoss\tStatus",
     ],
-    pipeRows(hydraulicModel, idMap),
+    pipeRows(hydraulicModel, idMap, opts.inferRoughness),
     { alwaysWrite: true },
   );
   yield* emitSection(
@@ -955,6 +958,7 @@ function* tankRows(
 function* pipeRows(
   hydraulicModel: HydraulicModel,
   idMap: EpanetIds,
+  inferRoughness = false,
 ): Generator<string> {
   for (const asset of hydraulicModel.assets.values()) {
     if (asset.type !== "pipe") continue;
@@ -971,7 +975,11 @@ function* pipeRows(
       endId,
       requiredValue(pipe.length),
       requiredValue(pipe.diameter),
-      requiredValue(pipe.roughness),
+      requiredValue(
+        inferRoughness
+          ? effectiveRoughness(pipe, hydraulicModel.pipeMaterials)
+          : pipe.roughness,
+      ),
     ];
     const minorLoss = optionalValue(pipe.minorLoss, DEFAULT_MINOR_LOSS);
     if (minorLoss !== DEFAULT_MINOR_LOSS || status !== "Open") {
