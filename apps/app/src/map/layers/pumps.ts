@@ -4,7 +4,7 @@ import { LayerId } from "./layer";
 import { LineLayer, LinePaint, SymbolLayer } from "mapbox-gl";
 import { colors } from "src/lib/constants";
 import { asNumberExpression } from "src/lib/symbolization-deprecated";
-import { facetedLinkColorExpression } from "./pipes";
+import { pipeLinkColorExpression } from "./pipes";
 
 export const pumpLines = ({
   source,
@@ -27,12 +27,7 @@ export const pumpLines = ({
       }),
     ],
     "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 16, 2],
-    "line-color": [
-      "case",
-      ["==", ["get", "isActive"], false],
-      colors.zinc400,
-      ["coalesce", ["get", "color"], colors.orange700],
-    ],
+    "line-color": pipeLinkColorExpression(colors.orange700),
     "line-dasharray": [
       "case",
       ["==", ["get", "status"], "off"],
@@ -46,21 +41,6 @@ export const pumpLines = ({
     source,
     filter: ["==", "type", "pump"],
     paint: paint as LinePaint,
-  };
-};
-
-export const facetedPumpLines = (params: {
-  source: DataSource;
-  layerId: LayerId;
-  symbology: ISymbology;
-}): LineLayer => {
-  const base = pumpLines(params);
-  return {
-    ...base,
-    paint: {
-      ...base.paint,
-      "line-color": facetedLinkColorExpression(colors.orange700),
-    },
   };
 };
 

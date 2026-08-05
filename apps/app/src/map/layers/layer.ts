@@ -1,53 +1,31 @@
 export type LayerId =
   | "delta-features-pipes"
   | "main-features-pipes"
-  | "selected-pipes"
   | "delta-features-junctions"
   | "main-features-junctions"
-  | "selected-junctions"
   | "main-features-pipe-arrows"
   | "delta-features-pipe-arrows"
-  | "selected-pipe-arrows"
   | "main-features-pump-lines"
   | "delta-features-pump-lines"
-  | "selected-pump-lines"
   | "main-features-valve-lines"
   | "delta-features-valve-lines"
-  | "selected-valve-lines"
   | "pump-icons"
   | "valve-icons-control-valves"
   | "valve-icons-isolation-valves"
-  | "selected-icons"
   | "selected-icons-halo"
-  // Selection-layer ids filtered by a `selected` prop on the main/delta feature sources.
-  | "main-features-selected-pipes"
-  | "main-features-selected-pump-lines"
-  | "main-features-selected-valve-lines"
-  | "main-features-selected-junctions"
-  | "main-features-selected-halo"
-  | "delta-features-selected-pipes"
-  | "delta-features-selected-pump-lines"
-  | "delta-features-selected-valve-lines"
-  | "delta-features-selected-junctions"
   | "icons-tanks"
   | "icons-reservoirs"
   | "zones-fill"
   | "zones-outline"
   | "zones-labels"
-  // Faceted path (FLAG_MAP_FACETED_SOURCES): delta icon facet + delta selection
-  // overlay. `icons` is the main icon facet; these mirror it for the delta live-set.
+  // Delta icon facet: `icons` is the main icon facet; these mirror it for the delta
+  // live-set. `delta-selected-icons-halo` is the delta selection halo.
   | "delta-icons-pump-icons"
   | "delta-icons-valve-icons-control-valves"
   | "delta-icons-valve-icons-isolation-valves"
   | "delta-icons-tanks"
   | "delta-icons-reservoirs"
-  | "delta-selected-pipes"
-  | "delta-selected-pump-lines"
-  | "delta-selected-valve-lines"
-  | "delta-selected-junctions"
-  | "delta-selected-icons"
-  | "delta-selected-icons-halo"
-  | "delta-selected-pipe-arrows";
+  | "delta-selected-icons-halo";
 
 export const assetLayers: LayerId[] = [
   "delta-features-pipes",
@@ -63,7 +41,7 @@ export const assetLayers: LayerId[] = [
   "main-features-valve-lines",
   "delta-features-valve-lines",
   "icons-tanks",
-  // Faceted path: delta icons must be clickable/selectable like the main icons.
+  // Delta icons must be clickable/selectable like the main icons.
   "delta-icons-pump-icons",
   "delta-icons-valve-icons-control-valves",
   "delta-icons-valve-icons-isolation-valves",

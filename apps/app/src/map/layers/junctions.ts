@@ -54,24 +54,6 @@ export const junctionFillColorExpression = (
   defaultNodeColor: string,
 ): mapboxgl.Expression => [
   "case",
-  ["==", ["get", "isActive"], false],
-  colors.gray300,
-  ["coalesce", ["get", "color"], defaultNodeColor],
-];
-
-export const junctionStrokeColorExpression = (
-  defaultNodeColor: string,
-): mapboxgl.Expression => [
-  "case",
-  ["==", ["get", "isActive"], false],
-  colors.gray400,
-  ["coalesce", ["get", "strokeColor"], strokeColorFor(defaultNodeColor)],
-];
-
-export const facetedJunctionFillColorExpression = (
-  defaultNodeColor: string,
-): mapboxgl.Expression => [
-  "case",
   [
     "all",
     ["==", ["get", "selected"], true],
@@ -85,7 +67,7 @@ export const facetedJunctionFillColorExpression = (
   ["coalesce", ["get", "color"], defaultNodeColor],
 ];
 
-export const facetedJunctionStrokeColorExpression = (
+export const junctionStrokeColorExpression = (
   defaultNodeColor: string,
 ): mapboxgl.Expression => [
   "case",
@@ -126,27 +108,6 @@ export const junctionsLayer = ({
       "circle-color": junctionFillColorExpression(nodeDefaults.color),
     },
     minzoom: junctionLayerMinZoom(defaultNodeSizeConfig),
-  };
-};
-
-export const facetedJunctionsLayer = (params: {
-  source: DataSource;
-  layerId: LayerId;
-  symbology: ISymbology;
-  nodeDefaults: NodeDefaults;
-}): CircleLayer => {
-  const base = junctionsLayer(params);
-  return {
-    ...base,
-    paint: {
-      ...base.paint,
-      "circle-stroke-color": facetedJunctionStrokeColorExpression(
-        params.nodeDefaults.color,
-      ),
-      "circle-color": facetedJunctionFillColorExpression(
-        params.nodeDefaults.color,
-      ),
-    },
   };
 };
 

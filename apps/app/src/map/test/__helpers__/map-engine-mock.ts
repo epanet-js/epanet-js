@@ -138,6 +138,7 @@ class MapTestEngine {
   onNextIdle(callback: (settledCleanly: boolean) => void): void {
     callback(false);
   }
+  flushSettleQueue() {}
   removeSource() {}
   showFeature(sourceName: string, featureId: string) {
     this.map.removeFeatureState(

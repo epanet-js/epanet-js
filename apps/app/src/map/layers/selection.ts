@@ -1,208 +1,13 @@
-import { CircleLayer, LineLayer, SymbolLayer } from "mapbox-gl";
+import { CircleLayer } from "mapbox-gl";
 import { DataSource } from "../data-source";
 import { LayerId } from "./layer";
-import { strokeColorFor } from "@epanet-js/map";
-import { junctionCircleSizes, junctionLayerMinZoom } from "./junctions";
 import { colors } from "src/lib/constants";
-import { defaultNodeSizeConfig } from "src/map/symbology";
 
 const COLOR_SELECTED_DEFAULT = colors.fuchsia500;
-const COLOR_SELECTED_CONTRAST = strokeColorFor(COLOR_SELECTED_DEFAULT);
 const COLOR_SELECTED_LIGHT = colors.fuchsia300;
-const COLOR_SELECTED_LIGHTER = colors.fuchsia100;
 
 const withSelected = (filter: any, filterSelected?: boolean): any =>
   filterSelected ? ["all", filter, ["==", ["get", "selected"], true]] : filter;
-
-export const selectedPipesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", ["get", "type"], "pipe"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "closed"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "closed"], 4, 5],
-      ],
-      "line-color": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        COLOR_SELECTED_LIGHT,
-        COLOR_SELECTED_DEFAULT,
-      ],
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "closed"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedPumpLinesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", ["get", "type"], "pump"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "off"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "off"], 2, 3],
-      ],
-      "line-color": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        COLOR_SELECTED_LIGHT,
-        COLOR_SELECTED_DEFAULT,
-      ],
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "off"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedValveLinesLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): LineLayer => {
-  return {
-    id: layerId,
-    type: "line",
-    source,
-    filter: ["==", ["get", "type"], "valve"],
-    paint: {
-      "line-opacity": 1,
-      "line-width": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        12,
-        ["case", ["==", ["get", "status"], "closed"], 0.5, 1],
-        16,
-        ["case", ["==", ["get", "status"], "closed"], 2, 3],
-      ],
-      "line-color": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        COLOR_SELECTED_LIGHT,
-        COLOR_SELECTED_DEFAULT,
-      ],
-      "line-dasharray": [
-        "case",
-        ["==", ["get", "status"], "closed"],
-        ["literal", [2, 1]],
-        ["literal", [1, 0]],
-      ],
-    },
-  };
-};
-
-export const selectedJunctionsLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): CircleLayer => {
-  return {
-    id: layerId,
-    type: "circle",
-    source,
-    filter: ["==", ["get", "type"], "junction"],
-    paint: {
-      "circle-opacity": 1,
-      "circle-stroke-color": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        COLOR_SELECTED_LIGHT,
-        COLOR_SELECTED_CONTRAST,
-      ],
-      "circle-stroke-opacity": 1,
-      "circle-color": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        COLOR_SELECTED_LIGHTER,
-        COLOR_SELECTED_DEFAULT,
-      ],
-      ...junctionCircleSizes(),
-    },
-    minzoom: junctionLayerMinZoom(defaultNodeSizeConfig),
-  };
-};
-
-export const selectedIconsLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "icon-image": [
-        "case",
-        ["==", ["get", "isActive"], false],
-        ["concat", ["get", "type"], "-disabled-selected"],
-        ["concat", ["get", "type"], "-selected"],
-      ],
-      "icon-size": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        13,
-        ["match", ["get", "type"], "reservoir", 0.2, 0.2],
-        20,
-        ["match", ["get", "type"], "reservoir", 0.5, 0.4],
-      ],
-      "icon-allow-overlap": true,
-    },
-    filter: [
-      "all",
-      ["has", "icon"],
-      ["any", ["==", "type", "tank"], ["==", "type", "reservoir"]],
-    ],
-    paint: {
-      "icon-opacity": 1,
-    },
-  };
-};
 
 export const selectedIconsHaloLayer = ({
   source,
@@ -211,9 +16,8 @@ export const selectedIconsHaloLayer = ({
 }: {
   source: DataSource;
   layerId: LayerId;
-  // Faceted path: the halo is the one selection layer that survives the merge (it is
-  // additive geometry, not a color/sprite change), so it filters the icon source on
-  // `selected` instead of reading a dedicated `selected-features` overlay.
+  // The halo is the one selection layer that stays separate (it is additive geometry,
+  // not a color/sprite change), so it filters the icon source on the `selected` prop.
   filterSelected?: boolean;
 }): CircleLayer => {
   return {
@@ -250,57 +54,4 @@ export const selectedIconsHaloLayer = ({
       "circle-blur": ["interpolate", ["linear"], ["zoom"], 12, 0, 20, 0.8],
     },
   };
-};
-
-export const selectedPipeArrowsLayer = ({
-  source,
-  layerId,
-}: {
-  source: DataSource;
-  layerId: LayerId;
-}): SymbolLayer => {
-  return {
-    id: layerId,
-    type: "symbol",
-    source,
-    layout: {
-      "symbol-placement": "line-center",
-      "icon-image": "triangle",
-      "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.2, 26, 0.5],
-      "icon-rotate": ["get", "rotation"],
-      "icon-ignore-placement": true,
-      "icon-allow-overlap": true,
-      visibility: "none",
-    },
-    filter: [
-      "all",
-      ["==", "$type", "LineString"],
-      ["==", "type", "pipe"],
-      ["==", "hasArrow", true],
-    ],
-    paint: {
-      "icon-color": COLOR_SELECTED_DEFAULT,
-      "icon-opacity": zoomOpacityExpression(
-        [14, 15, 16, 17, 18, 19, 20],
-        [200, 100, 50, 20, 10, 5, 0],
-      ),
-    },
-    minzoom: 14,
-  };
-};
-
-const zoomOpacityExpression = (steps: number[], lengths: number[]): any => {
-  const result: any = ["interpolate", ["linear"], ["zoom"]];
-
-  for (const step of steps) {
-    const index = steps.indexOf(step);
-    const length = lengths[index];
-    (result as any[]).push(step, [
-      "case",
-      [">", ["get", "length"], length],
-      1,
-      0,
-    ]);
-  }
-  return result;
 };

@@ -42,8 +42,6 @@ import { useHotkeys } from "src/keyboard/hotkeys";
 import { useAtomCallback } from "jotai/utils";
 import { isDebugAppStateOn, isDebugOn } from "src/infra/debug-mode";
 import { useMapStateUpdates } from "./state-updates";
-import { useMapStateUpdates as useMapStateUpdatesFaceted } from "./state-updates-faceted";
-import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import { clickableLayers } from "./layers/layer";
 import { SatelliteToggle } from "./SatelliteToggle";
 import { useFitToExtent } from "./use-fit-to-extent";
@@ -97,26 +95,9 @@ const debug = isDebugOn
     }
   : noop;
 
-const MapStateUpdatesSerialized = ({ map }: { map: MapEngine | null }) => {
+const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
   useMapStateUpdates(map);
   return null;
-};
-
-// The faceted updater is backend-agnostic: it drives the MAIN source through the
-// MapOperations interface, so `useMapOperations()` picks the geojson-faceted or the tiled
-// backend by flag. FLAG_MAP_FACETED_SOURCES enables the faceted geojson path;
-// FLAG_GEO_INDEX_TILES enables the tiled backend — both run this one updater.
-const MapStateUpdatesFacetedRunner = ({ map }: { map: MapEngine | null }) => {
-  useMapStateUpdatesFaceted(map);
-  return null;
-};
-
-const MapStateUpdates = ({ map }: { map: MapEngine | null }) => {
-  const isGeoIndexTilesOn = useFeatureFlag("FLAG_GEO_INDEX_TILES");
-  const isFaceted = useFeatureFlag("FLAG_MAP_FACETED_SOURCES");
-  if (isFaceted || isGeoIndexTilesOn)
-    return <MapStateUpdatesFacetedRunner map={map} />;
-  return <MapStateUpdatesSerialized map={map} />;
 };
 
 export const MapCanvas = memo(function MapCanvas({
@@ -177,8 +158,6 @@ export const MapCanvas = memo(function MapCanvas({
     },
     [fitToExtent],
   );
-
-  //TODO: Add back the useMapStateUpdates hook once FLAG_MAP_FACETED_SOURCES is cleaned up
 
   useEffect(() => {
     if (mapRef.current) return;

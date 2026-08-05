@@ -17,6 +17,14 @@ export const tankLayers = ({
             "symbol-placement": "point",
             "icon-image": [
               "case",
+              [
+                "all",
+                ["==", ["get", "selected"], true],
+                ["==", ["get", "isActive"], false],
+              ],
+              "tank-disabled-selected",
+              ["==", ["get", "selected"], true],
+              "tank-selected",
               ["==", ["get", "isActive"], false],
               "tank-disabled",
               "tank",
@@ -45,32 +53,3 @@ export const tankLayers = ({
     ),
   ];
 };
-
-export const facetedTankLayers = ({
-  sources,
-}: {
-  sources: DataSource[];
-}): AnyLayer[] =>
-  tankLayers({ sources }).map((layer) => {
-    const symbol = layer as SymbolLayer;
-    return {
-      ...symbol,
-      layout: {
-        ...symbol.layout,
-        "icon-image": [
-          "case",
-          [
-            "all",
-            ["==", ["get", "selected"], true],
-            ["==", ["get", "isActive"], false],
-          ],
-          "tank-disabled-selected",
-          ["==", ["get", "selected"], true],
-          "tank-selected",
-          ["==", ["get", "isActive"], false],
-          "tank-disabled",
-          "tank",
-        ],
-      },
-    } as SymbolLayer;
-  });

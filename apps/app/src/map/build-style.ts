@@ -61,8 +61,8 @@ export async function buildBaseStyle({
         break;
       }
       case "GEOJSON": {
-        // GIS data lives outside buildBaseStyle — sources are added after
-        // style.load via addGisLayersToMap in state-updates.ts.
+        // GIS data lives outside buildBaseStyle — sources are added via
+        // addGisLayersToStyle in state-updates.ts.
         break;
       }
     }
@@ -71,7 +71,7 @@ export async function buildBaseStyle({
   return style;
 }
 
-function defineSharedEmptySources(style: Style) {
+export function defineEmptySources(style: Style) {
   style.sources["main-features"] = emptyGeoJSONSource;
   style.sources["delta-features"] = emptyGeoJSONSource;
   style.sources["icons"] = emptyGeoJSONSource;
@@ -80,38 +80,18 @@ function defineSharedEmptySources(style: Style) {
   style.sources["highlights"] = emptyGeoJSONSource;
   style.sources["grid"] = emptyGeoJSONSource;
   style.sources["zones"] = emptyGeoJSONSource;
-}
-
-export function defineEmptySources(style: Style) {
-  defineSharedEmptySources(style);
-  style.sources["selected-features"] = emptyGeoJSONSource;
-}
-
-export function defineEmptySourcesFaceted(style: Style) {
-  defineSharedEmptySources(style);
   style.sources["delta-icons"] = emptyGeoJSONSource;
 }
 
 import type { PreviewProperty } from "src/state/map-symbology";
 import type { ISymbology } from "src/types";
 import { reservoirLayers, pipesLayer, junctionsLayer } from "src/map/layers";
-import {
-  pipeArrows,
-  checkValveIcons,
-  facetedPipesLayer,
-  facetedPipeArrows,
-} from "src/map/layers/pipes";
-import { pumpIcons, pumpLines, facetedPumpLines } from "src/map/layers/pumps";
-import {
-  valveIcons,
-  valveLines,
-  facetedValveLines,
-} from "src/map/layers/valves";
-import { facetedJunctionsLayer } from "src/map/layers/junctions";
-import { facetedReservoirLayers } from "src/map/layers/reservoirs";
+import { pipeArrows, checkValveIcons } from "src/map/layers/pipes";
+import { pumpIcons, pumpLines } from "src/map/layers/pumps";
+import { valveIcons, valveLines } from "src/map/layers/valves";
 import { linkLabelsLayer } from "src/map/layers/link-labels";
 import { nodeLabelsLayer } from "src/map/layers/node-labels";
-import { tankLayers, facetedTankLayers } from "src/map/layers/tank";
+import { tankLayers } from "src/map/layers/tank";
 import {
   mapOverlayFillLayer,
   mapOverlayOutlineLayer,
@@ -140,15 +120,7 @@ import {
   highlightsPathHaloLayer,
 } from "src/map/layers/highlights";
 import { gridMinorLayer, gridMajorLayer } from "src/map/layers/grid";
-import {
-  selectedPipesLayer,
-  selectedPumpLinesLayer,
-  selectedValveLinesLayer,
-  selectedPipeArrowsLayer,
-  selectedJunctionsLayer,
-  selectedIconsHaloLayer,
-  selectedIconsLayer,
-} from "src/map/layers/selection";
+import { selectedIconsHaloLayer } from "src/map/layers/selection";
 import type * as mapboxgl from "mapbox-gl";
 import type { NodeDefaults, LinkDefaults } from "src/map/symbology";
 
@@ -273,10 +245,6 @@ export function makeLayers({
       symbology,
       linkDefaults,
     }),
-    selectedPipesLayer({
-      source: "selected-features",
-      layerId: "selected-pipes",
-    }),
     pumpLines({
       source: "main-features",
       layerId: "main-features-pump-lines",
@@ -287,10 +255,6 @@ export function makeLayers({
       layerId: "delta-features-pump-lines",
       symbology,
     }),
-    selectedPumpLinesLayer({
-      source: "selected-features",
-      layerId: "selected-pump-lines",
-    }),
     valveLines({
       source: "main-features",
       layerId: "main-features-valve-lines",
@@ -300,10 +264,6 @@ export function makeLayers({
       source: "delta-features",
       layerId: "delta-features-valve-lines",
       symbology,
-    }),
-    selectedValveLinesLayer({
-      source: "selected-features",
-      layerId: "selected-valve-lines",
     }),
     ephemeralShadowLineLayer({ source: "ephemeral" }),
     ephemeralDraftLineLayer({ source: "ephemeral" }),
@@ -318,10 +278,6 @@ export function makeLayers({
       layerId: "delta-features-pipe-arrows",
       linkDefaults,
     }),
-    selectedPipeArrowsLayer({
-      source: "selected-features",
-      layerId: "selected-pipe-arrows",
-    }),
     junctionsLayer({
       source: "main-features",
       layerId: "main-features-junctions",
@@ -329,144 +285,13 @@ export function makeLayers({
       nodeDefaults,
     }),
     junctionsLayer({
-      source: "delta-features",
-      layerId: "delta-features-junctions",
-      symbology,
-      nodeDefaults,
-    }),
-    selectedJunctionsLayer({
-      source: "selected-features",
-      layerId: "selected-junctions",
-    }),
-    selectedIconsHaloLayer({
-      source: "selected-features",
-      layerId: "selected-icons-halo",
-    }),
-    ...valveIcons({
-      source: "icons",
-      layerId: "valve-icons",
-    }),
-    checkValveIcons({
-      source: "icons",
-      layerId: "check-valve-icons",
-    }),
-    pumpIcons({
-      source: "icons",
-      layerId: "pump-icons",
-      symbology,
-    }),
-    ...reservoirLayers({ sources: ["icons"] }),
-    ...tankLayers({ sources: ["icons"] }),
-    selectedIconsLayer({
-      source: "selected-features",
-      layerId: "selected-icons",
-    }),
-    ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
-    ephemeralIconHighlightLayers({ source: "ephemeral" }),
-    highlightsMarkerIconLayer({ source: "highlights" }),
-    highlightsMarkerLayer({ source: "highlights" }),
-    ...linkLabelsLayer({
-      sources: ["main-features", "delta-features"],
-    }),
-    ...nodeLabelsLayer({
-      sources: ["main-features", "delta-features"],
-    }),
-    ...previewLabelLayers(symbology, previewProperty),
-    ephemeralSelectionFillLayer({ source: "ephemeral" }),
-    ephemeralSelectionOutlineLayer({ source: "ephemeral" }),
-  ].filter((l) => !!l);
-}
-
-// Parallel to makeLayers for the faceted path (FLAG_MAP_FACETED_SOURCES). Differences:
-// (1) selection is merged into the base delta layers via a `selected` case on
-//     color/sprite (`selectable: true`) instead of the `selected-*` overlay layers —
-//     selected assets ride in `delta-features`/`delta-icons`, hidden in main;
-// (2) the pump/valve selection halo is additive geometry, so it stays as one filtered
-//     layer on `delta-icons`;
-// (3) an extra `delta-icons` facet mirrors the main `icons` layers.
-// Kept as a separate function (not a flag on makeLayers) so the two layer sets evolve
-// independently; collapse into makeLayers when the pre-facet path is removed.
-export function makeFacetedLayers({
-  symbology,
-  previewProperty,
-  nodeDefaults,
-  linkDefaults,
-}: MakeLayersParams): mapboxgl.AnyLayer[] {
-  return [
-    gridMinorLayer(),
-    gridMajorLayer(),
-    zoneFillLayer({ source: "zones" }),
-    zoneOutlineLayer({ source: "zones" }),
-    zoneLabelsLayer({ source: "zones" }),
-    mapOverlayFillLayer({ source: "map-overlay" }),
-    mapOverlayOutlineLayer({ source: "map-overlay" }),
-    mapOverlayLabelLayer({ source: "map-overlay" }),
-    ephemeralHaloLayer({ source: "ephemeral" }),
-    ephemeralDraftPathLineLayer({ source: "ephemeral" }),
-    highlightsPathHaloLayer({ source: "highlights" }),
-    highlightsMarkerHaloLayer({ source: "highlights" }),
-    // Both main and delta feature layers carry the faceted expressions: selection is
-    // merged into the `selected` prop on both sources, so a selected asset renders
-    // highlighted whether it is in main (e.g. coalesced) or delta (the live-set).
-    facetedPipesLayer({
-      source: "main-features",
-      layerId: "main-features-pipes",
-      symbology,
-      linkDefaults,
-    }),
-    facetedPipesLayer({
-      source: "delta-features",
-      layerId: "delta-features-pipes",
-      symbology,
-      linkDefaults,
-    }),
-    facetedPumpLines({
-      source: "main-features",
-      layerId: "main-features-pump-lines",
-      symbology,
-    }),
-    facetedPumpLines({
-      source: "delta-features",
-      layerId: "delta-features-pump-lines",
-      symbology,
-    }),
-    facetedValveLines({
-      source: "main-features",
-      layerId: "main-features-valve-lines",
-      symbology,
-    }),
-    facetedValveLines({
-      source: "delta-features",
-      layerId: "delta-features-valve-lines",
-      symbology,
-    }),
-    ephemeralShadowLineLayer({ source: "ephemeral" }),
-    ephemeralDraftLineLayer({ source: "ephemeral" }),
-    ephemeralPipeHighlightLayer({ source: "ephemeral" }),
-    facetedPipeArrows({
-      source: "main-features",
-      layerId: "main-features-pipe-arrows",
-      linkDefaults,
-    }),
-    facetedPipeArrows({
-      source: "delta-features",
-      layerId: "delta-features-pipe-arrows",
-      linkDefaults,
-    }),
-    facetedJunctionsLayer({
-      source: "main-features",
-      layerId: "main-features-junctions",
-      symbology,
-      nodeDefaults,
-    }),
-    facetedJunctionsLayer({
       source: "delta-features",
       layerId: "delta-features-junctions",
       symbology,
       nodeDefaults,
     }),
     // Main icon facet (halo below the icons it haloes; tank/reservoir use the
-    // faceted selected sprite).
+    // selection-merged sprite).
     selectedIconsHaloLayer({
       source: "icons",
       layerId: "selected-icons-halo",
@@ -485,8 +310,8 @@ export function makeFacetedLayers({
       layerId: "pump-icons",
       symbology,
     }),
-    ...facetedReservoirLayers({ sources: ["icons"] }),
-    ...facetedTankLayers({ sources: ["icons"] }),
+    ...reservoirLayers({ sources: ["icons"] }),
+    ...tankLayers({ sources: ["icons"] }),
     // Delta icon facet: mirrors the main `icons` layers on `delta-icons`.
     selectedIconsHaloLayer({
       source: "delta-icons",
@@ -506,8 +331,8 @@ export function makeFacetedLayers({
       layerId: "delta-icons-pump-icons",
       symbology,
     }),
-    ...facetedReservoirLayers({ sources: ["delta-icons"] }),
-    ...facetedTankLayers({ sources: ["delta-icons"] }),
+    ...reservoirLayers({ sources: ["delta-icons"] }),
+    ...tankLayers({ sources: ["delta-icons"] }),
     ephemeralJunctionHighlightLayers({ source: "ephemeral" }),
     ephemeralIconHighlightLayers({ source: "ephemeral" }),
     highlightsMarkerIconLayer({ source: "highlights" }),

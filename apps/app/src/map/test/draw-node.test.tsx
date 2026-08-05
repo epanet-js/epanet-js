@@ -25,7 +25,12 @@ describe("Drawing a junction", () => {
     await fireMapClick(map, clickPoint);
 
     await waitFor(() => {
-      const features = getSourceFeatures(map, "delta-features");
+      // The junction may land in the delta live-set or be consolidated into main,
+      // depending on whether its edit coalesces with the initial style sync.
+      const features = [
+        ...getSourceFeatures(map, "main-features"),
+        ...getSourceFeatures(map, "delta-features"),
+      ];
       expect(features).toHaveLength(1);
 
       const feature = features[0];

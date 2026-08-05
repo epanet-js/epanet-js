@@ -17,8 +17,6 @@ vi.mock("../../icons", async (importOriginal) => {
 });
 
 export const renderMap = async (store: Store): Promise<MapTestEngine> => {
-  // Serialized sync is now the default path; start with all flags off so tests
-  // opt into faceted sources explicitly when they need it.
   stubFeaturesOn([]);
 
   let mapEngine: MapTestEngine | null = null;

@@ -11,15 +11,6 @@ export const pipeLinkColorExpression = (
   defaultLinkColor: string,
 ): mapboxgl.Expression => [
   "case",
-  ["==", ["get", "isActive"], false],
-  colors.zinc400,
-  ["coalesce", ["get", "color"], defaultLinkColor],
-];
-
-export const facetedLinkColorExpression = (
-  defaultLinkColor: string,
-): mapboxgl.Expression => [
-  "case",
   [
     "all",
     ["==", ["get", "selected"], true],
@@ -73,27 +64,7 @@ export const pipesLayer = ({
   };
 };
 
-export const facetedPipesLayer = (params: {
-  source: DataSource;
-  layerId: LayerId;
-  symbology: ISymbology;
-  linkDefaults: LinkDefaults;
-}): LineLayer => {
-  const base = pipesLayer(params);
-  return {
-    ...base,
-    paint: {
-      ...base.paint,
-      "line-color": facetedLinkColorExpression(params.linkDefaults.color),
-    },
-  };
-};
-
 export const pipeArrowColorExpression = (
-  defaultLinkColor: string,
-): mapboxgl.Expression => ["coalesce", ["get", "color"], defaultLinkColor];
-
-export const facetedPipeArrowColorExpression = (
   defaultLinkColor: string,
 ): mapboxgl.Expression => [
   "case",
@@ -135,21 +106,6 @@ export const pipeArrows = ({
       ],
     },
     minzoom: 14,
-  };
-};
-
-export const facetedPipeArrows = (params: {
-  source: DataSource;
-  layerId: LayerId;
-  linkDefaults: LinkDefaults;
-}): SymbolLayer => {
-  const base = pipeArrows(params);
-  return {
-    ...base,
-    paint: {
-      ...base.paint,
-      "icon-color": facetedPipeArrowColorExpression(params.linkDefaults.color),
-    },
   };
 };
 

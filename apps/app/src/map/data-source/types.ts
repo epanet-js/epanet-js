@@ -3,7 +3,6 @@ export type DataSource =
   | "delta-features"
   | "icons"
   | "delta-icons"
-  | "selected-features"
   | "ephemeral"
   | "map-overlay"
   | "highlights"
