@@ -15,6 +15,49 @@ describe("export-csv", () => {
     expect(files).toHaveLength(0);
   });
 
+  describe("pipe roughness inferred from the pipe library", () => {
+    const modelWithMaterial = (roughness: number | null, material: string) =>
+      HydraulicModelBuilder.with()
+        .aPipe(1, { label: "P1", roughness, material })
+        .aPipeMaterial({
+          label: "Cast Iron",
+          entries: [{ age: 0, roughness: 120 }],
+        })
+        .build();
+
+    const roughnessOf = async (
+      model: ReturnType<HydraulicModelBuilder["build"]>,
+    ) => {
+      const files = exportCsv(model, WGS84, translate, {
+        inferRoughness: true,
+      });
+      const lines = await readCsv(findFile(files, "pipes.csv"));
+      return parseCsvRows(lines)[0].roughness;
+    };
+
+    it("writes the inferred value for a pipe without one", async () => {
+      expect(await roughnessOf(modelWithMaterial(null, "Cast Iron"))).toBe(
+        "120",
+      );
+    });
+
+    it("writes the value stored on the pipe", async () => {
+      expect(await roughnessOf(modelWithMaterial(90, "Cast Iron"))).toBe("90");
+    });
+
+    it("leaves the cell empty when nothing can be inferred", async () => {
+      expect(await roughnessOf(modelWithMaterial(null, "PVC"))).toBe("");
+    });
+
+    it("leaves the cell empty without an inferrer", async () => {
+      const model = modelWithMaterial(null, "Cast Iron");
+      const files = exportCsv(model, WGS84, translate);
+      const lines = await readCsv(findFile(files, "pipes.csv"));
+
+      expect(parseCsvRows(lines)[0].roughness).toBe("");
+    });
+  });
+
   it("returns one file per non-empty asset type with correct metadata", () => {
     const model = HydraulicModelBuilder.with()
       .aJunction(1, { label: "J1" })

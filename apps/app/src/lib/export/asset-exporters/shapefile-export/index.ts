@@ -17,7 +17,10 @@ import { writePoint, writePolyLine } from "./geometry-writer";
 import { writeDbfHeader, writeDbfRecord } from "./dbf-writer";
 import { writeShpHeader, writeShxHeader, patchBbox } from "./shp-header";
 import { FILE_NAMES } from "../constants";
-import { resolveExportProperties } from "../optional-field-defaults";
+import {
+  buildExportDefaults,
+  resolveExportProperties,
+} from "../optional-field-defaults";
 import { isExportableField } from "../excluded-fields";
 import { createProjectionMapper } from "src/lib/projections";
 import { type Position } from "geojson";
@@ -44,6 +47,9 @@ export const exportShapefiles = async (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
+  const defaults = buildExportDefaults(hydraulicModel, {
+    inferRoughness: options?.inferRoughness,
+  });
   const writers: Record<ExportedAssetTypes, AssetWriter> = {
     junction: new AssetWriter(SHAPE_POINT),
     reservoir: new AssetWriter(SHAPE_POINT),
@@ -153,8 +159,9 @@ export const exportShapefiles = async (
     writer.shxCursor += 8;
 
     const props = resolveExportProperties(
-      asset.type,
+      asset,
       asset.feature.properties as Record<string, unknown>,
+      defaults,
     );
     if ("connections" in props) {
       const [firstId, secondId] = props.connections as number[];

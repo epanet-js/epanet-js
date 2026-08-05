@@ -44,6 +44,7 @@ export type AssetExportOptions = {
   assetIdsFilter?: Set<number> | null;
   customerPointIdFilter?: Set<number> | null;
   resultsReader?: ResultsReader;
+  inferRoughness?: boolean;
 };
 
 export type SimulationResultsOptions = {

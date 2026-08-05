@@ -7,7 +7,11 @@ import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
-import { resolveExportValue } from "./optional-field-defaults";
+import {
+  buildExportDefaults,
+  resolveExportValue,
+  type ExportDefaults,
+} from "./optional-field-defaults";
 import { exportableProperties } from "./excluded-fields";
 import {
   buildPropertyNameResolver,
@@ -38,6 +42,9 @@ export const exportXlsx = async (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
+  const defaults = buildExportDefaults(hydraulicModel, {
+    inferRoughness: options?.inferRoughness,
+  });
 
   const assetTypeCounts = new Map<string, number>();
   hydraulicModel.assets.forEach((asset) => {
@@ -127,7 +134,13 @@ export const exportXlsx = async (
             pushRow(
               sheetEntry,
               ++rowCount,
-              buildRow(asset, simValues, hydraulicModel, transformCoord),
+              buildRow(
+                asset,
+                simValues,
+                hydraulicModel,
+                transformCoord,
+                defaults,
+              ),
             );
           });
 
@@ -339,6 +352,7 @@ const buildRow = (
   simValues: Record<string, unknown>,
   hydraulicModel: HydraulicModel,
   transformCoord: (p: Position) => Position,
+  defaults?: ExportDefaults,
 ): unknown[] => {
   const propertyKeys = exportableProperties(asset.type, asset.listProperties());
   if (asset.isNode) propertyKeys.unshift("positionX", "positionY");
@@ -370,7 +384,12 @@ const buildRow = (
         hydraulicModel.assets.get(endId)?.label ?? "",
       );
     } else {
-      const value = resolveExportValue(asset.type, key, asset.getProperty(key));
+      const value = resolveExportValue(
+        asset,
+        key,
+        asset.getProperty(key),
+        defaults,
+      );
       row.push(typeof value === "object" && value !== null ? "" : value);
     }
   }

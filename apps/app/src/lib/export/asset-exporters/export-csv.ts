@@ -6,7 +6,10 @@ import { CustomerPoint } from "@epanet-js/hydraulic-model";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
-import { resolveExportValue } from "./optional-field-defaults";
+import {
+  buildExportDefaults,
+  resolveExportValue,
+} from "./optional-field-defaults";
 import { exportableProperties } from "./excluded-fields";
 import { buildPropertyNameResolver } from "./property-names";
 import { Position } from "geojson";
@@ -22,6 +25,9 @@ export const exportCsv = (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
+  const defaults = buildExportDefaults(hydraulicModel, {
+    inferRoughness: options?.inferRoughness,
+  });
   const charsPerCol = 64;
   const numCols = 64;
   const numRows =
@@ -179,7 +185,12 @@ export const exportCsv = (
 
       const value = isPosition
         ? getPosition(asset, property)
-        : resolveExportValue(asset.type, property, asset.getProperty(property));
+        : resolveExportValue(
+            asset,
+            property,
+            asset.getProperty(property),
+            defaults,
+          );
 
       const isObject = typeof value === "object";
 

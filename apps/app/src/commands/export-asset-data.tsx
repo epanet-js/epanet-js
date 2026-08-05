@@ -12,6 +12,7 @@ import { currentFileNameAtom } from "src/state/file-system";
 import type { ResultsReader } from "@epanet-js/simulation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import { useUserTracking } from "src/infra/user-tracking";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 
 export type DataExportOptions = {
   format: ExportFormat;
@@ -25,6 +26,7 @@ export type DataExportOptions = {
 export const useExportAssetData = () => {
   const translate = useTranslate();
   const { capture } = useUserTracking();
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
 
   const exportNetwork = useAtomCallback(
     useCallback(
@@ -77,6 +79,7 @@ export const useExportAssetData = () => {
               assetIdsFilter: options.assetIdFilter,
               customerPointIdFilter: options.customerPointIdFilter,
               resultsReader,
+              inferRoughness: isInferRoughnessOn,
             },
           );
         };
@@ -97,7 +100,7 @@ export const useExportAssetData = () => {
           });
         } catch {}
       },
-      [translate, capture],
+      [translate, capture, isInferRoughnessOn],
     ),
   );
 

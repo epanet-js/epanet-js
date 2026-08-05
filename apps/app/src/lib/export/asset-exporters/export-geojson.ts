@@ -11,7 +11,11 @@ import { Feature, Position } from "geojson";
 import { FILE_NAMES } from "./constants";
 import { NUM_DECIMAL_PLACES, COORDINATE_DECIMAL_PLACES } from "../constants";
 import { createProjectionMapper } from "src/lib/projections";
-import { resolveExportProperties } from "./optional-field-defaults";
+import {
+  buildExportDefaults,
+  resolveExportProperties,
+  type ExportDefaults,
+} from "./optional-field-defaults";
 import { isExportableField } from "./excluded-fields";
 import {
   buildPropertyNameResolver,
@@ -50,6 +54,9 @@ export const exportGeoJson = (
   const selectedAssets = options?.assetIdsFilter ?? null;
   const selectedCustomerPoints = options?.customerPointIdFilter ?? null;
   const resultsReader = options?.resultsReader;
+  const defaults = buildExportDefaults(hydraulicModel, {
+    inferRoughness: options?.inferRoughness,
+  });
   const resolvePropertyName = buildPropertyNameResolver(
     hydraulicModel.customAttributes,
     translate,
@@ -83,6 +90,7 @@ export const exportGeoJson = (
       resolvePropertyName,
       simulationValues,
       transformCoord,
+      defaults,
     );
 
     const textContent = `${geoJson},`;
@@ -238,6 +246,7 @@ const assetToGeoJson = (
   resolvePropertyName: PropertyNameResolver,
   simulationResults: Record<string, unknown> = {},
   transformCoord: (p: Position) => Position = (p) => p,
+  defaults?: ExportDefaults,
 ) => {
   const buildConnection = (connection: number) => {
     const asset = hydraulicModel.assets.get(connection);
@@ -276,8 +285,9 @@ const assetToGeoJson = (
     geometry: transformedGeometry as Feature["geometry"],
     properties: {
       ...resolveExportProperties(
-        asset.type,
+        asset,
         asset.feature.properties as Record<string, unknown>,
+        defaults,
       ),
       ...prefixSimulationKeys(simulationResults),
     },
