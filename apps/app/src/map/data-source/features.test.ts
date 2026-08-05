@@ -449,6 +449,37 @@ describe("build optimized source", () => {
       expect(pipe.properties!.color).toBeUndefined();
     });
 
+    it("colors a pipe by the roughness resolved for it", async () => {
+      const IDS = { p1: 1 } as const;
+      const staticSymbology: SymbologySpec = {
+        ...nullSymbologySpec,
+        link: aLinkSymbology({
+          colorRule: aRangeColorRule({
+            breaks: [10, 20, 30],
+            property: "roughness",
+            colors: getColors("Temps", 4),
+          }),
+        }),
+      };
+      const { assets } = HydraulicModelBuilder.with()
+        .aPipe(IDS.p1, { roughness: null })
+        .build();
+
+      const features = await buildOptimizedAssetsSource(
+        assets,
+        staticSymbology,
+        defaultUnits,
+        defaultFormatting,
+        fakeTranslateUnit,
+        null,
+        undefined,
+        { pipe: { roughness: () => 25 } },
+      );
+
+      const [pipe] = features;
+      expect(pipe.properties!.color).toBe(getColors("Temps", 4)[2]);
+    });
+
     it("assigns lengths in meters", async () => {
       const IDS = { p1: 1 } as const;
       const gpmUnits = presets.GPM.units;

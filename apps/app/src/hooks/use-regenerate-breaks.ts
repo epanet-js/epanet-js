@@ -5,6 +5,7 @@ import {
   applyMode,
   type RangeColorRule,
 } from "src/map/symbology/range-color-rule";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getSortedDataForProperty,
   getSortedSimulationDataForBreaks,
@@ -27,6 +28,7 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
   const simulation = useAtomValue(simulationDerivedAtom);
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const { nodeSymbology, linkSymbology } = useSymbologyState();
 
   const [isWorking, setIsWorking] = useState(false);
@@ -75,11 +77,20 @@ export const useRegenerateBreaks = (geometryType: "node" | "link") => {
         currentRule.property,
         hydraulicModel,
         simulationResults,
-        { absValues: Boolean(currentRule.absValues) },
+        {
+          absValues: Boolean(currentRule.absValues),
+          inferRoughness: isInferRoughnessOn,
+        },
       );
       return applyMode(currentRule, currentRule.mode, data);
     },
-    [userTracking, simulation, simulationResults, hydraulicModel],
+    [
+      userTracking,
+      simulation,
+      simulationResults,
+      hydraulicModel,
+      isInferRoughnessOn,
+    ],
   );
 
   const regenerateFromCurrentStep = useCallback(

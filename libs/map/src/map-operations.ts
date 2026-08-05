@@ -1,5 +1,5 @@
 import type { Unit } from "@epanet-js/quantity";
-import type { AssetId, AssetsMap } from "@epanet-js/hydraulic-model";
+import type { Asset, AssetId, AssetsMap } from "@epanet-js/hydraulic-model";
 import type { ResultsReader } from "@epanet-js/simulation";
 import type { FormattingSpec, UnitsSpec } from "@epanet-js/project-settings";
 import type { Style } from "mapbox-gl";
@@ -14,6 +14,27 @@ export type RawData = {
   translateUnit: (unit: Unit) => string;
   simulationResults: ResultsReader | null | undefined;
   selectedIds: Set<AssetId>;
+  defaultsResolvers?: DefaultsResolvers;
+};
+
+export type AssetFieldDefault = number | ((asset: Asset) => number | null);
+
+export type DefaultsResolvers = Record<
+  string,
+  Record<string, AssetFieldDefault>
+>;
+
+export const resolveAssetDefault = (
+  defaults: DefaultsResolvers | undefined,
+  asset: Asset,
+  property: string,
+): number | null => {
+  const fieldDefault = defaults?.[asset.type]?.[property];
+  if (fieldDefault === undefined) return null;
+
+  return typeof fieldDefault === "function"
+    ? fieldDefault(asset)
+    : fieldDefault;
 };
 
 export type ChangeFlags = {

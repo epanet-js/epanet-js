@@ -1,4 +1,9 @@
-import type { RenderSymbology, RenderAssetSymbology } from "@epanet-js/map";
+import {
+  resolveAssetDefault,
+  type RenderSymbology,
+  type RenderAssetSymbology,
+  type DefaultsResolvers,
+} from "@epanet-js/map";
 import { AssetsMap, Junction, Pipe, Pump } from "src/hydraulic-model";
 import { Unit, convertTo } from "@epanet-js/quantity";
 import { Feature } from "src/types";
@@ -38,6 +43,7 @@ export const buildOptimizedAssetsSource = async (
   translateUnit: (unit: Unit) => string,
   simulationResults?: ResultsReader | null,
   selectedIds?: Set<AssetId>,
+  defaultsResolvers?: DefaultsResolvers,
 ): Promise<Feature[]> => {
   const strippedFeatures = [];
   const keepProperties: string[] = ["type", "isActive"];
@@ -83,6 +89,7 @@ export const buildOptimizedAssetsSource = async (
           symbology.link,
           units,
           simulationResults,
+          defaultsResolvers,
         );
         break;
       case "junction":
@@ -91,6 +98,7 @@ export const buildOptimizedAssetsSource = async (
           feature,
           symbology.node,
           simulationResults,
+          defaultsResolvers,
         );
         break;
       case "pump":
@@ -115,6 +123,7 @@ const appendPipeProps = (
   linkSymbology: RenderAssetSymbology,
   units: UnitsSpec,
   simulationResults?: ResultsReader | null,
+  defaultsResolvers?: DefaultsResolvers,
 ) => {
   appendPipeStatus(pipe, feature, simulationResults);
   appendPipeSymbologyProps(
@@ -123,6 +132,7 @@ const appendPipeProps = (
     linkSymbology,
     units,
     simulationResults,
+    defaultsResolvers,
   );
 };
 
@@ -131,12 +141,14 @@ const appendJunctionProps = (
   feature: Feature,
   nodeSymbology: RenderAssetSymbology,
   simulationResults?: ResultsReader | null,
+  defaultsResolvers?: DefaultsResolvers,
 ) => {
   appendJunctionSymbologyProps(
     junction,
     feature,
     nodeSymbology,
     simulationResults,
+    defaultsResolvers,
   );
 };
 
@@ -211,6 +223,7 @@ const appendPipeSymbologyProps = (
   linkSymbology: RenderAssetSymbology,
   units: UnitsSpec,
   simulationResults?: ResultsReader | null,
+  defaultsResolvers?: DefaultsResolvers,
 ) => {
   if (!linkSymbology.colorRule) return;
 
@@ -224,7 +237,9 @@ const appendPipeSymbologyProps = (
       ? (pipeSimulation[property as keyof PipeSimulation] as number)
       : null;
   } else {
-    value = pipe[property as keyof Pipe] as number | null;
+    value =
+      (pipe[property as keyof Pipe] as number | null) ??
+      resolveAssetDefault(defaultsResolvers, pipe, property);
   }
   if (isSimProperty || value !== null) {
     feature.properties!.color = colorFor(linkSymbology.colorRule, value ?? 0);
@@ -243,6 +258,7 @@ const appendJunctionSymbologyProps = (
   feature: Feature,
   nodeSymbology: RenderAssetSymbology,
   simulationResults?: ResultsReader | null,
+  defaultsResolvers?: DefaultsResolvers,
 ) => {
   if (!nodeSymbology.colorRule) return;
 
@@ -257,7 +273,9 @@ const appendJunctionSymbologyProps = (
       ? (junctionSimulation[simProperty] as number)
       : null;
   } else {
-    value = junction[property as keyof Junction] as number | null;
+    value =
+      (junction[property as keyof Junction] as number | null) ??
+      resolveAssetDefault(defaultsResolvers, junction, property);
   }
   if (isSimProperty || value !== null) {
     const fillColor = colorFor(nodeSymbology.colorRule, value ?? 0);

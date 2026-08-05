@@ -14,7 +14,12 @@ import {
   FeatureSources,
 } from "./data-source";
 
-export type { MapOperations, RawData, ChangeFlags } from "@epanet-js/map";
+export type {
+  MapOperations,
+  RawData,
+  ChangeFlags,
+  DefaultsResolvers,
+} from "@epanet-js/map";
 
 // The only dedicated selection layers are the pump/valve halos (selection is otherwise
 // merged into the base layers via the `selected` prop) — hidden while an asset is moving.
@@ -38,6 +43,7 @@ export const updateDeltaSource = withDebugInstrumentation(
       ctx.translateUnit,
       ctx.simulationResults,
       ctx.selectedIds,
+      ctx.defaultsResolvers,
     );
     map.setSource(FeatureSources.DELTA, features);
 
@@ -71,6 +77,7 @@ const rebuildDataSources = async (
     translateUnit,
     simulationResults,
     selectedIds,
+    defaultsResolvers,
   } = ctx;
 
   const features = await buildOptimizedAssetsSource(
@@ -81,6 +88,7 @@ const rebuildDataSources = async (
     translateUnit,
     simulationResults,
     selectedIds,
+    defaultsResolvers,
   );
   map.setSource(FeatureSources.MAIN, features);
   const iconFeatures = buildIconPointsSource(

@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { type MutableRefObject, useRef } from "react";
+import { type MutableRefObject, useMemo, useRef } from "react";
 import type { ModelMoment } from "src/hydraulic-model/model-operation";
 import { projectSettingsAtom } from "src/state/project-settings";
 import type { EphemeralEditingState } from "src/state/drawing";
@@ -32,6 +32,7 @@ import {
   useMapOperations,
   updateDeltaSource,
   type RawData,
+  type DefaultsResolvers,
   type MapOperations,
 } from "./map-operations";
 import { buildBaseStyle, defineEmptySources, makeLayers } from "./build-style";
@@ -42,7 +43,7 @@ import {
   gisLayerCircle,
   gisLayerLabel,
 } from "./layers/gis-layer";
-import { AssetId, AssetsMap } from "src/hydraulic-model";
+import { AssetId, AssetsMap, Pipe } from "src/hydraulic-model";
 import { captureError, captureWarning } from "src/infra/error-tracking";
 import { enrichError, errorName } from "src/infra/errors";
 import { wasSuspendedSince } from "src/infra/tab-visibility";
@@ -55,6 +56,7 @@ import { buildZoneColorExpression } from "src/map/layers/zones";
 
 import { useTranslate } from "src/hooks/use-translate";
 import { useTranslateUnit } from "src/hooks/use-translate-unit";
+import { useRoughnessInferrer } from "src/hooks/use-roughness-inferrer";
 import {
   CustomerPointsOverlay,
   buildCustomerPointsOverlay,
@@ -212,6 +214,11 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
   );
   const assets = useAtomValue(assetsDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const inferRoughness = useRoughnessInferrer();
+  const defaultsResolvers = useMemo<DefaultsResolvers>(
+    () => ({ pipe: { roughness: (asset) => inferRoughness(asset as Pipe) } }),
+    [inferRoughness],
+  );
   const { units, formatting } = useAtomValue(projectSettingsAtom);
   const gisData = useAtomValue(gisDataAtom);
   const isGridOn = useAtomValue(showGridAtom);
@@ -289,6 +296,7 @@ export const useMapStateUpdates = (map: MapEngine | null) => {
         translateUnit,
         simulationResults: mapState.resultsReader,
         selectedIds,
+        defaultsResolvers,
       };
 
       if (isHeavyUpdate(changes, mapState)) {

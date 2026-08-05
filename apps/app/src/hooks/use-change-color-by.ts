@@ -2,6 +2,7 @@ import { useAtomValue } from "jotai";
 import { useCallback, useState } from "react";
 import { useUserTracking } from "src/infra/user-tracking";
 import { symbologyBuilders } from "src/map/symbology/symbology-builders";
+import { useFeatureFlag } from "src/hooks/use-feature-flags";
 import {
   getSortedDataForProperty,
   getSortedSimulationDataForBreaks,
@@ -29,6 +30,7 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
   const simulation = useAtomValue(simulationDerivedAtom);
   const simulationResults = useAtomValue(simulationResultsDerivedAtom);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
+  const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
   const { units } = useAtomValue(projectSettingsAtom);
   const { switchNodeSymbologyTo, switchLinkSymbologyTo } = useSymbologyState();
   const [isWorking, setIsWorking] = useState(false);
@@ -59,10 +61,10 @@ export const useChangeColorBy = (geometryType: "node" | "link") => {
         property,
         hydraulicModel,
         simulationResults,
-        { absValues },
+        { absValues, inferRoughness: isInferRoughnessOn },
       );
     },
-    [hydraulicModel, simulationResults, simulation],
+    [hydraulicModel, simulationResults, simulation, isInferRoughnessOn],
   );
 
   const changeColorBy = useCallback(

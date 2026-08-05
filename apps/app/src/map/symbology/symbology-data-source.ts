@@ -1,4 +1,5 @@
-import { HydraulicModel } from "src/hydraulic-model";
+import { HydraulicModel, Pipe } from "src/hydraulic-model";
+import { effectiveRoughness } from "src/hydraulic-model/pipe-materials";
 import { getSortedValues } from "@epanet-js/hydraulic-model";
 import { EPSResultsReader } from "src/simulation/epanet/eps-results-reader";
 import {
@@ -147,10 +148,27 @@ export const getSortedDataForProperty = (
   property: string,
   hydraulicModel: HydraulicModel,
   resultsReader: ResultsReader | null,
-  options?: { absValues?: boolean },
+  options?: { absValues?: boolean; inferRoughness?: boolean },
 ): number[] => {
   if (resultsReader && isSimulationProperty(property)) {
     return getSortedSimulationValues(resultsReader, property, options);
   }
+  if (property === "roughness" && options?.inferRoughness) {
+    return sortedEffectiveRoughness(hydraulicModel);
+  }
   return getSortedValues(hydraulicModel.assets, property, options);
+};
+
+const sortedEffectiveRoughness = (hydraulicModel: HydraulicModel): number[] => {
+  const values: number[] = [];
+  for (const asset of hydraulicModel.assets.values()) {
+    if (asset.type !== "pipe") continue;
+
+    const value = effectiveRoughness(
+      asset as Pipe,
+      hydraulicModel.pipeMaterials,
+    );
+    if (value !== null) values.push(value);
+  }
+  return values.sort((a, b) => a - b);
 };
