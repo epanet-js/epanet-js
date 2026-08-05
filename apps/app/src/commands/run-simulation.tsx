@@ -32,6 +32,7 @@ import {
   selectedReviewCheckAtom,
 } from "src/state/network-review";
 import { CheckType } from "src/panels/network-review/common";
+import { useValidationRules } from "src/hooks/use-validation-rules";
 import { useFeatureFlag } from "src/hooks/use-feature-flags";
 export const runSimulationShortcut = "shift+enter";
 
@@ -42,6 +43,7 @@ export const useRunSimulation = () => {
   const userTracking = useUserTracking();
   const toggleNetworkReview = useToggleNetworkReview();
   const isInferRoughnessOn = useFeatureFlag("FLAG_INFER_ROUGHNESS");
+  const rules = useValidationRules();
 
   const runSimulation = useAtomCallback(
     useCallback(
@@ -218,7 +220,7 @@ export const useRunSimulation = () => {
           toggleNetworkReview({ source: "auto", state: true });
         };
 
-        const issues = await validateModelAttributes(hydraulicModel);
+        const issues = await validateModelAttributes(hydraulicModel, { rules });
         set(modelAttributesValidationIssuesAtom, issues);
         if (issues.length > 0) {
           userTracking.capture({
@@ -244,6 +246,7 @@ export const useRunSimulation = () => {
         userTracking,
         toggleNetworkReview,
         isInferRoughnessOn,
+        rules,
       ],
     ),
   );

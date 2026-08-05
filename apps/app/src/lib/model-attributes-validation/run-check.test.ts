@@ -1,7 +1,7 @@
 import { HydraulicModelBuilder } from "src/__helpers__/hydraulic-model-builder";
 import { validateModelAttributes } from "./run-check";
 import { groupIssues } from "./issues";
-import { RULES } from "./rules";
+import { RULES, RULES_WITH_INFERRED_ROUGHNESS } from "./rules";
 
 describe("validateModelAttributes", () => {
   describe("pipe roughness", () => {
@@ -831,6 +831,215 @@ describe("validateModelAttributes", () => {
       await expect(
         validateModelAttributes(model, { signal: controller.signal }),
       ).rejects.toMatchObject({ name: "AbortError" });
+    });
+  });
+});
+
+describe("validateModelAttributes with inferred roughness", () => {
+  const rules = RULES_WITH_INFERRED_ROUGHNESS;
+
+  const modelWith = ({
+    material,
+    roughness = null,
+    year,
+    library = ["Cast Iron"],
+  }: {
+    material?: string;
+    roughness?: number | null;
+    year?: number;
+    library?: string[];
+  }) => {
+    const builder = HydraulicModelBuilder.with().aPipe(1, {
+      label: "P1",
+      material,
+      roughness,
+      year,
+      diameter: 100,
+      length: 100,
+    });
+    library.forEach((label) =>
+      builder.aPipeMaterial({ label, entries: [{ age: 0, roughness: 120 }] }),
+    );
+    return builder.build();
+  };
+
+  const ruleIds = async (model: ReturnType<typeof modelWith>) =>
+    (await validateModelAttributes(model, { rules })).map(
+      (issue) => issue.ruleId,
+    );
+
+  describe("required roughness", () => {
+    it("accepts a pipe whose roughness comes from the library", async () => {
+      expect(await ruleIds(modelWith({ material: "Cast Iron" }))).toEqual([]);
+    });
+
+    it("still requires a roughness that cannot be inferred", async () => {
+      expect(await ruleIds(modelWith({ material: "PVC" }))).toContain(
+        "pipe.roughness.present",
+      );
+    });
+
+    it("still requires a roughness for a pipe without a material", async () => {
+      expect(await ruleIds(modelWith({}))).toContain("pipe.roughness.present");
+    });
+
+    it("still rejects an explicit non-positive roughness", async () => {
+      expect(
+        await ruleIds(modelWith({ material: "Cast Iron", roughness: -5 })),
+      ).toEqual(["pipe.roughness.positive"]);
+    });
+
+    it("rejects an inferred non-positive roughness", async () => {
+      const model = HydraulicModelBuilder.with()
+        .aPipe(1, {
+          label: "P1",
+          material: "Cast Iron",
+          roughness: null,
+          diameter: 100,
+          length: 100,
+        })
+        .aPipeMaterial({
+          label: "Cast Iron",
+          entries: [{ age: 0, roughness: -5 }],
+        })
+        .build();
+
+      expect(await ruleIds(model)).toEqual(["pipe.roughness.positive"]);
+    });
+
+    it("keeps requiring roughness under the default rule set", async () => {
+      const issues = await validateModelAttributes(
+        modelWith({ material: "Cast Iron" }),
+        { rules: RULES },
+      );
+
+      expect(issues.map((issue) => issue.ruleId)).toEqual([
+        "pipe.roughness.present",
+      ]);
+    });
+  });
+
+  describe("material in the library", () => {
+    const materialIssues = async (
+      model: ReturnType<typeof modelWith>,
+      ruleSet = rules,
+    ) =>
+      (await validateModelAttributes(model, { rules: ruleSet })).filter(
+        (issue) => issue.field === "material",
+      );
+
+    it("warns when the material has no library entry", async () => {
+      expect(await materialIssues(modelWith({ material: "PVC" }))).toEqual([
+        {
+          ruleId: "pipe.material.inLibrary",
+          entityType: "pipe",
+          entityId: 1,
+          label: "P1",
+          field: "material",
+          severity: "warning",
+          message: "notInLibrary",
+        },
+      ]);
+    });
+
+    it("accepts a material that differs from its library entry by case", async () => {
+      expect(
+        await materialIssues(modelWith({ material: "cast iron" })),
+      ).toEqual([]);
+    });
+
+    it("stays quiet when the pipe has a roughness of its own", async () => {
+      expect(
+        await materialIssues(modelWith({ material: "PVC", roughness: 130 })),
+      ).toEqual([]);
+    });
+
+    it("stays quiet when the library is empty", async () => {
+      expect(
+        await materialIssues(modelWith({ material: "PVC", library: [] })),
+      ).toEqual([]);
+    });
+
+    it("stays quiet for a pipe without a material", async () => {
+      expect(await materialIssues(modelWith({}))).toEqual([]);
+    });
+
+    it("is not reported by the default rule set", async () => {
+      expect(
+        await materialIssues(modelWith({ material: "PVC" }), RULES),
+      ).toEqual([]);
+    });
+
+    describe("a known material that yields no roughness", () => {
+      const aged = (label: string) =>
+        HydraulicModelBuilder.with().aPipeMaterial({
+          label,
+          entries: [
+            { age: 0, roughness: 120 },
+            { age: 20, roughness: 90 },
+          ],
+        });
+
+      const modelWithAgedMaterial = (year?: number) =>
+        aged("Cast Iron")
+          .aPipe(1, {
+            label: "P1",
+            material: "Cast Iron",
+            roughness: null,
+            year,
+            diameter: 100,
+            length: 100,
+          })
+          .build();
+
+      it("warns when the pipe has no installation year", async () => {
+        const issues = await materialIssues(modelWithAgedMaterial());
+
+        expect(issues.map((issue) => issue.ruleId)).toEqual([
+          "pipe.material.providesRoughness",
+        ]);
+        expect(issues[0].severity).toBe("warning");
+      });
+
+      it("stays quiet once the pipe has a year", async () => {
+        expect(await materialIssues(modelWithAgedMaterial(2000))).toEqual([]);
+      });
+
+      it("warns when the material has no usable entries", async () => {
+        const model = HydraulicModelBuilder.with()
+          .aPipeMaterial({
+            label: "Cast Iron",
+            entries: [{ age: null, roughness: null }],
+          })
+          .aPipe(1, {
+            label: "P1",
+            material: "Cast Iron",
+            roughness: null,
+            diameter: 100,
+            length: 100,
+          })
+          .build();
+
+        expect((await materialIssues(model)).map((i) => i.ruleId)).toEqual([
+          "pipe.material.providesRoughness",
+        ]);
+      });
+
+      it("reports only the unknown-material warning when both could apply", async () => {
+        const model = aged("Cast Iron")
+          .aPipe(1, {
+            label: "P1",
+            material: "PVC",
+            roughness: null,
+            diameter: 100,
+            length: 100,
+          })
+          .build();
+
+        expect((await materialIssues(model)).map((i) => i.ruleId)).toEqual([
+          "pipe.material.inLibrary",
+        ]);
+      });
     });
   });
 });

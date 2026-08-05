@@ -1,5 +1,13 @@
-import { CurvePoint, getPumpCurveErrors } from "@epanet-js/hydraulic-model";
+import {
+  CurvePoint,
+  getPumpCurveErrors,
+  Pipe,
+} from "@epanet-js/hydraulic-model";
 import { HydraulicModel } from "src/hydraulic-model";
+import {
+  effectiveRoughness,
+  inferredRoughness,
+} from "src/hydraulic-model/pipe-materials";
 import { EntityType, Rule, Severity, ValidatableEntity } from "./types";
 import {
   NumericCheckName,
@@ -282,3 +290,70 @@ export const RULES: Rule[] = [
     message: "disconnected",
   },
 ];
+
+const effectiveRoughnessOf = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): unknown => effectiveRoughness(entity as Pipe, model?.pipeMaterials ?? []);
+
+const needsInferredRoughness: When = (entity, model) =>
+  readEntityProp(entity, "roughness") == null &&
+  readEntityProp(entity, "material") != null &&
+  !!model &&
+  model.pipeMaterials.length > 0;
+
+const isMaterialInLibrary = (
+  entity: ValidatableEntity,
+  model?: HydraulicModel,
+): boolean => {
+  const label = String(readEntityProp(entity, "material")).toLowerCase();
+  return (
+    !!model &&
+    model.pipeMaterials.some(
+      (material) => material.label.toLowerCase() === label,
+    )
+  );
+};
+
+const materialInLibrary: Rule = {
+  id: "pipe.material.inLibrary",
+  type: "model",
+  entityType: "pipe",
+  field: "material",
+  accessor: field("material"),
+  appliesWhen: needsInferredRoughness,
+  check: (_value, entity, model) =>
+    !entity || isMaterialInLibrary(entity, model),
+  severity: "warning",
+  message: "notInLibrary",
+};
+
+const materialProvidesRoughness: Rule = {
+  id: "pipe.material.providesRoughness",
+  type: "model",
+  entityType: "pipe",
+  field: "material",
+  accessor: field("material"),
+  appliesWhen: (entity, model) =>
+    needsInferredRoughness(entity, model) && isMaterialInLibrary(entity, model),
+  check: (_value, entity, model) =>
+    !entity ||
+    inferredRoughness(entity as Pipe, model?.pipeMaterials ?? []) != null,
+  severity: "warning",
+  message: "noRoughnessForPipe",
+};
+
+const pipeRoughnessRules = RULES.filter(
+  (rule) => rule.entityType === "pipe" && rule.field === "roughness",
+);
+const lastPipeRoughnessId =
+  pipeRoughnessRules[pipeRoughnessRules.length - 1]?.id;
+
+export const RULES_WITH_INFERRED_ROUGHNESS: Rule[] = RULES.flatMap((rule) => {
+  if (rule.entityType !== "pipe" || rule.field !== "roughness") return rule;
+
+  const readsEffectiveValue: Rule = { ...rule, accessor: effectiveRoughnessOf };
+  return rule.id === lastPipeRoughnessId
+    ? [readsEffectiveValue, materialInLibrary, materialProvidesRoughness]
+    : readsEffectiveValue;
+});

@@ -24,6 +24,7 @@ import {
   ValidationGroup,
   ValidationIssue,
 } from "src/lib/model-attributes-validation";
+import { useValidationRules } from "src/hooks/use-validation-rules";
 import {
   CheckType,
   EmptyState,
@@ -515,6 +516,7 @@ const useCheckModelAttributesValidation = () => {
   const [groups, setGroups] = useState<ValidationGroup[]>([]);
   const hydraulicModel = useAtomValue(stagingModelDerivedAtom);
   const setIssues = useSetAtom(modelAttributesValidationIssuesAtom);
+  const rules = useValidationRules();
   const { startLoading, finishLoading, isLoading } = useLoadingStatus();
   const isReady = useRef(false);
 
@@ -527,6 +529,7 @@ const useCheckModelAttributesValidation = () => {
 
       try {
         const issues = await validateModelAttributes(hydraulicModel, {
+          rules,
           signal,
         });
 
@@ -544,7 +547,7 @@ const useCheckModelAttributesValidation = () => {
         throw error;
       }
     },
-    [hydraulicModel, startLoading, finishLoading, setIssues],
+    [hydraulicModel, rules, startLoading, finishLoading, setIssues],
   );
 
   return {
